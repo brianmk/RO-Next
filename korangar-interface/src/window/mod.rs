@@ -406,7 +406,23 @@ where
         let chrome_visible = App::window_chrome_visible();
 
         let adjusted_size = match chrome_visible {
-            true => App::Size::new(data.size.width().max(80.0), data.size.height().max(60.0)),
+            true => {
+                // While the chrome is visible every window can be resized, but the
+                // stored size can still be the "unset" sentinel (0 width / f32::MAX
+                // height) or an extreme value left over from a previous session.
+                // Passing such values into the layout (and from there into the text
+                // shaper) can abort the client, so clamp everything to sane bounds.
+                let width = match data.size.width() <= 0.0 {
+                    true => minimum_width,
+                    false => data.size.width().clamp(80.0, window_size.width()),
+                };
+                let height = match data.size.height() >= 1.0e6 {
+                    true => maximum_height,
+                    false => data.size.height().clamp(60.0, window_size.height()),
+                };
+
+                App::Size::new(width, height)
+            }
             false => App::Size::new(
                 data.size.width().min(maximum_width).max(minimum_width),
                 data.size.height().min(maximum_height).max(minimum_height),
