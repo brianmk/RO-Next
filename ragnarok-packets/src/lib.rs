@@ -4985,20 +4985,24 @@ pub struct OpenMarketPacket {
     pub items: Vec<MarketItemInformation>,
 }
 
+/// One entry of the item list of an NPC shop.
+///
+/// Layout for PACKETVER 2019 (MAIN < 20210203), i.e. the layout used by the
+/// CondaRO server: `{ price u32, discount price u32, item type u8, item id u32
+/// }`.
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub struct ShopItemInformation {
-    pub item_id: ItemId,
     pub price: Price,
     pub discount_price: Price,
     pub item_type: u8,
-    pub view_sprite: u16,
-    pub location: u32,
+    pub item_id: ItemId,
 }
 
+/// Item list of an NPC shop (ZC_PC_PURCHASE_ITEMLIST, 2019 layout).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x0B77)]
+#[header(0x00C6)]
 #[variable_length]
 pub struct ShopItemListPacket {
     #[repeating_remaining]
@@ -5056,7 +5060,7 @@ pub enum BuyItemResult {
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub struct BuyItemInformation {
     pub amount: u16,
-    pub item_id: u16,
+    pub item_id: ItemId,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
@@ -5068,47 +5072,12 @@ pub struct BuyItemsPacket {
     pub items: Vec<BuyItemInformation>,
 }
 
-#[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-pub struct BuyShopItemInformation {
-    pub item_id: ItemId,
-    pub amount: u32,
-}
-
-#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x09D6)]
-#[variable_length]
-pub struct BuyShopItemsPacket {
-    pub items: Vec<BuyShopItemInformation>,
-}
-
-#[derive(Debug, Clone, Copy, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[numeric_type(u16)]
-pub enum BuyShopItemsResult {
-    #[numeric_value(0)]
-    Success,
-    #[numeric_value(0xFFFF)]
-    Error,
-}
-
-#[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-pub struct BoughtShopItemInformation {
-    pub item_id: ItemId,
-    pub amount: u16,
-    pub price: Price,
-}
-
+/// Result of a purchase at an NPC shop (ZC_PC_PURCHASE_RESULT, 2019 layout).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x0B4E)]
-#[variable_length]
-pub struct BuyShopItemsResultPacket {
-    pub result: BuyShopItemsResult,
-    #[repeating_remaining]
-    pub purchased_items: Vec<BoughtShopItemInformation>,
+#[header(0x00CA)]
+pub struct BuyItemsResultPacket {
+    pub result: BuyItemResult,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
@@ -5213,6 +5182,78 @@ mod tests {
 
         assert_eq!(&bytes[4..14], b"VerifyBot4");
         assert_eq!(&bytes[28..34], b"hello\0");
+    }
+
+    #[test]
+    fn shop_item_list_packet_layout() {
+        // rAthena 2019 ZC_PC_PURCHASE_ITEMLIST: 00c6 <len>.W
+        // { <price>.L <discount price>.L <item type>.B <item id>.L }*
+        use crate::{Price, ShopItemInformation, ShopItemListPacket};
+
+        let packet = ShopItemListPacket {
+            items: vec![ShopItemInformation {
+                price: Price(50),
+                discount_price: Price(45),
+                item_type: 0,
+                item_id: ItemId(501),
+            }],
+        };
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00C6);
+        let length = u16::from_le_bytes([bytes[2], bytes[3]]) as usize;
+        assert_eq!(length, bytes.len());
+        assert_eq!(length, 4 + 13);
+        assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 50);
+        assert_eq!(u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]), 45);
+        assert_eq!(bytes[12], 0);
+        assert_eq!(u32::from_le_bytes([bytes[13], bytes[14], bytes[15], bytes[16]]), 501);
+    }
+
+    #[test]
+    fn buy_items_packet_layout() {
+        // rAthena 2019 CZ_PC_PURCHASE_ITEMLIST: 00c8 <len>.W
+        // { <amount>.W <item id>.L }*
+        use crate::{BuyItemInformation, BuyItemsPacket};
+
+        let packet = BuyItemsPacket {
+            items: vec![BuyItemInformation {
+                amount: 2,
+                item_id: ItemId(501),
+            }],
+        };
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00C8);
+        let length = u16::from_le_bytes([bytes[2], bytes[3]]) as usize;
+        assert_eq!(length, bytes.len());
+        assert_eq!(length, 4 + 6);
+        assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 2);
+        assert_eq!(u32::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9]]), 501);
+    }
+
+    #[test]
+    fn buy_items_result_packet_layout() {
+        // rAthena 2019 ZC_PC_PURCHASE_RESULT: 00ca <result>.B
+        use crate::{BuyItemResult, BuyItemsResultPacket};
+
+        let packet = BuyItemsResultPacket {
+            result: BuyItemResult::Successful,
+        };
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00CA);
+        assert_eq!(bytes.len(), 3);
+        assert_eq!(bytes[2], 0);
     }
 
     #[test]

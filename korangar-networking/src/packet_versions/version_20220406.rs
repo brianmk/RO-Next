@@ -1138,16 +1138,22 @@ where
                 metadata: NoMetadata,
                 item_id: item.item_id,
                 item_type: item.item_type,
-                price: item.price,
+                // The 2019 list sends the regular and the discounted price. The server
+                // charges the discounted price, so display that one.
+                price: match item.discount_price {
+                    Price(0) => item.price,
+                    discount_price => discount_price,
+                },
                 quantity: ItemQuantity::Infinite,
+                // The 2019 list does not send the weight or the equipment location.
                 weight: 0,
-                location: item.location,
+                location: 0,
             })
             .collect();
 
         NetworkEvent::OpenShop { items }
     })?;
-    packet_handler.register(|packet: BuyShopItemsResultPacket| NetworkEvent::BuyingCompleted { result: packet.result })?;
+    packet_handler.register(|packet: BuyItemsResultPacket| NetworkEvent::BuyingCompleted { result: packet.result })?;
     // 0x00B1 ZC_LONGPAR_CHANGE carries 32 bit values (zeny and the displayed
     // EXP values). Zeny has to update the player state, the other values are
     // forwarded as well so the EXP bars follow the server instead of going stale.
@@ -1163,6 +1169,7 @@ where
 
         vec![NetworkEvent::UpdateStat { stat_type }]
     })?;
+
     packet_handler.register(|packet: SellListPacket| NetworkEvent::SellItemList { items: packet.items })?;
     packet_handler.register(|packet: SellItemsResultPacket| NetworkEvent::SellingCompleted { result: packet.result })?;
     packet_handler.register_noop::<RequestStatUpResponsePacket>()?;
