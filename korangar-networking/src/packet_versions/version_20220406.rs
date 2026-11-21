@@ -192,6 +192,12 @@ where
         SwitchCharacterSlotResponseStatus::Success => NetworkEvent::CharacterSlotSwitched,
         SwitchCharacterSlotResponseStatus::Error => NetworkEvent::CharacterSlotSwitchFailed,
     })?;
+    // The 2019 character server answers a slot change with 0x08D5 instead of
+    // 0x0B70; both are 8 byte and byte-identical, so the same event is emitted.
+    packet_handler.register(|packet: SwitchCharacterSlotResponsePacket2019| match packet.status {
+        SwitchCharacterSlotResponseStatus::Success => NetworkEvent::CharacterSlotSwitched,
+        SwitchCharacterSlotResponseStatus::Error => NetworkEvent::CharacterSlotSwitchFailed,
+    })?;
 
     Ok(())
 }
@@ -411,6 +417,12 @@ where
         let UpdateStatPacket3 { stat_type } = packet;
         NetworkEvent::UpdateStat { stat_type }
     })?;
+    // 2019 map-load burst packets: sent on every map load / when entities turn or
+    // enter the view. They are registered (as noop for now) so that they do not
+    // throw away the rest of the TCP read, which used to lose spawn packets.
+    packet_handler.register_noop::<ChangeDirectionPacket2019>()?;
+    packet_handler.register_noop::<NotifyActorInitPacket>()?;
+    packet_handler.register_noop::<EnterStatusEffectPacket2019>()?;
     packet_handler.register_noop::<UpdateAttackRangePacket>()?;
     packet_handler.register_noop::<NewMailStatusPacket>()?;
     packet_handler.register_noop::<AchievementUpdatePacket>()?;
@@ -1095,7 +1107,21 @@ where
         NetworkEvent::OpenShop { items }
     })?;
     packet_handler.register(|packet: BuyShopItemsResultPacket| NetworkEvent::BuyingCompleted { result: packet.result })?;
-    packet_handler.register_noop::<ParameterChangePacket>()?;
+    // 0x00B1 ZC_LONGPAR_CHANGE carries 32 bit values (zeny and the displayed
+    // EXP values). Zeny has to update the player state, the other values are
+    // forwarded as well so the EXP bars follow the server instead of going stale.
+    packet_handler.register(|packet: ParameterChangePacket| {
+        let stat_type = match packet.variable_id {
+            1 => StatType::BaseExperience(packet.value as u64),
+            2 => StatType::JobExperience(packet.value as u64),
+            20 => StatType::Zeny(packet.value),
+            22 => StatType::NextBaseExperience(packet.value as u64),
+            23 => StatType::NextJobExperience(packet.value as u64),
+            _ => return Vec::new(),
+        };
+
+        vec![NetworkEvent::UpdateStat { stat_type }]
+    })?;
     packet_handler.register(|packet: SellListPacket| NetworkEvent::SellItemList { items: packet.items })?;
     packet_handler.register(|packet: SellItemsResultPacket| NetworkEvent::SellingCompleted { result: packet.result })?;
     packet_handler.register_noop::<RequestStatUpResponsePacket>()?;

@@ -427,10 +427,37 @@ where
 
                                     break;
                                 }
-                                // The packet callback can take care of handling these properly.
+                                // An unknown packet does not have to cost us the rest of the
+                                // read. Many server packets are variable length and carry their
+                                // total length in bytes 2..4; if the length is plausible and the
+                                // bytes it points at start another known packet, skip exactly
+                                // that many bytes and keep parsing. Only if that is not possible
+                                // fall back to discarding the remainder (a fixed-size packet
+                                // has no reliable length field, so skipping it could put the
+                                // parser in the middle of the next packet).
                                 HandlerResult::UnhandledPacket | HandlerResult::InternalError(..) => {
-                                    discard_remainder = true;
-                                    break;
+                                    let packet_start = byte_reader.get_offset();
+
+                                    match Self::skip_length_of_unknown_packet(&buffer[..data_len], packet_start, &packet_handler) {
+                                        Some(packet_end) => {
+                                            let packet_header =
+                                                u16::from_le_bytes([buffer[packet_start], buffer[packet_start + 1]]);
+
+                                            #[cfg(feature = "interface")]
+                                            korangar_interface::log_debug!(
+                                                "networking: skipping unhandled packet 0x{:04X} ({} bytes)",
+                                                packet_header,
+                                                packet_end - packet_start
+                                            );
+
+                                            let skipped = packet_end - packet_start;
+                                            let _ = byte_reader.slice::<Self>(skipped);
+                                        }
+                                        None => {
+                                            discard_remainder = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -460,6 +487,51 @@ where
                     byte_writer.clear();
                 }
             }
+        }
+    }
+
+    /// Returns the offset after the packet starting at `packet_start` when it
+    /// is an unknown packet that can be skipped safely.
+    ///
+    /// Only variable length packets carry their total size in bytes 2..4, so a
+    /// fixed-size unknown packet would look like a packet with a random length.
+    /// To stay safe the length is only accepted when its size is plausible
+    /// (`>= 4`) and the resulting offset either is the end of the read or
+    /// points at the header of another registered packet.
+    fn skip_length_of_unknown_packet(
+        data: &[u8],
+        packet_start: usize,
+        packet_handler: &PacketHandler<NetworkEventList, Callback>,
+    ) -> Option<usize> {
+        if packet_start + 4 > data.len() {
+            return None;
+        }
+
+        let packet_length = u16::from_le_bytes([data[packet_start + 2], data[packet_start + 3]]) as usize;
+
+        if packet_length < 4 {
+            return None;
+        }
+
+        let packet_end = packet_start.checked_add(packet_length)?;
+
+        if packet_end > data.len() {
+            return None;
+        }
+
+        if packet_end == data.len() {
+            return Some(packet_end);
+        }
+
+        if packet_end + 2 > data.len() {
+            return None;
+        }
+
+        let next_header = u16::from_le_bytes([data[packet_end], data[packet_end + 1]]);
+
+        match packet_handler.is_registered(PacketHeader(next_header)) {
+            true => Some(packet_end),
+            false => None,
         }
     }
 

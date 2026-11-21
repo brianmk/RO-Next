@@ -2013,6 +2013,63 @@ pub struct SwitchCharacterSlotResponsePacket {
     pub remaining_moves: u16,
 }
 
+/// 2019 era `HC_ACK_CHANGE_CHARACTER_SLOT` (0x08D5).
+///
+/// The 2019 character server answers a character slot change with 0x08D5
+/// instead of the 2022 era 0x0B70 used by
+/// [SwitchCharacterSlotResponsePacket], but the 8 byte layout is identical
+/// (see rAthena `chclif_changechar_slot`). Without this registration the client
+/// kept waiting for the slot change to finish forever.
+#[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x08D5)]
+pub struct SwitchCharacterSlotResponsePacket2019 {
+    #[new_default]
+    pub unknown: u16,
+    pub status: SwitchCharacterSlotResponseStatus,
+    pub remaining_moves: u16,
+}
+
+/// 2019 era `ZC_CHANGE_DIRECTION` (0x009C): an entity turned to a new
+/// direction.
+///
+/// rAthena sends this to the client itself on every map load (see
+/// `clif_parse_LoadEndAck` -> `clif_changed_dir`) and for entities that turn
+/// while in view. The client does not use the facing yet, but the packet has to
+/// be parsed so that it does not desynchronize the packet stream (it used to
+/// drop every packet after it in the same TCP read).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x009C)]
+pub struct ChangeDirectionPacket2019 {
+    pub entity_id: EntityId,
+    pub head_direction: u16,
+    pub direction: u8,
+}
+
+/// 2019 era `ZC_NOTIFY_ACTORINIT` (0x0B1B): sent by the map server once the
+/// client has finished loading the map. It only consists of the packet header.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0B1B)]
+pub struct NotifyActorInitPacket {}
+
+/// 2019 era `ZC_EFST_SET_ENTER` (0x0984): a status effect (buff/debuff) that is
+/// already active when the entity enters the view, also sent for every active
+/// status effect on map load.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0984)]
+pub struct EnterStatusEffectPacket2019 {
+    pub entity_id: EntityId,
+    pub effect_id: u16,
+    pub duration: u32,
+    pub remaining_duration: u32,
+    pub value1: i32,
+    pub value2: i32,
+    pub value3: i32,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0091)]

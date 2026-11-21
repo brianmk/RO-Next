@@ -145,6 +145,15 @@ where
         }
     }
 
+    /// Returns whether a handler is registered for the given packet header.
+    ///
+    /// This is used by the networking loop to resynchronize the stream after an
+    /// unknown packet by validating that the bytes following the packet's
+    /// declared length actually start another known packet.
+    pub fn is_registered(&self, packet_header: PacketHeader) -> bool {
+        self.handlers.contains_key(&packet_header)
+    }
+
     /// Take a single packet from the byte stream.
     pub fn process_one(&mut self, byte_reader: &mut ByteReader) -> HandlerResult<Output> {
         let save_point = byte_reader.create_save_point();
