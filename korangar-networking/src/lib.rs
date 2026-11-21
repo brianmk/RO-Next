@@ -868,6 +868,14 @@ where
         }
     }
 
+    /// Requests the emblem image of a guild (`CZ_REQ_GUILD_EMBLEM_IMG`,
+    /// `0x0151`).
+    pub fn request_guild_emblem(&mut self, guild_id: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildEmblemRequestPacket::new(guild_id)),
+        }
+    }
+
     pub fn player_attack(&mut self, entity_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestActionPacket::new(entity_id, Action::Attack)),
@@ -1065,8 +1073,8 @@ mod packet_handlers {
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
-        CharacterId, DisplayEmotionPacket, EntityId, LoginFailedPacket2, LoginFailedReason2, PacketExt, RequestEmotionPacket,
-        RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
+        CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, LoginFailedPacket2,
+        LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
     };
 
     use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnifiedLoginFailedReason};
@@ -1095,6 +1103,50 @@ mod packet_handlers {
         RequestEmotionPacket { emotion: 3 }.packet_to_bytes(&mut writer).unwrap();
 
         assert_eq!(writer.as_slice(), &[0xBF, 0x00, 0x03]);
+    }
+
+    #[test]
+    fn guild_emblem_request_uses_expected_header() {
+        let mut writer = ByteWriter::new();
+        GuildEmblemRequestPacket::new(1).packet_to_bytes(&mut writer).unwrap();
+
+        // `0x0151` + guild id (u32 little endian).
+        assert_eq!(writer.as_slice(), &[0x51, 0x01, 0x01, 0x00, 0x00, 0x00]);
+    }
+
+    #[test]
+    fn guild_emblem_image_packet_is_parsed() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let emblem_data = vec![0x42, 0x4D, 0x36, 0x06, 0x00, 0x00, 0xDE, 0xAD, 0xBE, 0xEF];
+        let packet = GuildEmblemImagePacket {
+            guild_id: 1,
+            emblem_id: 3,
+            emblem_data: emblem_data.clone(),
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+
+        // `0x0152` + packet length + guild id + emblem id + BMP data.
+        assert_eq!(writer.as_slice().len(), 12 + emblem_data.len());
+        assert_eq!(&writer.as_slice()[..2], &[0x52, 0x01]);
+        assert_eq!(&writer.as_slice()[2..4], &(12u16 + emblem_data.len() as u16).to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("guild emblem packet was not handled");
+        };
+
+        assert!(matches!(
+            events.0.as_slice(),
+            [NetworkEvent::GuildEmblemImage {
+                guild_id: 1,
+                emblem_id: 3,
+                emblem_data: data,
+            }] if data == &emblem_data
+        ));
     }
 
     #[test]

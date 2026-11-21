@@ -59,6 +59,7 @@ use korangar_debug::logging::{Colorize, print_debug};
 use korangar_debug::profile_block;
 #[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
+use korangar_interface::application::Clip;
 use korangar_interface::layout::MouseButton;
 use korangar_interface::{Interface, MouseMode};
 use korangar_networking::{
@@ -111,7 +112,7 @@ use crate::loaders::error::LoadError;
 use crate::loaders::*;
 #[cfg(feature = "debug")]
 use crate::renderer::DebugMarkerRenderer;
-use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer};
+use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer, SpriteRenderer};
 use crate::settings::{
     FORCE_UNFOCUSED_ALIAS_ENVIRONMENT_VARIABLE, FORCE_UNFOCUSED_ENVIRONMENT_VARIABLE, FRAMERATE_LOG_ENVIRONMENT_VARIABLE,
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
@@ -175,6 +176,10 @@ const GUILD_NAME_GAP: f32 = 2.0;
 /// Dimmed blue-gray color of the guild name line, so that it is readable but
 /// does not compete with the character name itself.
 const GUILD_NAME_COLOR: Color = Color::rgb_u8(0x9D, 0xB4, 0xC8);
+/// Size of the guild emblem icon next to the guild name, in UI pixels.
+const GUILD_EMBLEM_ICON_SIZE: f32 = 14.0;
+/// Neutral placeholder color for guild emblems that are not loaded yet.
+const GUILD_EMBLEM_PLACEHOLDER_COLOR: Color = Color::rgba_u8(0x78, 0x78, 0x78, 0xB4);
 
 const INITIAL_SCALING_FACTOR: Scaling = Scaling::new(1.0);
 const FALLBACK_PACKET_VERSION: SupportedPacketVersion = SupportedPacketVersion::_20220406;
@@ -343,6 +348,12 @@ pub struct Client {
     /// Context menu that should be opened once the name of the target entity
     /// is known. Stores the entity id and the screen position of the click.
     pending_context_menu: Option<(EntityId, ScreenPosition)>,
+
+    /// Loaded guild emblem textures, keyed by guild id. Requests are sent when
+    /// a player's guild name becomes known (the entity-appear packets only
+    /// carry the guild id) and are rate-limited to one request per guild
+    /// per map session.
+    guild_emblems: GuildEmblemCache,
 
     /// Watchdog for map loads requested after a map change: (map name, spawn
     /// position, last request time, attempts). Re-requests the load if the
@@ -878,6 +889,7 @@ impl Client {
             character_server_reconnect_at: None,
             character_server_reconnect_attempts: 0,
             pending_context_menu: None,
+            guild_emblems: GuildEmblemCache::default(),
             pending_map_load_error: None,
             map_entry_abort_deadline: None,
             map_entry_aborted: false,
@@ -1562,6 +1574,10 @@ impl Client {
                     }
                 }
                 NetworkEvent::MapServerDisconnected { reason } => {
+                    // Guild emblems are only valid for the map session; the server may
+                    // have changed them and the rate limit should be reset as well.
+                    self.guild_emblems.clear();
+
                     if self.shutdown_requested {
                         // We are quitting; the clean logout is done, don't go back to
                         // the character selection screen.
@@ -2050,12 +2066,26 @@ impl Client {
                         .iter_mut()
                         .find(|entity| entity.get_entity_id() == entity_id);
 
+                    let mut guild_id_to_request = None;
+
                     if let Some(entity) = entity {
                         entity.set_details(name);
                         // The player details response also contains the guild name;
                         // an empty name removes the guild label again (for example
                         // after a player left their guild).
                         entity.set_guild_name(guild_name);
+
+                        // The guild label is only known now, request the emblem image
+                        // for it (one request per guild per map session).
+                        if entity.get_guild_name().is_some() {
+                            guild_id_to_request = Some(entity.get_guild_id()).filter(|guild_id| *guild_id != 0);
+                        }
+                    }
+
+                    if let Some(guild_id) = guild_id_to_request
+                        && self.guild_emblems.request_if_needed(guild_id)
+                    {
+                        let _ = self.networking_system.request_guild_emblem(guild_id);
                     }
 
                     // The name was requested because the player right-clicked the
@@ -2070,6 +2100,21 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::GuildEmblemImage {
+                    guild_id,
+                    emblem_id,
+                    emblem_data,
+                } => match decode_emblem(&emblem_data) {
+                    Ok(image) => {
+                        let name = format!("guild_emblem_{guild_id}_{emblem_id}");
+                        let texture = self.texture_loader.create_color(&name, image, true);
+                        self.guild_emblems.insert(guild_id, GuildEmblem { texture });
+                    }
+                    Err(_error) => {
+                        #[cfg(feature = "debug")]
+                        print_debug!("Failed to decode guild emblem of guild {guild_id} (emblem id {emblem_id}): {_error}");
+                    }
+                },
                 NetworkEvent::DamageEffect {
                     source_entity_id,
                     destination_entity_id,
@@ -4598,6 +4643,7 @@ impl Client {
                 point_light_set: &point_light_set,
                 client_state: &self.client_state,
                 library: &self.library,
+                guild_emblems: &self.guild_emblems,
                 mouse_position: input_report.mouse_position,
                 mouse_target: input_report.mouse_target,
                 screen_size,
@@ -5019,6 +5065,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     point_light_set: &'a PointLightSet<'a>,
     client_state: &'a State<ClientState>,
     library: &'a Library,
+    guild_emblems: &'a GuildEmblemCache,
     mouse_position: ScreenPosition,
     mouse_target: PickerTarget,
     screen_size: ScreenSize,
@@ -5355,6 +5402,41 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             FontSize(GUILD_NAME_FONT_SIZE),
             AlignHorizontal::Center,
         );
+
+        // The classic client draws the guild emblem to the left of the guild name.
+        // The emblem is requested when the guild name becomes known; until the map
+        // server answered, a neutral placeholder is drawn instead of nothing/black.
+        let guild_id = entity.get_guild_id();
+
+        if guild_id != 0 {
+            let guild_label_size = self
+                .middle_interface_renderer
+                .measure_text(&guild_label, FontSize(GUILD_NAME_FONT_SIZE));
+            let emblem_extent = GUILD_EMBLEM_ICON_SIZE * self.scaling.get_factor();
+            let emblem_gap = 2.0 * self.scaling.get_factor();
+            let emblem_position = ScreenPosition {
+                left: guild_name_position.left - guild_label_size.width / 2.0 - emblem_gap - emblem_extent,
+                top: guild_name_position.top + (guild_label_size.height - emblem_extent) / 2.0,
+            };
+            let emblem_size = ScreenSize {
+                width: emblem_extent,
+                height: emblem_extent,
+            };
+
+            match self.guild_emblems.emblem(guild_id) {
+                Some(emblem) => self.middle_interface_renderer.render_sprite(
+                    emblem.texture.clone(),
+                    emblem_position,
+                    emblem_size,
+                    ScreenClip::unbound(),
+                    Color::WHITE,
+                    false,
+                ),
+                None => self
+                    .middle_interface_renderer
+                    .render_rectangle(emblem_position, emblem_size, GUILD_EMBLEM_PLACEHOLDER_COLOR),
+            }
+        }
     }
 
     /// Renders the classic map connection portal at every warp entity.

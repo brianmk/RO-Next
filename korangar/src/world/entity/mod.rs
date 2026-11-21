@@ -181,6 +181,13 @@ pub struct Common {
     pub scale: f32,
     #[hidden_element]
     details: ResourceState<String>,
+    /// Id of the guild the entity is in, `0` if it is not in a guild.
+    ///
+    /// The entity-appear packets carry the guild id, the guild *name* is only
+    /// known after the server answered a name request (see
+    /// [`Entity::set_details`]).
+    #[hidden_element]
+    guild_id: u32,
     /// The name of the guild the entity is in.
     ///
     /// `None` for entities that are not in a guild. The entity-appear packets
@@ -475,6 +482,7 @@ impl Common {
         let entity_type = job_id.into();
 
         let details = ResourceState::Unavailable;
+        let guild_id = entity_data.guild_id;
         // Filled in later from the player details response (`0x0A30`).
         let guild_name = match entity_data.guild_name.trim() {
             "" => None,
@@ -503,6 +511,7 @@ impl Common {
             maximum_health_points,
             animation_data: None,
             details,
+            guild_id,
             guild_name,
             animation_state,
             stopped_moving: false,
@@ -514,6 +523,11 @@ impl Common {
 
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         get_entity_part_files(library, self.entity_type, self.job_id, self.sex, None, 0, 0)
+    }
+
+    /// Id of the guild the entity is in, `0` if it is not in a guild.
+    pub fn get_guild_id(&self) -> u32 {
+        self.guild_id
     }
 
     pub fn get_guild_name(&self) -> Option<&str> {
@@ -1516,6 +1530,11 @@ impl Entity {
 
     pub fn get_details(&self) -> Option<&String> {
         self.get_common().details.as_option()
+    }
+
+    /// Id of the guild the entity is in, `0` if it is not in a guild.
+    pub fn get_guild_id(&self) -> u32 {
+        self.get_common().get_guild_id()
     }
 
     /// The guild name of the entity, if it is known and the entity is in a
