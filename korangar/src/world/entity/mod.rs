@@ -1152,6 +1152,15 @@ pub struct Player {
     pub weight: u32,
     /// Maximum carried weight (server `SP_MAXWEIGHT`).
     pub maximum_weight: u32,
+    /// Base experience of the character (server `SP_BASEEXP`).
+    pub base_experience: u64,
+    /// Base experience needed for the next base level (server
+    /// `SP_NEXTBASEEXP`).
+    pub next_base_experience: u64,
+    /// Job experience of the character (server `SP_JOBEXP`).
+    pub job_experience: u64,
+    /// Job experience needed for the next job level (server `SP_NEXTJOBEXP`).
+    pub next_job_experience: u64,
 }
 
 impl Player {
@@ -1220,11 +1229,49 @@ impl Player {
             critical: 0,
             weight: 0,
             maximum_weight: 0,
+            base_experience: 0,
+            next_base_experience: 0,
+            job_experience: 0,
+            next_job_experience: 0,
         }
     }
 
     pub fn get_common(&self) -> &Common {
         &self.common
+    }
+
+    /// Current health points (server `SP_HP`).
+    #[inline(always)]
+    pub fn health_points(&self) -> usize {
+        self.common.health_points
+    }
+
+    /// Maximum health points (server `SP_MAXHP`).
+    #[inline(always)]
+    pub fn maximum_health_points(&self) -> usize {
+        self.common.maximum_health_points
+    }
+
+    /// Base experience progress in percent (0.0 - 100.0).
+    ///
+    /// Returns `None` if the server did not tell us how much experience is
+    /// needed for the next base level yet.
+    pub fn base_experience_percent(&self) -> Option<f64> {
+        match self.next_base_experience {
+            0 => None,
+            next => Some(self.base_experience as f64 / next as f64 * 100.0),
+        }
+    }
+
+    /// Job experience progress in percent (0.0 - 100.0).
+    ///
+    /// Returns `None` if the server did not tell us how much experience is
+    /// needed for the next job level yet.
+    pub fn job_experience_percent(&self) -> Option<f64> {
+        match self.next_job_experience {
+            0 => None,
+            next => Some(self.job_experience as f64 / next as f64 * 100.0),
+        }
     }
 
     pub fn get_common_mut(&mut self) -> &mut Common {
@@ -1289,6 +1336,10 @@ impl Player {
             StatType::Critical(critical) => self.critical = critical,
             StatType::Weight(weight) => self.weight = weight,
             StatType::MaximumWeight(maximum_weight) => self.maximum_weight = maximum_weight,
+            StatType::BaseExperience(base_experience) => self.base_experience = base_experience,
+            StatType::NextBaseExperience(next_base_experience) => self.next_base_experience = next_base_experience,
+            StatType::JobExperience(job_experience) => self.job_experience = job_experience,
+            StatType::NextJobExperience(next_job_experience) => self.next_job_experience = next_job_experience,
             _ => {}
         }
     }
@@ -1499,6 +1550,13 @@ pub fn guild_name_label(entity_type: EntityType, guild_name: Option<&str>) -> Op
 }
 
 #[derive(Clone, StateElement)]
+/// Either a player character or an NPC.
+///
+/// The player variant is intentionally stored inline instead of behind a
+/// `Box`: entities are matched on every frame in the render and update paths,
+/// so an extra allocation/indirection for every entity would be worse than the
+/// size difference between the two variants.
+#[allow(clippy::large_enum_variant)]
 pub enum Entity {
     Player(Player),
     Npc(Npc),

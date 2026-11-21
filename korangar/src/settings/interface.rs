@@ -52,6 +52,11 @@ pub struct InterfaceSettings {
     /// window, persisted here.
     #[serde(default = "default_minimap_transparent_frame")]
     pub minimap_transparent_frame: bool,
+    /// Show the character overview window in its compact form (only HP, SP and
+    /// base EXP progress, without the name, level rows and navigation
+    /// buttons). Can be toggled in the window itself, persisted here.
+    #[serde(default = "default_character_overview_compact")]
+    pub character_overview_compact: bool,
 }
 
 fn default_show_character_names() -> bool {
@@ -71,6 +76,7 @@ fn default_transparent_chat() -> bool {
 }
 
 fn default_minimap_transparent_frame() -> bool {
+fn default_character_overview_compact() -> bool {
     false
 }
 
@@ -87,6 +93,7 @@ impl Default for InterfaceSettings {
             chat_bubble_background: true,
             transparent_chat: false,
             minimap_transparent_frame: false,
+            character_overview_compact: false,
         }
     }
 }
