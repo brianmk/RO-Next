@@ -24,6 +24,9 @@ fn main() {
     korangar::logging::init(verbosity);
     korangar::crash::install();
 
+    // Must happen before the display backend is initialized (see below).
+    sanitize_environment();
+
     korangar::logging::log_info!(
         "korangar {} starting (log verbosity {}, {} command line -v flags)",
         env!("CARGO_PKG_VERSION"),
@@ -36,4 +39,34 @@ fn main() {
     }
 
     korangar::logging::log_info!("korangar exited normally");
+}
+
+/// Removes environment variables that would make the display backend detection
+/// fail before the client can even try to start.
+///
+/// Some launchers export an empty `WAYLAND_SOCKET` variable. The Wayland client
+/// library treats a set `WAYLAND_SOCKET` as a file descriptor and fails with
+/// "InvalidFd" if it is empty or not a valid file descriptor, even when
+/// `WAYLAND_DISPLAY` points to a perfectly usable compositor. The client cannot
+/// recover from that once the Wayland connection is attempted, so the variable
+/// is sanitized before anything else looks at the environment.
+fn sanitize_environment() {
+    let Ok(value) = std::env::var("WAYLAND_SOCKET") else {
+        return;
+    };
+
+    let valid = value.trim().parse::<libc::c_int>().ok().is_some_and(|file_descriptor| {
+        // SAFETY: `fcntl` with `F_GETFD` only queries the file descriptor
+        // table and does not dereference any pointer.
+        unsafe { libc::fcntl(file_descriptor, libc::F_GETFD) != -1 }
+    });
+
+    if !valid {
+        // SAFETY: This runs at the very start of `main`, before any thread or
+        // library is started, so there is no concurrent access to the
+        // environment.
+        unsafe { std::env::remove_var("WAYLAND_SOCKET") };
+
+        korangar::logging::log_warn!("[display] ignoring invalid WAYLAND_SOCKET environment variable");
+    }
 }

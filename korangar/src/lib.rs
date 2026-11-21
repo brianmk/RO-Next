@@ -47,6 +47,7 @@ mod world;
 use std::io::Cursor;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::ops::Deref;
+use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -187,6 +188,149 @@ const INITIAL_SCALING_FACTOR: Scaling = Scaling::new(1.0);
 const FALLBACK_PACKET_VERSION: SupportedPacketVersion = SupportedPacketVersion::_20220406;
 
 static ICON_DATA: &[u8] = include_bytes!("../archive/data/icon.png");
+
+/// Which window backend the client should use.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum BackendPreference {
+    /// Prefer native Wayland when the session provides it, otherwise use X11.
+    Auto,
+    /// Force the native Wayland backend, fail if it is not usable.
+    Wayland,
+    /// Force the X11 backend (native X11 or XWayland), fail if it is not
+    /// usable.
+    X11,
+}
+
+impl BackendPreference {
+    fn from_environment() -> Self {
+        let enabled = |name: &str| {
+            std::env::var(name).is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+        };
+
+        match (enabled("KORANGAR_X11"), enabled("KORANGAR_WAYLAND")) {
+            (true, true) => {
+                crate::logging::log_warn!("[display] both KORANGAR_X11 and KORANGAR_WAYLAND are set, using X11");
+                Self::X11
+            }
+            (true, false) => Self::X11,
+            (false, true) => Self::Wayland,
+            (false, false) => Self::Auto,
+        }
+    }
+}
+
+/// Returns whether a Wayland compositor is reachable through the environment.
+///
+/// `WAYLAND_DISPLAY` is either an absolute path to the socket or a socket name
+/// inside `XDG_RUNTIME_DIR`; `WAYLAND_SOCKET` (a file descriptor passed by the
+/// parent process) also counts. A stale `WAYLAND_DISPLAY` without a socket file
+/// is treated as unavailable, so the client can fall back to X11 instead of
+/// failing to connect.
+fn wayland_session_available() -> bool {
+    if let Some(wayland_display) = std::env::var_os("WAYLAND_DISPLAY").filter(|value| !value.is_empty()) {
+        let wayland_display = Path::new(&wayland_display);
+
+        if wayland_display.is_absolute() {
+            return wayland_display.exists();
+        }
+
+        return std::env::var_os("XDG_RUNTIME_DIR")
+            .filter(|runtime_dir| !runtime_dir.is_empty())
+            .map(|runtime_dir| Path::new(&runtime_dir).join(wayland_display).exists())
+            .unwrap_or(false);
+    }
+
+    std::env::var_os("WAYLAND_SOCKET").is_some_and(|value| !value.is_empty())
+}
+
+fn x11_session_available() -> bool {
+    std::env::var_os("DISPLAY").is_some_and(|value| !value.is_empty())
+}
+
+#[cfg(target_os = "linux")]
+fn create_wayland_event_loop() -> Result<EventLoop<()>, winit::error::EventLoopError> {
+    use winit::platform::wayland::EventLoopBuilderExtWayland;
+
+    let mut builder = EventLoop::builder();
+    builder.with_wayland();
+    builder.build()
+}
+
+#[cfg(target_os = "linux")]
+fn create_x11_event_loop() -> Result<EventLoop<()>, winit::error::EventLoopError> {
+    use winit::platform::x11::EventLoopBuilderExtX11;
+
+    let mut builder = EventLoop::builder();
+    builder.with_x11();
+    builder.build()
+}
+
+/// Creates the event loop and selects the window backend.
+///
+/// Native Wayland is preferred when the session provides a usable compositor.
+/// If connecting to it fails (compositor gone, invalid `WAYLAND_DISPLAY`,
+/// stale socket, ...) the client automatically retries with X11 when `DISPLAY`
+/// is set, instead of panicking like the previous unconditional
+/// `EventLoop::new().unwrap()`. Force a backend with `KORANGAR_X11=1` or
+/// `KORANGAR_WAYLAND=1`.
+#[cfg(target_os = "linux")]
+fn create_event_loop() -> Result<EventLoop<()>, String> {
+    let preference = BackendPreference::from_environment();
+
+    match preference {
+        BackendPreference::X11 => {
+            let event_loop = create_x11_event_loop().map_err(|error| format!("failed to create the X11 event loop: {error}"))?;
+            eprintln!("[display] using X11 backend (forced by KORANGAR_X11)");
+            Ok(event_loop)
+        }
+        BackendPreference::Wayland => {
+            let event_loop = create_wayland_event_loop().map_err(|error| format!("failed to create the Wayland event loop: {error}"))?;
+            eprintln!("[display] using native Wayland backend (forced by KORANGAR_WAYLAND)");
+            Ok(event_loop)
+        }
+        BackendPreference::Auto => {
+            if wayland_session_available() {
+                match create_wayland_event_loop() {
+                    Ok(event_loop) => {
+                        eprintln!("[display] using native Wayland backend");
+                        return Ok(event_loop);
+                    }
+                    Err(error) => {
+                        crate::logging::log_warn!("[display] could not connect to the Wayland compositor: {error}");
+                        if x11_session_available() {
+                            crate::logging::log_warn!("[display] falling back to the X11 backend");
+                        }
+                    }
+                }
+            }
+
+            if x11_session_available() {
+                match create_x11_event_loop() {
+                    Ok(event_loop) => {
+                        eprintln!("[display] using X11 backend (native X11 or XWayland)");
+                        return Ok(event_loop);
+                    }
+                    Err(error) => {
+                        return Err(format!(
+                            "failed to create the X11 event loop: {error}\nhint: make sure DISPLAY points to a running X server or \
+                             XWayland"
+                        ));
+                    }
+                }
+            }
+
+            Err(
+                "no usable display server found: neither WAYLAND_DISPLAY/WAYLAND_SOCKET (with a live compositor) nor DISPLAY is set"
+                    .to_string(),
+            )
+        }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn create_event_loop() -> Result<EventLoop<()>, String> {
+    EventLoop::new().map_err(|error| format!("failed to create the event loop: {error}"))
+}
 
 /// CTR+C (SIGINT), SIGHUP or SIGTERM was received, and the client is supposed
 /// to close.
@@ -947,9 +1091,23 @@ impl Client {
     }
 
     pub fn run(&mut self) {
-        let event_loop = EventLoop::new().unwrap();
+        let event_loop = match create_event_loop() {
+            Ok(event_loop) => event_loop,
+            Err(error) => {
+                crate::logging::log_error!("[display] {error}");
+                crate::logging::log_error!(
+                    "[display] hint: use KORANGAR_X11=1 to force X11/XWayland or KORANGAR_WAYLAND=1 to force native Wayland"
+                );
+                std::process::exit(1);
+            }
+        };
+
         event_loop.set_control_flow(ControlFlow::Poll);
-        let _ = event_loop.run_app(self);
+
+        if let Err(error) = event_loop.run_app(self) {
+            crate::logging::log_error!("[display] the event loop stopped with an error: {error}");
+            std::process::exit(1);
+        }
     }
 
     #[inline(always)]
@@ -1328,6 +1486,35 @@ impl Client {
         self.networking_system
             .connect_to_character_server(self.saved_packet_version, login_data, server);
         self.character_server_reconnect_at = Some(Instant::now() + Duration::from_secs(2));
+    }
+
+    /// Prints one line about the display backend and the window properties.
+    ///
+    /// This is intentional normal output (like the `[fps]` and `[framerate]`
+    /// lines) so that it is possible to verify which backend the client picked
+    /// and how the compositor scaled the window, also in release builds.
+    #[inline(always)]
+    fn log_display_information(&self, window: &Window) {
+        use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+        let backend = match window.window_handle().map(|handle| handle.as_raw()) {
+            Ok(RawWindowHandle::Wayland(_)) => "wayland",
+            Ok(RawWindowHandle::Xcb(_)) => "x11-xcb",
+            Ok(RawWindowHandle::Xlib(_)) => "x11-xlib",
+            Ok(_) => "unknown",
+            Err(_) => "unknown",
+        };
+
+        let size = window.inner_size();
+        let scale_factor = window.scale_factor();
+        let fullscreen = window.fullscreen().is_some();
+        let window_resolution = *self.client_state.follow(client_state().graphics_settings().window_resolution());
+
+        println!(
+            "[display] backend={backend} size={}x{} scale_factor={scale_factor:.2} fullscreen={fullscreen} \
+             resolution={window_resolution:?}",
+            size.width, size.height,
+        );
     }
 
     /// Updates every part of the client that depends on the size of the window.
@@ -4917,13 +5104,26 @@ impl ApplicationHandler for Client {
                     .with_title(CLIENT_NAME)
                     .with_window_icon(Some(icon))
                     .with_visible(false);
-                let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+                let window = match event_loop.create_window(window_attributes) {
+                    Ok(window) => Arc::new(window),
+                    Err(error) => {
+                        crate::logging::log_error!("[display] failed to create the client window: {error}");
+                        crate::logging::log_error!(
+                            "[display] hint: use KORANGAR_X11=1 to force X11/XWayland or KORANGAR_WAYLAND=1 to force native Wayland"
+                        );
+                        std::process::exit(1);
+                    }
+                };
 
                 let backend_name = self.graphics_engine.get_backend_name();
                 window.set_title(&format!("{CLIENT_NAME} ({})", str::to_uppercase(&backend_name)));
                 window.set_cursor_visible(false);
 
                 self.window = Some(window);
+
+                if let Some(window) = self.window.as_ref() {
+                    self.log_display_information(window);
+                }
 
                 #[cfg(feature = "debug")]
                 print_debug!("created {}", "window".magenta());
@@ -5009,6 +5209,9 @@ impl ApplicationHandler for Client {
                     window.request_redraw();
                 }
             }
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                crate::logging::log_info!("[display] window scale factor changed to {scale_factor:.2}");
+            }
             WindowEvent::Focused(focused) => {
                 if !focused {
                     self.input_system.reset();
@@ -5039,9 +5242,14 @@ impl ApplicationHandler for Client {
             WindowEvent::CursorLeft { .. } => self.mouse_cursor.hide(),
             WindowEvent::CursorEntered { .. } => self.mouse_cursor.show(),
             WindowEvent::CursorMoved { position, .. } => self.input_system.update_mouse_position(position),
-            WindowEvent::MouseInput { button, state, .. } => self.input_system.update_mouse_buttons(button, state),
+            WindowEvent::MouseInput { button, state, .. } => {
+                crate::logging::log_debug!("[input] mouse button {button:?} {state:?}");
+                self.input_system.update_mouse_buttons(button, state);
+            }
             WindowEvent::MouseWheel { delta, .. } => self.input_system.update_mouse_wheel(delta),
             WindowEvent::KeyboardInput { event, .. } => {
+                crate::logging::log_debug!("[input] keyboard {:?} {:?}", event.physical_key, event.state);
+
                 if let PhysicalKey::Code(keycode) = event.physical_key {
                     self.input_system.update_keyboard(keycode, event.state);
                 }
