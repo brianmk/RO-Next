@@ -157,6 +157,16 @@ pub enum NetworkEvent {
         text: String,
         color: MessageColor,
     },
+    /// A chat message that should additionally be shown above the speaking
+    /// entity. On the 2019 rAthena server this comes from `ZC_NOTIFY_CHAT`
+    /// (0x008D), which is used for proximity ("normal") chat as well as NPC
+    /// dialogue. The client filters the entity type when rendering, so only
+    /// player speech produces an overhead bubble.
+    OverheadChatMessage {
+        entity_id: EntityId,
+        text: String,
+        color: MessageColor,
+    },
     CharacterSlotSwitched,
     CharacterSlotSwitchFailed,
     /// Update entity details. Mostly received when the client sends

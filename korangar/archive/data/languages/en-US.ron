@@ -9,6 +9,8 @@
     log_in_button_text: "Log in",
     log_in_button_tooltip: "Enter a username and password",
     show_character_names_text: "Show character names",
+    show_chat_bubbles_text: "Show chat bubbles",
+    chat_bubble_background_text: "Chat bubble background",
     menu_window_title: "Menu",
     graphics_settings_button_text: "Graphics settings",
     game_settings_button_text: "Game settings",

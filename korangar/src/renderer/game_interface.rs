@@ -312,6 +312,31 @@ impl GameInterfaceRenderer {
         });
     }
 
+    /// Measure the size of a text in screen pixels, with the UI scaling factor
+    /// already applied. This is used to lay out elements that need the text
+    /// dimensions before rendering (e.g. the background of overhead chat
+    /// bubbles).
+    pub fn measure_text(&self, text: &str, font_size: FontSize) -> ScreenSize {
+        let font_size = FontSize(font_size.0 * self.scaling.get_factor());
+
+        let mut glyphs = self.glyphs.borrow_mut();
+        let size = self.font_loader.layout_text(
+            text,
+            Color::WHITE,
+            self.highlight_color,
+            font_size,
+            1.0,
+            None,
+            Some(&mut glyphs),
+        );
+        glyphs.clear();
+
+        ScreenSize {
+            width: size.x,
+            height: size.y,
+        }
+    }
+
     pub fn render_hover_text(&self, text: &str, scaling: Scaling, mouse_position: ScreenPosition) {
         let offset = ScreenPosition {
             left: 15.0 * scaling.get_factor(),

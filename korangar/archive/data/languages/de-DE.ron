@@ -7,6 +7,8 @@
     remember_username_text: "Benutzername speichern",
     remember_password_text: "Passwort speichern",
     show_character_names_text: "Charakternamen anzeigen",
+    show_chat_bubbles_text: "Chatblasen anzeigen",
+    chat_bubble_background_text: "Hintergrund der Chatblasen",
     log_in_button_text: "Einloggen",
     log_in_button_tooltip: "Benutzername und Passwort eingeben",
     menu_window_title: "Menü",

@@ -100,6 +100,16 @@ where
                 state: self.settings_path.show_character_names(),
                 event: Toggle(self.settings_path.show_character_names()),
             },
+            state_button! {
+                text: client_state().localization().show_chat_bubbles_text(),
+                state: self.settings_path.show_chat_bubbles(),
+                event: Toggle(self.settings_path.show_chat_bubbles()),
+            },
+            state_button! {
+                text: client_state().localization().chat_bubble_background_text(),
+                state: self.settings_path.chat_bubble_background(),
+                event: Toggle(self.settings_path.chat_bubble_background()),
+            },
         );
 
         window! {

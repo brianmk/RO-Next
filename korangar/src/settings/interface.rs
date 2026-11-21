@@ -35,9 +35,25 @@ pub struct InterfaceSettings {
     /// the character is hovered.
     #[serde(default = "default_show_character_names")]
     pub show_character_names: bool,
+    /// Show chat messages as a floating bubble above the speaking player
+    /// character (classic RO "subtitle" style), in addition to the chat window.
+    #[serde(default = "default_show_chat_bubbles")]
+    pub show_chat_bubbles: bool,
+    /// Draw a dark background box behind overhead chat bubbles. If disabled,
+    /// the text is only drawn with an outline.
+    #[serde(default = "default_chat_bubble_background")]
+    pub chat_bubble_background: bool,
 }
 
 fn default_show_character_names() -> bool {
+    true
+}
+
+fn default_show_chat_bubbles() -> bool {
+    true
+}
+
+fn default_chat_bubble_background() -> bool {
     true
 }
 
@@ -50,6 +66,8 @@ impl Default for InterfaceSettings {
             in_game_theme: DEFAULT_THEME_NAME.to_string(),
             world_theme: DEFAULT_THEME_NAME.to_string(),
             show_character_names: true,
+            show_chat_bubbles: true,
+            chat_bubble_background: true,
         }
     }
 }

@@ -246,11 +246,22 @@ where
         })
     })?;
     packet_handler.register(|packet: OverheadMessagePacket| {
-        // FIX: This should be a different event.
-        NetworkEvent::ChatMessage {
-            text: packet.message,
-            color: MessageColor::Broadcast,
-        }
+        // 2019 `ZC_NOTIFY_CHAT` (0x008D): the message is both shown in the chat
+        // window and above the speaking entity. The client decides whether an
+        // overhead bubble is drawn (only player entities get one).
+        let OverheadMessagePacket { entity_id, message } = packet;
+
+        vec![
+            NetworkEvent::ChatMessage {
+                text: message.clone(),
+                color: MessageColor::Broadcast,
+            },
+            NetworkEvent::OverheadChatMessage {
+                entity_id,
+                text: message,
+                color: MessageColor::Broadcast,
+            },
+        ]
     })?;
     packet_handler.register(|packet: ServerMessagePacket| NetworkEvent::ChatMessage {
         text: packet.message,
