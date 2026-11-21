@@ -124,6 +124,11 @@ where
                 state: self.settings_path.chat_bubble_background(),
                 event: Toggle(self.settings_path.chat_bubble_background()),
             },
+            state_button! {
+                text: client_state().localization().show_skill_names_text(),
+                state: self.settings_path.show_skill_names_above_characters(),
+                event: Toggle(self.settings_path.show_skill_names_above_characters()),
+            },
         );
 
         crate::logging::log_trace!("interface_settings: constructed Interface Settings elements, creating window description");

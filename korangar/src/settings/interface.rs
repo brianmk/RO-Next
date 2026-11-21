@@ -210,6 +210,11 @@ pub struct InterfaceSettings {
     /// the text is only drawn with an outline.
     #[serde(default = "default_chat_bubble_background")]
     pub chat_bubble_background: bool,
+    /// Show the name of a used skill above the caster's head, like the original
+    /// client does (`Blessing !!`). Applies to the local player and to other
+    /// visible characters (including population engine shells).
+    #[serde(default = "default_show_skill_names_above_characters")]
+    pub show_skill_names_above_characters: bool,
     /// Draw the chat window without a background so the game world is visible
     /// through it. Can be toggled in the chat window, persisted here.
     #[serde(default = "default_transparent_chat")]
@@ -246,6 +251,10 @@ fn default_chat_bubble_background() -> bool {
     true
 }
 
+fn default_show_skill_names_above_characters() -> bool {
+    true
+}
+
 fn default_transparent_chat() -> bool {
     false
 }
@@ -273,6 +282,7 @@ impl Default for InterfaceSettings {
             show_character_names: true,
             show_chat_bubbles: true,
             chat_bubble_background: true,
+            show_skill_names_above_characters: true,
             transparent_chat: false,
             minimap_transparent_frame: false,
             character_overview_compact: false,
