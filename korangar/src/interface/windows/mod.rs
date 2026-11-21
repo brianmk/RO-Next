@@ -9,6 +9,7 @@ mod character_selection;
 mod chat;
 #[cfg(feature = "debug")]
 mod commands;
+mod context_menu;
 mod dialog;
 mod equipment;
 mod error;
@@ -53,6 +54,7 @@ pub use self::character_selection::CharacterSelectionWindow;
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
+pub use self::context_menu::CharacterContextMenuWindow;
 pub use self::dialog::{DialogWindow, DialogWindowState};
 pub use self::equipment::EquipmentWindow;
 pub use self::error::ErrorWindow;
@@ -92,6 +94,7 @@ pub enum WindowClass {
     BuyOrSell,
     Chat,
     CharacterCreation,
+    ContextMenu,
     CharacterOverview,
     CharacterSelection,
     Dialog,

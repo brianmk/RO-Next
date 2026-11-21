@@ -10,6 +10,7 @@ use ragnarok_packets::{
 };
 use rust_state::State;
 
+use crate::graphics::ScreenPosition;
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::loaders::ServiceId;
 use crate::state::ClientState;
@@ -118,6 +119,22 @@ pub enum InputEvent {
     PlayerInteract {
         /// Id of the entity to interact with.
         entity_id: EntityId,
+    },
+    /// Open the character context menu (right click menu) for the given
+    /// character at the given screen position.
+    OpenCharacterContextMenu {
+        /// Id of the character entity.
+        entity_id: EntityId,
+        /// Screen position at which the menu should be opened.
+        position: ScreenPosition,
+    },
+    /// Close the character context menu.
+    CloseContextMenu,
+    /// Start a whisper to the given character by opening the chat and
+    /// pre-filling the whisper command.
+    WhisperChat {
+        /// Name of the character to whisper to.
+        name: String,
     },
     /// Pick up an item from the ground.
     PickUpItem {

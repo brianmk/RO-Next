@@ -352,6 +352,15 @@ where
         }
     }
 
+    /// Queue a focus request for the element with the given focus id. The
+    /// request is resolved to an element id while the window layouts are
+    /// available.
+    pub fn focus_element(&mut self, focus_id: impl Any) {
+        self.event_queue.queue(Event::FocusElement {
+            focus_id: focus_id.focus_id(),
+        });
+    }
+
     pub fn is_window_with_class_open(&self, window_class: App::WindowClass) -> bool {
         self.windows
             .iter()
@@ -420,6 +429,24 @@ where
         if !T::window_class().is_some_and(|window_class| self.is_window_with_class_open(window_class)) {
             let window = window.to_window();
             self.open_new_window(window);
+        }
+    }
+
+    /// Open a window with the top left corner at the given screen position.
+    ///
+    /// This is meant for popups (like a context menu) that should appear at the
+    /// mouse cursor instead of at a cached window position. The position is not
+    /// stored in the window cache, every call re-places the window.
+    #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    pub fn open_window_at<T>(&mut self, window: T, position: App::Position)
+    where
+        T: CustomWindow<App> + 'static,
+    {
+        let window = window.to_window();
+        self.open_new_window(window);
+
+        if let Some(wrapper) = self.windows.last_mut() {
+            wrapper.data.anchor = Anchor::top_left(position);
         }
     }
 
@@ -697,6 +724,15 @@ pub struct InterfaceFrame<'a, App: Application> {
 impl<App: Application> InterfaceFrame<'_, App> {
     pub fn is_interface_hovered(&self) -> bool {
         self.hovered_window.is_some()
+    }
+
+    /// Returns whether the window with the given class is the one currently
+    /// under the mouse cursor.
+    pub fn is_window_with_class_hovered(&self, window_class: App::WindowClass) -> bool {
+        self.hovered_window
+            .and_then(|window_id| self.windows.iter().find(|wrapper| wrapper.data.id == window_id))
+            .and_then(|wrapper| wrapper.window.get_class())
+            .is_some_and(|class| class == window_class)
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile("render user interface"))]

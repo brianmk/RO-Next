@@ -77,6 +77,13 @@ where
         self.initializing
     }
 
+    /// Create an anchor that puts the top left corner of the window at the
+    /// given position. Used for popups like context menus that are placed at
+    /// the mouse cursor instead of a cached window position.
+    pub fn top_left(position: App::Position) -> Self {
+        Self::initialized(AnchorPoint::TopLeft, position)
+    }
+
     pub fn initialize(&mut self, window_size: App::Size, real_size: App::Size) {
         self.offset = App::Position::new(-real_size.width() / 2.0, -window_size.height() / 4.0);
         self.initializing = false;
