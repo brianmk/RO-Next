@@ -415,6 +415,7 @@ where
     /// even when they are not hovered.
     pub fn set_window_chrome_visible(&mut self, window_chrome_visible: bool) {
         self.window_chrome_visible = window_chrome_visible;
+        App::set_window_chrome_visible(window_chrome_visible);
     }
 
     pub fn has_focus(&self) -> bool {

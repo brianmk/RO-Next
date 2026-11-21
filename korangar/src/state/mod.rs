@@ -546,7 +546,17 @@ impl Application for ClientState {
     fn set_current_theme_type(theme: InterfaceThemeType) {
         CURRENT_THEME.set(theme);
     }
+
+    fn set_window_chrome_visible(window_chrome_visible: bool) {
+        WINDOW_CHROME_VISIBLE.store(window_chrome_visible, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    fn window_chrome_visible() -> bool {
+        WINDOW_CHROME_VISIBLE.load(std::sync::atomic::Ordering::Relaxed)
+    }
 }
+
+static WINDOW_CHROME_VISIBLE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Path to the [`ClientState`] root.
 pub fn client_state() -> impl Path<ClientState, ClientState> {

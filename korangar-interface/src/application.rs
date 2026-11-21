@@ -175,6 +175,16 @@ pub trait Application: Sized + 'static {
     type TextLayouter: TextLayouter<Self>;
 
     fn set_current_theme_type(theme: Self::ThemeType);
+
+    /// Set whether the window chrome (move grip and resize handles) is shown on
+    /// all windows. Used to temporarily allow resizing windows that normally
+    /// have a fixed size (e.g. while the interface settings are open).
+    fn set_window_chrome_visible(_window_chrome_visible: bool) {}
+
+    /// Whether the window chrome is currently shown on all windows.
+    fn window_chrome_visible() -> bool {
+        false
+    }
 }
 
 /// A type for saving and loading window positions and sizes.

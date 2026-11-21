@@ -400,10 +400,18 @@ where
         let minimum_height = *state.get(&self.minimum_height);
         let maximum_height = *state.get(&self.maximum_height);
 
-        let adjusted_size = App::Size::new(
-            data.size.width().min(maximum_width).max(minimum_width),
-            data.size.height().min(maximum_height).max(minimum_height),
-        );
+        // While the window chrome is shown (interface settings open) all windows can be
+        // resized, including windows that normally have a fixed size. In that mode the
+        // stored size is not clamped to the configured minimum/maximum.
+        let chrome_visible = App::window_chrome_visible();
+
+        let adjusted_size = match chrome_visible {
+            true => App::Size::new(data.size.width().max(80.0), data.size.height().max(60.0)),
+            false => App::Size::new(
+                data.size.width().min(maximum_width).max(minimum_width),
+                data.size.height().min(maximum_height).max(minimum_height),
+            ),
+        };
 
         if data.anchor.is_initializing() {
             data.anchor.initialize(window_size, adjusted_size);
@@ -539,7 +547,8 @@ where
         // opt into it via `resizable`.
         let chrome_visible = layout.window_chrome_visible();
 
-        let horizontal_resize_available = *state.get(&self.minimum_width) != *state.get(&self.maximum_width);
+        let horizontal_resize_available =
+            *state.get(&self.minimum_width) != *state.get(&self.maximum_width) || chrome_visible;
         let vertical_resize_availabe = *state.get(&self.resizable) || chrome_visible;
 
         if horizontal_resize_hovered && horizontal_resize_available {
