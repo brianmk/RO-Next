@@ -126,7 +126,15 @@ const CLIENT_NAME: &str = "Korangar";
 const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
-const DEFAULT_BACKGROUND_MUSIC: Option<&str> = Some("bgm\\01.mp3");
+/// Background music that is played while the client is *not* inside a map:
+/// the login window, the server selection and the character selection.
+///
+/// Classic Ragnarok Online hard-codes `BGM/01.mp3` ("Title") for the login
+/// screen and also uses it as the fallback track for maps without their own
+/// music. The file name resolution (archives, `data/mp3`, case-insensitive
+/// loose files) is shared with the map music. If a future client needs a
+/// separate character selection track, this is the only place to change.
+const UI_BACKGROUND_MUSIC: Option<&str> = Some("bgm\\01.mp3");
 const MAIN_MENU_CLICK_SOUND_EFFECT: &str = "버튼소리.wav";
 const ITEM_PICKUP_RANGE: AttackRange = AttackRange(1);
 // TODO: The number of point lights that can cast shadows should be configurable
@@ -652,7 +660,7 @@ impl Client {
 
             directional_shadow_camera.set_level_bound(map.get_level_bound());
 
-            audio_engine.play_background_music_track(DEFAULT_BACKGROUND_MUSIC);
+            audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
             map.set_ambient_sound_sources(&audio_engine);
         });
 
@@ -1104,6 +1112,8 @@ impl Client {
                             client_state().login_settings(),
                             client_state().client_info(),
                         ));
+
+                        self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     }
                 }
                 NetworkEvent::MapServerDisconnected { reason } => {
@@ -1136,7 +1146,10 @@ impl Client {
                     self.client_state.follow_mut(client_state().ground_items()).clear();
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
 
-                    self.audio_engine.play_background_music_track(None);
+                    // We are back at the character selection screen; the map
+                    // music must not continue there, but the menu music has to
+                    // play instead of silence.
+                    self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
 
                     #[cfg(not(feature = "debug"))]
                     self.interface.close_all_windows();
@@ -1820,6 +1833,10 @@ impl Client {
                     }
                 }
                 NetworkEvent::LoggedOut => {
+                    // The server confirmed the logout; switch away from the map
+                    // music right away so there is no silent gap while the map
+                    // server disconnects and the menu map is loaded again.
+                    self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     self.networking_system.disconnect_from_map_server();
                 }
                 NetworkEvent::FriendRequest { requestee } => {
@@ -3051,7 +3068,7 @@ impl Client {
                             let map = self.map.insert(map);
 
                             map.set_ambient_sound_sources(&self.audio_engine);
-                            self.audio_engine.play_background_music_track(DEFAULT_BACKGROUND_MUSIC);
+                            self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
 
                             self.interface.open_window(CharacterSelectionWindow::new(
                                 client_state().character_slots(),
@@ -3355,6 +3372,7 @@ impl Client {
                 self.networking_system.disconnect_from_map_server();
                 self.networking_system.disconnect_from_character_server();
                 self.networking_system.disconnect_from_login_server();
+                self.audio_engine.play_background_music_track(None);
                 event_loop.exit();
                 return;
             }

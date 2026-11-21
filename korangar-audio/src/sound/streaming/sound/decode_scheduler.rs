@@ -101,14 +101,21 @@ impl DecodeScheduler {
                         NextStep::End => break,
                     },
                     Err(error) => {
-                        if let Some(loop_start) = self.should_restart_on_eof(&error) {
-                            if self.seek_to_index(loop_start).is_err() {
+                        // A looping sound should not stop just because the end of the
+                        // stream was reached or a single packet could not be decoded:
+                        // restart from the beginning of the loop region instead, so the
+                        // background music keeps playing.
+                        let restart_index = match self.should_restart_on_eof(&error) {
+                            Some(loop_start) => Some(loop_start),
+                            None => self.transport.loop_region.map(|(loop_start, _)| loop_start),
+                        };
+
+                        match restart_index {
+                            Some(restart_index) if self.seek_to_index(restart_index).is_ok() => {}
+                            _ => {
                                 self.shared.encountered_error.store(true, Ordering::SeqCst);
                                 break;
                             }
-                        } else {
-                            self.shared.encountered_error.store(true, Ordering::SeqCst);
-                            break;
                         }
                     }
                 }
