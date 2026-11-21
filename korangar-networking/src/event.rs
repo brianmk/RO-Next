@@ -174,6 +174,11 @@ pub enum NetworkEvent {
     UpdateEntityDetails {
         entity_id: EntityId,
         name: String,
+        /// The guild name of the entity, if it is a player in a guild.
+        ///
+        /// Only the player details response (`0x0A30`) contains the guild
+        /// name; the response for NPCs does not, so this is `None` for them.
+        guild_name: Option<String>,
     },
     UpdateEntityHealth {
         entity_id: EntityId,

@@ -788,10 +788,15 @@ where
     packet_handler.register(|packet: RequestPlayerDetailsSuccessPacket| NetworkEvent::UpdateEntityDetails {
         entity_id: EntityId(packet.character_id.0),
         name: packet.name,
+        // The server sends an empty guild name for players that are not in a
+        // guild, which has to clear a previously known guild name.
+        guild_name: present_guild_name(packet.guild_name),
     })?;
     packet_handler.register(|packet: RequestEntityDetailsSuccessPacket| NetworkEvent::UpdateEntityDetails {
         entity_id: packet.entity_id,
         name: packet.name,
+        // The NPC details response does not contain a guild name.
+        guild_name: None,
     })?;
     packet_handler.register(|packet: UpdateEntityHealthPointsPacket| {
         let UpdateEntityHealthPointsPacket {
@@ -1013,4 +1018,14 @@ where
     packet_handler.register(|packet: RemoveSkillPacket| NetworkEvent::RemoveSkill { skill_id: packet.skill_id })?;
 
     Ok(())
+}
+
+/// Returns the guild name if the server actually sent one.
+///
+/// rAthena uses empty fixed-length strings for "not in a guild", so an empty
+/// (or whitespace only) name means the player is not in a guild.
+fn present_guild_name(guild_name: String) -> Option<String> {
+    let guild_name = guild_name.trim();
+
+    (!guild_name.is_empty()).then(|| guild_name.to_owned())
 }

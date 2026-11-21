@@ -16,6 +16,17 @@ pub struct EntityData {
     pub head_palette: u16,
     /// Clothes color palette index (`body_palette` in the packets).
     pub body_palette: u16,
+    /// Id of the guild the entity is in, `0` if it is not in a guild.
+    ///
+    /// The entity-appear packets only carry the guild id; the guild *name* is
+    /// sent later as part of the player details response (`0x0A30`,
+    /// `RequestPlayerDetailsSuccessPacket`) and is therefore empty here.
+    pub guild_id: u32,
+    /// The name of the guild the entity is in, if known.
+    ///
+    /// This is empty for entities that spawn through the entity-appear
+    /// packets; the name is filled in once the server answers a name request.
+    pub guild_name: String,
 }
 
 impl EntityData {
@@ -33,6 +44,11 @@ impl EntityData {
             sex: character_information.sex,
             head_palette: character_information.head_palette as u16,
             body_palette: character_information.body_palette as u16,
+            // `CharacterInformation` (0x006B) does not contain any guild
+            // information, the guild name of a character is only sent in the
+            // player details response (`0x0A30`).
+            guild_id: 0,
+            guild_name: String::new(),
         }
     }
 }
@@ -52,6 +68,8 @@ impl From<EntityAppearPacket> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            guild_id: packet.guild_id,
+            guild_name: String::new(),
         }
     }
 }
@@ -71,6 +89,8 @@ impl From<EntityAppear2Packet> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            guild_id: packet.guild_id,
+            guild_name: String::new(),
         }
     }
 }
@@ -92,6 +112,8 @@ impl From<MovingEntityAppearPacket> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            guild_id: packet.guild_id,
+            guild_name: String::new(),
         }
     }
 }

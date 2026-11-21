@@ -181,6 +181,13 @@ pub struct Common {
     pub scale: f32,
     #[hidden_element]
     details: ResourceState<String>,
+    /// The name of the guild the entity is in.
+    ///
+    /// `None` for entities that are not in a guild. The entity-appear packets
+    /// only carry the guild id, so the name is only known after the server
+    /// answered a name request (see [`Entity::set_details`]).
+    #[hidden_element]
+    guild_name: Option<String>,
     #[hidden_element]
     animation_state: AnimationState,
     stopped_moving: bool,
@@ -429,10 +436,7 @@ fn get_entity_part_files(
                 ),
             ]
         }
-        EntityType::Npc => vec![EntityPartFile::new(format!(
-            "npc\\{}",
-            library.get::<JobIdentity>(job_id).to_string()
-        ))],
+        EntityType::Npc => vec![EntityPartFile::new(format!("npc\\{}", library.get::<JobIdentity>(job_id)))],
         // Monster sprite resolution is handled by the library: it falls back from the
         // exact `몬스터\<identity>` path to a verified alias / npc-folder / generic
         // sprite instead of the black `missing.spr` placeholder (the data set is
@@ -471,6 +475,11 @@ impl Common {
         let entity_type = job_id.into();
 
         let details = ResourceState::Unavailable;
+        // Filled in later from the player details response (`0x0A30`).
+        let guild_name = match entity_data.guild_name.trim() {
+            "" => None,
+            guild_name => Some(guild_name.to_owned()),
+        };
         let animation_state = AnimationState::new(entity_type, client_tick);
         let scale = match library.get::<IsBabyJob>(job_id) {
             IsBabyJob(true) => BABY_JOB_SCALE,
@@ -494,6 +503,7 @@ impl Common {
             maximum_health_points,
             animation_data: None,
             details,
+            guild_name,
             animation_state,
             stopped_moving: false,
             sound_state: SoundState::default(),
@@ -504,6 +514,14 @@ impl Common {
 
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         get_entity_part_files(library, self.entity_type, self.job_id, self.sex, None, 0, 0)
+    }
+
+    pub fn get_guild_name(&self) -> Option<&str> {
+        self.guild_name.as_deref()
+    }
+
+    pub fn set_guild_name(&mut self, guild_name: Option<String>) {
+        self.guild_name = guild_name;
     }
 
     pub fn is_dead(&self) -> bool {
@@ -1361,6 +1379,25 @@ impl Npc {
     }
 }
 
+/// The second label line that is drawn under the name of a player, if any.
+///
+/// Only players in a guild get a guild label; NPCs, monsters and players
+/// without a guild keep their single line name label. The name is wrapped in
+/// angle brackets the way it is usually shown in Ragnarok Online clients.
+pub fn guild_name_label(entity_type: EntityType, guild_name: Option<&str>) -> Option<String> {
+    if entity_type != EntityType::Player {
+        return None;
+    }
+
+    let guild_name = guild_name?.trim();
+
+    if guild_name.is_empty() {
+        return None;
+    }
+
+    Some(format!("<{guild_name}>"))
+}
+
 #[derive(Clone, StateElement)]
 pub enum Entity {
     Player(Player),
@@ -1479,6 +1516,21 @@ impl Entity {
 
     pub fn get_details(&self) -> Option<&String> {
         self.get_common().details.as_option()
+    }
+
+    /// The guild name of the entity, if it is known and the entity is in a
+    /// guild.
+    pub fn get_guild_name(&self) -> Option<&str> {
+        self.get_common().get_guild_name()
+    }
+
+    /// Updates the guild name of the entity.
+    ///
+    /// The server sends the guild name together with the player details, so
+    /// this is called from the same place as [`Entity::set_details`]. An empty
+    /// name means the player is not in a guild (anymore) and removes the label.
+    pub fn set_guild_name(&mut self, guild_name: Option<String>) {
+        self.get_common_mut().set_guild_name(guild_name);
     }
 
     pub fn get_tile_position(&self) -> TilePosition {
@@ -1636,5 +1688,41 @@ impl StateWindow<ClientState> for Entity {
             // None and dispaly a message if the entity disappeared.
             elements: (),
         }
+    }
+}
+
+#[cfg(test)]
+mod guild_name_label_tests {
+    use super::{EntityType, guild_name_label};
+
+    #[test]
+    fn player_in_guild_gets_angle_bracketed_label() {
+        assert_eq!(
+            guild_name_label(EntityType::Player, Some("Domination")),
+            Some("<Domination>".to_owned())
+        );
+    }
+
+    #[test]
+    fn player_without_guild_gets_no_label() {
+        assert_eq!(guild_name_label(EntityType::Player, None), None);
+        assert_eq!(guild_name_label(EntityType::Player, Some("")), None);
+        assert_eq!(guild_name_label(EntityType::Player, Some("   ")), None);
+    }
+
+    #[test]
+    fn guild_label_is_trimmed() {
+        assert_eq!(
+            guild_name_label(EntityType::Player, Some("  Domination  ")),
+            Some("<Domination>".to_owned())
+        );
+    }
+
+    #[test]
+    fn npcs_and_monsters_never_get_a_guild_label() {
+        assert_eq!(guild_name_label(EntityType::Npc, Some("Domination")), None);
+        assert_eq!(guild_name_label(EntityType::Monster, Some("Domination")), None);
+        assert_eq!(guild_name_label(EntityType::Warp, Some("Domination")), None);
+        assert_eq!(guild_name_label(EntityType::Hidden, Some("Domination")), None);
     }
 }

@@ -1064,7 +1064,10 @@ where
 mod packet_handlers {
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
-    use ragnarok_packets::{DisplayEmotionPacket, EntityId, LoginFailedPacket2, LoginFailedReason2, PacketExt, RequestEmotionPacket};
+    use ragnarok_packets::{
+        CharacterId, DisplayEmotionPacket, EntityId, LoginFailedPacket2, LoginFailedReason2, PacketExt, RequestEmotionPacket,
+        RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
+    };
 
     use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnifiedLoginFailedReason};
 
@@ -1092,6 +1095,87 @@ mod packet_handlers {
         RequestEmotionPacket { emotion: 3 }.packet_to_bytes(&mut writer).unwrap();
 
         assert_eq!(writer.as_slice(), &[0xBF, 0x00, 0x03]);
+    }
+
+    #[test]
+    fn player_details_packet_carries_guild_name() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let packet = RequestPlayerDetailsSuccessPacket::new(
+            CharacterId(0x1234_5678),
+            "VerifyBot".to_owned(),
+            String::new(),
+            "Domination".to_owned(),
+            String::new(),
+            0,
+        );
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("player-details packet was not handled");
+        };
+
+        assert!(matches!(
+            events.0.as_slice(),
+            [NetworkEvent::UpdateEntityDetails {
+                entity_id: EntityId(0x1234_5678),
+                guild_name: Some(guild_name),
+                ..
+            }] if guild_name == "Domination"
+        ));
+    }
+
+    #[test]
+    fn player_details_packet_without_guild_has_no_guild_name() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let packet = RequestPlayerDetailsSuccessPacket::new(
+            CharacterId(0x1111_2222),
+            "VerifyBot".to_owned(),
+            String::new(),
+            // rAthena pads "no guild" with an empty fixed-length string.
+            String::new(),
+            String::new(),
+            0,
+        );
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("player-details packet was not handled");
+        };
+
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::UpdateEntityDetails {
+            entity_id: EntityId(0x1111_2222),
+            guild_name: None,
+            ..
+        }]));
+    }
+
+    #[test]
+    fn npc_details_packet_has_no_guild_name() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let packet = RequestEntityDetailsSuccessPacket::new(EntityId(0x3333_4444), 0, "Prontera Guard".to_owned(), String::new());
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("entity-details packet was not handled");
+        };
+
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::UpdateEntityDetails {
+            entity_id: EntityId(0x3333_4444),
+            guild_name: None,
+            ..
+        }]));
     }
 
     #[test]

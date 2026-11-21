@@ -164,6 +164,17 @@ fn entity_name_color(entity_type: EntityType) -> Color {
     }
 }
 
+/// Base font size of the character name label, in interface pixels.
+const NAME_FONT_SIZE: f32 = 16.0;
+/// Base font size of the guild name line below the character name.
+const GUILD_NAME_FONT_SIZE: f32 = 12.0;
+/// Vertical gap between the character name and the guild name line, in
+/// interface pixels (scaled with the interface scaling factor when rendering).
+const GUILD_NAME_GAP: f32 = 2.0;
+/// Dimmed blue-gray color of the guild name line, so that it is readable but
+/// does not compete with the character name itself.
+const GUILD_NAME_COLOR: Color = Color::rgb_u8(0x9D, 0xB4, 0xC8);
+
 const INITIAL_SCALING_FACTOR: Scaling = Scaling::new(1.0);
 const FALLBACK_PACKET_VERSION: SupportedPacketVersion = SupportedPacketVersion::_20220406;
 
@@ -1971,7 +1982,11 @@ impl Client {
                 NetworkEvent::OverheadChatMessage { entity_id, text, color } => {
                     self.chat_bubbles.push(entity_id, text, color, client_tick);
                 }
-                NetworkEvent::UpdateEntityDetails { entity_id, name } => {
+                NetworkEvent::UpdateEntityDetails {
+                    entity_id,
+                    name,
+                    guild_name,
+                } => {
                     let entity = self
                         .client_state
                         .follow_mut(client_state().entities())
@@ -1980,6 +1995,10 @@ impl Client {
 
                     if let Some(entity) = entity {
                         entity.set_details(name);
+                        // The player details response also contains the guild name;
+                        // an empty name removes the guild label again (for example
+                        // after a player left their guild).
+                        entity.set_guild_name(guild_name);
                     }
 
                     // The name was requested because the player right-clicked the
@@ -2201,12 +2220,25 @@ impl Client {
                         .follow_mut(client_state().skill_tree_window().chosen_skill_level())
                         .clear();
 
-                    let entity = self
+                    let Some(entity) = self
                         .client_state
                         .follow_mut(client_state().entities())
                         .iter_mut()
                         .find(|entity| entity.get_entity_id().0 == account_id.0)
-                        .unwrap();
+                    else {
+                        // Not every job change belongs to an entity the client knows
+                        // about: the population engine also changes the jobs of its
+                        // in-memory shell players, whose ids are not the ids the client
+                        // received in the spawn packets. Ignore those updates instead of
+                        // panicking on them.
+                        #[cfg(feature = "debug")]
+                        print_debug!(
+                            "[{}] ignoring job change of unknown entity {:?}",
+                            "warning".yellow(),
+                            account_id
+                        );
+                        continue;
+                    };
 
                     // FIX: A job change does not automatically send packets for the
                     // inventory and for unequipping items. We should probably manually
@@ -2223,12 +2255,20 @@ impl Client {
                     }
                 }
                 NetworkEvent::ChangeHair { account_id, hair_id } => {
-                    let entity = self
+                    let Some(entity) = self
                         .client_state
                         .follow_mut(client_state().entities())
                         .iter_mut()
                         .find(|entity| entity.get_entity_id().0 == account_id.0)
-                        .unwrap();
+                    else {
+                        #[cfg(feature = "debug")]
+                        print_debug!(
+                            "[{}] ignoring hair change of unknown entity {:?}",
+                            "warning".yellow(),
+                            account_id
+                        );
+                        continue;
+                    };
 
                     entity.set_hair(hair_id as usize);
 
@@ -2825,8 +2865,7 @@ impl Client {
                 }
                 InputEvent::WhisperChat { name } => {
                     if !self.interface.is_window_with_class_open(WindowClass::Chat) {
-                        self.interface
-                            .open_window(ChatWindow::new(
+                        self.interface.open_window(ChatWindow::new(
                             client_state().chat_window(),
                             client_state().chat_messages(),
                             client_state().interface_settings(),
@@ -5154,6 +5193,9 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 
     /// Renders the name of an entity centered below its feet, like the original
     /// client does.
+    ///
+    /// Players that are in a guild additionally get a second, smaller line with
+    /// their guild name (`<GuildName>`) below the name.
     fn render_entity_name(&self, entity: &Entity) {
         let Some(name) = entity.get_details() else {
             return;
@@ -5180,8 +5222,30 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 
         let color = entity_name_color(entity.get_entity_type());
 
+        let name_font_size = FontSize(NAME_FONT_SIZE);
         self.middle_interface_renderer
-            .render_outlined_text(name, position, color, Color::BLACK, FontSize(16.0), AlignHorizontal::Center);
+            .render_outlined_text(name, position, color, Color::BLACK, name_font_size, AlignHorizontal::Center);
+
+        let Some(guild_label) = guild_name_label(entity.get_entity_type(), entity.get_guild_name()) else {
+            return;
+        };
+
+        // The guild line is stacked directly below the name line. Measuring the name
+        // text keeps the offset correct for every UI scaling factor and font.
+        let name_size = self.middle_interface_renderer.measure_text(name, name_font_size);
+        let guild_name_position = ScreenPosition {
+            left: position.left,
+            top: position.top + name_size.height + GUILD_NAME_GAP * self.scaling.get_factor(),
+        };
+
+        self.middle_interface_renderer.render_outlined_text(
+            &guild_label,
+            guild_name_position,
+            GUILD_NAME_COLOR,
+            Color::BLACK,
+            FontSize(GUILD_NAME_FONT_SIZE),
+            AlignHorizontal::Center,
+        );
     }
 
     /// Renders the classic map connection portal at every warp entity.
