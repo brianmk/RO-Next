@@ -295,6 +295,30 @@ pub enum NetworkEvent {
     SetInventory {
         items: Vec<InventoryItem<NoMetadata>>,
     },
+    /// Full Kafra storage list (2019: `ZC_INVENTORY_START`/`_LIST`/`_END` with
+    /// `inventory_type` 2).
+    SetStorage {
+        items: Vec<InventoryItem<NoMetadata>>,
+        name: String,
+    },
+    /// Kafra storage capacity (`ZC_NOTIFY_STOREITEM_COUNTINFO`, 0x00F2).
+    SetStorageAmount {
+        amount: u16,
+        maximum_amount: u16,
+    },
+    /// An item was added to the Kafra storage (`ZC_ADD_ITEM_TO_STORE`, 0x0A0A).
+    StorageItemAdded {
+        item: InventoryItem<NoMetadata>,
+    },
+    /// An item was removed from the Kafra storage
+    /// (`ZC_DELETE_ITEM_FROM_STORE`, 0x00F6). The index is the 0-based storage
+    /// slot (already converted from the `+1` wire encoding).
+    StorageItemRemoved {
+        storage_index: u16,
+        amount: u32,
+    },
+    /// The server closed the Kafra storage (`ZC_CLOSE_STORE`, 0x00F8).
+    StorageClosed,
     IventoryItemAdded {
         item: InventoryItem<NoMetadata>,
     },

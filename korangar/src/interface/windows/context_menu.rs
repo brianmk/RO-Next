@@ -85,11 +85,44 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
     }
 }
 
+/// What can be done with an item while a Kafra storage window is open.
+#[derive(Clone, Copy, Debug)]
+pub enum ItemStorageAction {
+    /// Store an inventory item into the open storage.
+    Deposit {
+        inventory_index: InventoryIndex,
+        /// Amount that can be stored (at most the stack size).
+        amount: u32,
+    },
+    /// Take a storage item back into the inventory.
+    Withdraw {
+        storage_index: InventoryIndex,
+        /// Amount that can be taken out (at most the stack size).
+        amount: u32,
+    },
+}
+
+impl ItemStorageAction {
+    fn with_amount(&self, amount: u32) -> InputEvent {
+        match self {
+            Self::Deposit { inventory_index, .. } => InputEvent::DepositInventoryItem {
+                inventory_index: *inventory_index,
+                amount,
+            },
+            Self::Withdraw { storage_index, .. } => InputEvent::WithdrawStorageItem {
+                storage_index: *storage_index,
+                amount,
+            },
+        }
+    }
+}
+
 /// Context menu that is opened by right-clicking an item in the inventory.
 pub struct ItemContextMenuWindow {
     inventory_index: InventoryIndex,
     item_id: ItemId,
     action: Option<ItemUseAction>,
+    storage_action: Option<ItemStorageAction>,
 }
 
 impl ItemContextMenuWindow {
@@ -98,7 +131,15 @@ impl ItemContextMenuWindow {
             inventory_index,
             item_id,
             action,
+            storage_action: None,
         }
+    }
+
+    /// Add the Kafra storage entries to the menu (only possible while a storage
+    /// window is open).
+    pub fn with_storage_action(mut self, storage_action: Option<ItemStorageAction>) -> Self {
+        self.storage_action = storage_action;
+        self
     }
 }
 
@@ -136,6 +177,42 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
             queue.queue(InputEvent::CloseContextMenu);
         };
 
+        let storage_action = self.storage_action;
+        let storage_action_single = storage_action;
+        let storage_action_all = storage_action;
+
+        let storage_single_label = match storage_action {
+            Some(ItemStorageAction::Deposit { .. }) => "Store 1",
+            Some(ItemStorageAction::Withdraw { .. }) => "Take out 1",
+            None => "Store 1",
+        };
+
+        let storage_all_label = match storage_action {
+            Some(ItemStorageAction::Deposit { .. }) => "Store all",
+            Some(ItemStorageAction::Withdraw { .. }) => "Take out all",
+            None => "Store all",
+        };
+
+        let storage_single_event = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+            if let Some(storage_action) = storage_action_single {
+                queue.queue(storage_action.with_amount(1));
+            }
+
+            queue.queue(InputEvent::CloseContextMenu);
+        };
+
+        let storage_all_event = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+            if let Some(storage_action) = storage_action_all {
+                let amount = match storage_action {
+                    ItemStorageAction::Deposit { amount, .. } | ItemStorageAction::Withdraw { amount, .. } => amount.max(1),
+                };
+
+                queue.queue(storage_action.with_amount(amount));
+            }
+
+            queue.queue(InputEvent::CloseContextMenu);
+        };
+
         let info_index = self.inventory_index;
 
         window! {
@@ -161,6 +238,18 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                         });
                         queue.queue(InputEvent::CloseContextMenu);
                     },
+                },
+                button! {
+                    text: storage_single_label,
+                    disabled: self.storage_action.is_none(),
+                    disabled_tooltip: "Talk to a Kafra to use the storage",
+                    event: storage_single_event,
+                },
+                button! {
+                    text: storage_all_label,
+                    disabled: self.storage_action.is_none(),
+                    disabled_tooltip: "Talk to a Kafra to use the storage",
+                    event: storage_all_event,
                 },
                 button! {
                     text: "Drop",

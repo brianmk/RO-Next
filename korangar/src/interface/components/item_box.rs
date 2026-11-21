@@ -40,10 +40,13 @@ pub enum ItemBoxContextMenu {
     None,
     /// Open the inventory item context menu (use/equip, view info, ...).
     Inventory,
+    /// Open the storage item context menu (take out, view info).
+    Storage,
 }
 
 struct ItemContextMenuHandler<P> {
     item_path: P,
+    context_menu: ItemBoxContextMenu,
 }
 
 impl<P> ClickHandler<ClientState> for ItemContextMenuHandler<P>
@@ -55,9 +58,13 @@ where
         // item.
         let item = state.try_get(&self.item_path).unwrap();
 
-        queue.queue(InputEvent::OpenInventoryItemMenu {
-            inventory_index: item.index,
-        });
+        match self.context_menu {
+            ItemBoxContextMenu::Inventory => queue.queue(InputEvent::OpenInventoryItemMenu {
+                inventory_index: item.index,
+            }),
+            ItemBoxContextMenu::Storage => queue.queue(InputEvent::OpenStorageItemMenu { storage_index: item.index }),
+            ItemBoxContextMenu::None => {}
+        }
     }
 }
 
@@ -126,7 +133,10 @@ where
         Self {
             item_path,
             handler: ItemBoxHandler::new(item_path, source),
-            context_menu_handler: ItemContextMenuHandler { item_path },
+            context_menu_handler: ItemContextMenuHandler {
+                item_path,
+                context_menu: ItemBoxContextMenu::None,
+            },
             context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
         }
@@ -135,6 +145,7 @@ where
     /// Enable the right click context menu on this item box.
     pub fn with_context_menu(mut self, context_menu: ItemBoxContextMenu) -> Self {
         self.context_menu = context_menu;
+        self.context_menu_handler.context_menu = context_menu;
         self
     }
 }
@@ -219,7 +230,7 @@ where
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);
 
-                if self.context_menu == ItemBoxContextMenu::Inventory {
+                if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
                 }
             }

@@ -168,6 +168,27 @@ pub enum InputEvent {
     },
     /// Close the item info window.
     CloseItemInfo,
+    /// Open the context menu of a Kafra storage item (right click on the item).
+    OpenStorageItemMenu {
+        /// Storage slot of the item (0-based server slot).
+        storage_index: InventoryIndex,
+    },
+    /// Move an item from the inventory into the open Kafra storage.
+    DepositInventoryItem {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+        /// Amount to store.
+        amount: u32,
+    },
+    /// Move an item from the open Kafra storage back into the inventory.
+    WithdrawStorageItem {
+        /// Storage slot of the item (0-based server slot).
+        storage_index: InventoryIndex,
+        /// Amount to take out.
+        amount: u32,
+    },
+    /// Close the Kafra storage window and tell the server about it.
+    CloseStorage,
     /// Pick up an item from the ground.
     PickUpItem {
         /// Id of the item entity to pick up.

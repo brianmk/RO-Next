@@ -2670,6 +2670,9 @@ impl Client {
                     self.client_state.follow_mut(client_state().dialog_window()).end();
 
                     self.map = None;
+                    // A storage window from a previous session must never show up
+                    // in the new character's game state.
+                    self.close_storage_window();
                     // The map server sends the map change packet (and with it the
                     // map data we have to load) right after the login handshake.
                     // If the packet stream is desynchronized that packet would be
@@ -2907,6 +2910,9 @@ impl Client {
                 NetworkEvent::ChangeMap { map_name, position } => {
                     self.map = None;
                     self.skill_sounds.clear();
+                    // The server closes the storage on a map change; close the UI
+                    // and drop the transient list immediately so it can't go stale.
+                    self.close_storage_window();
                     self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
                     self.particle_holder.clear();
@@ -3182,6 +3188,33 @@ impl Client {
                     self.client_state
                         .follow_mut(client_state().inventory())
                         .fill(&self.async_loader, items);
+                }
+                NetworkEvent::SetStorage { items, name } => {
+                    self.client_state
+                        .follow_mut(client_state().storage())
+                        .fill(&self.async_loader, items);
+                    *self.client_state.follow_mut(client_state().storage_name()) = name;
+
+                    if !self.interface.is_window_with_class_open(WindowClass::Storage) {
+                        self.interface.open_window(StorageWindow);
+                    }
+                }
+                NetworkEvent::SetStorageAmount { amount, maximum_amount } => {
+                    *self.client_state.follow_mut(client_state().storage_amount()) = amount;
+                    *self.client_state.follow_mut(client_state().storage_maximum_amount()) = maximum_amount;
+                }
+                NetworkEvent::StorageItemAdded { item } => {
+                    self.client_state
+                        .follow_mut(client_state().storage())
+                        .add_item(&self.async_loader, item);
+                }
+                NetworkEvent::StorageItemRemoved { storage_index, amount } => {
+                    self.client_state
+                        .follow_mut(client_state().storage())
+                        .remove_item(InventoryIndex(storage_index), amount as u16);
+                }
+                NetworkEvent::StorageClosed => {
+                    self.close_storage_window();
                 }
                 NetworkEvent::IventoryItemAdded { item } => {
                     self.client_state
@@ -4102,6 +4135,25 @@ impl Client {
                         input_report.mouse_position,
                     );
                 }
+                InputEvent::OpenStorageItemMenu { storage_index } => {
+                    open_storage_item_menu(
+                        &self.client_state,
+                        &mut self.interface,
+                        storage_index,
+                        input_report.mouse_position,
+                    );
+                }
+                InputEvent::DepositInventoryItem { inventory_index, amount } => {
+                    let _ = self.networking_system.storage_deposit(inventory_index, amount);
+                }
+                InputEvent::WithdrawStorageItem { storage_index, amount } => {
+                    // The server expects the storage slot encoded as `slot + 1`.
+                    let _ = self.networking_system.storage_withdraw(storage_index.0, amount);
+                }
+                InputEvent::CloseStorage => {
+                    let _ = self.networking_system.close_storage();
+                    self.close_storage_window();
+                }
                 InputEvent::OpenItemInfo { inventory_index } => {
                     open_item_info_window(&self.client_state, &mut self.interface, inventory_index);
                 }
@@ -4303,6 +4355,14 @@ impl Client {
                     }
                     (ItemSource::Equipment { .. }, ItemSource::Inventory) => {
                         let _ = self.networking_system.request_item_unequip(item.index);
+                    }
+                    (ItemSource::Inventory, ItemSource::Storage) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.storage_deposit(item.index, amount);
+                    }
+                    (ItemSource::Storage, ItemSource::Inventory) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.storage_withdraw(item.index.0, amount);
                     }
                     _ => {}
                 },
@@ -5060,6 +5120,19 @@ impl Client {
                 eprintln!("resource load failed: {other:?}: {error:?}");
             }
         }
+    }
+
+    /// Close the Kafra storage window and clear the transient storage state.
+    ///
+    /// Called when the server closes the storage (`ZC_CLOSE_STORE`), when the
+    /// player closes it in the UI and defensively on map changes so a stale
+    /// window can never show items from a previous storage session.
+    fn close_storage_window(&mut self) {
+        self.interface.close_window_with_class(WindowClass::Storage);
+        self.client_state.follow_mut(client_state().storage()).clear();
+        *self.client_state.follow_mut(client_state().storage_amount()) = 0;
+        *self.client_state.follow_mut(client_state().storage_maximum_amount()) = 0;
+        *self.client_state.follow_mut(client_state().storage_name()) = String::new();
     }
 
     /// Aborts the current map entry after its map data could not be loaded and
@@ -6146,8 +6219,51 @@ fn open_inventory_item_menu(
 
     let action = item_use_action(item);
 
+    // While a Kafra storage window is open the same menu can store the item.
+    let storage_action = match interface.is_window_with_class_open(WindowClass::Storage) {
+        true => Some(ItemStorageAction::Deposit {
+            inventory_index,
+            amount: item_amount(item),
+        }),
+        false => None,
+    };
+
     interface.close_window_with_class(WindowClass::ContextMenu);
-    interface.open_window_at(ItemContextMenuWindow::new(inventory_index, item.item_id, action), position);
+    interface.open_window_at(
+        ItemContextMenuWindow::new(inventory_index, item.item_id, action).with_storage_action(storage_action),
+        position,
+    );
+}
+
+/// Open the context menu of a Kafra storage item.
+fn open_storage_item_menu(
+    state: &State<ClientState>,
+    interface: &mut Interface<'static, ClientState>,
+    storage_index: InventoryIndex,
+    position: ScreenPosition,
+) {
+    let items = state.follow(client_state().storage().items());
+    let Some(item) = items.iter().find(|item| item.index == storage_index) else {
+        return;
+    };
+
+    interface.close_window_with_class(WindowClass::ContextMenu);
+    interface.open_window_at(
+        ItemContextMenuWindow::new(storage_index, item.item_id, None).with_storage_action(Some(ItemStorageAction::Withdraw {
+            storage_index,
+            amount: item_amount(item),
+        })),
+        position,
+    );
+}
+
+/// The amount of an [InventoryItem]: the stack size for regular items, one for
+/// equipment and other non-stackable items.
+fn item_amount(item: &korangar_networking::InventoryItem<ResourceMetadata>) -> u32 {
+    match &item.details {
+        korangar_networking::InventoryItemDetails::Regular { amount, .. } => (*amount).into(),
+        korangar_networking::InventoryItemDetails::Equippable { .. } => 1,
+    }
 }
 
 /// Open the info window of the inventory item with the given inventory index.

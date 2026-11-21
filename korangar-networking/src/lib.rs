@@ -983,6 +983,34 @@ where
         }
     }
 
+    /// Move items from the inventory into the open Kafra storage
+    /// (`CZ_MOVE_ITEM_FROM_BODY_TO_STORE`, 2019 opcode 0x00F3).
+    pub fn storage_deposit(&mut self, inventory_index: InventoryIndex, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(StorageDepositPacket { inventory_index, amount }),
+        }
+    }
+
+    /// Move items from the open Kafra storage back into the inventory
+    /// (`CZ_MOVE_ITEM_FROM_STORE_TO_BODY`, 2019 opcode 0x00F5). The server
+    /// expects the storage slot encoded as `slot + 1`.
+    pub fn storage_withdraw(&mut self, storage_index: u16, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(StorageWithdrawPacket {
+                storage_index: storage_index.saturating_add(1),
+                amount,
+            }),
+        }
+    }
+
+    /// Close the open Kafra storage window (`CZ_CLOSE_STORE`, 2019 opcode
+    /// 0x00F7).
+    pub fn close_storage(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CloseStoragePacket {}),
+        }
+    }
+
     pub fn start_dialog(&mut self, npc_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(StartDialogPacket::new(npc_id)),
@@ -1157,6 +1185,7 @@ mod packet_handlers {
         LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
     };
 
+    use crate::event::NetworkEventList;
     use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnifiedLoginFailedReason};
 
     #[test]
@@ -1656,6 +1685,175 @@ mod packet_handlers {
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0984)));
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0A37)));
         assert!(!handler.is_registered(ragnarok_packets::PacketHeader(0x0FFF)));
+    }
+
+    fn feed(handler: &mut ragnarok_packets::handler::PacketHandler<NetworkEventList, NoPacketCallback>, bytes: &[u8]) -> NetworkEventList {
+        let mut reader = ByteReader::without_metadata(bytes);
+        let result = handler.process_one(&mut reader);
+
+        match result {
+            HandlerResult::Ok(events) => events,
+            HandlerResult::UnhandledPacket => panic!("packet 0x{:04X} is not registered", u16::from_le_bytes([bytes[0], bytes[1]])),
+            HandlerResult::PacketCutOff => panic!("packet was reported as cut off: {bytes:?}"),
+            HandlerResult::InternalError(error) => panic!("packet handler failed: {error:?}"),
+        }
+    }
+
+    fn regular_item_entry(raw_index: u16) -> Vec<u8> {
+        let mut entry = Vec::new();
+        entry.extend_from_slice(&raw_index.to_le_bytes()); // index
+        entry.extend_from_slice(&501u32.to_le_bytes()); // item id
+        entry.push(0); // item type
+        entry.extend_from_slice(&5u16.to_le_bytes()); // amount
+        entry.extend_from_slice(&0u32.to_le_bytes()); // equipped position
+        entry.extend_from_slice(&[0u8; 16]); // cards
+        entry.extend_from_slice(&0u32.to_le_bytes()); // hire expiration
+        entry.push(0); // flags
+        entry
+    }
+
+    fn list_packet(header: u16, inventory_type: u8, payload: &[u8]) -> Vec<u8> {
+        let length = (4 + 1 + payload.len()) as u16;
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&header.to_le_bytes());
+        bytes.extend_from_slice(&length.to_le_bytes());
+        bytes.push(inventory_type);
+        bytes.extend_from_slice(payload);
+        bytes
+    }
+
+    fn list_start(inventory_type: u8, name: &str) -> Vec<u8> {
+        let length = (4 + 1 + name.len() + 1) as u16;
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x0B08u16.to_le_bytes());
+        bytes.extend_from_slice(&length.to_le_bytes());
+        bytes.push(inventory_type);
+        bytes.extend_from_slice(name.as_bytes());
+        bytes.push(0);
+        bytes
+    }
+
+    fn list_end(inventory_type: u8) -> Vec<u8> {
+        vec![0x0B, 0x0B, inventory_type, 0]
+    }
+
+    #[test]
+    fn inventory_and_storage_lists_are_routed_by_inventory_type() {
+        // Inventory list (type 0): the raw wire index is already `server slot + 2`,
+        // so InventoryIndex reports slot 0.
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        feed(&mut handler, &list_start(0, ""));
+        feed(&mut handler, &list_packet(0x0B09, 0, &regular_item_entry(2)));
+        let events = feed(&mut handler, &list_end(0));
+
+        assert!(
+            matches!(events.0.as_slice(), [NetworkEvent::SetInventory { items }] if items.len() == 1 && items[0].index == ragnarok_packets::InventoryIndex(0))
+        );
+
+        // Storage list (type 2): the wire index is `server slot + 1`; a storage
+        // slot zero is encoded as raw index 1 and must come out as slot 0.
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        feed(&mut handler, &list_start(2, "Storage"));
+        feed(&mut handler, &list_packet(0x0B09, 2, &regular_item_entry(1)));
+        let events = feed(&mut handler, &list_end(2));
+
+        assert!(
+            matches!(events.0.as_slice(), [NetworkEvent::SetStorage { items, name }] if items.len() == 1 && items[0].index == ragnarok_packets::InventoryIndex(0) && name == "Storage")
+        );
+    }
+
+    #[test]
+    fn cart_and_guild_storage_lists_are_ignored_without_desync() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        feed(&mut handler, &list_start(1, ""));
+        feed(&mut handler, &list_packet(0x0B09, 1, &regular_item_entry(2)));
+        let events = feed(&mut handler, &list_end(1));
+
+        assert!(events.0.is_empty());
+    }
+
+    #[test]
+    fn storage_add_remove_amount_and_close_packets() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0A0A ZC_ADD_ITEM_TO_STORE, 2019 layout (57 bytes).
+        let mut added = Vec::new();
+        added.extend_from_slice(&0x0A0Au16.to_le_bytes());
+        added.extend_from_slice(&1u16.to_le_bytes()); // storage slot 0 (+1)
+        added.extend_from_slice(&5i32.to_le_bytes()); // amount
+        added.extend_from_slice(&501u32.to_le_bytes()); // item id
+        added.extend_from_slice(&[0, 1, 0, 0]); // type, identified, damaged, refine
+        added.extend_from_slice(&[0u8; 16]); // cards
+        added.extend_from_slice(&[0u8; 25]); // options
+        assert_eq!(added.len(), 57);
+
+        let events = feed(&mut handler, &added);
+        assert!(
+            matches!(events.0.as_slice(), [NetworkEvent::StorageItemAdded { item }] if item.index == ragnarok_packets::InventoryIndex(0))
+        );
+
+        // 0x00F2 amount, 0x00F6 remove, 0x00F8 close.
+        let mut amount = Vec::new();
+        amount.extend_from_slice(&0x00F2u16.to_le_bytes());
+        amount.extend_from_slice(&3u16.to_le_bytes());
+        amount.extend_from_slice(&300u16.to_le_bytes());
+        assert!(matches!(feed(&mut handler, &amount).0.as_slice(), [
+            NetworkEvent::SetStorageAmount {
+                amount: 3,
+                maximum_amount: 300
+            }
+        ]));
+
+        let mut removed = Vec::new();
+        removed.extend_from_slice(&0x00F6u16.to_le_bytes());
+        removed.extend_from_slice(&1u16.to_le_bytes());
+        removed.extend_from_slice(&2u32.to_le_bytes());
+        assert!(matches!(feed(&mut handler, &removed).0.as_slice(), [
+            NetworkEvent::StorageItemRemoved {
+                storage_index: 0,
+                amount: 2
+            }
+        ]));
+
+        assert!(matches!(feed(&mut handler, &[0xF8, 0x00]).0.as_slice(), [
+            NetworkEvent::StorageClosed
+        ]));
+    }
+
+    #[test]
+    fn storage_deposit_and_withdraw_packets_use_the_expected_index_encoding() {
+        use ragnarok_packets::{CloseStoragePacket, PacketExt, StorageDepositPacket, StorageWithdrawPacket};
+
+        let mut writer = ByteWriter::new();
+        StorageDepositPacket {
+            inventory_index: ragnarok_packets::InventoryIndex(0),
+            amount: 5,
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(bytes.len(), 8);
+        // Inventory index 0 is encoded as 2.
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 2);
+
+        let mut writer = ByteWriter::new();
+        StorageWithdrawPacket {
+            storage_index: 1,
+            amount: 5,
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(bytes.len(), 8);
+        // The caller passes the storage slot + 1.
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 1);
+
+        let mut writer = ByteWriter::new();
+        CloseStoragePacket {}.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.into_inner(), vec![0xF7, 0x00]);
     }
 
     #[test]
