@@ -2756,6 +2756,14 @@ impl Client {
                 InputEvent::ChooseDialogOption { npc_id, option } => {
                     let _ = self.networking_system.choose_dialog_option(npc_id, option);
 
+                    // The official client closes its menu window as soon as an
+                    // option is picked; the dialog window itself stays open. In
+                    // our combined dialog window this means that the choice
+                    // buttons have to disappear right away. Otherwise the next
+                    // menu (or the answer of the NPC) would be appended below
+                    // the options of the previous menu.
+                    self.client_state.follow_mut(client_state().dialog_window()).clear_choices();
+
                     if option == -1 {
                         self.interface.close_window_with_class(WindowClass::Dialog);
                     }

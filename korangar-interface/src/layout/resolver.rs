@@ -102,6 +102,23 @@ where
         self.text_layouter
     }
 
+    /// Narrows the available area by the given amount, for example to reserve
+    /// space for a scroll bar on the right side.
+    pub fn reduce_available_width(&mut self, amount: f32) {
+        self.available_area.width -= amount;
+    }
+
+    /// Gives back vertical space that was previously consumed, so that an
+    /// element can consume less height than the space it was offered.
+    pub fn release_used_height(&mut self, height: f32) {
+        self.available_area.top -= height;
+        self.used_height -= height;
+
+        if let Some(available_height) = &mut self.available_area.height {
+            *available_height += height;
+        }
+    }
+
     pub fn push_top(&mut self, height: f32) {
         self.push_gaps();
 
