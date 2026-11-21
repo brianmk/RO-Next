@@ -25,6 +25,7 @@ mod login;
 #[cfg(feature = "debug")]
 mod maps;
 mod menu;
+mod minimap;
 #[cfg(feature = "debug")]
 mod packet_inspector;
 #[cfg(feature = "debug")]
@@ -69,6 +70,7 @@ pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 #[cfg(feature = "debug")]
 pub use self::maps::MapsWindow;
 pub use self::menu::MenuWindow;
+pub use self::minimap::MinimapWindow;
 #[cfg(feature = "debug")]
 pub use self::packet_inspector::PacketInspectorWindow;
 #[cfg(feature = "debug")]
@@ -107,6 +109,7 @@ pub enum WindowClass {
     FriendRequest,
     Login,
     Menu,
+    Minimap,
     Respawn,
     SelectServer,
     Sell,

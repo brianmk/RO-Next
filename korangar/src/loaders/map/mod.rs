@@ -1,3 +1,4 @@
+mod minimap;
 mod vertices;
 mod water_plane;
 
@@ -20,6 +21,7 @@ use ragnarok_formats::map::{GatData, GroundData, MapData, MapResources};
 use ragnarok_formats::version::MapFormatMetadata;
 use wgpu::{BufferUsages, Device, Queue};
 
+use self::minimap::generate_minimap;
 use self::vertices::{generate_tile_vertices, ground_vertices};
 use self::water_plane::generate_water_plane;
 use super::error::LoadError;
@@ -139,6 +141,11 @@ impl MapLoader {
 
         let gat_file = format!("data\\{}", map_data.gat_file);
         let mut gat_data: GatData = parse_generic_data(&gat_file, &self.game_file_loader)?;
+
+        // The client archives have no per-map minimap images, so build one from
+        // the ground and walkability data that was just loaded. This runs on the
+        // map loader thread, never on the render thread.
+        let minimap = generate_minimap(&resource_file, &ground_data, &gat_data, &texture_loader);
 
         #[cfg(feature = "debug")]
         let map_data_clone = map_data.clone();
@@ -305,7 +312,7 @@ impl MapLoader {
         let light_sources_kdtree = KDTree::from_objects(&light_source_spheres);
         let background_music_track_name = self.audio_engine.get_track_for_map(&map_file_name);
 
-        let map = Arc::new(Map::new(
+        let mut map = Map::new(
             gat_data.map_width as u16,
             gat_data.map_height as u16,
             object_kdtree.root_boundary(),
@@ -335,7 +342,13 @@ impl MapLoader {
             videos,
             #[cfg(feature = "debug")]
             map_data_clone,
-        ));
+        );
+
+        if let Some(minimap) = minimap {
+            map.set_minimap(minimap);
+        }
+
+        let map = Arc::new(map);
 
         let _result = self.cache.lock().as_mut().unwrap().insert(resource_file.clone(), map.clone());
 

@@ -99,6 +99,18 @@ impl WaterPlane {
 }
 
 #[derive(RustState)]
+/// A runtime generated minimap texture plus the information needed to place a
+/// player marker on it.
+pub struct MinimapData {
+    pub texture: Arc<Texture>,
+    /// Size of the generated texture in pixels.
+    pub width: u16,
+    pub height: u16,
+    /// Size of the map in GAT cells (the coordinate space the server uses).
+    pub cells_width: u16,
+    pub cells_height: u16,
+}
+
 pub struct Map {
     width: u16,
     height: u16,
@@ -127,6 +139,7 @@ pub struct Map {
     light_source_kdtree: KDTree<LightSourceKey, Sphere>,
     background_music_track_name: Option<String>,
     videos: Mutex<Vec<Video>>,
+    minimap: Option<MinimapData>,
     #[cfg(feature = "debug")]
     map_data: MapData,
 }
@@ -187,6 +200,7 @@ impl Map {
             light_source_kdtree,
             background_music_track_name,
             videos,
+            minimap: None,
             #[cfg(feature = "debug")]
             map_data,
         }
@@ -249,6 +263,15 @@ impl Map {
 
     pub fn get_tile_picker_vertex_buffer(&self) -> &Buffer<TileVertex> {
         &self.tile_picker_vertex_buffer
+    }
+
+    /// Runtime generated minimap of this map (see [`MinimapData`]).
+    pub fn set_minimap(&mut self, minimap: MinimapData) {
+        self.minimap = Some(minimap);
+    }
+
+    pub fn get_minimap(&self) -> Option<&MinimapData> {
+        self.minimap.as_ref()
     }
 
     pub fn get_level_bound(&self) -> AABB {

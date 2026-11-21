@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 #[cfg(feature = "debug")]
 use korangar_debug::logging::{Colorize, print_debug};
-use korangar_interface::window::Anchor;
+use korangar_interface::window::{Anchor, AnchorPoint};
 use ron::ser::PrettyConfig;
 use serde::{Deserialize, Serialize};
 
 use super::WindowClass;
-use crate::graphics::ScreenSize;
+use crate::graphics::{ScreenPosition, ScreenSize};
 use crate::state::ClientState;
 
 #[derive(Serialize, Deserialize)]
@@ -37,6 +37,29 @@ impl WindowCache {
     #[cfg(feature = "debug")]
     const FILE_NAME: &'static str = "client/window_cache_debug.ron";
 
+    /// Give windows that need a specific initial position a sensible default.
+    ///
+    /// This is only used the first time a window is opened (afterwards the
+    /// position the user dragged it to is loaded from the cache file).
+    fn register_default_window_positions(&mut self) {
+        // The minimap belongs in the top right corner, like in the original client.
+        self.entries.entry(WindowClass::Minimap).or_insert_with(|| {
+            WindowState::new(
+                // `TopRight` offsets are measured from the right screen edge to the
+                // left window edge, so the fixed window width (210) and the margin have
+                // to be subtracted to keep the whole window on screen.
+                Anchor::new(AnchorPoint::TopRight, ScreenPosition {
+                    left: -(210.0 + 12.0),
+                    top: 12.0,
+                }),
+                ScreenSize {
+                    width: 0.0,
+                    height: f32::MAX,
+                },
+            )
+        });
+    }
+
     fn load() -> Option<Self> {
         #[cfg(feature = "debug")]
         print_debug!("loading window cache from {}", Self::FILE_NAME.magenta());
@@ -58,7 +81,7 @@ impl WindowCache {
 
 impl korangar_interface::application::WindowCache<ClientState> for WindowCache {
     fn create() -> Self {
-        Self::load().unwrap_or_else(|| {
+        let mut cache = Self::load().unwrap_or_else(|| {
             #[cfg(feature = "debug")]
             print_debug!(
                 "failed to load window cache from {}. creating empty cache",
@@ -66,7 +89,11 @@ impl korangar_interface::application::WindowCache<ClientState> for WindowCache {
             );
 
             Default::default()
-        })
+        });
+
+        cache.register_default_window_positions();
+
+        cache
     }
 
     fn get_window_state(&self, class: WindowClass) -> Option<(Anchor<ClientState>, ScreenSize)> {
