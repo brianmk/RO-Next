@@ -1,5 +1,7 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 
+#[cfg(feature = "debug")]
+use cgmath::SquareMatrix;
 use cgmath::{Array, Matrix4, Point3, Transform, Vector2, Vector3, Zero};
 use korangar_container::Cacheable;
 use korangar_interface::element::StateElement;
@@ -109,7 +111,9 @@ impl AnimationState {
         };
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
-        self.duration = Some(attack_duration);
+        // A server-provided attack duration can be zero (e.g. some instant
+        // attack packets); a zero duration must not be used as a divisor.
+        self.duration = Some(attack_duration.max(1));
         self.factor = None;
         self.looping = false;
     }
@@ -277,8 +281,31 @@ impl Default for AnimationFramePart {
     }
 }
 
+/// A 1x1 transparent frame that is used when the animation data of an entity
+/// is unusable (no actions, no delays or an action without frames). Such data
+/// used to panic while rendering (division by zero / out of bounds index).
+fn fallback_frame() -> &'static AnimationFrame {
+    static FALLBACK_FRAME: LazyLock<AnimationFrame> = LazyLock::new(|| AnimationFrame {
+        event: None,
+        offset: Vector2::zero(),
+        top_left: Vector2::zero(),
+        size: Vector2::new(1, 1),
+        frame_parts: Vec::new(),
+        #[cfg(feature = "debug")]
+        horizontal_matrix: Matrix4::identity(),
+        #[cfg(feature = "debug")]
+        vertical_matrix: Matrix4::identity(),
+    });
+
+    &FALLBACK_FRAME
+}
+
 impl AnimationData {
     pub fn is_animation_over(&self, animation_state: &AnimationState) -> bool {
+        if self.delays.is_empty() || self.animations.is_empty() {
+            return true;
+        }
+
         let animation_action_index = animation_state.action_type.action_base_offset(self.entity_type) * 8;
 
         let delay_index = animation_action_index % self.delays.len();
@@ -286,6 +313,10 @@ impl AnimationData {
 
         let delay = self.delays[delay_index];
         let animation = &self.animations[animation_index];
+
+        if animation.frames.is_empty() {
+            return true;
+        }
 
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
 
@@ -304,13 +335,19 @@ impl AnimationData {
 
         let frame_time = animation_state
             .duration
-            .map(|duration| animation_state.time * animation.frames.len() as u32 / duration)
+            // A zero duration would divide by zero; a zero time cast is over
+            // immediately, so treat it as the first frame.
+            .map(|duration| animation_state.time * animation.frames.len() as u32 / duration.max(1))
             .unwrap_or_else(|| (animation_state.time as f32 / factor) as u32);
 
         frame_time as usize > animation.frames.len()
     }
 
     pub fn get_frame(&self, animation_state: &AnimationState, camera: &dyn Camera, direction: Direction) -> &AnimationFrame {
+        if self.delays.is_empty() || self.animations.is_empty() {
+            return fallback_frame();
+        }
+
         let camera_direction = camera.camera_direction();
         let direction = (camera_direction + u16::from(direction) as usize) & 7;
         let animation_action_index = animation_state.action_type.action_base_offset(self.entity_type) * 8 + direction;
@@ -321,10 +358,14 @@ impl AnimationData {
         let delay = self.delays[delay_index];
         let animation = &self.animations[animation_index];
 
+        if animation.frames.is_empty() {
+            return fallback_frame();
+        }
+
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
 
         let frame_time = match animation_state.duration {
-            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration,
+            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
             _ => (animation_state.time as f32 / factor) as u32,
         };
 
@@ -384,9 +425,15 @@ impl AnimationData {
         let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale);
 
         for (index, frame_part) in frame.frame_parts.iter().enumerate() {
-            let animation_index = frame_part.animation_index;
-            let sprite_number = frame_part.sprite_number;
-            let texture = &self.animation_pair[animation_index].sprites.textures[sprite_number];
+            // Frames without usable sprites are merged into a placeholder frame
+            // part (with `usize::MAX` indices); it must not be rendered, and an
+            // action file may reference fewer textures than the sprite has.
+            let Some(animation_pair) = self.animation_pair.get(frame_part.animation_index) else {
+                continue;
+            };
+            let Some(texture) = animation_pair.sprites.textures.get(frame_part.sprite_number) else {
+                continue;
+            };
 
             let frame_size = Vector2::new(frame.size.x as f32, frame.size.y as f32);
 
@@ -459,6 +506,42 @@ mod tests {
 
     use super::{AnimationActionType, AnimationState};
     use crate::world::EntityType;
+
+    #[test]
+    fn zero_duration_and_empty_animation_data_do_not_panic() {
+        use ragnarok_packets::ClientTick;
+
+        use super::{AnimationData, AnimationState};
+        use crate::world::EntityType;
+
+        // The crash report from the Geffenia maps: a zero duration animation
+        // state divides by zero in `is_animation_over`.
+        let mut state = AnimationState::new(EntityType::Monster, ClientTick(0));
+        state.attack(EntityType::Monster, 0, false, ClientTick(0));
+        state.duration = Some(0);
+
+        let animation_data = AnimationData {
+            animation_pair: Vec::new(),
+            animations: vec![super::Animation {
+                frames: vec![super::fallback_frame().clone()],
+            }],
+            delays: vec![100.0],
+            entity_type: EntityType::Monster,
+        };
+
+        // Must not divide by zero; the exact result is not important here.
+        let _ = animation_data.is_animation_over(&state);
+
+        // An entity without any usable animation data must also be handled.
+        let empty_animation_data = AnimationData {
+            animation_pair: Vec::new(),
+            animations: Vec::new(),
+            delays: Vec::new(),
+            entity_type: EntityType::Monster,
+        };
+
+        assert!(empty_animation_data.is_animation_over(&AnimationState::new(EntityType::Monster, ClientTick(0))));
+    }
 
     #[test]
     fn player_action_offsets_match_the_ro_act_file() {

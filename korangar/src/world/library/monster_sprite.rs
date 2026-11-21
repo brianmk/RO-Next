@@ -220,6 +220,177 @@ mod tests {
         }
     }
 
+    /// The monster ids that spawn in the Geffenia dungeon (`gefenia01`-`04`,
+    /// from rAthena `npc/pre-re/mobs/dungeons/gefenia.txt`).
+    const GEFFENIA_MONSTER_IDS: &[(u16, &str)] = &[
+        // npc/pre-re/mobs/dungeons/gefenia.txt
+        (1371, "FALSE_ANGEL"),
+        (1370, "SUCCUBUS"),
+        (1374, "INCUBUS"),
+        (1390, "VIOLY"),
+        (1292, "MINI_DEMON"),
+        (1219, "ABYSMAL_KNIGHT"),
+        (1268, "BLOODY_KNIGHT"),
+        (1203, "MYSTELTAINN"),
+        (1205, "EXECUTIONER"),
+        (1204, "OGRETOOTH"),
+        // Event/quest spawns that can appear on gefenia01-04 (RWC, christmas,
+        // halloween, the sign quest and the tournament scripts).
+        (1244, "CHIMERA"),
+        (1259, "GRYPHON"),
+        (1283, "DARK_LORD"),
+        (1289, "DARK_ILLUSION"),
+        (1295, "ELDER"),
+        (1302, "CAT_O_NINE_TAIL"),
+        (1307, "MA_ERO"),
+        (1365, "APOCALYPSE"),
+        (1377, "ELDER"),
+        (1388, "ARCHANGELING"),
+        (1502, "MAYA"),
+        (1812, "LUDE"),
+        (2248, "GOLDEN_PORING"),
+        (2379, "SOCK_STEALING_RACCOON"),
+        (2380, "GIFT_STEALING_RACCOON"),
+        (2621, "ELUSIVE_VIOLY"),
+        (2622, "ELUSIVE_SUCCUBUS"),
+        (2623, "ELUSIVE_INCUBUS"),
+        (2834, "SWEET_DREAMING_ANGEL"),
+        (3202, "ORGANIC_PUMPKIN"),
+    ];
+
+    /// The animation loader composes one `Animation` per action of the body
+    /// pair. Every `Animation` must contain at least one frame, otherwise
+    /// `AnimationData::get_frame` would compute `frame % 0` (or index into an
+    /// empty frame list) and panic while the entity is rendered. It also
+    /// divides by the length of the delays list, which must not be empty.
+    ///
+    /// This test runs the same checks on the parsed action data of every
+    /// rAthena monster (and prints the Geffenia monsters explicitly, since
+    /// those are the maps that were reported as crashing).
+    #[test]
+    #[ignore = "requires the game archives (run from the korangar crate root, client/game_archives.ron)"]
+    fn mob_animations_have_frames() {
+        let game_file_loader = load_game_file_loader();
+        let library = Library::new(&game_file_loader).expect("failed to load the game library");
+
+        let mut failures: Vec<String> = Vec::new();
+
+        let check_mob = |id: u16, aegis_name: &str, failures: &mut Vec<String>| {
+            let job_id = JobId(id);
+            let path = library.monster_sprite_path(job_id);
+            let sprite_path = format!("data\\sprite\\{path}.spr").to_lowercase();
+            let action_path = format!("data\\sprite\\{path}.act").to_lowercase();
+            let sprite_bytes = game_file_loader.get(&sprite_path).expect("failed to read sprite");
+            let action_bytes = game_file_loader.get(&action_path).expect("failed to read actions");
+
+            let sprite_data = SpriteData::from_bytes(&mut ByteReader::with_default_metadata::<GenericFormatMetadata>(&sprite_bytes))
+                .unwrap_or_else(|error| panic!("{id} {aegis_name}: invalid sprite {sprite_path}: {error:?}"));
+            let texture_count = sprite_data.palette_image_data.len() + sprite_data.rgba_image_data.len();
+
+            let actions_data = ActionsData::from_bytes(&mut ByteReader::with_default_metadata::<GenericFormatMetadata>(&action_bytes))
+                .unwrap_or_else(|error| panic!("{id} {aegis_name}: invalid actions {action_path}: {error:?}"));
+
+            // Same defaulting as `ActionLoader`: old act files have no delays.
+            let delay_count = actions_data
+                .delays
+                .as_ref()
+                .map(|delays| delays.len())
+                .unwrap_or(actions_data.actions.len());
+
+            // Same frame count as the animation loader: motions without sprite
+            // clips are skipped and do not produce a frame.
+            let frame_counts: Vec<usize> = actions_data
+                .actions
+                .iter()
+                .map(|action| action.motions.iter().filter(|motion| motion.sprite_clip_count > 0).count())
+                .collect();
+
+            if actions_data.actions.is_empty() {
+                failures.push(format!("{id} {aegis_name}: action file has no actions ({action_path})"));
+            }
+
+            // A motion whose clips all reference missing textures (or -1) is
+            // merged into a placeholder frame part with `usize::MAX` indices,
+            // which used to panic when rendered (out of bounds index).
+            for (action_index, action) in actions_data.actions.iter().enumerate() {
+                for (motion_index, motion) in action.motions.iter().enumerate() {
+                    if motion.sprite_clip_count == 0 {
+                        continue;
+                    }
+
+                    let valid_clips = motion
+                        .sprite_clips
+                        .iter()
+                        .filter(|clip| {
+                            if clip.sprite_number < 0 {
+                                return false;
+                            }
+
+                            let mut sprite_number = clip.sprite_number as usize;
+                            if clip.sprite_type.unwrap_or(0) == 1 {
+                                sprite_number += sprite_data.palette_image_data.len();
+                            }
+
+                            sprite_number < texture_count
+                        })
+                        .count();
+
+                    if valid_clips == 0 {
+                        failures.push(format!(
+                            "{id} {aegis_name}: action {action_index} motion {motion_index} has no valid sprite clip ({action_path})"
+                        ));
+                    }
+                }
+            }
+
+            if delay_count == 0 {
+                failures.push(format!("{id} {aegis_name}: action file has no delays ({action_path})"));
+            }
+
+            for (action_index, frame_count) in frame_counts.iter().enumerate() {
+                if *frame_count == 0 {
+                    failures.push(format!("{id} {aegis_name}: action {action_index} has no frame ({action_path})"));
+                }
+            }
+
+            (path.to_string(), frame_counts)
+        };
+
+        let mut geffenia_failures: Vec<String> = Vec::new();
+
+        for (id, aegis_name) in GEFFENIA_MONSTER_IDS {
+            let before = failures.len();
+            let (path, frame_counts) = check_mob(*id, aegis_name, &mut failures);
+            println!("geffenia {id} {aegis_name} -> {path}: actions={frame_counts:?}");
+
+            geffenia_failures.extend(failures[before..].iter().cloned());
+        }
+
+        for line in MOB_IDS.lines() {
+            let line = line.trim();
+
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+
+            let (id, aegis_name) = line.split_once('\t').expect("malformed mob line");
+            check_mob(id.parse().expect("malformed mob id"), aegis_name, &mut failures);
+        }
+
+        if !failures.is_empty() {
+            println!("all-mob animation issues ({}):", failures.len());
+            for failure in &failures {
+                println!("  {failure}");
+            }
+        }
+
+        assert!(
+            geffenia_failures.is_empty(),
+            "geffenia mobs with unusable animations:\n{}",
+            geffenia_failures.join("\n")
+        );
+    }
+
     #[test]
     #[ignore = "requires the game archives (run from the korangar crate root, client/game_archives.ron)"]
     fn alias_table_entries_exist_in_archives() {

@@ -214,11 +214,10 @@ impl SpriteLoader {
             .map(|mut image_data| {
                 premultiply_alpha(&mut image_data.data);
 
-                self.texture_loader.create_color(
-                    path,
-                    RgbaImage::from_raw(image_data.width as u32, image_data.height as u32, image_data.data).unwrap(),
-                    false,
-                )
+                let image = RgbaImage::from_raw(image_data.width as u32, image_data.height as u32, image_data.data)
+                    .unwrap_or_else(|| RgbaImage::new(1, 1));
+
+                self.texture_loader.create_color(path, image, false)
             })
             .collect();
 

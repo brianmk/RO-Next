@@ -13,7 +13,7 @@ use korangar_debug::logging::{Colorize, print_debug};
 use num::Zero;
 
 use super::error::LoadError;
-use crate::loaders::{ActionLoader, SpriteLoader};
+use crate::loaders::{ActionLoader, FALLBACK_ACTIONS_FILE, FALLBACK_SPRITE_FILE, SpriteLoader};
 use crate::world::{ActionEvent, Animation, AnimationData, AnimationFrame, AnimationFramePart, AnimationPair};
 use crate::{Color, EntityType};
 
@@ -272,6 +272,15 @@ impl AnimationLoader {
             }
 
             animations_list.push(animation_frames);
+        }
+
+        // An entity part list should always contain at least the body, but
+        // guard against an empty list so entity creation can never panic.
+        if animation_pairs.is_empty() {
+            animation_pairs.push(AnimationPair {
+                sprites: sprite_loader.get_or_load(FALLBACK_SPRITE_FILE, None)?,
+                actions: action_loader.get_or_load(FALLBACK_ACTIONS_FILE)?,
+            });
         }
 
         let action_size = animation_pairs[0].actions.actions.len();
