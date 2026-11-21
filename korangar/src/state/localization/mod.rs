@@ -141,6 +141,7 @@ pub struct Localization {
     log_in_button_text: String,
     log_in_button_tooltip: String,
     show_character_names_text: String,
+    level_99_aura_text: String,
     show_chat_bubbles_text: String,
     chat_bubble_background_text: String,
     minimap_window_title: String,

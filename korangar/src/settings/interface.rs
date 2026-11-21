@@ -1,5 +1,6 @@
 #[cfg(feature = "debug")]
 use korangar_debug::logging::{Colorize, print_debug};
+use korangar_interface::components::drop_down::DropDownItem;
 use korangar_interface::element::StateElement;
 use ron::ser::PrettyConfig;
 use rust_state::RustState;
@@ -23,6 +24,79 @@ pub const CLASSIC_THEME_NAME: &str = "classic";
 pub const MENU_THEMES_PATH: &str = "client/menu_themes";
 pub const IN_GAME_THEMES_PATH: &str = "client/in_game_themes";
 pub const WORLD_THEMES_PATH: &str = "client/world_themes";
+
+/// Style of the classic level-99 aura.
+///
+/// `Auto` uses the classic tiers (cyan for level 99, violet for transcendent
+/// level 99, blue for 100+, gold for 175+). `Off` disables the aura. The
+/// explicit variants force one style for all auras.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize, RustState, StateElement)]
+pub enum AuraStyle {
+    /// Classic tier-based aura (default).
+    #[default]
+    Auto,
+    /// No aura at all.
+    Off,
+    Cyan,
+    Violet,
+    Blue,
+    Gold,
+}
+
+impl AuraStyle {
+    /// All styles, in the order shown in the interface settings dropdown.
+    pub const OPTIONS: [AuraStyle; 6] = [
+        AuraStyle::Auto,
+        AuraStyle::Off,
+        AuraStyle::Cyan,
+        AuraStyle::Violet,
+        AuraStyle::Blue,
+        AuraStyle::Gold,
+    ];
+
+    /// Encode the style for the shared atomic cell used by running aura
+    /// effects.
+    pub fn encode(self) -> u8 {
+        match self {
+            AuraStyle::Auto => 0,
+            AuraStyle::Off => 1,
+            AuraStyle::Cyan => 2,
+            AuraStyle::Violet => 3,
+            AuraStyle::Blue => 4,
+            AuraStyle::Gold => 5,
+        }
+    }
+
+    /// Decode a style written by [`AuraStyle::encode`]. Unknown values fall
+    /// back to [`AuraStyle::Auto`].
+    pub fn decode(value: u8) -> AuraStyle {
+        match value {
+            1 => AuraStyle::Off,
+            2 => AuraStyle::Cyan,
+            3 => AuraStyle::Violet,
+            4 => AuraStyle::Blue,
+            5 => AuraStyle::Gold,
+            _ => AuraStyle::Auto,
+        }
+    }
+}
+
+impl DropDownItem<AuraStyle> for AuraStyle {
+    fn text(&self) -> &str {
+        match self {
+            AuraStyle::Auto => "Auto (tier default)",
+            AuraStyle::Off => "Off",
+            AuraStyle::Cyan => "Cyan",
+            AuraStyle::Violet => "Violet",
+            AuraStyle::Blue => "Blue",
+            AuraStyle::Gold => "Gold",
+        }
+    }
+
+    fn value(&self) -> AuraStyle {
+        *self
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize, RustState, StateElement)]
 pub struct InterfaceSettings {
@@ -62,6 +136,10 @@ pub struct InterfaceSettings {
     /// client remembers which tab was open.
     #[serde(default = "default_inventory_tab")]
     pub inventory_tab: ItemCategory,
+    /// Style of the classic level-99 aura. Defaults to `Auto` (tier based) so
+    /// old settings files load unchanged.
+    #[serde(default)]
+    pub level_99_aura_style: AuraStyle,
 }
 
 fn default_show_character_names() -> bool {
@@ -107,6 +185,7 @@ impl Default for InterfaceSettings {
             minimap_transparent_frame: false,
             character_overview_compact: false,
             inventory_tab: ItemCategory::Consumables,
+            level_99_aura_style: AuraStyle::Auto,
         }
     }
 }
@@ -212,6 +291,7 @@ pub struct InterfaceSettingsCapabilities {
     menu_themes: Vec<String>,
     in_game_themes: Vec<String>,
     world_themes: Vec<String>,
+    level_99_aura_styles: Vec<AuraStyle>,
 }
 
 impl InterfaceSettingsCapabilities {
@@ -249,6 +329,7 @@ impl Default for InterfaceSettingsCapabilities {
             menu_themes: Self::load_themes(MENU_THEMES_PATH),
             in_game_themes: Self::load_themes(IN_GAME_THEMES_PATH),
             world_themes: Self::load_themes(WORLD_THEMES_PATH),
+            level_99_aura_styles: AuraStyle::OPTIONS.to_vec(),
         }
     }
 }
