@@ -1,52 +1,83 @@
-use korangar_interface::element::Element;
 use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::window::{CustomWindow, Window};
 use rust_state::{Path, PathExt, Selector, State};
 
 use crate::graphics::Color;
 use crate::input::InputEvent;
-use crate::interface::components::progress_bar::{LOW_HEALTH_FRACTION, ProgressBar};
+use crate::interface::components::progress_bar::{BarStyle, LOW_HEALTH_FRACTION, LabeledProgressBar};
 use crate::interface::windows::WindowClass;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::{CharacterOverviewThemePathExt, InterfaceThemePathExt, InterfaceThemeType};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
-use crate::world::{Player, PlayerPathExt};
+use crate::world::Player;
 
 /// Width of the character overview window in its normal (expanded) form.
-const NORMAL_WINDOW_WIDTH: f32 = 300.0;
-/// Width of the character overview window in its compact form.
 ///
-/// The compact form is meant to be a small always-on HUD element, so it is
-/// kept small enough to fit into a corner without covering the game.
+/// The window is split into a left column with the header and the stat bars and
+/// a right column with the two-row action button grid.
+const NORMAL_WINDOW_WIDTH: f32 = 460.0;
+/// Width of the collapsed character overview window.
+///
+/// The collapsed form is a small always-on HUD element that only shows the
+/// level line and the four bars.
 const COMPACT_WINDOW_WIDTH: f32 = 150.0;
-/// Window border of the compact form, in interface pixels.
+/// Window border of the collapsed form, in interface pixels.
 const COMPACT_BORDER: f32 = 6.0;
-/// Gaps between the elements of the compact form, in interface pixels.
-const COMPACT_GAPS: f32 = 3.0;
-/// Font size of the labels and values in the compact form.
-const COMPACT_FONT_SIZE: f32 = 10.0;
-/// Bar height of the compact form.
-const COMPACT_BAR_HEIGHT: f32 = 5.0;
-/// Font size of the labels and values in the expanded form.
-const EXPANDED_FONT_SIZE: f32 = 12.0;
-/// Bar height of the expanded form.
-const EXPANDED_BAR_HEIGHT: f32 = 8.0;
-/// Gap between a label/value row and its bar.
-const BAR_GAP: f32 = 1.0;
-/// Gap between two stat blocks (label + bar).
-const STAT_GAP: f32 = 4.0;
+/// Gaps between the elements of the collapsed form.
+const COMPACT_GAPS: f32 = 2.5;
+/// Title bar height of the collapsed form.
+const COMPACT_TITLE_HEIGHT: f32 = 20.0;
+
+/// Layout of the bars in the expanded form.
+const EXPANDED_LABEL_WIDTH: f32 = 32.0;
+const EXPANDED_LABEL_FONT_SIZE: f32 = 11.0;
+const EXPANDED_VALUE_FONT_SIZE: f32 = 9.0;
+const EXPANDED_BAR_GAP: f32 = 4.0;
+const EXPANDED_BAR_HEIGHT: f32 = 14.0;
+/// Layout of the micro bars in the collapsed form.
+const MICRO_LABEL_WIDTH: f32 = 22.0;
+const MICRO_LABEL_FONT_SIZE: f32 = 8.0;
+const MICRO_VALUE_FONT_SIZE: f32 = 8.0;
+const MICRO_BAR_GAP: f32 = 2.5;
+const MICRO_BAR_HEIGHT: f32 = 11.0;
+/// Size of the compact action buttons in the expanded form.
+const ACTION_BUTTON_HEIGHT: f32 = 18.0;
+const ACTION_BUTTON_FONT_SIZE: f32 = 10.5;
+/// Font size of the level line in the expanded form.
+const HEADER_FONT_SIZE: f32 = 11.0;
+/// Font size of the level line in the collapsed form.
+const COMPACT_HEADER_FONT_SIZE: f32 = 9.0;
+
+fn expanded_bar_style() -> BarStyle {
+    BarStyle::new(
+        EXPANDED_LABEL_WIDTH,
+        EXPANDED_LABEL_FONT_SIZE,
+        EXPANDED_VALUE_FONT_SIZE,
+        EXPANDED_BAR_GAP,
+        EXPANDED_BAR_HEIGHT,
+    )
+}
+
+fn micro_bar_style() -> BarStyle {
+    BarStyle::new(
+        MICRO_LABEL_WIDTH,
+        MICRO_LABEL_FONT_SIZE,
+        MICRO_VALUE_FONT_SIZE,
+        MICRO_BAR_GAP,
+        MICRO_BAR_HEIGHT,
+    )
+}
 
 /// The character overview window.
 ///
 /// The window has two forms:
-/// * the normal form shows the character name, the base/job level, HP, SP, base
-///   EXP and job EXP as progress bars, and the buttons to open the other
-///   windows;
-/// * the compact form only shows the HP, SP and base EXP bars in a much smaller
-///   window to save screen space. The mode is persisted in the interface
-///   settings.
+/// * the expanded form shows a compact header with the name and the base/job
+///   level on one line, the HP/SP/base EXP/job EXP bars with their values
+///   inside the bar and a two-row grid of action buttons on the right;
+/// * the collapsed form only shows the level line and four micro bars. The
+///   collapsed state is persisted in the interface settings.
 pub struct CharacterOverviewWindow<A, B, C> {
     player_name_path: A,
     player_path: B,
@@ -68,7 +99,7 @@ impl<A, B, C> CharacterOverviewWindow<A, B, C> {
     }
 }
 
-/// Click handler for the "compact"/"expand" toggle of the character overview.
+/// Click handler for the collapse/expand toggle of the character overview.
 ///
 /// Besides toggling the state (which is read every frame, so the change is
 /// applied live) the interface settings are saved immediately, so the chosen
@@ -89,58 +120,7 @@ where
     }
 }
 
-/// A small label/value row with a progress bar below it.
-///
-/// This is the building block of the character overview bars: the row shows the
-/// name of the stat on the left and its value (current/maximum or percent) on
-/// the right, the bar below shows the same progress visually.
-#[allow(clippy::too_many_arguments)]
-fn bar_block<L, V, F, C, B>(
-    label: L,
-    value: V,
-    fraction: F,
-    fill_color: C,
-    background_color: B,
-    font_size: f32,
-    bar_height: f32,
-) -> impl Element<ClientState>
-where
-    L: Selector<ClientState, String>,
-    V: Selector<ClientState, String>,
-    F: Selector<ClientState, Option<f32>>,
-    C: Selector<ClientState, Color>,
-    B: Selector<ClientState, Color>,
-{
-    use korangar_interface::prelude::*;
-
-    fragment! {
-        gaps: BAR_GAP,
-        children: (
-            split! {
-                children: (
-                    text! {
-                        text: label,
-                        color: client_theme().character_overview().label_color(),
-                        font_size: FontSize(font_size),
-                        height: font_size + 2.0,
-                        overflow_behavior: OverflowBehavior::Shrink,
-                    },
-                    text! {
-                        text: value,
-                        color: client_theme().character_overview().value_color(),
-                        font_size: FontSize(font_size),
-                        height: font_size + 2.0,
-                        horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 2.0 },
-                        overflow_behavior: OverflowBehavior::Shrink,
-                    },
-                ),
-            },
-            ProgressBar::new(fraction, fill_color, background_color, bar_height),
-        ),
-    }
-}
-
-/// Selector for the window width, depending on whether the compact mode is
+/// Selector for the window width, depending on whether the collapsed mode is
 /// active.
 fn window_width<A>(compact_path: A) -> impl Selector<ClientState, f32>
 where
@@ -152,8 +132,8 @@ where
     })
 }
 
-/// Selector for the window border: the compact form uses a much smaller border
-/// so that almost the whole width is available for the bars.
+/// Selector for the window border: the collapsed form uses a much smaller
+/// border so that almost the whole width is available for the bars.
 fn window_border<A>(compact_path: A) -> impl Selector<ClientState, f32>
 where
     A: Path<ClientState, bool>,
@@ -164,7 +144,7 @@ where
     })
 }
 
-/// Selector for the window gaps: the compact form stacks everything closely
+/// Selector for the window gaps: the collapsed form stacks everything closely
 /// together.
 fn window_gaps<A>(compact_path: A) -> impl Selector<ClientState, f32>
 where
@@ -173,6 +153,28 @@ where
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
         true => COMPACT_GAPS,
         false => client_theme().follow_safe(state).window.gaps,
+    })
+}
+
+/// Selector for the title bar height: the collapsed form uses a smaller title.
+fn window_title_height<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => COMPACT_TITLE_HEIGHT,
+        false => client_theme().follow_safe(state).window.title_height,
+    })
+}
+
+/// Selector for the level line: `Lv 99 / Jlv 69`.
+fn levels_display<A>(player_path: A) -> impl Selector<ClientState, String>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        format!("Lv {} / Jlv {}", player.base_level, player.job_level)
     })
 }
 
@@ -333,173 +335,208 @@ where
 
         let player_path = self.player_path;
         let compact_path = self.interface_settings_path.character_overview_compact();
+        let settings_path = self.interface_settings_path;
 
-        // The three bars of the compact form, with tiny labels and values.
+        // The collapsed form: the level line with a small expand button and four
+        // micro bars.
         let compact = fragment! {
-            gaps: STAT_GAP,
+            gaps: COMPACT_GAPS,
             children: (
-                bar_block(
+                split! {
+                    gaps: 3.0,
+                    children: (
+                        text! {
+                            text: levels_display(player_path),
+                            color: client_theme().character_overview().value_color(),
+                            font_size: FontSize(COMPACT_HEADER_FONT_SIZE),
+                            height: COMPACT_HEADER_FONT_SIZE + 3.0,
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        button! {
+                            text: client_state().localization().character_overview_expand_button_text(),
+                            tooltip: client_state().localization().character_overview_expand_button_tooltip(),
+                            height: 14.0,
+                            font_size: FontSize(9.0),
+                            event: CharacterOverviewCompactToggle {
+                                value_path: compact_path,
+                                settings_path,
+                            },
+                        },
+                    ),
+                },
+                LabeledProgressBar::new(
                     client_state().localization().health_points_text(),
                     health_points_display(player_path),
                     health_points_fraction(player_path),
                     health_fill_color(player_path),
                     client_theme().character_overview().health_background_color(),
-                    COMPACT_FONT_SIZE,
-                    COMPACT_BAR_HEIGHT,
+                    micro_bar_style(),
                 ),
-                bar_block(
+                LabeledProgressBar::new(
                     client_state().localization().spell_points_text(),
                     spell_points_display(player_path),
                     spell_points_fraction(player_path),
                     client_theme().character_overview().spell_point_color(),
                     client_theme().character_overview().spell_point_background_color(),
-                    COMPACT_FONT_SIZE,
-                    COMPACT_BAR_HEIGHT,
+                    micro_bar_style(),
                 ),
-                bar_block(
+                LabeledProgressBar::new(
                     client_state().localization().experience_text(),
                     experience_display(player_path),
                     base_experience_fraction(player_path),
                     client_theme().character_overview().experience_color(),
                     client_theme().character_overview().experience_background_color(),
-                    COMPACT_FONT_SIZE,
-                    COMPACT_BAR_HEIGHT,
+                    micro_bar_style(),
                 ),
-                button! {
-                    text: client_state().localization().character_overview_expand_button_text(),
-                    tooltip: client_state().localization().character_overview_expand_button_tooltip(),
-                    height: 18.0,
-                    font_size: FontSize(COMPACT_FONT_SIZE),
-                    event: CharacterOverviewCompactToggle {
-                        value_path: compact_path,
-                        settings_path: self.interface_settings_path,
-                    },
+                LabeledProgressBar::new(
+                    client_state().localization().job_experience_text(),
+                    job_experience_display(player_path),
+                    job_experience_fraction(player_path),
+                    client_theme().character_overview().job_experience_color(),
+                    client_theme().character_overview().job_experience_background_color(),
+                    micro_bar_style(),
+                ),
+            ),
+        };
+
+        // The expanded form: header (name + level line) and the four labelled bars
+        // on the left, the action buttons in a two-row grid on the right.
+        let header = split! {
+            children: (
+                text! {
+                    text: self.player_name_path,
+                    color: korangar_interface::theme::theme().text().highlight_color(),
+                    font_size: FontSize(HEADER_FONT_SIZE),
+                    height: HEADER_FONT_SIZE + 3.0,
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
+                text! {
+                    text: levels_display(player_path),
+                    color: client_theme().character_overview().value_color(),
+                    font_size: FontSize(HEADER_FONT_SIZE),
+                    height: HEADER_FONT_SIZE + 3.0,
+                    horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 0.0 },
+                    overflow_behavior: OverflowBehavior::Shrink,
                 },
             ),
         };
 
-        let expanded = (
-            fragment! {
-                gaps: 4.0,
-                children: (
-                    split! {
-                        children: (
-                            text! {
-                                text: client_state().localization().name_text(),
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                            text! {
-                                text: self.player_name_path,
-                                color: theme().text().highlight_color(),
-                                horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                        ),
-                    },
-                    split! {
-                        children: (
-                            text! {
-                                text: client_state().localization().base_level_text(),
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                            text! {
-                                text: PartialEqDisplaySelector::new(player_path.base_level()),
-                                color: client_theme().character_overview().value_color(),
-                                horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                        ),
-                    },
-                    split! {
-                        children: (
-                            text! {
-                                text: client_state().localization().job_level_text(),
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                            text! {
-                                text: PartialEqDisplaySelector::new(player_path.job_level()),
-                                color: client_theme().character_overview().value_color(),
-                                horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
-                                overflow_behavior: OverflowBehavior::Shrink,
-                            },
-                        ),
-                    },
+        let left_column = fragment! {
+            gaps: 4.0,
+            children: (
+                header,
+                LabeledProgressBar::new(
+                    client_state().localization().health_points_text(),
+                    health_points_display(player_path),
+                    health_points_fraction(player_path),
+                    health_fill_color(player_path),
+                    client_theme().character_overview().health_background_color(),
+                    expanded_bar_style(),
                 ),
-            },
-            fragment! {
-                gaps: STAT_GAP,
-                children: (
-                    bar_block(
-                        client_state().localization().health_points_text(),
-                        health_points_display(player_path),
-                        health_points_fraction(player_path),
-                        health_fill_color(player_path),
-                        client_theme().character_overview().health_background_color(),
-                        EXPANDED_FONT_SIZE,
-                        EXPANDED_BAR_HEIGHT,
-                    ),
-                    bar_block(
-                        client_state().localization().spell_points_text(),
-                        spell_points_display(player_path),
-                        spell_points_fraction(player_path),
-                        client_theme().character_overview().spell_point_color(),
-                        client_theme().character_overview().spell_point_background_color(),
-                        EXPANDED_FONT_SIZE,
-                        EXPANDED_BAR_HEIGHT,
-                    ),
-                    bar_block(
-                        client_state().localization().experience_text(),
-                        experience_display(player_path),
-                        base_experience_fraction(player_path),
-                        client_theme().character_overview().experience_color(),
-                        client_theme().character_overview().experience_background_color(),
-                        EXPANDED_FONT_SIZE,
-                        EXPANDED_BAR_HEIGHT,
-                    ),
-                    bar_block(
-                        client_state().localization().job_experience_text(),
-                        job_experience_display(player_path),
-                        job_experience_fraction(player_path),
-                        client_theme().character_overview().job_experience_color(),
-                        client_theme().character_overview().job_experience_background_color(),
-                        EXPANDED_FONT_SIZE,
-                        EXPANDED_BAR_HEIGHT,
-                    ),
+                LabeledProgressBar::new(
+                    client_state().localization().spell_points_text(),
+                    spell_points_display(player_path),
+                    spell_points_fraction(player_path),
+                    client_theme().character_overview().spell_point_color(),
+                    client_theme().character_overview().spell_point_background_color(),
+                    expanded_bar_style(),
                 ),
-            },
-            button! {
-                text: client_state().localization().inventory_button_text(),
-                event: InputEvent::ToggleInventoryWindow,
-            },
-            button! {
-                text: client_state().localization().equipment_button_text(),
-                event: InputEvent::ToggleEquipmentWindow,
-            },
-            button! {
-                text: client_state().localization().skill_tree_button_text(),
-                event: InputEvent::ToggleSkillTreeWindow,
-            },
-            button! {
-                text: client_state().localization().stats_button_text(),
-                event: InputEvent::ToggleStatsWindow,
-            },
-            button! {
-                text: client_state().localization().friend_list_button_text(),
-                event: InputEvent::ToggleFriendListWindow,
-            },
-            button! {
-                text: client_state().localization().menu_button_text(),
-                event: InputEvent::ToggleMenuWindow,
-            },
-            button! {
-                text: client_state().localization().character_overview_compact_button_text(),
-                tooltip: client_state().localization().character_overview_compact_button_tooltip(),
-                event: CharacterOverviewCompactToggle {
-                    value_path: compact_path,
-                    settings_path: self.interface_settings_path,
+                LabeledProgressBar::new(
+                    client_state().localization().experience_text(),
+                    experience_display(player_path),
+                    base_experience_fraction(player_path),
+                    client_theme().character_overview().experience_color(),
+                    client_theme().character_overview().experience_background_color(),
+                    expanded_bar_style(),
+                ),
+                LabeledProgressBar::new(
+                    client_state().localization().job_experience_text(),
+                    job_experience_display(player_path),
+                    job_experience_fraction(player_path),
+                    client_theme().character_overview().job_experience_color(),
+                    client_theme().character_overview().job_experience_background_color(),
+                    expanded_bar_style(),
+                ),
+            ),
+        };
+
+        let action_buttons = fragment! {
+            gaps: 3.0,
+            children: (
+                split! {
+                    gaps: 3.0,
+                    children: (
+                        button! {
+                            text: client_state().localization().inventory_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleInventoryWindow,
+                        },
+                        button! {
+                            text: client_state().localization().equipment_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleEquipmentWindow,
+                        },
+                        button! {
+                            text: client_state().localization().skill_tree_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleSkillTreeWindow,
+                        },
+                        button! {
+                            text: client_state().localization().stats_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleStatsWindow,
+                        },
+                    ),
                 },
-            },
-        );
+                split! {
+                    gaps: 3.0,
+                    children: (
+                        button! {
+                            text: client_state().localization().friend_list_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleFriendListWindow,
+                        },
+                        button! {
+                            text: client_state().localization().menu_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleMenuWindow,
+                        },
+                        button! {
+                            text: client_state().localization().character_overview_compact_button_text(),
+                            tooltip: client_state().localization().character_overview_compact_button_tooltip(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: CharacterOverviewCompactToggle {
+                                value_path: compact_path,
+                                settings_path,
+                            },
+                        },
+                        EmptyElement,
+                    ),
+                },
+            ),
+        };
+
+        let expanded = split! {
+            gaps: 6.0,
+            children: (
+                left_column,
+                action_buttons,
+            ),
+        };
 
         window! {
             title: client_state().localization().character_overview_window_title(),
@@ -509,6 +546,7 @@ where
             maximum_width: window_width(compact_path),
             border: window_border(compact_path),
             gaps: window_gaps(compact_path),
+            title_height: window_title_height(compact_path),
             elements: either! {
                 selector: compact_path,
                 on_true: compact,
