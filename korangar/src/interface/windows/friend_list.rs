@@ -5,9 +5,10 @@ use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, ElementBox, StateElement};
 use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{Friend, FriendPathExt};
-use rust_state::{ManuallyAssertExt, Path, RustState, State, VecIndexExt};
+use ragnarok_packets::Friend;
+use rust_state::{ManuallyAssertExt, Path, PathExt, RustState, State, VecIndexExt};
 
+use crate::graphics::Color;
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::state::localization::LocalizationPathExt;
@@ -58,10 +59,34 @@ where
                 Ordering::Greater => {
                     for index in self.elements.len()..friend_list.len() {
                         let friend_path = self.friend_list_path.index(index).manually_asserted();
-                        let name_path = friend_path.name();
+                        let online_path = client_state().friend_online().index(index).manually_asserted();
+                        let text_friend_path = friend_path;
+                        let text_online_path = online_path;
+                        let color_online_path = online_path;
+
+                        // Row text: status marker + name. The name comes from 0x0206
+                        // (online friends), the persistent cache or a clear
+                        // `Unknown (#id)` placeholder for offline friends.
+                        let display_text = ComputedSelector::new_default(move |state: &ClientState| {
+                            let friend = text_friend_path.follow_safe(state);
+                            let online = *text_online_path.follow_safe(state);
+                            let marker = if online { "\u{25CF}" } else { "\u{25CB}" };
+                            format!("{marker} {}", crate::state::friend_names::display_name(friend))
+                        });
+
+                        // Green marker/name for online, medium gray for offline; both are
+                        // readable on the default dark and the classic light theme.
+                        let display_color = ComputedSelector::new_default(move |state: &ClientState| {
+                            if *color_online_path.follow_safe(state) {
+                                Color::rgb(0.25, 0.85, 0.35)
+                            } else {
+                                Color::rgb(0.58, 0.58, 0.58)
+                            }
+                        });
 
                         self.elements.push(ErasedElement::new(collapsible! {
-                            text: name_path,
+                            text: display_text,
+                            foreground_color: display_color,
                             children: button! {
                                 text: client_state().localization().remove_button_text(),
                                 event: move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {

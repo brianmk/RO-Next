@@ -1,6 +1,7 @@
 #[cfg(feature = "debug")]
 pub mod cache_statistics;
 pub mod character_slots;
+pub mod friend_names;
 pub mod hotbar;
 pub mod inventory;
 pub mod localization;
@@ -162,6 +163,8 @@ pub struct ClientState {
     chat_messages: Vec<ChatMessage>,
     /// List of all friends.
     friend_list: Vec<Friend>,
+    /// Online state of each entry of `friend_list` (same length/order).
+    friend_online: Vec<bool>,
     /// List of items offered in the shop.
     // TODO: Unhide this
     #[hidden_element]
@@ -331,6 +334,7 @@ impl ClientState {
 
         time_phase!("create friend list state", {
             let friend_list = Vec::default();
+            let friend_online = Vec::default();
             let friend_list_window = FriendListWindowState::default();
         });
 
@@ -411,6 +415,7 @@ impl ClientState {
             ground_items: Vec::new(),
             chat_messages,
             friend_list,
+            friend_online,
             shop_items,
             buy_cart,
             sell_items,
