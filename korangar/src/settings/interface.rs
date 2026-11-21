@@ -104,6 +104,90 @@ impl DropDownItem<AuraStyle> for AuraStyle {
     }
 }
 
+/// Chat marker used by the server-side aura stylist NPC to ask the client to
+/// change the aura style.
+///
+/// The client consumes and hides any incoming chat message that starts with
+/// this marker, so the NPC can change the local aura style without a custom
+/// packet (which would be packet-version dependent).
+pub const AURA_STYLE_MARKER: &str = "[KORANGAR_AURA]";
+
+/// Result of parsing an aura style marker chat message.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AuraStyleMarker {
+    /// The message is an aura marker for a known style.
+    Style(AuraStyle),
+    /// The message starts with the aura marker but the style is unknown.
+    ///
+    /// The message is still consumed (and not shown in the chat) to keep the
+    /// bridge private; the client only logs the unknown style in debug builds.
+    UnknownStyle,
+}
+
+/// Parses an incoming chat message as an aura style marker.
+///
+/// Returns `None` if the message is not an aura marker at all (normal chat is
+/// never touched). The marker has to be at the start of the message (leading
+/// whitespace is ignored) and is matched case-insensitively; the style name is
+/// trimmed and matched by [`AuraStyle::from_style_name`].
+pub fn parse_aura_style_marker(text: &str) -> Option<AuraStyleMarker> {
+    let text = text.trim_start();
+
+    let (prefix, rest) = text.split_at(text.len().min(AURA_STYLE_MARKER.len()));
+
+    if !prefix.eq_ignore_ascii_case(AURA_STYLE_MARKER) {
+        return None;
+    }
+
+    let style_name = rest.trim();
+
+    match AuraStyle::from_style_name(style_name) {
+        Some(style) => Some(AuraStyleMarker::Style(style)),
+        None => Some(AuraStyleMarker::UnknownStyle),
+    }
+}
+
+impl AuraStyle {
+    /// Canonical lower-case command name of the style.
+    pub fn style_name(self) -> &'static str {
+        match self {
+            AuraStyle::Auto => "auto",
+            AuraStyle::Off => "off",
+            AuraStyle::Cyan => "cyan",
+            AuraStyle::Violet => "violet",
+            AuraStyle::Blue => "blue",
+            AuraStyle::Gold => "gold",
+        }
+    }
+
+    /// Canonical command names of all styles, for usage/help messages.
+    pub fn style_names() -> &'static str {
+        "auto, off, cyan, violet, blue, gold"
+    }
+
+    /// Parses a style command name as used by the `/aura` command and the
+    /// server-side aura stylist NPC bridge.
+    ///
+    /// All names are matched case-insensitively with surrounding whitespace
+    /// ignored. Aliases are provided for the names players are likely to type.
+    /// Adding a new variant only requires a new arm here (and in
+    /// [`AuraStyle::style_name`], [`AuraStyle::style_names`] and
+    /// [`AuraStyle::OPTIONS`]).
+    pub fn from_style_name(name: &str) -> Option<AuraStyle> {
+        let name = name.trim().to_ascii_lowercase();
+
+        match name.as_str() {
+            "auto" | "default" | "automatic" | "tier" => Some(AuraStyle::Auto),
+            "off" | "none" | "disable" | "disabled" => Some(AuraStyle::Off),
+            "cyan" | "aqua" => Some(AuraStyle::Cyan),
+            "violet" | "purple" | "transcendent" | "trans" | "rebirth" => Some(AuraStyle::Violet),
+            "blue" | "azure" => Some(AuraStyle::Blue),
+            "gold" | "golden" | "yellow" => Some(AuraStyle::Gold),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, RustState, StateElement)]
 pub struct InterfaceSettings {
     pub language: Language,
@@ -351,5 +435,67 @@ impl InterfaceSettingsCapabilities {
             self.scalings
                 .sort_by(|left, right| left.get_factor().total_cmp(&right.get_factor()));
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{AuraStyle, AuraStyleMarker, parse_aura_style_marker};
+
+    #[test]
+    fn style_names_roundtrip_through_the_parser() {
+        for style in AuraStyle::OPTIONS {
+            assert_eq!(AuraStyle::from_style_name(style.style_name()), Some(style));
+        }
+    }
+
+    #[test]
+    fn style_name_aliases_are_accepted() {
+        assert_eq!(AuraStyle::from_style_name("  DEFAULT "), Some(AuraStyle::Auto));
+        assert_eq!(AuraStyle::from_style_name("none"), Some(AuraStyle::Off));
+        assert_eq!(AuraStyle::from_style_name("Purple"), Some(AuraStyle::Violet));
+        assert_eq!(AuraStyle::from_style_name("transcendent"), Some(AuraStyle::Violet));
+        assert_eq!(AuraStyle::from_style_name("AZURE"), Some(AuraStyle::Blue));
+        assert_eq!(AuraStyle::from_style_name("golden"), Some(AuraStyle::Gold));
+    }
+
+    #[test]
+    fn unknown_style_name_is_rejected() {
+        assert_eq!(AuraStyle::from_style_name("pink"), None);
+        assert_eq!(AuraStyle::from_style_name(""), None);
+        assert_eq!(AuraStyle::from_style_name("cyan gold"), None);
+    }
+
+    #[test]
+    fn aura_marker_parses_the_style() {
+        assert_eq!(
+            parse_aura_style_marker("[KORANGAR_AURA] cyan"),
+            Some(AuraStyleMarker::Style(AuraStyle::Cyan))
+        );
+        assert_eq!(
+            parse_aura_style_marker("  [KORANGAR_AURA]   GOLD  "),
+            Some(AuraStyleMarker::Style(AuraStyle::Gold))
+        );
+        assert_eq!(
+            parse_aura_style_marker("[korangar_aura] violet"),
+            Some(AuraStyleMarker::Style(AuraStyle::Violet))
+        );
+    }
+
+    #[test]
+    fn aura_marker_with_unknown_style_is_consumed_as_unknown() {
+        assert_eq!(
+            parse_aura_style_marker("[KORANGAR_AURA] pink"),
+            Some(AuraStyleMarker::UnknownStyle)
+        );
+        assert_eq!(parse_aura_style_marker("[KORANGAR_AURA]"), Some(AuraStyleMarker::UnknownStyle));
+    }
+
+    #[test]
+    fn normal_chat_is_not_an_aura_marker() {
+        assert_eq!(parse_aura_style_marker("hello [KORANGAR_AURA] cyan"), None);
+        assert_eq!(parse_aura_style_marker("@go prontera"), None);
+        assert_eq!(parse_aura_style_marker(""), None);
+        assert_eq!(parse_aura_style_marker("[KORANGAR_AURA2] cyan"), None);
     }
 }
