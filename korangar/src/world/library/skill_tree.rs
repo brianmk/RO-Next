@@ -156,6 +156,17 @@ impl Table for SkillTreeLayout {
     where
         Self: Sized,
     {
-        Self::try_get(library, key).unwrap()
+        // Some jobs (e.g. jobs used by population shells or very new jobs that this
+        // client's skill tree tables do not know) have no skill tree entry. Fall back
+        // to an empty tree instead of panicking the client.
+        static EMPTY: std::sync::LazyLock<SkillTreeLayout> = std::sync::LazyLock::new(SkillTreeLayout::default);
+
+        match Self::try_get(library, key) {
+            Some(skill_tree) => skill_tree,
+            None => {
+                eprintln!("[skill_tree] no skill tree for job {:?}, using an empty tree", key);
+                &EMPTY
+            }
+        }
     }
 }

@@ -2270,13 +2270,6 @@ impl Client {
                         .update_equipped_position(index, equipped_position);
                 }
                 NetworkEvent::ChangeJob { account_id, job_id } => {
-                    let layout = self.async_loader.request_skill_tree_layout_load(job_id, client_tick);
-                    *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
-                    *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
-                    self.client_state
-                        .follow_mut(client_state().skill_tree_window().chosen_skill_level())
-                        .clear();
-
                     let Some(entity) = self
                         .client_state
                         .follow_mut(client_state().entities())
@@ -2309,6 +2302,24 @@ impl Client {
                         entity.get_entity_part_files(&self.library),
                     ) {
                         entity.set_animation_data(animation_data);
+                    }
+
+                    // Only the own character's job change affects the local skill tree
+                    // window. Population shells send job changes for jobs that do not
+                    // exist in this client's skill tree tables, which used to panic when
+                    // the skill tree layout was looked up for them.
+                    if self
+                        .client_state
+                        .try_follow(this_entity())
+                        .is_some_and(|player| player.get_entity_id().0 == account_id.0)
+                    {
+                        let layout = self.async_loader.request_skill_tree_layout_load(job_id, client_tick);
+                        *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) =
+                            layout.tabs.len().saturating_sub(1);
+                        *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
+                        self.client_state
+                            .follow_mut(client_state().skill_tree_window().chosen_skill_level())
+                            .clear();
                     }
                 }
                 NetworkEvent::ChangeHair { account_id, hair_id } => {
