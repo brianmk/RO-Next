@@ -2433,6 +2433,34 @@ pub struct UpdateSkillTreePacket {
     pub skill_information: Vec<SkillInformation>,
 }
 
+/// Sent by the server when the level/SP cost/range of a known skill changes
+/// (`ZC_SKILLINFO_UPDATE2`, 0x07E1 on this packet version).
+#[derive(Debug, Clone, Packet, ServerPacket)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07E1)]
+pub struct SkillInfoUpdatePacket {
+    pub skill_id: SkillId,
+    pub skill_type: SkillType,
+    pub skill_level: SkillLevel,
+    pub spell_point_cost: u16,
+    pub attack_range: AttackRange,
+    // TODO: bool
+    pub upgradable: u8,
+}
+
+/// Sent by the server when a single skill is learned or upgraded
+/// (`ZC_ADD_SKILL`).
+///
+/// For PACKETVER 20190605 the server uses the `SKILLDATA` layout (skill id,
+/// `i32` type flags, level, SP cost, range, name[24], upgradable flag), which
+/// matches [`SkillInformation`].
+#[derive(Debug, Clone, Packet, ServerPacket)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0111)]
+pub struct AddSkillPacket {
+    pub skill_information: SkillInformation,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub enum HotkeyType {

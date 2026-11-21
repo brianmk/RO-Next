@@ -602,6 +602,28 @@ where
     })?;
     packet_handler.register_noop::<EquippableSwitchItemListPacket>()?;
     packet_handler.register_noop::<MapTypePacket>()?;
+    packet_handler.register(|packet: SkillInfoUpdatePacket| {
+        let SkillInfoUpdatePacket {
+            skill_id,
+            skill_type,
+            skill_level,
+            spell_point_cost,
+            attack_range,
+            upgradable,
+        } = packet;
+        NetworkEvent::UpdateSkillInfo {
+            skill_id,
+            skill_type,
+            skill_level,
+            spell_point_cost,
+            attack_range,
+            upgradable: upgradable != 0,
+        }
+    })?;
+    packet_handler.register(|packet: AddSkillPacket| {
+        let AddSkillPacket { skill_information } = packet;
+        NetworkEvent::AddSkill { skill_information }
+    })?;
     packet_handler.register(|packet: UpdateSkillTreePacket| {
         let UpdateSkillTreePacket { skill_information } = packet;
         NetworkEvent::SkillTree { skill_information }

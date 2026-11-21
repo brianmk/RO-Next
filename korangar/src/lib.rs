@@ -3200,8 +3200,48 @@ impl Client {
                     self.client_state.follow_mut(client_state().inventory()).remove_item(index, amount);
                 }
                 NetworkEvent::SkillTree { skill_information } => {
+                    crate::logging::log_debug!("skills: initial skill list with {} entries", skill_information.len());
                     *self.client_state.follow_mut(client_state().skill_tree().skills()) =
                         skill_information.into_iter().map(LearnedSkill::new).collect();
+                }
+                NetworkEvent::UpdateSkillInfo {
+                    skill_id,
+                    skill_type,
+                    skill_level,
+                    spell_point_cost,
+                    attack_range,
+                    upgradable,
+                } => {
+                    // Partial skill update (level up, SP cost/range change). The
+                    // name is not part of this packet, so only known skills are
+                    // updated; the tree/hotbar read the new level from this entry.
+                    crate::logging::log_debug!("skills: update skill {} level {}", skill_id.0, skill_level.0);
+                    let skills = self.client_state.follow_mut(client_state().skill_tree().skills());
+
+                    if let Some(learned_skill) = skills.iter_mut().find(|learned_skill| learned_skill.skill_id == skill_id) {
+                        learned_skill.skill_type = skill_type;
+                        learned_skill.skill_level = skill_level;
+                        learned_skill.spell_point_cost = spell_point_cost;
+                        learned_skill.attack_range = attack_range;
+                        learned_skill.upgradable = upgradable;
+                    }
+                }
+                NetworkEvent::AddSkill { skill_information } => {
+                    // A skill that was learned/upgraded after the initial skill list.
+                    // Replace the old entry so the skill tree and the hotbar pick up
+                    // the new level immediately, without a relog.
+                    let learned_skill = LearnedSkill::new(skill_information);
+                    crate::logging::log_debug!(
+                        "skills: add skill {} level {}",
+                        learned_skill.skill_id.0,
+                        learned_skill.skill_level.0
+                    );
+                    let skills = self.client_state.follow_mut(client_state().skill_tree().skills());
+
+                    match skills.iter_mut().find(|existing| existing.skill_id == learned_skill.skill_id) {
+                        Some(existing) => *existing = learned_skill,
+                        None => skills.push(learned_skill),
+                    }
                 }
                 NetworkEvent::InventoryItemAmountChanged { index, amount } => {
                     self.client_state
@@ -3812,7 +3852,9 @@ impl Client {
                 InputEvent::ToggleMenuWindow => {
                     // Escape closes the item info window and the character context
                     // menu before it does anything else.
-                    if self.interface.is_window_with_class_open(WindowClass::ItemInfo) {
+                    if self.interface.is_window_with_class_open(WindowClass::SkillDescription) {
+                        self.interface.close_window_with_class(WindowClass::SkillDescription);
+                    } else if self.interface.is_window_with_class_open(WindowClass::ItemInfo) {
                         self.interface.close_window_with_class(WindowClass::ItemInfo);
                     } else if self.interface.is_window_with_class_open(WindowClass::ContextMenu) {
                         self.interface.close_window_with_class(WindowClass::ContextMenu);
@@ -4257,6 +4299,30 @@ impl Client {
                     }
                     _ => {}
                 },
+                InputEvent::OpenSkillDescription {
+                    name,
+                    learned_level,
+                    maximum_level,
+                    skill_type,
+                    spell_point_cost,
+                    attack_range,
+                    upgradable,
+                    position,
+                } => {
+                    self.interface.close_window_with_class(WindowClass::SkillDescription);
+                    self.interface.open_window_at(
+                        SkillDescriptionWindow::new(
+                            name,
+                            learned_level,
+                            maximum_level,
+                            skill_type,
+                            spell_point_cost,
+                            attack_range,
+                            upgradable,
+                        ),
+                        position,
+                    );
+                }
                 InputEvent::UseSkillInSlot { slot } => {
                     // Skills that require a target switch to a target selection
                     // mouse mode, while self cast skills are used immediately,

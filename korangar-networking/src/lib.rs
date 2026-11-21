@@ -1339,6 +1339,124 @@ mod packet_handlers {
         }]));
     }
 
+    /// Builds a 2019 `SKILLDATA` payload (id u16, inf i32, level u16, sp u16,
+    /// range u16, name[24], up_flag u8) — the layout the 20190605 server sends
+    /// in both `ZC_SKILLINFO_LIST` (0x010F) and `ZC_ADD_SKILL` (0x0111).
+    fn skill_data_2019(skill_id: u16, skill_type: i32, level: u16, sp: u16, range: u16, name: &str, upgradable: u8) -> Vec<u8> {
+        let mut data = Vec::new();
+        data.extend_from_slice(&skill_id.to_le_bytes());
+        data.extend_from_slice(&skill_type.to_le_bytes());
+        data.extend_from_slice(&level.to_le_bytes());
+        data.extend_from_slice(&sp.to_le_bytes());
+        data.extend_from_slice(&range.to_le_bytes());
+
+        let mut name_bytes = [0u8; 24];
+        for (index, byte) in name.as_bytes().iter().take(23).enumerate() {
+            name_bytes[index] = *byte;
+        }
+        data.extend_from_slice(&name_bytes);
+        data.push(upgradable);
+        data
+    }
+
+    #[test]
+    fn add_skill_packet_parses_the_2019_skill_data_layout() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x0111u16.to_le_bytes());
+        packet.extend_from_slice(&skill_data_2019(5, 4, 10, 8, 1, "Crazy Uproar", 1));
+
+        assert_eq!(packet.len(), 39);
+
+        let mut reader = ByteReader::without_metadata(&packet);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("add skill packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::AddSkill { skill_information }] => {
+                assert_eq!(skill_information.skill_id.0, 5);
+                assert_eq!(skill_information.skill_level.0, 10);
+                assert_eq!(skill_information.spell_point_cost, 8);
+                assert_eq!(skill_information.attack_range.0, 1);
+                assert_eq!(skill_information.skill_name, "Crazy Uproar");
+                assert_eq!(skill_information.upgradable, 1);
+            }
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
+    #[test]
+    fn skill_info_update_packet_parses_the_2019_layout() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x07E1u16.to_le_bytes());
+        packet.extend_from_slice(&5u16.to_le_bytes()); // skill id
+        packet.extend_from_slice(&4i32.to_le_bytes()); // type flags (self cast)
+        packet.extend_from_slice(&10u16.to_le_bytes()); // level
+        packet.extend_from_slice(&8u16.to_le_bytes()); // sp cost
+        packet.extend_from_slice(&1u16.to_le_bytes()); // range
+        packet.push(0); // upgradable
+
+        assert_eq!(packet.len(), 15);
+
+        let mut reader = ByteReader::without_metadata(&packet);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("skill info update packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [
+                NetworkEvent::UpdateSkillInfo {
+                    skill_id,
+                    skill_level,
+                    spell_point_cost,
+                    attack_range,
+                    upgradable,
+                    ..
+                },
+            ] => {
+                assert_eq!(skill_id.0, 5);
+                assert_eq!(skill_level.0, 10);
+                assert_eq!(*spell_point_cost, 8);
+                assert_eq!(attack_range.0, 1);
+                assert!(!*upgradable);
+            }
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
+    #[test]
+    fn skill_tree_packet_parses_multiple_2019_skill_entries() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let first = skill_data_2019(5, 1, 10, 8, 1, "Bash", 1);
+        let second = skill_data_2019(155, 4, 5, 30, 1, "Crazy Uproar", 0);
+
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x010Fu16.to_le_bytes());
+        packet.extend_from_slice(&((4 + first.len() + second.len()) as u16).to_le_bytes());
+        packet.extend_from_slice(&first);
+        packet.extend_from_slice(&second);
+
+        let mut reader = ByteReader::without_metadata(&packet);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("skill tree packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::SkillTree { skill_information }] => {
+                assert_eq!(skill_information.len(), 2);
+                assert_eq!(skill_information[0].skill_name, "Bash");
+                assert_eq!(skill_information[1].skill_name, "Crazy Uproar");
+                assert_eq!(skill_information[1].skill_level.0, 5);
+            }
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
     #[test]
     fn longlong_stat_update_packet_carries_next_base_experience() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();

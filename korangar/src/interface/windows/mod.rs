@@ -39,6 +39,7 @@ mod respawn;
 mod sell;
 mod sell_cart;
 mod server_selection;
+mod skill_description;
 mod skill_tree;
 mod stats;
 #[cfg(feature = "debug")]
@@ -87,6 +88,7 @@ pub use self::respawn::RespawnWindow;
 pub use self::sell::SellWindow;
 pub use self::sell_cart::SellCartWindow;
 pub use self::server_selection::ServerSelectionWindow;
+pub use self::skill_description::SkillDescriptionWindow;
 pub use self::skill_tree::{SkillTreeWindow, SkillTreeWindowState, SkillTreeWindowStatePathExt};
 pub use self::stats::StatsWindow;
 #[cfg(feature = "debug")]
@@ -113,6 +115,7 @@ pub enum WindowClass {
     ItemInfo,
     Equipment,
     SkillTree,
+    SkillDescription,
     Stats,
     FriendList,
     FriendRequest,

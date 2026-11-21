@@ -5,8 +5,8 @@ use korangar_debug::profiling::FrameMeasurement;
 use korangar_interface::event::{ClickHandler, Event, EventQueue};
 use korangar_networking::{InventoryItem, ShopItem};
 use ragnarok_packets::{
-    AccountId, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex, ItemId,
-    ShopId, SkillId, SkillLevel, SoldItemInformation, StatUpType, TilePosition,
+    AccountId, AttackRange, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex,
+    ItemId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
 };
 use rust_state::State;
 
@@ -235,6 +235,16 @@ pub enum InputEvent {
     /// Use a learned skill directly, e.g. by double clicking it in the skill
     /// tree. Skills that require a target start a target selection, self cast
     /// skills are cast immediately.
+    OpenSkillDescription {
+        name: String,
+        learned_level: Option<SkillLevel>,
+        maximum_level: SkillLevel,
+        skill_type: Option<SkillType>,
+        spell_point_cost: Option<u16>,
+        attack_range: Option<AttackRange>,
+        upgradable: bool,
+        position: ScreenPosition,
+    },
     UseSkill {
         /// Id of the skill to use.
         skill_id: SkillId,

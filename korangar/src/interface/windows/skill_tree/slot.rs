@@ -1,3 +1,5 @@
+use std::cell::Cell;
+
 use korangar_interface::MouseMode;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{BaseLayoutInfo, Element};
@@ -9,7 +11,7 @@ use ragnarok_packets::{SkillLevel, SkillType};
 use rust_state::{Path, State};
 
 use super::{SkillTreeWindowState, SkillTreeWindowStatePathExt};
-use crate::graphics::{Color, ShadowPadding};
+use crate::graphics::{Color, ScreenPosition, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::SkillSource;
 use crate::loaders::OverflowBehavior;
@@ -169,6 +171,48 @@ where
     }
 }
 
+/// Right click handler: opens the skill description window at the mouse
+/// position. The position is refreshed every frame while the slot is hovered.
+struct SkillSlotDescriptionHandler<A, B> {
+    learnable_skill_path: A,
+    learned_skill_path: B,
+    position: Cell<ScreenPosition>,
+}
+
+impl<A, B> SkillSlotDescriptionHandler<A, B> {
+    fn new(learnable_skill_path: A, learned_skill_path: B) -> Self {
+        Self {
+            learnable_skill_path,
+            learned_skill_path,
+            position: Cell::new(ScreenPosition { left: 0.0, top: 0.0 }),
+        }
+    }
+}
+
+impl<A, B> ClickHandler<ClientState> for SkillSlotDescriptionHandler<A, B>
+where
+    A: Path<ClientState, LearnableSkill, false>,
+    B: Path<ClientState, LearnedSkill, false>,
+{
+    fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        let Some(learnable_skill) = state.try_get(&self.learnable_skill_path) else {
+            return;
+        };
+        let learned_skill = state.try_get(&self.learned_skill_path);
+
+        queue.queue(InputEvent::OpenSkillDescription {
+            name: learnable_skill.skill_name.clone(),
+            learned_level: learned_skill.map(|learned_skill| learned_skill.skill_level),
+            maximum_level: learnable_skill.maximum_level,
+            skill_type: learned_skill.map(|learned_skill| learned_skill.skill_type),
+            spell_point_cost: learned_skill.map(|learned_skill| learned_skill.spell_point_cost),
+            attack_range: learned_skill.map(|learned_skill| learned_skill.attack_range),
+            upgradable: learned_skill.is_some_and(|learned_skill| learned_skill.upgradable),
+            position: self.position.get(),
+        });
+    }
+}
+
 struct ChooseLowerClickHandler<A, B> {
     learned_skill_path: A,
     window_state_path: B,
@@ -253,6 +297,7 @@ pub struct SkillSlot<A, B, C> {
     learned_skill_path: B,
     window_state_path: C,
     click_handler: SkillSlotClickHandler<A, B, C>,
+    description_handler: SkillSlotDescriptionHandler<A, B>,
     use_handler: SkillSlotUseHandler<B, C>,
     choose_lower_handler: ChooseLowerClickHandler<B, C>,
     choose_higher_handler: ChooseHigherClickHandler<B, C>,
@@ -271,6 +316,7 @@ where
             learned_skill_path,
             window_state_path,
             click_handler: SkillSlotClickHandler::new(learnable_skill_path, learned_skill_path, window_state_path, source),
+            description_handler: SkillSlotDescriptionHandler::new(learnable_skill_path, learned_skill_path),
             use_handler: SkillSlotUseHandler::new(learned_skill_path, window_state_path),
             choose_lower_handler: ChooseLowerClickHandler::new(learned_skill_path, window_state_path),
             choose_higher_handler: ChooseHigherClickHandler::new(learned_skill_path, window_state_path),
@@ -505,11 +551,46 @@ where
             if let Some(actions) = &skill.actions
                 && let Some(sprite) = &skill.sprite
             {
-                layout.add_sprite(sprite_area, actions, sprite, &skill.animation_state, color, 1.3);
+                // Skills don't all share the same icon size. The ACT frames can be
+                // larger than the texture (Weapons Research does this), so the fit
+                // scale has to use the largest frame clip and not just the texture
+                // size, otherwise such icons overflow (and get clipped by) the slot.
+                let sprite_scale = {
+                    use cgmath::Vector2;
+
+                    let mut maximum_dimension = 1.0f32;
+
+                    for action in &actions.actions {
+                        for motion in &action.motions {
+                            for sprite_clip in &motion.sprite_clips {
+                                let dimensions = sprite_clip
+                                    .size
+                                    .map(|size| Vector2::new(size.x as f32, size.y as f32))
+                                    .or_else(|| {
+                                        sprite.textures.get(sprite_clip.sprite_number as usize).map(|texture| {
+                                            let size = texture.get_size();
+                                            Vector2::new(size.width as f32, size.height as f32)
+                                        })
+                                    })
+                                    .unwrap_or(Vector2::new(1.0, 1.0));
+
+                                maximum_dimension = maximum_dimension.max(dimensions.x).max(dimensions.y);
+                            }
+                        }
+                    }
+
+                    sprite_area.width.min(sprite_area.height) / maximum_dimension
+                };
+
+                layout.add_sprite(sprite_area, actions, sprite, &skill.animation_state, color, sprite_scale);
             }
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.click_handler);
+
+                // Right click opens the skill description at the mouse position.
+                self.description_handler.position.set(layout.get_mouse_position());
+                layout.register_click_handler(MouseButton::Right, &self.description_handler);
 
                 if !over_arrow {
                     layout.register_click_handler(MouseButton::DoubleLeft, &self.use_handler);

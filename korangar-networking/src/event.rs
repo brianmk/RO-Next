@@ -306,6 +306,21 @@ pub enum NetworkEvent {
     SkillTree {
         skill_information: Vec<SkillInformation>,
     },
+    /// A single skill was learned or upgraded after the initial skill list
+    /// (`ZC_ADD_SKILL`, 0x0111 on this packet version).
+    AddSkill {
+        skill_information: SkillInformation,
+    },
+    /// The level, SP cost or range of a known skill changed
+    /// (`ZC_SKILLINFO_UPDATE2`, 0x07E1 on this packet version).
+    UpdateSkillInfo {
+        skill_id: SkillId,
+        skill_type: SkillType,
+        skill_level: SkillLevel,
+        spell_point_cost: u16,
+        attack_range: AttackRange,
+        upgradable: bool,
+    },
     UpdateEquippedPosition {
         index: InventoryIndex,
         equipped_position: EquipPosition,
