@@ -867,7 +867,9 @@ where
 
     pub fn cast_skill(&mut self, skill_id: SkillId, skill_level: SkillLevel, entity_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
-            SupportedPacketVersion::_20220406 => self.send_map_server_packet(UseSkillAtIdPacket::new(skill_level, skill_id, entity_id)),
+            SupportedPacketVersion::_20220406 => {
+                self.send_map_server_packet(UseSkillAtTargetPacket2019::new(skill_id, skill_level, entity_id))
+            }
         }
     }
 

@@ -4060,6 +4060,22 @@ pub struct UseSkillAtIdPacket {
     pub target_id: EntityId,
 }
 
+/// 2019-era target skill packet (`CZ_USE_SKILL_TOID`).
+///
+/// rAthena parses targeted skill use from 0x089B for `PACKETVER >= 20130320`
+/// (our 20190605 server): 10 bytes, offsets 2/4/6 = skill id (u16), skill level
+/// (u16), target id (u32). [UseSkillAtIdPacket] (0x0438) is the 2022 layout; on
+/// the 2019 client 0x0438 is `CZ_DROP_ITEM`, so targeted casts were never
+/// executed.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x089B)]
+pub struct UseSkillAtTargetPacket2019 {
+    pub skill_id: SkillId,
+    pub skill_level: SkillLevel,
+    pub target_id: EntityId,
+}
+
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0AF4)]
