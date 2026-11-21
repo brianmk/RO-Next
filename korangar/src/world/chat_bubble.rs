@@ -42,7 +42,7 @@ const BUBBLE_LINE_GAP: f32 = 2.0;
 /// just above the head. Character sprites are roughly 1.7 tiles tall; one
 /// tile is `TILE_SIZE` (10) world units, so 17 units puts the bubble above the
 /// head instead of on the torso.
-const BUBBLE_HEAD_HEIGHT: f32 = 17.0;
+const BUBBLE_HEAD_HEIGHT: f32 = 21.0;
 
 struct ChatBubble {
     entity_id: EntityId,
