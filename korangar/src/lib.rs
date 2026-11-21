@@ -504,6 +504,14 @@ pub struct Client {
     /// If the disconnect event does not arrive in time the client recovers
     /// directly instead of waiting forever on a black screen.
     map_entry_abort_deadline: Option<Instant>,
+    /// Deadline until which the client expects the map server to send the map
+    /// change packet after a character was selected.
+    ///
+    /// A packet that cannot be parsed desynchronizes the map server stream and
+    /// silently swallows the `ZC_NPCACK_MAPMOVE` packet, which used to leave
+    /// the client on a black screen forever. This watchdog aborts such a map
+    /// entry instead.
+    map_entry_watchdog: Option<Instant>,
     /// Set while the client recovers from an aborted map entry. Used to
     /// suppress the follow-up "Rejected from server" window, which is only
     /// a side effect of aborting the entry and would cover the actual map
@@ -1104,6 +1112,7 @@ impl Client {
             guild_emblems: GuildEmblemCache::default(),
             pending_map_load_error: None,
             map_entry_abort_deadline: None,
+            map_entry_watchdog: None,
             map_entry_aborted: false,
             pending_map_load: None,
             map_window_cycle: MapWindowCycle::Closed,
@@ -2483,6 +2492,11 @@ impl Client {
                     self.client_state.follow_mut(client_state().dialog_window()).end();
 
                     self.map = None;
+                    // The map server sends the map change packet (and with it the
+                    // map data we have to load) right after the login handshake.
+                    // If the packet stream is desynchronized that packet would be
+                    // lost and the client would stay on a black screen.
+                    self.map_entry_watchdog = Some(Instant::now() + Duration::from_secs(20));
                     self.skill_sounds.clear();
 
                     self.particle_holder.clear();
@@ -4719,6 +4733,7 @@ impl Client {
     fn return_to_character_selection(&mut self) {
         self.map = None;
         self.map_entry_abort_deadline = None;
+        self.map_entry_watchdog = None;
 
         if self.networking_system.is_character_server_connected() {
             // The map connection failed (e.g. while the map server is still
@@ -4987,6 +5002,20 @@ impl Client {
                 self.audio_engine.play_background_music_track(None);
                 event_loop.exit();
                 return;
+            }
+        }
+
+        // Defensive guard: if the map server never sends the map change packet
+        // (for example because an unparsable packet desynchronized the stream)
+        // the client would render an empty black frame forever. Abort the map
+        // entry once the deadline expires, unless a map load is actually in
+        // flight (that case is handled by `update_pending_map_load`).
+        if let Some(deadline) = self.map_entry_watchdog {
+            if self.map.is_some() {
+                self.map_entry_watchdog = None;
+            } else if self.pending_map_load.is_none() && Instant::now() >= deadline {
+                self.map_entry_watchdog = None;
+                self.abort_map_entry("The server did not send the map entry data. Please try again.".to_owned());
             }
         }
 

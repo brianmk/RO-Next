@@ -4552,6 +4552,37 @@ pub struct FriendListPacket {
     pub friend_list: Vec<Friend>,
 }
 
+/// A single entry of the 2019-era `ZC_FRIENDS_LIST` (0x0201) packet.
+///
+/// Since PACKETVER 20180307 rAthena no longer sends the 24-byte friend name in
+/// the friend list (see `clif_friendslist_send`), so on the 2019 CondaRO
+/// server each entry consists of the account and character id only. Parsing
+/// such a packet with the 2022-era [Friend] entry would read past the end of
+/// the packet and desynchronize the whole map server stream.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct Friend2019 {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+}
+
+/// 2019-era `ZC_FRIENDS_LIST` (0x0201) packet: 8-byte entries without a name.
+///
+/// Registered for the map server of the 2019 CondaRO server instead of
+/// [FriendListPacket], whose entries are 32 bytes and include the friend name.
+/// Reading the wrong entry size made the parser skip past the packet, which
+/// silently swallowed the following `ZC_NPCACK_MAPMOVE` (0x0091) packet and
+/// left the client on a black screen. Friend names are delivered later by the
+/// `ZC_FRIENDS_STATE` (0x0206) packet.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0201)]
+#[variable_length]
+pub struct FriendListPacket2019 {
+    #[repeating_remaining]
+    pub friend_list: Vec<Friend2019>,
+}
+
 #[derive(Debug, Clone, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub enum OnlineState {
@@ -4958,6 +4989,35 @@ mod tests {
         // Inventory indices are stored as index + 2 by the client protocol.
         assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 2);
         assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 501);
+    }
+
+    /// The 2019-era friend list packet (0x0201) has 8-byte entries: rAthena
+    /// omits the 24-byte name since PACKETVER 20180307. Parsing it with the
+    /// 2022-era 32-byte entry used to fail half way through the packet.
+    #[test]
+    fn friend_list_2019_layout() {
+        use ragnarok_bytes::ByteReader;
+
+        use crate::{AccountId, CharacterId, FriendListPacket, FriendListPacket2019, Packet};
+
+        // 0201 <len>.W { <account id>.L <char id>.L }*
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x0201u16.to_le_bytes());
+        bytes.extend_from_slice(&12u16.to_le_bytes());
+        bytes.extend_from_slice(&42u32.to_le_bytes());
+        bytes.extend_from_slice(&150016u32.to_le_bytes());
+
+        let mut byte_reader = ByteReader::without_metadata(&bytes);
+        let packet = FriendListPacket2019::packet_from_bytes(&mut byte_reader).expect("2019 friend list must parse");
+        assert!(byte_reader.is_empty(), "parsing must consume the whole packet");
+        assert_eq!(packet.friend_list.len(), 1);
+        assert_eq!(packet.friend_list[0].account_id, AccountId(42));
+        assert_eq!(packet.friend_list[0].character_id, CharacterId(150016));
+
+        // The 2022-era layout (32-byte entries with a name) must not be used for
+        // this packet, it cannot be parsed from the 12 bytes the server sends.
+        let mut byte_reader = ByteReader::without_metadata(&bytes);
+        assert!(FriendListPacket::packet_from_bytes(&mut byte_reader).is_err());
     }
 
     #[test]
