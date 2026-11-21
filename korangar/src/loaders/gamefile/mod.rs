@@ -87,6 +87,24 @@ impl GameFileLoader {
             .any(|archive| archive.archive.file_exists(&lowercase_path))
     }
 
+    /// Returns the content of a file from **every** loaded archive that
+    /// contains it, in archive priority order (highest priority first).
+    ///
+    /// This is used by lookups that have to combine data from a lower-priority
+    /// archive, e.g. an English translation table that only exists in the
+    /// server archive while the base game archive contains the original
+    /// (untranslated) table.
+    pub fn get_all(&self, path: &str) -> Vec<Vec<u8>> {
+        let lowercase_path = path.to_lowercase();
+
+        self.archives
+            .read()
+            .unwrap()
+            .iter()
+            .filter_map(|archive| archive.archive.get_file_by_path(&lowercase_path))
+            .collect()
+    }
+
     fn add_archive(&self, archive: Box<dyn Archive>, is_game_archive: bool) {
         self.archives.write().unwrap().insert(0, LoaderArchive { archive, is_game_archive });
     }

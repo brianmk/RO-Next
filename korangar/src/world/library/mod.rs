@@ -1,5 +1,6 @@
 mod accessory_name;
 mod baby_job;
+mod item_display_name;
 mod item_info;
 mod item_name;
 mod item_resource;
@@ -17,18 +18,20 @@ mod skill_information;
 mod skill_requirements;
 mod skill_tree;
 
+use std::borrow::Cow;
 use std::hash::Hash;
 
 use encoding_rs::EUC_KR;
 use hashbrown::HashMap;
 use korangar_loaders::FileLoader;
 use mlua::Lua;
-use ragnarok_packets::{JobId, Sex, SkillId};
+use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
 
 pub use self::accessory_name::AccessoryName;
 pub use self::baby_job::IsBabyJob;
+pub use self::item_display_name::ItemDisplayNames;
 pub use self::item_info::ItemInfo;
-pub use self::item_name::{ItemName, ItemNameKey};
+pub use self::item_name::ItemName;
 pub use self::item_resource::{ItemResource, ItemResourceKey};
 pub use self::item_stats::{ItemStats, StatBonuses};
 pub use self::job_identity::JobIdentity;
@@ -43,6 +46,7 @@ pub use crate::world::library::skill_requirements::{SkillListKey, SkillListRequi
 pub struct Library {
     job_identity_table: <JobIdentity as Table>::Storage,
     item_info_table: <ItemInfo as Table>::Storage,
+    item_display_names: ItemDisplayNames,
     map_sky_data_table: <MapSkyData as Table>::Storage,
     skill_information_table: <SkillListInformation as Table>::Storage,
     skill_requirements_table: <SkillListRequirements as Table>::Storage,
@@ -57,6 +61,7 @@ impl Library {
     pub fn new(game_file_loader: &GameFileLoader) -> mlua::Result<Self> {
         let job_identity_table = JobIdentity::load(game_file_loader)?;
         let item_info_table = ItemInfo::load(game_file_loader)?;
+        let item_display_names = ItemDisplayNames::load(game_file_loader, &item_info_table);
         let map_sky_data_table = MapSkyData::load(game_file_loader)?;
         let skill_information_table = SkillListInformation::load(game_file_loader)?;
         let skill_requirements_table = SkillListRequirements::load(game_file_loader)?;
@@ -69,6 +74,7 @@ impl Library {
         Ok(Self {
             job_identity_table,
             item_info_table,
+            item_display_names,
             map_sky_data_table,
             skill_information_table,
             skill_requirements_table,
@@ -90,6 +96,18 @@ impl Library {
 
     pub fn get<T: Table>(&self, key: T::Key<'_>) -> &T {
         T::get(self, key)
+    }
+
+    /// Resolved display name of an item.
+    ///
+    /// This is the single source of item names for every display (ground item
+    /// labels, pickup chat messages, inventory/equipment tooltips, shops,
+    /// storage). It uses the English display name table from the client data,
+    /// falls back to a displayable name from `iteminfo.lub` and finally to
+    /// `Item #<id>`.
+    #[inline(always)]
+    pub fn item_name(&self, item_id: ItemId, is_identified: bool) -> Cow<'_, str> {
+        self.item_display_names.name(item_id, is_identified)
     }
 
     /// Returns whether the job has a job identity (name/sprite) in this data
