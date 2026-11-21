@@ -4,6 +4,7 @@ pub mod character_slots;
 pub mod hotbar;
 pub mod inventory;
 pub mod localization;
+pub mod minimap;
 pub mod skills;
 pub mod theme;
 
@@ -56,6 +57,7 @@ use crate::settings::{
 use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
+use crate::state::minimap::Minimap;
 use crate::state::skills::SkillTree;
 use crate::state::theme::WorldTheme;
 #[cfg(feature = "debug")]
@@ -139,6 +141,8 @@ pub struct ClientState {
     login_window: LoginWindowState,
     /// Internal state of the chat window.
     chat_window: ChatWindowState,
+    /// Minimap of the currently loaded map.
+    minimap: Minimap,
     /// Internal state of the friend list window.
     friend_list_window: FriendListWindowState,
     /// Internal state of the dialog window.
@@ -309,6 +313,7 @@ impl ClientState {
             let chat_messages = vec![ChatMessage::new(welcome_string, MessageColor::Server)];
 
             let chat_window = ChatWindowState::default();
+            let minimap = Minimap::default();
         });
 
         time_phase!("create character server resources", {
@@ -396,6 +401,7 @@ impl ClientState {
             client_info,
             login_window,
             chat_window,
+            minimap,
             friend_list_window,
             dialog_window,
             skill_tree_window,

@@ -76,6 +76,7 @@ pub enum InputEvent {
     ToggleAudioSettingsWindow,
     /// Open or close the friend list window. Only works while playing.
     ToggleFriendListWindow,
+    ToggleMinimapWindow,
     /// Close the most recently opened or clicked closable window.
     CloseTopWindow,
     /// Toggle if the user interface should be rendered or not.
@@ -251,7 +252,9 @@ pub enum InputEvent {
         items: Vec<SoldItemInformation>,
     },
     /// Up a stat.
-    StatUp { stat_type: StatUpType },
+    StatUp {
+        stat_type: StatUpType,
+    },
     /// Distribute skill points to meet all requirements for a given skill and
     /// put a single point into the provided skill. If the player does not
     /// have enough skill points, this will skill as much of the
@@ -343,7 +346,9 @@ pub enum InputEvent {
     CameraDecelerate,
     /// Open a window to inspect a frame.
     #[cfg(feature = "debug")]
-    InspectFrame { measurement: FrameMeasurement },
+    InspectFrame {
+        measurement: FrameMeasurement,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {

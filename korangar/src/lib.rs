@@ -1705,6 +1705,8 @@ impl Client {
                     self.client_state.follow_mut(client_state().entities()).push(player);
 
                     self.interface.close_window_with_class(WindowClass::CharacterSelection);
+                    self.interface.open_window(MinimapWindow);
+
                     self.interface.open_window(CharacterOverviewWindow::new(
                         client_state().player_name(),
                         // TODO: Check that manually asserting is fine. Technically this window should only
@@ -1939,6 +1941,7 @@ impl Client {
                 }
                 NetworkEvent::ChangeMap { map_name, position } => {
                     self.map = None;
+                    self.client_state.follow_mut(client_state().minimap()).clear();
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.chat_bubbles.clear();
@@ -2753,6 +2756,14 @@ impl Client {
                         client_state().audio_settings_capabilities(),
                     )),
                 },
+                InputEvent::ToggleMinimapWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Minimap) {
+                            true => self.interface.close_window_with_class(WindowClass::Minimap),
+                            false => self.interface.open_window(MinimapWindow),
+                        }
+                    }
+                }
                 InputEvent::ToggleFriendListWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
                         match self.interface.is_window_with_class_open(WindowClass::FriendList) {
@@ -3553,7 +3564,7 @@ impl Client {
                         .follow_mut(client_state().inventory())
                         .update_item_sprite(item_id, texture);
                 }
-                (LoaderId::Map(..), LoadableResource::Map { map, position }) => {
+                (LoaderId::Map(map_name), LoadableResource::Map { map, position }) => {
                     self.pending_map_load = None;
 
                     match self.client_state.try_follow(this_entity()).is_none() {
@@ -3616,6 +3627,12 @@ impl Client {
 
                             map.set_ambient_sound_sources(&self.audio_engine);
                             self.audio_engine.play_background_music_track(map.background_music_track_name());
+
+                            if let Some(minimap) = map.get_minimap() {
+                                self.client_state.follow_mut(client_state().minimap()).set_map(&map_name, minimap);
+                            } else {
+                                self.client_state.follow_mut(client_state().minimap()).clear();
+                            }
 
                             if let Some(position) = position {
                                 // `manually_asserted` is safe because we are in the branch where `this_player`
@@ -4079,6 +4096,18 @@ impl Client {
         // complete the loading. When starting the actual render process, we
         // can't modify resources anymore until the next frame.
         self.update_loaded_resources(client_tick);
+
+        // Keep the minimap marker in sync with the player. The marker is only
+        // updated once the map (and therefore the minimap) is loaded.
+        let player_position = self
+            .map
+            .is_some()
+            .then(|| self.client_state.try_follow(this_entity()).map(|entity| entity.get_tile_position()))
+            .flatten();
+
+        self.client_state
+            .follow_mut(client_state().minimap())
+            .set_player_position(player_position);
 
         #[cfg(feature = "debug")]
         let render_options = *self.client_state.follow(client_state().render_options());

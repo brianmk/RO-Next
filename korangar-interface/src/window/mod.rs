@@ -711,50 +711,28 @@ where
         }
 
         if let Some((close_button_area, close_button_color, is_close_button_hovered)) = close_button {
-            let close_button_image = match is_close_button_hovered {
-                true => skin
-                    .window
-                    .hovered_close_button
-                    .as_ref()
-                    .or(skin.window.close_button.as_ref())
-                    .filter(|_| skinned),
-                false => skin.window.close_button.as_ref().filter(|_| skinned),
-            };
+            // The window close button is always drawn as an "X" glyph. Some skins provide
+            // a close button texture (e.g. the CondaRO classic interface uses a bitmap that
+            // literally reads "close"), which is not what the title bar close button should
+            // look like; the "Close" label is reserved for dialog buttons at the bottom.
+            layout.add_rectangle(
+                close_button_area,
+                *state.get(&self.close_button_corner_diameter),
+                close_button_color,
+                close_button_color,
+                App::ShadowPadding::none(),
+            );
 
-            match close_button_image {
-                Some(close_button_image) => {
-                    layout.add_image(
-                        close_button_area,
-                        close_button_image.image,
-                        close_button_image.color,
-                        close_button_image.slices,
-                        close_button_image.smooth,
-                    );
-                }
-                None => {
-                    layout.add_rectangle(
-                        close_button_area,
-                        *state.get(&self.close_button_corner_diameter),
-                        close_button_color,
-                        // TODO: Properly theme
-                        close_button_color,
-                        App::ShadowPadding::none(),
-                    );
-
-                    // TODO: Use own values
-                    layout.add_text(
-                        close_button_area,
-                        "X",
-                        *state.get(&self.font_size),
-                        *state.get(&self.background_color),
-                        *state.get(&self.highlight_color),
-                        HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
-                        VerticalAlignment::Center { offset: 0.0 },
-                        // TODO: This shouldn't matter at all.
-                        *state.get(&theme().window().overflow_behavior()),
-                    );
-                }
-            }
+            layout.add_text(
+                close_button_area,
+                "X",
+                *state.get(&self.font_size),
+                *state.get(&self.background_color),
+                *state.get(&self.highlight_color),
+                HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
+                VerticalAlignment::Center { offset: 0.0 },
+                *state.get(&theme().window().overflow_behavior()),
+            );
         }
     }
 }

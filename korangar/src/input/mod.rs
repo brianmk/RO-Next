@@ -282,6 +282,11 @@ impl InputSystem {
             events.push(InputEvent::ToggleShowInterface);
         }
 
+        // Opens/closes the minimap window (Ctrl+M, like the classic client).
+        if control_down && self.get_key(KeyCode::KeyM).pressed() {
+            events.push(InputEvent::ToggleMinimapWindow);
+        }
+
         if control_down && self.get_key(KeyCode::KeyQ).pressed() {
             events.push(InputEvent::CloseTopWindow);
         }
@@ -337,7 +342,7 @@ impl InputSystem {
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyM).pressed() {
+        if control_down && self.get_key(KeyCode::KeyM).pressed() && self.get_key(KeyCode::ShiftLeft).down() {
             events.push(InputEvent::ToggleMapsWindow);
         }
 

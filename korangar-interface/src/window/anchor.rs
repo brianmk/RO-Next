@@ -65,6 +65,14 @@ impl<App> Anchor<App>
 where
     App: Application,
 {
+    /// Create an anchor with a fixed anchor point and offset.
+    ///
+    /// This can be used to give a window a sensible default position before the
+    /// user ever moves it (the position is stored in the window cache).
+    pub fn new(anchor_point: AnchorPoint, offset: App::Position) -> Self {
+        Self::initialized(anchor_point, offset)
+    }
+
     fn initialized(anchor_point: AnchorPoint, offset: App::Position) -> Self {
         Self {
             anchor_point,
