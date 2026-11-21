@@ -43,6 +43,9 @@ const BUBBLE_LINE_GAP: f32 = 2.0;
 /// tile is `TILE_SIZE` (10) world units, so 17 units puts the bubble above the
 /// head instead of on the torso.
 const BUBBLE_HEAD_HEIGHT: f32 = 21.0;
+/// Height of a sitting character in world units. The sit pose is much lower
+/// than the standing pose, so the bubble has to move down with the head.
+const BUBBLE_SITTING_HEAD_HEIGHT: f32 = 12.0;
 
 struct ChatBubble {
     entity_id: EntityId,
@@ -168,7 +171,11 @@ impl ChatBubbles {
                 }
             };
 
-            let head_position = entity.get_position() + Vector3::new(0.0, BUBBLE_HEAD_HEIGHT * entity.get_scale(), 0.0);
+            let head_height = match entity.is_sitting() {
+                true => BUBBLE_SITTING_HEAD_HEIGHT,
+                false => BUBBLE_HEAD_HEIGHT,
+            };
+            let head_position = entity.get_position() + Vector3::new(0.0, head_height * entity.get_scale(), 0.0);
             let clip_space_position = camera.view_projection_matrix() * head_position.to_homogeneous();
             let screen_position = camera.clip_to_screen_space(clip_space_position);
 

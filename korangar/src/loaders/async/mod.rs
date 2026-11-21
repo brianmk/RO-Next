@@ -19,7 +19,7 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 use crate::threads;
 use crate::world::{
     Actions, AnimationData, EntityType, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
-    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
+    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, Table,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -315,7 +315,13 @@ impl AsyncLoader {
     }
 
     pub fn request_skill_tree_layout_load(&self, job_id: JobId, client_tick: ClientTick) -> SkillTreeLayout {
-        let layout = self.library.get::<crate::world::SkillTreeLayout>(job_id);
+        // Not every job id the server sends has an entry in the client's skill tree
+        // data: the population engine's ambient shells change to arbitrary jobs (for
+        // example 4th jobs) that this pre-renewal client does not know. Those must
+        // not crash the client.
+        let Some(layout) = crate::world::SkillTreeLayout::try_get(&self.library, job_id) else {
+            return SkillTreeLayout { tabs: Vec::new() };
+        };
 
         let tabs = layout
             .tabs

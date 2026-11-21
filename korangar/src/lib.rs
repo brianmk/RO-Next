@@ -125,8 +125,19 @@ use crate::system::{FrameTimers, GameTimer};
 use crate::world::MarkerIdentifier;
 use crate::world::*;
 
+/// Next unique point-light id for position based effects. The point light
+/// manager uses the id to decide which light renders with a shadow, so it has
+/// to be unique.
+static NEXT_POSITION_EFFECT_LIGHT_ID: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0x5000_0000);
+
 const CLIENT_NAME: &str = "Korangar";
 const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
+/// Minimum duration of the skill-cast animation for instant casts, so that a
+/// cast without cast time is still visible.
+const MINIMUM_SKILL_CAST_ANIMATION_MS: u32 = 250;
+/// Duration of the cast animation for `ZC_USE_SKILL` (0x09CB), which does not
+/// carry a cast time.
+const SKILL_NO_DAMAGE_ANIMATION_MS: u32 = 400;
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// Background music that is played while the client is *not* inside a map:
@@ -344,6 +355,9 @@ pub struct Client {
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
     warp_portal: Option<WarpPortal>,
+    /// Active warp-portal skill units (world position), rendered like the
+    /// classic warp NPC portals. Ambient NPCs cast warp portals in town.
+    warp_skill_units: Vec<(EntityId, Point3<f32>)>,
     path_finder: PathFinder,
 
     point_light_set_buffer: ResourceSetBuffer<LightSourceKey>,
@@ -867,6 +881,7 @@ impl Client {
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
             warp_portal,
+            warp_skill_units: Vec::new(),
             path_finder,
             point_light_set_buffer,
             directional_shadow_object_set_buffer,
@@ -1365,6 +1380,72 @@ impl Client {
 
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    /// Spawns a world effect (`.str`) centered on an entity, with an attached
+    /// point light.
+    ///
+    /// A malformed or missing effect file must not crash the client, so errors
+    /// are only logged in debug builds.
+    fn spawn_entity_effect(
+        &mut self,
+        effect_path: &str,
+        entity_id: EntityId,
+        effect_offset: Vector3<f32>,
+        light_color: Color,
+        light_intensity: f32,
+    ) {
+        let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
+            #[cfg(feature = "debug")]
+            print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
+            return;
+        };
+        let frame_timer = effect.new_frame_timer();
+
+        self.effect_holder.add_effect(Box::new(EffectWithLight::new(
+            effect,
+            frame_timer,
+            EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0)),
+            effect_offset,
+            // FIX: The point light id needs to be unique. Skill effects use a
+            // different id space than the visual effect packets so that both can
+            // be active on the same entity at the same time.
+            PointLightId::new(entity_id.0.wrapping_add(0x4000_0000)),
+            Vector3::new(0.0, 12.0, 0.0),
+            light_color,
+            light_intensity,
+            false,
+        )));
+    }
+
+    /// Spawns a world effect (`.str`) centered on a world position.
+    fn spawn_position_effect(
+        &mut self,
+        effect_path: &str,
+        position: Point3<f32>,
+        effect_offset: Vector3<f32>,
+        light_color: Color,
+        light_intensity: f32,
+    ) {
+        let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
+            #[cfg(feature = "debug")]
+            print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
+            return;
+        };
+        let frame_timer = effect.new_frame_timer();
+        let light_id = NEXT_POSITION_EFFECT_LIGHT_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
+        self.effect_holder.add_effect(Box::new(EffectWithLight::new(
+            effect,
+            frame_timer,
+            EffectCenter::Position(position),
+            effect_offset,
+            PointLightId::new(light_id),
+            Vector3::new(0.0, 12.0, 0.0),
+            light_color,
+            light_intensity,
+            false,
+        )));
+    }
+
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
@@ -1593,7 +1674,136 @@ impl Client {
                         .iter_mut()
                         .find(|entity| entity.get_entity_id() == entity_id)
                     {
-                        entity.set_idle(client_tick);
+                        entity.set_standing(client_tick);
+                    }
+                }
+                NetworkEvent::PlayerSitDown { entity_id } => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_sitting(client_tick);
+                    }
+                }
+                NetworkEvent::SkillCast {
+                    source_entity_id,
+                    destination_entity_id,
+                    position,
+                    skill_id,
+                    element: _,
+                    cast_time,
+                    attack_motion_time,
+                } => {
+                    // Other clients play the caster's skill-cast action for the cast
+                    // duration. The 2019 server does not send the animation separately,
+                    // so this is the only cue for ambient self-buffs, crafting, warp
+                    // portal casts and skills of other players.
+                    let cast_animation_time = cast_time.max(attack_motion_time).max(MINIMUM_SKILL_CAST_ANIMATION_MS);
+
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == source_entity_id)
+                    {
+                        entity.set_skill_cast(cast_animation_time, client_tick);
+
+                        // Targeted casts face their target, self-casts keep the current
+                        // direction.
+                        if destination_entity_id != source_entity_id {
+                            entity.rotate_towards(position);
+                        }
+                    }
+
+                    if let Some(effect) = skill_cast_effect(skill_id) {
+                        self.spawn_entity_effect(
+                            effect.path,
+                            source_entity_id,
+                            effect.offset,
+                            effect.light_color,
+                            effect.light_intensity,
+                        );
+                    }
+                }
+                NetworkEvent::SkillNoDamage {
+                    source_entity_id,
+                    destination_entity_id,
+                    skill_id,
+                    level,
+                    success,
+                } => {
+                    // 2019 `ZC_USE_SKILL` (0x09CB): the caster performed an
+                    // instant/complete skill. Play the cast animation on the caster and
+                    // the representative effect for the ambient skills, so self-buffs
+                    // and the blacksmith crafting loop become visible.
+                    if success {
+                        if let Some(entity) = self
+                            .client_state
+                            .follow_mut(client_state().entities())
+                            .iter_mut()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                        {
+                            // This packet has no cast time, so the animation is played
+                            // for a fixed, short duration.
+                            entity.set_skill_cast(SKILL_NO_DAMAGE_ANIMATION_MS, client_tick);
+                        }
+
+                        if let Some(effect) = skill_cast_effect(skill_id) {
+                            self.spawn_entity_effect(
+                                effect.path,
+                                source_entity_id,
+                                effect.offset,
+                                effect.light_color,
+                                effect.light_intensity,
+                            );
+                        }
+                    }
+
+                    // Keep the previous behaviour of showing the heal amount above the
+                    // destination (heal skills use this packet too). Self-buffs send a
+                    // level instead of a heal amount, so only positive values are shown.
+                    if level > 0
+                        && let Some(entity) = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == destination_entity_id)
+                            .or_else(|| self.client_state.try_follow(this_entity()))
+                    {
+                        self.particle_holder
+                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), level.to_string())));
+                    }
+                }
+                NetworkEvent::SkillGroundCast {
+                    entity_id,
+                    skill_id,
+                    level: _,
+                    position,
+                } => {
+                    // Ground-skill pose packet: the ambient crafting loop uses it as a
+                    // fall back so at least the hammer swing is visible. Play the cast
+                    // action and the representative effect at the target cell.
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_skill_cast(SKILL_NO_DAMAGE_ANIMATION_MS, client_tick);
+                    }
+
+                    if let Some(effect) = skill_cast_effect(skill_id)
+                        && let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position))
+                    {
+                        self.spawn_position_effect(
+                            effect.path,
+                            world_position,
+                            effect.offset,
+                            effect.light_color,
+                            effect.light_intensity,
+                        );
                     }
                 }
                 NetworkEvent::DisplayEmotion { entity_id, emotion } => {
@@ -1956,6 +2166,7 @@ impl Client {
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.chat_bubbles.clear();
+                    self.warp_skill_units.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
 
@@ -2213,12 +2424,25 @@ impl Client {
                         .update_equipped_position(index, equipped_position);
                 }
                 NetworkEvent::ChangeJob { account_id, job_id } => {
-                    let layout = self.async_loader.request_skill_tree_layout_load(job_id, client_tick);
-                    *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
-                    *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
-                    self.client_state
-                        .follow_mut(client_state().skill_tree_window().chosen_skill_level())
-                        .clear();
+                    // The skill tree window only shows the skills of our own character.
+                    // Other entities (for example the population engine's ambient plaza
+                    // shells) change their job too, and their job ids may not exist in
+                    // the client's skill tree data, so only load the layout for our own
+                    // player.
+                    let is_own_player = self
+                        .client_state
+                        .try_follow(this_entity())
+                        .is_some_and(|own_player| own_player.get_entity_id().0 == account_id.0);
+
+                    if is_own_player {
+                        let layout = self.async_loader.request_skill_tree_layout_load(job_id, client_tick);
+                        *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) =
+                            layout.tabs.len().saturating_sub(1);
+                        *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
+                        self.client_state
+                            .follow_mut(client_state().skill_tree_window().chosen_skill_level())
+                            .clear();
+                    }
 
                     let Some(entity) = self
                         .client_state
@@ -2299,36 +2523,30 @@ impl Client {
                     self.client_state.follow_mut(client_state().friend_list()).push(friend);
                 }
                 NetworkEvent::VisualEffect { effect_path, entity_id } => {
-                    // A malformed or missing effect file must not crash the client.
-                    let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
-                        #[cfg(feature = "debug")]
-                        print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
-                        continue;
-                    };
-                    let frame_timer = effect.new_frame_timer();
-
-                    self.effect_holder.add_effect(Box::new(EffectWithLight::new(
-                        effect,
-                        frame_timer,
-                        EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0)),
-                        Vector3::new(0.0, 9.0, 0.0),
-                        // FIX: The point light id needs to be unique.
-                        // The point light manager uses the id to decide which point light
-                        // renders with a shadow. Having duplicate ids might cause some
-                        // visual artifacts, such as flickering, as the point lights switch
-                        // between shadows and no shadows.
-                        PointLightId::new(entity_id.0),
-                        Vector3::new(0.0, 12.0, 0.0),
-                        Color::WHITE,
-                        50.0,
-                        false,
-                    )));
+                    self.spawn_entity_effect(effect_path, entity_id, Vector3::new(0.0, 9.0, 0.0), Color::WHITE, 50.0);
                 }
                 NetworkEvent::AddSkillUnit {
                     entity_id,
                     unit_id,
                     position,
                 } => {
+                    // Warp portal skill units have no sprite in the game files; the
+                    // client draws the classic portal effect for them (like for warp
+                    // NPCs), see `render_warp_portals`. Ambient NPCs cast these in the
+                    // Prontera plaza.
+                    if matches!(unit_id, UnitId::WarpWaiting | UnitId::WarpActive) {
+                        let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
+
+                        if let Some(world_position) = world_position {
+                            // `WarpWaiting` and `WarpActive` are separate packets for the
+                            // same unit, so replace the previous position.
+                            self.warp_skill_units.retain(|(unit_entity_id, _)| *unit_entity_id != entity_id);
+                            self.warp_skill_units.push((entity_id, world_position));
+                        }
+
+                        continue;
+                    }
+
                     let Some(map) = &self.map else {
                         continue;
                     };
@@ -2397,6 +2615,7 @@ impl Client {
                 }
                 NetworkEvent::RemoveSkillUnit { entity_id } => {
                     self.effect_holder.remove_unit(entity_id);
+                    self.warp_skill_units.retain(|(unit_entity_id, _)| *unit_entity_id != entity_id);
                 }
                 NetworkEvent::SetFriendList { friend_list } => {
                     *self.client_state.follow_mut(client_state().friend_list()) = friend_list;
@@ -4535,6 +4754,7 @@ impl Client {
                 effect_holder: &mut self.effect_holder,
                 chat_bubbles: &self.chat_bubbles,
                 warp_portal: self.warp_portal.as_ref(),
+                warp_skill_units: &self.warp_skill_units,
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
                 middle_interface_renderer: &mut self.middle_interface_renderer,
@@ -4958,6 +5178,8 @@ struct MapRenderContext<'a, 'm: 'a> {
     effect_holder: &'a mut EffectHolder,
     chat_bubbles: &'a ChatBubbles,
     warp_portal: Option<&'a WarpPortal>,
+    /// Active warp-portal skill units, rendered like warp NPCs.
+    warp_skill_units: &'a [(EntityId, Point3<f32>)],
     effect_renderer: &'a mut EffectRenderer,
     bottom_interface_renderer: &'a GameInterfaceRenderer,
     middle_interface_renderer: &'a mut GameInterfaceRenderer,
@@ -5265,13 +5487,17 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             return;
         }
 
-        let warp_positions: Vec<Point3<f32>> = self
+        let mut warp_positions: Vec<Point3<f32>> = self
             .client_state
             .follow(client_state().entities())
             .iter()
             .filter(|entity| entity.get_entity_type() == EntityType::Warp)
             .map(|entity| entity.get_position())
             .collect();
+
+        // Warp portal skill units (e.g. cast by an ambient NPC) are rendered with
+        // the same classic portal effect as the map warp NPCs.
+        warp_positions.extend(self.warp_skill_units.iter().map(|(_, position)| *position));
 
         if warp_positions.is_empty() {
             return;

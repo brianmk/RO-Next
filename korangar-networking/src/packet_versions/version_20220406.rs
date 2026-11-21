@@ -660,9 +660,26 @@ where
             is_critical: false,
         }
     })?;
-    packet_handler.register(|packet: DisplaySkillEffectNoDamagePacket| NetworkEvent::HealEffect {
-        entity_id: packet.destination_entity_id,
-        heal_amount: packet.heal_amount as usize,
+    packet_handler.register(|packet: DisplaySkillEffectNoDamagePacket| {
+        // 2019 `ZC_USE_SKILL` (0x09CB): "skill used without damage". This is
+        // what the server sends for instant/complete casts such as self-buffs
+        // and crafting (the ambient plaza actors use it constantly). The client
+        // used to only show a heal number for the destination.
+        let DisplaySkillEffectNoDamagePacket {
+            skill_id,
+            heal_amount,
+            destination_entity_id,
+            source_entity_id,
+            result,
+        } = packet;
+
+        NetworkEvent::SkillNoDamage {
+            source_entity_id,
+            destination_entity_id,
+            skill_id,
+            level: heal_amount,
+            success: result != 0,
+        }
     })?;
     packet_handler.register_noop::<DisplayPlayerHealEffect>()?;
     packet_handler.register_noop::<StatusChangePacket>()?;
@@ -845,8 +862,13 @@ where
             entity_id: packet.source_entity_id,
             item_entity_id: packet.destination_entity_id,
         }),
+        // `clif_sitting`/`clif_standing` only fill in the source id; the target id
+        // of the packet stays 0, so the sitting entity is the source.
+        DamageType::SitDown => Some(NetworkEvent::PlayerSitDown {
+            entity_id: packet.source_entity_id,
+        }),
         DamageType::StandUp => Some(NetworkEvent::PlayerStandUp {
-            entity_id: packet.destination_entity_id,
+            entity_id: packet.source_entity_id,
         }),
         _ => None,
     })?;
@@ -869,8 +891,13 @@ where
             entity_id: packet.source_entity_id,
             item_entity_id: packet.destination_entity_id,
         }),
+        // `clif_sitting`/`clif_standing` only fill in the source id; the target id
+        // of the packet stays 0, so the sitting entity is the source.
+        DamageType::SitDown => Some(NetworkEvent::PlayerSitDown {
+            entity_id: packet.source_entity_id,
+        }),
         DamageType::StandUp => Some(NetworkEvent::PlayerStandUp {
-            entity_id: packet.destination_entity_id,
+            entity_id: packet.source_entity_id,
         }),
         _ => None,
     })?;
@@ -914,7 +941,28 @@ where
             color: MessageColor::Error,
         },
     })?;
-    packet_handler.register_noop::<UseSkillAckPacket2019>()?;
+    packet_handler.register(|packet: UseSkillAckPacket2019| {
+        let UseSkillAckPacket2019 {
+            source_entity_id,
+            destination_entity_id,
+            position,
+            skill_id,
+            element,
+            delay_time,
+            disposable: _,
+            attack_motion_time,
+        } = packet;
+
+        NetworkEvent::SkillCast {
+            source_entity_id,
+            destination_entity_id,
+            position,
+            skill_id,
+            element,
+            cast_time: delay_time,
+            attack_motion_time,
+        }
+    })?;
     packet_handler.register_noop::<UseSkillSuccessPacket>()?;
     packet_handler.register_noop::<ToUseSkillSuccessPacket>()?;
     packet_handler.register(|packet: NotifySkillUnitPacket| {
@@ -935,7 +983,22 @@ where
         let SkillUnitDisappearPacket { entity_id } = packet;
         NetworkEvent::RemoveSkillUnit { entity_id }
     })?;
-    packet_handler.register_noop::<NotifyGroundSkillPacket>()?;
+    packet_handler.register(|packet: NotifyGroundSkillPacket| {
+        let NotifyGroundSkillPacket {
+            skill_id,
+            entity_id,
+            level,
+            position,
+            start_time: _,
+        } = packet;
+
+        NetworkEvent::SkillGroundCast {
+            entity_id,
+            skill_id,
+            level: level.0,
+            position,
+        }
+    })?;
     packet_handler.register(|packet: FriendListPacket| NetworkEvent::SetFriendList {
         friend_list: packet.friend_list,
     })?;

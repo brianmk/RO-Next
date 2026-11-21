@@ -100,6 +100,54 @@ pub enum NetworkEvent {
     PlayerStandUp {
         entity_id: EntityId,
     },
+    /// Make a player sit down.
+    PlayerSitDown {
+        entity_id: EntityId,
+    },
+    /// An entity completed a skill cast without dealing damage.
+    ///
+    /// On the 2019 server this comes from `ZC_USE_SKILL` (0x09CB), which is
+    /// sent for instant/complete casts (self-buffs, crafting, ...). The
+    /// ambient plaza actors use it for their self-buffs and the blacksmith
+    /// crafting loop.
+    SkillNoDamage {
+        source_entity_id: EntityId,
+        destination_entity_id: EntityId,
+        skill_id: SkillId,
+        /// Skill level (the packet reuses the heal amount field for it).
+        level: u32,
+        success: bool,
+    },
+    /// An entity used a ground-targeted skill (`ZC_NOTIFY_GROUNDSKILL`,
+    /// 0x0117).
+    ///
+    /// The ambient crafting loop uses this as a fall back to show the hammer
+    /// strike at the target cell.
+    SkillGroundCast {
+        entity_id: EntityId,
+        skill_id: SkillId,
+        level: u16,
+        position: TilePosition,
+    },
+    /// An entity used a skill (or an item that behaves like one).
+    ///
+    /// On the 2019 server this comes from `ZC_USESKILL_ACK` (0x0B1A). Other
+    /// clients play the caster's skill-cast animation and the skill effect, so
+    /// ambient plaza actors (self-buffs, crafting, warp portals, ...) become
+    /// visible.
+    SkillCast {
+        source_entity_id: EntityId,
+        destination_entity_id: EntityId,
+        position: TilePosition,
+        skill_id: SkillId,
+        /// Skill property (`0` = neutral/yellow cast aura, `1` = water,
+        /// `2` = earth, `3` = fire, ...).
+        element: u32,
+        /// Cast time in milliseconds.
+        cast_time: u32,
+        /// Attack motion in milliseconds (may be 0 on instant casts).
+        attack_motion_time: u32,
+    },
     /// Show an emotion above an entity.
     DisplayEmotion {
         entity_id: EntityId,

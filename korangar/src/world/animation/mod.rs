@@ -114,6 +114,36 @@ impl AnimationState {
         self.looping = false;
     }
 
+    /// Sit down. The sit pose loops until the entity stands up again.
+    pub fn sit(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.action_type = AnimationActionType::Sit;
+        self.action_base_offset = self.action_type.action_base_offset(entity_type);
+        self.start_time = client_tick;
+        self.duration = None;
+        self.factor = None;
+        self.looping = true;
+    }
+
+    /// Stand up again (back to the idle animation).
+    pub fn stand_up(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.idle(entity_type, client_tick);
+    }
+
+    /// Play the skill-cast animation once for `cast_time` milliseconds.
+    ///
+    /// This is used for skill casts of *other* entities (ambient NPCs/players
+    /// casting buffs, crafting, warp portals, ...). Once the animation is over
+    /// the entity returns to its idle animation, see
+    /// [`AnimationData::is_animation_over`] usage in `Common::update`.
+    pub fn skill(&mut self, entity_type: EntityType, cast_time: u32, client_tick: ClientTick) {
+        self.action_type = AnimationActionType::Skill;
+        self.action_base_offset = self.action_type.action_base_offset(entity_type);
+        self.start_time = client_tick;
+        self.duration = Some(cast_time.max(1));
+        self.factor = None;
+        self.looping = false;
+    }
+
     pub fn pickup(&mut self, entity_type: EntityType, client_tick: ClientTick) {
         self.action_type = AnimationActionType::Pickup;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
@@ -158,6 +188,14 @@ impl AnimationState {
 
     pub fn is_dead(&self) -> bool {
         self.action_type == AnimationActionType::Die
+    }
+
+    pub fn is_sitting(&self) -> bool {
+        self.action_type == AnimationActionType::Sit
+    }
+
+    pub fn is_skill(&self) -> bool {
+        self.action_type == AnimationActionType::Skill
     }
 
     pub fn update(&mut self, client_tick: ClientTick) {
@@ -393,5 +431,57 @@ impl AnimationData {
                 color: color_internal,
             });
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::ClientTick;
+
+    use super::{AnimationActionType, AnimationState};
+    use crate::world::EntityType;
+
+    #[test]
+    fn player_action_offsets_match_the_ro_act_file() {
+        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 0);
+        assert_eq!(AnimationActionType::Walk.action_base_offset(EntityType::Player), 1);
+        assert_eq!(AnimationActionType::Sit.action_base_offset(EntityType::Player), 2);
+        assert_eq!(AnimationActionType::Pickup.action_base_offset(EntityType::Player), 3);
+        assert_eq!(AnimationActionType::Attack1.action_base_offset(EntityType::Player), 5);
+        assert_eq!(AnimationActionType::Die.action_base_offset(EntityType::Player), 8);
+        assert_eq!(AnimationActionType::Skill.action_base_offset(EntityType::Player), 12);
+    }
+
+    #[test]
+    fn sitting_and_standing_switch_the_animation() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+
+        state.sit(EntityType::Player, ClientTick(10));
+        assert!(state.is_sitting());
+        assert!(!state.is_skill());
+        assert!(state.looping);
+
+        state.stand_up(EntityType::Player, ClientTick(20));
+        assert!(!state.is_sitting());
+        assert!(state.looping);
+    }
+
+    #[test]
+    fn skill_cast_animation_plays_once_with_the_cast_time() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+
+        state.skill(EntityType::Player, 1200, ClientTick(10));
+        assert!(state.is_skill());
+        assert!(!state.is_sitting());
+        assert!(!state.looping);
+        assert_eq!(state.duration, Some(1200));
+    }
+
+    #[test]
+    fn instant_casts_still_get_a_non_zero_animation_duration() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+
+        state.skill(EntityType::Player, 0, ClientTick(10));
+        assert_eq!(state.duration, Some(1));
     }
 }
