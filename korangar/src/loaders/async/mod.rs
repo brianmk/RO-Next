@@ -13,7 +13,9 @@ use rayon::{ThreadPool, ThreadPoolBuilder};
 use crate::graphics::Texture;
 use crate::init_tls_rand;
 use crate::loaders::error::LoadError;
-use crate::loaders::{ActionLoader, AnimationLoader, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader};
+use crate::loaders::{
+    ActionLoader, AnimationLoader, EntityPartFile, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader,
+};
 use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
@@ -37,6 +39,17 @@ pub enum LoadableResource {
     SkillSprite { sprite: Arc<Sprite> },
     SkillActions { actions: Arc<Actions> },
     Map { map: Arc<Map>, position: Option<TilePosition> },
+}
+
+/// The outcome of an asynchronous load request.
+///
+/// Failed loads used to be silently dropped, which left the corresponding
+/// resource missing forever (for example a missing map kept the client on a
+/// black screen because `Client::map` never got set). The caller now receives
+/// the error and can react to it.
+pub enum LoadResult {
+    Completed { id: LoaderId, resource: LoadableResource },
+    Failed { id: LoaderId, error: LoadError },
 }
 
 enum LoadStatus {
@@ -102,7 +115,7 @@ impl AsyncLoader {
         &self,
         entity_id: EntityId,
         entity_type: EntityType,
-        entity_part_files: Vec<String>,
+        entity_part_files: Vec<EntityPartFile>,
     ) -> Option<Arc<AnimationData>> {
         // Entities without sprite files (warps and hidden NPCs) are not drawn from an
         // animation. Loading an empty list would make the animation loader fall back to
@@ -138,7 +151,7 @@ impl AsyncLoader {
     pub fn request_skill_sprite_load(&self, skill_id: SkillId, path: &str) -> Option<Arc<Sprite>> {
         let sprite_path = format!("{path}.spr");
 
-        match self.sprite_loader.get(&sprite_path) {
+        match self.sprite_loader.get(&sprite_path, None) {
             Some(sprite) => Some(sprite),
             None => {
                 let sprite_loader = self.sprite_loader.clone();
@@ -147,9 +160,9 @@ impl AsyncLoader {
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("skill sprite load");
 
-                    let sprite = match sprite_loader.get(&sprite_path) {
+                    let sprite = match sprite_loader.get(&sprite_path, None) {
                         Some(sprite) => sprite,
-                        None => sprite_loader.load(&sprite_path)?,
+                        None => sprite_loader.load(&sprite_path, None)?,
                     };
                     Ok(LoadableResource::SkillSprite { sprite })
                 });
@@ -350,7 +363,7 @@ impl AsyncLoader {
         });
     }
 
-    pub fn take_completed(&self) -> impl Iterator<Item = (LoaderId, LoadableResource)> + '_ {
+    pub fn take_completed(&self) -> impl Iterator<Item = LoadResult> + '_ {
         std::iter::from_fn({
             let pending_loads = Arc::clone(&self.pending_loads);
 
@@ -362,18 +375,12 @@ impl AsyncLoader {
                     .find(|(_, status)| matches!(status, LoadStatus::Completed(_) | LoadStatus::Failed(_)))
                     .map(|(id, _)| id.clone());
 
-                if let Some(id) = completed_id {
-                    match pending_loads.remove(&id).unwrap() {
-                        LoadStatus::Failed(_error) => {
-                            #[cfg(feature = "debug")]
-                            print_debug!("Async load error: {:?}", _error);
-                            None
-                        }
-                        LoadStatus::Completed(resource) => Some((id, resource)),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
+                let id = completed_id?;
+
+                match pending_loads.remove(&id).unwrap() {
+                    LoadStatus::Completed(resource) => Some(LoadResult::Completed { id, resource }),
+                    LoadStatus::Failed(error) => Some(LoadResult::Failed { id, error }),
+                    LoadStatus::Loading => unreachable!(),
                 }
             }
         })

@@ -12,6 +12,10 @@ pub struct EntityData {
     pub maximum_health_points: i32,
     pub head_direction: usize,
     pub sex: Sex,
+    /// Hair color palette index (`head_palette` in the packets).
+    pub head_palette: u16,
+    /// Clothes color palette index (`body_palette` in the packets).
+    pub body_palette: u16,
 }
 
 impl EntityData {
@@ -27,6 +31,8 @@ impl EntityData {
             maximum_health_points: character_information.maximum_health_points as i32,
             head_direction: 0, // TODO: get correct rotation
             sex: character_information.sex,
+            head_palette: character_information.head_palette as u16,
+            body_palette: character_information.body_palette as u16,
         }
     }
 }
@@ -44,6 +50,8 @@ impl From<EntityAppearPacket> for EntityData {
             maximum_health_points: packet.maximum_health_points,
             head_direction: packet.head_direction as usize,
             sex: packet.sex,
+            head_palette: packet.head_palette,
+            body_palette: packet.body_palette,
         }
     }
 }
@@ -61,6 +69,8 @@ impl From<EntityAppear2Packet> for EntityData {
             maximum_health_points: packet.maximum_health_points,
             head_direction: packet.head_direction as usize,
             sex: packet.sex,
+            head_palette: packet.head_palette,
+            body_palette: packet.body_palette,
         }
     }
 }
@@ -80,6 +90,8 @@ impl From<MovingEntityAppearPacket> for EntityData {
             maximum_health_points: packet.maximum_health_points,
             head_direction: packet.head_direction as usize,
             sex: packet.sex,
+            head_palette: packet.head_palette,
+            body_palette: packet.body_palette,
         }
     }
 }

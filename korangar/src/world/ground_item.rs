@@ -7,7 +7,7 @@ use rust_state::RustState;
 
 use crate::FadeDirection;
 use crate::graphics::EntityInstruction;
-use crate::loaders::GAT_TILE_SIZE;
+use crate::loaders::{EntityPartFile, GAT_TILE_SIZE};
 use crate::world::{AnimationData, AnimationState, Camera, EntityType, FadeState, ItemResource, ItemResourceKey, Library, Map};
 
 pub const ITEM_SPRITE_PREFIX: &str = "아이템\\";
@@ -111,12 +111,12 @@ impl GroundItem {
         self.animation_data = Some(animation_data);
     }
 
-    pub fn get_entity_part_files(&self, library: &Library) -> Vec<String> {
+    pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         let resource_name = library.get::<ItemResource>(ItemResourceKey {
             item_id: self.item_id,
             is_identified: self.is_identified,
         });
 
-        vec![format!("{ITEM_SPRITE_PREFIX}{resource_name}")]
+        vec![EntityPartFile::new(format!("{ITEM_SPRITE_PREFIX}{resource_name}"))]
     }
 }
