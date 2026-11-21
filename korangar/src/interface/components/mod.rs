@@ -5,3 +5,4 @@ pub mod paper_doll;
 pub mod progress_bar;
 pub mod round_button;
 pub mod skill_box;
+pub mod zeny;

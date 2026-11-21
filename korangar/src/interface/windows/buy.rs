@@ -15,8 +15,8 @@ use super::WindowClass;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
-use crate::state::ClientState;
-use crate::state::theme::InterfaceThemeType;
+use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt};
+use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
 
 struct PartialEqDisplayStr<T> {
@@ -133,12 +133,13 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let item = state.get(&self.item_path);
+        let item_card_theme = client_theme().item_card();
 
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(4.0),
-            Color::rgb_u8(80, 80, 80),
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&item_card_theme.background_color()),
+            *state.get(&item_card_theme.border_color()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -150,8 +151,8 @@ where
                     layout_info.texture_area,
                     self.amount_string.get_str(),
                     FontSize(16.0),
-                    Color::monochrome_u8(220),
-                    Color::rgb_u8(255, 160, 60),
+                    *state.get(&item_card_theme.text_color()),
+                    *state.get(&item_card_theme.highlight_color()),
                     HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
                     VerticalAlignment::Bottom { offset: 0.0 },
                     OverflowBehavior::Shrink,
@@ -163,8 +164,8 @@ where
             layout_info.text_area,
             &item.metadata.name,
             FontSize(16.0),
-            Color::monochrome_u8(220),
-            Color::rgb_u8(255, 160, 60),
+            *state.get(&item_card_theme.text_color()),
+            *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Left { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,
@@ -174,8 +175,8 @@ where
             layout_info.text_area,
             self.price_string.get_str(),
             FontSize(16.0),
-            Color::rgb_u8(250, 230, 130),
-            Color::rgb_u8(255, 160, 60),
+            *state.get(&item_card_theme.highlight_color()),
+            *state.get(&item_card_theme.text_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,

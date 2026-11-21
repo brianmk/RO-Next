@@ -13,7 +13,8 @@ use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
-use crate::state::ClientState;
+use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
+use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
 
 #[derive(Default)]
@@ -172,6 +173,10 @@ where
         layout_info: &'a Self::LayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
+        // The card colors come from the interface theme so that the classic
+        // (light) theme gets white cards while the default theme stays dark.
+        let item_card_theme = client_theme().item_card();
+
         let (is_hovered, background_color) = match layout.get_mouse_mode() {
             MouseMode::Custom {
                 mode: MouseInputMode::MoveItem { .. },
@@ -181,13 +186,13 @@ where
                     // hovered.
                     layout.set_hovered();
 
-                    (true, Color::rgb_u8(80, 180, 180))
+                    (true, *state.get(&item_card_theme.drag_hovered_background_color()))
                 }
-                false => (false, Color::rgb_u8(180, 180, 80)),
+                false => (false, *state.get(&item_card_theme.drag_background_color())),
             },
             _ => match layout_info.area.check().run(layout) {
-                true => (true, Color::rgb_u8(60, 60, 60)),
-                false => (false, Color::rgb_u8(40, 40, 40)),
+                true => (true, *state.get(&item_card_theme.hovered_background_color())),
+                false => (false, *state.get(&item_card_theme.background_color())),
             },
         };
 
@@ -195,7 +200,7 @@ where
             layout_info.area,
             CornerDiameter::uniform(20.0),
             background_color,
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&item_card_theme.border_color()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -236,10 +241,8 @@ where
                     amount,
                     // TODO: Put this in the theme
                     FontSize(12.0),
-                    // TODO: Put this in the theme
-                    Color::rgb_u8(255, 200, 255),
-                    // TODO: Put this in the theme
-                    Color::rgb_u8(255, 160, 60),
+                    *state.get(&item_card_theme.text_color()),
+                    *state.get(&item_card_theme.highlight_color()),
                     // TODO: Put this in the theme
                     HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
                     // TODO: Put this in the theme

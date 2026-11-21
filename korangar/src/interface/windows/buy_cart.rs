@@ -14,10 +14,11 @@ use rust_state::{ManuallyAssertExt, Path, PathExt, Selector, State, VecIndexExt}
 use super::WindowClass;
 use crate::InputEvent;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
+use crate::interface::components::zeny::format_zeny;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
-use crate::state::ClientState;
-use crate::state::theme::InterfaceThemeType;
+use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt};
+use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
 
 struct PartialEqDisplayStr<T> {
@@ -131,12 +132,13 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let item = state.get(&self.item_path);
+        let item_card_theme = client_theme().item_card();
 
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(4.0),
-            Color::rgb_u8(80, 80, 80),
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&item_card_theme.background_color()),
+            *state.get(&item_card_theme.border_color()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -147,8 +149,8 @@ where
                 layout_info.texture_area,
                 self.amount_string.get_str(),
                 FontSize(16.0),
-                Color::monochrome_u8(220),
-                Color::rgb_u8(255, 160, 60),
+                *state.get(&item_card_theme.text_color()),
+                *state.get(&item_card_theme.highlight_color()),
                 HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
                 VerticalAlignment::Bottom { offset: 0.0 },
                 OverflowBehavior::Shrink,
@@ -159,8 +161,8 @@ where
             layout_info.text_area,
             &item.metadata.0.name,
             FontSize(16.0),
-            Color::monochrome_u8(220),
-            Color::rgb_u8(255, 160, 60),
+            *state.get(&item_card_theme.text_color()),
+            *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Left { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,
@@ -170,8 +172,8 @@ where
             layout_info.text_area,
             self.price_string.get_str(),
             FontSize(16.0),
-            Color::rgb_u8(250, 230, 130),
-            Color::rgb_u8(255, 160, 60),
+            *state.get(&item_card_theme.highlight_color()),
+            *state.get(&item_card_theme.text_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,
@@ -318,6 +320,66 @@ where
     }
 }
 
+/// Shows the total zeny cost of all items in the cart.
+struct TotalCost<A> {
+    cart_path: A,
+    text: String,
+}
+
+impl<A> TotalCost<A> {
+    fn new(cart_path: A) -> Self {
+        Self {
+            cart_path,
+            text: "Total: 0 z".to_owned(),
+        }
+    }
+}
+
+impl<A> Element<ClientState> for TotalCost<A>
+where
+    A: Path<ClientState, Vec<ShopItem<(ResourceMetadata, u32)>>>,
+{
+    type LayoutInfo = Area;
+
+    fn create_layout_info(
+        &mut self,
+        state: &State<ClientState>,
+        _: ElementStoreMut,
+        resolvers: &mut dyn Resolvers<ClientState>,
+    ) -> Self::LayoutInfo {
+        let total: u64 = state
+            .follow(self.cart_path)
+            .iter()
+            .map(|item| u64::from(item.price.0) * u64::from(item.metadata.1))
+            .sum();
+
+        self.text = format!("Total: {}", format_zeny(total));
+
+        with_single_resolver(resolvers, |resolver| resolver.with_height(18.0))
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        state: &'a State<ClientState>,
+        _: ElementStore<'a>,
+        layout_info: &'a Self::LayoutInfo,
+        layout: &mut WindowLayout<'a, ClientState>,
+    ) {
+        let item_card_theme = client_theme().item_card();
+
+        layout.add_text(
+            *layout_info,
+            &self.text,
+            FontSize(15.0),
+            *state.get(&item_card_theme.text_color()),
+            *state.get(&item_card_theme.highlight_color()),
+            HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
+            VerticalAlignment::Center { offset: 0.0 },
+            OverflowBehavior::Shrink,
+        );
+    }
+}
+
 pub struct BuyCartWindow<A> {
     cart_path: A,
 }
@@ -369,6 +431,10 @@ where
                         },
                     ),
                 },
+                // The total has to come before the scroll view: a scroll view consumes
+                // all remaining vertical space, so an element after it would not be laid
+                // out at all.
+                TotalCost::new(self.cart_path),
                 scroll_view! {
                     children: ItemList::new(self.cart_path),
                 },

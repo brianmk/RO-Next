@@ -439,7 +439,77 @@ where
     packet_handler.register_noop::<StorageDeleteItemPacket2019>()?;
     packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
     packet_handler.register_noop::<ExchangeAckPacket2019>()?;
-    packet_handler.register_noop::<ItemPickupAckPacket2019>()?;
+    // 2019 era `ZC_ITEM_PICKUP_ACK` (0x0A37). The server uses this packet both for
+    // picking items up from the ground and for items that are added to the
+    // inventory by a shop purchase, so the item is added to the inventory state
+    // here (it used to be a no-op registration, which silently dropped bought
+    // items).
+    packet_handler.register(|packet: ItemPickupAckPacket2019| {
+        if packet.result != 0 {
+            return None;
+        }
+
+        let ItemPickupAckPacket2019 {
+            inventory_index,
+            amount,
+            item_id,
+            identified,
+            damaged,
+            refinement_level,
+            card,
+            equip_position,
+            item_type,
+            hire_expiration_date,
+            bind_on_equip_type,
+            option_data,
+            item_sprite_number,
+            ..
+        } = packet;
+
+        // TODO: Not sure where to store `favorite`, it is not used by the inventory
+        // yet.
+        let _ = packet.favorite;
+
+        let details = match equip_position.is_empty() {
+            true => InventoryItemDetails::Regular {
+                amount,
+                equipped_position: EquipPosition::empty(),
+                flags: {
+                    let mut flags = RegularItemFlags::empty();
+                    flags.set(RegularItemFlags::IDENTIFIED, identified != 0);
+                    flags
+                },
+            },
+            false => InventoryItemDetails::Equippable {
+                equip_position,
+                equipped_position: EquipPosition::empty(),
+                bind_on_equip_type,
+                w_item_sprite_number: item_sprite_number,
+                option_count: option_data.len() as u8,
+                option_data,
+                refinement_level,
+                enchantment_level: 0,
+                flags: {
+                    let mut flags = EquippableItemFlags::empty();
+                    flags.set(EquippableItemFlags::IDENTIFIED, identified != 0);
+                    flags.set(EquippableItemFlags::IS_BROKEN, damaged != 0);
+                    flags
+                },
+            },
+        };
+
+        let item = InventoryItem {
+            metadata: NoMetadata,
+            index: inventory_index,
+            item_id,
+            item_type,
+            slot: [u32::from(card[0]), u32::from(card[1]), u32::from(card[2]), u32::from(card[3])],
+            hire_expiration_date: hire_expiration_date.max(0) as u32,
+            details,
+        };
+
+        Some(NetworkEvent::IventoryItemAdded { item })
+    })?;
     packet_handler.register_noop::<SpiritsPacket2019>()?;
     packet_handler.register_noop::<Spirits2Packet2019>()?;
     packet_handler.register_noop::<UpdateAttackRangePacket>()?;

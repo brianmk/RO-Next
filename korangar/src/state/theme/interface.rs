@@ -160,6 +160,42 @@ impl Default for CharacterOverviewTheme {
     }
 }
 
+/// Colors of item cards (inventory, shop buy/sell lists).
+///
+/// The default theme uses dark cards, the classic theme uses white/light cards
+/// like the original client.
+#[derive(Serialize, Deserialize, RustState, StateElement)]
+pub struct ItemCardTheme {
+    /// Background of an item card.
+    pub background_color: Color,
+    /// Background of an item card while it is hovered.
+    pub hovered_background_color: Color,
+    /// Background of an item card that is picked up (dragged).
+    pub drag_background_color: Color,
+    /// Background of a dragged item card that is hovered over a drop target.
+    pub drag_hovered_background_color: Color,
+    /// Border/shadow color of an item card.
+    pub border_color: Color,
+    /// Color of the item name/labels on the card.
+    pub text_color: Color,
+    /// Color of highlighted text on the card (price, amount, selected price).
+    pub highlight_color: Color,
+}
+
+impl Default for ItemCardTheme {
+    fn default() -> Self {
+        Self {
+            background_color: Color::rgb_u8(40, 40, 40),
+            hovered_background_color: Color::rgb_u8(60, 60, 60),
+            drag_background_color: Color::rgb_u8(180, 180, 80),
+            drag_hovered_background_color: Color::rgb_u8(80, 180, 180),
+            border_color: Color::rgba_u8(0, 0, 0, 100),
+            text_color: Color::monochrome_u8(220),
+            highlight_color: Color::rgb_u8(255, 160, 60),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, RustState, StateElement, StateWindow)]
 #[window_title("Theme Inspector")]
 pub struct InterfaceTheme {
@@ -194,6 +230,10 @@ pub struct InterfaceTheme {
     /// added keep loading and use the default colors.
     #[serde(default)]
     pub character_overview: CharacterOverviewTheme,
+    /// Colors of the item cards. Optional in persisted theme files, old themes
+    /// keep loading and use the default dark cards.
+    #[serde(default)]
+    pub item_card: ItemCardTheme,
 }
 
 impl InterfaceTheme {
@@ -475,6 +515,7 @@ impl InterfaceTheme {
                 drop_area_outline: ShadowPadding::uniform(4.0),
             },
             character_overview: CharacterOverviewTheme::default(),
+            item_card: ItemCardTheme::default(),
         }
     }
 
@@ -694,6 +735,7 @@ impl InterfaceTheme {
                 drop_area_outline: ShadowPadding::uniform(4.0),
             },
             character_overview: CharacterOverviewTheme::default(),
+            item_card: ItemCardTheme::default(),
         }
     }
 
@@ -725,6 +767,18 @@ impl InterfaceTheme {
             job_experience_background_color: Color::rgb_u8(40, 20, 60),
             label_color: Color::BLACK,
             value_color: Color::rgb_u8(0, 0, 128),
+        };
+
+        // Classic item cards are white/light like the original client, with
+        // black names and the classic dark blue prices.
+        theme.item_card = ItemCardTheme {
+            background_color: Color::rgb_u8(250, 250, 250),
+            hovered_background_color: Color::rgb_u8(196, 209, 234),
+            drag_background_color: Color::rgb_u8(232, 220, 150),
+            drag_hovered_background_color: Color::rgb_u8(170, 200, 235),
+            border_color: Color::rgb_u8(130, 130, 130),
+            text_color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 128),
         };
 
         theme.window = WindowTheme {
