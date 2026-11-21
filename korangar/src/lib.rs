@@ -119,9 +119,9 @@ use crate::loaders::*;
 use crate::renderer::DebugMarkerRenderer;
 use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer, SpriteRenderer};
 use crate::settings::{
-    FORCE_UNFOCUSED_ALIAS_ENVIRONMENT_VARIABLE, FORCE_UNFOCUSED_ENVIRONMENT_VARIABLE, FRAMERATE_LOG_ENVIRONMENT_VARIABLE,
+    AuraStyleMarker, FORCE_UNFOCUSED_ALIAS_ENVIRONMENT_VARIABLE, FORCE_UNFOCUSED_ENVIRONMENT_VARIABLE, FRAMERATE_LOG_ENVIRONMENT_VARIABLE,
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
-    ServiceSettingsPathExt, WORLD_THEMES_PATH,
+    ServiceSettingsPathExt, WORLD_THEMES_PATH, parse_aura_style_marker,
 };
 use crate::state::inventory::{ItemCategory, item_category, item_use_action};
 use crate::state::localization::LocalizationPathExt;
@@ -1944,6 +1944,29 @@ impl Client {
         self.effect_holder.add_effect(Box::new(circle));
     }
 
+    /// Applies an aura style selected through `/aura` or by the server-side
+    /// aura stylist NPC (via the private chat marker) and persists it
+    /// immediately.
+    ///
+    /// The running aura effects read the style from a shared atomic cell that
+    /// is refreshed from the interface settings every frame, so the change
+    /// is visible on the next frame without recreating the effects.
+    fn set_aura_style(&mut self, style: AuraStyle) {
+        let style_path = client_state().interface_settings().level_99_aura_style();
+        *self.client_state.follow_mut(style_path) = style;
+
+        self.client_state.follow(client_state().interface_settings()).save();
+
+        self.push_chat_information(format!("Aura style set to \"{}\".", style.style_name()));
+    }
+
+    /// Pushes an informational message into the chat window.
+    fn push_chat_information(&mut self, message: String) {
+        self.client_state
+            .follow_mut(client_state().chat_messages())
+            .push(ChatMessage::new(message, MessageColor::Information));
+    }
+
     /// Spawns the classic level-99 aura below player entities whose base level
     /// is at least 99 and removes auras that are no longer valid.
     ///
@@ -2837,6 +2860,22 @@ impl Client {
                     self.game_timer.set_client_tick(client_tick, received_at);
                 }
                 NetworkEvent::ChatMessage { text, color } => {
+                    // The server-side aura stylist NPC asks the client to change its
+                    // local aura style with a private chat marker. Apply the style and
+                    // hide the marker message from the chat window; normal chat is
+                    // passed through untouched.
+                    if let Some(marker) = parse_aura_style_marker(&text) {
+                        match marker {
+                            AuraStyleMarker::Style(style) => self.set_aura_style(style),
+                            AuraStyleMarker::UnknownStyle => {
+                                #[cfg(feature = "debug")]
+                                print_debug!("[{}] aura stylist NPC requested an unknown aura style", "error".red());
+                            }
+                        }
+
+                        continue;
+                    }
+
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(text, color));
@@ -4005,6 +4044,27 @@ impl Client {
                     if text.as_str() == "/nc" {
                         let auto_attack = self.client_state.follow_mut(client_state().game_settings().auto_attack());
                         *auto_attack = !*auto_attack;
+                        continue;
+                    }
+
+                    // Local aura style selection (`/aura <style>`). This is handled
+                    // entirely client-side before the slash command translation and is
+                    // never sent to the server.
+                    if let Some(style_name) = text.trim().strip_prefix("/aura").map(str::trim) {
+                        // Only the first word is the style, extra words are ignored.
+                        let style_name = style_name.split_whitespace().next().unwrap_or_default();
+
+                        match AuraStyle::from_style_name(style_name) {
+                            Some(style) => self.set_aura_style(style),
+                            None if style_name.is_empty() => {
+                                self.push_chat_information(format!("Usage: /aura <style>. Available styles: {}.", AuraStyle::style_names()))
+                            }
+                            None => self.push_chat_information(format!(
+                                "Unknown aura style \"{style_name}\". Available styles: {}.",
+                                AuraStyle::style_names()
+                            )),
+                        }
+
                         continue;
                     }
 
