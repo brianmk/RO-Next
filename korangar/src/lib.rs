@@ -44,11 +44,12 @@ mod settings;
 mod system;
 mod world;
 
+use std::collections::HashSet;
 use std::io::Cursor;
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::ops::Deref;
 use std::path::Path;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -82,7 +83,8 @@ use rust_state::{ManuallyAssertExt, State};
 #[cfg(feature = "debug")]
 use rust_state::{VecIndexExt, VecLookupExt};
 use settings::{
-    AudioSettings, AudioSettingsPathExt, GraphicsSettingsCapabilities, GraphicsSettingsPathExt, InterfaceSettings, InterfaceSettingsPathExt,
+    AudioSettings, AudioSettingsPathExt, AuraStyle, GraphicsSettingsCapabilities, GraphicsSettingsPathExt, InterfaceSettings,
+    InterfaceSettingsPathExt,
 };
 use state::hotbar::HotbarPathExt;
 use state::inventory::InventoryPathExt;
@@ -481,6 +483,12 @@ pub struct Client {
     /// closed -> small minimap. The windows themselves are still the source of
     /// truth (a window can be closed with its X button), the cycle re-syncs
     /// with the actually open windows when the key is pressed.
+    /// Shared style cell read by all running level-99 aura effects, so a style
+    /// change in the interface settings applies live without respawning them.
+    level_99_aura_style_cell: Arc<AtomicU8>,
+    /// Entities that currently have a level-99 aura effect attached.
+    level_99_aura_entities: HashSet<EntityId>,
+
     map_window_cycle: MapWindowCycle,
 
     /// Set when a quit was requested (exit button, window close or
@@ -1115,6 +1123,8 @@ impl Client {
             map_entry_watchdog: None,
             map_entry_aborted: false,
             pending_map_load: None,
+            level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
+            level_99_aura_entities: HashSet::new(),
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
@@ -1934,6 +1944,79 @@ impl Client {
         self.effect_holder.add_effect(Box::new(circle));
     }
 
+    /// Spawns the classic level-99 aura below player entities whose base level
+    /// is at least 99 and removes auras that are no longer valid.
+    ///
+    /// The aura itself re-checks the entity on every update (despawn, death,
+    /// level drop, configured style), so this only has to create the effect
+    /// once per entity. Entities whose base level is unknown (NPCs, population
+    /// shells that are only sent via a spawn packet) are skipped gracefully.
+    fn update_level_99_auras(&mut self) {
+        let style = *self.client_state.follow(client_state().interface_settings().level_99_aura_style());
+
+        self.level_99_aura_style_cell.store(style.encode(), Ordering::Relaxed);
+
+        if style == AuraStyle::Off {
+            for entity_id in self.level_99_aura_entities.drain() {
+                self.effect_holder.remove_unit(entity_id);
+            }
+
+            return;
+        }
+
+        let mut valid_entities = HashSet::new();
+
+        let player_ids: Vec<(EntityId, Point3<f32>, usize, bool)> = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .filter(|entity| !entity.is_dead())
+            .filter_map(|entity| {
+                let level = entity.get_base_level()?;
+
+                (level >= crate::world::AURA_MINIMUM_LEVEL).then(|| {
+                    (
+                        entity.get_entity_id(),
+                        entity.get_position(),
+                        level,
+                        entity.is_transcendent_job(),
+                    )
+                })
+            })
+            .collect();
+
+        for (entity_id, position, level, transcendent) in player_ids {
+            valid_entities.insert(entity_id);
+
+            if self.level_99_aura_entities.contains(&entity_id) {
+                continue;
+            }
+
+            let Some(mut aura) = crate::world::Aura::new(self.level_99_aura_style_cell.clone(), level, transcendent, &self.texture_loader)
+            else {
+                continue;
+            };
+
+            aura.attach_to_entity(entity_id, position);
+            self.effect_holder.add_unit(Box::new(aura), entity_id);
+            self.level_99_aura_entities.insert(entity_id);
+        }
+
+        // Forget auras of entities that are no longer valid (despawned, dead or
+        // below the level threshold). The effect removes itself on its next
+        // update; removing the id here only makes sure it is re-created when
+        // the entity becomes eligible again.
+        let stale = self
+            .level_99_aura_entities
+            .iter()
+            .filter(|entity_id| !valid_entities.contains(entity_id))
+            .copied()
+            .collect::<Vec<_>>();
+        for entity_id in stale {
+            self.level_99_aura_entities.remove(&entity_id);
+        }
+    }
+
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
@@ -2501,6 +2584,8 @@ impl Client {
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
+                    self.level_99_aura_entities.clear();
+                    self.level_99_aura_entities.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
                 }
@@ -2715,6 +2800,7 @@ impl Client {
                     self.client_state.follow_mut(client_state().minimap()).clear();
                     self.particle_holder.clear();
                     self.effect_holder.clear();
+                    self.level_99_aura_entities.clear();
                     self.chat_bubbles.clear();
                     self.warp_skill_units.clear();
                     self.point_light_manager.clear();
@@ -5155,6 +5241,8 @@ impl Client {
             #[cfg(feature = "debug")]
             &render_options,
         );
+
+        self.update_level_99_auras();
 
         self.process_buffered_action();
 

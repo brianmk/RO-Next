@@ -97,6 +97,18 @@ where
                     }
                 )
             },
+            split! {
+                children: (
+                    text! {
+                        text: client_state().localization().level_99_aura_text(),
+                        overflow_behavior: OverflowBehavior::Shrink,
+                    },
+                    drop_down! {
+                        selected: self.settings_path.level_99_aura_style(),
+                        options: self.capabilities_path.level_99_aura_styles(),
+                    }
+                )
+            },
             state_button! {
                 text: client_state().localization().show_character_names_text(),
                 state: self.settings_path.show_character_names(),

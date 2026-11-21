@@ -15,8 +15,10 @@ use crate::renderer::MarkerRenderer;
 use crate::world::MarkerIdentifier;
 use crate::world::{Camera, PointLightId, PointLightManager};
 
+mod aura;
 mod cast_circle;
 mod warp;
+pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::warp::WarpPortal;
 

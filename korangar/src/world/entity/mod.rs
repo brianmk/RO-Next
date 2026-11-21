@@ -1586,8 +1586,30 @@ impl Entity {
         self.get_common().job_id
     }
 
+    /// Base level of player entities, `None` for entities whose level is not
+    /// known (NPCs, and player shells that only appear via a spawn packet).
+    pub fn get_base_level(&self) -> Option<usize> {
+        match self {
+            Self::Player(player) => Some(player.base_level),
+            Self::Npc(_) => None,
+        }
+    }
+
+    /// Whether this entity uses a transcendent (rebirth) second job.
+    ///
+    /// The classic level-99 aura uses a violet tint for transcendent
+    /// characters. The transcendent job ids are `4001..=4023` in the classic
+    /// job database (Lord Knight, High Priest, ...).
+    pub fn is_transcendent_job(&self) -> bool {
+        matches!(self.get_job_id().0, 4001..=4023)
+    }
+
     pub fn get_entity_type(&self) -> EntityType {
         self.get_common().entity_type
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.get_common().is_dead()
     }
 
     pub fn is_death_animation_over(&self) -> bool {

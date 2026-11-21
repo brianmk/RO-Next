@@ -9,6 +9,7 @@
     log_in_button_text: "Log in",
     log_in_button_tooltip: "Enter a username and password",
     show_character_names_text: "Show character names",
+    level_99_aura_text: "Level 99 aura",
     show_chat_bubbles_text: "Show chat bubbles",
     chat_bubble_background_text: "Chat bubble background",
     minimap_window_title: "Minimap",
