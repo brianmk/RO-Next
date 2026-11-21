@@ -141,7 +141,14 @@ impl Writable for FolderArchive {
 
         fs::write(&path, data).unwrap_or_else(|_| panic!("error writing to file {}", path.display()));
 
-        self.file_mapping.insert(file_path.to_string(), path);
+        // `load_mapping` stores lower case asset paths (file names are
+        // case-insensitive), keep the mapping consistent when writing files.
+        let asset_path = match file_path.to_lowercase().strip_suffix(".gz") {
+            Some(path) => path.to_string(),
+            None => file_path.to_lowercase(),
+        };
+
+        self.file_mapping.insert(asset_path, path);
     }
 
     fn finish(&mut self) -> Result<(), Error> {

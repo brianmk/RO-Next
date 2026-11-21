@@ -155,7 +155,7 @@ impl Archive for SevenZipArchive {
             .filter(|file| {
                 extensions
                     .iter()
-                    .any(|extension| !file.is_directory() && file.name().ends_with(extension))
+                    .any(|extension| !file.is_directory() && file.name().to_lowercase().ends_with(extension))
             })
             .for_each(|file| {
                 let name_with_backslash = file.name().replace('/', "\\").to_lowercase();

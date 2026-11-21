@@ -52,7 +52,9 @@ impl Table for MapSkyData {
                     for (map_rsw, map_sky_data_table) in table.pairs::<String, mlua::Table>().flatten() {
                         let resource_name = map_rsw.strip_suffix(".rsw").unwrap_or(&map_rsw).to_string();
                         let map_sky_data = Self::parse_map_sky_data(&map_sky_data_table);
-                        result.insert(resource_name, map_sky_data);
+                        // Map names are case-insensitive on Windows; store normalized
+                        // keys so a map name from the server matches either way.
+                        result.insert(resource_name.to_lowercase(), map_sky_data);
                     }
                 }
 
@@ -65,7 +67,8 @@ impl Table for MapSkyData {
     }
 
     fn try_get<'a, 'b>(library: &'a Library, key: Self::Key<'b>) -> Option<&'a Self> {
-        library.map_sky_data_table.get(key)
+        let key = key.to_lowercase();
+        library.map_sky_data_table.get(&key)
     }
 
     fn get<'a, 'b>(library: &'a Library, key: Self::Key<'b>) -> &'a Self {

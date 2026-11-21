@@ -56,7 +56,7 @@ impl SevenZipArchiveBuilder {
 
 impl Writable for SevenZipArchiveBuilder {
     fn add_file(&mut self, path: &str, asset_data: Vec<u8>, compression: Compression) {
-        let path = path.replace('\\', "/").to_string();
+        let path = path.replace('\\', "/").to_lowercase();
 
         if let Some(writer) = self.writer.as_mut() {
             let mut file_entry = ArchiveEntry::new_file(&path);
