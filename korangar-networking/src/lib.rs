@@ -89,6 +89,10 @@ pub struct NetworkingSystem<Callback> {
     login_server_connection: ServerConnection,
     character_server_connection: ServerConnection,
     map_server_connection: ServerConnection,
+    /// Which restart packet was sent last, together with the send time. Used to
+    /// tell a `0x00B3` restart ack for a disconnect apart from one
+    /// answering a respawn request.
+    last_restart: Option<(RestartType, Instant)>,
     packet_callback: Callback,
 }
 
@@ -114,6 +118,7 @@ where
             login_server_connection: ServerConnection::Disconnected,
             character_server_connection: ServerConnection::Disconnected,
             map_server_connection: ServerConnection::Disconnected,
+            last_restart: None,
             packet_callback,
         };
         let event_buffer = NetworkEventBuffer(Vec::new());
@@ -278,9 +283,43 @@ where
     }
 
     pub fn get_events(&mut self, events: &mut NetworkEventBuffer) {
+        let first_new_event = events.0.len();
+
         Self::handle_connection::<LoginServerDisconnectedEvent>(&mut self.login_server_connection, events);
         Self::handle_connection::<CharacterServerDisconnectedEvent>(&mut self.character_server_connection, events);
         Self::handle_connection::<MapServerDisconnectedEvent>(&mut self.map_server_connection, events);
+
+        let Some((restart_type, requested_at)) = self.last_restart.take() else {
+            return;
+        };
+
+        // If the answer never arrives (e.g. the map connection died), don't keep the
+        // state around forever.
+        if requested_at.elapsed() > Duration::from_secs(15) {
+            return;
+        }
+
+        let has_logged_out = events.0[first_new_event..]
+            .iter()
+            .any(|event| matches!(event, NetworkEvent::LoggedOut));
+
+        if !has_logged_out {
+            // Put the state back, we are still waiting for the answer.
+            self.last_restart = Some((restart_type, requested_at));
+            return;
+        }
+
+        if matches!(restart_type, RestartType::Respawn) {
+            // `0x00B3` (ZC_RESTART_ACK) is also sent for a respawn request. Treating it as
+            // "logged out" disconnected the client from the map server right after clicking
+            // Respawn, which left the game on a black screen (the map change/spawn that
+            // follows the respawn was never processed). Drop the bogus logout event; the
+            // server sends the normal map change or resurrection right after the ack.
+            let tail: Vec<NetworkEvent> = events.0.split_off(first_new_event);
+            events
+                .0
+                .extend(tail.into_iter().filter(|event| !matches!(event, NetworkEvent::LoggedOut)));
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -762,15 +801,27 @@ where
     }
 
     pub fn respawn(&mut self) -> Result<(), NotConnectedError> {
-        match self.map_server_packet_version()? {
+        let result = match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RestartPacket::new(RestartType::Respawn)),
+        };
+
+        if result.is_ok() {
+            self.last_restart = Some((RestartType::Respawn, Instant::now()));
         }
+
+        result
     }
 
     pub fn log_out(&mut self) -> Result<(), NotConnectedError> {
-        match self.map_server_packet_version()? {
+        let result = match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RestartPacket::new(RestartType::Disconnect)),
+        };
+
+        if result.is_ok() {
+            self.last_restart = Some((RestartType::Disconnect, Instant::now()));
         }
+
+        result
     }
 
     /// Ask the map server for a clean disconnect (`CZ_REQ_DISCONNECT`, 0x018A).

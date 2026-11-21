@@ -305,6 +305,12 @@ pub struct Client {
     /// Remaining character server reconnect attempts.
     character_server_reconnect_attempts: u32,
 
+    /// Watchdog for map loads requested after a map change: (map name, spawn
+    /// position, last request time, attempts). Re-requests the load if the
+    /// map does not arrive, so a failed/lost load cannot leave the client
+    /// on a black screen.
+    pending_map_load: Option<(String, Option<TilePosition>, Instant, u32)>,
+
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
@@ -822,6 +828,7 @@ impl Client {
             shutdown_deadline: None,
             character_server_reconnect_at: None,
             character_server_reconnect_attempts: 0,
+            pending_map_load: None,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -1148,6 +1155,39 @@ impl Client {
         self.bottom_interface_renderer.update_scaling(scaling);
         self.middle_interface_renderer.update_scaling(scaling);
         self.top_interface_renderer.update_scaling(scaling);
+    }
+
+    /// Retry a lost/failed map load instead of leaving the client on a black
+    /// screen.
+    ///
+    /// A map change sets `self.map` to `None` and requests the load
+    /// asynchronously. If that request is dropped or fails, nothing would
+    /// ever fill the map in again. This watchdog re-requests the load a few
+    /// times with a delay and finally shows an error window.
+    fn update_pending_map_load(&mut self) {
+        if self.map.is_some() {
+            self.pending_map_load = None;
+            return;
+        }
+
+        let Some((map_name, position, requested_at, attempts)) = self.pending_map_load.clone() else {
+            return;
+        };
+
+        if requested_at.elapsed() < Duration::from_secs(8) {
+            return;
+        }
+
+        if attempts >= 4 {
+            self.pending_map_load = None;
+            self.interface.open_window(ErrorWindow::new(format!(
+                "Failed to load the map '{map_name}'. Please try again."
+            )));
+            return;
+        }
+
+        self.async_loader.request_map_load(map_name.clone(), position);
+        self.pending_map_load = Some((map_name, position, Instant::now(), attempts + 1));
     }
 
     /// Drive the character server reconnect retries. Called once per frame.
@@ -1516,6 +1556,18 @@ impl Client {
                     }
                 }
                 NetworkEvent::ResurrectPlayer { entity_id } => {
+                    // The server only revives the character, it does not send a separate
+                    // stand-up packet, so restore the idle animation ourselves. Without this
+                    // the player stayed in the dead pose after respawning.
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_idle(client_tick);
+                    }
+
                     // If the resurrected player is us, close the resurrect window.
                     if self
                         .client_state
@@ -1885,6 +1937,7 @@ impl Client {
                     // Close any remaining dialogs.
                     self.interface.close_window_with_class(WindowClass::Dialog);
 
+                    self.pending_map_load = Some((map_name.clone(), Some(position), Instant::now(), 0));
                     self.async_loader.request_map_load(map_name, Some(position));
                 }
                 NetworkEvent::UpdateClientTick { client_tick, received_at } => {
@@ -3404,7 +3457,9 @@ impl Client {
                         .update_item_sprite(item_id, texture);
                 }
                 (LoaderId::Map(..), LoadableResource::Map { map, position }) => {
-                    match self.client_state.try_follow(this_player()).is_none() {
+                    self.pending_map_load = None;
+
+                    match self.client_state.try_follow(this_entity()).is_none() {
                         true => {
                             // Load of main menu map
                             let map = self.map.insert(map);
@@ -3420,8 +3475,7 @@ impl Client {
                             // current login state instead.
                             let character_server_connected = self.networking_system.is_character_server_connected();
                             let login_server_connected = self.networking_system.is_login_server_connected();
-                            let character_selection_open =
-                                self.interface.is_window_with_class_open(WindowClass::CharacterSelection);
+                            let character_selection_open = self.interface.is_window_with_class_open(WindowClass::CharacterSelection);
                             let select_server_open = self.interface.is_window_with_class_open(WindowClass::SelectServer);
                             let login_open = self.interface.is_window_with_class_open(WindowClass::Login);
 
@@ -3783,6 +3837,7 @@ impl Client {
 
         self.handle_network_events(client_tick);
         self.update_character_server_reconnect();
+        self.update_pending_map_load();
 
         let interface_has_focus = self.process_user_events(
             &input_report,
