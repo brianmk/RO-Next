@@ -34,6 +34,7 @@ const SKILL_PORTAL_RING_COUNT: usize = 2;
 
 /// Textures used by the warp portal effect. They are loaded once when the
 /// client starts, because they are shared between all warps on the map.
+#[derive(Clone)]
 pub struct WarpPortal {
     streak_texture: Arc<Texture>,
     gradient_texture: Arc<Texture>,

@@ -157,6 +157,15 @@ const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// separate character selection track, this is the only place to change.
 const UI_BACKGROUND_MUSIC: Option<&str> = Some("bgm\\01.mp3");
 const MAIN_MENU_CLICK_SOUND_EFFECT: &str = "버튼소리.wav";
+/// Sound played when another entity teleports away / logs out (classic client
+/// plays the teleport warp effect together with this effect sound).
+const TELEPORT_VANISH_SOUND_EFFECT: &str = "effect\\ef_teleportation.wav";
+/// Maximum number of teleport-vanish effects spawned within
+/// `TELEPORT_VANISH_WINDOW`. Population-engine shells can vanish in bursts;
+/// this keeps the effect renderer cheap.
+const TELEPORT_VANISH_BURST_LIMIT: usize = 12;
+/// Sliding window used for [`TELEPORT_VANISH_BURST_LIMIT`].
+const TELEPORT_VANISH_WINDOW: Duration = Duration::from_millis(700);
 const ITEM_PICKUP_RANGE: AttackRange = AttackRange(1);
 // TODO: The number of point lights that can cast shadows should be configurable
 // through the graphics settings. For now I just chose an arbitrary smaller
@@ -550,6 +559,10 @@ pub struct Client {
     /// Active warp-portal skill units: (entity id, world position, spawn time).
     /// Rendered as the flat ground portal of the original client.
     warp_skill_units: Vec<(EntityId, Point3<f32>, Instant)>,
+    /// Sound of the entity teleport/logout disappear effect.
+    teleport_vanish_sound_effect: SoundEffectKey,
+    /// Spawn times of recently started teleport-vanish effects (burst limiter).
+    recent_teleport_vanishes: Vec<Instant>,
     path_finder: PathFinder,
 
     point_light_set_buffer: ResourceSetBuffer<LightSourceKey>,
@@ -1001,6 +1014,7 @@ impl Client {
             let tile_texture_set = Arc::new(tile_texture_set);
 
             let main_menu_click_sound_effect = audio_engine.load(MAIN_MENU_CLICK_SOUND_EFFECT);
+            let teleport_vanish_sound_effect = audio_engine.load(TELEPORT_VANISH_SOUND_EFFECT);
         });
 
         time_phase!("load default map", {
@@ -1133,6 +1147,8 @@ impl Client {
             chat_bubbles: ChatBubbles::default(),
             warp_portal,
             warp_skill_units: Vec::new(),
+            teleport_vanish_sound_effect,
+            recent_teleport_vanishes: Vec::new(),
             path_finder,
             point_light_set_buffer,
             directional_shadow_object_set_buffer,
@@ -1925,6 +1941,39 @@ impl Client {
         )));
     }
 
+    /// Spawns the one-shot teleport/logout disappear effect (warp swirl +
+    /// `ef_teleportation.wav`) at the position where an entity vanished.
+    ///
+    /// Only `Teleported` and `LoggedOut` disappearances use this; out-of-sight
+    /// and death disappearances keep their plain fade / death handling.
+    fn spawn_teleport_vanish(&mut self, position: Point3<f32>) {
+        // Defensive lifetime/rate handling for bursts of population-engine
+        // shells: keep at most TELEPORT_VANISH_BURST_LIMIT effects per window.
+        self.recent_teleport_vanishes
+            .retain(|spawn_time| spawn_time.elapsed() < TELEPORT_VANISH_WINDOW);
+
+        if self.recent_teleport_vanishes.len() >= TELEPORT_VANISH_BURST_LIMIT {
+            return;
+        }
+
+        let Some(warp_portal) = self.warp_portal.clone() else {
+            return;
+        };
+
+        self.recent_teleport_vanishes.push(Instant::now());
+        self.effect_holder.add_effect(Box::new(TeleportVanish::new(warp_portal, position)));
+        // Spatial playback respects the muted/headless backend of the lean test
+        // client (KORANGAR_MUTE_AUDIO never opens an audio device).
+        self.audio_engine
+            .play_spatial_sound_effect(self.teleport_vanish_sound_effect, position, 250.0);
+        crate::logging::log_debug!(
+            "entity: teleport vanish effect at ({:.1}, {:.1}, {:.1}) (sound ef_teleportation.wav)",
+            position.x,
+            position.y,
+            position.z,
+        );
+    }
+
     /// Draws the ground cast circle below an entity for `duration_ms`.
     fn spawn_cast_circle(&mut self, entity_id: EntityId, color: Color, duration_ms: u32) {
         let center = EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0));
@@ -2659,6 +2708,22 @@ impl Client {
                 NetworkEvent::RemoveEntity { entity_id, reason } => {
                     self.chat_bubbles.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
+
+                    // Classic teleport/logout behaviour: entities that leave via
+                    // teleport/logout play a warp effect and sound at their last
+                    // position. Out-of-sight and death removals stay plain.
+                    let disappearance_position = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                        .map(|entity| entity.get_position());
+
+                    if matches!(reason, DisappearanceReason::Teleported | DisappearanceReason::LoggedOut)
+                        && let Some(position) = disappearance_position
+                    {
+                        self.spawn_teleport_vanish(position);
+                    }
 
                     // If the motive is dead, you need to set the player to dead.
                     if reason == DisappearanceReason::Died {

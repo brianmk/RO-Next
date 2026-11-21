@@ -17,9 +17,11 @@ use crate::world::{Camera, PointLightId, PointLightManager};
 
 mod aura;
 mod cast_circle;
+mod teleport_vanish;
 mod warp;
 pub use self::aura::*;
 pub use self::cast_circle::*;
+pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
 
 pub trait EffectBase {
