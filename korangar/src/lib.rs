@@ -1161,6 +1161,17 @@ impl Client {
             return;
         }
 
+        if self.interface.is_window_with_class_open(WindowClass::Login)
+            || self.interface.is_window_with_class_open(WindowClass::SelectServer)
+            || self.networking_system.is_login_server_connected()
+        {
+            // The player is still on the login / server selection screens: connecting to
+            // the character server is the explicit job of the server-selection
+            // flow, not of the map-restart recovery.
+            self.character_server_reconnect_at = None;
+            return;
+        }
+
         if self.networking_system.is_character_server_connected() {
             self.character_server_reconnect_at = None;
             return;
@@ -1308,6 +1319,14 @@ impl Client {
                     // that was kicked or logged out) must not block the new server selection.
                     self.networking_system.disconnect_from_character_server();
                     self.networking_system.disconnect_from_map_server();
+
+                    // A fresh login must not auto-reconnect to a previously selected character
+                    // server (map-restart recovery state): reset the retry state and the
+                    // remembered server so the Select Server window is shown and only the
+                    // player's click connects.
+                    self.character_server_reconnect_at = None;
+                    self.character_server_reconnect_attempts = 0;
+                    self.saved_character_server = None;
 
                     *self.client_state.follow_mut(client_state().character_servers()) = character_servers;
 
@@ -2508,7 +2527,7 @@ impl Client {
                 InputEvent::SelectServer {
                     character_server_information,
                 } => {
-                    let Some(login_data) = self.saved_login_data.clone() else {
+                    let Some(login_data) = self.saved_login_data else {
                         // The window was still open although we are not logged in (e.g.
                         // after a stale state). Go back to the login screen instead of
                         // panicking.
