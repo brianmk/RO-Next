@@ -14,8 +14,8 @@ use crate::graphics::{Color, EntityInstruction};
 use crate::loaders::Sprite;
 use crate::world::{ActionEvent, Actions, Camera, EntityType};
 
-const TILE_SIZE: f32 = 10.0;
-const SPRITE_SCALE: f32 = 1.4;
+pub(crate) const TILE_SIZE: f32 = 10.0;
+pub(crate) const SPRITE_SCALE: f32 = 1.4;
 const PICKUP_ANIMATION_FACTOR: f32 = 25.0;
 
 #[allow(dead_code)]
@@ -300,6 +300,34 @@ fn fallback_frame() -> &'static AnimationFrame {
     &FALLBACK_FRAME
 }
 
+/// Computes the animation duration for an action in milliseconds.
+///
+/// The ACT delay is stored per action/direction and multiplied by 50 ms (the
+/// conversion the original client implies), so an action with 6 frames and a
+/// delay of 4.0 takes 6 * 4.0 * 50 = 1200 ms. The longest direction wins so
+/// that a one-shot animation is never cut before the last frame.
+pub(crate) fn duration_from_frame_counts(action_base_offset: usize, frame_counts: &[usize], delays: &[f32]) -> u32 {
+    if frame_counts.is_empty() || delays.is_empty() {
+        return 0;
+    }
+
+    let mut longest = 0.0f32;
+
+    for direction in 0..8 {
+        let action_index = action_base_offset + direction;
+        let frame_count = frame_counts[action_index % frame_counts.len()];
+        let delay = delays[action_index % delays.len()];
+
+        if frame_count == 0 || delay <= 0.0 {
+            continue;
+        }
+
+        longest = longest.max(frame_count as f32 * delay * 50.0);
+    }
+
+    longest.max(1.0) as u32
+}
+
 impl AnimationData {
     pub fn is_animation_over(&self, animation_state: &AnimationState) -> bool {
         if self.delays.is_empty() || self.animations.is_empty() {
@@ -319,6 +347,12 @@ impl AnimationData {
         }
 
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
+        let factor = if factor > 0.0 { factor } else { 50.0 };
+
+        // Duration of the real ACT action (the longest of the 8 directions) in
+        // milliseconds. This is what the game files define as the length of the
+        // animation, independent of the camera direction.
+        let action_duration = self.action_duration_ms(animation_state);
 
         // A looping animation (for example a cast with a cast time) finishes when
         // its duration is over, but always plays at least one full cycle so that a
@@ -327,10 +361,13 @@ impl AnimationData {
         if let Some(duration) = animation_state.duration
             && animation_state.looping
         {
-            let animation_length = animation.frames.len() as f32 * factor;
-            let effective_duration = (duration as f32).max(animation_length);
+            return animation_state.time >= duration.max(action_duration);
+        }
 
-            return animation_state.time as f32 >= effective_duration;
+        // One-shot animations without an artificial duration (skill casts) run for
+        // the full duration of the ACT action.
+        if animation_state.duration.is_none() && action_duration > 0 {
+            return animation_state.time >= action_duration;
         }
 
         let frame_time = animation_state
@@ -341,6 +378,26 @@ impl AnimationData {
             .unwrap_or_else(|| (animation_state.time as f32 / factor) as u32);
 
         frame_time as usize > animation.frames.len()
+    }
+
+    /// Total duration of the animation for the action behind the given state in
+    /// milliseconds (the longest duration over all 8 directions, as defined by
+    /// the ACT frame delays).
+    pub fn action_duration_ms(&self, animation_state: &AnimationState) -> u32 {
+        let frame_counts: Vec<usize> = self.animations.iter().map(|animation| animation.frames.len()).collect();
+
+        duration_from_frame_counts(animation_state.action_base_offset, &frame_counts, &self.delays)
+    }
+
+    /// Duration of the skill-cast animation of this entity in milliseconds,
+    /// used to keep effects alive for at least as long as the cast
+    /// animation.
+    pub fn skill_animation_duration_ms(&self) -> u32 {
+        duration_from_frame_counts(
+            AnimationActionType::Skill.action_base_offset(self.entity_type),
+            &self.animations.iter().map(|animation| animation.frames.len()).collect::<Vec<_>>(),
+            &self.delays,
+        )
     }
 
     pub fn get_frame(&self, animation_state: &AnimationState, camera: &dyn Camera, direction: Direction) -> &AnimationFrame {
@@ -363,6 +420,8 @@ impl AnimationData {
         }
 
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
+        // A zero delay in an ACT file must not divide by zero.
+        let factor = if factor > 0.0 { factor } else { 50.0 };
 
         let frame_time = match animation_state.duration {
             Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
@@ -541,6 +600,61 @@ mod tests {
         };
 
         assert!(empty_animation_data.is_animation_over(&AnimationState::new(EntityType::Monster, ClientTick(0))));
+    }
+
+    #[test]
+    fn action_duration_uses_the_longest_direction_and_the_act_delays() {
+        use super::duration_from_frame_counts;
+
+        // Player skill action: 8 directions with 6 frames each and delay 4.0.
+        let mut frame_counts = vec![3; 104];
+        for direction in 0..8 {
+            frame_counts[12 * 8 + direction] = 6;
+        }
+        let delays = vec![4.0f32; 104];
+
+        assert_eq!(duration_from_frame_counts(12 * 8, &frame_counts, &delays), 1200);
+    }
+
+    #[test]
+    fn action_duration_uses_the_longest_direction() {
+        use super::duration_from_frame_counts;
+
+        let mut frame_counts = vec![3usize; 104];
+        frame_counts[12 * 8] = 4;
+        frame_counts[12 * 8 + 3] = 9;
+        let delays = vec![4.0f32; 104];
+
+        // The longest direction (9 * 4.0 * 50 ms) wins, so the animation is not cut
+        // before the last frame of the direction that is actually drawn.
+        assert_eq!(duration_from_frame_counts(12 * 8, &frame_counts, &delays), 1800);
+    }
+
+    #[test]
+    fn instant_skill_cast_plays_the_full_act_action() {
+        use super::{Animation, AnimationData};
+
+        let animation_data = AnimationData {
+            animation_pair: Vec::new(),
+            animations: (0..104)
+                .map(|_| Animation {
+                    frames: (0..6).map(|_| super::fallback_frame().clone()).collect(),
+                })
+                .collect(),
+            delays: vec![4.0; 104],
+            entity_type: EntityType::Player,
+        };
+
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.skill(EntityType::Player, 0, false, ClientTick(0));
+
+        // 6 frames * 4.0 delay * 50 ms = 1200 ms; the cast animation must not be
+        // terminated early ("some of the effect happens but not the whole
+        // animation").
+        state.update(ClientTick(1_000));
+        assert!(!animation_data.is_animation_over(&state));
+        state.update(ClientTick(1_250));
+        assert!(animation_data.is_animation_over(&state));
     }
 
     #[test]

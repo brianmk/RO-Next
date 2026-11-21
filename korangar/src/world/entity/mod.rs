@@ -1772,6 +1772,19 @@ impl Entity {
             .skill(entity_type, cast_time, looping, client_tick);
     }
 
+    /// Duration of the skill-cast animation of this entity in milliseconds.
+    ///
+    /// Effects that are spawned together with a cast have to stay alive at
+    /// least this long so that the visual does not end before the animation
+    /// does.
+    pub fn skill_animation_duration_ms(&self) -> u32 {
+        self.get_common()
+            .animation_data
+            .as_ref()
+            .map(|animation_data| animation_data.skill_animation_duration_ms())
+            .unwrap_or(0)
+    }
+
     pub fn is_sitting(&self) -> bool {
         self.get_common().animation_state.is_sitting()
     }
