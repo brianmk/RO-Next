@@ -109,7 +109,7 @@ use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::{Fullscreen, Icon, Window, WindowId};
 
 use crate::graphics::*;
-use crate::input::{InputEvent, InputReport, InputSystem};
+use crate::input::{InputEvent, InputReport, InputSystem, translate_slash_command};
 use crate::interface::cursor::{MouseCursor, MouseCursorState};
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::interface::windows::*;
@@ -4008,14 +4008,25 @@ impl Client {
                         continue;
                     }
 
+                    // Official-client style slash commands (`/go prontera`,
+                    // `/warp ...`) are translated into rAthena atcommands
+                    // (`@go prontera`, ...); everything else is sent unchanged.
+                    let translated_command = translate_slash_command(&text);
+
+                    let outgoing_text = translated_command.as_deref().unwrap_or(&text);
+
                     let _ = self
                         .networking_system
-                        .send_chat_message(self.client_state.follow(client_state().player_name()), &text);
+                        .send_chat_message(self.client_state.follow(client_state().player_name()), outgoing_text);
 
                     // The server sends ZC_NOTIFY_CHAT (0x008D) only to the
                     // surrounding players (AREA_CHAT_WOC excludes the speaker),
                     // so our own speech bubble has to be created locally.
-                    if let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) {
+                    // Commands produce no speech: their output is sent by the
+                    // server as a regular chat message instead.
+                    if translated_command.is_none()
+                        && let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id())
+                    {
                         self.chat_bubbles.push(entity_id, text, MessageColor::Broadcast, client_tick);
                     }
                 }

@@ -4998,7 +4998,7 @@ mod tests {
     fn friend_list_2019_layout() {
         use ragnarok_bytes::ByteReader;
 
-        use crate::{AccountId, CharacterId, FriendListPacket, FriendListPacket2019, Packet};
+        use crate::{AccountId, CharacterId, FriendListPacket, FriendListPacket2019};
 
         // 0201 <len>.W { <account id>.L <char id>.L }*
         let mut bytes = Vec::new();
