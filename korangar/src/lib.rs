@@ -930,6 +930,52 @@ impl Client {
         self.top_interface_renderer.update_scaling(scaling);
     }
 
+    /// Request the names of all entities that should show a name label.
+    ///
+    /// Entity details (the name) are loaded lazily from the map server and were
+    /// previously only requested for the entity under the mouse. That made the
+    /// always on name labels only appear for entities that had been hovered
+    /// once before.
+    #[inline(always)]
+    #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    fn request_visible_entity_names(&mut self) {
+        if self.map.is_none() {
+            return;
+        }
+
+        let show_character_names = *self.client_state.follow(client_state().interface_settings().show_character_names());
+
+        if !show_character_names {
+            return;
+        }
+
+        // Limit the number of name requests per frame so entering a crowded map does
+        // not burst a request per character/entity.
+        const MAXIMUM_NAME_REQUESTS_PER_FRAME: usize = 8;
+
+        let entity_ids: Vec<_> = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .filter(|entity| matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc))
+            .filter(|entity| entity.are_details_unavailable())
+            .map(|entity| entity.get_entity_id())
+            .take(MAXIMUM_NAME_REQUESTS_PER_FRAME)
+            .collect();
+
+        for entity_id in entity_ids {
+            if self.networking_system.entity_details(entity_id).is_ok()
+                && let Some(entity) = self
+                    .client_state
+                    .follow_mut(client_state().entities())
+                    .iter_mut()
+                    .find(|entity| entity.get_entity_id() == entity_id)
+            {
+                entity.set_details_requested();
+            }
+        }
+    }
+
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn request_entity_details(&mut self, input_report: &InputReport) {
@@ -3243,6 +3289,7 @@ impl Client {
         let input_report = self.input_system.update_delta(client_tick);
 
         self.request_entity_details(&input_report);
+        self.request_visible_entity_names();
 
         self.handle_network_events(client_tick);
 
@@ -4238,7 +4285,9 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 
         if show_character_names && self.currently_playing {
             for entity in self.client_state.follow(client_state().entities()) {
-                if entity.get_entity_type() == EntityType::Player {
+                // Players and NPCs have permanent name labels in the original client.
+                // Monsters and other entities only show their name while hovered.
+                if matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc) {
                     self.render_entity_name(entity);
                 }
             }
@@ -4284,7 +4333,9 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                         // Render the name below the character instead of at the
                         // mouse cursor. If names are always shown, player names are
                         // already rendered above, so avoid drawing them twice.
-                        if entity.get_entity_type() != EntityType::Player || !show_character_names {
+                        let has_permanent_label = matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc);
+
+                        if !has_permanent_label || !show_character_names {
                             self.render_entity_name(entity);
                         }
                     } else if let Some(item) = self
