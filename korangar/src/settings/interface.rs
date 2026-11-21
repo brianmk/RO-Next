@@ -109,7 +109,12 @@ pub struct InterfaceSettingsCapabilities {
 
 impl InterfaceSettingsCapabilities {
     fn load_themes(directory: &str) -> Vec<String> {
-        let mut themes = vec![DEFAULT_THEME_NAME.to_string(), CLASSIC_THEME_NAME.to_string()];
+        let has_classic_theme = directory != WORLD_THEMES_PATH;
+
+        let mut themes = vec![DEFAULT_THEME_NAME.to_string()];
+        if has_classic_theme {
+            themes.push(CLASSIC_THEME_NAME.to_string());
+        }
 
         if let Ok(entries) = std::fs::read_dir(directory) {
             themes.extend(
@@ -118,8 +123,10 @@ impl InterfaceSettingsCapabilities {
                     .filter_map(|entry| entry.file_name().to_string_lossy().strip_suffix(".ron").map(ToOwned::to_owned)),
             );
 
-            // Sort themes excluding the default since we always want that to be first.
-            themes[2..].sort_unstable();
+            // Sort themes excluding the built in ones since we always want those to be
+            // first.
+            let built_in_count = themes.len().min(2);
+            themes[built_in_count..].sort_unstable();
         }
 
         themes
