@@ -707,6 +707,18 @@ where
         }
     }
 
+    /// Ask the map server for a clean disconnect (`CZ_REQ_DISCONNECT`, 0x018A).
+    ///
+    /// Used when the client is closed while in game so the map server saves the
+    /// character and reports it offline to the character/login server. Without
+    /// this the account can stay "online" for a while and an immediate
+    /// relogin is rejected as already online.
+    pub fn request_disconnect(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestDisconnectPacket::new(0)),
+        }
+    }
+
     pub fn player_move(&mut self, position: WorldPosition) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestPlayerMovePacket::new(position)),

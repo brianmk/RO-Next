@@ -47,6 +47,7 @@ use std::net::{SocketAddr, ToSocketAddrs};
 use std::ops::Deref;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 
 use cgmath::{Point3, Vector3};
 use image::{EncodableLayout, ImageFormat, ImageReader};
@@ -264,6 +265,13 @@ pub struct Client {
     saved_username: String,
     // TODO: Move or remove this.
     saved_packet_version: SupportedPacketVersion,
+
+    /// Set when a quit was requested (exit button, window close or
+    /// SIGTERM/SIGHUP). The client then asks the map server for a clean
+    /// disconnect before exiting.
+    shutdown_requested: bool,
+    /// Deadline for the clean disconnect; the client exits when it is reached.
+    shutdown_deadline: Option<Instant>,
 
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
@@ -725,6 +733,8 @@ impl Client {
             saved_password,
             saved_username,
             saved_packet_version,
+            shutdown_requested: false,
+            shutdown_deadline: None,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -1091,6 +1101,12 @@ impl Client {
                     }
                 }
                 NetworkEvent::MapServerDisconnected { reason } => {
+                    if self.shutdown_requested {
+                        // We are quitting; the clean logout is done, don't go back to
+                        // the character selection screen.
+                        continue;
+                    }
+
                     if reason != DisconnectReason::ClosedByClient {
                         // TODO: Make this an on-screen popup.
                         #[cfg(feature = "debug")]
@@ -3259,8 +3275,40 @@ impl Client {
         }
 
         if SHUTDOWN_SIGNAL.load(Ordering::SeqCst) {
-            event_loop.exit();
-            return;
+            self.shutdown_requested = true;
+        }
+
+        if self.shutdown_requested {
+            // Ask the map server for a clean disconnect (CZ_REQ_DISCONNECT) instead of
+            // just dropping the TCP connection. The map server then saves the character
+            // and reports the account offline to the character/login server, so an
+            // immediate relogin is not rejected with "already online".
+            if self.shutdown_deadline.is_none() {
+                if self.networking_system.is_map_server_connected() {
+                    let _ = self.networking_system.request_disconnect();
+                    self.shutdown_deadline = Some(Instant::now() + Duration::from_millis(2000));
+                } else if self.networking_system.is_character_server_connected() {
+                    self.networking_system.disconnect_from_character_server();
+                } else if self.networking_system.is_login_server_connected() {
+                    self.networking_system.disconnect_from_login_server();
+                } else {
+                    event_loop.exit();
+                    return;
+                }
+            }
+
+            // Exit once the map server disconnected us (clean logout done) or the
+            // deadline expired. Close the remaining sockets in server order first so the
+            // login server can clear its online state before the process exits.
+            if !self.networking_system.is_map_server_connected()
+                || self.shutdown_deadline.is_some_and(|deadline| Instant::now() >= deadline)
+            {
+                self.networking_system.disconnect_from_map_server();
+                self.networking_system.disconnect_from_character_server();
+                self.networking_system.disconnect_from_login_server();
+                event_loop.exit();
+                return;
+            }
         }
 
         // Clear the previous render instructions so we can rendering the new frame.
@@ -3842,7 +3890,9 @@ impl ApplicationHandler for Client {
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
         match event {
             WindowEvent::CloseRequested => {
-                event_loop.exit();
+                // Request a clean logout instead of exiting right away, so the server
+                // does not keep the character/account online (see `update_and_render`).
+                SHUTDOWN_SIGNAL.store(true, Ordering::SeqCst);
             }
             WindowEvent::Resized(screen_size) => {
                 let screen_size = screen_size.max(PhysicalSize::new(1, 1)).into();
