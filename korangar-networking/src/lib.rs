@@ -592,16 +592,30 @@ where
         };
     }
 
+    /// Requests a manual close of the login server connection.
+    ///
+    /// Only a live connection is closed. Marking an already disconnected
+    /// connection as "closing manually" used to make the connection handler
+    /// emit a spurious disconnect event, which (for the map server) sent the
+    /// client back to an empty character selection right after login.
     pub fn disconnect_from_login_server(&mut self) {
-        self.login_server_connection = ServerConnection::ClosingManually;
+        if matches!(self.login_server_connection, ServerConnection::Connected { .. }) {
+            self.login_server_connection = ServerConnection::ClosingManually;
+        }
     }
 
+    /// See [`Self::disconnect_from_login_server`].
     pub fn disconnect_from_character_server(&mut self) {
-        self.character_server_connection = ServerConnection::ClosingManually;
+        if matches!(self.character_server_connection, ServerConnection::Connected { .. }) {
+            self.character_server_connection = ServerConnection::ClosingManually;
+        }
     }
 
+    /// See [`Self::disconnect_from_login_server`].
     pub fn disconnect_from_map_server(&mut self) {
-        self.map_server_connection = ServerConnection::ClosingManually;
+        if matches!(self.map_server_connection, ServerConnection::Connected { .. }) {
+            self.map_server_connection = ServerConnection::ClosingManually;
+        }
     }
 
     pub fn is_login_server_connected(&self) -> bool {
