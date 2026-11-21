@@ -112,7 +112,9 @@ use crate::loaders::*;
 use crate::renderer::DebugMarkerRenderer;
 use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer};
 use crate::settings::{
-    GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH, ServiceSettingsPathExt, WORLD_THEMES_PATH,
+    FORCE_UNFOCUSED_ALIAS_ENVIRONMENT_VARIABLE, FORCE_UNFOCUSED_ENVIRONMENT_VARIABLE, FRAMERATE_LOG_ENVIRONMENT_VARIABLE,
+    FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
+    ServiceSettingsPathExt, WORLD_THEMES_PATH,
 };
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
@@ -329,6 +331,25 @@ pub struct Client {
     device: Device,
     window: Option<Arc<Window>>,
 
+    /// Whether the window is currently reported as occluded by the windowing
+    /// system. Occluded windows receive no redraw events on some platforms, but
+    /// the state is applied as soon as the client renders again.
+    window_occluded: bool,
+    /// Whether the window was minimized the last time we checked. Querying this
+    /// state is a synchronous round trip on X11, so it is only refreshed when
+    /// the focus or the occlusion state of the window changes.
+    window_minimized: bool,
+    /// Set through `KORANGAR_FORCE_UNFOCUSED`/`KORANGAR_UNFOCUSED_ALWAYS`.
+    /// Forces the background frame rate limit, which is useful for headless
+    /// verification clients.
+    force_background: bool,
+    /// The frame rate limit that is currently applied to the graphics engine.
+    /// `0` means unlimited.
+    active_frames_per_second_limit: u32,
+    /// When the effective frame rate should be logged next. Only set when
+    /// frame rate logging is enabled through `KORANGAR_FPS_LOG`.
+    frames_per_second_log_deadline: Option<Instant>,
+
     map: Option<Arc<Map>>,
     client_state: State<ClientState>,
 }
@@ -376,8 +397,29 @@ impl Client {
             let picker_value = Arc::new(AtomicU64::new(0));
             let directional_shadow_partitions = Arc::new(Mutex::new([DirectionalShadowPartition::default(); PARTITION_COUNT]));
             let input_system = InputSystem::new(picker_value.clone());
-            let graphics_settings = GraphicsSettings::new();
+            let mut graphics_settings = GraphicsSettings::new();
+
+            if graphics_settings.apply_environment_overrides() {
+                println!(
+                    "[framerate] environment overrides applied: max_fps={} background_max_fps={}",
+                    graphics_settings.max_fps.get(),
+                    graphics_settings.background_max_fps.get(),
+                );
+            }
+
+            println!(
+                "[framerate] frame rate limits: max_fps={} background_max_fps={}",
+                graphics_settings.max_fps.get(),
+                graphics_settings.background_max_fps.get(),
+            );
         });
+
+        let force_background =
+            environment_flag(FORCE_UNFOCUSED_ENVIRONMENT_VARIABLE) || environment_flag(FORCE_UNFOCUSED_ALIAS_ENVIRONMENT_VARIABLE);
+
+        if force_background {
+            println!("[framerate] window is always treated as being in the background (environment override)");
+        }
 
         time_phase!("create adapter", {
             let instance = Instance::new(InstanceDescriptor {
@@ -790,6 +832,11 @@ impl Client {
             #[cfg(feature = "debug")]
             device,
             window: None,
+            window_occluded: false,
+            window_minimized: false,
+            force_background,
+            active_frames_per_second_limit: 0,
+            frames_per_second_log_deadline: frames_per_second_log_deadline(),
 
             map: Some(map),
             client_state,
@@ -883,11 +930,6 @@ impl Client {
             self.active_graphics_settings.vsync = graphics_settings.vsync;
         }
 
-        if self.active_graphics_settings.limit_framerate != graphics_settings.limit_framerate {
-            self.graphics_engine.set_limit_framerate(graphics_settings.limit_framerate);
-            self.active_graphics_settings.limit_framerate = graphics_settings.limit_framerate;
-        }
-
         if self.active_graphics_settings.triple_buffering != graphics_settings.triple_buffering {
             self.graphics_engine.set_triple_buffering(graphics_settings.triple_buffering);
             self.active_graphics_settings.triple_buffering = graphics_settings.triple_buffering;
@@ -960,6 +1002,91 @@ impl Client {
             *self.client_state.follow_mut(client_state().world_theme()) = theme;
             self.active_interface_settings.world_theme = world_theme;
         }
+
+        // The active frame rate limit depends on the persisted settings *and*
+        // on whether the window is currently in the background, so it has to be
+        // re-evaluated whenever the settings or the window state changed.
+        self.apply_frames_per_second_limit();
+    }
+
+    /// Whether the client window has keyboard focus right now.
+    fn window_has_focus(&self) -> bool {
+        self.window.as_ref().is_some_and(|window| window.has_focus())
+    }
+
+    /// Whether the client window is currently considered to be in the
+    /// background, and should therefore use the background frame rate limit.
+    fn window_is_in_background(&self) -> bool {
+        if self.force_background || self.window_occluded || self.window_minimized {
+            return true;
+        }
+
+        self.window.is_some() && !self.window_has_focus()
+    }
+
+    /// Applies the frame rate limit that matches the current window state and
+    /// the persisted graphics settings.
+    fn apply_frames_per_second_limit(&mut self) {
+        let background = self.window_is_in_background();
+
+        let frames_per_second = self
+            .client_state
+            .follow(client_state().graphics_settings())
+            .effective_max_fps(background);
+
+        self.set_frames_per_second_limit(frames_per_second, background);
+    }
+
+    /// Applies a frame rate limit to the graphics engine and logs the
+    /// transition whenever the limit actually changes.
+    fn set_frames_per_second_limit(&mut self, frames_per_second: u32, background: bool) {
+        if frames_per_second == self.active_frames_per_second_limit {
+            return;
+        }
+
+        self.active_frames_per_second_limit = frames_per_second;
+        self.graphics_engine.set_framerate_limit(frames_per_second);
+
+        let limit = match frames_per_second {
+            0 => "unlimited".to_owned(),
+            frames_per_second => format!("{frames_per_second} FPS"),
+        };
+
+        let reason = if background { "window in background" } else { "window focused" };
+
+        println!("[framerate] frame rate limit: {limit} ({reason})");
+    }
+
+    /// Refreshes the minimized state of the window.
+    ///
+    /// Minimizing is not reported through a dedicated window event on all
+    /// platforms (and querying it is a synchronous round trip on X11), so this
+    /// is only called when the window state may have changed.
+    fn refresh_window_minimized(&mut self) {
+        self.window_minimized = self.window.as_ref().and_then(|window| window.is_minimized()).unwrap_or(false);
+    }
+
+    /// Logs the effective frame rate when `KORANGAR_FPS_LOG` is enabled.
+    fn log_frames_per_second(&mut self) {
+        let Some(deadline) = self.frames_per_second_log_deadline else {
+            return;
+        };
+
+        let now = Instant::now();
+
+        if now < deadline {
+            return;
+        }
+
+        self.frames_per_second_log_deadline = Some(now + Duration::from_secs(FRAMERATE_LOG_INTERVAL_SECONDS));
+
+        println!(
+            "[fps] cap={} focused={} background={} effective_fps={:.1}",
+            self.active_frames_per_second_limit,
+            self.window_has_focus(),
+            self.window_is_in_background(),
+            self.graphics_engine.measured_frames_per_second(),
+        );
     }
 
     #[inline(always)]
@@ -3458,6 +3585,10 @@ impl Client {
         // function results in surface configuration errors under DX12.
         self.update_settings();
 
+        // Requires the frame rate limit that was just applied, so it is done
+        // after `update_settings`.
+        self.log_frames_per_second();
+
         // TODO: Shouldn't this happen later? After the scaling has been potentially
         // changed by the UI.
         let scaling = *self.client_state.follow(client_state().interface_settings().scaling());
@@ -3952,6 +4083,20 @@ impl Client {
     }
 }
 
+/// Returns `true` if the given environment variable is set to a truthy value.
+fn environment_flag(variable: &str) -> bool {
+    std::env::var(variable).is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
+}
+
+/// The deadline of the first log line for `KORANGAR_FPS_LOG`, if enabled.
+fn frames_per_second_log_deadline() -> Option<Instant> {
+    if environment_flag(FRAMERATE_LOG_ENVIRONMENT_VARIABLE) {
+        Some(Instant::now() + Duration::from_secs(FRAMERATE_LOG_INTERVAL_SECONDS))
+    } else {
+        None
+    }
+}
+
 impl ApplicationHandler for Client {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // To be as portable as possible, winit recommends to initialize the window and
@@ -3996,7 +4141,6 @@ impl ApplicationHandler for Client {
                 window.clone(),
                 graphics_settings.triple_buffering,
                 graphics_settings.vsync,
-                graphics_settings.limit_framerate,
                 graphics_settings.shadow_resolution,
                 graphics_settings.texture_filtering,
                 graphics_settings.msaa,
@@ -4022,6 +4166,9 @@ impl ApplicationHandler for Client {
         if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
             self.audio_engine.mute(false);
         }
+
+        self.refresh_window_minimized();
+        self.apply_frames_per_second_limit();
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _window_id: WindowId, event: WindowEvent) {
@@ -4053,6 +4200,24 @@ impl ApplicationHandler for Client {
 
                 if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
                     self.audio_engine.mute(!focused);
+                }
+
+                self.refresh_window_minimized();
+                self.apply_frames_per_second_limit();
+
+                if let Some(window) = self.window.as_ref() {
+                    window.request_redraw();
+                }
+            }
+            WindowEvent::Occluded(occluded) => {
+                self.window_occluded = occluded;
+                self.refresh_window_minimized();
+                self.apply_frames_per_second_limit();
+
+                // Windows that are visible again need a redraw to restart the
+                // rendering loop.
+                if !occluded && let Some(window) = self.window.as_ref() {
+                    window.request_redraw();
                 }
             }
             WindowEvent::CursorLeft { .. } => self.mouse_cursor.hide(),
@@ -4098,6 +4263,9 @@ impl ApplicationHandler for Client {
         if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
             self.audio_engine.mute(true);
         }
+
+        self.window_minimized = false;
+        self.apply_frames_per_second_limit();
     }
 }
 

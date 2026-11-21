@@ -1,6 +1,6 @@
 use std::sync::atomic::AtomicU64;
 use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use cgmath::Vector2;
 #[cfg(feature = "debug")]
@@ -19,9 +19,9 @@ use winit::window::Window;
 #[cfg(feature = "debug")]
 use super::BindlessSupport;
 use super::{
-    AntiAliasingResources, Capabilities, DirectionalShadowPartition, EntityInstruction, FramePacer, FrameStage, GlobalContext,
-    LimitFramerate, Msaa, PARTITION_COUNT, Partition, Prepare, PresentModeInfo, RENDER_TO_TEXTURE_FORMAT, ScreenSpaceAntiAliasing,
-    ShadowResolution, Ssaa, Surface, TextureSamplerType,
+    AntiAliasingResources, Capabilities, DirectionalShadowPartition, EntityInstruction, FrameLimiter, GlobalContext, Msaa, PARTITION_COUNT,
+    Partition, Prepare, PresentModeInfo, RENDER_TO_TEXTURE_FORMAT, ScreenSpaceAntiAliasing, ShadowResolution, Ssaa, Surface,
+    TextureSamplerType,
 };
 use crate::graphics::ScreenSize;
 use crate::graphics::instruction::RenderInstruction;
@@ -57,9 +57,7 @@ pub struct GraphicsEngineDescriptor {
 /// Set 3: Resource Bindings (for example a texture group of a map)
 pub struct GraphicsEngine {
     capabilities: Capabilities,
-    frame_pacer: FramePacer,
-    cpu_stage: FrameStage<Instant>,
-    limit_framerate: bool,
+    frame_limiter: FrameLimiter,
     previous_surface_texture_format: Option<TextureFormat>,
     texture_loader: Arc<TextureLoader>,
     engine_context: Option<EngineContext>,
@@ -129,8 +127,6 @@ struct EngineContext {
 impl GraphicsEngine {
     pub fn initialize(descriptor: GraphicsEngineDescriptor) -> GraphicsEngine {
         let staging_belt = StagingBelt::new(descriptor.device.clone(), 1048576); // 1 MiB
-        let mut frame_pacer = FramePacer::new(60.0);
-        let cpu_stage = frame_pacer.create_frame_stage(Instant::now());
 
         // Windows AMD driver have a bug, where we can't properly record command encoder
         // in parallel without causing glitches in all cases (for example not rendering
@@ -153,9 +149,7 @@ impl GraphicsEngine {
 
         Self {
             capabilities: descriptor.capabilities,
-            frame_pacer,
-            cpu_stage,
-            limit_framerate: false,
+            frame_limiter: FrameLimiter::new(),
             previous_surface_texture_format: None,
             texture_loader: descriptor.texture_loader,
             engine_context: None,
@@ -178,7 +172,6 @@ impl GraphicsEngine {
         window: Arc<Window>,
         triple_buffering: bool,
         vsync: bool,
-        limit_framerate: LimitFramerate,
         shadow_resolution: ShadowResolution,
         texture_sampler_type: TextureSamplerType,
         msaa: Msaa,
@@ -186,8 +179,6 @@ impl GraphicsEngine {
         screen_space_anti_aliasing: ScreenSpaceAntiAliasing,
         high_quality_interface: bool,
     ) {
-        self.set_limit_framerate(limit_framerate);
-
         if self.surface.is_none() {
             time_phase!("create surface", {
                 let screen_size: ScreenSize = window.inner_size().max(PhysicalSize::new(1, 1)).into();
@@ -557,16 +548,21 @@ impl GraphicsEngine {
         }
     }
 
-    pub fn set_limit_framerate(&mut self, limit_framerate: LimitFramerate) {
-        match limit_framerate {
-            LimitFramerate::Unlimited => {
-                self.limit_framerate = false;
-            }
-            LimitFramerate::Limit(rate) => {
-                self.limit_framerate = true;
-                self.frame_pacer.set_monitor_frequency(f64::from(rate));
-            }
-        }
+    /// Sets the maximum number of frames per second the engine produces.
+    ///
+    /// `0` means unlimited. The limit is applied as an upper bound in
+    /// [`Self::wait_for_next_frame`], so it does not add latency when the
+    /// frame already took longer than the frame budget (for example because
+    /// vsync or the GPU is the actual pacing mechanism).
+    ///
+    /// Returns `true` if the limit changed.
+    pub fn set_framerate_limit(&mut self, frames_per_second: u32) -> bool {
+        self.frame_limiter.set_limit(frames_per_second)
+    }
+
+    /// The effective frame rate of the client, measured over the last second.
+    pub fn measured_frames_per_second(&self) -> f32 {
+        self.frame_limiter.measured_frames_per_second()
     }
 
     pub fn set_triple_buffering(&mut self, enabled: bool) {
@@ -801,10 +797,10 @@ impl GraphicsEngine {
             }
         }
 
-        if self.limit_framerate {
-            self.frame_pacer.wait_for_frame();
-        }
-        self.frame_pacer.begin_frame_stage(self.cpu_stage, Instant::now());
+        // Cap the frame rate as the very last step before acquiring the next
+        // swapchain image, so that all CPU side preparation overlaps with the
+        // previous frame's GPU work.
+        self.frame_limiter.wait_for_next_frame();
 
         self.surface.as_mut().expect("surface not set").acquire()
     }
@@ -854,8 +850,6 @@ impl GraphicsEngine {
         // framerate limit under Wayland, even when the user would want to have
         // an uncapped framerate.
         frame.present();
-
-        self.frame_pacer.end_frame_stage(self.cpu_stage, Instant::now());
     }
 
     // We currently use unstable sort, since it's the only way to sort without

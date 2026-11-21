@@ -4,33 +4,107 @@ use std::num::NonZeroU32;
 
 use korangar_interface::components::drop_down::DropDownItem;
 use korangar_interface::element::StateElement;
+use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
 use crate::graphics::ScreenSize;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, StateElement)]
-pub enum LimitFramerate {
-    Unlimited,
-    Limit(u16),
+/// A frame rate limit in frames per second.
+///
+/// The special value `0` means that the frame rate is not limited. A limit is
+/// serialized as a plain number, so the settings file stays readable:
+///
+/// ```ron
+/// max_fps: 60,
+/// background_max_fps: 30,
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, RustState, StateElement)]
+pub struct FramesPerSecond {
+    frames_per_second: u32,
 }
 
-impl DropDownItem<LimitFramerate> for LimitFramerate {
+impl FramesPerSecond {
+    /// No limit at all. The client renders as fast as the hardware allows.
+    pub const UNLIMITED: FramesPerSecond = FramesPerSecond { frames_per_second: 0 };
+
+    pub const fn new(frames_per_second: u32) -> FramesPerSecond {
+        FramesPerSecond { frames_per_second }
+    }
+
+    pub const fn get(self) -> u32 {
+        self.frames_per_second
+    }
+
+    pub const fn is_unlimited(self) -> bool {
+        self.frames_per_second == 0
+    }
+}
+
+impl Serialize for FramesPerSecond {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_u32(self.frames_per_second)
+    }
+}
+
+impl<'de> Deserialize<'de> for FramesPerSecond {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<FramesPerSecond, D::Error> {
+        u32::deserialize(deserializer).map(FramesPerSecond::new)
+    }
+}
+
+impl Default for FramesPerSecond {
+    fn default() -> FramesPerSecond {
+        FramesPerSecond::UNLIMITED
+    }
+}
+
+impl DropDownItem<FramesPerSecond> for FramesPerSecond {
     fn text(&self) -> &str {
-        match self {
-            LimitFramerate::Unlimited => "Unlimited",
-            LimitFramerate::Limit(30) => "30 Hz",
-            LimitFramerate::Limit(60) => "60 Hz",
-            LimitFramerate::Limit(120) => "120 Hz",
-            LimitFramerate::Limit(144) => "144 Hz",
-            LimitFramerate::Limit(240) => "240 Hz",
-            LimitFramerate::Limit(_) => unimplemented!(),
+        match self.frames_per_second {
+            0 => "Unlimited",
+            15 => "15 FPS",
+            24 => "24 FPS",
+            30 => "30 FPS",
+            45 => "45 FPS",
+            60 => "60 FPS",
+            75 => "75 FPS",
+            90 => "90 FPS",
+            120 => "120 FPS",
+            144 => "144 FPS",
+            240 => "240 FPS",
+            // Values that are not offered by the drop down (for example coming
+            // from an environment override) are still valid, but cannot be
+            // displayed as a nicely named entry.
+            _ => "Custom",
         }
     }
 
-    fn value(&self) -> LimitFramerate {
+    fn value(&self) -> FramesPerSecond {
         *self
     }
 }
+
+/// The frame rate limits that are offered in the settings window. These are
+/// only presets, the actual limit can be any value when it is set through the
+/// `KORANGAR_MAX_FPS`/`KORANGAR_BACKGROUND_MAX_FPS` environment variables.
+pub const FRAMERATE_PRESETS: &[FramesPerSecond] = &[
+    FramesPerSecond::UNLIMITED,
+    FramesPerSecond::new(15),
+    FramesPerSecond::new(30),
+    FramesPerSecond::new(45),
+    FramesPerSecond::new(60),
+    FramesPerSecond::new(75),
+    FramesPerSecond::new(120),
+    FramesPerSecond::new(144),
+    FramesPerSecond::new(240),
+];
+
+/// The maximum number of frames per second a client should render per default.
+pub const DEFAULT_MAX_FPS: FramesPerSecond = FramesPerSecond::new(60);
+
+/// The maximum number of frames per second a client should render while its
+/// window is in the background.
+pub const DEFAULT_BACKGROUND_MAX_FPS: FramesPerSecond = FramesPerSecond::new(30);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, StateElement)]
 pub enum TextureSamplerType {
