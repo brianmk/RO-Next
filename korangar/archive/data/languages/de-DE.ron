@@ -27,6 +27,8 @@
     friend_list_button_text: "Freundesliste",
     menu_button_text: "Menü",
     chat_window_title: "Chat",
+    chat_transparency_button_text: "Transparent",
+    chat_transparency_button_tooltip: "Den Hintergrund des Chatfensters transparent machen",
     chat_text_box_message: "Gib einen Nachricht oder ein Kommando ein",
     audio_settings_window_title: "Audioeinstellungen",
     mute_audio_on_focus_loss_button_text: "Stumm schalten wenn das Fenster den Fokus verliert",

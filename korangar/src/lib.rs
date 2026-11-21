@@ -1651,8 +1651,11 @@ impl Client {
                         // be open while the player is selected.
                         this_player().manually_asserted().job_level(),
                     ));
-                    self.interface
-                        .open_window(ChatWindow::new(client_state().chat_window(), client_state().chat_messages()));
+                    self.interface.open_window(ChatWindow::new(
+                        client_state().chat_window(),
+                        client_state().chat_messages(),
+                        client_state().interface_settings(),
+                    ));
                     self.interface.open_window(HotbarWindow::new(
                         client_state().hotbar().skills(),
                         client_state().skill_tree().skills(),
@@ -3420,8 +3423,7 @@ impl Client {
                             // current login state instead.
                             let character_server_connected = self.networking_system.is_character_server_connected();
                             let login_server_connected = self.networking_system.is_login_server_connected();
-                            let character_selection_open =
-                                self.interface.is_window_with_class_open(WindowClass::CharacterSelection);
+                            let character_selection_open = self.interface.is_window_with_class_open(WindowClass::CharacterSelection);
                             let select_server_open = self.interface.is_window_with_class_open(WindowClass::SelectServer);
                             let login_open = self.interface.is_window_with_class_open(WindowClass::Login);
 

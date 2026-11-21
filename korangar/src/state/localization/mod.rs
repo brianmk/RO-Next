@@ -160,6 +160,8 @@ pub struct Localization {
     menu_button_text: String,
     chat_window_title: String,
     chat_text_box_message: String,
+    chat_transparency_button_text: String,
+    chat_transparency_button_tooltip: String,
     audio_settings_window_title: String,
     mute_audio_on_focus_loss_button_text: String,
     mute_background_music_button_text: String,

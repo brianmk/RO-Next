@@ -2,19 +2,21 @@ use korangar_interface::application::Size;
 use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, StateElement};
+use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::layout::area::Area;
 use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use korangar_interface::window::{CustomWindow, Window};
 use korangar_networking::MessageColor;
-use rust_state::{Path, RustState, State};
+use rust_state::{Path, PathExt, RustState, Selector, State};
 
 use super::WindowClass;
 use crate::graphics::Color;
 use crate::input::InputEvent;
 use crate::loaders::{FontSize, OverflowBehavior};
+use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
-use crate::state::theme::{ChatThemePathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::theme::{ChatTheme, InterfaceThemePathExt, InterfaceThemeType};
 use crate::state::{ChatMessage, ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_CHAT_MESSAGE_LENGTH: usize = 80;
@@ -160,24 +162,71 @@ pub struct ChatWindowState {
     current_text: String,
 }
 
-pub struct ChatWindow<A, B> {
+pub struct ChatWindow<A, B, C> {
     chat_window_state: A,
     chat_messages_path: B,
+    interface_settings_path: C,
 }
 
-impl<A, B> ChatWindow<A, B> {
-    pub fn new(chat_window_state: A, chat_messages_path: B) -> Self {
+impl<A, B, C> ChatWindow<A, B, C> {
+    pub fn new(chat_window_state: A, chat_messages_path: B, interface_settings_path: C) -> Self {
         Self {
             chat_window_state,
             chat_messages_path,
+            interface_settings_path,
         }
     }
 }
 
-impl<A, B> CustomWindow<ClientState> for ChatWindow<A, B>
+/// Click handler for the "transparent chat" toggle in the chat window.
+///
+/// Besides toggling the state (which is read every frame, so the change is
+/// applied live) the interface settings are saved immediately, so the choice
+/// survives crashes like the other interface settings.
+struct TransparentChatToggle<A, B> {
+    value_path: A,
+    settings_path: B,
+}
+
+impl<A, B> ClickHandler<ClientState> for TransparentChatToggle<A, B>
+where
+    A: Path<ClientState, bool>,
+    B: Path<ClientState, InterfaceSettings>,
+{
+    fn handle_click(&self, state: &State<ClientState>, _: &mut EventQueue<ClientState>) {
+        state.update_value_with(self.value_path, |transparent| *transparent = !*transparent);
+        state.update_value_with(self.settings_path, |settings| settings.save());
+    }
+}
+
+/// Build a selector for a chat theme color that depends on the "transparent
+/// chat" setting.
+fn chat_color<P, T, F>(chat_theme_path: P, transparent_path: T, select: F) -> impl Selector<ClientState, Color>
+where
+    P: Path<ClientState, ChatTheme> + Copy + 'static,
+    T: Path<ClientState, bool> + Copy + 'static,
+    F: Fn(&ChatTheme, bool) -> Color + 'static,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        select(chat_theme_path.follow_safe(state), *transparent_path.follow_safe(state))
+    })
+}
+
+/// Build a selector for a chat theme color that doesn't depend on the
+/// "transparent chat" setting.
+fn chat_color_constant<P, F>(chat_theme_path: P, select: F) -> impl Selector<ClientState, Color>
+where
+    P: Path<ClientState, ChatTheme> + Copy + 'static,
+    F: Fn(&ChatTheme) -> Color + 'static,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| select(chat_theme_path.follow_safe(state)))
+}
+
+impl<A, B, C> CustomWindow<ClientState> for ChatWindow<A, B, C>
 where
     A: Path<ClientState, ChatWindowState>,
     B: Path<ClientState, Vec<ChatMessage>>,
+    C: Path<ClientState, InterfaceSettings>,
 {
     fn window_class() -> Option<WindowClass> {
         Some(WindowClass::Chat)
@@ -187,6 +236,22 @@ where
         use korangar_interface::prelude::*;
 
         let current_text_path = self.chat_window_state.current_text();
+        let transparent_chat_path = self.interface_settings_path.transparent_chat();
+        let chat_theme_path = client_theme().chat();
+
+        let window_background_color = chat_color(chat_theme_path, transparent_chat_path, |chat, transparent| match transparent {
+            true => chat.transparent_window_color,
+            false => chat.window_color,
+        });
+        let text_box_background_color = chat_color(chat_theme_path, transparent_chat_path, |chat, transparent| match transparent {
+            true => chat.transparent_text_box_background_color,
+            false => chat.text_box_background_color,
+        });
+        let window_title_color = chat_color_constant(chat_theme_path, |chat| chat.window_title_color);
+        let hovered_window_title_color = chat_color_constant(chat_theme_path, |chat| chat.hovered_window_title_color);
+        let text_box_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_foreground_color);
+        let text_box_ghost_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.ghost_foreground_color);
+
         let send_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
             let text = state.get(&current_text_path);
 
@@ -202,21 +267,38 @@ where
             title: client_state().localization().chat_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
-            background_color: client_theme().chat().window_color(),
+            title_color: window_title_color,
+            hovered_title_color: hovered_window_title_color,
+            background_color: window_background_color,
             resizable: true,
             border: 3.0,
             gaps: 2.0,
             title_gap: 0.0,
             minimum_height: 150.0,
             maximum_height: 800.0,
+            // The chat window is an overlay: it uses its own (semi transparent)
+            // background colour and must not draw the opaque skinned window frame.
+            skinned: false,
             elements: (
+                state_button! {
+                    text: client_state().localization().chat_transparency_button_text(),
+                    tooltip: client_state().localization().chat_transparency_button_tooltip(),
+                    state: transparent_chat_path,
+                    event: TransparentChatToggle {
+                        value_path: transparent_chat_path,
+                        settings_path: self.interface_settings_path,
+                    },
+                },
                 text_box! {
                     ghost_text: client_state().localization().chat_text_box_message(),
                     state: current_text_path,
                     input_handler: DefaultHandler::<_, _, MAXIMUM_CHAT_MESSAGE_LENGTH>::new(current_text_path, send_action),
-                    background_color: client_theme().chat().text_box_background_color(),
+                    foreground_color: text_box_foreground_color,
+                    background_color: text_box_background_color,
+                    ghost_foreground_color: text_box_ghost_foreground_color,
                     focused_background_color: Color::rgba(0.0, 0.0, 0.0, 0.8),
                     focus_id: ChatTextBox,
+                    skinned: false,
                 },
                 scroll_view! {
                     follow: true,

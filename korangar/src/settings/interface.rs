@@ -35,10 +35,18 @@ pub struct InterfaceSettings {
     /// the character is hovered.
     #[serde(default = "default_show_character_names")]
     pub show_character_names: bool,
+    /// Draw the chat window without a background so the game world is visible
+    /// through it. Can be toggled in the chat window, persisted here.
+    #[serde(default = "default_transparent_chat")]
+    pub transparent_chat: bool,
 }
 
 fn default_show_character_names() -> bool {
     true
+}
+
+fn default_transparent_chat() -> bool {
+    false
 }
 
 impl Default for InterfaceSettings {
@@ -50,6 +58,7 @@ impl Default for InterfaceSettings {
             in_game_theme: DEFAULT_THEME_NAME.to_string(),
             world_theme: DEFAULT_THEME_NAME.to_string(),
             show_character_names: true,
+            transparent_chat: false,
         }
     }
 }

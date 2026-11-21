@@ -112,6 +112,9 @@ pub struct TextBox<Text, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S
     vertical_alignment: U,
     overflow_behavior: V,
     focus_id: Id,
+    /// Whether the text box background should be drawn using the image skin of
+    /// the active theme (if it has one).
+    skinned: bool,
     focus_click: FocusClick,
 }
 
@@ -146,6 +149,7 @@ impl<Text, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, Id>
         vertical_alignment: U,
         overflow_behavior: V,
         focus_id: Id,
+        skinned: bool,
     ) -> Self {
         Self {
             text_marker: PhantomData,
@@ -172,6 +176,7 @@ impl<Text, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, Id>
             vertical_alignment,
             overflow_behavior,
             focus_id,
+            skinned,
             focus_click: FocusClick::default(),
         }
     }
@@ -308,7 +313,7 @@ where
         let skin_path = theme().skin();
         let skin = state.get(&skin_path);
 
-        match skin.text_box.as_ref() {
+        match skin.text_box.as_ref().filter(|_| self.skinned) {
             Some(text_box_skin) => text_box_skin.add_to_layout(layout, layout_info.area),
             None => {
                 let background_color = match is_hovered {

@@ -36,8 +36,18 @@ pub struct DebugButtonTheme {
 
 #[derive(Serialize, Deserialize, RustState, StateElement)]
 pub struct ChatTheme {
-    window_color: Color,
-    text_box_background_color: Color,
+    pub window_color: Color,
+    pub text_box_background_color: Color,
+    /// Background colors used when the chat window is drawn transparently.
+    pub transparent_window_color: Color,
+    pub transparent_text_box_background_color: Color,
+    /// Title color of the chat window.
+    pub window_title_color: Color,
+    pub hovered_window_title_color: Color,
+    /// Foreground color of the chat input line.
+    pub text_box_foreground_color: Color,
+    /// Color of the ghost text of the chat input line.
+    pub ghost_foreground_color: Color,
 }
 
 #[derive(Serialize, Deserialize, RustState, StateElement)]
@@ -358,6 +368,12 @@ impl InterfaceTheme {
             chat: ChatTheme {
                 window_color: Color::TRANSPARENT,
                 text_box_background_color: Color::TRANSPARENT,
+                transparent_window_color: Color::TRANSPARENT,
+                transparent_text_box_background_color: Color::TRANSPARENT,
+                window_title_color: Color::rgb_u8(200, 150, 150),
+                hovered_window_title_color: Color::rgb_u8(250, 200, 200),
+                text_box_foreground_color: Color::monochrome_u8(220),
+                ghost_foreground_color: Color::monochrome_u8(100),
             },
             skill_tree: SkillTreeTheme {
                 slot_background_color: Color::monochrome_u8(40),
@@ -569,6 +585,12 @@ impl InterfaceTheme {
             chat: ChatTheme {
                 window_color: Color::rgba_u8(0, 0, 0, 200),
                 text_box_background_color: Color::rgba_u8(0, 0, 0, 150),
+                transparent_window_color: Color::TRANSPARENT,
+                transparent_text_box_background_color: Color::TRANSPARENT,
+                window_title_color: Color::rgb_u8(185, 155, 155),
+                hovered_window_title_color: Color::rgb_u8(240, 155, 155),
+                text_box_foreground_color: Color::monochrome_u8(220),
+                ghost_foreground_color: Color::monochrome_u8(130),
             },
             skill_tree: SkillTreeTheme {
                 slot_background_color: Color::monochrome_u8(40),
@@ -811,6 +833,19 @@ impl InterfaceTheme {
             points_font_size: FontSize(12.0),
             arrow_color: Color::rgb_u8(80, 80, 80),
             lower_level_color: Color::rgb_u8(160, 0, 0),
+        };
+
+        // The chat window is drawn as a translucent overlay (it is excluded from the
+        // window skin), so it keeps the dark classic chat background with light text.
+        theme.chat = ChatTheme {
+            window_color: Color::rgba_u8(0, 0, 0, 160),
+            text_box_background_color: Color::rgba_u8(0, 0, 0, 120),
+            transparent_window_color: Color::TRANSPARENT,
+            transparent_text_box_background_color: Color::TRANSPARENT,
+            window_title_color: Color::WHITE,
+            hovered_window_title_color: Color::rgb_u8(255, 255, 220),
+            text_box_foreground_color: Color::WHITE,
+            ghost_foreground_color: Color::rgb_u8(170, 170, 170),
         };
 
         theme.skin = SkinTheme {
