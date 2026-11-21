@@ -3945,6 +3945,10 @@ pub struct EquipAmmunitionPacket {
 
 #[derive(Debug, Clone, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+// rAthena sends this as an uint16 (`PACKET_ZC_ACTION_FAILURE`: int16 packetType + uint16 type),
+// so the enum must be serialized as u16 as well. With the default u8 the packet was 3 bytes
+// instead of 4 and parsing it left a stray byte in the packet stream.
+#[numeric_type(u16)]
 pub enum AmmunitionActionType {
     EquipProperAmmunitionFirst,
     WeightLimitExceeded1,
