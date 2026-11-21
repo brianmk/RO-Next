@@ -5113,7 +5113,6 @@ impl Client {
             if let Some(mouse_button) = input_report.mouse_click {
                 interface_state_changed = true;
 
-                if is_interface_hovered {
                 if crate::logging::enabled(crate::logging::LEVEL_DEBUG) {
                     crate::logging::log_debug!(
                         "[input] click {mouse_button:?} at ({:.1}, {:.1}) hovered={is_interface_hovered}",
