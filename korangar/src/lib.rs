@@ -268,6 +268,7 @@ pub struct Client {
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
+    warp_portal: Option<WarpPortal>,
     path_finder: PathFinder,
 
     point_light_set_buffer: ResourceSetBuffer<LightSourceKey>,
@@ -534,6 +535,10 @@ impl Client {
             let point_light_instructions = Vec::default();
         });
 
+        time_phase!("load warp portal assets", {
+            let warp_portal = WarpPortal::new(&texture_loader, &sprite_loader);
+        });
+
         time_phase!("create graphics engine", {
             let graphics_engine = GraphicsEngine::initialize(GraphicsEngineDescriptor {
                 capabilities,
@@ -720,6 +725,7 @@ impl Client {
             particle_holder,
             point_light_manager,
             effect_holder,
+            warp_portal,
             path_finder,
             point_light_set_buffer,
             directional_shadow_object_set_buffer,
@@ -1721,7 +1727,12 @@ impl Client {
                     self.client_state.follow_mut(client_state().friend_list()).push(friend);
                 }
                 NetworkEvent::VisualEffect { effect_path, entity_id } => {
-                    let effect = self.effect_loader.get_or_load(effect_path, &self.texture_loader).unwrap();
+                    // A malformed or missing effect file must not crash the client.
+                    let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
+                        #[cfg(feature = "debug")]
+                        print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
+                        continue;
+                    };
                     let frame_timer = effect.new_frame_timer();
 
                     self.effect_holder.add_effect(Box::new(EffectWithLight::new(
@@ -1758,7 +1769,11 @@ impl Client {
                                 continue;
                             };
 
-                            let effect = self.effect_loader.get_or_load("firewall.str", &self.texture_loader).unwrap();
+                            let Ok(effect) = self.effect_loader.get_or_load("firewall.str", &self.texture_loader) else {
+                                #[cfg(feature = "debug")]
+                                print_debug!("[{}] failed to load firewall effect", "error".red());
+                                continue;
+                            };
                             let frame_timer = effect.new_frame_timer();
 
                             self.effect_holder.add_unit(
@@ -1783,7 +1798,11 @@ impl Client {
                                 continue;
                             };
 
-                            let effect = self.effect_loader.get_or_load("pneuma1.str", &self.texture_loader).unwrap();
+                            let Ok(effect) = self.effect_loader.get_or_load("pneuma1.str", &self.texture_loader) else {
+                                #[cfg(feature = "debug")]
+                                print_debug!("[{}] failed to load pneuma effect", "error".red());
+                                continue;
+                            };
                             let frame_timer = effect.new_frame_timer();
 
                             self.effect_holder.add_unit(
@@ -3573,6 +3592,7 @@ impl Client {
                 water_instruction: &mut water_instruction,
                 particle_holder: &mut self.particle_holder,
                 effect_holder: &mut self.effect_holder,
+                warp_portal: self.warp_portal.as_ref(),
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
                 middle_interface_renderer: &mut self.middle_interface_renderer,
@@ -3895,6 +3915,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     water_instruction: &'a mut Option<WaterInstruction<'m>>,
     particle_holder: &'a mut ParticleHolder,
     effect_holder: &'a mut EffectHolder,
+    warp_portal: Option<&'a WarpPortal>,
     effect_renderer: &'a mut EffectRenderer,
     bottom_interface_renderer: &'a GameInterfaceRenderer,
     middle_interface_renderer: &'a mut GameInterfaceRenderer,
@@ -4153,6 +4174,42 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             .render_damage_text(name, position, Color::WHITE, FontSize(16.0));
     }
 
+    /// Renders the classic map connection portal at every warp entity.
+    ///
+    /// Warps (`JT_WARPNPC`) don't have a sprite in the game files. The original
+    /// client draws a hard-coded effect for them instead, see [`WarpPortal`].
+    #[inline(always)]
+    #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    fn render_warp_portals(&mut self) {
+        let Some(warp_portal) = self.warp_portal else {
+            return;
+        };
+
+        // Warps are entities, so they are hidden together with all other entities.
+        #[cfg(feature = "debug")]
+        if !self.render_options.show_entities {
+            return;
+        }
+
+        let warp_positions: Vec<Point3<f32>> = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .filter(|entity| entity.get_entity_type() == EntityType::Warp)
+            .map(|entity| entity.get_position())
+            .collect();
+
+        if warp_positions.is_empty() {
+            return;
+        }
+
+        let time = self.animation_timer_ms / 1000.0;
+
+        for position in warp_positions {
+            warp_portal.render(self.effect_renderer, self.current_camera, position, self.screen_size, time);
+        }
+    }
+
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn render_world_overlays(&mut self) {
@@ -4177,6 +4234,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         );
 
         self.effect_holder.render(self.effect_renderer, self.current_camera);
+        self.render_warp_portals();
 
         if let Some(player) = self.client_state.try_follow(this_entity()) {
             #[cfg(feature = "debug")]

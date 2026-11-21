@@ -14,7 +14,7 @@ use ragnarok_formats::version::GenericFormatMetadata;
 use wgpu::BlendFactor;
 
 use super::error::LoadError;
-use super::{ImageType, TextureLoader};
+use super::{ImageType, TextureLoader, strip_effect_magic_prefix};
 use crate::graphics::Color;
 use crate::loaders::GameFileLoader;
 use crate::world::{AnimationType, Effect, Frame, FrameType, Layer, MultiTexturePresent};
@@ -53,6 +53,8 @@ impl EffectLoader {
             .game_file_loader
             .get(&format!("data\\texture\\effect\\{path}"))
             .map_err(LoadError::File)?;
+        let mut bytes = bytes;
+        strip_effect_magic_prefix(&mut bytes);
         let mut byte_reader: ByteReader = ByteReader::with_default_metadata::<GenericFormatMetadata>(&bytes);
 
         // TODO: Add fallback

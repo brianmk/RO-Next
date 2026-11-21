@@ -22,7 +22,7 @@ use wgpu::{
 use super::error::LoadError;
 use super::{
     FALLBACK_BMP_FILE, FALLBACK_JPEG_FILE, FALLBACK_PNG_FILE, FALLBACK_TGA_FILE, VideoLoader, fix_broken_texture_file_endings,
-    texture_file_dds_name,
+    strip_texture_magic_prefix, texture_file_dds_name,
 };
 use crate::SHUTDOWN_SIGNAL;
 use crate::graphics::{BindlessSupport, Capabilities, Lanczos3Drawer, MipMapRenderPassContext, ShaderCompiler, Texture, TextureSet};
@@ -552,6 +552,8 @@ impl TextureLoader {
                 return self.load_texture_data(FALLBACK_PNG_FILE);
             }
         };
+        let mut file_data = file_data;
+        strip_texture_magic_prefix(&mut file_data);
         let reader = ImageReader::with_format(Cursor::new(file_data), image_format);
 
         let mut image_buffer = match reader.decode() {
@@ -630,6 +632,8 @@ impl TextureLoader {
                 return self.load_grayscale_texture_data(FALLBACK_PNG_FILE);
             }
         };
+        let mut file_data = file_data;
+        strip_texture_magic_prefix(&mut file_data);
         let reader = ImageReader::with_format(Cursor::new(file_data), image_format);
 
         let image_buffer = match reader.decode() {

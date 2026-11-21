@@ -111,8 +111,12 @@ pub enum EntityType {
 impl From<JobId> for EntityType {
     fn from(job_id: JobId) -> Self {
         match job_id.0 {
+            // `JT_WARPNPC`: the invisible map connection NPC. The client renders the
+            // classic portal effect for it instead of a sprite.
             45 => EntityType::Warp,
-            111 => EntityType::Hidden,
+            // `JT_HIDDEN_NPC` and `JT_HIDDEN_WARP_NPC`: NPCs that are not supposed to be
+            // visible in the world at all.
+            111 | 139 => EntityType::Hidden,
             0..=44 | 4000..=5999 => EntityType::Player,
             46..=999 | 10000..=19999 => EntityType::Npc,
             1000..=3999 | 20000..=29999 => EntityType::Monster,
@@ -366,7 +370,12 @@ fn get_entity_part_files(library: &Library, entity_type: EntityType, job_id: Job
         ],
         EntityType::Npc => vec![format!("npc\\{}", library.get::<JobIdentity>(job_id).to_string())],
         EntityType::Monster => vec![format!("몬스터\\{}", library.get::<JobIdentity>(job_id).to_string())],
-        EntityType::Warp | EntityType::Hidden => vec![format!("npc\\{}", library.get::<JobIdentity>(job_id).to_string())], // TODO: change
+        // Warps and hidden NPCs have no sprite in the game files. The kRO client draws
+        // warps as a dedicated hard-coded effect (see `WarpPortal`) and does not draw
+        // hidden NPCs at all. Requesting a sprite path for them would end up loading
+        // the black `missing.spr` placeholder, which is what used to show up as an
+        // opaque black silhouette at every map connection.
+        EntityType::Warp | EntityType::Hidden => Vec::new(),
     }
 }
 
