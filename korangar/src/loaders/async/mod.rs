@@ -104,6 +104,13 @@ impl AsyncLoader {
         entity_type: EntityType,
         entity_part_files: Vec<String>,
     ) -> Option<Arc<AnimationData>> {
+        // Entities without sprite files (warps and hidden NPCs) are not drawn from an
+        // animation. Loading an empty list would make the animation loader fall back to
+        // the black "missing" sprite, so we skip the load entirely.
+        if entity_part_files.is_empty() {
+            return None;
+        }
+
         match self.animation_loader.get(&entity_part_files) {
             Some(animation_data) => Some(animation_data),
             None => {

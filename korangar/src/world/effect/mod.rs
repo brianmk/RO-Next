@@ -15,6 +15,9 @@ use crate::renderer::MarkerRenderer;
 use crate::world::MarkerIdentifier;
 use crate::world::{Camera, PointLightId, PointLightManager};
 
+mod warp;
+pub use self::warp::WarpPortal;
+
 pub trait EffectBase {
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool;
 
