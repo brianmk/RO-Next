@@ -208,6 +208,31 @@ impl<App: Application> Default for StateButtonSkin<App> {
     }
 }
 
+/// Skin of a drop down button (the value display and the menu title).
+#[derive(RustState)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "ImageSlice<App>: serde::Serialize",
+        deserialize = "ImageSlice<App>: serde::Deserialize<'de>"
+    ))
+)]
+pub struct DropDownSkin<App>
+where
+    App: Application,
+{
+    pub button: ButtonSkin<App>,
+}
+
+impl<App: Application> Default for DropDownSkin<App> {
+    fn default() -> Self {
+        Self {
+            button: ButtonSkin::default(),
+        }
+    }
+}
+
 /// The skin part of an interface theme.
 ///
 /// An empty (all `None`) skin means that the interface is drawn the plain
@@ -229,6 +254,7 @@ where
     pub window: WindowSkin<App>,
     pub button: ButtonSkin<App>,
     pub state_button: StateButtonSkin<App>,
+    pub drop_down: DropDownSkin<App>,
     pub text_box: Option<ImageSlice<App>>,
     pub field: Option<ImageSlice<App>>,
     pub tooltip: Option<ImageSlice<App>>,
@@ -240,6 +266,7 @@ impl<App: Application> Default for SkinTheme<App> {
             window: WindowSkin::default(),
             button: ButtonSkin::default(),
             state_button: StateButtonSkin::default(),
+            drop_down: DropDownSkin::default(),
             text_box: None,
             field: None,
             tooltip: None,

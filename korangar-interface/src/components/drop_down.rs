@@ -135,18 +135,31 @@ where
             layout.register_click_handler(MouseButton::Left, &self.event);
         }
 
-        let background_color = match is_hoverered {
-            true => *state.get(&self.hovered_background_color),
-            false => *state.get(&self.background_color),
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
+        let skin_image = match is_hoverered {
+            true => skin.drop_down.button.hovered.as_ref(),
+            false => skin.drop_down.button.normal.as_ref(),
         };
 
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            background_color,
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+        match skin_image {
+            Some(skin_image) => skin_image.add_to_layout(layout, layout_info.area),
+            None => {
+                let background_color = match is_hoverered {
+                    true => *state.get(&self.hovered_background_color),
+                    false => *state.get(&self.background_color),
+                };
+
+                layout.add_rectangle(
+                    layout_info.area,
+                    *state.get(&self.corner_diameter),
+                    background_color,
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
 
         let foreground_color = match is_hoverered {
             true => *state.get(&self.hovered_foreground_color),
@@ -542,18 +555,31 @@ where
             layout.register_click_handler(MouseButton::Left, &self.click_handler.overlay_element);
         }
 
-        let background_color = match is_hoverered {
-            true => *state.get(&self.hovered_background_color),
-            false => *state.get(&self.background_color),
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
+        let skin_image = match is_hoverered {
+            true => skin.drop_down.button.hovered.as_ref(),
+            false => skin.drop_down.button.normal.as_ref(),
         };
 
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            background_color,
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+        match skin_image {
+            Some(skin_image) => skin_image.add_to_layout(layout, layout_info.area),
+            None => {
+                let background_color = match is_hoverered {
+                    true => *state.get(&self.hovered_background_color),
+                    false => *state.get(&self.background_color),
+                };
+
+                layout.add_rectangle(
+                    layout_info.area,
+                    *state.get(&self.corner_diameter),
+                    background_color,
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
 
         let foreground_color = match is_hoverered {
             true => *state.get(&self.hovered_foreground_color),

@@ -10,7 +10,7 @@ use korangar_interface::components::text_box::TextBoxTheme;
 use korangar_interface::element::StateElement;
 use korangar_interface::layout::tooltip::TooltipTheme;
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
-use korangar_interface::skin::{ButtonSkin, ImageSlice, SkinTheme, Slice, StateButtonSkin, WindowSkin};
+use korangar_interface::skin::{ButtonSkin, DropDownSkin, ImageSlice, SkinTheme, Slice, StateButtonSkin, WindowSkin};
 use korangar_interface::window::{StateWindow, WindowTheme};
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
@@ -819,6 +819,9 @@ impl InterfaceTheme {
                 background: classic_button_skin(),
                 unchecked: Some(image(SkinImage::CheckboxUnchecked, Slice::NONE)),
                 checked: Some(image(SkinImage::CheckboxChecked, Slice::NONE)),
+            },
+            drop_down: DropDownSkin {
+                button: classic_button_skin(),
             },
             text_box: Some(image(SkinImage::TextBox, Slice::uniform(2.0))),
             field: Some(image(SkinImage::TextBox, Slice::uniform(2.0))),
