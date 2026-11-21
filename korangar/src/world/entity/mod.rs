@@ -5,7 +5,7 @@ use arrayvec::ArrayVec;
 use cgmath::{EuclideanSpace, Point3, Vector2, VectorSpace};
 use korangar_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
-use korangar_debug::logging::Colorize;
+use korangar_debug::logging::{Colorize, print_debug};
 use korangar_interface::element::StateElement;
 use korangar_interface::window::{StateWindow, Window};
 use korangar_networking::EntityData;
@@ -417,6 +417,7 @@ fn player_head_palette_path(sex_sprite_path: &str, hair_style: usize, color: u16
     format!("data\\palette\\머리\\머리{}_{}_{}.pal", hair_style, sex_sprite_path, color)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn get_entity_part_files(
     library: &Library,
     entity_type: EntityType,
