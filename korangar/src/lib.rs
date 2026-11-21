@@ -107,6 +107,7 @@ use crate::input::{InputEvent, InputReport, InputSystem};
 use crate::interface::cursor::{MouseCursor, MouseCursorState};
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::interface::windows::*;
+use crate::loaders::error::LoadError;
 use crate::loaders::*;
 #[cfg(feature = "debug")]
 use crate::renderer::DebugMarkerRenderer;
@@ -304,6 +305,17 @@ pub struct Client {
     character_server_reconnect_at: Option<Instant>,
     /// Remaining character server reconnect attempts.
     character_server_reconnect_attempts: u32,
+    /// Message that is shown at the character selection screen after a map
+    /// failed to load (the map connection was dropped in that case).
+    pending_map_load_error: Option<String>,
+    /// Deadline for the map server disconnect that aborts a failed map entry.
+    /// If the disconnect event does not arrive in time the client recovers
+    /// directly instead of waiting forever on a black screen.
+    map_entry_abort_deadline: Option<Instant>,
+    /// Set while the client recovers from an aborted map entry. Used to suppress
+    /// the follow-up "Rejected from server" window, which is only a side effect
+    /// of aborting the entry and would cover the actual map error.
+    map_entry_aborted: bool,
 
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
@@ -822,6 +834,9 @@ impl Client {
             shutdown_deadline: None,
             character_server_reconnect_at: None,
             character_server_reconnect_attempts: 0,
+            pending_map_load_error: None,
+            map_entry_abort_deadline: None,
+            map_entry_aborted: false,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -1156,7 +1171,13 @@ impl Client {
             return;
         };
 
-        if self.shutdown_requested || self.map.is_some() {
+        // Only stop when we are actually in game. The menu map is also stored in
+        // `self.map`, but it is shown at the character selection screen, where a
+        // character server reconnect must still be possible (for example after
+        // aborting a map entry whose map data is missing).
+        let in_game = self.map.is_some() && self.client_state.try_follow(this_player()).is_some();
+
+        if self.shutdown_requested || in_game {
             self.character_server_reconnect_at = None;
             return;
         }
@@ -1277,7 +1298,11 @@ impl Client {
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
-        for event in self.network_event_buffer.drain() {
+        // Collect the events first so handlers are free to take `&mut self`
+        // (the drain iterator borrows the event buffer).
+        let network_events: Vec<NetworkEvent> = self.network_event_buffer.drain().collect();
+
+        for event in network_events {
             match event {
                 NetworkEvent::LoginServerConnected {
                     character_servers,
@@ -1399,42 +1424,7 @@ impl Client {
                         print_debug!("Disconnection from the map server with error");
                     }
 
-                    self.map = None;
-
-                    if self.networking_system.is_character_server_connected() {
-                        // The map connection failed (e.g. while the map server is still
-                        // restarting) but we are still connected to the character server:
-                        // go back to the character selection and refresh the list so the
-                        // player can simply try again.
-                        let _ = self.networking_system.request_character_list();
-                    } else {
-                        self.character_server_reconnect_attempts = 30;
-                        self.character_server_reconnect_at = Some(Instant::now());
-                    }
-
-                    self.particle_holder.clear();
-                    self.effect_holder.clear();
-                    self.point_light_manager.clear();
-                    self.audio_engine.clear_ambient_sound();
-
-                    self.client_state.follow_mut(client_state().entities()).clear();
-                    self.client_state.follow_mut(client_state().dead_entities()).clear();
-                    self.client_state.follow_mut(client_state().ground_items()).clear();
-                    *self.client_state.follow_mut(client_state().buffered_action()) = None;
-
-                    // We are back at the character selection screen; the map
-                    // music must not continue there, but the menu music has to
-                    // play instead of silence.
-                    self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
-
-                    #[cfg(not(feature = "debug"))]
-                    self.interface.close_all_windows();
-
-                    #[cfg(feature = "debug")]
-                    self.interface.close_all_windows_except(DEBUG_WINDOWS);
-
-                    self.async_loader
-                        .request_map_load(DEFAULT_MAP.to_string(), Some(TilePosition::new(0, 0)));
+                    self.return_to_character_selection();
                 }
                 NetworkEvent::InitialStats {
                     strength_stat_points_cost,
@@ -1537,13 +1527,26 @@ impl Client {
                             client_state().switch_request(),
                         ));
                     }
+
+                    // A previous map entry may have been aborted because the map
+                    // data was missing; show the reason now that we are back at
+                    // the character selection screen.
+                    if let Some(message) = self.pending_map_load_error.take() {
+                        self.interface.open_window(ErrorWindow::new(message));
+                    }
                 }
                 NetworkEvent::CharacterSelectionFailed { message, .. } => {
                     // The map server may still be restarting. Stay on the character
                     // selection screen and refresh the list so selecting the character can
                     // simply be retried once the map server is back.
                     let _ = self.networking_system.request_character_list();
-                    self.interface.open_window(ErrorWindow::new(message.to_owned()));
+
+                    // Aborting a map entry (e.g. because the map data is missing) can
+                    // make the server reject a follow-up request. The map error is the
+                    // actionable message, so don't cover it with "Rejected from server".
+                    if !self.map_entry_aborted {
+                        self.interface.open_window(ErrorWindow::new(message.to_owned()));
+                    }
                 }
                 NetworkEvent::CharacterDeleted => {
                     if let Some(character_id) = self.client_state.follow_mut(client_state().currently_deleting()).take() {
@@ -3330,8 +3333,20 @@ impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_loaded_resources(&mut self, client_tick: ClientTick) {
-        for completed in self.async_loader.take_completed() {
-            match completed {
+        // Collect first so the borrowed loader can be released before the
+        // (mutable) handling below.
+        let completed_loads: Vec<LoadResult> = self.async_loader.take_completed().collect();
+
+        for completed in completed_loads {
+            let (id, resource) = match completed {
+                LoadResult::Completed { id, resource } => (id, resource),
+                LoadResult::Failed { id, error } => {
+                    self.handle_failed_load(id, error);
+                    continue;
+                }
+            };
+
+            match (id, resource) {
                 (LoaderId::AnimationData(entity_id), LoadableResource::AnimationData(animation_data)) => {
                     if let Some(entity) = self
                         .client_state
@@ -3381,11 +3396,21 @@ impl Client {
                                 client_state().switch_request(),
                             ));
 
+                            // The map entry may have been aborted because the map data
+                            // was missing; tell the player why, now that the character
+                            // selection window is back (opening the error last keeps it
+                            // on top).
+                            if let Some(message) = self.pending_map_load_error.take() {
+                                self.interface.open_window(ErrorWindow::new(message));
+                            }
+
                             self.start_camera.set_focus_point(START_CAMERA_FOCUS_POINT);
                             self.directional_shadow_camera.set_level_bound(map.get_level_bound());
                         }
                         false => {
                             // Normal map switch
+                            self.map_entry_aborted = false;
+                            self.pending_map_load_error = None;
                             let map = self.map.insert(map);
 
                             map.set_ambient_sound_sources(&self.audio_engine);
@@ -3452,6 +3477,109 @@ impl Client {
 
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    /// Reacts to an asynchronous load that failed.
+    ///
+    /// A failed map load is a dead end for the current map entry: the client
+    /// has no map to render and would stay on a black screen forever. In
+    /// that case the map connection is dropped, which sends the player back
+    /// to the character selection screen (see
+    /// `NetworkEvent::MapServerDisconnected`), and the error is shown
+    /// there.
+    fn handle_failed_load(&mut self, id: LoaderId, error: LoadError) {
+        match id {
+            LoaderId::Map(map_name) => {
+                // Only report the first failure of a map entry; retries after the
+                // client returned to the character selection must not spam.
+                if self.pending_map_load_error.is_none() {
+                    eprintln!("map load failed: {map_name}: {error:?}");
+                }
+
+                let message = format!(
+                    "Map data missing: `{map_name}`\nThis map is not in the game archives. Please log out and choose another character."
+                );
+
+                self.abort_map_entry(message);
+            }
+            other => {
+                eprintln!("resource load failed: {other:?}: {error:?}");
+            }
+        }
+    }
+
+    /// Aborts the current map entry after its map data could not be loaded and
+    /// returns to the character selection screen, where the reason is shown.
+    ///
+    /// Without this the client would keep `self.map == None` and render a black
+    /// screen forever, because a failed map load used to be dropped silently.
+    fn abort_map_entry(&mut self, message: String) {
+        self.pending_map_load_error = Some(message);
+        self.map_entry_aborted = true;
+
+        if self.client_state.try_follow(this_player()).is_none() {
+            // The menu background map failed to load; there is no map entry to
+            // abort and therefore nothing to go back to.
+            self.map_entry_abort_deadline = None;
+            if let Some(message) = self.pending_map_load_error.take() {
+                self.interface.open_window(ErrorWindow::new(message));
+            }
+            return;
+        }
+
+        if self.networking_system.is_map_server_connected() {
+            // Dropping the map connection triggers `NetworkEvent::MapServerDisconnected`,
+            // which is responsible for going back to the character selection.
+            self.map_entry_abort_deadline = Some(Instant::now() + Duration::from_millis(2000));
+            self.networking_system.disconnect_from_map_server();
+        } else {
+            // The connection is already gone (e.g. the server kicked us while the
+            // map was loading); recover directly.
+            self.map_entry_abort_deadline = None;
+            self.return_to_character_selection();
+        }
+    }
+
+    /// Leaves the current map and returns to the character selection screen,
+    /// reloading the menu background map.
+    fn return_to_character_selection(&mut self) {
+        self.map = None;
+        self.map_entry_abort_deadline = None;
+
+        if self.networking_system.is_character_server_connected() {
+            // The map connection failed (e.g. while the map server is still
+            // restarting) but we are still connected to the character server:
+            // go back to the character selection and refresh the list so the
+            // player can simply try again.
+            let _ = self.networking_system.request_character_list();
+        } else {
+            self.character_server_reconnect_attempts = 30;
+            self.character_server_reconnect_at = Some(Instant::now());
+        }
+
+        self.particle_holder.clear();
+        self.effect_holder.clear();
+        self.point_light_manager.clear();
+        self.audio_engine.clear_ambient_sound();
+
+        self.client_state.follow_mut(client_state().entities()).clear();
+        self.client_state.follow_mut(client_state().dead_entities()).clear();
+        self.client_state.follow_mut(client_state().ground_items()).clear();
+        *self.client_state.follow_mut(client_state().buffered_action()) = None;
+
+        // We are back at the character selection screen; the map
+        // music must not continue there, but the menu music has to
+        // play instead of silence.
+        self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+
+        #[cfg(not(feature = "debug"))]
+        self.interface.close_all_windows();
+
+        #[cfg(feature = "debug")]
+        self.interface.close_all_windows_except(DEBUG_WINDOWS);
+
+        self.async_loader
+            .request_map_load(DEFAULT_MAP.to_string(), Some(TilePosition::new(0, 0)));
+    }
+
     fn update_main_camera(&mut self, window_size: ScreenSize, delta_time: f64, #[cfg(feature = "debug")] render_options: &RenderOptions) {
         if self.client_state.try_follow(this_entity()).is_some() {
             self.player_camera.update(delta_time);
@@ -3681,6 +3809,18 @@ impl Client {
                 self.audio_engine.play_background_music_track(None);
                 event_loop.exit();
                 return;
+            }
+        }
+
+        // A failed map load aborts the map entry; if the map server disconnect
+        // that triggers the clean recovery does not arrive in time, recover
+        // directly so the client never stays on a black screen forever.
+        if let Some(deadline) = self.map_entry_abort_deadline {
+            if self.map.is_some() {
+                self.map_entry_abort_deadline = None;
+            } else if Instant::now() >= deadline {
+                self.map_entry_abort_deadline = None;
+                self.return_to_character_selection();
             }
         }
 

@@ -39,6 +39,17 @@ pub enum LoadableResource {
     Map { map: Arc<Map>, position: Option<TilePosition> },
 }
 
+/// The outcome of an asynchronous load request.
+///
+/// Failed loads used to be silently dropped, which left the corresponding
+/// resource missing forever (for example a missing map kept the client on a
+/// black screen because `Client::map` never got set). The caller now receives
+/// the error and can react to it.
+pub enum LoadResult {
+    Completed { id: LoaderId, resource: LoadableResource },
+    Failed { id: LoaderId, error: LoadError },
+}
+
 enum LoadStatus {
     Loading,
     Completed(LoadableResource),
@@ -350,7 +361,7 @@ impl AsyncLoader {
         });
     }
 
-    pub fn take_completed(&self) -> impl Iterator<Item = (LoaderId, LoadableResource)> + '_ {
+    pub fn take_completed(&self) -> impl Iterator<Item = LoadResult> + '_ {
         std::iter::from_fn({
             let pending_loads = Arc::clone(&self.pending_loads);
 
@@ -362,18 +373,12 @@ impl AsyncLoader {
                     .find(|(_, status)| matches!(status, LoadStatus::Completed(_) | LoadStatus::Failed(_)))
                     .map(|(id, _)| id.clone());
 
-                if let Some(id) = completed_id {
-                    match pending_loads.remove(&id).unwrap() {
-                        LoadStatus::Failed(_error) => {
-                            #[cfg(feature = "debug")]
-                            print_debug!("Async load error: {:?}", _error);
-                            None
-                        }
-                        LoadStatus::Completed(resource) => Some((id, resource)),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
+                let id = completed_id?;
+
+                match pending_loads.remove(&id).unwrap() {
+                    LoadStatus::Completed(resource) => Some(LoadResult::Completed { id, resource }),
+                    LoadStatus::Failed(error) => Some(LoadResult::Failed { id, error }),
+                    LoadStatus::Loading => unreachable!(),
                 }
             }
         })
