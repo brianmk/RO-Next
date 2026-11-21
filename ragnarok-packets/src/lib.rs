@@ -2013,6 +2013,220 @@ pub struct SwitchCharacterSlotResponsePacket {
     pub remaining_moves: u16,
 }
 
+/// 2019 era `HC_ACK_CHANGE_CHARACTER_SLOT` (0x08D5).
+///
+/// The 2019 character server answers a character slot change with 0x08D5
+/// instead of the 2022 era 0x0B70 used by
+/// [SwitchCharacterSlotResponsePacket], but the 8 byte layout is identical
+/// (see rAthena `chclif_changechar_slot`). Without this registration the client
+/// kept waiting for the slot change to finish forever.
+#[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x08D5)]
+pub struct SwitchCharacterSlotResponsePacket2019 {
+    #[new_default]
+    pub unknown: u16,
+    pub status: SwitchCharacterSlotResponseStatus,
+    pub remaining_moves: u16,
+}
+
+/// 2019 era `ZC_CHANGE_DIRECTION` (0x009C): an entity turned to a new
+/// direction.
+///
+/// rAthena sends this to the client itself on every map load (see
+/// `clif_parse_LoadEndAck` -> `clif_changed_dir`) and for entities that turn
+/// while in view. The client does not use the facing yet, but the packet has to
+/// be parsed so that it does not desynchronize the packet stream (it used to
+/// drop every packet after it in the same TCP read).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x009C)]
+pub struct ChangeDirectionPacket2019 {
+    pub entity_id: EntityId,
+    pub head_direction: u16,
+    pub direction: u8,
+}
+
+/// 2019 era `ZC_NOTIFY_ACTORINIT` (0x0B1B): sent by the map server once the
+/// client has finished loading the map. It only consists of the packet header.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0B1B)]
+pub struct NotifyActorInitPacket {}
+
+/// 2019 era `ZC_EFST_SET_ENTER` (0x0984): a status effect (buff/debuff) that is
+/// already active when the entity enters the view, also sent for every active
+/// status effect on map load.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0984)]
+pub struct EnterStatusEffectPacket2019 {
+    pub entity_id: EntityId,
+    pub effect_id: u16,
+    pub duration: u32,
+    pub remaining_duration: u32,
+    pub value1: i32,
+    pub value2: i32,
+    pub value3: i32,
+}
+
+/// 2019 era `ZC_NOTIFY_CARTITEM_COUNTINFO` (0x0121): cart item/weight counts.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0121)]
+pub struct CartItemCountInfoPacket2019 {
+    pub current_count: i16,
+    pub maximum_count: i16,
+    pub current_weight: i32,
+    pub maximum_weight: i32,
+}
+
+/// 2019 era `ZC_USER_COUNT` (0x00C2): answer to `/who`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00C2)]
+pub struct UserCountPacket2019 {
+    pub player_count: i32,
+}
+
+/// 2019 era `ZC_REFUSE_ENTER` (0x0074): the map server refused the map login.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0074)]
+pub struct RefuseEnterPacket2019 {
+    pub error_code: u8,
+}
+
+/// 2019 era `ZC_NOTIFY_HP_TO_GROUPM` (0x080E): party member health update.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x080E)]
+pub struct PartyMemberHealthPacket2019 {
+    pub account_id: AccountId,
+    pub health_points: i32,
+    pub maximum_health_points: i32,
+}
+
+/// 2019 era `ZC_ACK_ADD_EXCHANGE_ITEM` (0x00EA): trade window item ack.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00EA)]
+pub struct ExchangeAddItemPacket2019 {
+    pub inventory_index: u16,
+    pub result: u8,
+}
+
+/// 2019 era `ZC_CONCLUDE_EXCHANGE_ITEM` (0x00EC): trade was accepted by a side.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00EC)]
+pub struct ExchangeConcludePacket2019 {
+    pub who: u8,
+}
+
+/// 2019 era `ZC_CANCEL_EXCHANGE_ITEM` (0x00EE): trade window was closed.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00EE)]
+pub struct ExchangeCancelPacket2019 {}
+
+/// 2019 era `ZC_EXEC_EXCHANGE_ITEM` (0x00F0): trade was executed.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F0)]
+pub struct ExchangeExecPacket2019 {
+    pub result: u8,
+}
+
+/// 2019 era `ZC_EXCHANGEITEM_UNDO` (0x00F1): the last trade item was undone.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F1)]
+pub struct ExchangeUndoPacket2019 {}
+
+/// 2019 era `ZC_NOTIFY_STOREITEM_COUNTINFO` (0x00F2): storage item count.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F2)]
+pub struct StorageItemCountInfoPacket2019 {
+    pub amount: u16,
+    pub maximum_amount: u16,
+}
+
+/// 2019 era `ZC_DELETE_ITEM_FROM_STORE` (0x00F6): an item was removed from
+/// storage.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F6)]
+pub struct StorageDeleteItemPacket2019 {
+    pub storage_index: u16,
+    pub amount: u32,
+}
+
+/// 2019 era `ZC_REQ_EXCHANGE_ITEM` (0x01F4): another player requests a trade.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01F4)]
+pub struct ExchangeRequestPacket2019 {
+    #[length(24)]
+    pub requester_name: String,
+    pub target_account_id: AccountId,
+    pub target_level: u16,
+}
+
+/// 2019 era `ZC_ACK_EXCHANGE_ITEM` (0x01F5): answer to a trade request.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01F5)]
+pub struct ExchangeAckPacket2019 {
+    pub result: u8,
+    pub target_account_id: AccountId,
+    pub target_level: u16,
+}
+
+/// 2019 era `ZC_ITEM_PICKUP_ACK` (0x0A37): acknowledgement of an item pickup.
+///
+/// The client does not show the pickup message yet, but every pickup sends this
+/// 69 byte packet and an unknown packet used to drop the rest of the TCP read.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A37)]
+pub struct ItemPickupAckPacket2019 {
+    pub inventory_index: u16,
+    pub amount: u16,
+    pub item_id: ItemId,
+    pub identified: u8,
+    pub damaged: u8,
+    pub refinement_level: u8,
+    pub card: [u32; 4],
+    pub equip_position: u32,
+    pub item_type: u8,
+    pub result: u8,
+    pub hire_expiration_date: i32,
+    pub bind_on_equip_type: u16,
+    pub option_data: [ItemOptions; 5],
+    pub favorite: u8,
+    pub item_sprite_number: u16,
+}
+
+/// 2019 era `ZC_SPIRITS` (0x01D0): monk spirit sphere count.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01D0)]
+pub struct SpiritsPacket2019 {
+    pub entity_id: EntityId,
+    pub amount: i16,
+}
+
+/// 2019 era `ZC_SPIRITS2` (0x01E1): monk spirit sphere count (variant).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01E1)]
+pub struct Spirits2Packet2019 {
+    pub entity_id: EntityId,
+    pub amount: i16,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0091)]

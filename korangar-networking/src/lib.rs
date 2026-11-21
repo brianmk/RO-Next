@@ -427,10 +427,37 @@ where
 
                                     break;
                                 }
-                                // The packet callback can take care of handling these properly.
+                                // An unknown packet does not have to cost us the rest of the
+                                // read. Many server packets are variable length and carry their
+                                // total length in bytes 2..4; if the length is plausible and the
+                                // bytes it points at start another known packet, skip exactly
+                                // that many bytes and keep parsing. Only if that is not possible
+                                // fall back to discarding the remainder (a fixed-size packet
+                                // has no reliable length field, so skipping it could put the
+                                // parser in the middle of the next packet).
                                 HandlerResult::UnhandledPacket | HandlerResult::InternalError(..) => {
-                                    discard_remainder = true;
-                                    break;
+                                    let packet_start = byte_reader.get_offset();
+
+                                    match Self::skip_length_of_unknown_packet(&buffer[..data_len], packet_start, &packet_handler) {
+                                        Some(packet_end) => {
+                                            let packet_header =
+                                                u16::from_le_bytes([buffer[packet_start], buffer[packet_start + 1]]);
+
+                                            #[cfg(feature = "interface")]
+                                            korangar_interface::log_debug!(
+                                                "networking: skipping unhandled packet 0x{:04X} ({} bytes)",
+                                                packet_header,
+                                                packet_end - packet_start
+                                            );
+
+                                            let skipped = packet_end - packet_start;
+                                            let _ = byte_reader.slice::<Self>(skipped);
+                                        }
+                                        None => {
+                                            discard_remainder = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -460,6 +487,51 @@ where
                     byte_writer.clear();
                 }
             }
+        }
+    }
+
+    /// Returns the offset after the packet starting at `packet_start` when it
+    /// is an unknown packet that can be skipped safely.
+    ///
+    /// Only variable length packets carry their total size in bytes 2..4, so a
+    /// fixed-size unknown packet would look like a packet with a random length.
+    /// To stay safe the length is only accepted when its size is plausible
+    /// (`>= 4`) and the resulting offset either is the end of the read or
+    /// points at the header of another registered packet.
+    fn skip_length_of_unknown_packet(
+        data: &[u8],
+        packet_start: usize,
+        packet_handler: &PacketHandler<NetworkEventList, Callback>,
+    ) -> Option<usize> {
+        if packet_start + 4 > data.len() {
+            return None;
+        }
+
+        let packet_length = u16::from_le_bytes([data[packet_start + 2], data[packet_start + 3]]) as usize;
+
+        if packet_length < 4 {
+            return None;
+        }
+
+        let packet_end = packet_start.checked_add(packet_length)?;
+
+        if packet_end > data.len() {
+            return None;
+        }
+
+        if packet_end == data.len() {
+            return Some(packet_end);
+        }
+
+        if packet_end + 2 > data.len() {
+            return None;
+        }
+
+        let next_header = u16::from_le_bytes([data[packet_end], data[packet_end + 1]]);
+
+        match packet_handler.is_registered(PacketHeader(next_header)) {
+            true => Some(packet_end),
+            false => None,
         }
     }
 
@@ -1286,6 +1358,72 @@ mod packet_handlers {
         assert!(matches!(events.0.as_slice(), [NetworkEvent::UpdateStat {
             stat_type: ragnarok_packets::StatType::NextBaseExperience(10),
         }]));
+    }
+
+    /// The unknown packet skip only accepts a declared length when the offset
+    /// it points at starts another registered packet (or the end of the
+    /// read).
+    #[test]
+    fn unknown_variable_length_packet_can_be_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0FFF is not a registered packet, followed by a length of 12 bytes and
+        // eight bytes of payload; directly after it a known stat packet starts.
+        let mut data = vec![0xFF, 0x0F, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+        data.extend_from_slice(&[0xB0, 0x00, 20, 0, 100, 0, 0, 0]);
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            Some(12)
+        );
+    }
+
+    #[test]
+    fn unknown_packet_ending_the_read_can_be_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let data = vec![0xFF, 0x0F, 8, 0, 1, 2, 3, 4];
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            Some(8)
+        );
+    }
+
+    /// Fixed-size packets have no length field, so bytes 2..4 are payload. The
+    /// skip must not be used unless the resulting offset starts a known packet.
+    #[test]
+    fn unknown_fixed_size_packet_is_not_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // Bytes 2..4 form a plausible length (20), but the offset it points at is
+        // not another packet header and the read is longer, so it must not skip.
+        let mut data = vec![0xFF, 0x0F, 20, 0];
+        data.extend_from_slice(&[0; 24]);
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            None
+        );
+
+        // A length below the minimum (4) is never accepted.
+        let data = vec![0xFF, 0x0F, 3, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            None
+        );
+    }
+
+    #[test]
+    fn known_headers_are_registered() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x009C)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0B1B)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0984)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0A37)));
+        assert!(!handler.is_registered(ragnarok_packets::PacketHeader(0x0FFF)));
     }
 
     #[test]
