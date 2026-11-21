@@ -3201,6 +3201,14 @@ impl Client {
                 }
                 NetworkEvent::SkillTree { skill_information } => {
                     crate::logging::log_debug!("skills: initial skill list with {} entries", skill_information.len());
+
+                    if skill_information.is_empty() {
+                        // An empty list is valid for a character without skills, but if the
+                        // server DB has learned skills it means the list was lost (stream
+                        // desync) - make that visible instead of silently showing an empty
+                        // skill tree.
+                        crate::logging::log_warn!("skills: server sent an empty skill list (learned skills may be missing)");
+                    }
                     *self.client_state.follow_mut(client_state().skill_tree().skills()) =
                         skill_information.into_iter().map(LearnedSkill::new).collect();
                 }

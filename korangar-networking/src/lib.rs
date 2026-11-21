@@ -1458,6 +1458,119 @@ mod packet_handlers {
     }
 
     #[test]
+    fn skill_tree_packet_parses_a_full_login_skill_list() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // A full login list for a character with many learned skills: the server sends
+        // 4 + 37 * entries bytes (37 byte SKILLDATA per skill) in one 0x010F packet.
+        const ENTRIES: u16 = 37;
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x010Fu16.to_le_bytes());
+        packet.extend_from_slice(&(4u16 + ENTRIES * 37).to_le_bytes());
+
+        for index in 0..ENTRIES {
+            packet.extend_from_slice(&skill_data_2019(
+                10 + index,
+                1,
+                (index % 10) as u16 + 1,
+                index,
+                1,
+                "Test Skill",
+                1,
+            ));
+        }
+
+        assert_eq!(packet.len(), 4 + 37 * 37);
+
+        let mut reader = ByteReader::without_metadata(&packet);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("full skill tree packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::SkillTree { skill_information }] => {
+                assert_eq!(skill_information.len(), 37);
+                assert_eq!(skill_information[0].skill_id.0, 10);
+                assert_eq!(skill_information[36].skill_id.0, 46);
+                assert_eq!(skill_information[10].skill_level.0, 1);
+            }
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
+    #[test]
+    fn skill_tree_packet_only_consumes_its_declared_entries() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // A skill list followed by another packet in the same TCP read: the variable
+        // length parser has to stop exactly at the declared length so that the next
+        // packet (a stat update here) is not swallowed or misaligned.
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x010Fu16.to_le_bytes());
+        packet.extend_from_slice(&(4u16 + 2 * 37).to_le_bytes());
+        packet.extend_from_slice(&skill_data_2019(5, 1, 10, 8, 1, "Bash", 1));
+        packet.extend_from_slice(&skill_data_2019(6, 2, 5, 12, 9, "Heal", 1));
+        packet.extend_from_slice(&0x00B0u16.to_le_bytes());
+        packet.extend_from_slice(&5u16.to_le_bytes()); // stat type: HP
+        packet.extend_from_slice(&123u32.to_le_bytes()); // value
+
+        let mut reader = ByteReader::without_metadata(&packet);
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("skill tree packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::SkillTree { skill_information }] => assert_eq!(skill_information.len(), 2),
+            events => panic!("unexpected events: {events:?}"),
+        }
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("following stat update packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::UpdateStat { stat_type }] => {
+                assert_eq!(*stat_type, ragnarok_packets::StatType::HealthPoints(123));
+            }
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
+    #[test]
+    fn unknown_2019_packet_is_skipped_without_losing_the_skill_list_after_it() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0B77 is not a registered 2019 packet for this client version. It carries a
+        // plausible length followed by a full skill list in the same read: the skip
+        // logic has to land exactly on the next (registered) packet header, otherwise
+        // the login 0x010F skill list is lost (the original bug).
+        let mut data = Vec::new();
+        data.extend_from_slice(&0x0B77u16.to_le_bytes());
+        data.extend_from_slice(&12u16.to_le_bytes());
+        data.extend_from_slice(&[0u8; 8]); // payload
+
+        let skill_list_start = data.len();
+        data.extend_from_slice(&0x010Fu16.to_le_bytes());
+        data.extend_from_slice(&(4u16 + 37).to_le_bytes());
+        data.extend_from_slice(&skill_data_2019(5, 1, 10, 8, 1, "Bash", 1));
+
+        let skipped_to = NetworkingSystem::skip_length_of_unknown_packet(&data, 0, &handler);
+        assert_eq!(skipped_to, Some(skill_list_start));
+
+        // The skill list itself is then parsed normally.
+        let mut reader = ByteReader::without_metadata(&data[skipped_to.unwrap()..]);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("skill list after the skipped packet was not handled");
+        };
+
+        match events.0.as_slice() {
+            [NetworkEvent::SkillTree { skill_information }] => assert_eq!(skill_information.len(), 1),
+            events => panic!("unexpected events: {events:?}"),
+        }
+    }
+
+    #[test]
     fn longlong_stat_update_packet_carries_next_base_experience() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
 
