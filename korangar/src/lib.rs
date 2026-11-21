@@ -1103,6 +1103,11 @@ impl Client {
 
                     self.saved_login_data = Some(login_data);
 
+                    // A previously established character/map connection (e.g. from a session
+                    // that was kicked or logged out) must not block the new server selection.
+                    self.networking_system.disconnect_from_character_server();
+                    self.networking_system.disconnect_from_map_server();
+
                     *self.client_state.follow_mut(client_state().character_servers()) = character_servers;
 
                     #[cfg(not(feature = "debug"))]
@@ -2293,16 +2298,30 @@ impl Client {
                 InputEvent::SelectServer {
                     character_server_information,
                 } => {
+                    let Some(login_data) = self.saved_login_data.clone() else {
+                        // The window was still open although we are not logged in (e.g.
+                        // after a stale state). Go back to the login screen instead of
+                        // panicking.
+                        self.interface.close_window_with_class(WindowClass::SelectServer);
+                        self.interface.open_window(LoginWindow::new(
+                            client_state().login_window(),
+                            client_state().login_settings(),
+                            client_state().client_info(),
+                        ));
+                        continue;
+                    };
+
                     self.saved_character_server = Some(character_server_information.clone());
 
                     self.networking_system.disconnect_from_login_server();
 
-                    // Korangar should never attempt to connect to the character
-                    // server before it logged in to the login server, so it's fine to
-                    // unwrap here.
-                    let login_data = self.saved_login_data.as_ref().unwrap();
-                    self.networking_system
-                        .connect_to_character_server(self.saved_packet_version, login_data, character_server_information);
+                    // `connect_to_character_server` replaces a stale connection itself, so
+                    // clicking the server always starts a fresh character server session.
+                    self.networking_system.connect_to_character_server(
+                        self.saved_packet_version,
+                        &login_data,
+                        character_server_information,
+                    );
                 }
                 InputEvent::Respawn => {
                     let _ = self.networking_system.respawn();
