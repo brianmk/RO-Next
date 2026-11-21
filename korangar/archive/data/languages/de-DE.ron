@@ -43,6 +43,7 @@
     skill_tree_button_text: "Fertigkeitenbaum",
     friend_list_button_text: "Freundesliste",
     menu_button_text: "Menü",
+    chat_button_text: "Chat",
     chat_window_title: "Chat",
     chat_transparency_button_text: "Transparent",
     chat_transparency_button_tooltip: "Den Hintergrund des Chatfensters transparent machen",

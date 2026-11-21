@@ -76,6 +76,10 @@ pub enum InputEvent {
     ToggleAudioSettingsWindow,
     /// Open or close the friend list window. Only works while playing.
     ToggleFriendListWindow,
+    /// Open or close the big map window. Only works while playing.
+    ToggleBigMapWindow,
+    /// Open or close the chat window. Only works while playing.
+    ToggleChatWindow,
     ToggleMinimapWindow,
     CycleMapWindows,
     /// Close the most recently opened or clicked closable window.
