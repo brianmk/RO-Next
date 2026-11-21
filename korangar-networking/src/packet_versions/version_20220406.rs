@@ -508,9 +508,33 @@ where
             intelligence_stat_points_cost,
             dexterity_stat_points_cost,
             luck_stat_points_cost,
+            left_attack,
+            rigth_attack,
+            rigth_magic_attack,
+            left_magic_attack,
+            left_defense,
+            rigth_defense,
+            rigth_magic_defense,
+            left_magic_defense,
+            hit,
+            flee,
+            flee2,
+            crit,
+            attack_speed,
             ..
         } = packet;
 
+        // The packet field names don't reflect the meaning of the values, they
+        // were named after the order in which they appear in the packet. The
+        // real meaning (from rAthena) is:
+        // - left_attack         : attack including weapon attack
+        // - rigth_attack        : weapon refine attack bonus
+        // - rigth_magic_attack  : maximum magic attack
+        // - left_magic_attack   : minimum magic attack
+        // - left_defense        : equipment defense
+        // - rigth_defense       : vitality based defense
+        // - rigth_magic_defense : equipment magic defense
+        // - left_magic_defense  : intelligence based magic defense
         NetworkEvent::InitialStats {
             strength_stat_points_cost,
             agility_stat_points_cost,
@@ -518,6 +542,19 @@ where
             intelligence_stat_points_cost,
             dexterity_stat_points_cost,
             luck_stat_points_cost,
+            attack: left_attack,
+            bonus_attack: rigth_attack,
+            magic_attack_max: rigth_magic_attack,
+            magic_attack_min: left_magic_attack,
+            defense: left_defense,
+            bonus_defense: rigth_defense,
+            magic_defense: rigth_magic_defense,
+            bonus_magic_defense: left_magic_defense,
+            hit,
+            flee,
+            perfect_dodge: flee2,
+            critical: crit,
+            attack_speed,
         }
     })?;
     packet_handler.register_noop::<UpdatePartyInvitationStatePacket>()?;

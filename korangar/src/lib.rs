@@ -1067,6 +1067,19 @@ impl Client {
                     intelligence_stat_points_cost,
                     dexterity_stat_points_cost,
                     luck_stat_points_cost,
+                    attack,
+                    bonus_attack,
+                    magic_attack_max,
+                    magic_attack_min,
+                    defense,
+                    bonus_defense,
+                    magic_defense,
+                    bonus_magic_defense,
+                    hit,
+                    flee,
+                    perfect_dodge,
+                    critical,
+                    attack_speed,
                 } => {
                     if let Some(player) = self.client_state.try_follow_mut(this_player()) {
                         player.strength_stat_points_cost = strength_stat_points_cost;
@@ -1075,6 +1088,19 @@ impl Client {
                         player.intelligence_stat_points_cost = intelligence_stat_points_cost;
                         player.dexterity_stat_points_cost = dexterity_stat_points_cost;
                         player.luck_stat_points_cost = luck_stat_points_cost;
+                        player.attack = attack as u32;
+                        player.bonus_attack = bonus_attack as u32;
+                        player.magic_attack_max = magic_attack_max as u32;
+                        player.magic_attack_min = magic_attack_min as u32;
+                        player.defense = defense as u32;
+                        player.bonus_defense = bonus_defense as u32;
+                        player.magic_defense = magic_defense as u32;
+                        player.bonus_magic_defense = bonus_magic_defense as u32;
+                        player.hit = hit as u32;
+                        player.flee = flee as u32;
+                        player.perfect_dodge = perfect_dodge as u32;
+                        player.critical = critical as u32;
+                        player.attack_speed = attack_speed as u32;
                     }
                 }
                 NetworkEvent::ResurrectPlayer { entity_id } => {
@@ -1892,13 +1918,14 @@ impl Client {
 
                             let name = inventory_item.metadata.name.clone();
                             let texture = inventory_item.metadata.texture.clone();
+                            let stats = inventory_item.metadata.stats;
                             let quantity = match &inventory_item.details {
                                 korangar_networking::InventoryItemDetails::Regular { amount, .. } => *amount,
                                 korangar_networking::InventoryItemDetails::Equippable { .. } => 1,
                             };
 
                             SellItem {
-                                metadata: (ResourceMetadata { name, texture }, quantity),
+                                metadata: (ResourceMetadata { name, texture, stats }, quantity),
                                 inventory_index: item.inventory_index,
                                 price: item.price,
                                 overcharge_price: item.overcharge_price,
@@ -2129,7 +2156,10 @@ impl Client {
                     if self.client_state.try_follow(this_entity()).is_some() {
                         match self.interface.is_window_with_class_open(WindowClass::Equipment) {
                             true => self.interface.close_window_with_class(WindowClass::Equipment),
-                            false => self.interface.open_window(EquipmentWindow::new(client_state().inventory().items())),
+                            false => self.interface.open_window(EquipmentWindow::new(
+                                client_state().inventory().items(),
+                                this_player().manually_asserted(),
+                            )),
                         }
                     }
                 }

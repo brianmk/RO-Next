@@ -925,8 +925,37 @@ pub struct Player {
     pub luck: i32,
     pub bonus_luck: i32,
     pub luck_stat_points_cost: u8,
+    /// Attack motion (server `SP_ASPD`), in milliseconds.
     pub attack_speed: u32,
     pub skill_points: u32,
+    /// Base attack including the weapon attack (server `SP_ATK1`).
+    pub attack: u32,
+    /// Weapon refine attack bonus / damage variance (server `SP_ATK2`).
+    pub bonus_attack: u32,
+    /// Minimum magic attack (server `SP_MATK2`).
+    pub magic_attack_min: u32,
+    /// Maximum magic attack (server `SP_MATK1`).
+    pub magic_attack_max: u32,
+    /// Equipment defense (server `SP_DEF1`).
+    pub defense: u32,
+    /// Vitality based defense (server `SP_DEF2`).
+    pub bonus_defense: u32,
+    /// Equipment magic defense (server `SP_MDEF1`).
+    pub magic_defense: u32,
+    /// Intelligence based magic defense (server `SP_MDEF2`).
+    pub bonus_magic_defense: u32,
+    /// Hit rate (server `SP_HIT`).
+    pub hit: u32,
+    /// Flee rate (server `SP_FLEE1`).
+    pub flee: u32,
+    /// Perfect dodge (server `SP_FLEE2`, already divided by 10).
+    pub perfect_dodge: u32,
+    /// Critical rate (server `SP_CRITICAL`, already divided by 10).
+    pub critical: u32,
+    /// Carried weight (server `SP_WEIGHT`).
+    pub weight: u32,
+    /// Maximum carried weight (server `SP_MAXWEIGHT`).
+    pub maximum_weight: u32,
 }
 
 impl Player {
@@ -981,6 +1010,20 @@ impl Player {
             luck_stat_points_cost: 0,
             attack_speed: 0,
             skill_points: 0,
+            attack: 0,
+            bonus_attack: 0,
+            magic_attack_min: 0,
+            magic_attack_max: 0,
+            defense: 0,
+            bonus_defense: 0,
+            magic_defense: 0,
+            bonus_magic_defense: 0,
+            hit: 0,
+            flee: 0,
+            perfect_dodge: 0,
+            critical: 0,
+            weight: 0,
+            maximum_weight: 0,
         }
     }
 
@@ -1036,6 +1079,20 @@ impl Player {
             StatType::LuckStatPointCost(cost) => self.luck_stat_points_cost = cost,
             StatType::AttackSpeed(attack_speed) => self.attack_speed = attack_speed,
             StatType::SkillPoints(skill_points) => self.skill_points = skill_points,
+            StatType::Attack1(attack) => self.attack = attack,
+            StatType::Attack2(attack) => self.bonus_attack = attack,
+            StatType::MagicAttack1(magic_attack) => self.magic_attack_max = magic_attack,
+            StatType::MagicAttack2(magic_attack) => self.magic_attack_min = magic_attack,
+            StatType::Defense1(defense) => self.defense = defense,
+            StatType::Defense2(defense) => self.bonus_defense = defense,
+            StatType::MagicDefense1(magic_defense) => self.magic_defense = magic_defense,
+            StatType::MagicDefense2(magic_defense) => self.bonus_magic_defense = magic_defense,
+            StatType::Hit(hit) => self.hit = hit,
+            StatType::Flee1(flee) => self.flee = flee,
+            StatType::Flee2(flee) => self.perfect_dodge = flee,
+            StatType::Critical(critical) => self.critical = critical,
+            StatType::Weight(weight) => self.weight = weight,
+            StatType::MaximumWeight(maximum_weight) => self.maximum_weight = maximum_weight,
             _ => {}
         }
     }

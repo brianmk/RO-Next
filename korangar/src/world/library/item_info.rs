@@ -2,7 +2,7 @@ use hashbrown::HashMap;
 use mlua::Lua;
 use ragnarok_packets::ItemId;
 
-use super::{HashMapExt, ItemName, ItemResource, Library, LuaExt, Table, fix_encoding};
+use super::{HashMapExt, ItemName, ItemResource, ItemStats, Library, LuaExt, Table, fix_encoding};
 use crate::loaders::GameFileLoader;
 
 #[derive(Debug, Clone)]
@@ -11,6 +11,8 @@ pub struct ItemInfo {
     pub(super) unidentified_name: ItemName,
     pub(super) identified_resource: ItemResource,
     pub(super) unidentified_resource: ItemResource,
+    /// Stats evaluated from the identified item description.
+    pub(super) stats: ItemStats,
 }
 
 impl Table for ItemInfo {
@@ -25,11 +27,24 @@ impl Table for ItemInfo {
 
         if let Ok(table) = globals.get::<mlua::Table>("tbl") {
             for (item_id, item_table) in table.pairs::<u32, mlua::Table>().flatten() {
+                let identified_description = item_table
+                    .get::<mlua::Table>("identifiedDescriptionName")
+                    .ok()
+                    .map(|description| {
+                        description
+                            .sequence_values::<String>()
+                            .flatten()
+                            .map(fix_encoding)
+                            .collect::<Vec<_>>()
+                    })
+                    .unwrap_or_default();
+
                 let info = ItemInfo {
                     identified_name: ItemName::from_option(item_table.get("identifiedDisplayName").ok().map(fix_encoding)),
                     unidentified_name: ItemName::from_option(item_table.get("unidentifiedDisplayName").ok().map(fix_encoding)),
                     identified_resource: ItemResource::from_option(item_table.get("identifiedResourceName").ok().map(fix_encoding)),
                     unidentified_resource: ItemResource::from_option(item_table.get("unidentifiedResourceName").ok().map(fix_encoding)),
+                    stats: ItemStats::parse(&identified_description),
                 };
 
                 result.insert(ItemId(item_id), info);
@@ -49,6 +64,7 @@ impl Table for ItemInfo {
             unidentified_name: ItemName::not_found_value(),
             identified_resource: ItemResource::not_found_value(),
             unidentified_resource: ItemResource::not_found_value(),
+            stats: ItemStats::DEFAULT,
         };
         Self::try_get(library, key).unwrap_or(&DEFAULT)
     }

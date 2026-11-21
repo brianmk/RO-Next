@@ -18,7 +18,7 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
 use crate::world::{
-    Actions, AnimationData, EntityType, ItemName, ItemNameKey, ItemResource, ItemResourceKey, Library, Map, ResourceMetadata,
+    Actions, AnimationData, EntityType, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
     SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
 };
 
@@ -217,8 +217,9 @@ impl AsyncLoader {
                 is_identified,
             })
             .to_string();
+        let stats = *self.library.get::<ItemStats>(item.item_id);
 
-        let metadata = ResourceMetadata { texture, name };
+        let metadata = ResourceMetadata { texture, name, stats };
 
         InventoryItem { metadata, ..item }
     }
@@ -237,8 +238,9 @@ impl AsyncLoader {
                 is_identified: true,
             })
             .to_string();
+        let stats = *self.library.get::<ItemStats>(item.item_id);
 
-        let metadata = ResourceMetadata { texture, name };
+        let metadata = ResourceMetadata { texture, name, stats };
 
         ShopItem { metadata, ..item }
     }
