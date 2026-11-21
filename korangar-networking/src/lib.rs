@@ -424,14 +424,20 @@ where
         let (action_sender, action_receiver) = tokio::sync::mpsc::unbounded_channel();
         let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
 
-        self.command_sender
+        if self
+            .command_sender
             .send(ServerConnectCommand::Login {
                 address,
                 action_receiver,
                 event_sender,
                 packet_version,
             })
-            .expect("network thread dropped");
+            .is_err()
+        {
+            // The networking thread is gone; fail gracefully instead of panicking.
+            self.login_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         let login_packet = LoginServerLoginPacket::new(username.into(), password.into());
 
@@ -439,9 +445,12 @@ where
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
         login_packet.packet_to_bytes(&mut byte_writer).unwrap();
-        action_sender
-            .send(byte_writer.into_inner())
-            .expect("action receiver instantly dropped");
+        if action_sender.send(byte_writer.into_inner()).is_err() {
+            // The connection task failed before it could accept the login packet
+            // (e.g. a transient connection error). Fail gracefully instead of panicking.
+            self.login_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         self.login_server_connection = ServerConnection::Connected {
             action_sender,
@@ -465,14 +474,20 @@ where
 
         let address = SocketAddr::new(IpAddr::V4(server.server_ip.into()), server.server_port);
 
-        self.command_sender
+        if self
+            .command_sender
             .send(ServerConnectCommand::Character {
                 address,
                 action_receiver,
                 event_sender,
                 packet_version,
             })
-            .expect("network thread dropped");
+            .is_err()
+        {
+            // The networking thread is gone; fail gracefully instead of panicking.
+            self.character_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         let login_packet = CharacterServerLoginPacket::new(
             login_data.account_id,
@@ -485,9 +500,12 @@ where
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
         login_packet.packet_to_bytes(&mut byte_writer).unwrap();
-        action_sender
-            .send(byte_writer.into_inner())
-            .expect("action receiver instantly dropped");
+        if action_sender.send(byte_writer.into_inner()).is_err() {
+            // The character server connection task dropped before accepting the login
+            // packet (e.g. transient connection error); fail gracefully, don't panic.
+            self.character_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         self.character_server_connection = ServerConnection::Connected {
             action_sender,
@@ -511,14 +529,20 @@ where
 
         let address = SocketAddr::new(character_server_login_data.server_ip, character_server_login_data.server_port);
 
-        self.command_sender
+        if self
+            .command_sender
             .send(ServerConnectCommand::Map {
                 address,
                 action_receiver,
                 event_sender,
                 packet_version,
             })
-            .expect("network thread dropped");
+            .is_err()
+        {
+            // The networking thread is gone; fail gracefully instead of panicking.
+            self.map_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         let login_packet = MapServerLoginPacket::new(
             login_server_login_data.account_id,
@@ -534,9 +558,12 @@ where
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
         login_packet.packet_to_bytes(&mut byte_writer).unwrap();
-        action_sender
-            .send(byte_writer.into_inner())
-            .expect("action receiver instantly dropped");
+        if action_sender.send(byte_writer.into_inner()).is_err() {
+            // The map server connection task dropped before accepting the login packet
+            // (e.g. transient connection error); fail gracefully, don't panic.
+            self.map_server_connection = ServerConnection::Disconnected;
+            return;
+        }
 
         self.map_server_connection = ServerConnection::Connected {
             action_sender,
