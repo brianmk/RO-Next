@@ -96,11 +96,11 @@ use wgpu::{
     MemoryHints, NoopBackendOptions, Queue, Trace,
 };
 use winit::application::ApplicationHandler;
-use winit::dpi::{LogicalSize, PhysicalSize};
+use winit::dpi::{LogicalSize, PhysicalSize, Size};
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
 use winit::keyboard::{KeyCode, PhysicalKey};
-use winit::window::{Icon, Window, WindowId};
+use winit::window::{Fullscreen, Icon, Window, WindowId};
 
 use crate::graphics::*;
 use crate::input::{InputEvent, InputReport, InputSystem};
@@ -330,6 +330,10 @@ pub struct Client {
     #[cfg(feature = "debug")]
     device: Device,
     window: Option<Arc<Window>>,
+    /// Whether the interface scaling should be initialized from the DPI scale
+    /// factor of the window. This is only done on the first start, i.e. when
+    /// there is no saved interface settings file yet.
+    initialize_interface_scaling_from_dpi: bool,
 
     /// Whether the window is currently reported as occluded by the windowing
     /// system. Occluded windows receive no redraw events on some platforms, but
@@ -412,6 +416,10 @@ impl Client {
                 graphics_settings.max_fps.get(),
                 graphics_settings.background_max_fps.get(),
             );
+
+            // Read this before `ClientState::new` loads (and thereby potentially
+            // rewrites) the interface settings.
+            let initialize_interface_scaling_from_dpi = !InterfaceSettings::exists();
         });
 
         let force_background =
@@ -837,6 +845,7 @@ impl Client {
             force_background,
             active_frames_per_second_limit: 0,
             frames_per_second_log_deadline: frames_per_second_log_deadline(),
+            initialize_interface_scaling_from_dpi,
 
             map: Some(map),
             client_state,
@@ -967,6 +976,42 @@ impl Client {
             self.graphics_engine
                 .set_high_quality_interface(graphics_settings.high_quality_interface);
             self.active_graphics_settings.high_quality_interface = graphics_settings.high_quality_interface;
+        }
+
+        // Apply resolution and fullscreen changes live. The window resize generates a
+        // `WindowEvent::Resized`, which is where the graphics surface and the interface
+        // are updated, so there is no need to reconfigure anything here.
+        let fullscreen_changed = self.active_graphics_settings.fullscreen != graphics_settings.fullscreen;
+        let resolution_changed = self.active_graphics_settings.window_resolution != graphics_settings.window_resolution;
+
+        if fullscreen_changed || resolution_changed {
+            if let Some(window) = self.window.as_ref() {
+                // Leaving fullscreen first, then restoring the window size works around
+                // window managers that ignore inner size requests while a window is
+                // still marked as fullscreen.
+                if fullscreen_changed && !graphics_settings.fullscreen {
+                    window.set_fullscreen(None);
+                }
+
+                if !graphics_settings.fullscreen {
+                    match graphics_settings.window_resolution {
+                        WindowResolution::Desktop => window.set_maximized(true),
+                        window_resolution => {
+                            if let Some((width, height)) = window_resolution.size() {
+                                window.set_maximized(false);
+                                let _ = window.request_inner_size(PhysicalSize::new(width, height));
+                            }
+                        }
+                    }
+                }
+
+                if fullscreen_changed && graphics_settings.fullscreen {
+                    window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+                }
+            }
+
+            self.active_graphics_settings.fullscreen = graphics_settings.fullscreen;
+            self.active_graphics_settings.window_resolution = graphics_settings.window_resolution;
         }
 
         let language = *self.client_state.follow(client_state().interface_settings().language());
@@ -1134,6 +1179,27 @@ impl Client {
         self.networking_system
             .connect_to_character_server(self.saved_packet_version, login_data, server);
         self.character_server_reconnect_at = Some(Instant::now() + Duration::from_secs(2));
+    }
+
+    /// Updates every part of the client that depends on the size of the window.
+    ///
+    /// This is called for every resize event, but also once after the window
+    /// was created. The window is created with the configured resolution,
+    /// which can differ from [`INITIAL_SCREEN_SIZE`], and winit does not
+    /// necessarily send a resize event for the initial size. Without this
+    /// the interface and all renderers would keep using the initial size,
+    /// which stretches the interface and breaks its hit testing.
+    #[inline(always)]
+    #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    fn update_window_size(&mut self, screen_size: ScreenSize) {
+        *self.client_state.follow_mut(client_state().window_size()) = screen_size;
+        self.graphics_engine.on_resize(screen_size);
+        self.interface.update_window_size(screen_size);
+        self.interface_renderer.update_window_size(screen_size);
+        self.bottom_interface_renderer.update_window_size(screen_size);
+        self.middle_interface_renderer.update_window_size(screen_size);
+        self.top_interface_renderer.update_window_size(screen_size);
+        self.effect_renderer.update_window_size(screen_size);
     }
 
     /// Request the names of all entities that should show a name label.
@@ -4110,11 +4176,26 @@ impl ApplicationHandler for Client {
                 assert_eq!(image_buffer.width(), image_buffer.height(), "icon must be square");
                 let icon = Icon::from_rgba(image_data, image_buffer.width(), image_buffer.height()).unwrap();
 
+                // Create the window with the resolution that was loaded from the settings
+                // file (or overridden through the environment) so that it does not have to
+                // be resized right after it became visible.
+                let (window_resolution, fullscreen) = {
+                    let graphics_settings = self.client_state.follow(client_state().graphics_settings());
+                    (graphics_settings.window_resolution, graphics_settings.fullscreen)
+                };
+
+                let initial_size = match window_resolution.size() {
+                    Some((width, height)) => Size::Physical(PhysicalSize::new(width, height)),
+                    None => Size::Logical(LogicalSize {
+                        width: f64::from(INITIAL_SCREEN_SIZE.width),
+                        height: f64::from(INITIAL_SCREEN_SIZE.height),
+                    }),
+                };
+
                 let window_attributes = Window::default_attributes()
-                    .with_inner_size(LogicalSize {
-                        width: INITIAL_SCREEN_SIZE.width,
-                        height: INITIAL_SCREEN_SIZE.height,
-                    })
+                    .with_inner_size(initial_size)
+                    .with_maximized(!fullscreen && window_resolution == WindowResolution::Desktop)
+                    .with_fullscreen(fullscreen.then_some(Fullscreen::Borderless(None)))
                     .with_title(CLIENT_NAME)
                     .with_window_icon(Some(icon))
                     .with_visible(false);
@@ -4163,6 +4244,31 @@ impl ApplicationHandler for Client {
             window.set_visible(true);
         }
 
+        // The window was created with the configured resolution, which can differ
+        // from the initial screen size. Make sure the interface and the renderers
+        // use the real window size from the first frame on.
+        if let Some(inner_size) = self.window.as_ref().map(|window| window.inner_size()) {
+            self.update_window_size(inner_size.max(PhysicalSize::new(1, 1)).into());
+        }
+
+        // On the first start there are no saved interface settings, so pick a
+        // sensible interface scaling based on the DPI scale factor of the window.
+        // The `KORANGAR_UI_SCALE` environment variable always has precedence.
+        if self.initialize_interface_scaling_from_dpi {
+            self.initialize_interface_scaling_from_dpi = false;
+
+            if std::env::var("KORANGAR_UI_SCALE").is_err()
+                && let Some(window) = self.window.as_ref()
+            {
+                let scale_factor = window.scale_factor() as f32;
+
+                if (scale_factor - 1.0).abs() > f32::EPSILON {
+                    let scaling = Scaling::closest(scale_factor.clamp(0.5, 2.0));
+                    *self.client_state.follow_mut(client_state().interface_settings().scaling()) = scaling;
+                }
+            }
+        }
+
         if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
             self.audio_engine.mute(false);
         }
@@ -4179,15 +4285,7 @@ impl ApplicationHandler for Client {
                 SHUTDOWN_SIGNAL.store(true, Ordering::SeqCst);
             }
             WindowEvent::Resized(screen_size) => {
-                let screen_size = screen_size.max(PhysicalSize::new(1, 1)).into();
-                *self.client_state.follow_mut(client_state().window_size()) = screen_size;
-                self.graphics_engine.on_resize(screen_size);
-                self.interface.update_window_size(screen_size);
-                self.interface_renderer.update_window_size(screen_size);
-                self.bottom_interface_renderer.update_window_size(screen_size);
-                self.middle_interface_renderer.update_window_size(screen_size);
-                self.top_interface_renderer.update_window_size(screen_size);
-                self.effect_renderer.update_window_size(screen_size);
+                self.update_window_size(screen_size.max(PhysicalSize::new(1, 1)).into());
 
                 if let Some(window) = self.window.as_ref() {
                     window.request_redraw();

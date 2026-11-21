@@ -258,7 +258,10 @@ impl ClientState {
             let audio_settings_capabilities = AudioSettingsCapabilities::default();
             let game_settings = GameSettings::new();
             let interface_settings = InterfaceSettings::new();
-            let interface_settings_capabilities = InterfaceSettingsCapabilities::default();
+            let mut interface_settings_capabilities = InterfaceSettingsCapabilities::default();
+            // The scaling can be changed through the environment, make sure the drop
+            // down always has an option for the selected value.
+            interface_settings_capabilities.ensure_scaling(interface_settings.scaling);
         });
 
         time_phase!("load localization", {
@@ -341,7 +344,10 @@ impl ClientState {
 
         time_phase!("create window resources", {
             let window_size = ScreenSize::default();
-            let graphics_settings_capabilities = GraphicsSettingsCapabilities::default();
+            let mut graphics_settings_capabilities = GraphicsSettingsCapabilities::default();
+            // The resolution can be changed through the environment, make sure the drop
+            // down always has an option for the selected value.
+            graphics_settings_capabilities.ensure_window_resolution(graphics_settings.window_resolution);
         });
 
         let buffered_action = None;

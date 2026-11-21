@@ -38,6 +38,23 @@ where
             split! {
                 children: (
                     text! {
+                        text: "Resolution",
+                        overflow_behavior: OverflowBehavior::Shrink,
+                    },
+                    drop_down! {
+                        selected: self.settings_path.window_resolution(),
+                        options: self.capabilities_path.window_resolution_options(),
+                    }
+                )
+            },
+            state_button! {
+                text: "Borderless fullscreen",
+                state: self.settings_path.fullscreen(),
+                event: Toggle(self.settings_path.fullscreen()),
+            },
+            split! {
+                children: (
+                    text! {
                         text: "Lighting mode",
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
