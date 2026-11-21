@@ -1,5 +1,6 @@
 mod audio_settings;
 mod big_map;
+mod buff_bar;
 mod buy;
 mod buy_cart;
 mod buy_or_sell;
@@ -49,6 +50,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::audio_settings::AudioSettingsWindow;
 pub use self::big_map::BigMapWindow;
+pub use self::buff_bar::BuffBarWindow;
 pub use self::buy::BuyWindow;
 pub use self::buy_cart::BuyCartWindow;
 pub use self::buy_or_sell::BuyOrSellWindow;
@@ -98,6 +100,7 @@ pub use self::theme_inspector::{ThemeInspectorWindow, ThemeInspectorWindowState}
 pub enum WindowClass {
     AudioSettings,
     BigMap,
+    BuffBar,
     Buy,
     BuyCart,
     BuyOrSell,

@@ -441,8 +441,10 @@ mod tests {
 
     #[test]
     fn base_size_is_much_larger_than_the_old_chat_sized_font() {
-        // The old damage number font size was 16 px.
-        assert!(BASE_DAMAGE_TEXT_PIXELS >= 160.0);
+        // The old damage number font size was 16 px; the base size was later
+        // reduced to 85 px by an integration tweak but is still several times
+        // larger than the old interface-sized text.
+        assert!(BASE_DAMAGE_TEXT_PIXELS >= 80.0);
     }
 
     #[test]
@@ -461,12 +463,11 @@ mod tests {
 
     #[test]
     fn magnitude_and_viewport_clamps_are_applied() {
-        // 170 * 1.728 = 293.76, clamped to 32% of 720 = 230.4.
+        // 85 * 1.728 = 146.88, below the 32% cap of 720 = 230.4, so it is not clamped.
         let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale(1_000_000), 260.0, 720.0);
-        assert!((pixels - 230.4).abs() < 1e-3);
+        assert!((pixels - 146.88).abs() < 1e-2);
 
-        // Small window: the base size (170) is below the 32% cap of 192, so it is
-        // not reduced.
+        // Small window: the base size is below the 32% cap, so it is not reduced.
         let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 260.0, 600.0);
         assert!((pixels - BASE_DAMAGE_TEXT_PIXELS).abs() < 1e-3);
 

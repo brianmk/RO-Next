@@ -422,7 +422,6 @@ where
     // throw away the rest of the TCP read, which used to lose spawn packets.
     packet_handler.register_noop::<ChangeDirectionPacket2019>()?;
     packet_handler.register_noop::<NotifyActorInitPacket>()?;
-    packet_handler.register_noop::<EnterStatusEffectPacket2019>()?;
     // Remaining frequent 2019 packets that the client does not use yet. They are
     // parsed with their exact 2019 sizes; a real handler can replace the noop
     // later (shop: handled by the NPC shop branch, status effects: buff UI).
@@ -753,7 +752,22 @@ where
         }
     })?;
     packet_handler.register_noop::<DisplayPlayerHealEffect>()?;
-    packet_handler.register_noop::<StatusChangePacket>()?;
+    packet_handler.register(|packet: StatusChangePacket| NetworkEvent::StatusEffect {
+        entity_id: packet.entity_id,
+        status_index: packet.index,
+        active: packet.state != 0,
+        total_duration_in_milliseconds: packet.duration_in_milliseconds,
+        remaining_in_milliseconds: packet.remaining_in_milliseconds,
+    })?;
+    // Sent on map load / when an entity enters the view with active statuses.
+    // Missing this handler used to discard the rest of the packet burst.
+    packet_handler.register(|packet: EnterStatusEffectPacket2019| NetworkEvent::StatusEffect {
+        entity_id: packet.entity_id,
+        status_index: packet.effect_id,
+        active: true,
+        total_duration_in_milliseconds: packet.duration,
+        remaining_in_milliseconds: packet.remaining_duration,
+    })?;
     packet_handler.register_noop::<QuestNotificationPacket1>()?;
     packet_handler.register_noop::<HuntingQuestNotificationPacket>()?;
     packet_handler.register_noop::<HuntingQuestUpdateObjectivePacket>()?;
@@ -1123,7 +1137,15 @@ where
         character_id: packet.character_id,
     })?;
     packet_handler.register_noop::<PartyInvitePacket>()?;
-    packet_handler.register_noop::<StatusChangeSequencePacket>()?;
+    // `ZC_MSG_STATE_CHANGE` (0x0196) is used by the 2019 server to end statuses
+    // (and to start them on non-player units); it has no duration fields.
+    packet_handler.register(|packet: StatusChangeSequencePacket| NetworkEvent::StatusEffect {
+        entity_id: EntityId(packet.id),
+        status_index: packet.index,
+        active: packet.state != 0,
+        total_duration_in_milliseconds: 0,
+        remaining_in_milliseconds: 0,
+    })?;
     packet_handler.register_noop::<ReputationPacket>()?;
     packet_handler.register_noop::<ClanInfoPacket>()?;
     packet_handler.register_noop::<ClanOnlineCountPacket>()?;

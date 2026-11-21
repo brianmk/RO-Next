@@ -73,7 +73,6 @@ use korangar_networking::{
 #[cfg(feature = "debug")]
 use networking::{PacketHistory, PacketHistoryCallback};
 #[cfg(not(feature = "debug"))]
-use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
     AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
     InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
@@ -91,7 +90,7 @@ use state::inventory::InventoryPathExt;
 use state::localization::Localization;
 use state::skills::SkillTreePathExt;
 use state::theme::{CursorThemePathExt, IndicatorThemePathExt, InterfaceThemePathExt, WorldThemePathExt};
-use state::{ChatMessage, ClientState, ClientStatePathExt, client_state, this_entity, this_player};
+use state::{ChatMessage, ClientState, ClientStatePathExt, client_state, status_effect_definition, this_entity, this_player};
 #[cfg(feature = "debug")]
 use wgpu::Device;
 use wgpu::util::initialize_adapter_from_env_or_default;
@@ -139,6 +138,34 @@ use crate::world::*;
 /// manager uses the id to decide which light renders with a shadow, so it has
 /// to be unique.
 static NEXT_POSITION_EFFECT_LIGHT_ID: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0x5000_0000);
+
+/// Packet callback used in release builds.
+///
+/// Unknown/unparseable 2019 server packets are logged at debug verbosity
+/// (`-vv` / `KORANGAR_LOG_LEVEL=2`) so that missing handlers can be spotted
+/// without the debug packet inspector.
+#[derive(Clone, Copy, Default)]
+struct ClientPacketCallback;
+
+impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
+    fn unknown_packet(&self, bytes: Vec<u8>) {
+        let header = bytes
+            .get(..2)
+            .map(|header| u16::from_le_bytes([header[0], header[1]]))
+            .map(|header| format!("0x{header:04X}"))
+            .unwrap_or_else(|| "unknown".to_owned());
+
+        crate::logging::log_debug!(
+            "packets: unhandled server packet header {} ({} bytes remaining)",
+            header,
+            bytes.len()
+        );
+    }
+
+    fn failed_packet(&self, bytes: Vec<u8>, error: Box<ragnarok_bytes::ConversionError>) {
+        crate::logging::log_warn!("packets: failed to parse server packet ({} bytes): {:?}", bytes.len(), error);
+    }
+}
 
 const CLIENT_NAME: &str = "Korangar";
 const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
@@ -589,7 +616,7 @@ pub struct Client {
     #[cfg(feature = "debug")]
     networking_system: NetworkingSystem<PacketHistoryCallback>,
     #[cfg(not(feature = "debug"))]
-    networking_system: NetworkingSystem<NoPacketCallback>,
+    networking_system: NetworkingSystem<ClientPacketCallback>,
     audio_engine: Arc<AudioEngine<GameFileLoader>>,
     skill_sounds: SkillSoundPlayer,
     active_background_music_volume: f32,
@@ -975,7 +1002,7 @@ impl Client {
 
         time_phase!("initialize networking", {
             #[cfg(not(feature = "debug"))]
-            let (networking_system, network_event_buffer) = NetworkingSystem::spawn();
+            let (networking_system, network_event_buffer) = NetworkingSystem::spawn_with_callback(ClientPacketCallback);
 
             #[cfg(feature = "debug")]
             let (packet_history, packet_history_callback) = PacketHistory::new();
@@ -2160,6 +2187,24 @@ impl Client {
         }
     }
 
+    /// Updates the local status effect timers and shows/hides the buff bar.
+    fn update_status_effects(&mut self, client_tick: ClientTick) {
+        {
+            let status_effects = self.client_state.follow_mut(client_state().status_effects());
+            status_effects.set_client_tick(client_tick.0 as u64);
+            status_effects.update(client_tick.0 as u64);
+        }
+
+        let is_empty = self.client_state.follow(client_state().status_effects()).is_empty();
+        let is_open = self.interface.is_window_with_class_open(WindowClass::BuffBar);
+
+        match (is_empty, is_open) {
+            (false, false) => self.interface.open_window(BuffBarWindow),
+            (true, true) => self.interface.close_window_with_class(WindowClass::BuffBar),
+            _ => {}
+        }
+    }
+
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
@@ -2310,6 +2355,8 @@ impl Client {
                     // Guild emblems are only valid for the map session; the server may
                     // have changed them and the rate limit should be reset as well.
                     self.guild_emblems.clear();
+                    // Status effects belong to the map session as well.
+                    self.client_state.follow_mut(client_state().status_effects()).clear();
 
                     if self.shutdown_requested {
                         // We are quitting; the clean logout is done, don't go back to
@@ -2995,6 +3042,49 @@ impl Client {
                 NetworkEvent::UpdateClientTick { client_tick, received_at } => {
                     self.game_timer.set_client_tick(client_tick, received_at);
                 }
+                NetworkEvent::StatusEffect {
+                    entity_id,
+                    status_index,
+                    active,
+                    total_duration_in_milliseconds,
+                    remaining_in_milliseconds,
+                } => {
+                    // The buff bar only shows the player's own status effects. Status
+                    // effects of other entities are currently not displayed.
+                    let own_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id());
+
+                    if own_entity_id != Some(entity_id) {
+                        continue;
+                    }
+
+                    let definition = status_effect_definition(status_index);
+                    let icon = match (active, definition.icon_path()) {
+                        (true, Some(path)) => match self.texture_loader.get_or_load(&path, ImageType::Color) {
+                            Ok(icon) => Some(icon),
+                            Err(error) => {
+                                crate::logging::log_warn!("buffbar: failed to load status icon '{}': {:?}", path, error);
+                                None
+                            }
+                        },
+                        _ => None,
+                    };
+
+                    if active && definition.icon.is_none() {
+                        crate::logging::log_debug!("status: status effect {} has no icon/name mapping", status_index);
+                    }
+
+                    let client_tick = client_tick.0 as u64;
+                    self.client_state.follow_mut(client_state().status_effects()).apply(
+                        entity_id.0,
+                        status_index,
+                        active,
+                        total_duration_in_milliseconds,
+                        remaining_in_milliseconds,
+                        client_tick,
+                        definition.name.to_owned(),
+                        icon,
+                    );
+                }
                 NetworkEvent::ChatMessage { text, color } => {
                     // The server-side aura stylist NPC asks the client to change its
                     // local aura style with a private chat marker. Apply the style and
@@ -3433,6 +3523,7 @@ impl Client {
                     // The server confirmed the logout; switch away from the map
                     // music right away so there is no silent gap while the map
                     // server disconnects and the menu map is loaded again.
+                    self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     self.networking_system.disconnect_from_map_server();
                 }
@@ -5502,6 +5593,7 @@ impl Client {
         self.request_visible_entity_names();
 
         self.handle_network_events(client_tick);
+        self.update_status_effects(client_tick);
         self.update_character_server_reconnect();
         self.update_pending_map_load();
 
