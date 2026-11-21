@@ -121,14 +121,16 @@ impl CustomWindow<ClientState> for MinimapWindow {
                     transparent_path,
                     MINIMAP_VIEW_SIZE,
                 ),
-                state_button! {
-                    text: client_state().localization().minimap_transparent_frame_text(),
+                round_toggle! {
                     tooltip: client_state().localization().minimap_transparent_frame_tooltip(),
                     state: transparent_path,
                     event: TransparentMinimapToggle {
                         value_path: transparent_path,
                         settings_path,
                     },
+                    alignment: HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
+                    shadow_color: Color::TRANSPARENT,
+                    shadow_padding: ShadowPadding::uniform(0.0),
                 },
             ),
         }

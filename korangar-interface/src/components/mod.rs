@@ -4,6 +4,7 @@ pub mod drop_down;
 pub mod either;
 pub mod field;
 pub mod fragment;
+pub mod round_toggle;
 pub mod scroll_view;
 pub mod split;
 pub mod state_button;
