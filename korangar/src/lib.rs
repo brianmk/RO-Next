@@ -125,6 +125,7 @@ use crate::state::inventory::{ItemCategory, item_category, item_use_action};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
+use crate::state::stat_buffer::PendingStatUpdates;
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
 use crate::state::{BufferedAction, SelectedServicePath};
 use crate::system::{FrameTimers, GameTimer};
@@ -466,6 +467,14 @@ pub struct Client {
     saved_username: String,
     // TODO: Move or remove this.
     saved_packet_version: SupportedPacketVersion,
+
+    /// Stat updates that arrived before the local player entity existed.
+    ///
+    /// The server sends its initial stat burst (including the values needed for
+    /// the experience bars) right after the map load. If those updates are
+    /// handled before the player entity was created they are buffered here and
+    /// applied as soon as the player exists (see `apply_pending_stat_updates`).
+    pending_stat_updates: PendingStatUpdates,
 
     /// Last tile position the minimap marker was updated with, used to derive
     /// the direction the player is facing from the movement delta.
@@ -1070,6 +1079,7 @@ impl Client {
             saved_password,
             saved_username,
             saved_packet_version,
+            pending_stat_updates: PendingStatUpdates::new(),
             shutdown_requested: false,
             shutdown_deadline: None,
             character_server_reconnect_at: None,
@@ -2736,11 +2746,12 @@ impl Client {
                         entity.update_health(health_points, maximum_health_points);
                     }
                 }
-                NetworkEvent::UpdateStat { stat_type } => {
-                    if let Some(player) = self.client_state.try_follow_mut(this_player()) {
-                        player.update_stat(stat_type);
-                    }
-                }
+                NetworkEvent::UpdateStat { stat_type } => match self.client_state.try_follow_mut(this_player()) {
+                    Some(player) => player.update_stat(stat_type),
+                    // The initial stat burst can arrive before the local player entity
+                    // was created; buffer it instead of dropping it.
+                    None => self.pending_stat_updates.push(stat_type),
+                },
                 NetworkEvent::OpenDialog { text, npc_id } => {
                     self.client_state
                         .follow_mut(client_state().dialog_window())
@@ -3219,7 +3230,33 @@ impl Client {
             }
         }
 
+        // Apply stat updates that were received before the local player entity
+        // existed (e.g. the initial stat burst with the experience needed for the
+        // next level). This also re-applies buffered updates after a map change or
+        // respawn.
+        self.apply_pending_stat_updates();
+
         self.chat_bubbles.retain_alive(client_tick);
+    }
+
+    /// Applies stat updates that arrived before the local player entity
+    /// existed.
+    ///
+    /// Called once per frame after the network events were processed; the
+    /// buffer is normally empty, so this is almost free.
+    fn apply_pending_stat_updates(&mut self) {
+        if self.pending_stat_updates.is_empty() {
+            return;
+        }
+
+        let Some(player) = self.client_state.try_follow_mut(this_player()) else {
+            // Still no player; keep the updates buffered for a later frame.
+            return;
+        };
+
+        for stat_type in self.pending_stat_updates.take() {
+            player.update_stat(stat_type);
+        }
     }
 
     /// Uses a learned skill: self cast skills are cast immediately, skills that
