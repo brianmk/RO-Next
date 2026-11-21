@@ -43,6 +43,10 @@ pub struct InterfaceSettings {
     /// the text is only drawn with an outline.
     #[serde(default = "default_chat_bubble_background")]
     pub chat_bubble_background: bool,
+    /// Draw the chat window without a background so the game world is visible
+    /// through it. Can be toggled in the chat window, persisted here.
+    #[serde(default = "default_transparent_chat")]
+    pub transparent_chat: bool,
 }
 
 fn default_show_character_names() -> bool {
@@ -57,6 +61,10 @@ fn default_chat_bubble_background() -> bool {
     true
 }
 
+fn default_transparent_chat() -> bool {
+    false
+}
+
 impl Default for InterfaceSettings {
     fn default() -> Self {
         Self {
@@ -68,6 +76,7 @@ impl Default for InterfaceSettings {
             show_character_names: true,
             show_chat_bubbles: true,
             chat_bubble_background: true,
+            transparent_chat: false,
         }
     }
 }

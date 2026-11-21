@@ -234,6 +234,13 @@ where
     maximum_height: U,
     theme: App::ThemeType,
     class: Option<App::WindowClass>,
+    /// Whether the window chrome should be drawn using the image skin of the
+    /// active theme (if it has one).
+    ///
+    /// Overlay windows like the chat window have their own (semi transparent)
+    /// background and must not draw the opaque skinned window frame, otherwise
+    /// the texture would cover their content.
+    skinned: bool,
     elements: Elements,
     // HACK: This is a bit ugly since all of these store the window_id. Ideally, we would be able
     // to inject some data into the click action instead.
@@ -276,6 +283,7 @@ where
         maximum_height: U,
         theme: App::ThemeType,
         class: Option<App::WindowClass>,
+        skinned: bool,
         elements: Elements,
     ) -> Self {
         Self {
@@ -303,6 +311,7 @@ where
             maximum_height,
             theme,
             class,
+            skinned,
             elements,
             close_click_action: CloseClickHandler::default(),
             move_click_action: MoveClickHandler::default(),
@@ -458,6 +467,10 @@ where
         let skin_path = theme().skin();
         let skin = state.get(&skin_path);
 
+        // Overlay windows (e.g. the chat window) supply their own translucent
+        // background colour and must not draw the opaque skinned window frame.
+        let skinned = self.skinned;
+
         if layout_info.area.check().dont_mark().run(layout) {
             layout.set_hovered();
         }
@@ -554,7 +567,7 @@ where
 
         // The window background is either a plain rectangle (default theme) or a nine
         // slice image (skins like the classic Ragnarok Online interface).
-        match &skin.window.frame {
+        match skin.window.frame.as_ref().filter(|_| skinned) {
             Some(frame) => layout.add_image(layout_info.area, frame.image, frame.color, frame.slices, frame.smooth),
             None => {
                 layout.add_rectangle(
@@ -567,7 +580,7 @@ where
             }
         }
 
-        if let Some(title_bar) = &skin.window.title_bar {
+        if let Some(title_bar) = skin.window.title_bar.as_ref().filter(|_| skinned) {
             layout.add_image(
                 layout_info.title_area,
                 title_bar.image,
@@ -690,8 +703,13 @@ where
 
         if let Some((close_button_area, close_button_color, is_close_button_hovered)) = close_button {
             let close_button_image = match is_close_button_hovered {
-                true => skin.window.hovered_close_button.as_ref().or(skin.window.close_button.as_ref()),
-                false => skin.window.close_button.as_ref(),
+                true => skin
+                    .window
+                    .hovered_close_button
+                    .as_ref()
+                    .or(skin.window.close_button.as_ref())
+                    .filter(|_| skinned),
+                false => skin.window.close_button.as_ref().filter(|_| skinned),
             };
 
             match close_button_image {

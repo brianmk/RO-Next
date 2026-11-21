@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="euc-kr" ?>
 <clientinfo>
-    <desc>Ragnarok Client Information</desc>
+    <desc>CondaRO (korangar client)</desc>
     <servicetype>korea</servicetype>
-    <servertype>sakray</servertype>
-    <readfolder />
+    <servertype>primary</servertype>
     <connection>
-        <display>Korangar</display>
-        <desc>Ragnarok Online</desc>
-        <balloon>Sakray Server</balloon>
-        <address>49.12.109.207</address>
+        <display>CondaRO</display>
+        <desc>Ragnarok Online - CondaRO</desc>
+        <address>100.40.206.179</address>
         <port>6900</port>
-        <version>20</version>
+        <version>53</version>
         <langtype>1</langtype>
-        <yellow />
-        <aid />
-        <loading>
-            <image>loading00.jpg</image>
-        </loading>
+        <registrationweb>https://rathena.uspectr.com/</registrationweb>
     </connection>
 </clientinfo>

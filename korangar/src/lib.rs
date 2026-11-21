@@ -1714,8 +1714,11 @@ impl Client {
                         // be open while the player is selected.
                         this_player().manually_asserted().job_level(),
                     ));
-                    self.interface
-                        .open_window(ChatWindow::new(client_state().chat_window(), client_state().chat_messages()));
+                    self.interface.open_window(ChatWindow::new(
+                        client_state().chat_window(),
+                        client_state().chat_messages(),
+                        client_state().interface_settings(),
+                    ));
                     self.interface.open_window(HotbarWindow::new(
                         client_state().hotbar().skills(),
                         client_state().skill_tree().skills(),
@@ -2812,7 +2815,11 @@ impl Client {
                 InputEvent::WhisperChat { name } => {
                     if !self.interface.is_window_with_class_open(WindowClass::Chat) {
                         self.interface
-                            .open_window(ChatWindow::new(client_state().chat_window(), client_state().chat_messages()));
+                            .open_window(ChatWindow::new(
+                            client_state().chat_window(),
+                            client_state().chat_messages(),
+                            client_state().interface_settings(),
+                        ));
                     }
 
                     self.client_state

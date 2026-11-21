@@ -27,6 +27,7 @@ pub fn window(token_stream: TokenStream) -> TokenStream {
         maximum_height: { korangar_interface::theme::theme().window().maximum_height() },
         theme: !,
         class: { None },
+        skinned: { true },
         elements: !,
     });
 
@@ -242,6 +243,7 @@ pub fn text_box(token_stream: TokenStream) -> TokenStream {
         vertical_alignment: { korangar_interface::theme::theme().text_box().vertical_alignment() },
         overflow_behavior: { korangar_interface::theme::theme().text_box().overflow_behavior() },
         focus_id: !,
+        skinned: { true },
     });
 
     macro_impl(token_stream.into()).into()
