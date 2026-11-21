@@ -13,11 +13,29 @@ use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
+/// The kind of a single dialog element.
+///
+/// This is needed to remove whole groups of elements when the server sends a
+/// new script packet: "Next"-buttons have to be removed when a "Close"- or a
+/// menu packet arrives and the whole choice list of a menu has to be replaced
+/// when a new menu arrives.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum DialogElementKind {
+    /// A text line of the dialog transcript.
+    Text,
+    /// The "Next" button that advances to the next text page.
+    NextButton,
+    /// The "Close" button that ends the dialog.
+    CloseButton,
+    /// One option of the current NPC menu.
+    Choice,
+}
+
 /// A small wrapper struct that serves two purposes:
 /// - Making the elements nicer to construct by putting the [`UnsafeCell::new`]
 ///   and [`Box::new`] behind a function call.
-/// - Storing information about which elements are next buttons since we need to
-///   be able to remove those individually.
+/// - Storing information about the kind of element so that we can remove whole
+///   groups of elements individually.
 #[derive(RustState, StateElement)]
 pub struct DialogElement {
     /// Stores the UI element.
@@ -25,19 +43,22 @@ pub struct DialogElement {
     // later.
     #[hidden_element]
     element: UnsafeCell<ElementBox<ClientState>>,
-    is_next_button: bool,
+    /// The kind of this element. Hidden from the state paths, only used
+    /// internally to filter the element list.
+    #[hidden_element]
+    kind: DialogElementKind,
 }
 
 impl DialogElement {
     /// Creates a new dialog element.
     #[inline(always)]
-    fn new<E>(element: E, is_next_button: bool) -> Self
+    fn new<E>(element: E, kind: DialogElementKind) -> Self
     where
         E: Element<ClientState> + 'static,
     {
         Self {
             element: UnsafeCell::new(ErasedElement::new(element)),
-            is_next_button,
+            kind,
         }
     }
 }
@@ -75,7 +96,7 @@ impl DialogWindowState {
             text! {
                 text: text,
             },
-            false,
+            DialogElementKind::Text,
         ));
     }
 
@@ -95,7 +116,7 @@ impl DialogWindowState {
                     queue.queue(InputEvent::NextDialog { npc_id });
                 },
             },
-            true,
+            DialogElementKind::NextButton,
         ));
 
         self.clear_next = true;
@@ -103,13 +124,14 @@ impl DialogWindowState {
 
     /// Add a close button to the dialog.
     ///
-    /// This also removes any existing "Next"-buttons.
-    ///
-    /// I am unsure why that's the behavior of the official client.
+    /// This also removes any existing "Next"-buttons and the options of an
+    /// open menu, like the official client does when it receives a
+    /// "Close"-packet.
     pub fn add_close_button(&mut self) {
         use korangar_interface::prelude::*;
 
-        self.elements.retain(|element| !element.is_next_button);
+        self.elements
+            .retain(|element| !matches!(element.kind, DialogElementKind::NextButton | DialogElementKind::Choice));
 
         let npc_id = self.npc_id;
 
@@ -120,19 +142,25 @@ impl DialogWindowState {
                     queue.queue(InputEvent::CloseDialog { npc_id });
                 },
             },
-            false,
+            DialogElementKind::CloseButton,
         ));
     }
 
     /// Add multiple buttons, one for each choice.
     ///
-    /// This also removes any existing "Next"-buttons.
+    /// The choice list of the current NPC menu is *replaced*: the official
+    /// client closes and reopens its menu window when it receives a menu
+    /// packet, so old options must never stay around below the new ones. Any
+    /// "Next"-button of the dialog is removed as well.
     ///
-    /// I am unsure why that's the behavior of the official client.
+    /// The remaining text lines of the dialog transcript and the "Close"
+    /// button stay visible, just like in the official client where the dialog
+    /// window and the menu window are separate windows.
     pub fn add_choice_buttons(&mut self, choices: Vec<String>) {
         use korangar_interface::prelude::*;
 
-        self.elements.retain(|element| !element.is_next_button);
+        self.elements
+            .retain(|element| !matches!(element.kind, DialogElementKind::NextButton | DialogElementKind::Choice));
 
         let npc_id = self.npc_id;
 
@@ -144,9 +172,48 @@ impl DialogWindowState {
                         queue.queue(InputEvent::ChooseDialogOption { npc_id, option: index as i8 + 1 });
                     },
                 },
-                false,
+                DialogElementKind::Choice,
             ))
         });
+    }
+
+    /// Close the current NPC menu without ending the dialog.
+    ///
+    /// The official client closes its menu window as soon as the player picks
+    /// an option, before the server answers. The dialog window itself stays
+    /// open, so only the choice buttons are removed here.
+    pub fn clear_choices(&mut self) {
+        self.elements.retain(|element| element.kind != DialogElementKind::Choice);
+    }
+
+    /// The number of elements of the given kind that are currently stored.
+    #[cfg(test)]
+    fn count_kind(&self, kind: DialogElementKind) -> usize {
+        self.elements.iter().filter(|element| element.kind == kind).count()
+    }
+
+    /// Number of choice buttons currently displayed.
+    #[cfg(test)]
+    pub fn choice_count(&self) -> usize {
+        self.count_kind(DialogElementKind::Choice)
+    }
+
+    /// Number of "Next"-buttons currently displayed.
+    #[cfg(test)]
+    pub fn next_button_count(&self) -> usize {
+        self.count_kind(DialogElementKind::NextButton)
+    }
+
+    /// Number of "Close"-buttons currently displayed.
+    #[cfg(test)]
+    pub fn close_button_count(&self) -> usize {
+        self.count_kind(DialogElementKind::CloseButton)
+    }
+
+    /// Number of text lines currently displayed.
+    #[cfg(test)]
+    pub fn text_count(&self) -> usize {
+        self.count_kind(DialogElementKind::Text)
     }
 
     /// End the dialog.
@@ -248,11 +315,111 @@ where
             title: client_state().localization().dialog_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
-            elements: (
-                InnerElement {
+            // NPC menus (for example the warper destination lists) can be very
+            // long. The dialog content is therefore scrollable and shows a
+            // scroll bar when it does not fit into the window.
+            elements: scroll_view! {
+                scroll_bar: true,
+                fit_content_height: true,
+                children: InnerElement {
                     dialog_elements_path: self.window_state_path.elements(),
                 },
-            ),
+            },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn state_with_menu(options: &[&str]) -> DialogWindowState {
+        let mut state = DialogWindowState::default();
+        state.add_choice_buttons(options.iter().map(|option| option.to_string()).collect());
+        state
+    }
+
+    #[test]
+    fn a_new_menu_replaces_the_previous_menu_instead_of_appending_to_it() {
+        let mut state = DialogWindowState::default();
+        state.add_text("Where would you like to go?".to_owned());
+        state.add_choice_buttons(vec!["Towns".to_owned(), "Fields".to_owned(), "Dungeons".to_owned()]);
+        assert_eq!(state.choice_count(), 3);
+
+        // The server answers a menu selection with another menu, for example
+        // the town list of the warper.
+        state.add_choice_buttons(vec!["Prontera".to_owned(), "Alberta".to_owned()]);
+
+        assert_eq!(state.choice_count(), 2, "the old menu must not stay visible below the new one");
+        assert_eq!(
+            state.text_count(),
+            1,
+            "the transcript stays visible, like in the official client"
+        );
+    }
+
+    #[test]
+    fn picking_an_option_closes_the_menu_but_keeps_the_dialog() {
+        let mut state = DialogWindowState::default();
+        state.add_text("Choose.".to_owned());
+        state.add_choice_buttons(vec!["A".to_owned(), "B".to_owned()]);
+
+        state.clear_choices();
+
+        assert_eq!(state.choice_count(), 0);
+        assert_eq!(state.text_count(), 1);
+    }
+
+    #[test]
+    fn a_new_menu_removes_the_next_button() {
+        let mut state = DialogWindowState::default();
+        state.add_text("First page.".to_owned());
+        state.add_next_button();
+        assert_eq!(state.next_button_count(), 1);
+
+        state.add_choice_buttons(vec!["A".to_owned()]);
+
+        assert_eq!(state.next_button_count(), 0);
+        assert_eq!(state.choice_count(), 1);
+    }
+
+    #[test]
+    fn a_close_button_removes_the_next_button_and_the_menu() {
+        let mut state = state_with_menu(&["A", "B"]);
+        state.add_text("Text.".to_owned());
+        state.add_next_button();
+        assert_eq!(state.next_button_count(), 1);
+
+        state.add_close_button();
+
+        assert_eq!(state.next_button_count(), 0);
+        assert_eq!(state.choice_count(), 0);
+        assert_eq!(state.close_button_count(), 1);
+        assert_eq!(state.text_count(), 1);
+    }
+
+    #[test]
+    fn the_next_button_clears_the_previous_page() {
+        let mut state = DialogWindowState::default();
+        state.add_text("First page.".to_owned());
+        state.add_next_button();
+
+        state.add_text("Second page.".to_owned());
+
+        assert_eq!(state.text_count(), 1);
+        assert_eq!(state.next_button_count(), 0);
+    }
+
+    #[test]
+    fn ending_the_dialog_removes_everything() {
+        let mut state = state_with_menu(&["A"]);
+        state.add_text("Text.".to_owned());
+        state.add_next_button();
+
+        state.end();
+
+        assert_eq!(state.choice_count(), 0);
+        assert_eq!(state.text_count(), 0);
+        assert_eq!(state.next_button_count(), 0);
     }
 }
