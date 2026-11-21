@@ -24,7 +24,7 @@ use crate::graphics::reduce_vertices;
 #[cfg(feature = "debug")]
 use crate::graphics::{BindlessSupport, DebugRectangleInstruction};
 use crate::graphics::{EntityInstruction, ScreenPosition, ScreenSize};
-use crate::loaders::GameFileLoader;
+use crate::loaders::{EntityPartFile, GameFileLoader};
 #[cfg(feature = "debug")]
 use crate::loaders::{GAT_TILE_SIZE, split_mesh_by_texture};
 use crate::renderer::GameInterfaceRenderer;
@@ -168,6 +168,12 @@ pub struct Common {
 
     #[hidden_element]
     pub entity_type: EntityType,
+    /// Hair color palette index (`head_palette` in the network packets).
+    #[hidden_element]
+    pub head_palette: u16,
+    /// Clothes color palette index (`body_palette` in the network packets).
+    #[hidden_element]
+    pub body_palette: u16,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
     pub tile_position: TilePosition,
@@ -336,7 +342,49 @@ fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
     }
 }
 
-fn get_entity_part_files(library: &Library, entity_type: EntityType, job_id: JobId, sex: Sex, head: Option<usize>) -> Vec<String> {
+/// Palette file name for a player body (clothes color).
+///
+/// The classic palette files use the official job names, which do not always
+/// match the sprite directory names (for example `하이프리_여.spr` but
+/// `하이프리스트_여_0.pal`).
+fn get_body_palette_name(job_id: JobId) -> &'static str {
+    match job_id.0 {
+        // High Priest: sprite is `하이프리`, palette files are `하이프리스트`.
+        4009 => "하이프리스트",
+        // Assassin Cross: palette files use `어세신크로스`.
+        4013 => "어세신크로스",
+        // Royal Guard: sprite is `가드`, palette files are `로얄가드`.
+        4066 | 4073 | 4102 => "로얄가드",
+        // Rebellion: sprite is `REBELLION`, palette files are `리벨리온`.
+        4215 | 4229 => "리벨리온",
+        _ => get_sprite_path_for_player_job(job_id),
+    }
+}
+
+fn player_body_palette_path(sex_sprite_path: &str, job_id: JobId, color: u16) -> String {
+    format!(
+        "data\\palette\\몸\\{}_{}_{}.pal",
+        get_body_palette_name(job_id),
+        sex_sprite_path,
+        color
+    )
+}
+
+/// Palette file for a hair color. The file name uses the hair style from the
+/// character data (the untranslated id), not the sprite lookup id.
+fn player_head_palette_path(sex_sprite_path: &str, hair_style: usize, color: u16) -> String {
+    format!("data\\palette\\머리\\머리{}_{}_{}.pal", hair_style, sex_sprite_path, color)
+}
+
+fn get_entity_part_files(
+    library: &Library,
+    entity_type: EntityType,
+    job_id: JobId,
+    sex: Sex,
+    head: Option<usize>,
+    head_palette: u16,
+    body_palette: u16,
+) -> Vec<EntityPartFile> {
     let sex_sprite_path = match sex == Sex::Female {
         true => "여",
         false => "남",
@@ -364,12 +412,25 @@ fn get_entity_part_files(library: &Library, entity_type: EntityType, job_id: Job
     };
 
     match entity_type {
-        EntityType::Player => vec![
-            player_body_path(sex_sprite_path, job_id),
-            player_head_path(sex_sprite_path, head_id),
-        ],
-        EntityType::Npc => vec![format!("npc\\{}", library.get::<JobIdentity>(job_id).to_string())],
-        EntityType::Monster => vec![format!("몬스터\\{}", library.get::<JobIdentity>(job_id).to_string())],
+        EntityType::Player => {
+            let body = player_body_path(sex_sprite_path, job_id);
+            let head_sprite = player_head_path(sex_sprite_path, head_id);
+
+            // Hair and clothes colors are external `.pal` files for players. A
+            // missing palette file is handled by the sprite loader, which then
+            // falls back to the palette embedded in the sprite.
+            // The palette file is paired with the rendered hair sprite, i.e. it
+            // uses the same (translated) hair id as the sprite path.
+            vec![
+                EntityPartFile::with_palette(body, Some(player_body_palette_path(sex_sprite_path, job_id, body_palette))),
+                EntityPartFile::with_palette(
+                    head_sprite,
+                    Some(player_head_palette_path(sex_sprite_path, head_id, head_palette)),
+                ),
+            ]
+        }
+        EntityType::Npc => vec![EntityPartFile::new(format!("npc\\{}", library.get::<JobIdentity>(job_id)))],
+        EntityType::Monster => vec![EntityPartFile::new(format!("몬스터\\{}", library.get::<JobIdentity>(job_id)))],
         // Warps and hidden NPCs have no sprite in the game files. The kRO client draws
         // warps as a dedicated hard-coded effect (see `WarpPortal`) and does not draw
         // hidden NPCs at all. Requesting a sprite path for them would end up loading
@@ -396,6 +457,8 @@ impl Common {
         let health_points = entity_data.health_points as usize;
         let maximum_health_points = entity_data.maximum_health_points as usize;
         let sex = entity_data.sex;
+        let head_palette = entity_data.head_palette;
+        let body_palette = entity_data.body_palette;
 
         let active_movement = None;
         let entity_type = job_id.into();
@@ -415,6 +478,8 @@ impl Common {
             direction,
             head_direction,
             sex,
+            head_palette,
+            body_palette,
             active_movement,
             entity_type,
             movement_speed,
@@ -430,8 +495,8 @@ impl Common {
         }
     }
 
-    pub fn get_entity_part_files(&self, library: &Library) -> Vec<String> {
-        get_entity_part_files(library, self.entity_type, self.job_id, self.sex, None)
+    pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
+        get_entity_part_files(library, self.entity_type, self.job_id, self.sex, None, 0, 0)
     }
 
     pub fn is_dead(&self) -> bool {
@@ -1168,9 +1233,17 @@ impl Player {
         );
     }
 
-    pub fn get_entity_part_files(&self, library: &Library) -> Vec<String> {
+    pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         let common = self.get_common();
-        get_entity_part_files(library, common.entity_type, common.job_id, common.sex, Some(self.hair_id))
+        get_entity_part_files(
+            library,
+            common.entity_type,
+            common.job_id,
+            common.sex,
+            Some(self.hair_id),
+            common.head_palette,
+            common.body_palette,
+        )
     }
 }
 
@@ -1382,7 +1455,7 @@ impl Entity {
         self.get_common_mut().animation_data = Some(animation_data)
     }
 
-    pub fn get_entity_part_files(&self, library: &Library) -> Vec<String> {
+    pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         match self {
             Self::Player(player) => player.get_entity_part_files(library),
             Self::Npc(npc) => npc.get_common().get_entity_part_files(library),

@@ -3,8 +3,6 @@ use std::sync::{Arc, Mutex};
 
 use hashbrown::HashMap;
 #[cfg(feature = "debug")]
-use korangar_debug::logging::print_debug;
-#[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
 use korangar_networking::{InventoryItem, NoMetadata, ShopItem};
 use ragnarok_packets::{ClientTick, EntityId, ItemId, JobId, SkillId, TilePosition};
@@ -13,7 +11,9 @@ use rayon::{ThreadPool, ThreadPoolBuilder};
 use crate::graphics::Texture;
 use crate::init_tls_rand;
 use crate::loaders::error::LoadError;
-use crate::loaders::{ActionLoader, AnimationLoader, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader};
+use crate::loaders::{
+    ActionLoader, AnimationLoader, EntityPartFile, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader,
+};
 use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
@@ -113,7 +113,7 @@ impl AsyncLoader {
         &self,
         entity_id: EntityId,
         entity_type: EntityType,
-        entity_part_files: Vec<String>,
+        entity_part_files: Vec<EntityPartFile>,
     ) -> Option<Arc<AnimationData>> {
         // Entities without sprite files (warps and hidden NPCs) are not drawn from an
         // animation. Loading an empty list would make the animation loader fall back to
@@ -149,7 +149,7 @@ impl AsyncLoader {
     pub fn request_skill_sprite_load(&self, skill_id: SkillId, path: &str) -> Option<Arc<Sprite>> {
         let sprite_path = format!("{path}.spr");
 
-        match self.sprite_loader.get(&sprite_path) {
+        match self.sprite_loader.get(&sprite_path, None) {
             Some(sprite) => Some(sprite),
             None => {
                 let sprite_loader = self.sprite_loader.clone();
@@ -158,9 +158,9 @@ impl AsyncLoader {
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("skill sprite load");
 
-                    let sprite = match sprite_loader.get(&sprite_path) {
+                    let sprite = match sprite_loader.get(&sprite_path, None) {
                         Some(sprite) => sprite,
-                        None => sprite_loader.load(&sprite_path)?,
+                        None => sprite_loader.load(&sprite_path, None)?,
                     };
                     Ok(LoadableResource::SkillSprite { sprite })
                 });

@@ -312,9 +312,10 @@ pub struct Client {
     /// If the disconnect event does not arrive in time the client recovers
     /// directly instead of waiting forever on a black screen.
     map_entry_abort_deadline: Option<Instant>,
-    /// Set while the client recovers from an aborted map entry. Used to suppress
-    /// the follow-up "Rejected from server" window, which is only a side effect
-    /// of aborting the entry and would cover the actual map error.
+    /// Set while the client recovers from an aborted map entry. Used to
+    /// suppress the follow-up "Rejected from server" window, which is only
+    /// a side effect of aborting the entry and would cover the actual map
+    /// error.
     map_entry_aborted: bool,
 
     particle_holder: ParticleHolder,
@@ -1495,7 +1496,7 @@ impl Client {
                         .follow(client_state().entities())
                         .iter()
                         .find(|entity| entity.get_entity_id() == entity_id)
-                        && let Ok(sprite) = self.sprite_loader.get_or_load("이팩트\\emotion.spr")
+                        && let Ok(sprite) = self.sprite_loader.get_or_load("이팩트\\emotion.spr", None)
                         && let Ok(actions) = self.action_loader.get_or_load("이팩트\\emotion.act")
                     {
                         self.particle_holder
@@ -2511,7 +2512,7 @@ impl Client {
                 InputEvent::SelectServer {
                     character_server_information,
                 } => {
-                    let Some(login_data) = self.saved_login_data.clone() else {
+                    let Some(login_data) = self.saved_login_data else {
                         // The window was still open although we are not logged in (e.g.
                         // after a stale state). Go back to the login screen instead of
                         // panicking.

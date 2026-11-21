@@ -46,7 +46,7 @@ impl WarpPortal {
     pub fn new(texture_loader: &TextureLoader, sprite_loader: &SpriteLoader) -> Option<Self> {
         let streak_texture = texture_loader.get_or_load("effect\\ring_blue.tga", ImageType::Color).ok()?;
         let gradient_texture = texture_loader.get_or_load("effect\\alpha_down.tga", ImageType::Color).ok()?;
-        let particle_sprite = sprite_loader.get_or_load("이팩트\\particle1.spr").ok()?;
+        let particle_sprite = sprite_loader.get_or_load("이팩트\\particle1.spr", None).ok()?;
         let particle_texture = particle_sprite.textures.first()?.clone();
 
         Some(Self {

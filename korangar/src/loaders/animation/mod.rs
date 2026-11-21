@@ -21,8 +21,35 @@ const MAX_CACHE_COUNT: u32 = 256;
 // We cache animations only by count.
 const MAX_CACHE_SIZE: usize = usize::MAX;
 
+/// One sprite/action pair that a composed animation is built from.
+///
+/// A part is not only identified by its sprite path: the same body or hair
+/// sprite can be rendered with different color palettes (the classic RO
+/// `data\palette\...` files), so the palette has to be part of the identity.
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub struct EntityPartFile {
+    pub path: String,
+    pub palette_path: Option<String>,
+}
+
+impl EntityPartFile {
+    pub fn new(path: impl Into<String>) -> Self {
+        Self {
+            path: path.into(),
+            palette_path: None,
+        }
+    }
+
+    pub fn with_palette(path: impl Into<String>, palette_path: Option<String>) -> Self {
+        Self {
+            path: path.into(),
+            palette_path,
+        }
+    }
+}
+
 pub struct AnimationLoader {
-    cache: Mutex<SimpleCache<Vec<String>, Arc<AnimationData>>>,
+    cache: Mutex<SimpleCache<Vec<EntityPartFile>, Arc<AnimationData>>>,
 }
 
 impl AnimationLoader {
@@ -45,15 +72,17 @@ impl AnimationLoader {
         sprite_loader: &SpriteLoader,
         action_loader: &ActionLoader,
         entity_type: EntityType,
-        entity_part_files: &[String],
+        entity_part_files: &[EntityPartFile],
     ) -> Result<Arc<AnimationData>, LoadError> {
         let animation_pairs: Vec<AnimationPair> = entity_part_files
             .iter()
-            .map(|file_path| AnimationPair {
-                sprites: sprite_loader.get_or_load(&format!("{file_path}.spr")).unwrap(),
-                actions: action_loader.get_or_load(&format!("{file_path}.act")).unwrap(),
+            .map(|file| {
+                Ok(AnimationPair {
+                    sprites: sprite_loader.get_or_load(&format!("{}.spr", file.path), file.palette_path.as_deref())?,
+                    actions: action_loader.get_or_load(&format!("{}.act", file.path))?,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<AnimationPair>, LoadError>>()?;
 
         let mut animations_list: Vec<Vec<Vec<AnimationFrame>>> = Vec::new();
 
@@ -90,7 +119,19 @@ impl AnimationLoader {
                             sprite_number += animation_pair.sprites.palette_size;
                         }
 
-                        let texture_size = animation_pair.sprites.textures[sprite_number].get_size();
+                        let Some(texture) = animation_pair.sprites.textures.get(sprite_number) else {
+                            #[cfg(feature = "debug")]
+                            print_debug!(
+                                "[{}] sprite clip references missing texture {} (sprite has {} textures)",
+                                "error".red(),
+                                sprite_number,
+                                animation_pair.sprites.textures.len()
+                            );
+
+                            continue;
+                        };
+
+                        let texture_size = texture.get_size();
                         let mut height = texture_size.height;
                         let mut width = texture_size.width;
 
@@ -148,9 +189,16 @@ impl AnimationLoader {
                                 continue;
                             }
                             let parent_motion = &parent_action.motions[motion_index];
-                            let parent_attach_point = parent_motion.attach_points[0].position;
-                            let attach_point = motion.attach_points[0].position;
-                            let new_offset = -attach_point + parent_attach_point;
+
+                            // Both attach point lists can theoretically be empty for
+                            // custom sprites; skip the offset instead of panicking.
+                            let (Some(parent_attach_point), Some(attach_point)) =
+                                (parent_motion.attach_points.first(), motion.attach_points.first())
+                            else {
+                                continue;
+                            };
+
+                            let new_offset = -attach_point.position + parent_attach_point.position;
                             offset += new_offset;
                         }
 
@@ -319,10 +367,16 @@ impl AnimationLoader {
 
         #[cfg(feature = "debug")]
         if let Err(error) = _result {
+            let entity_files = entity_part_files
+                .iter()
+                .map(|file| file.path.as_str())
+                .collect::<Vec<_>>()
+                .join(";");
+
             print_debug!(
                 "[{}] animation could not be added to cache. Entity Files: '{}': {:?}",
                 "error".red(),
-                &entity_part_files.join(";"),
+                entity_files,
                 error
             );
         }
@@ -330,7 +384,7 @@ impl AnimationLoader {
         Ok(animation_data)
     }
 
-    pub fn get(&self, entity_part_files: &[String]) -> Option<Arc<AnimationData>> {
+    pub fn get(&self, entity_part_files: &[EntityPartFile]) -> Option<Arc<AnimationData>> {
         let mut lock = self.cache.lock().unwrap();
         lock.get(entity_part_files).cloned()
     }
