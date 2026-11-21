@@ -42,6 +42,14 @@ impl WindowCache {
     /// This is only used the first time a window is opened (afterwards the
     /// position the user dragged it to is loaded from the cache file).
     fn register_default_window_positions(&mut self) {
+        // The buff bar sits at the bottom center, above the hotbar.
+        self.entries.entry(WindowClass::BuffBar).or_insert_with(|| {
+            WindowState::new(
+                Anchor::new(AnchorPoint::BottomCenter, ScreenPosition { left: -180.0, top: -150.0 }),
+                ScreenSize { width: 360.0, height: 0.0 },
+            )
+        });
+
         // The minimap belongs in the top right corner, like in the original client.
         self.entries.entry(WindowClass::Minimap).or_insert_with(|| {
             WindowState::new(

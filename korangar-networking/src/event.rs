@@ -104,6 +104,19 @@ pub enum NetworkEvent {
     PlayerSitDown {
         entity_id: EntityId,
     },
+    /// A status effect (buff/debuff) of an entity was started, refreshed or
+    /// ended. Sent by the map server as `ZC_MSG_STATE_CHANGE3` (0x0983) with
+    /// timers, `ZC_MSG_STATE_CHANGE` (0x0196) for ending statuses, and
+    /// `ZC_EFST_SET_ENTER` (0x0984) when the entity enters the client's view
+    /// with an already active status.
+    StatusEffect {
+        entity_id: EntityId,
+        status_index: u16,
+        /// `false` means the status effect ended (or was dispelled).
+        active: bool,
+        total_duration_in_milliseconds: u32,
+        remaining_in_milliseconds: u32,
+    },
     /// An entity completed a skill cast without dealing damage.
     ///
     /// On the 2019 server this comes from `ZC_USE_SKILL` (0x09CB), which is
