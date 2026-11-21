@@ -76,7 +76,7 @@ use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
     AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
-    InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
+    InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -3127,12 +3127,20 @@ impl Client {
                         entity.update_health(health_points, maximum_health_points);
                     }
                 }
-                NetworkEvent::UpdateStat { stat_type } => match self.client_state.try_follow_mut(this_player()) {
-                    Some(player) => player.update_stat(stat_type),
-                    // The initial stat burst can arrive before the local player entity
-                    // was created; buffer it instead of dropping it.
-                    None => self.pending_stat_updates.push(stat_type),
-                },
+                NetworkEvent::UpdateStat { stat_type } => {
+                    // The zeny amount is displayed by the inventory window, so keep it in
+                    // the client state as well (the player stats do not contain it).
+                    if let StatType::Zeny(value) = stat_type {
+                        *self.client_state.follow_mut(client_state().zeny()) = Some(u64::from(value));
+                    }
+
+                    match self.client_state.try_follow_mut(this_player()) {
+                        Some(player) => player.update_stat(stat_type),
+                        // The initial stat burst can arrive before the local player entity
+                        // was created; buffer it instead of dropping it.
+                        None => self.pending_stat_updates.push(stat_type),
+                    }
+                }
                 NetworkEvent::OpenDialog { text, npc_id } => {
                     self.client_state
                         .follow_mut(client_state().dialog_window())
@@ -3698,12 +3706,26 @@ impl Client {
             return;
         }
 
+        let pending_stat_updates: Vec<StatType> = self.pending_stat_updates.take().collect();
+
+        // The zeny value is displayed by the inventory window, so keep it in the client
+        // state (the player stats do not contain it).
+        if let Some(zeny) = pending_stat_updates.iter().rev().find_map(|stat_type| match stat_type {
+            StatType::Zeny(value) => Some(u64::from(*value)),
+            _ => None,
+        }) {
+            *self.client_state.follow_mut(client_state().zeny()) = Some(zeny);
+        }
+
         let Some(player) = self.client_state.try_follow_mut(this_player()) else {
             // Still no player; keep the updates buffered for a later frame.
+            for stat_type in pending_stat_updates {
+                self.pending_stat_updates.push(stat_type);
+            }
             return;
         };
 
-        for stat_type in self.pending_stat_updates.take() {
+        for stat_type in pending_stat_updates {
             player.update_stat(stat_type);
         }
     }

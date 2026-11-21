@@ -185,6 +185,11 @@ pub struct ClientState {
     hotbar: Hotbar,
     /// Player inventory.
     inventory: Inventory,
+    /// Amount of zeny the character has, `None` until the server sent the first
+    /// zeny update (the initial zeny is not necessarily part of the login
+    /// data).
+    #[hidden_element]
+    zeny: Option<u64>,
     /// Player skill tree.
     skill_tree: SkillTree,
 
@@ -344,6 +349,7 @@ impl ClientState {
             let player_name = String::new();
             let hotbar = Hotbar::default();
             let inventory = Inventory::default();
+            let zeny = None;
             let skill_tree = SkillTree::default();
             let skill_tree_window = SkillTreeWindowState::default();
         });
@@ -418,6 +424,7 @@ impl ClientState {
             player_name,
             hotbar,
             inventory,
+            zeny,
             skill_tree,
             character_servers,
             character_slots,

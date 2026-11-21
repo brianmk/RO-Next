@@ -2192,14 +2192,15 @@ pub struct ExchangeAckPacket2019 {
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0A37)]
 pub struct ItemPickupAckPacket2019 {
-    pub inventory_index: u16,
+    pub inventory_index: InventoryIndex,
     pub amount: u16,
     pub item_id: ItemId,
     pub identified: u8,
     pub damaged: u8,
     pub refinement_level: u8,
-    pub card: [u32; 4],
-    pub equip_position: u32,
+    /// `EQUIPSLOTINFO` of the server: `{ uint16 card[4]; }` (8 bytes).
+    pub card: [u16; 4],
+    pub equip_position: EquipPosition,
     pub item_type: u8,
     pub result: u8,
     pub hire_expiration_date: i32,

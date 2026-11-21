@@ -7,7 +7,9 @@ use rust_state::{Path, PathExt, State, VecIndexExt};
 
 use crate::ItemSource;
 use crate::interface::components::item_box::{ItemBox, ItemBoxContextMenu};
+use crate::interface::components::zeny::ZenyDisplay;
 use crate::interface::windows::WindowClass;
+use crate::loaders::OverflowBehavior;
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::inventory::{ItemCategory, item_category};
 use crate::state::localization::LocalizationPathExt;
@@ -90,6 +92,17 @@ where
                     ),
                 },
                 InventoryGrid::new(self.items_path, self.settings_path),
+                split! {
+                    gaps: theme().window().gaps(),
+                    children: (
+                        text! {
+                            text: "Zeny",
+                            height: 18.0,
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        ZenyDisplay::new(client_state().zeny()),
+                    ),
+                },
             ),
         }
     }
