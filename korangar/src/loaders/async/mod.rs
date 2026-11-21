@@ -18,8 +18,8 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
 use crate::world::{
-    Actions, AnimationData, EntityType, ItemInfo, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map,
-    ResourceMetadata, SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
+    Actions, AnimationData, EntityType, ItemInfo, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
+    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -228,13 +228,7 @@ impl AsyncLoader {
         });
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
-        let name = self
-            .library
-            .get::<ItemName>(ItemNameKey {
-                item_id: item.item_id,
-                is_identified,
-            })
-            .to_string();
+        let name = self.library.item_name(item.item_id, is_identified).into_owned();
         let stats = *self.library.get::<ItemStats>(item.item_id);
         let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
 
@@ -255,13 +249,7 @@ impl AsyncLoader {
         });
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
-        let name = self
-            .library
-            .get::<ItemName>(ItemNameKey {
-                item_id: item.item_id,
-                is_identified: true,
-            })
-            .to_string();
+        let name = self.library.item_name(item.item_id, true).into_owned();
         let stats = *self.library.get::<ItemStats>(item.item_id);
         let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
 

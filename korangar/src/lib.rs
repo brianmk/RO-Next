@@ -3395,7 +3395,7 @@ impl Client {
                     quantity,
                     is_identified,
                 } => {
-                    let name = self.library.get::<ItemName>(ItemNameKey { item_id, is_identified }).to_string();
+                    let name = self.library.item_name(item_id, is_identified);
                     let message = format!("You got {name} ({quantity}).");
                     self.client_state
                         .follow_mut(client_state().chat_messages())
@@ -7495,10 +7495,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                         .iter()
                         .find(|item| item.get_entity_id() == entity_id)
                     {
-                        let name = self.library.get::<ItemName>(ItemNameKey {
-                            item_id: item.item_id,
-                            is_identified: item.is_identified,
-                        });
+                        let name = self.library.item_name(item.item_id, item.is_identified);
 
                         // TODO: Don't allocate every frame
                         let text = format!("{name}: {}ea", item.quantity);
