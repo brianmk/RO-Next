@@ -342,6 +342,13 @@ impl InputSystem {
             events.push(InputEvent::CycleMapWindows);
         }
 
+        // Plain I opens/closes the inventory window, like the classic client. It
+        // is ignored while a text input (chat, login, ...) has focus, those keys
+        // belong to the text box. Alt+E remains as the alternative shortcut.
+        if !control_down && !alt_down && !shift_down && self.get_key(KeyCode::KeyI).pressed() {
+            events.push(InputEvent::ToggleInventoryWindow);
+        }
+
         if control_down && self.get_key(KeyCode::KeyQ).pressed() {
             events.push(InputEvent::CloseTopWindow);
         }
