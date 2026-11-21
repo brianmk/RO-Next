@@ -71,6 +71,16 @@ impl Table for JobIdentity {
 
     fn get<'a, 'b>(library: &'a Library, key: Self::Key<'b>) -> &'a Self {
         static DEFAULT: JobIdentity = JobIdentity(Cow::Borrowed("1_f_maria"));
-        Self::try_get(library, key).unwrap_or(&DEFAULT)
+
+        match Self::try_get(library, key) {
+            Some(job_identity) => job_identity,
+            None => {
+                // Unknown job ids used to silently render the female Maria NPC sprite.
+                // Keep the sprite as a safe fallback (it exists in the GRFs), but make
+                // the missing mapping visible instead of hiding it.
+                super::job_alias::warn_once("no job identity, using the default npc sprite", JobId(key.0));
+                &DEFAULT
+            }
+        }
     }
 }

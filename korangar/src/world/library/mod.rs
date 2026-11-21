@@ -3,6 +3,9 @@ mod item_info;
 mod item_name;
 mod item_resource;
 mod item_stats;
+pub(crate) mod job_alias;
+#[cfg(test)]
+mod job_audit;
 mod job_identity;
 mod map_sky_data;
 mod monster_sprite;
@@ -82,6 +85,20 @@ impl Library {
 
     pub fn get<T: Table>(&self, key: T::Key<'_>) -> &T {
         T::get(self, key)
+    }
+
+    /// Returns whether the job has a job identity (name/sprite) in this data
+    /// set.
+    #[cfg(test)]
+    pub fn has_job_identity(&self, job_id: JobId) -> bool {
+        job_identity::JobIdentity::try_get(self, job_id).is_some()
+    }
+
+    /// Returns whether the job resolves to a non-empty skill tree (directly or
+    /// via the generated fallback table).
+    #[cfg(test)]
+    pub fn has_skill_tree(&self, job_id: JobId) -> bool {
+        skill_tree::SkillTreeLayout::resolve(self, job_id).is_some()
     }
 
     /// Sprite path (relative to `data\sprite\`, without extension) for a
