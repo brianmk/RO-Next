@@ -359,6 +359,14 @@ pub enum NetworkEvent {
         account_id: AccountId,
         character_id: CharacterId,
     },
+    /// Online state (and, for online friends, the name) of a friend arrived
+    /// via `ZC_FRIENDS_STATE` (0x0206).
+    FriendOnlineState {
+        account_id: AccountId,
+        character_id: CharacterId,
+        online: bool,
+        name: String,
+    },
     SetHotkeyData {
         tab: HotbarTab,
         hotkeys: Vec<HotkeyState>,

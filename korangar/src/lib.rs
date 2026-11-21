@@ -75,7 +75,7 @@ use networking::{PacketHistory, PacketHistoryCallback};
 #[cfg(not(feature = "debug"))]
 use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
-    AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
+    AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, Friend, HotbarSlot,
     InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
@@ -3437,15 +3437,80 @@ impl Client {
                     self.networking_system.disconnect_from_map_server();
                 }
                 NetworkEvent::FriendRequest { requestee } => {
+                    crate::state::friend_names::remember(requestee.character_id.0, &requestee.name);
                     self.interface.open_window(FriendRequestWindow::new(requestee));
                 }
                 NetworkEvent::FriendRemoved { account_id, character_id } => {
-                    self.client_state
-                        .follow_mut(client_state().friend_list())
-                        .retain(|friend| !(friend.account_id == account_id && friend.character_id == character_id));
+                    let friend_list = self.client_state.follow_mut(client_state().friend_list());
+                    if let Some(index) = friend_list
+                        .iter()
+                        .position(|friend| friend.account_id == account_id && friend.character_id == character_id)
+                    {
+                        friend_list.remove(index);
+                        let friend_online = self.client_state.follow_mut(client_state().friend_online());
+                        if index < friend_online.len() {
+                            friend_online.remove(index);
+                        }
+                    }
                 }
                 NetworkEvent::FriendAdded { friend } => {
+                    crate::state::friend_names::remember(friend.character_id.0, &friend.name);
                     self.client_state.follow_mut(client_state().friend_list()).push(friend);
+                    self.client_state.follow_mut(client_state().friend_online()).push(false);
+                }
+                NetworkEvent::FriendOnlineState {
+                    account_id,
+                    character_id,
+                    online,
+                    name,
+                } => {
+                    crate::logging::log_debug!("friend 0x0206: cid={} online={} name={:?}", character_id.0, online, name);
+                    crate::state::friend_names::remember(character_id.0, &name);
+
+                    let index = self
+                        .client_state
+                        .follow(client_state().friend_list())
+                        .iter()
+                        .position(|friend| friend.character_id == character_id || friend.account_id == account_id);
+
+                    if let Some(index) = index {
+                        {
+                            let friend_list = self.client_state.follow_mut(client_state().friend_list());
+                            if !name.trim().is_empty() {
+                                friend_list[index].name = name.clone();
+                            } else if friend_list[index].name.trim().is_empty() {
+                                friend_list[index].name = crate::state::friend_names::cached_name(character_id.0).unwrap_or_default();
+                            }
+                        }
+
+                        let friend_count = self.client_state.follow(client_state().friend_list()).len();
+                        let friend_online = self.client_state.follow_mut(client_state().friend_online());
+                        friend_online.resize(friend_count, false);
+                        friend_online[index] = online;
+                    } else {
+                        // The 0x0206 update can arrive before/without a 0x0201 entry
+                        // (for example right after accepting a friend request): add the
+                        // friend so the UI shows it immediately.
+                        let display_name = if name.trim().is_empty() {
+                            crate::state::friend_names::cached_name(character_id.0).unwrap_or_default()
+                        } else {
+                            name.clone()
+                        };
+
+                        let friend_count = {
+                            let friend_list = self.client_state.follow_mut(client_state().friend_list());
+                            friend_list.push(Friend {
+                                account_id,
+                                character_id,
+                                name: display_name,
+                            });
+                            friend_list.len()
+                        };
+
+                        let friend_online = self.client_state.follow_mut(client_state().friend_online());
+                        friend_online.resize(friend_count, false);
+                        friend_online[friend_count - 1] = online;
+                    }
                 }
                 NetworkEvent::VisualEffect { effect_path, entity_id } => {
                     self.spawn_entity_effect(effect_path, entity_id, Vector3::new(0.0, 9.0, 0.0), 1.0, Color::WHITE, 50.0);
@@ -3545,7 +3610,28 @@ impl Client {
                     self.warp_skill_units.retain(|(unit_entity_id, ..)| *unit_entity_id != entity_id);
                 }
                 NetworkEvent::SetFriendList { friend_list } => {
+                    let friend_list = friend_list
+                        .into_iter()
+                        .map(|mut friend| {
+                            if friend.name.trim().is_empty() {
+                                if let Some(name) = crate::state::friend_names::cached_name(friend.character_id.0) {
+                                    friend.name = name;
+                                }
+                            } else {
+                                crate::state::friend_names::remember(friend.character_id.0, &friend.name);
+                            }
+                            friend
+                        })
+                        .collect::<Vec<_>>();
+                    let friend_count = friend_list.len();
+
+                    crate::logging::log_debug!(
+                        "friend list: {} entries (names filled from the persistent cache where known)",
+                        friend_count
+                    );
+
                     *self.client_state.follow_mut(client_state().friend_list()) = friend_list;
+                    *self.client_state.follow_mut(client_state().friend_online()) = vec![false; friend_count];
                 }
                 NetworkEvent::SetHotkeyData { tab, hotkeys } => {
                     // FIX: Since we only have one hotbar at the moment, we ignore

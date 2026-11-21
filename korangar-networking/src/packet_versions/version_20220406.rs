@@ -1095,7 +1095,12 @@ where
             })
             .collect(),
     })?;
-    packet_handler.register_noop::<FriendOnlineStatusPacket>()?;
+    packet_handler.register(|packet: FriendOnlineStatusPacket| NetworkEvent::FriendOnlineState {
+        account_id: packet.account_id,
+        character_id: packet.character_id,
+        online: matches!(packet.state, OnlineState::Online),
+        name: packet.name,
+    })?;
     packet_handler.register(|packet: FriendRequestPacket| NetworkEvent::FriendRequest {
         requestee: packet.requestee,
     })?;
