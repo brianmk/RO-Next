@@ -4463,17 +4463,35 @@ impl Client {
                         self.use_skill(None, skill_id, skill_type, level);
                     }
                 }
-                InputEvent::CastSkill { skill_id, level } => {
-                    // Copy the details out of the skill lookup so the borrow of the
-                    // client state ends before any buffered action is written.
-                    let skill_information = self
+                InputEvent::CastSkill {
+                    skill_id,
+                    skill_type,
+                    level,
+                } => {
+                    // The skill type comes from the skill the player selected (hotbar or
+                    // skill tree); the learned list is only used for the range, with a
+                    // fallback so a cast is never silently dropped just because the
+                    // learned entry is missing (e.g. high-job/trimmed skill trees).
+                    let attack_range = self
                         .client_state
                         .follow(client_state().skill_tree().skills())
                         .iter()
                         .find(|learned_skill| learned_skill.skill_id == skill_id)
-                        .map(|learned_skill| (learned_skill.skill_type, learned_skill.attack_range));
+                        .map(|learned_skill| learned_skill.attack_range)
+                        .unwrap_or(AttackRange(1));
 
-                    if let Some((skill_type, attack_range)) = skill_information {
+                    if crate::logging::enabled(crate::logging::LEVEL_DEBUG) {
+                        crate::logging::log_debug!(
+                            "cast skill {:?} level {} type {:?} range {} target {:?}",
+                            skill_id,
+                            level.0,
+                            skill_type,
+                            attack_range.0,
+                            input_report.mouse_target
+                        );
+                    }
+
+                    {
                         match skill_type {
                             SkillType::Passive => {}
                             SkillType::Attack => {
@@ -4517,6 +4535,11 @@ impl Client {
                                             let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                         }
                                     }
+                                } else {
+                                    crate::logging::log_debug!(
+                                        "cast skill {:?}: no entity target or map, dropping the attack cast",
+                                        skill_id
+                                    );
                                 }
                             }
                             SkillType::Ground | SkillType::Trap => {
@@ -4555,6 +4578,11 @@ impl Client {
                                             }
                                         }
                                     }
+                                } else {
+                                    crate::logging::log_debug!(
+                                        "cast skill {:?}: ground skill without a tile target, dropping the cast",
+                                        skill_id
+                                    );
                                 }
                             }
                             SkillType::SelfCast => match skill_id == ROLLING_CUTTER_ID {
@@ -4615,6 +4643,11 @@ impl Client {
                                         }
                                     }
                                 } else {
+                                    crate::logging::log_debug!(
+                                        "cast skill {:?}: support skill without an entity target, casting on self",
+                                        skill_id
+                                    );
+
                                     let _ = self.networking_system.cast_skill(
                                         skill_id,
                                         level,
@@ -5812,13 +5845,17 @@ impl Client {
                 } else {
                     interface_frame.unfocus();
 
-                    if let Some((_, skill_id, _, level)) = skill_target {
+                    if let Some((_, skill_id, skill_type, level)) = skill_target {
                         // A skill target is being selected. Any click ends the
                         // selection, and a left click casts the skill at whatever
                         // is under the cursor. The mouse mode is reset by the
                         // mouse button release.
                         if mouse_button == MouseButton::Left {
-                            self.input_event_buffer.push(InputEvent::CastSkill { skill_id, level });
+                            self.input_event_buffer.push(InputEvent::CastSkill {
+                                skill_id,
+                                skill_type,
+                                level,
+                            });
                         }
                     } else if mouse_button == MouseButton::Left {
                         match input_report.mouse_target {
