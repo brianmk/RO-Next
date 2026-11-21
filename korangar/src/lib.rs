@@ -2031,6 +2031,69 @@ impl Client {
     /// level drop, configured style), so this only has to create the effect
     /// once per entity. Entities whose base level is unknown (NPCs, population
     /// shells that are only sent via a spawn packet) are skipped gracefully.
+    /// Adds learned skills that the character's (possibly fallback) job skill
+    /// tree does not contain to a synthetic "Learned" tab.
+    ///
+    /// High/expanded job ids map to a fallback base job tree (or have a trimmed
+    /// tree in this data set), so skills the server reports as learned can be
+    /// missing from whatever tree the client resolved. The tree only iterates
+    /// its layout skills, so without this those skills would be invisible
+    /// even though they are learned (use/drag/right-click never had a slot
+    /// to interact with).
+    fn merge_learned_skills_into_skill_tree(&mut self, client_tick: ClientTick) {
+        let learned_skill_ids: Vec<SkillId> = self
+            .client_state
+            .follow(client_state().skill_tree().skills())
+            .iter()
+            .map(|learned_skill| learned_skill.skill_id)
+            .collect();
+
+        if learned_skill_ids.is_empty() {
+            return;
+        }
+
+        let Some(job_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_job_id()) else {
+            return;
+        };
+
+        let existing_skill_ids: std::collections::HashSet<SkillId> = self
+            .client_state
+            .follow(client_state().skill_tree().layout())
+            .tabs
+            .iter()
+            .flat_map(|tab| tab.skills.values().map(|skill| skill.skill_id))
+            .collect();
+
+        let missing_skill_ids: Vec<SkillId> = learned_skill_ids
+            .into_iter()
+            .filter(|skill_id| !existing_skill_ids.contains(skill_id))
+            .collect();
+
+        if missing_skill_ids.is_empty() {
+            return;
+        }
+
+        let mut learned_tab = crate::state::skills::SkillTabLayout {
+            name: "Learned".to_owned(),
+            skills: Default::default(),
+        };
+
+        for (slot, skill_id) in missing_skill_ids.into_iter().enumerate() {
+            learned_tab.skills.insert(
+                slot,
+                self.async_loader.request_learnable_skill_load(job_id, skill_id, client_tick),
+            );
+        }
+
+        let layout = self.client_state.follow_mut(client_state().skill_tree().layout());
+        layout.tabs.push(learned_tab);
+
+        // Make the tab visible immediately: the tree shows the selected tab, so the
+        // player does not have to guess where the missing skills went.
+        let selected_tab = layout.tabs.len().saturating_sub(1);
+        *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = selected_tab;
+    }
+
     fn update_level_99_auras(&mut self) {
         let style = *self.client_state.follow(client_state().interface_settings().level_99_aura_style());
 
@@ -3219,6 +3282,8 @@ impl Client {
                     }
                     *self.client_state.follow_mut(client_state().skill_tree().skills()) =
                         skill_information.into_iter().map(LearnedSkill::new).collect();
+
+                    self.merge_learned_skills_into_skill_tree(client_tick);
                 }
                 NetworkEvent::UpdateSkillInfo {
                     skill_id,
@@ -3258,6 +3323,8 @@ impl Client {
                         Some(existing) => *existing = learned_skill,
                         None => skills.push(learned_skill),
                     }
+
+                    self.merge_learned_skills_into_skill_tree(client_tick);
                 }
                 NetworkEvent::InventoryItemAmountChanged { index, amount } => {
                     self.client_state
