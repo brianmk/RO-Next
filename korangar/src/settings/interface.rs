@@ -76,6 +76,9 @@ fn default_transparent_chat() -> bool {
 }
 
 fn default_minimap_transparent_frame() -> bool {
+    false
+}
+
 fn default_character_overview_compact() -> bool {
     false
 }
