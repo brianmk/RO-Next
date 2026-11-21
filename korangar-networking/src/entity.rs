@@ -27,6 +27,12 @@ pub struct EntityData {
     /// This is empty for entities that spawn through the entity-appear
     /// packets; the name is filled in once the server answers a name request.
     pub guild_name: String,
+    /// Lower headgear view id (`accessory` in the packets).
+    pub accessory: u16,
+    /// Upper headgear view id (`accessory2` in the packets).
+    pub accessory2: u16,
+    /// Middle headgear view id (`accessory3` in the packets).
+    pub accessory3: u16,
 }
 
 impl EntityData {
@@ -49,6 +55,9 @@ impl EntityData {
             // player details response (`0x0A30`).
             guild_id: 0,
             guild_name: String::new(),
+            accessory: character_information.accessory as u16,
+            accessory2: character_information.accessory2 as u16,
+            accessory3: character_information.accessory3 as u16,
         }
     }
 }
@@ -70,6 +79,9 @@ impl From<EntityAppearPacket> for EntityData {
             body_palette: packet.body_palette,
             guild_id: packet.guild_id,
             guild_name: String::new(),
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }
@@ -91,6 +103,9 @@ impl From<EntityAppear2Packet> for EntityData {
             body_palette: packet.body_palette,
             guild_id: packet.guild_id,
             guild_name: String::new(),
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }
@@ -114,6 +129,9 @@ impl From<MovingEntityAppearPacket> for EntityData {
             body_palette: packet.body_palette,
             guild_id: packet.guild_id,
             guild_name: String::new(),
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }

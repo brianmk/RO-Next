@@ -61,6 +61,12 @@ impl SpriteLoader {
         self.cache.lock().unwrap().statistics()
     }
 
+    /// Tests if a sprite file (path relative to `data\sprite\`, including the
+    /// extension) exists in the game archives.
+    pub fn file_exists(&self, path: &str) -> bool {
+        self.game_file_loader.file_exists(&format!("data\\sprite\\{path}").to_lowercase())
+    }
+
     /// Builds the cache key for a sprite. The same sprite file can be rendered
     /// with different external palettes (hair and body colors), so the palette
     /// has to be part of the key.

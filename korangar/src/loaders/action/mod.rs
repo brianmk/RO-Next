@@ -43,6 +43,12 @@ impl ActionLoader {
         self.cache.lock().unwrap().statistics()
     }
 
+    /// Tests if an action file (path relative to `data\sprite\`, including the
+    /// extension) exists in the game archives.
+    pub fn file_exists(&self, path: &str) -> bool {
+        self.game_file_loader.file_exists(&format!("data\\sprite\\{path}").to_lowercase())
+    }
+
     pub fn load(&self, path: &str) -> Result<Arc<Actions>, LoadError> {
         #[cfg(feature = "debug")]
         let timer = Timer::new_dynamic(format!("load actions from {}", path.magenta()));

@@ -1,3 +1,4 @@
+mod accessory_name;
 mod baby_job;
 mod item_info;
 mod item_name;
@@ -19,8 +20,9 @@ use encoding_rs::EUC_KR;
 use hashbrown::HashMap;
 use korangar_loaders::FileLoader;
 use mlua::Lua;
-use ragnarok_packets::{JobId, SkillId};
+use ragnarok_packets::{JobId, Sex, SkillId};
 
+pub use self::accessory_name::AccessoryName;
 pub use self::baby_job::IsBabyJob;
 pub use self::item_info::ItemInfo;
 pub use self::item_name::{ItemName, ItemNameKey};
@@ -45,6 +47,7 @@ pub struct Library {
     baby_job_table: <IsBabyJob as Table>::Storage,
     monster_sprites: MonsterSprites,
     skill_icons: SkillIcons,
+    accessory_name_table: <AccessoryName as Table>::Storage,
 }
 
 impl Library {
@@ -58,6 +61,7 @@ impl Library {
         let baby_job_table = IsBabyJob::load(game_file_loader)?;
         let monster_sprites = MonsterSprites::load(game_file_loader, &job_identity_table);
         let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
+        let accessory_name_table = AccessoryName::load(game_file_loader)?;
 
         Ok(Self {
             job_identity_table,
@@ -69,6 +73,7 @@ impl Library {
             baby_job_table,
             monster_sprites,
             skill_icons,
+            accessory_name_table,
         })
     }
 
@@ -103,6 +108,31 @@ impl Library {
     #[inline(always)]
     pub fn skill_icon_path(&self, skill_id: SkillId) -> &str {
         self.skill_icons.path(skill_id)
+    }
+
+    /// Sprite path (relative to `data\sprite\`, without extension) of a
+    /// headgear accessory for the given view id and sex.
+    ///
+    /// Returns `None` if the view id is unknown (e.g. an item added by the
+    /// server that is not part of the client data) or if the accessory has no
+    /// sprite for the given sex. Callers then simply skip the accessory
+    /// instead of trying to load a missing sprite.
+    pub fn accessory_sprite_path(&self, view_id: u16, sex: Sex) -> Option<String> {
+        if view_id == 0 {
+            return None;
+        }
+
+        let accessory_name = self.accessory_name_table.get(&view_id)?;
+        let sex_sprite_path = match sex {
+            Sex::Female => "여",
+            Sex::Male => "남",
+            _ => return None,
+        };
+
+        Some(format!(
+            "악세사리\\{sex_sprite_path}\\{sex_sprite_path}{}",
+            accessory_name.name()
+        ))
     }
 }
 

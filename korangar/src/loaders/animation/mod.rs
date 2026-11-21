@@ -74,15 +74,30 @@ impl AnimationLoader {
         entity_type: EntityType,
         entity_part_files: &[EntityPartFile],
     ) -> Result<Arc<AnimationData>, LoadError> {
-        let animation_pairs: Vec<AnimationPair> = entity_part_files
-            .iter()
-            .map(|file| {
-                Ok(AnimationPair {
-                    sprites: sprite_loader.get_or_load(&format!("{}.spr", file.path), file.palette_path.as_deref())?,
-                    actions: action_loader.get_or_load(&format!("{}.act", file.path))?,
-                })
-            })
-            .collect::<Result<Vec<AnimationPair>, LoadError>>()?;
+        let mut animation_pairs: Vec<AnimationPair> = Vec::with_capacity(entity_part_files.len());
+
+        for (part_index, file) in entity_part_files.iter().enumerate() {
+            // The first two parts are the mandatory body and head of a player.
+            // Additional parts (headgear accessories) are optional: if their
+            // sprite or action is missing from the game archives, skip the part
+            // instead of drawing the fallback (black) sprite.
+            if part_index >= 2
+                && !(sprite_loader.file_exists(&format!("{}.spr", file.path)) && action_loader.file_exists(&format!("{}.act", file.path)))
+            {
+                #[cfg(feature = "debug")]
+                print_debug!(
+                    "[{}] missing accessory files for {}, skipping the headgear part",
+                    "error".red(),
+                    file.path.magenta()
+                );
+                continue;
+            }
+
+            animation_pairs.push(AnimationPair {
+                sprites: sprite_loader.get_or_load(&format!("{}.spr", file.path), file.palette_path.as_deref())?,
+                actions: action_loader.get_or_load(&format!("{}.act", file.path))?,
+            });
+        }
 
         let mut animations_list: Vec<Vec<Vec<AnimationFrame>>> = Vec::new();
 
@@ -171,15 +186,16 @@ impl AnimationLoader {
                         let mut offset = sprite_clip.position.map(|component| component);
                         let mirror = sprite_clip.mirror_on != 0;
 
-                        // Attach points have a different offset calculation.
-                        // Currently, this is hardcoded for the player heads. An `animation_index` of
-                        // `0` corresponds to the head, and `1` for the body.
+                        // Attach points have a different offset calculation. The body is
+                        // the root part (`animation_index` `0`), every other player part
+                        // (head and headgear accessories) is positioned relative to the
+                        // attach point of the body.
                         let has_attach_point = match motion.attach_point_count {
                             Some(value) => value == 1,
                             None => false,
                         };
 
-                        if entity_type == EntityType::Player && has_attach_point && animation_index == 1 {
+                        if entity_type == EntityType::Player && has_attach_point && animation_index >= 1 {
                             let parent_animation_pair = &animation_pairs[0];
                             let parent_action = &parent_animation_pair.actions.actions[action_index];
                             // TODO: Precompute the size of each motion from the animation pair.
@@ -190,15 +206,21 @@ impl AnimationLoader {
                             }
                             let parent_motion = &parent_action.motions[motion_index];
 
-                            // Both attach point lists can theoretically be empty for
-                            // custom sprites; skip the offset instead of panicking.
-                            let (Some(parent_attach_point), Some(attach_point)) =
-                                (parent_motion.attach_points.first(), motion.attach_points.first())
-                            else {
+                            // The attach point lists can theoretically be empty for
+                            // custom sprites; skip the offset (but still draw the part)
+                            // if the part has no attach point at all.
+                            let Some(attach_point) = motion.attach_points.first() else {
                                 continue;
                             };
 
-                            let new_offset = -attach_point.position + parent_attach_point.position;
+                            let mut new_offset = -attach_point.position;
+
+                            // If the body has an attach point of its own, the part is
+                            // aligned with it, just like the head is.
+                            if let Some(parent_attach_point) = parent_motion.attach_points.first() {
+                                new_offset += parent_attach_point.position;
+                            }
+
                             offset += new_offset;
                         }
 
@@ -265,10 +287,22 @@ impl AnimationLoader {
                 let mut generate: Vec<AnimationFrame> = Vec::new();
 
                 for pair in &animations_list[0..animation_pair_size] {
-                    if pair.len() <= action_index || pair[action_index].len() <= motion_index {
+                    if pair.is_empty() {
                         continue;
                     }
-                    generate.push(pair[action_index][motion_index].clone());
+
+                    // Sprites can have fewer actions than the body (many
+                    // headgear accessories reuse a reduced action set). The
+                    // official client wraps the action index for those, so the
+                    // accessory keeps being drawn during e.g. attack animations
+                    // instead of disappearing.
+                    let pair_action_index = action_index % pair.len();
+
+                    if pair[pair_action_index].len() <= motion_index {
+                        continue;
+                    }
+
+                    generate.push(pair[pair_action_index][motion_index].clone());
                 }
                 let frame = merge_frame(&mut generate);
                 frames.push(frame);

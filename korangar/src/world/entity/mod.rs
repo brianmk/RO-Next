@@ -174,6 +174,15 @@ pub struct Common {
     /// Clothes color palette index (`body_palette` in the network packets).
     #[hidden_element]
     pub body_palette: u16,
+    /// Lower headgear view id (`accessory` in the network packets).
+    #[hidden_element]
+    pub accessory: u16,
+    /// Upper headgear view id (`accessory2` in the network packets).
+    #[hidden_element]
+    pub accessory2: u16,
+    /// Middle headgear view id (`accessory3` in the network packets).
+    #[hidden_element]
+    pub accessory3: u16,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
     pub tile_position: TilePosition,
@@ -398,6 +407,9 @@ fn get_entity_part_files(
     head: Option<usize>,
     head_palette: u16,
     body_palette: u16,
+    accessory: u16,
+    accessory2: u16,
+    accessory3: u16,
 ) -> Vec<EntityPartFile> {
     let sex_sprite_path = match sex == Sex::Female {
         true => "여",
@@ -435,13 +447,49 @@ fn get_entity_part_files(
             // falls back to the palette embedded in the sprite.
             // The palette file is paired with the rendered hair sprite, i.e. it
             // uses the same (translated) hair id as the sprite path.
-            vec![
+            let mut entity_part_files = vec![
                 EntityPartFile::with_palette(body, Some(player_body_palette_path(sex_sprite_path, job_id, body_palette))),
                 EntityPartFile::with_palette(
                     head_sprite,
                     Some(player_head_palette_path(sex_sprite_path, head_id, head_palette)),
                 ),
-            ]
+            ];
+
+            // Headgear accessories are layered over the head sprite. The network
+            // packet field names follow the official client: `accessory` is the
+            // lower, `accessory2` the upper and `accessory3` the middle headgear.
+            // The official client draws them in the order middle, upper, lower,
+            // skipping entries that would render the same accessory twice.
+            let mut push_accessory = |view_id: u16| {
+                let Some(sprite_path) = library.accessory_sprite_path(view_id, sex) else {
+                    #[cfg(feature = "debug")]
+                    if view_id != 0 {
+                        print_debug!(
+                            "[{}] no accessory sprite for view id {} (sex {:?}), skipping",
+                            "error".red(),
+                            view_id,
+                            sex
+                        );
+                    }
+                    return;
+                };
+
+                entity_part_files.push(EntityPartFile::new(sprite_path));
+            };
+
+            if accessory3 != 0 && accessory3 != accessory {
+                push_accessory(accessory3);
+            }
+
+            if accessory2 != 0 && accessory2 != accessory && accessory2 != accessory3 {
+                push_accessory(accessory2);
+            }
+
+            if accessory != 0 {
+                push_accessory(accessory);
+            }
+
+            entity_part_files
         }
         EntityType::Npc => vec![EntityPartFile::new(format!("npc\\{}", library.get::<JobIdentity>(job_id)))],
         // Monster sprite resolution is handled by the library: it falls back from the
@@ -477,6 +525,9 @@ impl Common {
         let sex = entity_data.sex;
         let head_palette = entity_data.head_palette;
         let body_palette = entity_data.body_palette;
+        let accessory = entity_data.accessory;
+        let accessory2 = entity_data.accessory2;
+        let accessory3 = entity_data.accessory3;
 
         let active_movement = None;
         let entity_type = job_id.into();
@@ -504,6 +555,9 @@ impl Common {
             sex,
             head_palette,
             body_palette,
+            accessory,
+            accessory2,
+            accessory3,
             active_movement,
             entity_type,
             movement_speed,
@@ -522,7 +576,18 @@ impl Common {
     }
 
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
-        get_entity_part_files(library, self.entity_type, self.job_id, self.sex, None, 0, 0)
+        get_entity_part_files(
+            library,
+            self.entity_type,
+            self.job_id,
+            self.sex,
+            None,
+            self.head_palette,
+            self.body_palette,
+            self.accessory,
+            self.accessory2,
+            self.accessory3,
+        )
     }
 
     /// Id of the guild the entity is in, `0` if it is not in a guild.
@@ -1282,6 +1347,9 @@ impl Player {
             Some(self.hair_id),
             common.head_palette,
             common.body_palette,
+            common.accessory,
+            common.accessory2,
+            common.accessory3,
         )
     }
 }
