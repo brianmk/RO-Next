@@ -470,6 +470,38 @@ pub(crate) fn render_world_quad(
     corners: [Point3<f32>; 4],
     texture_coordinates: [Vector2<f32>; 4],
 ) {
+    render_world_quad_blended(
+        renderer,
+        camera,
+        anchor,
+        screen_size,
+        texture,
+        color,
+        corners,
+        texture_coordinates,
+        BlendFactor::One,
+        BlendFactor::One,
+    );
+}
+
+/// Renders a textured quad with explicit blend factors.
+///
+/// The default [`render_world_quad`] uses additive blending that ignores the
+/// texture alpha; effects whose textures have an alpha channel (the official
+/// level-99 aura components) use [`BlendFactor::SrcAlpha`] instead.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn render_world_quad_blended(
+    renderer: &mut EffectRenderer,
+    camera: &dyn Camera,
+    anchor: Point3<f32>,
+    screen_size: ScreenSize,
+    texture: Arc<Texture>,
+    color: Color,
+    corners: [Point3<f32>; 4],
+    texture_coordinates: [Vector2<f32>; 4],
+    source_blend_factor: BlendFactor,
+    destination_blend_factor: BlendFactor,
+) {
     let Some((anchor_screen, _)) = project_point(camera, anchor, screen_size) else {
         return;
     };
@@ -503,8 +535,8 @@ pub(crate) fn render_world_quad(
         Vector2::new(0.0, 0.0),
         Rad(0.0),
         color,
-        BlendFactor::One,
-        BlendFactor::One,
+        source_blend_factor,
+        destination_blend_factor,
     );
 }
 
