@@ -1,32 +1,34 @@
-//! Visual effects for skill casts of other entities.
+//! Visuals for skill casts of other entities.
 //!
-//! Other clients play the caster's skill-cast animation *and* a skill effect
-//! when they receive `ZC_USESKILL_ACK` (`UseSkillAckPacket2019`, header 0x0B1A
-//! on the 2019 server). Korangar never handled that packet, so ambient actors
-//! (self-buffs, crafting, warp portal casts, ...) looked completely static.
+//! Other clients show a *ground cast circle* below the caster while a skill
+//! with a cast time is being cast. Korangar ignored the skill packets
+//! completely until the ambient-plaza work; this module now provides the
+//! per-skill cast circle color and the optional completion effect.
 //!
-//! The 2019 client data set shipped with this server does not contain the
-//! classic skill `.str` effects (there is no `blessing.str`, `incagi.str`,
-//! `hammerfall.str`, `warp.str`, ...; only newer 4th-job style effects are in
-//! the GRFs). For the ambient plaza shows this mapping therefore uses
-//! representative effects that *do* exist in the data:
+//! `.str` effects are screen space sprites in the original client format, so
+//! they cannot be rotated into the ground plane. The cast circle is therefore
+//! drawn procedurally by [`crate::world::CastCircle`] (flat ground quads) and
+//! only *completion* effects that are meant to be screen sprites use `.str`
+//! files.
 //!
-//! * crafting (`BS_HAMMERFALL`, a hammer strike into the ground) uses the
-//!   ground dust puff,
-//! * the priest self-buffs use a golden halo ring / blue chill cloud,
-//! * a warp portal cast uses the magic circle at the caster's feet.
+//! The 2019 GRFs shipped with this server do not contain the classic skill
+//! effects (there is no `blessing.str`, `incagi.str`, `hammerfall.str`,
+//! `warp.str`, ...), so the completion effects use representative files that
+//! exist in the data:
 //!
-//! The cast *animation* itself (the RO ACT skill action) is played for every
-//! skill regardless of this table, so ambient acts are visible even when no
-//! representative effect file exists.
+//! * forging uses the ground dust effect at the feet,
+//! * self-buffs use a small sparkle effect around the torso,
+//! * other casts only get the generic element-colored cast circle.
+//!
+//! The cast circle itself is generic: its color follows the skill element from
+//! the `ZC_USESKILL_ACK` packet.
 
 use cgmath::Vector3;
 use ragnarok_packets::SkillId;
 
 use crate::graphics::Color;
 
-/// Official skill ids used by this table (`db/re/skill_db.yml` ids are stable
-/// across the 2019 pre-renewal database).
+/// Official skill ids used by this table (stable across the 2019 server).
 mod skill_ids {
     pub const BS_HAMMERFALL: u16 = 5;
     /// Skill id the ambient crafting loop uses
@@ -40,84 +42,100 @@ mod skill_ids {
     pub const AC_CONCENTRATION: u16 = 45;
 }
 
-/// A representative `.str` effect for a skill cast.
-pub struct SkillCastEffect {
+/// A short screen sprite effect that is played when a cast completes.
+pub struct CompletionEffect {
     /// Effect file, relative to `data\texture\effect\`.
     pub path: &'static str,
     /// Offset from the caster's feet in world units.
     pub offset: Vector3<f32>,
-    /// Color/intensity of the point light spawned with the effect.
-    pub light_color: Color,
-    pub light_intensity: f32,
+    /// Size multiplier of the screen sprite (1.0 = original size from the
+    /// file).
+    pub scale: f32,
 }
 
-const HALO_EFFECT: &str = "efst_glowofnewyear\\halo.str";
-const CHILL_EFFECT: &str = "chill.str";
+/// Everything the client needs to show and hear a skill cast.
+pub struct SkillVisuals {
+    /// Color of the ground cast circle (radius is shared, see
+    /// [`CAST_CIRCLE_RADIUS`]).
+    pub cast_circle_color: Color,
+    /// Effect on cast completion, if there is one.
+    pub completion: Option<CompletionEffect>,
+    /// Point light spawned with the cast (color, intensity).
+    pub light: (Color, f32),
+}
+
+/// Radius of the ground cast circle in world units. The official cast aura is
+/// roughly one tile wide around the caster.
+pub const CAST_CIRCLE_RADIUS: f32 = 7.0;
+
 const DUST_EFFECT: &str = "dust.str";
-const MAGIC_CIRCLE_EFFECT: &str = "efst_magiccircle\\mc.str";
+const SPARKLE_EFFECT: &str = "strangelights.str";
 
-/// Returns the representative cast effect for a skill, if there is one.
-///
-/// Skills without an entry still get the cast animation, just no `.str`
-/// effect.
-pub fn skill_cast_effect(skill_id: SkillId) -> Option<SkillCastEffect> {
-    let (path, offset, light_color, light_intensity) = match skill_id.0 {
-        // Crafting: hammer strike into the ground -> dust puff at the feet.
-        skill_ids::BS_HAMMERFALL | skill_ids::BS_HAMMERFALL_AMBIENT => {
-            (DUST_EFFECT, Vector3::new(0.0, 0.0, 0.0), Color::rgb_u8(210, 190, 150), 20.0)
-        }
-        // Warp portal cast -> magic circle at the feet.
-        skill_ids::AL_WARP => (
-            MAGIC_CIRCLE_EFFECT,
-            Vector3::new(0.0, 0.0, 0.0),
-            Color::rgb_u8(160, 120, 255),
-            40.0,
-        ),
-        // Agility up -> blue speed cloud around the caster.
-        skill_ids::AL_INCAGI => (CHILL_EFFECT, Vector3::new(0.0, 5.0, 0.0), Color::rgb_u8(150, 200, 255), 30.0),
-        // Angelus / Blessing -> golden halo around the caster.
-        skill_ids::AL_ANGELUS | skill_ids::AL_BLESSING | skill_ids::AC_CONCENTRATION => {
-            (HALO_EFFECT, Vector3::new(0.0, 8.0, 0.0), Color::rgb_u8(255, 230, 160), 40.0)
-        }
-        _ => return None,
-    };
-
-    Some(SkillCastEffect {
-        path,
-        offset,
-        light_color,
-        light_intensity,
+fn sparkles(offset_y: f32) -> Option<CompletionEffect> {
+    Some(CompletionEffect {
+        path: SPARKLE_EFFECT,
+        offset: Vector3::new(0.0, offset_y, 0.0),
+        scale: 0.65,
     })
+}
+
+/// Returns the cast visuals for a skill. Unknown skills still get the generic
+/// element-colored cast ring, only the completion effect is absent.
+pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
+    match skill_id.0 {
+        // Forging: hammer strike into the ground -> dust puff at the feet.
+        skill_ids::BS_HAMMERFALL | skill_ids::BS_HAMMERFALL_AMBIENT => SkillVisuals {
+            cast_circle_color: crate::world::element_color(element),
+            completion: Some(CompletionEffect {
+                path: DUST_EFFECT,
+                offset: Vector3::new(0.0, 0.0, 0.0),
+                scale: 1.2,
+            }),
+            light: (Color::rgb_u8(210, 190, 150), 20.0),
+        },
+        // Warp portal: the ground cast circle is the cast visual; the open
+        // portal itself is a skill unit and rendered separately.
+        skill_ids::AL_WARP => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(160, 130, 255),
+            completion: None,
+            light: (Color::rgb_u8(160, 120, 255), 40.0),
+        },
+        // Priest / archer self-buffs: holy golden cast circle, sparkles on
+        // completion.
+        skill_ids::AL_INCAGI | skill_ids::AL_ANGELUS | skill_ids::AL_BLESSING | skill_ids::AC_CONCENTRATION => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(255, 230, 160),
+            completion: sparkles(10.0),
+            light: (Color::rgb_u8(255, 230, 160), 40.0),
+        },
+        _ => SkillVisuals {
+            cast_circle_color: crate::world::element_color(element),
+            completion: None,
+            light: (crate::world::element_color(element), 25.0),
+        },
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::SkillId;
 
-    use super::skill_cast_effect;
+    use super::skill_visuals;
 
     #[test]
-    fn ambient_plaza_skills_have_a_representative_effect() {
-        // BS_HAMMERFALL (crafting), AL_WARP (portal), AL_INCAGI, AL_ANGELUS,
-        // AL_BLESSING
-        for skill_id in [5, 27, 29, 33, 34] {
-            let effect = skill_cast_effect(SkillId(skill_id)).unwrap_or_else(|| panic!("missing effect for skill {skill_id}"));
-            assert!(effect.path.ends_with(".str"), "effect path should be a .str file");
-            assert!(effect.light_intensity > 0.0);
-        }
+    fn crafting_has_a_completion_effect() {
+        let visuals = skill_visuals(SkillId(110), 0);
+        assert!(visuals.completion.as_ref().is_some_and(|effect| effect.path.ends_with(".str")));
     }
 
     #[test]
-    fn ambient_crafting_and_concentration_have_effects() {
-        // 110 = the ambient crafting skill id, 45 = AC_CONCENTRATION.
-        assert!(skill_cast_effect(SkillId(110)).is_some());
-        assert!(skill_cast_effect(SkillId(45)).is_some());
+    fn unknown_skills_have_no_completion_effect() {
+        assert!(skill_visuals(SkillId(1), 3).completion.is_none());
     }
 
     #[test]
-    fn unknown_skills_do_not_get_a_fake_effect() {
-        // 1 = SM_SWORD, 28 = AL_HEAL: not part of the ambient show.
-        assert!(skill_cast_effect(SkillId(1)).is_none());
-        assert!(skill_cast_effect(SkillId(28)).is_none());
+    fn cast_circle_colors_follow_the_element_for_unknown_skills() {
+        let fire = skill_visuals(SkillId(1), 3);
+        let water = skill_visuals(SkillId(1), 1);
+        assert_ne!(fire.cast_circle_color, water.cast_circle_color);
     }
 }

@@ -129,19 +129,25 @@ impl AnimationState {
         self.idle(entity_type, client_tick);
     }
 
-    /// Play the skill-cast animation once for `cast_time` milliseconds.
+    /// Play the skill-cast animation for `cast_time` milliseconds.
     ///
-    /// This is used for skill casts of *other* entities (ambient NPCs/players
-    /// casting buffs, crafting, warp portals, ...). Once the animation is over
-    /// the entity returns to its idle animation, see
-    /// [`AnimationData::is_animation_over`] usage in `Common::update`.
-    pub fn skill(&mut self, entity_type: EntityType, cast_time: u32, client_tick: ClientTick) {
+    /// Casts with a cast time loop the ACT skill action (the original client
+    /// repeats the casting gesture for as long as the cast bar is filled) and
+    /// return to idle when the cast time is over. Instant casts
+    /// (`looping == false`, `cast_time == 0`) play the whole ACT skill action
+    /// once at its natural frame speed and return to idle when it is over.
+    pub fn skill(&mut self, entity_type: EntityType, cast_time: u32, looping: bool, client_tick: ClientTick) {
         self.action_type = AnimationActionType::Skill;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
-        self.duration = Some(cast_time.max(1));
+        // A non-looping cast has no artificial duration: the ACT file defines how
+        // long the full animation takes, which is what the original client shows.
+        self.duration = match looping {
+            true => Some(cast_time.max(1)),
+            false => None,
+        };
         self.factor = None;
-        self.looping = false;
+        self.looping = looping;
     }
 
     pub fn pickup(&mut self, entity_type: EntityType, client_tick: ClientTick) {
@@ -283,6 +289,19 @@ impl AnimationData {
 
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
 
+        // A looping animation (for example a cast with a cast time) finishes when
+        // its duration is over, but always plays at least one full cycle so that a
+        // very short cast does not cut the casting gesture off after one or two
+        // frames.
+        if let Some(duration) = animation_state.duration
+            && animation_state.looping
+        {
+            let animation_length = animation.frames.len() as f32 * factor;
+            let effective_duration = (duration as f32).max(animation_length);
+
+            return animation_state.time as f32 >= effective_duration;
+        }
+
         let frame_time = animation_state
             .duration
             .map(|duration| animation_state.time * animation.frames.len() as u32 / duration)
@@ -304,10 +323,10 @@ impl AnimationData {
 
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
 
-        let frame_time = animation_state
-            .duration
-            .map(|duration| animation_state.time * animation.frames.len() as u32 / duration)
-            .unwrap_or_else(|| (animation_state.time as f32 / factor) as u32);
+        let frame_time = match animation_state.duration {
+            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration,
+            _ => (animation_state.time as f32 / factor) as u32,
+        };
 
         let frame_index = match animation_state.looping {
             true => frame_time as usize % animation.frames.len(),
@@ -467,21 +486,25 @@ mod tests {
     }
 
     #[test]
-    fn skill_cast_animation_plays_once_with_the_cast_time() {
+    fn cast_time_casts_loop_the_cast_animation() {
         let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
 
-        state.skill(EntityType::Player, 1200, ClientTick(10));
+        state.skill(EntityType::Player, 1200, true, ClientTick(10));
         assert!(state.is_skill());
         assert!(!state.is_sitting());
-        assert!(!state.looping);
+        assert!(state.looping);
         assert_eq!(state.duration, Some(1200));
     }
 
     #[test]
-    fn instant_casts_still_get_a_non_zero_animation_duration() {
+    fn instant_casts_play_the_cast_animation_once_at_natural_speed() {
         let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
 
-        state.skill(EntityType::Player, 0, ClientTick(10));
-        assert_eq!(state.duration, Some(1));
+        state.skill(EntityType::Player, 0, false, ClientTick(10));
+        assert!(state.is_skill());
+        assert!(!state.looping);
+        // No artificial duration: the ACT file defines the animation length, so the
+        // full animation is played instead of squeezing it into a fixed time.
+        assert_eq!(state.duration, None);
     }
 }

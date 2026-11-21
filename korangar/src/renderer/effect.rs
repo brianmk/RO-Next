@@ -32,6 +32,10 @@ impl EffectRenderer {
         self.window_size = window_size;
     }
 
+    pub fn window_size(&self) -> ScreenSize {
+        self.window_size
+    }
+
     /// Renders a screen space effect quad.
     ///
     /// All corners of the effect are assumed to lie on a plane through

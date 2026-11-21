@@ -1,19 +1,13 @@
 use std::f32::consts::{PI, TAU};
 use std::sync::Arc;
 
-use cgmath::{InnerSpace, Point3, Rad, Vector2, Vector3};
-use wgpu::BlendFactor;
+use cgmath::{InnerSpace, Point3, Vector2, Vector3};
 
 use crate::graphics::{Color, ScreenSize, Texture};
 use crate::loaders::{ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
-
-/// The origin that the original client uses for hard-coded effects. Local
-/// effect coordinates are expressed relative to the feet of the effect anchor
-/// on a 640x480 screen, which is exactly the space that [`EffectRenderer`]
-/// expects.
-const EFFECT_ORIGIN: Vector2<f32> = Vector2::new(319.0, 291.0);
+use crate::world::effect::render_world_quad;
 
 /// The map connection portal is not a sprite: the official client renders a
 /// hard-coded effect made out of the `alpha_down.tga` and `ring_blue.tga`
@@ -31,6 +25,12 @@ const PARTICLE_HEIGHT: f32 = 26.0;
 const PARTICLE_MIN_SIZE: f32 = 2.2;
 const PARTICLE_SIZE_VARIATION: f32 = 1.4;
 const MAXIMUM_DISTANCE: f32 = 600.0;
+/// Radius of the flat skill-unit warp portal (AL_WARP) on the ground. The
+/// portal is drawn as a flat swirl like the original client does, not as a
+/// map-connection warp.
+const SKILL_PORTAL_RADIUS: f32 = 8.0;
+const SKILL_PORTAL_HEIGHT: f32 = 0.2;
+const SKILL_PORTAL_RING_COUNT: usize = 2;
 
 /// Textures used by the warp portal effect. They are loaded once when the
 /// client starts, because they are shared between all warps on the map.
@@ -56,16 +56,14 @@ impl WarpPortal {
         })
     }
 
+    /// Renders the map connection warp (`JT_WARPNPC`): a rotating cylinder with
+    /// a ground glow and rising particles.
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize, time: f32) {
         if (camera.focus_point() - position).magnitude() > MAXIMUM_DISTANCE {
             return;
         }
 
         let anchor = position;
-        let Some((anchor_screen, _anchor_depth)) = Self::project(camera, anchor, screen_size) else {
-            return;
-        };
-
         let rotation = time * 0.15;
         let scroll = (time * 0.55) % 1.0;
 
@@ -73,7 +71,6 @@ impl WarpPortal {
             renderer,
             camera,
             anchor,
-            anchor_screen,
             screen_size,
             self.streak_texture.clone(),
             Color::rgba(0.20, 0.40, 0.82, 1.0),
@@ -85,7 +82,6 @@ impl WarpPortal {
             renderer,
             camera,
             anchor,
-            anchor_screen,
             screen_size,
             self.gradient_texture.clone(),
             Color::rgba(0.12, 0.24, 0.46, 1.0),
@@ -93,8 +89,123 @@ impl WarpPortal {
             0.0,
         );
 
-        self.render_ground_glow(renderer, camera, anchor, anchor_screen, screen_size, time);
-        self.render_particles(renderer, camera, anchor, anchor_screen, screen_size, time);
+        self.render_ground_glow(renderer, camera, anchor, screen_size, time);
+        self.render_particles(renderer, camera, anchor, screen_size, time);
+    }
+
+    /// Renders an open skill-unit warp portal (AL_WARP). The original client
+    /// draws it as a flat, rotating swirl on the ground with a soft glow and a
+    /// few rising sparkles, so this is a flat effect instead of the map warp
+    /// cylinder.
+    pub fn render_skill_unit(
+        &self,
+        renderer: &mut EffectRenderer,
+        camera: &dyn Camera,
+        position: Point3<f32>,
+        screen_size: ScreenSize,
+        time: f32,
+        fade: f32,
+    ) {
+        if (camera.focus_point() - position).magnitude() > MAXIMUM_DISTANCE || fade <= 0.0 {
+            return;
+        }
+
+        let anchor = position;
+        let height = Vector3::new(0.0, SKILL_PORTAL_HEIGHT, 0.0);
+
+        // Two counter-rotating rings form the swirl.
+        for ring in 0..SKILL_PORTAL_RING_COUNT {
+            let ring_fade = fade * (1.0 - ring as f32 * 0.35);
+            let radius = SKILL_PORTAL_RADIUS * (1.0 - ring as f32 * 0.3);
+            let angle = time * (1.4 + ring as f32 * 0.8) * if ring % 2 == 0 { 1.0 } else { -1.0 };
+            let color = Color::rgba(0.18 * ring_fade, 0.32 * ring_fade, 0.62 * ring_fade, 1.0);
+
+            let corners = [
+                anchor + height + Vector3::new(-radius, 0.0, -radius),
+                anchor + height + Vector3::new(radius, 0.0, -radius),
+                anchor + height + Vector3::new(-radius, 0.0, radius),
+                anchor + height + Vector3::new(radius, 0.0, radius),
+            ];
+            let rotated_corners = rotate_ground_corners(corners, anchor, angle);
+
+            render_world_quad(
+                renderer,
+                camera,
+                anchor,
+                screen_size,
+                self.streak_texture.clone(),
+                color,
+                rotated_corners,
+                [
+                    Vector2::new(0.0, 0.0),
+                    Vector2::new(1.0, 0.0),
+                    Vector2::new(0.0, 1.0),
+                    Vector2::new(1.0, 1.0),
+                ],
+            );
+        }
+
+        // Soft pulsing glow below the swirl.
+        let pulse = 0.55 + 0.45 * (time * 3.0).sin();
+        render_world_quad(
+            renderer,
+            camera,
+            anchor,
+            screen_size,
+            self.gradient_texture.clone(),
+            Color::rgba(0.08 * fade * pulse, 0.16 * fade * pulse, 0.36 * fade * pulse, 1.0),
+            [
+                anchor + height + Vector3::new(-SKILL_PORTAL_RADIUS * 1.1, 0.0, -SKILL_PORTAL_RADIUS * 1.1),
+                anchor + height + Vector3::new(SKILL_PORTAL_RADIUS * 1.1, 0.0, -SKILL_PORTAL_RADIUS * 1.1),
+                anchor + height + Vector3::new(-SKILL_PORTAL_RADIUS * 1.1, 0.0, SKILL_PORTAL_RADIUS * 1.1),
+                anchor + height + Vector3::new(SKILL_PORTAL_RADIUS * 1.1, 0.0, SKILL_PORTAL_RADIUS * 1.1),
+            ],
+            [
+                Vector2::new(0.0, 1.0),
+                Vector2::new(1.0, 1.0),
+                Vector2::new(0.0, 0.0),
+                Vector2::new(1.0, 0.0),
+            ],
+        );
+
+        // A few sparks rising out of the flat portal.
+        let right_vector = camera.look_up_vector().cross(camera.view_direction()).normalize();
+        let up_vector = camera.view_direction().cross(right_vector).normalize();
+
+        for index in 0..8 {
+            let seed = index as f32 / 8.0;
+            let phase = (time * 0.5 + seed) % 1.0;
+            let angle = seed * TAU * 2.0 + time * 0.4;
+            let radius = 3.0 + 9.0 * (seed * 7.13).fract();
+            let particle_position = anchor + Vector3::new(angle.cos() * radius, phase * 16.0, angle.sin() * radius);
+            let size = 1.1 + 0.8 * (seed * 3.7).fract();
+            let fade_out = (phase * PI).sin() * fade;
+            let horizontal = right_vector * size;
+            let vertical = up_vector * size;
+
+            let corners = [
+                particle_position - horizontal + vertical,
+                particle_position + horizontal + vertical,
+                particle_position - horizontal - vertical,
+                particle_position + horizontal - vertical,
+            ];
+
+            render_world_quad(
+                renderer,
+                camera,
+                anchor,
+                screen_size,
+                self.particle_texture.clone(),
+                Color::rgba(0.35 * fade_out, 0.5 * fade_out, 0.8 * fade_out, 1.0),
+                corners,
+                [
+                    Vector2::new(0.0, 0.0),
+                    Vector2::new(1.0, 0.0),
+                    Vector2::new(0.0, 1.0),
+                    Vector2::new(1.0, 1.0),
+                ],
+            );
+        }
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -103,7 +214,6 @@ impl WarpPortal {
         renderer: &mut EffectRenderer,
         camera: &dyn Camera,
         anchor: Point3<f32>,
-        anchor_screen: Vector2<f32>,
         screen_size: ScreenSize,
         texture: Arc<Texture>,
         color: Color,
@@ -123,11 +233,10 @@ impl WarpPortal {
             let texture_start = segment as f32 / CYLINDER_SEGMENT_COUNT as f32 * CYLINDER_TEXTURE_REPEAT;
             let texture_end = (segment + 1) as f32 / CYLINDER_SEGMENT_COUNT as f32 * CYLINDER_TEXTURE_REPEAT;
 
-            self.render_quad(
+            render_world_quad(
                 renderer,
                 camera,
                 anchor,
-                anchor_screen,
                 screen_size,
                 texture.clone(),
                 color,
@@ -147,7 +256,6 @@ impl WarpPortal {
         renderer: &mut EffectRenderer,
         camera: &dyn Camera,
         anchor: Point3<f32>,
-        anchor_screen: Vector2<f32>,
         screen_size: ScreenSize,
         time: f32,
     ) {
@@ -172,11 +280,10 @@ impl WarpPortal {
         let south_west = anchor + height - forward_vector * GROUND_GLOW_RADIUS - right_vector * GROUND_GLOW_RADIUS;
         let south_east = anchor + height - forward_vector * GROUND_GLOW_RADIUS + right_vector * GROUND_GLOW_RADIUS;
 
-        self.render_quad(
+        render_world_quad(
             renderer,
             camera,
             anchor,
-            anchor_screen,
             screen_size,
             self.particle_texture.clone(),
             color,
@@ -195,7 +302,6 @@ impl WarpPortal {
         renderer: &mut EffectRenderer,
         camera: &dyn Camera,
         anchor: Point3<f32>,
-        anchor_screen: Vector2<f32>,
         screen_size: ScreenSize,
         time: f32,
     ) {
@@ -222,11 +328,10 @@ impl WarpPortal {
             let horizontal = right_vector * size;
             let vertical = up_vector * size;
 
-            self.render_quad(
+            render_world_quad(
                 renderer,
                 camera,
                 anchor,
-                anchor_screen,
                 screen_size,
                 self.particle_texture.clone(),
                 color,
@@ -245,179 +350,61 @@ impl WarpPortal {
             );
         }
     }
-
-    /// Renders a single textured quad. The corners are given in world space in
-    /// counter-clockwise order starting at the top left corner, with the
-    /// matching texture coordinates. They are projected and re-ordered so
-    /// that the quad is never rendered flipped, no matter how the camera is
-    /// rotated.
-    #[allow(clippy::too_many_arguments)]
-    fn render_quad(
-        &self,
-        renderer: &mut EffectRenderer,
-        camera: &dyn Camera,
-        anchor: Point3<f32>,
-        anchor_screen: Vector2<f32>,
-        screen_size: ScreenSize,
-        texture: Arc<Texture>,
-        color: Color,
-        corners: [Point3<f32>; 4],
-        texture_coordinates: [Vector2<f32>; 4],
-    ) {
-        let mut screen_corners = [Vector2::new(0.0, 0.0); 4];
-        let mut corner_depths = [0.0; 4];
-
-        for (index, corner) in corners.iter().enumerate() {
-            let Some((projected, depth)) = Self::project(camera, *corner, screen_size) else {
-                return;
-            };
-
-            screen_corners[index] = projected - anchor_screen;
-            corner_depths[index] = depth;
-        }
-
-        let (screen_corners, texture_coordinates, corner_depths) = order_quad(screen_corners, texture_coordinates, corner_depths);
-
-        renderer.render_effect_with_depth(
-            camera,
-            anchor,
-            texture,
-            screen_corners.map(|corner| EFFECT_ORIGIN + corner),
-            corner_depths,
-            [
-                texture_coordinates[3],
-                texture_coordinates[1],
-                texture_coordinates[0],
-                texture_coordinates[2],
-            ],
-            Vector2::new(0.0, 0.0),
-            Rad(0.0),
-            color,
-            BlendFactor::One,
-            BlendFactor::One,
-        );
-    }
-
-    /// Projects a world position onto the screen, returning `None` if the
-    /// position is behind the camera. The result is in physical window
-    /// pixels with the origin in the top left corner, which is the space
-    /// that [`EffectRenderer::render_effect`] uses.
-    fn project(camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize) -> Option<(Vector2<f32>, f32)> {
-        let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
-
-        if clip_space_position.w <= 0.0 {
-            return None;
-        }
-
-        let normalized_x = clip_space_position.x / clip_space_position.w;
-        let normalized_y = clip_space_position.y / clip_space_position.w;
-        let depth = clip_space_position.z / clip_space_position.w;
-
-        Some((
-            Vector2::new(
-                (normalized_x * 0.5 + 0.5) * screen_size.width,
-                (0.5 - normalized_y * 0.5) * screen_size.height,
-            ),
-            depth,
-        ))
-    }
 }
 
-/// Re-orders the corners of a screen space quad (together with their texture
-/// coordinates) into top left, top right, bottom left, bottom right. This makes
-/// sure that a quad that is seen from "behind" doesn't render mirrored or
-/// degenerate, which would happen if the projected corners were handed to the
-/// renderer in an order that is no longer a valid polygon.
-fn order_quad(
-    corners: [Vector2<f32>; 4],
-    texture_coordinates: [Vector2<f32>; 4],
-    depths: [f32; 4],
-) -> ([Vector2<f32>; 4], [Vector2<f32>; 4], [f32; 4]) {
-    let mut indices = [0, 1, 2, 3];
-    indices.sort_by(|&left, &right| corners[left].y.total_cmp(&corners[right].y));
+/// Rotates the four corners of a ground aligned quad around the anchor (only
+/// the x/z components, so it stays on the ground).
+fn rotate_ground_corners(corners: [Point3<f32>; 4], anchor: Point3<f32>, angle: f32) -> [Point3<f32>; 4] {
+    corners.map(|corner| {
+        let offset = corner - anchor;
+        let x = offset.x * angle.cos() - offset.z * angle.sin();
+        let z = offset.x * angle.sin() + offset.z * angle.cos();
 
-    let mut top = [indices[0], indices[1]];
-    top.sort_by(|&left, &right| corners[left].x.total_cmp(&corners[right].x));
-
-    let mut bottom = [indices[2], indices[3]];
-    bottom.sort_by(|&left, &right| corners[left].x.total_cmp(&corners[right].x));
-
-    let order = [top[0], top[1], bottom[0], bottom[1]];
-
-    (
-        order.map(|index| corners[index]),
-        order.map(|index| texture_coordinates[index]),
-        order.map(|index| depths[index]),
-    )
+        anchor + Vector3::new(x, offset.y, z)
+    })
 }
 
 #[cfg(test)]
 mod tests {
-    use cgmath::Vector2;
+    use cgmath::{InnerSpace, Point3, Vector2};
 
-    use super::order_quad;
+    use super::rotate_ground_corners;
+    use crate::world::effect::order_quad;
 
-    fn uv_corners() -> [Vector2<f32>; 4] {
+    fn quad() -> [Vector2<f32>; 4] {
         [
             Vector2::new(0.0, 0.0),
-            Vector2::new(1.0, 0.0),
-            Vector2::new(0.0, 1.0),
-            Vector2::new(1.0, 1.0),
+            Vector2::new(2.0, 0.0),
+            Vector2::new(0.0, 2.0),
+            Vector2::new(2.0, 2.0),
         ]
     }
 
-    /// The corner ordering has to produce a valid (non self-intersecting)
-    /// polygon for both a quad seen from the front and one seen from the
-    /// back.
     #[test]
-    fn orders_quads_consistently() {
-        let front = [
-            Vector2::new(10.0, 10.0),
-            Vector2::new(30.0, 10.0),
-            Vector2::new(10.0, 50.0),
-            Vector2::new(30.0, 50.0),
-        ];
-        let depths = [1.0, 2.0, 3.0, 4.0];
-        let (corners, coordinates, ordered_depths) = order_quad(front, uv_corners(), depths);
-        assert_eq!(corners[0], Vector2::new(10.0, 10.0));
-        assert_eq!(corners[1], Vector2::new(30.0, 10.0));
-        assert_eq!(corners[2], Vector2::new(10.0, 50.0));
-        assert_eq!(corners[3], Vector2::new(30.0, 50.0));
-        assert_eq!(coordinates[0], Vector2::new(0.0, 0.0));
-        // The depths follow their corners.
-        assert_eq!(ordered_depths, [1.0, 2.0, 3.0, 4.0]);
+    fn quad_corners_are_ordered_top_left_top_right_bottom_left_bottom_right() {
+        let (corners, ..) = order_quad(quad(), quad(), [1.0; 4]);
 
-        // Same quad, but the two halves are swapped, which happens when a cylinder
-        // segment is seen from the back.
-        let back = [
-            Vector2::new(30.0, 10.0),
-            Vector2::new(10.0, 10.0),
-            Vector2::new(30.0, 50.0),
-            Vector2::new(10.0, 50.0),
-        ];
-        let (corners, coordinates, _depths) = order_quad(back, uv_corners(), depths);
-        assert_eq!(corners[0], Vector2::new(10.0, 10.0));
-        assert_eq!(corners[1], Vector2::new(30.0, 10.0));
-        assert_eq!(corners[2], Vector2::new(10.0, 50.0));
-        assert_eq!(corners[3], Vector2::new(30.0, 50.0));
-        // The texture coordinates follow their corners.
-        assert_eq!(coordinates[0], Vector2::new(1.0, 0.0));
-        assert_eq!(coordinates[2], Vector2::new(1.0, 1.0));
+        assert_eq!(corners[0], Vector2::new(0.0, 0.0));
+        assert_eq!(corners[1], Vector2::new(2.0, 0.0));
+        assert_eq!(corners[2], Vector2::new(0.0, 2.0));
+        assert_eq!(corners[3], Vector2::new(2.0, 2.0));
     }
 
-    /// A horizontal ground quad, which is what the ground glow uses.
     #[test]
-    fn orders_ground_quads() {
+    fn ground_rotation_keeps_the_quad_on_the_ground() {
+        let anchor = Point3::new(10.0, 0.0, 10.0);
         let corners = [
-            Vector2::new(100.0, 300.0),
-            Vector2::new(200.0, 300.0),
-            Vector2::new(110.0, 200.0),
-            Vector2::new(190.0, 200.0),
+            Point3::new(9.0, 0.2, 9.0),
+            Point3::new(11.0, 0.2, 9.0),
+            Point3::new(9.0, 0.2, 11.0),
+            Point3::new(11.0, 0.2, 11.0),
         ];
-        let (ordered, ..) = order_quad(corners, uv_corners(), [0.0; 4]);
-        assert_eq!(ordered[0], Vector2::new(110.0, 200.0));
-        assert_eq!(ordered[1], Vector2::new(190.0, 200.0));
-        assert_eq!(ordered[2], Vector2::new(100.0, 300.0));
-        assert_eq!(ordered[3], Vector2::new(200.0, 300.0));
+
+        let rotated = rotate_ground_corners(corners, anchor, std::f32::consts::FRAC_PI_2);
+
+        for corner in rotated {
+            assert!((corner.y - 0.2).abs() < 1e-5);
+            assert!((corner - anchor).magnitude() > 0.5);
+        }
     }
 }

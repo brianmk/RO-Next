@@ -7,7 +7,7 @@ use ragnarok_formats::map::EffectSource;
 use ragnarok_packets::EntityId;
 use wgpu::BlendFactor;
 
-use crate::graphics::{Color, Texture};
+use crate::graphics::{Color, ScreenSize, Texture};
 use crate::renderer::EffectRenderer;
 #[cfg(feature = "debug")]
 use crate::renderer::MarkerRenderer;
@@ -15,7 +15,9 @@ use crate::renderer::MarkerRenderer;
 use crate::world::MarkerIdentifier;
 use crate::world::{Camera, PointLightId, PointLightManager};
 
+mod cast_circle;
 mod warp;
+pub use self::cast_circle::*;
 pub use self::warp::WarpPortal;
 
 pub trait EffectBase {
@@ -72,7 +74,7 @@ impl Effect {
         }
     }
 
-    pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, frame_timer: &FrameTimer, position: Point3<f32>) {
+    pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, frame_timer: &FrameTimer, position: Point3<f32>, scale: f32) {
         for layer in &self.layers {
             let Some(frame) = layer.interpolate_frame(frame_timer) else {
                 continue;
@@ -87,10 +89,10 @@ impl Effect {
                 position,
                 layer.textures[frame.texture_index].clone(),
                 [
-                    Vector2::new(frame.xy[0], frame.xy[4]),
-                    Vector2::new(frame.xy[1], frame.xy[5]),
-                    Vector2::new(frame.xy[3], frame.xy[7]),
-                    Vector2::new(frame.xy[2], frame.xy[6]),
+                    Vector2::new(frame.xy[0], frame.xy[4]) * scale,
+                    Vector2::new(frame.xy[1], frame.xy[5]) * scale,
+                    Vector2::new(frame.xy[3], frame.xy[7]) * scale,
+                    Vector2::new(frame.xy[2], frame.xy[6]) * scale,
                 ],
                 [
                     Vector2::new(frame.uv[0] + frame.uv[2], frame.uv[3] + frame.uv[1]),
@@ -298,9 +300,18 @@ pub enum EffectCenter {
 }
 
 impl EffectCenter {
-    fn to_position(&self) -> Point3<f32> {
+    pub fn to_position(&self) -> Point3<f32> {
         match self {
             EffectCenter::Entity(_, position) | EffectCenter::Position(position) => *position,
+        }
+    }
+
+    /// Follows the entity with the given id, if this center belongs to one.
+    pub fn follow_entity(&mut self, entities: &[crate::world::Entity]) {
+        if let EffectCenter::Entity(entity_id, position) = self
+            && let Some(entity) = entities.iter().find(|entity| entity.get_entity_id() == *entity_id)
+        {
+            *position = entity.get_position();
         }
     }
 }
@@ -310,6 +321,10 @@ pub struct EffectWithLight {
     frame_timer: FrameTimer,
     center: EffectCenter,
     effect_offset: Vector3<f32>,
+    /// Scale of the effect quad. `.str` effects are rendered as screen space
+    /// sprites sized in pixels, so this value is a plain multiplier of the
+    /// size defined in the file (1.0 = original size).
+    scale: f32,
     point_light_id: PointLightId,
     light_offset: Vector3<f32>,
     light_color: Color,
@@ -326,6 +341,7 @@ impl EffectWithLight {
         frame_timer: FrameTimer,
         center: EffectCenter,
         effect_offset: Vector3<f32>,
+        scale: f32,
         point_light_id: PointLightId,
         light_offset: Vector3<f32>,
         light_color: Color,
@@ -337,6 +353,7 @@ impl EffectWithLight {
             frame_timer,
             center,
             effect_offset,
+            scale,
             point_light_id,
             light_offset,
             light_color,
@@ -401,9 +418,120 @@ impl EffectBase for EffectWithLight {
                 camera,
                 &self.frame_timer,
                 self.center.to_position() + self.effect_offset,
+                self.scale,
             );
         }
     }
+}
+
+/// The origin that the original client uses for hard-coded effects. Local
+/// effect coordinates are expressed relative to the feet of the effect anchor
+/// on a 640x480 screen, which is exactly the space that [`EffectRenderer`]
+/// expects.
+pub(crate) const EFFECT_ORIGIN: Vector2<f32> = Vector2::new(319.0, 291.0);
+
+/// Projects a world position onto the screen, returning `None` if the position
+/// is behind the camera. The result is in physical window pixels with the
+/// origin in the top left corner, which is the space that
+/// [`EffectRenderer`] uses.
+pub(crate) fn project_point(camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize) -> Option<(Vector2<f32>, f32)> {
+    let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
+
+    if clip_space_position.w <= 0.0 {
+        return None;
+    }
+
+    let normalized_x = clip_space_position.x / clip_space_position.w;
+    let normalized_y = clip_space_position.y / clip_space_position.w;
+    let depth = clip_space_position.z / clip_space_position.w;
+
+    Some((
+        Vector2::new(
+            (normalized_x * 0.5 + 0.5) * screen_size.width,
+            (0.5 - normalized_y * 0.5) * screen_size.height,
+        ),
+        depth,
+    ))
+}
+
+/// Renders a single textured quad. The corners are given in world space with
+/// the matching texture coordinates. They are projected and re-ordered so that
+/// the quad is never rendered flipped, no matter how the camera is rotated.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn render_world_quad(
+    renderer: &mut EffectRenderer,
+    camera: &dyn Camera,
+    anchor: Point3<f32>,
+    screen_size: ScreenSize,
+    texture: Arc<Texture>,
+    color: Color,
+    corners: [Point3<f32>; 4],
+    texture_coordinates: [Vector2<f32>; 4],
+) {
+    let Some((anchor_screen, _)) = project_point(camera, anchor, screen_size) else {
+        return;
+    };
+
+    let mut screen_corners = [Vector2::new(0.0, 0.0); 4];
+    let mut corner_depths = [0.0; 4];
+
+    for (index, corner) in corners.iter().enumerate() {
+        let Some((projected, depth)) = project_point(camera, *corner, screen_size) else {
+            return;
+        };
+
+        screen_corners[index] = projected - anchor_screen;
+        corner_depths[index] = depth;
+    }
+
+    let (screen_corners, texture_coordinates, corner_depths) = order_quad(screen_corners, texture_coordinates, corner_depths);
+
+    renderer.render_effect_with_depth(
+        camera,
+        anchor,
+        texture,
+        screen_corners.map(|corner| EFFECT_ORIGIN + corner),
+        corner_depths,
+        [
+            texture_coordinates[3],
+            texture_coordinates[1],
+            texture_coordinates[0],
+            texture_coordinates[2],
+        ],
+        Vector2::new(0.0, 0.0),
+        Rad(0.0),
+        color,
+        BlendFactor::One,
+        BlendFactor::One,
+    );
+}
+
+/// Re-orders the corners of a screen space quad (together with their texture
+/// coordinates) into top left, top right, bottom left, bottom right. This makes
+/// sure that a quad that is seen from "behind" doesn't render mirrored or
+/// degenerate, which would happen if the projected corners were handed to the
+/// renderer in an order that is no longer a valid polygon.
+pub(crate) fn order_quad(
+    corners: [Vector2<f32>; 4],
+    texture_coordinates: [Vector2<f32>; 4],
+    depths: [f32; 4],
+) -> ([Vector2<f32>; 4], [Vector2<f32>; 4], [f32; 4]) {
+    let mut indices = [0, 1, 2, 3];
+    indices.sort_by(|&left, &right| corners[left].y.total_cmp(&corners[right].y));
+
+    let mut top = [indices[0], indices[1]];
+    top.sort_by(|&left, &right| corners[left].x.total_cmp(&corners[right].x));
+
+    let mut bottom = [indices[2], indices[3]];
+    bottom.sort_by(|&left, &right| corners[left].x.total_cmp(&corners[right].x));
+
+    let order = [top[0], top[1], bottom[0], bottom[1]];
+
+    (
+        order.map(|index| corners[index]),
+        order.map(|index| texture_coordinates[index]),
+        order.map(|index| depths[index]),
+    )
 }
 
 #[derive(Default)]
