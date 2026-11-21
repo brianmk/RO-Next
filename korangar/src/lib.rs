@@ -109,8 +109,8 @@ use crate::interface::resource::{ItemSource, SkillSource};
 use crate::interface::windows::*;
 use crate::loaders::*;
 #[cfg(feature = "debug")]
-use crate::renderer::{AlignHorizontal, DebugMarkerRenderer};
-use crate::renderer::{EffectRenderer, GameInterfaceRenderer};
+use crate::renderer::DebugMarkerRenderer;
+use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer};
 use crate::settings::{
     GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH, ServiceSettingsPathExt, WORLD_THEMES_PATH,
 };
@@ -138,6 +138,20 @@ const INITIAL_SCREEN_SIZE: ScreenSize = ScreenSize {
     width: 1280.0,
     height: 720.0,
 };
+
+/// Classic RO name label colours per entity type.
+///
+/// Players are white, NPCs are blue. Monsters only get a label while hovered;
+/// the 2019 spawn packets don't expose the "aggressive" flag, so the classic
+/// aggressive red is used for them.
+fn entity_name_color(entity_type: EntityType) -> Color {
+    match entity_type {
+        EntityType::Player => Color::WHITE,
+        EntityType::Npc => Color::rgb_u8(0x5B, 0xA8, 0xFF),
+        EntityType::Monster => Color::rgb_u8(0xFF, 0x7A, 0x7A),
+        EntityType::Warp | EntityType::Hidden => Color::WHITE,
+    }
+}
 
 const INITIAL_SCALING_FACTOR: Scaling = Scaling::new(1.0);
 const FALLBACK_PACKET_VERSION: SupportedPacketVersion = SupportedPacketVersion::_20220406;
@@ -4323,8 +4337,10 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             top: screen_position.y * self.screen_size.height + 6.0 * self.scaling.get_factor(),
         };
 
+        let color = entity_name_color(entity.get_entity_type());
+
         self.middle_interface_renderer
-            .render_damage_text(name, position, Color::WHITE, FontSize(16.0));
+            .render_outlined_text(name, position, color, Color::BLACK, FontSize(16.0), AlignHorizontal::Center);
     }
 
     /// Renders the classic map connection portal at every warp entity.

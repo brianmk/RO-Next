@@ -228,6 +228,90 @@ impl GameInterfaceRenderer {
         });
     }
 
+    /// Render text with a one-pixel outline around every glyph.
+    ///
+    /// Used for entity name labels: classic RO draws names as coloured text
+    /// with a dark outline so they stay readable on bright terrain.
+    pub fn render_outlined_text(
+        &self,
+        text: &str,
+        text_position: ScreenPosition,
+        color: Color,
+        outline_color: Color,
+        font_size: FontSize,
+        align_horizontal: AlignHorizontal,
+    ) {
+        let font_size = FontSize(font_size.0 * self.scaling.get_factor());
+        let outline_radius = (font_size.0 * 0.08).clamp(1.0, 2.5);
+
+        let mut glyphs = self.glyphs.borrow_mut();
+        let size = self
+            .font_loader
+            .layout_text(text, color, self.highlight_color, font_size, 1.0, None, Some(&mut glyphs));
+
+        let horizontal_offset = match align_horizontal {
+            AlignHorizontal::Left => 0.0,
+            AlignHorizontal::Center => -size.x / 2.0,
+        };
+
+        let mut instructions = self.instructions.borrow_mut();
+
+        glyphs.drain(..).for_each(|glyph| {
+            let GlyphInstruction {
+                position,
+                em_coordinate,
+                glyph_index,
+                ..
+            } = glyph.dilated(GLYPH_PADDING + TEXT_SHADOW_RADIUS * font_size.0, font_size);
+
+            let screen_size = ScreenSize {
+                width: position.width(),
+                height: position.height(),
+            } / self.window_size;
+            let em_position = em_coordinate.min.to_vec();
+            let em_size = em_coordinate.max - em_coordinate.min;
+
+            let base_left = text_position.left + position.min.x + horizontal_offset;
+            let base_top = text_position.top + position.min.y;
+
+            // 8 surrounding pixels for a crisp outline.
+            for (offset_left, offset_top) in [
+                (-1.0, -1.0),
+                (0.0, -1.0),
+                (1.0, -1.0),
+                (-1.0, 0.0),
+                (1.0, 0.0),
+                (-1.0, 1.0),
+                (0.0, 1.0),
+                (1.0, 1.0),
+            ] {
+                instructions.push(RectangleInstruction::Text {
+                    screen_position: ScreenPosition {
+                        left: base_left + offset_left * outline_radius,
+                        top: base_top + offset_top * outline_radius,
+                    } / self.window_size,
+                    screen_size,
+                    color: outline_color,
+                    em_position,
+                    em_size,
+                    glyph_index,
+                });
+            }
+
+            instructions.push(RectangleInstruction::Text {
+                screen_position: ScreenPosition {
+                    left: base_left,
+                    top: base_top,
+                } / self.window_size,
+                screen_size,
+                color,
+                em_position,
+                em_size,
+                glyph_index,
+            });
+        });
+    }
+
     pub fn render_hover_text(&self, text: &str, scaling: Scaling, mouse_position: ScreenPosition) {
         let offset = ScreenPosition {
             left: 15.0 * scaling.get_factor(),
