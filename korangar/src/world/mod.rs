@@ -76,4 +76,6 @@ pub struct ResourceMetadata {
     pub name: String,
     /// Item stats evaluated from the client item description.
     pub stats: ItemStats,
+    /// Raw item description lines from the client item data.
+    pub description: Vec<String>,
 }

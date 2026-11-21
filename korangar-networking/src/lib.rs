@@ -935,6 +935,13 @@ where
         }
     }
 
+    /// Use an item from the inventory (potions, usable items, ...).
+    pub fn use_item(&mut self, item_index: InventoryIndex, item_id: ItemId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(UseItemPacket::new(item_index, item_id)),
+        }
+    }
+
     pub fn request_item_equip(&mut self, item_index: InventoryIndex, equip_position: EquipPosition) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestEquipItemPacket::new(item_index, equip_position)),

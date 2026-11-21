@@ -1825,6 +1825,33 @@ pub struct GlobalMessagePacket {
     pub message: String,
 }
 
+/// Use an item from the inventory (CZ_USE_ITEM).
+///
+/// Packet layout for PACKETVER >= 20080910:
+/// `0439 <index>.W <item id>.L`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0439)]
+pub struct UseItemPacket {
+    pub inventory_index: InventoryIndex,
+    pub item_id: ItemId,
+}
+
+/// Result of using an item (ZC_USE_ITEM_ACK).
+///
+/// Packet layout for PACKETVER >= 20181121:
+/// `01c8 <index>.W <item id>.L <account id>.L <amount>.W <result>.B`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01C8)]
+pub struct UseItemAckPacket {
+    pub inventory_index: InventoryIndex,
+    pub item_id: ItemId,
+    pub account_id: AccountId,
+    pub amount: i16,
+    pub result: u8,
+}
+
 /// Whisper a message to another character (CZ_WHISPER).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
@@ -4872,7 +4899,7 @@ pub struct RemoveSkillPacket {
 mod tests {
     use ragnarok_bytes::{ByteWriter, ToBytes};
 
-    use crate::{PacketExt, WhisperPacket};
+    use crate::{InventoryIndex, ItemId, PacketExt, WhisperPacket};
 
     /// The whisper packet has to match the format the server expects:
     /// `0096 <len>.W <name>.24B <message>.?B 00`.
@@ -4892,6 +4919,24 @@ mod tests {
 
         assert_eq!(&bytes[4..14], b"VerifyBot4");
         assert_eq!(&bytes[28..34], b"hello\0");
+    }
+
+    #[test]
+    fn use_item_packet_layout() {
+        // rAthena CZ_USE_ITEM for modern clients: 0439 <index>.W <item id>.L
+        use crate::UseItemPacket;
+
+        let packet = UseItemPacket::new(InventoryIndex(0), ItemId(501));
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0439);
+        assert_eq!(bytes.len(), 8);
+        // Inventory indices are stored as index + 2 by the client protocol.
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 2);
+        assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 501);
     }
 
     #[test]
