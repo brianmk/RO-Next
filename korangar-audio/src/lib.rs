@@ -57,10 +57,24 @@ const MAX_CACHE_COUNT: u32 = 4096;
 const MAX_CACHE_SIZE: usize = 64 << 20; // 64 MiB
 const SOUND_EFFECT_BASE_PATH: &str = "data\\wav";
 const BACKGROUND_MUSIC_MAPPING_FILE: &str = "data\\mp3NameTable.txt";
+const RESOURCE_NAME_TABLE_FILE: &str = "data\\resnametable.txt";
+
+/// Folders that background music files are commonly stored in. The original
+/// client keeps its music in a `BGM` folder next to the game archives, but
+/// some servers ship it inside `data/mp3` instead.
+const BACKGROUND_MUSIC_FOLDERS: [&str; 3] = ["bgm", "data\\mp3", "mp3"];
 
 struct BackgroundMusicTrack {
     track_name: String,
     handle: StreamingSoundHandle,
+}
+
+/// Where the raw data of a background music track was found.
+enum BackgroundMusicSource {
+    /// The track is stored inside one of the game archives.
+    Archive(Vec<u8>),
+    /// The track is a loose file on the file system.
+    File(PathBuf),
 }
 
 enum QueuedSoundEffectType {
@@ -143,6 +157,7 @@ struct EngineContext<F> {
     query_result: Vec<AmbientKey>,
     queued_background_music_track: Option<String>,
     queued_sound_effect: Vec<QueuedSoundEffect>,
+    resource_name_table: HashMap<String, String>,
     scratchpad: Vec<AmbientKey>,
     sound_effect_paths: GenerationalSlab<SoundEffectKey, String>,
     sound_effect_track: TrackHandle,
@@ -170,6 +185,7 @@ impl<F: FileLoader> AudioEngine<F> {
         let (async_response_sender, async_response_receiver) = channel();
 
         let background_music_track_mapping = parse_background_music_track_mapping(game_file_loader.deref());
+        let resource_name_table = parse_resource_name_table(game_file_loader.deref());
 
         let object_kdtree = KDTree::empty();
 
@@ -194,6 +210,7 @@ impl<F: FileLoader> AudioEngine<F> {
             query_result: Vec::default(),
             queued_background_music_track: None,
             queued_sound_effect: Vec::default(),
+            resource_name_table,
             scratchpad: Vec::default(),
             sound_effect_paths: GenerationalSlab::default(),
             sound_effect_track,
@@ -215,17 +232,25 @@ impl<F: FileLoader> AudioEngine<F> {
         };
     }
 
-    /// This function needs the full file path with the file extension.
+    /// Returns the music track that should be played for the given map file.
+    ///
+    /// The track is looked up in the `data/mp3NameTable.txt` of the game
+    /// archives. If the map is not listed there, we fall back to the file
+    /// naming convention of `BGM/<map name>.mp3`, which the actual file
+    /// resolution then also tries in the `data/mp3` folder and inside the
+    /// archives.
     pub fn get_track_for_map(&self, map_file_path: &str) -> Option<String> {
         let context = self.engine_context.lock().unwrap();
 
-        let path = match cfg!(target_os = "windows") {
-            true => PathBuf::from(map_file_path),
-            false => PathBuf::from(map_file_path.replace('\\', "/")),
-        };
+        let file_name = map_resource_file_name(map_file_path)?;
 
-        let file_name = path.file_name()?.to_string_lossy();
-        context.background_music_track_mapping.get(file_name.as_ref()).cloned()
+        if let Some(track_name) = context.background_music_track_mapping.get(file_name.as_str()) {
+            return Some(track_name.clone());
+        }
+
+        let map_name = file_name.strip_suffix(".rsw").unwrap_or(file_name.as_str());
+
+        Some(format!("bgm\\{map_name}.mp3"))
     }
 
     /// Registers the given audio file path, queues it's loading and returns a
@@ -770,17 +795,34 @@ impl<F: FileLoader> EngineContext<F> {
     }
 
     fn change_background_music_track(&mut self, track_name: &str) {
-        let Some(path) = find_file_path(track_name) else {
+        let candidates = background_music_candidates(track_name);
+
+        let Some(source) = find_background_music_source(self.game_file_loader.deref(), &self.resource_name_table, &candidates) else {
             #[cfg(feature = "debug")]
-            print_debug!("[{}] can't find background music track: {:?}", "error".red(), track_name);
+            print_debug!(
+                "[{}] can't find background music track: {:?} (tried {:?})",
+                "error".red(),
+                track_name,
+                candidates
+            );
             return;
         };
 
-        let data = match StreamingSoundData::from_file(path, true) {
+        let data = match source {
+            BackgroundMusicSource::Archive(data) => StreamingSoundData::from_cursor(Cursor::new(data), true),
+            BackgroundMusicSource::File(path) => StreamingSoundData::from_file(path, true),
+        };
+
+        let data = match data {
             Ok(sound_effect_data) => sound_effect_data,
             Err(_error) => {
                 #[cfg(feature = "debug")]
-                print_debug!("[{}] can't decode background music track: {:?}", "error".red(), _error);
+                print_debug!(
+                    "[{}] can't decode background music track: {:?}: {}",
+                    "error".red(),
+                    track_name,
+                    _error
+                );
                 return;
             }
         };
@@ -793,6 +835,9 @@ impl<F: FileLoader> EngineContext<F> {
                 return;
             }
         };
+
+        #[cfg(feature = "debug")]
+        print_debug!("[{}] playing background music track: {:?}", "info".green(), track_name);
 
         self.current_background_music_track = Some(BackgroundMusicTrack {
             track_name: track_name.to_string(),
@@ -886,35 +931,177 @@ fn parse_background_music_track_mapping(game_file_loader: &impl FileLoader) -> H
     background_music_track_mapping
 }
 
-fn find_file_path(path: &str) -> Option<PathBuf> {
-    let path = match cfg!(target_os = "windows") {
-        true => PathBuf::from(path),
-        false => PathBuf::from(path.replace('\\', "/")),
+/// Parses the `data/resnametable.txt` of the game archives.
+///
+/// The table remaps resource names to different files. While it is mostly used
+/// for item and interface resources, some servers also remap background music
+/// files with it, so we honor it when looking for music.
+fn parse_resource_name_table(game_file_loader: &impl FileLoader) -> HashMap<String, String> {
+    let mut resource_name_table: HashMap<String, String> = HashMap::new();
+
+    let Ok(resource_name_table_data) = game_file_loader.get(RESOURCE_NAME_TABLE_FILE) else {
+        #[cfg(feature = "debug")]
+        print_debug!(
+            "[{}] can't find resource name table: {:?}",
+            "warning".yellow(),
+            RESOURCE_NAME_TABLE_FILE
+        );
+        return resource_name_table;
     };
 
-    #[cfg(feature = "flac")]
-    let extensions = ["flac", "mp3", "wav"];
+    let content = String::from_utf8_lossy(&resource_name_table_data);
 
-    #[cfg(not(feature = "flac"))]
-    let extensions = ["mp3", "wav"];
+    for line in content.lines() {
+        if line.is_empty() || line.starts_with("//") {
+            continue;
+        }
 
-    extensions.into_iter().find_map(|extension| {
-        let mut new_path = path.clone();
-        new_path.set_extension(extension);
-        find_case_insensitive(&new_path)
-    })
+        let mut split = line.split('#');
+        let (Some(resource_name), Some(remapped_name)) = (split.next(), split.next()) else {
+            continue;
+        };
+
+        let resource_name = normalize_archive_path(resource_name);
+        let remapped_name = normalize_archive_path(remapped_name);
+
+        if !resource_name.is_empty() && !remapped_name.is_empty() {
+            resource_name_table.insert(resource_name, remapped_name);
+        }
+    }
+
+    resource_name_table
 }
 
-fn find_case_insensitive(path: &Path) -> Option<PathBuf> {
-    let file_name = path.file_name()?.to_string_lossy();
-    let Ok(parent) = std::fs::read_dir(path.parent()?) else {
-        return None;
-    };
+fn background_music_extensions() -> &'static [&'static str] {
+    #[cfg(feature = "flac")]
+    const EXTENSIONS: &[&str] = &["flac", "mp3", "wav"];
 
-    parent
+    #[cfg(not(feature = "flac"))]
+    const EXTENSIONS: &[&str] = &["mp3", "wav"];
+
+    EXTENSIONS
+}
+
+/// Extracts the file name of a map resource path like `data\prontera.rsw`.
+fn map_resource_file_name(map_file_path: &str) -> Option<String> {
+    let map_file_path = map_file_path.replace('\\', "/");
+    let file_name = map_file_path.rsplit('/').next()?;
+
+    (!file_name.is_empty()).then(|| file_name.to_string())
+}
+
+/// Converts a resource path into the normalized form that the game archives
+/// use: lower case with `\` as the separator.
+fn normalize_archive_path(path: &str) -> String {
+    path.replace('\\', "/")
+        .to_lowercase()
+        .split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect::<Vec<_>>()
+        .join("\\")
+}
+
+/// Returns all resource paths that we want to try for a background music
+/// track.
+///
+/// The track name comes from the `mp3NameTable.txt` and usually looks like
+/// `bgm\08.mp3`, but some servers use `data\mp3\<map name>.mp3` or store the
+/// music at the root of the archives instead.
+fn background_music_candidates(track_name: &str) -> Vec<String> {
+    let normalized_track_name = normalize_archive_path(track_name);
+
+    if normalized_track_name.is_empty() {
+        return Vec::new();
+    }
+
+    let file_name = normalized_track_name
+        .rsplit('\\')
+        .next()
+        .unwrap_or(&normalized_track_name)
+        .to_string();
+
+    let mut file_names = vec![file_name.clone()];
+
+    let extensions = background_music_extensions();
+
+    if !extensions.iter().any(|extension| file_name.ends_with(&format!(".{extension}"))) {
+        file_names.extend(extensions.iter().map(|extension| format!("{file_name}.{extension}")));
+    }
+
+    let mut candidates = vec![normalized_track_name];
+
+    for file_name in file_names {
+        candidates.push(file_name.clone());
+
+        for folder in BACKGROUND_MUSIC_FOLDERS {
+            candidates.push(format!("{folder}\\{file_name}"));
+        }
+    }
+
+    // Remove duplicates while keeping the priority order of the candidates.
+    let mut unique_candidates = Vec::with_capacity(candidates.len());
+
+    for candidate in candidates {
+        if !unique_candidates.contains(&candidate) {
+            unique_candidates.push(candidate);
+        }
+    }
+
+    unique_candidates
+}
+
+/// Finds the raw data of a background music track.
+///
+/// The game archives have priority, because that is where the data ends up
+/// when a server ships its music inside a GRF. Loose files are used as a
+/// fallback, which is how the original client stores its `BGM` folder.
+fn find_background_music_source<F: FileLoader>(
+    game_file_loader: &F,
+    resource_name_table: &HashMap<String, String>,
+    candidates: &[String],
+) -> Option<BackgroundMusicSource> {
+    for candidate in candidates {
+        if let Some(remapped_name) = resource_name_table.get(candidate)
+            && let Ok(data) = game_file_loader.get(remapped_name)
+        {
+            return Some(BackgroundMusicSource::Archive(data));
+        }
+
+        if let Ok(data) = game_file_loader.get(candidate) {
+            return Some(BackgroundMusicSource::Archive(data));
+        }
+
+        if let Some(path) = find_loose_file(candidate) {
+            return Some(BackgroundMusicSource::File(path));
+        }
+    }
+
+    None
+}
+
+/// Finds a file on the file system, starting at the current working directory.
+///
+/// Every path component is matched case insensitively, because the original
+/// client mixes lower case music paths with an upper case `BGM` folder.
+fn find_loose_file(asset_path: &str) -> Option<PathBuf> {
+    let mut path = PathBuf::from(".");
+
+    for component in asset_path.split('\\') {
+        if component.is_empty() {
+            continue;
+        }
+
+        path = find_child_case_insensitive(&path, component)?;
+    }
+
+    path.is_file().then_some(path)
+}
+
+fn find_child_case_insensitive(directory: &Path, name: &str) -> Option<PathBuf> {
+    std::fs::read_dir(directory)
+        .ok()?
         .flatten()
-        .find(|entry| entry.file_name().to_string_lossy().eq_ignore_ascii_case(&file_name))
-        .map(|entry| entry.path())
+        .find_map(|entry| entry.file_name().to_string_lossy().eq_ignore_ascii_case(name).then(|| entry.path()))
 }
 
 fn difference<T: Ord + Copy>(vector_1: &mut [T], vector_2: &mut [T], result: &mut Vec<T>) {
@@ -996,5 +1183,174 @@ mod tests {
         difference(&mut vector_1, &mut vector_2, &mut result);
 
         assert!(result.is_empty());
+    }
+}
+
+#[cfg(test)]
+mod background_music_tests {
+    use std::collections::HashMap;
+    use std::sync::Arc;
+
+    use korangar_loaders::{FileLoader, FileNotFoundError};
+
+    use super::*;
+
+    struct TestFileLoader {
+        files: HashMap<String, Vec<u8>>,
+    }
+
+    impl TestFileLoader {
+        fn new(files: HashMap<String, Vec<u8>>) -> Self {
+            Self { files }
+        }
+    }
+
+    impl FileLoader for TestFileLoader {
+        fn get(&self, path: &str) -> Result<Vec<u8>, FileNotFoundError> {
+            self.files
+                .get(&path.to_lowercase())
+                .cloned()
+                .ok_or_else(|| FileNotFoundError::new(path.to_owned()))
+        }
+    }
+
+    fn real_background_music() -> Option<Vec<u8>> {
+        let path = std::env::var("KORANGAR_TEST_BGM").ok()?;
+        Some(std::fs::read(path).expect("can't read the test background music file"))
+    }
+
+    #[test]
+    fn normalizes_archive_paths() {
+        assert_eq!(normalize_archive_path("BGM\\\\08.MP3"), "bgm\\08.mp3");
+        assert_eq!(normalize_archive_path("data/mp3//prontera.mp3"), "data\\mp3\\prontera.mp3");
+        assert_eq!(normalize_archive_path(""), "");
+    }
+
+    #[test]
+    fn extracts_map_resource_file_names() {
+        assert_eq!(map_resource_file_name("data\\prontera.rsw"), Some("prontera.rsw".to_string()));
+        assert_eq!(map_resource_file_name("data/prontera.rsw"), Some("prontera.rsw".to_string()));
+        assert_eq!(map_resource_file_name("prontera.rsw"), Some("prontera.rsw".to_string()));
+        assert_eq!(map_resource_file_name(""), None);
+    }
+
+    #[test]
+    fn covers_known_background_music_conventions() {
+        // The CondaRO music table uses escaped backslashes in the mapping file.
+        let candidates = background_music_candidates("bgm\\\\08.mp3");
+
+        assert!(candidates.contains(&"bgm\\08.mp3".to_string()));
+        assert!(candidates.contains(&"08.mp3".to_string()));
+        assert!(candidates.contains(&"data\\mp3\\08.mp3".to_string()));
+        assert!(candidates.contains(&"mp3\\08.mp3".to_string()));
+
+        // The fallback for maps without a music table entry is a map named file.
+        let candidates = background_music_candidates("bgm\\prontera.mp3");
+
+        assert!(candidates.contains(&"prontera.mp3".to_string()));
+        assert!(candidates.contains(&"data\\mp3\\prontera.mp3".to_string()));
+    }
+
+    #[test]
+    fn parses_background_music_mapping() {
+        let mut files = HashMap::new();
+        files.insert(
+            "data\\mp3nametable.txt".to_string(),
+            b"//Map Name.rsw#bgm\\\\Music number#\r\nprontera.rsw#bgm\\\\08.mp3#\r\ngeffen.rsw#bgm\\\\13.mp3#\r\n".to_vec(),
+        );
+
+        let loader = TestFileLoader::new(files);
+        let mapping = parse_background_music_track_mapping(&loader);
+
+        assert_eq!(mapping.get("prontera.rsw"), Some(&"bgm\\\\08.mp3".to_string()));
+        assert_eq!(mapping.get("geffen.rsw"), Some(&"bgm\\\\13.mp3".to_string()));
+        assert_eq!(mapping.get("prontera.rsw#bgm"), None);
+    }
+
+    #[test]
+    fn parses_resource_name_table() {
+        let mut files = HashMap::new();
+        files.insert(
+            "data\\resnametable.txt".to_string(),
+            b"bgm\\\\08.mp3#bgm\\\\123.mp3#\r\n".to_vec(),
+        );
+
+        let loader = TestFileLoader::new(files);
+        let table = parse_resource_name_table(&loader);
+
+        assert_eq!(table.get("bgm\\08.mp3"), Some(&"bgm\\123.mp3".to_string()));
+    }
+
+    #[test]
+    fn finds_background_music_in_the_archives() {
+        let mut files = HashMap::new();
+        files.insert("bgm\\08.mp3".to_string(), b"music data".to_vec());
+
+        let loader = TestFileLoader::new(files);
+        let candidates = background_music_candidates("bgm\\\\08.mp3");
+        let source = find_background_music_source(&loader, &HashMap::new(), &candidates).expect("can't find music");
+
+        assert!(matches!(source, BackgroundMusicSource::Archive(data) if data == b"music data"));
+    }
+
+    #[test]
+    fn honors_the_resource_name_table() {
+        let mut files = HashMap::new();
+        files.insert("bgm\\123.mp3".to_string(), b"remapped music".to_vec());
+        files.insert(
+            "data\\resnametable.txt".to_string(),
+            b"bgm\\\\08.mp3#bgm\\\\123.mp3#\r\n".to_vec(),
+        );
+
+        let loader = TestFileLoader::new(files.clone());
+        let resource_name_table = parse_resource_name_table(&loader);
+        let candidates = background_music_candidates("bgm\\\\08.mp3");
+        let source = find_background_music_source(&loader, &resource_name_table, &candidates).expect("can't find music");
+
+        assert!(matches!(source, BackgroundMusicSource::Archive(data) if data == b"remapped music"));
+    }
+
+    #[test]
+    fn decodes_mp3_from_memory() {
+        let Some(music) = real_background_music() else {
+            return;
+        };
+
+        let mut sound_data = StreamingSoundData::from_cursor(Cursor::new(music), true).expect("can't decode background music");
+
+        assert!(sound_data.decoder.sample_rate() > 0);
+        assert!(sound_data.decoder.num_frames() > 0);
+
+        let frames = sound_data.decoder.decode().expect("can't decode first packet");
+        assert!(!frames.is_empty());
+    }
+
+    #[test]
+    fn plays_background_music_from_archive_data() {
+        let Some(music) = real_background_music() else {
+            return;
+        };
+
+        let mut files = HashMap::new();
+        files.insert(
+            "data\\mp3nametable.txt".to_string(),
+            b"prontera.rsw#bgm\\\\08.mp3#\r\n".to_vec(),
+        );
+        files.insert("bgm\\08.mp3".to_string(), music);
+
+        let engine = AudioEngine::new(Arc::new(TestFileLoader::new(files)));
+
+        assert_eq!(
+            engine.get_track_for_map("data\\prontera.rsw"),
+            Some("bgm\\\\08.mp3".to_string())
+        );
+
+        engine.play_background_music_track(engine.get_track_for_map("data\\prontera.rsw").as_deref());
+
+        let context = engine.engine_context.lock().unwrap();
+        assert!(
+            context.current_background_music_track.is_some(),
+            "the background music should be playing"
+        );
     }
 }
