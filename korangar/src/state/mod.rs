@@ -6,6 +6,7 @@ pub mod inventory;
 pub mod localization;
 pub mod minimap;
 pub mod skills;
+pub mod stat_buffer;
 pub mod theme;
 
 use std::cell::Cell;
