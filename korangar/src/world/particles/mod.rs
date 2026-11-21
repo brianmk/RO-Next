@@ -17,7 +17,7 @@ use crate::{Entity, Map};
 /// On-screen height of a damage/heal number in pixels before magnitude and
 /// distance scaling. The original client renders damage numbers much larger
 /// than the interface text; this is deliberately ~10x the previous 16 px.
-pub const BASE_DAMAGE_TEXT_PIXELS: f32 = 170.0;
+pub const BASE_DAMAGE_TEXT_PIXELS: f32 = 85.0;
 
 /// World distance at which the distance scaling is neutral (roughly the
 /// distance between the player camera and a monster in melee range).
