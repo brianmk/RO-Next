@@ -151,8 +151,10 @@ where
                             packet_version,
                         } => {
                             if let Some(handle) = login_server_task_handle.take() {
-                                // TODO: Maybe add a timeout here? Maybe handle Result?
-                                let _ = handle.await.unwrap();
+                                // TODO: Maybe add a timeout here?
+                                // Ignore join errors (including panics in the previous task) so
+                                // the networking thread keeps running and new connections work.
+                                let _ = handle.await;
                             }
 
                             let packet_handler = Self::create_login_server_packet_handler(packet_callback.clone(), packet_version).unwrap();
@@ -176,8 +178,10 @@ where
                             packet_version,
                         } => {
                             if let Some(handle) = character_server_task_handle.take() {
-                                // TODO: Maybe add a timeout here? Maybe handle Result?
-                                let _ = handle.await.unwrap();
+                                // TODO: Maybe add a timeout here?
+                                // Ignore join errors (including panics in the previous task) so
+                                // the networking thread keeps running and new connections work.
+                                let _ = handle.await;
                             }
 
                             let packet_handler =
@@ -202,8 +206,10 @@ where
                             packet_version,
                         } => {
                             if let Some(handle) = map_server_task_handle.take() {
-                                // TODO: Maybe add a timeout here? Maybe handle Result?
-                                let _ = handle.await.unwrap();
+                                // TODO: Maybe add a timeout here?
+                                // Ignore join errors (including panics in the previous task) so
+                                // the networking thread keeps running and new connections work.
+                                let _ = handle.await;
                             }
 
                             let packet_handler = Self::create_map_server_packet_handler(packet_callback.clone(), packet_version).unwrap();
@@ -346,12 +352,20 @@ where
                         byte_reader.set_encoding(UTF_8);
 
                         if read_account_id {
-                            let account_id = AccountId::from_bytes(&mut byte_reader).unwrap();
-                            events.push(NetworkEvent::AccountId { account_id });
-                            read_account_id = false;
+                            if data_len < 4 {
+                                // The 4-byte account id echo has not fully arrived yet. Keep
+                                // the bytes for the next read instead of panicking in the
+                                // networking thread (which used to kill the whole connection
+                                // and make the server selection unresponsive).
+                                keep_tail_from = Some(0);
+                            } else {
+                                let account_id = AccountId::from_bytes(&mut byte_reader).unwrap();
+                                events.push(NetworkEvent::AccountId { account_id });
+                                read_account_id = false;
+                            }
                         }
 
-                        while !byte_reader.is_empty() {
+                        while keep_tail_from.is_none() && !byte_reader.is_empty() {
                             match packet_handler.process_one(&mut byte_reader) {
                                 HandlerResult::Ok(packet_events) => events.extend(packet_events.0.into_iter()),
                                 HandlerResult::PacketCutOff => {
@@ -417,9 +431,11 @@ where
         username: impl Into<String>,
         password: impl Into<String>,
     ) {
-        if !matches!(self.login_server_connection, ServerConnection::Disconnected) {
-            return;
-        }
+        // A previous connection can still be registered (for example when the player
+        // clicks the server button twice or the server rejected the previous session).
+        // Drop it and start a fresh connection instead of silently ignoring the
+        // request, which used to make the character/server selection unresponsive.
+        let _ = self.login_server_connection.take();
 
         let (action_sender, action_receiver) = tokio::sync::mpsc::unbounded_channel();
         let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
@@ -465,9 +481,11 @@ where
         login_data: &LoginServerLoginData,
         server: CharacterServerInformation,
     ) {
-        if !matches!(self.character_server_connection, ServerConnection::Disconnected) {
-            return;
-        }
+        // A previous connection can still be registered (for example when the player
+        // clicks the server button twice or the server rejected the previous session).
+        // Drop it and start a fresh connection instead of silently ignoring the
+        // request, which used to make the character/server selection unresponsive.
+        let _ = self.character_server_connection.take();
 
         let (action_sender, action_receiver) = tokio::sync::mpsc::unbounded_channel();
         let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
@@ -520,9 +538,11 @@ where
         login_server_login_data: &LoginServerLoginData,
         character_server_login_data: CharacterServerLoginData,
     ) {
-        if !matches!(self.map_server_connection, ServerConnection::Disconnected) {
-            return;
-        }
+        // A previous connection can still be registered (for example when the player
+        // clicks the server button twice or the server rejected the previous session).
+        // Drop it and start a fresh connection instead of silently ignoring the
+        // request, which used to make the character/server selection unresponsive.
+        let _ = self.map_server_connection.take();
 
         let (action_sender, action_receiver) = tokio::sync::mpsc::unbounded_channel();
         let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
