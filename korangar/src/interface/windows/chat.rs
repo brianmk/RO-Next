@@ -258,6 +258,10 @@ where
         let window_title_color = chat_color_constant(chat_theme_path, |chat| chat.window_title_color);
         let hovered_window_title_color = chat_color_constant(chat_theme_path, |chat| chat.hovered_window_title_color);
         let text_box_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_foreground_color);
+        // The focused chat input is drawn on a dark background; using the skinned
+        // text box theme colors here would make the text unreadable with the classic
+        // theme (which uses black text on light text boxes).
+        let text_box_focused_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_focused_foreground_color);
         let text_box_ghost_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.ghost_foreground_color);
 
         let send_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
@@ -302,6 +306,7 @@ where
                     state: current_text_path,
                     input_handler: DefaultHandler::<_, _, MAXIMUM_CHAT_MESSAGE_LENGTH>::new(current_text_path, send_action),
                     foreground_color: text_box_foreground_color,
+                    focused_foreground_color: text_box_focused_foreground_color,
                     background_color: text_box_background_color,
                     ghost_foreground_color: text_box_ghost_foreground_color,
                     focused_background_color: Color::rgba(0.0, 0.0, 0.0, 0.8),

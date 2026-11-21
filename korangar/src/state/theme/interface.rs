@@ -46,8 +46,22 @@ pub struct ChatTheme {
     pub hovered_window_title_color: Color,
     /// Foreground color of the chat input line.
     pub text_box_foreground_color: Color,
+    /// Foreground color of the chat input line while it is focused.
+    ///
+    /// The focused chat input is drawn on a dark background, so it must not
+    /// reuse a theme color that is meant for the light skinned text boxes
+    /// (the classic theme uses black text there). Defaults to a near-white
+    /// color for old theme files that do not contain the field.
+    #[serde(default = "default_chat_input_focused_foreground_color")]
+    pub text_box_focused_foreground_color: Color,
     /// Color of the ghost text of the chat input line.
     pub ghost_foreground_color: Color,
+}
+
+/// Default focused color of the chat input text: near-white, it is drawn on a
+/// dark input background.
+fn default_chat_input_focused_foreground_color() -> Color {
+    Color::rgb_u8(235, 235, 235)
 }
 
 #[derive(Serialize, Deserialize, RustState, StateElement)]
@@ -433,7 +447,8 @@ impl InterfaceTheme {
                 window_title_color: Color::rgb_u8(200, 150, 150),
                 hovered_window_title_color: Color::rgb_u8(250, 200, 200),
                 text_box_foreground_color: Color::monochrome_u8(220),
-                ghost_foreground_color: Color::monochrome_u8(100),
+                text_box_focused_foreground_color: Color::rgb_u8(235, 235, 235),
+                ghost_foreground_color: Color::monochrome_u8(170),
             },
             skill_tree: SkillTreeTheme {
                 slot_background_color: Color::monochrome_u8(40),
@@ -651,7 +666,8 @@ impl InterfaceTheme {
                 window_title_color: Color::rgb_u8(185, 155, 155),
                 hovered_window_title_color: Color::rgb_u8(240, 155, 155),
                 text_box_foreground_color: Color::monochrome_u8(220),
-                ghost_foreground_color: Color::monochrome_u8(130),
+                text_box_focused_foreground_color: Color::rgb_u8(235, 235, 235),
+                ghost_foreground_color: Color::monochrome_u8(170),
             },
             skill_tree: SkillTreeTheme {
                 slot_background_color: Color::monochrome_u8(40),
@@ -924,6 +940,10 @@ impl InterfaceTheme {
             window_title_color: Color::WHITE,
             hovered_window_title_color: Color::rgb_u8(255, 255, 220),
             text_box_foreground_color: Color::WHITE,
+            // The classic skinned text boxes use black text on a light background, but the
+            // chat input is drawn on its own dark translucent background, so it needs a light
+            // focused color as well.
+            text_box_focused_foreground_color: Color::WHITE,
             ghost_foreground_color: Color::rgb_u8(170, 170, 170),
         };
 
@@ -1037,6 +1057,65 @@ mod tests {
         assert_eq!(
             old_theme.character_overview.health_color,
             CharacterOverviewTheme::default().health_color
+        );
+    }
+
+    /// Relative luminance of a color as perceived on screen (0.0 = black, 1.0 =
+    /// white).
+    fn luminance(color: crate::graphics::Color) -> f32 {
+        0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue
+    }
+
+    #[test]
+    fn chat_input_focused_text_is_readable_in_all_themes() {
+        // The focused chat input is always drawn on a dark background, so every theme
+        // must provide a light focused text color, even the classic theme whose
+        // skinned text boxes use black text on a light background.
+        let themes = [
+            ("default menu", InterfaceTheme::default_menu()),
+            ("default in-game", InterfaceTheme::default_in_game()),
+            (
+                "classic",
+                InterfaceTheme::load(InterfaceThemeType::InGame, crate::settings::CLASSIC_THEME_NAME),
+            ),
+        ];
+
+        for (name, theme) in themes {
+            let focused_text = theme.chat.text_box_focused_foreground_color;
+            assert!(
+                luminance(focused_text) > 0.7,
+                "{name}: chat input focused text {focused_text:?} is too dark for the dark input background"
+            );
+
+            let ghost_text = theme.chat.ghost_foreground_color;
+            assert!(
+                luminance(ghost_text) > 0.4,
+                "{name}: chat input placeholder {ghost_text:?} is too dark to read"
+            );
+        }
+
+        // Regression: the classic theme used to fall back to its light text box theme,
+        // whose focused foreground color is black.
+        let classic = InterfaceTheme::load(InterfaceThemeType::InGame, crate::settings::CLASSIC_THEME_NAME);
+        assert_ne!(
+            classic.chat.text_box_focused_foreground_color,
+            classic.text_box.focused_foreground_color
+        );
+    }
+
+    #[test]
+    fn theme_files_without_chat_input_focused_color_still_load() {
+        let theme = InterfaceTheme::default_in_game();
+        let serialized = ron::ser::to_string_pretty(&theme, ron::ser::PrettyConfig::new()).unwrap();
+
+        let old_serialized = remove_field(&serialized, "text_box_focused_foreground_color");
+        assert!(!old_serialized.contains("text_box_focused_foreground_color"));
+
+        let old_theme: InterfaceTheme = ron::from_str(&old_serialized).expect("old theme file must still load");
+
+        assert_eq!(
+            old_theme.chat.text_box_focused_foreground_color,
+            super::default_chat_input_focused_foreground_color()
         );
     }
 
