@@ -565,8 +565,11 @@ impl ForwardEffectDrawer {
             },
             // Effects are transparent and world anchored, so they have to be depth tested
             // against the scene without writing depth themselves. The scene uses reverse-z
-            // (the depth buffer is cleared to 0 and nearer fragments have a larger value),
-            // which is why the comparison is `Greater`.
+            // (the depth buffer is cleared to 0 and nearer fragments have a larger value), so
+            // `GreaterEqual` is used: geometry strictly in front still occludes the effect,
+            // while effects that are exactly coplanar with the surface they belong to (ground
+            // cast circles, warp portals, feet dust) still draw. Using `Greater` here rejected
+            // every such decal and made all world effects invisible.
             depth_stencil: Some(DepthStencilState {
                 format: depth_attachment_format,
                 depth_write_enabled: Some(false),
