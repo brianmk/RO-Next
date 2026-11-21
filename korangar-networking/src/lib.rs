@@ -1360,6 +1360,72 @@ mod packet_handlers {
         }]));
     }
 
+    /// The unknown packet skip only accepts a declared length when the offset
+    /// it points at starts another registered packet (or the end of the
+    /// read).
+    #[test]
+    fn unknown_variable_length_packet_can_be_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0FFF is not a registered packet, followed by a length of 12 bytes and
+        // eight bytes of payload; directly after it a known stat packet starts.
+        let mut data = vec![0xFF, 0x0F, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+        data.extend_from_slice(&[0xB0, 0x00, 20, 0, 100, 0, 0, 0]);
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            Some(12)
+        );
+    }
+
+    #[test]
+    fn unknown_packet_ending_the_read_can_be_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let data = vec![0xFF, 0x0F, 8, 0, 1, 2, 3, 4];
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            Some(8)
+        );
+    }
+
+    /// Fixed-size packets have no length field, so bytes 2..4 are payload. The
+    /// skip must not be used unless the resulting offset starts a known packet.
+    #[test]
+    fn unknown_fixed_size_packet_is_not_skipped() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // Bytes 2..4 form a plausible length (20), but the offset it points at is
+        // not another packet header and the read is longer, so it must not skip.
+        let mut data = vec![0xFF, 0x0F, 20, 0];
+        data.extend_from_slice(&[0; 24]);
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            None
+        );
+
+        // A length below the minimum (4) is never accepted.
+        let data = vec![0xFF, 0x0F, 3, 0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+        assert_eq!(
+            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
+            None
+        );
+    }
+
+    #[test]
+    fn known_headers_are_registered() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x009C)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0B1B)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0984)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0A37)));
+        assert!(!handler.is_registered(ragnarok_packets::PacketHeader(0x0FFF)));
+    }
+
     #[test]
     fn display_emotion_packet_preserves_entity_and_emotion() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();

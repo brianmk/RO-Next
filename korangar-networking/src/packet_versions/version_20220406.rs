@@ -423,6 +423,25 @@ where
     packet_handler.register_noop::<ChangeDirectionPacket2019>()?;
     packet_handler.register_noop::<NotifyActorInitPacket>()?;
     packet_handler.register_noop::<EnterStatusEffectPacket2019>()?;
+    // Remaining frequent 2019 packets that the client does not use yet. They are
+    // parsed with their exact 2019 sizes; a real handler can replace the noop
+    // later (shop: handled by the NPC shop branch, status effects: buff UI).
+    packet_handler.register_noop::<CartItemCountInfoPacket2019>()?;
+    packet_handler.register_noop::<UserCountPacket2019>()?;
+    packet_handler.register_noop::<RefuseEnterPacket2019>()?;
+    packet_handler.register_noop::<PartyMemberHealthPacket2019>()?;
+    packet_handler.register_noop::<ExchangeAddItemPacket2019>()?;
+    packet_handler.register_noop::<ExchangeConcludePacket2019>()?;
+    packet_handler.register_noop::<ExchangeCancelPacket2019>()?;
+    packet_handler.register_noop::<ExchangeExecPacket2019>()?;
+    packet_handler.register_noop::<ExchangeUndoPacket2019>()?;
+    packet_handler.register_noop::<StorageItemCountInfoPacket2019>()?;
+    packet_handler.register_noop::<StorageDeleteItemPacket2019>()?;
+    packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
+    packet_handler.register_noop::<ExchangeAckPacket2019>()?;
+    packet_handler.register_noop::<ItemPickupAckPacket2019>()?;
+    packet_handler.register_noop::<SpiritsPacket2019>()?;
+    packet_handler.register_noop::<Spirits2Packet2019>()?;
     packet_handler.register_noop::<UpdateAttackRangePacket>()?;
     packet_handler.register_noop::<NewMailStatusPacket>()?;
     packet_handler.register_noop::<AchievementUpdatePacket>()?;
