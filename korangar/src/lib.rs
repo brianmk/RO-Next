@@ -2825,8 +2825,7 @@ impl Client {
                 }
                 InputEvent::WhisperChat { name } => {
                     if !self.interface.is_window_with_class_open(WindowClass::Chat) {
-                        self.interface
-                            .open_window(ChatWindow::new(
+                        self.interface.open_window(ChatWindow::new(
                             client_state().chat_window(),
                             client_state().chat_messages(),
                             client_state().interface_settings(),

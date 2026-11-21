@@ -16,6 +16,12 @@ pub struct EntityData {
     pub head_palette: u16,
     /// Clothes color palette index (`body_palette` in the packets).
     pub body_palette: u16,
+    /// Lower headgear view id (`accessory` in the packets).
+    pub accessory: u16,
+    /// Upper headgear view id (`accessory2` in the packets).
+    pub accessory2: u16,
+    /// Middle headgear view id (`accessory3` in the packets).
+    pub accessory3: u16,
 }
 
 impl EntityData {
@@ -33,6 +39,9 @@ impl EntityData {
             sex: character_information.sex,
             head_palette: character_information.head_palette as u16,
             body_palette: character_information.body_palette as u16,
+            accessory: character_information.accessory as u16,
+            accessory2: character_information.accessory2 as u16,
+            accessory3: character_information.accessory3 as u16,
         }
     }
 }
@@ -52,6 +61,9 @@ impl From<EntityAppearPacket> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }
@@ -71,6 +83,9 @@ impl From<EntityAppear2Packet> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }
@@ -92,6 +107,9 @@ impl From<MovingEntityAppearPacket> for EntityData {
             sex: packet.sex,
             head_palette: packet.head_palette,
             body_palette: packet.body_palette,
+            accessory: packet.accessory,
+            accessory2: packet.accessory2,
+            accessory3: packet.accessory3,
         }
     }
 }
