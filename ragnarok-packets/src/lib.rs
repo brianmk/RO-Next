@@ -3980,6 +3980,20 @@ pub struct DisconnectResponsePacket {
     pub result: DisconnectResponseStatus,
 }
 
+/// Sent to the map server to request a clean disconnect (`CZ_REQ_DISCONNECT`).
+///
+/// Unlike the restart packet (0x00B2), which returns to the character selection
+/// and keeps the account online, this makes the map server save the character
+/// and tell the character server (and through it the login server) that the
+/// account is offline, so it can log in again immediately.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x018A)]
+pub struct RequestDisconnectPacket {
+    /// Disconnect type. The server ignores the value, official clients send 0.
+    pub disconnect_type: u16,
+}
+
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0438)]
