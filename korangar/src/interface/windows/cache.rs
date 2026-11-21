@@ -64,10 +64,25 @@ impl WindowCache {
         #[cfg(feature = "debug")]
         print_debug!("loading window cache from {}", Self::FILE_NAME.magenta());
 
-        std::fs::read_to_string(Self::FILE_NAME)
+        crate::logging::log_debug!("settings: loading window cache from {}", Self::FILE_NAME);
+
+        match std::fs::read_to_string(Self::FILE_NAME)
             .ok()
             .and_then(|data| ron::from_str(&data).ok())
-            .map(|entries| Self { entries })
+        {
+            Some(entries) => {
+                let cache = Self { entries };
+                crate::logging::log_debug!("settings: loaded window cache with {} entries", cache.entries.len());
+                Some(cache)
+            }
+            None => {
+                crate::logging::log_warn!(
+                    "settings: could not load window cache from {} (using defaults)",
+                    Self::FILE_NAME
+                );
+                None
+            }
+        }
     }
 
     fn save(&self) {

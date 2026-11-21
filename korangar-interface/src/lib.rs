@@ -14,6 +14,7 @@ pub mod components;
 pub mod element;
 pub mod event;
 pub mod layout;
+pub mod logging;
 pub mod skin;
 pub mod theme;
 pub mod window;
@@ -242,6 +243,30 @@ where
     window_id: u64,
 }
 
+/// Window sizes use `f32::MAX` as a "fit to content" sentinel; keep layout math
+/// finite by replacing non finite values with `0.0`.
+fn finite_or_zero(value: f32) -> f32 {
+    if value.is_finite() { value } else { 0.0 }
+}
+
+/// Shorten a `type_name` result for log lines.
+///
+/// The window types are generic over the full theme element paths, so their
+/// full type names are enormous. Log lines only need the outer type name
+/// (e.g. `LoginWindow` instead of
+/// `korangar::interface::windows::login::LoginWindow<...all paths...>`).
+fn short_type_name(name: &'static str) -> &'static str {
+    let without_generics = match name.find('<') {
+        Some(index) => &name[..index],
+        None => name,
+    };
+
+    match without_generics.rfind("::") {
+        Some(index) => &without_generics[index + 2..],
+        None => without_generics,
+    }
+}
+
 pub struct Interface<'a, App>
 where
     App: Application,
@@ -338,9 +363,14 @@ where
                         ResizeMode::Both => (delta.width(), delta.height()),
                     };
 
+                    let new_width = wrapper.display_information.real_area.width + delta_width / interface_scaling;
+                    let new_height = wrapper.display_information.real_area.height + delta_height / interface_scaling;
+
+                    // Clamp to a sane range so a fast drag can never create a
+                    // zero/negative/non finite window size.
                     wrapper.data.size = App::Size::new(
-                        wrapper.display_information.real_area.width + delta_width / interface_scaling,
-                        wrapper.display_information.real_area.height + delta_height / interface_scaling,
+                        finite_or_zero(new_width).clamp(80.0, 4096.0),
+                        finite_or_zero(new_height).clamp(60.0, 4096.0),
                     );
 
                     if let Some(window_class) = wrapper.window.get_class() {
@@ -367,12 +397,19 @@ where
             .any(|wrapper| wrapper.window.get_class().is_some_and(|class| class == window_class))
     }
 
-    fn open_new_window(&mut self, window: impl Window<App> + 'static) {
+    fn open_new_window(&mut self, window: impl Window<App> + 'static, debug_name: &'static str) {
         let id = self.next_window_id;
         // TODO: Actual logic to wrap around and adjust all window ids.
         self.next_window_id = self.next_window_id.wrapping_add(1);
 
         let window_class = window.get_class();
+
+        crate::log_trace!(
+            "interface: creating window layout for `{}` (id={}, class={:?})",
+            debug_name,
+            id,
+            window_class.is_some(),
+        );
 
         let (anchor, size) = match window_class.and_then(|window_class| self.window_cache.get_window_state(window_class)) {
             Some(saved_state) => saved_state,
@@ -388,9 +425,21 @@ where
             }
         };
 
+        crate::log_trace!(
+            "interface: push window id={} type=`{}` anchor_initialized={}",
+            id,
+            debug_name,
+            size.width() == 0.0
+        );
         self.windows.push(WindowWrapper {
             window: Box::new(window),
-            data: WindowData { id, anchor, size },
+            data: WindowData {
+                id,
+                anchor,
+                size,
+                debug_name,
+                size_clamp_logged: false,
+            },
             display_information: DisplayInformation {
                 real_area: Area {
                     left: 0.0,
@@ -428,8 +477,14 @@ where
         T: CustomWindow<App> + 'static,
     {
         if !T::window_class().is_some_and(|window_class| self.is_window_with_class_open(window_class)) {
+            crate::log_trace!("interface: open_window type=`{}`", short_type_name(std::any::type_name::<T>()));
             let window = window.to_window();
-            self.open_new_window(window);
+            self.open_new_window(window, short_type_name(std::any::type_name::<T>()));
+        } else {
+            crate::log_debug!(
+                "interface: open_window type=`{}` skipped, class already open",
+                short_type_name(std::any::type_name::<T>())
+            );
         }
     }
 
@@ -443,8 +498,12 @@ where
     where
         T: CustomWindow<App> + 'static,
     {
+        crate::log_trace!(
+            "interface: open_window_at type=`{}`",
+            short_type_name(std::any::type_name::<T>())
+        );
         let window = window.to_window();
-        self.open_new_window(window);
+        self.open_new_window(window, short_type_name(std::any::type_name::<T>()));
 
         if let Some(wrapper) = self.windows.last_mut() {
             wrapper.data.anchor = Anchor::top_left(position);
@@ -457,8 +516,12 @@ where
         T: StateWindow<App>,
     {
         if !T::window_class().is_some_and(|window_class| self.is_window_with_class_open(window_class)) {
+            crate::log_trace!(
+                "interface: open_state_window type=`{}`",
+                short_type_name(std::any::type_name::<T>())
+            );
             let window = T::to_window(window_path);
-            self.open_new_window(window);
+            self.open_new_window(window, short_type_name(std::any::type_name::<T>()));
         }
     }
 
@@ -469,7 +532,7 @@ where
     {
         if !T::window_class().is_some_and(|window_class| self.is_window_with_class_open(window_class)) {
             let window = T::to_window_mut(window_path);
-            self.open_new_window(window);
+            self.open_new_window(window, short_type_name(std::any::type_name::<T>()));
         }
     }
 
@@ -497,12 +560,18 @@ where
             .position(|class_option| class_option.contains(&window_class))
         {
             let index = self.windows.len() - 1 - index_from_back;
+            crate::log_trace!(
+                "interface: close_window_with_class id={} type=`{}`",
+                self.windows[index].data.id,
+                self.windows[index].data.debug_name
+            );
             self.remove_window(index);
         }
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn close_all_windows(&mut self) {
+        crate::log_trace!("interface: close_all_windows windows={}", self.windows.len());
         for index in (0..self.windows.len()).rev() {
             self.remove_window(index);
         }
@@ -611,6 +680,12 @@ where
             #[cfg(feature = "debug")]
             korangar_debug::profile_block!("create window layout info");
 
+            crate::log_trace!(
+                "interface: create_layout_info id={} type=`{}`",
+                wrapper.data.id,
+                wrapper.data.debug_name,
+            );
+
             wrapper.display_information = wrapper.window.create_layout_info(
                 state,
                 &mut this.window_store,
@@ -669,9 +744,27 @@ where
             overlay_element.element.lay_out(state, store, &(), layout);
         }
 
+        {
+            static LAST_SCALING: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+            let scaling_bits = interface_scaling.to_bits();
+            let previous_bits = LAST_SCALING.swap(scaling_bits, std::sync::atomic::Ordering::Relaxed);
+            if previous_bits != scaling_bits {
+                crate::log_debug!(
+                    "interface: interface_scaling changed to {} (window_size={}x{}, chrome_visible={}, windows={})",
+                    interface_scaling,
+                    this.window_size.width(),
+                    this.window_size.height(),
+                    this.window_chrome_visible,
+                    this.windows.len(),
+                );
+            }
+        }
+
         this.windows.iter().rev().for_each(|wrapper| {
             #[cfg(feature = "debug")]
             korangar_debug::profile_block!("lay out window");
+
+            crate::log_trace!("interface: lay_out id={} type=`{}`", wrapper.data.id, wrapper.data.debug_name);
 
             let position = App::Position::new(
                 wrapper.display_information.real_area.left,

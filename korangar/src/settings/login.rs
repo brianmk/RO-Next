@@ -65,12 +65,23 @@ impl LoginSettings {
     }
 
     pub fn load() -> Option<Self> {
-        #[cfg(feature = "debug")]
-        print_debug!("loading login settings from {}", Self::FILE_NAME.magenta());
+        crate::logging::log_debug!("settings: loading login settings from {}", Self::FILE_NAME);
+        let result = {
+            #[cfg(feature = "debug")]
+            print_debug!("loading login settings from {}", Self::FILE_NAME.magenta());
 
-        std::fs::read_to_string(Self::FILE_NAME)
-            .ok()
-            .and_then(|data| ron::from_str(&data).ok())
+            std::fs::read_to_string(Self::FILE_NAME)
+                .ok()
+                .and_then(|data| ron::from_str(&data).ok())
+        };
+        match &result {
+            Some(_) => crate::logging::log_debug!("settings: loaded login settings from {}", Self::FILE_NAME),
+            None => crate::logging::log_warn!(
+                "settings: could not load login settings from {} (using defaults)",
+                Self::FILE_NAME
+            ),
+        };
+        result
     }
 
     pub fn save(&self) {
