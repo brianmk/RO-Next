@@ -23,6 +23,20 @@ impl Key {
         }
     }
 
+    /// Silently clear the state without generating a press/release event.
+    ///
+    /// This is used when a mouse button release may have been lost (for example
+    /// when the pointer leaves the window on Wayland, or when the window
+    /// loses focus while a button is held) so that a stuck button cannot
+    /// swallow all following clicks.
+    pub fn force_up(&mut self) {
+        self.is_down = false;
+        self.was_down = false;
+        self.is_pressed = false;
+        self.is_released = false;
+        self.force_both = false;
+    }
+
     pub fn update(&mut self) {
         self.is_pressed = self.force_both || (self.is_down && !self.was_down);
         self.is_released = self.force_both || (!self.is_down && self.was_down);
