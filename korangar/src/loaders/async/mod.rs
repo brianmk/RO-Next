@@ -20,6 +20,8 @@ use crate::threads;
 use crate::world::{
     Actions, AnimationData, EntityType, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
     SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, Table,
+    Actions, AnimationData, EntityType, ItemInfo, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map,
+    ResourceMetadata, SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -236,8 +238,14 @@ impl AsyncLoader {
             })
             .to_string();
         let stats = *self.library.get::<ItemStats>(item.item_id);
+        let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
 
-        let metadata = ResourceMetadata { texture, name, stats };
+        let metadata = ResourceMetadata {
+            texture,
+            name,
+            stats,
+            description,
+        };
 
         InventoryItem { metadata, ..item }
     }
@@ -257,8 +265,14 @@ impl AsyncLoader {
             })
             .to_string();
         let stats = *self.library.get::<ItemStats>(item.item_id);
+        let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
 
-        let metadata = ResourceMetadata { texture, name, stats };
+        let metadata = ResourceMetadata {
+            texture,
+            name,
+            stats,
+            description,
+        };
 
         ShopItem { metadata, ..item }
     }

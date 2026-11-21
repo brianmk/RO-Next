@@ -31,6 +31,36 @@ impl AmountDisplay {
     }
 }
 
+/// What the right click on an item box should do.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ItemBoxContextMenu {
+    /// The right click does nothing (default for item boxes that are not part
+    /// of the player inventory, e.g. shop or cart lists).
+    #[default]
+    None,
+    /// Open the inventory item context menu (use/equip, view info, ...).
+    Inventory,
+}
+
+struct ItemContextMenuHandler<P> {
+    item_path: P,
+}
+
+impl<P> ClickHandler<ClientState> for ItemContextMenuHandler<P>
+where
+    P: Path<ClientState, InventoryItem<ResourceMetadata>, false>,
+{
+    fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        // Unwrapping here is fine since we only register the handler if the slot has a
+        // item.
+        let item = state.try_get(&self.item_path).unwrap();
+
+        queue.queue(InputEvent::OpenInventoryItemMenu {
+            inventory_index: item.index,
+        });
+    }
+}
+
 struct ItemBoxHandler<P> {
     item_path: P,
     source: ItemSource,
@@ -80,6 +110,8 @@ where
 pub struct ItemBox<A> {
     item_path: A,
     handler: ItemBoxHandler<A>,
+    context_menu_handler: ItemContextMenuHandler<A>,
+    context_menu: ItemBoxContextMenu,
     amount_display: AmountDisplay,
 }
 
@@ -94,8 +126,16 @@ where
         Self {
             item_path,
             handler: ItemBoxHandler::new(item_path, source),
+            context_menu_handler: ItemContextMenuHandler { item_path },
+            context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
         }
+    }
+
+    /// Enable the right click context menu on this item box.
+    pub fn with_context_menu(mut self, context_menu: ItemBoxContextMenu) -> Self {
+        self.context_menu = context_menu;
+        self
     }
 }
 
@@ -178,6 +218,10 @@ where
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);
+
+                if self.context_menu == ItemBoxContextMenu::Inventory {
+                    layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
+                }
             }
 
             if matches!(item.details, InventoryItemDetails::Regular { .. }) {

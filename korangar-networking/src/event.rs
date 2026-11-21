@@ -357,6 +357,12 @@ pub enum NetworkEvent {
         index: InventoryIndex,
         amount: u16,
     },
+    /// The amount of an item in the inventory changed (e.g. after using a
+    /// stackable item). If the new amount is zero the item is removed.
+    InventoryItemAmountChanged {
+        index: InventoryIndex,
+        amount: u16,
+    },
     AttackFailed {
         target_entity_id: EntityId,
         target_position: TilePosition,

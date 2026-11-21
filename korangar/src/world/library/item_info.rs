@@ -13,6 +13,16 @@ pub struct ItemInfo {
     pub(super) unidentified_resource: ItemResource,
     /// Stats evaluated from the identified item description.
     pub(super) stats: ItemStats,
+    /// The raw identified description lines from `iteminfo.lub`, used by the
+    /// item info window.
+    pub(super) description: Vec<String>,
+}
+
+impl ItemInfo {
+    /// The raw identified item description lines.
+    pub fn description(&self) -> &[String] {
+        &self.description
+    }
 }
 
 impl Table for ItemInfo {
@@ -45,6 +55,7 @@ impl Table for ItemInfo {
                     identified_resource: ItemResource::from_option(item_table.get("identifiedResourceName").ok().map(fix_encoding)),
                     unidentified_resource: ItemResource::from_option(item_table.get("unidentifiedResourceName").ok().map(fix_encoding)),
                     stats: ItemStats::parse(&identified_description),
+                    description: identified_description,
                 };
 
                 result.insert(ItemId(item_id), info);
@@ -65,6 +76,7 @@ impl Table for ItemInfo {
             identified_resource: ItemResource::not_found_value(),
             unidentified_resource: ItemResource::not_found_value(),
             stats: ItemStats::DEFAULT,
+            description: Vec::new(),
         };
         Self::try_get(library, key).unwrap_or(&DEFAULT)
     }

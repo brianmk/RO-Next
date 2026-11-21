@@ -5,8 +5,8 @@ use korangar_debug::profiling::FrameMeasurement;
 use korangar_interface::event::{ClickHandler, Event, EventQueue};
 use korangar_networking::{InventoryItem, ShopItem};
 use ragnarok_packets::{
-    AccountId, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, HotbarSlot, ShopId, SkillId, SkillLevel,
-    SoldItemInformation, StatUpType, TilePosition,
+    AccountId, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex, ItemId,
+    ShopId, SkillId, SkillLevel, SoldItemInformation, StatUpType, TilePosition,
 };
 use rust_state::State;
 
@@ -138,6 +138,32 @@ pub enum InputEvent {
         /// Name of the character to whisper to.
         name: String,
     },
+    /// Open the context menu of an inventory item (right click on the item).
+    OpenInventoryItemMenu {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+    },
+    /// Use an item from the inventory (potions, usable items, ...).
+    UseInventoryItem {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+        /// Item id of the item.
+        item_id: ItemId,
+    },
+    /// Equip an item from the inventory.
+    EquipInventoryItem {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+        /// Equipment position to equip the item to.
+        equip_position: EquipPosition,
+    },
+    /// Open the info window of an inventory item.
+    OpenItemInfo {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+    },
+    /// Close the item info window.
+    CloseItemInfo,
     /// Pick up an item from the ground.
     PickUpItem {
         /// Id of the item entity to pick up.

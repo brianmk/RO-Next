@@ -23,6 +23,7 @@ mod graphics_settings;
 mod hotbar;
 mod interface_settings;
 mod inventory;
+mod item_info;
 mod login;
 #[cfg(feature = "debug")]
 mod maps;
@@ -57,7 +58,7 @@ pub use self::character_selection::CharacterSelectionWindow;
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
-pub use self::context_menu::CharacterContextMenuWindow;
+pub use self::context_menu::{CharacterContextMenuWindow, ItemContextMenuWindow};
 pub use self::dialog::{DialogWindow, DialogWindowState};
 pub use self::equipment::EquipmentWindow;
 pub use self::error::ErrorWindow;
@@ -70,6 +71,7 @@ pub use self::graphics_settings::GraphicsSettingsWindow;
 pub use self::hotbar::HotbarWindow;
 pub use self::interface_settings::InterfaceSettingsWindow;
 pub use self::inventory::InventoryWindow;
+pub use self::item_info::ItemInfoWindow;
 pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 #[cfg(feature = "debug")]
 pub use self::maps::MapsWindow;
@@ -108,6 +110,7 @@ pub enum WindowClass {
     GraphicsSettings,
     Hotbar,
     Inventory,
+    ItemInfo,
     Equipment,
     SkillTree,
     Stats,

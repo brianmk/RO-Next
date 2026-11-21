@@ -6,6 +6,7 @@ use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
 use crate::loaders::Scaling;
+use crate::state::inventory::ItemCategory;
 use crate::state::localization::Language;
 
 /// This theme name includes a zero byte so that it can not point to an actual
@@ -57,6 +58,10 @@ pub struct InterfaceSettings {
     /// buttons). Can be toggled in the window itself, persisted here.
     #[serde(default = "default_character_overview_compact")]
     pub character_overview_compact: bool,
+    /// The last selected tab of the inventory window, like the original
+    /// client remembers which tab was open.
+    #[serde(default = "default_inventory_tab")]
+    pub inventory_tab: ItemCategory,
 }
 
 fn default_show_character_names() -> bool {
@@ -81,6 +86,8 @@ fn default_minimap_transparent_frame() -> bool {
 
 fn default_character_overview_compact() -> bool {
     false
+fn default_inventory_tab() -> ItemCategory {
+    ItemCategory::Consumables
 }
 
 impl Default for InterfaceSettings {
@@ -97,6 +104,7 @@ impl Default for InterfaceSettings {
             transparent_chat: false,
             minimap_transparent_frame: false,
             character_overview_compact: false,
+            inventory_tab: ItemCategory::Consumables,
         }
     }
 }

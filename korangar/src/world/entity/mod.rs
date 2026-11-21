@@ -483,7 +483,7 @@ fn get_entity_part_files(
                 let Some(sprite_path) = library.accessory_sprite_path(view_id, sex) else {
                     #[cfg(feature = "debug")]
                     if view_id != 0 {
-                        print_debug!(
+                        korangar_debug::logging::print_debug!(
                             "[{}] no accessory sprite for view id {} (sex {:?}), skipping",
                             "error".red(),
                             view_id,

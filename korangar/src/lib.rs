@@ -75,7 +75,7 @@ use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
     AttackRange, BuyShopItemsResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
-    SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
+    InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -121,6 +121,8 @@ use crate::settings::{
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
     ServiceSettingsPathExt, WORLD_THEMES_PATH,
 };
+use crate::state::inventory::{ItemCategory, item_category, item_use_action};
+use crate::state::localization::LocalizationPathExt;
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
@@ -2722,6 +2724,11 @@ impl Client {
                     *self.client_state.follow_mut(client_state().skill_tree().skills()) =
                         skill_information.into_iter().map(LearnedSkill::new).collect();
                 }
+                NetworkEvent::InventoryItemAmountChanged { index, amount } => {
+                    self.client_state
+                        .follow_mut(client_state().inventory())
+                        .update_amount(index, amount);
+                }
                 NetworkEvent::UpdateEquippedPosition { index, equipped_position } => {
                     self.client_state
                         .follow_mut(client_state().inventory())
@@ -2745,6 +2752,8 @@ impl Client {
                             "warning".yellow(),
                             account_id
                         );
+                        // The entity is not in the world yet (e.g. the server sent the job
+                        // change while the map was still loading). There is nothing to update.
                         continue;
                     };
 
@@ -3017,13 +3026,22 @@ impl Client {
                             let name = inventory_item.metadata.name.clone();
                             let texture = inventory_item.metadata.texture.clone();
                             let stats = inventory_item.metadata.stats;
+                            let description = inventory_item.metadata.description.clone();
                             let quantity = match &inventory_item.details {
                                 korangar_networking::InventoryItemDetails::Regular { amount, .. } => *amount,
                                 korangar_networking::InventoryItemDetails::Equippable { .. } => 1,
                             };
 
                             SellItem {
-                                metadata: (ResourceMetadata { name, texture, stats }, quantity),
+                                metadata: (
+                                    ResourceMetadata {
+                                        name,
+                                        texture,
+                                        stats,
+                                        description,
+                                    },
+                                    quantity,
+                                ),
                                 inventory_index: item.inventory_index,
                                 price: item.price,
                                 overcharge_price: item.overcharge_price,
@@ -3249,9 +3267,11 @@ impl Client {
                 InputEvent::RotateCamera { rotation } => self.player_camera.soft_rotate(rotation),
                 InputEvent::ResetCameraRotation => self.player_camera.reset_rotation(),
                 InputEvent::ToggleMenuWindow => {
-                    // Escape closes the character context menu before it does
-                    // anything else.
-                    if self.interface.is_window_with_class_open(WindowClass::ContextMenu) {
+                    // Escape closes the item info window and the character context
+                    // menu before it does anything else.
+                    if self.interface.is_window_with_class_open(WindowClass::ItemInfo) {
+                        self.interface.close_window_with_class(WindowClass::ItemInfo);
+                    } else if self.interface.is_window_with_class_open(WindowClass::ContextMenu) {
                         self.interface.close_window_with_class(WindowClass::ContextMenu);
                     // Escape cancels an active skill target selection instead
                     // of opening the menu, like in the
@@ -3269,7 +3289,10 @@ impl Client {
                     if self.client_state.try_follow(this_entity()).is_some() {
                         match self.interface.is_window_with_class_open(WindowClass::Inventory) {
                             true => self.interface.close_window_with_class(WindowClass::Inventory),
-                            false => self.interface.open_window(InventoryWindow::new(client_state().inventory().items())),
+                            false => self.interface.open_window(InventoryWindow::new(
+                                client_state().inventory().items(),
+                                client_state().interface_settings(),
+                            )),
                         }
                     }
                 }
@@ -3423,6 +3446,29 @@ impl Client {
                 }
                 InputEvent::CloseContextMenu => {
                     self.interface.close_window_with_class(WindowClass::ContextMenu);
+                }
+                InputEvent::OpenInventoryItemMenu { inventory_index } => {
+                    open_inventory_item_menu(
+                        &self.client_state,
+                        &mut self.interface,
+                        inventory_index,
+                        input_report.mouse_position,
+                    );
+                }
+                InputEvent::OpenItemInfo { inventory_index } => {
+                    open_item_info_window(&self.client_state, &mut self.interface, inventory_index);
+                }
+                InputEvent::CloseItemInfo => {
+                    self.interface.close_window_with_class(WindowClass::ItemInfo);
+                }
+                InputEvent::UseInventoryItem { inventory_index, item_id } => {
+                    let _ = self.networking_system.use_item(inventory_index, item_id);
+                }
+                InputEvent::EquipInventoryItem {
+                    inventory_index,
+                    equip_position,
+                } => {
+                    let _ = self.networking_system.request_item_equip(inventory_index, equip_position);
                 }
                 InputEvent::WhisperChat { name } => {
                     if !self.interface.is_window_with_class_open(WindowClass::Chat) {
@@ -4865,6 +4911,7 @@ impl Client {
             self.interface.set_window_chrome_visible(interface_settings_open);
 
             let is_context_menu_open = self.interface.is_window_with_class_open(WindowClass::ContextMenu);
+            let is_item_info_open = self.interface.is_window_with_class_open(WindowClass::ItemInfo);
 
             let mut interface_frame = self
                 .interface
@@ -4875,6 +4922,12 @@ impl Client {
 
             let is_interface_hovered = interface_frame.is_interface_hovered();
             let is_context_menu_hovered = interface_frame.is_window_with_class_hovered(WindowClass::ContextMenu);
+            let is_item_info_hovered = interface_frame.is_window_with_class_hovered(WindowClass::ItemInfo);
+
+            // A click outside of the item info window closes it.
+            if is_item_info_open && !is_item_info_hovered && input_report.mouse_click.is_some() {
+                self.input_event_buffer.push(InputEvent::CloseItemInfo);
+            }
 
             // A click outside of the context menu closes it. Left clicks in the
             // world are swallowed so that closing the menu does not also move the
@@ -5259,6 +5312,57 @@ fn open_character_context_menu(
         }
         None => true,
     }
+}
+
+/// Returns the localized label of an item category.
+fn item_category_label(state: &State<ClientState>, category: ItemCategory) -> String {
+    let localization = client_state().localization();
+
+    match category {
+        ItemCategory::Consumables => state.follow(localization.inventory_consumables_tab_text()).clone(),
+        ItemCategory::Equipments => state.follow(localization.inventory_equipments_tab_text()).clone(),
+        ItemCategory::Misc => state.follow(localization.inventory_misc_tab_text()).clone(),
+    }
+}
+
+/// Open the context menu of the inventory item with the given inventory index
+/// at the given screen position.
+fn open_inventory_item_menu(
+    state: &State<ClientState>,
+    interface: &mut Interface<'static, ClientState>,
+    inventory_index: InventoryIndex,
+    position: ScreenPosition,
+) {
+    let items = state.follow(client_state().inventory().items());
+    let Some(item) = items.iter().find(|item| item.index == inventory_index) else {
+        return;
+    };
+
+    let action = item_use_action(item);
+
+    interface.close_window_with_class(WindowClass::ContextMenu);
+    interface.open_window_at(ItemContextMenuWindow::new(inventory_index, item.item_id, action), position);
+}
+
+/// Open the info window of the inventory item with the given inventory index.
+fn open_item_info_window(state: &State<ClientState>, interface: &mut Interface<'static, ClientState>, inventory_index: InventoryIndex) {
+    let items = state.follow(client_state().inventory().items());
+    let Some(item) = items.iter().find(|item| item.index == inventory_index) else {
+        return;
+    };
+
+    let category = item_category(item);
+    let category_label = item_category_label(state, category);
+    let description = item.metadata.description.join("\n");
+
+    interface.close_window_with_class(WindowClass::ItemInfo);
+    interface.open_window(ItemInfoWindow::new(
+        item.metadata.name.clone(),
+        item.is_identified(),
+        category_label,
+        item.metadata.stats,
+        description,
+    ));
 }
 
 /// Returns `true` if the given environment variable is set to a truthy value.
