@@ -1174,6 +1174,21 @@ impl Player {
     }
 }
 
+/// Job ids of actors that the official client renders as GR2 (Granny 3D) models
+/// from `data\model\3dmob\...` instead of a 2D sprite. The game files contain
+/// no `data\sprite\npc\<name>.spr`/`.act` for them, so the sprite loader used
+/// to fall back to the opaque black `missing.spr` placeholder (this is what the
+/// "castle flags are not rendered" and "emperium is a black box" reports saw).
+///
+/// - `722`  `JT_GUILD_FLAG` - `data\model\3dmob\Guildflag90_1.gr2`, drawn with
+///   the owning guild's emblem texture.
+/// - `1288` `JT_EMPELIUM`   - `data\model\3dmob\Empelium90_0.gr2`.
+///
+/// korangar has no GR2 loader yet, so these entities are skipped instead of
+/// being drawn as black silhouettes. TODO: render them once a GR2 model loader
+/// and the guild emblem system exist.
+const GR2_MODEL_ACTOR_JOB_IDS: [u16; 2] = [722, 1288];
+
 #[derive(Clone, RustState, StateWindow)]
 pub struct Npc {
     common: Common,
@@ -1187,6 +1202,10 @@ impl Npc {
         entity_data: EntityData,
         client_tick: ClientTick,
     ) -> Option<Self> {
+        if GR2_MODEL_ACTOR_JOB_IDS.contains(&entity_data.job_id.0) {
+            return None;
+        }
+
         let Some(position) = map.get_world_position(entity_data.position.tile_position()) else {
             #[cfg(feature = "debug")]
             korangar_debug::logging::print_debug!(

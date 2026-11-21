@@ -475,6 +475,46 @@ where
             NoNetworkEvents
         }
     })?;
+    // CondaRO runs a 2019 rAthena server (PACKETVER 20190605) which sends the
+    // equippable inventory rows with the 2019 `ZC_INVENTORY_LIST` header and
+    // layout (0x0B0A, 67 byte rows). The 2022 header (0x0B39) is never used by
+    // that server, and an unhandled packet would abort parsing for the rest of
+    // the current TCP read - which is exactly where the map-load entity spawn
+    // burst arrives, so the NPC list used to get swallowed here.
+    packet_handler.register({
+        let inventory_items = inventory_items.clone();
+
+        move |packet: EquippableItemListPacket2019| {
+            inventory_items
+                .borrow_mut()
+                .as_mut()
+                .expect("Unexpected inventory packet")
+                .extend(packet.item_information.into_iter().map(|item| {
+                    let item = EquippableItemInformation::from(item);
+
+                    InventoryItem {
+                        index: item.index,
+                        metadata: NoMetadata,
+                        item_id: item.item_id,
+                        item_type: item.item_type,
+                        slot: item.slot,
+                        hire_expiration_date: item.hire_expiration_date,
+                        details: InventoryItemDetails::Equippable {
+                            equip_position: item.equip_position,
+                            equipped_position: item.equipped_position,
+                            bind_on_equip_type: item.bind_on_equip_type,
+                            w_item_sprite_number: item.w_item_sprite_number,
+                            option_count: item.option_count,
+                            option_data: item.option_data,
+                            refinement_level: item.refinement_level,
+                            enchantment_level: item.enchantment_level,
+                            flags: item.flags,
+                        },
+                    }
+                }));
+            NoNetworkEvents
+        }
+    })?;
     packet_handler.register({
         let inventory_items = inventory_items.clone();
 
@@ -841,6 +881,7 @@ where
             color: MessageColor::Error,
         },
     })?;
+    packet_handler.register_noop::<UseSkillAckPacket2019>()?;
     packet_handler.register_noop::<UseSkillSuccessPacket>()?;
     packet_handler.register_noop::<ToUseSkillSuccessPacket>()?;
     packet_handler.register(|packet: NotifySkillUnitPacket| {

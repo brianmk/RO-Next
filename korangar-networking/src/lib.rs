@@ -331,47 +331,66 @@ where
                         break Err(NetworkTaskError::ConnectionClosed);
                     }
 
-                    let data = &buffer[..cut_off_buffer_base + received_bytes];
-                    let mut byte_reader = ByteReader::without_metadata(data);
-                    byte_reader.set_encoding(UTF_8);
+                    let data_len = cut_off_buffer_base + received_bytes;
+                    // Offset of the tail that must be kept to complete a packet that
+                    // was split across two TCP reads (`None` when everything in the
+                    // buffer was consumed).
+                    let mut keep_tail_from: Option<usize> = None;
+                    // Set when the stream is in an unknown state (unsupported or
+                    // malformed packet): the remainder of the buffer cannot be
+                    // interpreted and is discarded.
+                    let mut discard_remainder = false;
 
-                    if read_account_id {
-                        let account_id = AccountId::from_bytes(&mut byte_reader).unwrap();
-                        events.push(NetworkEvent::AccountId { account_id });
-                        read_account_id = false;
-                    }
+                    {
+                        let mut byte_reader = ByteReader::without_metadata(&buffer[..data_len]);
+                        byte_reader.set_encoding(UTF_8);
 
-                    while !byte_reader.is_empty() {
-                        match packet_handler.process_one(&mut byte_reader) {
-                            HandlerResult::Ok(packet_events) => events.extend(packet_events.0.into_iter()),
-                            HandlerResult::PacketCutOff => {
-                                let packet_start = byte_reader.get_offset();
-                                let packet_end = cut_off_buffer_base + received_bytes;
+                        if read_account_id {
+                            let account_id = AccountId::from_bytes(&mut byte_reader).unwrap();
+                            events.push(NetworkEvent::AccountId { account_id });
+                            read_account_id = false;
+                        }
 
-                                if packet_start == 0 {
-                                    // If the packet_start is 0, that means the packet is allegidly bigger than the MTU of a TCP packet.
-                                    // We limit the size of a packet to the MTU, to avoid getting stuck on packets that are parsed incorrectly.
-                                    // TODO: Call the packet callback?
-                                    cut_off_buffer_base = 0;
+                        while !byte_reader.is_empty() {
+                            match packet_handler.process_one(&mut byte_reader) {
+                                HandlerResult::Ok(packet_events) => events.extend(packet_events.0.into_iter()),
+                                HandlerResult::PacketCutOff => {
+                                    let packet_start = byte_reader.get_offset();
+
+                                    // A packet that starts at offset zero and fills the whole
+                                    // buffer is larger than anything we can parse; drop it to
+                                    // avoid getting stuck forever.
+                                    let packet_larger_than_buffer = packet_start == 0 && data_len == buffer.len();
+
+                                    if !packet_larger_than_buffer {
+                                        // This is normal TCP fragmentation: remember where the
+                                        // packet starts so that its bytes survive until the next
+                                        // read appends the rest. Dropping them would leave the
+                                        // parser in the middle of a packet and desynchronize the
+                                        // whole stream (which used to silently swallow e.g. a
+                                        // whole map-load entity spawn burst).
+                                        keep_tail_from = Some(packet_start);
+                                    }
+
                                     break;
                                 }
-
-                                buffer.copy_within(packet_start..packet_end, 0);
-                                cut_off_buffer_base = packet_end - packet_start;
-
-                                break;
-                            },
-                            // The packet callback can take care of handling these properly.
-                            HandlerResult::UnhandledPacket => {
-                                cut_off_buffer_base = 0;
-                                break
-                            },
-                            HandlerResult::InternalError(..) => {
-                                cut_off_buffer_base = 0;
-                                break
-                            },
+                                // The packet callback can take care of handling these properly.
+                                HandlerResult::UnhandledPacket | HandlerResult::InternalError(..) => {
+                                    discard_remainder = true;
+                                    break;
+                                }
+                            }
                         }
                     }
+
+                    cut_off_buffer_base = match (keep_tail_from, discard_remainder) {
+                        (_, true) => 0,
+                        (Some(packet_start), false) => {
+                            buffer.copy_within(packet_start..data_len, 0);
+                            data_len - packet_start
+                        }
+                        (None, false) => 0,
+                    };
 
                     for event in events.drain(..) {
                         if let NetworkEvent::UpdateClientTick {client_tick,received_at} = &event && let Ok(mut time_synchronization) = time_synchronization.lock() {

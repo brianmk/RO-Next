@@ -1172,6 +1172,63 @@ impl ToBytes for EquippableItemFlags {
     }
 }
 
+/// 2019-era layout of one row of the equippable item list
+/// (`ZC_INVENTORY_LIST`, rAthena header `0x0B0A`, `PACKETVER` between
+/// 2018-11-21 and 2020-09-16).
+///
+/// It differs from [EquippableItemInformation] (the 2022 layout used by
+/// [`EquippableItemListPacket`]): the refinement level comes *before* the card
+/// slots and there is no enchantment/grade byte at the end, which makes one row
+/// 67 bytes instead of 68.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct EquippableItemInformation2019 {
+    pub index: InventoryIndex,
+    pub item_id: ItemId,
+    pub item_type: u8,
+    pub equip_position: EquipPosition,
+    pub equipped_position: EquipPosition,
+    pub refinement_level: u8,
+    pub slot: [u32; 4], // card ?
+    pub hire_expiration_date: u32,
+    pub bind_on_equip_type: u16,
+    pub w_item_sprite_number: u16,
+    pub option_count: u8,
+    pub option_data: [ItemOptions; 5], // fix count
+    pub flags: EquippableItemFlags,
+}
+
+impl From<EquippableItemInformation2019> for EquippableItemInformation {
+    fn from(value: EquippableItemInformation2019) -> Self {
+        Self {
+            index: value.index,
+            item_id: value.item_id,
+            item_type: value.item_type,
+            equip_position: value.equip_position,
+            equipped_position: value.equipped_position,
+            slot: value.slot,
+            hire_expiration_date: value.hire_expiration_date,
+            bind_on_equip_type: value.bind_on_equip_type,
+            w_item_sprite_number: value.w_item_sprite_number,
+            option_count: value.option_count,
+            option_data: value.option_data,
+            refinement_level: value.refinement_level,
+            enchantment_level: 0,
+            flags: value.flags,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0B0A)]
+#[variable_length]
+pub struct EquippableItemListPacket2019 {
+    pub inventory_type: u8,
+    #[repeating_remaining]
+    pub item_information: Vec<EquippableItemInformation2019>,
+}
+
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub struct EquippableItemInformation {
@@ -4028,6 +4085,27 @@ pub struct StartUseSkillPacket {
 #[header(0x0B11)]
 pub struct EndUseSkillPacket {
     pub skill_id: SkillId,
+}
+
+/// 2019-era (`PACKETVER` >= 20181212) layout of `ZC_USESKILL_ACK`.
+///
+/// The 2019 server sends this header instead of the [UseSkillSuccessPacket]
+/// header (0x07FB) that newer clients use; compared to that packet it has an
+/// additional trailing `attackMT` field (29 bytes in total). Like
+/// [UseSkillSuccessPacket] the client currently does not need its contents, but
+/// it has to be parsed so that it does not desynchronize the packet stream.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0B1A)]
+pub struct UseSkillAckPacket2019 {
+    pub source_entity_id: EntityId,
+    pub destination_entity_id: EntityId,
+    pub position: TilePosition,
+    pub skill_id: SkillId,
+    pub element: u32,
+    pub delay_time: u32,
+    pub disposable: u8,
+    pub attack_motion_time: u32,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
