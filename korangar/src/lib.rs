@@ -117,6 +117,7 @@ use crate::settings::{
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
     ServiceSettingsPathExt, WORLD_THEMES_PATH,
 };
+use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
 use crate::state::{BufferedAction, SelectedServicePath};
@@ -301,6 +302,16 @@ pub struct Client {
     saved_username: String,
     // TODO: Move or remove this.
     saved_packet_version: SupportedPacketVersion,
+
+    /// Last tile position the minimap marker was updated with, used to derive
+    /// the direction the player is facing from the movement delta.
+    minimap_last_tile: Option<TilePosition>,
+
+    /// Explicit state of the `M` key window cycle: small minimap -> big map ->
+    /// closed -> small minimap. The windows themselves are still the source of
+    /// truth (a window can be closed with its X button), the cycle re-syncs
+    /// with the actually open windows when the key is pressed.
+    map_window_cycle: MapWindowCycle,
 
     /// Set when a quit was requested (exit button, window close or
     /// SIGTERM/SIGHUP). The client then asks the map server for a clean
@@ -772,13 +783,22 @@ impl Client {
         });
 
         time_phase!("create client state", {
-            let client_state = State::new(ClientState::new(
+            let mut client_state = State::new(ClientState::new(
                 &game_file_loader,
                 graphics_settings.clone(),
                 #[cfg(feature = "debug")]
                 packet_history,
             ));
         });
+
+        // Generate the direction arrow textures of the minimap marker once at
+        // startup. They are pre-rotated so the renderer only has to pick one.
+        {
+            let marker_textures = generate_direction_markers(&texture_loader);
+            client_state
+                .follow_mut(crate::client_state().minimap())
+                .set_marker_textures(marker_textures);
+        }
 
         let active_interface_settings = client_state.follow(crate::client_state().interface_settings()).clone();
 
@@ -862,6 +882,8 @@ impl Client {
             map_entry_abort_deadline: None,
             map_entry_aborted: false,
             pending_map_load: None,
+            map_window_cycle: MapWindowCycle::Closed,
+            minimap_last_tile: None,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -1347,6 +1369,39 @@ impl Client {
         }
     }
 
+    /// Advance the `M` key cycle: small minimap -> big map -> closed.
+    ///
+    /// The stored [`MapWindowCycle`] is the explicit state of the cycle, but a
+    /// map window can also be closed with its X button or by a map change, so
+    /// the state is re-synchronized with the actually open windows before the
+    /// next step is computed.
+    fn cycle_map_windows(interface: &mut Interface<'static, ClientState>, map_window_cycle: &mut MapWindowCycle) {
+        let current_state = if interface.is_window_with_class_open(WindowClass::BigMap) {
+            MapWindowCycle::BigMap
+        } else if interface.is_window_with_class_open(WindowClass::Minimap) {
+            MapWindowCycle::Minimap
+        } else {
+            MapWindowCycle::Closed
+        };
+
+        let next_state = match current_state {
+            MapWindowCycle::Closed => MapWindowCycle::Minimap,
+            MapWindowCycle::Minimap => MapWindowCycle::BigMap,
+            MapWindowCycle::BigMap => MapWindowCycle::Closed,
+        };
+
+        interface.close_window_with_class(WindowClass::Minimap);
+        interface.close_window_with_class(WindowClass::BigMap);
+
+        match next_state {
+            MapWindowCycle::Closed => {}
+            MapWindowCycle::Minimap => interface.open_window(MinimapWindow),
+            MapWindowCycle::BigMap => interface.open_window(BigMapWindow),
+        }
+
+        *map_window_cycle = next_state;
+    }
+
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn request_entity_details(&mut self, input_report: &InputReport) {
@@ -1717,6 +1772,7 @@ impl Client {
 
                     self.interface.close_window_with_class(WindowClass::CharacterSelection);
                     self.interface.open_window(MinimapWindow);
+                    self.map_window_cycle = MapWindowCycle::Minimap;
 
                     self.interface.open_window(CharacterOverviewWindow::new(
                         client_state().player_name(),
@@ -1952,6 +2008,7 @@ impl Client {
                 }
                 NetworkEvent::ChangeMap { map_name, position } => {
                     self.map = None;
+                    self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -2798,10 +2855,25 @@ impl Client {
                 },
                 InputEvent::ToggleMinimapWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
+                        self.interface.close_window_with_class(WindowClass::BigMap);
+
                         match self.interface.is_window_with_class_open(WindowClass::Minimap) {
-                            true => self.interface.close_window_with_class(WindowClass::Minimap),
-                            false => self.interface.open_window(MinimapWindow),
+                            true => {
+                                self.interface.close_window_with_class(WindowClass::Minimap);
+                                self.map_window_cycle = MapWindowCycle::Closed;
+                            }
+                            false => {
+                                self.interface.open_window(MinimapWindow);
+                                self.map_window_cycle = MapWindowCycle::Minimap;
+                            }
                         }
+                    }
+                }
+                InputEvent::CycleMapWindows => {
+                    // Text inputs (chat, login, character name, ...) get the M
+                    // key, the map cycle must not steal it while they are focused.
+                    if !self.interface.has_focus() && self.client_state.try_follow(this_entity()).is_some() {
+                        Self::cycle_map_windows(&mut self.interface, &mut self.map_window_cycle);
                     }
                 }
                 InputEvent::ToggleFriendListWindow => {
@@ -4144,9 +4216,23 @@ impl Client {
             .then(|| self.client_state.try_follow(this_entity()).map(|entity| entity.get_tile_position()))
             .flatten();
 
-        self.client_state
-            .follow_mut(client_state().minimap())
-            .set_player_position(player_position);
+        match player_position {
+            Some(player_position) => {
+                let previous_position = self.minimap_last_tile.replace(player_position);
+                let current_direction = self.client_state.follow(client_state().minimap()).get_player_direction();
+                let player_direction = previous_position
+                    .and_then(|previous_position| direction_index_from_tile_delta(previous_position, player_position))
+                    .unwrap_or(current_direction);
+
+                self.client_state
+                    .follow_mut(client_state().minimap())
+                    .set_player_position(Some(player_position), player_direction);
+            }
+            None => {
+                self.minimap_last_tile = None;
+                self.client_state.follow_mut(client_state().minimap()).set_player_position(None, 0);
+            }
+        }
 
         #[cfg(feature = "debug")]
         let render_options = *self.client_state.follow(client_state().render_options());

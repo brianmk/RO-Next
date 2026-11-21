@@ -47,6 +47,11 @@ pub struct InterfaceSettings {
     /// through it. Can be toggled in the chat window, persisted here.
     #[serde(default = "default_transparent_chat")]
     pub transparent_chat: bool,
+    /// Draw the minimap window without its dark frame/background so only the
+    /// map image is visible. Can be toggled with a button in the minimap
+    /// window, persisted here.
+    #[serde(default = "default_minimap_transparent_frame")]
+    pub minimap_transparent_frame: bool,
 }
 
 fn default_show_character_names() -> bool {
@@ -65,6 +70,10 @@ fn default_transparent_chat() -> bool {
     false
 }
 
+fn default_minimap_transparent_frame() -> bool {
+    false
+}
+
 impl Default for InterfaceSettings {
     fn default() -> Self {
         Self {
@@ -77,6 +86,7 @@ impl Default for InterfaceSettings {
             show_chat_bubbles: true,
             chat_bubble_background: true,
             transparent_chat: false,
+            minimap_transparent_frame: false,
         }
     }
 }
