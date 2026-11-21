@@ -646,7 +646,7 @@ impl Common {
 
         if let Some(animation_data) = self.animation_data.as_ref() {
             if animation_data.is_animation_over(&self.animation_state)
-                && (self.animation_state.is_attack() || self.animation_state.is_pickup())
+                && (self.animation_state.is_attack() || self.animation_state.is_pickup() || self.animation_state.is_skill())
             {
                 self.animation_state.idle(self.entity_type, client_tick);
             }
@@ -1725,6 +1725,29 @@ impl Entity {
     pub fn set_pickup(&mut self, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();
         self.get_common_mut().animation_state.pickup(entity_type, client_tick);
+    }
+
+    /// Sit down (`ZC_NOTIFY_ACT` with `DamageType::SitDown`).
+    pub fn set_sitting(&mut self, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.sit(entity_type, client_tick);
+    }
+
+    /// Stand up again (`ZC_NOTIFY_ACT` with `DamageType::StandUp`).
+    pub fn set_standing(&mut self, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.stand_up(entity_type, client_tick);
+    }
+
+    /// Play the skill-cast animation on this entity for `cast_time`
+    /// milliseconds.
+    pub fn set_skill_cast(&mut self, cast_time: u32, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.skill(entity_type, cast_time, client_tick);
+    }
+
+    pub fn is_sitting(&self) -> bool {
+        self.get_common().animation_state.is_sitting()
     }
 
     pub fn rotate_towards(&mut self, target_position: TilePosition) {

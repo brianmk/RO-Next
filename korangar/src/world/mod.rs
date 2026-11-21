@@ -14,6 +14,7 @@ mod model;
 mod object;
 mod particles;
 mod pathing;
+mod skill_cast_effect;
 mod sound;
 mod video;
 
@@ -35,6 +36,7 @@ pub use self::model::*;
 pub use self::object::*;
 pub use self::particles::*;
 pub use self::pathing::*;
+pub use self::skill_cast_effect::*;
 pub use self::sound::*;
 pub use self::video::*;
 use crate::graphics::Texture;
