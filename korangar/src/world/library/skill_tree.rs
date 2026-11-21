@@ -101,6 +101,38 @@ fn evaluate_job(
     Ok(skill_tree_layout)
 }
 
+impl SkillTreeLayout {
+    /// Resolves the layout for a job, including the generated fallback table.
+    ///
+    /// Jobs without a (non-empty) skill tree entry in this trimmed data set
+    /// (alternate, 4th and expanded jobs used by population shells) are
+    /// mapped to the tree of their base job. Returns `None` only for job
+    /// ids that have neither an entry nor a fallback, callers then use the
+    /// empty tree.
+    pub(crate) fn resolve(library: &Library, job_id: JobId) -> Option<&SkillTreeLayout> {
+        fn has_skills(skill_tree: &SkillTreeLayout) -> bool {
+            skill_tree.tabs.iter().any(|tab| !tab.skills.is_empty())
+        }
+
+        if let Some(skill_tree) = <Self as Table>::try_get(library, job_id)
+            && has_skills(skill_tree)
+        {
+            return Some(skill_tree);
+        }
+
+        if let Some(fallback_job_id) = super::job_alias::skill_tree_fallback(job_id)
+            && let Some(skill_tree) = <Self as Table>::try_get(library, fallback_job_id)
+            && has_skills(skill_tree)
+        {
+            super::job_alias::warn_once("no skill tree, using the fallback job tree", job_id);
+
+            return Some(skill_tree);
+        }
+
+        None
+    }
+}
+
 impl Table for SkillTreeLayout {
     type Key<'a> = JobId;
     type Storage = HashMap<JobId, Self>;
@@ -158,13 +190,14 @@ impl Table for SkillTreeLayout {
     {
         // Some jobs (e.g. jobs used by population shells or very new jobs that this
         // client's skill tree tables do not know) have no skill tree entry. Fall back
-        // to an empty tree instead of panicking the client.
+        // to the base job tree or, if there is none either, to an empty tree instead of
+        // panicking the client.
         static EMPTY: std::sync::LazyLock<SkillTreeLayout> = std::sync::LazyLock::new(SkillTreeLayout::default);
 
-        match Self::try_get(library, key) {
+        match Self::resolve(library, key) {
             Some(skill_tree) => skill_tree,
             None => {
-                eprintln!("[skill_tree] no skill tree for job {:?}, using an empty tree", key);
+                super::job_alias::warn_once("no skill tree, using an empty tree", key);
                 &EMPTY
             }
         }

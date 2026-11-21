@@ -215,7 +215,15 @@ pub struct Common {
 
 #[cfg_attr(feature = "debug", korangar_debug::profile)]
 #[allow(clippy::invisible_characters)]
-fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
+pub(crate) fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
+    // Some jobs that CondaRO content uses have no sprite in this trimmed data set
+    // (4th jobs, KAGEROU/OBORO/REBELLION, …) or are not mapped by the client at
+    // all (alternate/costume/unsupported jobs). Use a verified existing sprite
+    // instead of rendering the black `missing.spr` placeholder.
+    if let Some(alias) = crate::world::library::job_alias::player_job_sprite_alias(job_id) {
+        return alias;
+    }
+
     match job_id.0 {
         0 => "초보자",             // NOVICE
         1 => "검사",               // SWORDMAN
@@ -361,7 +369,11 @@ fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
         4305 => "SHIRANUI",        // SHIRANUI
         4306 => "NIGHT_WATCH",     // NIGHT WATCH
         4307 => "HYPER_NOVICE",    // HYPER NOVICE
-        _ => "초보자",             // NOVICE,
+        _ => {
+            crate::world::library::job_alias::warn_once("no player job sprite, using the novice sprite", job_id);
+
+            "초보자" // NOVICE
+        }
     }
 }
 
@@ -370,7 +382,13 @@ fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
 /// The classic palette files use the official job names, which do not always
 /// match the sprite directory names (for example `하이프리_여.spr` but
 /// `하이프리스트_여_0.pal`).
-fn get_body_palette_name(job_id: JobId) -> &'static str {
+pub(crate) fn get_body_palette_name(job_id: JobId) -> &'static str {
+    // Palette files use the same job names as the sprites; aliased jobs use the
+    // palette of the sprite they were mapped to.
+    if let Some(alias) = crate::world::library::job_alias::player_job_sprite_alias(job_id) {
+        return alias;
+    }
+
     match job_id.0 {
         // High Priest: sprite is `하이프리`, palette files are `하이프리스트`.
         4009 => "하이프리스트",
