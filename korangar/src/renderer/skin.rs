@@ -113,7 +113,9 @@ impl SkinTextures {
 
 impl SkinTexturesInner {
     fn new(texture_loader: &TextureLoader) -> Self {
-        Self {
+        crate::logging::log_trace!("skin: building classic skin textures (lazy first use)");
+
+        let textures = Self {
             window_frame: build_atlas(texture_loader, SkinImage::WindowFrame, &[
                 "sysbox_lu.bmp",
                 "sysbox_mu.bmp",
@@ -150,7 +152,11 @@ impl SkinTexturesInner {
             checkbox_unchecked: load(texture_loader, "checkbox_0.bmp"),
             checkbox_checked: load(texture_loader, "checkbox_1.bmp"),
             text_box: build_text_box(texture_loader),
-        }
+        };
+
+        crate::logging::log_trace!("skin: classic skin textures built");
+
+        textures
     }
 
     fn get(&self, image: SkinImage) -> Option<Arc<Texture>> {
@@ -173,7 +179,15 @@ impl SkinTexturesInner {
 fn load(texture_loader: &TextureLoader, name: &str) -> Option<Arc<Texture>> {
     let path = format!("{CLASSIC_INTERFACE}\\{name}");
 
-    texture_loader.get_or_load(&path, ImageType::Color).ok()
+    crate::logging::log_trace!("skin: loading skin texture {}", path);
+
+    match texture_loader.get_or_load(&path, ImageType::Color) {
+        Ok(texture) => Some(texture),
+        Err(error) => {
+            crate::logging::log_warn!("skin: failed to load skin texture {}: {:?}", path, error);
+            None
+        }
+    }
 }
 
 /// Load a texture and stitch several equally sized pieces into one atlas.
@@ -199,7 +213,16 @@ fn build_atlas(texture_loader: &TextureLoader, image: SkinImage, pieces: &[&str]
     for (index, piece) in pieces.iter().enumerate() {
         let path = format!("{CLASSIC_INTERFACE}\\{piece}");
 
+        crate::logging::log_trace!(
+            "skin: loading atlas piece {} ({}/{}) for {:?}",
+            path,
+            index + 1,
+            piece_count,
+            image
+        );
+
         let Ok((piece_image, _)) = texture_loader.load_texture_data(&path) else {
+            crate::logging::log_warn!("skin: failed to load atlas piece {}, dropping atlas {:?}", path, image);
             return None;
         };
 

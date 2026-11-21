@@ -25,5 +25,35 @@ If everything starts correctly, you should see a window prompting you for a user
 ### 🫀 Creating a character
 After logging in, you will be able to create a new character. If the character creation fails, it might be because you are using invalid characters in the name (e.g. `_`).
 
+# Logging and crash diagnostics
+
+Release builds are quiet by default. Pass `-v`, `-vv` or `-vvv` to the client (or to the
+launcher script, which forwards all arguments) to get progressively more log output on stderr:
+
+```fish
+# info: startup phases, settings/theme loading, window openings
+./scripts/run-korangar.sh -v
+
+# debug: plus window cache/theme details, interface scaling, layout details
+./scripts/run-korangar.sh -vv
+
+# trace: plus every window creation/layout, input event and classic skin texture load
+./scripts/run-korangar.sh -vvv 2> client.log
+```
+
+The verbosity can also be set with the `KORANGAR_LOG_LEVEL` environment variable (`0`-`3`), which
+is useful when the client is started from a desktop launcher that cannot pass arguments.
+
+Every line has a timestamp, level and module prefix, for example:
+
+```text
+[12:34:56.789 INFO  korangar] interface: opening interface settings window (in_game_theme="classic", scaling=1)
+[12:34:56.790 TRACE korangar_interface] interface: create_layout_info id=9 type=`InterfaceSettingsWindow`
+```
+
+If the client panics, the panic message and a full backtrace are printed (no `RUST_BACKTRACE`
+needed). Fatal signals like `SIGSEGV`/`SIGABRT` are also caught and print a marker plus a backtrace
+before the signal is re-raised, so the log file ends with the crash information.
+
 # Troubleshooting
 If the client keeps crashing or you have any other problems, please consult the wiki page on [Troubleshooting](Troubleshooting.md).

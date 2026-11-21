@@ -130,6 +130,7 @@ impl InterfaceTheme {
         let timer = Timer::new("Load theme");
 
         if name == CLASSIC_THEME_NAME {
+            crate::logging::log_debug!("theme: using built-in classic theme for {:?}", theme_type);
             return Self::default_classic();
         }
 
@@ -141,12 +142,13 @@ impl InterfaceTheme {
         #[cfg(feature = "debug")]
         print_debug!("loading theme from file {}", path.magenta());
 
+        crate::logging::log_debug!("theme: loading theme `{}` for {:?} from {}", name, theme_type, path);
+
         let theme = std::fs::read_to_string(&path)
             .ok()
             .and_then(|data| ron::from_str(&data).ok())
             .unwrap_or_else(|| {
-                #[cfg(feature = "debug")]
-                print_debug!("[{}] failed to load theme {}", "error".red(), name.magenta());
+                crate::logging::log_warn!("theme: failed to load theme `{}` from {}, using default", name, path);
 
                 match theme_type {
                     InterfaceThemeType::Menu => Self::default_menu(),

@@ -28,11 +28,22 @@ impl GameSettings {
     }
 
     pub fn load() -> Option<Self> {
-        #[cfg(feature = "debug")]
-        print_debug!("loading game settings from {}", Self::FILE_NAME.magenta());
-        std::fs::read_to_string(Self::FILE_NAME)
-            .ok()
-            .and_then(|data| ron::from_str(&data).ok())
+        crate::logging::log_debug!("settings: loading game settings from {}", Self::FILE_NAME);
+        let result = {
+            #[cfg(feature = "debug")]
+            print_debug!("loading game settings from {}", Self::FILE_NAME.magenta());
+            std::fs::read_to_string(Self::FILE_NAME)
+                .ok()
+                .and_then(|data| ron::from_str(&data).ok())
+        };
+        match &result {
+            Some(_) => crate::logging::log_debug!("settings: loaded game settings from {}", Self::FILE_NAME),
+            None => crate::logging::log_warn!(
+                "settings: could not load game settings from {} (using defaults)",
+                Self::FILE_NAME
+            ),
+        };
+        result
     }
 
     pub fn save(&self) {

@@ -28,6 +28,12 @@ mod private {
 
 /// This trait is only used to abstract over [`WindowInternal`] and it's
 /// generics and is not supposed to be implemented outised this crate.
+/// Window sizes use `f32::MAX` as a "fit to content" sentinel; keep layout math
+/// finite by replacing non finite values with `0.0`.
+fn finite_or_zero(value: f32) -> f32 {
+    if value.is_finite() { value } else { 0.0 }
+}
+
 pub trait Window<App: Application>: private::Sealed {
     /// Get the window class of the window (if any).
     fn get_class(&self) -> Option<App::WindowClass>;
@@ -131,6 +137,11 @@ where
     pub id: u64,
     pub anchor: Anchor<App>,
     pub size: App::Size,
+    /// Concrete type name of the window, only used for `-vvv` log lines.
+    pub debug_name: &'static str,
+    /// Set once the "clamped stored size" trace line was printed, so `-vvv`
+    /// does not repeat it every frame.
+    pub size_clamp_logged: bool,
 }
 
 pub(crate) struct DisplayInformation {
@@ -402,16 +413,59 @@ where
 
         // While the window chrome is shown (interface settings open) all windows can be
         // resized, including windows that normally have a fixed size. In that mode the
-        // stored size is not clamped to the configured minimum/maximum.
+        // stored size is not clamped to the configured minimum/maximum, but it is still
+        // clamped to a sane range: the window cache uses `f32::MAX` as "fit to content"
+        // sentinel and a stored size may also be stale/not finite. Without this a
+        // window that was never resized ends up with a height of `f32::MAX` as
+        // soon as the chrome becomes visible, which overflows the
+        // layout/rendering math (a crash with real graphics drivers).
         let chrome_visible = App::window_chrome_visible();
 
-        let adjusted_size = match chrome_visible {
-            true => App::Size::new(data.size.width().max(80.0), data.size.height().max(60.0)),
-            false => App::Size::new(
-                data.size.width().min(maximum_width).max(minimum_width),
-                data.size.height().min(maximum_height).max(minimum_height),
+        let stored_width = finite_or_zero(data.size.width());
+        let stored_height = finite_or_zero(data.size.height());
+
+        let maximum_resized_width = window_size.width().max(80.0);
+        let maximum_resized_height = window_size.height().max(60.0);
+
+        // A stored width of zero and a stored height of `f32::MAX` are the "fit to
+        // content" sentinels used for windows that were never resized. Those windows
+        // keep their content based size while the chrome is visible; only windows with
+        // a real stored size use the unrestricted resize bounds. Without this a never
+        // resized window would get a height of `f32::MAX` while the interface settings
+        // are open, which overflows the layout/rendering math (crash on real drivers).
+        // Both sentinels are "auto": zero width and `f32::MAX` height. `f32::MAX` is a
+        // finite value, so check for it explicitly (and treat any absurdly large value
+        // like the sentinel as well).
+        let has_auto_width = data.size.width() <= 0.0 || data.size.width() >= f32::MAX;
+        let has_auto_height = data.size.height() <= 0.0 || data.size.height() >= f32::MAX;
+
+        let normal_adjusted_size = App::Size::new(
+            stored_width.min(maximum_width).max(minimum_width),
+            stored_height.min(maximum_height).max(minimum_height),
+        );
+
+        let adjusted_size = match chrome_visible && !has_auto_width && !has_auto_height {
+            true => App::Size::new(
+                stored_width.clamp(80.0, maximum_resized_width),
+                stored_height.clamp(60.0, maximum_resized_height),
             ),
+            false => normal_adjusted_size,
         };
+
+        if !data.size_clamp_logged && (data.size.width() > maximum_resized_width || data.size.height() > maximum_resized_height) {
+            data.size_clamp_logged = true;
+            crate::log_trace!(
+                "window `{}`: clamping stored size {}x{} to adjusted {}x{} (chrome_visible={}, auto_width={}, auto_height={})",
+                data.debug_name,
+                data.size.width(),
+                data.size.height(),
+                adjusted_size.width(),
+                adjusted_size.height(),
+                chrome_visible,
+                has_auto_width,
+                has_auto_height,
+            );
+        }
 
         if data.anchor.is_initializing() {
             data.anchor.initialize(window_size, adjusted_size);

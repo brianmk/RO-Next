@@ -34,6 +34,8 @@ where
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use korangar_interface::prelude::*;
 
+        crate::logging::log_trace!("interface_settings: building Interface Settings window");
+
         let elements = (
             split! {
                 children: (
@@ -111,6 +113,8 @@ where
                 event: Toggle(self.settings_path.chat_bubble_background()),
             },
         );
+
+        crate::logging::log_trace!("interface_settings: constructed Interface Settings elements, creating window description");
 
         window! {
             title: client_state().localization().interface_settings_window_title(),

@@ -34,7 +34,9 @@ mod input;
 mod state;
 #[macro_use]
 mod interface;
+pub mod crash;
 mod loaders;
+pub mod logging;
 #[cfg(feature = "debug")]
 mod networking;
 mod renderer;
@@ -414,6 +416,8 @@ pub struct Client {
 
 impl Client {
     pub fn init(sync_cache: bool) -> Option<Self> {
+        crate::logging::log_info!("client: initializing (sync_cache={})", sync_cache);
+
         // We start a frame so that functions trying to start a measurement don't panic.
         #[cfg(feature = "debug")]
         let _measurement = threads::Main::start_frame();
@@ -431,6 +435,8 @@ impl Client {
         time_phase!("seed main random instance", {
             init_tls_rand();
         });
+
+        crate::logging::log_debug!("client: working directory is {:?}", std::env::current_dir());
 
         // Check if korangar is in the correct working directory and if not, try to
         // correct it.
@@ -469,6 +475,11 @@ impl Client {
                 "[framerate] frame rate limits: max_fps={} background_max_fps={}",
                 graphics_settings.max_fps.get(),
                 graphics_settings.background_max_fps.get(),
+            );
+
+            crate::logging::log_debug!(
+                "client: graphics settings loaded (high_quality_interface={})",
+                graphics_settings.high_quality_interface,
             );
 
             // Read this before `ClientState::new` loads (and thereby potentially
@@ -1208,6 +1219,11 @@ impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_interface_scaling(&mut self, scaling: Scaling) {
+        static LAST_INTERFACE_SCALING: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+        let scaling_bits = scaling.get_factor().to_bits();
+        if LAST_INTERFACE_SCALING.swap(scaling_bits, std::sync::atomic::Ordering::Relaxed) != scaling_bits {
+            crate::logging::log_info!("interface: applying interface scaling {}", scaling.get_factor());
+        }
         self.bottom_interface_renderer.update_scaling(scaling);
         self.middle_interface_renderer.update_scaling(scaling);
         self.top_interface_renderer.update_scaling(scaling);
@@ -1313,6 +1329,7 @@ impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_window_size(&mut self, screen_size: ScreenSize) {
+        crate::logging::log_debug!("interface: window size changed to {}x{}", screen_size.width, screen_size.height,);
         *self.client_state.follow_mut(client_state().window_size()) = screen_size;
         self.graphics_engine.on_resize(screen_size);
         self.interface.update_window_size(screen_size);
@@ -2688,6 +2705,8 @@ impl Client {
         }
 
         for event in self.input_event_buffer.drain(..) {
+            crate::logging::log_trace!("input: dispatch {:?}", event);
+
             match event {
                 InputEvent::LogIn {
                     service_id,
@@ -2833,11 +2852,22 @@ impl Client {
                 },
                 InputEvent::ToggleInterfaceSettingsWindow => match self.interface.is_window_with_class_open(WindowClass::InterfaceSettings)
                 {
-                    true => self.interface.close_window_with_class(WindowClass::InterfaceSettings),
-                    false => self.interface.open_window(InterfaceSettingsWindow::new(
-                        client_state().interface_settings(),
-                        client_state().interface_settings_capabilities(),
-                    )),
+                    true => {
+                        crate::logging::log_info!("interface: closing interface settings window");
+                        self.interface.close_window_with_class(WindowClass::InterfaceSettings);
+                    }
+                    false => {
+                        let interface_settings = self.client_state.follow(client_state().interface_settings()).clone();
+                        crate::logging::log_info!(
+                            "interface: opening interface settings window (in_game_theme={:?}, scaling={})",
+                            interface_settings.in_game_theme,
+                            interface_settings.scaling.get_factor(),
+                        );
+                        self.interface.open_window(InterfaceSettingsWindow::new(
+                            client_state().interface_settings(),
+                            client_state().interface_settings_capabilities(),
+                        ));
+                    }
                 },
                 InputEvent::ToggleGraphicsSettingsWindow => match self.interface.is_window_with_class_open(WindowClass::GraphicsSettings) {
                     true => self.interface.close_window_with_class(WindowClass::GraphicsSettings),
