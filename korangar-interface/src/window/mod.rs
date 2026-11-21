@@ -547,8 +547,7 @@ where
         // opt into it via `resizable`.
         let chrome_visible = layout.window_chrome_visible();
 
-        let horizontal_resize_available =
-            *state.get(&self.minimum_width) != *state.get(&self.maximum_width) || chrome_visible;
+        let horizontal_resize_available = *state.get(&self.minimum_width) != *state.get(&self.maximum_width) || chrome_visible;
         let vertical_resize_availabe = *state.get(&self.resizable) || chrome_visible;
 
         if horizontal_resize_hovered && horizontal_resize_available {
@@ -710,7 +709,7 @@ where
             }
         }
 
-        if let Some((close_button_area, close_button_color, is_close_button_hovered)) = close_button {
+        if let Some((close_button_area, close_button_color, _is_close_button_hovered)) = close_button {
             // The window close button is always drawn as an "X" glyph. Some skins provide
             // a close button texture (e.g. the CondaRO classic interface uses a bitmap that
             // literally reads "close"), which is not what the title bar close button should

@@ -237,6 +237,7 @@ impl InputSystem {
     ) {
         let alt_down = self.get_key(KeyCode::AltLeft).down();
         let control_down = self.get_key(KeyCode::ControlLeft).down();
+        let shift_down = self.get_key(KeyCode::ShiftLeft).down();
 
         if self.get_key(KeyCode::Escape).pressed() {
             events.push(InputEvent::ToggleMenuWindow);
@@ -285,6 +286,13 @@ impl InputSystem {
         // Opens/closes the minimap window (Ctrl+M, like the classic client).
         if control_down && self.get_key(KeyCode::KeyM).pressed() {
             events.push(InputEvent::ToggleMinimapWindow);
+        }
+
+        // Plain M cycles the map windows: small minimap -> big map -> closed.
+        // It is ignored while a text input (chat, login, ...) has focus, those
+        // keys belong to the text box. Ctrl+M still toggles the small minimap.
+        if !control_down && !alt_down && !shift_down && self.get_key(KeyCode::KeyM).pressed() {
+            events.push(InputEvent::CycleMapWindows);
         }
 
         if control_down && self.get_key(KeyCode::KeyQ).pressed() {
