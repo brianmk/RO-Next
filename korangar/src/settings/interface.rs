@@ -41,17 +41,20 @@ pub enum AuraStyle {
     Violet,
     Blue,
     Gold,
+    /// Official green level-99 aura variant (EF_LEVEL99 size type 7).
+    Green,
 }
 
 impl AuraStyle {
     /// All styles, in the order shown in the interface settings dropdown.
-    pub const OPTIONS: [AuraStyle; 6] = [
+    pub const OPTIONS: [AuraStyle; 7] = [
         AuraStyle::Auto,
         AuraStyle::Off,
         AuraStyle::Cyan,
         AuraStyle::Violet,
         AuraStyle::Blue,
         AuraStyle::Gold,
+        AuraStyle::Green,
     ];
 
     /// Encode the style for the shared atomic cell used by running aura
@@ -64,6 +67,7 @@ impl AuraStyle {
             AuraStyle::Violet => 3,
             AuraStyle::Blue => 4,
             AuraStyle::Gold => 5,
+            AuraStyle::Green => 6,
         }
     }
 
@@ -76,6 +80,7 @@ impl AuraStyle {
             3 => AuraStyle::Violet,
             4 => AuraStyle::Blue,
             5 => AuraStyle::Gold,
+            6 => AuraStyle::Green,
             _ => AuraStyle::Auto,
         }
     }
@@ -90,6 +95,7 @@ impl DropDownItem<AuraStyle> for AuraStyle {
             AuraStyle::Violet => "Violet",
             AuraStyle::Blue => "Blue",
             AuraStyle::Gold => "Gold",
+            AuraStyle::Green => "Green",
         }
     }
 
