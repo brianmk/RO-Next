@@ -287,6 +287,14 @@ pub struct Client {
     /// Deadline for the clean disconnect; the client exits when it is reached.
     shutdown_deadline: Option<Instant>,
 
+    /// When set, the client retries connecting to the character server at this
+    /// time. Used after being kicked from a restarted map server (the
+    /// character server can briefly reject the re-login while the old map
+    /// session is still registered).
+    character_server_reconnect_at: Option<Instant>,
+    /// Remaining character server reconnect attempts.
+    character_server_reconnect_attempts: u32,
+
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
@@ -754,6 +762,8 @@ impl Client {
             saved_packet_version,
             shutdown_requested: false,
             shutdown_deadline: None,
+            character_server_reconnect_at: None,
+            character_server_reconnect_attempts: 0,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -960,6 +970,45 @@ impl Client {
         self.top_interface_renderer.update_scaling(scaling);
     }
 
+    /// Drive the character server reconnect retries. Called once per frame.
+    fn update_character_server_reconnect(&mut self) {
+        let Some(next_attempt) = self.character_server_reconnect_at else {
+            return;
+        };
+
+        if self.shutdown_requested || self.map.is_some() {
+            self.character_server_reconnect_at = None;
+            return;
+        }
+
+        if self.networking_system.is_character_server_connected() {
+            self.character_server_reconnect_at = None;
+            return;
+        }
+
+        if Instant::now() < next_attempt {
+            return;
+        }
+
+        if self.character_server_reconnect_attempts == 0 {
+            self.character_server_reconnect_at = None;
+            self.interface.open_window(ErrorWindow::new(
+                "Could not connect to the character server. Please log in again.".to_owned(),
+            ));
+            return;
+        }
+
+        let (Some(login_data), Some(server)) = (self.saved_login_data.as_ref(), self.saved_character_server.clone()) else {
+            self.character_server_reconnect_at = None;
+            return;
+        };
+
+        self.character_server_reconnect_attempts -= 1;
+        self.networking_system
+            .connect_to_character_server(self.saved_packet_version, login_data, server);
+        self.character_server_reconnect_at = Some(Instant::now() + Duration::from_secs(2));
+    }
+
     /// Request the names of all entities that should show a name label.
     ///
     /// Entity details (the name) are loaded lazily from the map server and were
@@ -1086,6 +1135,8 @@ impl Client {
                     }
                 }
                 NetworkEvent::CharacterServerConnected { normal_slot_count } => {
+                    self.character_server_reconnect_at = None;
+
                     self.client_state
                         .follow_mut(client_state().character_slots())
                         .set_slot_count(normal_slot_count);
@@ -1094,7 +1145,16 @@ impl Client {
                 }
                 NetworkEvent::CharacterServerConnectionFailed { message, .. } => {
                     self.networking_system.disconnect_from_character_server();
-                    self.interface.open_window(ErrorWindow::new(message.to_owned()));
+
+                    if self.map.is_none() && self.saved_login_data.is_some() {
+                        // The character server can be briefly unavailable (e.g. while the map
+                        // server restarts and the old map session is still registered).
+                        // Retry instead of ending up on a dead screen.
+                        self.character_server_reconnect_attempts = 30;
+                        self.character_server_reconnect_at = Some(Instant::now());
+                    } else {
+                        self.interface.open_window(ErrorWindow::new(message.to_owned()));
+                    }
                 }
                 NetworkEvent::CharacterServerDisconnected { reason } => {
                     if reason != DisconnectReason::ClosedByClient {
@@ -1102,10 +1162,8 @@ impl Client {
                         #[cfg(feature = "debug")]
                         print_debug!("Disconnection from the character server with error");
 
-                        let login_data = self.saved_login_data.as_ref().unwrap();
-                        let server = self.saved_character_server.clone().unwrap();
-                        self.networking_system
-                            .connect_to_character_server(self.saved_packet_version, login_data, server);
+                        self.character_server_reconnect_attempts = 30;
+                        self.character_server_reconnect_at = Some(Instant::now());
                     } else if !self.networking_system.is_map_server_connected() {
                         #[cfg(not(feature = "debug"))]
                         self.interface.close_all_windows();
@@ -1133,12 +1191,18 @@ impl Client {
                         print_debug!("Disconnection from the map server with error");
                     }
 
-                    let login_data = self.saved_login_data.as_ref().unwrap();
-                    let server = self.saved_character_server.clone().unwrap();
-                    self.networking_system
-                        .connect_to_character_server(self.saved_packet_version, login_data, server);
-
                     self.map = None;
+
+                    if self.networking_system.is_character_server_connected() {
+                        // The map connection failed (e.g. while the map server is still
+                        // restarting) but we are still connected to the character server:
+                        // go back to the character selection and refresh the list so the
+                        // player can simply try again.
+                        let _ = self.networking_system.request_character_list();
+                    } else {
+                        self.character_server_reconnect_attempts = 30;
+                        self.character_server_reconnect_at = Some(Instant::now());
+                    }
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -1239,6 +1303,8 @@ impl Client {
                 }
                 NetworkEvent::AccountId { .. } => {}
                 NetworkEvent::CharacterList { characters } => {
+                    self.character_server_reconnect_at = None;
+
                     self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
 
                     self.client_state
@@ -1261,7 +1327,13 @@ impl Client {
                         ));
                     }
                 }
-                NetworkEvent::CharacterSelectionFailed { message, .. } => self.interface.open_window(ErrorWindow::new(message.to_owned())),
+                NetworkEvent::CharacterSelectionFailed { message, .. } => {
+                    // The map server may still be restarting. Stay on the character
+                    // selection screen and refresh the list so selecting the character can
+                    // simply be retried once the map server is back.
+                    let _ = self.networking_system.request_character_list();
+                    self.interface.open_window(ErrorWindow::new(message.to_owned()));
+                }
                 NetworkEvent::CharacterDeleted => {
                     if let Some(character_id) = self.client_state.follow_mut(client_state().currently_deleting()).take() {
                         self.client_state
@@ -3403,6 +3475,7 @@ impl Client {
         self.request_visible_entity_names();
 
         self.handle_network_events(client_tick);
+        self.update_character_server_reconnect();
 
         let interface_has_focus = self.process_user_events(
             &input_report,
