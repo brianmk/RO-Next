@@ -798,6 +798,12 @@ where
         // The NPC details response does not contain a guild name.
         guild_name: None,
     })?;
+
+    packet_handler.register(|packet: GuildEmblemImagePacket| NetworkEvent::GuildEmblemImage {
+        guild_id: packet.guild_id,
+        emblem_id: packet.emblem_id,
+        emblem_data: packet.emblem_data,
+    })?;
     packet_handler.register(|packet: UpdateEntityHealthPointsPacket| {
         let UpdateEntityHealthPointsPacket {
             entity_id,

@@ -180,6 +180,15 @@ pub enum NetworkEvent {
         /// name; the response for NPCs does not, so this is `None` for them.
         guild_name: Option<String>,
     },
+    /// Guild emblem image (`ZC_GUILD_EMBLEM_IMG`, `0x0152`).
+    ///
+    /// The data is a classic 24x24 guild emblem BMP file. It can be empty when
+    /// the guild has no emblem.
+    GuildEmblemImage {
+        guild_id: u32,
+        emblem_id: u32,
+        emblem_data: Vec<u8>,
+    },
     UpdateEntityHealth {
         entity_id: EntityId,
         health_points: usize,

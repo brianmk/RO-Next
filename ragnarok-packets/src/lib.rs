@@ -989,6 +989,30 @@ pub struct RequestEntityDetailsSuccessPacket {
     pub title: String,
 }
 
+/// Sent by the client to request the guild emblem image of a guild.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0151)]
+pub struct GuildEmblemRequestPacket {
+    pub guild_id: u32,
+}
+
+/// Sent by the map server as a response to [`GuildEmblemRequestPacket`].
+///
+/// The emblem data is a classic 24x24 guild emblem BMP file (the same bytes the
+/// server stores in the `guild` table). It can be empty when the guild has no
+/// emblem.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0152)]
+#[variable_length]
+pub struct GuildEmblemImagePacket {
+    pub guild_id: u32,
+    pub emblem_id: u32,
+    #[length_remaining]
+    pub emblem_data: Vec<u8>,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x09E7)]
