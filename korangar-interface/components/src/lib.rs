@@ -111,6 +111,27 @@ pub fn state_button(token_stream: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn round_toggle(token_stream: TokenStream) -> TokenStream {
+    create_component_macro!(korangar_interface::components::round_toggle::RoundToggle, {
+        state: !,
+        tooltip: { "" },
+        event: !,
+        size: { 14.0 },
+        hit_size: { 20.0 },
+        alignment: { korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 } },
+        ring_color: { korangar_interface::theme::theme().state_button().foreground_color() },
+        hovered_ring_color: { korangar_interface::theme::theme().state_button().hovered_foreground_color() },
+        fill_color: { korangar_interface::theme::theme().state_button().background_color() },
+        checked_color: { korangar_interface::theme::theme().state_button().highlight_color() },
+        hovered_checked_color: { korangar_interface::theme::theme().state_button().hovered_checkbox_color() },
+        shadow_color: { korangar_interface::theme::theme().state_button().shadow_color() },
+        shadow_padding: { korangar_interface::theme::theme().state_button().shadow_padding() },
+    });
+
+    macro_impl(token_stream.into()).into()
+}
+
+#[proc_macro]
 pub fn drop_down(token_stream: TokenStream) -> TokenStream {
     create_component_macro!(korangar_interface::components::drop_down::DropDown, {
         options: !,

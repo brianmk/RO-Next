@@ -11,7 +11,7 @@ use korangar_networking::MessageColor;
 use rust_state::{Path, PathExt, RustState, Selector, State};
 
 use super::WindowClass;
-use crate::graphics::Color;
+use crate::graphics::{Color, ShadowPadding};
 use crate::input::InputEvent;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
@@ -288,14 +288,16 @@ where
             // background colour and must not draw the opaque skinned window frame.
             skinned: false,
             elements: (
-                state_button! {
-                    text: client_state().localization().chat_transparency_button_text(),
+                round_toggle! {
                     tooltip: client_state().localization().chat_transparency_button_tooltip(),
                     state: transparent_chat_path,
                     event: TransparentChatToggle {
                         value_path: transparent_chat_path,
                         settings_path: self.interface_settings_path,
                     },
+                    alignment: HorizontalAlignment::Left { offset: 0.0, border: 0.0 },
+                    shadow_color: Color::TRANSPARENT,
+                    shadow_padding: ShadowPadding::uniform(0.0),
                 },
                 text_box! {
                     ghost_text: client_state().localization().chat_text_box_message(),
