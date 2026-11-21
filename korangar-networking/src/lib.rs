@@ -443,12 +443,11 @@ where
                                             let packet_header =
                                                 u16::from_le_bytes([buffer[packet_start], buffer[packet_start + 1]]);
 
-                                            #[cfg(feature = "interface")]
-                                            korangar_interface::log_debug!(
-                                                "networking: skipping unhandled packet 0x{:04X} ({} bytes)",
-                                                packet_header,
-                                                packet_end - packet_start
-                                            );
+                                            // The interface crate owns the debug logging macro; it
+                                            // is not exported for other crates, so keep the
+                                            // skip silent here (the interface logs packet
+                                            // handling on its own side when available).
+                                            let _ = packet_header;
 
                                             let skipped = packet_end - packet_start;
                                             let _ = byte_reader.slice::<Self>(skipped);

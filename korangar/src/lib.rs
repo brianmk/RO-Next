@@ -72,7 +72,6 @@ use korangar_networking::{
 };
 #[cfg(feature = "debug")]
 use networking::{PacketHistory, PacketHistoryCallback};
-#[cfg(not(feature = "debug"))]
 use ragnarok_packets::{
     AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, Friend, HotbarSlot,
     InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
