@@ -48,6 +48,7 @@ pub struct InputReport {
 pub struct InputSystem {
     previous_mouse_position: ScreenPosition,
     new_mouse_position: ScreenPosition,
+    pointer_position_seen: bool,
     mouse_delta: ScreenSize,
     previous_scroll_position: f32,
     new_scroll_position: f32,
@@ -82,6 +83,7 @@ impl InputSystem {
         Self {
             previous_mouse_position,
             new_mouse_position,
+            pointer_position_seen: false,
             mouse_delta,
             previous_scroll_position,
             new_scroll_position,
@@ -104,10 +106,55 @@ impl InputSystem {
     }
 
     pub fn update_mouse_position(&mut self, position: PhysicalPosition<f64>) {
+        self.pointer_position_seen = true;
         self.new_mouse_position = ScreenPosition {
             left: position.x as f32,
             top: position.y as f32,
         };
+    }
+
+    /// Whether at least one pointer position was reported by the windowing
+    /// system.
+    ///
+    /// Clicks that arrive before the first pointer event must not be dispatched
+    /// with the default (0, 0) position.
+    pub fn has_pointer_position(&self) -> bool {
+        self.pointer_position_seen
+    }
+
+    /// The window scale factor changed (fractional scaling, moving the window
+    /// between outputs).
+    ///
+    /// The compositor reports cursor positions in the new scale, so the last
+    /// known position has to be converted as well. Otherwise a click that
+    /// arrives before the next pointer motion event would be hit-tested
+    /// against the old coordinate space.
+    pub fn rescale_mouse_position(&mut self, factor: f32) {
+        self.previous_mouse_position = ScreenPosition {
+            left: self.previous_mouse_position.left * factor,
+            top: self.previous_mouse_position.top * factor,
+        };
+        self.new_mouse_position = ScreenPosition {
+            left: self.new_mouse_position.left * factor,
+            top: self.new_mouse_position.top * factor,
+        };
+        self.right_mouse_button_press_position = ScreenPosition {
+            left: self.right_mouse_button_press_position.left * factor,
+            top: self.right_mouse_button_press_position.top * factor,
+        };
+    }
+
+    /// Drop any held mouse button without emitting a press or release event.
+    ///
+    /// On Wayland a button release can be lost when the pointer leaves the
+    /// surface or the window loses focus while the button is held. A stuck
+    /// button would otherwise turn all following clicks into drags and make
+    /// the interface unresponsive.
+    pub fn clear_mouse_buttons(&mut self) {
+        self.left_mouse_button.force_up();
+        self.right_mouse_button.force_up();
+        self.previous_mouse_button = None;
+        self.right_mouse_button_drag_distance = 0.0;
     }
 
     pub fn update_mouse_buttons(&mut self, button: MouseButton, state: ElementState) {

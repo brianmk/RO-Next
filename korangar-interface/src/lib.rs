@@ -939,6 +939,31 @@ where
             }
         });
 
+        if crate::logging::enabled(crate::logging::LEVEL_TRACE) {
+            let windows: Vec<(f32, f32, f32, f32)> = this
+                .windows
+                .iter()
+                .map(|wrapper| {
+                    (
+                        wrapper.display_information.real_area.left,
+                        wrapper.display_information.real_area.top,
+                        wrapper.display_information.real_area.width,
+                        wrapper.display_information.real_area.height,
+                    )
+                })
+                .collect();
+
+            crate::log_trace!(
+                "[layout] window_size=({}, {}) scaling={} mouse=({}, {}) windows={:?}",
+                this.window_size.width(),
+                this.window_size.height(),
+                interface_scaling,
+                mouse_position.left(),
+                mouse_position.top(),
+                windows,
+            );
+        }
+
         InterfaceFrame {
             windows: &this.windows,
             window_layouts: &mut this.window_layouts,

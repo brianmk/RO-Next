@@ -561,6 +561,14 @@ pub struct Client {
     /// factor of the window. This is only done on the first start, i.e. when
     /// there is no saved interface settings file yet.
     initialize_interface_scaling_from_dpi: bool,
+    /// Scale factor that was last reported by the windowing system.
+    ///
+    /// Used to keep the last known pointer position in the coordinate space of
+    /// the new scale when the compositor changes the scale factor (native
+    /// Wayland fractional scaling, moving the window between outputs with
+    /// different scales), so that clicks arriving before the next pointer
+    /// motion event are hit-tested correctly.
+    last_scale_factor: f64,
 
     /// Whether the window is currently reported as occluded by the windowing
     /// system. Occluded windows receive no redraw events on some platforms, but
@@ -1110,6 +1118,7 @@ impl Client {
             performance_log_deadline: performance_log_deadline(),
             interface_layout_invalidation_pending: false,
             initialize_interface_scaling_from_dpi,
+            last_scale_factor: 1.0,
 
             map: Some(map),
             client_state,
@@ -5050,6 +5059,18 @@ impl Client {
                 self.input_event_buffer.push(InputEvent::CloseItemInfo);
             }
 
+            if crate::logging::enabled(crate::logging::LEVEL_TRACE) {
+                crate::logging::log_trace!(
+                    "[input] frame mouse=({:.2}, {:.2}) window={}x{} scaling={:.2} hovered={}",
+                    input_report.mouse_position.left,
+                    input_report.mouse_position.top,
+                    screen_size.width,
+                    screen_size.height,
+                    scaling.get_factor(),
+                    is_interface_hovered,
+                );
+            }
+
             // A click outside of the context menu closes it. Left clicks in the
             // world are swallowed so that closing the menu does not also move the
             // player or interact with an entity.
@@ -5093,6 +5114,15 @@ impl Client {
                 interface_state_changed = true;
 
                 if is_interface_hovered {
+                if crate::logging::enabled(crate::logging::LEVEL_DEBUG) {
+                    crate::logging::log_debug!(
+                        "[input] click {mouse_button:?} at ({:.1}, {:.1}) hovered={is_interface_hovered}",
+                        input_report.mouse_position.left,
+                        input_report.mouse_position.top,
+                    );
+                }
+
+                if is_interface_hovered && self.input_system.has_pointer_position() {
                     interface_frame.click(&self.client_state, mouse_button);
                 } else if click_closes_context_menu && mouse_button == MouseButton::Left {
                     // The left click only closed the context menu.
@@ -5652,6 +5682,7 @@ impl ApplicationHandler for Client {
                 let backend_name = self.graphics_engine.get_backend_name();
                 window.set_title(&format!("{CLIENT_NAME} ({})", str::to_uppercase(&backend_name)));
                 window.set_cursor_visible(false);
+                self.last_scale_factor = window.scale_factor();
 
                 self.window = Some(window);
 
@@ -5744,11 +5775,24 @@ impl ApplicationHandler for Client {
                 }
             }
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                crate::logging::log_info!("[display] window scale factor changed to {scale_factor:.2}");
+                let ratio = if self.last_scale_factor > 0.0 {
+                    scale_factor / self.last_scale_factor
+                } else {
+                    1.0
+                };
+
+                // The compositor reports cursor positions in the new coordinate space from now
+                // on. Convert the last known position as well, otherwise a click that arrives
+                // before the next pointer motion event would use stale coordinates.
+                self.input_system.rescale_mouse_position(ratio as f32);
+                self.last_scale_factor = scale_factor;
+
+                crate::logging::log_info!("[display] window scale factor changed to {scale_factor:.2} (pointer rescaled by {ratio:.3})");
             }
             WindowEvent::Focused(focused) => {
                 if !focused {
                     self.input_system.reset();
+                    self.input_system.clear_mouse_buttons();
                 }
 
                 if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
@@ -5773,9 +5817,37 @@ impl ApplicationHandler for Client {
                     window.request_redraw();
                 }
             }
-            WindowEvent::CursorLeft { .. } => self.mouse_cursor.hide(),
-            WindowEvent::CursorEntered { .. } => self.mouse_cursor.show(),
-            WindowEvent::CursorMoved { position, .. } => self.input_system.update_mouse_position(position),
+            WindowEvent::CursorLeft { .. } => {
+                // On Wayland the pointer can leave the surface while a button is held, in which
+                // case the release event may never be delivered. A button that is stuck in the
+                // pressed state turns every following click into a drag and makes the interface
+                // ignore clicks, so drop the button state here.
+                self.input_system.clear_mouse_buttons();
+                crate::logging::log_trace!("[input] pointer left the window");
+
+                self.mouse_cursor.hide();
+            }
+            WindowEvent::CursorEntered { .. } => {
+                crate::logging::log_trace!("[input] pointer entered the window");
+                self.mouse_cursor.show();
+            }
+            WindowEvent::CursorMoved { position, .. } => {
+                if crate::logging::enabled(crate::logging::LEVEL_TRACE)
+                    && let Some(window) = self.window.as_ref()
+                {
+                    let inner_size = window.inner_size();
+                    crate::logging::log_trace!(
+                        "[input] cursor moved raw=({:.2}, {:.2}) inner_size={}x{} scale_factor={:.2}",
+                        position.x,
+                        position.y,
+                        inner_size.width,
+                        inner_size.height,
+                        window.scale_factor(),
+                    );
+                }
+
+                self.input_system.update_mouse_position(position);
+            }
             WindowEvent::MouseInput { button, state, .. } => {
                 crate::logging::log_debug!("[input] mouse button {button:?} {state:?}");
                 self.input_system.update_mouse_buttons(button, state);
