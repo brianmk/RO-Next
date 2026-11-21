@@ -1306,8 +1306,17 @@ impl Client {
 
                     // A previously established character/map connection (e.g. from a session
                     // that was kicked or logged out) must not block the new server selection.
-                    self.networking_system.disconnect_from_character_server();
-                    self.networking_system.disconnect_from_map_server();
+                    // Only disconnect connections that actually exist: disconnecting an idle
+                    // connection emits a synthetic "closed by client" event, which would make
+                    // the disconnect handler close the server selection window we are about to
+                    // open and bounce the player back to the login screen.
+                    if self.networking_system.is_character_server_connected() {
+                        self.networking_system.disconnect_from_character_server();
+                    }
+
+                    if self.networking_system.is_map_server_connected() {
+                        self.networking_system.disconnect_from_map_server();
+                    }
 
                     *self.client_state.follow_mut(client_state().character_servers()) = character_servers;
 
@@ -1370,7 +1379,15 @@ impl Client {
 
                         self.character_server_reconnect_attempts = 30;
                         self.character_server_reconnect_at = Some(Instant::now());
-                    } else if !self.networking_system.is_map_server_connected() {
+                    } else if !self.networking_system.is_map_server_connected()
+                        && !self.networking_system.is_login_server_connected()
+                        && !self.interface.is_window_with_class_open(WindowClass::SelectServer)
+                    {
+                        // Only fall back to the login screen when the character server closed
+                        // while we are not in the middle of the login/server-selection flow.
+                        // During login the character server connection is intentionally dropped
+                        // (or never existed); a "closed by client" event must not wipe the
+                        // server selection window that was just opened.
                         #[cfg(not(feature = "debug"))]
                         self.interface.close_all_windows();
 
