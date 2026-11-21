@@ -1,6 +1,7 @@
 mod buffer;
 mod capabilities;
 mod color;
+mod dlss;
 mod engine;
 #[cfg(feature = "debug")]
 mod error;
@@ -14,6 +15,7 @@ mod sampler;
 mod settings;
 mod shader_compiler;
 mod slug;
+mod smaa;
 mod surface;
 mod texture;
 mod vertices;
@@ -35,6 +37,7 @@ use wgpu::{
 pub use self::buffer::Buffer;
 pub use self::capabilities::*;
 pub use self::color::*;
+pub(crate) use self::dlss::*;
 pub use self::engine::{GraphicsEngine, GraphicsEngineDescriptor};
 #[cfg(feature = "debug")]
 pub use self::error::error_handler;
@@ -47,6 +50,7 @@ pub use self::projection::*;
 pub use self::settings::*;
 pub use self::shader_compiler::ShaderCompiler;
 pub use self::slug::{SlugFont, SlugGlyph};
+pub(crate) use self::smaa::*;
 pub use self::surface::*;
 pub use self::texture::*;
 pub use self::vertices::*;
@@ -757,7 +761,11 @@ impl GlobalContext {
         let texture_sampler = create_new_sampler(device, capabilities, "texture", texture_sampler);
         let shadow_map_sampler = create_new_sampler(device, capabilities, "shadow map", SamplerType::DepthCompare);
 
-        let anti_aliasing_resources = Self::create_anti_aliasing_resources(device, screen_space_anti_aliasing, screen_size);
+        let color_texture = supersampled_color_texture
+            .as_ref()
+            .unwrap_or_else(|| resolved_color_texture.as_ref().unwrap_or(&forward_textures.forward_color_texture));
+        let anti_aliasing_resources =
+            Self::create_anti_aliasing_resources(device, queue, screen_space_anti_aliasing, screen_size, color_texture);
 
         let global_bind_group = Self::create_global_bind_group(
             device,
@@ -1031,8 +1039,10 @@ impl GlobalContext {
 
     fn create_anti_aliasing_resources(
         device: &Device,
+        queue: &Queue,
         screen_space_anti_aliasing: ScreenSpaceAntiAliasing,
         screen_size: ScreenSize,
+        color_texture: &AttachmentTexture,
     ) -> AntiAliasingResources {
         match screen_space_anti_aliasing {
             ScreenSpaceAntiAliasing::Off => AntiAliasingResources::None,
@@ -1046,10 +1056,19 @@ impl GlobalContext {
                 let resources = FxaaResources { color_with_luma_texture };
                 AntiAliasingResources::Fxaa(Box::new(resources))
             }
+            ScreenSpaceAntiAliasing::Smaa => {
+                let resources = SmaaResources::new(device, queue, screen_size, color_texture);
+                AntiAliasingResources::Smaa(Box::new(resources))
+            }
+            // DLSS requires the NVIDIA NGX runtime and is not implemented in this
+            // build. The graphics settings window shows it as a disabled entry, but
+            // a hand edited settings file can still select it; fall back to no
+            // anti-aliasing instead of failing to start.
+            ScreenSpaceAntiAliasing::Dlss => AntiAliasingResources::None,
         }
     }
 
-    fn update_screen_size_resources(&mut self, device: &Device, screen_size: ScreenSize) {
+    fn update_screen_size_resources(&mut self, device: &Device, queue: &Queue, screen_size: ScreenSize) {
         self.screen_size = screen_size;
         self.forward_size = self.ssaa.calculate_size(self.screen_size);
         self.interface_size = if self.high_quality_interface {
@@ -1075,6 +1094,17 @@ impl GlobalContext {
 
         let supersampled_color_texture = Self::create_supersampled_texture(device, self.screen_size, self.ssaa);
 
+        let color_texture_for_anti_aliasing = supersampled_color_texture
+            .as_ref()
+            .unwrap_or_else(|| resolved_color_texture.as_ref().unwrap_or(&forward_color_texture));
+        let anti_aliasing_resources = Self::create_anti_aliasing_resources(
+            device,
+            queue,
+            self.screen_space_anti_aliasing,
+            self.screen_size,
+            color_texture_for_anti_aliasing,
+        );
+
         self.forward_color_texture = forward_color_texture;
         self.forward_depth_texture = forward_depth_texture;
         self.forward_accumulation_texture = forward_accumulation_texture;
@@ -1089,7 +1119,7 @@ impl GlobalContext {
 
         self.tile_light_indices_buffer = Self::create_tile_light_indices_buffer(device, self.forward_size);
 
-        self.anti_aliasing_resources = Self::create_anti_aliasing_resources(device, self.screen_space_anti_aliasing, self.screen_size);
+        self.anti_aliasing_resources = anti_aliasing_resources;
 
         // We need to update this bind group, because it's content changed, and it isn't
         // re-created each frame.
@@ -1244,9 +1274,14 @@ impl GlobalContext {
         self.supersampled_color_texture = Self::create_supersampled_texture(device, self.screen_size, self.ssaa);
     }
 
-    fn update_screen_space_anti_aliasing(&mut self, device: &Device, screen_space_anti_aliasing: ScreenSpaceAntiAliasing) {
+    fn update_screen_space_anti_aliasing(&mut self, device: &Device, queue: &Queue, screen_space_anti_aliasing: ScreenSpaceAntiAliasing) {
         self.screen_space_anti_aliasing = screen_space_anti_aliasing;
-        self.anti_aliasing_resources = Self::create_anti_aliasing_resources(device, self.screen_space_anti_aliasing, self.screen_size);
+        let color_texture = self
+            .supersampled_color_texture
+            .as_ref()
+            .unwrap_or_else(|| self.resolved_color_texture.as_ref().unwrap_or(&self.forward_color_texture));
+        self.anti_aliasing_resources =
+            Self::create_anti_aliasing_resources(device, queue, screen_space_anti_aliasing, self.screen_size, color_texture);
     }
 
     fn update_high_quality_interface(&mut self, device: &Device, high_quality_interface: bool) {
@@ -1849,6 +1884,7 @@ struct ForwardTextures {
 pub(crate) enum AntiAliasingResources {
     None,
     Fxaa(Box<FxaaResources>),
+    Smaa(Box<SmaaResources>),
 }
 
 pub(crate) struct FxaaResources {

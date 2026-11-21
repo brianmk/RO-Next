@@ -2508,7 +2508,7 @@ impl Client {
                 InputEvent::SelectServer {
                     character_server_information,
                 } => {
-                    let Some(login_data) = self.saved_login_data.clone() else {
+                    let Some(login_data) = self.saved_login_data else {
                         // The window was still open although we are not logged in (e.g.
                         // after a stale state). Go back to the login screen instead of
                         // panicking.

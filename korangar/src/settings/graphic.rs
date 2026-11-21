@@ -132,8 +132,25 @@ impl GraphicsSettings {
         });
 
         settings.apply_environment_overrides();
+        settings.sanitize();
 
         settings
+    }
+
+    /// Replaces settings that cannot be used by the current build. A hand
+    /// edited settings file could select an anti-aliasing mode that is not
+    /// implemented (DLSS), in which case the client falls back to no
+    /// anti-aliasing instead of failing to start.
+    fn sanitize(&mut self) {
+        if self.screen_space_anti_aliasing == ScreenSpaceAntiAliasing::Dlss {
+            #[cfg(feature = "debug")]
+            print_debug!(
+                "[{}] DLSS is not available in this build, falling back to no anti-aliasing",
+                "warning".yellow()
+            );
+
+            self.screen_space_anti_aliasing = ScreenSpaceAntiAliasing::Off;
+        }
     }
 
     /// Applies the environment overrides for the settings that are useful for
@@ -300,7 +317,14 @@ impl Default for GraphicsSettingsCapabilities {
             background_max_fps_options: FRAMERATE_PRESETS.to_vec(),
             supported_msaa: Vec::new(),
             ssaa_options: vec![Ssaa::Off, Ssaa::X2, Ssaa::X3, Ssaa::X4],
-            screen_space_anti_aliasing_options: vec![ScreenSpaceAntiAliasing::Off, ScreenSpaceAntiAliasing::Fxaa],
+            screen_space_anti_aliasing_options: vec![
+                ScreenSpaceAntiAliasing::Off,
+                ScreenSpaceAntiAliasing::Fxaa,
+                ScreenSpaceAntiAliasing::Smaa,
+                // DLSS needs the NVIDIA NGX SDK/runtime and is not implemented in this
+                // build. It is shown in the drop down, but disabled with a tooltip.
+                ScreenSpaceAntiAliasing::Dlss,
+            ],
             shadow_method_options: vec![ShadowMethod::Hard, ShadowMethod::SoftPCF, ShadowMethod::SoftPCSS],
             shadow_resolution_options: vec![ShadowResolution::Normal, ShadowResolution::Ultra, ShadowResolution::Insane],
             shadow_detail_options: vec![ShadowDetail::Low, ShadowDetail::Medium, ShadowDetail::High, ShadowDetail::Ultra],
