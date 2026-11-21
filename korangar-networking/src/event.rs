@@ -69,6 +69,28 @@ pub enum NetworkEvent {
         intelligence_stat_points_cost: u8,
         dexterity_stat_points_cost: u8,
         luck_stat_points_cost: u8,
+        /// Attack including the weapon attack (`attPower`).
+        attack: u16,
+        /// Weapon refine attack bonus (`refiningPower`).
+        bonus_attack: u16,
+        /// Maximum magic attack (`max_mattPower`).
+        magic_attack_max: u16,
+        /// Minimum magic attack (`min_mattPower`).
+        magic_attack_min: u16,
+        /// Equipment defense (`itemdefPower`).
+        defense: u16,
+        /// Vitality based defense (`plusdefPower`).
+        bonus_defense: u16,
+        /// Equipment magic defense (`mdefPower`).
+        magic_defense: u16,
+        /// Intelligence based magic defense (`plusmdefPower`).
+        bonus_magic_defense: u16,
+        hit: u16,
+        flee: u16,
+        perfect_dodge: u16,
+        critical: u16,
+        /// Attack motion in milliseconds (`ASPD`).
+        attack_speed: u16,
     },
     /// Resurrect a player.
     ResurrectPlayer {

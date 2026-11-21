@@ -66,8 +66,10 @@ impl<K> ResourceSet<'_, K> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct ResourceMetadata {
     pub texture: Option<Arc<Texture>>,
     pub name: String,
+    /// Item stats evaluated from the client item description.
+    pub stats: ItemStats,
 }
