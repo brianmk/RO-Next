@@ -3838,6 +3838,34 @@ impl Client {
                         }
                     }
                 }
+                InputEvent::ToggleBigMapWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        self.interface.close_window_with_class(WindowClass::Minimap);
+
+                        match self.interface.is_window_with_class_open(WindowClass::BigMap) {
+                            true => {
+                                self.interface.close_window_with_class(WindowClass::BigMap);
+                                self.map_window_cycle = MapWindowCycle::Closed;
+                            }
+                            false => {
+                                self.interface.open_window(BigMapWindow);
+                                self.map_window_cycle = MapWindowCycle::BigMap;
+                            }
+                        }
+                    }
+                }
+                InputEvent::ToggleChatWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Chat) {
+                            true => self.interface.close_window_with_class(WindowClass::Chat),
+                            false => self.interface.open_window(ChatWindow::new(
+                                client_state().chat_window(),
+                                client_state().chat_messages(),
+                                client_state().interface_settings(),
+                            )),
+                        }
+                    }
+                }
                 InputEvent::CloseTopWindow => self.interface.close_top_window(&self.client_state),
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {

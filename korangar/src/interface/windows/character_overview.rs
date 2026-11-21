@@ -2,9 +2,10 @@ use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::window::{CustomWindow, Window};
 use rust_state::{Path, PathExt, Selector, State};
 
-use crate::graphics::Color;
+use crate::graphics::{Color, CornerDiameter};
 use crate::input::InputEvent;
-use crate::interface::components::progress_bar::{BarStyle, LOW_HEALTH_FRACTION, LabeledProgressBar};
+use crate::interface::components::progress_bar::{BarStyle, LOW_HEALTH_FRACTION, LabeledProgressBar, MiniBar, StackedMiniBars};
+use crate::interface::components::round_button::RoundButton;
 use crate::interface::windows::WindowClass;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
@@ -20,15 +21,33 @@ use crate::world::Player;
 const NORMAL_WINDOW_WIDTH: f32 = 460.0;
 /// Width of the collapsed character overview window.
 ///
-/// The collapsed form is a small always-on HUD element that only shows the
-/// level line and the four bars.
+/// The collapsed form is a small always-on minimalist HUD that only shows the
+/// bars (no text at all).
 const COMPACT_WINDOW_WIDTH: f32 = 150.0;
 /// Window border of the collapsed form, in interface pixels.
-const COMPACT_BORDER: f32 = 6.0;
+const COMPACT_BORDER: f32 = 5.0;
 /// Gaps between the elements of the collapsed form.
 const COMPACT_GAPS: f32 = 2.5;
 /// Title bar height of the collapsed form.
-const COMPACT_TITLE_HEIGHT: f32 = 20.0;
+///
+/// The minimalist HUD has no title text, but a few pixels are kept so the HUD
+/// can still be dragged around like any other window.
+const COMPACT_TITLE_HEIGHT: f32 = 12.0;
+/// Corner diameter of the collapsed HUD panel.
+const COMPACT_CORNER_DIAMETER: f32 = 6.0;
+/// Maximum height of the collapsed HUD, used to clamp a cached height from the
+/// expanded form.
+const COMPACT_MAXIMUM_HEIGHT: f32 = 100.0;
+/// Size of the round expand/collapse buttons.
+const ROUND_BUTTON_SIZE: f32 = ACTION_BUTTON_HEIGHT;
+/// Size of the round expand button of the minimalist HUD.
+const HUD_ROUND_BUTTON_SIZE: f32 = 14.0;
+/// Height of one bar line of the minimalist HUD.
+const HUD_BAR_HEIGHT: f32 = 7.0;
+/// Height of the combined EXP/job EXP line of the minimalist HUD.
+const HUD_STACK_HEIGHT: f32 = 12.0;
+/// Gap between the two stacked bars of the minimalist HUD.
+const HUD_STACK_GAP: f32 = 2.0;
 
 /// Layout of the bars in the expanded form.
 const EXPANDED_LABEL_WIDTH: f32 = 32.0;
@@ -36,19 +55,11 @@ const EXPANDED_LABEL_FONT_SIZE: f32 = 11.0;
 const EXPANDED_VALUE_FONT_SIZE: f32 = 9.0;
 const EXPANDED_BAR_GAP: f32 = 4.0;
 const EXPANDED_BAR_HEIGHT: f32 = 14.0;
-/// Layout of the micro bars in the collapsed form.
-const MICRO_LABEL_WIDTH: f32 = 22.0;
-const MICRO_LABEL_FONT_SIZE: f32 = 8.0;
-const MICRO_VALUE_FONT_SIZE: f32 = 8.0;
-const MICRO_BAR_GAP: f32 = 2.5;
-const MICRO_BAR_HEIGHT: f32 = 11.0;
 /// Size of the compact action buttons in the expanded form.
 const ACTION_BUTTON_HEIGHT: f32 = 18.0;
 const ACTION_BUTTON_FONT_SIZE: f32 = 10.5;
 /// Font size of the level line in the expanded form.
 const HEADER_FONT_SIZE: f32 = 11.0;
-/// Font size of the level line in the collapsed form.
-const COMPACT_HEADER_FONT_SIZE: f32 = 9.0;
 
 fn expanded_bar_style() -> BarStyle {
     BarStyle::new(
@@ -57,16 +68,6 @@ fn expanded_bar_style() -> BarStyle {
         EXPANDED_VALUE_FONT_SIZE,
         EXPANDED_BAR_GAP,
         EXPANDED_BAR_HEIGHT,
-    )
-}
-
-fn micro_bar_style() -> BarStyle {
-    BarStyle::new(
-        MICRO_LABEL_WIDTH,
-        MICRO_LABEL_FONT_SIZE,
-        MICRO_VALUE_FONT_SIZE,
-        MICRO_BAR_GAP,
-        MICRO_BAR_HEIGHT,
     )
 }
 
@@ -164,6 +165,88 @@ where
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
         true => COMPACT_TITLE_HEIGHT,
         false => client_theme().follow_safe(state).window.title_height,
+    })
+}
+
+/// Selector for the window title: the minimalist HUD has no title text.
+fn window_title<A>(compact_path: A) -> impl Selector<ClientState, String>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => String::new(),
+        false => client_state()
+            .localization()
+            .character_overview_window_title()
+            .follow_safe(state)
+            .clone(),
+    })
+}
+
+/// Selector for the window closability: the minimalist HUD has no close button.
+fn window_closable<A>(compact_path: A) -> impl Selector<ClientState, bool>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| !*compact_path.follow_safe(state))
+}
+
+/// Selector for the gap between the title bar and the content: the minimalist
+/// HUD has no title text and no title gap.
+fn window_title_gap<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => 0.0,
+        false => client_theme().follow_safe(state).window.title_gap,
+    })
+}
+
+/// Selector for the window background color.
+fn window_background_color<A>(compact_path: A) -> impl Selector<ClientState, Color>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => Color::rgba_u8(0, 0, 0, 180),
+        false => client_theme().follow_safe(state).window.background_color,
+    })
+}
+
+/// Selector for the window corner diameter.
+fn window_corner_diameter<A>(compact_path: A) -> impl Selector<ClientState, CornerDiameter>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => CornerDiameter::uniform(COMPACT_CORNER_DIAMETER),
+        false => client_theme().follow_safe(state).window.corner_diameter,
+    })
+}
+
+/// Selector for the minimum window height.
+fn window_minimum_height<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => 0.0,
+        false => client_theme().follow_safe(state).window.minimum_height,
+    })
+}
+
+/// Selector for the maximum window height.
+///
+/// The collapsed HUD clamps a cached expanded height so the minimalist HUD can
+/// never become tall again, while the expanded form keeps the theme limit.
+fn window_maximum_height<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => COMPACT_MAXIMUM_HEIGHT,
+        false => client_theme().follow_safe(state).window.maximum_height,
     })
 }
 
@@ -337,64 +420,42 @@ where
         let compact_path = self.interface_settings_path.character_overview_compact();
         let settings_path = self.interface_settings_path;
 
-        // The collapsed form: the level line with a small expand button and four
-        // micro bars.
+        // The collapsed form: the minimalist companion HUD. It intentionally has no
+        // labels, values or title text — only the HP line, the SP line and the base/job
+        // experience bars stacked into a single line, plus a round expand button.
         let compact = fragment! {
             gaps: COMPACT_GAPS,
             children: (
-                split! {
-                    gaps: 3.0,
-                    children: (
-                        text! {
-                            text: levels_display(player_path),
-                            color: client_theme().character_overview().value_color(),
-                            font_size: FontSize(COMPACT_HEADER_FONT_SIZE),
-                            height: COMPACT_HEADER_FONT_SIZE + 3.0,
-                            overflow_behavior: OverflowBehavior::Shrink,
-                        },
-                        button! {
-                            text: client_state().localization().character_overview_expand_button_text(),
-                            tooltip: client_state().localization().character_overview_expand_button_tooltip(),
-                            height: 14.0,
-                            font_size: FontSize(9.0),
-                            event: CharacterOverviewCompactToggle {
-                                value_path: compact_path,
-                                settings_path,
-                            },
-                        },
-                    ),
-                },
-                LabeledProgressBar::new(
-                    client_state().localization().health_points_text(),
-                    health_points_display(player_path),
+                RoundButton::new(
+                    "+",
+                    HUD_ROUND_BUTTON_SIZE,
+                    client_state().localization().character_overview_expand_button_tooltip(),
+                    CharacterOverviewCompactToggle {
+                        value_path: compact_path,
+                        settings_path,
+                    },
+                ),
+                MiniBar::new(
                     health_points_fraction(player_path),
                     health_fill_color(player_path),
                     client_theme().character_overview().health_background_color(),
-                    micro_bar_style(),
+                    HUD_BAR_HEIGHT,
                 ),
-                LabeledProgressBar::new(
-                    client_state().localization().spell_points_text(),
-                    spell_points_display(player_path),
+                MiniBar::new(
                     spell_points_fraction(player_path),
                     client_theme().character_overview().spell_point_color(),
                     client_theme().character_overview().spell_point_background_color(),
-                    micro_bar_style(),
+                    HUD_BAR_HEIGHT,
                 ),
-                LabeledProgressBar::new(
-                    client_state().localization().experience_text(),
-                    experience_display(player_path),
+                StackedMiniBars::new(
                     base_experience_fraction(player_path),
                     client_theme().character_overview().experience_color(),
                     client_theme().character_overview().experience_background_color(),
-                    micro_bar_style(),
-                ),
-                LabeledProgressBar::new(
-                    client_state().localization().job_experience_text(),
-                    job_experience_display(player_path),
                     job_experience_fraction(player_path),
                     client_theme().character_overview().job_experience_color(),
                     client_theme().character_overview().job_experience_background_color(),
-                    micro_bar_style(),
+                    HUD_STACK_HEIGHT,
+                    HUD_STACK_GAP,
                 ),
             ),
         };
@@ -460,9 +521,19 @@ where
             ),
         };
 
+        // The 3x3 action button grid plus the round collapse button above it.
         let action_buttons = fragment! {
             gaps: 3.0,
             children: (
+                RoundButton::new(
+                    "−",
+                    ROUND_BUTTON_SIZE,
+                    client_state().localization().character_overview_compact_button_tooltip(),
+                    CharacterOverviewCompactToggle {
+                        value_path: compact_path,
+                        settings_path,
+                    },
+                ),
                 split! {
                     gaps: 3.0,
                     children: (
@@ -487,6 +558,11 @@ where
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleSkillTreeWindow,
                         },
+                    ),
+                },
+                split! {
+                    gaps: 3.0,
+                    children: (
                         button! {
                             text: client_state().localization().stats_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
@@ -494,11 +570,6 @@ where
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleStatsWindow,
                         },
-                    ),
-                },
-                split! {
-                    gaps: 3.0,
-                    children: (
                         button! {
                             text: client_state().localization().friend_list_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
@@ -513,18 +584,32 @@ where
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleMenuWindow,
                         },
+                    ),
+                },
+                split! {
+                    gaps: 3.0,
+                    children: (
                         button! {
-                            text: client_state().localization().character_overview_compact_button_text(),
-                            tooltip: client_state().localization().character_overview_compact_button_tooltip(),
+                            text: client_state().localization().big_map_window_title(),
                             height: ACTION_BUTTON_HEIGHT,
                             font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
                             overflow_behavior: OverflowBehavior::Shrink,
-                            event: CharacterOverviewCompactToggle {
-                                value_path: compact_path,
-                                settings_path,
-                            },
+                            event: InputEvent::ToggleBigMapWindow,
                         },
-                        EmptyElement,
+                        button! {
+                            text: client_state().localization().chat_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleChatWindow,
+                        },
+                        button! {
+                            text: client_state().localization().game_settings_button_text(),
+                            height: ACTION_BUTTON_HEIGHT,
+                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                            event: InputEvent::ToggleGameSettingsWindow,
+                        },
                     ),
                 },
             ),
@@ -539,14 +624,20 @@ where
         };
 
         window! {
-            title: client_state().localization().character_overview_window_title(),
+            title: window_title(compact_path),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
+            title_height: window_title_height(compact_path),
+            title_gap: window_title_gap(compact_path),
             minimum_width: window_width(compact_path),
             maximum_width: window_width(compact_path),
+            minimum_height: window_minimum_height(compact_path),
+            maximum_height: window_maximum_height(compact_path),
             border: window_border(compact_path),
             gaps: window_gaps(compact_path),
-            title_height: window_title_height(compact_path),
+            closable: window_closable(compact_path),
+            background_color: window_background_color(compact_path),
+            corner_diameter: window_corner_diameter(compact_path),
             elements: either! {
                 selector: compact_path,
                 on_true: compact,

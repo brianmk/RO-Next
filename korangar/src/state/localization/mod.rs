@@ -175,6 +175,9 @@ pub struct Localization {
     skill_tree_button_text: String,
     friend_list_button_text: String,
     menu_button_text: String,
+    /// Label of the button that opens/closes the chat window.
+    #[serde(default = "default_chat_button_text")]
+    chat_button_text: String,
     chat_window_title: String,
     chat_text_box_message: String,
     chat_transparency_button_text: String,
@@ -225,6 +228,14 @@ pub struct Localization {
     cancel_skill_points_button_text: String,
     apply_skill_points_button_text: String,
     distribute_skill_points_button_text: String,
+}
+
+/// Default label of the chat window toggle button.
+///
+/// New fields are optional in the persisted language files, so a language file
+/// that was written before the field existed still loads.
+fn default_chat_button_text() -> String {
+    "Chat".to_owned()
 }
 
 impl Localization {

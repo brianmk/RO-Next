@@ -235,6 +235,167 @@ fn split_labeled_bar(row: Area, label_width: f32, gap: f32) -> (Area, Area) {
     (label_area, bar_area)
 }
 
+/// A bar without any label or value text.
+///
+/// Used by the minimalist companion HUD of the character overview, which shows
+/// only the bars (the progress can be read from the bar length alone).
+pub struct MiniBar<Fraction, FillColor, BackgroundColor> {
+    fraction: Fraction,
+    fill_color: FillColor,
+    background_color: BackgroundColor,
+    height: f32,
+}
+
+impl<Fraction, FillColor, BackgroundColor> MiniBar<Fraction, FillColor, BackgroundColor> {
+    /// Creates a new label-less progress bar with the given height.
+    pub fn new(fraction: Fraction, fill_color: FillColor, background_color: BackgroundColor, height: f32) -> Self {
+        Self {
+            fraction,
+            fill_color,
+            background_color,
+            height,
+        }
+    }
+}
+
+impl<Fraction, FillColor, BackgroundColor> Element<ClientState> for MiniBar<Fraction, FillColor, BackgroundColor>
+where
+    Fraction: Selector<ClientState, Option<f32>>,
+    FillColor: Selector<ClientState, Color>,
+    BackgroundColor: Selector<ClientState, Color>,
+{
+    type LayoutInfo = Area;
+
+    fn create_layout_info(&mut self, _: &State<ClientState>, _: ElementStoreMut, resolvers: &mut dyn Resolvers<ClientState>) -> Area {
+        with_single_resolver(resolvers, |resolver| resolver.with_height(self.height))
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        state: &'a State<ClientState>,
+        _: ElementStore<'a>,
+        area: &'a Area,
+        layout: &mut WindowLayout<'a, ClientState>,
+    ) {
+        if area.width <= 0.0 || area.height <= 0.0 {
+            return;
+        }
+
+        let fraction = (*state.get(&self.fraction)).unwrap_or(0.0);
+        let fill_color = *state.get(&self.fill_color);
+        let background_color = *state.get(&self.background_color);
+
+        draw_bar(layout, *area, fraction, fill_color, background_color);
+    }
+}
+
+/// Two thin label-less bars stacked into a single row.
+///
+/// The minimalist character overview HUD uses this for the base and job
+/// experience bars, which share one row and are drawn on top of each other.
+pub struct StackedMiniBars<TopFraction, TopFillColor, TopBackgroundColor, BottomFraction, BottomFillColor, BottomBackgroundColor> {
+    top_fraction: TopFraction,
+    top_fill_color: TopFillColor,
+    top_background_color: TopBackgroundColor,
+    bottom_fraction: BottomFraction,
+    bottom_fill_color: BottomFillColor,
+    bottom_background_color: BottomBackgroundColor,
+    height: f32,
+    gap: f32,
+}
+
+impl<TopFraction, TopFillColor, TopBackgroundColor, BottomFraction, BottomFillColor, BottomBackgroundColor>
+    StackedMiniBars<TopFraction, TopFillColor, TopBackgroundColor, BottomFraction, BottomFillColor, BottomBackgroundColor>
+{
+    /// Creates a stacked bar with the given total height and inner gap.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        top_fraction: TopFraction,
+        top_fill_color: TopFillColor,
+        top_background_color: TopBackgroundColor,
+        bottom_fraction: BottomFraction,
+        bottom_fill_color: BottomFillColor,
+        bottom_background_color: BottomBackgroundColor,
+        height: f32,
+        gap: f32,
+    ) -> Self {
+        Self {
+            top_fraction,
+            top_fill_color,
+            top_background_color,
+            bottom_fraction,
+            bottom_fill_color,
+            bottom_background_color,
+            height,
+            gap,
+        }
+    }
+}
+
+impl<TopFraction, TopFillColor, TopBackgroundColor, BottomFraction, BottomFillColor, BottomBackgroundColor> Element<ClientState>
+    for StackedMiniBars<TopFraction, TopFillColor, TopBackgroundColor, BottomFraction, BottomFillColor, BottomBackgroundColor>
+where
+    TopFraction: Selector<ClientState, Option<f32>>,
+    TopFillColor: Selector<ClientState, Color>,
+    TopBackgroundColor: Selector<ClientState, Color>,
+    BottomFraction: Selector<ClientState, Option<f32>>,
+    BottomFillColor: Selector<ClientState, Color>,
+    BottomBackgroundColor: Selector<ClientState, Color>,
+{
+    type LayoutInfo = (Area, Area);
+
+    fn create_layout_info(
+        &mut self,
+        _: &State<ClientState>,
+        _: ElementStoreMut,
+        resolvers: &mut dyn Resolvers<ClientState>,
+    ) -> (Area, Area) {
+        let gap = self.gap;
+
+        with_single_resolver(resolvers, |resolver| {
+            let row = resolver.with_height(self.height);
+            let bar_height = ((row.height - gap) / 2.0).max(1.0);
+
+            let top = Area {
+                left: row.left,
+                top: row.top,
+                width: row.width,
+                height: bar_height,
+            };
+            let bottom = Area {
+                left: row.left,
+                top: row.top + bar_height + gap,
+                width: row.width,
+                height: bar_height,
+            };
+
+            (top, bottom)
+        })
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        state: &'a State<ClientState>,
+        _: ElementStore<'a>,
+        (top, bottom): &'a (Area, Area),
+        layout: &mut WindowLayout<'a, ClientState>,
+    ) {
+        if top.width <= 0.0 || top.height <= 0.0 {
+            return;
+        }
+
+        let top_fraction = (*state.get(&self.top_fraction)).unwrap_or(0.0);
+        let top_fill_color = *state.get(&self.top_fill_color);
+        let top_background_color = *state.get(&self.top_background_color);
+        draw_bar(layout, *top, top_fraction, top_fill_color, top_background_color);
+
+        let bottom_fraction = (*state.get(&self.bottom_fraction)).unwrap_or(0.0);
+        let bottom_fill_color = *state.get(&self.bottom_fill_color);
+        let bottom_background_color = *state.get(&self.bottom_background_color);
+        draw_bar(layout, *bottom, bottom_fraction, bottom_fill_color, bottom_background_color);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::fill_width;
