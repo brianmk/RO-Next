@@ -10,7 +10,7 @@ use korangar_debug::logging::{Colorize, Timer, print_debug};
 use korangar_interface::element::StateElement;
 use korangar_loaders::FileLoader;
 use ragnarok_bytes::{ByteReader, FromBytes};
-use ragnarok_formats::sprite::{PaletteColor, RgbaImageData, SpriteData};
+use ragnarok_formats::sprite::{Palette, PaletteColor, RgbaImageData, SpriteData};
 use ragnarok_formats::version::GenericFormatMetadata;
 use rust_state::RustState;
 
@@ -61,7 +61,42 @@ impl SpriteLoader {
         self.cache.lock().unwrap().statistics()
     }
 
-    pub fn load(&self, path: &str) -> Result<Arc<Sprite>, LoadError> {
+    /// Builds the cache key for a sprite. The same sprite file can be rendered
+    /// with different external palettes (hair and body colors), so the palette
+    /// has to be part of the key.
+    fn cache_key(path: &str, palette_path: Option<&str>) -> String {
+        match palette_path {
+            Some(palette_path) => format!("{path}\u{1}{palette_path}"),
+            None => path.to_owned(),
+        }
+    }
+
+    /// Loads a `.pal` palette file (256 RGBA entries) that replaces the palette
+    /// embedded in a sprite. Returns `None` if the file is missing or
+    /// malformed; the caller then keeps the embedded palette.
+    fn load_palette(&self, path: &str) -> Option<Palette> {
+        let bytes = match self.game_file_loader.get(path) {
+            Ok(bytes) => bytes,
+            Err(_error) => {
+                #[cfg(feature = "debug")]
+                print_debug!("Failed to load palette: {:?}", _error);
+
+                return None;
+            }
+        };
+
+        match Palette::from_bytes(&mut ByteReader::without_metadata(&bytes)) {
+            Ok(palette) => Some(palette),
+            Err(_error) => {
+                #[cfg(feature = "debug")]
+                print_debug!("Failed to load palette: {:?}", _error);
+
+                None
+            }
+        }
+    }
+
+    pub fn load(&self, path: &str, palette_path: Option<&str>) -> Result<Arc<Sprite>, LoadError> {
         #[cfg(feature = "debug")]
         let timer = Timer::new_dynamic(format!("load sprite from {}", path.magenta()));
 
@@ -74,7 +109,7 @@ impl SpriteLoader {
                     print_debug!("Replacing with fallback");
                 }
 
-                return self.get_or_load(FALLBACK_SPRITE_FILE);
+                return self.get_or_load(FALLBACK_SPRITE_FILE, None);
             }
         };
         let mut byte_reader: ByteReader = ByteReader::with_default_metadata::<GenericFormatMetadata>(&bytes);
@@ -88,14 +123,35 @@ impl SpriteLoader {
                     print_debug!("Replacing with fallback");
                 }
 
-                return self.get_or_load(FALLBACK_SPRITE_FILE);
+                return self.get_or_load(FALLBACK_SPRITE_FILE, None);
             }
         };
 
         #[cfg(feature = "debug")]
         let cloned_sprite_data = sprite_data.clone();
 
-        let palette = sprite_data.palette.unwrap(); // unwrap_or_default() as soon as i know what
+        // Sprites normally embed their palette, but some files do not. Fall back
+        // to the default palette instead of panicking while decoding the palette
+        // based image data.
+        let embedded_palette = match sprite_data.palette.clone() {
+            Some(palette) => palette,
+            None => {
+                #[cfg(feature = "debug")]
+                print_debug!(
+                    "[{}] sprite '{}' has no embedded palette, using default palette",
+                    "warning".yellow(),
+                    path
+                );
+
+                Palette::default()
+            }
+        };
+
+        // An explicit palette file (hair/body color) replaces the embedded one.
+        let palette = match palette_path {
+            Some(palette_path) => self.load_palette(palette_path).unwrap_or(embedded_palette),
+            None => embedded_palette,
+        };
 
         let rgba_images: Vec<RgbaImageData> = sprite_data
             .rgba_image_data
@@ -171,7 +227,8 @@ impl SpriteLoader {
             sprite_data: cloned_sprite_data,
         });
 
-        let _result = self.cache.lock().unwrap().insert(path.to_string(), sprite.clone());
+        let cache_key = Self::cache_key(path, palette_path);
+        let _result = self.cache.lock().unwrap().insert(cache_key, sprite.clone());
 
         #[cfg(feature = "debug")]
         if let Err(error) = _result {
@@ -189,13 +246,13 @@ impl SpriteLoader {
         Ok(sprite)
     }
 
-    pub fn get(&self, path: &str) -> Option<Arc<Sprite>> {
-        self.cache.lock().unwrap().get(path).cloned()
+    pub fn get(&self, path: &str, palette_path: Option<&str>) -> Option<Arc<Sprite>> {
+        self.cache.lock().unwrap().get(&Self::cache_key(path, palette_path)).cloned()
     }
 
-    pub fn get_or_load(&self, path: &str) -> Result<Arc<Sprite>, LoadError> {
-        let Some(sprite) = self.get(path) else {
-            return self.load(path);
+    pub fn get_or_load(&self, path: &str, palette_path: Option<&str>) -> Result<Arc<Sprite>, LoadError> {
+        let Some(sprite) = self.get(path, palette_path) else {
+            return self.load(path, palette_path);
         };
 
         Ok(sprite)

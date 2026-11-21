@@ -106,6 +106,14 @@ pub struct Palette {
     pub colors: [PaletteColor; 256],
 }
 
+impl Default for Palette {
+    fn default() -> Self {
+        Self {
+            colors: [PaletteColor::default(); 256],
+        }
+    }
+}
+
 #[derive(Clone, Debug, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub struct SpriteData {
