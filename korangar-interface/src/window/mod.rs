@@ -517,8 +517,13 @@ where
         let vertical_resize_hovered = vertical_resize_area.check().run(layout);
         let resize_hovered = resize_area.check().run(layout);
 
+        // While the window chrome is shown (the client turns it on while the interface
+        // settings window is open) every window can be resized, even ones that do not
+        // opt into it via `resizable`.
+        let chrome_visible = layout.window_chrome_visible();
+
         let horizontal_resize_available = *state.get(&self.minimum_width) != *state.get(&self.maximum_width);
-        let vertical_resize_availabe = *state.get(&self.resizable);
+        let vertical_resize_availabe = *state.get(&self.resizable) || chrome_visible;
 
         if horizontal_resize_hovered && horizontal_resize_available {
             layout.register_click_handler(MouseButton::Left, &self.horizontal_resize_click_action);
@@ -563,18 +568,22 @@ where
             *state.get(&self.shadow_padding),
         );
 
-        if horizontal_resize_hovered && horizontal_resize_available
+        let horizontal_resize_active = horizontal_resize_hovered && horizontal_resize_available
             || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
                 resize_mode: ResizeMode::Horizontal,
                 window_id,
-            } if *window_id == data.id)
-        {
+            } if *window_id == data.id);
+
+        if horizontal_resize_active || (chrome_visible && horizontal_resize_available) {
+            let color = match horizontal_resize_active {
+                true => *state.get(&theme().window().closest_anchor_color()),
+                false => *state.get(&theme().window().anchor_color()),
+            };
             layout.add_rectangle(
                 horizontal_resize_area,
                 App::CornerDiameter::new(6.0, 6.0, 6.0, 6.0),
-                *state.get(&theme().window().closest_anchor_color()),
-                // TODO: Properly theme
-                *state.get(&theme().window().closest_anchor_color()),
+                color,
+                color,
                 App::ShadowPadding::none(),
             );
         } else if vertical_resize_hovered && vertical_resize_availabe
@@ -582,13 +591,22 @@ where
                 resize_mode: ResizeMode::Vertical,
                 window_id,
             } if *window_id == data.id)
+            || (chrome_visible && vertical_resize_availabe)
         {
+            let active = vertical_resize_hovered && vertical_resize_availabe
+                || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
+                    resize_mode: ResizeMode::Vertical,
+                    window_id,
+                } if *window_id == data.id);
+            let color = match active {
+                true => *state.get(&theme().window().closest_anchor_color()),
+                false => *state.get(&theme().window().anchor_color()),
+            };
             layout.add_rectangle(
                 vertical_resize_area,
                 App::CornerDiameter::new(6.0, 6.0, 6.0, 6.0),
-                *state.get(&theme().window().closest_anchor_color()),
-                // TODO: Properly theme
-                *state.get(&theme().window().closest_anchor_color()),
+                color,
+                color,
                 App::ShadowPadding::none(),
             );
         } else if resize_hovered && horizontal_resize_available && vertical_resize_availabe
@@ -596,15 +614,57 @@ where
                 resize_mode: ResizeMode::Both,
                 window_id,
             } if *window_id == data.id)
+            || (chrome_visible && horizontal_resize_available && vertical_resize_availabe)
         {
+            let active = resize_hovered && horizontal_resize_available && vertical_resize_availabe
+                || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
+                    resize_mode: ResizeMode::Both,
+                    window_id,
+                } if *window_id == data.id);
+            let color = match active {
+                true => *state.get(&theme().window().closest_anchor_color()),
+                false => *state.get(&theme().window().anchor_color()),
+            };
             layout.add_rectangle(
                 resize_area,
                 App::CornerDiameter::new(12.0, 12.0, 12.0, 12.0),
-                *state.get(&theme().window().closest_anchor_color()),
-                // TODO: Properly theme
-                *state.get(&theme().window().closest_anchor_color()),
+                color,
+                color,
                 App::ShadowPadding::none(),
             );
+        }
+
+        if chrome_visible {
+            // A small grip in the title bar, so it is obvious that the window can be
+            // dragged around while the interface settings are open.
+            let grip_width = 14.0;
+            let grip_height = 1.5;
+            let grip_gap = 3.0;
+            let title_right = layout_info.title_area.left + layout_info.title_area.width - *state.get(&self.border);
+            let grip_left = match close_button {
+                Some(_) => title_right - state.get(&self.close_button_size).width() - 12.0 - grip_width,
+                None => title_right - grip_width,
+            };
+            let grip_top = layout_info.title_area.top + (layout_info.title_area.height - (grip_height * 3.0 + grip_gap * 2.0)) / 2.0;
+            let grip_color = match is_title_hovered {
+                true => *state.get(&self.hovered_title_color),
+                false => *state.get(&self.title_color),
+            };
+
+            for index in 0..3 {
+                layout.add_rectangle(
+                    Area {
+                        left: grip_left,
+                        top: grip_top + index as f32 * (grip_height + grip_gap),
+                        width: grip_width,
+                        height: grip_height,
+                    },
+                    App::CornerDiameter::new(0.0, 0.0, 0.0, 0.0),
+                    grip_color,
+                    grip_color,
+                    App::ShadowPadding::none(),
+                );
+            }
         }
 
         if let Some((close_button_area, close_button_color)) = close_button {

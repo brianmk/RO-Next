@@ -227,6 +227,10 @@ pub struct WindowLayout<'a, App: Application> {
     interface_scaling: f32,
 
     mouse_mode: Option<&'a MouseMode<App>>,
+
+    /// Whether the window chrome (move grip and resize handles) is currently
+    /// shown on all windows, instead of only while hovering them.
+    window_chrome_visible: bool,
 }
 
 impl<App: Application> Default for WindowLayout<'_, App> {
@@ -254,6 +258,8 @@ impl<App: Application> Default for WindowLayout<'_, App> {
             interface_scaling: 1.0,
 
             mouse_mode: None,
+
+            window_chrome_visible: false,
         }
     }
 }
@@ -277,6 +283,7 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         self.mouse_mode = None;
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update(
         &mut self,
         interface_scaling: f32,
@@ -285,6 +292,7 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         focused_element: Option<ElementId>,
         can_be_hovered: bool,
         mouse_mode: &'a MouseMode<App>,
+        window_chrome_visible: bool,
     ) {
         self.interface_scaling = interface_scaling;
         self.window_position = window_position;
@@ -296,6 +304,13 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         self.is_hovered = false;
         self.can_be_hovered = can_be_hovered;
         self.mouse_mode = Some(mouse_mode);
+        self.window_chrome_visible = window_chrome_visible;
+    }
+
+    /// Whether the window chrome (move grip and resize handles) should be
+    /// visible even when the window is not hovered.
+    pub fn window_chrome_visible(&self) -> bool {
+        self.window_chrome_visible
     }
 
     pub fn get_interface_scaling(&self) -> f32 {

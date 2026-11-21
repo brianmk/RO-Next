@@ -34,6 +34,7 @@ where
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
+            resizable: true,
             elements: (
                 state_button! {
                     text: client_state().localization().mute_audio_on_focus_loss_button_text(),

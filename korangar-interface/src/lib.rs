@@ -253,6 +253,10 @@ where
     window_store: WindowStore,
     focused_element: Option<ElementId>,
     mouse_mode: MouseMode<App>,
+    /// Show the window chrome (move grip and resize handles) on all windows
+    /// instead of only while hovering them. Used by the client while the
+    /// interface settings window is open so windows can be arranged.
+    window_chrome_visible: bool,
     event_queue: EventQueue<App>,
     overlay_element: Option<OverlayElement<App>>,
 
@@ -286,6 +290,7 @@ where
             window_store: WindowStore::default(),
             focused_element: None,
             mouse_mode: MouseMode::Default,
+            window_chrome_visible: false,
             event_queue: EventQueue::default(),
             overlay_element: None,
 
@@ -394,6 +399,12 @@ where
 
     pub fn set_mouse_mode(&mut self, mouse_mode: MouseMode<App>) {
         self.mouse_mode = mouse_mode;
+    }
+
+    /// Show the window chrome (move grip and resize handles) on all windows,
+    /// even when they are not hovered.
+    pub fn set_window_chrome_visible(&mut self, window_chrome_visible: bool) {
+        self.window_chrome_visible = window_chrome_visible;
     }
 
     pub fn has_focus(&self) -> bool {
@@ -608,6 +619,7 @@ where
                 this.focused_element,
                 true,
                 &this.mouse_mode,
+                this.window_chrome_visible,
             );
 
             let store = ElementStore::new(&overlay_element.store, overlay_element.window_id);
@@ -645,6 +657,7 @@ where
                 this.focused_element,
                 hovered_window.is_none(),
                 &this.mouse_mode,
+                this.window_chrome_visible,
             );
 
             wrapper.window.lay_out(state, &this.window_store, &wrapper.data, layout);

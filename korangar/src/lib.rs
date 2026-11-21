@@ -3378,6 +3378,12 @@ impl Client {
             let is_grabbing = mouse_mode.is_grabbing();
             let is_chat_open = self.interface.is_window_with_class_open(WindowClass::Chat);
 
+            // While the interface settings window is open, show the move grip and resize
+            // handles on every window (not just the hovered one) so the layout can be
+            // arranged while tuning the interface.
+            let interface_settings_open = self.interface.is_window_with_class_open(WindowClass::InterfaceSettings);
+            self.interface.set_window_chrome_visible(interface_settings_open);
+
             let mut interface_frame = self
                 .interface
                 .lay_out_windows(&self.client_state, scaling.get_factor(), input_report.mouse_position);

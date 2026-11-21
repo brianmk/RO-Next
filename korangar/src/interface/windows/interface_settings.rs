@@ -107,6 +107,7 @@ where
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
+            resizable: true,
             elements,
         }
     }
