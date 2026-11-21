@@ -809,6 +809,15 @@ where
         }
     }
 
+    /// Whisper a message to another character.
+    pub fn send_whisper(&mut self, target_name: &str, message: &str) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => {
+                self.send_map_server_packet(WhisperPacket::new(target_name.to_owned(), message.to_owned()))
+            }
+        }
+    }
+
     pub fn start_dialog(&mut self, npc_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(StartDialogPacket::new(npc_id)),

@@ -160,6 +160,14 @@ pub struct ChatWindowState {
     current_text: String,
 }
 
+impl ChatWindowState {
+    /// Replace the text in the chat input, e.g. to pre-fill a whisper command.
+    /// The cursor is placed at the end of the text by the text box.
+    pub fn set_current_text(&mut self, text: String) {
+        self.current_text = text;
+    }
+}
+
 pub struct ChatWindow<A, B> {
     chat_window_state: A,
     chat_messages_path: B,

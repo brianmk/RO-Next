@@ -32,6 +32,12 @@ pub struct InputReport {
     pub mouse_position: ScreenPosition,
     pub mouse_delta: ScreenSize,
     pub mouse_button_released: bool,
+    /// Whether the right mouse button was released in this frame.
+    pub right_mouse_button_released: bool,
+    /// Accumulated mouse movement in pixels while the right mouse button was
+    /// held down. Used to distinguish a right click (context menu) from a right
+    /// drag (camera rotation).
+    pub right_mouse_button_drag_distance: f32,
     pub left_mouse_button_down: bool,
     pub scroll: Option<f32>,
     pub drag: Option<ScreenSize>,
@@ -52,6 +58,8 @@ pub struct InputSystem {
     input_buffer: Vec<char>,
     picker_value: Arc<AtomicU64>,
     previous_mouse_button: Option<PreviousMouseButton>,
+    right_mouse_button_press_position: ScreenPosition,
+    right_mouse_button_drag_distance: f32,
 }
 
 impl InputSystem {
@@ -84,6 +92,8 @@ impl InputSystem {
             input_buffer,
             picker_value,
             previous_mouse_button,
+            right_mouse_button_press_position: ScreenPosition::default(),
+            right_mouse_button_drag_distance: 0.0,
         }
     }
 
@@ -140,6 +150,21 @@ impl InputSystem {
 
         let mouse_button_released = self.left_mouse_button.released() || self.right_mouse_button.released();
 
+        // Track whether the right button was pressed and released without moving
+        // the mouse, so that a right click can open the character context menu
+        // while a right drag keeps rotating the camera.
+        let right_mouse_button_released = self.right_mouse_button.released();
+
+        if self.right_mouse_button.pressed() {
+            self.right_mouse_button_press_position = self.new_mouse_position;
+            self.right_mouse_button_drag_distance = 0.0;
+        } else if self.right_mouse_button.down() {
+            let offset = self.new_mouse_position - self.right_mouse_button_press_position;
+            self.right_mouse_button_drag_distance = self
+                .right_mouse_button_drag_distance
+                .max(offset.width.abs().max(offset.height.abs()));
+        }
+
         let last_pixel_value = self.picker_value.load(Ordering::Acquire);
         let mouse_target = PickerTarget::from(last_pixel_value);
 
@@ -184,6 +209,8 @@ impl InputSystem {
             mouse_position: self.new_mouse_position,
             mouse_delta: self.mouse_delta,
             mouse_button_released,
+            right_mouse_button_released,
+            right_mouse_button_drag_distance: self.right_mouse_button_drag_distance,
             left_mouse_button_down: self.left_mouse_button.down(),
             scroll: (self.scroll_delta != 0.0).then_some(self.scroll_delta),
             drag: self.left_mouse_button.down().then_some(self.mouse_delta),

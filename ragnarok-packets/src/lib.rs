@@ -1801,6 +1801,61 @@ pub struct GlobalMessagePacket {
     pub message: String,
 }
 
+/// Whisper a message to another character (CZ_WHISPER).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0096)]
+#[variable_length]
+pub struct WhisperPacket {
+    /// Name of the character the message is sent to.
+    #[length(24)]
+    pub target_name: String,
+    /// Message that is sent to the target character.
+    #[length_remaining]
+    pub message: String,
+}
+
+/// Result of a whisper that the client sent (ZC_ACK_WHISPER).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09DF)]
+pub struct WhisperAckPacket {
+    pub result: WhisperResult,
+    pub character_id: u32,
+}
+
+/// A whispered message that another character sent to the player (ZC_WHISPER).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09DE)]
+#[variable_length]
+pub struct WhisperReceivedPacket {
+    /// Account id of the sender.
+    pub sender_id: u32,
+    /// Name of the sender.
+    #[length(24)]
+    pub sender_name: String,
+    /// Whether the sender is a game master.
+    pub is_admin: u8,
+    /// The whispered message.
+    #[length_remaining]
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Copy, ByteConvertable)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[numeric_type(u8)]
+pub enum WhisperResult {
+    #[numeric_value(0)]
+    Success,
+    #[numeric_value(1)]
+    TargetOffline,
+    #[numeric_value(2)]
+    Ignored,
+    #[numeric_value(3)]
+    AllIgnored,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0139)]
@@ -4368,9 +4423,13 @@ pub struct Friend {
     pub name: String,
 }
 
+// NOTE: `CZ_ADD_FRIENDS` is 0x0202 for clients older than 2012 only. Since
+// PACKETVER 20130320 rAthena expects 0x086F (0x0202 became
+// `CZ_CHANGE_DIRECTION`), so sending 0x0202 to a modern server corrupts the
+// packet stream.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x0202)]
+#[header(0x086F)]
 pub struct AddFriendPacket {
     #[length(24)]
     pub name: String,
@@ -4763,4 +4822,48 @@ pub struct UpdateSkillPacket {
 #[header(0x0441)]
 pub struct RemoveSkillPacket {
     pub skill_id: SkillId,
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_bytes::{ByteWriter, ToBytes};
+
+    use crate::{PacketExt, WhisperPacket};
+
+    /// The whisper packet has to match the format the server expects:
+    /// `0096 <len>.W <name>.24B <message>.?B 00`.
+    #[test]
+    fn whisper_packet_layout() {
+        let packet = WhisperPacket::new("VerifyBot4".to_owned(), "hello".to_owned());
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0096);
+
+        let packet_length = u16::from_le_bytes([bytes[2], bytes[3]]) as usize;
+        assert_eq!(packet_length, bytes.len());
+        assert_eq!(packet_length, 4 + 24 + "hello".len() + 1);
+
+        assert_eq!(&bytes[4..14], b"VerifyBot4");
+        assert_eq!(&bytes[28..34], b"hello\0");
+    }
+
+    #[test]
+    fn add_friend_packet_layout() {
+        // rAthena expects 0x086F for PACKETVER >= 20130320 (0x0202 is
+        // CZ_CHANGE_DIRECTION there).
+        use crate::AddFriendPacket;
+
+        let packet = AddFriendPacket::new("VerifyBot4".to_owned());
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x086F);
+        assert_eq!(bytes.len(), 2 + 24);
+        assert_eq!(&bytes[2..12], b"VerifyBot4");
+    }
 }

@@ -70,8 +70,8 @@ use networking::{PacketHistory, PacketHistoryCallback};
 #[cfg(not(feature = "debug"))]
 use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
-    AttackRange, BuyShopItemsResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, HotbarSlot, SellItemsResult,
-    SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
+    AttackRange, BuyShopItemsResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
+    SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -304,6 +304,10 @@ pub struct Client {
     character_server_reconnect_at: Option<Instant>,
     /// Remaining character server reconnect attempts.
     character_server_reconnect_attempts: u32,
+
+    /// Context menu that should be opened once the name of the target entity
+    /// is known. Stores the entity id and the screen position of the click.
+    pending_context_menu: Option<(EntityId, ScreenPosition)>,
 
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
@@ -822,6 +826,7 @@ impl Client {
             shutdown_deadline: None,
             character_server_reconnect_at: None,
             character_server_reconnect_attempts: 0,
+            pending_context_menu: None,
             particle_holder,
             point_light_manager,
             effect_holder,
@@ -1415,6 +1420,7 @@ impl Client {
                     self.client_state.follow_mut(client_state().entities()).clear();
                     self.client_state.follow_mut(client_state().dead_entities()).clear();
                     self.client_state.follow_mut(client_state().ground_items()).clear();
+                    self.pending_context_menu = None;
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
 
                     // We are back at the character selection screen; the map
@@ -1863,6 +1869,18 @@ impl Client {
 
                     if let Some(entity) = entity {
                         entity.set_details(name);
+                    }
+
+                    // The name was requested because the player right-clicked the
+                    // character before its name was loaded. Open the menu now.
+                    if let Some((pending_entity_id, position)) = self.pending_context_menu
+                        && pending_entity_id == entity_id
+                    {
+                        self.pending_context_menu = None;
+
+                        if open_character_context_menu(&self.client_state, &mut self.interface, entity_id, position) {
+                            let _ = self.networking_system.entity_details(entity_id);
+                        }
                     }
                 }
                 NetworkEvent::DamageEffect {
@@ -2529,9 +2547,14 @@ impl Client {
                 InputEvent::RotateCamera { rotation } => self.player_camera.soft_rotate(rotation),
                 InputEvent::ResetCameraRotation => self.player_camera.reset_rotation(),
                 InputEvent::ToggleMenuWindow => {
-                    // Escape cancels an active skill target selection instead of
-                    // opening the menu, like in the original client.
-                    if self.interface.get_mouse_mode().skill_target().is_some() {
+                    // Escape closes the character context menu before it does
+                    // anything else.
+                    if self.interface.is_window_with_class_open(WindowClass::ContextMenu) {
+                        self.interface.close_window_with_class(WindowClass::ContextMenu);
+                    // Escape cancels an active skill target selection instead
+                    // of opening the menu, like in the
+                    // original client.
+                    } else if self.interface.get_mouse_mode().skill_target().is_some() {
                         self.interface.set_mouse_mode(MouseMode::Default);
                     } else if self.client_state.try_follow(this_entity()).is_some() {
                         match self.interface.is_window_with_class_open(WindowClass::Menu) {
@@ -2656,6 +2679,26 @@ impl Client {
                     // Unbuffer any buffered action.
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
                 }
+                InputEvent::OpenCharacterContextMenu { entity_id, position } => {
+                    if open_character_context_menu(&self.client_state, &mut self.interface, entity_id, position) {
+                        self.pending_context_menu = Some((entity_id, position));
+                        let _ = self.networking_system.entity_details(entity_id);
+                    }
+                }
+                InputEvent::CloseContextMenu => {
+                    self.interface.close_window_with_class(WindowClass::ContextMenu);
+                }
+                InputEvent::WhisperChat { name } => {
+                    if !self.interface.is_window_with_class_open(WindowClass::Chat) {
+                        self.interface
+                            .open_window(ChatWindow::new(client_state().chat_window(), client_state().chat_messages()));
+                    }
+
+                    self.client_state
+                        .follow_mut(client_state().chat_window())
+                        .set_current_text(format!("/w {name} "));
+                    self.interface.focus_element(ChatTextBox);
+                }
                 InputEvent::PlayerInteract { entity_id } => {
                     let entity = self
                         .client_state
@@ -2738,6 +2781,21 @@ impl Client {
                     if text.as_str() == "/nc" {
                         let auto_attack = self.client_state.follow_mut(client_state().game_settings().auto_attack());
                         *auto_attack = !*auto_attack;
+                        continue;
+                    }
+
+                    // Whisper command, filled in by the character context menu:
+                    // "/w <name> <message>". The original client sends a dedicated
+                    // whisper packet for this instead of a global chat message.
+                    if let Some(whisper) = text.strip_prefix("/w ").or_else(|| text.strip_prefix("/whisper ")) {
+                        let mut parts = whisper.splitn(2, ' ');
+                        let target_name = parts.next().unwrap_or_default();
+                        let message = parts.next().unwrap_or_default().trim_start();
+
+                        if !target_name.is_empty() && !message.is_empty() {
+                            let _ = self.networking_system.send_whisper(target_name, message);
+                        }
+
                         continue;
                     }
 
@@ -3850,6 +3908,8 @@ impl Client {
             let interface_settings_open = self.interface.is_window_with_class_open(WindowClass::InterfaceSettings);
             self.interface.set_window_chrome_visible(interface_settings_open);
 
+            let is_context_menu_open = self.interface.is_window_with_class_open(WindowClass::ContextMenu);
+
             let mut interface_frame = self
                 .interface
                 .lay_out_windows(&self.client_state, scaling.get_factor(), input_report.mouse_position);
@@ -3858,6 +3918,16 @@ impl Client {
             // is hovering a window, so we buffer any actions for the next frame.
 
             let is_interface_hovered = interface_frame.is_interface_hovered();
+            let is_context_menu_hovered = interface_frame.is_window_with_class_hovered(WindowClass::ContextMenu);
+
+            // A click outside of the context menu closes it. Left clicks in the
+            // world are swallowed so that closing the menu does not also move the
+            // player or interact with an entity.
+            let click_closes_context_menu = is_context_menu_open && !is_context_menu_hovered;
+
+            if click_closes_context_menu && input_report.mouse_click.is_some() {
+                self.input_event_buffer.push(InputEvent::CloseContextMenu);
+            }
 
             let cursor_state = match input_report.mouse_target {
                 _ if is_rotating_camera => MouseCursorState::RotateCamera,
@@ -3892,6 +3962,8 @@ impl Client {
             if let Some(mouse_button) = input_report.mouse_click {
                 if is_interface_hovered {
                     interface_frame.click(&self.client_state, mouse_button);
+                } else if click_closes_context_menu && mouse_button == MouseButton::Left {
+                    // The left click only closed the context menu.
                 } else {
                     interface_frame.unfocus();
 
@@ -3948,6 +4020,41 @@ impl Client {
                 if last_destination != destination {
                     interface_frame.set_mouse_mode(MouseInputMode::Walk { destination });
                     self.input_event_buffer.push(InputEvent::PlayerMove { destination });
+                }
+            }
+
+            // Open the character context menu when the right mouse button was
+            // pressed and released over a character without dragging. A right
+            // drag keeps rotating the camera like before.
+            const RIGHT_CLICK_DRAG_THRESHOLD: f32 = 4.0;
+
+            if input_report.right_mouse_button_released
+                && is_rotating_camera
+                && !is_interface_hovered
+                && currently_playing
+                && input_report.right_mouse_button_drag_distance < RIGHT_CLICK_DRAG_THRESHOLD
+                && skill_target.is_none()
+            {
+                if is_context_menu_open {
+                    self.input_event_buffer.push(InputEvent::CloseContextMenu);
+                } else if let PickerTarget::Entity(entity_id) = input_report.mouse_target {
+                    let is_character = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                        .is_some_and(|entity| entity.get_entity_type() == EntityType::Player);
+                    let is_own_character = self
+                        .client_state
+                        .try_follow(this_entity())
+                        .is_some_and(|entity| entity.get_entity_id() == entity_id);
+
+                    if is_character && !is_own_character {
+                        self.input_event_buffer.push(InputEvent::OpenCharacterContextMenu {
+                            entity_id,
+                            position: input_report.mouse_position,
+                        });
+                    }
                 }
             }
 
@@ -4164,6 +4271,34 @@ impl Client {
         if let Some(frame) = maybe_frame {
             self.graphics_engine.render_next_frame(frame, render_instruction);
         }
+    }
+}
+
+/// Open the character context menu for the given entity if its name is already
+/// known. Returns `true` if the name still has to be requested from the map
+/// server; the menu can then be opened once the name arrives.
+fn open_character_context_menu(
+    state: &State<ClientState>,
+    interface: &mut Interface<'static, ClientState>,
+    entity_id: EntityId,
+    position: ScreenPosition,
+) -> bool {
+    let character_name = state
+        .follow(client_state().entities())
+        .iter()
+        .find(|entity| entity.get_entity_id() == entity_id)
+        .and_then(|entity| entity.get_details())
+        .map(|details| details.split('#').next().unwrap_or_default().to_owned())
+        .filter(|name| !name.is_empty());
+
+    match character_name {
+        Some(character_name) => {
+            interface.close_window_with_class(WindowClass::ContextMenu);
+            interface.open_window_at(CharacterContextMenuWindow::new(character_name), position);
+
+            false
+        }
+        None => true,
     }
 }
 

@@ -228,6 +228,23 @@ where
             color,
         }
     })?;
+    packet_handler.register(|packet: WhisperReceivedPacket| NetworkEvent::ChatMessage {
+        text: format!("[Whisper] {} : {}", packet.sender_name, packet.message),
+        color: MessageColor::Information,
+    })?;
+    packet_handler.register(|packet: WhisperAckPacket| {
+        let text = match packet.result {
+            WhisperResult::Success => None,
+            WhisperResult::TargetOffline => Some("The player is not online."),
+            WhisperResult::Ignored => Some("The player is ignoring whispers."),
+            WhisperResult::AllIgnored => Some("The player is not accepting whispers."),
+        };
+
+        text.map(|text| NetworkEvent::ChatMessage {
+            text: text.to_owned(),
+            color: MessageColor::Error,
+        })
+    })?;
     packet_handler.register(|packet: OverheadMessagePacket| {
         // FIX: This should be a different event.
         NetworkEvent::ChatMessage {
