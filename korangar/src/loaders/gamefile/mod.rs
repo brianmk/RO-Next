@@ -6,7 +6,8 @@ mod cache;
 mod list;
 
 use core::panic;
-use std::path::Path;
+use std::collections::HashSet;
+use std::path::{Path, PathBuf};
 use std::sync::RwLock;
 
 use blake3::Hash;
@@ -18,7 +19,7 @@ pub use self::cache::{sync_cache_archive, texture_file_dds_name, video_file_ivf_
 use self::list::GameArchiveList;
 use super::archive::folder::FolderArchive;
 use super::archive::native::{NativeArchive, NativeArchiveBuilder};
-use super::archive::{Archive, ArchiveType, Compression, Writable};
+use super::archive::{Archive, ArchiveType, Compression, Writable, os_specific_path};
 use crate::loaders::archive::seven_zip::{SevenZipArchive, SevenZipArchiveBuilder};
 
 pub(crate) const CACHE_FILE_NAME: &str = "cache.7z";
@@ -26,6 +27,14 @@ pub(crate) const LUA_ARCHIVE_FILE_NAME: &str = "lua_files.7z";
 
 pub(crate) const TEMPORARY_CACHE_FILE_NAME: &str = "cache.7z.tmp";
 pub(crate) const HASH_FILE_PATH: &str = "game_file_hash.txt";
+
+/// Folders that contain loose background music files, relative to the game
+/// installation directory.
+///
+/// The original client keeps its music in a `BGM` folder next to the game
+/// archives instead of storing it inside them. Other servers put their music
+/// into a `data/mp3` folder. Both are supported.
+const LOOSE_MUSIC_FOLDERS: &[&str] = &["BGM", "bgm", "data/mp3", "data/BGM", "data/bgm"];
 
 /// This string is used to derive an initialization vector for the game file
 /// hash calculation. We can use this to trigger a de-sync of the cache files of
@@ -111,8 +120,69 @@ impl GameFileLoader {
             self.add_archive(game_archive, true);
         });
 
+        self.load_loose_music_folders(&game_archive_list.archives);
+
         #[cfg(feature = "debug")]
         timer.stop();
+    }
+
+    /// Mounts the loose background music folders of the game installation as
+    /// additional archives.
+    ///
+    /// The original client keeps its background music in a `BGM` folder next
+    /// to the game archives instead of storing it inside of them. Korangar is
+    /// usually started from a different working directory, so we look next to
+    /// every configured game archive (following symlinks) and in the working
+    /// directory itself. Every music folder that we find is mounted, which
+    /// makes the music available through the normal file loader without
+    /// copying the (large) files into the working directory.
+    fn load_loose_music_folders(&self, archive_paths: &[String]) {
+        let mut base_directories: Vec<PathBuf> = Vec::new();
+
+        for archive_path in archive_paths {
+            let Ok(canonical_path) = std::fs::canonicalize(archive_path) else {
+                continue;
+            };
+
+            let directory = match canonical_path.is_dir() {
+                true => canonical_path,
+                false => match canonical_path.parent() {
+                    Some(parent) => parent.to_path_buf(),
+                    None => continue,
+                },
+            };
+
+            base_directories.push(directory);
+        }
+
+        // Also support game installations that keep their music in the working
+        // directory.
+        base_directories.push(PathBuf::from("."));
+
+        let mut mounted_directories: HashSet<PathBuf> = HashSet::new();
+
+        for base_directory in base_directories {
+            for music_folder in LOOSE_MUSIC_FOLDERS {
+                let music_directory = base_directory.join(os_specific_path(music_folder));
+
+                let Ok(canonical_music_directory) = std::fs::canonicalize(&music_directory) else {
+                    continue;
+                };
+
+                if !canonical_music_directory.is_dir() || !mounted_directories.insert(canonical_music_directory.clone()) {
+                    continue;
+                }
+
+                #[cfg(feature = "debug")]
+                print_debug!(
+                    "mounting loose music folder {}",
+                    canonical_music_directory.display().to_string().magenta()
+                );
+
+                let music_archive = Box::new(FolderArchive::from_path(&canonical_music_directory));
+                self.add_archive(music_archive, false);
+            }
+        }
     }
 
     pub fn calculate_hash(&self) -> Hash {

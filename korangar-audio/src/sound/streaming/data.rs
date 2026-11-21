@@ -24,6 +24,21 @@ impl StreamingSoundData {
             },
         })
     }
+
+    /// Creates a [`StreamingSoundData`] for audio data that was already loaded
+    /// into memory.
+    ///
+    /// Game music is usually stored inside the game archives, so we do not
+    /// have a file path that we could pass to [`Self::from_file`].
+    pub(crate) fn from_cursor(cursor: std::io::Cursor<Vec<u8>>, loops: bool) -> Result<StreamingSoundData, FromFileError> {
+        Ok(Self {
+            decoder: SymphoniaDecoder::new(Box::new(cursor))?,
+            settings: StreamingSoundSettings {
+                loops,
+                ..Default::default()
+            },
+        })
+    }
 }
 
 impl StreamingSoundData {

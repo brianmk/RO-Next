@@ -30,6 +30,8 @@
     chat_text_box_message: "Enter chat message or command",
     audio_settings_window_title: "Audio Settings",
     mute_audio_on_focus_loss_button_text: "Mute audio on focus loss",
+    mute_background_music_button_text: "Mute background music",
+    background_music_volume_text: "Background music volume",
     create_character_window_title: "Create Character",
     character_name_text: "Character name",
     create_character_button_text: "Create",

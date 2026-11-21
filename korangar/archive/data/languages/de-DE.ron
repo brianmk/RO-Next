@@ -30,6 +30,8 @@
     chat_text_box_message: "Gib einen Nachricht oder ein Kommando ein",
     audio_settings_window_title: "Audioeinstellungen",
     mute_audio_on_focus_loss_button_text: "Stumm schalten wenn das Fenster den Fokus verliert",
+    mute_background_music_button_text: "Hintergrundmusik stummschalten",
+    background_music_volume_text: "Lautstärke der Hintergrundmusik",
     create_character_window_title: "Charakter erstellen",
     character_name_text: "Charaktername",
     create_character_button_text: "Erstellen",

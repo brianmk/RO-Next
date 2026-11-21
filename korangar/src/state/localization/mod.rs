@@ -162,6 +162,8 @@ pub struct Localization {
     chat_text_box_message: String,
     audio_settings_window_title: String,
     mute_audio_on_focus_loss_button_text: String,
+    mute_background_music_button_text: String,
+    background_music_volume_text: String,
     create_character_window_title: String,
     character_name_text: String,
     create_character_button_text: String,

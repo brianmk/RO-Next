@@ -289,6 +289,7 @@ pub struct Client {
     #[cfg(not(feature = "debug"))]
     networking_system: NetworkingSystem<NoPacketCallback>,
     audio_engine: Arc<AudioEngine<GameFileLoader>>,
+    active_background_music_volume: f32,
     active_interface_settings: InterfaceSettings,
     active_graphics_settings: GraphicsSettings,
     graphics_engine: GraphicsEngine,
@@ -425,7 +426,6 @@ impl Client {
 
         time_phase!("create audio engine", {
             let audio_engine = Arc::new(AudioEngine::new(game_file_loader.clone()));
-            audio_engine.set_background_music_volume(0.1);
         });
 
         time_phase!("create resource managers", {
@@ -654,6 +654,14 @@ impl Client {
 
         let active_interface_settings = client_state.follow(crate::client_state().interface_settings()).clone();
 
+        // The audio engine is created before the client state, so the saved
+        // background music volume can only be applied once the settings are
+        // loaded.
+        let active_background_music_volume = client_state
+            .follow(crate::client_state().audio_settings())
+            .effective_background_music_volume();
+        audio_engine.set_background_music_volume(active_background_music_volume);
+
         interface.open_window(LoginWindow::new(
             crate::client_state().login_window(),
             crate::client_state().login_settings(),
@@ -734,6 +742,7 @@ impl Client {
             main_menu_click_sound_effect,
             networking_system,
             audio_engine,
+            active_background_music_volume,
             active_interface_settings,
             active_graphics_settings: graphics_settings,
             graphics_engine,
@@ -818,6 +827,16 @@ impl Client {
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_settings(&mut self) {
         let graphics_settings = self.client_state.follow(client_state().graphics_settings());
+
+        let background_music_volume = self
+            .client_state
+            .follow(client_state().audio_settings())
+            .effective_background_music_volume();
+
+        if (self.active_background_music_volume - background_music_volume).abs() > f32::EPSILON {
+            self.audio_engine.set_background_music_volume(background_music_volume);
+            self.active_background_music_volume = background_music_volume;
+        }
 
         if self.active_graphics_settings.vsync != graphics_settings.vsync {
             self.graphics_engine.set_vsync(graphics_settings.vsync);
@@ -2175,9 +2194,10 @@ impl Client {
                 },
                 InputEvent::ToggleAudioSettingsWindow => match self.interface.is_window_with_class_open(WindowClass::AudioSettings) {
                     true => self.interface.close_window_with_class(WindowClass::AudioSettings),
-                    false => self
-                        .interface
-                        .open_window(AudioSettingsWindow::new(client_state().audio_settings())),
+                    false => self.interface.open_window(AudioSettingsWindow::new(
+                        client_state().audio_settings(),
+                        client_state().audio_settings_capabilities(),
+                    )),
                 },
                 InputEvent::ToggleFriendListWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
