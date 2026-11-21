@@ -222,6 +222,10 @@ pub enum InputEvent {
     CastSkill {
         /// Id of the skill to cast.
         skill_id: SkillId,
+        /// Skill type from the skill the player selected (hotbar/skill tree),
+        /// so the cast path does not silently depend on the learned
+        /// list still containing it.
+        skill_type: SkillType,
         /// Level to cast the skill at.
         level: SkillLevel,
     },
