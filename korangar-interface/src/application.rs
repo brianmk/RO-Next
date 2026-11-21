@@ -73,7 +73,7 @@ pub trait Application: Sized + 'static {
     ///
     /// The [`Default`] bound is used when deriving
     /// [`StateWindow`](crate::window::StateWindow).
-    type ThemeType: Default + Copy;
+    type ThemeType: Default + Copy + PartialEq;
 
     /// Glue between [`korangar_interface`] and the final application theme. See
     /// [`ThemePathGetter`] for more information.

@@ -41,6 +41,32 @@ pub const GLYPH_PADDING: f32 = 0.5;
 /// `TEXT_SHADOW_RADIUS` in the postprocessing shader module.
 pub const TEXT_SHADOW_RADIUS: f32 = 0.08;
 
+/// Profiling counters of the text layout cache (visible with
+/// `KORANGAR_PERF_LOG=1`).
+static LAYOUT_CACHE_CALLS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_CACHE_HITS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_CACHE_MISSES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Number of text layout calls, cache hits and actual shaping operations since
+/// the last call to [`take_layout_cache_statistics`].
+#[derive(Debug, Clone, Copy, Default)]
+pub struct LayoutCacheStatistics {
+    pub calls: u64,
+    pub hits: u64,
+    pub misses: u64,
+}
+
+/// Take and reset the text layout cache statistics.
+pub fn take_layout_cache_statistics() -> LayoutCacheStatistics {
+    use std::sync::atomic::Ordering::Relaxed;
+
+    LayoutCacheStatistics {
+        calls: LAYOUT_CACHE_CALLS.swap(0, Relaxed),
+        hits: LAYOUT_CACHE_HITS.swap(0, Relaxed),
+        misses: LAYOUT_CACHE_MISSES.swap(0, Relaxed),
+    }
+}
+
 const MAX_CACHE_COUNT: u32 = 2048;
 const MAX_CACHE_SIZE: usize = 32 << 20;
 
@@ -377,12 +403,18 @@ impl FontLoader {
             layout_width: available_width.unwrap_or(f32::INFINITY),
         };
 
+        LAYOUT_CACHE_CALLS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
         if let Some(layout) = self.layout_cache.lock().unwrap().get_with(&key, |k| k == &key) {
+            LAYOUT_CACHE_HITS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+
             if let Some(glyphs) = glyphs {
                 glyphs.extend(layout.glyphs.iter().copied())
             }
             return layout.size;
         }
+
+        LAYOUT_CACHE_MISSES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
         let (size, rendered_glyphs) = self.render_layout(
             text,
