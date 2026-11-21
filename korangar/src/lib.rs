@@ -562,6 +562,7 @@ pub struct Client {
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
+    skill_name_texts: SkillNameTexts,
     warp_portal: Option<WarpPortal>,
     /// Active warp-portal skill units: (entity id, world position, spawn time).
     /// Rendered as the flat ground portal of the original client.
@@ -1153,6 +1154,7 @@ impl Client {
             point_light_manager,
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
+            skill_name_texts: SkillNameTexts::default(),
             warp_portal,
             warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
@@ -2094,6 +2096,31 @@ impl Client {
         *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = selected_tab;
     }
 
+    /// Shows the name of a used skill above the caster's head (`Blessing !!`).
+    ///
+    /// Called once per cast (never per animation frame). The label replaces a
+    /// previous label of the same entity, so recasts refresh instead of
+    /// stacking.
+    fn show_skill_name_text(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) {
+        let is_character = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .any(|entity| entity.get_entity_id() == entity_id && entity.get_entity_type() == EntityType::Player);
+
+        if !is_character {
+            crate::logging::log_debug!("skill name text: entity {:?} is not a character, skipping", entity_id);
+            return;
+        }
+
+        let skill_name = self.library.get::<SkillListInformation>(skill_id).name.clone();
+        let text = format!("{skill_name} !!");
+
+        crate::logging::log_debug!("skill name text: entity {:?} skill {:?} -> {:?}", entity_id, skill_id, text);
+
+        self.skill_name_texts.push(entity_id, text, client_tick);
+    }
+
     fn update_level_99_auras(&mut self) {
         let style = *self.client_state.follow(client_state().interface_settings().level_99_aura_style());
 
@@ -2452,6 +2479,10 @@ impl Client {
                         }
                     }
 
+                    // Show the skill name above the caster's head, like the original
+                    // client (own character, other players and population shells).
+                    self.show_skill_name_text(source_entity_id, skill_id, client_tick);
+
                     if has_cast_time {
                         // The circle has to stay for the full cast: the cast time can be
                         // shorter than one ACT cycle (the animation then plays a full
@@ -2504,6 +2535,8 @@ impl Client {
                             // animation once at its natural frame speed.
                             entity.set_skill_cast(0, false, client_tick);
                         }
+
+                        self.show_skill_name_text(source_entity_id, skill_id, client_tick);
 
                         let visuals = skill_visuals(skill_id, 0);
 
@@ -2558,6 +2591,8 @@ impl Client {
                     {
                         entity.set_skill_cast(0, false, client_tick);
                     }
+
+                    self.show_skill_name_text(entity_id, skill_id, client_tick);
 
                     let visuals = skill_visuals(skill_id, 0);
                     let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
@@ -2801,6 +2836,7 @@ impl Client {
                 }
                 NetworkEvent::RemoveEntity { entity_id, reason } => {
                     self.chat_bubbles.remove_entity(entity_id);
+                    self.skill_name_texts.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
 
                     // Classic teleport/logout behaviour: entities that leave via
@@ -2976,6 +3012,7 @@ impl Client {
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
                     self.chat_bubbles.clear();
+                    self.skill_name_texts.clear();
                     self.warp_skill_units.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
@@ -3839,6 +3876,7 @@ impl Client {
         self.apply_pending_stat_updates();
 
         self.chat_bubbles.retain_alive(client_tick);
+        self.skill_name_texts.retain_alive(client_tick);
     }
 
     /// Applies stat updates that arrived before the local player entity
@@ -3864,11 +3902,22 @@ impl Client {
     /// Uses a learned skill: self cast skills are cast immediately, skills that
     /// require a target switch to the target selection mouse mode, like in the
     /// original client. Passive skills are ignored.
-    fn use_skill(&mut self, slot: Option<HotbarSlot>, skill_id: SkillId, skill_type: SkillType, level: SkillLevel) {
+    fn use_skill(
+        &mut self,
+        slot: Option<HotbarSlot>,
+        skill_id: SkillId,
+        skill_type: SkillType,
+        level: SkillLevel,
+        client_tick: ClientTick,
+    ) {
         match skill_type {
             SkillType::Passive => {}
             SkillType::SelfCast => {
                 let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
+
+                // Local casts show the label immediately; the server broadcast for
+                // the same cast simply refreshes the same label.
+                self.show_skill_name_text(entity_id, skill_id, client_tick);
 
                 match skill_id == ROLLING_CUTTER_ID {
                     true => {
@@ -4531,7 +4580,7 @@ impl Client {
                         });
 
                     if let Some((skill_id, skill_type, level)) = skill {
-                        self.use_skill(Some(slot), skill_id, skill_type, level);
+                        self.use_skill(Some(slot), skill_id, skill_type, level, client_tick);
                     }
                 }
                 InputEvent::UseSkill { skill_id, level } => {
@@ -4546,7 +4595,7 @@ impl Client {
                         .map(|learned_skill| (learned_skill.skill_type, SkillLevel(level.0.min(learned_skill.skill_level.0))));
 
                     if let Some((skill_type, level)) = skill {
-                        self.use_skill(None, skill_id, skill_type, level);
+                        self.use_skill(None, skill_id, skill_type, level, client_tick);
                     }
                 }
                 InputEvent::CastSkill {
@@ -4558,6 +4607,13 @@ impl Client {
                     // skill tree); the learned list is only used for the range, with a
                     // fallback so a cast is never silently dropped just because the
                     // learned entry is missing (e.g. high-job/trimmed skill trees).
+                    // The local player is about to cast (target/ground skill selected):
+                    // show the skill name above our own head immediately, without
+                    // waiting for the server broadcast.
+                    if let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) {
+                        self.show_skill_name_text(entity_id, skill_id, client_tick);
+                    }
+
                     let attack_range = self
                         .client_state
                         .follow(client_state().skill_tree().skills())
@@ -5306,6 +5362,7 @@ impl Client {
         self.client_state.follow_mut(client_state().entities()).clear();
         self.client_state.follow_mut(client_state().dead_entities()).clear();
         self.chat_bubbles.clear();
+        self.skill_name_texts.clear();
         self.client_state.follow_mut(client_state().ground_items()).clear();
         self.pending_context_menu = None;
         *self.client_state.follow_mut(client_state().buffered_action()) = None;
@@ -6146,6 +6203,7 @@ impl Client {
                 particle_holder: &mut self.particle_holder,
                 effect_holder: &mut self.effect_holder,
                 chat_bubbles: &self.chat_bubbles,
+                skill_name_texts: &self.skill_name_texts,
                 warp_portal: self.warp_portal.as_ref(),
                 warp_skill_units: &self.warp_skill_units,
                 effect_renderer: &mut self.effect_renderer,
@@ -6779,6 +6837,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     particle_holder: &'a mut ParticleHolder,
     effect_holder: &'a mut EffectHolder,
     chat_bubbles: &'a ChatBubbles,
+    skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
     /// Active warp-portal skill units, rendered like warp NPCs.
     warp_skill_units: &'a [(EntityId, Point3<f32>, Instant)],
@@ -7244,6 +7303,30 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                 self.screen_size,
                 self.scaling,
                 show_background,
+                self.client_tick,
+            );
+        }
+
+        // Short-lived skill name labels above the caster's head ("Blessing !!").
+        // They are drawn on top of the chat bubbles so a cast during a chat line
+        // stays readable.
+        let show_skill_names = *self
+            .client_state
+            .follow(client_state().interface_settings().show_skill_names_above_characters());
+
+        if show_skill_names && skill_names_enabled_by_environment() && self.currently_playing {
+            crate::logging::log_trace!(
+                "skill name texts: rendering {} label(s) (setting={})",
+                self.skill_name_texts.len(),
+                show_skill_names
+            );
+
+            self.skill_name_texts.render(
+                self.middle_interface_renderer,
+                self.current_camera,
+                self.client_state.follow(client_state().entities()),
+                self.screen_size,
+                self.scaling,
                 self.client_tick,
             );
         }

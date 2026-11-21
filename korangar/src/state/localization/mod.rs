@@ -144,6 +144,7 @@ pub struct Localization {
     level_99_aura_text: String,
     show_chat_bubbles_text: String,
     chat_bubble_background_text: String,
+    show_skill_names_text: String,
     minimap_window_title: String,
     minimap_button_text: String,
     minimap_loading_text: String,
