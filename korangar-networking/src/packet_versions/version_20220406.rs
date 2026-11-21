@@ -1023,8 +1023,24 @@ where
             position,
         }
     })?;
-    packet_handler.register(|packet: FriendListPacket| NetworkEvent::SetFriendList {
-        friend_list: packet.friend_list,
+    // CondaRO runs a 2019 rAthena server (PACKETVER 20190605). Since PACKETVER
+    // 20180307 rAthena sends the friend list without the 24-byte friend name
+    // (8-byte entries instead of the 32-byte ones the 2022-era
+    // `FriendListPacket` parses). Using the wrong entry size makes the parser
+    // read past the end of the packet, which desynchronizes the map server
+    // stream and swallows the following `ZC_NPCACK_MAPMOVE` (0x0091) packet, so
+    // characters with at least one friend ended up on a black screen. Friend
+    // names are delivered later by the `ZC_FRIENDS_STATE` (0x0206) packet.
+    packet_handler.register(|packet: FriendListPacket2019| NetworkEvent::SetFriendList {
+        friend_list: packet
+            .friend_list
+            .into_iter()
+            .map(|friend| Friend {
+                account_id: friend.account_id,
+                character_id: friend.character_id,
+                name: String::new(),
+            })
+            .collect(),
     })?;
     packet_handler.register_noop::<FriendOnlineStatusPacket>()?;
     packet_handler.register(|packet: FriendRequestPacket| NetworkEvent::FriendRequest {
