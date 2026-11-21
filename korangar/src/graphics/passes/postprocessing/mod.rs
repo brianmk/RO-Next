@@ -9,6 +9,7 @@ mod debug_circle;
 mod debug_rectangle;
 mod fxaa;
 mod rectangle;
+mod smaa;
 mod wboit_resolve;
 
 pub(crate) use blitter::{PostProcessingBlitterDrawData, PostProcessingBlitterDrawer};
@@ -22,6 +23,7 @@ pub(crate) use debug_circle::DebugCircleDrawer;
 pub(crate) use debug_rectangle::DebugRectangleDrawer;
 pub(crate) use fxaa::PostProcessingFxaaDrawer;
 pub(crate) use rectangle::{PostProcessingRectangleDrawData, PostProcessingRectangleDrawer, PostProcessingRectangleLayer};
+pub(crate) use smaa::{PostProcessingSmaaBlendDrawer, PostProcessingSmaaBlendWeightsDrawer, PostProcessingSmaaEdgeDrawer};
 pub(crate) use wboit_resolve::{PostProcessingWboitResolveDrawData, PostProcessingWboitResolveDrawer};
 use wgpu::{
     BindGroupLayout, CommandEncoder, Device, LoadOp, Operations, Queue, RenderPass, RenderPassColorAttachment, RenderPassDescriptor,

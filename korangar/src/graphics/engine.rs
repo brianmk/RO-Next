@@ -109,6 +109,9 @@ struct EngineContext {
     reduce_bounds_dispatcher: ReduceBoundsDispatcher,
     compute_custom_partitions_dispatcher: ComputeCustomPartitionsDispatcher,
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
+    post_processing_smaa_edge_drawer: PostProcessingSmaaEdgeDrawer,
+    post_processing_smaa_blend_weights_drawer: PostProcessingSmaaBlendWeightsDrawer,
+    post_processing_smaa_blend_drawer: PostProcessingSmaaBlendDrawer,
     post_processing_blitter_drawer: PostProcessingBlitterDrawer,
     post_processing_rectangle_drawer: PostProcessingRectangleDrawer,
     post_processing_wboit_resolve_drawer: PostProcessingWboitResolveDrawer,
@@ -392,6 +395,9 @@ impl GraphicsEngine {
                         );
                         let PostProcessingResources {
                             post_processing_fxaa_drawer,
+                            post_processing_smaa_edge_drawer,
+                            post_processing_smaa_blend_weights_drawer,
+                            post_processing_smaa_blend_drawer,
                             post_processing_blitter_drawer,
                             post_processing_rectangle_drawer,
                             post_processing_wboit_resolve_drawer,
@@ -464,6 +470,9 @@ impl GraphicsEngine {
                         reduce_bounds_dispatcher,
                         compute_custom_partitions_dispatcher,
                         post_processing_fxaa_drawer,
+                        post_processing_smaa_edge_drawer,
+                        post_processing_smaa_blend_weights_drawer,
+                        post_processing_smaa_blend_drawer,
                         post_processing_blitter_drawer,
                         post_processing_rectangle_drawer,
                         post_processing_wboit_resolve_drawer,
@@ -588,7 +597,7 @@ impl GraphicsEngine {
         if let Some(engine_context) = self.engine_context.as_mut() {
             engine_context
                 .global_context
-                .update_screen_space_anti_aliasing(&self.device, screen_space_anti_aliasing);
+                .update_screen_space_anti_aliasing(&self.device, &self.queue, screen_space_anti_aliasing);
         }
     }
 
@@ -613,6 +622,9 @@ impl GraphicsEngine {
 
             let PostProcessingResources {
                 post_processing_fxaa_drawer,
+                post_processing_smaa_edge_drawer,
+                post_processing_smaa_blend_weights_drawer,
+                post_processing_smaa_blend_drawer,
                 post_processing_blitter_drawer,
                 post_processing_rectangle_drawer,
                 post_processing_wboit_resolve_drawer,
@@ -638,6 +650,9 @@ impl GraphicsEngine {
             engine_context.forward_model_drawer = forward_model_drawer;
             engine_context.forward_effect_drawer = forward_effect_drawer;
             engine_context.post_processing_fxaa_drawer = post_processing_fxaa_drawer;
+            engine_context.post_processing_smaa_edge_drawer = post_processing_smaa_edge_drawer;
+            engine_context.post_processing_smaa_blend_weights_drawer = post_processing_smaa_blend_weights_drawer;
+            engine_context.post_processing_smaa_blend_drawer = post_processing_smaa_blend_drawer;
             engine_context.post_processing_blitter_drawer = post_processing_blitter_drawer;
             engine_context.post_processing_rectangle_drawer = post_processing_rectangle_drawer;
             engine_context.post_processing_wboit_resolve_drawer = post_processing_wboit_resolve_drawer;
@@ -799,7 +814,7 @@ impl GraphicsEngine {
             if let Some(engine_context) = self.engine_context.as_mut() {
                 engine_context
                     .global_context
-                    .update_screen_size_resources(&self.device, screen_size);
+                    .update_screen_size_resources(&self.device, &self.queue, screen_size);
             }
         }
 
@@ -1411,6 +1426,72 @@ impl GraphicsEngine {
 
                         render_pass
                     }
+                    ScreenSpaceAntiAliasing::Smaa => {
+                        drop(render_pass);
+
+                        let AntiAliasingResources::Smaa(smaa_resources) = &engine_context.global_context.anti_aliasing_resources else {
+                            panic!("smaa resources not set")
+                        };
+
+                        // Pass 1: detect edges in the color texture.
+                        {
+                            let mut render_pass = engine_context.post_processing_pass_context.create_pass(
+                                &mut post_processing_encoder,
+                                &engine_context.global_context,
+                                &smaa_resources.edge_texture,
+                            );
+
+                            engine_context
+                                .post_processing_smaa_edge_drawer
+                                .draw(&mut render_pass, smaa_resources.edge_bind_group());
+                        }
+
+                        // Pass 2: calculate the blending weights from the edges.
+                        {
+                            let mut render_pass = engine_context.post_processing_pass_context.create_pass(
+                                &mut post_processing_encoder,
+                                &engine_context.global_context,
+                                &smaa_resources.blend_weights_texture,
+                            );
+
+                            engine_context
+                                .post_processing_smaa_blend_weights_drawer
+                                .draw(&mut render_pass, smaa_resources.blend_weights_bind_group());
+                        }
+
+                        // Pass 3: blend the color texture along the detected edges. The
+                        // result cannot be written into the color texture directly, since
+                        // that texture is sampled at the same time.
+                        {
+                            let mut render_pass = engine_context.post_processing_pass_context.create_pass(
+                                &mut post_processing_encoder,
+                                &engine_context.global_context,
+                                &smaa_resources.result_texture,
+                            );
+
+                            engine_context
+                                .post_processing_smaa_blend_drawer
+                                .draw(&mut render_pass, smaa_resources.blend_bind_group());
+                        }
+
+                        // Final pass: blit the antialiased result into the color texture.
+                        let mut render_pass = engine_context.post_processing_pass_context.create_pass(
+                            &mut post_processing_encoder,
+                            &engine_context.global_context,
+                            engine_context.global_context.get_color_texture(),
+                        );
+
+                        let blitter_data = PostProcessingBlitterDrawData {
+                            target_texture_format: RENDER_TO_TEXTURE_FORMAT,
+                            source_texture: &smaa_resources.result_texture,
+                            luma_in_alpha: false,
+                            alpha_blending: false,
+                        };
+                        engine_context.post_processing_blitter_drawer.draw(&mut render_pass, blitter_data);
+
+                        render_pass
+                    }
+                    ScreenSpaceAntiAliasing::Dlss => render_pass,
                 };
 
                 #[cfg(feature = "debug")]
@@ -1565,6 +1646,9 @@ impl ForwardResources {
 
 struct PostProcessingResources {
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
+    post_processing_smaa_edge_drawer: PostProcessingSmaaEdgeDrawer,
+    post_processing_smaa_blend_weights_drawer: PostProcessingSmaaBlendWeightsDrawer,
+    post_processing_smaa_blend_drawer: PostProcessingSmaaBlendDrawer,
     post_processing_blitter_drawer: PostProcessingBlitterDrawer,
     post_processing_rectangle_drawer: PostProcessingRectangleDrawer,
     post_processing_wboit_resolve_drawer: PostProcessingWboitResolveDrawer,
@@ -1588,6 +1672,30 @@ impl PostProcessingResources {
         post_processing_pass_context: &PostProcessingRenderPassContext,
     ) -> Self {
         let post_processing_fxaa_drawer = PostProcessingFxaaDrawer::new(
+            capabilities,
+            device,
+            queue,
+            shader_compiler,
+            global_context,
+            post_processing_pass_context,
+        );
+        let post_processing_smaa_edge_drawer = PostProcessingSmaaEdgeDrawer::new(
+            capabilities,
+            device,
+            queue,
+            shader_compiler,
+            global_context,
+            post_processing_pass_context,
+        );
+        let post_processing_smaa_blend_weights_drawer = PostProcessingSmaaBlendWeightsDrawer::new(
+            capabilities,
+            device,
+            queue,
+            shader_compiler,
+            global_context,
+            post_processing_pass_context,
+        );
+        let post_processing_smaa_blend_drawer = PostProcessingSmaaBlendDrawer::new(
             capabilities,
             device,
             queue,
@@ -1658,6 +1766,9 @@ impl PostProcessingResources {
 
         Self {
             post_processing_fxaa_drawer,
+            post_processing_smaa_edge_drawer,
+            post_processing_smaa_blend_weights_drawer,
+            post_processing_smaa_blend_drawer,
             post_processing_blitter_drawer,
             post_processing_rectangle_drawer,
             post_processing_wboit_resolve_drawer,

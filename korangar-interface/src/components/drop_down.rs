@@ -11,6 +11,7 @@ use crate::element::{DefaultLayoutInfo, Element, ErasedElement};
 use crate::event::{ClickHandler, Event, EventQueue};
 use crate::layout::alignment::{HorizontalAlignment, VerticalAlignment};
 use crate::layout::area::Area;
+use crate::layout::tooltip::TooltipExt;
 use crate::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
 use crate::theme::{ThemePathGetter, theme};
 
@@ -18,6 +19,13 @@ pub trait DropDownItem<T> {
     fn text(&self) -> &str;
 
     fn value(&self) -> T;
+
+    /// If the item is currently not selectable, returns the reason which is
+    /// shown as a tooltip. Disabled items are rendered with the disabled theme
+    /// colors and cannot be selected.
+    fn disabled(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 impl DropDownItem<String> for String {
@@ -54,7 +62,7 @@ impl DropDownItem<Option<NonZeroU32>> for Option<NonZeroU32> {
     }
 }
 
-struct InnerButton<Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
+struct InnerButton<Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q> {
     text_marker: PhantomData<(Value, Item)>,
     options: A,
     option_index: usize,
@@ -72,10 +80,12 @@ struct InnerButton<Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> {
     horizontal_alignment: M,
     vertical_alignment: N,
     overflow_behavior: O,
+    disabled_foreground_color: P,
+    disabled_background_color: Q,
 }
 
-impl<App, Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O> Element<App>
-    for InnerButton<Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>
+impl<App, Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q> Element<App>
+    for InnerButton<Value, Item, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>
 where
     App: Application,
     Item: DropDownItem<Value>,
@@ -94,6 +104,8 @@ where
     M: Selector<App, HorizontalAlignment>,
     N: Selector<App, VerticalAlignment>,
     O: Selector<App, App::OverflowBehavior>,
+    P: Selector<App, App::Color>,
+    Q: Selector<App, App::Color>,
 {
     fn create_layout_info(&mut self, state: &State<App>, _: ElementStoreMut, resolvers: &mut dyn Resolvers<App>) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
@@ -131,24 +143,36 @@ where
     ) {
         let is_hoverered = layout_info.area.check().run(layout);
 
+        let option = &state.get(&self.options)[self.option_index];
+        let disabled_reason = option.disabled();
+
         if is_hoverered {
-            layout.register_click_handler(MouseButton::Left, &self.event);
+            if let Some(disabled_reason) = disabled_reason {
+                struct DropDownItemTooltip;
+
+                let _ = &DropDownItemTooltip;
+                layout.add_tooltip(disabled_reason, DropDownItemTooltip.tooltip_id());
+            } else {
+                layout.register_click_handler(MouseButton::Left, &self.event);
+            }
         }
 
         let skin_path = theme().skin();
         let skin = state.get(&skin_path);
 
-        let skin_image = match is_hoverered {
-            true => skin.drop_down.button.hovered.as_ref(),
-            false => skin.drop_down.button.normal.as_ref(),
+        let skin_image = match (is_hoverered, disabled_reason) {
+            (_, Some(_)) => skin.drop_down.button.disabled.as_ref(),
+            (true, None) => skin.drop_down.button.hovered.as_ref(),
+            (false, None) => skin.drop_down.button.normal.as_ref(),
         };
 
         match skin_image {
             Some(skin_image) => skin_image.add_to_layout(layout, layout_info.area),
             None => {
-                let background_color = match is_hoverered {
-                    true => *state.get(&self.hovered_background_color),
-                    false => *state.get(&self.background_color),
+                let background_color = match (is_hoverered, disabled_reason) {
+                    (_, Some(_)) => *state.get(&self.disabled_background_color),
+                    (true, None) => *state.get(&self.hovered_background_color),
+                    (false, None) => *state.get(&self.background_color),
                 };
 
                 layout.add_rectangle(
@@ -161,12 +185,11 @@ where
             }
         }
 
-        let foreground_color = match is_hoverered {
-            true => *state.get(&self.hovered_foreground_color),
-            false => *state.get(&self.foreground_color),
+        let foreground_color = match (is_hoverered, disabled_reason) {
+            (_, Some(_)) => *state.get(&self.disabled_foreground_color),
+            (true, None) => *state.get(&self.hovered_foreground_color),
+            (false, None) => *state.get(&self.foreground_color),
         };
-
-        let option = &state.get(&self.options)[self.option_index];
 
         layout.add_text(
             layout_info.area,
@@ -248,6 +271,8 @@ where
                                 horizontal_alignment: theme().drop_down().item_horizontal_alignment(),
                                 vertical_alignment: theme().drop_down().item_vertical_alignment(),
                                 overflow_behavior: theme().drop_down().item_overflow_behavior(),
+                                disabled_foreground_color: theme().drop_down().item_disabled_foreground_color(),
+                                disabled_background_color: theme().drop_down().item_disabled_background_color(),
                             });
                             item_box
                         });
@@ -378,6 +403,8 @@ where
     pub item_hovered_background_color: App::Color,
     pub item_shadow_color: App::Color,
     pub item_shadow_padding: App::ShadowPadding,
+    pub item_disabled_foreground_color: App::Color,
+    pub item_disabled_background_color: App::Color,
     pub item_height: f32,
     pub item_corner_diameter: App::CornerDiameter,
     pub item_font_size: App::FontSize,
@@ -551,8 +578,22 @@ where
     ) {
         let is_hoverered = layout_info.area.check().run(layout);
 
+        let selected = state.get(&self.selected);
+        let selected_disabled_reason = state
+            .get(&self.options)
+            .iter()
+            .find(|option| option.value() == *selected)
+            .and_then(|option| option.disabled());
+
         if is_hoverered {
-            layout.register_click_handler(MouseButton::Left, &self.click_handler.overlay_element);
+            if let Some(disabled_reason) = selected_disabled_reason {
+                struct DropDownTooltip;
+
+                let _ = &DropDownTooltip;
+                layout.add_tooltip(disabled_reason, DropDownTooltip.tooltip_id());
+            } else {
+                layout.register_click_handler(MouseButton::Left, &self.click_handler.overlay_element);
+            }
         }
 
         let skin_path = theme().skin();

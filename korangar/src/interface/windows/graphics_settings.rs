@@ -139,7 +139,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Screen space AA",
+                        text: "Anti-aliasing",
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {

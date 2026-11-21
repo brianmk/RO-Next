@@ -7,7 +7,7 @@ use korangar_interface::element::StateElement;
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
-use crate::graphics::ScreenSize;
+use crate::graphics::{ScreenSize, dlss_disabled_reason};
 
 /// A frame rate limit in frames per second.
 ///
@@ -456,6 +456,11 @@ impl Ssaa {
 pub enum ScreenSpaceAntiAliasing {
     Off,
     Fxaa,
+    /// SMAA 1x: morphological anti-aliasing based on the color buffer.
+    Smaa,
+    /// DLSS (or DLAA) based anti-aliasing. This is not implemented in this
+    /// build, the entry is shown in the settings window but disabled.
+    Dlss,
 }
 
 impl DropDownItem<ScreenSpaceAntiAliasing> for ScreenSpaceAntiAliasing {
@@ -463,11 +468,20 @@ impl DropDownItem<ScreenSpaceAntiAliasing> for ScreenSpaceAntiAliasing {
         match self {
             ScreenSpaceAntiAliasing::Off => "Off",
             ScreenSpaceAntiAliasing::Fxaa => "FXAA",
+            ScreenSpaceAntiAliasing::Smaa => "SMAA",
+            ScreenSpaceAntiAliasing::Dlss => "DLSS",
         }
     }
 
     fn value(&self) -> ScreenSpaceAntiAliasing {
         *self
+    }
+
+    fn disabled(&self) -> Option<&'static str> {
+        match self {
+            ScreenSpaceAntiAliasing::Dlss => Some(dlss_disabled_reason()),
+            _ => None,
+        }
     }
 }
 
@@ -476,6 +490,8 @@ impl Display for ScreenSpaceAntiAliasing {
         match self {
             ScreenSpaceAntiAliasing::Off => "Off".fmt(f),
             ScreenSpaceAntiAliasing::Fxaa => "FXAA".fmt(f),
+            ScreenSpaceAntiAliasing::Smaa => "SMAA".fmt(f),
+            ScreenSpaceAntiAliasing::Dlss => "DLSS".fmt(f),
         }
     }
 }
