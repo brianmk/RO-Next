@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use korangar_interface::MouseMode;
 use korangar_networking::InventoryItem;
-use ragnarok_packets::{HotbarSlot, SkillLevel, SkillType, TilePosition};
+use ragnarok_packets::{HotbarSlot, SkillId, SkillLevel, SkillType, TilePosition};
 
 use crate::graphics::Texture;
 use crate::interface::resource::{ItemSource, SkillSource};
@@ -25,15 +25,19 @@ pub enum MouseInputMode {
         source: SkillSource,
         skill: LearnableSkill,
     },
-    /// The player clicked a skill in the hotbar and is now selecting a target
-    /// for it, like in the original client. The next left click in the world
-    /// casts the skill in the given slot.
+    /// The player clicked a skill (hotbar or skill tree) and is now selecting
+    /// a target for it, like in the original client. The next left click in
+    /// the world casts the skill.
     TargetSkill {
-        slot: HotbarSlot,
+        /// The hotbar slot the skill was selected from, if any. Used to adjust
+        /// the cast level with the mouse wheel like the original client.
+        slot: Option<HotbarSlot>,
+        /// Id of the skill to cast.
+        skill_id: SkillId,
         skill_type: SkillType,
         /// The level to cast the skill at. Starts at the level the skill was
-        /// placed in the hotbar with and can be adjusted with the mouse wheel
-        /// while selecting a target.
+        /// selected with and can be adjusted with the mouse wheel while
+        /// selecting a target.
         level: SkillLevel,
     },
 }
@@ -58,7 +62,7 @@ pub trait MouseModeExt {
 
     fn grabbed(&self) -> Option<Grabbed>;
 
-    fn skill_target(&self) -> Option<(HotbarSlot, SkillType, SkillLevel)>;
+    fn skill_target(&self) -> Option<(Option<HotbarSlot>, SkillId, SkillType, SkillLevel)>;
 }
 
 impl MouseModeExt for MouseMode<ClientState> {
@@ -104,11 +108,17 @@ impl MouseModeExt for MouseMode<ClientState> {
         }
     }
 
-    fn skill_target(&self) -> Option<(HotbarSlot, SkillType, SkillLevel)> {
+    fn skill_target(&self) -> Option<(Option<HotbarSlot>, SkillId, SkillType, SkillLevel)> {
         match self {
             MouseMode::Custom {
-                mode: MouseInputMode::TargetSkill { slot, skill_type, level },
-            } => Some((*slot, *skill_type, *level)),
+                mode:
+                    MouseInputMode::TargetSkill {
+                        slot,
+                        skill_id,
+                        skill_type,
+                        level,
+                    },
+            } => Some((*slot, *skill_id, *skill_type, *level)),
             _ => None,
         }
     }

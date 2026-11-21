@@ -5,7 +5,7 @@ use korangar_interface::event::{ClickHandler, Event, EventQueue};
 use korangar_interface::layout::tooltip::TooltipExt;
 use korangar_interface::layout::{Icon, MouseButton, Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
-use ragnarok_packets::SkillLevel;
+use ragnarok_packets::{SkillLevel, SkillType};
 use rust_state::{Path, State};
 
 use super::{SkillTreeWindowState, SkillTreeWindowStatePathExt};
@@ -120,6 +120,55 @@ where
     }
 }
 
+/// Double click handler: uses the skill like double clicking it in the hotbar
+/// does (self cast skills are cast immediately, skills that need a target
+/// switch to the target selection mouse mode). Unlearned and passive skills are
+/// ignored.
+struct SkillSlotUseHandler<A, B> {
+    learned_skill_path: A,
+    window_state_path: B,
+}
+
+impl<A, B> SkillSlotUseHandler<A, B> {
+    fn new(learned_skill_path: A, window_state_path: B) -> Self {
+        Self {
+            learned_skill_path,
+            window_state_path,
+        }
+    }
+}
+
+impl<A, B> ClickHandler<ClientState> for SkillSlotUseHandler<A, B>
+where
+    A: Path<ClientState, LearnedSkill, false>,
+    B: Path<ClientState, SkillTreeWindowState>,
+{
+    fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        // While distributing skill points a double click selects the level like
+        // a single click does; it must not use the skill.
+        if *state.get(&self.window_state_path.currently_skilling()) {
+            return;
+        }
+
+        let Some(learned_skill) = state.try_get(&self.learned_skill_path) else {
+            return;
+        };
+
+        if learned_skill.skill_level.0 == 0 || learned_skill.skill_type == SkillType::Passive {
+            return;
+        }
+
+        let skill_id = learned_skill.skill_id;
+        let level = state
+            .get(&self.window_state_path.chosen_skill_level())
+            .get(&skill_id)
+            .cloned()
+            .unwrap_or(learned_skill.skill_level);
+
+        queue.queue(InputEvent::UseSkill { skill_id, level });
+    }
+}
+
 struct ChooseLowerClickHandler<A, B> {
     learned_skill_path: A,
     window_state_path: B,
@@ -204,6 +253,7 @@ pub struct SkillSlot<A, B, C> {
     learned_skill_path: B,
     window_state_path: C,
     click_handler: SkillSlotClickHandler<A, B, C>,
+    use_handler: SkillSlotUseHandler<B, C>,
     choose_lower_handler: ChooseLowerClickHandler<B, C>,
     choose_higher_handler: ChooseHigherClickHandler<B, C>,
     level_display: LevelDisplay,
@@ -221,6 +271,7 @@ where
             learned_skill_path,
             window_state_path,
             click_handler: SkillSlotClickHandler::new(learnable_skill_path, learned_skill_path, window_state_path, source),
+            use_handler: SkillSlotUseHandler::new(learned_skill_path, window_state_path),
             choose_lower_handler: ChooseLowerClickHandler::new(learned_skill_path, window_state_path),
             choose_higher_handler: ChooseHigherClickHandler::new(learned_skill_path, window_state_path),
             level_display: LevelDisplay::default(),
@@ -300,6 +351,10 @@ where
 
         if let Some(skill) = state.try_get(&self.learnable_skill_path) {
             let is_hovered = sprite_area.check().run(layout);
+            // Double clicks on the level arrows must keep selecting the level,
+            // so the "use skill" handler is only registered when no arrow is
+            // hovered.
+            let mut over_arrow = false;
             let highlighted_skill = *state.get(&self.window_state_path.highlighted_skill());
             let learned_skill = state.try_get(&self.learned_skill_path);
 
@@ -380,6 +435,7 @@ where
                     );
 
                     if left_arrow_area.check().run(layout) {
+                        over_arrow = true;
                         layout.register_click_handler(MouseButton::Left, &self.choose_lower_handler);
                     }
                 }
@@ -402,6 +458,7 @@ where
                     );
 
                     if right_arrow_area.check().run(layout) {
+                        over_arrow = true;
                         layout.register_click_handler(MouseButton::Left, &self.choose_higher_handler);
                     }
                 }
@@ -453,6 +510,10 @@ where
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.click_handler);
+
+                if !over_arrow {
+                    layout.register_click_handler(MouseButton::DoubleLeft, &self.use_handler);
+                }
 
                 struct SkillSlotTooltip;
                 layout.add_tooltip(&skill.skill_name, SkillSlotTooltip.tooltip_id());
