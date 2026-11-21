@@ -1080,7 +1080,7 @@ mod packet_handlers {
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
-        CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, LoginFailedPacket2,
+        AccountId, CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, LoginFailedPacket2,
         LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
     };
 
@@ -1119,6 +1119,36 @@ mod packet_handlers {
 
         // `0x0151` + guild id (u32 little endian).
         assert_eq!(writer.as_slice(), &[0x51, 0x01, 0x01, 0x00, 0x00, 0x00]);
+    }
+
+    #[test]
+    fn sound_packet_is_parsed_into_play_sound_event() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // `ZC_SOUND` (0x01D3), 2019 layout: header + name[24] + act + term + aid.
+        let mut bytes = vec![0xD3, 0x01];
+        let mut name = [0u8; 24];
+        name[..18].copy_from_slice(b"effect\\ef_blessing");
+        bytes.extend_from_slice(&name);
+        bytes.push(1);
+        bytes.extend_from_slice(&500u32.to_le_bytes());
+        bytes.extend_from_slice(&0x1234_5678u32.to_le_bytes());
+        assert_eq!(bytes.len(), 35);
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("sound packet was not handled");
+        };
+
+        assert!(matches!(
+            events.0.as_slice(),
+            [NetworkEvent::PlaySound {
+                name,
+                act: 1,
+                term: 500,
+                account_id: AccountId(0x1234_5678),
+            }] if name == "effect\\ef_blessing"
+        ));
     }
 
     #[test]

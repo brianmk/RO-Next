@@ -24,6 +24,11 @@ impl SpatialTrackHandle {
         self.sound_controller.insert(sound).map_err(|_| PlaySoundError::SoundLimitReached)?;
         Ok(handle)
     }
+
+    /// Stops the sound by marking the track for removal.
+    pub(crate) fn stop(&mut self) {
+        self.shared.mark_for_removal();
+    }
 }
 
 impl Drop for SpatialTrackHandle {

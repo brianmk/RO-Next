@@ -212,6 +212,12 @@ where
     let inventory_items: Rc<RefCell<Option<Vec<InventoryItem<NoMetadata>>>>> = Rc::new(RefCell::new(None));
 
     packet_handler.register(|_: MapServerPingPacket| NoNetworkEvents)?;
+    packet_handler.register(|packet: SoundPacket| NetworkEvent::PlaySound {
+        name: packet.name,
+        act: packet.act,
+        term: packet.term,
+        account_id: packet.account_id,
+    })?;
     packet_handler.register(|packet: BroadcastMessagePacket| NetworkEvent::ChatMessage {
         text: packet.message,
         color: MessageColor::Broadcast,

@@ -555,6 +555,7 @@ pub struct Client {
     #[cfg(not(feature = "debug"))]
     networking_system: NetworkingSystem<NoPacketCallback>,
     audio_engine: Arc<AudioEngine<GameFileLoader>>,
+    skill_sounds: SkillSoundPlayer,
     active_background_music_volume: f32,
     active_interface_settings: InterfaceSettings,
     active_graphics_settings: GraphicsSettings,
@@ -765,6 +766,12 @@ impl Client {
         time_phase!("create audio engine", {
             let audio_engine = Arc::new(AudioEngine::new(game_file_loader.clone()));
         });
+
+        let skill_sounds = SkillSoundPlayer::new(audio_engine.clone(), game_file_loader.clone());
+
+        if skill_sounds.is_muted() {
+            println!("[sound] muted mode active: skill sound playback is logged, not audible");
+        }
 
         time_phase!("create resource managers", {
             std::fs::create_dir_all(MENU_THEMES_PATH).unwrap();
@@ -1109,6 +1116,7 @@ impl Client {
             main_menu_click_sound_effect,
             networking_system,
             audio_engine,
+            skill_sounds,
             active_background_music_volume,
             active_interface_settings,
             active_graphics_settings: graphics_settings,
@@ -2107,6 +2115,13 @@ impl Client {
                     let cast_animation_time = cast_time.max(attack_motion_time).max(MINIMUM_SKILL_CAST_ANIMATION_MS);
                     let visuals = skill_visuals(skill_id, element);
 
+                    let source_position = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == source_entity_id)
+                        .map(|entity| entity.get_position());
+
                     if let Some(entity) = self
                         .client_state
                         .follow_mut(client_state().entities())
@@ -2128,10 +2143,11 @@ impl Client {
                         self.spawn_cast_circle(source_entity_id, visuals.cast_circle_color, cast_animation_time);
                     }
 
-                    // TODO(task-63b, korangar-music): play the cast sound here,
-                    // e.g.
-                    // `crate::world::skill_sound::play_skill_sound(skill_id,
-                    // entity_position)`.
+                    // The 2019 server sends no sound packet for most ambient casts, so
+                    // play the mapped skill sound here (one lane per entity: a new cast
+                    // preempts the previous cast sound).
+                    self.skill_sounds
+                        .play_skill_sound(skill_id, Some(source_entity_id), source_position);
                 }
                 NetworkEvent::SkillNoDamage {
                     source_entity_id,
@@ -2145,6 +2161,13 @@ impl Client {
                     // completion effect, so self-buffs and the blacksmith crafting loop
                     // become visible.
                     if success {
+                        let source_position = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| entity.get_position());
+
                         if let Some(entity) = self
                             .client_state
                             .follow_mut(client_state().entities())
@@ -2169,9 +2192,10 @@ impl Client {
                             );
                         }
 
-                        // TODO(task-63b, korangar-music): play the cast sound
-                        // here, e.g.
-                        // `crate::world::skill_sound::play_skill_sound(skill_id, entity_position)`.
+                        // Instant/self-buff casts (0x09CB) have no sound packet on
+                        // the 2019 server either.
+                        self.skill_sounds
+                            .play_skill_sound(skill_id, Some(source_entity_id), source_position);
                     }
 
                     // Keep the previous behaviour of showing the heal amount above the
@@ -2208,9 +2232,10 @@ impl Client {
                     }
 
                     let visuals = skill_visuals(skill_id, 0);
+                    let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
 
                     if let Some(effect) = &visuals.completion
-                        && let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position))
+                        && let Some(world_position) = world_position
                     {
                         self.spawn_position_effect(
                             effect.path,
@@ -2222,10 +2247,19 @@ impl Client {
                         );
                     }
 
-                    // TODO(task-63b, korangar-music): play the cast sound here,
-                    // e.g.
-                    // `crate::world::skill_sound::play_skill_sound(skill_id,
-                    // effect_position)`.
+                    self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), world_position);
+                }
+                NetworkEvent::PlaySound { name, account_id, .. } => {
+                    let entity_id = EntityId(account_id.0);
+
+                    let position = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                        .map(|entity| entity.get_position());
+
+                    self.skill_sounds.play_network_sound(&name, account_id, position);
                 }
                 NetworkEvent::DisplayEmotion { entity_id, emotion } => {
                     if let Some(entity) = self
@@ -2371,6 +2405,7 @@ impl Client {
                     self.client_state.follow_mut(client_state().dialog_window()).end();
 
                     self.map = None;
+                    self.skill_sounds.clear();
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -2431,6 +2466,7 @@ impl Client {
                 }
                 NetworkEvent::RemoveEntity { entity_id, reason } => {
                     self.chat_bubbles.remove_entity(entity_id);
+                    self.skill_sounds.remove_entity(entity_id);
 
                     // If the motive is dead, you need to set the player to dead.
                     if reason == DisappearanceReason::Died {
@@ -2582,6 +2618,7 @@ impl Client {
                 }
                 NetworkEvent::ChangeMap { map_name, position } => {
                     self.map = None;
+                    self.skill_sounds.clear();
                     self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
                     self.particle_holder.clear();

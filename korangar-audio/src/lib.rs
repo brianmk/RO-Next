@@ -91,6 +91,29 @@ struct BackgroundMusicTrack {
     handle: StreamingSoundHandle,
 }
 
+/// A playing spatial sound effect that can be stopped again.
+///
+/// Dropping the handle also stops the sound. This is used by the per-entity
+/// skill sound lanes: when a new sound arrives for an entity, the previous
+/// sound is stopped so that the new one starts from the beginning.
+pub struct SpatialSoundHandle {
+    sound: StaticSoundHandle,
+    spatial_track: SpatialTrackHandle,
+}
+
+impl SpatialSoundHandle {
+    /// Whether the sound has finished playing (or was stopped already).
+    #[must_use]
+    pub fn is_finished(&self) -> bool {
+        self.sound.state() == PlaybackState::Stopped
+    }
+
+    /// Stops the sound and removes its mixer track.
+    pub fn stop(mut self) {
+        self.spatial_track.stop();
+    }
+}
+
 /// Where the raw data of a background music track was found.
 enum BackgroundMusicSource {
     /// The track is stored inside one of the game archives.
@@ -394,10 +417,25 @@ impl<F: FileLoader> AudioEngine<F> {
     /// Plays a spatial sound effect, which will get removed automatically once
     /// it finishes playing.
     pub fn play_spatial_sound_effect(&self, sound_effect_key: SoundEffectKey, position: Point3<f32>, range: f32) {
+        let _handle = self.play_spatial_sound_effect_with_handle(sound_effect_key, position, range);
+    }
+
+    /// Plays a spatial sound effect and returns a handle that can stop it
+    /// again.
+    ///
+    /// Returns `None` when the sound effect has not finished loading yet (it is
+    /// then queued like any other sound effect) or when no spatial mixer track
+    /// could be created.
+    pub fn play_spatial_sound_effect_with_handle(
+        &self,
+        sound_effect_key: SoundEffectKey,
+        position: Point3<f32>,
+        range: f32,
+    ) -> Option<SpatialSoundHandle> {
         self.engine_context
             .lock()
             .unwrap()
-            .play_spatial_sound_effect(sound_effect_key, position, range);
+            .play_spatial_sound_effect_with_handle(sound_effect_key, position, range)
     }
 
     /// Sets the listener of the spatial sound. This is normally the camera's
@@ -526,7 +564,12 @@ impl<F: FileLoader> EngineContext<F> {
         }
     }
 
-    fn play_spatial_sound_effect(&mut self, sound_effect_key: SoundEffectKey, position: Point3<f32>, range: f32) {
+    fn play_spatial_sound_effect_with_handle(
+        &mut self,
+        sound_effect_key: SoundEffectKey,
+        position: Point3<f32>,
+        range: f32,
+    ) -> Option<SpatialSoundHandle> {
         match self
             .cache
             .get(&sound_effect_key)
@@ -542,17 +585,23 @@ impl<F: FileLoader> EngineContext<F> {
                     .use_linear_attenuation_function(true);
 
                 match self.spatial_sound_effect_track.add_spatial_sub_track(position, spatial_track) {
-                    Ok(mut spatial_track_handle) => {
-                        if let Err(_error) = spatial_track_handle.play(data) {
+                    Ok(mut spatial_track_handle) => match spatial_track_handle.play(data) {
+                        Ok(sound) => Some(SpatialSoundHandle {
+                            sound,
+                            spatial_track: spatial_track_handle,
+                        }),
+                        Err(_error) => {
                             #[cfg(feature = "debug")]
                             print_debug!("[{}] can't play sound effect: {:?}", "error".red(), _error);
+                            None
                         }
-                    }
+                    },
                     Err(_error) => {
                         #[cfg(feature = "debug")]
                         print_debug!("[{}] can't add spatial sound track: {:?}", "error".red(), _error);
+                        None
                     }
-                };
+                }
             }
             None => {
                 queue_sound_effect_playback(
@@ -564,6 +613,8 @@ impl<F: FileLoader> EngineContext<F> {
                     sound_effect_key,
                     QueuedSoundEffectType::SpatialSound { position, range },
                 );
+
+                None
             }
         }
     }

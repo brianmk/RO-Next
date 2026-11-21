@@ -4478,6 +4478,27 @@ pub struct NotifyGroundSkillPacket {
     pub start_time: ClientTick,
 }
 
+/// Sent by the map server when the client should play a 3d sound effect
+/// (`ZC_SOUND`, 0x01D3).
+///
+/// The 2019 rAthena layout is 35 bytes: `name[24]`, `act` (1 byte, start/stop
+/// marker), `term` (minimum interval between two plays in milliseconds) and the
+/// account id of the entity that produced the sound.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01D3)]
+pub struct SoundPacket {
+    /// File name relative to `data/wav`, e.g. `effect\\ef_blessing.wav`.
+    #[length(24)]
+    pub name: String,
+    /// `0`/`1` mark the start/end of a looping sound; both play it once here.
+    pub act: u8,
+    /// Minimum interval between two plays of the same sound, in milliseconds.
+    pub term: u32,
+    /// Account id of the entity that produced the sound.
+    pub account_id: AccountId,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0120)]
@@ -4954,5 +4975,56 @@ mod tests {
         assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x086F);
         assert_eq!(bytes.len(), 2 + 24);
         assert_eq!(&bytes[2..12], b"VerifyBot4");
+    }
+}
+
+#[cfg(test)]
+mod sound_packet_tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter};
+
+    use super::*;
+
+    #[test]
+    fn sound_packet_has_2019_layout() {
+        let packet = SoundPacket {
+            name: "effect\\ef_blessing.wav".to_string(),
+            act: 1,
+            term: 500,
+            account_id: AccountId(0x1234_5678),
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+
+        // Header (2) + name (24) + act (1) + term (4) + account id (4).
+        assert_eq!(writer.as_slice().len(), 35);
+        // Header 0x01D3 little endian.
+        assert_eq!(&writer.as_slice()[..2], &[0xD3, 0x01]);
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+        let parsed = SoundPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(parsed.name, "effect\\ef_blessing.wav");
+        assert_eq!(parsed.act, 1);
+        assert_eq!(parsed.term, 500);
+        assert_eq!(parsed.account_id, AccountId(0x1234_5678));
+    }
+
+    #[test]
+    fn sound_packet_name_is_nul_terminated_within_24_bytes() {
+        let mut writer = ByteWriter::new();
+        SoundPacket {
+            name: "ef_hammerfall.wav".to_string(),
+            act: 0,
+            term: 0,
+            account_id: AccountId(1),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+
+        // Header, then the name, zero padded up to 24 bytes.
+        let name_bytes = &writer.as_slice()[2..26];
+        assert_eq!(&name_bytes[..17], b"ef_hammerfall.wav");
+        assert!(name_bytes[17..].iter().all(|byte| *byte == 0));
     }
 }

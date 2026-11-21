@@ -148,6 +148,17 @@ pub enum NetworkEvent {
         /// Attack motion in milliseconds (may be 0 on instant casts).
         attack_motion_time: u32,
     },
+    /// The map server asked the client to play a 3d sound effect (`ZC_SOUND`,
+    /// 0x01D3). `name` is the file name relative to `data/wav`.
+    PlaySound {
+        name: String,
+        /// `0`/`1` mark the start/end of a looping sound; both play it once.
+        act: u8,
+        /// Minimum interval between two plays of the same sound, in ms.
+        term: u32,
+        /// Account id of the entity that produced the sound.
+        account_id: AccountId,
+    },
     /// Show an emotion above an entity.
     DisplayEmotion {
         entity_id: EntityId,
