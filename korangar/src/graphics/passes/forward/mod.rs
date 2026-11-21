@@ -1,8 +1,10 @@
+mod effect;
 mod entity;
 mod indicator;
 mod model;
 mod wave;
 
+pub(crate) use effect::{ForwardEffectDrawer, ForwardEffectRenderPassContext};
 pub(crate) use entity::{EntityPassMode, ForwardEntityDrawData, ForwardEntityDrawer};
 pub(crate) use indicator::ForwardIndicatorDrawer;
 pub(crate) use model::{ForwardModelDrawData, ForwardModelDrawer, ModelPassMode};

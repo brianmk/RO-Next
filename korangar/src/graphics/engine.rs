@@ -82,6 +82,7 @@ struct EngineContext {
     point_shadow_pass_context: PointShadowRenderPassContext,
     light_culling_pass_context: LightCullingPassContext,
     forward_pass_context: ForwardRenderPassContext,
+    forward_effect_pass_context: ForwardEffectRenderPassContext,
     sdsm_pass_context: SdsmPassContext,
     post_processing_pass_context: PostProcessingRenderPassContext,
     screen_blit_pass_context: ScreenBlitRenderPassContext,
@@ -99,6 +100,7 @@ struct EngineContext {
     forward_entity_drawer: ForwardEntityDrawer,
     forward_indicator_drawer: ForwardIndicatorDrawer,
     forward_model_drawer: ForwardModelDrawer,
+    forward_effect_drawer: ForwardEffectDrawer,
     water_wave_drawer: WaterWaveDrawer,
     clear_partitions_dispatcher: ClearPartitionsDispatcher,
     reduce_partitions_dispatcher: ReducePartitionsDispatcher,
@@ -106,7 +108,6 @@ struct EngineContext {
     clear_bounds_dispatcher: ClearBoundsDispatcher,
     reduce_bounds_dispatcher: ReduceBoundsDispatcher,
     compute_custom_partitions_dispatcher: ComputeCustomPartitionsDispatcher,
-    post_processing_effect_drawer: PostProcessingEffectDrawer,
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
     post_processing_blitter_drawer: PostProcessingBlitterDrawer,
     post_processing_rectangle_drawer: PostProcessingRectangleDrawer,
@@ -229,6 +230,8 @@ impl GraphicsEngine {
                         let light_culling_pass_context = LightCullingPassContext::new(&self.device, &self.queue, &global_context);
                         let forward_pass_context =
                             ForwardRenderPassContext::new(&self.device, &self.queue, &self.texture_loader, &global_context);
+                        let forward_effect_pass_context =
+                            ForwardEffectRenderPassContext::new(&self.device, &self.queue, &self.texture_loader, &global_context);
                         let sdsm_pass_context = SdsmPassContext::new(&self.device, &self.queue, &global_context);
                         let post_processing_pass_context =
                             PostProcessingRenderPassContext::new(&self.device, &self.queue, &self.texture_loader, &global_context);
@@ -321,6 +324,7 @@ impl GraphicsEngine {
                             forward_entity_drawer,
                             forward_indicator_drawer,
                             forward_model_drawer,
+                            forward_effect_drawer,
                         } = ForwardResources::create(
                             &self.capabilities,
                             &self.device,
@@ -328,6 +332,7 @@ impl GraphicsEngine {
                             &self.shader_compiler,
                             &global_context,
                             &forward_pass_context,
+                            &forward_effect_pass_context,
                         );
                         let water_wave_drawer = WaterWaveDrawer::new(
                             &self.capabilities,
@@ -386,7 +391,6 @@ impl GraphicsEngine {
                             &sdsm_pass_context,
                         );
                         let PostProcessingResources {
-                            post_processing_effect_drawer,
                             post_processing_fxaa_drawer,
                             post_processing_blitter_drawer,
                             post_processing_rectangle_drawer,
@@ -434,6 +438,7 @@ impl GraphicsEngine {
                         point_shadow_pass_context,
                         light_culling_pass_context,
                         forward_pass_context,
+                        forward_effect_pass_context,
                         sdsm_pass_context: SdsmPassContext {},
                         post_processing_pass_context,
                         screen_blit_pass_context,
@@ -450,6 +455,7 @@ impl GraphicsEngine {
                         forward_entity_drawer,
                         forward_indicator_drawer,
                         forward_model_drawer,
+                        forward_effect_drawer,
                         water_wave_drawer,
                         clear_partitions_dispatcher,
                         reduce_partitions_dispatcher,
@@ -457,7 +463,6 @@ impl GraphicsEngine {
                         clear_bounds_dispatcher,
                         reduce_bounds_dispatcher,
                         compute_custom_partitions_dispatcher,
-                        post_processing_effect_drawer,
                         post_processing_fxaa_drawer,
                         post_processing_blitter_drawer,
                         post_processing_rectangle_drawer,
@@ -595,6 +600,7 @@ impl GraphicsEngine {
                 forward_entity_drawer,
                 forward_indicator_drawer,
                 forward_model_drawer,
+                forward_effect_drawer,
             } = ForwardResources::create(
                 &self.capabilities,
                 &self.device,
@@ -602,10 +608,10 @@ impl GraphicsEngine {
                 &self.shader_compiler,
                 &engine_context.global_context,
                 &engine_context.forward_pass_context,
+                &engine_context.forward_effect_pass_context,
             );
 
             let PostProcessingResources {
-                post_processing_effect_drawer,
                 post_processing_fxaa_drawer,
                 post_processing_blitter_drawer,
                 post_processing_rectangle_drawer,
@@ -630,7 +636,7 @@ impl GraphicsEngine {
             engine_context.forward_entity_drawer = forward_entity_drawer;
             engine_context.forward_indicator_drawer = forward_indicator_drawer;
             engine_context.forward_model_drawer = forward_model_drawer;
-            engine_context.post_processing_effect_drawer = post_processing_effect_drawer;
+            engine_context.forward_effect_drawer = forward_effect_drawer;
             engine_context.post_processing_fxaa_drawer = post_processing_fxaa_drawer;
             engine_context.post_processing_blitter_drawer = post_processing_blitter_drawer;
             engine_context.post_processing_rectangle_drawer = post_processing_rectangle_drawer;
@@ -967,6 +973,7 @@ impl GraphicsEngine {
             scope.spawn(|_| {
                 context.forward_entity_drawer.prepare(&self.device, instruction);
                 context.forward_model_drawer.prepare(&self.device, instruction);
+                context.forward_effect_drawer.prepare(&self.device, instruction);
             });
             scope.spawn(|_| {
                 context.interface_rectangle_drawer.prepare(&self.device, instruction);
@@ -977,7 +984,6 @@ impl GraphicsEngine {
                 context.point_shadow_model_drawer.prepare(&self.device, instruction);
             });
             scope.spawn(|_| {
-                context.post_processing_effect_drawer.prepare(&self.device, instruction);
                 context.post_processing_rectangle_drawer.prepare(&self.device, instruction);
             });
             #[cfg(feature = "debug")]
@@ -1016,9 +1022,9 @@ impl GraphicsEngine {
         visitor.upload(&mut context.point_shadow_entity_drawer);
         visitor.upload(&mut context.point_shadow_model_drawer);
         visitor.upload(&mut context.point_shadow_pass_context);
-        visitor.upload(&mut context.post_processing_effect_drawer);
         visitor.upload(&mut context.forward_entity_drawer);
         visitor.upload(&mut context.forward_model_drawer);
+        visitor.upload(&mut context.forward_effect_drawer);
         visitor.upload(&mut context.water_wave_drawer);
         visitor.upload(&mut context.post_processing_rectangle_drawer);
 
@@ -1273,6 +1279,20 @@ impl GraphicsEngine {
                     engine_context.water_wave_drawer.draw(&mut render_pass, water_instruction);
                 }
 
+                drop(render_pass);
+
+                // Effects are drawn after the scene so that they blend on top of it, but with
+                // the scene depth buffer attached (and depth writes disabled), so that map
+                // geometry and entities in front of an effect occlude it.
+                let mut render_pass =
+                    engine_context
+                        .forward_effect_pass_context
+                        .create_pass(&mut forward_encoder, &engine_context.global_context, None);
+
+                engine_context.forward_effect_drawer.draw(&mut render_pass, instruction.effects);
+
+                drop(render_pass);
+
                 // SDSM Pass
                 if instruction.uniforms.sdsm_enabled {
                     let mut compute_pass =
@@ -1408,10 +1428,6 @@ impl GraphicsEngine {
                     .post_processing_rectangle_drawer
                     .draw(&mut render_pass, rectangle_data);
 
-                engine_context
-                    .post_processing_effect_drawer
-                    .draw(&mut render_pass, instruction.effects);
-
                 let rectangle_data = PostProcessingRectangleDrawData {
                     layer: PostProcessingRectangleLayer::Middle,
                     instructions: instruction.middle_layer_rectangles,
@@ -1492,6 +1508,7 @@ struct ForwardResources {
     forward_entity_drawer: ForwardEntityDrawer,
     forward_indicator_drawer: ForwardIndicatorDrawer,
     forward_model_drawer: ForwardModelDrawer,
+    forward_effect_drawer: ForwardEffectDrawer,
 }
 
 impl ForwardResources {
@@ -1502,6 +1519,7 @@ impl ForwardResources {
         shader_compiler: &ShaderCompiler,
         global_context: &GlobalContext,
         forward_pass_context: &ForwardRenderPassContext,
+        forward_effect_pass_context: &ForwardEffectRenderPassContext,
     ) -> Self {
         let forward_entity_drawer = ForwardEntityDrawer::new(
             capabilities,
@@ -1527,17 +1545,25 @@ impl ForwardResources {
             global_context,
             forward_pass_context,
         );
+        let forward_effect_drawer = ForwardEffectDrawer::new(
+            capabilities,
+            device,
+            queue,
+            shader_compiler,
+            global_context,
+            forward_effect_pass_context,
+        );
 
         Self {
             forward_entity_drawer,
             forward_indicator_drawer,
             forward_model_drawer,
+            forward_effect_drawer,
         }
     }
 }
 
 struct PostProcessingResources {
-    post_processing_effect_drawer: PostProcessingEffectDrawer,
     post_processing_fxaa_drawer: PostProcessingFxaaDrawer,
     post_processing_blitter_drawer: PostProcessingBlitterDrawer,
     post_processing_rectangle_drawer: PostProcessingRectangleDrawer,
@@ -1561,14 +1587,6 @@ impl PostProcessingResources {
         global_context: &GlobalContext,
         post_processing_pass_context: &PostProcessingRenderPassContext,
     ) -> Self {
-        let post_processing_effect_drawer = PostProcessingEffectDrawer::new(
-            capabilities,
-            device,
-            queue,
-            shader_compiler,
-            global_context,
-            post_processing_pass_context,
-        );
         let post_processing_fxaa_drawer = PostProcessingFxaaDrawer::new(
             capabilities,
             device,
@@ -1639,7 +1657,6 @@ impl PostProcessingResources {
         );
 
         Self {
-            post_processing_effect_drawer,
             post_processing_fxaa_drawer,
             post_processing_blitter_drawer,
             post_processing_rectangle_drawer,

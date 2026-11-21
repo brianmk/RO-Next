@@ -16,11 +16,14 @@ public struct EffectVertexOutput {
 func vs_main(input: PostprocessingVertexInput) -> EffectVertexOutput {
     let instance = instance_data[input.instance_index];
 
-    let positions = effect_position_data(instance, input.vertex_index);
+    let data = effect_vertex_data(instance, input.vertex_index);
 
     var output: EffectVertexOutput;
-    output.position = float4(positions.xy, 0.0, 1.0);
-    output.texture_coordinates = positions.zw;
+    // The z value is the NDC depth (reverse-z) of the corresponding world position. The
+    // effects are rendered in a pass with the scene depth buffer attached, which makes map
+    // geometry and entities in front of them occlude them.
+    output.position = float4(data.position, data.depth, 1.0);
+    output.texture_coordinates = data.texture_coordinate;
     output.color = float4(instance.color0, instance.color1);
     return output;
 }
