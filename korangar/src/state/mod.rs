@@ -8,6 +8,7 @@ pub mod localization;
 pub mod minimap;
 pub mod skills;
 pub mod stat_buffer;
+pub mod status_effects;
 pub mod theme;
 
 use std::cell::Cell;
@@ -38,6 +39,7 @@ use theme::{InterfaceTheme, InterfaceThemePathExt, InterfaceThemeType};
 
 #[cfg(feature = "debug")]
 use self::cache_statistics::CacheStatistics;
+pub use self::status_effects::{StatusEffects, status_effect_definition};
 #[cfg(feature = "debug")]
 use crate::PacketHistory;
 #[cfg(feature = "debug")]
@@ -161,6 +163,9 @@ pub struct ClientState {
 
     /// List of all received chat messages.
     chat_messages: Vec<ChatMessage>,
+    /// Active status effects (buffs/debuffs) of the player shown in the buff
+    /// bar.
+    status_effects: StatusEffects,
     /// List of all friends.
     friend_list: Vec<Friend>,
     /// Online state of each entry of `friend_list` (same length/order).
@@ -420,6 +425,7 @@ impl ClientState {
             dead_entities: Vec::new(),
             ground_items: Vec::new(),
             chat_messages,
+            status_effects: StatusEffects::default(),
             friend_list,
             friend_online,
             shop_items,
