@@ -186,6 +186,7 @@ impl GraphicsEngine {
         if self.surface.is_none() {
             time_phase!("create surface", {
                 let screen_size: ScreenSize = window.inner_size().max(PhysicalSize::new(1, 1)).into();
+                let is_wayland = window_is_wayland(&window);
                 let raw_surface = self.instance.create_surface(window).unwrap();
                 let surface = Surface::new(
                     &self.adapter,
@@ -195,7 +196,13 @@ impl GraphicsEngine {
                     screen_size.height as u32,
                     triple_buffering,
                     vsync,
+                    is_wayland,
                 );
+
+                // Watch the swapchain image acquisition: NVIDIA's Wayland WSI can block forever
+                // when the compositor stops releasing images, and the blocking call cannot be
+                // interrupted. The watchdog restarts the client on X11/XWayland in that case.
+                super::presentation_watchdog::start(is_wayland);
 
                 let surface_texture_format = surface.format();
 
@@ -1782,4 +1789,14 @@ impl PostProcessingResources {
             debug_rectangle_drawer,
         }
     }
+}
+
+/// Whether the given window is backed by the native Wayland backend.
+fn window_is_wayland(window: &Window) -> bool {
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    matches!(
+        window.window_handle().map(|handle| handle.as_raw()),
+        Ok(RawWindowHandle::Wayland(_))
+    )
 }

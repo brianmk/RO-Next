@@ -577,6 +577,18 @@ pub struct Client {
     /// motion event are hit-tested correctly.
     last_scale_factor: f64,
 
+    /// Whether the client window is backed by the native Wayland backend.
+    backend_is_wayland: bool,
+    /// Whether presentation is currently paused because the native Wayland
+    /// window is in the background (see [`Self::should_pause_presentation`]).
+    presentation_paused: bool,
+    /// Whether at least one frame was presented already.
+    ///
+    /// The first frame has to be presented even when the window is in the
+    /// background: without a committed buffer the compositor never maps the
+    /// window, so the client would be invisible. Only after that it is safe to
+    /// stop presenting while the window is hidden.
+    has_presented_frame: bool,
     /// Whether the window is currently reported as occluded by the windowing
     /// system. Occluded windows receive no redraw events on some platforms, but
     /// the state is applied as soon as the client renders again.
@@ -1125,6 +1137,9 @@ impl Client {
             #[cfg(feature = "debug")]
             device,
             window: None,
+            backend_is_wayland: false,
+            presentation_paused: false,
+            has_presented_frame: false,
             window_occluded: false,
             window_minimized: false,
             force_background,
@@ -1372,6 +1387,69 @@ impl Client {
         }
 
         self.window.is_some() && !self.window_has_focus()
+    }
+
+    /// Whether presenting frames has to be paused because the native Wayland
+    /// window is in the background.
+    ///
+    /// Wayland does not report occlusion to clients. When the window is hidden
+    /// (covered by another window, minimized or simply unfocused) KWin can stop
+    /// releasing the swapchain images it still holds. NVIDIA's Vulkan Wayland
+    /// WSI then blocks forever inside the blocking image acquisition
+    /// (`drmSyncobjTimelineWait`), which freezes the whole client. To keep the
+    /// native Wayland backend usable, the client does not touch the swapchain
+    /// while the window is in the background; the next redraw after focus is
+    /// regained presents normally again.
+    ///
+    /// Set `KORANGAR_WAYLAND_BACKGROUND_RENDER=1` to keep rendering in the
+    /// background at the configured background frame rate (this restores the
+    /// old behavior, but exposes the driver deadlock again).
+    fn should_pause_presentation(&self) -> bool {
+        if !self.backend_is_wayland {
+            return false;
+        }
+
+        if environment_flag("KORANGAR_WAYLAND_BACKGROUND_RENDER") {
+            return false;
+        }
+
+        // The very first frame must always be presented, otherwise the compositor never
+        // maps the window (an unmapped window is invisible and cannot be
+        // focused by a click).
+        if !self.has_presented_frame {
+            return false;
+        }
+
+        self.window_occluded || self.window_minimized || !self.window_has_focus()
+    }
+
+    /// Applies a pause of the presentation loop.
+    ///
+    /// Returns `true` when the frame was skipped, in which case the caller must
+    /// not touch the swapchain.
+    fn pause_presentation_if_needed(&mut self) -> bool {
+        if !self.should_pause_presentation() {
+            if self.presentation_paused {
+                self.presentation_paused = false;
+                crate::logging::log_info!("[surface] presentation resumed (native Wayland window is in the foreground)");
+            }
+
+            return false;
+        }
+
+        if !self.presentation_paused {
+            self.presentation_paused = true;
+            crate::logging::log_info!(
+                "[surface] presentation paused while the native Wayland window is in the background (set \
+                 KORANGAR_WAYLAND_BACKGROUND_RENDER=1 to render in the background)"
+            );
+        }
+
+        // The event loop keeps running so that network updates, input and focus changes
+        // are still processed; a redraw is requested again after this frame.
+        std::thread::sleep(Duration::from_millis(15));
+
+        true
     }
 
     /// Applies the frame rate limit that matches the current window state and
@@ -5016,6 +5094,14 @@ impl Client {
 
         self.mouse_cursor.update(client_tick);
 
+        // Do not touch the swapchain while the native Wayland window is in the
+        // background. KWin can stop releasing swapchain images for hidden
+        // windows and NVIDIA's Wayland WSI then blocks forever inside the image
+        // acquisition.
+        if self.pause_presentation_if_needed() {
+            return;
+        }
+
         // Acquire the swapchain image as late as possible so all CPU-side
         // preparation overlaps with the previous frame's GPU work. After this
         // point we may not reconfigure the surface (see `update_settings`).
@@ -5027,6 +5113,7 @@ impl Client {
         let Some(map) = self.map.clone() else {
             if let Some(frame) = maybe_frame {
                 self.graphics_engine.render_next_frame(frame, Default::default());
+                self.has_presented_frame = true;
             }
 
             return;
@@ -5575,6 +5662,7 @@ impl Client {
 
         if let Some(frame) = maybe_frame {
             self.graphics_engine.render_next_frame(frame, render_instruction);
+            self.has_presented_frame = true;
         }
 
         let after_gpu = std::time::Instant::now();
@@ -5797,6 +5885,7 @@ impl ApplicationHandler for Client {
                 window.set_title(&format!("{CLIENT_NAME} ({})", str::to_uppercase(&backend_name)));
                 window.set_cursor_visible(false);
                 self.last_scale_factor = window.scale_factor();
+                self.backend_is_wayland = window_is_wayland(&window);
 
                 self.window = Some(window);
 
@@ -6011,6 +6100,22 @@ impl ApplicationHandler for Client {
         self.window_minimized = false;
         self.apply_frames_per_second_limit();
     }
+}
+
+/// Logs the one-line hint when the client was restarted by the presentation
+/// watchdog.
+pub fn log_presentation_fallback_startup_line() {
+    graphics::presentation_watchdog::log_fallback_startup_line();
+}
+
+/// Whether the given window is backed by the native Wayland backend.
+fn window_is_wayland(window: &Window) -> bool {
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    matches!(
+        window.window_handle().map(|handle| handle.as_raw()),
+        Ok(RawWindowHandle::Wayland(_))
+    )
 }
 
 /// Bundles all the borrows needed by the per-frame rendering pipeline so that

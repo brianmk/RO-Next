@@ -4,7 +4,7 @@ use korangar_debug::logging::{Colorize, print_debug};
 use rust_state::RustState;
 use wgpu::{Adapter, CurrentSurfaceTexture, Device, PresentMode, SurfaceConfiguration, SurfaceTexture, TextureFormat};
 
-use crate::graphics::ScreenSize;
+use crate::graphics::{ScreenSize, presentation_watchdog};
 
 #[derive(RustState, Debug, Clone, Copy)]
 pub struct PresentModeInfo {
@@ -41,9 +41,12 @@ pub struct Surface {
     config: SurfaceConfiguration,
     present_mode_info: PresentModeInfo,
     invalid: bool,
+    /// Whether the window is backed by the native Wayland backend.
+    is_wayland: bool,
 }
 
 impl Surface {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         adapter: &Adapter,
         device: Device,
@@ -52,6 +55,7 @@ impl Surface {
         window_height: u32,
         triple_buffering: bool,
         vsync: bool,
+        is_wayland: bool,
     ) -> Self {
         let window_width = window_width.max(1);
         let window_height = window_height.max(1);
@@ -71,10 +75,8 @@ impl Surface {
         let present_mode_info = PresentModeInfo::from_adapter(adapter, &surface);
 
         config.format = surfaces_formats.first().copied().expect("not surface formats found");
-        config.desired_maximum_frame_latency = match triple_buffering {
-            true => 2,
-            false => 1,
-        };
+        let desired_maximum_frame_latency = desired_maximum_frame_latency(triple_buffering, is_wayland);
+        config.desired_maximum_frame_latency = desired_maximum_frame_latency;
         config.present_mode = match vsync {
             false if present_mode_info.supports_mailbox => PresentMode::Mailbox,
             false if present_mode_info.supports_immediate => PresentMode::Immediate,
@@ -89,32 +91,92 @@ impl Surface {
 
         surface.configure(&device, &config);
 
+        println!(
+            "[surface] backend={} present_mode={:?} frame_latency={} format={:?} size={}x{}",
+            if is_wayland { "wayland" } else { "x11" },
+            config.present_mode,
+            config.desired_maximum_frame_latency,
+            config.format,
+            config.width,
+            config.height,
+        );
+
         Self {
             device,
             surface,
             config,
             present_mode_info,
             invalid: false,
+            is_wayland,
         }
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn acquire(&mut self) -> Option<SurfaceTexture> {
-        match self.surface.get_current_texture() {
+        // The watchdog observes how long the acquire blocks. On affected NVIDIA Wayland
+        // drivers `get_current_texture` can block forever when the compositor
+        // stops releasing swapchain images, and the call cannot be interrupted
+        // from Rust.
+        presentation_watchdog::begin_acquire();
+        presentation_watchdog::simulate_stall_if_configured();
+
+        let result = self.handle_acquire_result(self.surface.get_current_texture());
+
+        presentation_watchdog::end_acquire();
+
+        result
+    }
+
+    /// Handles the result of a swapchain image acquisition explicitly.
+    ///
+    /// `Timeout`/`Occluded` skip the frame, `Outdated`/`Lost`/`Validation`
+    /// reconfigure the surface and retry once, everything else is passed
+    /// through.
+    fn handle_acquire_result(&mut self, result: CurrentSurfaceTexture) -> Option<SurfaceTexture> {
+        match result {
             CurrentSurfaceTexture::Success(texture) => Some(texture),
             CurrentSurfaceTexture::Suboptimal(texture) => {
+                crate::logging::log_debug!("[surface] suboptimal swapchain image acquired, reconfiguring the surface");
                 self.invalid = true;
                 Some(texture)
             }
-            CurrentSurfaceTexture::Timeout | CurrentSurfaceTexture::Occluded => None,
+            CurrentSurfaceTexture::Timeout => {
+                crate::logging::log_debug!("[surface] swapchain acquire timed out, skipping the frame");
+                None
+            }
+            CurrentSurfaceTexture::Occluded => {
+                crate::logging::log_debug!("[surface] swapchain is occluded, skipping the frame");
+                None
+            }
+            CurrentSurfaceTexture::Outdated => {
+                crate::logging::log_debug!("[surface] swapchain is outdated, reconfiguring the surface");
+                self.reconfigure_and_retry()
+            }
+            CurrentSurfaceTexture::Lost => {
+                crate::logging::log_debug!("[surface] swapchain was lost, recreating it");
+                self.reconfigure_and_retry()
+            }
+            CurrentSurfaceTexture::Validation => {
+                crate::logging::log_error!("[surface] swapchain validation error, reconfiguring the surface");
+                self.reconfigure_and_retry()
+            }
+        }
+    }
+
+    fn reconfigure_and_retry(&mut self) -> Option<SurfaceTexture> {
+        self.surface.configure(&self.device, &self.config);
+
+        match self.surface.get_current_texture() {
+            CurrentSurfaceTexture::Success(texture) => Some(texture),
+            CurrentSurfaceTexture::Suboptimal(texture) => Some(texture),
+            CurrentSurfaceTexture::Timeout => {
+                crate::logging::log_debug!("[surface] swapchain acquire timed out after reconfiguring, skipping the frame");
+                None
+            }
+            CurrentSurfaceTexture::Occluded => None,
             CurrentSurfaceTexture::Outdated | CurrentSurfaceTexture::Lost | CurrentSurfaceTexture::Validation => {
-                self.surface.configure(&self.device, &self.config);
-                match self.surface.get_current_texture() {
-                    CurrentSurfaceTexture::Success(texture) => Some(texture),
-                    CurrentSurfaceTexture::Suboptimal(texture) => Some(texture),
-                    CurrentSurfaceTexture::Timeout | CurrentSurfaceTexture::Occluded => None,
-                    CurrentSurfaceTexture::Outdated | CurrentSurfaceTexture::Lost | CurrentSurfaceTexture::Validation => None,
-                }
+                crate::logging::log_warn!("[surface] the swapchain is still unusable after reconfiguring the surface");
+                None
             }
         }
     }
@@ -147,10 +209,7 @@ impl Surface {
     }
 
     pub fn set_triple_buffering(&mut self, enabled: bool) {
-        self.config.desired_maximum_frame_latency = match enabled {
-            true => 2,
-            false => 1,
-        };
+        self.config.desired_maximum_frame_latency = desired_maximum_frame_latency(enabled, self.is_wayland);
     }
 
     pub fn update_window_size(&mut self, window_size: ScreenSize) {
@@ -179,5 +238,27 @@ impl Surface {
             width: self.config.width as f32,
             height: self.config.height as f32,
         }
+    }
+}
+
+/// Frame latency of the swapchain.
+///
+/// Native Wayland uses one image in flight even when triple buffering is
+/// enabled: fewer images are held by the compositor, which makes the NVIDIA
+/// Wayland WSI deadlock (blocked image acquisition) much less likely.
+/// `KORANGAR_FRAME_LATENCY` overrides the value for testing.
+fn desired_maximum_frame_latency(triple_buffering: bool, is_wayland: bool) -> u32 {
+    if let Some(latency) = std::env::var("KORANGAR_FRAME_LATENCY")
+        .ok()
+        .and_then(|value| value.parse::<u32>().ok())
+        .filter(|latency| *latency >= 1)
+    {
+        return latency;
+    }
+
+    match (is_wayland, triple_buffering) {
+        (true, _) => 1,
+        (false, true) => 2,
+        (false, false) => 1,
     }
 }

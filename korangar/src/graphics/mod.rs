@@ -9,6 +9,7 @@ mod frame_limiter;
 mod instruction;
 mod passes;
 mod picker_target;
+pub mod presentation_watchdog;
 mod primitives;
 mod projection;
 mod sampler;

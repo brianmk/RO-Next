@@ -27,6 +27,10 @@ fn main() {
     // Must happen before the display backend is initialized (see below).
     sanitize_environment();
 
+    // If the presentation watchdog restarted this client on X11/XWayland, print one
+    // clear line so it is obvious why the backend changed.
+    korangar::log_presentation_fallback_startup_line();
+
     korangar::logging::log_info!(
         "korangar {} starting (log verbosity {}, {} command line -v flags)",
         env!("CARGO_PKG_VERSION"),
