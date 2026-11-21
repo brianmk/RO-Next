@@ -355,7 +355,7 @@ pub enum NetworkEvent {
         shop_id: ShopId,
     },
     BuyingCompleted {
-        result: BuyShopItemsResult,
+        result: BuyItemResult,
     },
     SellItemList {
         items: Vec<SellItemInformation>,

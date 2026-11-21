@@ -1085,16 +1085,22 @@ where
                 metadata: NoMetadata,
                 item_id: item.item_id,
                 item_type: item.item_type,
-                price: item.price,
+                // The 2019 list sends the regular and the discounted price. The server
+                // charges the discounted price, so display that one.
+                price: match item.discount_price {
+                    Price(0) => item.price,
+                    discount_price => discount_price,
+                },
                 quantity: ItemQuantity::Infinite,
+                // The 2019 list does not send the weight or the equipment location.
                 weight: 0,
-                location: item.location,
+                location: 0,
             })
             .collect();
 
         NetworkEvent::OpenShop { items }
     })?;
-    packet_handler.register(|packet: BuyShopItemsResultPacket| NetworkEvent::BuyingCompleted { result: packet.result })?;
+    packet_handler.register(|packet: BuyItemsResultPacket| NetworkEvent::BuyingCompleted { result: packet.result })?;
     packet_handler.register_noop::<ParameterChangePacket>()?;
     packet_handler.register(|packet: SellListPacket| NetworkEvent::SellItemList { items: packet.items })?;
     packet_handler.register(|packet: SellItemsResultPacket| NetworkEvent::SellingCompleted { result: packet.result })?;

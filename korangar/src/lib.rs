@@ -75,7 +75,7 @@ use networking::{PacketHistory, PacketHistoryCallback};
 #[cfg(not(feature = "debug"))]
 use ragnarok_packets::handler::NoPacketCallback;
 use ragnarok_packets::{
-    AttackRange, BuyShopItemsResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
+    AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, HotbarSlot,
     InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
@@ -529,6 +529,13 @@ pub struct Client {
     /// Context menu that should be opened once the name of the target entity
     /// is known. Stores the entity id and the screen position of the click.
     pending_context_menu: Option<(EntityId, ScreenPosition)>,
+
+    /// Whether an NPC shop is currently open on the server (i.e. the client has
+    /// received the shop item list and has not closed the shop yet). Used to
+    /// send the close-shop packet when the shop windows are closed by the user
+    /// so that the map server does not keep the NPC interaction (and the
+    /// movement lock) alive.
+    shop_open: bool,
 
     /// Loaded guild emblem textures, keyed by guild id. Requests are sent when
     /// a player's guild name becomes known (the entity-appear packets only
@@ -1117,6 +1124,7 @@ impl Client {
             character_server_reconnect_at: None,
             character_server_reconnect_attempts: 0,
             pending_context_menu: None,
+            shop_open: false,
             guild_emblems: GuildEmblemCache::default(),
             pending_map_load_error: None,
             map_entry_abort_deadline: None,
@@ -3350,6 +3358,8 @@ impl Client {
                     }
                 }
                 NetworkEvent::OpenShop { items } => {
+                    self.shop_open = true;
+
                     // Close the dialog. Some NPCs don't use the `BuyOrSellPacket` and instead use
                     // the regular `DialogMenuPacket`. When opening the shop that dialog should be
                     // closed.
@@ -3369,8 +3379,9 @@ impl Client {
                     self.interface.open_window(BuyOrSellWindow::new(shop_id));
                 }
                 NetworkEvent::BuyingCompleted { result } => match result {
-                    BuyShopItemsResult::Success => {
+                    BuyItemResult::Successful => {
                         let _ = self.networking_system.close_shop();
+                        self.shop_open = false;
 
                         // Clear the cart.
                         self.client_state.follow_mut(client_state().buy_cart()).clear();
@@ -3378,13 +3389,28 @@ impl Client {
                         self.interface.close_window_with_class(WindowClass::Buy);
                         self.interface.close_window_with_class(WindowClass::BuyCart);
                     }
-                    BuyShopItemsResult::Error => {
+                    result => {
+                        let message = match result {
+                            BuyItemResult::Successful => unreachable!(),
+                            BuyItemResult::NotEoughZeny => "You do not have enough zeny.",
+                            BuyItemResult::WeightLimitExceeded => "You are over your weight limit.",
+                            BuyItemResult::TooManyItems => "You have too many items.",
+                            BuyItemResult::TooManyOfThisItem => "You cannot hold that many of this item.",
+                            BuyItemResult::PropsOpenAir => "Open-air shop purchases have to be traded through RODEX.",
+                            BuyItemResult::ExchangeFailed => "The exchange failed.",
+                            BuyItemResult::ExchangeWellDone => "The exchange was well done.",
+                            BuyItemResult::ItemSoldOut => "The item is already sold out.",
+                            BuyItemResult::NotEnoughGoods => "There are not enough goods to exchange.",
+                        };
+
                         self.client_state
                             .follow_mut(client_state().chat_messages())
-                            .push(ChatMessage::new("Failed to buy items".to_owned(), MessageColor::Error));
+                            .push(ChatMessage::new(message.to_owned(), MessageColor::Error));
                     }
                 },
                 NetworkEvent::SellItemList { items } => {
+                    self.shop_open = true;
+
                     // Close the dialog. Some NPCs don't use the `BuyOrSellPacket` and instead use
                     // the regular `DialogMenuPacket`. When opening the shop that dialog should be
                     // closed.
@@ -4336,6 +4362,7 @@ impl Client {
                 }
                 InputEvent::CloseShop => {
                     let _ = self.networking_system.close_shop();
+                    self.shop_open = false;
 
                     // Clear the carts.
                     self.client_state.follow_mut(client_state().buy_cart()).clear();
@@ -5190,6 +5217,24 @@ impl Client {
             #[cfg(feature = "debug")]
             (delta_time as f32),
         );
+
+        // The shop windows can be closed with their X button, which does not send the
+        // close-shop packet by itself. If a shop session is still open on the server
+        // but no shop window is open anymore, close it so that the map server stops
+        // blocking player movement (it ignores walk requests while an NPC shop is
+        // open).
+        if self.shop_open
+            && !self.interface.is_window_with_class_open(WindowClass::BuyOrSell)
+            && !self.interface.is_window_with_class_open(WindowClass::Buy)
+            && !self.interface.is_window_with_class_open(WindowClass::BuyCart)
+            && !self.interface.is_window_with_class_open(WindowClass::Sell)
+            && !self.interface.is_window_with_class_open(WindowClass::SellCart)
+        {
+            let _ = self.networking_system.close_shop();
+            self.shop_open = false;
+            self.client_state.follow_mut(client_state().buy_cart()).clear();
+            self.client_state.follow_mut(client_state().sell_cart()).clear();
+        }
 
         // Some debug windows, such as the packet history or cache statistics, require
         // special update logic.

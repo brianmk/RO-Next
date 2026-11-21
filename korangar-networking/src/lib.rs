@@ -1037,16 +1037,17 @@ where
     }
 
     pub fn purchase_items(&mut self, items: Vec<ShopItem<u32>>) -> Result<(), NotConnectedError> {
+        // The 2019 CZ_PC_PURCHASE_ITEMLIST uses `{ amount u16, item id u32 }` entries.
         let item_information = items
             .into_iter()
-            .map(|item| BuyShopItemInformation {
+            .map(|item| BuyItemInformation {
                 item_id: item.item_id,
-                amount: item.metadata,
+                amount: item.metadata.min(u16::MAX as u32) as u16,
             })
             .collect();
 
         match self.map_server_packet_version()? {
-            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BuyShopItemsPacket::new(item_information)),
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BuyItemsPacket { items: item_information }),
         }
     }
 
