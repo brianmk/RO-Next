@@ -508,7 +508,7 @@ impl Client {
             let interface_renderer = InterfaceRenderer::new(
                 INITIAL_SCREEN_SIZE,
                 font_loader.clone(),
-                &texture_loader,
+                texture_loader.clone(),
                 graphics_settings.high_quality_interface,
             );
             let bottom_interface_renderer = GameInterfaceRenderer::new(

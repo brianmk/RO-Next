@@ -53,7 +53,7 @@ impl InterfaceRenderer {
     pub fn new(
         window_size: ScreenSize,
         font_loader: Arc<FontLoader>,
-        texture_loader: &TextureLoader,
+        texture_loader: Arc<TextureLoader>,
         high_quality_interface: bool,
     ) -> Self {
         let instructions = RefCell::new(Vec::default());
@@ -68,7 +68,7 @@ impl InterfaceRenderer {
         let eye_open_texture = texture_loader.get_or_load("eye_open.png", ImageType::Sdf).unwrap();
         let eye_closed_texture = texture_loader.get_or_load("eye_closed.png", ImageType::Sdf).unwrap();
         let trash_can_texture = texture_loader.get_or_load("trash_can.png", ImageType::Sdf).unwrap();
-        let skin_textures = SkinTextures::new(texture_loader);
+        let skin_textures = SkinTextures::new(texture_loader.clone());
 
         let interface_size = if high_quality_interface { window_size * 2.0 } else { window_size };
 
@@ -505,7 +505,7 @@ impl InterfaceRenderer {
         slices: Slice,
         smooth: bool,
     ) {
-        let Some(texture) = self.skin_textures.get(image).cloned() else {
+        let Some(texture) = self.skin_textures.get(image) else {
             self.render_rectangle(
                 position,
                 size,

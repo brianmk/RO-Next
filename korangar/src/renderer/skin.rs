@@ -12,7 +12,7 @@
 //! GRF files and of converting the classic magenta color key into
 //! transparency, so nothing has to be extracted from the game files.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use image::{Rgba, RgbaImage};
 use korangar_interface::skin::Slice;
@@ -68,7 +68,16 @@ impl SkinImage {
 }
 
 /// The textures of the classic interface skin.
+///
+/// The textures are created lazily on first use, so a client that plays with
+/// the default theme never pays for loading the classic interface textures.
 pub struct SkinTextures {
+    texture_loader: Arc<TextureLoader>,
+    inner: Mutex<Option<SkinTexturesInner>>,
+}
+
+/// The loaded skin textures.
+struct SkinTexturesInner {
     window_frame: Option<Arc<Texture>>,
     window_title_bar: Option<Arc<Texture>>,
     window_close_button: Option<Arc<Texture>>,
@@ -82,14 +91,28 @@ pub struct SkinTextures {
 }
 
 impl SkinTextures {
-    /// Create the classic skin textures.
-    ///
-    /// This is called once when the interface renderer is created. If the
-    /// textures cannot be loaded (for example because the game archives are
-    /// missing or are from a client that doesn't have the classic interface)
-    /// the corresponding skin image simply won't render and the color based
-    /// theme is used as a fallback.
-    pub fn new(texture_loader: &TextureLoader) -> Self {
+    /// Create the (lazily loaded) classic skin textures.
+    pub fn new(texture_loader: Arc<TextureLoader>) -> Self {
+        Self {
+            texture_loader,
+            inner: Mutex::new(None),
+        }
+    }
+
+    /// Get the texture for a skin image, loading the textures on first use.
+    pub fn get(&self, image: SkinImage) -> Option<Arc<Texture>> {
+        let mut inner = self.inner.lock().unwrap();
+
+        if inner.is_none() {
+            *inner = Some(SkinTexturesInner::new(&self.texture_loader));
+        }
+
+        inner.as_ref().unwrap().get(image)
+    }
+}
+
+impl SkinTexturesInner {
+    fn new(texture_loader: &TextureLoader) -> Self {
         Self {
             window_frame: build_atlas(texture_loader, SkinImage::WindowFrame, &[
                 "sysbox_lu.bmp",
@@ -130,19 +153,18 @@ impl SkinTextures {
         }
     }
 
-    /// Get the texture for a skin image.
-    pub fn get(&self, image: SkinImage) -> Option<&Arc<Texture>> {
+    fn get(&self, image: SkinImage) -> Option<Arc<Texture>> {
         match image {
-            SkinImage::WindowFrame => self.window_frame.as_ref(),
-            SkinImage::WindowTitleBar => self.window_title_bar.as_ref(),
-            SkinImage::WindowCloseButton => self.window_close_button.as_ref(),
-            SkinImage::WindowCloseButtonHovered => self.window_close_button_hovered.as_ref(),
-            SkinImage::ButtonNormal => self.button_normal.as_ref(),
-            SkinImage::ButtonHovered => self.button_hovered.as_ref(),
-            SkinImage::ButtonPressed => self.button_pressed.as_ref(),
-            SkinImage::CheckboxUnchecked => self.checkbox_unchecked.as_ref(),
-            SkinImage::CheckboxChecked => self.checkbox_checked.as_ref(),
-            SkinImage::TextBox => self.text_box.as_ref(),
+            SkinImage::WindowFrame => self.window_frame.clone(),
+            SkinImage::WindowTitleBar => self.window_title_bar.clone(),
+            SkinImage::WindowCloseButton => self.window_close_button.clone(),
+            SkinImage::WindowCloseButtonHovered => self.window_close_button_hovered.clone(),
+            SkinImage::ButtonNormal => self.button_normal.clone(),
+            SkinImage::ButtonHovered => self.button_hovered.clone(),
+            SkinImage::ButtonPressed => self.button_pressed.clone(),
+            SkinImage::CheckboxUnchecked => self.checkbox_unchecked.clone(),
+            SkinImage::CheckboxChecked => self.checkbox_checked.clone(),
+            SkinImage::TextBox => self.text_box.clone(),
         }
     }
 }
@@ -187,6 +209,14 @@ fn build_atlas(texture_loader: &TextureLoader, image: SkinImage, pieces: &[&str]
         let row = (index / columns) as u32;
 
         copy_into(&mut atlas, &piece_image, column * piece_width, row * piece_height);
+    }
+
+    // The classic windows have a thin dark outline around the otherwise very light
+    // frame. The classic texture set doesn't contain that line as a separate image,
+    // so draw it into the outer ring of the frame atlas (the outer ring of the
+    // nine slice ends up exactly on the window border).
+    if image == SkinImage::WindowFrame {
+        outline_atlas(&mut atlas);
     }
 
     Some(texture_loader.create_color("classic skin atlas", atlas, true))
@@ -239,6 +269,24 @@ fn resize_to(image: RgbaImage, width: u32, height: u32) -> Option<RgbaImage> {
         height,
         image::imageops::FilterType::Nearest,
     ))
+}
+
+/// Draw a one pixel dark outline around the outer ring of an atlas.
+fn outline_atlas(image: &mut RgbaImage) {
+    const OUTLINE: Rgba<u8> = Rgba([24, 24, 24, 255]);
+
+    let width = image.width();
+    let height = image.height();
+
+    for x in 0..width {
+        image.put_pixel(x, 0, OUTLINE);
+        image.put_pixel(x, height - 1, OUTLINE);
+    }
+
+    for y in 0..height {
+        image.put_pixel(0, y, OUTLINE);
+        image.put_pixel(width - 1, y, OUTLINE);
+    }
 }
 
 /// Copy a piece of an atlas into the destination image.
