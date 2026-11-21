@@ -93,6 +93,59 @@ pub struct GlobalTheme {
     drop_area_outline: ShadowPadding,
 }
 
+/// Colors of the character overview window.
+///
+/// The overview draws HP, SP, base EXP and job EXP as progress bars, so each
+/// bar has a fill color and a background (track) color. The HP fill switches to
+/// [`Self::low_health_color`] when the character is low on health, which gives
+/// the classic red/green health bar look.
+#[derive(Serialize, Deserialize, RustState, StateElement)]
+pub struct CharacterOverviewTheme {
+    /// Background of the progress bars (the part that is not filled).
+    pub bar_background_color: Color,
+    /// Fill color of the health points bar.
+    pub health_color: Color,
+    /// Fill color of the health points bar when the character is low on health.
+    pub low_health_color: Color,
+    /// Background of the health points bar (shows the missing health).
+    pub health_background_color: Color,
+    /// Fill color of the spell points bar.
+    pub spell_point_color: Color,
+    /// Background of the spell points bar.
+    pub spell_point_background_color: Color,
+    /// Fill color of the base experience bar.
+    pub experience_color: Color,
+    /// Background of the base experience bar.
+    pub experience_background_color: Color,
+    /// Fill color of the job experience bar.
+    pub job_experience_color: Color,
+    /// Background of the job experience bar.
+    pub job_experience_background_color: Color,
+    /// Color of the small labels ("HP", "SP", "EXP", ...).
+    pub label_color: Color,
+    /// Color of the values ("1234 / 2345", "45.2 %", ...).
+    pub value_color: Color,
+}
+
+impl Default for CharacterOverviewTheme {
+    fn default() -> Self {
+        Self {
+            bar_background_color: Color::monochrome_u8(40),
+            health_color: Color::rgb_u8(67, 163, 83),
+            low_health_color: Color::rgb_u8(206, 49, 116),
+            health_background_color: Color::rgb_u8(72, 22, 22),
+            spell_point_color: Color::rgb_u8(0, 129, 163),
+            spell_point_background_color: Color::rgb_u8(14, 36, 52),
+            experience_color: Color::rgb_u8(230, 200, 80),
+            experience_background_color: Color::rgb_u8(56, 48, 18),
+            job_experience_color: Color::rgb_u8(170, 130, 230),
+            job_experience_background_color: Color::rgb_u8(40, 28, 60),
+            label_color: Color::monochrome_u8(190),
+            value_color: Color::monochrome_u8(235),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, RustState, StateElement, StateWindow)]
 #[window_title("Theme Inspector")]
 pub struct InterfaceTheme {
@@ -122,6 +175,11 @@ pub struct InterfaceTheme {
     pub chat: ChatTheme,
     pub skill_tree: SkillTreeTheme,
     pub global: GlobalTheme,
+    /// Colors of the character overview bars. The field is optional in the
+    /// persisted theme files, so themes that were saved before the bars were
+    /// added keep loading and use the default colors.
+    #[serde(default)]
+    pub character_overview: CharacterOverviewTheme,
 }
 
 impl InterfaceTheme {
@@ -401,6 +459,7 @@ impl InterfaceTheme {
                 fill_alpha: 0.1,
                 drop_area_outline: ShadowPadding::uniform(4.0),
             },
+            character_overview: CharacterOverviewTheme::default(),
         }
     }
 
@@ -618,6 +677,7 @@ impl InterfaceTheme {
                 fill_alpha: 0.1,
                 drop_area_outline: ShadowPadding::uniform(4.0),
             },
+            character_overview: CharacterOverviewTheme::default(),
         }
     }
 
@@ -633,6 +693,23 @@ impl InterfaceTheme {
     /// not affected.
     fn default_classic() -> Self {
         let mut theme = Self::default_in_game();
+
+        // Classic bar colors: black labels, dark-blue values, dark tracks and
+        // the classic green/blue/yellow progress colors on the light interface.
+        theme.character_overview = CharacterOverviewTheme {
+            bar_background_color: Color::rgb_u8(180, 180, 180),
+            health_color: Color::rgb_u8(0, 170, 0),
+            low_health_color: Color::rgb_u8(200, 0, 0),
+            health_background_color: Color::rgb_u8(96, 24, 24),
+            spell_point_color: Color::rgb_u8(0, 80, 200),
+            spell_point_background_color: Color::rgb_u8(16, 24, 64),
+            experience_color: Color::rgb_u8(210, 170, 0),
+            experience_background_color: Color::rgb_u8(80, 64, 16),
+            job_experience_color: Color::rgb_u8(120, 60, 180),
+            job_experience_background_color: Color::rgb_u8(40, 20, 60),
+            label_color: Color::BLACK,
+            value_color: Color::rgb_u8(0, 0, 128),
+        };
 
         theme.window = WindowTheme {
             title_color: Color::rgb_u8(0, 0, 0),
@@ -897,5 +974,90 @@ fn classic_button_skin() -> ButtonSkin<ClientState> {
             slices: Slice::horizontal(6.0, 6.0),
             smooth: false,
         }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CharacterOverviewTheme, InterfaceTheme, InterfaceThemeType};
+
+    /// Removes a single field (including its value) from a serialized RON
+    /// struct.
+    ///
+    /// Used to emulate a theme file that was written before the character
+    /// overview bars (and therefore the `character_overview` field) existed.
+    fn remove_field(serialized: &str, field: &str) -> String {
+        let key = format!("{field}:");
+        let start = serialized.find(&key).expect("field exists in serialized theme");
+
+        // Find the end of the field value by balancing the parentheses of the
+        // nested struct. RON structs never contain parentheses inside strings
+        // for the theme values, so a simple counter is enough here.
+        let mut depth = 0usize;
+        let mut end = None;
+
+        for (offset, character) in serialized[start..].char_indices() {
+            match character {
+                '(' => depth += 1,
+                ')' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        end = Some(start + offset + 1);
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        let end = end.expect("field value is terminated");
+
+        // Also remove the comma that separated the field from the previous one.
+        let mut start = start;
+        while start > 0 && serialized.as_bytes()[start - 1].is_ascii_whitespace() {
+            start -= 1;
+        }
+        if start > 0 && serialized.as_bytes()[start - 1] == b',' {
+            start -= 1;
+        }
+
+        format!("{}{}", &serialized[..start], &serialized[end..])
+    }
+
+    #[test]
+    fn theme_files_without_character_overview_still_load() {
+        let theme = InterfaceTheme::default_in_game();
+        let serialized = ron::ser::to_string_pretty(&theme, ron::ser::PrettyConfig::new()).unwrap();
+
+        let old_serialized = remove_field(&serialized, "character_overview");
+        assert!(!old_serialized.contains("character_overview"));
+
+        let old_theme: InterfaceTheme = ron::from_str(&old_serialized).expect("old theme file must still load");
+
+        assert_eq!(
+            old_theme.character_overview.health_color,
+            CharacterOverviewTheme::default().health_color
+        );
+    }
+
+    #[test]
+    fn classic_theme_has_readable_bar_colors() {
+        let classic = InterfaceTheme::load(InterfaceThemeType::InGame, crate::settings::CLASSIC_THEME_NAME);
+        let default = InterfaceTheme::default_in_game();
+
+        // The classic theme uses the light interface, so the labels have to be
+        // dark and the bars must not reuse the dark theme colors.
+        assert_ne!(classic.character_overview.label_color, default.character_overview.label_color);
+        assert_ne!(classic.character_overview.health_color, default.character_overview.health_color);
+    }
+
+    #[test]
+    fn default_theme_characters_overview_is_the_default_of_the_struct() {
+        let theme = InterfaceTheme::default_in_game();
+        let expected = CharacterOverviewTheme::default();
+
+        assert_eq!(theme.character_overview.health_color, expected.health_color);
+        assert_eq!(theme.character_overview.spell_point_color, expected.spell_point_color);
+        assert_eq!(theme.character_overview.experience_color, expected.experience_color);
     }
 }

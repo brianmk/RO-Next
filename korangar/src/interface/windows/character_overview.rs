@@ -5,30 +5,48 @@ use rust_state::{Path, PathExt, Selector, State};
 
 use crate::graphics::Color;
 use crate::input::InputEvent;
+use crate::interface::components::progress_bar::{LOW_HEALTH_FRACTION, ProgressBar};
 use crate::interface::windows::WindowClass;
-use crate::loaders::OverflowBehavior;
+use crate::loaders::{FontSize, OverflowBehavior};
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
-use crate::state::theme::InterfaceThemeType;
-use crate::state::{ClientState, ClientStatePathExt, client_state};
+use crate::state::theme::{CharacterOverviewThemePathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::{Player, PlayerPathExt};
 
 /// Width of the character overview window in its normal (expanded) form.
 const NORMAL_WINDOW_WIDTH: f32 = 300.0;
 /// Width of the character overview window in its compact form.
-const COMPACT_WINDOW_WIDTH: f32 = 170.0;
-/// Color of the character name in the overview.
-const NAME_COLOR: Color = Color::rgb_u8(255, 144, 13);
-/// Color of the values shown in the overview (levels, HP, SP, EXP).
-const VALUE_COLOR: Color = Color::rgb_u8(13, 231, 255);
+///
+/// The compact form is meant to be a small always-on HUD element, so it is
+/// kept small enough to fit into a corner without covering the game.
+const COMPACT_WINDOW_WIDTH: f32 = 150.0;
+/// Window border of the compact form, in interface pixels.
+const COMPACT_BORDER: f32 = 6.0;
+/// Gaps between the elements of the compact form, in interface pixels.
+const COMPACT_GAPS: f32 = 3.0;
+/// Font size of the labels and values in the compact form.
+const COMPACT_FONT_SIZE: f32 = 10.0;
+/// Bar height of the compact form.
+const COMPACT_BAR_HEIGHT: f32 = 5.0;
+/// Font size of the labels and values in the expanded form.
+const EXPANDED_FONT_SIZE: f32 = 12.0;
+/// Bar height of the expanded form.
+const EXPANDED_BAR_HEIGHT: f32 = 8.0;
+/// Gap between a label/value row and its bar.
+const BAR_GAP: f32 = 1.0;
+/// Gap between two stat blocks (label + bar).
+const STAT_GAP: f32 = 4.0;
 
 /// The character overview window.
 ///
 /// The window has two forms:
-/// * the normal form shows the character name, the base/job level, the current
-///   HP, SP and base EXP progress, and the buttons to open the other windows;
-/// * the compact form only shows HP, SP and base EXP progress to save screen
-///   space. The mode is persisted in the interface settings.
+/// * the normal form shows the character name, the base/job level, HP, SP, base
+///   EXP and job EXP as progress bars, and the buttons to open the other
+///   windows;
+/// * the compact form only shows the HP, SP and base EXP bars in a much smaller
+///   window to save screen space. The mode is persisted in the interface
+///   settings.
 pub struct CharacterOverviewWindow<A, B, C> {
     player_name_path: A,
     player_path: B,
@@ -71,27 +89,53 @@ where
     }
 }
 
-/// A row of the character overview with a label on the left and a value on the
-/// right.
-fn stat_row<L, V>(label: L, value: V) -> impl Element<ClientState>
+/// A small label/value row with a progress bar below it.
+///
+/// This is the building block of the character overview bars: the row shows the
+/// name of the stat on the left and its value (current/maximum or percent) on
+/// the right, the bar below shows the same progress visually.
+#[allow(clippy::too_many_arguments)]
+fn bar_block<L, V, F, C, B>(
+    label: L,
+    value: V,
+    fraction: F,
+    fill_color: C,
+    background_color: B,
+    font_size: f32,
+    bar_height: f32,
+) -> impl Element<ClientState>
 where
     L: Selector<ClientState, String>,
     V: Selector<ClientState, String>,
+    F: Selector<ClientState, Option<f32>>,
+    C: Selector<ClientState, Color>,
+    B: Selector<ClientState, Color>,
 {
     use korangar_interface::prelude::*;
 
-    split! {
+    fragment! {
+        gaps: BAR_GAP,
         children: (
-            text! {
-                text: label,
-                overflow_behavior: OverflowBehavior::Shrink,
+            split! {
+                children: (
+                    text! {
+                        text: label,
+                        color: client_theme().character_overview().label_color(),
+                        font_size: FontSize(font_size),
+                        height: font_size + 2.0,
+                        overflow_behavior: OverflowBehavior::Shrink,
+                    },
+                    text! {
+                        text: value,
+                        color: client_theme().character_overview().value_color(),
+                        font_size: FontSize(font_size),
+                        height: font_size + 2.0,
+                        horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 2.0 },
+                        overflow_behavior: OverflowBehavior::Shrink,
+                    },
+                ),
             },
-            text! {
-                text: value,
-                color: VALUE_COLOR,
-                horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
-                overflow_behavior: OverflowBehavior::Shrink,
-            },
+            ProgressBar::new(fraction, fill_color, background_color, bar_height),
         ),
     }
 }
@@ -105,6 +149,113 @@ where
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
         true => COMPACT_WINDOW_WIDTH,
         false => NORMAL_WINDOW_WIDTH,
+    })
+}
+
+/// Selector for the window border: the compact form uses a much smaller border
+/// so that almost the whole width is available for the bars.
+fn window_border<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => COMPACT_BORDER,
+        false => client_theme().follow_safe(state).window.border,
+    })
+}
+
+/// Selector for the window gaps: the compact form stacks everything closely
+/// together.
+fn window_gaps<A>(compact_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
+        true => COMPACT_GAPS,
+        false => client_theme().follow_safe(state).window.gaps,
+    })
+}
+
+/// Progress of `current` out of `maximum`, clamped to `[0, 1]`.
+///
+/// Returns `None` if the maximum is unknown (zero), which is rendered as an
+/// empty bar.
+fn fraction(current: u64, maximum: u64) -> Option<f32> {
+    match maximum {
+        0 => None,
+        maximum => Some((current as f64 / maximum as f64).clamp(0.0, 1.0) as f32),
+    }
+}
+
+/// Progress in percent (0.0 - 100.0) converted to a fraction, clamped to
+/// `[0, 1]`.
+fn fraction_from_percent(percent: Option<f64>) -> Option<f32> {
+    percent.map(|percent| (percent / 100.0).clamp(0.0, 1.0) as f32)
+}
+
+/// Selector for the health points progress.
+fn health_points_fraction<A>(player_path: A) -> impl Selector<ClientState, Option<f32>>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        fraction(player.health_points() as u64, player.maximum_health_points() as u64)
+    })
+}
+
+/// Selector for the spell points progress.
+fn spell_points_fraction<A>(player_path: A) -> impl Selector<ClientState, Option<f32>>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        fraction(player.spell_points as u64, player.maximum_spell_points as u64)
+    })
+}
+
+/// Selector for the base experience progress.
+fn base_experience_fraction<A>(player_path: A) -> impl Selector<ClientState, Option<f32>>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        fraction_from_percent(player.base_experience_percent())
+    })
+}
+
+/// Selector for the job experience progress.
+fn job_experience_fraction<A>(player_path: A) -> impl Selector<ClientState, Option<f32>>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        fraction_from_percent(player.job_experience_percent())
+    })
+}
+
+/// Selector for the fill color of the health bar.
+///
+/// The bar is green while the character is healthy and red when the character
+/// is low on health, which matches the classic Ragnarok Online health bar.
+fn health_fill_color<A>(player_path: A) -> impl Selector<ClientState, Color>
+where
+    A: Path<ClientState, Player>,
+{
+    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let player = player_path.follow_safe(state);
+        let character_overview = &client_theme().follow_safe(state).character_overview;
+
+        let low_health_color = character_overview.low_health_color;
+        let health_color = character_overview.health_color;
+
+        match fraction(player.health_points() as u64, player.maximum_health_points() as u64) {
+            Some(fraction) if fraction <= LOW_HEALTH_FRACTION => low_health_color,
+            _ => health_color,
+        }
     })
 }
 
@@ -183,24 +334,42 @@ where
         let player_path = self.player_path;
         let compact_path = self.interface_settings_path.character_overview_compact();
 
+        // The three bars of the compact form, with tiny labels and values.
         let compact = fragment! {
-            gaps: 4.0,
+            gaps: STAT_GAP,
             children: (
-                stat_row(
+                bar_block(
                     client_state().localization().health_points_text(),
                     health_points_display(player_path),
+                    health_points_fraction(player_path),
+                    health_fill_color(player_path),
+                    client_theme().character_overview().health_background_color(),
+                    COMPACT_FONT_SIZE,
+                    COMPACT_BAR_HEIGHT,
                 ),
-                stat_row(
+                bar_block(
                     client_state().localization().spell_points_text(),
                     spell_points_display(player_path),
+                    spell_points_fraction(player_path),
+                    client_theme().character_overview().spell_point_color(),
+                    client_theme().character_overview().spell_point_background_color(),
+                    COMPACT_FONT_SIZE,
+                    COMPACT_BAR_HEIGHT,
                 ),
-                stat_row(
+                bar_block(
                     client_state().localization().experience_text(),
                     experience_display(player_path),
+                    base_experience_fraction(player_path),
+                    client_theme().character_overview().experience_color(),
+                    client_theme().character_overview().experience_background_color(),
+                    COMPACT_FONT_SIZE,
+                    COMPACT_BAR_HEIGHT,
                 ),
                 button! {
                     text: client_state().localization().character_overview_expand_button_text(),
                     tooltip: client_state().localization().character_overview_expand_button_tooltip(),
+                    height: 18.0,
+                    font_size: FontSize(COMPACT_FONT_SIZE),
                     event: CharacterOverviewCompactToggle {
                         value_path: compact_path,
                         settings_path: self.interface_settings_path,
@@ -221,7 +390,7 @@ where
                             },
                             text! {
                                 text: self.player_name_path,
-                                color: NAME_COLOR,
+                                color: theme().text().highlight_color(),
                                 horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
                                 overflow_behavior: OverflowBehavior::Shrink,
                             },
@@ -235,7 +404,7 @@ where
                             },
                             text! {
                                 text: PartialEqDisplaySelector::new(player_path.base_level()),
-                                color: VALUE_COLOR,
+                                color: client_theme().character_overview().value_color(),
                                 horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
                                 overflow_behavior: OverflowBehavior::Shrink,
                             },
@@ -249,27 +418,52 @@ where
                             },
                             text! {
                                 text: PartialEqDisplaySelector::new(player_path.job_level()),
-                                color: VALUE_COLOR,
+                                color: client_theme().character_overview().value_color(),
                                 horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 3.0 },
                                 overflow_behavior: OverflowBehavior::Shrink,
                             },
                         ),
                     },
-                    stat_row(
+                ),
+            },
+            fragment! {
+                gaps: STAT_GAP,
+                children: (
+                    bar_block(
                         client_state().localization().health_points_text(),
                         health_points_display(player_path),
+                        health_points_fraction(player_path),
+                        health_fill_color(player_path),
+                        client_theme().character_overview().health_background_color(),
+                        EXPANDED_FONT_SIZE,
+                        EXPANDED_BAR_HEIGHT,
                     ),
-                    stat_row(
+                    bar_block(
                         client_state().localization().spell_points_text(),
                         spell_points_display(player_path),
+                        spell_points_fraction(player_path),
+                        client_theme().character_overview().spell_point_color(),
+                        client_theme().character_overview().spell_point_background_color(),
+                        EXPANDED_FONT_SIZE,
+                        EXPANDED_BAR_HEIGHT,
                     ),
-                    stat_row(
+                    bar_block(
                         client_state().localization().experience_text(),
                         experience_display(player_path),
+                        base_experience_fraction(player_path),
+                        client_theme().character_overview().experience_color(),
+                        client_theme().character_overview().experience_background_color(),
+                        EXPANDED_FONT_SIZE,
+                        EXPANDED_BAR_HEIGHT,
                     ),
-                    stat_row(
+                    bar_block(
                         client_state().localization().job_experience_text(),
                         job_experience_display(player_path),
+                        job_experience_fraction(player_path),
+                        client_theme().character_overview().job_experience_color(),
+                        client_theme().character_overview().job_experience_background_color(),
+                        EXPANDED_FONT_SIZE,
+                        EXPANDED_BAR_HEIGHT,
                     ),
                 ),
             },
@@ -313,11 +507,43 @@ where
             theme: InterfaceThemeType::InGame,
             minimum_width: window_width(compact_path),
             maximum_width: window_width(compact_path),
+            border: window_border(compact_path),
+            gaps: window_gaps(compact_path),
             elements: either! {
                 selector: compact_path,
                 on_true: compact,
                 on_false: expanded,
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{fraction, fraction_from_percent};
+
+    #[test]
+    fn fraction_of_known_values() {
+        assert_eq!(fraction(50, 100), Some(0.5));
+        assert_eq!(fraction(0, 100), Some(0.0));
+        assert_eq!(fraction(100, 100), Some(1.0));
+    }
+
+    #[test]
+    fn fraction_of_unknown_maximum_is_none() {
+        assert_eq!(fraction(10, 0), None);
+    }
+
+    #[test]
+    fn fraction_is_clamped() {
+        assert_eq!(fraction(200, 100), Some(1.0));
+    }
+
+    #[test]
+    fn percent_is_converted_and_unknown_is_none() {
+        assert_eq!(fraction_from_percent(Some(50.0)), Some(0.5));
+        assert_eq!(fraction_from_percent(Some(0.0)), Some(0.0));
+        assert_eq!(fraction_from_percent(Some(100.0)), Some(1.0));
+        assert_eq!(fraction_from_percent(None), None);
     }
 }
