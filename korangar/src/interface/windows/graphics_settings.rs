@@ -62,12 +62,24 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Limit framerate",
+                        text: "Max FPS",
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
-                        selected: self.settings_path.limit_framerate(),
-                        options: self.capabilities_path.limit_framerate_options(),
+                        selected: self.settings_path.max_fps(),
+                        options: self.capabilities_path.max_fps_options(),
+                    }
+                )
+            },
+            split! {
+                children: (
+                    text! {
+                        text: "Background FPS",
+                        overflow_behavior: OverflowBehavior::Shrink,
+                    },
+                    drop_down! {
+                        selected: self.settings_path.background_max_fps(),
+                        options: self.capabilities_path.background_max_fps_options(),
                     }
                 )
             },
