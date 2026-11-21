@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::graphics::{
     LimitFramerate, Msaa, PresentModeInfo, ScreenSpaceAntiAliasing, ShadowDetail, ShadowMethod, ShadowResolution, Ssaa, TextureSamplerType,
+    WindowResolution,
 };
 
 #[derive(Clone, Serialize, Deserialize, RustState, StateElement)]
@@ -25,6 +26,18 @@ pub struct GraphicsSettings {
     pub shadow_detail: ShadowDetail,
     pub sdsm: bool,
     pub high_quality_interface: bool,
+    /// The resolution of the game window. This is applied while the client is
+    /// running, there is no need to restart it.
+    #[serde(default = "default_window_resolution")]
+    pub window_resolution: WindowResolution,
+    /// Whether the window is shown in borderless fullscreen mode. If this is
+    /// enabled, [`Self::window_resolution`] is ignored.
+    #[serde(default)]
+    pub fullscreen: bool,
+}
+
+fn default_window_resolution() -> WindowResolution {
+    WindowResolution::R1280x720
 }
 
 impl Default for GraphicsSettings {
@@ -43,6 +56,8 @@ impl Default for GraphicsSettings {
             shadow_detail: ShadowDetail::Medium,
             sdsm: true,
             high_quality_interface: true,
+            window_resolution: default_window_resolution(),
+            fullscreen: false,
         }
     }
 }
@@ -51,12 +66,49 @@ impl GraphicsSettings {
     const FILE_NAME: &'static str = "client/graphics_settings.ron";
 
     pub fn new() -> Self {
-        Self::load().unwrap_or_else(|| {
+        let mut settings = Self::load().unwrap_or_else(|| {
             #[cfg(feature = "debug")]
             print_debug!("failed to load graphics settings from {}", Self::FILE_NAME.magenta());
 
             Default::default()
-        })
+        });
+
+        settings.apply_environment_overrides();
+
+        settings
+    }
+
+    /// Applies the environment overrides for the settings that are useful for
+    /// automated or temporary test setups. They take precedence over the
+    /// values stored in the settings file (but the file is still written on
+    /// exit, so the overrides become the new saved settings).
+    ///
+    /// - `KORANGAR_RESOLUTION`: `WIDTHxHEIGHT` (for example `1920x1080`) or
+    ///   `desktop` to keep the window maximized.
+    /// - `KORANGAR_FULLSCREEN`: `1`/`true` for borderless fullscreen, anything
+    ///   else disables it.
+    fn apply_environment_overrides(&mut self) {
+        if let Ok(value) = std::env::var("KORANGAR_RESOLUTION") {
+            if let Some(window_resolution) = WindowResolution::parse(&value) {
+                self.window_resolution = window_resolution;
+                #[cfg(feature = "debug")]
+                print_debug!("overriding window resolution from environment: {}", value.magenta());
+            } else {
+                #[cfg(feature = "debug")]
+                print_debug!(
+                    "[{}] ignoring invalid KORANGAR_RESOLUTION value {}",
+                    "warning".yellow(),
+                    value.magenta()
+                );
+            }
+        }
+
+        if let Ok(value) = std::env::var("KORANGAR_FULLSCREEN") {
+            let value = value.trim();
+            self.fullscreen = matches!(value.to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on");
+            #[cfg(feature = "debug")]
+            print_debug!("overriding fullscreen mode from environment: {}", value.magenta());
+        }
     }
 
     pub fn load() -> Option<Self> {
@@ -124,6 +176,7 @@ pub struct GraphicsSettingsCapabilities {
     shadow_method_options: Vec<ShadowMethod>,
     shadow_resolution_options: Vec<ShadowResolution>,
     shadow_detail_options: Vec<ShadowDetail>,
+    window_resolution_options: Vec<WindowResolution>,
     vsync_setting_disabled: bool,
 }
 
@@ -152,6 +205,7 @@ impl Default for GraphicsSettingsCapabilities {
             shadow_method_options: vec![ShadowMethod::Hard, ShadowMethod::SoftPCF, ShadowMethod::SoftPCSS],
             shadow_resolution_options: vec![ShadowResolution::Normal, ShadowResolution::Ultra, ShadowResolution::Insane],
             shadow_detail_options: vec![ShadowDetail::Low, ShadowDetail::Medium, ShadowDetail::High, ShadowDetail::Ultra],
+            window_resolution_options: WindowResolution::OPTIONS.to_vec(),
             vsync_setting_disabled: true,
         }
     }
@@ -161,5 +215,15 @@ impl GraphicsSettingsCapabilities {
     pub fn update(&mut self, supported_msaa: Vec<Msaa>, present_mode_info: PresentModeInfo) {
         self.supported_msaa = supported_msaa;
         self.vsync_setting_disabled = !present_mode_info.supports_mailbox && !present_mode_info.supports_immediate;
+    }
+
+    /// Makes sure the currently selected resolution is part of the options that
+    /// are shown in the graphics settings window. This is needed when the
+    /// resolution was set to a custom value through the environment, otherwise
+    /// the drop down would not have an entry for the selected value.
+    pub fn ensure_window_resolution(&mut self, window_resolution: WindowResolution) {
+        if !self.window_resolution_options.contains(&window_resolution) {
+            self.window_resolution_options.insert(1, window_resolution);
+        }
     }
 }

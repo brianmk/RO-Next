@@ -8,6 +8,109 @@ use serde::{Deserialize, Serialize};
 
 use crate::graphics::ScreenSize;
 
+/// The resolution the game window is rendered at.
+///
+/// The presets are the physical pixel size of the window, independent of the
+/// DPI scale factor of the monitor. "Desktop" instead uses the desktop
+/// resolution by keeping the window maximized.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, StateElement)]
+pub enum WindowResolution {
+    /// Use the current desktop resolution by keeping the window maximized.
+    Desktop,
+    /// A window with a size of 1280x720 pixels.
+    R1280x720,
+    /// A window with a size of 1366x768 pixels.
+    R1366x768,
+    /// A window with a size of 1600x900 pixels.
+    R1600x900,
+    /// A window with a size of 1920x1080 pixels.
+    R1920x1080,
+    /// A window with a size of 2560x1440 pixels.
+    R2560x1440,
+    /// A window with a size of 3840x2160 pixels.
+    R3840x2160,
+    /// A custom resolution that is not one of the presets. This is only ever
+    /// set through the `KORANGAR_RESOLUTION` environment variable and is
+    /// persisted like any other resolution.
+    Custom(u32, u32),
+}
+
+impl WindowResolution {
+    /// All resolution options that are shown in the graphics settings window.
+    pub const OPTIONS: [WindowResolution; 7] = [
+        WindowResolution::Desktop,
+        WindowResolution::R1280x720,
+        WindowResolution::R1366x768,
+        WindowResolution::R1600x900,
+        WindowResolution::R1920x1080,
+        WindowResolution::R2560x1440,
+        WindowResolution::R3840x2160,
+    ];
+
+    /// The physical size of the window in pixels, if the resolution is not
+    /// [`WindowResolution::Desktop`].
+    pub fn size(self) -> Option<(u32, u32)> {
+        match self {
+            WindowResolution::Desktop => None,
+            WindowResolution::R1280x720 => Some((1280, 720)),
+            WindowResolution::R1366x768 => Some((1366, 768)),
+            WindowResolution::R1600x900 => Some((1600, 900)),
+            WindowResolution::R1920x1080 => Some((1920, 1080)),
+            WindowResolution::R2560x1440 => Some((2560, 1440)),
+            WindowResolution::R3840x2160 => Some((3840, 2160)),
+            WindowResolution::Custom(width, height) => Some((width, height)),
+        }
+    }
+
+    /// Parses a `WIDTHxHEIGHT` or `desktop` string. This is used by the
+    /// `KORANGAR_RESOLUTION` environment variable.
+    pub fn parse(input: &str) -> Option<Self> {
+        let input = input.trim();
+
+        if input.eq_ignore_ascii_case("desktop") || input.eq_ignore_ascii_case("maximized") {
+            return Some(WindowResolution::Desktop);
+        }
+
+        let (width, height) = input.split_once(['x', 'X'])?;
+        let width: u32 = width.trim().parse().ok()?;
+        let height: u32 = height.trim().parse().ok()?;
+
+        // Refuse nonsensical sizes so a typo does not create an unusable window.
+        if !(320..=16384).contains(&width) || !(240..=16384).contains(&height) {
+            return None;
+        }
+
+        match (width, height) {
+            (1280, 720) => Some(WindowResolution::R1280x720),
+            (1366, 768) => Some(WindowResolution::R1366x768),
+            (1600, 900) => Some(WindowResolution::R1600x900),
+            (1920, 1080) => Some(WindowResolution::R1920x1080),
+            (2560, 1440) => Some(WindowResolution::R2560x1440),
+            (3840, 2160) => Some(WindowResolution::R3840x2160),
+            (width, height) => Some(WindowResolution::Custom(width, height)),
+        }
+    }
+}
+
+impl DropDownItem<WindowResolution> for WindowResolution {
+    fn text(&self) -> &str {
+        match self {
+            WindowResolution::Desktop => "Desktop (maximized)",
+            WindowResolution::R1280x720 => "1280 x 720",
+            WindowResolution::R1366x768 => "1366 x 768",
+            WindowResolution::R1600x900 => "1600 x 900",
+            WindowResolution::R1920x1080 => "1920 x 1080",
+            WindowResolution::R2560x1440 => "2560 x 1440",
+            WindowResolution::R3840x2160 => "3840 x 2160",
+            WindowResolution::Custom(..) => "Custom",
+        }
+    }
+
+    fn value(&self) -> WindowResolution {
+        *self
+    }
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, StateElement)]
 pub enum LimitFramerate {
     Unlimited,

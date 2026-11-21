@@ -52,12 +52,51 @@ impl InterfaceSettings {
     const FILE_NAME: &'static str = "client/interface_settings.ron";
 
     pub fn new() -> Self {
-        Self::load().unwrap_or_else(|| {
+        let mut settings = Self::load().unwrap_or_else(|| {
             #[cfg(feature = "debug")]
             print_debug!("failed to load interface settings from {}", Self::FILE_NAME.magenta());
 
             Default::default()
-        })
+        });
+
+        settings.apply_environment_overrides();
+
+        settings
+    }
+
+    /// Whether there is a saved interface settings file. This is used to decide
+    /// whether a DPI based interface scaling default should be applied on the
+    /// first start.
+    pub fn exists() -> bool {
+        std::fs::metadata(Self::FILE_NAME).is_ok()
+    }
+
+    /// Applies the `KORANGAR_UI_SCALE` environment override. It has to be a
+    /// factor between 0.5 and 2.0, the value is snapped to the closest option
+    /// that is offered in the interface settings window so that the drop down
+    /// always has an entry for the selected value.
+    fn apply_environment_overrides(&mut self) {
+        if let Ok(value) = std::env::var("KORANGAR_UI_SCALE") {
+            match value.trim().parse::<f32>() {
+                Ok(factor) if (0.5..=2.0).contains(&factor) => {
+                    self.scaling = Scaling::closest(factor);
+                    #[cfg(feature = "debug")]
+                    print_debug!(
+                        "overriding interface scaling from environment: {} ({})",
+                        value.magenta(),
+                        self.scaling.get_factor().to_string().magenta()
+                    );
+                }
+                _ => {
+                    #[cfg(feature = "debug")]
+                    print_debug!(
+                        "[{}] ignoring invalid KORANGAR_UI_SCALE value {}, expected a factor between 0.5 and 2.0",
+                        "warning".yellow(),
+                        value.magenta()
+                    );
+                }
+            }
+        }
     }
 
     pub fn load() -> Option<Self> {
@@ -125,27 +164,24 @@ impl Default for InterfaceSettingsCapabilities {
         Self {
             // TODO: Don't hardcode this, load it from the disk instead.
             languages: vec![Language::English, Language::German],
-            scalings: vec![
-                Scaling::new(0.5),
-                Scaling::new(0.6),
-                Scaling::new(0.7),
-                Scaling::new(0.8),
-                Scaling::new(0.9),
-                Scaling::new(1.0),
-                Scaling::new(1.1),
-                Scaling::new(1.2),
-                Scaling::new(1.3),
-                Scaling::new(1.4),
-                Scaling::new(1.5),
-                Scaling::new(1.6),
-                Scaling::new(1.7),
-                Scaling::new(1.8),
-                Scaling::new(1.9),
-                Scaling::new(2.0),
-            ],
+            scalings: Scaling::OPTIONS.to_vec(),
             menu_themes: Self::load_themes(MENU_THEMES_PATH),
             in_game_themes: Self::load_themes(IN_GAME_THEMES_PATH),
             world_themes: Self::load_themes(WORLD_THEMES_PATH),
+        }
+    }
+}
+
+impl InterfaceSettingsCapabilities {
+    /// Makes sure the currently selected scaling is part of the options that
+    /// are shown in the interface settings window. This is needed when the
+    /// scaling was set through the environment to a value that is not part of
+    /// the default options.
+    pub fn ensure_scaling(&mut self, scaling: Scaling) {
+        if !self.scalings.contains(&scaling) {
+            self.scalings.push(scaling);
+            self.scalings
+                .sort_by(|left, right| left.get_factor().total_cmp(&right.get_factor()));
         }
     }
 }
