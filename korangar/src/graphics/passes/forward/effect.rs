@@ -8,18 +8,19 @@ use wgpu::util::StagingBelt;
 use wgpu::{
     BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
     BindingType, BlendComponent, BlendFactor, BlendOperation, BlendState, BufferBindingType, BufferUsages, ColorTargetState, ColorWrites,
-    CommandEncoder, Device, FragmentState, MultisampleState, PipelineCompilationOptions, PipelineLayout, PipelineLayoutDescriptor,
-    PrimitiveState, Queue, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderStages, TextureFormat,
-    TextureSampleType, TextureView, TextureViewDimension, VertexState,
+    CommandEncoder, CompareFunction, DepthBiasState, DepthStencilState, Device, FragmentState, LoadOp, MultisampleState, Operations,
+    PipelineCompilationOptions, PipelineLayout, PipelineLayoutDescriptor, PrimitiveState, Queue, RenderPass, RenderPassColorAttachment,
+    RenderPassDepthStencilAttachment, RenderPassDescriptor, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderStages,
+    StencilState, StoreOp, TextureFormat, TextureSampleType, TextureView, TextureViewDimension, VertexState,
 };
 
-use crate::graphics::passes::{
-    BindGroupCount, ColorAttachmentCount, DepthAttachmentCount, Drawer, PostProcessingRenderPassContext, RenderPassContext,
-};
+use crate::graphics::passes::{BindGroupCount, ColorAttachmentCount, DepthAttachmentCount, Drawer, RenderPassContext};
 use crate::graphics::shader_compiler::ShaderCompiler;
 use crate::graphics::{BindlessSupport, Buffer, Capabilities, EffectInstruction, GlobalContext, Prepare, RenderInstruction, Texture};
+use crate::loaders::TextureLoader;
 
-const DRAWER_NAME: &str = "post processing effect";
+const DRAWER_NAME: &str = "forward effect";
+const PASS_NAME: &str = "forward effect render pass";
 const INITIAL_INSTRUCTION_SIZE: usize = 256;
 
 /// These are the TOP5 combinations we currently find in the korean client
@@ -31,6 +32,81 @@ const PRELOAD_PIPELINES: &[(BlendFactor, BlendFactor)] = &[
     (BlendFactor::Zero, BlendFactor::OneMinusSrcAlpha),
     (BlendFactor::OneMinusSrcAlpha, BlendFactor::OneMinusSrcAlpha),
 ];
+
+/// Renders the effects of the frame right after the forward pass.
+///
+/// The effects are drawn into the forward color attachment and depth tested
+/// against the forward depth buffer, so that map geometry and entities in front
+/// of an effect occlude it. A separate pass (instead of drawing inside the
+/// forward pass itself) is used because the effect pipeline only writes to the
+/// color attachment while the forward pass has three attachments and effects
+/// have to be blended after all opaque and transparent geometry has been drawn.
+pub(crate) struct ForwardEffectRenderPassContext {
+    color_texture_format: TextureFormat,
+    depth_texture_format: TextureFormat,
+}
+
+impl RenderPassContext<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttachmentCount::One }>
+    for ForwardEffectRenderPassContext
+{
+    type PassData<'data> = Option<()>;
+
+    fn new(_device: &Device, _queue: &Queue, _texture_loader: &TextureLoader, global_context: &GlobalContext) -> Self {
+        Self {
+            color_texture_format: global_context.forward_color_texture.get_format(),
+            depth_texture_format: global_context.forward_depth_texture.get_format(),
+        }
+    }
+
+    fn create_pass<'encoder>(
+        &mut self,
+        encoder: &'encoder mut CommandEncoder,
+        global_context: &GlobalContext,
+        _pass_data: Self::PassData<'_>,
+    ) -> RenderPass<'encoder> {
+        let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
+            label: Some(PASS_NAME),
+            color_attachments: &[Some(RenderPassColorAttachment {
+                view: global_context.forward_color_texture.get_texture_view(),
+                depth_slice: None,
+                resolve_target: global_context
+                    .resolved_color_texture
+                    .as_ref()
+                    .map(|texture| texture.get_texture_view()),
+                ops: Operations {
+                    load: LoadOp::Load,
+                    store: StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(RenderPassDepthStencilAttachment {
+                view: global_context.forward_depth_texture.get_texture_view(),
+                depth_ops: Some(Operations {
+                    load: LoadOp::Load,
+                    store: StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            timestamp_writes: None,
+            occlusion_query_set: None,
+            multiview_mask: None,
+        });
+
+        pass.set_bind_group(0, &global_context.global_bind_group, &[]);
+        pass
+    }
+
+    fn bind_group_layout(device: &Device) -> [&'static BindGroupLayout; 1] {
+        [GlobalContext::global_bind_group_layout(device)]
+    }
+
+    fn color_attachment_formats(&self) -> [TextureFormat; 1] {
+        [self.color_texture_format]
+    }
+
+    fn depth_attachment_output_format(&self) -> [TextureFormat; 1] {
+        [self.depth_texture_format]
+    }
+}
 
 struct EffectBatch {
     offset: usize,
@@ -55,9 +131,15 @@ pub(crate) struct InstanceData {
     color1: [f32; 2],
     texture_index: i32,
     padding: u32,
+    /// NDC depth (reverse-z) for every corner of the quad, in the same order as
+    /// the screen space corner positions. Split into two arrays to match
+    /// the std430 layout of the shader (a `float4` would be padded to a 16
+    /// byte boundary).
+    depth0: [f32; 2],
+    depth1: [f32; 2],
 }
 
-pub(crate) struct PostProcessingEffectDrawer {
+pub(crate) struct ForwardEffectDrawer {
     bindless_support: bool,
     solid_pixel_texture: Arc<Texture>,
     instance_data_buffer: Buffer<InstanceData>,
@@ -66,6 +148,8 @@ pub(crate) struct PostProcessingEffectDrawer {
     shader_module: ShaderModule,
     pipeline_layout: PipelineLayout,
     color_attachment_format: TextureFormat,
+    depth_attachment_format: TextureFormat,
+    sample_count: u32,
     pipelines: HashMap<(BlendFactor, BlendFactor), RenderPipeline>,
     instance_data: Vec<InstanceData>,
     bump: Bump,
@@ -73,8 +157,8 @@ pub(crate) struct PostProcessingEffectDrawer {
     batches: Vec<EffectBatch>,
 }
 
-impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttachmentCount::None }> for PostProcessingEffectDrawer {
-    type Context = PostProcessingRenderPassContext;
+impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttachmentCount::One }> for ForwardEffectDrawer {
+    type Context = ForwardEffectRenderPassContext;
     type DrawData<'data> = &'data [EffectInstruction];
 
     fn new(
@@ -86,6 +170,8 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
         render_pass_context: &Self::Context,
     ) -> Self {
         let color_attachment_format = render_pass_context.color_attachment_formats()[0];
+        let depth_attachment_format = render_pass_context.depth_attachment_output_format()[0];
+        let sample_count = global_context.msaa.sample_count();
 
         let shader_module = if capabilities.bindless_support() == BindlessSupport::Full {
             shader_compiler.create_shader_module("postprocessing", "effect_bindless")
@@ -175,6 +261,8 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
                 &shader_module,
                 &pipeline_layout,
                 color_attachment_format,
+                depth_attachment_format,
+                sample_count,
                 source_blend_factor,
                 destination_blend_factor,
             );
@@ -190,6 +278,8 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
             shader_module,
             pipeline_layout,
             color_attachment_format,
+            depth_attachment_format,
+            sample_count,
             pipelines,
             instance_data: Vec::default(),
             bump: Bump::default(),
@@ -233,7 +323,7 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
     }
 }
 
-impl Prepare for PostProcessingEffectDrawer {
+impl Prepare for ForwardEffectDrawer {
     fn prepare(&mut self, device: &Device, instructions: &RenderInstruction) {
         let draw_count = instructions.effects.len();
 
@@ -264,6 +354,8 @@ impl Prepare for PostProcessingEffectDrawer {
                         &mut self.batches,
                         &self.shader_module,
                         self.color_attachment_format,
+                        self.depth_attachment_format,
+                        self.sample_count,
                         &self.pipeline_layout,
                         blend_state,
                         self.instance_data.len() - offset,
@@ -299,6 +391,8 @@ impl Prepare for PostProcessingEffectDrawer {
                     color1: [color[2], color[3]],
                     texture_index,
                     padding: 0,
+                    depth0: [instruction.depth[0], instruction.depth[1]],
+                    depth1: [instruction.depth[2], instruction.depth[3]],
                 });
             }
 
@@ -308,6 +402,8 @@ impl Prepare for PostProcessingEffectDrawer {
                 &mut self.batches,
                 &self.shader_module,
                 self.color_attachment_format,
+                self.depth_attachment_format,
+                self.sample_count,
                 &self.pipeline_layout,
                 blend_state,
                 self.instance_data.len() - offset,
@@ -331,6 +427,8 @@ impl Prepare for PostProcessingEffectDrawer {
                         &mut self.batches,
                         &self.shader_module,
                         self.color_attachment_format,
+                        self.depth_attachment_format,
+                        self.sample_count,
                         &self.pipeline_layout,
                         blend_state,
                         self.instance_data.len() - offset,
@@ -355,6 +453,8 @@ impl Prepare for PostProcessingEffectDrawer {
                     color1: [color[2], color[3]],
                     texture_index: 0,
                     padding: 0,
+                    depth0: [instruction.depth[0], instruction.depth[1]],
+                    depth1: [instruction.depth[2], instruction.depth[3]],
                 });
             }
 
@@ -364,6 +464,8 @@ impl Prepare for PostProcessingEffectDrawer {
                 &mut self.batches,
                 &self.shader_module,
                 self.color_attachment_format,
+                self.depth_attachment_format,
+                self.sample_count,
                 &self.pipeline_layout,
                 blend_state,
                 self.instance_data.len() - offset,
@@ -381,7 +483,7 @@ impl Prepare for PostProcessingEffectDrawer {
     }
 }
 
-impl PostProcessingEffectDrawer {
+impl ForwardEffectDrawer {
     fn create_bind_group_bindless(
         device: &Device,
         bind_group_layout: &BindGroupLayout,
@@ -415,11 +517,14 @@ impl PostProcessingEffectDrawer {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn create_pipeline(
         device: &Device,
         shader_module: &ShaderModule,
         pipeline_layout: &PipelineLayout,
         color_attachment_format: TextureFormat,
+        depth_attachment_format: TextureFormat,
+        sample_count: u32,
         source_blend_factor: BlendFactor,
         destination_blend_factor: BlendFactor,
     ) -> RenderPipeline {
@@ -454,13 +559,27 @@ impl PostProcessingEffectDrawer {
                 })],
             }),
             primitive: PrimitiveState::default(),
-            multisample: MultisampleState::default(),
-            depth_stencil: None,
+            multisample: MultisampleState {
+                count: sample_count,
+                ..MultisampleState::default()
+            },
+            // Effects are transparent and world anchored, so they have to be depth tested
+            // against the scene without writing depth themselves. The scene uses reverse-z
+            // (the depth buffer is cleared to 0 and nearer fragments have a larger value),
+            // which is why the comparison is `Greater`.
+            depth_stencil: Some(DepthStencilState {
+                format: depth_attachment_format,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(CompareFunction::Greater),
+                stencil: StencilState::default(),
+                bias: DepthBiasState::default(),
+            }),
             cache: None,
             multiview_mask: None,
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[allow(clippy::too_many_arguments)]
     fn push_effect_batch(
         device: &Device,
@@ -468,6 +587,8 @@ impl PostProcessingEffectDrawer {
         batches: &mut Vec<EffectBatch>,
         shader_module: &ShaderModule,
         color_attachment_format: TextureFormat,
+        depth_attachment_format: TextureFormat,
+        sample_count: u32,
         pipeline_layout: &PipelineLayout,
         blend_state: (BlendFactor, BlendFactor),
         count: usize,
@@ -479,6 +600,8 @@ impl PostProcessingEffectDrawer {
                 shader_module,
                 pipeline_layout,
                 color_attachment_format,
+                depth_attachment_format,
+                sample_count,
                 blend_state.0,
                 blend_state.1,
             );

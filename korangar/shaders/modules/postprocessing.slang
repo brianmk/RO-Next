@@ -38,6 +38,11 @@ public struct EffectInstanceData {
     public var color1: float2;
     public var texture_index: int;
     public var padding: uint;
+    /// NDC depth (reverse-z) of every corner, in the same order as the corner positions.
+    /// Split into two `float2` so that the std430 layout keeps a 4 byte alignment (a
+    /// `float4` would add padding here and the struct size would no longer match Rust).
+    public var depth0: float2;
+    public var depth1: float2;
 }
 
 public struct RectangleInstanceData {
@@ -86,22 +91,48 @@ public func rectangle_vertex_data(vertex_index: uint) -> float4 {
     return float4(x, -y, x, y);
 }
 
+public struct EffectVertexData {
+    public var position: float2;
+    public var depth: float;
+    public var texture_coordinate: float2;
+}
+
 [ForceInline]
-public func effect_position_data(instance: EffectInstanceData, vertex_index: uint) -> float4 {
+public func effect_vertex_data(instance: EffectInstanceData, vertex_index: uint) -> EffectVertexData {
+    var data: EffectVertexData;
     switch (vertex_index) {
         case 0:
-            return float4(instance.top_left, instance.texture_top_left);
+            data.position = instance.top_left;
+            data.texture_coordinate = instance.texture_top_left;
+            data.depth = instance.depth0.x;
+            break;
         case 1:
-            return float4(instance.bottom_left, instance.texture_bottom_left);
+            data.position = instance.bottom_left;
+            data.texture_coordinate = instance.texture_bottom_left;
+            data.depth = instance.depth0.y;
+            break;
         case 2:
-            return float4(instance.top_right, instance.texture_top_right);
+            data.position = instance.top_right;
+            data.texture_coordinate = instance.texture_top_right;
+            data.depth = instance.depth1.x;
+            break;
         case 3:
-            return float4(instance.top_right, instance.texture_top_right);
+            data.position = instance.top_right;
+            data.texture_coordinate = instance.texture_top_right;
+            data.depth = instance.depth1.x;
+            break;
         case 4:
-            return float4(instance.bottom_left, instance.texture_bottom_left);
+            data.position = instance.bottom_left;
+            data.texture_coordinate = instance.texture_bottom_left;
+            data.depth = instance.depth0.y;
+            break;
         default:
-            return float4(instance.bottom_right, instance.texture_bottom_right);
+            data.position = instance.bottom_right;
+            data.texture_coordinate = instance.texture_bottom_right;
+            data.depth = instance.depth1.y;
+            break;
     }
+    return data;
 }
 
 [ForceInline]

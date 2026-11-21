@@ -302,6 +302,10 @@ pub struct EffectInstruction {
     pub bottom_left: ScreenPosition,
     pub top_right: ScreenPosition,
     pub bottom_right: ScreenPosition,
+    /// NDC depth (reverse-z) of the corners, in the same order as the corner
+    /// positions above (top left, bottom left, top right, bottom right).
+    /// Used to depth test the effect against the scene.
+    pub depth: [f32; 4],
     pub texture_top_left: Vector2<f32>,
     pub texture_bottom_left: Vector2<f32>,
     pub texture_top_right: Vector2<f32>,

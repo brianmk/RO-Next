@@ -62,7 +62,7 @@ impl WarpPortal {
         }
 
         let anchor = position;
-        let Some(anchor_screen) = Self::project(camera, anchor, screen_size) else {
+        let Some((anchor_screen, _anchor_depth)) = Self::project(camera, anchor, screen_size) else {
             return;
         };
 
@@ -265,22 +265,25 @@ impl WarpPortal {
         texture_coordinates: [Vector2<f32>; 4],
     ) {
         let mut screen_corners = [Vector2::new(0.0, 0.0); 4];
+        let mut corner_depths = [0.0; 4];
 
         for (index, corner) in corners.iter().enumerate() {
-            let Some(projected) = Self::project(camera, *corner, screen_size) else {
+            let Some((projected, depth)) = Self::project(camera, *corner, screen_size) else {
                 return;
             };
 
             screen_corners[index] = projected - anchor_screen;
+            corner_depths[index] = depth;
         }
 
-        let (screen_corners, texture_coordinates) = order_quad(screen_corners, texture_coordinates);
+        let (screen_corners, texture_coordinates, corner_depths) = order_quad(screen_corners, texture_coordinates, corner_depths);
 
-        renderer.render_effect(
+        renderer.render_effect_with_depth(
             camera,
             anchor,
             texture,
             screen_corners.map(|corner| EFFECT_ORIGIN + corner),
+            corner_depths,
             [
                 texture_coordinates[3],
                 texture_coordinates[1],
@@ -299,7 +302,7 @@ impl WarpPortal {
     /// position is behind the camera. The result is in physical window
     /// pixels with the origin in the top left corner, which is the space
     /// that [`EffectRenderer::render_effect`] uses.
-    fn project(camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize) -> Option<Vector2<f32>> {
+    fn project(camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize) -> Option<(Vector2<f32>, f32)> {
         let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
 
         if clip_space_position.w <= 0.0 {
@@ -308,10 +311,14 @@ impl WarpPortal {
 
         let normalized_x = clip_space_position.x / clip_space_position.w;
         let normalized_y = clip_space_position.y / clip_space_position.w;
+        let depth = clip_space_position.z / clip_space_position.w;
 
-        Some(Vector2::new(
-            (normalized_x * 0.5 + 0.5) * screen_size.width,
-            (0.5 - normalized_y * 0.5) * screen_size.height,
+        Some((
+            Vector2::new(
+                (normalized_x * 0.5 + 0.5) * screen_size.width,
+                (0.5 - normalized_y * 0.5) * screen_size.height,
+            ),
+            depth,
         ))
     }
 }
@@ -321,7 +328,11 @@ impl WarpPortal {
 /// sure that a quad that is seen from "behind" doesn't render mirrored or
 /// degenerate, which would happen if the projected corners were handed to the
 /// renderer in an order that is no longer a valid polygon.
-fn order_quad(corners: [Vector2<f32>; 4], texture_coordinates: [Vector2<f32>; 4]) -> ([Vector2<f32>; 4], [Vector2<f32>; 4]) {
+fn order_quad(
+    corners: [Vector2<f32>; 4],
+    texture_coordinates: [Vector2<f32>; 4],
+    depths: [f32; 4],
+) -> ([Vector2<f32>; 4], [Vector2<f32>; 4], [f32; 4]) {
     let mut indices = [0, 1, 2, 3];
     indices.sort_by(|&left, &right| corners[left].y.total_cmp(&corners[right].y));
 
@@ -333,7 +344,11 @@ fn order_quad(corners: [Vector2<f32>; 4], texture_coordinates: [Vector2<f32>; 4]
 
     let order = [top[0], top[1], bottom[0], bottom[1]];
 
-    (order.map(|index| corners[index]), order.map(|index| texture_coordinates[index]))
+    (
+        order.map(|index| corners[index]),
+        order.map(|index| texture_coordinates[index]),
+        order.map(|index| depths[index]),
+    )
 }
 
 #[cfg(test)]
@@ -362,12 +377,15 @@ mod tests {
             Vector2::new(10.0, 50.0),
             Vector2::new(30.0, 50.0),
         ];
-        let (corners, coordinates) = order_quad(front, uv_corners());
+        let depths = [1.0, 2.0, 3.0, 4.0];
+        let (corners, coordinates, ordered_depths) = order_quad(front, uv_corners(), depths);
         assert_eq!(corners[0], Vector2::new(10.0, 10.0));
         assert_eq!(corners[1], Vector2::new(30.0, 10.0));
         assert_eq!(corners[2], Vector2::new(10.0, 50.0));
         assert_eq!(corners[3], Vector2::new(30.0, 50.0));
         assert_eq!(coordinates[0], Vector2::new(0.0, 0.0));
+        // The depths follow their corners.
+        assert_eq!(ordered_depths, [1.0, 2.0, 3.0, 4.0]);
 
         // Same quad, but the two halves are swapped, which happens when a cylinder
         // segment is seen from the back.
@@ -377,7 +395,7 @@ mod tests {
             Vector2::new(30.0, 50.0),
             Vector2::new(10.0, 50.0),
         ];
-        let (corners, coordinates) = order_quad(back, uv_corners());
+        let (corners, coordinates, _depths) = order_quad(back, uv_corners(), depths);
         assert_eq!(corners[0], Vector2::new(10.0, 10.0));
         assert_eq!(corners[1], Vector2::new(30.0, 10.0));
         assert_eq!(corners[2], Vector2::new(10.0, 50.0));
@@ -396,7 +414,7 @@ mod tests {
             Vector2::new(110.0, 200.0),
             Vector2::new(190.0, 200.0),
         ];
-        let (ordered, _) = order_quad(corners, uv_corners());
+        let (ordered, ..) = order_quad(corners, uv_corners(), [0.0; 4]);
         assert_eq!(ordered[0], Vector2::new(110.0, 200.0));
         assert_eq!(ordered[1], Vector2::new(190.0, 200.0));
         assert_eq!(ordered[2], Vector2::new(100.0, 300.0));
