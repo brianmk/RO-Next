@@ -41,6 +41,7 @@ use korangar_loaders::FileLoader;
 use rayon::spawn;
 
 use crate::backend::cpal::CpalBackend;
+use crate::backend::{Backend, SilentBackend};
 use crate::decibels::Decibels;
 use crate::frame::Frame;
 use crate::manager::{AudioManager, AudioManagerSettings};
@@ -63,6 +64,27 @@ const RESOURCE_NAME_TABLE_FILE: &str = "data\\resnametable.txt";
 /// client keeps its music in a `BGM` folder next to the game archives, but
 /// some servers ship it inside `data/mp3` instead.
 const BACKGROUND_MUSIC_FOLDERS: [&str; 3] = ["bgm", "data\\mp3", "mp3"];
+
+/// Environment variable that disables *all* audio output.
+///
+/// This is meant for headless/background test clients (e.g. a client running on
+/// an invisible Xvfb display) that should not play music on the real audio
+/// device. The audio engine keeps working normally, but the operating system's
+/// audio device is never opened and no sound is ever produced.
+const MUTE_AUDIO_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MUTE_AUDIO";
+
+/// Environment variable that only disables the background music, while sound
+/// effects keep playing. Useful for test clients that need sound effects but no
+/// music.
+const MUSIC_OFF_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MUSIC_OFF";
+
+fn environment_flag_is_set(name: &str) -> bool {
+    let Ok(value) = std::env::var(name) else {
+        return false;
+    };
+
+    matches!(value.to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on")
+}
 
 struct BackgroundMusicTrack {
     track_name: String,
@@ -129,6 +151,28 @@ enum AsyncLoadResult {
     },
 }
 
+/// Type-erased access to the parts of the audio manager that the engine needs
+/// after construction.
+///
+/// The engine can be created with different backends (the real CPAL backend or
+/// the [`SilentBackend`]), so the concrete [`AudioManager`] type can't be part
+/// of the engine context.
+trait AudioManagerHandle: Send {
+    fn listener(&self) -> &crate::listener::ListenerHandle;
+
+    fn set_main_volume(&mut self, volume: Decibels, tween_duration: std::time::Duration);
+}
+
+impl<B: Backend + Send> AudioManagerHandle for AudioManager<B> {
+    fn listener(&self) -> &crate::listener::ListenerHandle {
+        AudioManager::listener(self)
+    }
+
+    fn set_main_volume(&mut self, volume: Decibels, tween_duration: std::time::Duration) {
+        self.main_track().set_volume(volume, tween_duration);
+    }
+}
+
 /// The audio engine of Korangar. Provides a simple interface to play background
 /// music, short sounds (sound effects) and spatial, ambient sound (sounds on
 /// the map).
@@ -142,6 +186,7 @@ struct EngineContext<F> {
     spatial_sound_effect_track: TrackHandle,
     async_response_receiver: Receiver<AsyncLoadResult>,
     async_response_sender: Sender<AsyncLoadResult>,
+    background_music_disabled: bool,
     background_music_track: TrackHandle,
     background_music_track_mapping: HashMap<String, String>,
     cache: SimpleCache<SoundEffectKey, CachedSoundEffect>,
@@ -151,7 +196,7 @@ struct EngineContext<F> {
     last_listener_update: Instant,
     loading_sound_effect: HashSet<SoundEffectKey>,
     lookup: HashMap<String, SoundEffectKey>,
-    manager: AudioManager,
+    manager: Box<dyn AudioManagerHandle>,
     object_kdtree: KDTree<AmbientKey, Sphere>,
     previous_query_result: Vec<AmbientKey>,
     query_result: Vec<AmbientKey>,
@@ -165,8 +210,25 @@ struct EngineContext<F> {
 
 impl<F: FileLoader> AudioEngine<F> {
     /// Crates a new audio engine.
+    ///
+    /// Audio output can be disabled with the
+    /// [`MUTE_AUDIO_ENVIRONMENT_VARIABLE`] environment variable, in which
+    /// case no audio device is opened at all.
     pub fn new(game_file_loader: Arc<F>) -> AudioEngine<F> {
-        let mut manager = AudioManager::<CpalBackend>::new(AudioManagerSettings::default()).expect("can't initialize audio kira");
+        if environment_flag_is_set(MUTE_AUDIO_ENVIRONMENT_VARIABLE) {
+            eprintln!("audio output disabled by {MUTE_AUDIO_ENVIRONMENT_VARIABLE}");
+            return Self::with_backend::<SilentBackend>(game_file_loader);
+        }
+
+        Self::with_backend::<CpalBackend>(game_file_loader)
+    }
+
+    fn with_backend<B>(game_file_loader: Arc<F>) -> AudioEngine<F>
+    where
+        B: Backend + Send + 'static,
+        B::Error: std::fmt::Debug,
+    {
+        let mut manager = AudioManager::<B>::new(AudioManagerSettings::default()).expect("can't initialize audio kira");
         let background_music_track = manager
             .add_sub_track(TrackBuilder::default())
             .expect("can't create background music track");
@@ -177,12 +239,20 @@ impl<F: FileLoader> AudioEngine<F> {
             .add_sub_track(TrackBuilder::default())
             .expect("can't create spatial sound effect track");
 
+        let manager: Box<dyn AudioManagerHandle> = Box::new(manager);
+
         let loading_sound_effect = HashSet::new();
         let cache = SimpleCache::new(
             NonZeroU32::new(MAX_CACHE_COUNT).unwrap(),
             NonZeroUsize::new(MAX_CACHE_SIZE).unwrap(),
         );
         let (async_response_sender, async_response_receiver) = channel();
+
+        let background_music_disabled = environment_flag_is_set(MUSIC_OFF_ENVIRONMENT_VARIABLE);
+
+        if background_music_disabled {
+            eprintln!("background music disabled by {MUSIC_OFF_ENVIRONMENT_VARIABLE}");
+        }
 
         let background_music_track_mapping = parse_background_music_track_mapping(game_file_loader.deref());
         let resource_name_table = parse_resource_name_table(game_file_loader.deref());
@@ -195,6 +265,7 @@ impl<F: FileLoader> AudioEngine<F> {
             spatial_sound_effect_track,
             async_response_receiver,
             async_response_sender,
+            background_music_disabled,
             background_music_track,
             background_music_track_mapping,
             cache,
@@ -379,7 +450,7 @@ impl<F: FileLoader> AudioEngine<F> {
 
 impl<F: FileLoader> EngineContext<F> {
     fn set_main_volume(&mut self, volume: Decibels) {
-        self.manager.main_track().set_volume(volume, Duration::from_millis(500));
+        self.manager.set_main_volume(volume, Duration::from_millis(500));
     }
 
     fn set_background_music_volume(&mut self, volume: Decibels) {
@@ -395,9 +466,16 @@ impl<F: FileLoader> EngineContext<F> {
     }
 
     fn play_background_music_track(&mut self, track_name: Option<&str>) {
+        if self.background_music_disabled {
+            return;
+        }
+
         let Some(track_name) = track_name else {
             if let Some(playing) = self.current_background_music_track.as_mut() {
                 playing.handle.stop(Duration::from_secs(1));
+
+                #[cfg(feature = "debug")]
+                print_debug!("[{}] stopping background music track: {:?}", "info".green(), playing.track_name);
             }
 
             self.current_background_music_track = None;
