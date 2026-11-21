@@ -47,6 +47,11 @@ pub struct InterfaceSettings {
     /// through it. Can be toggled in the chat window, persisted here.
     #[serde(default = "default_transparent_chat")]
     pub transparent_chat: bool,
+    /// Show the character overview window in its compact form (only HP, SP and
+    /// base EXP progress, without the name, level rows and navigation
+    /// buttons). Can be toggled in the window itself, persisted here.
+    #[serde(default = "default_character_overview_compact")]
+    pub character_overview_compact: bool,
 }
 
 fn default_show_character_names() -> bool {
@@ -65,6 +70,10 @@ fn default_transparent_chat() -> bool {
     false
 }
 
+fn default_character_overview_compact() -> bool {
+    false
+}
+
 impl Default for InterfaceSettings {
     fn default() -> Self {
         Self {
@@ -77,6 +86,7 @@ impl Default for InterfaceSettings {
             show_chat_bubbles: true,
             chat_bubble_background: true,
             transparent_chat: false,
+            character_overview_compact: false,
         }
     }
 }
