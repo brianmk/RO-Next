@@ -188,10 +188,10 @@ pub enum InputEvent {
         /// Skill to move.
         skill: LearnableSkill,
     },
-    /// Cast a skill.
+    /// Cast a skill at the current mouse target.
     CastSkill {
-        /// Slot of the hotbar that the skill is bound to.
-        slot: HotbarSlot,
+        /// Id of the skill to cast.
+        skill_id: SkillId,
         /// Level to cast the skill at.
         level: SkillLevel,
     },
@@ -201,6 +201,15 @@ pub enum InputEvent {
     UseSkillInSlot {
         /// Slot of the hotbar that the skill is bound to.
         slot: HotbarSlot,
+    },
+    /// Use a learned skill directly, e.g. by double clicking it in the skill
+    /// tree. Skills that require a target start a target selection, self cast
+    /// skills are cast immediately.
+    UseSkill {
+        /// Id of the skill to use.
+        skill_id: SkillId,
+        /// Level to cast the skill at.
+        level: SkillLevel,
     },
     /// Stop a skill.
     StopSkill {

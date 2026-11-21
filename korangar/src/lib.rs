@@ -3109,6 +3109,35 @@ impl Client {
         self.chat_bubbles.retain_alive(client_tick);
     }
 
+    /// Uses a learned skill: self cast skills are cast immediately, skills that
+    /// require a target switch to the target selection mouse mode, like in the
+    /// original client. Passive skills are ignored.
+    fn use_skill(&mut self, slot: Option<HotbarSlot>, skill_id: SkillId, skill_type: SkillType, level: SkillLevel) {
+        match skill_type {
+            SkillType::Passive => {}
+            SkillType::SelfCast => {
+                let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
+
+                match skill_id == ROLLING_CUTTER_ID {
+                    true => {
+                        let _ = self.networking_system.cast_channeling_skill(skill_id, level, entity_id);
+                    }
+                    false => {
+                        let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
+                    }
+                }
+            }
+            skill_type => self.interface.set_mouse_mode(MouseMode::Custom {
+                mode: MouseInputMode::TargetSkill {
+                    slot,
+                    skill_id,
+                    skill_type,
+                    level,
+                },
+            }),
+        }
+    }
+
     /// Returns whether or not the interface is focused.
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
@@ -3163,7 +3192,9 @@ impl Client {
             );
         }
 
-        for event in self.input_event_buffer.drain(..) {
+        let input_events: Vec<InputEvent> = self.input_event_buffer.drain(..).collect();
+
+        for event in input_events {
             crate::logging::log_trace!("input: dispatch {:?}", event);
 
             match event {
@@ -3612,48 +3643,7 @@ impl Client {
                     // Skills that require a target switch to a target selection
                     // mouse mode, while self cast skills are used immediately,
                     // like in the original client.
-                    if let Some(learnable_skill) = self.client_state.follow(client_state().hotbar()).get_skill_in_slot(slot).as_ref()
-                        && let Some(learned_skill) =
-                            self.client_state
-                                .follow(client_state().skill_tree().skills())
-                                .iter()
-                                .find(|learned_skill| {
-                                    learned_skill.skill_id == learnable_skill.skill_id
-                                        && learned_skill.skill_level.0 >= learnable_skill.maximum_level.0
-                                })
-                    {
-                        match learned_skill.skill_type {
-                            SkillType::Passive => {}
-                            SkillType::SelfCast => match learnable_skill.skill_id == ROLLING_CUTTER_ID {
-                                true => {
-                                    let _ = self.networking_system.cast_channeling_skill(
-                                        learnable_skill.skill_id,
-                                        learnable_skill.maximum_level,
-                                        self.client_state.follow(this_entity().manually_asserted()).get_entity_id(),
-                                    );
-                                }
-                                false => {
-                                    let _ = self.networking_system.cast_skill(
-                                        learnable_skill.skill_id,
-                                        learnable_skill.maximum_level,
-                                        self.client_state.follow(this_entity().manually_asserted()).get_entity_id(),
-                                    );
-                                }
-                            },
-                            skill_type => self.interface.set_mouse_mode(MouseMode::Custom {
-                                mode: MouseInputMode::TargetSkill {
-                                    slot,
-                                    skill_type,
-                                    level: learnable_skill.maximum_level,
-                                },
-                            }),
-                        }
-                    }
-                }
-                InputEvent::CastSkill { slot, level } => {
-                    // Copy the details out of the skill lookup so the borrow of the
-                    // client state ends before any buffered action is written.
-                    let skill_information = self
+                    let skill = self
                         .client_state
                         .follow(client_state().hotbar())
                         .get_skill_in_slot(slot)
@@ -3666,10 +3656,39 @@ impl Client {
                                     learned_skill.skill_id == learnable_skill.skill_id
                                         && learned_skill.skill_level.0 >= learnable_skill.maximum_level.0
                                 })
-                                .map(|learned_skill| (learnable_skill.skill_id, learned_skill.skill_type, learned_skill.attack_range))
+                                .map(|learned_skill| (learned_skill.skill_id, learned_skill.skill_type, learnable_skill.maximum_level))
                         });
 
-                    if let Some((skill_id, skill_type, attack_range)) = skill_information {
+                    if let Some((skill_id, skill_type, level)) = skill {
+                        self.use_skill(Some(slot), skill_id, skill_type, level);
+                    }
+                }
+                InputEvent::UseSkill { skill_id, level } => {
+                    // Double clicking a skill in the skill tree uses it, like in
+                    // the original client. Unlearned and passive skills are
+                    // ignored.
+                    let skill = self
+                        .client_state
+                        .follow(client_state().skill_tree().skills())
+                        .iter()
+                        .find(|learned_skill| learned_skill.skill_id == skill_id)
+                        .map(|learned_skill| (learned_skill.skill_type, SkillLevel(level.0.min(learned_skill.skill_level.0))));
+
+                    if let Some((skill_type, level)) = skill {
+                        self.use_skill(None, skill_id, skill_type, level);
+                    }
+                }
+                InputEvent::CastSkill { skill_id, level } => {
+                    // Copy the details out of the skill lookup so the borrow of the
+                    // client state ends before any buffered action is written.
+                    let skill_information = self
+                        .client_state
+                        .follow(client_state().skill_tree().skills())
+                        .iter()
+                        .find(|learned_skill| learned_skill.skill_id == skill_id)
+                        .map(|learned_skill| (learned_skill.skill_type, learned_skill.attack_range));
+
+                    if let Some((skill_type, attack_range)) = skill_information {
                         match skill_type {
                             SkillType::Passive => {}
                             SkillType::Attack => {
@@ -4923,13 +4942,13 @@ impl Client {
                 } else {
                     interface_frame.unfocus();
 
-                    if let Some((slot, _, level)) = skill_target {
+                    if let Some((_, skill_id, _, level)) = skill_target {
                         // A skill target is being selected. Any click ends the
                         // selection, and a left click casts the skill at whatever
                         // is under the cursor. The mouse mode is reset by the
                         // mouse button release.
                         if mouse_button == MouseButton::Left {
-                            self.input_event_buffer.push(InputEvent::CastSkill { slot, level });
+                            self.input_event_buffer.push(InputEvent::CastSkill { skill_id, level });
                         }
                     } else if mouse_button == MouseButton::Left {
                         match input_report.mouse_target {
@@ -5019,23 +5038,37 @@ impl Client {
             }
 
             if let Some(delta) = input_report.scroll {
-                if let Some((slot, skill_type, level)) = skill_target {
+                if let Some((slot, skill_id, skill_type, level)) = skill_target {
                     // While selecting a skill target the mouse wheel adjusts the
                     // cast level instead of zooming, like in the original client.
-                    let maximum_level = self
-                        .client_state
-                        .follow(client_state().hotbar())
-                        .get_skill_in_slot(slot)
-                        .as_ref()
-                        .map(|skill| skill.maximum_level.0)
-                        .unwrap_or(1);
+                    let maximum_level = match slot {
+                        Some(slot) => self
+                            .client_state
+                            .follow(client_state().hotbar())
+                            .get_skill_in_slot(slot)
+                            .as_ref()
+                            .map(|skill| skill.maximum_level.0)
+                            .unwrap_or(1),
+                        None => self
+                            .client_state
+                            .follow(client_state().skill_tree().skills())
+                            .iter()
+                            .find(|learned_skill| learned_skill.skill_id == skill_id)
+                            .map(|learned_skill| learned_skill.skill_level.0)
+                            .unwrap_or(1),
+                    };
 
                     let level = match delta > 0.0 {
                         true => SkillLevel(level.0.saturating_add(1).min(maximum_level)),
                         false => SkillLevel(level.0.saturating_sub(1).max(1)),
                     };
 
-                    interface_frame.set_mouse_mode(MouseInputMode::TargetSkill { slot, skill_type, level });
+                    interface_frame.set_mouse_mode(MouseInputMode::TargetSkill {
+                        slot,
+                        skill_id,
+                        skill_type,
+                        level,
+                    });
                 } else if is_interface_hovered {
                     interface_frame.scroll(&self.client_state, delta);
                 } else {
@@ -5075,8 +5108,8 @@ impl Client {
                 is_mouse_mode_default,
                 is_interface_hovered: interface_frame.is_interface_hovered(),
                 last_walking_destination,
-                is_targeting_ground_skill: matches!(skill_target, Some((_, SkillType::Ground | SkillType::Trap, _))),
-                skill_target_level: skill_target.map(|(_, _, level)| level),
+                is_targeting_ground_skill: matches!(skill_target, Some((_, _, SkillType::Ground | SkillType::Trap, _))),
+                skill_target_level: skill_target.map(|(_, _, _, level)| level),
                 buffered_action: *self.client_state.follow(client_state().buffered_action()),
                 #[cfg(feature = "debug")]
                 render_options: &render_options,
