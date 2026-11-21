@@ -570,7 +570,7 @@ impl ForwardEffectDrawer {
             depth_stencil: Some(DepthStencilState {
                 format: depth_attachment_format,
                 depth_write_enabled: Some(false),
-                depth_compare: Some(CompareFunction::Greater),
+                depth_compare: Some(CompareFunction::GreaterEqual),
                 stencil: StencilState::default(),
                 bias: DepthBiasState::default(),
             }),

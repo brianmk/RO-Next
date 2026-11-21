@@ -70,12 +70,27 @@ pub const CAST_CIRCLE_RADIUS: f32 = 7.0;
 
 const DUST_EFFECT: &str = "dust.str";
 const SPARKLE_EFFECT: &str = "strangelights.str";
+/// Animated angel that flutters/rotates above the character. This is the asset
+/// that reads closest to the classic Blessing angel; the classic
+/// `blessing.str` is not part of the 2019 data set.
+const ANGEL_EFFECT: &str = "efst_angel_fluttering\\angel_fluttering.str";
+/// Ring of blessing angels, used for Angelus.
+const BLESSING_ANGELS_EFFECT: &str = "efst_blessing_of_angels\\tensi3.str";
+/// Blessing-of-souls sparkles, used for Incagi.
+const BLESSING_OF_SOULS_EFFECT: &str = "efst_c_blessings_of_soul\\blessingsofsoul.str";
 
-fn sparkles(offset_y: f32) -> Option<CompletionEffect> {
+/// Height of the angel above the feet in world units (just above the head).
+const ANGEL_HEIGHT: f32 = 18.0;
+/// Height of the Angelus ring above the feet.
+const BLESSING_ANGELS_HEIGHT: f32 = 16.0;
+/// Height of the torso sparkle effects.
+const TORSO_HEIGHT: f32 = 10.0;
+
+fn completion(path: &'static str, height: f32, scale: f32) -> Option<CompletionEffect> {
     Some(CompletionEffect {
-        path: SPARKLE_EFFECT,
-        offset: Vector3::new(0.0, offset_y, 0.0),
-        scale: 0.65,
+        path,
+        offset: Vector3::new(0.0, height, 0.0),
+        scale,
     })
 }
 
@@ -100,12 +115,29 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: None,
             light: (Color::rgb_u8(160, 120, 255), 40.0),
         },
-        // Priest / archer self-buffs: holy golden cast circle, sparkles on
-        // completion.
-        skill_ids::AL_INCAGI | skill_ids::AL_ANGELUS | skill_ids::AL_BLESSING | skill_ids::AC_CONCENTRATION => SkillVisuals {
+        // Blessing: the animated angel above the head is what players expect.
+        skill_ids::AL_BLESSING => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: sparkles(10.0),
-            light: (Color::rgb_u8(255, 230, 160), 40.0),
+            completion: completion(ANGEL_EFFECT, ANGEL_HEIGHT, 1.0),
+            light: (Color::rgb_u8(255, 235, 180), 45.0),
+        },
+        // Angelus: ring of blessing angels around the character.
+        skill_ids::AL_ANGELUS => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(255, 230, 160),
+            completion: completion(BLESSING_ANGELS_EFFECT, BLESSING_ANGELS_HEIGHT, 1.0),
+            light: (Color::rgb_u8(255, 235, 180), 45.0),
+        },
+        // Incagi: blessing-of-souls sparkles around the torso.
+        skill_ids::AL_INCAGI => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(255, 230, 160),
+            completion: completion(BLESSING_OF_SOULS_EFFECT, TORSO_HEIGHT, 0.9),
+            light: (Color::rgb_u8(255, 230, 160), 35.0),
+        },
+        // Concentration: generic sparkles around the torso.
+        skill_ids::AC_CONCENTRATION => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(255, 230, 160),
+            completion: completion(SPARKLE_EFFECT, TORSO_HEIGHT, 0.9),
+            light: (Color::rgb_u8(255, 230, 160), 35.0),
         },
         _ => SkillVisuals {
             cast_circle_color: crate::world::element_color(element),
@@ -125,6 +157,23 @@ mod tests {
     fn crafting_has_a_completion_effect() {
         let visuals = skill_visuals(SkillId(110), 0);
         assert!(visuals.completion.as_ref().is_some_and(|effect| effect.path.ends_with(".str")));
+    }
+
+    #[test]
+    fn blessing_uses_the_animated_angel_above_the_head() {
+        let visuals = skill_visuals(SkillId(34), 0);
+        let effect = visuals.completion.expect("blessing completion effect");
+
+        assert!(
+            effect.path.contains("angel_fluttering"),
+            "blessing should use the angel effect, got {}",
+            effect.path
+        );
+        assert!(
+            effect.offset.y > 10.0,
+            "the angel has to be anchored above the head, not at the feet"
+        );
+        assert!(effect.scale >= 0.9);
     }
 
     #[test]

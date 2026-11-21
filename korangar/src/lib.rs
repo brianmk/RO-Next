@@ -2310,7 +2310,20 @@ impl Client {
                     }
 
                     if has_cast_time {
-                        self.spawn_cast_circle(source_entity_id, visuals.cast_circle_color, cast_animation_time);
+                        // The circle has to stay for the full cast: the cast time can be
+                        // shorter than one ACT cycle (the animation then plays a full
+                        // cycle) and it can be longer than the animation (the animation
+                        // loops), so use the longer of both.
+                        let animation_duration = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| entity.skill_animation_duration_ms())
+                            .unwrap_or(0);
+                        let circle_duration = cast_animation_time.max(animation_duration);
+
+                        self.spawn_cast_circle(source_entity_id, visuals.cast_circle_color, circle_duration);
                     }
 
                     // The 2019 server sends no sound packet for most ambient casts, so
@@ -2351,6 +2364,8 @@ impl Client {
 
                         let visuals = skill_visuals(skill_id, 0);
 
+                        // Buff visuals (for example the Blessing angel) are screen
+                        // sprites anchored above the head.
                         if let Some(effect) = &visuals.completion {
                             self.spawn_entity_effect(
                                 effect.path,
