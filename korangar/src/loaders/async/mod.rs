@@ -18,10 +18,8 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
 use crate::world::{
-    Actions, AnimationData, EntityType, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
-    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, Table,
     Actions, AnimationData, EntityType, ItemInfo, ItemName, ItemNameKey, ItemResource, ItemResourceKey, ItemStats, Library, Map,
-    ResourceMetadata, SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
+    ResourceMetadata, SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, Table,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]

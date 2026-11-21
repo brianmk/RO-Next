@@ -86,6 +86,8 @@ fn default_minimap_transparent_frame() -> bool {
 
 fn default_character_overview_compact() -> bool {
     false
+}
+
 fn default_inventory_tab() -> ItemCategory {
     ItemCategory::Consumables
 }
