@@ -417,6 +417,7 @@ fn player_head_palette_path(sex_sprite_path: &str, hair_style: usize, color: u16
     format!("data\\palette\\머리\\머리{}_{}_{}.pal", hair_style, sex_sprite_path, color)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn get_entity_part_files(
     library: &Library,
     entity_type: EntityType,
@@ -482,7 +483,7 @@ fn get_entity_part_files(
                 let Some(sprite_path) = library.accessory_sprite_path(view_id, sex) else {
                     #[cfg(feature = "debug")]
                     if view_id != 0 {
-                        print_debug!(
+                        korangar_debug::logging::print_debug!(
                             "[{}] no accessory sprite for view id {} (sex {:?}), skipping",
                             "error".red(),
                             view_id,

@@ -22,7 +22,9 @@ pub use self::action::*;
 pub use self::animation::*;
 pub use self::r#async::*;
 pub use self::effect::EffectLoader;
-pub use self::font::{FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, OverflowBehavior, Scaling, TEXT_SHADOW_RADIUS};
+pub use self::font::{
+    FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, OverflowBehavior, Scaling, TEXT_SHADOW_RADIUS, take_layout_cache_statistics,
+};
 pub use self::gamefile::*;
 pub use self::map::{GAT_TILE_SIZE, MapLoader};
 pub use self::minimap_marker::{MARKER_DIRECTION_COUNT, generate_direction_markers};

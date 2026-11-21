@@ -21,7 +21,7 @@ use crate::renderer::skin::SkinImage;
 use crate::settings::{CLASSIC_THEME_NAME, IN_GAME_THEMES_PATH, MENU_THEMES_PATH};
 use crate::state::ClientState;
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub enum InterfaceThemeType {
     #[default]
     InGame,

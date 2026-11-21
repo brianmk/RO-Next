@@ -63,7 +63,7 @@ use korangar_debug::profile_block;
 use korangar_debug::profiling::Profiler;
 use korangar_interface::application::Clip;
 use korangar_interface::layout::MouseButton;
-use korangar_interface::{Interface, MouseMode};
+use korangar_interface::{Interface, MouseMode, take_layout_profile};
 use korangar_networking::{
     DisconnectReason, HotkeyState, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem, SellItem,
     SupportedPacketVersion,
@@ -420,6 +420,13 @@ pub struct Client {
     /// When the effective frame rate should be logged next. Only set when
     /// frame rate logging is enabled through `KORANGAR_FPS_LOG`.
     frames_per_second_log_deadline: Option<Instant>,
+    /// When the next layout/text cache performance line should be logged. Only
+    /// set when profiling logging is enabled through `KORANGAR_PERF_LOG`.
+    performance_log_deadline: Option<Instant>,
+    /// Set when UI state was changed while the interface frame was alive (where
+    /// `self.interface` cannot be borrowed again). Applied at the start of the
+    /// next frame.
+    interface_layout_invalidation_pending: bool,
 
     map: Option<Arc<Map>>,
     client_state: State<ClientState>,
@@ -939,6 +946,8 @@ impl Client {
             force_background,
             active_frames_per_second_limit: 0,
             frames_per_second_log_deadline: frames_per_second_log_deadline(),
+            performance_log_deadline: performance_log_deadline(),
+            interface_layout_invalidation_pending: false,
             initialize_interface_scaling_from_dpi,
 
             map: Some(map),
@@ -1113,6 +1122,7 @@ impl Client {
         if self.active_interface_settings.language != language {
             *self.client_state.follow_mut(client_state().localization()) = Localization::load_language(&self.game_file_loader, language);
             self.active_interface_settings.language = language;
+            self.interface.invalidate_layouts();
         }
 
         let interface_settings = self.client_state.follow_mut(client_state().interface_settings());
@@ -1122,6 +1132,7 @@ impl Client {
             let theme = InterfaceTheme::load(state::theme::InterfaceThemeType::Menu, &menu_theme);
             *self.client_state.follow_mut(client_state().menu_theme()) = theme;
             self.active_interface_settings.menu_theme = menu_theme;
+            self.interface.invalidate_layouts();
         }
 
         let interface_settings = self.client_state.follow(client_state().interface_settings());
@@ -1131,6 +1142,7 @@ impl Client {
             let theme = InterfaceTheme::load(InterfaceThemeType::InGame, &in_game_theme);
             *self.client_state.follow_mut(client_state().in_game_theme()) = theme;
             self.active_interface_settings.in_game_theme = in_game_theme;
+            self.interface.invalidate_layouts();
         }
 
         let interface_settings = self.client_state.follow(client_state().interface_settings());
@@ -1228,6 +1240,73 @@ impl Client {
         );
     }
 
+    /// Logs window layout / text shaping / frame statistics when
+    /// `KORANGAR_PERF_LOG` is enabled. Used to measure the effect of the layout
+    /// and text caches.
+    fn log_performance(&mut self) {
+        let Some(deadline) = self.performance_log_deadline else {
+            return;
+        };
+
+        let now = Instant::now();
+
+        if now < deadline {
+            return;
+        }
+
+        let interval = now.saturating_duration_since(deadline - Duration::from_secs(PERFORMANCE_LOG_INTERVAL_SECONDS));
+        self.performance_log_deadline = Some(now + Duration::from_secs(PERFORMANCE_LOG_INTERVAL_SECONDS));
+
+        let layout_profile = take_layout_profile();
+        let text_statistics = take_layout_cache_statistics();
+        let frame_profile = take_frame_phase_profile();
+
+        let frames = layout_profile.frames.max(1) as f64;
+        let frame_frames = frame_profile.frames.max(1) as f64;
+        let interval_seconds = interval.as_secs_f64().max(0.001);
+        let create_layout_ms = layout_profile.create_layout_nanos as f64 / 1_000_000.0;
+        let lay_out_ms = layout_profile.lay_out_nanos as f64 / 1_000_000.0;
+        let windows = layout_profile.windows as f64 / frames;
+        let reused_percent = match layout_profile.windows {
+            0 => 0.0,
+            windows => layout_profile.reused_windows as f64 * 100.0 / windows as f64,
+        };
+        let text_hit_rate = match text_statistics.calls {
+            0 => 0.0,
+            calls => text_statistics.hits as f64 * 100.0 / calls as f64,
+        };
+
+        let frame_ms = |nanos: u64| nanos as f64 / 1_000_000.0 / frame_frames;
+
+        println!(
+            "[perf] fps={:.1} windows={:.1} layout_create={:.3}ms/frame layout={:.3}ms/frame layout_reused={:.0}% text_calls={:.0}/s \
+             text_hits={:.1}% text_shaped={:.0}/s",
+            self.graphics_engine.measured_frames_per_second(),
+            windows,
+            create_layout_ms / frames,
+            lay_out_ms / frames,
+            reused_percent,
+            text_statistics.calls as f64 / interval_seconds,
+            text_hit_rate,
+            text_statistics.misses as f64 / interval_seconds,
+        );
+        println!(
+            "[perf-phase] wait={:.2}ms sim={:.2}ms interface={:.2}ms world={:.2}ms gpu={:.2}ms frame_total={:.2}ms",
+            frame_ms(frame_profile.wait_nanos),
+            frame_ms(frame_profile.sim_nanos),
+            frame_ms(frame_profile.interface_nanos),
+            frame_ms(frame_profile.world_nanos),
+            frame_ms(frame_profile.gpu_nanos),
+            (frame_profile.wait_nanos
+                + frame_profile.sim_nanos
+                + frame_profile.interface_nanos
+                + frame_profile.world_nanos
+                + frame_profile.gpu_nanos) as f64
+                / 1_000_000.0
+                / frame_frames,
+        );
+    }
+
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_interface_scaling(&mut self, scaling: Scaling) {
@@ -1235,6 +1314,7 @@ impl Client {
         let scaling_bits = scaling.get_factor().to_bits();
         if LAST_INTERFACE_SCALING.swap(scaling_bits, std::sync::atomic::Ordering::Relaxed) != scaling_bits {
             crate::logging::log_info!("interface: applying interface scaling {}", scaling.get_factor());
+            self.interface.invalidate_layouts();
         }
         self.bottom_interface_renderer.update_scaling(scaling);
         self.middle_interface_renderer.update_scaling(scaling);
@@ -1343,6 +1423,7 @@ impl Client {
     fn update_window_size(&mut self, screen_size: ScreenSize) {
         crate::logging::log_debug!("interface: window size changed to {}x{}", screen_size.width, screen_size.height,);
         *self.client_state.follow_mut(client_state().window_size()) = screen_size;
+        self.interface.invalidate_layouts();
         self.graphics_engine.on_resize(screen_size);
         self.interface.update_window_size(screen_size);
         self.interface_renderer.update_window_size(screen_size);
@@ -1455,6 +1536,11 @@ impl Client {
         // Collect the events first so handlers are free to take `&mut self`
         // (the drain iterator borrows the event buffer).
         let network_events: Vec<NetworkEvent> = self.network_event_buffer.drain().collect();
+
+        if !network_events.is_empty() {
+            // Network events change UI state (chat, inventory, stats, ...).
+            self.interface.invalidate_layouts();
+        }
 
         for event in network_events {
             match event {
@@ -2772,6 +2858,11 @@ impl Client {
 
         for event in self.input_event_buffer.drain(..) {
             crate::logging::log_trace!("input: dispatch {:?}", event);
+
+            // Any user input can change UI state (window toggles, hotkeys,
+            // settings, ...), so the cached element layouts are rebuilt on the
+            // next layout pass.
+            self.interface.invalidate_layouts();
 
             match event {
                 InputEvent::LogIn {
@@ -4266,6 +4357,7 @@ impl Client {
         // Requires the frame rate limit that was just applied, so it is done
         // after `update_settings`.
         self.log_frames_per_second();
+        self.log_performance();
 
         // TODO: Shouldn't this happen later? After the scaling has been potentially
         // changed by the UI.
@@ -4277,6 +4369,10 @@ impl Client {
             client_tick,
             animation_timer_ms,
         } = self.game_timer.update();
+
+        if std::mem::take(&mut self.interface_layout_invalidation_pending) {
+            self.interface.invalidate_layouts();
+        }
 
         let input_report = self.input_system.update_delta(client_tick);
 
@@ -4341,7 +4437,9 @@ impl Client {
         // Acquire the swapchain image as late as possible so all CPU-side
         // preparation overlaps with the previous frame's GPU work. After this
         // point we may not reconfigure the surface (see `update_settings`).
+        let before_wait = std::time::Instant::now();
         let maybe_frame = self.graphics_engine.wait_for_next_frame();
+        let after_wait = std::time::Instant::now();
 
         // If we don't have a map, the rendering ends here.
         let Some(map) = self.map.clone() else {
@@ -4457,6 +4555,10 @@ impl Client {
         let last_walking_destination = mouse_mode.walk_destination();
         let skill_target = mouse_mode.skill_target();
 
+        let after_sim = std::time::Instant::now();
+
+        let mut interface_state_changed = false;
+
         let mut interface_frame = {
             #[cfg(feature = "debug")]
             profile_block!("user interface");
@@ -4523,6 +4625,8 @@ impl Client {
             self.mouse_cursor.set_state(cursor_state, client_tick);
 
             if let Some(mouse_button) = input_report.mouse_click {
+                interface_state_changed = true;
+
                 if is_interface_hovered {
                     interface_frame.click(&self.client_state, mouse_button);
                 } else if click_closes_context_menu && mouse_button == MouseButton::Left {
@@ -4644,6 +4748,7 @@ impl Client {
 
                     interface_frame.set_mouse_mode(MouseInputMode::TargetSkill { slot, skill_type, level });
                 } else if is_interface_hovered {
+                    interface_state_changed = true;
                     interface_frame.scroll(&self.client_state, delta);
                 } else {
                     #[cfg_attr(feature = "debug", korangar_debug::debug_condition(!render_options.use_debug_camera))]
@@ -4661,8 +4766,17 @@ impl Client {
                 interface_frame.focus_element(ChatTextBox);
             }
 
+            if interface_state_changed {
+                // Clicks/scrolls are handled on the interface frame after the
+                // layout was created, so the layouts have to be rebuilt next
+                // frame (the interface itself is borrowed by the frame here).
+                self.interface_layout_invalidation_pending = true;
+            }
+
             interface_frame
         };
+
+        let after_interface = std::time::Instant::now();
 
         {
             let mut render_context = MapRenderContext {
@@ -4795,6 +4909,8 @@ impl Client {
             color: directional_light_color,
         };
 
+        let after_world = std::time::Instant::now();
+
         let render_instruction = RenderInstruction {
             show_interface: self.show_interface,
             picker_position,
@@ -4836,6 +4952,16 @@ impl Client {
         if let Some(frame) = maybe_frame {
             self.graphics_engine.render_next_frame(frame, render_instruction);
         }
+
+        let after_gpu = std::time::Instant::now();
+
+        record_frame_phase(
+            after_wait.saturating_duration_since(before_wait),
+            after_sim.saturating_duration_since(after_wait),
+            after_interface.saturating_duration_since(after_sim),
+            after_world.saturating_duration_since(after_interface),
+            after_gpu.saturating_duration_since(after_world),
+        );
     }
 }
 
@@ -4879,6 +5005,70 @@ fn frames_per_second_log_deadline() -> Option<Instant> {
     } else {
         None
     }
+}
+
+/// Environment variable that enables the periodic layout/text cache profiling
+/// line (`[perf] ...`).
+const PERFORMANCE_LOG_ENVIRONMENT_VARIABLE: &str = "KORANGAR_PERF_LOG";
+/// Seconds between two `[perf]` lines.
+const PERFORMANCE_LOG_INTERVAL_SECONDS: u64 = 2;
+
+/// The deadline of the first `[perf]` line, if profiling logging is enabled.
+fn performance_log_deadline() -> Option<Instant> {
+    if environment_flag(PERFORMANCE_LOG_ENVIRONMENT_VARIABLE) {
+        Some(Instant::now() + Duration::from_secs(PERFORMANCE_LOG_INTERVAL_SECONDS))
+    } else {
+        None
+    }
+}
+
+/// Frame phase profiling counters for `KORANGAR_PERF_LOG`.
+static FRAME_PROFILE_FRAMES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static FRAME_PROFILE_WAIT_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static FRAME_PROFILE_SIM_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static FRAME_PROFILE_INTERFACE_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static FRAME_PROFILE_WORLD_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static FRAME_PROFILE_GPU_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Snapshot of the frame phase profiling counters.
+#[derive(Debug, Clone, Copy, Default)]
+struct FramePhaseProfile {
+    frames: u64,
+    wait_nanos: u64,
+    sim_nanos: u64,
+    interface_nanos: u64,
+    world_nanos: u64,
+    gpu_nanos: u64,
+}
+
+fn take_frame_phase_profile() -> FramePhaseProfile {
+    use std::sync::atomic::Ordering::Relaxed;
+
+    FramePhaseProfile {
+        frames: FRAME_PROFILE_FRAMES.swap(0, Relaxed),
+        wait_nanos: FRAME_PROFILE_WAIT_NANOS.swap(0, Relaxed),
+        sim_nanos: FRAME_PROFILE_SIM_NANOS.swap(0, Relaxed),
+        interface_nanos: FRAME_PROFILE_INTERFACE_NANOS.swap(0, Relaxed),
+        world_nanos: FRAME_PROFILE_WORLD_NANOS.swap(0, Relaxed),
+        gpu_nanos: FRAME_PROFILE_GPU_NANOS.swap(0, Relaxed),
+    }
+}
+
+fn record_frame_phase(
+    wait: std::time::Duration,
+    sim: std::time::Duration,
+    interface: std::time::Duration,
+    world: std::time::Duration,
+    gpu: std::time::Duration,
+) {
+    use std::sync::atomic::Ordering::Relaxed;
+
+    FRAME_PROFILE_FRAMES.fetch_add(1, Relaxed);
+    FRAME_PROFILE_WAIT_NANOS.fetch_add(wait.as_nanos() as u64, Relaxed);
+    FRAME_PROFILE_SIM_NANOS.fetch_add(sim.as_nanos() as u64, Relaxed);
+    FRAME_PROFILE_INTERFACE_NANOS.fetch_add(interface.as_nanos() as u64, Relaxed);
+    FRAME_PROFILE_WORLD_NANOS.fetch_add(world.as_nanos() as u64, Relaxed);
+    FRAME_PROFILE_GPU_NANOS.fetch_add(gpu.as_nanos() as u64, Relaxed);
 }
 
 impl ApplicationHandler for Client {

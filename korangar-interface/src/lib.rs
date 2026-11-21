@@ -230,6 +230,42 @@ where
     window: Box<dyn Window<App>>,
     data: WindowData<App>,
     display_information: DisplayInformation,
+    /// Layout cache: the inputs the cached `display_information` /
+    /// `create_layout_info` result was computed for.
+    layout_cache: WindowLayoutCache<App>,
+}
+
+/// Inputs that `Window::create_layout_info` depends on. When all of them are
+/// unchanged the previously computed layout info is reused instead of resolving
+/// every element again (see [`Interface::invalidate_layouts`]).
+struct WindowLayoutCache<App>
+where
+    App: Application,
+{
+    valid: bool,
+    generation: u64,
+    scaling_bits: u32,
+    window_width: f32,
+    window_height: f32,
+    theme_type: App::ThemeType,
+    chrome_visible: bool,
+}
+
+impl<App> WindowLayoutCache<App>
+where
+    App: Application,
+{
+    fn new(theme_type: App::ThemeType) -> Self {
+        Self {
+            valid: false,
+            generation: 0,
+            scaling_bits: 0,
+            window_width: 0.0,
+            window_height: 0.0,
+            theme_type,
+            chrome_visible: false,
+        }
+    }
 }
 
 struct OverlayElement<App>
@@ -267,6 +303,43 @@ fn short_type_name(name: &'static str) -> &'static str {
     }
 }
 
+/// Profiling counters of the window layout pass, used by the client's
+/// `KORANGAR_PERF_LOG` mode to measure the effect of layout caching.
+static LAYOUT_PROFILE_FRAMES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_PROFILE_WINDOWS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_PROFILE_CREATE_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_PROFILE_REUSED: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static LAYOUT_PROFILE_LAYOUT_NANOS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Snapshot of the window layout profiling counters.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct LayoutProfile {
+    /// Number of `lay_out_windows` calls (frames).
+    pub frames: u64,
+    /// Sum of open windows over all frames.
+    pub windows: u64,
+    /// Total time spent in `Window::create_layout_info`.
+    pub create_layout_nanos: u64,
+    /// Total time spent in `Window::lay_out`.
+    pub lay_out_nanos: u64,
+    /// Number of windows whose cached layout info was reused instead of being
+    /// recomputed.
+    pub reused_windows: u64,
+}
+
+/// Take and reset the window layout profiling counters.
+pub fn take_layout_profile() -> LayoutProfile {
+    use std::sync::atomic::Ordering::Relaxed;
+
+    LayoutProfile {
+        frames: LAYOUT_PROFILE_FRAMES.swap(0, Relaxed),
+        windows: LAYOUT_PROFILE_WINDOWS.swap(0, Relaxed),
+        create_layout_nanos: LAYOUT_PROFILE_CREATE_NANOS.swap(0, Relaxed),
+        lay_out_nanos: LAYOUT_PROFILE_LAYOUT_NANOS.swap(0, Relaxed),
+        reused_windows: LAYOUT_PROFILE_REUSED.swap(0, Relaxed),
+    }
+}
+
 pub struct Interface<'a, App>
 where
     App: Application,
@@ -285,6 +358,13 @@ where
     window_chrome_visible: bool,
     event_queue: EventQueue<App>,
     overlay_element: Option<OverlayElement<App>>,
+
+    /// Incremented whenever something that can affect the element layout
+    /// changed (window data, scaling, window size, theme, chrome visibility,
+    /// focus, or any user/network event that may mutate the UI state). Windows
+    /// reuse their previously computed layout info while this value and the
+    /// window's own layout inputs are unchanged.
+    layout_generation: u64,
 
     /// Cached window layouts. This is mostly an optimization to avoid
     /// re-allocating the every frame but also serves to store some information
@@ -317,6 +397,7 @@ where
             focused_element: None,
             mouse_mode: MouseMode::Default,
             window_chrome_visible: false,
+            layout_generation: 0,
             event_queue: EventQueue::default(),
             overlay_element: None,
 
@@ -330,10 +411,30 @@ where
 
     pub fn update_window_size(&mut self, screen_size: App::Size) {
         self.window_size = screen_size;
+        self.invalidate_layouts();
+    }
+
+    /// Mark the cached window layouts as stale.
+    ///
+    /// The client calls this whenever UI state may have changed without the
+    /// interface noticing by itself (network events that update inventory,
+    /// chat, stats, ...; settings changes; ...). Window
+    /// open/close/move/resize, screen size and chrome visibility changes
+    /// invalidate the layouts internally.
+    ///
+    /// Element layouts are only recomputed for windows whose cached layout
+    /// inputs (generation, scaling, screen size, theme, chrome visibility) no
+    /// longer match, so this is cheap and can be called every frame if in
+    /// doubt.
+    pub fn invalidate_layouts(&mut self) {
+        self.layout_generation = self.layout_generation.wrapping_add(1);
+        crate::log_trace!("interface: invalidate_layouts generation={}", self.layout_generation);
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn handle_drag(&mut self, delta: App::Size, interface_scaling: f32) {
+        self.invalidate_layouts();
+
         match self.mouse_mode {
             MouseMode::Default => {}
             MouseMode::MovingWindow { window_id } => {
@@ -403,6 +504,7 @@ where
         self.next_window_id = self.next_window_id.wrapping_add(1);
 
         let window_class = window.get_class();
+        let theme_type = window.get_theme_type();
 
         crate::log_trace!(
             "interface: creating window layout for `{}` (id={}, class={:?})",
@@ -431,6 +533,8 @@ where
             debug_name,
             size.width() == 0.0
         );
+        self.layout_generation = self.layout_generation.wrapping_add(1);
+
         self.windows.push(WindowWrapper {
             window: Box::new(window),
             data: WindowData {
@@ -440,6 +544,7 @@ where
                 debug_name,
                 size_clamp_logged: false,
             },
+            layout_cache: WindowLayoutCache::new(theme_type),
             display_information: DisplayInformation {
                 real_area: Area {
                     left: 0.0,
@@ -463,8 +568,11 @@ where
     /// Show the window chrome (move grip and resize handles) on all windows,
     /// even when they are not hovered.
     pub fn set_window_chrome_visible(&mut self, window_chrome_visible: bool) {
-        self.window_chrome_visible = window_chrome_visible;
-        App::set_window_chrome_visible(window_chrome_visible);
+        if self.window_chrome_visible != window_chrome_visible {
+            self.window_chrome_visible = window_chrome_visible;
+            App::set_window_chrome_visible(window_chrome_visible);
+            self.invalidate_layouts();
+        }
     }
 
     pub fn has_focus(&self) -> bool {
@@ -540,6 +648,7 @@ where
         // Remove the cached window layout to avoid growing the cache indefinitely.
         self.window_layouts.remove(&self.windows[index].data.id);
         self.windows.remove(index);
+        self.layout_generation = self.layout_generation.wrapping_add(1);
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
@@ -593,7 +702,13 @@ where
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn process_events(&mut self, custom_events: &mut Vec<App::CustomEvent>) {
-        for event in self.event_queue.drain() {
+        let events: Vec<_> = self.event_queue.drain().collect();
+
+        if !events.is_empty() {
+            self.invalidate_layouts();
+        }
+
+        for event in events {
             match event {
                 // This case should never be hit. FocusElement needs to be converted to
                 // FocusElementPost in the event queue while the layout is still alive.
@@ -680,12 +795,32 @@ where
             #[cfg(feature = "debug")]
             korangar_debug::profile_block!("create window layout info");
 
+            let theme_type = wrapper.window.get_theme_type();
+            let scaling_bits = interface_scaling.to_bits();
+            let window_width = this.window_size.width();
+            let window_height = this.window_size.height();
+
+            let layout_cache = &mut wrapper.layout_cache;
+            let reusable = layout_cache.valid
+                && layout_cache.generation == this.layout_generation
+                && layout_cache.scaling_bits == scaling_bits
+                && layout_cache.window_width.to_bits() == window_width.to_bits()
+                && layout_cache.window_height.to_bits() == window_height.to_bits()
+                && layout_cache.theme_type == theme_type
+                && layout_cache.chrome_visible == this.window_chrome_visible;
+
+            if reusable {
+                LAYOUT_PROFILE_REUSED.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                return;
+            }
+
             crate::log_trace!(
-                "interface: create_layout_info id={} type=`{}`",
+                "interface: create_layout_info id={} type=`{}` (layout inputs changed)",
                 wrapper.data.id,
                 wrapper.data.debug_name,
             );
 
+            let layout_start = std::time::Instant::now();
             wrapper.display_information = wrapper.window.create_layout_info(
                 state,
                 &mut this.window_store,
@@ -694,7 +829,20 @@ where
                 &this.text_layouter,
                 this.window_size,
             );
+
+            LAYOUT_PROFILE_CREATE_NANOS.fetch_add(layout_start.elapsed().as_nanos() as u64, std::sync::atomic::Ordering::Relaxed);
+
+            layout_cache.valid = true;
+            layout_cache.generation = this.layout_generation;
+            layout_cache.scaling_bits = scaling_bits;
+            layout_cache.window_width = window_width;
+            layout_cache.window_height = window_height;
+            layout_cache.theme_type = theme_type;
+            layout_cache.chrome_visible = this.window_chrome_visible;
         });
+
+        LAYOUT_PROFILE_FRAMES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        LAYOUT_PROFILE_WINDOWS.fetch_add(this.windows.len() as u64, std::sync::atomic::Ordering::Relaxed);
 
         let mut hovered_window = None;
 
@@ -782,7 +930,9 @@ where
                 this.window_chrome_visible,
             );
 
+            let lay_out_start = std::time::Instant::now();
             wrapper.window.lay_out(state, &this.window_store, &wrapper.data, layout);
+            LAYOUT_PROFILE_LAYOUT_NANOS.fetch_add(lay_out_start.elapsed().as_nanos() as u64, std::sync::atomic::Ordering::Relaxed);
 
             if hovered_window.is_none() && layout.is_hovered() {
                 hovered_window = Some(wrapper.data.id);
