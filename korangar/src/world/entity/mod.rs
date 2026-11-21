@@ -1741,10 +1741,13 @@ impl Entity {
     }
 
     /// Play the skill-cast animation on this entity for `cast_time`
-    /// milliseconds.
-    pub fn set_skill_cast(&mut self, cast_time: u32, client_tick: ClientTick) {
+    /// milliseconds. Casts with a cast time loop the animation, instant casts
+    /// play it once.
+    pub fn set_skill_cast(&mut self, cast_time: u32, looping: bool, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();
-        self.get_common_mut().animation_state.skill(entity_type, cast_time, client_tick);
+        self.get_common_mut()
+            .animation_state
+            .skill(entity_type, cast_time, looping, client_tick);
     }
 
     pub fn is_sitting(&self) -> bool {
