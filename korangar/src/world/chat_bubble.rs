@@ -38,11 +38,11 @@ const BUBBLE_FONT_SIZE: f32 = 14.0;
 const BUBBLE_PADDING: f32 = 5.0;
 /// Vertical gap between two stacked bubbles, in unscaled pixels.
 const BUBBLE_LINE_GAP: f32 = 2.0;
-/// Approximate height of a character in world units. Character sprites are
-/// about 70-80 pixels tall, and one tile is `TILE_SIZE` (10) world units with
-/// `SPRITE_SCALE` 1.4 (see `AnimationData::calculate_world_matrix`), so the
-/// head is roughly nine to eleven units above the entity's feet.
-const BUBBLE_HEAD_HEIGHT: f32 = 10.0;
+/// Height of a character in world units, measured from the entity's feet to
+/// just above the head. Character sprites are roughly 1.7 tiles tall; one
+/// tile is `TILE_SIZE` (10) world units, so 17 units puts the bubble above the
+/// head instead of on the torso.
+const BUBBLE_HEAD_HEIGHT: f32 = 17.0;
 
 struct ChatBubble {
     entity_id: EntityId,
