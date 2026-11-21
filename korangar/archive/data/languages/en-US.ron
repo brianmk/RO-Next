@@ -8,6 +8,7 @@
     remember_password_text: "Remember password",
     log_in_button_text: "Log in",
     log_in_button_tooltip: "Enter a username and password",
+    show_character_names_text: "Show character names",
     menu_window_title: "Menu",
     graphics_settings_button_text: "Graphics settings",
     game_settings_button_text: "Game settings",

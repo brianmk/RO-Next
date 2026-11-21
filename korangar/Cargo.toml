@@ -29,6 +29,7 @@ korangar-interface = { workspace = true, features = ["serde", "cgmath", "theme-e
 korangar-loaders = { workspace = true }
 korangar-networking = { workspace = true, features = ["interface"] }
 korangar-video = { workspace = true }
+libc = { workspace = true }
 lunify = { workspace = true }
 mlua = { workspace = true, features = ["lua51", "vendored"] }
 num = { workspace = true }

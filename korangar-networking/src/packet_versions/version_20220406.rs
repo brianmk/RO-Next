@@ -123,7 +123,15 @@ where
     packet_handler.register(|packet: RequestCharacterListSuccessPacket| NetworkEvent::CharacterList {
         characters: packet.character_information,
     })?;
-    packet_handler.register_noop::<CharacterListPacket>()?;
+    // CondaRO runs a 2019 rAthena/PACKETVER 20190605 server. The authoritative
+    // character list is the 0x006B packet the char server sends right after
+    // CH_ENTER. 0x099D is only a duplicate response to the 0x09A1 request (and
+    // rAthena sends an extra EMPTY 0x099D when the account has exactly 3
+    // characters), so it must not overwrite the list: treat it as a no-op.
+    packet_handler.register(|packet: CharacterListPacket| NetworkEvent::CharacterList {
+        characters: packet.character_information.into_iter().map(CharacterInformation::from).collect(),
+    })?;
+    packet_handler.register_noop::<CharacterInfoPerPagePacket>()?;
     packet_handler.register_noop::<CharacterSlotPagePacket>()?;
     packet_handler.register_noop::<CharacterBanListPacket>()?;
     packet_handler.register_noop::<LoginPincodePacket>()?;
@@ -155,6 +163,9 @@ where
     })?;
     packet_handler.register(|packet: CreateCharacterSuccessPacket| NetworkEvent::CharacterCreated {
         character_information: packet.character_information,
+    })?;
+    packet_handler.register(|packet: CreateCharacterSuccessPacket2019| NetworkEvent::CharacterCreated {
+        character_information: packet.character_information.into(),
     })?;
     packet_handler.register(|packet: CharacterCreationFailedPacket| {
         let reason = packet.reason;
@@ -533,7 +544,17 @@ where
     })?;
     packet_handler.register_noop::<DisplaySpecialEffectPacket>()?;
     packet_handler.register_noop::<DisplaySkillCooldownPacket>()?;
-    packet_handler.register_noop::<DisplaySkillEffectAndDamagePacket>()?;
+    packet_handler.register(|packet: DisplaySkillEffectAndDamagePacket| {
+        // Reuse the regular damage event so skill damage shows damage numbers
+        // and plays the hit animation just like auto attacks.
+        NetworkEvent::DamageEffect {
+            source_entity_id: packet.source_entity_id,
+            destination_entity_id: packet.destination_entity_id,
+            damage_amount: (packet.damage > 0).then_some(packet.damage as usize),
+            attack_duration: packet.destination_delay,
+            is_critical: false,
+        }
+    })?;
     packet_handler.register(|packet: DisplaySkillEffectNoDamagePacket| NetworkEvent::HealEffect {
         entity_id: packet.destination_entity_id,
         heal_amount: packet.heal_amount as usize,

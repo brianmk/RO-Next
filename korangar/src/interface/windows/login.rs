@@ -1,6 +1,7 @@
 use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::StateElement;
 use korangar_interface::element::id::FocusIdExt;
+use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::window::{CustomWindow, Window};
 use rust_state::{Path, PathExt, RustState, State};
 
@@ -15,6 +16,29 @@ use crate::state::{ClientState, ClientStatePathExt, SelectedServicePath, client_
 
 const MAXIMUM_USERNAME_LENGTH: usize = 24;
 const MAXIMUM_PASSWORD_LENGTH: usize = 24;
+
+/// Click handler that toggles a boolean and *immediately* persists the login
+/// settings.
+///
+/// `LoginSettings` only saves itself when it is dropped, i.e. on a clean
+/// shutdown. If the client is killed (terminal closed, SIGHUP/SIGKILL, crash)
+/// the remembered credentials are lost. Persisting on every toggle makes the
+/// checkbox effective right away, independently of how the client exits.
+struct PersistingToggle<V, S> {
+    value_path: V,
+    settings_path: S,
+}
+
+impl<V, S> ClickHandler<ClientState> for PersistingToggle<V, S>
+where
+    V: Path<ClientState, bool>,
+    S: Path<ClientState, LoginSettings>,
+{
+    fn handle_click(&self, state: &State<ClientState>, _: &mut EventQueue<ClientState>) {
+        state.update_value_with(self.value_path, |value| *value = !*value);
+        state.update_value_with(self.settings_path, |settings| settings.save());
+    }
+}
 
 /// Internal state of the login window.
 #[derive(RustState, StateElement)]
@@ -63,6 +87,18 @@ where
         let remember_username_path = selected_service_path.remember_username();
         let remember_password_path = selected_service_path.remember_password();
 
+        // Toggling a "remember" checkbox has to persist immediately: otherwise the
+        // state is only written when the client shuts down cleanly, and any
+        // crash/kill loses it.
+        let remember_username_toggle = PersistingToggle {
+            value_path: remember_username_path,
+            settings_path: self.service_settings_path,
+        };
+        let remember_password_toggle = PersistingToggle {
+            value_path: remember_password_path,
+            settings_path: self.service_settings_path,
+        };
+
         let disabled_selector = ComputedSelector::new_default(move |state: &ClientState| {
             selected_service_path.username().follow_safe(state).is_empty() || selected_service_path.password().follow_safe(state).is_empty()
         });
@@ -76,6 +112,11 @@ where
             // Remember which service was selected so we can select it next time the client
             // starts.
             state.update_value(self.service_settings_path.recent_service_id(), Some(*selected_service_id));
+
+            // Persist the (possibly freshly typed) credentials immediately. `LoginSettings`
+            // otherwise only writes itself on a clean shutdown, so a crash or a killed
+            // process would silently lose the remembered login data.
+            state.update_value_with(self.service_settings_path, |settings| settings.save());
 
             queue.queue(InputEvent::LogIn {
                 service_id: *selected_service_id,
@@ -150,7 +191,7 @@ where
                         state_button! {
                             text: client_state().localization().remember_username_text(),
                             state: remember_username_path,
-                            event: Toggle(remember_username_path),
+                            event: remember_username_toggle,
                             background_color: Color::TRANSPARENT,
                             hovered_background_color: Color::TRANSPARENT,
                             shadow_padding: ShadowPadding::default(),
@@ -158,7 +199,7 @@ where
                         state_button! {
                             text: client_state().localization().remember_password_text(),
                             state: remember_password_path,
-                            event: Toggle(remember_password_path),
+                            event: remember_password_toggle,
                             background_color: Color::TRANSPARENT,
                             hovered_background_color: Color::TRANSPARENT,
                             shadow_padding: ShadowPadding::default(),

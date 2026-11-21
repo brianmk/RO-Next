@@ -24,6 +24,15 @@ pub struct InterfaceSettings {
     pub menu_theme: String,
     pub in_game_theme: String,
     pub world_theme: String,
+    /// Show the names of player characters below them at all times, like the
+    /// original client does. If this is disabled, a name is only shown while
+    /// the character is hovered.
+    #[serde(default = "default_show_character_names")]
+    pub show_character_names: bool,
+}
+
+fn default_show_character_names() -> bool {
+    true
 }
 
 impl Default for InterfaceSettings {
@@ -34,6 +43,7 @@ impl Default for InterfaceSettings {
             menu_theme: DEFAULT_THEME_NAME.to_string(),
             in_game_theme: DEFAULT_THEME_NAME.to_string(),
             world_theme: DEFAULT_THEME_NAME.to_string(),
+            show_character_names: true,
         }
     }
 }

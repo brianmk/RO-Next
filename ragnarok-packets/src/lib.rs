@@ -306,7 +306,20 @@ pub struct CharacterListPacket {
     #[new_default]
     pub unknown: [u8; 20],
     #[repeating_remaining]
-    pub character_information: Vec<CharacterInformation>,
+    pub character_information: Vec<CharacterInformation2019>,
+}
+
+/// Sent by the character server as a response to [RequestCharacterListPacket]
+/// on clients that still use the pre-2020 character list layout (rAthena 2019
+/// clients, `PACKETVER < 20201007`). Each row is a `CHARACTER_INFO` of 155
+/// bytes (32-bit HP/SP), unlike the 2022 layout in [CharacterInformation].
+#[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x099D)]
+#[variable_length]
+pub struct CharacterInfoPerPagePacket {
+    #[repeating_remaining]
+    pub character_information: Vec<CharacterInformation2019>,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
@@ -559,8 +572,8 @@ pub struct MapServerLoginPacket {
     pub login_id1: u32,
     pub client_tick: ClientTick,
     pub sex: Sex,
-    #[new_default]
-    pub unknown: [u8; 4],
+    // NOTE: 2022 clients append 4 unknown bytes here; the 2019 rAthena server
+    // (PACKETVER 20190605) expects the 19-byte 0x0436 layout, so it is omitted.
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
@@ -648,6 +661,131 @@ impl rust_state::VecItem for CharacterInformation {
     fn get_id(&self) -> Self::Id {
         self.character_id.0
     }
+}
+
+/// Wire layout of rAthena's `CHARACTER_INFO` for clients before 2020-10-07
+/// (`PACKETVER < 20201007`), i.e. the 2019 client used by CondaRO. It differs
+/// from [CharacterInformation] in the HP/SP field widths (32/32/16/16 instead
+/// of four 64-bit values), making one row 155 bytes instead of 175.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct CharacterInformation2019 {
+    pub character_id: CharacterId,
+    pub experience: i64,
+    pub money: i32,
+    pub job_experience: i64,
+    pub job_level: i32,
+    pub body_state: i32,
+    pub health_state: i32,
+    pub effect_state: i32,
+    pub virtue: i32,
+    pub honor: i32,
+    pub stat_points: i16,
+    pub health_points: i32,
+    pub maximum_health_points: i32,
+    pub spell_points: i16,
+    pub maximum_spell_points: i16,
+    pub movement_speed: i16,
+    pub job_id: JobId,
+    pub head: i16,
+    pub body: i16,
+    pub weapon: i16,
+    pub base_level: i16,
+    pub sp_point: i16,
+    pub accessory: i16,
+    pub shield: i16,
+    pub accessory2: i16,
+    pub accessory3: i16,
+    pub head_palette: i16,
+    pub body_palette: i16,
+    #[length(24)]
+    pub name: String,
+    pub strength: u8,
+    pub agility: u8,
+    pub vitality: u8,
+    pub intelligence: u8,
+    pub dexterity: u8,
+    pub luck: u8,
+    pub character_number: u8,
+    pub hair_color: u8,
+    pub b_is_changed_char: i16,
+    #[length(16)]
+    pub map_name: String,
+    pub deletion_reverse_date: i32,
+    pub robe_palette: i32,
+    pub character_slot_change_count: i32,
+    pub character_name_change_count: i32,
+    pub sex: Sex,
+}
+
+impl From<CharacterInformation2019> for CharacterInformation {
+    fn from(value: CharacterInformation2019) -> Self {
+        Self {
+            character_id: value.character_id,
+            experience: value.experience,
+            money: value.money,
+            job_experience: value.job_experience,
+            job_level: value.job_level,
+            body_state: value.body_state,
+            health_state: value.health_state,
+            effect_state: value.effect_state,
+            virtue: value.virtue,
+            honor: value.honor,
+            stat_points: value.stat_points,
+            health_points: value.health_points as i64,
+            maximum_health_points: value.maximum_health_points as i64,
+            spell_points: value.spell_points as i64,
+            maximum_spell_points: value.maximum_spell_points as i64,
+            movement_speed: value.movement_speed,
+            job_id: value.job_id,
+            head: value.head,
+            body: value.body,
+            weapon: value.weapon,
+            base_level: value.base_level,
+            sp_point: value.sp_point,
+            accessory: value.accessory,
+            shield: value.shield,
+            accessory2: value.accessory2,
+            accessory3: value.accessory3,
+            head_palette: value.head_palette,
+            body_palette: value.body_palette,
+            name: value.name,
+            strength: value.strength,
+            agility: value.agility,
+            vitality: value.vitality,
+            intelligence: value.intelligence,
+            dexterity: value.dexterity,
+            luck: value.luck,
+            character_number: value.character_number,
+            hair_color: value.hair_color,
+            b_is_changed_char: value.b_is_changed_char,
+            map_name: value.map_name,
+            deletion_reverse_date: value.deletion_reverse_date,
+            robe_palette: value.robe_palette,
+            character_slot_change_count: value.character_slot_change_count,
+            character_name_change_count: value.character_name_change_count,
+            sex: value.sex,
+        }
+    }
+}
+
+#[cfg(feature = "interface")]
+impl rust_state::VecItem for CharacterInformation2019 {
+    type Id = u32;
+
+    fn get_id(&self) -> Self::Id {
+        self.character_id.0
+    }
+}
+
+/// Sent by the character server as a response to [CreateCharacterPacket]
+/// succeeding on 2019-era servers (`PACKETVER < 20201007`): the fixed-size
+/// 0x006D packet carrying one legacy 155-byte CHARACTER_INFO row.
+#[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x006D)]
+pub struct CreateCharacterSuccessPacket2019 {
+    pub character_information: CharacterInformation2019,
 }
 
 /// Sent by the character server as a response to [CreateCharacterPacket]

@@ -1916,6 +1916,7 @@ dependencies = [
  "korangar-loaders",
  "korangar-networking",
  "korangar-video",
+ "libc",
  "lunify",
  "mlua",
  "num",

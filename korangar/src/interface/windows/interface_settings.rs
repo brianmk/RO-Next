@@ -95,6 +95,11 @@ where
                     }
                 )
             },
+            state_button! {
+                text: client_state().localization().show_character_names_text(),
+                state: self.settings_path.show_character_names(),
+                event: Toggle(self.settings_path.show_character_names()),
+            },
         );
 
         window! {
