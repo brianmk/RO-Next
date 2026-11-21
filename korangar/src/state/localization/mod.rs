@@ -141,6 +141,8 @@ pub struct Localization {
     log_in_button_text: String,
     log_in_button_tooltip: String,
     show_character_names_text: String,
+    show_chat_bubbles_text: String,
+    chat_bubble_background_text: String,
     menu_window_title: String,
     graphics_settings_button_text: String,
     game_settings_button_text: String,

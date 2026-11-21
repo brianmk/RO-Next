@@ -300,6 +300,7 @@ pub struct Client {
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
+    chat_bubbles: ChatBubbles,
     warp_portal: Option<WarpPortal>,
     path_finder: PathFinder,
 
@@ -809,6 +810,7 @@ impl Client {
             particle_holder,
             point_light_manager,
             effect_holder,
+            chat_bubbles: ChatBubbles::default(),
             warp_portal,
             path_finder,
             point_light_set_buffer,
@@ -1338,6 +1340,7 @@ impl Client {
 
                     self.client_state.follow_mut(client_state().entities()).clear();
                     self.client_state.follow_mut(client_state().dead_entities()).clear();
+                    self.chat_bubbles.clear();
                     self.client_state.follow_mut(client_state().ground_items()).clear();
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
 
@@ -1601,6 +1604,8 @@ impl Client {
                     }
                 }
                 NetworkEvent::RemoveEntity { entity_id, reason } => {
+                    self.chat_bubbles.remove_entity(entity_id);
+
                     // If the motive is dead, you need to set the player to dead.
                     if reason == DisappearanceReason::Died {
                         if let Some(entity) = self
@@ -1753,6 +1758,7 @@ impl Client {
                     self.map = None;
                     self.particle_holder.clear();
                     self.effect_holder.clear();
+                    self.chat_bubbles.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
 
@@ -1774,6 +1780,9 @@ impl Client {
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(text, color));
+                }
+                NetworkEvent::OverheadChatMessage { entity_id, text, color } => {
+                    self.chat_bubbles.push(entity_id, text, color, client_tick);
                 }
                 NetworkEvent::UpdateEntityDetails { entity_id, name } => {
                     let entity = self
@@ -2320,6 +2329,8 @@ impl Client {
                 }
             }
         }
+
+        self.chat_bubbles.retain_alive(client_tick);
     }
 
     /// Returns whether or not the interface is focused.
@@ -2661,6 +2672,13 @@ impl Client {
                     let _ = self
                         .networking_system
                         .send_chat_message(self.client_state.follow(client_state().player_name()), &text);
+
+                    // The server sends ZC_NOTIFY_CHAT (0x008D) only to the
+                    // surrounding players (AREA_CHAT_WOC excludes the speaker),
+                    // so our own speech bubble has to be created locally.
+                    if let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) {
+                        self.chat_bubbles.push(entity_id, text, MessageColor::Broadcast, client_tick);
+                    }
                 }
                 InputEvent::NextDialog { npc_id } => {
                     let _ = self.networking_system.next_dialog(npc_id);
@@ -3961,6 +3979,7 @@ impl Client {
                 water_instruction: &mut water_instruction,
                 particle_holder: &mut self.particle_holder,
                 effect_holder: &mut self.effect_holder,
+                chat_bubbles: &self.chat_bubbles,
                 warp_portal: self.warp_portal.as_ref(),
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
@@ -4323,6 +4342,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     water_instruction: &'a mut Option<WaterInstruction<'m>>,
     particle_holder: &'a mut ParticleHolder,
     effect_holder: &'a mut EffectHolder,
+    chat_bubbles: &'a ChatBubbles,
     warp_portal: Option<&'a WarpPortal>,
     effect_renderer: &'a mut EffectRenderer,
     bottom_interface_renderer: &'a GameInterfaceRenderer,
@@ -4686,6 +4706,28 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                     self.render_entity_name(entity);
                 }
             }
+        }
+
+        // Overhead chat bubbles ("subtitles") above speaking player characters.
+        // They are drawn after the name labels so they don't get overlapped by
+        // them, and they have their own per-message lifetime.
+        let show_chat_bubbles = *self.client_state.follow(client_state().interface_settings().show_chat_bubbles());
+
+        if show_chat_bubbles && chat_bubbles_enabled_by_environment() && self.currently_playing {
+            let show_background = *self
+                .client_state
+                .follow(client_state().interface_settings().chat_bubble_background())
+                && chat_bubble_background_enabled_by_environment();
+
+            self.chat_bubbles.render(
+                self.middle_interface_renderer,
+                self.current_camera,
+                self.client_state.follow(client_state().entities()),
+                self.screen_size,
+                self.scaling,
+                show_background,
+                self.client_tick,
+            );
         }
 
         match self.mouse_target {
