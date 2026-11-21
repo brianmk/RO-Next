@@ -1238,6 +1238,27 @@ mod packet_handlers {
     }
 
     #[test]
+    fn longlong_stat_update_packet_carries_next_base_experience() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0ACB (ZC_LONGLONGPAR_CHANGE): varId 22 (SP_NEXTBASEEXP), 10 as i64.
+        let packet: [u8; 12] = [
+            0xCB, 0x0A, // header
+            22, 0x00, // varId
+            10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // amount
+        ];
+        let mut reader = ByteReader::without_metadata(&packet);
+
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("longlong stat update packet was not handled");
+        };
+
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::UpdateStat {
+            stat_type: ragnarok_packets::StatType::NextBaseExperience(10),
+        }]));
+    }
+
+    #[test]
     fn display_emotion_packet_preserves_entity_and_emotion() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
         let packet = DisplayEmotionPacket {
