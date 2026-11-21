@@ -2294,6 +2294,18 @@ impl Client {
                     // inventory and for unequipping items. We should probably manually
                     // request a full list of items and the hotbar.
 
+                    if !self.library.contains::<crate::world::SkillTreeLayout>(job_id) {
+                        // Population/LLM shells change their job to jobs that this
+                        // client's trimmed skill-tree tables do not contain. Log the
+                        // offending job id (harmless; the local skill tree is only
+                        // updated for the own character) to make future investigations
+                        // of missing job tables easy.
+                        eprintln!(
+                            "[skill_tree] job {:?} (entity {:?}) is not in the client skill-tree tables",
+                            job_id, account_id
+                        );
+                    }
+
                     entity.set_job(&self.library, job_id);
 
                     if let Some(animation_data) = self.async_loader.request_animation_data_load(

@@ -73,6 +73,13 @@ impl Library {
     }
 
     #[inline(always)]
+    /// Whether the library has an entry for the given key. Useful to detect
+    /// jobs that are not covered by this client's (trimmed) tables without
+    /// falling back to a default value.
+    pub fn contains<T: Table>(&self, key: T::Key<'_>) -> bool {
+        T::try_get(self, key).is_some()
+    }
+
     pub fn get<T: Table>(&self, key: T::Key<'_>) -> &T {
         T::get(self, key)
     }
