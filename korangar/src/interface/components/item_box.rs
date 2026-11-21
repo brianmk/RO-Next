@@ -224,10 +224,16 @@ where
                 }
             }
 
-            if matches!(item.details, InventoryItemDetails::Regular { .. }) {
+            if matches!(item.details, InventoryItemDetails::Regular { .. })
+                && let Some(amount) = self.amount_display.string.as_ref()
+            {
+                // The amount display is populated in `create_layout_info`; an item
+                // can arrive between layout creation and layout (e.g. the login
+                // inventory burst), in which case we simply skip the amount text
+                // for this frame instead of unwrapping `None`.
                 layout.add_text(
                     layout_info.area,
-                    self.amount_display.string.as_ref().unwrap(),
+                    amount,
                     // TODO: Put this in the theme
                     FontSize(12.0),
                     // TODO: Put this in the theme
