@@ -433,10 +433,11 @@ fn get_entity_part_files(
             "npc\\{}",
             library.get::<JobIdentity>(job_id).to_string()
         ))],
-        EntityType::Monster => vec![EntityPartFile::new(format!(
-            "몬스터\\{}",
-            library.get::<JobIdentity>(job_id).to_string()
-        ))],
+        // Monster sprite resolution is handled by the library: it falls back from the
+        // exact `몬스터\<identity>` path to a verified alias / npc-folder / generic
+        // sprite instead of the black `missing.spr` placeholder (the data set is
+        // partially trimmed, see `world/library/monster_sprite.rs`).
+        EntityType::Monster => vec![EntityPartFile::new(library.monster_sprite_path(job_id).to_string())],
         // Warps and hidden NPCs have no sprite in the game files. The kRO client draws
         // warps as a dedicated hard-coded effect (see `WarpPortal`) and does not draw
         // hidden NPCs at all. Requesting a sprite path for them would end up loading
