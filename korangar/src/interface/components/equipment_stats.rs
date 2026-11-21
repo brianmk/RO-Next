@@ -18,7 +18,8 @@ use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
-use crate::state::ClientState;
+use crate::state::theme::{CharacterOverviewThemePathExt, InterfaceThemePathExt};
+use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata, StatBonuses};
 
 /// Height of the panel. Matches the height of the paper doll so that both
@@ -27,8 +28,6 @@ const PANEL_HEIGHT: f32 = 342.0;
 
 const PANEL_BACKGROUND_COLOR: Color = Color::rgba_u8(0, 0, 0, 40);
 const HEADER_COLOR: Color = Color::rgb_u8(255, 160, 60);
-const LABEL_COLOR: Color = Color::rgb_u8(200, 200, 200);
-const VALUE_COLOR: Color = Color::rgb_u8(255, 205, 140);
 const SEPARATOR_COLOR: Color = Color::rgba_u8(255, 255, 255, 24);
 
 const HEADER_HEIGHT: f32 = 26.0;
@@ -326,12 +325,17 @@ where
                         height: ROW_HEIGHT,
                     };
 
+                    // Use the theme's text colors so the stats stay readable on
+                    // both the dark default skin and the light classic skin.
+                    let label_color = *state.get(&client_theme().character_overview().label_color());
+                    let value_color = *state.get(&client_theme().character_overview().value_color());
+
                     layout.add_text(
                         row_area,
                         label,
                         FontSize(13.0),
-                        LABEL_COLOR,
-                        LABEL_COLOR,
+                        label_color,
+                        label_color,
                         horizontal_alignment,
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -341,8 +345,8 @@ where
                         row_area,
                         value,
                         FontSize(13.0),
-                        VALUE_COLOR,
-                        VALUE_COLOR,
+                        value_color,
+                        value_color,
                         HorizontalAlignment::Right { offset: 2.0, border: 0.0 },
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
