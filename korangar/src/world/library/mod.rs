@@ -7,6 +7,8 @@ mod job_identity;
 mod map_sky_data;
 mod monster_sprite;
 mod monster_sprite_alias;
+mod skill_icon;
+mod skill_icon_alias;
 mod skill_information;
 mod skill_requirements;
 mod skill_tree;
@@ -17,7 +19,7 @@ use encoding_rs::EUC_KR;
 use hashbrown::HashMap;
 use korangar_loaders::FileLoader;
 use mlua::Lua;
-use ragnarok_packets::JobId;
+use ragnarok_packets::{JobId, SkillId};
 
 pub use self::baby_job::IsBabyJob;
 pub use self::item_info::ItemInfo;
@@ -27,6 +29,7 @@ pub use self::item_stats::{ItemStats, StatBonuses};
 pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 use self::monster_sprite::MonsterSprites;
+use self::skill_icon::SkillIcons;
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;
@@ -41,6 +44,7 @@ pub struct Library {
     skill_tree_table: <SkillTreeLayout as Table>::Storage,
     baby_job_table: <IsBabyJob as Table>::Storage,
     monster_sprites: MonsterSprites,
+    skill_icons: SkillIcons,
 }
 
 impl Library {
@@ -53,6 +57,7 @@ impl Library {
         let skill_tree_table = SkillTreeLayout::load(game_file_loader)?;
         let baby_job_table = IsBabyJob::load(game_file_loader)?;
         let monster_sprites = MonsterSprites::load(game_file_loader, &job_identity_table);
+        let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
 
         Ok(Self {
             job_identity_table,
@@ -63,6 +68,7 @@ impl Library {
             skill_tree_table,
             baby_job_table,
             monster_sprites,
+            skill_icons,
         })
     }
 
@@ -80,6 +86,16 @@ impl Library {
     #[inline(always)]
     pub fn monster_sprite_path(&self, job_id: JobId) -> &str {
         self.monster_sprites.path(job_id)
+    }
+
+    /// Icon path (relative to `data\sprite\`, without extension) for a skill.
+    ///
+    /// The path was verified against the game archives when the library was
+    /// loaded and is never the black `missing.spr` placeholder for skill
+    /// ids.
+    #[inline(always)]
+    pub fn skill_icon_path(&self, skill_id: SkillId) -> &str {
+        self.skill_icons.path(skill_id)
     }
 }
 
