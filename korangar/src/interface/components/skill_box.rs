@@ -176,7 +176,9 @@ where
 
         layout.add_rectangle(
             layout_info.area,
-            CornerDiameter::uniform(20.0),
+            // Square slot with a small corner radius: the y rounded "pill" corners
+            // used to leave large dark areas around the skill icon.
+            CornerDiameter::uniform(6.0),
             background_color,
             Color::rgba_u8(0, 0, 0, 100),
             ShadowPadding::diagonal(2.0, 5.0),
@@ -217,7 +219,27 @@ where
             if let Some(actions) = &learnable_skill.actions
                 && let Some(sprite) = &learnable_skill.sprite
             {
-                layout.add_sprite(layout_info.area, actions, sprite, &learnable_skill.animation_state, color, 1.0);
+                // Scale the skill art to fill the whole square slot instead of drawing the
+                // native icon size and leaving the dark background visible around it.
+                let sprite_scale = sprite
+                    .textures
+                    .first()
+                    .map(|texture| {
+                        let size = texture.get_size();
+                        let icon_size = size.width.max(size.height) as f32;
+
+                        layout_info.area.width.min(layout_info.area.height) / icon_size
+                    })
+                    .unwrap_or(1.0);
+
+                layout.add_sprite(
+                    layout_info.area,
+                    actions,
+                    sprite,
+                    &learnable_skill.animation_state,
+                    color,
+                    sprite_scale,
+                );
             }
 
             if is_hovered {

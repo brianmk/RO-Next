@@ -669,7 +669,22 @@ where
                 resize_mode: ResizeMode::Horizontal,
                 window_id,
             } if *window_id == data.id);
+        let vertical_resize_active = vertical_resize_hovered && vertical_resize_availabe
+            || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
+                resize_mode: ResizeMode::Vertical,
+                window_id,
+            } if *window_id == data.id);
+        let corner_resize_active = resize_hovered && horizontal_resize_available && vertical_resize_availabe
+            || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
+                resize_mode: ResizeMode::Both,
+                window_id,
+            } if *window_id == data.id);
 
+        // While the resize chrome is visible all available handles are drawn
+        // simultaneously (horizontal, vertical and the corner). They used to be
+        // mutually exclusive via an else-if chain, which meant that any window
+        // with a horizontal handle (like the chat window) never showed the
+        // vertical handle, so it could only be resized side to side.
         if horizontal_resize_active || (chrome_visible && horizontal_resize_available) {
             let color = match horizontal_resize_active {
                 true => *state.get(&theme().window().closest_anchor_color()),
@@ -682,19 +697,10 @@ where
                 color,
                 App::ShadowPadding::none(),
             );
-        } else if vertical_resize_hovered && vertical_resize_availabe
-            || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
-                resize_mode: ResizeMode::Vertical,
-                window_id,
-            } if *window_id == data.id)
-            || (chrome_visible && vertical_resize_availabe)
-        {
-            let active = vertical_resize_hovered && vertical_resize_availabe
-                || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
-                    resize_mode: ResizeMode::Vertical,
-                    window_id,
-                } if *window_id == data.id);
-            let color = match active {
+        }
+
+        if vertical_resize_active || (chrome_visible && vertical_resize_availabe) {
+            let color = match vertical_resize_active {
                 true => *state.get(&theme().window().closest_anchor_color()),
                 false => *state.get(&theme().window().anchor_color()),
             };
@@ -705,19 +711,10 @@ where
                 color,
                 App::ShadowPadding::none(),
             );
-        } else if resize_hovered && horizontal_resize_available && vertical_resize_availabe
-            || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
-                resize_mode: ResizeMode::Both,
-                window_id,
-            } if *window_id == data.id)
-            || (chrome_visible && horizontal_resize_available && vertical_resize_availabe)
-        {
-            let active = resize_hovered && horizontal_resize_available && vertical_resize_availabe
-                || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
-                    resize_mode: ResizeMode::Both,
-                    window_id,
-                } if *window_id == data.id);
-            let color = match active {
+        }
+
+        if corner_resize_active || (chrome_visible && horizontal_resize_available && vertical_resize_availabe) {
+            let color = match corner_resize_active {
                 true => *state.get(&theme().window().closest_anchor_color()),
                 false => *state.get(&theme().window().anchor_color()),
             };
