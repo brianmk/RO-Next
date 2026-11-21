@@ -537,59 +537,31 @@ impl InterfaceRenderer {
         }
 
         // Clamp the insets so that opposite sides can never overlap.
-        let left = slices.left.clamp(0.0, texture_width);
-        let right = slices.right.clamp(0.0, texture_width - left);
-        let top = slices.top.clamp(0.0, texture_height);
-        let bottom = slices.bottom.clamp(0.0, texture_height - top);
+        let area_size = (size.width, size.height);
+        let texture_size = (texture_width, texture_height);
 
-        let source_columns = [(0.0, left), (left, texture_width - right), (texture_width - right, texture_width)];
-        let source_rows = [
-            (0.0, top),
-            (top, texture_height - bottom),
-            (texture_height - bottom, texture_height),
-        ];
-        let destination_columns = [(0.0, left), (left, size.width - right), (size.width - right, size.width)];
-        let destination_rows = [(0.0, top), (top, size.height - bottom), (size.height - bottom, size.height)];
+        for piece in crate::renderer::skin::nine_slice_pieces(area_size, slices, texture_size) {
+            let piece_position = ScreenPosition {
+                left: position.left + piece.position.0,
+                top: position.top + piece.position.1,
+            };
+            let piece_size = ScreenSize {
+                width: piece.size.0,
+                height: piece.size.1,
+            };
+            let piece_texture_position = Vector2::new(piece.texture_position.0, piece.texture_position.1);
+            let piece_texture_size = Vector2::new(piece.texture_size.0, piece.texture_size.1);
 
-        for (row, (source_top, source_bottom)) in source_rows.iter().enumerate() {
-            for (column, (source_left, source_right)) in source_columns.iter().enumerate() {
-                let (destination_left, destination_right) = destination_columns[column];
-                let (destination_top, destination_bottom) = destination_rows[row];
-
-                let piece_width = destination_right - destination_left;
-                let piece_height = destination_bottom - destination_top;
-
-                // Skip empty pieces (this happens when the target area is smaller than the
-                // slice insets).
-                if piece_width <= 0.0 || piece_height <= 0.0 {
-                    continue;
-                }
-
-                let piece_position = ScreenPosition {
-                    left: position.left + destination_left,
-                    top: position.top + destination_top,
-                };
-                let piece_size = ScreenSize {
-                    width: piece_width,
-                    height: piece_height,
-                };
-                let piece_texture_position = Vector2::new(source_left / texture_width, source_top / texture_height);
-                let piece_texture_size = Vector2::new(
-                    (source_right - source_left) / texture_width,
-                    (source_bottom - source_top) / texture_height,
-                );
-
-                self.render_texture_section(
-                    texture.clone(),
-                    piece_position,
-                    piece_size,
-                    screen_clip,
-                    color,
-                    smooth,
-                    piece_texture_position,
-                    piece_texture_size,
-                );
-            }
+            self.render_texture_section(
+                texture.clone(),
+                piece_position,
+                piece_size,
+                screen_clip,
+                color,
+                smooth,
+                piece_texture_position,
+                piece_texture_size,
+            );
         }
     }
 }

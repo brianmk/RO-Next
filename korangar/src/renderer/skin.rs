@@ -15,6 +15,7 @@
 use std::sync::Arc;
 
 use image::{Rgba, RgbaImage};
+use korangar_interface::skin::Slice;
 use serde::{Deserialize, Serialize};
 
 use crate::graphics::Texture;
@@ -246,6 +247,144 @@ fn copy_into(atlas: &mut RgbaImage, piece: &RgbaImage, offset_x: u32, offset_y: 
         for x in 0..piece.width() {
             let pixel = *piece.get_pixel(x, y);
             atlas.put_pixel(offset_x + x, offset_y + y, pixel);
+        }
+    }
+}
+
+/// A piece of a nine slice image.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SlicePiece {
+    /// Position of the piece relative to the top left corner of the target
+    /// area.
+    pub position: (f32, f32),
+    /// Size of the piece.
+    pub size: (f32, f32),
+    /// Normalized position of the piece inside the texture.
+    pub texture_position: (f32, f32),
+    /// Normalized size of the piece inside the texture.
+    pub texture_size: (f32, f32),
+}
+
+/// Split a nine slice into the individual pieces that have to be drawn.
+///
+/// The insets of the slice are clamped to both the texture and the target size,
+/// pieces that would end up empty are omitted. A slice without insets results
+/// in a single piece that stretches the whole texture over the whole area.
+pub fn nine_slice_pieces(area_size: (f32, f32), slices: Slice, texture_size: (f32, f32)) -> Vec<SlicePiece> {
+    let (width, height) = texture_size;
+    let (area_width, area_height) = area_size;
+
+    if width <= 0.0 || height <= 0.0 || area_width <= 0.0 || area_height <= 0.0 {
+        return Vec::new();
+    }
+
+    if slices.is_none() {
+        return vec![SlicePiece {
+            position: (0.0, 0.0),
+            size: area_size,
+            texture_position: (0.0, 0.0),
+            texture_size: (1.0, 1.0),
+        }];
+    }
+
+    // Clamp the insets so that opposite sides can never overlap.
+    let left = slices.left.clamp(0.0, width);
+    let right = slices.right.clamp(0.0, width - left);
+    let top = slices.top.clamp(0.0, height);
+    let bottom = slices.bottom.clamp(0.0, height - top);
+
+    let source_columns = [(0.0, left), (left, width - right), (width - right, width)];
+    let source_rows = [(0.0, top), (top, height - bottom), (height - bottom, height)];
+    let destination_columns = [(0.0, left), (left, area_width - right), (area_width - right, area_width)];
+    let destination_rows = [(0.0, top), (top, area_height - bottom), (area_height - bottom, area_height)];
+
+    let mut pieces = Vec::with_capacity(9);
+
+    for (row, (source_top, source_bottom)) in source_rows.iter().enumerate() {
+        for (column, (source_left, source_right)) in source_columns.iter().enumerate() {
+            let (destination_left, destination_right) = destination_columns[column];
+            let (destination_top, destination_bottom) = destination_rows[row];
+
+            let piece_width = destination_right - destination_left;
+            let piece_height = destination_bottom - destination_top;
+
+            // Skip empty pieces (this happens when the target area is smaller than the
+            // slice insets).
+            if piece_width <= 0.0 || piece_height <= 0.0 {
+                continue;
+            }
+
+            pieces.push(SlicePiece {
+                position: (destination_left, destination_top),
+                size: (piece_width, piece_height),
+                texture_position: (source_left / width, source_top / height),
+                texture_size: ((source_right - source_left) / width, (source_bottom - source_top) / height),
+            });
+        }
+    }
+
+    pieces
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn without_slices_the_whole_texture_is_stretched() {
+        let pieces = nine_slice_pieces((100.0, 50.0), Slice::NONE, (42.0, 42.0));
+
+        assert_eq!(pieces.len(), 1);
+        assert_eq!(pieces[0].position, (0.0, 0.0));
+        assert_eq!(pieces[0].size, (100.0, 50.0));
+        assert_eq!(pieces[0].texture_position, (0.0, 0.0));
+        assert_eq!(pieces[0].texture_size, (1.0, 1.0));
+    }
+
+    #[test]
+    fn uniform_slices_result_in_nine_pieces() {
+        let pieces = nine_slice_pieces((100.0, 100.0), Slice::uniform(14.0), (42.0, 42.0));
+
+        assert_eq!(pieces.len(), 9);
+
+        // The top left corner is not stretched.
+        assert_eq!(pieces[0].position, (0.0, 0.0));
+        assert_eq!(pieces[0].size, (14.0, 14.0));
+        assert_eq!(pieces[0].texture_position, (0.0, 0.0));
+        assert!((pieces[0].texture_size.0 - 14.0 / 42.0).abs() < f32::EPSILON);
+
+        // The top edge is stretched horizontally.
+        assert_eq!(pieces[1].position, (14.0, 0.0));
+        assert_eq!(pieces[1].size, (72.0, 14.0));
+        assert!((pieces[1].texture_position.0 - 14.0 / 42.0).abs() < f32::EPSILON);
+
+        // The bottom right corner is at the end of both the area and the texture.
+        let last = pieces[8];
+        assert_eq!(last.position, (86.0, 86.0));
+        assert_eq!(last.size, (14.0, 14.0));
+        assert!((last.texture_position.0 - 28.0 / 42.0).abs() < f32::EPSILON);
+        assert!((last.texture_size.0 - 14.0 / 42.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn horizontal_slices_result_in_three_pieces() {
+        let pieces = nine_slice_pieces((50.0, 20.0), Slice::horizontal(6.0, 6.0), (18.0, 20.0));
+
+        assert_eq!(pieces.len(), 3);
+        assert_eq!(pieces[0].size, (6.0, 20.0));
+        assert_eq!(pieces[1].position, (6.0, 0.0));
+        assert_eq!(pieces[1].size, (38.0, 20.0));
+        assert_eq!(pieces[2].position, (44.0, 0.0));
+    }
+
+    #[test]
+    fn degenerate_pieces_are_skipped_if_the_area_is_too_small() {
+        // The area is smaller than the sum of the slice insets.
+        let pieces = nine_slice_pieces((10.0, 10.0), Slice::uniform(14.0), (42.0, 42.0));
+
+        for piece in &pieces {
+            assert!(piece.size.0 > 0.0);
+            assert!(piece.size.1 > 0.0);
         }
     }
 }
