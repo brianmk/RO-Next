@@ -4781,9 +4781,14 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             return;
         }
 
+        // Entity positions are at the feet. The status/health bars are drawn a few
+        // pixels below that, so the name has to start below the bar instead of at the
+        // same height, otherwise both overlap.
+        let name_below_feet = 20.0 * self.scaling.get_factor();
+
         let position = ScreenPosition {
             left: screen_position.x * self.screen_size.width,
-            top: screen_position.y * self.screen_size.height + 6.0 * self.scaling.get_factor(),
+            top: screen_position.y * self.screen_size.height + name_below_feet,
         };
 
         let color = entity_name_color(entity.get_entity_type());
