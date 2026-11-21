@@ -71,12 +71,20 @@ impl FileLoader for GameFileLoader {
 }
 
 impl GameFileLoader {
+    /// Tests if a file exists in any of the loaded archives.
+    ///
+    /// Like [`FileLoader::get`] the path is normalized to lower case: the game
+    /// archives use lower case file names (the official Windows client treats
+    /// file names case-insensitively), so a lookup for e.g.
+    /// `data\texture\verus\ver_h_17.BMP` has to find
+    /// `data\texture\verus\ver_h_17.bmp`.
     pub fn file_exists(&self, path: &str) -> bool {
+        let lowercase_path = path.to_lowercase();
         self.archives
             .read()
             .unwrap()
             .iter()
-            .any(|archive| archive.archive.file_exists(path))
+            .any(|archive| archive.archive.file_exists(&lowercase_path))
     }
 
     fn add_archive(&self, archive: Box<dyn Archive>, is_game_archive: bool) {
@@ -324,7 +332,10 @@ impl GameFileLoader {
 }
 
 pub fn fix_broken_texture_file_endings(path: &str) -> String {
-    let mut path = path.to_string();
+    // File names are case-insensitive (the official client runs on Windows), the
+    // archives only contain lower case names. Normalizing here also makes the
+    // texture cache key deterministic.
+    let mut path = path.to_lowercase();
 
     if path.ends_with(".bm") {
         path.push('p');
