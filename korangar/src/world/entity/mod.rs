@@ -429,10 +429,7 @@ fn get_entity_part_files(
                 ),
             ]
         }
-        EntityType::Npc => vec![EntityPartFile::new(format!(
-            "npc\\{}",
-            library.get::<JobIdentity>(job_id).to_string()
-        ))],
+        EntityType::Npc => vec![EntityPartFile::new(format!("npc\\{}", library.get::<JobIdentity>(job_id)))],
         // Monster sprite resolution is handled by the library: it falls back from the
         // exact `몬스터\<identity>` path to a verified alias / npc-folder / generic
         // sprite instead of the black `missing.spr` placeholder (the data set is

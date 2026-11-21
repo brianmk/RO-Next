@@ -267,7 +267,10 @@ impl AsyncLoader {
         let skill_information = self.library.get::<SkillListInformation>(skill_id);
         let skill_requirements = self.library.get::<SkillListRequirements>(SkillListKey::with_job(job_id, skill_id));
 
-        let path = format!("아이템\\{}", skill_information.file_name);
+        // The icon set of the data set is trimmed; the library resolves a verified
+        // exact/alias/generic icon instead of letting the sprite loader fall back to
+        // the black `missing.spr` placeholder (see `world/library/skill_icon.rs`).
+        let path = self.library.skill_icon_path(skill_id).to_string();
         let sprite = self.request_skill_sprite_load(skill_id, &path);
         let actions = self.request_skill_actions_load(skill_id, &path);
 

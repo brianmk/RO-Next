@@ -547,8 +547,7 @@ where
         // opt into it via `resizable`.
         let chrome_visible = layout.window_chrome_visible();
 
-        let horizontal_resize_available =
-            *state.get(&self.minimum_width) != *state.get(&self.maximum_width) || chrome_visible;
+        let horizontal_resize_available = *state.get(&self.minimum_width) != *state.get(&self.maximum_width) || chrome_visible;
         let vertical_resize_availabe = *state.get(&self.resizable) || chrome_visible;
 
         if horizontal_resize_hovered && horizontal_resize_available {
