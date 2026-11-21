@@ -3393,10 +3393,39 @@ impl Client {
                             map.set_ambient_sound_sources(&self.audio_engine);
                             self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
 
-                            self.interface.open_window(CharacterSelectionWindow::new(
-                                client_state().character_slots(),
-                                client_state().switch_request(),
-                            ));
+                            // The main menu map finished loading. Do not blindly open the
+                            // character selection window here: the map load can finish after the
+                            // player already logged in, which used to replace the freshly opened
+                            // server selection window (or the login window) with an empty
+                            // character selection screen. Show the window that matches the
+                            // current login state instead.
+                            let character_server_connected = self.networking_system.is_character_server_connected();
+                            let login_server_connected = self.networking_system.is_login_server_connected();
+                            let character_selection_open =
+                                self.interface.is_window_with_class_open(WindowClass::CharacterSelection);
+                            let select_server_open = self.interface.is_window_with_class_open(WindowClass::SelectServer);
+                            let login_open = self.interface.is_window_with_class_open(WindowClass::Login);
+
+                            if character_server_connected && !character_selection_open {
+                                self.interface.open_window(CharacterSelectionWindow::new(
+                                    client_state().character_slots(),
+                                    client_state().switch_request(),
+                                ));
+                            } else if login_server_connected && !select_server_open && !character_selection_open {
+                                self.interface
+                                    .open_window(ServerSelectionWindow::new(client_state().character_servers()));
+                            } else if !character_server_connected
+                                && !login_server_connected
+                                && !login_open
+                                && !select_server_open
+                                && !character_selection_open
+                            {
+                                self.interface.open_window(LoginWindow::new(
+                                    client_state().login_window(),
+                                    client_state().login_settings(),
+                                    client_state().client_info(),
+                                ));
+                            }
 
                             self.start_camera.set_focus_point(START_CAMERA_FOCUS_POINT);
                             self.directional_shadow_camera.set_level_bound(map.get_level_bound());
