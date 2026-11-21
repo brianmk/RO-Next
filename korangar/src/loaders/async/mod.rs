@@ -3,8 +3,6 @@ use std::sync::{Arc, Mutex};
 
 use hashbrown::HashMap;
 #[cfg(feature = "debug")]
-use korangar_debug::logging::print_debug;
-#[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
 use korangar_networking::{InventoryItem, NoMetadata, ShopItem};
 use ragnarok_packets::{ClientTick, EntityId, ItemId, JobId, SkillId, TilePosition};

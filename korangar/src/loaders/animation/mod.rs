@@ -367,10 +367,16 @@ impl AnimationLoader {
 
         #[cfg(feature = "debug")]
         if let Err(error) = _result {
+            let entity_files = entity_part_files
+                .iter()
+                .map(|file| file.path.as_str())
+                .collect::<Vec<_>>()
+                .join(";");
+
             print_debug!(
                 "[{}] animation could not be added to cache. Entity Files: '{}': {:?}",
                 "error".red(),
-                &entity_part_files.join(";"),
+                entity_files,
                 error
             );
         }

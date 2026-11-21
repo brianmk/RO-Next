@@ -85,15 +85,14 @@ impl SpriteLoader {
             }
         };
 
-        match Palette::from_bytes(&mut ByteReader::without_metadata(&bytes)) {
-            Ok(palette) => Some(palette),
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                print_debug!("Failed to load palette: {:?}", _error);
+        let palette = Palette::from_bytes(&mut ByteReader::without_metadata(&bytes));
 
-                None
-            }
+        #[cfg(feature = "debug")]
+        if let Err(error) = &palette {
+            print_debug!("Failed to load palette: {:?}", error);
         }
+
+        palette.ok()
     }
 
     pub fn load(&self, path: &str, palette_path: Option<&str>) -> Result<Arc<Sprite>, LoadError> {
@@ -133,19 +132,16 @@ impl SpriteLoader {
         // Sprites normally embed their palette, but some files do not. Fall back
         // to the default palette instead of panicking while decoding the palette
         // based image data.
-        let embedded_palette = match sprite_data.palette.clone() {
-            Some(palette) => palette,
-            None => {
-                #[cfg(feature = "debug")]
-                print_debug!(
-                    "[{}] sprite '{}' has no embedded palette, using default palette",
-                    "warning".yellow(),
-                    path
-                );
+        let embedded_palette = sprite_data.palette.clone().unwrap_or_else(|| {
+            #[cfg(feature = "debug")]
+            print_debug!(
+                "[{}] sprite '{}' has no embedded palette, using default palette",
+                "warning".yellow(),
+                path
+            );
 
-                Palette::default()
-            }
-        };
+            Palette::default()
+        });
 
         // An explicit palette file (hair/body color) replaces the embedded one.
         let palette = match palette_path {
