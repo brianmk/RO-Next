@@ -157,12 +157,13 @@ impl AuraStyle {
             AuraStyle::Violet => "violet",
             AuraStyle::Blue => "blue",
             AuraStyle::Gold => "gold",
+            AuraStyle::Green => "green",
         }
     }
 
     /// Canonical command names of all styles, for usage/help messages.
     pub fn style_names() -> &'static str {
-        "auto, off, cyan, violet, blue, gold"
+        "auto, off, cyan, violet, blue, gold, green"
     }
 
     /// Parses a style command name as used by the `/aura` command and the
@@ -183,6 +184,7 @@ impl AuraStyle {
             "violet" | "purple" | "transcendent" | "trans" | "rebirth" => Some(AuraStyle::Violet),
             "blue" | "azure" => Some(AuraStyle::Blue),
             "gold" | "golden" | "yellow" => Some(AuraStyle::Gold),
+            "green" | "emerald" => Some(AuraStyle::Green),
             _ => None,
         }
     }
