@@ -455,6 +455,9 @@ where
 
         App::set_current_theme_type(self.theme);
 
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
         if layout_info.area.check().dont_mark().run(layout) {
             layout.set_hovered();
         }
@@ -470,7 +473,8 @@ where
                 height: layout_info.title_area.height - offset,
             };
 
-            let close_button_color = match close_button_area.check().run(layout) {
+            let close_button_hovered = close_button_area.check().run(layout);
+            let close_button_color = match close_button_hovered {
                 true => {
                     layout.register_click_handler(MouseButton::Left, &self.close_click_action);
 
@@ -479,7 +483,7 @@ where
                 false => *state.get(&self.title_color),
             };
 
-            Some((close_button_area, close_button_color))
+            Some((close_button_area, close_button_color, close_button_hovered))
         } else {
             None
         };
@@ -548,6 +552,31 @@ where
             false => *state.get(&self.title_color),
         };
 
+        // The window background is either a plain rectangle (default theme) or a nine
+        // slice image (skins like the classic Ragnarok Online interface).
+        match &skin.window.frame {
+            Some(frame) => layout.add_image(layout_info.area, frame.image, frame.color, frame.slices, frame.smooth),
+            None => {
+                layout.add_rectangle(
+                    layout_info.area,
+                    *state.get(&self.corner_diameter),
+                    *state.get(&self.background_color),
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
+
+        if let Some(title_bar) = &skin.window.title_bar {
+            layout.add_image(
+                layout_info.title_area,
+                title_bar.image,
+                title_bar.color,
+                title_bar.slices,
+                title_bar.smooth,
+            );
+        }
+
         layout.add_text(
             layout_info.title_area,
             state.get(&self.title).as_ref(),
@@ -558,14 +587,6 @@ where
             *state.get(&theme().window().horizontal_alignment()),
             *state.get(&theme().window().vertical_alignment()),
             *state.get(&theme().window().overflow_behavior()),
-        );
-
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            *state.get(&self.background_color),
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
         );
 
         let horizontal_resize_active = horizontal_resize_hovered && horizontal_resize_available
@@ -667,28 +688,46 @@ where
             }
         }
 
-        if let Some((close_button_area, close_button_color)) = close_button {
-            layout.add_rectangle(
-                close_button_area,
-                *state.get(&self.close_button_corner_diameter),
-                close_button_color,
-                // TODO: Properly theme
-                close_button_color,
-                App::ShadowPadding::none(),
-            );
+        if let Some((close_button_area, close_button_color, is_close_button_hovered)) = close_button {
+            let close_button_image = match is_close_button_hovered {
+                true => skin.window.hovered_close_button.as_ref().or(skin.window.close_button.as_ref()),
+                false => skin.window.close_button.as_ref(),
+            };
 
-            // TODO: Use own values
-            layout.add_text(
-                close_button_area,
-                "X",
-                *state.get(&self.font_size),
-                *state.get(&self.background_color),
-                *state.get(&self.highlight_color),
-                HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
-                VerticalAlignment::Center { offset: 0.0 },
-                // TODO: This shouldn't matter at all.
-                *state.get(&theme().window().overflow_behavior()),
-            );
+            match close_button_image {
+                Some(close_button_image) => {
+                    layout.add_image(
+                        close_button_area,
+                        close_button_image.image,
+                        close_button_image.color,
+                        close_button_image.slices,
+                        close_button_image.smooth,
+                    );
+                }
+                None => {
+                    layout.add_rectangle(
+                        close_button_area,
+                        *state.get(&self.close_button_corner_diameter),
+                        close_button_color,
+                        // TODO: Properly theme
+                        close_button_color,
+                        App::ShadowPadding::none(),
+                    );
+
+                    // TODO: Use own values
+                    layout.add_text(
+                        close_button_area,
+                        "X",
+                        *state.get(&self.font_size),
+                        *state.get(&self.background_color),
+                        *state.get(&self.highlight_color),
+                        HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
+                        VerticalAlignment::Center { offset: 0.0 },
+                        // TODO: This shouldn't matter at all.
+                        *state.get(&theme().window().overflow_behavior()),
+                    );
+                }
+            }
         }
     }
 }

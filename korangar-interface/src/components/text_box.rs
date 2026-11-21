@@ -12,6 +12,7 @@ use crate::event::{ClickHandler, Event, EventQueue, InputHandler};
 use crate::layout::alignment::{HorizontalAlignment, VerticalAlignment};
 use crate::layout::area::Area;
 use crate::layout::{Icon, MouseButton, Resolvers, WindowLayout, with_single_resolver};
+use crate::theme::{ThemePathGetter, theme};
 
 #[derive(RustState)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -304,21 +305,29 @@ where
             layout.register_input_handler(&self.input_handler);
         }
 
-        let background_color = match is_hovered {
-            _ if is_focused => *state.get(&self.focused_background_color),
-            true => *state.get(&self.hovered_background_color),
-            false => *state.get(&self.background_color),
-        };
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
 
-        let corner_diameter = *state.get(&self.corner_diameter);
+        match skin.text_box.as_ref() {
+            Some(text_box_skin) => text_box_skin.add_to_layout(layout, layout_info.area),
+            None => {
+                let background_color = match is_hovered {
+                    _ if is_focused => *state.get(&self.focused_background_color),
+                    true => *state.get(&self.hovered_background_color),
+                    false => *state.get(&self.background_color),
+                };
 
-        layout.add_rectangle(
-            layout_info.area,
-            corner_diameter,
-            background_color,
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+                let corner_diameter = *state.get(&self.corner_diameter);
+
+                layout.add_rectangle(
+                    layout_info.area,
+                    corner_diameter,
+                    background_color,
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
 
         let mut display_text = state.get(&self.state).as_str();
 

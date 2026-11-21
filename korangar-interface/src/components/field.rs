@@ -8,6 +8,7 @@ use crate::element::store::{ElementStore, ElementStoreMut};
 use crate::layout::alignment::{HorizontalAlignment, VerticalAlignment};
 use crate::layout::tooltip::TooltipExt;
 use crate::layout::{Resolvers, WindowLayout, with_single_resolver};
+use crate::theme::{ThemePathGetter, theme};
 
 #[derive(RustState)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -143,13 +144,19 @@ where
             }
         }
 
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            *state.get(&self.background_color),
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
+        match skin.field.as_ref() {
+            Some(field_skin) => field_skin.add_to_layout(layout, layout_info.area),
+            None => layout.add_rectangle(
+                layout_info.area,
+                *state.get(&self.corner_diameter),
+                *state.get(&self.background_color),
+                *state.get(&self.shadow_color),
+                *state.get(&self.shadow_padding),
+            ),
+        }
         layout.add_text(
             layout_info.area,
             state.get(&self.text).as_ref(),

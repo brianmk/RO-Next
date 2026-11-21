@@ -1,4 +1,5 @@
 use crate::layout::Icon;
+use crate::skin::Slice;
 use crate::theme::ThemePathGetter;
 use crate::window::Anchor;
 
@@ -83,6 +84,14 @@ pub trait Application: Sized + 'static {
     /// Ideally this should be the same type that the application renderer uses
     /// to represent color.
     type Color: Copy + serde_gate::Bound + element_gate::Bound<Self>;
+
+    /// Application image handle.
+    ///
+    /// This is used by skin themes to reference application specific textures
+    /// (for example the classic Ragnarok Online interface textures that are
+    /// loaded from the game archives). A theme that doesn't use image based
+    /// skins can pick any type that implements the required traits.
+    type Image: Copy + serde_gate::Bound;
 
     /// Application corner diameter type.
     ///
@@ -240,6 +249,23 @@ pub trait RenderLayer<App: Application> {
 
     /// Render an icon.
     fn render_icon(&self, position: App::Position, size: App::Size, clip: App::Clip, icon: Icon<App>, color: App::Color);
+
+    /// Render a nine slice image.
+    ///
+    /// The `slices` are the insets of the source image (already scaled to
+    /// screen pixels) that should not be stretched. If all insets are zero the
+    /// image can simply be stretched over the given area.
+    #[allow(clippy::too_many_arguments)]
+    fn render_image(
+        &self,
+        image: App::Image,
+        position: App::Position,
+        size: App::Size,
+        clip: App::Clip,
+        color: App::Color,
+        slices: Slice,
+        smooth: bool,
+    );
 
     /// Render a [`CustomInstruction`](RenderLayer::CustomInstruction).
     fn render_custom(&self, instruction: Self::CustomInstruction<'_>, clips: &[App::Clip]);

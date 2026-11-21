@@ -9,6 +9,7 @@ use crate::components::state_button::StateButtonTheme;
 use crate::components::text::TextTheme;
 use crate::components::text_box::TextBoxTheme;
 use crate::layout::tooltip::TooltipTheme;
+use crate::skin::SkinTheme;
 use crate::window::WindowTheme;
 
 /// Glue between [`korangar_interface`] and the final application. This trait
@@ -45,6 +46,9 @@ pub trait ThemePathGetter<App: Application>: Copy {
 
     /// Path to the tooltip theme.
     fn tooltip(self) -> impl Path<App, TooltipTheme<App>>;
+
+    /// Path to the image skin theme.
+    fn skin(self) -> impl Path<App, SkinTheme<App>>;
 }
 
 /// Path to the theme of the window.

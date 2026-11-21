@@ -14,6 +14,7 @@ pub mod components;
 pub mod element;
 pub mod event;
 pub mod layout;
+pub mod skin;
 pub mod theme;
 pub mod window;
 

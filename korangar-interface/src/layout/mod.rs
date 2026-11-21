@@ -17,6 +17,7 @@ use crate::MouseMode;
 use crate::application::{Application, Clip, CornerDiameter, FontSize, Position, RenderLayer, ShadowPadding, Size, TextLayouter};
 use crate::element::id::{ElementId, FocusId};
 use crate::event::{ClickHandler, DropHandler, EventQueue, InputHandler, ScrollHandler};
+use crate::skin::Slice;
 
 // Rename this to ButtonPress or something.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,6 +90,16 @@ struct IconInstruction<App: Application> {
     color: App::Color,
 }
 
+/// Instruction for drawing a (nine slice) skin image.
+struct ImageInstruction<App: Application> {
+    clip_id: ClipId,
+    image: App::Image,
+    area: Area,
+    color: App::Color,
+    slices: Slice,
+    smooth: bool,
+}
+
 struct TextInstruction<'a, App: Application> {
     clip_id: ClipId,
     area: Area,
@@ -103,6 +114,7 @@ struct TextInstruction<'a, App: Application> {
 
 struct LayoutLayer<'a, App: Application> {
     rectangle_instructions: Vec<RectangleInstruction<App>>,
+    image_instructions: Vec<ImageInstruction<App>>,
     text_instructions: Vec<TextInstruction<'a, App>>,
     icon_instructions: Vec<IconInstruction<App>>,
     custom_instructions: Vec<<App::Renderer as RenderLayer<App>>::CustomInstruction<'a>>,
@@ -115,6 +127,7 @@ struct LayoutLayer<'a, App: Application> {
 impl<App: Application> LayoutLayer<'_, App> {
     fn clear(&mut self) {
         self.rectangle_instructions.clear();
+        self.image_instructions.clear();
         self.text_instructions.clear();
         self.icon_instructions.clear();
         self.custom_instructions.clear();
@@ -129,6 +142,7 @@ impl<App: Application> Default for LayoutLayer<'_, App> {
     fn default() -> Self {
         Self {
             rectangle_instructions: Default::default(),
+            image_instructions: Default::default(),
             text_instructions: Default::default(),
             icon_instructions: Default::default(),
             custom_instructions: Default::default(),
@@ -479,6 +493,26 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         });
     }
 
+    /// Add an instruction to render a (nine slice) skin image.
+    ///
+    /// This is only used by components that support image based skins. If the
+    /// active theme doesn't define a skin for the component it should render
+    /// the plain rectangle instead.
+    pub fn add_image(&mut self, area: Area, image: App::Image, color: App::Color, slices: Slice, smooth: bool) {
+        let clip_id = self.get_active_clip_id();
+        let area = self.scale_area(area);
+        let slices = slices.scaled(self.interface_scaling);
+
+        self.layers[self.current_layer].image_instructions.push(ImageInstruction {
+            clip_id,
+            image,
+            area,
+            color,
+            slices,
+            smooth,
+        });
+    }
+
     pub fn add_custom_instruction(&mut self, instruction: <App::Renderer as RenderLayer<App>>::CustomInstruction<'a>) {
         self.layers[self.current_layer].custom_instructions.push(instruction);
     }
@@ -534,6 +568,32 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         for layer in self.layers.iter_mut() {
             #[cfg(feature = "debug")]
             korangar_debug::profile_block!("render layer");
+
+            layer.image_instructions.drain(..).for_each(
+                |ImageInstruction {
+                     clip_id,
+                     image,
+                     area,
+                     color,
+                     slices,
+                     smooth,
+                 }: ImageInstruction<App>| {
+                    #[cfg(feature = "debug")]
+                    korangar_debug::profile_block!("image instruction");
+
+                    let clip = self.clips[clip_id.0];
+
+                    renderer.render_image(
+                        image,
+                        App::Position::new(area.left, area.top),
+                        App::Size::new(area.width, area.height),
+                        clip,
+                        color,
+                        slices,
+                        smooth,
+                    );
+                },
+            );
 
             layer.rectangle_instructions.drain(..).for_each(
                 |RectangleInstruction {

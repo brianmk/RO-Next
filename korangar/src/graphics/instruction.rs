@@ -222,6 +222,11 @@ pub enum InterfaceRectangleInstruction {
         corner_diameter: CornerDiameter,
         texture: Arc<Texture>,
         smooth: bool,
+        /// Normalized position of the section of the texture that should be
+        /// drawn.
+        texture_position: Vector2<f32>,
+        /// Normalized size of the section of the texture that should be drawn.
+        texture_size: Vector2<f32>,
     },
     Sdf {
         screen_position: ScreenPosition,

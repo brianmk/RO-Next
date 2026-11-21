@@ -9,6 +9,7 @@ use crate::event::ClickHandler;
 use crate::layout::alignment::{HorizontalAlignment, VerticalAlignment};
 use crate::layout::tooltip::TooltipExt;
 use crate::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
+use crate::theme::{ThemePathGetter, theme};
 
 #[derive(RustState)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -193,19 +194,33 @@ where
             }
         }
 
-        let background_color = match is_hoverered {
-            _ if is_disabled => *state.get(&self.disabled_background_color),
-            true => *state.get(&self.hovered_background_color),
-            false => *state.get(&self.background_color),
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
+        let skin_image = match is_hoverered {
+            _ if is_disabled => skin.button.disabled.as_ref(),
+            true => skin.button.hovered.as_ref(),
+            false => skin.button.normal.as_ref(),
         };
 
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            background_color,
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+        match skin_image {
+            Some(skin_image) => skin_image.add_to_layout(layout, layout_info.area),
+            None => {
+                let background_color = match is_hoverered {
+                    _ if is_disabled => *state.get(&self.disabled_background_color),
+                    true => *state.get(&self.hovered_background_color),
+                    false => *state.get(&self.background_color),
+                };
+
+                layout.add_rectangle(
+                    layout_info.area,
+                    *state.get(&self.corner_diameter),
+                    background_color,
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
 
         let foreground_color = match is_hoverered {
             _ if is_disabled => *state.get(&self.disabled_foreground_color),

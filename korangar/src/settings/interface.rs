@@ -13,6 +13,12 @@ use crate::state::localization::Language;
 /// to the default theme. The only issue is that loading the default theme will
 /// cause an error to appear when running Korangar with debug features.
 pub const DEFAULT_THEME_NAME: &str = "^000001default^000000\0";
+/// Name of the built in classic Ragnarok Online theme.
+///
+/// This is not a file on disk,
+/// [`InterfaceTheme::load`](crate::state::theme::InterfaceTheme::load)
+/// recognizes the name and returns the built in preset.
+pub const CLASSIC_THEME_NAME: &str = "classic";
 pub const MENU_THEMES_PATH: &str = "client/menu_themes";
 pub const IN_GAME_THEMES_PATH: &str = "client/in_game_themes";
 pub const WORLD_THEMES_PATH: &str = "client/world_themes";
@@ -103,7 +109,7 @@ pub struct InterfaceSettingsCapabilities {
 
 impl InterfaceSettingsCapabilities {
     fn load_themes(directory: &str) -> Vec<String> {
-        let mut themes = vec![DEFAULT_THEME_NAME.to_string()];
+        let mut themes = vec![DEFAULT_THEME_NAME.to_string(), CLASSIC_THEME_NAME.to_string()];
 
         if let Ok(entries) = std::fs::read_dir(directory) {
             themes.extend(
@@ -113,7 +119,7 @@ impl InterfaceSettingsCapabilities {
             );
 
             // Sort themes excluding the default since we always want that to be first.
-            themes[1..].sort_unstable();
+            themes[2..].sort_unstable();
         }
 
         themes

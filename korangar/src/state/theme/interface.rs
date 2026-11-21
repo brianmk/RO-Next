@@ -10,13 +10,15 @@ use korangar_interface::components::text_box::TextBoxTheme;
 use korangar_interface::element::StateElement;
 use korangar_interface::layout::tooltip::TooltipTheme;
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
+use korangar_interface::skin::{ButtonSkin, ImageSlice, SkinTheme, Slice, StateButtonSkin, WindowSkin};
 use korangar_interface::window::{StateWindow, WindowTheme};
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
 use crate::graphics::{Color, CornerDiameter, ScreenSize, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
-use crate::settings::{IN_GAME_THEMES_PATH, MENU_THEMES_PATH};
+use crate::renderer::skin::SkinImage;
+use crate::settings::{CLASSIC_THEME_NAME, IN_GAME_THEMES_PATH, MENU_THEMES_PATH};
 use crate::state::ClientState;
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -102,6 +104,10 @@ pub struct InterfaceTheme {
     pub field: FieldTheme<ClientState>,
     #[hidden_element]
     pub tooltip: TooltipTheme<ClientState>,
+    /// Image based skin of the interface. All fields are optional, a default
+    /// skin means that the interface is drawn using colors and geometry only.
+    #[hidden_element]
+    pub skin: SkinTheme<ClientState>,
     pub debug_button: DebugButtonTheme,
     pub chat: ChatTheme,
     pub skill_tree: SkillTreeTheme,
@@ -112,6 +118,10 @@ impl InterfaceTheme {
     pub fn load(theme_type: InterfaceThemeType, name: &str) -> Self {
         #[cfg(feature = "debug")]
         let timer = Timer::new("Load theme");
+
+        if name == CLASSIC_THEME_NAME {
+            return Self::default_classic();
+        }
 
         let path = match theme_type {
             InterfaceThemeType::InGame => format!("{IN_GAME_THEMES_PATH}/{name}.ron"),
@@ -338,6 +348,7 @@ impl InterfaceTheme {
                 mouse_offset: 20.0,
                 overflow_behavior: OverflowBehavior::LineBreak,
             },
+            skin: SkinTheme::default(),
             debug_button: DebugButtonTheme {
                 foreground_color: Color::rgb_u8(255, 167, 89),
                 hovered_background_color: Color::rgb_u8(225, 199, 115),
@@ -546,6 +557,7 @@ impl InterfaceTheme {
                 mouse_offset: 16.0,
                 overflow_behavior: OverflowBehavior::LineBreak,
             },
+            skin: SkinTheme::default(),
             debug_button: DebugButtonTheme {
                 foreground_color: Color::rgb_u8(255, 167, 89),
                 hovered_background_color: Color::rgb_u8(225, 199, 115),
@@ -579,5 +591,265 @@ impl InterfaceTheme {
                 drop_area_outline: ShadowPadding::uniform(4.0),
             },
         }
+    }
+
+    /// The classic Ragnarok Online interface theme.
+    ///
+    /// This preset is a faithful recreation of the original client's interface:
+    /// beige/white windows with a blue gradient title bar, classic beveled
+    /// buttons, the classic text colors and the classic interface textures that
+    /// are loaded from the game archives.
+    ///
+    /// The theme is selectable in the interface settings. It is not the
+    /// default, so players that prefer the modern flat korangar theme are
+    /// not affected.
+    fn default_classic() -> Self {
+        let mut theme = Self::default_in_game();
+
+        theme.window = WindowTheme {
+            title_color: Color::rgb_u8(0, 0, 0),
+            hovered_title_color: Color::rgb_u8(0, 0, 128),
+            background_color: Color::rgb_u8(244, 244, 244),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            gaps: 10.0,
+            // The window frame has a 14 pixel border, the extra four pixels are
+            // used as padding between the frame and the contents.
+            border: 18.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            close_button_size: ScreenSize { width: 42.0, height: 20.0 },
+            close_button_corner_diameter: CornerDiameter::uniform(0.0),
+            minimum_width: 300.0,
+            maximum_width: 600.0,
+            minimum_height: 60.0,
+            maximum_height: 700.0,
+            title_height: 22.0,
+            title_gap: 2.0,
+            font_size: FontSize(14.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 22.0, border: 4.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 1.0 },
+            overflow_behavior: OverflowBehavior::Shrink,
+            anchor_color: Color::rgb_u8(140, 105, 130),
+            closest_anchor_color: Color::rgb_u8(255, 175, 30),
+        };
+
+        theme.text = TextTheme {
+            color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            height: 16.0,
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 4.0, border: 2.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::LineBreak,
+        };
+
+        theme.button = ButtonTheme {
+            background_color: Color::rgb_u8(247, 247, 247),
+            foreground_color: Color::rgb_u8(16, 16, 80),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            hovered_background_color: Color::rgb_u8(196, 209, 234),
+            hovered_foreground_color: Color::WHITE,
+            disabled_background_color: Color::rgb_u8(235, 235, 235),
+            disabled_foreground_color: Color::rgb_u8(130, 130, 130),
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            height: 20.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Center { offset: 0.0, border: 4.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::Shrink,
+        };
+
+        theme.state_button = StateButtonTheme {
+            background_color: Color::rgb_u8(247, 247, 247),
+            foreground_color: Color::rgb_u8(16, 16, 80),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            hovered_background_color: Color::rgb_u8(196, 209, 234),
+            hovered_foreground_color: Color::WHITE,
+            disabled_background_color: Color::rgb_u8(235, 235, 235),
+            disabled_foreground_color: Color::rgb_u8(130, 130, 130),
+            checkbox_color: Color::rgb_u8(60, 60, 60),
+            hovered_checkbox_color: Color::rgb_u8(0, 0, 0),
+            disabled_checkbox_color: Color::rgb_u8(150, 150, 150),
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            height: 20.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 26.0, border: 3.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::Shrink,
+        };
+
+        theme.text_box = TextBoxTheme {
+            background_color: Color::WHITE,
+            foreground_color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            hovered_background_color: Color::rgb_u8(255, 255, 240),
+            hovered_foreground_color: Color::rgb_u8(0, 0, 0),
+            focused_background_color: Color::WHITE,
+            focused_foreground_color: Color::rgb_u8(0, 0, 0),
+            ghost_foreground_color: Color::rgb_u8(120, 120, 120),
+            hide_icon_color: Color::rgb_u8(90, 90, 90),
+            hovered_hide_icon_color: Color::rgb_u8(0, 0, 0),
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            height: 20.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 6.0, border: 3.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::LineBreak,
+        };
+
+        theme.collapsible = CollapsibleTheme {
+            background_color: Color::rgb_u8(238, 238, 238),
+            secondary_background_color: Color::rgb_u8(228, 228, 228),
+            foreground_color: Color::rgb_u8(16, 16, 80),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            hovered_foreground_color: Color::rgb_u8(160, 30, 30),
+            corner_diameter: CornerDiameter::uniform(2.0),
+            icon_color: Color::rgb_u8(80, 80, 80),
+            icon_size: 10.0,
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            gaps: 4.0,
+            border: 5.0,
+            title_height: 20.0,
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 0.0, border: 3.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::Shrink,
+        };
+
+        theme.drop_down = DropDownTheme {
+            item_background_color: Color::WHITE,
+            item_foreground_color: Color::rgb_u8(0, 0, 0),
+            item_highlight_color: Color::rgb_u8(0, 0, 160),
+            item_hovered_background_color: Color::rgb_u8(196, 209, 234),
+            item_hovered_foreground_color: Color::rgb_u8(0, 0, 0),
+            item_shadow_color: Color::TRANSPARENT,
+            item_shadow_padding: ShadowPadding::uniform(0.0),
+            item_height: 20.0,
+            item_corner_diameter: CornerDiameter::uniform(0.0),
+            item_font_size: FontSize(13.0),
+            item_horizontal_alignment: HorizontalAlignment::Center { offset: 0.0, border: 4.0 },
+            item_vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            item_overflow_behavior: OverflowBehavior::Shrink,
+            list_corner_diameter: CornerDiameter::uniform(0.0),
+            list_background_color: Color::WHITE,
+            list_shadow_color: Color::rgba_u8(0, 0, 0, 120),
+            list_shadow_padding: ShadowPadding::diagonal(1.0, 2.0),
+            list_gaps: 2.0,
+            list_border: 3.0,
+            list_maximum_height: 500.0,
+            button_background_color: Color::rgb_u8(247, 247, 247),
+            button_foreground_color: Color::rgb_u8(16, 16, 80),
+            button_highlight_color: Color::rgb_u8(0, 0, 160),
+            button_hovered_background_color: Color::rgb_u8(196, 209, 234),
+            button_hovered_foreground_color: Color::WHITE,
+            button_shadow_color: Color::TRANSPARENT,
+            button_shadow_padding: ShadowPadding::uniform(0.0),
+            button_height: 20.0,
+            button_corner_diameter: CornerDiameter::uniform(0.0),
+            button_font_size: FontSize(13.0),
+            button_horizontal_alignment: HorizontalAlignment::Center { offset: 0.0, border: 4.0 },
+            button_vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            button_overflow_behavior: OverflowBehavior::Shrink,
+        };
+
+        theme.field = FieldTheme {
+            background_color: Color::rgb_u8(240, 240, 240),
+            foreground_color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            height: 20.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            font_size: FontSize(13.0),
+            horizontal_alignment: HorizontalAlignment::Left { offset: 6.0, border: 3.0 },
+            vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+            overflow_behavior: OverflowBehavior::LineBreak,
+        };
+
+        theme.tooltip = TooltipTheme {
+            background_color: Color::rgba_u8(240, 240, 250, 235),
+            foreground_color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            shadow_color: Color::rgba_u8(0, 0, 0, 80),
+            shadow_padding: ShadowPadding::diagonal(1.0, 2.0),
+            font_size: FontSize(13.0),
+            corner_diameter: CornerDiameter::uniform(2.0),
+            border: 5.0,
+            gap: 3.0,
+            mouse_offset: 16.0,
+            overflow_behavior: OverflowBehavior::LineBreak,
+        };
+
+        theme.skill_tree = SkillTreeTheme {
+            slot_background_color: Color::rgb_u8(245, 245, 245),
+            slot_outline: ShadowPadding::uniform(1.0),
+            requirement_color: Color::rgb_u8(120, 0, 0),
+            hover_color: Color::rgb_u8(0, 0, 0),
+            slot_corner_diameter: CornerDiameter::uniform(0.0),
+            unoccupied_slot_color: Color::rgba_u8(210, 210, 210, 160),
+            unoccupied_slot_outline: ShadowPadding::uniform(1.0),
+            unlearned_skill_color: Color::rgb_u8(170, 170, 170),
+            name_font_size: FontSize(12.0),
+            name_text_color: Color::rgb_u8(0, 0, 0),
+            highlight_color: Color::rgb_u8(0, 0, 160),
+            points_color: Color::rgb_u8(0, 0, 0),
+            pending_points_color: Color::rgb_u8(0, 0, 200),
+            points_font_size: FontSize(12.0),
+            arrow_color: Color::rgb_u8(80, 80, 80),
+            lower_level_color: Color::rgb_u8(160, 0, 0),
+        };
+
+        theme.skin = SkinTheme {
+            window: WindowSkin {
+                frame: Some(image(SkinImage::WindowFrame, Slice::uniform(14.0))),
+                title_bar: Some(image(SkinImage::WindowTitleBar, Slice::horizontal(12.0, 12.0))),
+                close_button: Some(image(SkinImage::WindowCloseButton, Slice::NONE)),
+                hovered_close_button: Some(image(SkinImage::WindowCloseButtonHovered, Slice::NONE)),
+            },
+            button: classic_button_skin(),
+            state_button: StateButtonSkin {
+                background: classic_button_skin(),
+                unchecked: Some(image(SkinImage::CheckboxUnchecked, Slice::NONE)),
+                checked: Some(image(SkinImage::CheckboxChecked, Slice::NONE)),
+            },
+            text_box: Some(image(SkinImage::TextBox, Slice::uniform(2.0))),
+            field: Some(image(SkinImage::TextBox, Slice::uniform(2.0))),
+            tooltip: None,
+        };
+
+        theme
+    }
+}
+
+/// Create a classic skin image with a white tint.
+fn image(image: SkinImage, slices: Slice) -> ImageSlice<ClientState> {
+    ImageSlice {
+        image,
+        color: Color::WHITE,
+        slices,
+        smooth: false,
+    }
+}
+
+/// Create the classic button skin used for regular and toggle buttons.
+fn classic_button_skin() -> ButtonSkin<ClientState> {
+    ButtonSkin {
+        normal: Some(image(SkinImage::ButtonNormal, Slice::horizontal(6.0, 6.0))),
+        hovered: Some(image(SkinImage::ButtonHovered, Slice::horizontal(6.0, 6.0))),
+        pressed: Some(image(SkinImage::ButtonPressed, Slice::horizontal(6.0, 6.0))),
+        disabled: Some(ImageSlice {
+            image: SkinImage::ButtonNormal,
+            color: Color::rgb_u8(180, 180, 180),
+            slices: Slice::horizontal(6.0, 6.0),
+            smooth: false,
+        }),
     }
 }

@@ -10,6 +10,7 @@ use crate::layout::alignment::{HorizontalAlignment, VerticalAlignment};
 use crate::layout::area::Area;
 use crate::layout::tooltip::TooltipExt;
 use crate::layout::{Icon, MouseButton, Resolvers, WindowLayout, with_single_resolver};
+use crate::theme::{ThemePathGetter, theme};
 
 #[derive(RustState)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -214,19 +215,33 @@ where
             }
         }
 
-        let background_color = match is_hoverered {
-            _ if is_disabled => *state.get(&self.disabled_background_color),
-            true => *state.get(&self.hovered_background_color),
-            false => *state.get(&self.background_color),
+        let skin_path = theme().skin();
+        let skin = state.get(&skin_path);
+
+        let skin_image = match is_hoverered {
+            _ if is_disabled => skin.state_button.background.disabled.as_ref(),
+            true => skin.state_button.background.hovered.as_ref(),
+            false => skin.state_button.background.normal.as_ref(),
         };
 
-        layout.add_rectangle(
-            layout_info.area,
-            *state.get(&self.corner_diameter),
-            background_color,
-            *state.get(&self.shadow_color),
-            *state.get(&self.shadow_padding),
-        );
+        match skin_image {
+            Some(skin_image) => skin_image.add_to_layout(layout, layout_info.area),
+            None => {
+                let background_color = match is_hoverered {
+                    _ if is_disabled => *state.get(&self.disabled_background_color),
+                    true => *state.get(&self.hovered_background_color),
+                    false => *state.get(&self.background_color),
+                };
+
+                layout.add_rectangle(
+                    layout_info.area,
+                    *state.get(&self.corner_diameter),
+                    background_color,
+                    *state.get(&self.shadow_color),
+                    *state.get(&self.shadow_padding),
+                );
+            }
+        }
 
         let foreground_color = match is_hoverered {
             _ if is_disabled => *state.get(&self.disabled_foreground_color),
@@ -252,17 +267,29 @@ where
             false => *state.get(&self.checkbox_color),
         };
 
-        layout.add_icon(
-            Area {
+        let checkbox_checked = *state.get(&self.state);
+        let checkbox_skin = match checkbox_checked {
+            true => skin.state_button.checked.as_ref(),
+            false => skin.state_button.unchecked.as_ref(),
+        };
+
+        match checkbox_skin {
+            Some(checkbox_skin) => checkbox_skin.add_to_layout(layout, Area {
                 left: layout_info.area.left + 8.0,
                 top: layout_info.area.top + 3.0,
                 width: checkbox_size,
                 height: checkbox_size,
-            },
-            Icon::Checkbox {
-                checked: *state.get(&self.state),
-            },
-            checkbox_color,
-        );
+            }),
+            None => layout.add_icon(
+                Area {
+                    left: layout_info.area.left + 8.0,
+                    top: layout_info.area.top + 3.0,
+                    width: checkbox_size,
+                    height: checkbox_size,
+                },
+                Icon::Checkbox { checked: checkbox_checked },
+                checkbox_color,
+            ),
+        }
     }
 }

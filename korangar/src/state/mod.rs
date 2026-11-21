@@ -20,6 +20,7 @@ use korangar_interface::components::text::TextTheme;
 use korangar_interface::components::text_box::TextBoxTheme;
 use korangar_interface::element::StateElement;
 use korangar_interface::layout::tooltip::TooltipTheme;
+use korangar_interface::skin::SkinTheme;
 use korangar_interface::theme::ThemePathGetter;
 use korangar_interface::window::{StateWindow, WindowTheme};
 use korangar_networking::{MessageColor, SellItem, ShopItem};
@@ -511,6 +512,10 @@ impl ThemePathGetter<ClientState> for ClientThemeGetter {
     fn tooltip(self) -> impl Path<ClientState, TooltipTheme<ClientState>> {
         ThemePath.tooltip()
     }
+
+    fn skin(self) -> impl Path<ClientState, SkinTheme<ClientState>> {
+        ThemePath.skin()
+    }
 }
 
 impl Application for ClientState {
@@ -521,6 +526,7 @@ impl Application for ClientState {
     type CustomEvent = InputEvent;
     type CustomMouseMode = MouseInputMode;
     type FontSize = FontSize;
+    type Image = crate::renderer::skin::SkinImage;
     type OverflowBehavior = OverflowBehavior;
     type Position = ScreenPosition;
     type Renderer = InterfaceRenderer;

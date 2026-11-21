@@ -5,6 +5,7 @@ mod game_interface;
 mod interface;
 #[cfg(feature = "debug")]
 mod marker;
+pub mod skin;
 
 use std::sync::Arc;
 

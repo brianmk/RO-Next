@@ -284,6 +284,8 @@ impl Prepare for InterfaceRectangleDrawer {
                         corner_diameter,
                         texture,
                         smooth,
+                        texture_position,
+                        texture_size,
                     } => {
                         let rectangle_type = if *smooth { 1 } else { 2 };
 
@@ -306,8 +308,8 @@ impl Prepare for InterfaceRectangleDrawer {
                             shadow_padding: [0.0, 0.0, 0.0, 0.0],
                             screen_position: (*screen_position).into(),
                             screen_size: (*screen_size).into(),
-                            texture_position: [0.0, 0.0],
-                            texture_size: [1.0, 1.0],
+                            texture_position: (*texture_position).into(),
+                            texture_size: (*texture_size).into(),
                             rectangle_type,
                             texture_index,
                             padding: Default::default(),
@@ -422,6 +424,8 @@ impl Prepare for InterfaceRectangleDrawer {
                         corner_diameter,
                         texture: _,
                         smooth,
+                        texture_position,
+                        texture_size,
                     } => {
                         let rectangle_type = if *smooth { 1 } else { 2 };
 
@@ -433,8 +437,8 @@ impl Prepare for InterfaceRectangleDrawer {
                             shadow_padding: [0.0, 0.0, 0.0, 0.0],
                             screen_position: (*screen_position).into(),
                             screen_size: (*screen_size).into(),
-                            texture_position: [0.0, 0.0],
-                            texture_size: [1.0, 1.0],
+                            texture_position: (*texture_position).into(),
+                            texture_size: (*texture_size).into(),
                             rectangle_type,
                             texture_index: 0,
                             padding: Default::default(),

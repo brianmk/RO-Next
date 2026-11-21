@@ -1,18 +1,20 @@
 use std::cell::{Ref, RefCell};
 use std::sync::Arc;
 
-use cgmath::EuclideanSpace;
+use cgmath::{EuclideanSpace, Vector2};
 #[cfg(feature = "debug")]
 use korangar_interface::application::Clip;
 use korangar_interface::application::{RenderLayer, ShadowPadding as _};
 use korangar_interface::layout::area::Area;
 use korangar_interface::layout::{ClipId, Icon, WindowLayout};
+use korangar_interface::skin::Slice;
 
 use crate::graphics::{
     Color, CornerDiameter, InterfaceRectangleInstruction, ScreenClip, ScreenPosition, ScreenSize, ShadowPadding, Texture,
 };
 use crate::loaders::{FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, ImageType, OverflowBehavior, Sprite, TextureLoader};
 use crate::renderer::SpriteRenderer;
+use crate::renderer::skin::{SkinImage, SkinTextures};
 use crate::state::ClientState;
 use crate::world::{Actions, SpriteAnimationState};
 
@@ -30,6 +32,7 @@ pub struct InterfaceRenderer {
     eye_open_texture: Arc<Texture>,
     eye_closed_texture: Arc<Texture>,
     trash_can_texture: Arc<Texture>,
+    skin_textures: SkinTextures,
     window_size: ScreenSize,
     interface_size: ScreenSize,
     high_quality_interface: bool,
@@ -65,6 +68,7 @@ impl InterfaceRenderer {
         let eye_open_texture = texture_loader.get_or_load("eye_open.png", ImageType::Sdf).unwrap();
         let eye_closed_texture = texture_loader.get_or_load("eye_closed.png", ImageType::Sdf).unwrap();
         let trash_can_texture = texture_loader.get_or_load("trash_can.png", ImageType::Sdf).unwrap();
+        let skin_textures = SkinTextures::new(texture_loader);
 
         let interface_size = if high_quality_interface { window_size * 2.0 } else { window_size };
 
@@ -90,6 +94,7 @@ impl InterfaceRenderer {
             eye_open_texture,
             eye_closed_texture,
             trash_can_texture,
+            skin_textures,
             window_size,
             interface_size,
             high_quality_interface,
@@ -433,10 +438,14 @@ impl InterfaceRenderer {
     pub fn render_trash_can(&self, position: ScreenPosition, size: ScreenSize, clip: ScreenClip, color: Color) {
         self.render_sdf(self.trash_can_texture.clone(), position, size, clip, color);
     }
-}
 
-impl SpriteRenderer for InterfaceRenderer {
-    fn render_sprite(
+    /// Render a section of a texture.
+    ///
+    /// This is the same as rendering a sprite, but only the given normalized
+    /// section of the texture is sampled. It is used to draw the individual
+    /// pieces of a nine slice skin image.
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_texture_section(
         &self,
         texture: Arc<Texture>,
         position: ScreenPosition,
@@ -444,6 +453,8 @@ impl SpriteRenderer for InterfaceRenderer {
         mut screen_clip: ScreenClip,
         color: Color,
         smooth: bool,
+        texture_position: Vector2<f32>,
+        texture_size: Vector2<f32>,
     ) {
         // If the sprite is not even within the bounds of the clip, discard it early
         // saving GPU resources.
@@ -452,22 +463,6 @@ impl SpriteRenderer for InterfaceRenderer {
             || position.left + size.width < screen_clip.left
             || position.top + size.height < screen_clip.top
         {
-            #[cfg(feature = "debug")]
-            if self.show_sprite_instructions {
-                let screen_position = position / self.window_size;
-                let screen_size = size / self.window_size;
-
-                self.instructions.borrow_mut().push(InterfaceRectangleInstruction::Solid {
-                    screen_position,
-                    screen_size,
-                    screen_clip: ScreenClip::unbound(),
-                    color: Color::rgba_u8(255, 0, 0, 90),
-                    corner_diameter: CornerDiameter::default(),
-                    shadow_color: Color::rgba_u8(255, 150, 0, 150),
-                    shadow_padding: ShadowPadding::uniform(5.0),
-                });
-            }
-
             return;
         }
 
@@ -479,21 +474,6 @@ impl SpriteRenderer for InterfaceRenderer {
         let screen_position = position / self.window_size;
         let screen_size = size / self.window_size;
 
-        #[cfg(feature = "debug")]
-        if self.show_sprite_instructions {
-            self.instructions.borrow_mut().push(InterfaceRectangleInstruction::Solid {
-                screen_position,
-                screen_size,
-                screen_clip: ScreenClip::unbound(),
-                color: Color::rgba_u8(150, 0, 255, 90),
-                corner_diameter: CornerDiameter::default(),
-                shadow_color: Color::rgba_u8(255, 0, 255, 150),
-                shadow_padding: ShadowPadding::uniform(5.0),
-            });
-
-            return;
-        }
-
         let corner_diameter = CornerDiameter::default();
 
         self.instructions.borrow_mut().push(InterfaceRectangleInstruction::Sprite {
@@ -504,7 +484,136 @@ impl SpriteRenderer for InterfaceRenderer {
             corner_diameter,
             texture,
             smooth,
+            texture_position,
+            texture_size,
         });
+    }
+
+    /// Render an image of the classic interface skin.
+    ///
+    /// If the image has slice insets it is drawn as a nine slice, otherwise the
+    /// whole texture is stretched over the area. A missing texture falls back
+    /// to a solid rectangle so that an element never disappears completely.
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_skin_image(
+        &self,
+        image: SkinImage,
+        position: ScreenPosition,
+        size: ScreenSize,
+        screen_clip: ScreenClip,
+        color: Color,
+        slices: Slice,
+        smooth: bool,
+    ) {
+        let Some(texture) = self.skin_textures.get(image).cloned() else {
+            self.render_rectangle(
+                position,
+                size,
+                screen_clip,
+                CornerDiameter::default(),
+                color,
+                Color::TRANSPARENT,
+                ShadowPadding::none(),
+            );
+            return;
+        };
+
+        let texture_extent = texture.get_size();
+        let texture_width = texture_extent.width as f32;
+        let texture_height = texture_extent.height as f32;
+
+        if slices.is_none() || texture_width <= 0.0 || texture_height <= 0.0 || size.width <= 0.0 || size.height <= 0.0 {
+            self.render_texture_section(
+                texture,
+                position,
+                size,
+                screen_clip,
+                color,
+                smooth,
+                Vector2::new(0.0, 0.0),
+                Vector2::new(1.0, 1.0),
+            );
+            return;
+        }
+
+        // Clamp the insets so that opposite sides can never overlap.
+        let left = slices.left.clamp(0.0, texture_width);
+        let right = slices.right.clamp(0.0, texture_width - left);
+        let top = slices.top.clamp(0.0, texture_height);
+        let bottom = slices.bottom.clamp(0.0, texture_height - top);
+
+        let source_columns = [(0.0, left), (left, texture_width - right), (texture_width - right, texture_width)];
+        let source_rows = [
+            (0.0, top),
+            (top, texture_height - bottom),
+            (texture_height - bottom, texture_height),
+        ];
+        let destination_columns = [(0.0, left), (left, size.width - right), (size.width - right, size.width)];
+        let destination_rows = [(0.0, top), (top, size.height - bottom), (size.height - bottom, size.height)];
+
+        for (row, (source_top, source_bottom)) in source_rows.iter().enumerate() {
+            for (column, (source_left, source_right)) in source_columns.iter().enumerate() {
+                let (destination_left, destination_right) = destination_columns[column];
+                let (destination_top, destination_bottom) = destination_rows[row];
+
+                let piece_width = destination_right - destination_left;
+                let piece_height = destination_bottom - destination_top;
+
+                // Skip empty pieces (this happens when the target area is smaller than the
+                // slice insets).
+                if piece_width <= 0.0 || piece_height <= 0.0 {
+                    continue;
+                }
+
+                let piece_position = ScreenPosition {
+                    left: position.left + destination_left,
+                    top: position.top + destination_top,
+                };
+                let piece_size = ScreenSize {
+                    width: piece_width,
+                    height: piece_height,
+                };
+                let piece_texture_position = Vector2::new(source_left / texture_width, source_top / texture_height);
+                let piece_texture_size = Vector2::new(
+                    (source_right - source_left) / texture_width,
+                    (source_bottom - source_top) / texture_height,
+                );
+
+                self.render_texture_section(
+                    texture.clone(),
+                    piece_position,
+                    piece_size,
+                    screen_clip,
+                    color,
+                    smooth,
+                    piece_texture_position,
+                    piece_texture_size,
+                );
+            }
+        }
+    }
+}
+
+impl SpriteRenderer for InterfaceRenderer {
+    fn render_sprite(
+        &self,
+        texture: Arc<Texture>,
+        position: ScreenPosition,
+        size: ScreenSize,
+        screen_clip: ScreenClip,
+        color: Color,
+        smooth: bool,
+    ) {
+        self.render_texture_section(
+            texture,
+            position,
+            size,
+            screen_clip,
+            color,
+            smooth,
+            Vector2::new(0.0, 0.0),
+            Vector2::new(1.0, 1.0),
+        );
     }
 
     fn render_sdf(&self, texture: Arc<Texture>, position: ScreenPosition, size: ScreenSize, mut screen_clip: ScreenClip, color: Color) {
@@ -637,6 +746,19 @@ impl RenderLayer<ClientState> for InterfaceRenderer {
         font_size: FontSize,
     ) {
         self.render_text(text, position, available_width, clip, color, highlight_color, font_size);
+    }
+
+    fn render_image(
+        &self,
+        image: SkinImage,
+        position: ScreenPosition,
+        size: ScreenSize,
+        clip: ScreenClip,
+        color: Color,
+        slices: Slice,
+        smooth: bool,
+    ) {
+        self.render_skin_image(image, position, size, clip, color, slices, smooth);
     }
 
     fn render_icon(&self, position: ScreenPosition, size: ScreenSize, clip: ScreenClip, icon: Icon<ClientState>, color: Color) {
