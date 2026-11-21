@@ -352,6 +352,12 @@ impl GameInterfaceRenderer {
         );
     }
 
+    /// Factor that `render_text` applies to a [`FontSize`]. World-space text
+    /// such as damage numbers divides by it to get a fixed on-screen size.
+    pub fn scaling_factor(&self) -> f32 {
+        self.scaling.get_factor()
+    }
+
     pub fn render_damage_text(&self, text: &str, position: ScreenPosition, color: Color, font_size: FontSize) {
         self.render_text(text, position, color, font_size, AlignHorizontal::Center);
     }

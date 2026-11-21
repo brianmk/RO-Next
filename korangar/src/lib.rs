@@ -2395,7 +2395,7 @@ impl Client {
                             .or_else(|| self.client_state.try_follow(this_entity()))
                     {
                         self.particle_holder
-                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), level.to_string())));
+                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), level as u64)));
                     }
                 }
                 NetworkEvent::SkillGroundCast {
@@ -2958,7 +2958,7 @@ impl Client {
                         .or_else(|| self.client_state.try_follow(this_entity()))
                     {
                         let particle: Box<dyn Particle + Send + Sync> = match damage_amount {
-                            Some(amount) => Box::new(DamageNumber::new(entity.get_position(), amount.to_string(), is_critical)),
+                            Some(amount) => Box::new(DamageNumber::new(entity.get_position(), amount as u64, is_critical)),
                             None => Box::new(Miss::new(entity.get_position())),
                         };
 
@@ -2997,7 +2997,7 @@ impl Client {
                         .or_else(|| self.client_state.try_follow(this_entity()))
                     {
                         self.particle_holder
-                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), heal_amount.to_string())));
+                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), heal_amount as u64)));
                     }
                 }
                 NetworkEvent::UpdateEntityHealth {

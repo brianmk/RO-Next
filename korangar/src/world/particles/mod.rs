@@ -14,6 +14,79 @@ use crate::renderer::{GameInterfaceRenderer, SpriteRenderer};
 use crate::world::{Actions, Camera};
 use crate::{Entity, Map};
 
+/// On-screen height of a damage/heal number in pixels before magnitude and
+/// distance scaling. The original client renders damage numbers much larger
+/// than the interface text; this is deliberately ~10x the previous 16 px.
+pub const BASE_DAMAGE_TEXT_PIXELS: f32 = 170.0;
+
+/// World distance at which the distance scaling is neutral (roughly the
+/// distance between the player camera and a monster in melee range).
+const DAMAGE_TEXT_REFERENCE_DISTANCE: f32 = 260.0;
+/// Clamp for the distance scaling, so that numbers stay readable but never
+/// cover half the screen when the camera is very close.
+const DAMAGE_TEXT_MIN_DISTANCE_SCALE: f32 = 0.9;
+const DAMAGE_TEXT_MAX_DISTANCE_SCALE: f32 = 1.15;
+/// A damage number may use at most this fraction of the window height.
+const DAMAGE_TEXT_MAX_VIEWPORT_FRACTION: f32 = 0.32;
+/// The numbers are spawned slightly above the entity so that the (large) text
+/// does not cover the entity itself or its name/health bar.
+const DAMAGE_TEXT_HEAD_OFFSET: f32 = 22.0;
+/// Additional size for critical hits.
+const CRITICAL_DAMAGE_SCALE: f32 = 1.2;
+
+/// Size multiplier for the number of digits of a damage/heal value.
+///
+/// Values below 1000 use the standard size; every additional digit above 999
+/// adds 20%:
+///
+/// * 0 - 999: 1.0
+/// * 1000 - 9999: 1.2
+/// * 10000 - 99999: 1.44
+/// * 100000 and above: 1.728 (capped)
+pub fn damage_magnitude_scale(value: u64) -> f32 {
+    if value < 1000 {
+        return 1.0;
+    }
+
+    let magnitude = (value as f64).log10().floor() as i32 - 2;
+    let exponent = magnitude.clamp(0, 3);
+
+    1.2f32.powi(exponent)
+}
+
+/// Final on-screen font size (in pixels) for a damage number.
+///
+/// Combines the base size, the magnitude scale (more digits = bigger) and a
+/// mild distance scaling, and clamps the result to the window so that the
+/// number is never larger than `DAMAGE_TEXT_MAX_VIEWPORT_FRACTION` of the
+/// screen height.
+pub fn damage_text_pixels(base_pixels: f32, magnitude_scale: f32, distance: f32, window_height: f32) -> f32 {
+    let distance_scale =
+        (DAMAGE_TEXT_REFERENCE_DISTANCE / distance.max(1.0)).clamp(DAMAGE_TEXT_MIN_DISTANCE_SCALE, DAMAGE_TEXT_MAX_DISTANCE_SCALE);
+    let max_pixels = window_height * DAMAGE_TEXT_MAX_VIEWPORT_FRACTION;
+
+    (base_pixels * magnitude_scale * distance_scale).min(max_pixels).max(1.0)
+}
+
+/// Computes the [`FontSize`] for a damage number at a world position.
+///
+/// `render_damage_text`/`render_text` multiplies the font size by the interface
+/// scaling, so it is divided out here: world-space damage numbers should have a
+/// fixed on-screen size independent of the UI scale.
+fn damage_text_font_size(
+    renderer: &GameInterfaceRenderer,
+    camera: &dyn Camera,
+    position: Point3<f32>,
+    window_size: ScreenSize,
+    base_pixels: f32,
+    magnitude_scale: f32,
+) -> FontSize {
+    let pixels = damage_text_pixels(base_pixels, magnitude_scale, camera.distance_to(position), window_size.height);
+    let scaling = renderer.scaling_factor().max(0.1);
+
+    FontSize(pixels / scaling)
+}
+
 pub trait Particle {
     fn update(&mut self, delta_time: f32) -> bool;
 
@@ -27,6 +100,7 @@ fn random_velocity() -> f32 {
 pub struct DamageNumber {
     position: Point3<f32>,
     damage_amount: String,
+    magnitude_scale: f32,
     velocity_y: f32,
     velocity_x: f32,
     velocity_z: f32,
@@ -35,10 +109,11 @@ pub struct DamageNumber {
 }
 
 impl DamageNumber {
-    pub fn new(position: Point3<f32>, damage_amount: String, is_critical: bool) -> Self {
+    pub fn new(position: Point3<f32>, damage_amount: u64, is_critical: bool) -> Self {
         Self {
-            position,
-            damage_amount,
+            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
+            damage_amount: damage_amount.to_string(),
+            magnitude_scale: damage_magnitude_scale(damage_amount),
             velocity_y: 50.0,
             velocity_x: random_velocity(),
             velocity_z: random_velocity(),
@@ -73,7 +148,13 @@ impl Particle for DamageNumber {
             false => Color::WHITE,
         };
 
-        renderer.render_damage_text(&self.damage_amount, final_position, color, FontSize(16.0));
+        let base_pixels = match self.is_critical {
+            true => BASE_DAMAGE_TEXT_PIXELS * CRITICAL_DAMAGE_SCALE,
+            false => BASE_DAMAGE_TEXT_PIXELS,
+        };
+        let font_size = damage_text_font_size(renderer, camera, self.position, window_size, base_pixels, self.magnitude_scale);
+
+        renderer.render_damage_text(&self.damage_amount, final_position, color, font_size);
     }
 }
 
@@ -84,7 +165,10 @@ pub struct Miss {
 
 impl Miss {
     pub fn new(position: Point3<f32>) -> Self {
-        Self { position, timer: 0.6 }
+        Self {
+            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
+            timer: 0.6,
+        }
     }
 }
 
@@ -105,22 +189,26 @@ impl Particle for Miss {
         };
         let alpha = (self.timer * 10.0).min(1.0);
 
-        renderer.render_damage_text("miss", final_position, Color::rgba(1.0, 0.0, 0.0, alpha), FontSize(20.0));
+        let font_size = damage_text_font_size(renderer, camera, self.position, window_size, BASE_DAMAGE_TEXT_PIXELS, 1.0);
+
+        renderer.render_damage_text("miss", final_position, Color::rgba(1.0, 0.0, 0.0, alpha), font_size);
     }
 }
 
 pub struct HealNumber {
     position: Point3<f32>,
     heal_amount: String,
+    magnitude_scale: f32,
     velocity_y: f32,
     timer: f32,
 }
 
 impl HealNumber {
-    pub fn new(position: Point3<f32>, heal_amount: String) -> Self {
+    pub fn new(position: Point3<f32>, heal_amount: u64) -> Self {
         Self {
-            position,
-            heal_amount,
+            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
+            heal_amount: heal_amount.to_string(),
+            magnitude_scale: damage_magnitude_scale(heal_amount),
             velocity_y: 50.0,
             timer: 1.0,
         }
@@ -145,7 +233,16 @@ impl Particle for HealNumber {
             top: screen_position.y * window_size.height,
         };
 
-        renderer.render_damage_text(&self.heal_amount, final_position, Color::rgb_u8(30, 255, 30), FontSize(16.0));
+        let font_size = damage_text_font_size(
+            renderer,
+            camera,
+            self.position,
+            window_size,
+            BASE_DAMAGE_TEXT_PIXELS,
+            self.magnitude_scale,
+        );
+
+        renderer.render_damage_text(&self.heal_amount, final_position, Color::rgb_u8(30, 255, 30), font_size);
     }
 }
 
@@ -318,5 +415,63 @@ impl ParticleHolder {
             .iter()
             .filter_map(|entity| self.quest_icons.get(&entity.get_entity_id()))
             .for_each(|quest_icon| quest_icon.render(renderer, camera, window_size, scaling.get_factor()));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale, damage_text_pixels};
+
+    #[test]
+    fn values_below_1000_use_the_standard_size() {
+        for value in [0, 1, 9, 10, 99, 999] {
+            assert_eq!(damage_magnitude_scale(value), 1.0, "value {value}");
+        }
+    }
+
+    #[test]
+    fn each_extra_digit_adds_20_percent() {
+        assert!((damage_magnitude_scale(1_000) - 1.2).abs() < 1e-5);
+        assert!((damage_magnitude_scale(9_999) - 1.2).abs() < 1e-5);
+        assert!((damage_magnitude_scale(10_000) - 1.44).abs() < 1e-5);
+        assert!((damage_magnitude_scale(99_999) - 1.44).abs() < 1e-5);
+        assert!((damage_magnitude_scale(100_000) - 1.728).abs() < 1e-4);
+        assert!((damage_magnitude_scale(1_000_000) - 1.728).abs() < 1e-4);
+    }
+
+    #[test]
+    fn base_size_is_much_larger_than_the_old_chat_sized_font() {
+        // The old damage number font size was 16 px.
+        assert!(BASE_DAMAGE_TEXT_PIXELS >= 160.0);
+    }
+
+    #[test]
+    fn distance_scaling_is_clamped() {
+        // Far away numbers shrink, but only to 90% of the base size.
+        let far = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 10_000.0, 720.0);
+        let reference = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 260.0, 720.0);
+
+        assert!(far < reference);
+        assert!(far >= BASE_DAMAGE_TEXT_PIXELS * 0.9 - 1e-3);
+
+        // Very close numbers grow a little, but are capped to 115% of base.
+        let close = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 1.0, 720.0);
+        assert!(close <= BASE_DAMAGE_TEXT_PIXELS * 1.15 + 1e-3);
+    }
+
+    #[test]
+    fn magnitude_and_viewport_clamps_are_applied() {
+        // 170 * 1.728 = 293.76, clamped to 32% of 720 = 230.4.
+        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale(1_000_000), 260.0, 720.0);
+        assert!((pixels - 230.4).abs() < 1e-3);
+
+        // Small window: the base size (170) is below the 32% cap of 192, so it is
+        // not reduced.
+        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 260.0, 600.0);
+        assert!((pixels - BASE_DAMAGE_TEXT_PIXELS).abs() < 1e-3);
+
+        // But a larger magnitude is capped at 32% of the window height.
+        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale(1_000_000), 260.0, 400.0);
+        assert!((pixels - 128.0).abs() < 1e-3);
     }
 }
