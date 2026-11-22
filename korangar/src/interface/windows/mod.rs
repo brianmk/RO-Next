@@ -54,7 +54,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::audio_settings::AudioSettingsWindow;
 pub use self::big_map::BigMapWindow;
-pub use self::buff_bar::BuffBarWindow;
+pub use self::buff_bar::{BAR_STRIP_WIDTH, BuffBarWindow};
 pub use self::buy::BuyWindow;
 pub use self::buy_cart::BuyCartWindow;
 pub use self::buy_or_sell::BuyOrSellWindow;
@@ -76,7 +76,7 @@ pub use self::friend_list::{FriendListWindow, FriendListWindowState};
 pub use self::friend_request::FriendRequestWindow;
 pub use self::game_settings::GameSettingsWindow;
 pub use self::graphics_settings::GraphicsSettingsWindow;
-pub use self::hotbar::HotbarWindow;
+pub use self::hotbar::{HOTBAR_ROW_WIDTH, HOTBAR_SLOT_SIZE, HotbarWindow};
 pub use self::interface_settings::InterfaceSettingsWindow;
 pub use self::inventory::InventoryWindow;
 pub use self::item_info::ItemInfoWindow;

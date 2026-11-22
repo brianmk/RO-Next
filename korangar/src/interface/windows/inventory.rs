@@ -178,7 +178,7 @@ where
                             let slot = row * INVENTORY_COLUMNS + column;
                             // Items beyond the last one of the tab render as empty boxes.
                             let position = shown_positions.get(slot).copied().unwrap_or(usize::MAX);
-                            ItemBox::component_new(items_path.index(position), ItemSource::Inventory)
+                            ItemBox::component_new(items_path.index(position), ItemSource::Inventory, crate::interface::components::item_box::DEFAULT_ITEM_BOX_SIZE)
                                     .with_context_menu(ItemBoxContextMenu::Inventory)
                         }),
                     }));

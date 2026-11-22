@@ -6,6 +6,7 @@ pub fn item_box(token_stream: TokenStream) -> TokenStream {
     create_component_macro!(crate::interface::components::item_box::ItemBox, {
         item_path: !,
         source: !,
+        size: { 40.0 },
     });
 
     macro_impl(token_stream.into()).into()
@@ -17,6 +18,8 @@ pub fn skill_box(token_stream: TokenStream) -> TokenStream {
         learnable_skill_path: !,
         learned_skill_path: !,
         source: !,
+        size: { 40.0 },
+        show_level: { true },
     });
 
     macro_impl(token_stream.into()).into()

@@ -80,8 +80,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
-    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, MarkerType, SellItemsResult, SkillId,
-    SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult,
+    SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -137,7 +137,8 @@ use crate::state::party::PartyPathExt;
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::stat_buffer::PendingStatUpdates;
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
-use crate::state::{BufferedAction, SelectedServicePath};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt};
+use crate::state::{BufferedAction, SelectedServicePath, client_theme};
 use crate::system::{FrameTimers, GameTimer};
 #[cfg(feature = "debug")]
 use crate::world::MarkerIdentifier;
@@ -191,6 +192,12 @@ const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
 const CAST_SOUND_DEDUPE_MS: u32 = 1_000;
 /// Stale start-of-use sound entries are dropped after this age (milliseconds).
 const CAST_SOUND_DEDUPE_TIMEOUT_MS: u32 = 5_000;
+/// Skill id of the Sage/Scholar/Professor `Free Cast` passive (`SA_FREECAST`),
+/// which allows movement while casting.
+const FREE_CAST_SKILL_ID: SkillId = SkillId(278);
+/// Job ids that can learn `Free Cast`: Sage and its rebirth class (called
+/// Scholar or Professor depending on the game version).
+const FREE_CAST_JOB_IDS: [u16; 2] = [16, 4017];
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// Background music that is played while the client is *not* inside a map:
@@ -737,6 +744,9 @@ pub struct Client {
     pending_item_drag: Option<(std::time::Instant, ScreenPosition)>,
     skill_name_texts: SkillNameTexts,
     cast_bars: CastBars,
+    /// When the after-cast act delay of the last own skill ends, in client
+    /// ticks. Server table values; paces follow-up skill/item actions only.
+    aftercast_act_until: Option<ClientTick>,
     warp_portal: Option<WarpPortal>,
     /// Active warp-portal skill units: (entity id, world position, spawn time).
     /// Rendered as the flat ground portal of the original client.
@@ -1346,6 +1356,7 @@ impl Client {
             pending_item_drag: None,
             skill_name_texts: SkillNameTexts::default(),
             cast_bars: CastBars::default(),
+            aftercast_act_until: None,
             warp_portal,
             warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
@@ -1999,6 +2010,71 @@ impl Client {
         self.interface.open_window_at(PartyWindow, position);
     }
 
+    /// Open (or re-open) the hotbar at the bottom center of the screen.
+    ///
+    /// The hotbar is a fixed-size HUD element: its size is derived from the ten
+    /// large slots and it is centered by the client instead of using a cached
+    /// window position, so it stays centered at every resolution and interface
+    /// scale.
+    fn open_hotbar_window(&mut self) {
+        self.interface.close_window_with_class(WindowClass::Hotbar);
+
+        let window_size = *self.client_state.follow(client_state().window_size());
+        let scaling = self
+            .client_state
+            .follow(client_state().interface_settings().scaling())
+            .get_factor();
+        let width = HOTBAR_ROW_WIDTH * scaling;
+        let height = HOTBAR_SLOT_SIZE * scaling;
+        let margin = 18.0 * scaling;
+        let position = ScreenPosition {
+            left: ((window_size.width - width) / 2.0).max(0.0),
+            top: (window_size.height - height - margin).max(0.0),
+        };
+
+        self.interface.open_window_at_auto_size(
+            HotbarWindow::new(client_state().hotbar().skills(), client_state().skill_tree().skills()),
+            position,
+        );
+    }
+
+    /// Open (or re-open) the transparent status effect strip on the right edge
+    /// of the screen, below the minimap.
+    fn open_buff_bar_window(&mut self) {
+        let window_size = *self.client_state.follow(client_state().window_size());
+        let scaling = self
+            .client_state
+            .follow(client_state().interface_settings().scaling())
+            .get_factor();
+        // The minimap is a fixed 250 interface pixel tall window at the top
+        // right, so the status strip starts below it. The offset is computed
+        // from the current scale instead of using a cached window position.
+        let minimap_height = 250.0 * scaling;
+        let top = 12.0 + minimap_height + 8.0 * scaling;
+        let strip_width = BAR_STRIP_WIDTH * scaling;
+        let position = ScreenPosition {
+            left: (window_size.width - strip_width - 12.0 * scaling).max(0.0),
+            top,
+        };
+
+        self.interface.close_window_with_class(WindowClass::BuffBar);
+        self.interface.open_window_at_auto_size(BuffBarWindow, position);
+    }
+
+    /// Reposition the HUD overlay windows after the window size or the
+    /// interface scale changed.
+    fn reposition_hud_windows(&mut self) {
+        let in_game = self.client_state.try_follow(this_entity()).is_some();
+
+        if in_game {
+            self.open_hotbar_window();
+        }
+
+        if self.interface.is_window_with_class_open(WindowClass::BuffBar) {
+            self.interface.close_window_with_class(WindowClass::BuffBar);
+        }
+    }
+
     fn update_window_size(&mut self, screen_size: ScreenSize) {
         crate::logging::log_debug!("interface: window size changed to {}x{}", screen_size.width, screen_size.height,);
         *self.client_state.follow_mut(client_state().window_size()) = screen_size;
@@ -2010,6 +2086,7 @@ impl Client {
         self.middle_interface_renderer.update_window_size(screen_size);
         self.top_interface_renderer.update_window_size(screen_size);
         self.effect_renderer.update_window_size(screen_size);
+        self.reposition_hud_windows();
     }
 
     /// Request the names of all entities that should show a name label.
@@ -2416,6 +2493,73 @@ impl Client {
         }
     }
 
+    /// Whether the local player's movement is currently blocked by a
+    /// server-confirmed cast with a cast time.
+    ///
+    /// Only the cast bar state is used: instant skills never start a bar (and
+    /// therefore never root the player), and a cancelled or completed cast
+    /// clears the bar, which releases the movement block immediately. Dead or
+    /// sitting characters are never rooted by a stale bar.
+    fn movement_blocked_by_cast(&self, client_tick: ClientTick) -> bool {
+        let Some(player) = self.client_state.try_follow(this_entity()) else {
+            return false;
+        };
+
+        if player.is_dead() || player.is_sitting() {
+            return false;
+        }
+
+        if !self.cast_bars.is_casting(client_tick) {
+            return false;
+        }
+
+        // Sage/Scholar/Professor with the `Free Cast` passive can move while
+        // casting. Unknown jobs default to "blocked".
+        if has_free_cast(player.get_job_id(), self.client_state.follow(client_state().skill_tree().skills())) {
+            return false;
+        }
+
+        crate::logging::log_debug!(
+            "movement blocked: local player is casting (job={} free_cast=false)",
+            player.get_job_id().0
+        );
+        true
+    }
+
+    /// Whether the local player's after-cast act delay is still running.
+    ///
+    /// The after-cast act delay only paces follow-up *actions* (skills/items);
+    /// it deliberately does not block movement, which is controlled by the
+    /// server and by the cast bar rooting above.
+    fn aftercast_act_active(&self, client_tick: ClientTick) -> bool {
+        self.aftercast_act_until.is_some_and(|until| {
+            // `until` is in the future while `until - now` is less than half of
+            // the wrapping u32 range.
+            until.0.wrapping_sub(client_tick.0) < 0x8000_0000
+        })
+    }
+
+    /// Start the after-cast act delay of a completed skill, using the per-skill
+    /// value from the generated rAthena table.
+    fn apply_aftercast_act_delay(&mut self, skill_id: SkillId, level: u16, client_tick: ClientTick) {
+        let Some(delays) = skill_delays(skill_id, level) else {
+            return;
+        };
+
+        if delays.aftercast_act_ms == 0 {
+            return;
+        }
+
+        self.aftercast_act_until = Some(ClientTick(client_tick.0.wrapping_add(delays.aftercast_act_ms)));
+
+        crate::logging::log_debug!(
+            "aftercast act delay: skill={} level={} {}ms (server table)",
+            skill_id.0,
+            level,
+            delays.aftercast_act_ms
+        );
+    }
+
     fn show_skill_name_text(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) {
         let is_character = self
             .client_state
@@ -2523,7 +2667,7 @@ impl Client {
         let is_open = self.interface.is_window_with_class_open(WindowClass::BuffBar);
 
         match (is_empty, is_open) {
-            (false, false) => self.interface.open_window(BuffBarWindow),
+            (false, false) => self.open_buff_bar_window(),
             (true, true) => self.interface.close_window_with_class(WindowClass::BuffBar),
             _ => {}
         }
@@ -2828,8 +2972,28 @@ impl Client {
                     // cue for ambient self-buffs, crafting, warp portal casts and the
                     // skills of other players.
                     let has_cast_time = cast_time > 0;
-                    let cast_animation_time = cast_time.max(attack_motion_time).max(MINIMUM_SKILL_CAST_ANIMATION_MS);
+                    // The server packet's cast time is authoritative. The
+                    // per-skill table only provides a lower bound for the
+                    // animation/pose duration when the packet has no usable
+                    // timing (the old code used one global 300 ms constant).
+                    let table_delays = skill_delays(skill_id, 1);
+                    let animation_minimum = table_delays
+                        .map(|delays| delays.total_cast_ms().max(delays.aftercast_act_ms))
+                        .unwrap_or(0);
+                    let cast_animation_time = cast_time.max(attack_motion_time).max(animation_minimum);
                     let visuals = skill_visuals(skill_id, element);
+
+                    if let Some(delays) = table_delays {
+                        crate::logging::log_debug!(
+                            "skill delay table: skill={} cast={}ms fixed={}ms aftercast_act={}ms aftercast_walk={}ms cooldown={}ms",
+                            skill_id.0,
+                            delays.cast_ms,
+                            delays.fixed_cast_ms,
+                            delays.aftercast_act_ms,
+                            delays.aftercast_walk_ms,
+                            delays.cooldown_ms
+                        );
+                    }
 
                     let source_position = self
                         .client_state
@@ -2931,6 +3095,21 @@ impl Client {
                     if success {
                         if self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id) {
                             self.cast_bars.clear();
+                            // Pace the next action with this skill's server-side
+                            // after-cast act delay instead of a global constant.
+                            if let Some(delays) = skill_delays(skill_id, level as u16) {
+                                crate::logging::log_debug!(
+                                    "skill delay table: skill={} level={} cast={}ms fixed={}ms aftercast_act={}ms aftercast_walk={}ms cooldown={}ms",
+                                    skill_id.0,
+                                    level,
+                                    delays.cast_ms,
+                                    delays.fixed_cast_ms,
+                                    delays.aftercast_act_ms,
+                                    delays.aftercast_walk_ms,
+                                    delays.cooldown_ms
+                                );
+                            }
+                            self.apply_aftercast_act_delay(skill_id, level as u16, client_tick);
                         }
 
                         let source_position = self
@@ -3005,6 +3184,26 @@ impl Client {
                     // above the caster). Real heal
                     // numbers come from `ZC_RECOVERY`/0x0A27
                     // (`NetworkEvent::HealEffect`).
+                }
+                NetworkEvent::SkillCastCancelled { entity_id } => {
+                    // `ZC_DISPEL` (0x01B9, rAthena `clif_skillcastcancel`): the
+                    // cast of this entity was interrupted (movement, damage,
+                    // another skill, ...). Stop the looping cast gesture and
+                    // clear the local player's cast bar and skill label so a
+                    // cancelled cast never leaves a stuck bar or animation.
+                    if self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(entity_id) {
+                        self.cast_bars.clear();
+                        self.skill_name_texts.remove_entity(entity_id);
+                    }
+
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.cancel_skill_cast(client_tick);
+                    }
                 }
                 NetworkEvent::SkillGroundCast {
                     entity_id,
@@ -3227,10 +3426,7 @@ impl Client {
                         client_state().chat_messages(),
                         client_state().interface_settings(),
                     ));
-                    self.interface.open_window(HotbarWindow::new(
-                        client_state().hotbar().skills(),
-                        client_state().skill_tree().skills(),
-                    ));
+                    self.open_hotbar_window();
 
                     // Put the dialog system in a well-defined state.
                     self.client_state.follow_mut(client_state().dialog_window()).end();
@@ -3558,7 +3754,7 @@ impl Client {
                     self.pending_item_drag = None;
                     self.skill_name_texts.clear();
                     self.cast_bars.clear();
-                    self.cast_bars.clear();
+                    self.aftercast_act_until = None;
                     self.warp_skill_units.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
@@ -5111,8 +5307,16 @@ impl Client {
         skill_id: SkillId,
         skill_type: SkillType,
         level: SkillLevel,
-        _client_tick: ClientTick,
+        client_tick: ClientTick,
     ) {
+        if self.aftercast_act_active(client_tick) {
+            crate::logging::log_debug!(
+                "ignoring skill {}: after-cast act delay still running",
+                skill_id.0
+            );
+            return;
+        }
+
         match skill_type {
             SkillType::Passive => self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0)),
             SkillType::SelfCast => {
@@ -5541,6 +5745,15 @@ impl Client {
                     let _ = self.networking_system.switch_character_slot(origin_slot, destination_slot);
                 }
                 InputEvent::PlayerMove { destination } => {
+                    if self.movement_blocked_by_cast(client_tick) {
+                        // Classic cast rooting: while the local player is in a
+                        // server-confirmed cast with a cast time, walk requests
+                        // are ignored (the server would ignore them anyway).
+                        // Instant skills never reach this branch because they
+                        // do not start a cast bar.
+                        continue;
+                    }
+
                     if self.client_state.try_follow(this_entity()).is_some() {
                         let _ = self.networking_system.player_move(WorldPosition {
                             x: destination.x,
@@ -6837,6 +7050,7 @@ impl Client {
         self.pending_item_drag = None;
         self.skill_name_texts.clear();
         self.cast_bars.clear();
+        self.aftercast_act_until = None;
         self.client_state.follow_mut(client_state().ground_items()).clear();
         self.pending_context_menu = None;
         *self.client_state.follow_mut(client_state().buffered_action()) = None;
@@ -8967,6 +9181,12 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         // Cast progress bar above the local player's head while a cast with a cast
         // time is running (driven by server-confirmed cast starts).
         if self.currently_playing {
+            // The progress fill uses the theme's green success token, so the
+            // cast bar is green in the default and in the classic theme.
+            let cast_bar_fill_color = *self
+                .client_state
+                .follow(client_theme().tokens().color().state_success());
+
             self.cast_bars.render(
                 self.middle_interface_renderer,
                 self.current_camera,
@@ -8974,6 +9194,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                 self.screen_size,
                 self.scaling,
                 self.client_tick,
+                cast_bar_fill_color,
             );
         }
 
@@ -9048,5 +9269,51 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             self.middle_interface_renderer
                 .render_hover_text(&text, self.scaling, self.mouse_position);
         }
+    }
+}
+
+/// Whether the given job may move while casting because of the Sage/Scholar/
+/// Professor `Free Cast` passive.
+///
+/// The passive only works when the job can learn it (Sage 16 / Professor 4017)
+/// *and* the skill is actually learned; an unknown job or an unknown skill list
+/// therefore defaults to "rooted", which is the safe behaviour.
+fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
+    FREE_CAST_JOB_IDS.contains(&job_id.0) && skills.iter().any(|skill| skill.skill_id == FREE_CAST_SKILL_ID)
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::{JobId, SkillId, SkillLevel};
+
+    use super::has_free_cast;
+    use crate::state::skills::LearnedSkill;
+
+    fn learned(skill_id: u16) -> LearnedSkill {
+        LearnedSkill {
+            skill_id: SkillId(skill_id),
+            skill_level: SkillLevel(1),
+        }
+    }
+
+    #[test]
+    fn free_cast_requires_the_sage_jobs_and_the_learned_skill() {
+        // Sage with the passive learned.
+        assert!(has_free_cast(JobId(16), &[learned(278)]));
+        // Professor (rebirth Sage) with the passive learned.
+        assert!(has_free_cast(JobId(4017), &[learned(278)]));
+
+        // Non-Sage jobs are never allowed, even with the skill in the list.
+        assert!(!has_free_cast(JobId(8), &[learned(278)]));
+        assert!(!has_free_cast(JobId(0), &[learned(278)]));
+
+        // Sage without the passive is rooted.
+        assert!(!has_free_cast(JobId(16), &[]));
+        assert!(!has_free_cast(JobId(16), &[learned(28), learned(34)]));
+    }
+
+    #[test]
+    fn unknown_jobs_default_to_rooted() {
+        assert!(!has_free_cast(JobId(9999), &[learned(278)]));
     }
 }

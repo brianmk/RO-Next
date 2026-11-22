@@ -1,11 +1,13 @@
 //! Buff/status effect bar showing the player's active status effects.
 //!
-//! The bar is a compact, frameless window with one icon per active buff. Each
-//! icon shows the official status/skill icon from the client data (with a text
-//! fallback when the data is missing), the remaining time and a tooltip with
-//! the buff name. The window is opened when the first status effect starts and
-//! closed again when the last one ends, so it is invisible when there are no
-//! buffs.
+//! The buff bar is a completely transparent vertical strip on the right side of
+//! the screen, below the minimap. It has no window frame, background or chrome
+//! at all: only the status effect icons, their remaining time and the tooltip
+//! are drawn, so the game world stays visible around them. Icons are stacked in
+//! one column and the strip is positioned by the client (not by a cached window
+//! position), so it stays on the right edge at every resolution and interface
+//! scale. The window is opened when the first status effect of the local player
+//! starts and closed again when the last one ends.
 
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{BaseLayoutInfo, Element};
@@ -23,18 +25,20 @@ use crate::state::status_effects::StatusEffect;
 use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme, this_entity};
 
-/// Size of one buff icon slot in interface pixels.
+/// Size of one buff icon in interface pixels.
 const ICON_SIZE: f32 = 34.0;
-/// Gap between two icon slots.
+/// Gap between two icons of the vertical strip.
 const ICON_GAP: f32 = 3.0;
-/// Number of icons per row before wrapping into another row.
-const ICONS_PER_ROW: usize = 10;
-/// Extra padding around the icon grid.
-const BAR_PADDING: f32 = 2.0;
-
-/// Width of the buff bar window (fixed so that the window does not jump around
-/// while buffs are added/removed; the background is invisible anyway).
-const BAR_WIDTH: f32 = BAR_PADDING * 2.0 + ICONS_PER_ROW as f32 * ICON_SIZE + (ICONS_PER_ROW - 1) as f32 * ICON_GAP;
+/// Width of the transparent status strip in interface pixels.
+///
+/// The strip is a single column of icons; the width is fixed so the icons do
+/// not jump around while buffs are added or removed.
+pub const BAR_STRIP_WIDTH: f32 = ICON_SIZE;
+/// Maximum height of the strip in interface pixels.
+///
+/// The window only clips its content, so a very long buff list cannot grow
+/// over the whole screen. About 24 icons fit into this height.
+const BAR_STRIP_MAXIMUM_HEIGHT: f32 = 900.0;
 
 /// Tooltip id used for the buff icons.
 struct BuffBarTooltip;
@@ -143,8 +147,9 @@ struct BuffBarElement {
 }
 
 impl BuffBarElement {
+    /// Number of icon rows of the vertical strip (one icon per row).
     fn rows(effect_count: usize) -> usize {
-        effect_count.div_ceil(ICONS_PER_ROW).max(1)
+        effect_count.max(1)
     }
 
     /// Refresh the cached labels for the current buff set; labels whose key did
@@ -184,10 +189,10 @@ impl Element<ClientState> for BuffBarElement {
             self.refresh_labels(state, client_tick, own_entity_id);
 
             let rows = Self::rows(self.labels.len());
-            let height = BAR_PADDING * 2.0 + rows as f32 * ICON_SIZE + (rows.saturating_sub(1)) as f32 * ICON_GAP;
+            let height = rows as f32 * ICON_SIZE + rows.saturating_sub(1) as f32 * ICON_GAP;
 
             Self::LayoutInfo {
-                area: resolver.with_height(height),
+                area: resolver.with_height(height.min(BAR_STRIP_MAXIMUM_HEIGHT)),
             }
         })
     }
@@ -203,51 +208,34 @@ impl Element<ClientState> for BuffBarElement {
 
         let own_entity_id = local_entity_id(state);
 
-        let background_color = *state.get(&theme().window().background_color());
-        let border_color = *state.get(&theme().window().highlight_color());
-        let name_color = *state.get(&theme().window().title_color());
-
         let tokens = client_theme().tokens();
         let color_tokens = tokens.color();
         let typography = tokens.typography();
+        // The strip has no background, so the countdown and the fallback names
+        // are drawn with a dark outline to stay readable on every map.
         let overlay_text_color = *state.get(&color_tokens.text_overlay());
+        let outline_color = Color::rgba(0.0, 0.0, 0.0, 0.85);
         let fallback_name_font_size = *state.get(&typography.font_xs());
         let remaining_font_size = *state.get(&typography.font_sm());
 
         for (index, effect) in own_effects(state, own_entity_id).enumerate() {
-            let column = index % ICONS_PER_ROW;
-            let row = index / ICONS_PER_ROW;
-
             let area = Area {
-                left: layout_info.area.left + BAR_PADDING + column as f32 * (ICON_SIZE + ICON_GAP),
-                top: layout_info.area.top + BAR_PADDING + row as f32 * (ICON_SIZE + ICON_GAP),
+                left: layout_info.area.left,
+                top: layout_info.area.top + index as f32 * (ICON_SIZE + ICON_GAP),
                 width: ICON_SIZE,
                 height: ICON_SIZE,
             };
 
-            layout.add_rectangle(
-                area,
-                CornerDiameter::uniform(5.0),
-                background_color,
-                border_color,
-                ShadowPadding::diagonal(1.0, 3.0),
-            );
-
-            let icon_area = Area {
-                left: area.left + 2.0,
-                top: area.top + 2.0,
-                width: area.width - 4.0,
-                height: area.height - 4.0,
-            };
-
+            // No background rectangle: the icon itself is the only thing drawn,
+            // so the strip is fully transparent around and between the icons.
             match effect.icon() {
-                Some(texture) => layout.add_texture(icon_area, texture.clone(), Color::WHITE, true),
+                Some(texture) => layout.add_texture(area, texture.clone(), Color::WHITE, true),
                 None => layout.add_text(
                     area,
                     effect.name(),
                     fallback_name_font_size,
                     overlay_text_color,
-                    name_color,
+                    outline_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 2.0 },
                     VerticalAlignment::Center { offset: 0.0 },
                     OverflowBehavior::Shrink,
@@ -262,18 +250,19 @@ impl Element<ClientState> for BuffBarElement {
                     remaining,
                     remaining_font_size,
                     overlay_text_color,
-                    name_color,
+                    outline_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 2.0 },
                     VerticalAlignment::Bottom { offset: 1.0 },
                     OverflowBehavior::Shrink,
                 );
             }
 
+            // Keep the tooltip, but do not mark the window as hovered: the
+            // transparent strip must not block clicks into the game world.
             if area.check().run(layout)
                 && let Some(tooltip) = label.map(|label| label.tooltip.as_str())
             {
                 layout.add_tooltip(tooltip, BuffBarTooltip.tooltip_id());
-                layout.set_hovered();
             }
         }
     }
@@ -281,7 +270,7 @@ impl Element<ClientState> for BuffBarElement {
 
 #[cfg(test)]
 mod tests {
-    use super::{BuffBarElement, BuffLabelKey, ICONS_PER_ROW};
+    use super::{BuffBarElement, BuffLabelKey};
 
     #[test]
     fn label_key_changes_with_the_countdown_second() {
@@ -322,11 +311,11 @@ mod tests {
     }
 
     #[test]
-    fn rows_wrap_at_the_configured_icon_count() {
+    fn rows_stack_one_icon_per_row() {
         assert_eq!(BuffBarElement::rows(0), 1);
         assert_eq!(BuffBarElement::rows(1), 1);
-        assert_eq!(BuffBarElement::rows(ICONS_PER_ROW), 1);
-        assert_eq!(BuffBarElement::rows(ICONS_PER_ROW + 1), 2);
+        assert_eq!(BuffBarElement::rows(4), 4);
+        assert_eq!(BuffBarElement::rows(12), 12);
     }
 }
 
@@ -345,13 +334,23 @@ impl CustomWindow<ClientState> for BuffBarWindow {
             title: client_state().localization().chat_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
+            // Fully transparent overlay: no background, frame, shadow or title
+            // bar. Only the status effect icons of the element are visible.
             skinned: false,
             title_height: 0.0,
+            title_gap: 0.0,
             gaps: 0.0,
-            minimum_width: BAR_WIDTH,
-            maximum_width: BAR_WIDTH,
+            border: 0.0,
+            corner_diameter: CornerDiameter::uniform(0.0),
+            background_color: Color::TRANSPARENT,
+            shadow_color: Color::TRANSPARENT,
+            shadow_padding: ShadowPadding::uniform(0.0),
+            closable: false,
+            resizable: false,
+            minimum_width: BAR_STRIP_WIDTH,
+            maximum_width: BAR_STRIP_WIDTH,
             minimum_height: 0.0,
-            maximum_height: 200.0,
+            maximum_height: BAR_STRIP_MAXIMUM_HEIGHT,
             elements: (BuffBarElement::default(),),
         }
     }

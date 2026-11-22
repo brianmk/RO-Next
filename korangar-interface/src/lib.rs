@@ -644,6 +644,31 @@ where
         }
     }
 
+    /// Open a window at the given screen position with an automatic ("fit to
+    /// content") size, ignoring any cached size for its window class.
+    ///
+    /// This is meant for fixed-size HUD elements whose size is derived from
+    /// their content every frame (hotbar, buff bar): a size cached by an older
+    /// client version would otherwise squeeze their layout while the window
+    /// chrome is shown for resizing.
+    #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    pub fn open_window_at_auto_size<T>(&mut self, window: T, position: App::Position)
+    where
+        T: CustomWindow<App> + 'static,
+    {
+        crate::log_trace!(
+            "interface: open_window_at_auto_size type=`{}`",
+            short_type_name(std::any::type_name::<T>())
+        );
+        let window = window.to_window();
+        self.open_new_window(window, short_type_name(std::any::type_name::<T>()));
+
+        if let Some(wrapper) = self.windows.last_mut() {
+            wrapper.data.anchor = Anchor::top_left(position);
+            wrapper.data.size = App::Size::new(0.0, f32::MAX);
+        }
+    }
+
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn open_state_window<T>(&mut self, window_path: impl rust_state::Path<App, T>)
     where

@@ -638,6 +638,19 @@ pub struct MapServerLoginPacket {
     // (PACKETVER 20190605) expects the 19-byte 0x0436 layout, so it is omitted.
 }
 
+/// An entity's skill cast was interrupted (`ZC_DISPEL`, 0x01B9).
+///
+/// rAthena sends this from `clif_skillcastcancel` to everyone in the area when
+/// a cast is cancelled (movement, damage, another skill, ...). The packet only
+/// carries the entity id: the client has to stop the looping cast animation and
+/// clear its cast bar.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01B9)]
+#[packet_size(6)]
+pub struct SkillCastCancelPacket {
+    pub entity_id: EntityId,
+}
 /// Sent by the client to the character server when the player tries to create
 /// a new character.
 /// Attempts to create a new character in an empty slot using the provided

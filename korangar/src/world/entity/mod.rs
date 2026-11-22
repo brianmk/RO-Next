@@ -2279,6 +2279,16 @@ impl Entity {
         self.get_common_mut().start_body_flash(color, hold_ms, fade_ms, client_tick);
     }
 
+    /// Stop the looping skill-cast animation of this entity.
+    ///
+    /// Called when the server reports a cancelled cast (`ZC_DISPEL`, 0x01B9):
+    /// the caster returns to its idle animation instead of looping the cast
+    /// gesture until some other action replaces it.
+    pub fn cancel_skill_cast(&mut self, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.idle(entity_type, client_tick);
+    }
+
     /// Duration of the skill-cast animation of this entity in milliseconds.
     ///
     /// Effects that are spawned together with a cast have to stay alive at

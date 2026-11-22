@@ -14,6 +14,7 @@ mod job_identity;
 mod map_sky_data;
 mod monster_sprite;
 mod monster_sprite_alias;
+mod skill_delays;
 mod skill_icon;
 mod skill_icon_alias;
 mod skill_information;
@@ -43,6 +44,8 @@ pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 use self::monster_sprite::MonsterSprites;
 use self::skill_icon::SkillIcons;
+#[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
+pub use self::skill_delays::{SkillDelays, skill_delays};
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;

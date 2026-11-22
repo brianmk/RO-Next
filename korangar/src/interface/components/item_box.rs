@@ -20,6 +20,13 @@ use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThem
 use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
 
+/// Default size of an item slot in interface pixels.
+///
+/// The `item_box!` component exposes a `size` option so that a larger variant
+/// can be used for large icon grids while every other window keeps the default
+/// size.
+pub const DEFAULT_ITEM_BOX_SIZE: f32 = 40.0;
+
 #[derive(Default)]
 struct AmountDisplay {
     amount: u16,
@@ -161,6 +168,8 @@ pub struct ItemBox<A> {
     /// options, favorite). Cloned from the pre-composed item metadata, so no
     /// tooltip string is built per frame.
     tooltip: Option<Arc<str>>,
+    /// Height (and width) of the square slot in interface pixels.
+    size: f32,
 }
 
 /// Tooltip id of the item box tooltip.
@@ -173,7 +182,7 @@ where
     /// This function is supposed to be called from a component macro
     /// and not intended to be called manually.
     #[inline(always)]
-    pub fn component_new(item_path: A, source: ItemSource) -> Self {
+    pub fn component_new(item_path: A, source: ItemSource, size: f32) -> Self {
         Self {
             item_path,
             handler: ItemBoxHandler::new(item_path, source),
@@ -185,6 +194,7 @@ where
             context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
             tooltip: None,
+            size: size.max(1.0),
         }
     }
 
@@ -209,7 +219,7 @@ where
         resolvers: &mut dyn Resolvers<ClientState>,
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
-            let area = resolver.with_height(40.0);
+            let area = resolver.with_height(self.size);
 
             self.tooltip = state.try_get(&self.item_path).map(|item| item.metadata.tooltip_text.clone());
 
@@ -234,6 +244,10 @@ where
         // The card colors come from the interface theme so that the classic
         // (light) theme gets white cards while the default theme stays dark.
         let item_card_theme = client_theme().item_card();
+        // The slot is designed for a 40 pixel box; a larger box scales the
+        // corner radius, shadow and amount text so the enlarged card stays
+        // balanced and the amount remains readable.
+        let size_scale = (self.size / DEFAULT_ITEM_BOX_SIZE).clamp(1.0, 1.75);
 
         let (is_hovered, background_color) = match layout.get_mouse_mode() {
             MouseMode::Custom {
@@ -260,10 +274,10 @@ where
 
         layout.add_rectangle(
             layout_info.area,
-            CornerDiameter::uniform(20.0),
+            CornerDiameter::uniform((20.0 * size_scale).min(self.size / 4.0)),
             background_color,
             *state.get(&item_card_theme.border_color()),
-            ShadowPadding::diagonal(2.0, 5.0),
+            ShadowPadding::diagonal(2.0 * size_scale, 5.0 * size_scale),
         );
 
         if is_hovered {
@@ -292,16 +306,16 @@ where
 
             if item.is_favorite() {
                 let marker_area = Area {
-                    left: layout_info.area.left + 2.0,
-                    top: layout_info.area.top + 1.0,
-                    width: 12.0,
-                    height: 12.0,
+                    left: layout_info.area.left + 2.0 * size_scale,
+                    top: layout_info.area.top + 1.0 * size_scale,
+                    width: 12.0 * size_scale,
+                    height: 12.0 * size_scale,
                 };
 
                 layout.add_text(
                     marker_area,
                     "*",
-                    FontSize(14.0),
+                    FontSize(14.0 * size_scale),
                     *state.get(&client_theme().tokens().color().state_favorite()),
                     *state.get(&client_theme().tokens().color().state_favorite()),
                     HorizontalAlignment::Left { offset: 0.0, border: 1.0 },
@@ -330,13 +344,16 @@ where
                     layout_info.area,
                     amount,
                     // TODO: Put this in the theme
-                    FontSize(12.0),
+                    FontSize(12.0 * size_scale),
                     *state.get(&item_card_theme.text_color()),
                     *state.get(&item_card_theme.highlight_color()),
                     // TODO: Put this in the theme
-                    HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
+                    HorizontalAlignment::Right {
+                        offset: 3.0 * size_scale,
+                        border: 3.0 * size_scale,
+                    },
                     // TODO: Put this in the theme
-                    VerticalAlignment::Bottom { offset: 3.0 },
+                    VerticalAlignment::Bottom { offset: 3.0 * size_scale },
                     OverflowBehavior::Shrink,
                 );
             }

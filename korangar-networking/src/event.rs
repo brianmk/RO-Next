@@ -172,6 +172,14 @@ pub enum NetworkEvent {
         /// Attack motion in milliseconds (may be 0 on instant casts).
         attack_motion_time: u32,
     },
+    /// An entity's skill cast was cancelled (`ZC_DISPEL`, 0x01B9).
+    ///
+    /// Sent by rAthena `clif_skillcastcancel` when a cast is interrupted
+    /// (movement, damage, another skill, ...). The client stops the looping
+    /// cast animation and clears the cast bar of the local player.
+    SkillCastCancelled {
+        entity_id: EntityId,
+    },
     /// The map server asked the client to play a 3d sound effect (`ZC_SOUND`,
     /// 0x01D3). `name` is the file name relative to `data/wav`.
     PlaySound {

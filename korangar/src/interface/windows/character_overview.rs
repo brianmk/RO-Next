@@ -185,14 +185,6 @@ where
     })
 }
 
-/// Selector for the window closability: the minimalist HUD has no close button.
-fn window_closable<A>(compact_path: A) -> impl Selector<ClientState, bool>
-where
-    A: Path<ClientState, bool>,
-{
-    korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| !*compact_path.follow_safe(state))
-}
-
 /// Selector for the gap between the title bar and the content: the minimalist
 /// HUD has no title text and no title gap.
 fn window_title_gap<A>(compact_path: A) -> impl Selector<ClientState, f32>
@@ -648,7 +640,10 @@ where
             maximum_height: window_maximum_height(compact_path),
             border: window_border(compact_path),
             gaps: window_gaps(compact_path),
-            closable: window_closable(compact_path),
+            // The character overview is toggled from the menu / character
+            // selection and collapsed with the round button, like the minimap it
+            // does not get an X close button.
+            closable: false,
             background_color: window_background_color(compact_path),
             corner_diameter: window_corner_diameter(compact_path),
             elements: either! {

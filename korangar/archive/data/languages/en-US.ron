@@ -48,6 +48,7 @@
     chat_window_title: "Chat",
     chat_transparency_button_text: "Transparent",
     chat_transparency_button_tooltip: "Make the chat window background transparent",
+    hotbar_transparency_button_tooltip: "Make the hotbar window background transparent",
     chat_text_box_message: "Enter chat message or command",
     audio_settings_window_title: "Audio Settings",
     mute_audio_on_focus_loss_button_text: "Mute audio on focus loss",

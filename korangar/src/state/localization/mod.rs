@@ -183,6 +183,9 @@ pub struct Localization {
     chat_text_box_message: String,
     chat_transparency_button_text: String,
     chat_transparency_button_tooltip: String,
+    /// Tooltip of the round transparency toggle in the hotbar window.
+    #[serde(default = "default_hotbar_transparency_button_tooltip")]
+    hotbar_transparency_button_tooltip: String,
     audio_settings_window_title: String,
     mute_audio_on_focus_loss_button_text: String,
     mute_background_music_button_text: String,
@@ -493,6 +496,10 @@ fn default_account_email_text() -> String {
 /// that was written before the field existed still loads.
 fn default_chat_button_text() -> String {
     "Chat".to_owned()
+}
+
+fn default_hotbar_transparency_button_tooltip() -> String {
+    "Make the hotbar window background transparent".to_owned()
 }
 
 impl Localization {

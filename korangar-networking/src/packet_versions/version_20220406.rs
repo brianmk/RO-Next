@@ -1445,6 +1445,13 @@ where
             attack_motion_time,
         }
     })?;
+    // `ZC_DISPEL` (0x01B9) is sent by rAthena `clif_skillcastcancel` when a
+    // timed cast is interrupted (movement, damage, another skill, ...). The
+    // client used to ignore it, so a cancelled cast kept its cast bar and the
+    // looping cast animation looked stuck.
+    packet_handler.register(|packet: SkillCastCancelPacket| NetworkEvent::SkillCastCancelled {
+        entity_id: packet.entity_id,
+    })?;
     // `ZC_ACK_TOUSESKILL` is only sent when a skill cannot be used; `flag` is 0
     // for a failure in the 2019 protocol.
     packet_handler.register(|packet: ToUseSkillSuccessPacket| NetworkEvent::SkillUseFailed {

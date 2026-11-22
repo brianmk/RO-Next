@@ -230,6 +230,11 @@ pub struct InterfaceSettings {
     /// window, persisted here.
     #[serde(default = "default_minimap_transparent_frame")]
     pub minimap_transparent_frame: bool,
+    /// Draw the hotbar window without its background/chrome so the game world
+    /// is visible through it. The slot cards, icons and overlays stay opaque.
+    /// Can be toggled with a round button in the hotbar window, persisted here.
+    #[serde(default = "default_transparent_hotbar")]
+    pub transparent_hotbar: bool,
     /// Show the character overview window in its compact form (only HP, SP and
     /// base EXP progress, without the name, level rows and navigation
     /// buttons). Can be toggled in the window itself, persisted here.
@@ -269,6 +274,10 @@ fn default_minimap_transparent_frame() -> bool {
     false
 }
 
+fn default_transparent_hotbar() -> bool {
+    false
+}
+
 fn default_character_overview_compact() -> bool {
     false
 }
@@ -291,6 +300,7 @@ impl Default for InterfaceSettings {
             show_skill_names_above_characters: true,
             transparent_chat: false,
             minimap_transparent_frame: false,
+            transparent_hotbar: false,
             character_overview_compact: false,
             inventory_tab: ItemCategory::Consumables,
             level_99_aura_style: AuraStyle::Auto,

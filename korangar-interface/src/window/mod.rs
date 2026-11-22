@@ -631,11 +631,14 @@ where
                 width: layout_info.area.width - 40.0,
                 height: 6.0,
             },
-            // Keep the top grip below the title bar so it does not fight with the
-            // window move handler that covers the title.
+            // The top grip has to start *below* the title bar: the title area
+            // registers the window move handler and wins over the resize handler
+            // where both overlap, so a grip that reached into the title would
+            // move the window instead of resizing it (the bottom grip has no such
+            // conflict).
             VerticalResizeAnchor::Top => Area {
                 left: layout_info.area.left + 20.0,
-                top: layout_info.area.top + layout_info.title_area.height - 3.0,
+                top: layout_info.area.top + layout_info.title_area.height,
                 width: layout_info.area.width - 40.0,
                 height: 6.0,
             },

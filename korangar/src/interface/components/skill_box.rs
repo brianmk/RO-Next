@@ -18,6 +18,12 @@ use crate::state::theme::{
 };
 use crate::state::{ClientState, client_theme};
 
+/// Default size of a skill slot in interface pixels.
+///
+/// The `skill_box!` component exposes a `size` option so that a larger variant
+/// can be used by the hotbar while every other window keeps the default size.
+pub const DEFAULT_SKILL_BOX_SIZE: f32 = 40.0;
+
 struct LevelDisplay {
     maximum_level: SkillLevel,
     string: Option<String>,
@@ -105,6 +111,12 @@ pub struct SkillBox<A, B> {
     handler: SkillBoxHandler<A>,
     level_display: LevelDisplay,
     source: SkillSource,
+    /// Height (and width) of the square slot in interface pixels.
+    size: f32,
+    /// Whether the (maximum) skill level is drawn in the bottom right corner.
+    /// The hotbar hides it; only the icon is shown there, like the official
+    /// client.
+    show_level: bool,
 }
 
 impl<A, B> SkillBox<A, B>
@@ -115,13 +127,15 @@ where
     /// This function is supposed to be called from a component macro
     /// and not intended to be called manually.
     #[inline(always)]
-    pub fn component_new(learnable_skill_path: A, learned_skill_path: B, source: SkillSource) -> Self {
+    pub fn component_new(learnable_skill_path: A, learned_skill_path: B, source: SkillSource, size: f32, show_level: bool) -> Self {
         Self {
             learnable_skill_path,
             learned_skill_path,
             handler: SkillBoxHandler::new(learnable_skill_path, source),
             level_display: LevelDisplay::default(),
             source,
+            size: size.max(1.0),
+            show_level,
         }
     }
 }
@@ -140,9 +154,11 @@ where
         resolvers: &mut dyn Resolvers<ClientState>,
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
-            let area = resolver.with_height(40.0);
+            let area = resolver.with_height(self.size);
 
-            if let Some(learnable_skill) = state.try_get(&self.learnable_skill_path) {
+            if self.show_level
+                && let Some(learnable_skill) = state.try_get(&self.learnable_skill_path)
+            {
                 self.level_display.update(learnable_skill.maximum_level);
             }
 
@@ -171,8 +187,14 @@ where
             false => layout_info.area.check().run(layout),
         };
 
+        // The slot is designed for a 40 pixel box; a larger box (hotbar) scales
+        // the corner radius, shadow and level text with it so nothing looks
+        // lost in the enlarged card.
+        let size_scale = (self.size / DEFAULT_SKILL_BOX_SIZE).clamp(1.0, 1.75);
         let color_tokens = client_theme().tokens().color();
         let skill_font_size = *state.get(&client_theme().tokens().typography().font_body());
+        let level_font_size =
+            <crate::loaders::FontSize as korangar_interface::application::FontSize>::scaled(&skill_font_size, size_scale);
         let background_color = match !is_drop_target && is_hovered {
             true => *state.get(&color_tokens.state_hover()),
             false => *state.get(&color_tokens.surface_raised()),
@@ -182,10 +204,10 @@ where
             layout_info.area,
             // Square slot with a small corner radius: the y rounded "pill" corners
             // used to leave large dark areas around the skill icon.
-            CornerDiameter::uniform(6.0),
+            CornerDiameter::uniform(6.0 * size_scale),
             background_color,
             *state.get(&color_tokens.border()),
-            ShadowPadding::diagonal(2.0, 5.0),
+            ShadowPadding::diagonal(2.0 * size_scale, 5.0 * size_scale),
         );
 
         if is_drop_target {
@@ -253,18 +275,23 @@ where
                 layout.add_tooltip(&learnable_skill.skill_name, SkillBoxTooltip.tooltip_id());
             }
 
-            layout.add_text(
-                layout_info.area,
-                self.level_display.string.as_ref().unwrap(),
-                skill_font_size,
+            if self.show_level {
+                layout.add_text(
+                    layout_info.area,
+                    self.level_display.string.as_ref().unwrap(),
+                    level_font_size,
                 *state.get(&color_tokens.text_overlay()),
                 *state.get(&color_tokens.text_overlay_accent()),
                 // TODO: Put this in the theme
-                HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
-                // TODO: Put this in the theme
-                VerticalAlignment::Bottom { offset: 3.0 },
-                OverflowBehavior::Shrink,
-            );
+                    HorizontalAlignment::Right {
+                        offset: 3.0 * size_scale,
+                        border: 3.0 * size_scale,
+                    },
+                    // TODO: Put this in the theme
+                    VerticalAlignment::Bottom { offset: 3.0 * size_scale },
+                    OverflowBehavior::Shrink,
+                );
+            }
         }
     }
 }
