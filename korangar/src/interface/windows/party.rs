@@ -22,7 +22,7 @@ use crate::interface::windows::WindowClass;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::party::{Party, PartyInvitePrompt, PartyPathExt};
-use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, PartyThemePathExt};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_NAME_LENGTH: usize = 24;
@@ -34,9 +34,6 @@ const ROW_TEXT_HEIGHT: f32 = 15.0;
 const FONT_SIZE: f32 = 14.0;
 
 const HEALTH_BAR_FILL_COLOR: Color = Color::rgb_u8(84, 196, 104);
-const HEALTH_BAR_BACKGROUND_COLOR: Color = Color::rgb_u8(36, 36, 36);
-const TEXT_COLOR: Color = Color::rgb_u8(230, 230, 230);
-const SECONDARY_TEXT_COLOR: Color = Color::rgb_u8(170, 170, 170);
 
 /// Row of the roster that was laid out by [`PartyRoster::create_layout_info`].
 pub struct RosterRow {
@@ -60,6 +57,7 @@ pub struct PartyRoster<A> {
     lines: Vec<String>,
     health_texts: Vec<String>,
     health_fractions: Vec<Option<f32>>,
+    offline: Vec<bool>,
 }
 
 impl<A> PartyRoster<A>
@@ -73,6 +71,7 @@ where
             lines: Vec::new(),
             health_texts: Vec::new(),
             health_fractions: Vec::new(),
+            offline: Vec::new(),
         }
     }
 }
@@ -108,6 +107,7 @@ where
             })
             .collect();
         self.health_fractions = party.members.iter().map(|member| member.health_fraction()).collect();
+        self.offline = party.members.iter().map(|member| !member.online).collect();
 
         let member_count = party.members.len();
         let height = TITLE_HEIGHT + member_count as f32 * ROW_HEIGHT;
@@ -155,6 +155,11 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let title_color = *state.get(&client_theme().window().title_color());
+        let party_theme = client_theme().party();
+        let member_name_color = *state.get(&party_theme.member_name_color());
+        let offline_member_name_color = *state.get(&party_theme.offline_member_name_color());
+        let health_text_color = *state.get(&party_theme.health_text_color());
+        let bar_background_color = *state.get(&party_theme.health_bar_background_color());
         layout.add_text(
             layout_info.title_area,
             &self.title,
@@ -170,12 +175,18 @@ where
             let line = self.lines.get(index).map(String::as_str).unwrap_or_default();
             let health_text = self.health_texts.get(index).map(String::as_str).unwrap_or_default();
             let fraction = self.health_fractions.get(index).copied().flatten().unwrap_or(0.0);
+            // Offline members use a darker gray in the classic (light) theme so the
+            // names stay readable; online members use the theme text color.
+            let name_color = match self.offline.get(index).copied().unwrap_or(false) {
+                true => offline_member_name_color,
+                false => member_name_color,
+            };
 
             layout.add_text(
                 row.name_area,
                 line,
                 FontSize(FONT_SIZE),
-                TEXT_COLOR,
+                name_color,
                 title_color,
                 HorizontalAlignment::Left { offset: 2.0, border: 2.0 },
                 VerticalAlignment::Center { offset: 0.0 },
@@ -186,20 +197,20 @@ where
                 row.name_area,
                 health_text,
                 FontSize(FONT_SIZE - 1.0),
-                SECONDARY_TEXT_COLOR,
+                health_text_color,
                 title_color,
                 HorizontalAlignment::Right { offset: 2.0, border: 2.0 },
                 VerticalAlignment::Center { offset: 0.0 },
                 OverflowBehavior::Shrink,
             );
 
-            draw_bar(layout, row.bar_area, fraction);
+            draw_bar(layout, row.bar_area, fraction, bar_background_color);
         }
     }
 }
 
 /// Draws the rounded track and fill of a party member HP bar.
-fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f32) {
+fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f32, background_color: Color) {
     if area.width <= 0.0 || area.height <= 0.0 {
         return;
     }
@@ -209,7 +220,7 @@ fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f3
     layout.add_rectangle(
         area,
         corner_diameter,
-        HEALTH_BAR_BACKGROUND_COLOR,
+        background_color,
         Color::TRANSPARENT,
         ShadowPadding::uniform(0.0),
     );

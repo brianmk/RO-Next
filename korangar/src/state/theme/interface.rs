@@ -161,6 +161,34 @@ impl Default for CharacterOverviewTheme {
     }
 }
 
+/// Colors of the party window roster and HP bars.
+///
+/// The classic theme uses a light background, so the roster text has to be dark
+/// and offline members are drawn in a darker gray than the (too light) default
+/// color to stay readable.
+#[derive(Serialize, Deserialize, RustState, StateElement)]
+pub struct PartyTheme {
+    /// Color of a party member name.
+    pub member_name_color: Color,
+    /// Color of a party member that is offline.
+    pub offline_member_name_color: Color,
+    /// Color of the health text ("123 / 456") next to the member.
+    pub health_text_color: Color,
+    /// Background of the member health bar.
+    pub health_bar_background_color: Color,
+}
+
+impl Default for PartyTheme {
+    fn default() -> Self {
+        Self {
+            member_name_color: Color::rgb_u8(230, 230, 230),
+            offline_member_name_color: Color::rgb_u8(150, 150, 150),
+            health_text_color: Color::rgb_u8(170, 170, 170),
+            health_bar_background_color: Color::rgb_u8(36, 36, 36),
+        }
+    }
+}
+
 /// Colors of item cards (inventory, shop buy/sell lists).
 ///
 /// The default theme uses dark cards, the classic theme uses white/light cards
@@ -241,6 +269,10 @@ pub struct InterfaceTheme {
     /// and get the default (dark) token set.
     #[serde(default)]
     pub tokens: DesignTokens,
+    /// Colors of the party window roster. Optional in persisted theme files,
+    /// old themes keep loading and use the default colors.
+    #[serde(default)]
+    pub party: PartyTheme,
 }
 
 impl InterfaceTheme {
@@ -524,6 +556,7 @@ impl InterfaceTheme {
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
             tokens: DesignTokens::default(),
+            party: PartyTheme::default(),
         }
     }
 
@@ -745,6 +778,7 @@ impl InterfaceTheme {
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
             tokens: DesignTokens::default(),
+            party: PartyTheme::default(),
         }
     }
 
@@ -789,6 +823,15 @@ impl InterfaceTheme {
             border_color: Color::rgb_u8(130, 130, 130),
             text_color: Color::rgb_u8(0, 0, 0),
             highlight_color: Color::rgb_u8(0, 0, 128),
+        };
+
+        // Classic party roster: dark text on the light window, offline members in
+        // a clearly darker gray so the names stay readable.
+        theme.party = PartyTheme {
+            member_name_color: Color::rgb_u8(0, 0, 0),
+            offline_member_name_color: Color::rgb_u8(80, 80, 80),
+            health_text_color: Color::rgb_u8(60, 60, 60),
+            health_bar_background_color: Color::rgb_u8(190, 190, 190),
         };
 
         theme.window = WindowTheme {
