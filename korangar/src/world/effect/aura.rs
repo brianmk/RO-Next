@@ -82,6 +82,10 @@ const SWIRL_DIVISIONS: usize = 21;
 const SWIRL_ARC_DEGREES: f32 = 315.0;
 /// Alpha of the official swirling bands (120/255).
 const SWIRL_ALPHA: f32 = 120.0 / 255.0;
+/// Global opacity boost for the blended aura components. The official values are
+/// tuned for the original renderer; in bright outdoor maps they read as barely
+/// visible, so the blended parts are drawn noticeably stronger.
+const AURA_OPACITY_SCALE: f32 = 1.7;
 /// The official bands are drawn slightly inside the ground aura.
 const SWIRL_INNER_CIRCLE_SCALE: f32 = 0.6;
 
@@ -236,6 +240,10 @@ pub fn auto_aura_style(level: usize, transcendent: bool) -> AuraStyle {
         AuraStyle::Cyan
     }
 }
+
+/// Global size multiplier applied on top of the tier scale. The official sizes
+/// read too large on our camera, so the whole aura is scaled down by 30%.
+const AURA_SIZE_SCALE: f32 = 0.7;
 
 /// Overall size multiplier of the aura for a base level (higher levels get the
 /// larger classic aura).
@@ -577,7 +585,12 @@ impl Aura {
 
         let basic_angle = (SWIRL_ARC_DEGREES / (SWIRL_DIVISIONS - 1) as f32).to_radians();
         let wave = if process <= 90.0 { process.to_radians().sin() } else { 1.0 };
-        let tint = Color::rgba(color.red, color.green, color.blue, SWIRL_ALPHA * 1.25);
+        let tint = Color::rgba(
+            color.red,
+            color.green,
+            color.blue,
+            (SWIRL_ALPHA * 1.25 * AURA_OPACITY_SCALE).min(1.0),
+        );
 
         for band in self.bands {
             let rotation_start = (band.initial_rot_start + process * band.spin_speed).to_radians();
@@ -654,7 +667,7 @@ impl Aura {
                 anchor,
                 screen_size,
                 texture.clone(),
-                Color::rgba(0.85, 0.92, 1.0, 0.16),
+                Color::rgba(0.85, 0.92, 1.0, (0.16 * AURA_OPACITY_SCALE).min(0.9)),
                 corners,
                 texture_coordinates,
                 BlendFactor::SrcAlpha,
@@ -852,7 +865,7 @@ impl EffectBase for Aura {
         };
 
         let color = aura_color(style);
-        let scale = aura_tier_scale(self.level);
+        let scale = aura_tier_scale(self.level) * AURA_SIZE_SCALE;
         let pulse = 0.8 + 0.2 * (self.time * 2.3).sin();
         let radius = AURA_RADIUS * scale * (1.0 + 0.035 * (self.time * 1.8).sin());
         let texture_coordinates = Self::quad_texture_coordinates();
@@ -887,7 +900,7 @@ impl EffectBase for Aura {
                 anchor,
                 screen_size,
                 texture,
-                Color::rgba(color.red * 0.8 * pulse, color.green * 0.8 * pulse, color.blue * pulse, 1.0),
+                Color::rgba(color.red * 0.95 * pulse, color.green * 0.95 * pulse, color.blue * pulse, 1.0),
                 Self::ground_quad(anchor, radius * 0.62, self.time * INNER_RING_ROTATION_SPEED, RING_HEIGHT + 0.05),
                 texture_coordinates,
             );
@@ -902,7 +915,12 @@ impl EffectBase for Aura {
                 anchor,
                 screen_size,
                 texture,
-                Color::rgba(color.red * glow, color.green * glow, color.blue * glow, 1.0),
+                Color::rgba(
+                    (color.red * glow).min(1.0),
+                    (color.green * glow).min(1.0),
+                    (color.blue * glow).min(1.0),
+                    1.0,
+                ),
                 Self::ground_quad(anchor, radius * 1.15, self.time * 0.2, RING_HEIGHT - 0.05),
                 texture_coordinates,
             );
