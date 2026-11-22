@@ -988,14 +988,24 @@ where
             index: packet.inventory_index,
             equipped_position: packet.equipped_position,
         }),
-        _ => None,
+        RequestEquipItemStatus::FailedDueToLevelRequirement => Some(NetworkEvent::ChatMessage {
+            text: "Your level is too low to equip this item.".to_owned(),
+            color: MessageColor::Error,
+        }),
+        RequestEquipItemStatus::Failed => Some(NetworkEvent::ChatMessage {
+            text: "You cannot equip this item (your class, job level or another requirement is not met).".to_owned(),
+            color: MessageColor::Error,
+        }),
     })?;
     packet_handler.register(|packet: RequestUnequipItemStatusPacket| match packet.result {
         RequestUnequipItemStatus::Success => Some(NetworkEvent::UpdateEquippedPosition {
             index: packet.inventory_index,
             equipped_position: EquipPosition::NONE,
         }),
-        _ => None,
+        RequestUnequipItemStatus::Failed => Some(NetworkEvent::ChatMessage {
+            text: "You cannot unequip this item.".to_owned(),
+            color: MessageColor::Error,
+        }),
     })?;
     packet_handler.register_noop::<Packet8302>()?;
     packet_handler.register_noop::<Packet0b18>()?;
