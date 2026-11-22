@@ -24,6 +24,11 @@ fn main() {
     korangar::logging::init(verbosity);
     korangar::crash::install();
 
+    // Packet layout validation is log-only in release; route the (deduplicated)
+    // mismatches through the client logging facade so they end up in the log
+    // file with the normal level prefixes.
+    ragnarok_packets::validation::set_reporter(report_packet_layout_mismatch);
+
     // Must happen before the display backend is initialized (see below).
     sanitize_environment();
 
@@ -72,5 +77,29 @@ fn sanitize_environment() {
         unsafe { std::env::remove_var("WAYLAND_SOCKET") };
 
         korangar::logging::log_warn!("[display] ignoring invalid WAYLAND_SOCKET environment variable");
+    }
+}
+
+/// Reports a packet layout mismatch at warn (fixed-size) or debug
+/// (variable-length) level.
+///
+/// The check itself is log-only in release builds; tests and
+/// `KORANGAR_PACKET_STRICT=1` turn it into an error instead.
+fn report_packet_layout_mismatch(mismatch: &ragnarok_packets::validation::SizeMismatch) {
+    match mismatch.check {
+        ragnarok_packets::validation::LengthCheck::Fixed { .. } => korangar::logging::log_warn!(
+            "packets: layout mismatch for {} (0x{:04X}): declared {} bytes, consumed {} bytes",
+            mismatch.packet_type,
+            mismatch.header.0,
+            mismatch.check.claim(),
+            mismatch.check.actual(),
+        ),
+        ragnarok_packets::validation::LengthCheck::Variable { .. } => korangar::logging::log_debug!(
+            "packets: layout mismatch for {} (0x{:04X}): declared {} bytes, consumed {} bytes",
+            mismatch.packet_type,
+            mismatch.header.0,
+            mismatch.check.claim(),
+            mismatch.check.actual(),
+        ),
     }
 }
