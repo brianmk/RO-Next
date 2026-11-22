@@ -270,19 +270,28 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             body_flash: None,
             light: (YELLOW_AURA_COLOR, 45.0),
         },
-        _ => {
-            let mut visuals = plain(crate::world::element_color(element));
-
-            // High-confidence official effect from the generated table (see
-            // `gen_skill_effect_assets.py`). Skills without a match keep the
-            // generic element cast circle and no completion effect.
-            if let Some(effect_path) = crate::world::skill_effect_asset(skill_id) {
-                visuals.completion = completion(effect_path, 0.0, 1.0);
-            }
-
-            visuals
-        }
+        _ => plain(crate::world::element_color(element)),
     }
+}
+
+/// Whether the client has a hand-written (special-cased) completion visual for
+/// `skill_id`.
+///
+/// The official effect mapping from `skill_effect_assets` is skipped for these
+/// skills so the hand-written visual (Blessing angel, Angelus ring, Hammer Fall
+/// hammer, ...) is not doubled up with the table entry.
+pub fn has_custom_completion(skill_id: SkillId) -> bool {
+    matches!(
+        skill_id.0,
+        skill_ids::BS_HAMMERFALL
+            | skill_ids::AL_WARP
+            | skill_ids::AL_BLESSING
+            | skill_ids::AL_ANGELUS
+            | skill_ids::AL_INCAGI
+            | skill_ids::AC_CONCENTRATION
+            | skill_ids::CH_SOULCOLLECT
+            | skill_ids::MO_EXPLOSIONSPIRITS
+    )
 }
 
 #[cfg(test)]
@@ -320,19 +329,20 @@ mod tests {
     }
 
     #[test]
-    fn high_confidence_skills_play_their_official_effect() {
-        // The generated high-confidence table (skill_effect_assets.rs) is wired
-        // into the default arm, so e.g. Storm Gust, Magnus Exorcismus and
-        // Pierce get their official `.str` completion effect.
-        for (skill_id, expected) in [(89_u16, "stormgust.str"), (79, "magnus.str"), (56, "pierce.str")] {
-            let visuals = skill_visuals(SkillId(skill_id), 0);
-            let effect = visuals
-                .completion
-                .unwrap_or_else(|| panic!("skill {skill_id} has no completion effect"));
+    fn special_cased_skills_skip_the_table_mapping() {
+        use super::has_custom_completion;
+
+        for skill_id in [110_u16, 27, 33, 34, 29, 45, 401, 270] {
             assert!(
-                effect.path.ends_with(expected),
-                "skill {skill_id}: {} does not end with {expected}",
-                effect.path
+                has_custom_completion(SkillId(skill_id)),
+                "skill {skill_id} should keep its custom visual"
+            );
+        }
+        // Storm Gust / Magnus / Pierce use the table mapping instead.
+        for skill_id in [89_u16, 79, 56] {
+            assert!(
+                !has_custom_completion(SkillId(skill_id)),
+                "skill {skill_id} should use the table mapping"
             );
         }
     }

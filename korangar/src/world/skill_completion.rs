@@ -17,21 +17,22 @@ use ragnarok_packets::{ClientTick, EntityId, SkillId};
 /// server after-cast delays are longer than this).
 const DEDUPLICATION_WINDOW_MS: u32 = 1_500;
 
-/// Tracks which (entity, skill) completion effects were spawned recently.
+/// Tracks which (entity, skill, variant phase) completion effects were spawned
+/// recently.
 #[derive(Default)]
 pub struct SkillCompletionTracker {
-    recent: Vec<((EntityId, SkillId), ClientTick)>,
+    recent: Vec<((EntityId, SkillId, u8), ClientTick)>,
 }
 
 impl SkillCompletionTracker {
-    /// Returns `true` when the completion effect of `skill_id` should be
-    /// spawned for `entity_id` now, `false` when it was already spawned for the
-    /// same cast.
-    pub fn claim(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+    /// Returns `true` when the `phase` effect of `skill_id` should be spawned
+    /// for `entity_id` now, `false` when it was already spawned for the same
+    /// cast (for example the second hit of a multi-hit skill).
+    pub fn claim(&mut self, entity_id: EntityId, skill_id: SkillId, phase: u8, client_tick: ClientTick) -> bool {
         self.recent
             .retain(|(_, spawned_at)| client_tick.0.wrapping_sub(spawned_at.0) < DEDUPLICATION_WINDOW_MS);
 
-        let key = (entity_id, skill_id);
+        let key = (entity_id, skill_id, phase);
 
         if self.recent.iter().any(|(recent_key, _)| *recent_key == key) {
             return false;
@@ -52,26 +53,36 @@ mod tests {
     fn one_effect_per_cast() {
         let mut tracker = SkillCompletionTracker::default();
 
-        assert!(tracker.claim(EntityId(1), SkillId(56), ClientTick(100)));
+        assert!(tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(100)));
         // Second packet of the same cast (e.g. a multi-hit damage packet).
-        assert!(!tracker.claim(EntityId(1), SkillId(56), ClientTick(350)));
-        assert!(!tracker.claim(EntityId(1), SkillId(56), ClientTick(1_400)));
+        assert!(!tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(350)));
+        assert!(!tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(1_400)));
+    }
+
+    #[test]
+    fn different_phase_can_spawn_immediately() {
+        let mut tracker = SkillCompletionTracker::default();
+
+        assert!(tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(100)));
+        // e.g. the Hit variant after the Success variant of the same cast.
+        assert!(tracker.claim(EntityId(1), SkillId(56), 1, ClientTick(100)));
+        assert!(!tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(120)));
     }
 
     #[test]
     fn different_skill_or_entity_can_spawn_immediately() {
         let mut tracker = SkillCompletionTracker::default();
 
-        assert!(tracker.claim(EntityId(1), SkillId(56), ClientTick(100)));
-        assert!(tracker.claim(EntityId(1), SkillId(89), ClientTick(100)));
-        assert!(tracker.claim(EntityId(2), SkillId(56), ClientTick(100)));
+        assert!(tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(100)));
+        assert!(tracker.claim(EntityId(1), SkillId(89), 0, ClientTick(100)));
+        assert!(tracker.claim(EntityId(2), SkillId(56), 0, ClientTick(100)));
     }
 
     #[test]
     fn a_later_cast_spawns_again() {
         let mut tracker = SkillCompletionTracker::default();
 
-        assert!(tracker.claim(EntityId(1), SkillId(56), ClientTick(100)));
-        assert!(tracker.claim(EntityId(1), SkillId(56), ClientTick(1_700)));
+        assert!(tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(100)));
+        assert!(tracker.claim(EntityId(1), SkillId(56), 0, ClientTick(1_700)));
     }
 }

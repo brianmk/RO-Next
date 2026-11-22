@@ -1,0 +1,8833 @@
+{
+ "provenance": {
+  "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids and file names are extracted",
+  "url": "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB/Skills/SkillEffect.js",
+  "packetver_note": "extracted facts; validated against CondaRO.exe + GRFs by gen_skill_effect_assets.py"
+ },
+ "skills": {
+  "5": {
+   "hit": [
+    1
+   ]
+  },
+  "6": {
+   "success": [
+    67
+   ]
+  },
+  "7": {
+   "success": [
+    17
+   ],
+   "hit": [
+    17,
+    49
+   ]
+  },
+  "8": {
+   "success": [
+    11
+   ]
+  },
+  "10": {
+   "success": [
+    22
+   ]
+  },
+  "11": {
+   "hit": [
+    1
+   ]
+  },
+  "13": {
+   "caster": [
+    15
+   ]
+  },
+  "14": {
+   "hit": [
+    26,
+    51
+   ]
+  },
+  "15": {
+   "hit": [
+    28,
+    51
+   ],
+   "caster": [
+    27
+   ]
+  },
+  "16": {
+   "success": [
+    23
+   ]
+  },
+  "17": {
+   "hit": [
+    1,
+    49
+   ],
+   "caster": [
+    24
+   ]
+  },
+  "18": {
+   "ground": [
+    25
+   ],
+   "hit": [
+    49
+   ]
+  },
+  "19": {
+   "hit": [
+    31,
+    49
+   ]
+  },
+  "20": {
+   "hit": [
+    29,
+    52
+   ]
+  },
+  "21": {
+   "ground": [
+    30
+   ]
+  },
+  "24": {
+   "hit": [
+    1
+   ]
+  },
+  "25": {
+   "ground": [
+    141
+   ]
+  },
+  "28": {
+   "success": [
+    312
+   ],
+   "hit": [
+    320
+   ]
+  },
+  "29": {
+   "success": [
+    37
+   ]
+  },
+  "30": {
+   "success": [
+    38
+   ]
+  },
+  "31": {
+   "success": [
+    39
+   ]
+  },
+  "32": {
+   "success": [
+    40
+   ]
+  },
+  "33": {
+   "success": [
+    41
+   ]
+  },
+  "34": {
+   "success": [
+    42
+   ]
+  },
+  "35": {
+   "success": [
+    66
+   ]
+  },
+  "42": {
+   "success": [
+    10
+   ]
+  },
+  "45": {
+   "success": [
+    153
+   ]
+  },
+  "46": {
+   "caster": [
+    16
+   ]
+  },
+  "47": {
+   "hit": [
+    1
+   ]
+  },
+  "50": {
+   "success": [
+    18
+   ]
+  },
+  "52": {
+   "hit": [
+    20
+   ]
+  },
+  "53": {
+   "success": [
+    21
+   ]
+  },
+  "54": {
+   "success": [
+    77,
+    140
+   ]
+  },
+  "56": {
+   "success": [
+    148
+   ],
+   "hit": [
+    147
+   ]
+  },
+  "57": {
+   "success": [
+    70,
+    144
+   ]
+  },
+  "58": {
+   "success": [
+    150
+   ]
+  },
+  "59": {
+   "success": [
+    151
+   ],
+   "hit": [
+    80
+   ]
+  },
+  "60": {
+   "success": [
+    130
+   ]
+  },
+  "61": {
+   "success": [
+    131
+   ]
+  },
+  "62": {
+   "success": [
+    149
+   ],
+   "hit": [
+    1
+   ]
+  },
+  "66": {
+   "success": [
+    84
+   ]
+  },
+  "67": {
+   "success": [
+    88
+   ]
+  },
+  "68": {
+   "success": [
+    86
+   ]
+  },
+  "69": {
+   "success": [
+    91
+   ]
+  },
+  "70": {
+   "ground": [
+    319
+   ],
+   "success": [
+    83
+   ]
+  },
+  "71": {
+   "success": [
+    136
+   ]
+  },
+  "72": {
+   "success": [
+    78
+   ]
+  },
+  "73": {
+   "success": [
+    112
+   ]
+  },
+  "74": {
+   "success": [
+    76
+   ]
+  },
+  "75": {
+   "success": [
+    75
+   ]
+  },
+  "76": {
+   "success": [
+    87
+   ]
+  },
+  "77": {
+   "hit": [
+    152
+   ]
+  },
+  "78": {
+   "success": [
+    85
+   ]
+  },
+  "79": {
+   "ground": [
+    318
+   ],
+   "success": [
+    113
+   ],
+   "hit": [
+    152
+   ]
+  },
+  "80": {
+   "ground": [
+    138
+   ],
+   "success": [
+    96
+   ],
+   "hit": [
+    97
+   ]
+  },
+  "81": {
+   "success": [
+    62
+   ],
+   "hit": [
+    49
+   ]
+  },
+  "83": {
+   "success": [
+    92
+   ],
+   "hit": [
+    49
+   ]
+  },
+  "84": {
+   "success": [
+    93
+   ],
+   "hit": [
+    94
+   ]
+  },
+  "85": {
+   "success": [
+    90
+   ],
+   "hit": [
+    52
+   ]
+  },
+  "87": {
+   "ground": [
+    74
+   ]
+  },
+  "88": {
+   "success": [
+    28
+   ],
+   "hit": [
+    51
+   ]
+  },
+  "89": {
+   "success": [
+    89
+   ],
+   "hit": [
+    51
+   ]
+  },
+  "90": {
+   "success": [
+    79
+   ],
+   "hit": [
+    147
+   ]
+  },
+  "91": {
+   "success": [
+    142
+   ],
+   "hit": [
+    147
+   ]
+  },
+  "92": {
+   "ground": [
+    95
+   ]
+  },
+  "108": {
+   "success": [
+    101
+   ]
+  },
+  "110": {
+   "success": [
+    102
+   ]
+  },
+  "111": {
+   "success": [
+    98
+   ]
+  },
+  "112": {
+   "success": [
+    103
+   ]
+  },
+  "113": {
+   "success": [
+    128
+   ]
+  },
+  "114": {
+   "success": [
+    104
+   ]
+  },
+  "115": {
+   "success": [
+    69
+   ]
+  },
+  "118": {
+   "success": [
+    145
+   ],
+   "hit": [
+    146
+   ]
+  },
+  "119": {
+   "hit": [
+    139
+   ]
+  },
+  "120": {
+   "hit": [
+    99
+   ]
+  },
+  "121": {
+   "hit": [
+    108
+   ]
+  },
+  "122": {
+   "hit": [
+    106
+   ]
+  },
+  "123": {
+   "hit": [
+    107
+   ]
+  },
+  "124": {
+   "success": [
+    100
+   ]
+  },
+  "129": {
+   "success": [
+    115
+   ]
+  },
+  "130": {
+   "success": [
+    119
+   ]
+  },
+  "131": {
+   "success": [
+    111
+   ]
+  },
+  "135": {
+   "success": [
+    120
+   ]
+  },
+  "136": {
+   "success": [
+    121,
+    143
+   ],
+   "hit": [
+    122
+   ]
+  },
+  "137": {
+   "release": [
+    123
+   ],
+   "hit": [
+    132
+   ]
+  },
+  "138": {
+   "success": [
+    20
+   ]
+  },
+  "139": {
+   "success": [
+    126
+   ],
+   "hit": [
+    127
+   ]
+  },
+  "140": {
+   "ground": [
+    171
+   ],
+   "success": [
+    124
+   ]
+  },
+  "141": {
+   "success": [
+    129
+   ]
+  },
+  "142": {
+   "success": [
+    309
+   ]
+  },
+  "148": {
+   "caster": [
+    16
+   ]
+  },
+  "149": {
+   "success": [
+    310
+   ]
+  },
+  "152": {
+   "hit": [
+    308
+   ]
+  },
+  "153": {
+   "cast": [
+    170
+   ],
+   "hit": [
+    170
+   ]
+  },
+  "155": {
+   "success": [
+    311
+   ]
+  },
+  "156": {
+   "success": [
+    152
+   ]
+  },
+  "157": {
+   "success": [
+    169
+   ]
+  },
+  "158": {
+   "success": [
+    148
+   ]
+  },
+  "159": {
+   "success": [
+    181
+   ]
+  },
+  "162": {
+   "success": [
+    174
+   ]
+  },
+  "163": {
+   "success": [
+    177
+   ]
+  },
+  "164": {
+   "success": [
+    173
+   ]
+  },
+  "165": {
+   "success": [
+    175
+   ]
+  },
+  "166": {
+   "success": [
+    179
+   ]
+  },
+  "167": {
+   "success": [
+    178
+   ]
+  },
+  "168": {
+   "success": [
+    172
+   ]
+  },
+  "170": {
+   "success": [
+    16
+   ]
+  },
+  "172": {
+   "success": [
+    191
+   ]
+  },
+  "173": {
+   "success": [
+    183
+   ]
+  },
+  "175": {
+   "success": [
+    185
+   ]
+  },
+  "176": {
+   "success": [
+    192
+   ]
+  },
+  "178": {
+   "success": [
+    193
+   ]
+  },
+  "179": {
+   "success": [
+    194
+   ]
+  },
+  "180": {
+   "success": [
+    195
+   ]
+  },
+  "181": {
+   "success": [
+    196
+   ]
+  },
+  "182": {
+   "success": [
+    197
+   ]
+  },
+  "184": {
+   "hit": [
+    51
+   ]
+  },
+  "185": {
+   "hit": [
+    147
+   ]
+  },
+  "186": {
+   "hit": [
+    49
+   ]
+  },
+  "187": {
+   "hit": [
+    52
+   ]
+  },
+  "188": {
+   "hit": [
+    53
+   ]
+  },
+  "189": {
+   "hit": [
+    152
+   ]
+  },
+  "190": {
+   "success": [
+    184
+   ],
+   "hit": [
+    180
+   ]
+  },
+  "191": {
+   "success": [
+    198
+   ]
+  },
+  "192": {
+   "hit": [
+    182
+   ]
+  },
+  "194": {
+   "success": [
+    67
+   ]
+  },
+  "199": {
+   "success": [
+    216
+   ]
+  },
+  "200": {
+   "success": [
+    217
+   ]
+  },
+  "201": {
+   "success": [
+    214
+   ]
+  },
+  "202": {
+   "success": [
+    212
+   ]
+  },
+  "205": {
+   "success": [
+    213
+   ]
+  },
+  "211": {
+   "success": [
+    268,
+    274
+   ]
+  },
+  "212": {
+   "hit": [
+    275
+   ]
+  },
+  "214": {
+   "success": [
+    276
+   ]
+  },
+  "215": {
+   "success": [
+    269
+   ]
+  },
+  "216": {
+   "success": [
+    270
+   ]
+  },
+  "217": {
+   "success": [
+    271
+   ]
+  },
+  "218": {
+   "success": [
+    272
+   ]
+  },
+  "219": {
+   "success": [
+    227
+   ]
+  },
+  "229": {
+   "ground": [
+    302
+   ]
+  },
+  "230": {
+   "hit": [
+    298
+   ]
+  },
+  "231": {
+   "success": [
+    299
+   ]
+  },
+  "234": {
+   "success": [
+    300
+   ]
+  },
+  "235": {
+   "success": [
+    300
+   ]
+  },
+  "236": {
+   "success": [
+    300
+   ]
+  },
+  "237": {
+   "success": [
+    300
+   ]
+  },
+  "249": {
+   "success": [
+    336
+   ]
+  },
+  "250": {
+   "success": [
+    246
+   ]
+  },
+  "251": {
+   "success": [
+    249
+   ]
+  },
+  "252": {
+   "success": [
+    252
+   ]
+  },
+  "253": {
+   "success": [
+    245
+   ]
+  },
+  "254": {
+   "success": [
+    226
+   ]
+  },
+  "255": {
+   "success": [
+    251
+   ]
+  },
+  "256": {
+   "success": [
+    248
+   ]
+  },
+  "257": {
+   "success": [
+    222
+   ]
+  },
+  "258": {
+   "success": [
+    250
+   ]
+  },
+  "262": {
+   "success": [
+    253
+   ]
+  },
+  "263": {
+   "success": [
+    329
+   ]
+  },
+  "264": {
+   "success": [
+    166
+   ]
+  },
+  "266": {
+   "success": [
+    267
+   ]
+  },
+  "267": {
+   "success": [
+    265
+   ],
+   "hit": [
+    1
+   ]
+  },
+  "268": {
+   "success": [
+    254
+   ]
+  },
+  "270": {
+   "cast": [
+    12
+   ],
+   "success": [
+    261
+   ]
+  },
+  "271": {
+   "cast": [
+    12
+   ],
+   "hit": [
+    266
+   ]
+  },
+  "272": {
+   "success": [
+    262,
+    263,
+    273
+   ]
+  },
+  "273": {
+   "success": [
+    330
+   ]
+  },
+  "276": {
+   "success": [
+    244
+   ]
+  },
+  "277": {
+   "success": [
+    234
+   ]
+  },
+  "280": {
+   "success": [
+    255
+   ]
+  },
+  "281": {
+   "success": [
+    256
+   ]
+  },
+  "282": {
+   "success": [
+    257
+   ]
+  },
+  "283": {
+   "success": [
+    258
+   ]
+  },
+  "285": {
+   "ground": [
+    239
+   ],
+   "success": [
+    225
+   ]
+  },
+  "286": {
+   "ground": [
+    240
+   ],
+   "success": [
+    236
+   ]
+  },
+  "287": {
+   "ground": [
+    241
+   ],
+   "success": [
+    237
+   ]
+  },
+  "288": {
+   "ground": [
+    242
+   ],
+   "success": [
+    238
+   ]
+  },
+  "289": {
+   "success": [
+    235
+   ]
+  },
+  "306": {
+   "success": [
+    278
+   ]
+  },
+  "307": {
+   "success": [
+    279
+   ]
+  },
+  "308": {
+   "success": [
+    280
+   ]
+  },
+  "309": {
+   "success": [
+    281
+   ]
+  },
+  "310": {
+   "success": [
+    282
+   ]
+  },
+  "311": {
+   "success": [
+    283
+   ]
+  },
+  "312": {
+   "success": [
+    284
+   ]
+  },
+  "313": {
+   "success": [
+    285
+   ]
+  },
+  "318": {
+   "cast": [
+    295
+   ]
+  },
+  "319": {
+   "success": [
+    286
+   ]
+  },
+  "320": {
+   "success": [
+    287
+   ]
+  },
+  "321": {
+   "success": [
+    288
+   ]
+  },
+  "322": {
+   "success": [
+    289
+   ]
+  },
+  "326": {
+   "cast": [
+    296
+   ]
+  },
+  "327": {
+   "success": [
+    291
+   ]
+  },
+  "328": {
+   "success": [
+    292
+   ]
+  },
+  "329": {
+   "success": [
+    293
+   ]
+  },
+  "330": {
+   "success": [
+    294
+   ]
+  },
+  "337": {
+   "success": [
+    494
+   ]
+  },
+  "338": {
+   "success": [
+    450
+   ]
+  },
+  "340": {
+   "success": [
+    451
+   ]
+  },
+  "341": {
+   "success": [
+    93
+   ],
+   "hit": [
+    94
+   ]
+  },
+  "342": {
+   "success": [
+    453
+   ]
+  },
+  "349": {
+   "success": [
+    456
+   ]
+  },
+  "355": {
+   "success": [
+    367
+   ]
+  },
+  "356": {
+   "success": [
+    336
+   ]
+  },
+  "357": {
+   "success": [
+    369
+   ]
+  },
+  "359": {
+   "success": [
+    368
+   ]
+  },
+  "360": {
+   "success": [
+    368
+   ]
+  },
+  "361": {
+   "success": [
+    440
+   ]
+  },
+  "362": {
+   "ground": [
+    374
+   ]
+  },
+  "364": {
+   "success": [
+    217
+   ]
+  },
+  "365": {
+   "success": [
+    380
+   ]
+  },
+  "366": {
+   "cast": [
+    16
+   ]
+  },
+  "367": {
+   "hit": [
+    365
+   ]
+  },
+  "368": {
+   "success": [
+    366
+   ]
+  },
+  "369": {
+   "success": [
+    370
+   ]
+  },
+  "370": {
+   "hit": [
+    376
+   ]
+  },
+  "371": {
+   "success": [
+    263,
+    377
+   ]
+  },
+  "372": {
+   "success": [
+    512
+   ]
+  },
+  "373": {
+   "success": [
+    378,
+    379,
+    383
+   ]
+  },
+  "374": {
+   "success": [
+    384,
+    385
+   ]
+  },
+  "375": {
+   "success": [
+    406
+   ]
+  },
+  "378": {
+   "success": [
+    493
+   ]
+  },
+  "379": {
+   "hit": [
+    361
+   ]
+  },
+  "380": {
+   "success": [
+    386
+   ]
+  },
+  "381": {
+   "success": [
+    387
+   ]
+  },
+  "382": {
+   "hit": [
+    388
+   ]
+  },
+  "383": {
+   "success": [
+    389
+   ]
+  },
+  "384": {
+   "success": [
+    390
+   ]
+  },
+  "387": {
+   "success": [
+    391
+   ]
+  },
+  "389": {
+   "cast": [
+    501
+   ]
+  },
+  "390": {
+   "success": [
+    392
+   ]
+  },
+  "394": {
+   "success": [
+    393
+   ]
+  },
+  "395": {
+   "success": [
+    394
+   ]
+  },
+  "396": {
+   "success": [
+    395
+   ],
+   "hit": [
+    396
+   ]
+  },
+  "397": {
+   "success": [
+    339
+   ]
+  },
+  "398": {
+   "cast": [
+    399
+   ]
+  },
+  "399": {
+   "cast": [
+    400
+   ]
+  },
+  "400": {
+   "success": [
+    401
+   ]
+  },
+  "401": {
+   "cast": [
+    12,
+    402
+   ]
+  },
+  "402": {
+   "success": [
+    403
+   ]
+  },
+  "403": {
+   "success": [
+    505
+   ]
+  },
+  "405": {
+   "ground": [
+    404
+   ]
+  },
+  "406": {
+   "success": [
+    409
+   ]
+  },
+  "408": {
+   "success": [
+    408
+   ]
+  },
+  "411": {
+   "ground": [
+    442
+   ],
+   "success": [
+    443
+   ]
+  },
+  "413": {
+   "success": [
+    435
+   ]
+  },
+  "415": {
+   "success": [
+    413
+   ]
+  },
+  "417": {
+   "success": [
+    414
+   ]
+  },
+  "421": {
+   "success": [
+    439
+   ],
+   "hit": [
+    457
+   ]
+  },
+  "426": {
+   "ground": [
+    411
+   ],
+   "success": [
+    445
+   ]
+  },
+  "427": {
+   "success": [
+    432
+   ]
+  },
+  "428": {
+   "success": [
+    488
+   ]
+  },
+  "429": {
+   "success": [
+    488
+   ]
+  },
+  "430": {
+   "success": [
+    488
+   ]
+  },
+  "431": {
+   "success": [
+    441
+   ]
+  },
+  "432": {
+   "success": [
+    441
+   ]
+  },
+  "433": {
+   "success": [
+    441
+   ]
+  },
+  "434": {
+   "ground": [
+    487
+   ]
+  },
+  "444": {
+   "success": [
+    433
+   ]
+  },
+  "446": {
+   "success": [
+    220
+   ],
+   "hit": [
+    541
+   ]
+  },
+  "458": {
+   "success": [
+    424,
+    503
+   ]
+  },
+  "461": {
+   "success": [
+    424,
+    503
+   ]
+  },
+  "462": {
+   "success": [
+    590
+   ]
+  },
+  "463": {
+   "success": [
+    543
+   ]
+  },
+  "464": {
+   "success": [
+    546
+   ]
+  },
+  "465": {
+   "success": [
+    419
+   ]
+  },
+  "467": {
+   "success": [
+    547
+   ]
+  },
+  "468": {
+   "success": [
+    555
+   ]
+  },
+  "469": {
+   "success": [
+    425,
+    553
+   ]
+  },
+  "470": {
+   "success": [
+    420,
+    589
+   ]
+  },
+  "471": {
+   "success": [
+    427
+   ]
+  },
+  "472": {
+   "success": [
+    254,
+    261
+   ]
+  },
+  "475": {
+   "success": [
+    496
+   ]
+  },
+  "476": {
+   "success": [
+    495
+   ]
+  },
+  "479": {
+   "success": [
+    300,
+    500
+   ]
+  },
+  "482": {
+   "success": [
+    521
+   ]
+  },
+  "483": {
+   "ground": [
+    224
+   ],
+   "success": [
+    223
+   ]
+  },
+  "485": {
+   "success": [
+    518
+   ]
+  },
+  "487": {
+   "success": [
+    500
+   ]
+  },
+  "488": {
+   "ground": [
+    517
+   ]
+  },
+  "489": {
+   "success": [
+    500
+   ]
+  },
+  "490": {
+   "success": [
+    537
+   ]
+  },
+  "494": {
+   "success": [
+    424,
+    503
+   ]
+  },
+  "496": {
+   "success": [
+    497
+   ]
+  },
+  "497": {
+   "success": [
+    498
+   ]
+  },
+  "498": {
+   "success": [
+    499
+   ]
+  },
+  "502": {
+   "success": [
+    648
+   ]
+  },
+  "503": {
+   "success": [
+    649
+   ]
+  },
+  "504": {
+   "success": [
+    625
+   ]
+  },
+  "505": {
+   "success": [
+    626
+   ]
+  },
+  "506": {
+   "success": [
+    456
+   ]
+  },
+  "507": {
+   "success": [
+    644
+   ]
+  },
+  "512": {
+   "success": [
+    646
+   ],
+   "hit": [
+    647
+   ]
+  },
+  "513": {
+   "success": [
+    627
+   ]
+  },
+  "515": {
+   "success": [
+    643
+   ]
+  },
+  "516": {
+   "success": [
+    637
+   ]
+  },
+  "517": {
+   "success": [
+    626
+   ]
+  },
+  "518": {
+   "success": [
+    628
+   ]
+  },
+  "519": {
+   "success": [
+    584
+   ]
+  },
+  "520": {
+   "success": [
+    645
+   ]
+  },
+  "523": {
+   "hit": [
+    613
+   ]
+  },
+  "524": {
+   "hit": [
+    614
+   ]
+  },
+  "525": {
+   "hit": [
+    615
+   ]
+  },
+  "526": {
+   "hit": [
+    616
+   ]
+  },
+  "527": {
+   "ground": [
+    631
+   ]
+  },
+  "528": {
+   "success": [
+    632
+   ]
+  },
+  "530": {
+   "success": [
+    630
+   ]
+  },
+  "532": {
+   "success": [
+    617
+   ]
+  },
+  "534": {
+   "success": [
+    618
+   ]
+  },
+  "535": {
+   "ground": [
+    634
+   ]
+  },
+  "536": {
+   "success": [
+    635
+   ]
+  },
+  "537": {
+   "success": [
+    619
+   ]
+  },
+  "538": {
+   "ground": [
+    620
+   ]
+  },
+  "539": {
+   "success": [
+    636
+   ]
+  },
+  "540": {
+   "success": [
+    621
+   ]
+  },
+  "541": {
+   "success": [
+    622
+   ]
+  },
+  "544": {
+   "success": [
+    633
+   ]
+  },
+  "653": {
+   "success": [
+    666
+   ]
+  },
+  "654": {
+   "hit": [
+    49
+   ]
+  },
+  "656": {
+   "hit": [
+    52
+   ]
+  },
+  "659": {
+   "success": [
+    668
+   ]
+  },
+  "661": {
+   "success": [
+    409
+   ]
+  },
+  "664": {
+   "success": [
+    89
+   ]
+  },
+  "665": {
+   "success": [
+    669
+   ]
+  },
+  "670": {
+   "ground": [
+    674
+   ]
+  },
+  "673": {
+   "hit": [
+    677
+   ]
+  },
+  "698": {
+   "success": [
+    717
+   ]
+  },
+  "706": {
+   "success": [
+    1020
+   ]
+  },
+  "1002": {
+   "success": [
+    599
+   ]
+  },
+  "1004": {
+   "hit": [
+    600
+   ]
+  },
+  "1005": {
+   "ground": [
+    604
+   ],
+   "success": [
+    602
+   ]
+  },
+  "1006": {
+   "success": [
+    601
+   ]
+  },
+  "1008": {
+   "success": [
+    256
+   ]
+  },
+  "1009": {
+   "hit": [
+    1
+   ]
+  },
+  "1010": {
+   "success": [
+    606
+   ]
+  },
+  "1011": {
+   "success": [
+    607
+   ]
+  },
+  "1016": {
+   "success": [
+    514
+   ]
+  },
+  "1017": {
+   "success": [
+    258
+   ]
+  },
+  "1018": {
+   "success": [
+    255
+   ]
+  },
+  "1019": {
+   "success": [
+    257
+   ]
+  },
+  "2001": {
+   "success": [
+    756
+   ]
+  },
+  "2002": {
+   "success": [
+    832
+   ]
+  },
+  "2004": {
+   "success": [
+    723
+   ]
+  },
+  "2006": {
+   "success": [
+    722
+   ]
+  },
+  "2008": {
+   "hit": [
+    587
+   ]
+  },
+  "2009": {
+   "success": [
+    731
+   ]
+  },
+  "2011": {
+   "success": [
+    749
+   ]
+  },
+  "2021": {
+   "success": [
+    788
+   ]
+  },
+  "2036": {
+   "success": [
+    775
+   ]
+  },
+  "2038": {
+   "success": [
+    718
+   ],
+   "hit": [
+    152
+   ]
+  },
+  "2040": {
+   "success": [
+    721
+   ]
+  },
+  "2043": {
+   "success": [
+    313
+   ]
+  },
+  "2044": {
+   "ground": [
+    754
+   ],
+   "success": [
+    883
+   ]
+  },
+  "2046": {
+   "success": [
+    755
+   ]
+  },
+  "2051": {
+   "success": [
+    325
+   ],
+   "hit": [
+    320
+   ]
+  },
+  "2052": {
+   "success": [
+    753
+   ]
+  },
+  "2201": {
+   "success": [
+    802
+   ]
+  },
+  "2203": {
+   "success": [
+    726
+   ]
+  },
+  "2204": {
+   "hit": [
+    28
+   ]
+  },
+  "2205": {
+   "success": [
+    729
+   ]
+  },
+  "2206": {
+   "success": [
+    803
+   ]
+  },
+  "2209": {
+   "success": [
+    799
+   ]
+  },
+  "2211": {
+   "success": [
+    727
+   ]
+  },
+  "2212": {
+   "ground": [
+    728
+   ]
+  },
+  "2215": {
+   "success": [
+    734
+   ]
+  },
+  "2216": {
+   "ground": [
+    732
+   ]
+  },
+  "2217": {
+   "cast": [
+    805
+   ],
+   "success": [
+    804
+   ]
+  },
+  "2230": {
+   "success": [
+    751
+   ]
+  },
+  "2233": {
+   "success": [
+    746
+   ]
+  },
+  "2236": {
+   "success": [
+    745
+   ]
+  },
+  "2237": {
+   "success": [
+    750
+   ]
+  },
+  "2247": {
+   "success": [
+    744
+   ]
+  },
+  "2249": {
+   "ground": [
+    739
+   ]
+  },
+  "2250": {
+   "ground": [
+    740
+   ]
+  },
+  "2251": {
+   "ground": [
+    741
+   ]
+  },
+  "2252": {
+   "ground": [
+    742
+   ]
+  },
+  "2259": {
+   "success": [
+    787
+   ]
+  },
+  "2270": {
+   "success": [
+    794
+   ]
+  },
+  "2272": {
+   "success": [
+    781
+   ]
+  },
+  "2279": {
+   "success": [
+    795
+   ]
+  },
+  "2289": {
+   "success": [
+    811
+   ]
+  },
+  "2292": {
+   "success": [
+    813
+   ]
+  },
+  "2293": {
+   "success": [
+    814
+   ]
+  },
+  "2294": {
+   "success": [
+    815
+   ]
+  },
+  "2295": {
+   "success": [
+    816
+   ]
+  },
+  "2296": {
+   "success": [
+    817
+   ]
+  },
+  "2297": {
+   "success": [
+    818
+   ]
+  },
+  "2298": {
+   "success": [
+    820
+   ]
+  },
+  "2299": {
+   "ground": [
+    822
+   ],
+   "success": [
+    823
+   ]
+  },
+  "2300": {
+   "ground": [
+    825
+   ]
+  },
+  "2301": {
+   "ground": [
+    827
+   ]
+  },
+  "2302": {
+   "ground": [
+    828
+   ]
+  },
+  "2303": {
+   "ground": [
+    829
+   ]
+  },
+  "2310": {
+   "hit": [
+    906
+   ]
+  },
+  "2318": {
+   "success": [
+    908
+   ]
+  },
+  "2319": {
+   "success": [
+    909
+   ]
+  },
+  "2325": {
+   "success": [
+    910
+   ]
+  },
+  "2328": {
+   "success": [
+    888
+   ]
+  },
+  "2414": {
+   "ground": [
+    856
+   ]
+  },
+  "2415": {
+   "success": [
+    860
+   ]
+  },
+  "2417": {
+   "success": [
+    863
+   ]
+  },
+  "2418": {
+   "success": [
+    857
+   ]
+  },
+  "2419": {
+   "ground": [
+    860
+   ]
+  },
+  "2420": {
+   "ground": [
+    879
+   ]
+  },
+  "2422": {
+   "success": [
+    858
+   ]
+  },
+  "2423": {
+   "success": [
+    861
+   ]
+  },
+  "2424": {
+   "success": [
+    862
+   ]
+  },
+  "2425": {
+   "success": [
+    847
+   ]
+  },
+  "2427": {
+   "ground": [
+    868
+   ],
+   "success": [
+    865
+   ]
+  },
+  "2428": {
+   "ground": [
+    866
+   ],
+   "success": [
+    867
+   ]
+  },
+  "2430": {
+   "ground": [
+    870
+   ],
+   "success": [
+    871
+   ]
+  },
+  "2431": {
+   "ground": [
+    872
+   ],
+   "success": [
+    871
+   ]
+  },
+  "2432": {
+   "ground": [
+    874
+   ],
+   "success": [
+    873
+   ]
+  },
+  "2433": {
+   "ground": [
+    876
+   ],
+   "success": [
+    875
+   ]
+  },
+  "2434": {
+   "ground": [
+    878
+   ]
+  },
+  "2443": {
+   "ground": [
+    920
+   ]
+  },
+  "2444": {
+   "ground": [
+    926
+   ]
+  },
+  "2447": {
+   "success": [
+    928
+   ]
+  },
+  "2449": {
+   "success": [
+    922
+   ]
+  },
+  "2452": {
+   "success": [
+    929
+   ]
+  },
+  "2453": {
+   "success": [
+    921
+   ]
+  },
+  "2454": {
+   "hit": [
+    930
+   ]
+  },
+  "2483": {
+   "success": [
+    915
+   ]
+  },
+  "2485": {
+   "success": [
+    916
+   ]
+  },
+  "2486": {
+   "success": [
+    917
+   ]
+  },
+  "2487": {
+   "success": [
+    918
+   ]
+  },
+  "2490": {
+   "success": [
+    919
+   ]
+  },
+  "5001": {
+   "success": [
+    1040
+   ]
+  },
+  "5003": {
+   "success": [
+    1049
+   ]
+  },
+  "5005": {
+   "success": [
+    1044
+   ]
+  },
+  "5006": {
+   "success": [
+    1050
+   ]
+  },
+  "5008": {
+   "success": [
+    1046
+   ]
+  },
+  "5009": {
+   "success": [
+    1043
+   ]
+  },
+  "5011": {
+   "success": [
+    1047
+   ]
+  },
+  "5012": {
+   "success": [
+    1048
+   ]
+  },
+  "5014": {
+   "success": [
+    1042
+   ]
+  },
+  "5457": {
+   "cast": [
+    1446
+   ]
+  },
+  "5479": {
+   "cast": [
+    1774
+   ]
+  },
+  "6006": {
+   "cast": [
+    2228,
+    2229
+   ]
+  },
+  "8004": {
+   "success": [
+    505
+   ]
+  },
+  "8005": {
+   "success": [
+    570
+   ]
+  },
+  "8006": {
+   "success": [
+    569
+   ]
+  },
+  "8008": {
+   "success": [
+    571
+   ]
+  },
+  "8010": {
+   "success": [
+    564
+   ]
+  },
+  "8011": {
+   "success": [
+    564
+   ]
+  },
+  "8016": {
+   "success": [
+    183
+   ]
+  },
+  "8020": {
+   "success": [
+    959
+   ]
+  },
+  "8024": {
+   "success": [
+    960
+   ]
+  },
+  "8026": {
+   "success": [
+    961
+   ]
+  },
+  "8028": {
+   "success": [
+    965
+   ]
+  },
+  "8030": {
+   "success": [
+    967
+   ]
+  },
+  "8036": {
+   "success": [
+    966
+   ]
+  },
+  "8039": {
+   "success": [
+    962
+   ]
+  },
+  "8041": {
+   "success": [
+    964
+   ]
+  },
+  "8043": {
+   "success": [
+    975
+   ]
+  }
+ },
+ "effects": {
+  "0": [
+   {
+    "file": "effect/pok3.tga",
+    "type": null
+   }
+  ],
+  "1": [
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   }
+  ],
+  "4": [
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   }
+  ],
+  "5": [
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/lens2.tga",
+    "type": null
+   }
+  ],
+  "6": [
+   {
+    "file": "effect/ring_blue",
+    "type": "FUNC"
+   }
+  ],
+  "7": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "9": [
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "10": [
+   {
+    "file": "maemor",
+    "type": "STR"
+   }
+  ],
+  "13": [
+   {
+    "file": "effect/safetywall",
+    "type": "STR"
+   }
+  ],
+  "14": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "18": [
+   {
+    "file": "effect/pok1.tga",
+    "type": null
+   }
+  ],
+  "20": [
+   {
+    "file": "effect/pok1.tga",
+    "type": null
+   }
+  ],
+  "21": [
+   {
+    "file": "effect/pok1.tga",
+    "type": null
+   }
+  ],
+  "23": [
+   {
+    "file": "stonecurse",
+    "type": "STR"
+   }
+  ],
+  "25": [
+   {
+    "file": "firewall%d",
+    "type": "STR"
+   }
+  ],
+  "29": [
+   {
+    "file": "lightning",
+    "type": "STR"
+   }
+  ],
+  "30": [
+   {
+    "file": "thunderstorm",
+    "type": "STR"
+   }
+  ],
+  "32": [
+   {
+    "file": "effect/Ao1ß1",
+    "type": "FUNC"
+   }
+  ],
+  "37": [
+   {
+    "file": "effect/ac_center2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/agi_up.bmp",
+    "type": null
+   }
+  ],
+  "38": [
+   {
+    "file": "effect/ac_center2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/slow.bmp",
+    "type": null
+   }
+  ],
+  "39": [
+   {
+    "file": "\\xbc\\xba\\xbc\\xf6\\xb6\\xdf\\xb1\\xe2",
+    "type": "SPR"
+   }
+  ],
+  "40": [
+   {
+    "file": "cross",
+    "type": "STR"
+   }
+  ],
+  "41": [
+   {
+    "file": "angelus",
+    "type": "STR"
+   }
+  ],
+  "42": [
+   {
+    "file": "\\xc3\\xe0\\xba\\xb9",
+    "type": "SPR"
+   },
+   {
+    "file": "effect/pok2.tga",
+    "type": "SPR"
+   }
+  ],
+  "43": [
+   {
+    "file": "effect/dex_agi_up.bmp",
+    "type": null
+   }
+  ],
+  "44": [
+   {
+    "file": "\\xb1\\xbc\\xb6\\xd2\\xbf\\xac\\xb1\\xe2",
+    "type": "SPR"
+   }
+  ],
+  "45": [
+   {
+    "file": "sprite/AIANA®/particle1",
+    "type": "FUNC"
+   }
+  ],
+  "49": [
+   {
+    "file": "firehit%d",
+    "type": "STR"
+   }
+  ],
+  "50": [
+   {
+    "file": "effect/firering.tga",
+    "type": null
+   }
+  ],
+  "51": [
+   {
+    "file": "effect/ice.tga",
+    "type": null
+   }
+  ],
+  "52": [
+   {
+    "file": "windhit%d",
+    "type": "STR"
+   }
+  ],
+  "53": [
+   {
+    "file": "poisonhit",
+    "type": "SPR"
+   }
+  ],
+  "61": [
+   {
+    "file": "effect/pok1.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "64": [
+   {
+    "file": "arrowshot",
+    "type": "STR"
+   }
+  ],
+  "65": [
+   {
+    "file": "invenom",
+    "type": "STR"
+   }
+  ],
+  "66": [
+   {
+    "file": "cure",
+    "type": "STR"
+   }
+  ],
+  "67": [
+   {
+    "file": "provoke",
+    "type": "STR"
+   }
+  ],
+  "68": [
+   {
+    "file": "mvp",
+    "type": "STR"
+   }
+  ],
+  "69": [
+   {
+    "file": "skidtrap",
+    "type": "STR"
+   }
+  ],
+  "70": [
+   {
+    "file": "brandish",
+    "type": "STR"
+   }
+  ],
+  "75": [
+   {
+    "file": "gloria",
+    "type": "STR"
+   }
+  ],
+  "76": [
+   {
+    "file": "magnificat",
+    "type": "STR"
+   }
+  ],
+  "77": [
+   {
+    "file": "resurrection",
+    "type": "STR"
+   }
+  ],
+  "78": [
+   {
+    "file": "recovery",
+    "type": "STR"
+   }
+  ],
+  "83": [
+   {
+    "file": "sanctuary",
+    "type": "STR"
+   }
+  ],
+  "84": [
+   {
+    "file": "impositio",
+    "type": "STR"
+   }
+  ],
+  "85": [
+   {
+    "file": "lexaeterna",
+    "type": "STR"
+   }
+  ],
+  "86": [
+   {
+    "file": "aspersio",
+    "type": "STR"
+   }
+  ],
+  "87": [
+   {
+    "file": "lexdivina",
+    "type": "STR"
+   }
+  ],
+  "88": [
+   {
+    "file": "suffragium",
+    "type": "STR"
+   }
+  ],
+  "89": [
+   {
+    "file": "stormgust",
+    "type": "STR"
+   }
+  ],
+  "90": [
+   {
+    "file": "lord",
+    "type": "STR"
+   }
+  ],
+  "91": [
+   {
+    "file": "benedictio",
+    "type": "STR"
+   }
+  ],
+  "92": [
+   {
+    "file": "meteor%d",
+    "type": "STR"
+   }
+  ],
+  "93": [
+   {
+    "file": "effect/thunder_center.bmp",
+    "type": null
+   }
+  ],
+  "94": [
+   {
+    "file": "effect/thunder_pang.bmp",
+    "type": null
+   }
+  ],
+  "95": [
+   {
+    "file": "quagmire",
+    "type": "STR"
+   }
+  ],
+  "96": [
+   {
+    "file": "firepillar",
+    "type": "STR"
+   }
+  ],
+  "97": [
+   {
+    "file": "firepillarbomb",
+    "type": "STR"
+   }
+  ],
+  "101": [
+   {
+    "file": "repairweapon",
+    "type": "STR"
+   }
+  ],
+  "102": [
+   {
+    "file": "crashearth",
+    "type": "STR"
+   }
+  ],
+  "103": [
+   {
+    "file": "weaponperfection",
+    "type": "STR"
+   }
+  ],
+  "104": [
+   {
+    "file": "maximizepower",
+    "type": "STR"
+   }
+  ],
+  "106": [
+   {
+    "file": "blastmine",
+    "type": "STR"
+   }
+  ],
+  "107": [
+   {
+    "file": "claymore",
+    "type": "STR"
+   }
+  ],
+  "108": [
+   {
+    "file": "freezing",
+    "type": "STR"
+   }
+  ],
+  "109": [
+   {
+    "file": "bubble%d",
+    "type": "STR"
+   }
+  ],
+  "110": [
+   {
+    "file": "gaspush",
+    "type": "STR"
+   }
+  ],
+  "111": [
+   {
+    "file": "spring",
+    "type": "STR"
+   }
+  ],
+  "112": [
+   {
+    "file": "kyrie",
+    "type": "STR"
+   }
+  ],
+  "113": [
+   {
+    "file": "magnus",
+    "type": "STR"
+   }
+  ],
+  "121": [
+   {
+    "file": "effect/ring2.bmp",
+    "type": null
+   }
+  ],
+  "124": [
+   {
+    "file": "venomdust",
+    "type": "STR"
+   }
+  ],
+  "126": [
+   {
+    "file": "poisonreact_1st",
+    "type": "STR"
+   }
+  ],
+  "127": [
+   {
+    "file": "poisonreact",
+    "type": "STR"
+   }
+  ],
+  "129": [
+   {
+    "file": "venomsplasher",
+    "type": "STR"
+   }
+  ],
+  "130": [
+   {
+    "file": "twohand",
+    "type": "STR"
+   }
+  ],
+  "131": [
+   {
+    "file": "autocounter",
+    "type": "STR"
+   }
+  ],
+  "133": [
+   {
+    "file": "freeze",
+    "type": "STR"
+   }
+  ],
+  "134": [
+   {
+    "file": "freezed",
+    "type": "STR"
+   }
+  ],
+  "135": [
+   {
+    "file": "icecrash",
+    "type": "STR"
+   }
+  ],
+  "136": [
+   {
+    "file": "slowp",
+    "type": "STR"
+   }
+  ],
+  "139": [
+   {
+    "file": "sandman",
+    "type": "STR"
+   }
+  ],
+  "141": [
+   {
+    "file": "pneuma%d",
+    "type": "STR"
+   }
+  ],
+  "143": [
+   {
+    "file": "sonicblow",
+    "type": "STR"
+   }
+  ],
+  "144": [
+   {
+    "file": "brandish2",
+    "type": "STR"
+   },
+   {
+    "file": "shockwave",
+    "type": "STR"
+   }
+  ],
+  "145": [
+   {
+    "file": "shockwave",
+    "type": "SPR"
+   }
+  ],
+  "146": [
+   {
+    "file": "shockwavehit",
+    "type": "STR"
+   }
+  ],
+  "147": [
+   {
+    "file": "earthhit",
+    "type": "STR"
+   }
+  ],
+  "148": [
+   {
+    "file": "pierce",
+    "type": "STR"
+   }
+  ],
+  "149": [
+   {
+    "file": "bowling",
+    "type": "STR"
+   }
+  ],
+  "150": [
+   {
+    "file": "spearstab",
+    "type": "STR"
+   }
+  ],
+  "151": [
+   {
+    "file": "spearboomerang",
+    "type": "STR"
+   }
+  ],
+  "152": [
+   {
+    "file": "holyhit",
+    "type": "STR"
+   }
+  ],
+  "153": [
+   {
+    "file": "concentration",
+    "type": "STR"
+   }
+  ],
+  "154": [
+   {
+    "file": "bs_refinesuccess",
+    "type": "STR"
+   }
+  ],
+  "155": [
+   {
+    "file": "bs_refinefailed",
+    "type": "STR"
+   }
+  ],
+  "158": [
+   {
+    "file": "joblvup",
+    "type": "STR"
+   }
+  ],
+  "165": [
+   {
+    "file": "\\xc5\\xa9\\xb8\\xae\\xbd\\xba\\xb8\\xb6\\xbd\\xba",
+    "type": "SPR"
+   }
+  ],
+  "169": [
+   {
+    "file": "energycoat",
+    "type": "STR"
+   }
+  ],
+  "170": [
+   {
+    "file": "cartrevolution",
+    "type": "STR"
+   }
+  ],
+  "181": [
+   {
+    "file": "mentalbreak",
+    "type": "STR"
+   }
+  ],
+  "182": [
+   {
+    "file": "magical",
+    "type": "STR"
+   }
+  ],
+  "183": [
+   {
+    "file": "sui_explosion",
+    "type": "STR"
+   }
+  ],
+  "185": [
+   {
+    "file": "suicide",
+    "type": "STR"
+   }
+  ],
+  "186": [
+   {
+    "file": "yunta_1",
+    "type": "STR"
+   }
+  ],
+  "187": [
+   {
+    "file": "yunta_2",
+    "type": "STR"
+   }
+  ],
+  "188": [
+   {
+    "file": "yunta_3",
+    "type": "STR"
+   }
+  ],
+  "189": [
+   {
+    "file": "yunta_4",
+    "type": "STR"
+   }
+  ],
+  "190": [
+   {
+    "file": "yunta_5",
+    "type": "STR"
+   }
+  ],
+  "191": [
+   {
+    "file": "homing",
+    "type": "STR"
+   }
+  ],
+  "192": [
+   {
+    "file": "poison",
+    "type": "STR"
+   }
+  ],
+  "193": [
+   {
+    "file": "silence",
+    "type": "STR"
+   }
+  ],
+  "194": [
+   {
+    "file": "stun",
+    "type": "STR"
+   }
+  ],
+  "195": [
+   {
+    "file": "stonecurse",
+    "type": "STR"
+   }
+  ],
+  "197": [
+   {
+    "file": "sleep",
+    "type": "STR"
+   }
+  ],
+  "199": [
+   {
+    "file": "pong%d",
+    "type": "STR"
+   }
+  ],
+  "203": [
+   {
+    "file": "effect/super1.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/super2.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/super3.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/super4.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/super5.bmp",
+    "type": null
+   }
+  ],
+  "204": [
+   {
+    "file": "\\xbb\\xa1\\xb0\\xa3\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "205": [
+   {
+    "file": "\\xc1\\xd6\\xc8\\xab\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "206": [
+   {
+    "file": "\\xb3\\xeb\\xb6\\xf5\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "207": [
+   {
+    "file": "\\xc7\\xcf\\xbe\\xe1\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "208": [
+   {
+    "file": "\\xc6\\xc4\\xb6\\xf5\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "209": [
+   {
+    "file": "\\xc3\\xca\\xb7\\xcf\\xc6\\xf7\\xbc\\xc7",
+    "type": "STR"
+   }
+  ],
+  "210": [
+   {
+    "file": "fruit",
+    "type": "STR"
+   }
+  ],
+  "211": [
+   {
+    "file": "fruit_",
+    "type": "STR"
+   }
+  ],
+  "212": [
+   {
+    "file": "darkbreath",
+    "type": "SPR"
+   }
+  ],
+  "213": [
+   {
+    "file": "deffender",
+    "type": "STR"
+   }
+  ],
+  "214": [
+   {
+    "file": "keeping",
+    "type": "STR"
+   }
+  ],
+  "215": [
+   {
+    "file": "smoke",
+    "type": "SPR"
+   }
+  ],
+  "218": [
+   {
+    "file": "\\xc1\\xfd\\xc1\\xdf",
+    "type": "STR"
+   }
+  ],
+  "219": [
+   {
+    "file": "\\xb0\\xa2\\xbc\\xba",
+    "type": "STR"
+   }
+  ],
+  "220": [
+   {
+    "file": "\\xb9\\xf6\\xbc\\xad\\xc5\\xa9",
+    "type": "STR"
+   }
+  ],
+  "232": [
+   {
+    "file": "effect/alpha_center.tga",
+    "type": null
+   }
+  ],
+  "234": [
+   {
+    "file": "spell",
+    "type": "STR"
+   }
+  ],
+  "235": [
+   {
+    "file": "\\xb5\\xf0\\xbd\\xba\\xc6\\xe7",
+    "type": "STR"
+   }
+  ],
+  "244": [
+   {
+    "file": "\\xb8\\xc5\\xc1\\xf7\\xb7\\xce\\xb5\\xe5",
+    "type": "STR"
+   }
+  ],
+  "245": [
+   {
+    "file": "holy_cross",
+    "type": "STR"
+   }
+  ],
+  "246": [
+   {
+    "file": "shield_charge",
+    "type": "STR"
+   }
+  ],
+  "248": [
+   {
+    "file": "providence",
+    "type": "STR"
+   }
+  ],
+  "250": [
+   {
+    "file": "twohand",
+    "type": "STR"
+   }
+  ],
+  "251": [
+   {
+    "file": "devotion",
+    "type": "STR"
+   }
+  ],
+  "253": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "255": [
+   {
+    "file": "enc_fire",
+    "type": "STR"
+   }
+  ],
+  "256": [
+   {
+    "file": "enc_ice",
+    "type": "STR"
+   }
+  ],
+  "257": [
+   {
+    "file": "enc_wind",
+    "type": "STR"
+   }
+  ],
+  "258": [
+   {
+    "file": "enc_earth",
+    "type": "STR"
+   }
+  ],
+  "262": [
+   {
+    "file": "effect/alpha_center.tga",
+    "type": null
+   }
+  ],
+  "265": [
+   {
+    "file": "effect/blue_ivy.bmp",
+    "type": null
+   }
+  ],
+  "266": [
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   }
+  ],
+  "268": [
+   {
+    "file": "steal_coin",
+    "type": "STR"
+   }
+  ],
+  "269": [
+   {
+    "file": "strip_weapon",
+    "type": "STR"
+   }
+  ],
+  "270": [
+   {
+    "file": "strip_shield",
+    "type": "STR"
+   }
+  ],
+  "271": [
+   {
+    "file": "strip_armor",
+    "type": "STR"
+   }
+  ],
+  "272": [
+   {
+    "file": "strip_helm",
+    "type": "STR"
+   }
+  ],
+  "273": [
+   {
+    "file": "\\xbf\\xac\\xc8\\xaf",
+    "type": "STR"
+   }
+  ],
+  "274": [
+   {
+    "file": "effect/coin_a.bmp",
+    "type": null
+   }
+  ],
+  "276": [
+   {
+    "file": "effect/lens1.tga",
+    "type": "FUNC"
+   }
+  ],
+  "298": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xbf\\xb0\\xbb\\xea\\xba\\xb4.bmp",
+    "type": null
+   }
+  ],
+  "302": [
+   {
+    "file": "\\xb5\\xa5\\xb8\\xf3\\xbd\\xba\\xc6\\xae\\xb7\\xb9\\xc0\\xcc\\xbc\\xc7",
+    "type": "SPR"
+   }
+  ],
+  "305": [
+   {
+    "file": "p_success",
+    "type": "STR"
+   }
+  ],
+  "306": [
+   {
+    "file": "p_failed",
+    "type": "STR"
+   }
+  ],
+  "308": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xb5\\xb9.bmp",
+    "type": null
+   }
+  ],
+  "309": [
+   {
+    "file": "effect/pikapika2.bmp",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_doublebowlingbash/double_bowlingbash",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_mega_sonic_blow/mega_sonic_blow",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_shield_chain_rush/shield_chain_rush",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_spiral_pierce_max/spiral_pierce_max",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_meteor_storm_buster/meteor_storm_buster",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_meteor_storm_buster/meteor_storm_buster_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_jupitel_thunder_storm/jupitel_thunder_storm_ball/jupitel_thunder_storm_ball",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_jack_frost_nova/jack_frost_nova_end/jack_frost_nova_end",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_hells_drive/hells_drive_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_ground_gravitation/ground_gravitation_loop",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_napalm_vulcan_strike/napalm_vulcan_strike",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_breakinglimit/breakinglimit/breakinglimit",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_rulebreak/rulebreak/rulebreak",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_overcoming_crisis/overcoming_crisis/overcoming_crisis",
+    "type": "STR"
+   },
+   {
+    "file": "hyper_novice/hn_overcoming_crisis/overcoming_crisis_bottom/overcoming_crisis_bottom",
+    "type": "STR"
+   }
+  ],
+  "311": [
+   {
+    "file": "loud",
+    "type": "STR"
+   }
+  ],
+  "312": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "313": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "315": [
+   {
+    "file": "safetywall",
+    "type": "STR"
+   }
+  ],
+  "317": [
+   {
+    "file": "effect/icearrow.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "320": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "321": [
+   {
+    "file": "effect/pok1.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "325": [
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/pok3.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "328": [
+   {
+    "file": "effect/asura1.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura1.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura2.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura2.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura3.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura4.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura4.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura5.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura5.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura6.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura6.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "331": [
+   {
+    "file": "effect/pok1.tga",
+    "type": null
+   }
+  ],
+  "332": [
+   {
+    "file": "effect/pok1.tga",
+    "type": null
+   }
+  ],
+  "334": [
+   {
+    "file": "effect/fullb.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/white02.bmp",
+    "type": "FUNC"
+   }
+  ],
+  "337": [
+   {
+    "file": "joblvup",
+    "type": "STR"
+   }
+  ],
+  "361": [
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   }
+  ],
+  "363": [
+   {
+    "file": "vallentine",
+    "type": "SPR"
+   }
+  ],
+  "365": [
+   {
+    "file": "effect/cross_old.bmp",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/cross_old.bmp",
+    "type": "FUNC"
+   }
+  ],
+  "369": [
+   {
+    "file": "twohand",
+    "type": "STR"
+   }
+  ],
+  "371": [
+   {
+    "file": "angel",
+    "type": "STR"
+   }
+  ],
+  "372": [
+   {
+    "file": "devil",
+    "type": "STR"
+   }
+  ],
+  "373": [
+   {
+    "file": "poisonhit",
+    "type": "SPR"
+   }
+  ],
+  "382": [
+   {
+    "file": "\\xc7\\xd1\\xba\\xb9\\xc3\\xb5\\xbb\\xe7",
+    "type": "SPR"
+   }
+  ],
+  "390": [
+   {
+    "file": "melt",
+    "type": "STR"
+   }
+  ],
+  "391": [
+   {
+    "file": "cart",
+    "type": "STR"
+   }
+  ],
+  "392": [
+   {
+    "file": "sword",
+    "type": "STR"
+   }
+  ],
+  "406": [
+   {
+    "file": "\\xbc\\xd2\\xbf\\xef\\xb9\\xf8",
+    "type": "STR"
+   }
+  ],
+  "407": [
+   {
+    "file": "\\xbb\\xe7\\xb6\\xf7\\xc8\\xbf\\xb0\\xfa",
+    "type": "STR"
+   }
+  ],
+  "409": [
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   },
+   {
+    "file": "effect/purpleslash.tga",
+    "type": null
+   }
+  ],
+  "440": [
+   {
+    "file": "asum",
+    "type": "STR"
+   }
+  ],
+  "451": [
+   {
+    "file": "effect/pok3.tga",
+    "type": null
+   }
+  ],
+  "452": [
+   {
+    "file": "effect/pokjuk_d.bmp",
+    "type": null
+   }
+  ],
+  "453": [
+   {
+    "file": "\\xbd\\xba\\xc5\\xe9",
+    "type": "SPR"
+   }
+  ],
+  "467": [
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   }
+  ],
+  "468": [
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   }
+  ],
+  "469": [
+   {
+    "file": "effect/hanmoon3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon3.tga",
+    "type": null
+   }
+  ],
+  "470": [
+   {
+    "file": "effect/hanmoon4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon4.tga",
+    "type": null
+   }
+  ],
+  "471": [
+   {
+    "file": "effect/hanmoon7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon7.tga",
+    "type": null
+   }
+  ],
+  "472": [
+   {
+    "file": "effect/hanmoon5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon5.tga",
+    "type": null
+   }
+  ],
+  "473": [
+   {
+    "file": "effect/hanmoon6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/hanmoon6.tga",
+    "type": null
+   }
+  ],
+  "491": [
+   {
+    "file": "\\xc2\\xfd\\xbd\\xd2\\xb6\\xb1",
+    "type": "STR"
+   }
+  ],
+  "492": [
+   {
+    "file": "ramadan",
+    "type": "STR"
+   }
+  ],
+  "493": [
+   {
+    "file": "spirit_handler/sh_chul_ho_sonic_claw/chul_ho_sonic_claw/chul_ho_sonic_claw",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_howling_of_chul_ho/howling_of_chul_ho/howling_of_chul_ho",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hogogong_strike/hogogong_strike",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_ki_sul_water_spraying/ki_sul_water_spraying",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_marine_festival_of_ki_sul/marine_festival_of_ki_sul/marine_festival_of_ki_sul",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_marine_festival_of_ki_sul/marine_festival_of_ki_sul_bottom/marine_festival_of_ki_sul_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_sandy_festival_of_ki_sul/sandy_festival_of_ki_sul/sandy_festival_of_ki_sul",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_sandy_festival_of_ki_sul/sandy_festival_of_ki_sul_bottom/sandy_festival_of_ki_sul_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_ki_sul_rampage/ki_sul_rampage/ki_sul_rampage",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_ki_sul_rampage/ki_sul_rampage_bottom/ki_sul_rampage_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_colors_of_hyun_rok/colors_of_hyun_rok_fire/colors_of_hyun_rok_fire",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_roks_breeze/hyun_roks_breeze/hyun_roks_breeze",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_roks_breeze/hyun_roks_breeze_bottom/hyun_roks_breeze_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/skid_sh_hyun_rok_cannon/hyun_rok_cannon",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_temporary_communion/temporary_communion/temporary_communion",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_blessing_of_mystical_creatures/blessing_of_mystical_creatures",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_chul_ho_battering/chul_ho_battering/chul_ho_battering",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_chul_ho_battering/chul_ho_battering_bottom/chul_ho_battering_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_chul_ho_battering/chul_ho_battering_cast/chul_ho_battering_cast",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_chul_ho_battering/chul_ho_battering_hit/chul_ho_battering_hit",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_rok_spirit_power/hyun_rok_spirit_power/hyun_rok_spirit_power",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_rok_spirit_power/hyun_rok_spirit_power_bottom/hyun_rok_spirit_power_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_rok_spirit_power/hyun_rok_spirit_power_cast/hyun_rok_spirit_power_cast",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_rok_spirit_power/hyun_rok_spirit_power_cast_bottom/hyun_rok_spirit_power_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "spirit_handler/sh_hyun_rok_spirit_power/hyun_rok_spirit_power_hit/hyun_rok_spirit_power_hit",
+    "type": "STR"
+   }
+  ],
+  "507": [
+   {
+    "file": "mapae",
+    "type": "STR"
+   }
+  ],
+  "508": [
+   {
+    "file": "itempokjuk",
+    "type": "STR"
+   }
+  ],
+  "509": [
+   {
+    "file": "05vallentine",
+    "type": "SPR"
+   }
+  ],
+  "510": [
+   {
+    "file": "effect/asura11.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura11.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura12.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura12.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura13.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura13.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura14.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura14.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura15.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura15.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura16.tga",
+    "type": "CYLINDER"
+   },
+   {
+    "file": "effect/asura16.tga",
+    "type": "CYLINDER"
+   }
+  ],
+  "519": [
+   {
+    "file": "fast",
+    "type": "SPR"
+   }
+  ],
+  "523": [
+   {
+    "file": "effect/tarot01.tga",
+    "type": null
+   }
+  ],
+  "524": [
+   {
+    "file": "effect/tarot02.tga",
+    "type": null
+   }
+  ],
+  "525": [
+   {
+    "file": "effect/tarot03.tga",
+    "type": null
+   }
+  ],
+  "526": [
+   {
+    "file": "effect/tarot04.tga",
+    "type": null
+   }
+  ],
+  "527": [
+   {
+    "file": "effect/tarot05.tga",
+    "type": null
+   }
+  ],
+  "528": [
+   {
+    "file": "effect/tarot06.tga",
+    "type": null
+   }
+  ],
+  "529": [
+   {
+    "file": "effect/tarot07.tga",
+    "type": null
+   }
+  ],
+  "530": [
+   {
+    "file": "effect/tarot08.tga",
+    "type": null
+   }
+  ],
+  "531": [
+   {
+    "file": "effect/tarot09.tga",
+    "type": null
+   }
+  ],
+  "532": [
+   {
+    "file": "effect/tarot10.tga",
+    "type": null
+   }
+  ],
+  "533": [
+   {
+    "file": "effect/tarot11.tga",
+    "type": null
+   }
+  ],
+  "534": [
+   {
+    "file": "effect/tarot12.tga",
+    "type": null
+   }
+  ],
+  "535": [
+   {
+    "file": "effect/tarot13.tga",
+    "type": null
+   }
+  ],
+  "536": [
+   {
+    "file": "effect/tarot14.tga",
+    "type": null
+   }
+  ],
+  "565": [
+   {
+    "file": "moonlight_1",
+    "type": "STR"
+   }
+  ],
+  "566": [
+   {
+    "file": "moonlight_2",
+    "type": "STR"
+   }
+  ],
+  "567": [
+   {
+    "file": "moonlight_3",
+    "type": "STR"
+   }
+  ],
+  "568": [
+   {
+    "file": "h_levelup",
+    "type": "STR"
+   }
+  ],
+  "569": [
+   {
+    "file": "defense",
+    "type": "STR"
+   }
+  ],
+  "570": [
+   {
+    "file": "\\xc4\\xb3\\xbd\\xbd\\xb8\\xb5",
+    "type": "SPR"
+   }
+  ],
+  "571": [
+   {
+    "file": "\\xba\\xed\\xb7\\xaf\\xb5\\xe5\\xb7\\xaf\\xbd\\xba\\xc6\\xae",
+    "type": "SPR"
+   }
+  ],
+  "576": [
+   {
+    "file": "item_thunder",
+    "type": "SPR"
+   }
+  ],
+  "577": [
+   {
+    "file": "item_cloud",
+    "type": "SPR"
+   }
+  ],
+  "578": [
+   {
+    "file": "item_curse",
+    "type": "SPR"
+   }
+  ],
+  "579": [
+   {
+    "file": "item_zzz",
+    "type": "SPR"
+   }
+  ],
+  "580": [
+   {
+    "file": "item_rain",
+    "type": "SPR"
+   }
+  ],
+  "583": [
+   {
+    "file": "m_ef01",
+    "type": "SPR"
+   }
+  ],
+  "584": [
+   {
+    "file": "m_ef02",
+    "type": "SPR"
+   }
+  ],
+  "585": [
+   {
+    "file": "m_ef03",
+    "type": "SPR"
+   }
+  ],
+  "586": [
+   {
+    "file": "m_ef04",
+    "type": "SPR"
+   }
+  ],
+  "587": [
+   {
+    "file": "m_ef05",
+    "type": "SPR"
+   }
+  ],
+  "588": [
+   {
+    "file": "m_ef06",
+    "type": "SPR"
+   }
+  ],
+  "589": [
+   {
+    "file": "m_ef07",
+    "type": "SPR"
+   }
+  ],
+  "593": [
+   {
+    "file": "food_str",
+    "type": "STR"
+   }
+  ],
+  "594": [
+   {
+    "file": "food_int",
+    "type": "STR"
+   }
+  ],
+  "595": [
+   {
+    "file": "food_vit",
+    "type": "STR"
+   }
+  ],
+  "596": [
+   {
+    "file": "food_agi",
+    "type": "STR"
+   }
+  ],
+  "597": [
+   {
+    "file": "food_dex",
+    "type": "STR"
+   }
+  ],
+  "598": [
+   {
+    "file": "food_luk",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_rising_sun/ske_rising_sun",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_noon_blast/ske_noon_blast",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sunset_blast/sunset_blast",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_midnight_kick/ske_midnight_kick",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_dawn_break/ske_dawn_break",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_twinkling_galaxy/twinkling_galaxy_bottom/ske_twinkling_galaxy_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_star_cannon/star_cannon/ske_star_cannon",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_star_cannon/star_cannon_bottom/ske_star_cannon_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_all_in_the_sky/ske_all_in_the_sky",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_sun/sky_sun/sky_sun",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_sun/sky_sun_hit/sky_sun_hit",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_moon/sky_moon/sky_moon",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_moon/sky_moon_bottom/sky_moon_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_moon/sky_moon_cast/sky_moon_cast",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_moon/sky_moon_cast_bottom/sky_moon_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_sky_moon/sky_moon_hit/sky_moon_hit",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_star_light_kick/star_light_kick/star_light_kick",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_star_light_kick/star_light_kick_bottom/star_light_kick_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "sky_emperor/ske_star_light_kick/star_light_kick_hit/star_light_kick_hit",
+    "type": "STR"
+   }
+  ],
+  "600": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xba\\xa3\\xb3\\xd1\\xb3\\xaa\\xc0\\xcc\\xc7\\xc1.bmp",
+    "type": null
+   }
+  ],
+  "603": [
+   {
+    "file": "firehit%d",
+    "type": "STR"
+   }
+  ],
+  "604": [
+   {
+    "file": "cconfine",
+    "type": "SPR"
+   }
+  ],
+  "606": [
+   {
+    "file": "fvoice",
+    "type": "SPR"
+   }
+  ],
+  "607": [
+   {
+    "file": "wink",
+    "type": "SPR"
+   }
+  ],
+  "608": [
+   {
+    "file": "cook_suc",
+    "type": "STR"
+   }
+  ],
+  "609": [
+   {
+    "file": "cook_fail",
+    "type": "STR"
+   },
+   {
+    "file": "effect/success.bmp",
+    "type": "STR"
+   },
+   {
+    "file": "effect/failed.bmp",
+    "type": "STR"
+   }
+  ],
+  "612": [
+   {
+    "file": "\\xc7\\xd5\\xb0\\xdd\\x5f",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "613": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xbc\\xf6\\xb8\\xae\\xb0\\xcb.bmp",
+    "type": null
+   }
+  ],
+  "614": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xc4\\xed\\xb3\\xaa\\xc0\\xcc\\x5f\\xb5\\xb6.bmp",
+    "type": null
+   }
+  ],
+  "615": [
+   {
+    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xc7\\xb3\\xb8\\xb6\\x5f\\xb3\\xfa\\xbf\\xec.bmp",
+    "type": null
+   }
+  ],
+  "616": [
+   {
+    "file": "effect/coin_a.bmp",
+    "type": null
+   }
+  ],
+  "618": [
+   {
+    "file": "firehit",
+    "type": "STR"
+   }
+  ],
+  "619": [
+   {
+    "file": "freeze",
+    "type": "STR"
+   }
+  ],
+  "622": [
+   {
+    "file": "setsudan",
+    "type": "STR"
+   }
+  ],
+  "630": [
+   {
+    "file": "\\xb1\\xd7\\xb8\\xb2\\xc0\\xda\\xba\\xa3\\xb1\\xe2",
+    "type": "SPR"
+   }
+  ],
+  "631": [
+   {
+    "file": "\\xb4\\xd9\\xb4\\xd9\\xb9\\xcc\\x20\\xb5\\xda\\xc1\\xfd\\xb1\\xe2",
+    "type": "SPR"
+   }
+  ],
+  "632": [
+   {
+    "file": "\\xbe\\xc8\\xb0\\xb3\\xba\\xa3\\xb1\\xe2",
+    "type": "SPR"
+   }
+  ],
+  "633": [
+   {
+    "file": "\\xc0\\xcf\\xbc\\xb6",
+    "type": "SPR"
+   }
+  ],
+  "634": [
+   {
+    "file": "\\xc8\\xad\\xbf\\xb0\\xc1\\xf8",
+    "type": "SPR"
+   }
+  ],
+  "635": [
+   {
+    "file": "fire dragon",
+    "type": "STR"
+   }
+  ],
+  "636": [
+   {
+    "file": "icy",
+    "type": "STR"
+   }
+  ],
+  "637": [
+   {
+    "file": "\\xb5\\xa5\\xbd\\xba\\xc6\\xe4\\xb6\\xf3\\xb5\\xb5",
+    "type": "SPR"
+   }
+  ],
+  "638": [
+   {
+    "file": "\\xb6\\xf3\\xc0\\xcc\\xc6\\xae\\xb4\\xd7\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "type": "SPR"
+   }
+  ],
+  "639": [
+   {
+    "file": "\\xba\\xed\\xb6\\xf3\\xc0\\xce\\xb5\\xe5\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "type": "SPR"
+   }
+  ],
+  "640": [
+   {
+    "file": "\\xc6\\xf7\\xc0\\xcc\\xc1\\xf0\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "type": "SPR"
+   }
+  ],
+  "641": [
+   {
+    "file": "\\xc7\\xc1\\xb8\\xae\\xc2\\xa1\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "type": "SPR"
+   }
+  ],
+  "642": [
+   {
+    "file": "\\xc7\\xc3\\xb7\\xb9\\xbe\\xee\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "type": "SPR"
+   }
+  ],
+  "643": [
+   {
+    "file": "\\xb7\\xa1\\xc7\\xc7\\xb5\\xe5\\xbb\\xfe\\xbf\\xf6",
+    "type": "SPR"
+   }
+  ],
+  "644": [
+   {
+    "file": "\\xb8\\xc5\\xc1\\xf6\\xc4\\xc3\\xba\\xd2\\xb8\\xb4",
+    "type": "SPR"
+   }
+  ],
+  "645": [
+   {
+    "file": "\\xbd\\xba\\xc7\\xc1\\xb7\\xb9\\xb5\\xe5",
+    "type": "SPR"
+   }
+  ],
+  "646": [
+   {
+    "file": "\\xc6\\xae\\xb7\\xa2\\xc5\\xb7",
+    "type": "STR"
+   }
+  ],
+  "647": [
+   {
+    "file": "\\xc6\\xae\\xb7\\xa1\\xc5\\xb7",
+    "type": "SPR"
+   }
+  ],
+  "648": [
+   {
+    "file": "\\xc6\\xae\\xb8\\xae\\xc7\\xc3\\xbe\\xd7\\xbc\\xc7",
+    "type": "SPR"
+   }
+  ],
+  "649": [
+   {
+    "file": "\\xba\\xd2\\xbd\\xba\\xbe\\xc6\\xc0\\xcc",
+    "type": "STR"
+   }
+  ],
+  "666": [
+   {
+    "file": "\\xbe\\xee\\xbd\\xba\\xc4\\xf9\\xc0\\xcc\\xc5\\xa9",
+    "type": "SPR"
+   }
+  ],
+  "668": [
+   {
+    "file": "dragon_h",
+    "type": "STR"
+   }
+  ],
+  "669": [
+   {
+    "file": "wideb",
+    "type": "STR"
+   }
+  ],
+  "670": [
+   {
+    "file": "dfear",
+    "type": "STR"
+   }
+  ],
+  "671": [
+   {
+    "file": "effect/hanmoon1.tga",
+    "type": null
+   }
+  ],
+  "672": [
+   {
+    "file": "effect/hanmoon2.tga",
+    "type": null
+   }
+  ],
+  "674": [
+   {
+    "file": "status-curse",
+    "type": "FUNC"
+   }
+  ],
+  "677": [
+   {
+    "file": "cwound",
+    "type": "STR"
+   }
+  ],
+  "682": [
+   {
+    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xb7\\xaf\\xba\\xea",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "683": [
+   {
+    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xc8\\x5f\\xc0\\xcc\\xc6\\xae\\xb5\\xa5\\xc0\\xcc",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "684": [
+   {
+    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xb9\\xdf\\xb7\\xbb\\xc5\\xb8\\xc0\\xce",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "685": [
+   {
+    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xbb\\xfd\\xc0\\xcf",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "686": [
+   {
+    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xc5\\xa9\\xb8\\xae\\xbd\\xba\\xb8\\xb6\\xbd\\xba",
+    "type": "SPR"
+   },
+   {
+    "file": "itempokjuk",
+    "type": "SPR"
+   }
+  ],
+  "699": [
+   {
+    "file": "flower_leaf",
+    "type": "STR"
+   }
+  ],
+  "704": [
+   {
+    "file": "mobile_ef02",
+    "type": "STR"
+   }
+  ],
+  "705": [
+   {
+    "file": "mobile_ef01",
+    "type": "STR"
+   }
+  ],
+  "706": [
+   {
+    "file": "mobile_ef03",
+    "type": "STR"
+   }
+  ],
+  "708": [
+   {
+    "file": "storm_min",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_protection/talisman_of_protection",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_warrior/talisman_of_warrior",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_magician/talisman_of_magician/talisman_of_magician",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_magician/talisman_of_magician_bottom/talisman_of_magician_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_soul_gathering/soul_gathering",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_totem_of_tutelary/totem_of_tutelary/totem_of_tutelary_end",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_five_elements/talisman_of_the_five_elements",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_soul_stealing/talisman_of_soul_stealing",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_exorcism_of_malicious_soul/exorcism_of_malicuous_soul",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_blue_dragon/talisman_of_blue_dragon",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_white_tiger/talisman_of_white_tiger",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_red_phoenix/talisman_of_red_phoenix/talisman_of_red_phoenix",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_red_phoenix/talisman_of_red_phoenix_bottom/talisman_of_red_phoenix_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_black_tortoise/talisman_of_black_tortoise/talisman_of_black_tortoise",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_black_tortoise/talisman_of_black_tortoise_bottom/talisman_of_black_tortoise_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_talisman_of_four_bearing_god/talisman_of_four_bearing_god",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_circle_of_directions_and_elementals/circle_directions_elements/circle_directions_elements",
+    "type": "STR"
+   },
+   {
+    "file": "soul_ascetic/soa_soul_of_heaven_and_earth/soul_of_heaven_and_earth/soul_of_heaven_and_earth",
+    "type": "STR"
+   }
+  ],
+  "709": [
+   {
+    "file": "pokjuk_jap",
+    "type": "STR"
+   }
+  ],
+  "717": [
+   {
+    "file": "angelus",
+    "type": "STR"
+   }
+  ],
+  "721": [
+   {
+    "file": "ado",
+    "type": "STR"
+   }
+  ],
+  "722": [
+   {
+    "file": "\\xc0\\xcc\\xb1\\xd7\\xb4\\xcf\\xbc\\xc7\\xba\\xea\\xb7\\xb9\\xc0\\xcc\\xc5\\xa9",
+    "type": "STR"
+   }
+  ],
+  "727": [
+   {
+    "file": "crimson_r",
+    "type": "STR"
+   }
+  ],
+  "728": [
+   {
+    "file": "hell_in",
+    "type": "STR"
+   }
+  ],
+  "729": [
+   {
+    "file": "mashofa",
+    "type": "SPR"
+   }
+  ],
+  "731": [
+   {
+    "file": "dragon_h",
+    "type": "STR"
+   }
+  ],
+  "734": [
+   {
+    "file": "chainlight",
+    "type": "STR"
+   }
+  ],
+  "745": [
+   {
+    "file": "aimed",
+    "type": "STR"
+   }
+  ],
+  "746": [
+   {
+    "file": "arrowstorm",
+    "type": "STR"
+   }
+  ],
+  "747": [
+   {
+    "file": "laulamus",
+    "type": "STR"
+   }
+  ],
+  "748": [
+   {
+    "file": "lauagnus",
+    "type": "STR"
+   }
+  ],
+  "749": [
+   {
+    "file": "mil_shield",
+    "type": "STR"
+   }
+  ],
+  "750": [
+   {
+    "file": "concentration",
+    "type": "STR"
+   }
+  ],
+  "756": [
+   {
+    "file": "\\xb9\\xf6\\xbc\\xad\\xc5\\xa9",
+    "type": "STR"
+   }
+  ],
+  "758": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "type": null
+   }
+  ],
+  "759": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "type": null
+   }
+  ],
+  "760": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "type": null
+   }
+  ],
+  "761": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "type": null
+   }
+  ],
+  "762": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "type": null
+   }
+  ],
+  "763": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "type": null
+   }
+  ],
+  "764": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "type": null
+   }
+  ],
+  "765": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "type": null
+   }
+  ],
+  "766": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "type": null
+   }
+  ],
+  "767": [
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "type": null
+   },
+   {
+    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "type": null
+   }
+  ],
+  "795": [
+   {
+    "file": "powerswing",
+    "type": "STR"
+   }
+  ],
+  "813": [
+   {
+    "file": "enervation",
+    "type": "STR"
+   }
+  ],
+  "814": [
+   {
+    "file": "groomy",
+    "type": "STR"
+   }
+  ],
+  "815": [
+   {
+    "file": "ignorance",
+    "type": "STR"
+   }
+  ],
+  "816": [
+   {
+    "file": "laziness",
+    "type": "STR"
+   }
+  ],
+  "817": [
+   {
+    "file": "unlucky",
+    "type": "STR"
+   }
+  ],
+  "818": [
+   {
+    "file": "weakness",
+    "type": "STR"
+   }
+  ],
+  "856": [
+   {
+    "file": "effect/melody_b.bmp",
+    "type": null
+   }
+  ],
+  "860": [
+   {
+    "file": "effect/melody_a.bmp",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_tokedasu/tokedasu/tokedasu",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_akumukesu/akumukesu",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagegari/kagegari",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagenomai/kagenomai",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagegissen/kagegissen",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagegissen/new_kagegissen/new_kagegissen",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagegissen/new_kagegissen_bottom/new_kagegissen_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kagegissen/new_kagegissen_hit/new_kagegissen_hit",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_fuumashouaku/fuumashouaku/fuumashouaku",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_fuumakouchiku/fuumakouchiku/fuumakouchiku",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_fuumakouchiku/new_fuumakouchiku/new_fuumakouchiku",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kunaiwaikyoku/kunaiwaikyoku",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kunaikaiten/kunaikaiten_bottom/kunaikaiten_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kunaikussetsu/kunaikussetsu/kunaikussetsu",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kunaikussetsu/kunaikussetsu_bottom/kunaikussetsu_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_sekienhou/sekienhou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_reiketsuhou/reiketsuhou/reiketsuhou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_reiketsuhou/reiketsuhou_bottom/reiketsuhou_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_raidenpou/new_raidenpou/new_raidenpou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_raidenpou/raidenpou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_raidenpou/new_raidenpou_bottom/new_raidenpou_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_raidenpou/new_raidenpou_cast/new_raidenpou_cast",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_raidenpou/new_raidenpou_hit/new_raidenpou_hit",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kinryuuhou/kinryuuhou/kinryuuhou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kinryuuhou/kinryuuhou_hit/kinryuuhou_hit",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_antenpou/antenpou",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_kageakumu/kageakumu",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_hitouakumu/hitouakumu/hitouakumu",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_four_charm/four_charm_ice/four_charm_ice",
+    "type": "STR"
+   },
+   {
+    "file": "shinkiro_shiranui/ss_four_charm/four_charm_ice_bottom/four_charm_ice_bottom",
+    "type": "STR"
+   }
+  ],
+  "862": [
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/priest_spell.bmp",
+    "type": null
+   }
+  ],
+  "883": [
+   {
+    "file": "effect/ef_epitree.tga",
+    "type": null
+   },
+   {
+    "file": "effect/ef_epitree.tga",
+    "type": null
+   },
+   {
+    "file": "effect/ef_epitree.tga",
+    "type": null
+   }
+  ],
+  "889": [
+   {
+    "file": "effect/lens1.tga",
+    "type": null
+   }
+  ],
+  "906": [
+   {
+    "file": "effect/shield.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/shield.bmp",
+    "type": null
+   }
+  ],
+  "920": [
+   {
+    "file": "firewall_per",
+    "type": "STR"
+   }
+  ],
+  "926": [
+   {
+    "file": "hunter_shockwave_blue",
+    "type": "STR"
+   }
+  ],
+  "930": [
+   {
+    "file": "effect/cross1.bmp",
+    "type": null
+   },
+   {
+    "file": "effect/cross1.bmp",
+    "type": null
+   }
+  ],
+  "959": [
+   {
+    "file": "poison_mist",
+    "type": "STR"
+   }
+  ],
+  "960": [
+   {
+    "file": "eraser_cutter",
+    "type": "STR"
+   }
+  ],
+  "964": [
+   {
+    "file": "lava_slide",
+    "type": "STR"
+   }
+  ],
+  "965": [
+   {
+    "file": "sonic_claw",
+    "type": "STR"
+   }
+  ],
+  "966": [
+   {
+    "file": "tinder",
+    "type": "STR"
+   }
+  ],
+  "967": [
+   {
+    "file": "mid_frenzy",
+    "type": "STR"
+   }
+  ],
+  "975": [
+   {
+    "file": "vash00",
+    "type": "STR"
+   }
+  ],
+  "987": [
+   {
+    "file": "rwc2011",
+    "type": "STR"
+   }
+  ],
+  "988": [
+   {
+    "file": "rwc2011_2",
+    "type": "STR"
+   }
+  ],
+  "1015": [
+   {
+    "file": "rune_success",
+    "type": "STR"
+   }
+  ],
+  "1016": [
+   {
+    "file": "rune_fail",
+    "type": "STR"
+   }
+  ],
+  "1017": [
+   {
+    "file": "changematerial_su",
+    "type": "STR"
+   }
+  ],
+  "1018": [
+   {
+    "file": "changematerial_fa",
+    "type": "STR"
+   }
+  ],
+  "1019": [
+   {
+    "file": "guardian",
+    "type": "STR"
+   }
+  ],
+  "1020": [
+   {
+    "file": "bubble%d_1",
+    "type": "STR"
+   }
+  ],
+  "1021": [
+   {
+    "file": "dust",
+    "type": "STR"
+   }
+  ],
+  "1029": [
+   {
+    "file": "dancingblade",
+    "type": "STR"
+   }
+  ],
+  "1031": [
+   {
+    "file": "invincibleoff2",
+    "type": "STR"
+   }
+  ],
+  "1033": [
+   {
+    "file": "devil",
+    "type": "STR"
+   }
+  ],
+  "1040": [
+   {
+    "file": "gc_darkcrow",
+    "type": "STR"
+   }
+  ],
+  "1042": [
+   {
+    "file": "all_full_throttle",
+    "type": "STR"
+   }
+  ],
+  "1043": [
+   {
+    "file": "sr_flashcombo",
+    "type": "STR"
+   }
+  ],
+  "1044": [
+   {
+    "file": "rk_luxanima",
+    "type": "STR"
+   }
+  ],
+  "1046": [
+   {
+    "file": "so_elemental_shield",
+    "type": "STR"
+   },
+   {
+    "file": "spell_enchanting/spell_enchanting/spell_enchanting",
+    "type": "STR"
+   },
+   {
+    "file": "activity_burn/activity_burn/activity_burn",
+    "type": "STR"
+   },
+   {
+    "file": "activity_burn/activity_burn_cast/activity_burn_cast",
+    "type": "STR"
+   },
+   {
+    "file": "activity_burn/activity_burn_cast_bottom/activity_burn_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "increasing_activity/increasing_activity/increasing_activity",
+    "type": "STR"
+   },
+   {
+    "file": "increasing_activity/increasing_activity_cast/increasing_activity_cast",
+    "type": "STR"
+   },
+   {
+    "file": "increasing_activity/increasing_activity_cast_bottom/increasing_activity_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "diamond_storm/diamond_storm/diamond_storm",
+    "type": "STR"
+   },
+   {
+    "file": "diamond_storm/diamond_storm_bottom/diamond_storm_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "diamond_storm/diamond_storm_cast/diamond_storm_cast",
+    "type": "STR"
+   },
+   {
+    "file": "diamond_storm/diamond_storm_cast_bottom/diamond_storm_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "diamond_storm/diamond_storm_hit/diamond_storm_hit",
+    "type": "STR"
+   },
+   {
+    "file": "lightning_land/lightning_land/lightning_land",
+    "type": "STR"
+   },
+   {
+    "file": "lightning_land/lightning_land_bottom/lightning_land_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "lightning_land/lightning_land_cast/lightning_land_cast",
+    "type": "STR"
+   },
+   {
+    "file": "lightning_land/lightning_land_cast_bottom/lightning_land_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "lightning_land/lightning_land_hit/lightning_land_hit",
+    "type": "STR"
+   },
+   {
+    "file": "venom_swamp/venom_swamp_bottom/venom_swamp_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "venom_swamp/venom_swamp_cast/venom_swamp_cast",
+    "type": "STR"
+   },
+   {
+    "file": "venom_swamp/venom_swamp_cast_bottom/venom_swamp_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "venom_swamp/venom_swamp_hit/venom_swamp_hit",
+    "type": "STR"
+   },
+   {
+    "file": "conflagration/conflagration",
+    "type": "STR"
+   },
+   {
+    "file": "conflagration/conflagration_bottom/conflagration_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "conflagration/conflagration_cast/conflagration_cast",
+    "type": "STR"
+   },
+   {
+    "file": "conflagration/conflagration_cast_bottom/conflagration_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "conflagration/conflagration_hit/conflagration_hit",
+    "type": "STR"
+   },
+   {
+    "file": "terradrive/terradrive/terradrive",
+    "type": "STR"
+   },
+   {
+    "file": "terradrive/terradrive_bottom/terradrive_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "terradrive/terradrive_cast/terradrive_cast",
+    "type": "STR"
+   },
+   {
+    "file": "terradrive/terradrive_cast_bottom/terradrive_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "terradrive/terradrive_hit/terradrive_hit",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor/ardor",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_bottom/ardor_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_cast/ardor_cast",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_cast_bottom/ardor_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_hit/ardor_hit",
+    "type": "STR"
+   },
+   {
+    "file": "diluvio/diluvio_cast/diluvio_cast",
+    "type": "STR"
+   },
+   {
+    "file": "diluvio/diluvio_cast_bottom/diluvio_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "diluvio/diluvio_hit/diluvio_hit",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella/procella",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella_bottom/procella_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella_cast/procella_cast",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella_cast_bottom/procella_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella_hit/procella_hit",
+    "type": "STR"
+   },
+   {
+    "file": "terremotus/terremotus/terremotus",
+    "type": "STR"
+   },
+   {
+    "file": "terremotus/terremotus_cast/terremotus_cast",
+    "type": "STR"
+   },
+   {
+    "file": "terremotus/terremotus_cast_bottom/terremotus_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "terremotus/terremotus_hit/terremotus_hit",
+    "type": "STR"
+   },
+   {
+    "file": "serpens/serpens_bottom/serpens_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "serpens/serpens_cast/serpens_cast",
+    "type": "STR"
+   },
+   {
+    "file": "serpens/serpens_cast_bottom/serpens_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "serpens/serpens_hit/serpens_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_cast/elemental_buster_cast",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_fire/elemental_buster_fire",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_fire_bottom/elemental_buster_fire_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_hit/elemental_buster_fire_hit/elemental_buster_fire_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_water/elemental_buster_water",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_water_bottom/elemental_buster_water_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_hit/elemental_buster_water_hit/elemental_buster_water_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_wind/elemental_buster_wind",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_wind_bottom/elemental_buster_wind_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_hit/elemental_buster_wind_hit/elemental_buster_wind_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_land/elemental_buster_land",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_land_bottom/elemental_buster_land_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_hit/elemental_buster_land_hit/elemental_buster_land_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_poison/elemental_buster_poison",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster/elemental_buster_poison_bottom/elemental_buster_poison_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_buster/elemental_buster_hit/elemental_buster_poison_hit/elemental_buster_poison_hit",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_master/em_psychic_stream/psychic_stream/psychic_stream",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_master/em_psychic_stream/psychic_stream_bottom/psychic_stream_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_master/em_psychic_stream/psychic_stream_cast/psychic_stream_cast",
+    "type": "STR"
+   },
+   {
+    "file": "elemental_master/em_psychic_stream/psychic_stream_hit/psychic_stream_hit",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_flametechnic/ardor_flametechnic",
+    "type": "STR"
+   },
+   {
+    "file": "ardor/ardor_flamearmor/ardor_flamearmor",
+    "type": "STR"
+   },
+   {
+    "file": "diluvio/diluvio_cold_force/diluvio_cold_force",
+    "type": "STR"
+   },
+   {
+    "file": "procella/procella_grace_breeze/procella_grace_breeze",
+    "type": "STR"
+   },
+   {
+    "file": "terremotus/terremotus_earth_care/terremotus_earth_care",
+    "type": "STR"
+   },
+   {
+    "file": "serpens/serpens_deep_poisoning/serpens_deep_poisoning",
+    "type": "STR"
+   },
+   {
+    "file": "deadlypoison/deadlypoison",
+    "type": "STR"
+   }
+  ],
+  "1047": [
+   {
+    "file": "ab_offertorium",
+    "type": "STR"
+   }
+  ],
+  "1048": [
+   {
+    "file": "wl_telekinesis_intense",
+    "type": "STR"
+   }
+  ],
+  "1049": [
+   {
+    "file": "gn_illusiondoping",
+    "type": "STR"
+   }
+  ],
+  "1050": [
+   {
+    "file": "nc_magma_eruption",
+    "type": "STR"
+   },
+   {
+    "file": "new_axe_stomp/new_axe_stomp/new_axe_stomp",
+    "type": "STR"
+   },
+   {
+    "file": "new_axe_stomp/new_axe_stomp_bottom/new_axe_stomp_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "new_axe_stomp/new_axe_stomp_hit/new_axe_stomp_hit",
+    "type": "STR"
+   },
+   {
+    "file": "new_rush_quake/new_rush_quake/new_rush_quake",
+    "type": "STR"
+   },
+   {
+    "file": "new_rush_quake/new_rush_quake_hit/new_rush_quake_hit",
+    "type": "STR"
+   },
+   {
+    "file": "new_a_machine/new_a_machine/new_a_machine",
+    "type": "STR"
+   },
+   {
+    "file": "new_a_machine/new_a_machine_cast/new_a_machine_cast",
+    "type": "STR"
+   },
+   {
+    "file": "new_a_machine/new_a_machine_cast_bottom/new_a_machine_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "new_a_machine/new_a_machine_attack/new_a_machine_attack",
+    "type": "STR"
+   },
+   {
+    "file": "new_a_machine/new_a_machine_hit/new_a_machine_hit",
+    "type": "STR"
+   },
+   {
+    "file": "new_d_machine/new_d_machine/new_d_machine",
+    "type": "STR"
+   },
+   {
+    "file": "new_d_machine/new_d_machine_cast/new_d_machine_cast",
+    "type": "STR"
+   },
+   {
+    "file": "new_d_machine/new_d_machine_cast_bottom/new_d_machine_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "new_abr_infinity/new_abr_infinity/new_abr_infinity",
+    "type": "STR"
+   },
+   {
+    "file": "new_abr_infinity/new_abr_infinity_bottom/new_abr_infinity_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "new_abr_infinity/new_abr_infinity_cast/new_abr_infinity_cast",
+    "type": "STR"
+   },
+   {
+    "file": "new_abr_infinity/new_abr_infinity_hit/new_abr_infinity_hit",
+    "type": "STR"
+   },
+   {
+    "file": "meister/spark_blaster/spark_blaster/spark_blaster",
+    "type": "STR"
+   },
+   {
+    "file": "meister/spark_blaster/spark_blaster_bottom/spark_blaster_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "meister/triple_laser/triple_laser/triple_laser",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mighty_smash/mighty_smash/mighty_smash",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_rush_strike/rush_strike/rush_strike",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_rush_strike/rush_strike_bottom/rush_strike_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_powerful_swing/powerful_swing/powerful_swing",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_powerful_swing/powerful_swing_bottom/powerful_swing_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_powerful_swing/powerful_swing_hit/powerful_swing_hit",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_energy_cannonade/energy_cannonade/energy_cannonade",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_energy_cannonade/energy_cannonade_cast/energy_cannonade_cast",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_energy_cannonade/energy_cannonade_cast_bottom/energy_cannonade_cast_bottom",
+    "type": "STR"
+   },
+   {
+    "file": "meister/mt_energy_cannonade/energy_cannonade_hit/energy_cannonade_hit",
+    "type": "STR"
+   }
+  ],
+  "1055": [
+   {
+    "file": "chill",
+    "type": "STR"
+   }
+  ],
+  "1057": [
+   {
+    "file": "ab_offertorium_ring",
+    "type": "STR"
+   }
+  ],
+  "1062": [
+   {
+    "file": "stormgust",
+    "type": "STR"
+   }
+  ],
+  "1094": [
+   {
+    "file": "ach_complete/ppring3",
+    "type": "STR"
+   }
+  ],
+  "1130": [
+   {
+    "file": "bakuretsu_hadou/bakuretsu_hadou",
+    "type": "SPR"
+   }
+  ],
+  "1186": [
+   {
+    "file": "new_dropitem/dropitem_pink/dropitem_pink/dropitem_pink",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_pink/dropitem_pink_bottom/dropitem_pink_bottom",
+    "type": "STR"
+   }
+  ],
+  "1189": [
+   {
+    "file": "new_dropitem/dropitem_yellow/dropitem_yellow/dropitem_yellow",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_yellow/dropitem_yellow_bottom/dropitem_yellow_bottom",
+    "type": "STR"
+   }
+  ],
+  "1190": [
+   {
+    "file": "new_dropitem/dropitem_purple/dropitem_purple/dropitem_purple",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_purple/dropitem_purple_bottom/dropitem_purple_bottom",
+    "type": "STR"
+   }
+  ],
+  "1240": [
+   {
+    "file": "digital_space/digital_space",
+    "type": "SPR"
+   }
+  ],
+  "1446": [
+   {
+    "file": "new_jackfrost/new_jackfrost_cast/new_jackfrost_cast",
+    "type": "STR"
+   }
+  ],
+  "1774": [
+   {
+    "file": "mystery_illusion/mystery_illusion_cast_bottom/mystery_illusion_cast_bottom",
+    "type": "STR"
+   }
+  ],
+  "1869": [
+   {
+    "file": "new_dropitem/dropitem_blue/dropitem_blue/dropitem_blue",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_blue/dropitem_blue_bottom/dropitem_blue_bottom",
+    "type": "STR"
+   }
+  ],
+  "1870": [
+   {
+    "file": "new_dropitem/dropitem_green/dropitem_green/dropitem_green",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_green/dropitem_green_bottom/dropitem_green_bottom",
+    "type": "STR"
+   }
+  ],
+  "1871": [
+   {
+    "file": "new_dropitem/dropitem_red/dropitem_red/dropitem_red",
+    "type": "STR"
+   },
+   {
+    "file": "new_dropitem/dropitem_red/dropitem_red_bottom/dropitem_red_bottom",
+    "type": "STR"
+   }
+  ],
+  "1872": [
+   {
+    "file": "grade_enchant/new_success/new_success",
+    "type": "STR"
+   }
+  ],
+  "1873": [
+   {
+    "file": "grade_enchant/new_failed/new_failed",
+    "type": "STR"
+   }
+  ],
+  "1874": [
+   {
+    "file": "grade_enchant/new_intro/new_intro",
+    "type": "STR"
+   }
+  ],
+  "1875": [
+   {
+    "file": "ui_enchant/ui_intro_yellow/ui_intro_yellow",
+    "type": "STR"
+   }
+  ],
+  "1876": [
+   {
+    "file": "ui_enchant/ui_enchant_success/ui_enchant_success",
+    "type": "STR"
+   }
+  ],
+  "1877": [
+   {
+    "file": "ui_enchant/ui_fail/ui_enchant_fail",
+    "type": "STR"
+   }
+  ],
+  "1878": [
+   {
+    "file": "ui_enchant/ui_intro_blue/ui_intro_blue",
+    "type": "STR"
+   }
+  ],
+  "1879": [
+   {
+    "file": "ui_enchant/ui_levelup_success/ui_levelup_success",
+    "type": "STR"
+   }
+  ],
+  "1880": [
+   {
+    "file": "ui_enchant/ui_fail/ui_levelup_fail",
+    "type": "STR"
+   }
+  ],
+  "1881": [
+   {
+    "file": "ui_enchant/ui_intro_green/ui_intro_green",
+    "type": "STR"
+   }
+  ],
+  "1882": [
+   {
+    "file": "ui_enchant/ui_reset_success/ui_reset_success",
+    "type": "STR"
+   }
+  ],
+  "1883": [
+   {
+    "file": "ui_enchant/ui_fail/ui_reset_fail",
+    "type": "STR"
+   }
+  ],
+  "2228": [
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_cast/acidified_zone_ground_cast",
+    "type": "STR"
+   }
+  ],
+  "2229": [
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_cast_bottom/acidified_zone_ground_cast_bottom",
+    "type": "STR"
+   }
+  ],
+  "2373": [
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/ac_center2.tga",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_water/acidified_zone_water_hit/acidified_zone_water_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_hit/acidified_zone_ground_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_wind/acidified_zone_wind_hit/acidified_zone_wind_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_fire/acidified_zone_fire_hit/acidified_zone_fire_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_water/acidified_zone_water_cast/acidified_zone_water_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_water/acidified_zone_water_cast_bottom/acidified_zone_water_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_water/acidified_zone_water_hit/acidified_zone_water_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_cast/acidified_zone_ground_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_cast_bottom/acidified_zone_ground_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_ground/acidified_zone_ground_hit/acidified_zone_ground_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_wind/acidified_zone_wind_cast/acidified_zone_wind_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_wind/acidified_zone_wind_cast_bottom/acidified_zone_wind_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_wind/acidified_zone_wind_hit/acidified_zone_wind_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_fire/acidified_zone_fire_cast/acidified_zone_fire_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_fire/acidified_zone_fire_cast_bottom/acidified_zone_fire_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "acidified_zone_fire/acidified_zone_fire_hit/acidified_zone_fire_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_warrior_cast/wooden_warrior_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_warrior_cast_bottom/wooden_warrior_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/throwrock/throwrock_hit/throwrock_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_attack/wooden_attack/wooden_attack",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_attack/wooden_attack_hit/wooden_attack_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_fairy/wooden_cast/wooden_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_fairy/wooden_cast_bottom/wooden_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "research_report/researchreport/researchreport",
+    "type": "FUNC"
+   },
+   {
+    "file": "research_report/researchreport_cast/researchreport_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "research_report/researchreport_cast_bottom/researchreport_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "helltree/helltree_cast/helltree_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "helltree/helltree_cast_bottom/helltree_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_attack/wooden_attack/wooden_attack",
+    "type": "FUNC"
+   },
+   {
+    "file": "wooden_warrior/wooden_attack/wooden_attack_hit/wooden_attack_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/explosive_powder/explosive_powder/explosive_powder",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/mayhemic_thorns/mayhemic_thorns/mayhemic_thorns",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/mayhemic_thorns/mayhemic_thorns_bottom/mayhemic_thorns_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/bo_mystery_powder/mistery_powder/mistery_powder",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/bo_mystery_powder/mistery_powder_hit/mistery_powder_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/bo_dust_explosion/dust_explosion/dust_explosion",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/bo_dust_explosion/dust_explosion_hit/dust_explosion_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "biolo/bo_dust_explosion/dust_explosion_hit_bottom/dust_explosion_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_guard_stance/new_guard_stance/new_guard_stance/new_guard_stance",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_guard_stance/new_guard_stance/new_guard_stance_cast/new_guard_stance_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_guard_stance/new_guard_stance/new_guard_stance_cast_bottom/new_guard_stance_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_guardian_shield/new_guardianshield/guardianshield/guardianshield",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_guardian_shield/new_guardianshield/guardianshield_bottom/guardianshield_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_rebound_shield/new_rebound_shield/new_rebound_shield/new_rebound_shield",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_rebound_shield/new_rebound_shield/new_rebound_shield_bottom/new_rebound_shield_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_rebound_shield/new_rebound_shield/rebound_shield_cast/rebound_shield_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_rebound_shield/new_rebound_shield/rebound_shield_cast_bottom/rebound_shield_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_attack_stance/new_attack_stance/new_attack_stance/new_attack_stance",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_attack_stance/new_attack_stance/new_attack_stance_cast/new_attack_stance_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_attack_stance/new_attack_stance/new_attack_stance_cast_bottom/new_attack_stance_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_ultimate_sacrifice/ultimatesacrifice/ultimatesacrifice",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_ultimate_sacrifice/ultimatesacrifice_bottom/ultimatesacrifice_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_holy_shield/new_holy_shield/new_holy_shield/new_holy_shield",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_holy_shield/new_holy_shield/new_holy_shield_bottom/new_holy_shield_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_holy_shield/new_holy_shield/new_holy_shield_cast/new_holy_shield_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_holy_shield/new_holy_shield/new_holy_shield_cast_bottom/new_holy_shield_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_grand_judgement/new_grand_judgement/new_grand_judgement/new_grand_judgement",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_grand_judgement/new_grand_judgement/new_grand_judgement_bottom/new_grand_judgement_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_grand_judgement/new_grand_judgement/grand_judgement_cast/grand_judgement_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_grand_judgement/new_grand_judgement/grand_judgement_cast_bottom/grand_judgement_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_judgement_cross/new_judgement_cross/new_judgement_cross/new_judgement_cross",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_judgement_cross/new_judgement_cross/new_judgement_cross_bottom/new_judgement_cross_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_judgement_cross/new_judgement_cross/new_judgement_cross_cast/new_judgement_cross_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_judgement_cross/new_judgement_cross/new_judgement_cross_cast_bottom/new_judgement_cross_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_judgement_cross/new_judgement_cross/new_judgement_cross_hit/new_judgement_cross_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "shield_shooting/shield_shooting/shield_shooting",
+    "type": "FUNC"
+   },
+   {
+    "file": "shield_shooting/shield_shooting_cast/shield_shooting_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "shield_shooting/shield_shooting_hit/shield_shooting_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_overslash/new_overslash/new_overslash/new_overslash",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_overslash/new_overslash/new_overslash_bottom/new_overslash_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_overslash/new_overslash/overslash_cast/overslash_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_overslash/new_overslash/new_overslash_hit/new_overslash_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_cross_rain/new_crossrain/new_cross_rain/new_cross_rain",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_cross_rain/new_crossrain/new_cross_rain_cast/new_cross_rain_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_cross_rain/new_crossrain/new_cross_rain_cast_bottom/new_cross_rain_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_radiant_spear/radiant_spear_cast/radiant_spear_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_imperial_cross/imperial_cross/imperial_cross",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_imperial_pressure/imperal_pressure/imperal_pressure",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_imperial_pressure/imperal_pressure_bottom/imperal_pressure_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_imperial_pressure/imperal_pressure_cast/imperal_pressure_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "imperial_guard/ig_imperial_pressure/new_rayofgenesis_hit/new_rayofgenesis_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "powerfulfaith/powerfulfaith/powerfulfaith",
+    "type": "FUNC"
+   },
+   {
+    "file": "firmfaith/firmfaith/firmfaith",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_oleumsanctum/oleumsanctum/oleumsanctum",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_oleumsanctum/oleumsanctum_bottom/oleumsanctum_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_oleumsanctum/oleumsanctum_hit/oleumsanctum_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "sincerefaith/sincerefaith/sincerefaith",
+    "type": "FUNC"
+   },
+   {
+    "file": "sincerefaith/sincerefaith_bottom/sincerefaith_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_massivefblaster/massivefblaster/massivefblaster",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_massivefblaster/massivefblaster_hit/massivefblaster_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_massivefblaster/massivefblaster_hit_bottom/massivefblaster_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_explosionblaster/explosionblaster/explosionblaster",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_explosionblaster/explosionblaster_bottom/explosionblaster_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_explosionblaster/explosionblaster_hit/explosionblaster_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_firstbrand/firstbrand/firstbrand",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_firstbrand/firstbrand_hit/firstbrand_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_firstfaithpower/firstfaithpower/firstfaithpower",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_firstfaithpower/firstfaithpower_cast/firstfaithpower_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_judge/judge/judge",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_judge/judge_cast/judge_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_secondflame/secondflame/secondflame",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_secondflame/secondflame_bottom/secondflame_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_secondjudgement/secondjudgement/secondjudgement",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdpunish/thirdpunish/thirdpunish",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdpunish/thirdpunish_bottom/thirdpunish_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdflamebomb/thirdflamebomb/thirdflamebomb",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdflamebomb/thirdflamebomb_bottom/thirdflamebomb_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdconsecration/thirdconsecration/thirdconsecration",
+    "type": "FUNC"
+   },
+   {
+    "file": "4iq_thirdconsecration/thirdconsecration_bottom/thirdconsecration_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_thirdexorflame/thirdexorflame/thirdexorflame",
+    "type": "FUNC"
+   },
+   {
+    "file": "4ig_thirdexorflame/thirdexorflame_cast/thirdexorflame_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "inquisitor/iq_blazing_flame_blast/blazing_flame_blast/blazing_flame_blast",
+    "type": "FUNC"
+   },
+   {
+    "file": "inquisitor/iq_blazing_flame_blast/blazing_flame_blast_cast/blazing_flame_blast_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "inquisitor/iq_blazing_flame_blast/blazing_flame_blast_cast_bottom/blazing_flame_blast_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "inquisitor/iq_blazing_flame_blast/blazing_flame_blast_hit/blazing_flame_blast_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "deadly_projection/deadly_projection_cast/deadly_projection_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "deadly_projection/deadly_projection_cast_bottom/deadly_projection_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "deadly_projection/deadly_projection_hit/deadly_projection_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane/destructive_hurricane",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane_bottom/destructive_hurricane_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane_cast/destructive_hurricane_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane_cast_bottom/destructive_hurricane_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane_hit/destructive_hurricane_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "rain_of_crystal/rain_of_crystal_casting/rain_of_crystal_casting",
+    "type": "FUNC"
+   },
+   {
+    "file": "rain_of_crystal/rain_of_crystal_casting_bottom/rain_of_crystal_casting_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "rain_of_crystal/rain_of_crystal_attack/rain_of_crystal_attack",
+    "type": "FUNC"
+   },
+   {
+    "file": "rain_of_crystal/rain_of_crystal_attack_bottom/rain_of_crystal_attack_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "mystery_illusion/mystery_illusion/mystery_illusion",
+    "type": "FUNC"
+   },
+   {
+    "file": "mystery_illusion/mystery_illusion_bottom/mystery_illusion_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "mystery_illusion/mystery_illusion_cast/mystery_illusion_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "mystery_illusion/mystery_illusion_cast_bottom/mystery_illusion_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "mystery_illusion/mystery_illusion_hit/mystery_illusion_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake/violentquake_01",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake_bottom/violentquake_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake_cast/violentquake_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake_cast_bottom/violentquake_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake_hit/violentquake_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "violentquake/violentquake_hit/violentquake_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_vc_strike/soul_vc_strike_cast/soul_vc_strike_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_vc_strike/soul_vc_strike_cast_bottom/soul_vc_strike_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_vc_strike/soul_vc_strike_hit/soul_vc_strike_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_strantumtremor/new_strantumtremor/new_strantumtremor",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_strantumtremor/new_strantumtremor_bottom/new_strantumtremor_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_strantumtremor/new_strantumtremor_cast/new_strantumtremor_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_strantumtremor/new_strantumtremor_cast_bottom/new_strantumtremor_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_strantumtremor/new_strantumtremor_hit/new_strantumtremor_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom/allbloom",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_bottom/allbloom_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_cast/allbloom_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_cast_bottom/allbloom_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_hit/allbloom_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_hit/allbloom_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "allbloom/allbloom_hit/allbloom_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact/crystal_impact",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_buff/crystal_impact_buff",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_bottom/crystal_impact_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_cast/crystal_impact_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_cast_bottom/crystal_impact_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_hit/crystal_impact_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "crystal_impact/crystal_impact_hit/crystal_impact_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tornadostorm/new_tornadostorm/new_tornadostorm",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tornadostorm/new_tornadostorm_bottom/new_tornadostorm_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tornadostorm/new_tornadostorm_cast/new_tornadostorm_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tornadostorm/new_tornadostorm_cast_bottom/new_tornadostorm_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tornadostorm/new_tornadostorm_hit/new_tornadostorm_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "astralstrike/astralstrike/astralstrike",
+    "type": "FUNC"
+   },
+   {
+    "file": "astralstrike/astralstrike_bottom/astralstrike_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "astralstrike/astralstrike_cast/astralstrike_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "astralstrike/astralstrike_cast_bottom/astralstrike_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "climax/climax/climax",
+    "type": "FUNC"
+   },
+   {
+    "file": "climax/climax_bottom/climax_bottom_%d",
+    "type": "FUNC"
+   },
+   {
+    "file": "climax/climax_cast/climax_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "rockdown/rockdown/rockdown",
+    "type": "FUNC"
+   },
+   {
+    "file": "rockdown/rockdown_bottom/rockdown_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "rockdown/rockdown_cast/rockdown_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "rockdown/rockdown_cast_bottom/rockdown_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "rockdown/rockdown_hit/rockdown_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "stormcannon/stormcannon/stormcannon",
+    "type": "FUNC"
+   },
+   {
+    "file": "stormcannon/stormcannon_bottom/stormcannon_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "stormcannon/stormcannon_cast_bottom/stormcannon_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "crimsonarrow/crimsonarrow/crimsonarrow",
+    "type": "FUNC"
+   },
+   {
+    "file": "crimsonarrow/crimsonarrow_cast/crimsonarrow_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "crimsonarrow/crimsonarrow_cast_bottom/crimsonarrow_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "crimsonarrow/crimsonarrow_hit/crimsonarrow_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "crimsonarrow/crimsonarrow_hit/crimsonarrow_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "frozen_slash/frozen_slash/frozen_slash",
+    "type": "FUNC"
+   },
+   {
+    "file": "frozen_slash/frozen_slash_casting/frozen_slash_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "frozen_slash/frozen_slash_casting_bottom/frozen_slash_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "frozen_slash/frozen_slash_hit/frozen_slash_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "destructive_hurricane/destructive_hurricane_climax/destructive_hurricane_climax",
+    "type": "FUNC"
+   },
+   {
+    "file": "archmage/ag_energy_conversion/energy_conversion/energy_conversion",
+    "type": "FUNC"
+   },
+   {
+    "file": "archmage/ag_energy_conversion/energy_conversion_cast/energy_conversion_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "archmage/ag_energy_conversion/energy_conversion_cast_bottom/energy_conversion_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reparatio/new_reparatio/new_reparatio",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reparatio/new_reparatio_bottom/new_reparatio_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reparatio/new_reparatio_cast/new_reparatio_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reparatio/new_reparatio_cast_bottom/new_reparatio_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "medialevotum/medialevotum/medialevotum",
+    "type": "FUNC"
+   },
+   {
+    "file": "medialevotum/medialevotum_cast/medialevotum_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "argutusvita/argutusvita/argutusvita",
+    "type": "FUNC"
+   },
+   {
+    "file": "argutusvita/argutusvita_cast/argutusvita_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "argutustelum/argutustelum/argutustelum",
+    "type": "FUNC"
+   },
+   {
+    "file": "argutustelum/argutustelum_cast/argutustelum_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium/arbitrium",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium_bottom/arbitrium_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium_cast/arbitrium_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium_cast_bottom/arbitrium_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium_hit/arbitrium_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "arbitrium/arbitrium_hit/arbitrium_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "presensacies/presensacies/presensacies",
+    "type": "FUNC"
+   },
+   {
+    "file": "presensacies/presensacies_cast/presensacies_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "effligo/effligo/effligo",
+    "type": "FUNC"
+   },
+   {
+    "file": "effligo/effligo_bottom/effligo_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "effligo/effligo_hit/effligo_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "competentia/competentia/competentia",
+    "type": "FUNC"
+   },
+   {
+    "file": "competentia/competentia_bottom/competentia_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "competentia/competentia_cast/competentia_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_pneumaticusprocella/new_pneumaticusprocella/new_pneumaticusprocella",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_pneumaticusprocella/new_pneumaticusprocella_cast/new_pneumaticusprocella_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_dilectioheal/new_dilectioheal/new_dilectioheal",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_dilectioheal/new_dilectioheal_cast/new_dilectioheal_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_dilectioheal/new_dilectioheal_cast_bottom/new_dilectioheal_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "religio/religio/religio",
+    "type": "FUNC"
+   },
+   {
+    "file": "religio/religio_cast/religio_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "benedictum/benedictum/benedictum",
+    "type": "FUNC"
+   },
+   {
+    "file": "benedictum/benedictum_cast/benedictum_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "benedictum/benedictum_cast_bottom/benedictum_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "petitio/petitio/petitio",
+    "type": "FUNC"
+   },
+   {
+    "file": "petitio/petitio_bottom/petitio_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "cardinal/cd_divinus_flos/divinus_flos/divinus_flos",
+    "type": "FUNC"
+   },
+   {
+    "file": "cardinal/cd_divinus_flos/divinus_flos_bottom/divinus_flos_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "cardinal/cd_divinus_flos/divinus_flos_cast/divinus_flos_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "cardinal/cd_divinus_flos/divinus_flos_cast_bottom/divinus_flos_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "cardinal/cd_divinus_flos/divinus_flos_hit/divinus_flos_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "rk_dragonbreath_water",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servantweapon/servantweapon/servantweapon",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servantweapon/servantweapon_cast/servantweapon_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servantweapon/servantweapon_hit/servantweapon_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servantweapon/servantweapon_hit_bottom/servantweapon_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_servantweapon/new_servantweapon_hit/new_servantweapon_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_servantweapon/new_servantweapon_hit_bottom/new_servantweapon_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servant_w_phantom/servant_phantom_sub/servant_phantom_sub",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servant_w_phantom/servant_phantom_sub_bottom/servant_phantom_sub_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_servant_w_demol/servant_demolition_hit/servant_demolition_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_chargingpierce/chargingpierce_cast/chargingpierce_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_chargingpierce/chargingpierce_cast_bottom/chargingpierce_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_chargingpierce/chargingpierce_hit/chargingpierce_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_hackandslasher/hackandslash/hackandslash",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_hackandslasher/hackandslash_bottom/hackandslash_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_hackandslasher/hackandslash_hit/hackandslash_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "hackandslash/hackandslash_hit/hackandslash_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_madness_crusher/madness_crusher/madness_crusher",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_madness_crusher/madness_crusher_bottom/madness_crusher_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_vigor/vigor_cast/vigor_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_stormslash/stormslash/stormslash_%d",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dragonic_breath/dragonic_breath/dragonic_breath",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dragonic_breath/dragonic_breath_bottom/dragonic_breath_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dragonic_breath/dragonic_breath_hit/dragonic_breath_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_dragonic_pierce/dragonic_pierce_bottom/dragonic_pierce_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_dragonic_pierce/dragonic_pierce_cast/dragonic_pierce_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_dragonic_pierce/dragonic_pierce_hit/dragonic_pierce_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "dragon_knight/dk_dragonic_pierce/dragonic_pierce_hit_bottom/dragonic_pierce_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_shadow_exceed/shadow_exceed_cast/shadow_exceed_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_dancing_knife/dancing_knife_cast/dancing_knife_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_dancing_knife/dancing_knife_cast_bottom/dancing_knife_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "savage_impact/savage_impact/savage_impact",
+    "type": "FUNC"
+   },
+   {
+    "file": "savage_impact/savage_impact_hit/savage_impact_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "eternal_slash/eternal_slash/eternal_slash",
+    "type": "FUNC"
+   },
+   {
+    "file": "eternal_slash/eternal_slash_bottom/eternal_slash_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "eternal_slash/eternal_slash_hit/eternal_slash_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_potent_venom/new_potent_venom",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_shadow_stab/shadow_stab/shadow_stab",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_impact_crater/impact_crater/impact_crater",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_impact_crater/impact_crater_bottom/impact_crater_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_impact_crater/impact_crater_hit/impact_crater_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_enchanting_shadow/enchanting_shadow/enchanting_shadow",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_enchanting_shadow/enchanting_shadow_bottom/enchanting_shadow_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "fatal_shadow_crow/fatal_shadow_crow/fatal_shadow_crow",
+    "type": "FUNC"
+   },
+   {
+    "file": "fatal_shadow_crow/fatal_shadow_crow_bottom/fatal_shadow_crow_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "fatal_shadow_crow/fatal_shadow_crow_hit/fatal_shadow_crow_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "shadow_cross/shc_cross_slash/cross_slash/cross_slash",
+    "type": "FUNC"
+   },
+   {
+    "file": "S_STORM",
+    "type": "FUNC"
+   },
+   {
+    "file": "mysticsymphony/mysticsymphony/mysticsymphony",
+    "type": "FUNC"
+   },
+   {
+    "file": "mysticsymphony/mysticsymphony_cast/mysticsymphony_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "4tr_kvasirsonata/kvasirsonata/kvasirsonata",
+    "type": "FUNC"
+   },
+   {
+    "file": "4tr_kvasirsonata/kvasirsonata_cast/kvasirsonata_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "4tr_kvasirsonata/kvasirsonata_cast_bottom/kvasirsonata_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "roseblossom/roseblossom_cast/roseblossom_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "roseblossom/roseblossom_cast_bottom/roseblossom_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "roseblossom/roseblossom_hit/roseblossom_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "roseblossom/roseblossom_hit/roseblossom_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "rhythmshooting/rhythmshooting_cast/rhythmshooting_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "rhythmshooting/rhythmshooting_cast_bottom/rhythmshooting_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "rhythmshooting/rhythmshooting_hit/rhythmshooting_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "metalicfury/metalicfury/metalicfury",
+    "type": "FUNC"
+   },
+   {
+    "file": "soundblend/soundblend/soundblend",
+    "type": "FUNC"
+   },
+   {
+    "file": "soundblend/soundblend_cast/soundblend_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "soundblend/soundblend_cast_bottom/soundblend_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "gef_nocturn/gef_nocturn/gef_nocturn",
+    "type": "FUNC"
+   },
+   {
+    "file": "gef_nocturn/gef_nocturn_cast/gef_nocturn_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "gef_nocturn/gef_nocturn_cast_bottom/gef_nocturn_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "roki_capriccio/roki_capriccio/roki_capriccio",
+    "type": "FUNC"
+   },
+   {
+    "file": "roki_capriccio/roki_capriccio_cast/roki_capriccio_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "roki_capriccio/roki_capriccio_cast_bottom/roki_capriccio_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "ain_rhapsody/ain_rhapsody/ain_rhapsody",
+    "type": "FUNC"
+   },
+   {
+    "file": "ain_rhapsody/ain_rhapsody_cast/ain_rhapsody_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "musical_interlude/musical_interlude/musical_interlude",
+    "type": "FUNC"
+   },
+   {
+    "file": "musical_interlude/musical_interlude_cast/musical_interlude_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "jawaii_serenade/jawaii_serenade/jawaii_serenade",
+    "type": "FUNC"
+   },
+   {
+    "file": "jawaii_serenade/jawaii_serenade_cast/jawaii_serenade_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "jawaii_serenade/jawaii_serenade_cast_bottom/jawaii_serenade_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "nipelheim/nipelheim/nipelheim",
+    "type": "FUNC"
+   },
+   {
+    "file": "nipelheim/nipelheim_cast/nipelheim_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "pronmarch/pronmarch/pronmarch",
+    "type": "FUNC"
+   },
+   {
+    "file": "pronmarch/pronmarch_cast/pronmarch_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "pronmarch/pronmarch_cast_bottom/pronmarch_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "troubadour_trouvere/tr_rhythmical_wave/rhythmical_wave/rhythmical_wave",
+    "type": "FUNC"
+   },
+   {
+    "file": "troubadour_trouvere/tr_rhythmical_wave/rhythmical_wave_bottom/rhythmical_wave_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "troubadour_trouvere/tr_rhythmical_wave/rhythmical_wave_cast/rhythmical_wave_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "troubadour_trouvere/tr_rhythmical_wave/rhythmical_wave_cast_bottom/rhythmical_wave_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "troubadour_trouvere/tr_rhythmical_wave/rhythmical_wave_hit/rhythmical_wave_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_dagger/abyss_dagger/abyss_dagger",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_dagger/abyss_dagger_hit/abyss_dagger_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "unlucky_rush/unlucky_rush/unlucky_rush",
+    "type": "FUNC"
+   },
+   {
+    "file": "unlucky_rush/unlucky_rush_cast/unlucky_rush_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "unlucky_rush/unlucky_rush_hit/unlucky_rush_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "chain_reaction_shot/chain_reaction_shot/chain_reaction_shot",
+    "type": "FUNC"
+   },
+   {
+    "file": "chain_reaction_shot/chain_reaction_shot_cast/chain_reaction_shot_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "chain_reaction_shot/chain_reaction_shot_cast_bottom/chain_reaction_shot_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "chain_reaction_shot/chain_reaction_shot_hit/chain_reaction_shot_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "from_the_abyss/from_the_abyss_attack/from_the_abyss_attack",
+    "type": "FUNC"
+   },
+   {
+    "file": "4abc_abyss_slayer/abyss_slayer/abyss_slayer",
+    "type": "FUNC"
+   },
+   {
+    "file": "4abc_abyss_slayer/abyss_slayer_cast/abyss_slayer_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "4abc_abyss_slayer/abyss_slayer_cast_bottom/abyss_slayer_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_strike/abyss_strike/abyss_strike",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_strike/abyss_strike_bottom/abyss_strike_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_strike/abyss_strike_cast/abyss_strike_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_strike/abyss_strike_cast_bottom/abyss_strike_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_strike/abyss_strike_hit/abyss_strike_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "deft_stab/deft_stab/deft_stab",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_square/abyss_square/abyss_square",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_square/abyss_square_bottom/abyss_square_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_square/abyss_square_hit/abyss_square_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "frenzy_shot/frenzy_shot/frenzy_shot",
+    "type": "FUNC"
+   },
+   {
+    "file": "frenzy_shot/frenzy_shot_hit/frenzy_shot_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "chain_reaction_shot/chain_reaction_shot_hit/chain_reaction_shot_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "from_the_abyss/from_the_abyss_attack/from_the_abyss_attack",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_chasing_break/chasing_break/chasing_break",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_chasing_shot/chasing_shot_cast/chasing_shot_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_chasing_shot/chasing_shot_cast_bottom/chasing_shot_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_chasing_shot/chasing_shot_hit/chasing_shot_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_abyss_flame/abyss_flame/abyss_flame",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_abyss_flame/abyss_flame_cast/abyss_flame_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_abyss_flame/abyss_flame_cast_bottom/abyss_flame_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "abyss_chaser/abc_abyss_flame/abyss_flame_hit/abyss_flame_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "windsign/windsign/windsign",
+    "type": "FUNC"
+   },
+   {
+    "file": "hawkrush/hawkrush/hawkrush",
+    "type": "FUNC"
+   },
+   {
+    "file": "windhawk/calamitygale/calumitygale_cast/calumitygale_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "galestorm/galestorm/galestorm",
+    "type": "FUNC"
+   },
+   {
+    "file": "galestorm/galestorm_cast/galestorm_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "galestorm/galestorm_hit/galestorm_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "deepblindtrap/deepblindtrap/deepblindtrap",
+    "type": "FUNC"
+   },
+   {
+    "file": "deepblindtrap/deepblindtrap_bottom/deepblindtrap_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "deepblindtrap/deepblindtrap_cast/deepblindtrap_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "deepblindtrap/deepblindtrap_hit/deepblindtrap_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "solidtrap/solidtrap/solidtrap",
+    "type": "FUNC"
+   },
+   {
+    "file": "solidtrap/solidtrap_bottom/solidtrap_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "solidtrap/solidtrap_cast/solidtrap_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "solidtrap/solidtrap_cast_bottom/solidtrap_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "solidtrap/solidtrap_hit/solidtrap_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "swifttrap/swifttrap/swifttrap",
+    "type": "FUNC"
+   },
+   {
+    "file": "swifttrap/swifttrap_bottom/swifttrap_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "swifttrap/swifttrap_cast/swifttrap_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "swifttrap/swifttrap_hit/swifttrap_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "crescivebolt/crescivebolt/crescivebolt",
+    "type": "FUNC"
+   },
+   {
+    "file": "crescivebolt/crescivebolt_cast/crescivebolt_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "crescivebolt/crescivebolt_hit/crescivebolt_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "flametrap/flametrap/flametrap",
+    "type": "FUNC"
+   },
+   {
+    "file": "flametrap/flametrap_bottom/flametrap_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "flametrap/flametrap_cast/flametrap_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "flametrap/flametrap_hit/flametrap_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "windhawk/wh_wild_walk/wild_walk/wild_walk",
+    "type": "FUNC"
+   },
+   {
+    "file": "windhawk/wh_wild_walk/wild_walk_cast/wild_walk_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "windhawk/wh_wild_walk/wild_walk_cast_bottom/wild_walk_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "windhawk/wh_wild_walk/wild_walk_hit/wild_walk_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/shield_boomerang.bmp",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/\\xc5\\xe4\\xb8\\xb6.bmp",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/mandragora_atk",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/hydra_atk",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/tha_odium_ef",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/drosera_bullet",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/mavka_bullet",
+    "type": "FUNC"
+   },
+   {
+    "file": "../npc/entweihen_bullet",
+    "type": "FUNC"
+   },
+   {
+    "file": "RL_C_MAKER/deffender",
+    "type": "FUNC"
+   },
+   {
+    "file": "RL_C_MAKER/cm",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_intensive_aim/intensive_aim_full/intensiveaim_full",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_grenade_fragment/grenade_fragment_fire/grenade_fragment_fire",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_the_vigilante_at_night/the_vigilante_at_night_bottom/the_vigilante_at_night_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_only_one_bullet/only_one_bullet/only_one_bullet",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_only_one_bullet/only_one_bullet_hit/only_one_bullet_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_spiral_shooting/spiral_shooting",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_magazine_for_one/magazine_for_one",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_wild_fire/wild_fire/wild_fire",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_wild_fire/wild_fire_bottom/wild_fire_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_basic_grenade/basic_grenade/basic_grenade",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_basic_grenade/basic_grenade_bottom/basic_grenade_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_grenades_dropping/grenades_dropping/grenades_dropping",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_grenades_dropping/grenades_dropping_bottom/grenades_dropping_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_auto_firing_launcher/auto_firing_launcher/auto_firing_launcher",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_auto_firing_launcher/auto_firing_launcher_bottom/auto_firing_launcher_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_hidden_card/hidden_card/hiddencard",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_mission_bombard/mission_bombard/mission_bombard_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_mission_bombard/mission_bombard/mission_bombard_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_wild_shot/wild_shot/wild_shot",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_wild_shot/wild_shot_cast/wild_shot_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_wild_shot/wild_shot_hit/wild_shot_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_midnight_fallen/midnight_fallen_bottom/midnight_fallen_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "night_watch/nw_midnight_fallen/midnight_fallen_cast_bottom/midnight_fallen_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/RL_C_MAKER/ome.bmp",
+    "type": "FUNC"
+   },
+   {
+    "file": "effect/RL_C_MAKER/ome.bmp",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xb1\\xe2\\xba\\xbb\\xc6\\xae\\xb7\\xa6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xb4\\xe3\\xc8\\xb2\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbe\\xcf\\xc3\\xbb\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xc0\\xda\\xc8\\xab\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xc3\\xbb\\xb7\\xcf\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa601",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa602",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_2",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_3",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_4",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_5",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_6",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa604",
+    "type": "FUNC"
+   },
+   {
+    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa605",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xb0\\xa1\\xbd\\xc301",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xbc\\xf601",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc1\\xf601",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc7\\xb301",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc8\\xad01",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xbc\\xf601",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc1\\xf601",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc7\\xb301",
+    "type": "FUNC"
+   },
+   {
+    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc8\\xad01",
+    "type": "FUNC"
+   },
+   {
+    "file": "landmine",
+    "type": "FUNC"
+   },
+   {
+    "file": "suicide",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_counter_slash/new_counter_slash/new_counter_slash",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_counter_slash/new_counter_slash_bottom/new_counter_slash_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "assasin_poisonreact",
+    "type": "FUNC"
+   },
+   {
+    "file": "assasin_poisonreact_1st",
+    "type": "FUNC"
+   },
+   {
+    "file": "adrenaline",
+    "type": "FUNC"
+   },
+   {
+    "file": "hunter_loud",
+    "type": "FUNC"
+   },
+   {
+    "file": "hunter_poison",
+    "type": "FUNC"
+   },
+   {
+    "file": "hunter_shockwave_blue",
+    "type": "FUNC"
+   },
+   {
+    "file": "stun",
+    "type": "FUNC"
+   },
+   {
+    "file": "increasing_activity/increasing_activity/increasing_activity",
+    "type": "FUNC"
+   },
+   {
+    "file": "increasing_activity/increasing_activity_cast/increasing_activity_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "increasing_activity/increasing_activity_cast_bottom/increasing_activity_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_windcutter/new_windcutter/new_windcutter",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soulexpansion/new_soulexpansion_cast/new_soulexpansion_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soulexpansion/new_soulexpansion_cast_bottom/new_soulexpansion_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soulexpansion/new_soulexpansion_hit/new_soulexpansion_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soulexpansion/new_soulexpansion_hit_bottom/new_soulexpansion_hit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_hellinferno/new_hellinferno/new_hellinferno",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_hellinferno/new_hellinferno_bottom/new_hellinferno_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_hellinferno/new_hellinferno_cast_bottom/new_hellinferno_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_comet/new_comet/new_comet",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_comet/new_comet_bottom/new_comet_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_comet/new_comet_cast/new_comet_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_comet/new_comet_cast_bottom/new_comet_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_chainlightning/new_chainlightning_cast/new_chainlightning_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_chainlightning/new_chainlightning_cast_bottom/new_chainlightning_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "mineffect/new_tetravortex/new_tetravortex_fire/new_tetravortex_fire",
+    "type": "FUNC"
+   },
+   {
+    "file": "mineffect/new_tetravortex/new_tetravortex_water/new_tetravortex_water",
+    "type": "FUNC"
+   },
+   {
+    "file": "mineffect/new_tetravortex/new_tetravortex_wind/new_tetravortex_wind",
+    "type": "FUNC"
+   },
+   {
+    "file": "fire",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_crossimpact/new_crossimpact/new_crossimpact",
+    "type": "FUNC"
+   },
+   {
+    "file": "poison",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_counter_slash/new_counter_slash/new_counter_slash",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_counter_slash/new_counter_slash_bottom/new_counter_slash_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_poisonsmoke/new_poisonsmoke/new_poisonsmoke_%d",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_crossripperslasher/new_crossripperslasher/new_crossripperslasher",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_secrament/new_secrament/new_secrament",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fearbreeze/new_fearbreeze",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_vulcanarm/new_vulcanarm/new_vulcanarm",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_vulcanarm/new_vulcanarm_bottom/new_vulcanarm_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_armscannon/new_armscannon_cast/new_armscannon_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_armscannon/new_armscannon_cast_bottom/new_armscannon_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "repair weapon",
+    "type": "FUNC"
+   },
+   {
+    "file": "repairweapon",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axeboomerang/new_axeboomerang/new_axeboomerang",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axeboomerang/new_axeboomerang_cast/new_axeboomerang_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axeboomerang/new_axeboomerang_cast_bottom/new_axeboomerang_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axeboomerang/new_axeboomerang_hit/new_axeboomerang_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axetornado/new_axetornado/new_axetornado",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_axetornado/new_axetornado_bottom/new_axetornado_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fatal_menace/new_fatal_menace/new_fatal_menace",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fatal_menace/new_fatal_menace_bottom/new_fatal_menace_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fatal_menace/new_fatal_menace_cast/new_fatal_menace_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fatal_menace/new_fatal_menace_cast_bottom/new_fatal_menace_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reproduce/new_reproduce/new_reproduce",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reproduce/new_reproduce_bottom/new_reproduce_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_autoshadowspell/new_autoshadowspell/new_autoshadowspell",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_autoshadowspell/new_autoshadowspell_bottom/new_autoshadowspell_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cannon_spear/new_cannon_spear_bottom/new_cannon_spear_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_banishingpoint/new_banishingpoint_cast/new_banishingpoint_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_banishingpoint/new_banishingpoint_cast_bottom/new_banishingpoint_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast/new_overbrand_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast_bottom/new_overbrand_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_hit/new_overbrand_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rayofgenesis/new_rayofgenesis/new_rayofgenesis",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rayofgenesis/new_rayofgenesis_cast/new_rayofgenesis_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rayofgenesis/new_rayofgenesis_cast_bottom/new_rayofgenesis_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rayofgenesis/new_rayofgenesis_hit/new_rayofgenesis_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_earthdrive/new_earthdrive/new_earthdrive",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_earthdrive/new_earthdrive_bottom/new_earthdrive_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast/new_overbrand_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast_bottom/new_overbrand_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_hit/new_overbrand_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast/new_overbrand_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_cast_bottom/new_overbrand_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_overbrand/new_overbrand_hit/new_overbrand_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fallenempire/new_fallenempire/new_fallenempire",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fallenempire/new_fallenempire_bottom/new_fallenempire_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_fallenempire/new_fallenempire_hit/new_fallenempire_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_tigercannon/new_tigercannon",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rampageblaster/new_rampageblaster/new_rampageblaster",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_rampageblaster/new_rampageblaster_bottom/new_rampageblaster_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "lightning",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_gateofhell/new_gateofhell_cast/new_gateofhell_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_howlingoflion/new_howlingoflion/new_howlingoflion",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_howlingoflion/new_howlingoflion_bottom/new_howlingoflion_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_howlingoflion/new_howlingoflion_cast/new_howlingoflion_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_howlingoflion/new_howlingoflion_cast_bottom/new_howlingoflion_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_howlingoflion/new_howlingoflion_hit/new_howlingoflion_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_metalicsound/new_metalicsound/new_metalicsound",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_metalicsound/new_metalicsound_bottom/new_metalicsound_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_metalicsound/new_metalicsound_hit/new_metalicsound_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_reverberation/new_reverberation_hit/new_reverberation_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_severerainstorm/new_severerainstorm/new_severerainstorm",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_severerainstorm/new_severerainstorm_cast/new_severerainstorm_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soundofdestruction/new_soundofdestruction_cast/new_soundofdestruction_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_soundofdestruction/new_soundofdestruction_cast_bottom/new_soundofdestruction_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_unlimit/new_unlimit/new_unlimit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_unlimit/new_unlimit_bottom/new_unlimit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_severerainstorm/new_severerainstorm/new_severerainstorm",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_severerainstorm/new_severerainstorm_cast/new_severerainstorm_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_earthgrave/new_earthgrave/new_earthgrave",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_earthgrave/new_earthgrave_bottom/new_earthgrave_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_earthgrave/new_earthgrave_hit/new_earthgrave_hit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_diamonddust/new_diamonddust/new_diamonddust",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_diamonddust/new_diamonddust_bottom/new_diamonddust_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_diamonddust/new_diamonddust_cast/new_diamonddust_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "poison",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_psychicwave/new_psychicwave/new_psychicwave",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_psychicwave/new_psychicwave_bottom/new_psychicwave_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_psychicwave/new_psychicwave_cast/new_psychicwave_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "cure",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cart_tornado/new_cart_tornado/new_cart_tornado",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cart_tornado/new_cart_tornado_bottom/new_cart_tornado_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cart_cannon/new_cart_cannon/new_cart_cannon",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cart_cannon/new_cart_cannon_cast/new_cart_cannon_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cart_cannon/new_cart_cannon_cast_bottom/new_cart_cannon_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cartboost/new_cartboost/new_cartboost",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_cartboost/new_cartboost_bottom/new_cartboost_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_wallofthorn/new_wallofthorn_cast/new_wallofthorn_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_wallofthorn/new_wallofthorn_cast_bottom/new_wallofthorn_cast_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_mandragora/new_mandragora/new_mandragora",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_mandragora/new_mandragora_bottom/new_mandragora_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_mandragora/new_mandragora_cast/new_mandragora_cast",
+    "type": "FUNC"
+   },
+   {
+    "file": "changematerial_fa",
+    "type": "FUNC"
+   },
+   {
+    "file": "changematerial_su",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_e_chain/eternal",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_fire_dance/firedance",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_h_mine/mine",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_p_alter/platinum",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_fallen_angel/penne",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_d_tail/dtdt",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_fire_rain/fire_rain",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_heat_barrel/htb",
+    "type": "FUNC"
+   },
+   {
+    "file": "rl_slugshot/slug",
+    "type": "FUNC"
+   },
+   {
+    "file": "fullmoon_kick/fullmoon_kick",
+    "type": "FUNC"
+   },
+   {
+    "file": "newmoon_kick/newmoon_kick",
+    "type": "FUNC"
+   },
+   {
+    "file": "flash_kick/flash_kick",
+    "type": "FUNC"
+   },
+   {
+    "file": "falling_star/falling_star",
+    "type": "FUNC"
+   },
+   {
+    "file": "sj_document/sj_document",
+    "type": "FUNC"
+   },
+   {
+    "file": "solar_burst/solar_burst",
+    "type": "FUNC"
+   },
+   {
+    "file": "prominence_kick/prominence_kick",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_golem/soul_golem",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_curse/soul_curse",
+    "type": "FUNC"
+   },
+   {
+    "file": "soul_revolve/soul_revolve",
+    "type": "FUNC"
+   },
+   {
+    "file": "jyumonjikiri",
+    "type": "FUNC"
+   },
+   {
+    "file": "setsudan",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_unlimit/new_unlimit/new_unlimit",
+    "type": "FUNC"
+   },
+   {
+    "file": "new_unlimit/new_unlimit_bottom/new_unlimit_bottom",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_bite/su_bite",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_scratch/su_scratch",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_sv_stemspear/su_sv_stemspear",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_scaroftarou/su_scaroftarou",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_pickypeck/su_pickypeck",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_arclousedash/su_arclousedash",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_tunabelly/su_scratch",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_tunabelly/su_tunabelly",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_bunchofshrimp/su_bunchofshrimp",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_freshshrimp/su_freshshrimp",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_powerofflock/su_powerofflock",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_svg_spirit/su_svg_spirit",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_hiss/su_hiss",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_nyanggrass/su_nyanggrass",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_grooming/su_grooming",
+    "type": "FUNC"
+   },
+   {
+    "file": "su_chattering/su_chattering",
+    "type": "FUNC"
+   },
+   {
+    "file": "help_angel/help_angel/help_angel",
+    "type": "FUNC"
+   },
+   {
+    "file": "help_angel/help_angel_bottom/help_angel_bottom",
+    "type": "FUNC"
+   }
+  ]
+ }
+}

@@ -200,6 +200,11 @@ const FREE_CAST_SKILL_ID: SkillId = SkillId(278);
 /// Job ids that can learn `Free Cast`: Sage and its rebirth class (called
 /// Scholar or Professor depending on the game version).
 const FREE_CAST_JOB_IDS: [u16; 2] = [16, 4017];
+/// Completion-effect de-duplication phase used by the hand-written (special
+/// cased) completion visuals in [`skill_visuals`].
+const CUSTOM_COMPLETION_PHASE: u8 = u8::MAX;
+/// De-duplication phase of the procedural Storm Gust cloud.
+const STORM_CLOUD_PHASE: u8 = u8::MAX - 1;
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// Background music that is played while the client is *not* inside a map:
@@ -2277,6 +2282,79 @@ impl Client {
         self.effect_holder.add_unit(Box::new(aura), entity_id);
     }
 
+    /// Spawns the official effect files of `skill_id` for one variant.
+    ///
+    /// The files come from the data-file mapping (see
+    /// `archive/data/client/skill_effect_assets.ron`); every cast spawns each
+    /// variant at most once, even if several packets (ground cast, damage,
+    /// ...) describe the same cast.
+    fn spawn_skill_effect_variants(
+        &mut self,
+        skill_id: SkillId,
+        variant: SkillEffectVariant,
+        source_entity_id: EntityId,
+        world_position: Option<Point3<f32>>,
+        client_tick: ClientTick,
+    ) {
+        if crate::world::has_custom_completion(skill_id) {
+            return;
+        }
+
+        for effect_path in crate::world::skill_effect_files(skill_id, variant) {
+            if !self
+                .skill_completion_tracker
+                .claim(source_entity_id, skill_id, variant.phase(), client_tick)
+            {
+                break;
+            }
+
+            crate::logging::log_debug!(
+                "skill effect: spawned '{}' for skill {} ({:?})",
+                effect_path,
+                skill_id.0,
+                variant
+            );
+
+            // `Success` plays at the ground cell when the caller knows one (the
+            // official client plays e.g. Storm Gust's effect at the target cell)
+            // and on the caster for no-damage casts.
+            let position_effect = matches!(
+                variant,
+                SkillEffectVariant::Ground | SkillEffectVariant::Release | SkillEffectVariant::Hit
+            ) || (variant == SkillEffectVariant::Success && world_position.is_some());
+
+            match (position_effect, world_position) {
+                (true, Some(world_position)) => {
+                    self.spawn_position_effect(effect_path, world_position, Vector3::new(0.0, 0.0, 0.0), 1.0, Color::WHITE, 0.0);
+                }
+                _ => {
+                    self.spawn_entity_effect(
+                        effect_path,
+                        source_entity_id,
+                        Vector3::new(0.0, 0.0, 0.0),
+                        1.0,
+                        Color::WHITE,
+                        0.0,
+                    );
+                }
+            }
+        }
+
+        // Storm Gust's snow is a `.str` file, but the dark storm cloud above the
+        // cell is a hard-coded official client effect (cloud1..7.tga), so it is
+        // reproduced procedurally once per cast.
+        if matches!(skill_id.0, 87 | 89)
+            && let (SkillEffectVariant::Success, Some(world_position)) = (variant, world_position)
+            && self
+                .skill_completion_tracker
+                .claim(source_entity_id, skill_id, STORM_CLOUD_PHASE, client_tick)
+            && let Some(cloud) = StormCloud::new(&self.texture_loader, world_position)
+        {
+            crate::logging::log_debug!("skill effect: spawned procedural storm cloud for skill {}", skill_id.0);
+            self.effect_holder.add_unit(Box::new(cloud), source_entity_id);
+        }
+    }
+
     /// Applies an aura style selected through `/aura` or by the server-side
     /// aura stylist NPC (via the private chat marker) and persists it
     /// immediately.
@@ -3009,6 +3087,10 @@ impl Client {
                     // client (own character, other players and population shells).
                     self.show_skill_name_text(source_entity_id, skill_id, client_tick);
 
+                    // Official cast-start effect of the mapping (e.g. a caster
+                    // effect that plays while the skill is being cast).
+                    self.spawn_skill_effect_variants(skill_id, SkillEffectVariant::Cast, source_entity_id, None, client_tick);
+
                     // Local player cast bars are driven by this server-confirmed
                     // cast-start packet (cast_time > 0), never by local requests.
                     self.start_own_cast_bar(source_entity_id, skill_id, cast_time, client_tick);
@@ -3121,7 +3203,9 @@ impl Client {
                         // Buff visuals (for example the Blessing angel) are screen
                         // sprites anchored above the head.
                         if let Some(effect) = &visuals.completion
-                            && self.skill_completion_tracker.claim(source_entity_id, skill_id, client_tick)
+                            && self
+                                .skill_completion_tracker
+                                .claim(source_entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
                         {
                             self.spawn_entity_effect(
                                 effect.path,
@@ -3132,6 +3216,10 @@ impl Client {
                                 visuals.light.1,
                             );
                         }
+
+                        // Official completion effect from the data-file mapping
+                        // (skipped for skills with a hand-written visual).
+                        self.spawn_skill_effect_variants(skill_id, SkillEffectVariant::Success, source_entity_id, None, client_tick);
 
                         // Instant/self-buff casts (0x09CB) have no sound packet on
                         // the 2019 server either. For an instant skill the start-of-use
@@ -3203,7 +3291,9 @@ impl Client {
 
                     if let Some(effect) = &visuals.completion
                         && let Some(world_position) = world_position
-                        && self.skill_completion_tracker.claim(entity_id, skill_id, client_tick)
+                        && self
+                            .skill_completion_tracker
+                            .claim(entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
                     {
                         self.spawn_position_effect(
                             effect.path,
@@ -3213,6 +3303,13 @@ impl Client {
                             visuals.light.0,
                             visuals.light.1,
                         );
+                    }
+
+                    // Official ground/completion effects from the data-file mapping.
+                    // `Success` follows the ground cell when one is known (the
+                    // official client plays e.g. Storm Gust's effect there).
+                    for variant in [SkillEffectVariant::Ground, SkillEffectVariant::Success] {
+                        self.spawn_skill_effect_variants(skill_id, variant, entity_id, world_position, client_tick);
                     }
 
                     if !self.take_duplicate_cast_sound(entity_id, skill_id, client_tick) {
@@ -3931,7 +4028,7 @@ impl Client {
                     attack_duration,
                     is_critical,
                     skill_id,
-                    skill_start_tick,
+                    skill_start_tick: _,
                 } => {
                     let target_position = self
                         .client_state
@@ -3940,36 +4037,38 @@ impl Client {
                         .find(|entity| entity.get_entity_id() == destination_entity_id)
                         .map(|entity| entity.get_tile_position());
 
-                    // Single-target damage skills complete through `ZC_NOTIFY_SKILL`
-                    // (0x01DE) instead of a no-damage/ground-skill packet. Attribute the
-                    // damage to the skill the server sent and play the mapped completion
-                    // effect once per cast. `skill_id` is `None` for auto attacks, so
-                    // those can never trigger a skill effect.
+                    // Skill damage attribution (`ZC_NOTIFY_SKILL`, 0x01DE): play
+                    // the official release/hit effect at the damaged target and the
+                    // caster effect on the caster. Attack packets carry no skill id,
+                    // so auto attacks can never trigger skill effects.
                     if let Some(skill_id) = skill_id
                         && self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id)
                     {
-                        match crate::world::skill_effect_asset(skill_id) {
-                            Some(effect_path) if self.skill_completion_tracker.claim(source_entity_id, skill_id, client_tick) => {
-                                if let Some(world_position) = target_position
-                                    .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)))
-                                {
-                                    crate::logging::log_debug!(
-                                        "damage skill effect: spawned '{}' for skill {} (start tick {:?})",
-                                        effect_path,
-                                        skill_id.0,
-                                        skill_start_tick.map(|tick| tick.0)
-                                    );
-                                    self.spawn_position_effect(
-                                        effect_path,
-                                        world_position,
-                                        Vector3::new(0.0, 0.0, 0.0),
-                                        1.0,
-                                        Color::WHITE,
-                                        0.0,
-                                    );
-                                }
+                        let target_world_position = target_position
+                            .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)));
+                        let caster_world_position = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| entity.get_position());
+
+                        if !crate::world::has_custom_completion(skill_id) {
+                            if !crate::world::skill_has_effect(skill_id) {
+                                crate::logging::log_debug!("damage skill: skill {} has no effect mapping", skill_id.0);
                             }
-                            _ => crate::logging::log_debug!("damage skill: skill {} has no completion effect asset", skill_id.0),
+
+                            for variant in [SkillEffectVariant::Success, SkillEffectVariant::Release, SkillEffectVariant::Hit] {
+                                self.spawn_skill_effect_variants(skill_id, variant, source_entity_id, target_world_position, client_tick);
+                            }
+
+                            self.spawn_skill_effect_variants(
+                                skill_id,
+                                SkillEffectVariant::Caster,
+                                source_entity_id,
+                                caster_world_position,
+                                client_tick,
+                            );
                         }
                     }
 

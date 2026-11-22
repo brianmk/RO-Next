@@ -18,11 +18,13 @@ use crate::world::{Camera, PointLightId, PointLightManager};
 mod aura;
 mod cast_circle;
 mod skill_aura;
+mod storm_cloud;
 mod teleport_vanish;
 mod warp;
 pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::skill_aura::*;
+pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
 

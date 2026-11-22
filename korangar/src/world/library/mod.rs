@@ -46,7 +46,7 @@ pub use self::map_sky_data::MapSkyData;
 use self::monster_sprite::MonsterSprites;
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
-pub(crate) use self::skill_effect_assets::skill_effect_asset;
+pub(crate) use self::skill_effect_assets::{SkillEffectVariant, skill_effect_files, skill_has_effect};
 use self::skill_icon::SkillIcons;
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
@@ -84,6 +84,7 @@ impl Library {
         let accessory_name_table = AccessoryName::load(game_file_loader)?;
         let card_composition = CardComposition::load(game_file_loader);
         let item_descriptions = ItemDescriptions::load(game_file_loader);
+        skill_effect_assets::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
