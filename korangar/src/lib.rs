@@ -996,8 +996,12 @@ impl Client {
                 game_file_loader.clone(),
             ));
             let video_loader = Arc::new(VideoLoader::new(game_file_loader.clone(), texture_loader.clone()));
+            // `NotoSans` only covers Latin/Greek/Cyrillic. The server sends free
+            // text (chat, NPC dialogue) and the 2019 quest scripts use KS X 1001
+            // symbols, so a Hangul/KS-capable fallback font is required to avoid
+            // `.notdef` boxes. See `archive/data/font/README.md`.
             let font_loader = Arc::new(FontLoader::new(
-                &["NotoSans".to_owned(), "NotoSansKR".to_owned()],
+                &["NotoSans".to_owned(), "NanumGothic".to_owned()],
                 &game_file_loader,
                 &device,
                 &queue,

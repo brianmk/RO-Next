@@ -20,6 +20,7 @@ use std::sync::Arc;
 use korangar_interface::element::StateElement;
 use rust_state::RustState;
 
+use super::status_effect_names::status_effect_name;
 use crate::graphics::Texture;
 
 /// Static information about a known status effect.
@@ -44,118 +45,73 @@ const UNKNOWN_DEFINITION: StatusEffectDefinition = StatusEffectDefinition {
     icon: None,
 };
 
+/// English names for statuses that the client's English `stateiconinfo.lub`
+/// has no safe title for.
+///
+/// These are the client-only food statuses and a few 2019 server statuses that
+/// the 2019 data version does not cover. All names are ASCII; statuses without
+/// a name here and without a generated name get the generic
+/// [`UNKNOWN_DEFINITION`] name, never a Korean string or a square glyph.
+const EXTRA_NAMES: &[(u16, &str)] = &[
+    (241, "STR Food"),
+    (242, "AGI Food"),
+    (243, "VIT Food"),
+    (244, "DEX Food"),
+    (245, "INT Food"),
+    (246, "LUK Food"),
+    (665, "Monster transformation"),
+    (673, "Push cart"),
+    (889, "Bleeding"),
+];
+
 /// Returns the (best known) definition for a status effect index.
 ///
-/// The indices are the values of the client's `EFST_IDs` table
-/// (`data/lua files/stateicon/efstids.lub`), which is what the 2019 server
-/// sends in the status packets. Statuses without an entry here are still shown
-/// (with a generic name) so that no active effect is invisible.
+/// The indices are the `EFST_*` ids that the 2019 server sends in the status
+/// packets. The name is resolved from the English titles of the client's
+/// `stateiconinfo.lub` (generated `STATUS_EFFECT_NAMES` table) and a small
+/// curated override table; statuses without a safe English name are still shown
+/// with the generic [`UNKNOWN_DEFINITION`] name so that no active effect is
+/// invisible and no status name can ever be a Korean string or a square glyph.
+///
+/// Icons are only mapped for statuses whose official client texture is known;
+/// the buff bar falls back to the name when there is no icon.
 pub fn status_effect_definition(status_index: u16) -> StatusEffectDefinition {
+    let name = status_effect_name(status_index)
+        .or_else(|| {
+            EXTRA_NAMES
+                .binary_search_by_key(&status_index, |(index, _)| *index)
+                .ok()
+                .map(|position| EXTRA_NAMES[position].1)
+        })
+        .unwrap_or(UNKNOWN_DEFINITION.name);
+
+    StatusEffectDefinition {
+        name,
+        icon: status_effect_icon(status_index),
+    }
+}
+
+/// Official client icon texture of a status effect, relative to `data\texture`.
+fn status_effect_icon(status_index: u16) -> Option<&'static str> {
     match status_index {
-        0 => StatusEffectDefinition {
-            name: "Provoke",
-            icon: Some("유저인터페이스\\item\\sm_provoke.bmp"),
-        },
-        1 => StatusEffectDefinition {
-            name: "Endure",
-            icon: Some("유저인터페이스\\item\\cr_endure.bmp"),
-        },
-        2 => StatusEffectDefinition {
-            name: "Riding",
-            icon: Some("유저인터페이스\\item\\kn_riding.bmp"),
-        },
-        3 => StatusEffectDefinition {
-            name: "Improve Concentration",
-            icon: Some("유저인터페이스\\item\\ac_concentration.bmp"),
-        },
-        9 => StatusEffectDefinition {
-            name: "Angelus",
-            icon: Some("유저인터페이스\\item\\al_angelus.bmp"),
-        },
-        10 => StatusEffectDefinition {
-            name: "Blessing",
-            icon: Some("유저인터페이스\\item\\al_blessing.bmp"),
-        },
-        12 => StatusEffectDefinition {
-            name: "Increase AGI",
-            icon: Some("유저인터페이스\\item\\al_incagi.bmp"),
-        },
-        15 => StatusEffectDefinition {
-            name: "Impositio Manus",
-            icon: Some("유저인터페이스\\item\\pr_impositio.bmp"),
-        },
-        241 => StatusEffectDefinition {
-            name: "STR Food",
-            icon: None,
-        },
-        242 => StatusEffectDefinition {
-            name: "AGI Food",
-            icon: None,
-        },
-        243 => StatusEffectDefinition {
-            name: "VIT Food",
-            icon: None,
-        },
-        244 => StatusEffectDefinition {
-            name: "DEX Food",
-            icon: None,
-        },
-        245 => StatusEffectDefinition {
-            name: "INT Food",
-            icon: None,
-        },
-        246 => StatusEffectDefinition {
-            name: "LUK Food",
-            icon: None,
-        },
+        0 => Some("유저인터페이스\\item\\sm_provoke.bmp"),
+        1 => Some("유저인터페이스\\item\\cr_endure.bmp"),
+        2 => Some("유저인터페이스\\item\\kn_twohandquicken.bmp"),
+        3 => Some("유저인터페이스\\item\\ac_concentration.bmp"),
+        9 => Some("유저인터페이스\\item\\al_angelus.bmp"),
+        10 => Some("유저인터페이스\\item\\al_blessing.bmp"),
+        12 => Some("유저인터페이스\\item\\al_incagi.bmp"),
+        15 => Some("유저인터페이스\\item\\pr_impositio.bmp"),
+        27 => Some("유저인터페이스\\item\\kn_riding.bmp"),
         // Body/health state debuffs (EFST_HEALTHSTATE_*).
-        875 => StatusEffectDefinition {
-            name: "Stone Curse",
-            icon: None,
-        },
-        876 => StatusEffectDefinition {
-            name: "Freezing",
-            icon: None,
-        },
-        877 => StatusEffectDefinition { name: "Stun", icon: None },
-        878 => StatusEffectDefinition { name: "Sleep", icon: None },
-        881 => StatusEffectDefinition {
-            name: "Burning",
-            icon: None,
-        },
-        883 => StatusEffectDefinition {
-            name: "Poison",
-            icon: Some("effect\\hl_poison.tga"),
-        },
-        884 => StatusEffectDefinition {
-            name: "Curse",
-            icon: Some("effect\\hl_curse.tga"),
-        },
-        885 => StatusEffectDefinition {
-            name: "Silence",
-            icon: Some("effect\\hl_silence.tga"),
-        },
-        886 => StatusEffectDefinition {
-            name: "Confusion",
-            icon: Some("effect\\hl_confusion.tga"),
-        },
-        887 => StatusEffectDefinition {
-            name: "Blind",
-            icon: Some("effect\\hl_state_fear.tga"),
-        },
-        889 => StatusEffectDefinition {
-            name: "Bleeding",
-            icon: None,
-        },
-        890 => StatusEffectDefinition {
-            name: "Heavy Poison",
-            icon: Some("effect\\hl_heavypoison.tga"),
-        },
-        891 => StatusEffectDefinition {
-            name: "Fear",
-            icon: Some("effect\\hl_state_fear.tga"),
-        },
-        _ => UNKNOWN_DEFINITION,
+        883 => Some("effect\\hl_poison.tga"),
+        884 => Some("effect\\hl_curse.tga"),
+        885 => Some("effect\\hl_silence.tga"),
+        886 => Some("effect\\hl_confusion.tga"),
+        887 => Some("effect\\hl_state_fear.tga"),
+        890 => Some("effect\\hl_heavypoison.tga"),
+        891 => Some("effect\\hl_state_fear.tga"),
+        _ => None,
     }
 }
 
@@ -397,11 +353,46 @@ mod tests {
     #[test]
     fn known_buffs_have_names_and_icons() {
         assert_eq!(status_effect_definition(10).name, "Blessing");
-        assert_eq!(status_effect_definition(12).name, "Increase AGI");
+        assert_eq!(status_effect_definition(12).name, "Increase Agility");
         assert_eq!(status_effect_definition(9).name, "Angelus");
         assert_eq!(status_effect_definition(3).name, "Improve Concentration");
         assert!(status_effect_definition(10).icon_path().is_some());
         assert!(status_effect_definition(12).icon_path().is_some());
+    }
+
+    #[test]
+    fn names_come_from_the_english_stateicon_table() {
+        // EFST_TWOHANDQUICKEN is 2; the previous hard-coded table called it "Riding".
+        assert_eq!(status_effect_definition(2).name, "Two-Hand Quicken");
+        assert!(
+            status_effect_definition(2)
+                .icon_path()
+                .is_some_and(|path| path.ends_with("kn_twohandquicken.bmp"))
+        );
+        assert_eq!(status_effect_definition(27).name, "Riding");
+        assert_eq!(status_effect_definition(875).name, "Stone Curse");
+        assert_eq!(status_effect_definition(883).name, "Poison");
+        assert_eq!(status_effect_definition(890).name, "Deadly Poison");
+        assert_eq!(status_effect_definition(889).name, "Bleeding");
+        assert_eq!(status_effect_definition(241).name, "STR Food");
+    }
+
+    #[test]
+    fn status_names_are_always_ascii_and_never_squares() {
+        // Every index the client can display must map to an ASCII name (the
+        // renderer replaces anything else with '?', but a name is never allowed
+        // to be a Korean string or an unsupported glyph).
+        for status_index in [
+            0_u16, 1, 2, 3, 9, 10, 12, 15, 27, 64, 241, 250, 665, 673, 875, 876, 883, 889, 890, 891, 30_000,
+        ] {
+            let name = status_effect_definition(status_index).name;
+            assert!(name.is_ascii(), "status {status_index} name is not ASCII: {name:?}");
+            assert!(!name.is_empty());
+        }
+
+        // Statuses whose Korean-only title was filtered out fall back to the
+        // generic English name instead of the Korean text.
+        assert_eq!(status_effect_definition(1052).name, "Status effect");
     }
 
     #[test]
