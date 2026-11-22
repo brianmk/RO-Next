@@ -1,83 +1,79 @@
 # Unified skill effect pipeline — in-client evidence (muted Linux/Xvfb, GM test char)
 
-Captured on 2026-11-22 from the release binary of branch `feat/skill-effect-pipeline`
-(`/home/phantom/korangar-skill-pipeline`, worktree build in
-`/home/phantom/korangar-skill-pipeline-target/release/korangar`, sha256 prefix
-`939baa960de3e6ae`; this binary was built with the temporary verification harness described
-below and is **not** the hand-off binary — the hand-off binary excludes the harness).
+Captured on 2026-11-22 from the **final** code of branch `feat/skill-effect-pipeline`
+(after the lead's feedback fixes: official Blessing layers kept, overhead anchor field,
+Hammer Fall `crashearth.str`, Gloria/Impositio overhead corrections, body-aura exceptions).
+Binary: `/home/phantom/korangar-skill-pipeline-target/release/korangar`, sha256 prefix
+`4e0e0174943acd8c`, built with the temporary `KORANGAR_SKILL_SWEEP` verification harness
+described below (that harness is **not** part of the hand-off commit —
+`korangar/src/benchmark.rs` is unchanged in the final tree).
 
 * Display: `Xvfb :94 1280x720x24`, X11 backend, 30 fps cap, `KORANGAR_MUTE_AUDIO=1` + null
   ALSA, `KORANGAR_FORCE_UNFOCUSED=1` — no Wine, no audio device, no user desktop.
-* Account/character: **verify4 / VerifyBot4** (GM 99; the account's saved settings in the
-  `korangar-assumptio` clone). Neither the user's character/client nor verify5/verify6 were
-  used; the account was shared with the `effect-assumptio` lane with explicit hand-over.
-* Server: condaRO 2019 (Tailscale `100.40.206.179:6900`), same as the other lanes.
-* Login/character selection was automated by the committed benchmark driver
-  (`KORANGAR_BENCH=full`, `KORANGAR_BENCH_USER/PASS`, slot 0). The chat/GM-command path could
-  not be typed reliably through XTEST on this session (chat input focus), so a **temporary**
-  `KORANGAR_SKILL_SWEEP=<csv>` hook was added to `korangar/src/benchmark.rs` for the capture:
-  once in game it calls the real `Client::spawn_skill_effect_phase` for all six phases
-  (`Cast`, `Ground`, `Success`, `Release`, `Hit`, `Caster`) of each listed skill, one skill
-  every 1.6 s, at the player entity/position, with the real effect renderers, loaders and
-  effect budgets. **The hook was removed before hand-off** (`korangar/src/benchmark.rs` is
-  unchanged in the final commit); it exercised the same spawn functions the packet handlers
-  call, not a test-only rendering path.
-* Skill list: `34,29,33,45,28,110,270,401,59,62,357,361,89,14,5,70` (Blessing, Inc AGI,
-  Angelus, Concentration, Heal, Hammer Fall, Fury, Zen, Spear Boomerang, Bowling Bash,
-  LK Concentration, Assumptio, Storm Gust, Cold Bolt, Bash, Sanctuary).
-* Screenshots every 1.4 s via `import -window root`.
+* Account/character: **verify4 / VerifyBot4** (GM 99, from the `korangar-assumptio` clone's
+  saved settings), shared with the `effect-assumptio` lane with explicit hand-over. No other
+  test account and **no user character/client** was touched.
+* Server: condaRO 2019 (Tailscale `100.40.206.179:6900`).
+* Login/character selection via the committed benchmark driver (`KORANGAR_BENCH=full`,
+  `KORANGAR_BENCH_USER/PASS`, slot 0) — real login/char servers, real map entry
+  (`[bench-stage] login`). XTEST chat typing was unreliable in this session, so the
+  **temporary** sweep hook in `benchmark.rs` called the same
+  `Client::spawn_skill_effect_phase` function the packet handlers call, once per skill per
+  1.6 s, for all six phases, at the real player entity/position.
+* Skills: `34,29,33,45,59,62,357,66,75,60,258,495,110,270,401`; frames every 1.4 s via
+  `import -window root`.
 
-## Result
+## What the log proves (final binary)
 
-All 16 skills spawned their layers through the unified table (53 `skill effect:` spawn lines;
-see `client-log-skill-sweep.txt`). Highlights that pin the acceptance criteria:
+The log file `client-log-skill-sweep.txt` contains the exact spawn lines, including the
+effective anchor and height anchor (the lead's verifiability request):
 
 ```
-skill effect: spawned texture layer 'effect\pok2.tga' for skill 34 (Success, anchor Auto)
-skill effect: spawned 'efst_angel_fluttering\angel_fluttering.str' for skill 34 (Success, anchor Caster)   [head: true -> overhead]
-skill effect: spawned sprite layer '<이팩트\축복>' for skill 34 (...)                                      [official Blessing SPR, 6 dup copies]
-skill effect: spawned texture layer 'effect\ac_center2.tga' for skill 29 (Success, anchor Auto)  [x3]
-skill effect: spawned texture layer 'effect\agi_up.bmp' for skill 29 (Success, anchor Auto)
-skill effect: spawned 'efst_c_blessings_of_soul\blessingsofsoul.str' for skill 29 (Success, anchor Caster)
-skill effect: spawned 'angelus.str' for skill 33 (Success, anchor Auto)                 [official head:true]
-skill effect: spawned 'concentration.str' for skill 45 (Success, anchor Caster)
-skill effect: spawned cylinder layer 'effect\ring_white.tga' for skill 28 (Success, anchor Auto) [EF_HEAL, x2]
-skill effect: spawned texture layer 'effect\pok3.tga' for skill 28 (Success, anchor Auto)
-skill effect: spawned 'crashearth.str' for skill 110 (Success, anchor Auto)             [official Hammer Fall]
-skill effect: spawned 'black_hammerfall.str' for skill 110 (Success, anchor Caster)     [migrated hand-written layer]
-skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 270 (Cast/Success, anchor Caster) [Fury]
-skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 401 (Cast, anchor Caster) + BodyFlash [Zen]
-skill effect: spawned 'spearboomerang.str' for skill 59 (Success, anchor Caster)        [audit head fix]
-skill effect: spawned 'bowling.str' for skill 62 (Success, anchor Caster)               [audit head fix]
-skill effect: spawned 'twohand.str' for skill 357 (Success, anchor Auto)                [audit head fix]
-skill effect: spawned 'asum.str' for skill 361 (Success, anchor Auto)                   [Assumptio one-shot]
-skill effect: spawned 'stormgust.str' for skill 89 (Success, anchor Auto) + procedural storm cloud
-skill effect: spawned cylinder layer 'effect\magic_green.tga' for skill 70 (Ground, anchor Ground) + sanctuary.str
+skill effect: spawned sprite layer '<이팩트\축복>' for skill 34 (Success, ...)                     [official Blessing SPR]
+skill effect: spawned texture layer 'effect\pok2.tga' for skill 34 (Success, anchor Auto, vertical Feet)
+skill effect: spawned 'efst_angel_fluttering\angel_fluttering.str' for skill 34 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned texture layer 'effect\ac_center2.tga' for skill 29 (Success, anchor Auto, vertical Feet)   [x3]
+skill effect: spawned texture layer 'effect\agi_up.bmp' for skill 29 (Success, anchor Auto, vertical Feet)
+skill effect: spawned 'efst_c_blessings_of_soul\blessingsofsoul.str' for skill 29 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'angelus.str' for skill 33 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'concentration.str' for skill 45 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'spearboomerang.str' for skill 59 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'bowling.str' for skill 62 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'twohand.str' for skill 357 (Success, anchor Overhead, vertical Overhead)
+skill effect: spawned 'impositio.str' for skill 66 (Success, anchor Auto, vertical Overhead)     [Gloria/Impositio head fix]
+skill effect: spawned 'gloria.str' for skill 75 (Success, anchor Auto, vertical Overhead)
+skill effect: spawned 'twohand.str' for skill 60 (Success, anchor Auto, vertical Body)           [weapon aura exception]
+skill effect: spawned 'twohand.str' for skill 258 (Success, anchor Auto, vertical Body)
+skill effect: spawned 'twohand.str' for skill 495 (Success, anchor Auto, vertical Body)
+skill effect: spawned 'crashearth.str' for skill 110 (Success, anchor Auto, vertical Feet)       [official Hammer Fall asset only]
+skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 270 (Cast/Success)        [Fury cone + rings]
+skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 401 (Cast) + BodyFlash    [Zen]
 ```
 
-Files:
+36 `skill effect:` lines for 15 skills × 6 phases; no panic, no missing asset, no
+unknown-layer errors. `skill effects: loaded 436 phases from the archive` shows the unified
+table is loaded from the archive file.
 
-* `client-log-skill-sweep.txt` — the relevant client log lines (`bench-start`, every
-  `skill-sweep` step and every `skill effect:` spawn line, including loaded phase count).
-* `skill-sweep-montage.jpg` — all 22 captured frames (4×6 contact sheet).
-* `skill-sweep-annotated.jpg` — four annotated frames (Angelus/Concentration overhead `.str`,
-  Heal cylinders, Zen cast + body flash, Storm Gust `.str` + cloud).
-* `skill-sweep-overhead-crops.jpg` — zoom on the character: the overhead `.str` bell of
-  Angelus/Concentration is visibly above the head (frame 3–4), the heal/Angelus mist and the
-  Assumptio blue-white glow follow (frames 5–8).
-* `frame-02.jpg`, `frame-04.jpg`, `frame-07.jpg`, `frame-13.jpg` — individual full frames.
+## Screenshots
+
+* `skill-sweep-annotated.jpg` — Concentration (`anchor=Overhead`), Impositio Manus
+  (official row + `head:true` data correction; the glowing hand renders above the head),
+  Gloria (`anchor=Auto vertical=Overhead`), Two-Hand Quicken (`vertical=Body` weapon aura).
+* `skill-sweep-montage.jpg` — all 16 frames (4×4 contact sheet).
+* `frame-02.jpg`, `frame-06.jpg`, `frame-07.jpg`, `frame-08.jpg`, `frame-13.jpg` — individual
+  full frames (Concentration, Impositio, Gloria, Two-Hand Quicken, Zen).
+* `client-log-skill-sweep.txt` — `bench-start`, every `skill-sweep` step and every
+  `skill effect:` spawn line (with anchor + vertical).
 
 ## Limitations / honest notes
 
-* Attribution of a single screenshot to a single skill is approximate (one skill spawns six
-  phases per 1.6 s step and effects overlap). The log lines are the authoritative mapping;
-  the screenshots prove that the unified spawn path renders in the real client without a
-  crash and with the expected classes of visuals (overhead `.str`, sprite particles, texture
-  bursts, cylinders, body flash).
-* The packet -> `NetworkEvent` -> spawn wiring is the same code unit-covered by the loader /
-  tracker tests; this capture drives the spawn functions directly because XTEST chat typing
-  was unreliable in this session. The benchmark driver itself logged in and entered the map
-  through the normal packets (`[bench-stage] login`), so the client session was real.
-* The session was short (~30 s in game) because the shared GM account is used by other lanes
-  and the map server had intermittent char-select timeouts; all 16 skills × 6 phases were
-  captured in that window.
+* One screenshot may contain overlapping effects from the previous/next sweep step
+  (1.6 s per skill, 6 phases at once); the log lines are the authoritative skill →
+  layer/anchor mapping, the screenshots prove in-client rendering (overhead `.str` above
+  the head, body-height weapon aura, sprite particles, texture bursts, cylinders, body
+  flash).
+* This capture drives the spawn functions directly (the temporary harness), not the
+  packet -> `NetworkEvent` dispatch; the packet handlers were changed only by replacing the
+  old per-kind spawn calls with the unified `spawn_skill_effect_phase` call, and the login
+  itself went through the real packet path. Final packet-path/visual sign-off is the
+  verifier's job (`korangar --check-skill-effects` + in-client sweep on the hand-off SHA).

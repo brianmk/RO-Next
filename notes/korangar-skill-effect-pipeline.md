@@ -127,6 +127,14 @@ clearance, scaled — unchanged behaviour), `Body` uses the new `body_effect_hei
 (13 units, sitting-scaled), both live in `world/skill_cast_effect.rs`; the data carries the
 official `head` flag instead of any hard-coded skill list.
 
+The loaded layer keeps the **effective** anchor: an explicit `anchor: Overhead`/`Body` or a
+`head: true` layer without an explicit anchor is stored and logged as `Overhead`/`Body`
+instead of being flattened to `Caster`, and every spawn debug line prints
+`(phase, anchor <Anchor>, vertical <Feet|Body|Overhead>)`, so head placement is directly
+verifiable from the client log (see the in-client evidence section). `head: true` combined
+with an explicit target anchor (`Auto`) keeps the target-entity placement and the
+`vertical: Overhead` height, so an ally-target buff plays above the ally.
+
 Integrated but separable:
 
 * **Actions**: `caster_action()` first consults the descriptor `action` override, then the
@@ -153,7 +161,7 @@ either, and an official layer with the same asset supersedes a legacy approximat
 | old hand-written visual | new data |
 | --- | --- |
 | `SkillVisuals.completion` (Blessing angel / Angelus / Inc AGI / Concentration) | `Str` layers, `anchor: Overhead` (+ per-layer light), `wav` |
-| `SkillVisuals.completion` of Hammer Fall | `Str` `black_hammerfall.str` at the feet + the official `crashearth.str`/hit flash rows (both now spawn) |
+| `SkillVisuals.completion` of Hammer Fall | **removed**: the audit classified the hand-written `black_hammerfall.str` as the wrong asset; the official effect-102 `crashearth.str` row spawns (verified in-client) |
 | `SkillVisuals.cast_aura` (Zen `EF_BEGINSPELL`) | `Cylinder` layer of the `Cast` phase (`grow: TopRadius`, additive) |
 | `SkillVisuals.instant_auras` (Fury `EF_BEGINSPELL` + `EF_GUMGANG2`) | `Cylinder` layers of the `Cast`/`Success` phases (`count: 4`, `delay_ms: 100`, `grow: BothRadii`) |
 | `SkillVisuals.target_auras` (Heal `EF_HEAL` columns) | `Cylinder` layers, `anchor: Target`, `attached_entity: true`, `grow: Height`, pale green tint |
@@ -161,7 +169,9 @@ either, and an official layer with the same asset supersedes a legacy approximat
 | `SkillVisuals.cast_circle_color` (Warp purple, buff yellow) | `cast_circle_color` on the phase descriptor |
 | `SkillVisuals.light` | per-layer `light`/`light_intensity` |
 | `has_custom_completion()` bypass | deleted; all official data rows spawn, so Blessing/Inc AGI/Angelus/Hammer Fall/Concentration/Fury/Zen combine data + handcrafted layers |
-| `overhead` guessed by the legacy generator's `OVERHEAD_SKILLS` | official per-layer `head` flag; the audit's three missed skills (59/62/357) are fixed in the custom data (`head: true`), so they no longer render at the feet |
+| `overhead` guessed by the legacy generator's `OVERHEAD_SKILLS` | official per-layer `head` flag; the audit's three missed skills (59/62/357) are fixed in the custom data (`anchor: Overhead`), so they no longer render at the feet |
+| official table does not carry `head` for the 28 other legacy-overhead support layers (Gloria, Impositio Manus, Kyrie, Magnificat, Suffragium, ...) | 28 explicit `anchor: Auto, head: true` data layers in `tools/skill_effects_custom.ron`; the merge generator **patches the official layer with the same asset** (keeping its file/duration/wav) instead of dropping or duplicating it. In-client log: `impositio.str ... (Success, anchor Auto, vertical Overhead)`, `gloria.str ... (Success, anchor Auto, vertical Overhead)` |
+| official `head: true` on the intentional weapon/body auras (Two-Hand Quicken 60, Spear Quicken 258, One-Hand Quicken 495) | 3 data layers with `vertical: Body` override, so they stay a torso/weapon glow instead of floating above the head (audit `BODY_AURA_SKILLS`) |
 
 The three official-row tables remain checked in as the migration source of the merged file
 (`skill_effect_assets/sprite/procedural.ron`); their old loaders were deleted. The official
@@ -173,7 +183,7 @@ fragment (`tools/skill_effects_official.ron`) now supersedes the legacy approxim
 | file | change |
 | --- | --- |
 | `korangar/src/world/library/skill_effects.rs` | **new** unified schema, loader, validation, binary-search lookup, placement logic, 16 tests |
-| `korangar/archive/data/client/skill_effects.ron` | **new** generated unified data (436 phases / 604 layers) |
+| `korangar/archive/data/client/skill_effects.ron` | **new** generated unified data (436 phases / 603 layers) |
 | `tools/gen_skill_effects.py` | **new** merge generator (official fragment + custom + legacy), `--check`, `--validate-assets` |
 | `tools/skill_effects_custom.ron` | **new** migrated hand-written layers |
 | `tools/skill_effects_official.ron`, `tools/windows_client_effect_layers.json`, `tools/gen_skill_effect_layers.py`, `tools/extract_windows_client_effect_layers.py`, `tools/extract_rathena_learnable_skills.py`, `tools/rathena_pre_re_learnable_skills.json`, `tools/skill_effects_official.json`, `tools/test_skill_effect_layers.py`, `tools/windows_client_skill_effects.json`, `notes/skill-effects-official-data.md` | cherry-picked from `skill-data` `e3ae2dce` (official multi-layer rows + generators) |
@@ -200,44 +210,46 @@ Data/schema evidence:
 
 | check | result |
 | --- | --- |
-| `./tools/gen_skill_effects.py --check` | `skill_effects.ron is up to date (436 phases, 604 layers)` |
+| `./tools/gen_skill_effects.py --check` | `skill_effects.ron is up to date (436 phases, 603 layers)` |
 | `./tools/gen_skill_effects.py --validate-assets /home/phantom/Games/ragnarok/CondaRO-linux/client/game` | clean (all Str/Spr/Texture/Cylinder/Primitive assets + wavs exist in the GRFs) |
 | `korangar --check-skill-effects` (compiled fallback) | `436 (skill, phase) descriptors are valid` |
 | `korangar --check-skill-effects <archive override>` | same for a merged/`--official` file, exits 1 on malformed data |
 | `./tools/gen_skill_effect_layers.py --check` (skill-data) | `up to date: 351 rows, 511 layers` |
 | `python3 tools/test_skill_effect_layers.py` | 9 tests OK |
 | legacy generators `--check` (5 scripts) | all still up to date with the extended facts JSON |
-| merge with official fragment | 436 phases / 604 layers, asset validation clean |
+| merge with official fragment | 436 phases / 603 layers, asset validation clean |
 
 In-client (muted Linux/Xvfb, GM test characters only, no Wine) — see section 7.
 
 ## 7. In-client verification
 
-In-client (muted Linux/Xvfb, GM test character `verify4`/`VerifyBot4`, no Wine, audio
-muted, Xvfb `:94` 1280x720x24, 30 fps, no user character/client touched):
+In-client (muted Linux/Xvfb, GM test character only, no Wine, no user character/client,
+audio muted): final binary sha256 prefix `4e0e0174943acd8c`, `Xvfb :94 1280x720x24`, 30 fps,
+`KORANGAR_MUTE_AUDIO=1`, GM account `verify4`/`VerifyBot4` (shared with the Assumptio lane
+with explicit hand-over), real login/char/map servers via the committed benchmark driver.
 
-* All six phases of 16 skills (`34,29,33,45,28,110,270,401,59,62,357,361,89,14,5,70`) were
-  spawned in the real client through the unified `spawn_skill_effect_phase` path in one
-  session: 53 `skill effect:` spawn lines, no panic, no missing asset, all layers of the
-  multi-layer phases appeared (Blessing: `.str` overhead angel + official `축복` SPR + 6-copy
-  particle6 sprites ×2 + `pok2.tga`; Inc AGI: 3× `ac_center2.tga` + `agi_up.bmp` + hand-written
-  sparkle; Heal: `ring_white` cylinders ×2 + `pok3` bursts; Hammer Fall: `crashearth.str` +
-  `black_hammerfall.str`; Zen: `EF_BEGINSPELL` cylinder + body flash; Fury rings; Assumptio
-  `asum.str`; Storm Gust `.str` + procedural cloud).
-* Evidence directory: `notes/korangar-skill-effect-pipeline-evidence/`
-  (`README.md`, `skill-sweep-annotated.jpg`, `skill-sweep-montage.jpg`,
-  `skill-sweep-overhead-crops.jpg`, selected frames, `client-log-skill-sweep.txt`).
-* Login/character selection ran through the committed benchmark driver; the XTEST chat command
-  path was unreliable for this session (chat input focus), so a **temporary**
-  `KORANGAR_SKILL_SWEEP` hook in `benchmark.rs` drove the real spawn function for the capture.
-  The hook was removed before hand-off (`korangar/src/benchmark.rs` is unchanged in the final
-  commit), matching the precedent of earlier lanes documenting a removed verification hook.
-* Binary used for the capture: release build sha256 prefix `939baa960de3e6ae` (harness build,
-  not the hand-off binary). The hand-off release binary (final code) is sha256 prefix
-  `730f311f2fb0440f`.
-* Assumptio persistent status aura: not part of this capture (status-driven subsystem); the
-  one-shot `asum.str` layer spawned as expected and the status-aura unit tests stay green.
-
+* 15 skills × all six phases were driven through the real
+  `Client::spawn_skill_effect_phase` in one session: 36 `skill effect:` lines, no panic, no
+  missing asset. The log now prints the effective anchor **and** vertical anchor, e.g.
+  `angelus.str ... (Success, anchor Overhead, vertical Overhead)`,
+  `impositio.str ... (Success, anchor Auto, vertical Overhead)`,
+  `gloria.str ... (Success, anchor Auto, vertical Overhead)`,
+  `twohand.str ... (Success, anchor Auto, vertical Body)` (Two-Hand Quicken exception),
+  `crashearth.str for skill 110` (official Hammer Fall asset only),
+  `efst_angel_fluttering\angel_fluttering.str for skill 34 (Success, anchor Overhead, vertical Overhead)`
+  plus the official `축복`/particle6 sprite lines and `pok2.tga`.
+* Evidence directory `notes/korangar-skill-effect-pipeline-evidence/`:
+  `README.md`, `client-log-skill-sweep.txt` (all spawn lines), `skill-sweep-annotated.jpg`
+  (Concentration / Impositio Manus / Gloria overhead vs Two-Hand Quicken body aura),
+  `skill-sweep-montage.jpg` (16 frames), selected full frames.
+* The capture used a **temporary** `KORANGAR_SKILL_SWEEP` hook in `benchmark.rs` (XTEST chat
+  typing was unreliable in this session); the hook is removed before hand-off
+  (`korangar/src/benchmark.rs` is unchanged in the final commit) and the capture is
+  documented as such. The login/char/map packets are real; the final packet-path sign-off
+  belongs to the verifier (`korangar --check-skill-effects` + the in-client matrix on the
+  hand-off SHA).
+* Assumptio persistent status aura: not touched; the one-shot `asum.str`/status-aura unit
+  tests stay green.
 
 ## 8. CI parity
 
@@ -246,11 +258,11 @@ muted, Xvfb `:94` 1280x720x24, 30 fps, no user character/client touched):
 | formatting | `cargo fmt --all --check` | pass |
 | clippy (default) | `cargo clippy --workspace -- -Dwarnings` | pass |
 | clippy (all features) | `cargo clippy --workspace --all-features -- -Dwarnings` | pass |
-| release build | `cargo build --release` | pass (binary sha256 `730f311f2fb0440f...`) |
-| unit tests | `cargo test -p korangar --lib` | 435 passed, 0 failed, 11 ignored |
-| tests (default) | `cargo test -p korangar -p korangar-networking -p ragnarok-packets` | pass (see note) |
-| tests (all features) | `cargo test --all-features -p korangar -p korangar-networking -p ragnarok-packets` | pass (see note) |
-| data drift | `python3 tools/gen_skill_effects.py --check` | up to date (436 phases, 604 layers) |
+| release build | `cargo build --release` | pass (hand-off binary sha256 `4e0e0174943acd8c...`) |
+| unit tests | `cargo test -p korangar --lib` | 436 passed, 0 failed, 11 ignored |
+| tests (default) | `cargo test -p korangar -p korangar-networking -p ragnarok-packets` | pass: 436 + 2 + 59 + 23 + 10 (see note) |
+| tests (all features) | `cargo test --all-features -p korangar -p korangar-networking -p ragnarok-packets` | pass: 448 + 2 + 59 + 23 + 10 (see note) |
+| data drift | `python3 tools/gen_skill_effects.py --check` | up to date (436 phases, 603 layers) |
 | official fragment drift | `python3 tools/gen_skill_effect_layers.py --check` | up to date (351 rows, 511 layers) |
 | official fragment tests | `python3 tools/test_skill_effect_layers.py` | 9 tests OK |
 | legacy generators | `tools/gen_skill_{effect_assets,sprite_effects,procedural_effects,sounds,actions}.py --check` | all up to date |
@@ -299,10 +311,11 @@ token or raise the ratchet with a justification — the file says only lower it)
   implemented — `status_aura.rs` only knows Assumptio (EFST 110/473). That is a status
   subsystem follow-up, not part of the skill packet pipeline; the audit calls it out in
   section 3.6.
-* Visual tuning of the official sizes/tints was done by `skill-data` in world-unit factors;
-  the audit's `WRONG_ASSET` places where a hand-written placeholder and the official layer
-  now both spawn (Blessing angel_fluttering + official `축복`, Hammer Fall
-  `black_hammerfall.str` + `crashearth.str`, Inc AGI sparkle + official textures) can be
-  reduced to the official layer only with a one-line custom-data deletion once screenshots
-  are signed off. Combined spawning is intentional for this migration (no visual loss), and
-  the official layer is never suppressed.
+* Visual tuning of the official sizes/tints was done by `skill-data` in world-unit factors.
+  Handwritten layers that are still intentionally combined with the official layers:
+  Blessing's `angel_fluttering.str` angel + official `축복`/particle6 (the angel is the
+  working hand-written visual, the official layers are never suppressed), Inc AGI's
+  blessing-of-souls sparkle + official effect-37 textures, and the tuned
+  Concentration/Angelus scale/light on top of the official `.str` rows. Hammer Fall's
+  `black_hammerfall.str` was removed per the audit/lead (official `crashearth.str` only).
+  Any further reduction to official-only assets is a one-line custom-data deletion.

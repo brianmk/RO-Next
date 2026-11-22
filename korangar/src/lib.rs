@@ -2521,11 +2521,12 @@ impl Client {
                 let effect_offset = layer.offset + Vector3::new(0.0, vertical, 0.0);
 
                 crate::logging::log_debug!(
-                    "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?})",
+                    "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?}, vertical {:?})",
                     effect_path,
                     skill_id.0,
                     phase,
-                    layer.anchor
+                    layer.anchor,
+                    layer.vertical
                 );
 
                 match center {
@@ -2547,11 +2548,12 @@ impl Client {
                 };
 
                 crate::logging::log_debug!(
-                    "skill effect: spawned texture layer '{}' for skill {} ({:?}, anchor {:?})",
+                    "skill effect: spawned texture layer '{}' for skill {} ({:?}, anchor {:?}, vertical {:?})",
                     params.texture,
                     skill_id.0,
                     phase,
-                    layer.anchor
+                    layer.anchor,
+                    layer.vertical
                 );
 
                 self.add_skill_effect(Box::new(flash), owner);
@@ -2566,11 +2568,12 @@ impl Client {
                 };
 
                 crate::logging::log_debug!(
-                    "skill effect: spawned cylinder layer '{}' for skill {} ({:?}, anchor {:?})",
+                    "skill effect: spawned cylinder layer '{}' for skill {} ({:?}, anchor {:?}, vertical {:?})",
                     params.texture,
                     skill_id.0,
                     phase,
-                    layer.anchor
+                    layer.anchor,
+                    layer.vertical
                 );
 
                 self.add_skill_effect(Box::new(aura), owner);
@@ -2605,11 +2608,12 @@ impl Client {
                     };
 
                     crate::logging::log_debug!(
-                        "skill effect: spawned sprite layer '{}' for skill {} ({:?}, anchor {:?}, copy {}/{})",
+                        "skill effect: spawned sprite layer '{}' for skill {} ({:?}, anchor {:?}, vertical {:?}, copy {}/{})",
                         params.files.first().copied().unwrap_or("<none>"),
                         skill_id.0,
                         phase,
                         layer.anchor,
+                        layer.vertical,
                         index + 1,
                         count
                     );

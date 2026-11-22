@@ -89,21 +89,19 @@
         // the feet). The unified schema carries the official `head` flag per layer,
         // so these rows override the legacy rows of the same asset.
         (skill: 59, phase: Success, layers: [
-            (kind: Str, anchor: Caster, head: true, file: "spearboomerang.str", light: (255, 235, 180), light_intensity: 35.0),
+            (kind: Str, anchor: Overhead, file: "spearboomerang.str", light: (255, 235, 180), light_intensity: 35.0),
         ]),
         (skill: 62, phase: Success, layers: [
-            (kind: Str, anchor: Caster, head: true, file: "bowling.str", light: (255, 235, 180), light_intensity: 35.0),
+            (kind: Str, anchor: Overhead, file: "bowling.str", light: (255, 235, 180), light_intensity: 35.0),
         ]),
         (skill: 357, phase: Success, layers: [
-            (kind: Str, anchor: Caster, head: true, file: "twohand.str", light: (255, 235, 180), light_intensity: 35.0),
+            (kind: Str, anchor: Overhead, file: "twohand.str", light: (255, 235, 180), light_intensity: 35.0),
         ]),
 
-        // BS_HAMMERFALL (110): the hammer slam animation itself (effect texture
-        // `hammer.bmp`), a ground effect kept at the feet, plus the official
-        // `crashearth.str`/hit-flash rows of effect 102.
-        (skill: 110, phase: Success, layers: [
-            (kind: Str, anchor: Caster, file: "black_hammerfall.str", scale: 1.2, wav: "effect\\black_hammerfall.wav", light: (210, 190, 150), light_intensity: 20.0),
-        ]),
+        // BS_HAMMERFALL (110) is fully official now: the effect-102 row
+        // `crashearth.str` (plus the official hit flash) is spawned; the old
+        // hand-written `black_hammerfall.str` placeholder was removed per the
+        // audit (it was the wrong asset).
 
         // MO_EXPLOSIONSPIRITS (270): instant self buff. Official
         // `beginCastEffectId: 12` cone plus the four expanding `EF_GUMGANG2`
@@ -113,6 +111,113 @@
         ]),
         (skill: 270, phase: Success, layers: [
             (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1500, delay_ms: 100, count: 4, height: 4.0, bottom_radius: 4.0, top_radius: 10.0, alpha: 0.5, tint: (1.0, 0.88, 0.35), blend: Alpha, rotation_speed: 4.0, grow: BothRadii),
+        ]),
+
+        // Official-table overhead corrections. The official `EffectTable` does not
+        // carry a `head` flag for these caster-anchored support `.str` layers, but
+        // the legacy `.str` table marked them overhead (hand-verified against the
+        // client) and the audit requires them over the character's head. Encoding
+        // them as data layers (same asset as the official row, `head: true`) keeps
+        // the official layer's asset/duration/wav and adds the overhead anchor.
+        // The audit's `BODY_AURA_SKILLS` weapon/body auras deliberately stay at the
+        // feet instead.
+        (skill: 32, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "cross.str"),
+        ]),
+        (skill: 35, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "cure.str"),
+        ]),
+        (skill: 54, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "resurrection.str"),
+        ]),
+        (skill: 66, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "impositio.str"),
+        ]),
+        (skill: 67, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "suffragium.str"),
+        ]),
+        (skill: 68, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "aspersio.str"),
+        ]),
+        (skill: 71, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "slowp.str"),
+        ]),
+        (skill: 72, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "recovery.str"),
+        ]),
+        (skill: 73, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "kyrie.str"),
+        ]),
+        (skill: 74, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "magnificat.str"),
+        ]),
+        (skill: 75, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "gloria.str"),
+        ]),
+        (skill: 108, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "repairweapon.str"),
+        ]),
+        (skill: 155, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "loud.str"),
+        ]),
+        (skill: 255, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "devotion.str"),
+        ]),
+        (skill: 256, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "providence.str"),
+        ]),
+        (skill: 361, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "asum.str"),
+        ]),
+        (skill: 446, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "버서크.str"),
+        ]),
+        (skill: 691, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "asum.str"),
+        ]),
+        (skill: 698, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "angelus.str"),
+        ]),
+        (skill: 2009, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "dragon_h.str"),
+        ]),
+        (skill: 5005, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "rk_luxanima.str"),
+        ]),
+        (skill: 5011, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "ab_offertorium.str"),
+        ]),
+        (skill: 5012, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "wl_telekinesis_intense.str"),
+        ]),
+        (skill: 5014, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "all_full_throttle.str"),
+        ]),
+        (skill: 8006, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "defense.str"),
+        ]),
+        (skill: 8030, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "mid_frenzy.str"),
+        ]),
+        (skill: 8222, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "magnificat.str"),
+        ]),
+        (skill: 8238, phase: Success, layers: [
+            (kind: Str, anchor: Auto, head: true, file: "kyrie.str"),
+        ]),
+
+        // Intentional body/weapon-aura exceptions (audit `BODY_AURA_SKILLS`): the
+        // official table marks the `twohand.str` layers with `head: true`, but they
+        // are weapon/body glows and must stay at torso height instead of floating
+        // above the head. `vertical: Body` keeps the official asset/duration/wav.
+        (skill: 60, phase: Success, layers: [
+            (kind: Str, anchor: Auto, attached_entity: true, head: false, vertical: Body, file: "twohand.str"),
+        ]),
+        (skill: 258, phase: Success, layers: [
+            (kind: Str, anchor: Auto, attached_entity: true, head: false, vertical: Body, file: "twohand.str"),
+        ]),
+        (skill: 495, phase: Success, layers: [
+            (kind: Str, anchor: Auto, attached_entity: true, head: false, vertical: Body, file: "twohand.str"),
         ]),
 
         // CH_SOULCOLLECT (401): two-second self cast. The yellow `EF_BEGINSPELL`

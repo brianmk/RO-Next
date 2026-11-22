@@ -520,8 +520,12 @@ def build(custom_path: Path, official_path: Path | None) -> list[dict[str, objec
                 official_assets.setdefault(key, set()).add(asset_key(dict(layer)))
             official_keys.add(key)
 
-    # 2. Hand-written migrated layers (additive, but an official layer with the
-    #    same asset wins).
+    # 2. Hand-written migrated layers. A custom layer with the same asset as an
+    #    official layer **patches** that official layer (for example the official
+    #    `head` flag additions that the official table does not carry, or the
+    #    tuned scale/light of the migrated hand-written visual) instead of
+    #    dropping or duplicating the official row. Custom layers without an
+    #    official counterpart are appended.
     custom_assets: dict[tuple[int, str], set[str]] = {}
     for descriptor in read_effects(custom_path):
         key = (int(descriptor["skill"]), str(descriptor["phase"]))
@@ -534,8 +538,12 @@ def build(custom_path: Path, official_path: Path | None) -> list[dict[str, objec
             layer = dict(layer)
             asset = asset_key(layer)
             if asset and asset in official_assets.get(key, set()):
-                continue
-            add_layer(entry, layer)
+                for official_layer in entry["layers"]:  # type: ignore[union-attr]
+                    if asset_key(official_layer) == asset:
+                        official_layer.update({field: value for field, value in layer.items() if field != "kind"})
+                        break
+            else:
+                add_layer(entry, layer)
             if asset:
                 custom_assets.setdefault(key, set()).add(asset)
 

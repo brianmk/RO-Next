@@ -774,13 +774,15 @@ struct DescriptorBuilder {
 impl LayerFile {
     fn into_runtime(self) -> SkillEffectLayer {
         // `head: true` (the official client's overhead flag) is the only overhead
-        // heuristic; the `Overhead`/`Body` anchor spellings are shorthands for an
-        // entity-anchored layer with the matching height anchor.
+        // heuristic; `Overhead`/`Body` are explicit height-anchored spellings. The
+        // loaded layer keeps them (so the log and the data show the effective
+        // overhead anchor instead of a bare `Caster`), while placement treats them
+        // as entity-anchored on the caster.
         let (anchor, shorthand_vertical) = match self.anchor {
-            Some(LayerAnchor::Overhead) => (LayerAnchor::Caster, Some(LayerVertical::Overhead)),
-            Some(LayerAnchor::Body) => (LayerAnchor::Caster, Some(LayerVertical::Body)),
+            Some(LayerAnchor::Overhead) => (LayerAnchor::Overhead, Some(LayerVertical::Overhead)),
+            Some(LayerAnchor::Body) => (LayerAnchor::Body, Some(LayerVertical::Body)),
             Some(anchor) => (anchor, None),
-            None if self.head => (LayerAnchor::Caster, None),
+            None if self.head => (LayerAnchor::Overhead, Some(LayerVertical::Overhead)),
             None => (LayerAnchor::Auto, None),
         };
 
@@ -789,9 +791,9 @@ impl LayerFile {
             false => LayerVertical::Feet,
         });
 
-        let attached_entity = self
-            .attached_entity
-            .unwrap_or(matches!(anchor, LayerAnchor::Caster) && self.kind != LayerKind::BodyFlash);
+        let attached_entity = self.attached_entity.unwrap_or(
+            matches!(anchor, LayerAnchor::Caster | LayerAnchor::Overhead | LayerAnchor::Body) && self.kind != LayerKind::BodyFlash,
+        );
 
         let file = self.file.map(|file| Box::leak(file.into_boxed_str()) as &'static str);
         let files: &'static [&'static str] = Box::leak(
@@ -964,6 +966,59 @@ mod tests {
                 .iter()
                 .any(|layer| { layer.file == Some("angelus.str") && layer.vertical == LayerVertical::Overhead })
         );
+    }
+
+    #[test]
+    fn official_head_rows_and_body_aura_exceptions_are_data_driven() {
+        // Blessing's official effect-42 layers must all be present and unchanged.
+        let blessing = skil_effect_layers(34, SkillPhase::Success);
+        assert!(
+            blessing
+                .iter()
+                .any(|layer| layer.kind == LayerKind::Spr && layer.files.iter().any(|file| file.contains("축복")))
+        );
+        assert!(
+            blessing
+                .iter()
+                .filter(|layer| layer.files.iter().any(|file| file.contains("particle6")))
+                .count()
+                >= 2,
+            "the two official particle6 layers have to stay in the data"
+        );
+        assert!(
+            blessing
+                .iter()
+                .any(|layer| layer.file == Some("effect\\pok2.tga") && layer.vertical == LayerVertical::Feet)
+        );
+
+        // Hammer Fall uses the official effect-102 `crashearth.str`, not the old
+        // black_hammerfall placeholder.
+        let hammerfall = skil_effect_layers(110, SkillPhase::Success);
+        assert!(hammerfall.iter().any(|layer| layer.file == Some("crashearth.str")));
+        assert!(!hammerfall.iter().any(|layer| layer.file == Some("black_hammerfall.str")));
+
+        // Overhead support `.str` layers the official table does not flag: the
+        // legacy hand-verified knowledge now lives in the data (`head: true`).
+        for skill_id in [33_u16, 66, 75, 59, 62, 357] {
+            assert!(
+                skil_effect_layers(skill_id, SkillPhase::Success).iter().any(|layer| {
+                    layer.kind == LayerKind::Str
+                        && layer.vertical == LayerVertical::Overhead
+                        && matches!(layer.anchor, LayerAnchor::Overhead | LayerAnchor::Auto)
+                }),
+                "skill {skill_id} must keep its overhead anchor (anchor field must not say Caster for head layers)"
+            );
+        }
+
+        // Weapon/body auras deliberately stay at torso height instead.
+        for skill_id in [60_u16, 258, 495] {
+            assert!(
+                skil_effect_layers(skill_id, SkillPhase::Success)
+                    .iter()
+                    .any(|layer| layer.kind == LayerKind::Str && layer.vertical == LayerVertical::Body),
+                "skill {skill_id} is a body/weapon aura and must not float overhead"
+            );
+        }
     }
 
     #[test]
