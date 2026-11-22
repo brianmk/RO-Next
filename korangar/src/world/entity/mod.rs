@@ -881,6 +881,11 @@ impl Common {
         player_weapon_part_candidates(self.job_id, self.sex, self.weapon)
     }
 
+    /// Weapon type (server `W_*`) or item view id of the equipped weapon.
+    pub fn get_weapon(&self) -> u32 {
+        self.weapon
+    }
+
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
         // Some trimmed archives contain weapon ACTs whose frames reference no
         // sprite (sprite_number == usize::MAX placeholder). Do not keep such an
@@ -1995,6 +2000,10 @@ impl Entity {
 
     pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
         self.get_common().get_weapon_part_candidates()
+    }
+
+    pub fn get_weapon(&self) -> u32 {
+        self.get_common().get_weapon()
     }
 
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {

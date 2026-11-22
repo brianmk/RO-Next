@@ -1,8 +1,8 @@
 //! RO-Next client entry point.
 //!
-//! Windows builds use the GUI subsystem so launching the client from the patcher
-//! does not open a console window; stderr logging still works when a console or
-//! redirection is attached.
+//! Windows builds use the GUI subsystem so launching the client from the
+//! patcher does not open a console window; stderr logging still works when a
+//! console or redirection is attached.
 #![cfg_attr(windows, windows_subsystem = "windows")]
 
 use clap::Parser;
