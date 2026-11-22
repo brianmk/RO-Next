@@ -213,6 +213,8 @@ impl<App: Application> ClickHandler<App> for ResizeClickHandler {
     fn handle_click(&self, _: &State<App>, queue: &mut EventQueue<App>) {
         let Self { window_id, resize_mode } = *self;
 
+        crate::log_trace!("resize click: window={} mode={}", window_id, resize_mode as u8);
+
         queue.queue(Event::SetMouseMode {
             mouse_mode: MouseMode::ResizingWindow { resize_mode, window_id },
         });

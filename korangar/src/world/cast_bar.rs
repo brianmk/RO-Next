@@ -118,6 +118,13 @@ impl CastBars {
             return;
         };
 
+        crate::logging::log_trace!(
+            "cast bar: skill={:?} age={} duration={} entity_found=true",
+            bar.skill_name,
+            age,
+            bar.duration_ms
+        );
+
         let scaling_factor = scaling.get_factor();
         let head_height = match entity.is_sitting() {
             true => CAST_BAR_SITTING_HEAD_HEIGHT,
@@ -172,6 +179,19 @@ impl CastBars {
                 fill_color,
             );
         }
+
+        crate::logging::log_trace!(
+            "cast bar render: screen=({:.3},{:.3}) center=({:.1},{:.1}) bar=({:.1},{:.1},{:.1},{:.1}) progress={:.2}",
+            screen_position.x,
+            screen_position.y,
+            center.left,
+            center.top,
+            bar_position.left,
+            bar_position.top,
+            bar_width,
+            bar_height,
+            progress
+        );
 
         renderer.render_outlined_text(
             text,
