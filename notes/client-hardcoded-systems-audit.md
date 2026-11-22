@@ -3,41 +3,44 @@
 **Repo:** `/home/phantom/Games/ragnarok/CondaRO-linux/korangar`
 **Integration HEAD:** audit started at
 `935c3ecde531115b9e6ce5e0b34b0d80f4c6d385` — *Merge branch `feat/skill-effect-pipeline`
-(single multi-layer skill effect pipeline, 436 phases/603 layers)*. **HEAD advanced during the
-audit to `1844a09d6a0b9128fa7f3acc8b13911445f4e211`** (`48a10e20 fix(effect): clearly visible
-Assumptio aura + official status icon`, `1844a09d docs(effect): …`); the two commits touch only
-`lib.rs`, `state/status_effects.rs`, `state/status_effect_icons.rs` and
-`world/effect/status_aura.rs`, and all citations below were re-verified at `1844a09d`. Neither
-commit removes a finding: the aura is still a single Rust spec and the icon table is still a
-hand-supplemented generated file (§4.6/§4.7). No later lane changes are included.
+(single multi-layer skill effect pipeline, 436 phases/603 layers)*. HEAD advanced twice during
+the audit: `1844a09d` (Assumptio aura/icon) and then **`4005da9e32a2e65ff8a906259f911afddb20f0c0`**,
+the merge of `feat/weapon-centralization` (`f85b1433` code+data+tests, `c8fceff7` report).
+**All citations in this revision were re-verified against `4005da9e`** and the weapon
+centralization is now described as landed (§4.2), not in progress. The report itself was first
+committed as `85dc53cb docs: client hardcoded-systems audit report`; this revision supersedes it.
+HEAD may advance again after this pin — check `git log -1` before relying on line numbers.
 **Mode:** read-only investigation. No code changes, no Wine, no user characters, no game sessions.
 **Date:** 2026-11-22
 **Companion lanes:** `skill-pipeline` (`notes/korangar-skill-effect-pipeline.md`), `skill-data`
 (`notes/skill-effects-official-data.md`), `weapon-centralize`
-(`/home/phantom/korangar-weapon-central`, branch `feat/weapon-centralization`).
+(`notes/korangar-weapon-centralization.md`, branch `feat/weapon-centralization`, merged at
+`4005da9e`).
 
 ---
 
 ## 1. Executive summary
 
-The codebase is **not** uniformly data-driven yet. The recently consolidated skill-effect
-pipeline is a genuinely clean reference, and the in-progress weapon centralization follows
-the same pattern. Almost every *other* subsystem still contains hand-maintained content
-tables, magic ids and hardcoded asset paths in Rust — some of them large and blocking
-(e.g. the master job→sprite table).
+The codebase is **not** uniformly data-driven yet. The consolidated skill-effect pipeline and
+the now-merged weapon registry are two genuinely clean references; almost every *other*
+subsystem still contains hand-maintained content tables, magic ids and hardcoded asset paths
+in Rust — some of them large and blocking (e.g. the master job→sprite table, which the weapon
+registry still depends on).
 
-Measured at `1844a09d` (start `935c3ecd`; only the four Assumptio-related files differ):
+Measured at `4005da9e` (start `935c3ecd`; the Assumptio and weapon merges are the only
+changes in between):
 
 | metric | value |
 | --- | --- |
-| Rust source files / main-crate lines | 465 files / 93,825 lines (`korangar` crate: 294 files) |
-| runtime data files with archive override (`data\client\*.ron`) | **3** (`skill_effects`, `skill_actions`, `skill_sounds`) |
+| Rust source files / main-crate lines | 465 files / 94,200+ lines (`korangar` crate: 295 files) |
+| runtime data files with archive override (`data\client\*.ron`) | **4** (`skill_effects`, `skill_actions`, `skill_sounds`, **`weapons`**) |
 | generated-but-Rust content tables | 5 (`skill_delays` 560 rows, `skill_icon_alias` 241, `monster_sprite_alias` 232, `job_alias` 119, status name/icon 509/355) |
-| hand-written content tables / match arms found | **~1,050** entries across 20+ tables (job 146, weapon 22, effects textures 29, message-code tables 95, keybinds ~20, warps 23, status special cases 16, item grammar 20, …) |
-| asset-path string literals in Rust | **607**, of which **431** are generated alias-table rows and ~176 hand-written (largest: `world/effect` 29, `loaders` format prefixes 30, `skill_sound` 26, `renderer/skin` 12) |
+| hand-written content tables / match arms still found | **~1,000** entries across 20+ tables (job 146, effects textures 29, message-code tables 95, keybinds ~20, warps 23, status special cases 16, item grammar 20, …) — the 22-arm weapon suffix table is gone (§4.2) |
+| asset-path string literals in Rust | **607**, of which **431** are generated alias-table rows and ~176 hand-written (largest: `world/effect` 29, `loaders` format prefixes 30, `skill_sound` 26, `renderer/skin` 12); weapon/projectile asset lists now live in `weapons.ron` |
 | non-localized user-facing UI strings | **68** literals in non-debug windows + **81** dropdown/settings labels + **95** protocol-result-code→English arms |
 | localization keys | 132 per language (`en-US`/`de-DE`), parity test green |
-| design-token ratchet | **FAILING at HEAD**: 29 color literals (budget 28), 16 `FontSize` sites (budget 12) — `./scripts/ui-token-budget.sh` exits 1 |
+| design-token ratchet | **FAILING at HEAD**: 29 color literals (budget 28), 16 `FontSize` sites (budget 12) — `./scripts/ui-token-budget.sh` exits 1 (also confirmed by the weapon lane, which does not touch `src/interface`) |
+| weapon centralization | **merged**: `world/weapon.rs` (1009 lines, 11 unit tests) + `weapons.ron` (381 lines: 30 kinds / 30 server types / 47 item-id ranges / 707 weapon ids / Arrow projectile) + `tools/gen_weapons.py --check` + 12 generator tests |
 
 **Verdict / risk reads:**
 
@@ -48,53 +51,67 @@ Measured at `1844a09d` (start `935c3ecd`; only the four Assumptio-related files 
    `world/library/skill_effects.rs` with an `include_str!` fallback and a `--check-skill-effects`
    CLI. `grep` finds `skill_visuals()`/`has_custom_completion()` only in doc comments and test
    names — no runtime code path remains. **Do not re-audit this.**
-2. **The next biggest hardcode is entity appearance**, and it is exactly what the weapon lane
-   is touching: a **146-arm** job→Korean-sprite match, a **22-arm** weapon-type suffix match,
-   13-entry male/female hair tables, palette-name overrides, an accessory path template, and
-   **shield/robe are parsed but never rendered** (dead fields with `#[allow(dead_code)]`). This
-   is P1 content data duplicated inside `entity/mod.rs`.
-3. **A silent correctness bug lurks in item stats**: `world/library/item_stats.rs` parses item
+2. **Weapon centralization is merged and is the second reference pattern** (`4005da9e`):
+   the 22-arm suffix match, `BOW_ITEM_VIEW_RANGE`/`WEAPON_TYPE_BOW`/`is_bow_weapon`, the arrow
+   `CANDIDATES` list, five duplicated weapon-animation load blocks and the dropped
+   `ZC_SPRITE_CHANGE` Weapon/Shield/Robe packets are all gone. `world/weapon.rs` loads
+   `data\client\weapons.ron` (compiled fallback + archive override) and exposes
+   `profile`/`part_candidates`/`projectile_for_weapon`/`animation_is_drawable`; the generator,
+   facts JSONs, `--check` drift guard and 11+12 tests are committed. **Do not re-audit the
+   weapon table itself.**
+3. **The remaining appearance hardcode is the job/appearance layer**, and the weapon registry
+   still depends on it: `world/weapon.rs:69/682` imports `get_sprite_path_for_player_job` to
+   build part paths, so the **146-arm job→Korean-sprite match** (`entity/mod.rs:318–478`),
+   13-entry hair tables (`:46–47`, `:701–713`), palette-name overrides (`:485–502`) and the
+   accessory path template (`library/mod.rs:264–284`) are now the blocker for any
+   job/class/headgear/shield/robe work. Shield/robe view ids are plumbed but **not rendered**
+   (`entity/mod.rs:255–259`). This is the next P1 content-data migration.
+4. **A silent correctness bug lurks in item stats**: `world/library/item_stats.rs` parses item
    descriptions using **hardcoded Korean field labels and Korean grammar markers** (`계열`,
    `공격`, `방어`, `무게`, `무기레벨`, `요구레벨`, `장착`; conditional markers `이상/이하/때/…`).
    Any server with English/translated item descriptions yields empty or wrong stat panels with
    no error.
-4. **Localization is only half done and one CI gate is red.** 68 UI literals, 81 settings
+5. **Localization is only half done and one CI gate is red.** 68 UI literals, 81 settings
    labels and 95 protocol result-code strings are hardcoded English; the token ratchet is
    exceeded at HEAD (a merge raised it 23→28 while other lanes kept adding literals).
-5. **Skill *behaviour* is still special-cased even though skill *visuals* are data-driven**:
+6. **Skill *behaviour* is still special-cased even though skill *visuals* are data-driven**:
    Rolling Cutter (`2036`) is special-cased in three places for channelling, Warp (`27`) is
    special-cased for a provisional portal, Free Cast (`278`/jobs `16`,`4017`) for
    move-while-casting, and Storm Gust has a dedicated procedural cloud module with 7 hardcoded
    textures. These belong in the skill data as flags, in the same file the visual pipeline
    already owns.
-6. **Generated tables whose generators are not committed** (`job_alias`, `monster_sprite_alias`,
+7. **Generated tables whose generators are not committed** (`job_alias`, `monster_sprite_alias`,
    `skill_icon_alias`, status name/icon) are content-correct but a drift trap: the module docs
-   reference `generate_*.py` scripts that are *kept untracked*. The skill pipeline's
-   committed generators + `--check` are the correct model.
+   reference `generate_*.py` scripts that are *kept untracked*. The skill pipeline and the new
+   weapon pipeline (committed extractor + facts JSON + generator + `--check`) are the correct
+   model.
 
-Recommended order: **restore green gates and localization first (P0), finish weapon/appearance
-data (P1, already in flight), then item stats, status effects, skill behaviour flags, UI
-tokens/keybinds, and the remaining world/audio/message tables.** The detailed plan is §8.
+Recommended order: **restore green gates and localization first (P0), migrate the
+job/appearance data next (P1 — the weapon registry that just landed depends on it), then item
+stats, status effects, skill behaviour flags, UI tokens/keybinds, and the remaining
+world/audio/message tables.** The detailed plan is §8.
 
 ---
 
 ## 2. The reference pattern: how the two consolidated systems do it
 
 Both working systems follow one architecture; every remediation below should use it verbatim.
+The weapon pattern is now **committed and merged** (`4005da9e`), so it is the most recent,
+complete example.
 
-| layer | skill effect pipeline (`935c3ecd`) | weapon centralization (in progress) | target for new data |
+| layer | skill effect pipeline (`935c3ecd`) | weapon centralization (merged `4005da9e`) | target for new data |
 | --- | --- | --- | --- |
-| extracted facts | `tools/windows_client_*.json`, `tools/skill_effects_official.json`, `tools/rathena_pre_re_learnable_skills.json` | `tools/rathena_pre_re_weapon_items.json` (extractor `tools/extract_weapon_items.py` already written in the worktree) | committed facts JSON, produced offline from the actual server/client data |
-| generator + drift guard | `tools/gen_skill_effects.py --check` (merges official rows + `tools/skill_effects_custom.ron` + legacy per-kind tables) | `tools/gen_weapons.py --check` (planned) | `tools/gen_<system>.py --check`, refuses to drift in CI |
-| runtime data file | `korangar/archive/data/client/skill_effects.ron` (3325 lines, `provenance` + `version` + sorted table) | `korangar/archive/data/client/weapons.ron` (planned: weapon view id → `WeaponProfile`) | `data\client\<system>.ron`, served overridable from the archive |
-| loader | `world/library/skill_effects.rs`: `DATA_PATH`, `FALLBACK = include_str!(…)`, `OnceLock` archive copy with compiled fallback, binary search, `deny_unknown_fields` | `world/weapon.rs`: `WeaponRegistry`/`WeaponProfile`, `weapon::profile(value)`, `part_candidates(job, sex, weapon)`, `arrow_assets()` | one module + one API, no match arms at call sites |
-| validation | `korangar --check-skill-effects [PATH]`, malformed/unknown-field rejection, sorted/unique tests, compiled-fallback-valid test | CLI validator planned (same shape) | `--check-<system>`, exit 1 on schema error |
-| call-site consolidation | one `spawn_skill_effect_phase` used by every packet handler; old loaders deleted | five duplicated weapon-animation load paths collapse into one registry call | exactly one entry point per subsystem |
-| provenance docs | `notes/korangar-skill-effect-pipeline.md`, `notes/skill-effects-official-data.md` | `notes/korangar-weapon-centralization.md` (planned) | a `notes/` report with data facts + evidence |
+| extracted facts | `tools/windows_client_*.json`, `tools/skill_effects_official.json`, `tools/rathena_pre_re_learnable_skills.json` | `tools/rathena_pre_re_weapon_items.json` (707 weapons from rAthena `db/pre-re/item_db_equip.yml` + `pc.hpp` enums) + `tools/weapon_client_assets.json` (GRF scan: 245 per-job weapon families, projectile sprites), extracted by `tools/extract_weapon_items.py` / `extract_weapon_client_assets.py` | committed facts JSON, produced offline from the actual server/client data |
+| generator + drift guard | `tools/gen_skill_effects.py --check` (merges official rows + `tools/skill_effects_custom.ron` + legacy per-kind tables) | `tools/gen_weapons.py --check`, invariants in `tools/test_gen_weapons.py` (12 tests) | `tools/gen_<system>.py --check`, refuses to drift in CI |
+| runtime data file | `korangar/archive/data/client/skill_effects.ron` (3325 lines, `provenance` + `version` + sorted table) | `korangar/archive/data/client/weapons.ron` (381 lines: provenance/version, `paths`, `sex_suffix`, `fallbacks`, 30 `server_types`, 30 `kinds`, 47 `item_ranges`, 2 `item_views`, `projectiles`) | `data\client\<system>.ron`, served overridable from the archive |
+| loader | `world/library/skill_effects.rs`: `DATA_PATH`, `FALLBACK = include_str!(…)`, `OnceLock` archive copy with compiled fallback, binary search, `deny_unknown_fields` | `world/weapon.rs` (`DATA_PATH:73`, `FALLBACK:75`, `load:610`): `profile:642`, `part_candidates:662`, `projectile:729`, `projectile_for_weapon:737`, `animation_is_drawable:752` | one module + one API, no match arms at call sites |
+| validation | `korangar --check-skill-effects [PATH]`, malformed/unknown-field rejection, sorted/unique tests, compiled-fallback-valid test | 11 weapon unit tests + 12 generator/facts tests + fmt/clippy/release green (lane report §verification) | `--check-<system>`, exit 1 on schema error |
+| call-site consolidation | one `spawn_skill_effect_phase` used by every packet handler; old loaders deleted | one `request_weapon_animation` helper (`lib.rs:10473`) replaces the load blocks; networking `ZC_SPRITE_CHANGE` Weapon/Shield/Robe now routed (`version_20220406.rs:717`, `event.rs:449`) | exactly one entry point per subsystem |
+| provenance docs | `notes/korangar-skill-effect-pipeline.md`, `notes/skill-effects-official-data.md` | `notes/korangar-weapon-centralization.md` + `notes/korangar-weapon-centralization-evidence/` | a `notes/` report with data facts + evidence |
 
-Current runtime data-file loaders: only
-`world/library/skill_effects.rs:81-83`, `skill_actions.rs:25-27`, `skill_sounds.rs:23-25`.
-Adding more is low-risk because the loader pattern already exists and is tested.
+Current runtime data-file loaders: **4** —
+`world/library/skill_effects.rs:81-83`, `skill_actions.rs:25-27`, `skill_sounds.rs:23-25`,
+`world/weapon.rs:73-75`.
 
 ---
 
@@ -117,56 +134,70 @@ Adding more is low-risk because the loader pattern already exists and is tested.
 
 ## 4. Top 10 highest-risk hardcoded systems
 
-### 4.1 Entity appearance: job→sprite/palette/hair/weapon tables (P1, largest)
+### 4.1 Entity appearance: job→sprite/palette/hair tables (P1, largest remaining)
 `korangar/src/world/entity/mod.rs`
-* `get_sprite_path_for_player_job` **lines 350–510: 146 numeric match arms** mapping rAthena
+* `get_sprite_path_for_player_job` **lines 318–478: 146 numeric match arms** mapping rAthena
   job id → Korean sprite stem (`7 => "기사"`, `4054 => "룬나이트"`, …), on top of the generated
-  `job_alias` fallback (63 aliases).
-* `weapon_suffix_candidates` **lines 103–131: 22 arms** (`W_DAGGER`→`단검`, …), consumed by
-  `player_weapon_part_candidates` **lines 85–101** which formats
-  `인간족\{job}\{job}_{남|여}_{suffix}`.
+  `job_alias` fallback (63 aliases). The merged weapon registry still calls this function
+  (`world/weapon.rs:69` import, `:682` use), so **every weapon path is still built on this
+  hardcoded table**.
 * `MALE_HAIR_LOOKUP`/`FEMALE_HAIR_LOOKUP` **lines 46–47** (13 entries each) map hair style →
-  sprite id; `resolve_head_id` **lines 733–745**.
-* `get_body_palette_name` **lines 517–534** has 4 special palette-stem overrides
+  sprite id; `resolve_head_id` **lines 701–713**.
+* `get_body_palette_name` **lines 485–502** has 4 special palette-stem overrides
   (`하이프리스트`, `어세신크로스`, `로얄가드`, `리벨리온`) because palette file stems differ from
   sprite stems.
-* part path templates **lines 553–640** (`인간족\몸통\…`, `인간족\머리통\…`,
+* part path templates **lines 505–700** (`인간족\몸통\…`, `인간족\머리통\…`,
   `data\palette\몸\…`, `data\palette\머리\머리…`).
-* shield/robe view ids are stored **lines 282–291** (`#[allow(dead_code)]`, "not rendered
-  yet"), plumbed from packets at **lines 767–768, 820–821** — parsed and discarded.
-* job special cases: `EntityType::from` ranges **lines 181–195** (warp job 45, hidden 111/139),
-  transcendent range `4001..=4023` **line 2124**, `BABY_JOB_SCALE = 0.75` **line 51**.
+* shield/robe view ids are stored **lines 255–259** and plumbed through
+  `apply_sprite_change` **line 2183** / `SpriteChangeOutcome` **line 136**, but the layers are
+  **not rendered** ("not rendered yet") — see 4.2.
+* job special cases: `EntityType::from` ranges **lines 143–157** (warp job 45, hidden 111/139),
+  transcendent range `4001..=4023` **line 2106**, `BABY_JOB_SCALE = 0.75` **lines 51, 765, 2169**.
 * accessory path template `악세사리\{남|여}\{남|여}{name}` in
-  `korangar/src/world/library/mod.rs:261–277` (name table itself is `accname.lub` — good).
+  `korangar/src/world/library/mod.rs:264–284` (name table itself is `accname.lub` — good).
 
-Why it matters: every appearance feature (weapon, shield, robe, headgear, class rendering,
+Why it matters: every remaining appearance feature (headgear, shield, robe, class rendering,
 4th/expanded jobs) is blocked on or duplicated against this table; it silently falls back to
-`missing.spr` for unknown ids. This is the same class of problem the weapon lane already
-solves for weapon variants — the data must carry the sprite/palette stems, not Rust.
+`missing.spr` for unknown ids. Even the new data-driven weapon pipeline inherits the job stem
+from it, so **this is the highest-leverage remaining content table**.
 
-### 4.2 Weapon / shield / robe / headgear view pipeline (P1, in progress)
-`korangar/src/world/entity/mod.rs`, `korangar/src/lib.rs`, `korangar/src/loaders/async/mod.rs`
-* weapon suffix table and candidate builder: see 4.1.
-* bow detection `BOW_ITEM_VIEW_RANGE = 1700..=1799` / `WEAPON_TYPE_BOW = 11` /
-  `is_bow_weapon` **`lib.rs:217–225`**; arrow candidates
-  `["아이템\\화살","아이템\\강철화살","아이템\\독화살","아이템\\ac_chargearrow"]`
-  **`lib.rs:2346`**, lazy loader **`lib.rs:2339–2361`**, spawn decision **`lib.rs:4652–4685`**.
-* weapon animation load duplicated in **five** packet paths:
-  `lib.rs:3952` (char login), `4098` (npc/appear), `5067` (job change), `5127` (hair change),
-  `8222` (retry queue), all calling `loaders/async/mod.rs:378–435`.
-* attack action has no weapon input: `Entity::set_attack` **`entity/mod.rs:2400–2405`** →
-  `AnimationState::attack` picks `Attack1`/`Attack3` only (`world/animation/mod.rs:181–182`).
-* weapon attack sound is an explicit TODO: `entity/mod.rs:1064–1068` ("Other clients are
-  playing the attackers weapon attack sound using this event").
-* shield/robe dead fields (4.1).
+### 4.2 Weapon centralization — merged; residual appearance work (P2)
+`korangar/src/world/weapon.rs`, `korangar/archive/data/client/weapons.ron`,
+`korangar/src/lib.rs`, `korangar/src/world/entity/mod.rs`
 
-Why it matters: the in-flight `weapon-centralize` lane
-(`/home/phantom/korangar-weapon-central`, branch `feat/weapon-centralization`, base `935c3ecd`)
-replaces this with `korangar/src/world/weapon.rs` + `data\client\weapons.ron` generated from
-`tools/rathena_pre_re_weapon_items.json` (extractor committed in that worktree; 707 pre-re
-weapons, `W_FIST..W_DOUBLE_SA`, ammo types). **Do not duplicate that work** — this audit only
-records the residual items the lane must cover: shield/robe rendering, attack action/sound per
-weapon kind, and the five duplicated load sites.
+**Landed at `4005da9e`** (branch `f85b1433` code/data/tests, `c8fceff7` report):
+* one registry `world/weapon.rs` (1009 lines, 11 unit tests) loading `weapons.ron`
+  (`DATA_PATH:73`, `FALLBACK:75`, `load:610`; API `profile:642`, `part_candidates:662`,
+  `projectile:729`, `projectile_for_weapon:737`, `animation_is_drawable:752`);
+* generated data `weapons.ron` (381 lines: 30 kinds / 30 server types / 47 item-id ranges /
+  707 weapon ids / Arrow projectile; provenance + version; path templates + fallback chain),
+  built by `tools/gen_weapons.py --check` from committed facts
+  `tools/rathena_pre_re_weapon_items.json` + `tools/weapon_client_assets.json`
+  (extractors `tools/extract_weapon_items.py`, `extract_weapon_client_assets.py`; 12 generator
+  tests in `tools/test_gen_weapons.py`);
+* **deleted hardcodes**: the 22-arm `weapon_suffix_candidates`/`player_weapon_part_candidates`
+  match, `BOW_ITEM_VIEW_RANGE`/`WEAPON_TYPE_BOW`/`is_bow_weapon`, the arrow `CANDIDATES` list,
+  `arrow_assets_failed`, five duplicated weapon-animation load blocks (one
+  `request_weapon_animation` helper, `lib.rs:10473`, call sites `3970/4109/5073/5125/5160/5197`),
+  and `world/particles` `FLIGHT_SECONDS` (flight time comes from data);
+* networking `ZC_SPRITE_CHANGE` Weapon/Shield/Robe is no longer dropped:
+  `version_20220406.rs:717` → `NetworkEvent::AppearanceChanged` (`event.rs:449`).
+
+**Residual (not in the weapon lane's scope):**
+* **shield/robe layers are still not rendered** — view ids stored at `entity/mod.rs:255–259`,
+  sprite-change outcome applied at `lib.rs:5127–5200`, but no part/layer is produced.
+* **headgear** still builds its path in `library/mod.rs:264–284` (data-driven names, hardcoded
+  template) — should share the new appearance path helper.
+* **weapon attack sound** is still an explicit TODO: `entity/mod.rs:1046–1050` ("Other
+  clients are playing the attackers weapon attack sound using this event"); attack *action*
+  selection is intentionally unchanged because the RO ACT index is weapon-independent
+  (documented in `weapon.rs` module doc).
+* the data set has **no drawable weapon clips** (`인간족\무기\*` absent, per-job weapon ACTs are
+  hidden placeholders), so the registry attempts candidates and drops the layer gracefully —
+  a documented data limitation, not a code hardcode.
+
+Why it matters: the weapon table is now the model for the next migrations; the remaining
+appearance gap is small and mostly depends on the job table in 4.1.
 
 ### 4.3 Item stats/description parser depends on Korean grammar (P1, silent data loss)
 `korangar/src/world/library/item_stats.rs`
@@ -186,16 +217,16 @@ only as a last-resort fallback (or delete it).
 
 ### 4.4 Protocol result-code → English message tables (P1, localization bypass)
 `korangar/src/lib.rs`
-* party member removed **5256–5262** (6 arms)
-* party invitation reply **5318–5330** (13 arms)
-* party creation result **5336–5341** (6 arms)
-* buy/sell result **5659–5671** (11 arms)
-* skill use failed **5808–5826** (19 arms, e.g. `"not enough SP"`, `"wrong weapon"`)
-* ammunition action **5834–5841** (5 arms)
-* map-server ban / disconnect **5852–5863** (9 arms)
+* party member removed **5253–5265** (6 arms)
+* party invitation reply **5323–5341** (13 arms)
+* party creation result **5344–5353** (6 arms)
+* buy/sell result **5656–5668** (11 arms)
+* skill use failed **5816–5834** (19 arms, e.g. `"not enough SP"`, `"wrong weapon"`)
+* ammunition action **5843–5850** (5 arms)
+* map-server ban / disconnect **5860–5876** (9 arms)
 * plus client feedback strings in **25 `push_chat_information` sites** (e.g.
   `"You have not learned skill {id}."`, `"Skill {}: that cell is out of range."`,
-  `"Failed to sell items"` at `5744`).
+  `"Failed to sell items"` at `5753`).
 
 `korangar-networking/src/packet_versions/version_20220406.rs:41–92` adds **26 hardcoded login
 failure messages** (`"Server closed"`, `"Unregistered id"`, …) on top.
@@ -231,13 +262,13 @@ Also hardcoded theme bypasses flagged by in-code TODOs:
 ### 4.6 Skill-behaviour special cases that survived the visual consolidation (P1/P2)
 `korangar/src/lib.rs` + `world/effect/*`
 * **Rolling Cutter channeling**: `ROLLING_CUTTER_ID = 2036` **line 187**, special-cased at
-  **6074**, **7173**, **7252** (cast channelling, self-cast branch, stop-channelling).
-* **Warp Portal**: `skill_id.0 == 27` **line 3577** creates a provisional blue portal before
+  **6083**, **7182**, **7261** (cast channelling, self-cast branch, stop-channelling).
+* **Warp Portal**: `skill_id.0 == 27` **line 3598** creates a provisional blue portal before
   `ZC_WARPLIST`/skill-unit packets arrive.
 * **Free Cast passive**: `FREE_CAST_SKILL_ID = 278` / `FREE_CAST_JOB_IDS = [16, 4017]`
-  **lines 195–198**, used at **10453** for move-while-casting.
+  **lines 195–198**, used at **10463** for move-while-casting.
 * **Storm Gust cloud**: `STORM_CLOUD_PHASE` **line 200**; `world/effect/storm_cloud.rs` with
-  7 hardcoded textures **lines 23–29** (explicitly "data files cannot supply it" — but the
+  7 hardcoded textures **lines 22–28** (explicitly "data files cannot supply it" — but the
   *selection* and timings can be a `Primitive`/`Cloud` layer row in the skill data).
 * **Status aura only Assumptio**: `world/effect/status_aura.rs:57–59` (`EFST_ASSUMPTIO` 110,
   `EFST_ASSUMPTIO2` 473), spec **142–172**, dispatch `177–181` — the module doc (lines 28–33)
@@ -249,7 +280,7 @@ Also hardcoded theme bypasses flagged by in-code TODOs:
 * remaining procedural/effect asset paths (29 literals in `world/effect/`): level aura
   `aura.rs:110–131`, cast circle `cast_circle.rs:58–61`, warp `warp.rs:48–50`,
   status aura `status_aura.rs:142–151`, projectile `procedural/projectile.rs:251`,
-  storm cloud `storm_cloud.rs:23–29`.
+  storm cloud `storm_cloud.rs:22–28`.
 * falcon companion candidates: `loaders/async/mod.rs:301–310` (7 hardcoded paths, comments
   explain three of them are wrong-asset traps).
 
@@ -284,11 +315,11 @@ they stay in Rust, new skills and data overrides cannot express them.
   `TELEPORT_VANISH_SOUND_EFFECT = "effect\\ef_teleportation.wav"`; curated
   `SKILL_SOUNDS` table `world/skill_sound.rs:57–95` (6 skills / 12 paths + generic 2) overlaps
   the generated `skill_sounds.ron`.
-* quest icon: `world/particles/mod.rs:351–362` hardcodes
+* quest icon: `world/particles/mod.rs:354–362` hardcodes
   `유저인터페이스\minimap\quest_{id}_1.bmp` and 4 `QuestColor` RGB values.
 * character-overview/party/chat/etc.: duplicated name-length constants (4/24) in
   `character_creation.rs:12–13`, `friend_list.rs:20–21`, `party.rs:28`, `login.rs:17`, and the
-  literal `character_name.len() > 24` at `lib.rs:7258` (TODO in `friend_list.rs:18` says
+  literal `character_name.len() > 24` at `lib.rs:7267` (TODO in `friend_list.rs:18` says
   "duplicated throughout the code base").
 * keybindings: `input/mod.rs:281–470` — Alt+E/S/A/Z/Q/C, Ctrl+S/I/G/A/H/M, plain I/M,
   F1–F10 hotbar, F11/F12 tabs, Alt+1–9 emotions; no keybinding table/settings.
@@ -333,21 +364,21 @@ Severity: **P0** blocker · **P1** content hardcode · **P1/P2** UI token/locali
 
 | # | System | Files:lines | What is hardcoded | Why it matters | Recommended centralization | Sev |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Job → sprite stem | `korangar/src/world/entity/mod.rs:350-510` (146 arms) | rAthena job id → Korean sprite stem (`기사`, `룬나이트`, …) | blocks/duplicates every appearance feature; unknown jobs → `missing.spr`; generated `job_alias` only patches holes | `data\client\jobs.ron` (id, sprite stem, palette stem, sex suffixes, baby/transcendent flags) generated from rAthena `jobidentity`+GRF probe; retire the match | P1 |
-| 2 | Job → palette stems | `entity/mod.rs:517-534` | 4 overrides (`하이프리스트`, `어세신크로스`, `로얄가드`, `리벨리온`) | palette file naming differs from sprite naming; new jobs need Rust edits | palette stem field in `jobs.ron` (merged table #1) | P1 |
-| 3 | Hair style lookup / head sprite | `entity/mod.rs:46-47`, `733-745` | two 13-entry arrays mapping hair style → sprite id; `머리{}_{}_{}.pal` template | races/mismatches if style ids change; two tables can drift | `data\client\appearance.ron` (hair style → sprite, palette template) or derive from job/GRF probe | P1 |
-| 4 | Weapon variants | `entity/mod.rs:85-101,103-131` (22 arms) | weapon type → Korean suffix candidates; numeric view id tried first | the exact hardcode weapon-centralize is removing; duplicated knowledge with item view ids | **in flight**: `world/weapon.rs` + `data\client\weapons.ron` (facts JSON + `gen_weapons.py --check`) | P1 |
-| 5 | Weapon/bow/arrow behaviour | `lib.rs:217-225,2339-2361,4652-4685`; `entity/mod.rs:2400-2405`; `world/animation/mod.rs:181-182`; `entity/mod.rs:1064-1068` | `1700..=1799` bow view range, `W_BOW=11`, 4 arrow sprite candidates, Attack1/Attack3-only attack action, attack-sound TODO | ranged/arrow/attack behaviour wrong for non-classic weapon ids; no weapon attack sound | `WeaponProfile` fields: `ranged`, `arrow_assets`, `attack_action`, `attack_sound`, `ammo`; consume from registry | P1 |
-| 6 | Shield / robe view | `entity/mod.rs:282-291,767-768,820-821` | fields parsed, `#[allow(dead_code)]`, never rendered | content silently missing; UI paper doll shows shield slot but world doesn't | `WeaponRegistry`-style `shield`/`robe` profiles (view id → part candidates) using `jobs.ron` templates | P1 |
-| 7 | Accessory/headgear path | `world/library/mod.rs:261-277` | `악세사리\{sex}\{sex}{name}` template (name table is data — good) | small, but template/sex handling duplicated from body path logic | share an `appearance::part_template` helper fed by data; keep `accname.lub` names | P2 |
-| 8 | Entity type ranges / special jobs | `entity/mod.rs:181-195,2124,51` | job ranges for Player/Npc/Monster/Warp/Hidden; `4001..=4023` transcendent; `BABY_JOB_SCALE=0.75` | protocol-adjacent but presence of magic 45/111/139; baby scale duplicated at 797/2187 | data-derived job flags (`EntityType`, transcendent, scale) from `jobs.ron`; keep only documented fallback | P2 |
+| 1 | Job → sprite stem | `korangar/src/world/entity/mod.rs:318-478` (146 arms) | rAthena job id → Korean sprite stem (`기사`, `룬나이트`, …) | blocks/duplicates every appearance feature; the merged `world/weapon.rs:69,682` still calls it for part paths; unknown jobs → `missing.spr`; generated `job_alias` only patches holes | `data\client\jobs.ron` (id, sprite stem, palette stem, sex suffixes, baby/transcendent flags) generated from rAthena `jobidentity`+GRF probe; retire the match | P1 |
+| 2 | Job → palette stems | `entity/mod.rs:485-502` | 4 overrides (`하이프리스트`, `어세신크로스`, `로얄가드`, `리벨리온`) | palette file naming differs from sprite naming; new jobs need Rust edits | palette stem field in `jobs.ron` (merged table #1) | P1 |
+| 3 | Hair style lookup / head sprite | `entity/mod.rs:46-47`, `701-713` | two 13-entry arrays mapping hair style → sprite id; `머리{}_{}_{}.pal` template | races/mismatches if style ids change; two tables can drift | `data\client\appearance.ron` (hair style → sprite, palette template) or derive from job/GRF probe | P1 |
+| 4 | Weapon variants/view ids | **RESOLVED** `world/weapon.rs:73-75,610,642,662`; `data\client\weapons.ron` (381 lines) | was: 22-arm suffix match + numeric-id heuristic | now data-driven: 30 kinds / 30 server types / 47 id ranges / 707 ids, fallback chain in data | reference pattern; merge landed at `4005da9e`; `tools/gen_weapons.py --check` + 12 generator tests | **OK (done)** |
+| 5 | Weapon projectile/attack residual | `lib.rs:2349-2376,4660-4690`; `entity/mod.rs:1046-1050`; `world/animation/mod.rs:181-182` | bow range / `W_BOW` / arrow candidate list are **gone** (data-driven `projectile_for_weapon`, flight time from data); residual: weapon attack sound is still a TODO; attack action stays generic by design | no weapon attack sound on auto attacks (minor); attack action is intentionally weapon-independent (documented in `weapon.rs`) | add `attack_sound` to `WeaponProfile`/data; keep action selection generic | P2 |
+| 6 | Shield / robe layers | `entity/mod.rs:255-259,136,2183`; `lib.rs:5127-5200` | view ids are stored and routed via `SpriteChangeOutcome`/`AppearanceChanged`, but no shield/robe layer/part is produced ("not rendered yet") | content silently missing; paper doll shows shield slot but the world does not | shield/robe profiles (view id → part candidates) in the weapon/appearance data using `jobs.ron` templates | P2 |
+| 7 | Accessory/headgear path | `world/library/mod.rs:264-284` | `악세사리\{sex}\{sex}{name}` template (name table is data — good) | small, but template/sex handling duplicated from body path logic | share an `appearance::part_template` helper fed by data; keep `accname.lub` names | P2 |
+| 8 | Entity type ranges / special jobs | `entity/mod.rs:143-158,2106,51,765,2169` | job ranges for Player/Npc/Monster/Warp/Hidden; `4001..=4023` transcendent; `BABY_JOB_SCALE=0.75` | protocol-adjacent but presence of magic 45/111/139; baby scale used in 2 places | data-derived job flags (`EntityType`, transcendent, scale) from `jobs.ron`; keep only documented fallback | P2 |
 | 9 | Item stat parsing | `world/library/item_stats.rs:65-120,304-335` | 7 Korean field labels (78-112) + 13 Korean conditional markers (331-335) | silent wrong/empty stats on any non-Korean description; 37 Korean literals | generated `data\client\item_stats.ron` from server item DB facts; description text from client tables; delete Korean heuristic | **P1** |
 | 10 | Item categories / use behaviour | `state/inventory.rs:41-100` | item-type constant switch (heal/use/equip tabs, use action) | item type enum duplicated in `networking/version_20220406.rs:19-22`; server-configurable categories can drift | data facts table (id/type/equip position/usable) + single `item_type` module; keep protocol enum in one place | P2 |
 | 11 | Item description fallback | `world/library/item_description.rs:31-36` | archive table paths + `"No description available."` | path/format constants; text should be localized | keep paths (format), localize fallback string | P3/P2 |
-| 12 | Protocol result messages | `lib.rs:5244-5344,5659-5671,5807-5867`; `networking/.../version_20220406.rs:41-92` | **69 + 26** code→English mappings (party/buy/skill-fail/ammo/ban/login) | user-facing text bypasses `msgstringtable` + localization; duplicated per result enum | `data\client\message_ids.ron` (result code → msgstringtable id/localization key) generated from rAthena headers; `format!` arguments from data | **P1** |
-| 13 | Client chat feedback | `lib.rs` 25 `push_chat_information` sites (e.g. `2794,5744,5829,5832,5849,5863,6070,6960,7015,7033,7067`) | literal English feedback strings | unlocalizable; `de-DE` users see English | localization keys (Localization struct + defaults) or msgstringtable ids | P1/P2 |
-| 14 | Skill behaviour flags | `lib.rs:187,195-198,200,3577,6074,7173,7252,10453` | Rolling Cutter 2036 channelling; Warp 27 provisional portal; Free Cast 278 + jobs 16/4017; Storm Gust phase | new/overridden skills cannot express these; three Rolling Cutter branches are fragile | extend `skill_effects.ron` schema (or new `skills.ron`) with `channeling`, `warp_target`, `move_while_casting`, layer kind `Cloud`; data-driven | P1/P2 |
-| 15 | Storm Gust cloud | `world/effect/storm_cloud.rs:23-29,31-45` | 7 cloud textures + 18 puffs + timings in Rust | per-skill procedural effect not reachable from data/overrides | `Cloud` layer kind in the skill-effect pipeline with texture list/size/count/timing fields | P2 |
+| 12 | Protocol result messages | `lib.rs:5253-5353,5656-5668,5816-5876`; `networking/.../version_20220406.rs:41-92` | **69 + 26** code→English mappings (party/buy/skill-fail/ammo/ban/login) | user-facing text bypasses `msgstringtable` + localization; duplicated per result enum | `data\client\message_ids.ron` (result code → msgstringtable id/localization key) generated from rAthena headers; `format!` arguments from data | **P1** |
+| 13 | Client chat feedback | `lib.rs` 25 `push_chat_information` sites (e.g. `2815,5753,5838,5841,5858,5872,6079,6969,7024,7042,7076`) | literal English feedback strings | unlocalizable; `de-DE` users see English | localization keys (Localization struct + defaults) or msgstringtable ids | P1/P2 |
+| 14 | Skill behaviour flags | `lib.rs:187,195-198,200,3598,6083,7182,7261,10463` | Rolling Cutter 2036 channelling; Warp 27 provisional portal; Free Cast 278 + jobs 16/4017; Storm Gust phase | new/overridden skills cannot express these; three Rolling Cutter branches are fragile | extend `skill_effects.ron` schema (or new `skills.ron`) with `channeling`, `warp_target`, `move_while_casting`, layer kind `Cloud`; data-driven | P1/P2 |
+| 15 | Storm Gust cloud | `world/effect/storm_cloud.rs:22-28,31-44` | 7 cloud textures + 18 puffs + timings in Rust | per-skill procedural effect not reachable from data/overrides | `Cloud` layer kind in the skill-effect pipeline with texture list/size/count/timing fields | P2 |
 | 16 | Status aura specs | `world/effect/status_aura.rs:57-59,142-181` | only Assumptio (110/473); spec constant + match arm | Blessing/Inc AGI/Angelus/Concentration auras missing; every new aura needs Rust | `data\client\status_auras.ron` (status id → kind/texture/tint/radii/timing) merged into status data | P2 |
 | 17 | Status value semantics / categories | `state/status_effects.rs:113-160,262-347` | element names, 6 SendVal status ids, English tooltip lines; refresh replaces; no buff/debuff category | tooltip text unlocalized; categories/stacking cannot follow data | `data\client\status_effects.ron` (id→name/icon/category/value label/stack policy) generated from rAthena status DB | P2 |
 | 18 | Skill sounds (curated) | `world/skill_sound.rs:57-95` | 6-skill curated table + generic 2 wavs, overlaps generated `skill_sounds.ron` | duplicated source of truth; data override loses to hardcoded curated list | fold curated rows into `tools/skill_sounds_custom.ron` merged by generator (same pattern as skill effects custom) | P2 |
@@ -357,23 +388,24 @@ Severity: **P0** blocker · **P1** content hardcode · **P1/P2** UI token/locali
 | 22 | Map warps (debug) | `interface/windows/maps.rs:19-44` | 23 map name+coordinate pairs | debug window, but content data; wrong for other map sets | `data\client/debug_maps.ron` or gate behind debug tooling | P2 |
 | 23 | Default map / camera | `lib.rs:201-202` | `"geffen"`, Point3(600,0,240) | login-screen map/camera hardcoded for one data set | client config/settings (`client_info` or settings RON) | P2 |
 | 24 | UI sounds / menu music | `lib.rs:211-215` | bgm\01.mp3, 버튼소리.wav, ef_teleportation.wav | content paths in Rust; classic-client-specific | `data\client\ui_sounds.ron` (login/menu/teleport tracks) + archive override | P2/P3 |
-| 25 | Quest icon | `world/particles/mod.rs:351-362` | `quest_{id}_1.bmp` template + 4 RGB colours | icon path and colours bypass theme/data | data row (quest type → icon) + theme colour tokens | P2 |
+| 25 | Quest icon | `world/particles/mod.rs:354-362` | `quest_{id}_1.bmp` template + 4 RGB colours | icon path and colours bypass theme/data | data row (quest type → icon) + theme colour tokens | P2 |
 | 26 | Design tokens (UI) | interface (29 colours / 16 FontSize sites) | hardcoded colours/font sizes exceed ratchet at HEAD | **CI gate red** (`scripts/ui-token-budget.sh` exit 1); theme regressions invisible | migrate offenders to `state/theme/tokens.rs`; extend ratchet to spacing/positions; do **not** raise budget | **P0/P1** |
 | 27 | Localization coverage | interface windows/components (68 strings) + 81 dropdown labels + 13 paper-doll labels | English UI literals | unlocalized DE users; source-scan lint only catches a narrow word list | add `Localization` fields (with serde defaults) + extend lint; use `localization()` everywhere | P1/P2 |
 | 28 | Paper doll layout | `components/paper_doll.rs:34-130` | canvas/slot sizes, 11 slot positions, names/labels | equipment layout not theme-able/localizable; hand-tuned per layout | slot table in theme RON or data file; labels localized | P2 |
 | 29 | Keybindings | `input/mod.rs:281-470` | all window/hotbar/emotion keys in Rust | not configurable, not discoverable; classic defaults are fine but should be a table | `data\client\keybinds.ron` + settings page (defaults = current) | P2 |
-| 30 | Duplicated constants | 4/24 name lengths in 5 files + `lib.rs:7258`; item types 2 files; protocol result-code message tables | duplication | drift bugs (already fixed once for `a@a.com` deletion) | shared `consts`/data module; single item-type module | P2 |
+| 30 | Duplicated constants | 4/24 name lengths in 5 files + `lib.rs:7267`; item types 2 files; protocol result-code message tables | duplication | drift bugs (already fixed once for `a@a.com` deletion) | shared `consts`/data module; single item-type module | P2 |
 | 31 | Generated tables w/o generator | `job_alias.rs`, `monster_sprite_alias.rs`, `skill_icon_alias.rs`, `status_effect_names.rs`, `status_effect_icons.rs` | content correct, generator untracked | cannot `--check`/regenerate in CI; drift risk | commit the 5 generator scripts + `--check` (skill-pipeline model) | P2 (process) |
-| 32 | Skill delays | `world/library/skill_delays.rs` (560 rows) | generated Rust table, **not** archive-overridable | server can't tune timings without rebuild; only 3 data files are overridable | move to `data\client\skill_delays.ron` with include_str fallback (generator exists) | P3 |
+| 32 | Skill delays | `world/library/skill_delays.rs` (560 rows) | generated Rust table, **not** archive-overridable | server can't tune timings without rebuild; only 4 data files are overridable | move to `data\client\skill_delays.ron` with include_str fallback (generator exists) | P3 |
 | 33 | Classic level-99 aura | `world/effect/aura.rs:55-131` | official effect reproduction constants + 6 textures | documented reproduction of hardcoded official client effects; acceptable | keep; optionally expose textures in effect data | P3/OK |
 | 34 | Protocol/packet formats | `ragnarok-packets/*`, `korangar-networking/contract_2019.rs`, `opcode_lengths_2019.rs`, `ragnarok-formats/*` | opcodes/lengths/field layouts/format parsers | must match wire/format; generated + contract-tested | **keep** (see §7) | P3/OK |
 | 35 | Protocol enums (item type, equip position, ammo, packet version, hotbar 4×38) | `state/inventory.rs:51-79`, `ragnarok-packets`, `state/hotbar.rs:21-25` | enum values | must match server wire | **keep** as documented constants (dedupe item type) | P3/OK |
 | 36 | Classic skin assets | `renderer/skin.rs:25+`, `loaders/gamefile` folders | `유저인터페이스` skin atlas files | fixed classic skin preset; rendering feature, not content logic | optionally data-driven skin manifest | P3 |
 
-**Counts behind the table:** 146 job arms + 22 weapon arms + 2×13 hair + 4 palette overrides +
-23 warps + 7 falcon + 4 arrow + 29 effect paths + 69+26 message arms + 6 skill sounds + 20 item
-grammar markers + ~20 keybinds ≈ **1,050 hardcoded content entries**, plus 607 asset-path
-literals (431 generated) and ~176 non-localized strings/labels.
+**Counts behind the table:** 146 job arms + 2×13 hair + 4 palette overrides + 23 warps +
+7 falcon + 29 effect paths + 69+26 message arms + 6 skill sounds + 20 item grammar markers +
+~20 keybinds ≈ **1,000 hardcoded content entries still in Rust**, plus 607 asset-path literals
+(431 generated) and ~176 non-localized strings/labels. The 22 weapon arms and 4 arrow candidate
+paths have moved to `weapons.ron` (4045 merged).
 
 ---
 
