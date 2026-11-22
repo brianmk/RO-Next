@@ -1123,6 +1123,60 @@ where
         }
     }
 
+    /// Create a party with the given name (`CZ_MAKE_GROUP`, 0x00F9).
+    pub fn create_party(&mut self, name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CreatePartyPacket { party_name: name }),
+        }
+    }
+
+    /// Invite a character to the current party by name (`CZ_PARTY_JOIN_REQ`,
+    /// 0x02C4).
+    pub fn invite_to_party(&mut self, name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyInviteRequestPacket2019 { character_name: name }),
+        }
+    }
+
+    /// Accept or reject a party invitation (`CZ_PARTY_JOIN_REQ_ACK`, 0x02C7).
+    pub fn reply_party_invite(&mut self, party_id: PartyId, accept: bool) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyInviteReplyRequestPacket2019 {
+                party_id,
+                accept: accept as u8,
+            }),
+        }
+    }
+
+    /// Leave the current party (`CZ_REQ_LEAVE_GROUP`, 0x0100).
+    pub fn leave_party(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(LeavePartyPacket {}),
+        }
+    }
+
+    /// Expel a party member (leader only, `CZ_REQ_EXPEL_GROUP_MEMBER`, 0x0103).
+    pub fn expel_party_member(&mut self, account_id: AccountId, name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(ExpelPartyMemberPacket {
+                account_id,
+                character_name: name,
+            }),
+        }
+    }
+
+    /// Send a party chat message (`CZ_REQUEST_CHAT_PARTY`, 0x0108).
+    ///
+    /// Like the regular chat the server expects the `<name> : <message>`
+    /// format.
+    pub fn send_party_chat_message(&mut self, player_name: &str, text: &str) -> Result<(), NotConnectedError> {
+        let message = format!("{} : {}", player_name, text);
+
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyChatRequestPacket { message }),
+        }
+    }
+
     pub fn set_hotkey_data(&mut self, tab: HotbarTab, index: HotbarSlot, hotkey_data: HotkeyData) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(SetHotkeyData2Packet::new(tab, index, hotkey_data)),
@@ -1753,15 +1807,73 @@ mod packet_handlers {
         assert!(matches!(events[0], NetworkEvent::PartyOption { experience_option: 1, .. }));
         assert!(matches!(&events[1], NetworkEvent::PartyMemberAdded { member } if member.name == "MrChamp" && member.leader));
         assert!(matches!(&events[2], NetworkEvent::PartyList { party_name, members } if party_name == "feeders" && members.len() == 1));
-        assert!(matches!(
-            events[3],
-            NetworkEvent::PartyMemberHealth {
-                health_points: 7500,
-                maximum_health_points: 7500,
-                ..
-            }
-        ));
+        assert!(matches!(events[3], NetworkEvent::PartyMemberHealth {
+            health_points: 7500,
+            maximum_health_points: 7500,
+            ..
+        }));
         assert!(matches!(&events[4], NetworkEvent::SkillTree { skill_information } if skill_information.len() == 1));
+    }
+
+    /// The party requests have to use the 2019 opcodes and layouts, otherwise
+    /// rAthena ignores or misparses them (party play was impossible before).
+    #[test]
+    fn party_requests_use_the_2019_opcodes_and_layouts() {
+        use ragnarok_packets::*;
+
+        let mut writer = ByteWriter::new();
+        CreatePartyPacket {
+            party_name: "feeders".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(&writer.as_slice()[..2], &[0xF9, 0x00]);
+        assert_eq!(writer.as_slice().len(), 2 + 24);
+        assert_eq!(&writer.as_slice()[2..9], b"feeders");
+
+        let mut writer = ByteWriter::new();
+        PartyInviteRequestPacket2019 {
+            character_name: "MrChamp".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(&writer.as_slice()[..2], &[0xC4, 0x02]);
+        assert_eq!(writer.as_slice().len(), 2 + 24);
+
+        let mut writer = ByteWriter::new();
+        PartyInviteReplyRequestPacket2019 {
+            party_id: PartyId(13),
+            accept: 1,
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(writer.as_slice(), &[0xC7, 0x02, 13, 0, 0, 0, 1]);
+
+        let mut writer = ByteWriter::new();
+        LeavePartyPacket {}.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice(), &[0x00, 0x01]);
+
+        let mut writer = ByteWriter::new();
+        ExpelPartyMemberPacket {
+            account_id: AccountId(150_009),
+            character_name: "MrChamp".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(&writer.as_slice()[..2], &[0x03, 0x01]);
+        assert_eq!(writer.as_slice().len(), 2 + 4 + 24);
+
+        let mut writer = ByteWriter::new();
+        PartyChatRequestPacket {
+            message: "MrChamp : hello".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(&bytes[..2], &[0x08, 0x01]);
+        let declared_length = u16::from_le_bytes([bytes[2], bytes[3]]) as usize;
+        assert_eq!(declared_length, bytes.len());
+        assert_eq!(&bytes[4..], b"MrChamp : hello\0");
     }
 
     /// Builds a NUL padded fixed length string field.
@@ -1777,8 +1889,13 @@ mod packet_handlers {
     fn party_login_packets_are_registered() {
         let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
 
-        for header in [0x07D8u16, 0x0AE4, 0x0AE5, 0x080E, 0x02C5, 0x00FA, 0x0105, 0x0107, 0x0109, 0x0ABD, 0x0AB2] {
-            assert!(handler.is_registered(ragnarok_packets::PacketHeader(header)), "0x{header:04X} must be registered");
+        for header in [
+            0x07D8u16, 0x0AE4, 0x0AE5, 0x080E, 0x02C5, 0x00FA, 0x0105, 0x0107, 0x0109, 0x0ABD, 0x0AB2,
+        ] {
+            assert!(
+                handler.is_registered(ragnarok_packets::PacketHeader(header)),
+                "0x{header:04X} must be registered"
+            );
         }
     }
 

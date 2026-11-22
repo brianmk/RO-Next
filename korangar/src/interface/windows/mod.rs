@@ -32,6 +32,7 @@ mod menu;
 mod minimap;
 #[cfg(feature = "debug")]
 mod packet_inspector;
+mod party;
 #[cfg(feature = "debug")]
 mod profiler;
 #[cfg(feature = "debug")]
@@ -83,6 +84,7 @@ pub use self::menu::MenuWindow;
 pub use self::minimap::MinimapWindow;
 #[cfg(feature = "debug")]
 pub use self::packet_inspector::PacketInspectorWindow;
+pub use self::party::{PartyInviteWindow, PartyWindow};
 #[cfg(feature = "debug")]
 pub use self::profiler::{ProfilerWindow, ProfilerWindowState};
 #[cfg(feature = "debug")]
@@ -128,6 +130,8 @@ pub enum WindowClass {
     Login,
     Menu,
     Minimap,
+    Party,
+    PartyInvite,
     Respawn,
     SelectServer,
     Sell,

@@ -6,7 +6,7 @@ use korangar_interface::event::{ClickHandler, Event, EventQueue};
 use korangar_networking::{InventoryItem, ShopItem};
 use ragnarok_packets::{
     AccountId, AttackRange, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex,
-    ItemId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
+    ItemId, PartyId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
 };
 use rust_state::State;
 
@@ -115,6 +115,30 @@ pub enum InputEvent {
         /// Second slot.
         destination_slot: usize,
     },
+    /// Open or close the party window.
+    TogglePartyWindow,
+    /// Create a new party with the given name.
+    CreateParty {
+        /// Name of the party.
+        name: String,
+    },
+    /// Invite a character to the current party by name.
+    InviteToParty {
+        /// Name of the character to invite.
+        name: String,
+    },
+    /// Accept the pending party invitation.
+    AcceptPartyInvite {
+        /// Id of the party that invited the player.
+        party_id: PartyId,
+    },
+    /// Reject the pending party invitation.
+    RejectPartyInvite {
+        /// Id of the party that invited the player.
+        party_id: PartyId,
+    },
+    /// Leave the current party.
+    LeaveParty,
     /// Start moving the player.
     PlayerMove {
         /// Destination of the move.

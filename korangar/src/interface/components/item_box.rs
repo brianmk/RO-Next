@@ -13,9 +13,9 @@ use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
+use crate::state::inventory::{ItemUseAction, item_use_action};
 use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
 use crate::state::{ClientState, client_theme};
-use crate::state::inventory::{ItemUseAction, item_use_action};
 use crate::world::ResourceMetadata;
 
 #[derive(Default)]

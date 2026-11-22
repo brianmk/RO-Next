@@ -124,6 +124,7 @@ use crate::settings::{
 use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
+use crate::state::party::PartyPathExt;
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::stat_buffer::PendingStatUpdates;
 use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
@@ -1797,6 +1798,27 @@ impl Client {
     /// which stretches the interface and breaks its hit testing.
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
+    /// Opens the party window on the right side of the screen.
+    ///
+    /// The default window position is the center of the screen, which overlaps
+    /// the permanently open chat window - the "Leave party" button would be
+    /// below the chat window and could not be clicked. Placing the party window
+    /// next to the chat avoids that.
+    fn open_party_window(&mut self) {
+        if self.interface.is_window_with_class_open(WindowClass::Party) {
+            return;
+        }
+
+        let window_size = *self.client_state.follow(client_state().window_size());
+        let width = 380.0;
+        let position = ScreenPosition {
+            left: (window_size.width - width - 20.0).max(20.0),
+            top: 100.0,
+        };
+
+        self.interface.open_window_at(PartyWindow, position);
+    }
+
     fn update_window_size(&mut self, screen_size: ScreenSize) {
         crate::logging::log_debug!("interface: window size changed to {}x{}", screen_size.width, screen_size.height,);
         *self.client_state.follow_mut(client_state().window_size()) = screen_size;
@@ -3321,6 +3343,23 @@ impl Client {
                     if let Some(entity) = entity {
                         entity.update_health(health_points, maximum_health_points);
                     }
+
+                    // Keep the own HP bar in the party window in sync. The server
+                    // does not send `ZC_NOTIFY_HP_TO_GROUPM` for the local player,
+                    // so the party window takes the HP from the local entity.
+                    let own_account_id = self.saved_login_data.as_ref().map(|login_data| login_data.account_id);
+                    let is_own_entity = self
+                        .client_state
+                        .try_follow(this_entity())
+                        .is_some_and(|entity| entity.get_entity_id() == entity_id);
+
+                    if let (true, Some(own_account_id)) = (is_own_entity, own_account_id) {
+                        self.client_state.follow_mut(client_state().party()).apply_health(
+                            own_account_id,
+                            health_points as i32,
+                            maximum_health_points as i32,
+                        );
+                    }
                 }
                 NetworkEvent::UpdateStat { stat_type } => {
                     // The zeny amount is displayed by the inventory window, so keep it in
@@ -3609,74 +3648,174 @@ impl Client {
                     self.interface.open_window(FriendRequestWindow::new(requestee));
                 }
                 // --- Party events (2019) -------------------------------------------
-                // The packet handlers exist first of all to keep the map server
-                // stream in sync: rAthena sends party packets during the login
-                // burst of a party character. The state/UI is filled in by the
-                // follow-up party commit.
                 NetworkEvent::PartyOption {
                     experience_option,
                     item_pickup,
                     item_share,
                 } => {
-                    crate::logging::log_debug!(
-                        "party option: exp={} pickup={} share={}",
-                        experience_option,
-                        item_pickup,
-                        item_share
-                    );
+                    let party = self.client_state.follow_mut(client_state().party());
+                    party.experience_option = experience_option;
+                    party.item_pickup = item_pickup != 0;
+                    party.item_share = item_share != 0;
                 }
                 NetworkEvent::PartyList { party_name, members } => {
-                    crate::logging::log_debug!("party list: {} with {} member(s)", party_name, members.len());
+                    let was_in_party = self.client_state.follow(client_state().party()).is_in_party();
+
+                    let party = self.client_state.follow_mut(client_state().party());
+
+                    if members.is_empty() && !was_in_party {
+                        continue;
+                    }
+
+                    party.apply_roster(party_name, &members);
+
+                    if members.is_empty() {
+                        party.clear();
+                        self.interface.close_window_with_class(WindowClass::Party);
+                    } else if !was_in_party {
+                        // The player just joined a party (login burst or accepted
+                        // invite): show the roster like the original client.
+                        self.open_party_window();
+                    }
                 }
                 NetworkEvent::PartyMemberAdded { member } => {
-                    crate::logging::log_debug!("party member added: {} ({})", member.name, member.account_id.0);
+                    let was_in_party = self.client_state.follow(client_state().party()).is_in_party();
+
+                    self.client_state.follow_mut(client_state().party()).apply_member_details(&member);
+
+                    if !was_in_party {
+                        self.open_party_window();
+                    }
                 }
                 NetworkEvent::PartyMemberRemoved {
                     account_id,
                     character_name,
                     result,
                 } => {
-                    crate::logging::log_debug!("party member removed: {} ({}) result={}", character_name, account_id.0, result);
+                    let own_account_id = self.saved_login_data.as_ref().map(|login_data| login_data.account_id);
+                    let is_self = own_account_id == Some(account_id);
+
+                    self.client_state
+                        .follow_mut(client_state().party())
+                        .apply_member_removed(account_id);
+
+                    let message = match result {
+                        0 => format!("{character_name} left the party."),
+                        1 => format!("{character_name} was expelled from the party."),
+                        2 => format!("{character_name} could not leave the party."),
+                        3 => format!("{character_name} could not be expelled from the party."),
+                        _ => format!("Party member {character_name} left the party."),
+                    };
+
+                    self.push_chat_information(message);
+
+                    if is_self {
+                        self.client_state.follow_mut(client_state().party()).clear();
+                        self.interface.close_window_with_class(WindowClass::Party);
+                    }
                 }
                 NetworkEvent::PartyMemberHealth {
                     account_id,
                     health_points,
                     maximum_health_points,
                 } => {
-                    crate::logging::log_debug!(
-                        "party member hp: {} {}/{}",
-                        account_id.0,
-                        health_points,
-                        maximum_health_points
-                    );
+                    self.client_state
+                        .follow_mut(client_state().party())
+                        .apply_health(account_id, health_points, maximum_health_points);
                 }
                 NetworkEvent::PartyMemberPosition { account_id, position } => {
-                    crate::logging::log_debug!("party member position: {} {}/{}", account_id.0, position.x, position.y);
+                    self.client_state
+                        .follow_mut(client_state().party())
+                        .apply_position(account_id, position);
                 }
                 NetworkEvent::PartyMemberJobLevel {
                     account_id,
                     job_id,
                     base_level,
                 } => {
-                    crate::logging::log_debug!("party member info: {} job={:?} level={}", account_id.0, job_id, base_level);
+                    self.client_state
+                        .follow_mut(client_state().party())
+                        .apply_job_level(account_id, job_id, base_level);
                 }
                 NetworkEvent::PartyMemberAlive { account_id, is_dead } => {
-                    crate::logging::log_debug!("party member alive state: {} dead={}", account_id.0, is_dead);
+                    self.client_state
+                        .follow_mut(client_state().party())
+                        .apply_alive(account_id, is_dead);
                 }
                 NetworkEvent::PartyInvite { party_id, party_name } => {
-                    self.push_chat_information(format!("Party invite from {} (#{}).", party_name, party_id.0));
+                    if self.client_state.follow(client_state().party()).is_in_party() {
+                        // Already in a party; the server will reject the invitation
+                        // anyway, but tell the user why nothing happens.
+                        self.push_chat_information(format!(
+                            "Ignoring party invitation from \"{party_name}\": you are already in a party."
+                        ));
+                        continue;
+                    }
+
+                    *self.client_state.follow_mut(client_state().party().invite()) =
+                        Some(crate::state::party::PartyInvitePrompt { party_id, party_name });
+
+                    self.interface.open_window(PartyInviteWindow::new(client_state().party().invite()));
                 }
                 NetworkEvent::PartyInviteReply { character_name, result } => {
-                    self.push_chat_information(format!("Party invitation for {} finished with result {}.", character_name, result));
+                    self.interface.close_window_with_class(WindowClass::PartyInvite);
+                    *self.client_state.follow_mut(client_state().party().invite()) = None;
+
+                    let message = match result {
+                        0 => format!("{character_name} is already in a party."),
+                        1 => format!("{character_name} rejected the party invitation."),
+                        2 => format!("{character_name} accepted the party invitation."),
+                        3 => "The party is full.".to_owned(),
+                        4 => format!("A character of {character_name}'s account is already in the party."),
+                        5 => format!("{character_name} blocks party invitations."),
+                        7 => format!("{character_name} is not online."),
+                        8 => format!("{character_name} is on a map where parties cannot be joined."),
+                        9 => "You cannot invite on this map.".to_owned(),
+                        10 => "Party changes are not possible in a memorial dungeon.".to_owned(),
+                        11 => format!("{character_name} does not meet the party level restrictions."),
+                        _ => format!("Party invitation result: {result}."),
+                    };
+
+                    self.push_chat_information(message);
                 }
                 NetworkEvent::PartyCreationResult { result } => {
-                    self.push_chat_information(format!("Party creation result: {}.", result));
+                    let message = match result {
+                        0 => "Party created.".to_owned(),
+                        1 => "A party with that name already exists.".to_owned(),
+                        2 => "You are already in a party.".to_owned(),
+                        3 => "You cannot create a party on this map.".to_owned(),
+                        _ => format!("Party creation failed (result {result})."),
+                    };
+
+                    self.push_chat_information(message);
                 }
                 NetworkEvent::PartyChatMessage { account_id, message } => {
-                    self.push_chat_information(format!("[Party] {}: {}", account_id.0, message));
+                    let name = self
+                        .client_state
+                        .follow(client_state().party())
+                        .member_name(account_id)
+                        .map(str::to_owned)
+                        .unwrap_or_else(|| format!("Account #{}", account_id.0));
+
+                    // The server echoes the full "<name> : <message>" string in
+                    // `ZC_NOTIFY_CHAT_PARTY`, but the client already knows and
+                    // renders the name, so strip the redundant prefix.
+                    let message = message
+                        .strip_prefix(&format!("{name} : "))
+                        .unwrap_or(&message)
+                        .trim_end_matches('\0');
+
+                    self.client_state.follow_mut(client_state().chat_messages()).push(ChatMessage::new(
+                        format!("[Party] {name}: {message}"),
+                        MessageColor::Rgb {
+                            red: 120,
+                            green: 230,
+                            blue: 140,
+                        },
+                    ));
                 }
                 NetworkEvent::PartyConfig { allow_invites } => {
-                    crate::logging::log_debug!("party invite config: allow={}", allow_invites);
+                    self.client_state.follow_mut(client_state().party()).allow_invites = allow_invites;
                 }
                 NetworkEvent::FriendRemoved { account_id, character_id } => {
                     let friend_list = self.client_state.follow_mut(client_state().friend_list());
@@ -4435,6 +4574,44 @@ impl Client {
                         }
                     }
                 }
+                InputEvent::TogglePartyWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Party) {
+                            true => self.interface.close_window_with_class(WindowClass::Party),
+                            false => self.interface.open_window(PartyWindow),
+                        }
+                    }
+                }
+                InputEvent::CreateParty { name } => {
+                    self.client_state.follow_mut(client_state().party().create_name_input()).clear();
+                    let _ = self.networking_system.create_party(name);
+                }
+                InputEvent::InviteToParty { name } => {
+                    self.client_state.follow_mut(client_state().party().invite_name_input()).clear();
+                    let _ = self.networking_system.invite_to_party(name);
+                }
+                InputEvent::AcceptPartyInvite { party_id } => {
+                    let _ = self.networking_system.reply_party_invite(party_id, true);
+
+                    let party = self.client_state.follow_mut(client_state().party());
+                    party.party_id = Some(party_id);
+                    party.invite = None;
+
+                    self.interface.close_window_with_class(WindowClass::PartyInvite);
+
+                    self.open_party_window();
+                }
+                InputEvent::RejectPartyInvite { party_id } => {
+                    let _ = self.networking_system.reply_party_invite(party_id, false);
+                    *self.client_state.follow_mut(client_state().party().invite()) = None;
+                    self.interface.close_window_with_class(WindowClass::PartyInvite);
+                }
+                InputEvent::LeaveParty => {
+                    let _ = self.networking_system.leave_party();
+
+                    self.client_state.follow_mut(client_state().party()).clear();
+                    self.interface.close_window_with_class(WindowClass::Party);
+                }
                 InputEvent::ToggleBigMapWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
                         self.interface.close_window_with_class(WindowClass::Minimap);
@@ -4713,6 +4890,24 @@ impl Client {
 
                         if !target_name.is_empty() && !message.is_empty() {
                             let _ = self.networking_system.send_whisper(target_name, message);
+                        }
+
+                        continue;
+                    }
+
+                    // Party chat: "/p <message>" or "/party <message>". The server
+                    // echoes the message back to the whole party (including the
+                    // sender), so no local echo is necessary.
+                    if let Some(message) = text.strip_prefix("/p ").or_else(|| text.strip_prefix("/party ")) {
+                        let message = message.trim();
+
+                        if message.is_empty() {
+                            self.push_chat_information("Usage: /p <message>".to_owned());
+                        } else if self.client_state.follow(client_state().party()).is_in_party() {
+                            let player_name = self.client_state.follow(client_state().player_name()).clone();
+                            let _ = self.networking_system.send_party_chat_message(&player_name, message);
+                        } else {
+                            self.push_chat_information("You are not in a party.".to_owned());
                         }
 
                         continue;

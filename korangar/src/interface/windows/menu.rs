@@ -116,6 +116,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 button! {
+                    text: "Party",
+                    event: InputEvent::TogglePartyWindow,
+                },
+                button! {
                     text: client_state().localization().minimap_button_text(),
                     event: InputEvent::ToggleMinimapWindow,
                 },

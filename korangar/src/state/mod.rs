@@ -6,6 +6,7 @@ pub mod hotbar;
 pub mod inventory;
 pub mod localization;
 pub mod minimap;
+pub mod party;
 pub mod skills;
 pub mod stat_buffer;
 pub mod status_effects;
@@ -62,6 +63,7 @@ use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
 use crate::state::minimap::Minimap;
+use crate::state::party::Party;
 use crate::state::skills::SkillTree;
 use crate::state::theme::WorldTheme;
 #[cfg(feature = "debug")]
@@ -166,6 +168,8 @@ pub struct ClientState {
     /// Active status effects (buffs/debuffs) of the player shown in the buff
     /// bar.
     status_effects: StatusEffects,
+    /// Party state (roster, HP, invitations) of the 2019 party system.
+    party: Party,
     /// List of all friends.
     friend_list: Vec<Friend>,
     /// Online state of each entry of `friend_list` (same length/order).
@@ -353,6 +357,10 @@ impl ClientState {
             let create_character_name = String::new();
         });
 
+        time_phase!("create party state", {
+            let party = Party::default();
+        });
+
         time_phase!("create friend list state", {
             let friend_list = Vec::default();
             let friend_online = Vec::default();
@@ -442,6 +450,7 @@ impl ClientState {
             ground_items: Vec::new(),
             chat_messages,
             status_effects: StatusEffects::default(),
+            party,
             friend_list,
             friend_online,
             shop_items,
