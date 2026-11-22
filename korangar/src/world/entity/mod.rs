@@ -49,6 +49,16 @@ const SOUND_COOLDOWN_DURATION: u32 = 200;
 const SPATIAL_SOUND_RANGE: f32 = 250.0;
 const FADE_IN_DURATION_MS: u32 = 500;
 const BABY_JOB_SCALE: f32 = 0.75;
+/// Converts the encoded `c_level` of another player into a level that the aura
+/// logic can use.
+///
+/// `c_level == 99` means the real level is at or above the aura level, `98`
+/// means the level directly below it, lower values are the real level. The
+/// aura threshold therefore matches only the `99` encoding (never `98`).
+fn aura_level_from_c_level(c_level: u16) -> usize {
+    c_level as usize
+}
+
 /// Classic client `OPTION_FALCON` bit in the option/effect_state field.
 const OPTION_FALCON: u32 = 0x10;
 /// Height above the owner's position at which the falcon is drawn.
@@ -252,6 +262,12 @@ pub struct Common {
     /// `OPTION_FALCON` (0x10) means the player currently has the hunter falcon.
     #[hidden_element]
     pub effect_state: u32,
+    /// Client-visible level (`c_level`) from the entity-appear packets.
+    ///
+    /// The server encodes levels >= the aura level as 99 and the level below it
+    /// as 98; lower levels are sent as the real level.
+    #[hidden_element]
+    pub c_level: u16,
     /// `bodyState` (`opt1`): freeze/stone/stun/sleep/burning/... visual state.
     #[hidden_element]
     pub body_state: u16,
@@ -727,14 +743,16 @@ impl Common {
         let shield = entity_data.shield;
         let robe = entity_data.robe;
         let effect_state = entity_data.effect_state;
+        let c_level = entity_data.c_level;
         let body_state = entity_data.body_state;
         let health_state = entity_data.health_state;
 
         crate::logging::log_debug!(
-            "entity spawn id={} job={} effect_state=0x{:X} weapon={} shield={}",
+            "entity spawn id={} job={} effect_state=0x{:X} c_level={} weapon={} shield={}",
             entity_data.entity_id.0,
             job_id.0,
             effect_state,
+            c_level,
             weapon,
             shield
         );
@@ -771,6 +789,7 @@ impl Common {
             accessory3,
             hair_id,
             effect_state,
+            c_level,
             body_state,
             health_state,
             weapon,
@@ -2059,7 +2078,14 @@ impl Entity {
     pub fn get_base_level(&self) -> Option<usize> {
         match self {
             Self::Player(player) => Some(player.base_level),
-            Self::Npc(_) => None,
+            // Other players (including population-engine shells) only expose the
+            // encoded `c_level`: 99 means "level >= aura level" (draw the aura),
+            // 98 is the level directly below the aura level, lower values are the
+            // real level. Do not treat 98 as an aura level.
+            Self::Npc(npc) => match npc.get_common().entity_type {
+                EntityType::Player => Some(aura_level_from_c_level(npc.get_common().c_level)),
+                _ => None,
+            },
         }
     }
 
@@ -2514,5 +2540,39 @@ mod hair_style_tests {
     #[test]
     fn missing_hair_style_falls_back_to_default() {
         assert_eq!(resolve_head_id(Sex::Female, None), 1);
+    }
+}
+
+#[cfg(test)]
+mod c_level_tests {
+    use super::aura_level_from_c_level;
+    use crate::world::AURA_MINIMUM_LEVEL;
+
+    #[test]
+    fn encoded_c_level_maps_to_aura_eligibility() {
+        // 99 means "level >= aura level".
+        assert_eq!(aura_level_from_c_level(99), 99);
+        assert!(aura_level_from_c_level(99) >= AURA_MINIMUM_LEVEL);
+
+        // 98 is the level directly below the aura level and must never be
+        // treated as an aura level.
+        assert_eq!(aura_level_from_c_level(98), 98);
+        assert!(aura_level_from_c_level(98) < AURA_MINIMUM_LEVEL);
+
+        // Lower levels are transmitted as the real level.
+        assert_eq!(aura_level_from_c_level(50), 50);
+        assert!(aura_level_from_c_level(50) < AURA_MINIMUM_LEVEL);
+        assert_eq!(aura_level_from_c_level(1), 1);
+    }
+
+    #[test]
+    fn only_encoded_99_reaches_the_aura_threshold() {
+        for level in 0..=200u16 {
+            assert_eq!(
+                aura_level_from_c_level(level) >= AURA_MINIMUM_LEVEL,
+                level >= AURA_MINIMUM_LEVEL as u16,
+                "unexpected aura eligibility for c_level {level}"
+            );
+        }
     }
 }

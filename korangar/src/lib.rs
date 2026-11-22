@@ -2829,6 +2829,12 @@ impl Client {
                 continue;
             };
 
+            crate::logging::log_debug!(
+                "level-99 aura: created for entity {:?} (level {}, transcendent {})",
+                entity_id,
+                level,
+                transcendent
+            );
             aura.attach_to_entity(entity_id, position);
             self.effect_holder.add_unit(Box::new(aura), entity_id);
             self.level_99_aura_entities.insert(entity_id);
@@ -3713,7 +3719,6 @@ impl Client {
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
-                    self.level_99_aura_entities.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
                 }
@@ -4029,6 +4034,11 @@ impl Client {
                         self.retrack_local_player();
                         self.particle_holder.clear();
                         self.effect_holder.clear();
+                        // The aura tracker must be reset together with the effects:
+                        // the player entity survives the fast-path teleport, but its
+                        // aura effect was cleared above. Keeping the id in the tracker
+                        // would make `update_level_99_auras` skip re-creating it.
+                        self.level_99_aura_entities.clear();
                         self.chat_bubbles.clear();
                         self.cast_bars.clear();
                         self.skill_name_texts.clear();
