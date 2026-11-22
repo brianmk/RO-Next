@@ -8,6 +8,7 @@ use ragnarok_packets::*;
 
 use crate::event::{NetworkEventList, NoNetworkEvents};
 use crate::items::ItemQuantity;
+use crate::packet_versions::noop_policy::register_ignored_noop;
 use crate::{
     CharacterServerLoginData, HotkeyState, InventoryItem, InventoryItemDetails, LoginServerLoginData, MessageColor, NetworkEvent,
     NoMetadata, ShopItem, UnifiedCharacterSelectionFailedReason, UnifiedLoginFailedReason,
@@ -138,11 +139,11 @@ where
     packet_handler.register(|packet: CharacterListPacket| NetworkEvent::CharacterList {
         characters: packet.character_information.into_iter().map(CharacterInformation::from).collect(),
     })?;
-    packet_handler.register_noop::<CharacterInfoPerPagePacket>()?;
-    packet_handler.register_noop::<CharacterSlotPagePacket>()?;
-    packet_handler.register_noop::<CharacterBanListPacket>()?;
-    packet_handler.register_noop::<LoginPincodePacket>()?;
-    packet_handler.register_noop::<Packet0b18>()?;
+    register_ignored_noop::<_, CharacterInfoPerPagePacket>(packet_handler)?;
+    register_ignored_noop::<_, CharacterSlotPagePacket>(packet_handler)?;
+    register_ignored_noop::<_, CharacterBanListPacket>(packet_handler)?;
+    register_ignored_noop::<_, LoginPincodePacket>(packet_handler)?;
+    register_ignored_noop::<_, Packet0b18>(packet_handler)?;
     packet_handler.register(|packet: CharacterSelectionSuccessPacket| {
         let login_data = CharacterServerLoginData {
             server_ip: IpAddr::V4(packet.map_server_ip.into()),
@@ -350,7 +351,10 @@ where
             starting_timestamp,
         }
     })?;
-    packet_handler.register_noop::<EntityStopMovePacket>()?;
+    packet_handler.register(|packet: EntityStopMovePacket| NetworkEvent::EntityStopped {
+        entity_id: packet.entity_id,
+        position: packet.position,
+    })?;
     packet_handler.register(|packet: PlayerMovePacket| {
         let PlayerMovePacket {
             starting_timestamp,
@@ -466,11 +470,16 @@ where
             direction: Direction::from(direction),
         }
     })?;
-    packet_handler.register_noop::<NotifyActorInitPacket>()?;
+    register_ignored_noop::<_, NotifyActorInitPacket>(packet_handler)?;
     // Remaining frequent 2019 packets that the client does not use yet. They are
     // parsed with their exact 2019 sizes; a real handler can replace the noop
     // later (shop: handled by the NPC shop branch, status effects: buff UI).
-    packet_handler.register_noop::<CartItemCountInfoPacket2019>()?;
+    packet_handler.register(|packet: CartItemCountInfoPacket2019| NetworkEvent::CartInfo {
+        current_count: packet.current_count,
+        maximum_count: packet.maximum_count,
+        current_weight: packet.current_weight,
+        maximum_weight: packet.maximum_weight,
+    })?;
     packet_handler.register(|packet: UserCountPacket2019| NetworkEvent::UserCount {
         player_count: packet.player_count,
     })?;
@@ -489,11 +498,11 @@ where
         health_points: packet.health_points,
         maximum_health_points: packet.maximum_health_points,
     })?;
-    packet_handler.register_noop::<ExchangeAddItemPacket2019>()?;
-    packet_handler.register_noop::<ExchangeConcludePacket2019>()?;
-    packet_handler.register_noop::<ExchangeCancelPacket2019>()?;
-    packet_handler.register_noop::<ExchangeExecPacket2019>()?;
-    packet_handler.register_noop::<ExchangeUndoPacket2019>()?;
+    register_ignored_noop::<_, ExchangeAddItemPacket2019>(packet_handler)?;
+    register_ignored_noop::<_, ExchangeConcludePacket2019>(packet_handler)?;
+    register_ignored_noop::<_, ExchangeCancelPacket2019>(packet_handler)?;
+    register_ignored_noop::<_, ExchangeExecPacket2019>(packet_handler)?;
+    register_ignored_noop::<_, ExchangeUndoPacket2019>(packet_handler)?;
     packet_handler.register(|packet: StorageItemCountInfoPacket2019| NetworkEvent::SetStorageAmount {
         amount: packet.amount,
         maximum_amount: packet.maximum_amount,
@@ -579,8 +588,8 @@ where
         }
     })?;
     packet_handler.register(|_: StorageClosedPacket| NetworkEvent::StorageClosed)?;
-    packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
-    packet_handler.register_noop::<ExchangeAckPacket2019>()?;
+    register_ignored_noop::<_, ExchangeRequestPacket2019>(packet_handler)?;
+    register_ignored_noop::<_, ExchangeAckPacket2019>(packet_handler)?;
     // 2019 era `ZC_ITEM_PICKUP_ACK` (0x0A37). The server uses this packet both for
     // picking items up from the ground and for items that are added to the
     // inventory by a shop purchase, so the item is added to the inventory state
@@ -651,13 +660,20 @@ where
 
         Some(NetworkEvent::IventoryItemAdded { item })
     })?;
-    packet_handler.register_noop::<SpiritsPacket2019>()?;
-    packet_handler.register_noop::<Spirits2Packet2019>()?;
-    packet_handler.register_noop::<UpdateAttackRangePacket>()?;
-    packet_handler.register_noop::<NewMailStatusPacket>()?;
-    packet_handler.register_noop::<AchievementUpdatePacket>()?;
-    packet_handler.register_noop::<AchievementListPacket>()?;
-    packet_handler.register_noop::<CriticalWeightUpdatePacket>()?;
+    packet_handler.register(|packet: SpiritsPacket2019| NetworkEvent::SpiritOrbs {
+        entity_id: packet.entity_id,
+        amount: packet.amount,
+    })?;
+    packet_handler.register(|packet: Spirits2Packet2019| NetworkEvent::SpiritOrbs {
+        entity_id: packet.entity_id,
+        amount: packet.amount,
+    })?;
+    packet_handler.register(|packet: UpdateAttackRangePacket| NetworkEvent::AttackRangeChanged {
+        attack_range: packet.attack_range,
+    })?;
+    register_ignored_noop::<_, NewMailStatusPacket>(packet_handler)?;
+    register_ignored_noop::<_, AchievementUpdatePacket>(packet_handler)?;
+    register_ignored_noop::<_, AchievementListPacket>(packet_handler)?;
     packet_handler.register(|packet: SpriteChangePacket| match packet.sprite_type {
         SpriteChangeType::Base => Some(NetworkEvent::ChangeJob {
             account_id: packet.account_id,
@@ -872,8 +888,11 @@ where
             }
         }
     })?;
-    packet_handler.register_noop::<EquippableSwitchItemListPacket>()?;
-    packet_handler.register_noop::<MapTypePacket>()?;
+    register_ignored_noop::<_, EquippableSwitchItemListPacket>(packet_handler)?;
+    packet_handler.register(|packet: MapTypePacket| NetworkEvent::MapProperties {
+        map_type: packet.map_type,
+        flags: packet.flags,
+    })?;
     packet_handler.register(|packet: SkillInfoUpdatePacket| {
         let SkillInfoUpdatePacket {
             skill_id,
@@ -972,10 +991,17 @@ where
     packet_handler.register(|packet: UpdatePartyInvitationStatePacket| NetworkEvent::PartyConfig {
         allow_invites: packet.allowed == 0,
     })?;
-    packet_handler.register_noop::<UpdateShowEquipPacket>()?;
-    packet_handler.register_noop::<UpdateConfigurationPacket>()?;
-    packet_handler.register_noop::<NavigateToMonsterPacket>()?;
-    packet_handler.register_noop::<MarkMinimapPositionPacket>()?;
+    packet_handler.register(|packet: UpdateShowEquipPacket| NetworkEvent::ShowEquipmentWindow {
+        open: packet.open_equip_window != 0,
+    })?;
+    register_ignored_noop::<_, UpdateConfigurationPacket>(packet_handler)?;
+    packet_handler.register(|packet: MarkMinimapPositionPacket| NetworkEvent::MinimapMarker {
+        npc_id: packet.npc_id,
+        marker_type: packet.marker_type,
+        position: packet.position,
+        id: packet.id,
+        color: packet.color,
+    })?;
     packet_handler.register(|packet: NextButtonPacket| {
         let NextButtonPacket { npc_id } = packet;
 
@@ -993,8 +1019,11 @@ where
 
         NetworkEvent::AddChoiceButtons { choices, npc_id }
     })?;
-    packet_handler.register_noop::<DisplaySpecialEffectPacket>()?;
-    packet_handler.register_noop::<DisplaySkillCooldownPacket>()?;
+    register_ignored_noop::<_, DisplaySpecialEffectPacket>(packet_handler)?;
+    packet_handler.register(|packet: DisplaySkillCooldownPacket| NetworkEvent::SkillCooldown {
+        skill_id: packet.skill_id,
+        until: packet.until,
+    })?;
     packet_handler.register(|packet: DisplaySkillEffectAndDamagePacket| {
         // Reuse the regular damage event so skill damage shows damage numbers
         // and plays the hit animation just like auto attacks.
@@ -1054,11 +1083,11 @@ where
         remaining_in_milliseconds: packet.remaining_duration,
         values: [packet.value1, packet.value2, packet.value3],
     })?;
-    packet_handler.register_noop::<QuestNotificationPacket1>()?;
-    packet_handler.register_noop::<HuntingQuestNotificationPacket>()?;
-    packet_handler.register_noop::<HuntingQuestUpdateObjectivePacket>()?;
-    packet_handler.register_noop::<QuestRemovedPacket>()?;
-    packet_handler.register_noop::<QuestListPacket>()?;
+    register_ignored_noop::<_, QuestNotificationPacket1>(packet_handler)?;
+    register_ignored_noop::<_, HuntingQuestNotificationPacket>(packet_handler)?;
+    register_ignored_noop::<_, HuntingQuestUpdateObjectivePacket>(packet_handler)?;
+    register_ignored_noop::<_, QuestRemovedPacket>(packet_handler)?;
+    register_ignored_noop::<_, QuestListPacket>(packet_handler)?;
     packet_handler.register(|packet: VisualEffectPacket| {
         let VisualEffectPacket { entity_id, effect } = packet;
 
@@ -1082,7 +1111,7 @@ where
         experience_type: packet.experience_type,
         experience_source: packet.experience_source,
     })?;
-    packet_handler.register_noop::<DisplayImagePacket>()?;
+    register_ignored_noop::<_, DisplayImagePacket>(packet_handler)?;
     // `ZC_STATE_CHANGE` (0x0229): live body/health/option/PK state updates
     // (sitting/standing changes are separate, they come as ZC_NOTIFY_ACT).
     packet_handler.register(|packet: StateChangePacket| NetworkEvent::StateChange {
@@ -1353,9 +1382,12 @@ where
 
         events
     })?;
-    packet_handler.register_noop::<Packet8302>()?;
-    packet_handler.register_noop::<Packet0b18>()?;
-    packet_handler.register_noop::<MapServerAuthFailedPacket>()?;
+    register_ignored_noop::<_, Packet0b18>(packet_handler)?;
+    packet_handler.register(|packet: MapServerAuthFailedPacket| NetworkEvent::MapServerAuthFailed { reason: packet.reason })?;
+    packet_handler.register(|packet: CriticalWeightUpdatePacket| NetworkEvent::CriticalWeight { percentage: packet.weight })?;
+    // `ZC_AUTH_OK_GID` (0x0283) only re-confirms the player's block id that the
+    // client already knows from login/character selection; parsed for framing.
+    register_ignored_noop::<_, MapServerAuthOkPacket>(packet_handler)?;
     packet_handler.register(|packet: MapServerLoginSuccessPacket| NetworkEvent::UpdateClientTick {
         client_tick: packet.client_tick,
         received_at: Instant::now(),
@@ -1404,7 +1436,6 @@ where
             attack_motion_time,
         }
     })?;
-    packet_handler.register_noop::<UseSkillSuccessPacket>()?;
     // `ZC_ACK_TOUSESKILL` is only sent when a skill cannot be used; `flag` is 0
     // for a failure in the 2019 protocol.
     packet_handler.register(|packet: ToUseSkillSuccessPacket| NetworkEvent::SkillUseFailed {
@@ -1560,8 +1591,8 @@ where
     // Party booking (the 2019 "party search") is not used by this client yet;
     // the packets are registered so a booking broadcast cannot desynchronize
     // the map server stream.
-    packet_handler.register_noop::<PartyBookingJoinRequestPacket2019>()?;
-    packet_handler.register_noop::<PartyBookingJoinResultPacket2019>()?;
+    register_ignored_noop::<_, PartyBookingJoinRequestPacket2019>(packet_handler)?;
+    register_ignored_noop::<_, PartyBookingJoinResultPacket2019>(packet_handler)?;
     // `ZC_MSG_STATE_CHANGE` (0x0196) is used by the 2019 server to end statuses
     // (and to start them on non-player units); it has no duration fields.
     packet_handler.register(|packet: StatusChangeSequencePacket| NetworkEvent::StatusEffect {
@@ -1573,11 +1604,15 @@ where
         // This packet variant has no value fields.
         values: [0; 3],
     })?;
-    packet_handler.register_noop::<ReputationPacket>()?;
-    packet_handler.register_noop::<ClanInfoPacket>()?;
-    packet_handler.register_noop::<ClanOnlineCountPacket>()?;
-    packet_handler.register_noop::<ChangeMapCellPacket>()?;
-    packet_handler.register_noop::<OpenMarketPacket>()?;
+    register_ignored_noop::<_, ReputationPacket>(packet_handler)?;
+    register_ignored_noop::<_, ClanInfoPacket>(packet_handler)?;
+    register_ignored_noop::<_, ClanOnlineCountPacket>(packet_handler)?;
+    packet_handler.register(|packet: ChangeMapCellPacket| NetworkEvent::MapCellChanged {
+        position: packet.position,
+        cell_type: packet.cell_type,
+        map_name: packet.map_name,
+    })?;
+    register_ignored_noop::<_, OpenMarketPacket>(packet_handler)?;
     packet_handler.register(|packet: BuyOrSellPacket| NetworkEvent::AskBuyOrSell { shop_id: packet.shop_id })?;
     packet_handler.register(|packet: ShopItemListPacket| {
         let items = packet

@@ -421,6 +421,27 @@ pub struct ConnectionRefusedPacket {
 }
 
 /// Sent by the map server as a response to [MapServerLoginPacket] succeeding.
+/// 2019 `ZC_AUTH_OK_GID` (0x0283): sent right after the map login packet with
+/// the player's block id (`sd->id`, which equals the account id). The client
+/// already knows that id, so the packet only needs to be parsed for framing.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0283)]
+#[packet_size(6)]
+pub struct MapServerAuthOkPacket {
+    pub account_id: AccountId,
+}
+
+/// `ZC_NOTIFY_CRITICALWEIGHT` (0x0ADE): weight percentage at which the client
+/// displays the weight in red (rAthena `natural_heal_weight_rate`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0ADE)]
+#[packet_size(6)]
+pub struct CriticalWeightUpdatePacket {
+    pub weight: u32,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x02EB)]
@@ -615,14 +636,6 @@ pub struct MapServerLoginPacket {
     pub sex: Sex,
     // NOTE: 2022 clients append 4 unknown bytes here; the 2019 rAthena server
     // (PACKETVER 20190605) expects the 19-byte 0x0436 layout, so it is omitted.
-}
-
-#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x0283)]
-#[packet_size(6)]
-pub struct Packet8302 {
-    pub entity_id: EntityId,
 }
 
 /// Sent by the client to the character server when the player tries to create
@@ -1107,13 +1120,6 @@ pub struct AchievementListPacket {
     pub acheivement_experience_to_next_level: u32, // "to_next_level" might be wrong
     #[repeating(achievement_count)]
     pub acheivement_data: Vec<AchievementData>,
-}
-
-#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x0ADE)]
-pub struct CriticalWeightUpdatePacket {
-    pub weight: u32,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
@@ -2732,20 +2738,6 @@ pub struct UpdateShowEquipPacket {
 pub struct UpdateConfigurationPacket {
     pub config_type: u32,
     pub value: u32, // only enabled and disabled ?
-}
-
-#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x08E2)]
-#[packet_size(27)]
-pub struct NavigateToMonsterPacket {
-    pub target_type: u8, // 3 - entity; 0 - coordinates; 1 - coordinates but fails if you're alweady on the map
-    pub flags: u8,
-    pub hide_window: u8,
-    #[length(16)]
-    pub map_name: String,
-    pub target_position: TilePosition,
-    pub target_monster_id: u16,
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
@@ -4695,9 +4687,8 @@ pub struct EndUseSkillPacket {
 ///
 /// The 2019 server sends this header instead of the [UseSkillSuccessPacket]
 /// header (0x07FB) that newer clients use; compared to that packet it has an
-/// additional trailing `attackMT` field (29 bytes in total). Like
-/// [UseSkillSuccessPacket] the client currently does not need its contents, but
-/// it has to be parsed so that it does not desynchronize the packet stream.
+/// additional trailing `attackMT` field (29 bytes in total). It is parsed and
+/// turned into the typed `NetworkEvent::SkillCast` by the client.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x0B1A)]
@@ -4711,19 +4702,6 @@ pub struct UseSkillAckPacket2019 {
     pub delay_time: u32,
     pub disposable: u8,
     pub attack_motion_time: u32,
-}
-
-#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x07FB)]
-pub struct UseSkillSuccessPacket {
-    pub source_entity: EntityId,
-    pub destination_entity: EntityId,
-    pub position: TilePosition,
-    pub skill_id: SkillId,
-    pub element: u32,
-    pub delay_time: u32,
-    pub disposable: u8,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
