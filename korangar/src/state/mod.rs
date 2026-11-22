@@ -615,6 +615,10 @@ impl Application for ClientState {
     fn window_chrome_visible() -> bool {
         WINDOW_CHROME_VISIBLE.load(std::sync::atomic::Ordering::Relaxed)
     }
+
+    fn is_background_window_class(window_class: Option<WindowClass>) -> bool {
+        window_class.is_some_and(WindowClass::is_background_overlay)
+    }
 }
 
 static WINDOW_CHROME_VISIBLE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);

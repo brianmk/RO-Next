@@ -3,8 +3,9 @@ use ragnarok_packets::Friend;
 
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
-use crate::state::ClientState;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 
 pub struct FriendRequestWindow {
     friend: Friend,
@@ -21,7 +22,7 @@ impl CustomWindow<ClientState> for FriendRequestWindow {
         use korangar_interface::prelude::*;
 
         window! {
-            title: "Friend request",
+            title: client_state().localization().friend_request_window_title(),
             class: Some(WindowClass::FriendRequest),
             theme: InterfaceThemeType::InGame,
             closable: true,
@@ -33,14 +34,14 @@ impl CustomWindow<ClientState> for FriendRequestWindow {
                     gaps: theme().window().gaps(),
                     children: (
                         button! {
-                            text: "Reject",
+                            text: client_state().localization().reject_button_text(),
                             event: InputEvent::RejectFriendRequest {
                                 account_id: self.friend.account_id,
                                 character_id: self.friend.character_id,
                             },
                         },
                         button! {
-                            text: "Accept",
+                            text: client_state().localization().accept_button_text(),
                             event: InputEvent::AcceptFriendRequest {
                                 account_id: self.friend.account_id,
                                 character_id: self.friend.character_id,

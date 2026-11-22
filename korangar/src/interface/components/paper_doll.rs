@@ -23,9 +23,10 @@ use rust_state::{Path, PathExt, Selector, State};
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::ClientState;
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt};
+use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata};
 
 /// Width of the paper doll canvas.
@@ -34,17 +35,6 @@ const CANVAS_WIDTH: f32 = 220.0;
 const CANVAS_HEIGHT: f32 = 342.0;
 /// Edge length of a single equipment slot.
 const SLOT_SIZE: f32 = 42.0;
-
-const SLOT_BACKGROUND_COLOR: Color = Color::rgba_u8(24, 24, 28, 150);
-const SLOT_HOVERED_BACKGROUND_COLOR: Color = Color::rgb_u8(70, 70, 76);
-const SLOT_DRAG_BACKGROUND_COLOR: Color = Color::rgb_u8(150, 150, 70);
-const SLOT_DRAG_HOVERED_BACKGROUND_COLOR: Color = Color::rgb_u8(70, 150, 150);
-const SLOT_BORDER_COLOR: Color = Color::rgba_u8(120, 120, 130, 110);
-const SLOT_FILLED_BORDER_COLOR: Color = Color::rgba_u8(88, 130, 180, 200);
-const SLOT_LABEL_COLOR: Color = Color::rgba_u8(160, 160, 170, 130);
-const CANVAS_COLOR: Color = Color::rgba_u8(0, 0, 0, 50);
-const REFINE_COLOR: Color = Color::rgb_u8(255, 190, 80);
-const REFINE_BACKGROUND_COLOR: Color = Color::rgba_u8(0, 0, 0, 170);
 
 struct SlotDefinition {
     equip_position: EquipPosition,
@@ -343,11 +333,28 @@ where
     ) {
         use korangar_interface::prelude::*;
 
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+
+        let slot_background_color = *state.get(&color_tokens.slot_background());
+        let slot_hovered_background_color = *state.get(&color_tokens.slot_hovered_background());
+        let slot_drag_background_color = *state.get(&color_tokens.slot_drag_background());
+        let slot_drag_hovered_background_color = *state.get(&color_tokens.slot_drag_hovered_background());
+        let slot_border_color = *state.get(&color_tokens.slot_border());
+        let slot_filled_border_color = *state.get(&color_tokens.slot_filled_border());
+        let slot_label_color = *state.get(&color_tokens.slot_label());
+        let canvas_background_color = *state.get(&color_tokens.canvas_background());
+        let refine_text_color = *state.get(&color_tokens.refine_text());
+        let refine_background_color = *state.get(&color_tokens.refine_background());
+        let refine_font_size = *state.get(&typography.font_label());
+        let slot_label_font_size = *state.get(&typography.font_xs());
+
         // Background of the paper doll.
         layout.add_rectangle(
             layout_info.canvas,
             CornerDiameter::uniform(14.0),
-            CANVAS_COLOR,
+            canvas_background_color,
             Color::TRANSPARENT,
             ShadowPadding::uniform(0.0),
         );
@@ -372,19 +379,19 @@ where
                     // hovered.
                     true => {
                         layout.set_hovered();
-                        (true, SLOT_DRAG_HOVERED_BACKGROUND_COLOR)
+                        (true, slot_drag_hovered_background_color)
                     }
-                    false => (false, SLOT_DRAG_BACKGROUND_COLOR),
+                    false => (false, slot_drag_background_color),
                 },
                 false => match area.check().run(layout) {
-                    true => (true, SLOT_HOVERED_BACKGROUND_COLOR),
-                    false => (false, SLOT_BACKGROUND_COLOR),
+                    true => (true, slot_hovered_background_color),
+                    false => (false, slot_background_color),
                 },
             };
 
             let border_color = match item.is_some() {
-                true => SLOT_FILLED_BORDER_COLOR,
-                false => SLOT_BORDER_COLOR,
+                true => slot_filled_border_color,
+                false => slot_border_color,
             };
 
             layout.add_rectangle(
@@ -421,7 +428,7 @@ where
                         layout.add_rectangle(
                             refine_area,
                             CornerDiameter::uniform(4.0),
-                            REFINE_BACKGROUND_COLOR,
+                            refine_background_color,
                             Color::TRANSPARENT,
                             ShadowPadding::uniform(0.0),
                         );
@@ -429,8 +436,8 @@ where
                         layout.add_text(
                             refine_area,
                             refine_text,
-                            FontSize(11.0),
-                            REFINE_COLOR,
+                            refine_font_size,
+                            refine_text_color,
                             Color::WHITE,
                             HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                             VerticalAlignment::Center { offset: 0.0 },
@@ -442,9 +449,9 @@ where
                     layout.add_text(
                         area,
                         slot.label,
-                        FontSize(9.0),
-                        SLOT_LABEL_COLOR,
-                        SLOT_LABEL_COLOR,
+                        slot_label_font_size,
+                        slot_label_color,
+                        slot_label_color,
                         HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,

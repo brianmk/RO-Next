@@ -4,8 +4,9 @@ use rust_state::Path;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::settings::{GraphicsSettingsCapabilitiesPathExt, GraphicsSettingsPathExt};
-use crate::state::ClientState;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::{GraphicsSettings, GraphicsSettingsCapabilities};
 
 pub struct GraphicsSettingsWindow<A, B> {
@@ -197,7 +198,7 @@ where
         );
 
         window! {
-            title: "Graphics Settings",
+            title: client_state().localization().graphics_settings_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,

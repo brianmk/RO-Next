@@ -229,6 +229,262 @@ pub struct Localization {
     cancel_skill_points_button_text: String,
     apply_skill_points_button_text: String,
     distribute_skill_points_button_text: String,
+    #[serde(default = "default_buy_or_sell_window_title")]
+    buy_or_sell_window_title: String,
+    #[serde(default = "default_buy_window_title")]
+    buy_window_title: String,
+    #[serde(default = "default_sell_window_title")]
+    sell_window_title: String,
+    #[serde(default = "default_cart_window_title")]
+    cart_window_title: String,
+    #[serde(default = "default_storage_window_title")]
+    storage_window_title: String,
+    #[serde(default = "default_equipment_window_title")]
+    equipment_window_title: String,
+    #[serde(default = "default_select_character_window_title")]
+    select_character_window_title: String,
+    #[serde(default = "default_delete_character_window_title")]
+    delete_character_window_title: String,
+    #[serde(default = "default_party_window_title")]
+    party_window_title: String,
+    #[serde(default = "default_party_invitation_window_title")]
+    party_invitation_window_title: String,
+    #[serde(default = "default_friend_request_window_title")]
+    friend_request_window_title: String,
+    #[serde(default = "default_graphics_settings_window_title")]
+    graphics_settings_window_title: String,
+    #[serde(default = "default_item_info_window_title")]
+    item_info_window_title: String,
+    #[serde(default = "default_buy_button_text")]
+    buy_button_text: String,
+    #[serde(default = "default_sell_button_text")]
+    sell_button_text: String,
+    #[serde(default = "default_zeny_text")]
+    zeny_text: String,
+    #[serde(default = "default_cancel_button_text")]
+    cancel_button_text: String,
+    #[serde(default = "default_delete_button_text")]
+    delete_button_text: String,
+    #[serde(default = "default_switch_button_text")]
+    switch_button_text: String,
+    #[serde(default = "default_accept_button_text")]
+    accept_button_text: String,
+    #[serde(default = "default_reject_button_text")]
+    reject_button_text: String,
+    #[serde(default = "default_invite_button_text")]
+    invite_button_text: String,
+    #[serde(default = "default_create_party_button_text")]
+    create_party_button_text: String,
+    #[serde(default = "default_leave_party_button_text")]
+    leave_party_button_text: String,
+    #[serde(default = "default_switch_slots_text")]
+    switch_slots_text: String,
+    #[serde(default = "default_create_character_slot_text")]
+    create_character_slot_text: String,
+    #[serde(default = "default_map_text")]
+    map_text: String,
+    #[serde(default = "default_party_name_text")]
+    party_name_text: String,
+    #[serde(default = "default_invite_character_text")]
+    invite_character_text: String,
+    #[serde(default = "default_create_party_text")]
+    create_party_text: String,
+    #[serde(default = "default_account_email_text")]
+    account_email_text: String,
+    #[serde(default = "default_not_in_party_text")]
+    not_in_party_text: String,
+}
+
+/// Default for language files that were written before the
+/// `buy_or_sell_window_title` field existed.
+fn default_buy_or_sell_window_title() -> String {
+    "Buy or sell".to_owned()
+}
+
+/// Default for language files that were written before the `buy_window_title`
+/// field existed.
+fn default_buy_window_title() -> String {
+    "Buy".to_owned()
+}
+
+/// Default for language files that were written before the `sell_window_title`
+/// field existed.
+fn default_sell_window_title() -> String {
+    "Sell".to_owned()
+}
+
+/// Default for language files that were written before the `cart_window_title`
+/// field existed.
+fn default_cart_window_title() -> String {
+    "Cart".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `storage_window_title` field existed.
+fn default_storage_window_title() -> String {
+    "Storage".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `equipment_window_title` field existed.
+fn default_equipment_window_title() -> String {
+    "Equipment".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `select_character_window_title` field existed.
+fn default_select_character_window_title() -> String {
+    "Select Character".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `delete_character_window_title` field existed.
+fn default_delete_character_window_title() -> String {
+    "Delete character".to_owned()
+}
+
+/// Default for language files that were written before the `party_window_title`
+/// field existed.
+fn default_party_window_title() -> String {
+    "Party".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `party_invitation_window_title` field existed.
+fn default_party_invitation_window_title() -> String {
+    "Party invitation".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `friend_request_window_title` field existed.
+fn default_friend_request_window_title() -> String {
+    "Friend request".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `graphics_settings_window_title` field existed.
+fn default_graphics_settings_window_title() -> String {
+    "Graphics Settings".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `item_info_window_title` field existed.
+fn default_item_info_window_title() -> String {
+    "Item".to_owned()
+}
+
+/// Default for language files that were written before the `buy_button_text`
+/// field existed.
+fn default_buy_button_text() -> String {
+    "Buy".to_owned()
+}
+
+/// Default for language files that were written before the `sell_button_text`
+/// field existed.
+fn default_sell_button_text() -> String {
+    "Sell".to_owned()
+}
+
+/// Default for language files that were written before the `zeny_text` field
+/// existed.
+fn default_zeny_text() -> String {
+    "Zeny".to_owned()
+}
+
+/// Default for language files that were written before the `cancel_button_text`
+/// field existed.
+fn default_cancel_button_text() -> String {
+    "Cancel".to_owned()
+}
+
+/// Default for language files that were written before the `delete_button_text`
+/// field existed.
+fn default_delete_button_text() -> String {
+    "Delete".to_owned()
+}
+
+/// Default for language files that were written before the `switch_button_text`
+/// field existed.
+fn default_switch_button_text() -> String {
+    "Switch".to_owned()
+}
+
+/// Default for language files that were written before the `accept_button_text`
+/// field existed.
+fn default_accept_button_text() -> String {
+    "Accept".to_owned()
+}
+
+/// Default for language files that were written before the `reject_button_text`
+/// field existed.
+fn default_reject_button_text() -> String {
+    "Reject".to_owned()
+}
+
+/// Default for language files that were written before the `invite_button_text`
+/// field existed.
+fn default_invite_button_text() -> String {
+    "Invite".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `create_party_button_text` field existed.
+fn default_create_party_button_text() -> String {
+    "Create party".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `leave_party_button_text` field existed.
+fn default_leave_party_button_text() -> String {
+    "Leave party".to_owned()
+}
+
+/// Default for language files that were written before the `switch_slots_text`
+/// field existed.
+fn default_switch_slots_text() -> String {
+    "Switch slots".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `create_character_slot_text` field existed.
+fn default_create_character_slot_text() -> String {
+    "Create Character".to_owned()
+}
+
+/// Default for language files that were written before the `map_text` field
+/// existed.
+fn default_map_text() -> String {
+    "Map".to_owned()
+}
+
+/// Default for language files that were written before the `party_name_text`
+/// field existed.
+fn default_party_name_text() -> String {
+    "Party name".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `invite_character_text` field existed.
+fn default_invite_character_text() -> String {
+    "Invite a character".to_owned()
+}
+
+/// Default for language files that were written before the `create_party_text`
+/// field existed.
+fn default_create_party_text() -> String {
+    "Create a party".to_owned()
+}
+
+/// Default for language files that were written before the `not_in_party_text`
+/// field existed.
+fn default_not_in_party_text() -> String {
+    "You are not in a party.".to_owned()
+}
+
+/// Default for language files that were written before the `account_email_text`
+/// field existed.
+fn default_account_email_text() -> String {
+    "Account e-mail".to_owned()
 }
 
 /// Default label of the chat window toggle button.
@@ -288,7 +544,76 @@ impl Localization {
 
 #[cfg(test)]
 mod languages {
+    use std::collections::BTreeSet;
+
     use crate::state::localization::{Language, Localization};
+
+    /// Collect the field names of a RON struct file.
+    ///
+    /// The language files are plain RON structs with one `field: "value",`
+    /// entry per line, so a small line scanner is enough and keeps the parity
+    /// test independent of the (private) struct layout.
+    fn field_names(file_content: &str) -> BTreeSet<String> {
+        file_content
+            .lines()
+            .filter_map(|line| {
+                let line = line.trim();
+                let (name, _) = line.split_once(':')?;
+                let name = name.trim();
+                let is_field_name = !name.is_empty()
+                    && name
+                        .chars()
+                        .all(|character| character.is_ascii_lowercase() || character.is_ascii_digit() || character == '_');
+                is_field_name.then(|| name.to_owned())
+            })
+            .collect()
+    }
+
+    fn language_file(language: Language) -> String {
+        let file_name = format!("archive/data/languages/{}.ron", language.to_locale_code());
+        std::fs::read_to_string(file_name).expect("language file should exist")
+    }
+
+    /// Every key of the English file must also exist in the German file,
+    /// otherwise German players see the English fallback of the serde default.
+    #[test]
+    fn language_files_have_the_same_keys() {
+        let english = field_names(&language_file(Language::English));
+        let german = field_names(&language_file(Language::German));
+
+        let missing_in_german: Vec<_> = english.difference(&german).cloned().collect();
+        let missing_in_english: Vec<_> = german.difference(&english).cloned().collect();
+
+        assert!(missing_in_german.is_empty(), "de-DE.ron is missing keys: {missing_in_german:?}");
+        assert!(
+            missing_in_english.is_empty(),
+            "en-US.ron is missing keys: {missing_in_english:?}"
+        );
+    }
+
+    /// Language files written before a field was added must still load: the new
+    /// field is `#[serde(default = "...")]` and falls back to English.
+    #[test]
+    fn old_language_files_without_new_fields_still_load() {
+        let english = language_file(Language::English);
+        let old_file: String = english
+            .lines()
+            .filter(|line| {
+                let line = line.trim();
+                !line.starts_with("buy_window_title:") && !line.starts_with("zeny_text:") && !line.starts_with("account_email_text:")
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let localization: Localization = ron::de::from_str(&old_file).expect("old language file must still load");
+        // The fields fall back to the English defaults instead of failing to load.
+        let serialized = ron::ser::to_string(&localization).expect("localization must serialize");
+        assert!(
+            serialized.contains("buy_window_title:\"Buy\""),
+            "default buy window title is missing"
+        );
+        assert!(serialized.contains("zeny_text:\"Zeny\""), "default zeny text is missing");
+    }
 
     #[test]
     fn language_files_are_valid() {

@@ -185,6 +185,15 @@ pub trait Application: Sized + 'static {
     fn window_chrome_visible() -> bool {
         false
     }
+
+    /// Whether a window class is a permanently visible HUD overlay.
+    ///
+    /// The keyboard input layer uses this to decide what Escape does: it closes
+    /// the topmost *foreground* window and opens the menu when there is none,
+    /// instead of closing HUD overlays like the chat or the hotbar.
+    fn is_background_window_class(_window_class: Option<Self::WindowClass>) -> bool {
+        false
+    }
 }
 
 /// A type for saving and loading window positions and sizes.

@@ -116,7 +116,7 @@ impl CustomWindow<ClientState> for MenuWindow {
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 button! {
-                    text: "Party",
+                    text: client_state().localization().party_window_title(),
                     event: InputEvent::TogglePartyWindow,
                 },
                 button! {

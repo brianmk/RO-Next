@@ -1,0 +1,110 @@
+# Golden-screenshot matrix for the interface (design tokens / themes / scaling).
+#
+# This workflow is intentionally NON-BLOCKING until the baseline matrix has
+# settled: it runs nightly and on manual dispatch, and a failed comparison
+# reports as a failed job but is not part of the required checks of the
+# integration branch. Once the baselines are stable it can be moved to the
+# `ui`-labelled pull requests as a required gate (see
+# notes/korangar-p0-design-tokens-report.md).
+#
+# It needs a reachable Ragnarok server and a dedicated verification account,
+# neither of which exists in this repository's CI. Configure the repository
+# secrets UI_GOLDEN_ACCOUNT / UI_GOLDEN_PASSWORD (and, if the server address
+# changes, UI_GOLDEN_SERVICE_ID) to enable the capture. Without the secrets the
+# job only checks the harness scripts (shellcheck/syntax) and skips the matrix.
+name: UI Golden
+
+on:
+  workflow_dispatch:
+    inputs:
+      update_baseline:
+        description: "Regenerate the committed baseline matrix from this run"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "30 3 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  SLANG_VERSION: v2025.18.2
+
+jobs:
+  harness:
+    name: Golden UI matrix
+    runs-on: ubuntu-latest
+    # Non-blocking: do not fail the branch while the matrix is stabilizing.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install headless capture dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xvfb imagemagick python3-pil python3-numpy python3-xlib \
+            libvulkan1 mesa-vulkan-drivers libasound2-dev
+          command -v xdpyinfo >/dev/null || sudo apt-get install -y x11-utils
+
+      - name: Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: nightly
+
+      - name: Cache slangc
+        id: slangc-cache
+        uses: actions/cache@v4
+        with:
+          path: tools/bin/slangc
+          key: slangc-${{ env.SLANG_VERSION }}
+
+      - name: Install slangc
+        if: steps.slangc-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p tools/bin
+          curl -sSL -o /tmp/slang.tar.gz \
+            "https://github.com/shader-slang/slang/releases/download/${SLANG_VERSION}/slang-${SLANG_VERSION#v}-linux-x86_64.tar.gz"
+          tar -xzf /tmp/slang.tar.gz -C /tmp
+          cp /tmp/slang-*/bin/slangc tools/bin/
+
+      - name: Build the client
+        run: |
+          export PATH="$PWD/tools/bin:$PATH"
+          cargo build --release -p korangar
+
+      - name: Validate the harness scripts
+        run: |
+          bash -n scripts/ui-golden.sh
+          bash -n scripts/ui-token-budget.sh
+          python3 -m py_compile scripts/ui_golden_driver.py scripts/ui_golden_compare.py
+          scripts/ui-token-budget.sh
+
+      - name: Capture and compare the golden matrix
+        if: ${{ secrets.UI_GOLDEN_ACCOUNT != '' }}
+        env:
+          UI_GOLDEN_ACCOUNT: ${{ secrets.UI_GOLDEN_ACCOUNT }}
+          UI_GOLDEN_PASSWORD: ${{ secrets.UI_GOLDEN_PASSWORD }}
+          UI_GOLDEN_SERVICE_ID: ${{ secrets.UI_GOLDEN_SERVICE_ID }}
+        run: |
+          if [ "${{ inputs.update_baseline }}" = "true" ]; then
+            scripts/ui-golden.sh --update-baseline
+          else
+            scripts/ui-golden.sh
+          fi
+
+      - name: Upload the capture and diff images
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-golden-captures
+          path: target/ui-golden/
+          retention-days: 14
+
+      - name: Skip notice
+        if: ${{ secrets.UI_GOLDEN_ACCOUNT == '' }}
+        run: |
+          echo "::notice::UI_GOLDEN_ACCOUNT is not configured; the golden matrix was skipped."

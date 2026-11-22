@@ -26,6 +26,34 @@ mod private {
     pub trait Sealed {}
 }
 
+/// Whether at least one foreground interface window is currently open.
+///
+/// The keyboard input system does not have access to the [`Interface`]
+/// instance, but it has to know whether Escape should close the topmost window
+/// (if any) or open the menu (if no window is open). Permanently visible HUD
+/// overlays (chat, hotbar, minimap, ...) do not count as foreground windows;
+/// the application decides which classes those are through
+/// [`Application::is_background_window_class`](crate::application::Application::is_background_window_class).
+///
+/// The interface publishes this flag every time it lays out its windows, so the
+/// decision is at most one frame stale.
+///
+/// [`Interface`]: crate::Interface
+static HAS_FOREGROUND_WINDOWS: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Publish whether at least one foreground window is open. Called by the
+/// interface each frame; input handling only reads it.
+pub fn set_has_foreground_windows(has_foreground_windows: bool) {
+    HAS_FOREGROUND_WINDOWS.store(has_foreground_windows, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Returns whether at least one foreground interface window is currently open.
+///
+/// See [`set_has_foreground_windows`].
+pub fn has_foreground_windows() -> bool {
+    HAS_FOREGROUND_WINDOWS.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 /// This trait is only used to abstract over [`WindowInternal`] and it's
 /// generics and is not supposed to be implemented outised this crate.
 /// Window sizes use `f32::MAX` as a "fit to content" sentinel; keep layout math

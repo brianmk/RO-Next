@@ -16,12 +16,12 @@ use korangar_interface::window::{CustomWindow, Window};
 use rust_state::State;
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
 use crate::state::localization::LocalizationPathExt;
 use crate::state::status_effects::StatusEffect;
-use crate::state::theme::InterfaceThemeType;
-use crate::state::{ClientState, ClientStatePathExt, client_state, this_entity};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme, this_entity};
 
 /// Size of one buff icon slot in interface pixels.
 const ICON_SIZE: f32 = 34.0;
@@ -141,6 +141,13 @@ impl Element<ClientState> for BuffBarElement {
         let border_color = *state.get(&theme().window().highlight_color());
         let name_color = *state.get(&theme().window().title_color());
 
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+        let overlay_text_color = *state.get(&color_tokens.text_overlay());
+        let fallback_name_font_size = *state.get(&typography.font_xs());
+        let remaining_font_size = *state.get(&typography.font_sm());
+
         for (index, effect) in effects.iter().enumerate() {
             let column = index % ICONS_PER_ROW;
             let row = index / ICONS_PER_ROW;
@@ -172,8 +179,8 @@ impl Element<ClientState> for BuffBarElement {
                 None => layout.add_text(
                     area,
                     effect.name(),
-                    FontSize(9.0),
-                    Color::WHITE,
+                    fallback_name_font_size,
+                    overlay_text_color,
                     name_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 2.0 },
                     VerticalAlignment::Center { offset: 0.0 },
@@ -185,8 +192,8 @@ impl Element<ClientState> for BuffBarElement {
                 layout.add_text(
                     area,
                     remaining,
-                    FontSize(10.0),
-                    Color::WHITE,
+                    remaining_font_size,
+                    overlay_text_color,
                     name_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 2.0 },
                     VerticalAlignment::Bottom { offset: 1.0 },

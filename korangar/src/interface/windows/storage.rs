@@ -22,6 +22,7 @@ use crate::interface::resource::ItemSource;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::state::inventory::InventoryPathExt;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::world::ResourceMetadata;
@@ -49,8 +50,9 @@ impl CustomWindow<ClientState> for StorageWindow {
                 let maximum_amount = *client_state().storage_maximum_amount().follow_safe(state);
                 let name = client_state().storage_name().follow_safe(state);
 
+                let title = client_state().localization().storage_window_title().follow_safe(state);
                 let name = match name.is_empty() {
-                    true => "Storage",
+                    true => title.as_str(),
                     false => name.as_str(),
                 };
 
@@ -59,7 +61,7 @@ impl CustomWindow<ClientState> for StorageWindow {
         }
 
         window! {
-            title: "Storage",
+            title: client_state().localization().storage_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
@@ -72,7 +74,7 @@ impl CustomWindow<ClientState> for StorageWindow {
                             overflow_behavior: OverflowBehavior::Shrink,
                         },
                         button! {
-                            text: "Close",
+                            text: client_state().localization().close_button_text(),
                             tooltip: "Close the storage window",
                             event: |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                                 queue.queue(InputEvent::CloseStorage);

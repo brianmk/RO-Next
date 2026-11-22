@@ -17,18 +17,16 @@ use korangar_networking::{InventoryItem, InventoryItemDetails};
 use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
-use crate::loaders::{FontSize, OverflowBehavior};
-use crate::state::theme::{CharacterOverviewThemePathExt, InterfaceThemePathExt};
+use crate::loaders::OverflowBehavior;
+use crate::state::theme::{
+    CharacterOverviewThemePathExt, ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt,
+};
 use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata, StatBonuses};
 
 /// Height of the panel. Matches the height of the paper doll so that both
 /// columns of the equipment window line up.
 const PANEL_HEIGHT: f32 = 342.0;
-
-const PANEL_BACKGROUND_COLOR: Color = Color::rgba_u8(0, 0, 0, 40);
-const HEADER_COLOR: Color = Color::rgb_u8(255, 160, 60);
-const SEPARATOR_COLOR: Color = Color::rgba_u8(255, 255, 255, 24);
 
 const HEADER_HEIGHT: f32 = 26.0;
 const ROW_HEIGHT: f32 = 17.0;
@@ -269,10 +267,19 @@ where
         let area = *layout_info;
         let horizontal_alignment = *state.get(&theme().text().horizontal_alignment());
 
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+        let panel_background_color = *state.get(&color_tokens.surface_panel());
+        let header_color = *state.get(&color_tokens.text_accent());
+        let separator_color = *state.get(&color_tokens.divider());
+        let header_font_size = *state.get(&typography.font_body());
+        let body_font_size = *state.get(&typography.font_button());
+
         layout.add_rectangle(
             area,
             CornerDiameter::uniform(14.0),
-            PANEL_BACKGROUND_COLOR,
+            panel_background_color,
             Color::TRANSPARENT,
             ShadowPadding::uniform(0.0),
         );
@@ -292,9 +299,9 @@ where
                     layout.add_text(
                         row_area,
                         title,
-                        FontSize(12.0),
-                        HEADER_COLOR,
-                        HEADER_COLOR,
+                        header_font_size,
+                        header_color,
+                        header_color,
                         HorizontalAlignment::Left { offset: 2.0, border: 0.0 },
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -310,7 +317,7 @@ where
                     layout.add_rectangle(
                         separator_area,
                         CornerDiameter::uniform(0.5),
-                        SEPARATOR_COLOR,
+                        separator_color,
                         Color::TRANSPARENT,
                         ShadowPadding::uniform(0.0),
                     );
@@ -333,7 +340,7 @@ where
                     layout.add_text(
                         row_area,
                         label,
-                        FontSize(13.0),
+                        body_font_size,
                         label_color,
                         label_color,
                         horizontal_alignment,
@@ -344,7 +351,7 @@ where
                     layout.add_text(
                         row_area,
                         value,
-                        FontSize(13.0),
+                        body_font_size,
                         value_color,
                         value_color,
                         HorizontalAlignment::Right { offset: 2.0, border: 0.0 },

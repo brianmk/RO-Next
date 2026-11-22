@@ -1,0 +1,9 @@
+// Ratchet for hardcoded style literals in the interface.
+//
+// Only ever lower these numbers. `scripts/ui-token-budget.sh --update` rewrites
+// the file with the current counts (and refuses to raise a budget), the
+// `ui_consistency` test enforces it in CI.
+(
+    max_color_literals: 23,
+    max_font_size_literals: 12,
+)

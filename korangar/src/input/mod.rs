@@ -288,8 +288,14 @@ impl InputSystem {
         let control_down = self.get_key(KeyCode::ControlLeft).down();
         let shift_down = self.get_key(KeyCode::ShiftLeft).down();
 
+        // Escape closes the topmost window, like it closes the last opened
+        // window in the original client. Only when no window is open does it
+        // open the menu (and cancel an active skill target selection).
         if self.get_key(KeyCode::Escape).pressed() {
-            events.push(InputEvent::ToggleMenuWindow);
+            match korangar_interface::window::has_foreground_windows() {
+                true => events.push(InputEvent::CloseTopWindow),
+                false => events.push(InputEvent::ToggleMenuWindow),
+            }
         }
 
         if alt_down && self.get_key(KeyCode::KeyE).pressed() {

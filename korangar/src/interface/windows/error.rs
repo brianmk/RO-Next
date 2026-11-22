@@ -1,9 +1,8 @@
 use korangar_interface::window::{CustomWindow, Window};
 
-use crate::graphics::Color;
 use crate::state::localization::LocalizationPathExt;
-use crate::state::theme::InterfaceThemeType;
-use crate::state::{ClientState, ClientStatePathExt, client_state};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 pub struct ErrorWindow {
     message: String,
@@ -26,7 +25,10 @@ impl CustomWindow<ClientState> for ErrorWindow {
             elements: (
                 text! {
                     text: self.message,
-                    color: Color::rgb_u8(220, 100, 100)
+                    // Error text is a theme token instead of a hardcoded red, so the
+                    // light classic theme gets a dark red that is readable on its light
+                    // window background.
+                    color: client_theme().tokens().color().state_danger()
                 },
             ),
         }

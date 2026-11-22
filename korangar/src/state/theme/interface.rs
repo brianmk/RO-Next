@@ -15,6 +15,7 @@ use korangar_interface::window::{StateWindow, WindowTheme};
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
+use super::tokens::DesignTokens;
 use crate::graphics::{Color, CornerDiameter, ScreenSize, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::skin::SkinImage;
@@ -234,6 +235,12 @@ pub struct InterfaceTheme {
     /// keep loading and use the default dark cards.
     #[serde(default)]
     pub item_card: ItemCardTheme,
+    /// Semantic design tokens (colors, typography, spacing, radii) that the
+    /// migrated windows use instead of hardcoded literals. Optional in
+    /// persisted theme files: themes written before the tokens existed load
+    /// and get the default (dark) token set.
+    #[serde(default)]
+    pub tokens: DesignTokens,
 }
 
 impl InterfaceTheme {
@@ -516,6 +523,7 @@ impl InterfaceTheme {
             },
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
+            tokens: DesignTokens::default(),
         }
     }
 
@@ -736,6 +744,7 @@ impl InterfaceTheme {
             },
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
+            tokens: DesignTokens::default(),
         }
     }
 
@@ -751,6 +760,7 @@ impl InterfaceTheme {
     /// not affected.
     fn default_classic() -> Self {
         let mut theme = Self::default_in_game();
+        theme.tokens = DesignTokens::classic();
 
         // Classic bar colors: black labels, dark-blue values, dark tracks and
         // the classic green/blue/yellow progress colors on the light interface.

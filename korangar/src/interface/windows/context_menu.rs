@@ -8,9 +8,10 @@ use rust_state::State;
 use crate::input::InputEvent;
 use crate::interface::resource::ItemSource;
 use crate::interface::windows::WindowClass;
-use crate::state::ClientState;
 use crate::state::inventory::ItemUseAction;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 
 /// Width of the context menu window.
 const CONTEXT_MENU_WIDTH: f32 = 190.0;
@@ -228,7 +229,7 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
         let info_source = self.source;
 
         window! {
-            title: "Item",
+            title: client_state().localization().item_info_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,

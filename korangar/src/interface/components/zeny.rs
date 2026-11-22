@@ -7,8 +7,8 @@ use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use rust_state::{Path, State};
 
-use crate::loaders::{FontSize, OverflowBehavior};
-use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
+use crate::loaders::OverflowBehavior;
+use crate::state::theme::{DesignTokensPathExt, InterfaceThemePathExt, ItemCardThemePathExt, TypographyTokensPathExt};
 use crate::state::{ClientState, client_theme};
 
 /// Formats a zeny amount with thousands separators, e.g. `1,234 z`.
@@ -80,7 +80,7 @@ where
         layout.add_text(
             *layout_info,
             &self.text,
-            FontSize(14.0),
+            *state.get(&client_theme().tokens().typography().font_body_lg()),
             *state.get(&item_card_theme.text_color()),
             *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
