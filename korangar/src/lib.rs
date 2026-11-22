@@ -682,6 +682,10 @@ pub struct Client {
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
+    /// Pending item drag: (press time, press position). A drag only starts
+    /// after a short hold or a few pixels of movement, so a plain click
+    /// does not pick items up.
+    pending_item_drag: Option<(std::time::Instant, ScreenPosition)>,
     skill_name_texts: SkillNameTexts,
     cast_bars: CastBars,
     warp_portal: Option<WarpPortal>,
@@ -1276,6 +1280,7 @@ impl Client {
             point_light_manager,
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
+            pending_item_drag: None,
             skill_name_texts: SkillNameTexts::default(),
             cast_bars: CastBars::default(),
             warp_portal,
@@ -3237,6 +3242,8 @@ impl Client {
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
                     self.chat_bubbles.clear();
+                    self.pending_item_drag = None;
+                    self.pending_item_drag = None;
                     self.skill_name_texts.clear();
                     self.cast_bars.clear();
                     self.cast_bars.clear();
@@ -3900,7 +3907,6 @@ impl Client {
                     self.client_state
                         .follow_mut(client_state().party())
                         .apply_health(account_id, health_points, maximum_health_points);
-
                 }
                 NetworkEvent::PartyMemberPosition { account_id, position } => {
                     self.client_state
@@ -3956,7 +3962,6 @@ impl Client {
                     };
 
                     self.push_chat_information(message);
-
                 }
                 NetworkEvent::PartyCreationResult { result } => {
                     let message = match result {
@@ -4555,6 +4560,36 @@ impl Client {
         #[cfg(feature = "debug")] delta_time: f32,
     ) -> bool {
         self.interface.process_events(&mut self.input_event_buffer);
+
+        // Left-clicking an item box only prepares a drag; the actual drag starts once
+        // the button was held for a moment or the mouse moved a few pixels while held.
+        // A quick click releases the prepared state without picking the item up.
+        const ITEM_DRAG_HOLD_TIME_MS: u128 = 500;
+        const ITEM_DRAG_DISTANCE: f32 = 5.0;
+
+        match self.interface.mouse_mode().prepare_item_drag() {
+            Some((source, item)) => {
+                let now = std::time::Instant::now();
+                let pending = *self.pending_item_drag.get_or_insert((now, input_report.mouse_position));
+                let held_time_ms = now.duration_since(pending.0).as_millis();
+                let moved_distance = (input_report.mouse_position.left - pending.1.left)
+                    .abs()
+                    .max((input_report.mouse_position.top - pending.1.top).abs());
+
+                if input_report.mouse_button_released || !input_report.left_mouse_button_down && moved_distance == 0.0 {
+                    // The button was released before the thresholds were reached: this
+                    // was a plain click, not a drag.
+                    self.pending_item_drag = None;
+                } else if held_time_ms >= ITEM_DRAG_HOLD_TIME_MS || moved_distance > ITEM_DRAG_DISTANCE {
+                    self.pending_item_drag = None;
+
+                    self.interface.set_mouse_mode(MouseMode::Custom {
+                        mode: MouseInputMode::MoveItem { item, source },
+                    });
+                }
+            }
+            None => self.pending_item_drag = None,
+        }
 
         let interface_has_focus = self.interface.has_focus();
 
@@ -6096,6 +6131,7 @@ impl Client {
         self.client_state.follow_mut(client_state().entities()).clear();
         self.client_state.follow_mut(client_state().dead_entities()).clear();
         self.chat_bubbles.clear();
+        self.pending_item_drag = None;
         self.skill_name_texts.clear();
         self.cast_bars.clear();
         self.client_state.follow_mut(client_state().ground_items()).clear();
