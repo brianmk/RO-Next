@@ -82,9 +82,9 @@ const SWIRL_DIVISIONS: usize = 21;
 const SWIRL_ARC_DEGREES: f32 = 315.0;
 /// Alpha of the official swirling bands (120/255).
 const SWIRL_ALPHA: f32 = 120.0 / 255.0;
-/// Global opacity boost for the blended aura components. The official values are
-/// tuned for the original renderer; in bright outdoor maps they read as barely
-/// visible, so the blended parts are drawn noticeably stronger.
+/// Global opacity boost for the blended aura components. The official values
+/// are tuned for the original renderer; in bright outdoor maps they read as
+/// barely visible, so the blended parts are drawn noticeably stronger.
 const AURA_OPACITY_SCALE: f32 = 1.7;
 /// The official bands are drawn slightly inside the ground aura.
 const SWIRL_INNER_CIRCLE_SCALE: f32 = 0.6;

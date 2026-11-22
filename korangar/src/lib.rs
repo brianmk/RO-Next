@@ -3928,7 +3928,6 @@ impl Client {
                     self.client_state
                         .follow_mut(client_state().party())
                         .apply_health(account_id, health_points, maximum_health_points);
-
                 }
                 NetworkEvent::PartyMemberPosition { account_id, position } => {
                     self.client_state
@@ -3984,7 +3983,6 @@ impl Client {
                     };
 
                     self.push_chat_information(message);
-
                 }
                 NetworkEvent::PartyCreationResult { result } => {
                     let message = match result {

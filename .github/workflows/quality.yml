@@ -1,0 +1,203 @@
+# Feature-matrix quality gate (P0-1).
+#
+# Runs on every push and every pull request, not only on `main`, so integration
+# branches get the same checks as the release branch. The packet contract tests
+# are part of this gate: a registered opcode without a committed 2019 length
+# registry entry (or an explicit ignore) fails the build.
+#
+# `slangc` is pinned with SLANG_VERSION (single source of truth for all
+# workflows). CI downloads it into `$GITHUB_WORKSPACE/tools/bin` and puts that
+# directory on PATH; locally the bundled compiler lives in the *workspace*
+# tools directory, so run
+#
+#     PATH="$PWD/../tools/bin:$PATH" cargo clippy --workspace --all-features -- -Dwarnings
+#
+# from the `korangar` checkout (see wiki/Running.md).
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+
+# Cancel previous jobs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+name: Quality
+
+env:
+  CARGO_TERM_COLOR: always
+  SLANG_VERSION: v2025.18.2
+
+jobs:
+  lint:
+    name: Format, clippy (default + all features)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt update && sudo apt install libasound2-dev nasm
+
+      - name: Cache slangc
+        id: cache-slangc
+        uses: actions/cache@v4
+        with:
+          path: ~/slangc
+          key: ${{ runner.os }}-slangc-${{ env.SLANG_VERSION }}
+
+      - name: Download and install slangc
+        if: steps.cache-slangc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/slangc
+          cd ~/slangc
+
+          VERSION_NO_V=${SLANG_VERSION#v}
+          curl -L -o slang-linux-x86_64.tar.gz \
+            "https://github.com/shader-slang/slang/releases/download/${{ env.SLANG_VERSION }}/slang-${VERSION_NO_V}-linux-x86_64.tar.gz"
+
+          tar -xzf slang-linux-x86_64.tar.gz
+          rm slang-linux-x86_64.tar.gz
+
+          chmod +x bin/slangc bin/slangd
+
+      - name: Put slangc on PATH (tools/bin convention)
+        run: |
+          # Keep the repository convention: the shader compiler is expected in
+          # `tools/bin`. Locally that is the workspace `tools/bin`; in CI the
+          # pinned release is unpacked there so plain `cargo build`/`clippy`
+          # work without extra environment variables.
+          mkdir -p "$GITHUB_WORKSPACE/tools/bin"
+          ln -sf "$HOME/slangc/bin/slangc" "$GITHUB_WORKSPACE/tools/bin/slangc"
+          ln -sf "$HOME/slangc/bin/slangd" "$GITHUB_WORKSPACE/tools/bin/slangd"
+          echo "$GITHUB_WORKSPACE/tools/bin" >> "$GITHUB_PATH"
+
+      - name: Verify slangc installation
+        run: |
+          which slangc
+          slangc -version
+
+      - name: Add rustfmt and clippy
+        run: rustup component add rustfmt clippy
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy (default features)
+        run: cargo clippy --workspace -- -Dwarnings
+
+      - name: Clippy (all features)
+        run: cargo clippy --workspace --all-features -- -Dwarnings
+
+  packet-contract:
+    name: Packet contract (2019 layouts)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: sudo apt update && sudo apt install libasound2-dev nasm libpcap-dev
+
+      - name: Cache slangc
+        id: cache-slangc
+        uses: actions/cache@v4
+        with:
+          path: ~/slangc
+          key: ${{ runner.os }}-slangc-${{ env.SLANG_VERSION }}
+
+      - name: Download and install slangc
+        if: steps.cache-slangc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/slangc
+          cd ~/slangc
+
+          VERSION_NO_V=${SLANG_VERSION#v}
+          curl -L -o slang-linux-x86_64.tar.gz \
+            "https://github.com/shader-slang/slang/releases/download/${{ env.SLANG_VERSION }}/slang-${VERSION_NO_V}-linux-x86_64.tar.gz"
+
+          tar -xzf slang-linux-x86_64.tar.gz
+          rm slang-linux-x86_64.tar.gz
+
+          chmod +x bin/slangc bin/slangd
+
+      - name: Put slangc on PATH (tools/bin convention)
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tools/bin"
+          ln -sf "$HOME/slangc/bin/slangc" "$GITHUB_WORKSPACE/tools/bin/slangc"
+          ln -sf "$HOME/slangc/bin/slangd" "$GITHUB_WORKSPACE/tools/bin/slangd"
+          echo "$GITHUB_WORKSPACE/tools/bin" >> "$GITHUB_PATH"
+
+      - name: Verify slangc installation
+        run: which slangc && slangc -version
+
+      - name: Registry consistency (struct-level 2019 fixtures)
+        run: cargo test -p ragnarok-packets --test contract_2019
+
+      - name: Contract harness for every registered server packet
+        run: cargo test -p korangar-networking --lib contract_2019
+
+      - name: Packet crate unit tests
+        run: cargo test -p ragnarok-packets
+
+      - name: Networking crate unit tests
+        run: cargo test -p korangar-networking
+
+  tests:
+    name: Tests (${{ matrix.features }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        features: [ "default", "all-features" ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install test dependencies
+        run: sudo apt update && sudo apt install libasound2-dev nasm libpcap-dev
+
+      - name: Cache slangc
+        id: cache-slangc
+        uses: actions/cache@v4
+        with:
+          path: ~/slangc
+          key: ${{ runner.os }}-slangc-${{ env.SLANG_VERSION }}
+
+      - name: Download and install slangc
+        if: steps.cache-slangc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/slangc
+          cd ~/slangc
+
+          VERSION_NO_V=${SLANG_VERSION#v}
+          curl -L -o slang-linux-x86_64.tar.gz \
+            "https://github.com/shader-slang/slang/releases/download/${{ env.SLANG_VERSION }}/slang-${VERSION_NO_V}-linux-x86_64.tar.gz"
+
+          tar -xzf slang-linux-x86_64.tar.gz
+          rm slang-linux-x86_64.tar.gz
+
+          chmod +x bin/slangc bin/slangd
+
+      - name: Put slangc on PATH (tools/bin convention)
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/tools/bin"
+          ln -sf "$HOME/slangc/bin/slangc" "$GITHUB_WORKSPACE/tools/bin/slangc"
+          ln -sf "$HOME/slangc/bin/slangd" "$GITHUB_WORKSPACE/tools/bin/slangd"
+          echo "$GITHUB_WORKSPACE/tools/bin" >> "$GITHUB_PATH"
+
+      - name: Verify slangc installation
+        run: which slangc && slangc -version
+
+      - name: Tests for korangar, korangar-networking and ragnarok-packets (default features)
+        if: matrix.features == 'default'
+        run: cargo test -p korangar -p korangar-networking -p ragnarok-packets
+
+      - name: Tests for korangar, korangar-networking and ragnarok-packets (all features)
+        if: matrix.features == 'all-features'
+        run: cargo test -p korangar -p korangar-networking -p ragnarok-packets --all-features

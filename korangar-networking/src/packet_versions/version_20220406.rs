@@ -1288,7 +1288,7 @@ where
     })?;
     packet_handler.register_noop::<Packet8302>()?;
     packet_handler.register_noop::<Packet0b18>()?;
-    packet_handler.register_noop::<ConnectionRefusedPacket>()?;
+    packet_handler.register_noop::<MapServerAuthFailedPacket>()?;
     packet_handler.register(|packet: MapServerLoginSuccessPacket| NetworkEvent::UpdateClientTick {
         client_tick: packet.client_tick,
         received_at: Instant::now(),

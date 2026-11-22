@@ -103,6 +103,124 @@ impl NetworkingSystem<NoPacketCallback> {
     }
 }
 
+/// What to do with a packet that has no registered handler.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum UnknownPacketAction {
+    /// Skip exactly this many bytes and continue parsing.
+    Skip(usize),
+    /// The packet is (partially) known but not complete in this read yet; keep
+    /// the bytes for the next read.
+    NeedMoreData,
+    /// The stream cannot be resynchronized; discard the rest of the read.
+    Discard,
+}
+
+/// Decide how to handle an unhandled packet at `packet_start`.
+///
+/// The committed 2019 opcode length registry
+/// (`ragnarok_packets::opcode_lengths_2019`) is authoritative: for a known
+/// fixed-size packet the exact number of bytes is skipped, for a known
+/// variable-length packet its declared length field is used. Packets that are
+/// not in the registry fall back to the previous conservative heuristic (accept
+/// the length field only if it lands on another registered header or the end of
+/// the read) so unknown opcodes never lose more of the stream than before.
+fn unknown_packet_action<Callback>(
+    data: &[u8],
+    packet_start: usize,
+    packet_handler: &PacketHandler<NetworkEventList, Callback>,
+) -> UnknownPacketAction
+where
+    Callback: PacketCallback,
+{
+    if packet_start + 2 > data.len() {
+        return UnknownPacketAction::NeedMoreData;
+    }
+
+    let header = PacketHeader(u16::from_le_bytes([data[packet_start], data[packet_start + 1]]));
+
+    match ragnarok_packets::opcode_lengths_2019::opcode_length(header) {
+        Some(ragnarok_packets::opcode_lengths_2019::OpcodeLength::Fixed(packet_length)) => {
+            match packet_start.checked_add(packet_length) {
+                Some(packet_end) if packet_end <= data.len() => UnknownPacketAction::Skip(packet_length),
+                // The registry knows the size, so additional reads can complete
+                // the packet instead of throwing the rest of the stream away.
+                _ => UnknownPacketAction::NeedMoreData,
+            }
+        }
+        Some(ragnarok_packets::opcode_lengths_2019::OpcodeLength::Variable { base_size }) => {
+            let packet_length = declared_length(data, packet_start);
+
+            match packet_length {
+                // Sanity check the length field before trusting it: it has to
+                // be at least the fixed part of the packet according to the
+                // registry. A registry entry that turns out to be wrong falls
+                // back to the heuristic instead of corrupting the stream.
+                Some(packet_length) if packet_length >= 4 && packet_length >= base_size => match packet_start.checked_add(packet_length) {
+                    Some(packet_end) if packet_end <= data.len() => UnknownPacketAction::Skip(packet_length),
+                    _ => UnknownPacketAction::NeedMoreData,
+                },
+                _ => unknown_packet_heuristic(data, packet_start, packet_handler),
+            }
+        }
+        None => unknown_packet_heuristic(data, packet_start, packet_handler),
+    }
+}
+
+fn declared_length(data: &[u8], packet_start: usize) -> Option<usize> {
+    if packet_start + 4 > data.len() {
+        return None;
+    }
+
+    Some(u16::from_le_bytes([data[packet_start + 2], data[packet_start + 3]]) as usize)
+}
+
+/// Conservative fallback for opcodes that are not in the 2019 registry.
+///
+/// Only variable length packets carry their total size in bytes 2..4, so a
+/// fixed-size unknown packet would look like a packet with a random length. To
+/// stay safe the length is only accepted when its size is plausible (`>= 4`)
+/// and the resulting offset either is the end of the read or points at the
+/// header of another registered packet.
+fn unknown_packet_heuristic<Callback>(
+    data: &[u8],
+    packet_start: usize,
+    packet_handler: &PacketHandler<NetworkEventList, Callback>,
+) -> UnknownPacketAction
+where
+    Callback: PacketCallback,
+{
+    let Some(packet_length) = declared_length(data, packet_start) else {
+        return UnknownPacketAction::Discard;
+    };
+
+    if packet_length < 4 {
+        return UnknownPacketAction::Discard;
+    }
+
+    let Some(packet_end) = packet_start.checked_add(packet_length) else {
+        return UnknownPacketAction::Discard;
+    };
+
+    if packet_end > data.len() {
+        return UnknownPacketAction::Discard;
+    }
+
+    if packet_end == data.len() {
+        return UnknownPacketAction::Skip(packet_length);
+    }
+
+    if packet_end + 2 > data.len() {
+        return UnknownPacketAction::Discard;
+    }
+
+    let next_header = u16::from_le_bytes([data[packet_end], data[packet_end + 1]]);
+
+    match packet_handler.is_registered(PacketHeader(next_header)) {
+        true => UnknownPacketAction::Skip(packet_length),
+        false => UnknownPacketAction::Discard,
+    }
+}
+
 impl<Callback> NetworkingSystem<Callback>
 where
     Callback: PacketCallback + Send,
@@ -438,21 +556,29 @@ where
                                 HandlerResult::UnhandledPacket | HandlerResult::InternalError(..) => {
                                     let packet_start = byte_reader.get_offset();
 
-                                    match Self::skip_length_of_unknown_packet(&buffer[..data_len], packet_start, &packet_handler) {
-                                        Some(packet_end) => {
-                                            let packet_header =
-                                                u16::from_le_bytes([buffer[packet_start], buffer[packet_start + 1]]);
-
-                                            // The interface crate owns the debug logging macro; it
-                                            // is not exported for other crates, so keep the
-                                            // skip silent here (the interface logs packet
-                                            // handling on its own side when available).
-                                            let _ = packet_header;
-
-                                            let skipped = packet_end - packet_start;
+                                    match unknown_packet_action(&buffer[..data_len], packet_start, &packet_handler) {
+                                        UnknownPacketAction::Skip(skipped) => {
+                                            // The 2019 registry (or, for opcodes that are
+                                            // not in it, the conservative heuristic) knows
+                                            // exactly how many bytes this packet occupies;
+                                            // skipping them keeps the rest of the read alive.
                                             let _ = byte_reader.slice::<Self>(skipped);
                                         }
-                                        None => {
+                                        UnknownPacketAction::NeedMoreData => {
+                                            // A known packet is not complete yet. Keep the
+                                            // bytes for the next read instead of discarding
+                                            // them. If the buffer is already full the packet
+                                            // can never complete, so drop the read instead of
+                                            // getting stuck.
+                                            if packet_start == 0 && data_len == buffer.len() {
+                                                discard_remainder = true;
+                                            } else {
+                                                keep_tail_from = Some(packet_start);
+                                            }
+
+                                            break;
+                                        }
+                                        UnknownPacketAction::Discard => {
                                             discard_remainder = true;
                                             break;
                                         }
@@ -486,51 +612,6 @@ where
                     byte_writer.clear();
                 }
             }
-        }
-    }
-
-    /// Returns the offset after the packet starting at `packet_start` when it
-    /// is an unknown packet that can be skipped safely.
-    ///
-    /// Only variable length packets carry their total size in bytes 2..4, so a
-    /// fixed-size unknown packet would look like a packet with a random length.
-    /// To stay safe the length is only accepted when its size is plausible
-    /// (`>= 4`) and the resulting offset either is the end of the read or
-    /// points at the header of another registered packet.
-    fn skip_length_of_unknown_packet(
-        data: &[u8],
-        packet_start: usize,
-        packet_handler: &PacketHandler<NetworkEventList, Callback>,
-    ) -> Option<usize> {
-        if packet_start + 4 > data.len() {
-            return None;
-        }
-
-        let packet_length = u16::from_le_bytes([data[packet_start + 2], data[packet_start + 3]]) as usize;
-
-        if packet_length < 4 {
-            return None;
-        }
-
-        let packet_end = packet_start.checked_add(packet_length)?;
-
-        if packet_end > data.len() {
-            return None;
-        }
-
-        if packet_end == data.len() {
-            return Some(packet_end);
-        }
-
-        if packet_end + 2 > data.len() {
-            return None;
-        }
-
-        let next_header = u16::from_le_bytes([data[packet_end], data[packet_end + 1]]);
-
-        match packet_handler.is_registered(PacketHeader(next_header)) {
-            true => Some(packet_end),
-            false => None,
         }
     }
 
@@ -1240,16 +1321,19 @@ where
 }
 
 #[cfg(test)]
+mod contract_2019;
+
+#[cfg(test)]
 mod packet_handlers {
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
-        AccountId, CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, LoginFailedPacket2,
-        LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
+        AccountId, CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, PacketExt,
+        RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
     };
 
     use crate::event::NetworkEventList;
-    use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion};
+    use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnknownPacketAction, unknown_packet_action};
 
     #[test]
     fn login_server() {
@@ -1639,7 +1723,7 @@ mod packet_handlers {
         // logic has to land exactly on the next (registered) packet header, otherwise
         // the login 0x010F skill list is lost (the original bug).
         let mut data = Vec::new();
-        data.extend_from_slice(&0x0B77u16.to_le_bytes());
+        data.extend_from_slice(&0x0FFFu16.to_le_bytes());
         data.extend_from_slice(&12u16.to_le_bytes());
         data.extend_from_slice(&[0u8; 8]); // payload
 
@@ -1648,11 +1732,14 @@ mod packet_handlers {
         data.extend_from_slice(&(4u16 + 37).to_le_bytes());
         data.extend_from_slice(&skill_data_2019(5, 1, 10, 8, 1, "Bash", 1));
 
-        let skipped_to = NetworkingSystem::skip_length_of_unknown_packet(&data, 0, &handler);
-        assert_eq!(skipped_to, Some(skill_list_start));
+        let skipped_to = match unknown_packet_action(&data, 0, &handler) {
+            UnknownPacketAction::Skip(length) => length,
+            action => panic!("expected the unknown packet to be skipped, got {action:?}"),
+        };
+        assert_eq!(skipped_to, skill_list_start);
 
         // The skill list itself is then parsed normally.
-        let mut reader = ByteReader::without_metadata(&data[skipped_to.unwrap()..]);
+        let mut reader = ByteReader::without_metadata(&data[skipped_to..]);
         let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
             panic!("skill list after the skipped packet was not handled");
         };
@@ -1696,10 +1783,7 @@ mod packet_handlers {
         let mut data = vec![0xFF, 0x0F, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8];
         data.extend_from_slice(&[0xB0, 0x00, 20, 0, 100, 0, 0, 0]);
 
-        assert_eq!(
-            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
-            Some(12)
-        );
+        assert_eq!(unknown_packet_action(&data, 0, &handler), UnknownPacketAction::Skip(12));
     }
 
     #[test]
@@ -1708,10 +1792,7 @@ mod packet_handlers {
 
         let data = vec![0xFF, 0x0F, 8, 0, 1, 2, 3, 4];
 
-        assert_eq!(
-            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
-            Some(8)
-        );
+        assert_eq!(unknown_packet_action(&data, 0, &handler), UnknownPacketAction::Skip(8));
     }
 
     /// Fixed-size packets have no length field, so bytes 2..4 are payload. The
@@ -1725,18 +1806,12 @@ mod packet_handlers {
         let mut data = vec![0xFF, 0x0F, 20, 0];
         data.extend_from_slice(&[0; 24]);
 
-        assert_eq!(
-            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
-            None
-        );
+        assert_eq!(unknown_packet_action(&data, 0, &handler), UnknownPacketAction::Discard);
 
         // A length below the minimum (4) is never accepted.
         let data = vec![0xFF, 0x0F, 3, 0, 1, 2, 3, 4, 5, 6, 7, 8];
 
-        assert_eq!(
-            NetworkingSystem::<NoPacketCallback>::skip_length_of_unknown_packet(&data, 0, &handler),
-            None
-        );
+        assert_eq!(unknown_packet_action(&data, 0, &handler), UnknownPacketAction::Discard);
     }
 
     /// rAthena sends these party packets during the map login burst of a
