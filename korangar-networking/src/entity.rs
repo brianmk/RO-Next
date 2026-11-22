@@ -53,6 +53,13 @@ pub struct EntityData {
     /// Dead/sit state of the idle-unit packet (`state`: 0 standing, 1 dead, 2
     /// sitting).
     pub dead_sit: u8,
+    /// Client-visible level (`c_level`) from the entity-appear packets.
+    ///
+    /// The 2019 server encodes levels >= `aura_lv` as 99 and the level below
+    /// it as 98 (`clif_setlevel`), which is what the official client uses to
+    /// decide whether to draw the level-99 aura. `0` for the local player
+    /// (its real base level comes from `CharacterInformation`).
+    pub c_level: u16,
 }
 
 impl EntityData {
@@ -86,6 +93,8 @@ impl EntityData {
             body_state: character_information.body_state as u16,
             health_state: character_information.health_state as u16,
             dead_sit: 0,
+            // The local player uses its real base level, not the encoded one.
+            c_level: 0,
         }
     }
 }
@@ -115,6 +124,7 @@ impl From<EntityAppearPacket> for EntityData {
             robe: packet.robe,
             effect_state: packet.effect_state,
             body_state: packet.body_state,
+            c_level: packet.c_level,
             health_state: packet.health_state,
             dead_sit: 0,
         }
@@ -147,6 +157,7 @@ impl From<EntityAppear2Packet> for EntityData {
             effect_state: packet.effect_state,
             body_state: packet.body_state,
             health_state: packet.health_state,
+            c_level: packet.c_level,
             // The idle-unit packet is the only appear packet that carries the
             // dead/sit state (0 = standing, 1 = dead, 2 = sitting).
             dead_sit: packet.state,
@@ -181,6 +192,7 @@ impl From<MovingEntityAppearPacket> for EntityData {
             robe: packet.robe,
             effect_state: packet.effect_state,
             body_state: packet.body_state,
+            c_level: packet.c_level,
             health_state: packet.health_state,
             dead_sit: 0,
         }
