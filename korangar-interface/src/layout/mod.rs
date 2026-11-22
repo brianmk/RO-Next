@@ -235,6 +235,10 @@ pub struct WindowLayout<'a, App: Application> {
     mouse_position: App::Position,
     focused_element: Option<ElementId>,
 
+    /// Whether the primary (left) mouse button is currently held down. Sliders
+    /// use this to follow a drag across frames.
+    primary_button_down: bool,
+
     use_secondary_color: bool,
 
     tooltips: Vec<Tooltip<'a>>,
@@ -265,6 +269,8 @@ impl<App: Application> Default for WindowLayout<'_, App> {
 
             mouse_position: App::Position::new(0.0, 0.0),
             focused_element: None,
+
+            primary_button_down: false,
 
             use_secondary_color: false,
 
@@ -308,6 +314,7 @@ impl<'a, App: Application> WindowLayout<'a, App> {
         interface_scaling: f32,
         window_position: App::Position,
         mouse_position: App::Position,
+        primary_button_down: bool,
         focused_element: Option<ElementId>,
         can_be_hovered: bool,
         mouse_mode: &'a MouseMode<App>,
@@ -319,6 +326,7 @@ impl<'a, App: Application> WindowLayout<'a, App> {
             (mouse_position.left() - self.window_position.left()) / interface_scaling + self.window_position.left(),
             (mouse_position.top() - self.window_position.top()) / interface_scaling + self.window_position.top(),
         );
+        self.primary_button_down = primary_button_down;
         self.focused_element = focused_element;
         self.is_hovered = false;
         self.can_be_hovered = can_be_hovered;
@@ -347,6 +355,14 @@ impl<'a, App: Application> WindowLayout<'a, App> {
 
     pub fn get_mouse_position(&self) -> App::Position {
         self.mouse_position
+    }
+
+    /// Whether the primary (left) mouse button is currently held down.
+    ///
+    /// Sliders use this during layout to update their value while the pointer
+    /// is dragged, including when the pointer leaves the slider area.
+    pub fn primary_button_down(&self) -> bool {
+        self.primary_button_down
     }
 
     pub fn get_mouse_mode(&self) -> &MouseMode<App> {

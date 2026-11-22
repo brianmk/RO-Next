@@ -5,6 +5,7 @@ use crate::components::button::ButtonTheme;
 use crate::components::collapsible::CollapsibleTheme;
 use crate::components::drop_down::DropDownTheme;
 use crate::components::field::FieldTheme;
+use crate::components::slider::SliderTheme;
 use crate::components::state_button::StateButtonTheme;
 use crate::components::text::TextTheme;
 use crate::components::text_box::TextBoxTheme;
@@ -43,6 +44,9 @@ pub trait ThemePathGetter<App: Application>: Copy {
 
     /// Path to the field theme.
     fn field(self) -> impl Path<App, FieldTheme<App>>;
+
+    /// Path to the slider theme.
+    fn slider(self) -> impl Path<App, SliderTheme<App>>;
 
     /// Path to the tooltip theme.
     fn tooltip(self) -> impl Path<App, TooltipTheme<App>>;

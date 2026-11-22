@@ -25,6 +25,7 @@ use korangar_interface::components::button::ButtonTheme;
 use korangar_interface::components::collapsible::CollapsibleTheme;
 use korangar_interface::components::drop_down::DropDownTheme;
 use korangar_interface::components::field::FieldTheme;
+use korangar_interface::components::slider::SliderTheme;
 use korangar_interface::components::state_button::StateButtonTheme;
 use korangar_interface::components::text::TextTheme;
 use korangar_interface::components::text_box::TextBoxTheme;
@@ -61,8 +62,7 @@ use crate::interface::windows::{ProfilerWindowState, ThemeInspectorWindowState};
 use crate::loaders::{ClientInfo, FontLoader, FontSize, GameFileLoader, OverflowBehavior, load_client_info};
 use crate::renderer::InterfaceRenderer;
 use crate::settings::{
-    AudioSettingsCapabilities, GameSettings, GraphicsSettingsCapabilities, InterfaceSettings, InterfaceSettingsCapabilities, LoginSettings,
-    ServiceSettings,
+    GameSettings, GraphicsSettingsCapabilities, InterfaceSettings, InterfaceSettingsCapabilities, LoginSettings, ServiceSettings,
 };
 use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
@@ -127,8 +127,6 @@ pub struct ClientState {
     login_settings: LoginSettings,
     /// Saved audio settings.
     audio_settings: AudioSettings,
-    /// Audio capabilities used in the audio settings window.
-    audio_settings_capabilities: AudioSettingsCapabilities,
     /// Saved game settings.
     game_settings: GameSettings,
     /// Saved interface settings.
@@ -324,7 +322,6 @@ impl ClientState {
         time_phase!("load settings", {
             let mut login_settings = LoginSettings::new();
             let audio_settings = AudioSettings::new();
-            let audio_settings_capabilities = AudioSettingsCapabilities::default();
             let game_settings = GameSettings::new();
             let interface_settings = InterfaceSettings::new();
             let mut interface_settings_capabilities = InterfaceSettingsCapabilities::default();
@@ -471,7 +468,6 @@ impl ClientState {
             localization,
             login_settings,
             audio_settings,
-            audio_settings_capabilities,
             game_settings,
             interface_settings,
             interface_settings_capabilities,
@@ -612,6 +608,10 @@ impl ThemePathGetter<ClientState> for ClientThemeGetter {
 
     fn drop_down(self) -> impl Path<ClientState, DropDownTheme<ClientState>> {
         ThemePath.drop_down()
+    }
+
+    fn slider(self) -> impl Path<ClientState, SliderTheme<ClientState>> {
+        ThemePath.slider()
     }
 
     fn field(self) -> impl Path<ClientState, FieldTheme<ClientState>> {

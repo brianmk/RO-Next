@@ -6,6 +6,7 @@ pub mod field;
 pub mod fragment;
 pub mod round_toggle;
 pub mod scroll_view;
+pub mod slider;
 pub mod split;
 pub mod state_button;
 pub mod tabs;

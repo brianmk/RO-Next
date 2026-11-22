@@ -797,6 +797,8 @@ pub struct Client {
     networking_system: NetworkingSystem<ClientPacketCallback>,
     audio_engine: Arc<AudioEngine<GameFileLoader>>,
     skill_sounds: SkillSoundPlayer,
+    active_master_volume: f32,
+    active_sound_effect_volume: f32,
     active_background_music_volume: f32,
     active_interface_settings: InterfaceSettings,
     active_graphics_settings: GraphicsSettings,
@@ -1277,12 +1279,29 @@ impl Client {
         let active_interface_settings = client_state.follow(crate::client_state().interface_settings()).clone();
 
         // The audio engine is created before the client state, so the saved
-        // background music volume can only be applied once the settings are
-        // loaded.
-        let active_background_music_volume = client_state
-            .follow(crate::client_state().audio_settings())
-            .effective_background_music_volume();
+        // volumes can only be applied once the settings are loaded.
+        let audio_settings = client_state.follow(crate::client_state().audio_settings());
+        let active_master_volume = audio_settings.master_volume_linear();
+        let active_sound_effect_volume = audio_settings.sound_effect_volume_linear();
+        let active_background_music_volume = audio_settings.background_music_track_volume();
+
+        audio_engine.set_main_volume(active_master_volume);
+        audio_engine.set_sound_effect_volume(active_sound_effect_volume);
+        audio_engine.set_spatial_sound_effect_volume(active_sound_effect_volume);
         audio_engine.set_background_music_volume(active_background_music_volume);
+
+        crate::logging::log_debug!(
+            "settings: applied saved audio volumes (master={:.2}, sound_effects={:.2}, background_music={:.2}, music_muted={}; effective \
+             master={:.2}, sound_effects={:.2}, spatial_sound_effects={:.2}, background_music={:.2})",
+            active_master_volume,
+            active_sound_effect_volume,
+            active_background_music_volume,
+            audio_settings.background_music_muted,
+            audio_settings.effective_master_volume(),
+            audio_settings.effective_sound_effect_volume(),
+            audio_settings.effective_spatial_sound_effect_volume(),
+            audio_settings.effective_background_music_volume(),
+        );
 
         interface.open_window(LoginWindow::new(
             crate::client_state().login_window(),
@@ -1393,6 +1412,8 @@ impl Client {
             networking_system,
             audio_engine,
             skill_sounds,
+            active_master_volume,
+            active_sound_effect_volume,
             active_background_music_volume,
             active_interface_settings,
             active_graphics_settings: graphics_settings,
@@ -1504,15 +1525,50 @@ impl Client {
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn update_settings(&mut self) {
         let graphics_settings = self.client_state.follow(client_state().graphics_settings());
+        let audio_settings = self.client_state.follow(client_state().audio_settings());
 
-        let background_music_volume = self
-            .client_state
-            .follow(client_state().audio_settings())
-            .effective_background_music_volume();
+        let master_volume = audio_settings.master_volume_linear();
+        let sound_effect_volume = audio_settings.sound_effect_volume_linear();
+        let background_music_volume = audio_settings.background_music_track_volume();
+
+        let mut audio_settings_changed = false;
+
+        if (self.active_master_volume - master_volume).abs() > f32::EPSILON {
+            self.audio_engine.set_main_volume(master_volume);
+            self.active_master_volume = master_volume;
+            audio_settings_changed = true;
+        }
+
+        if (self.active_sound_effect_volume - sound_effect_volume).abs() > f32::EPSILON {
+            self.audio_engine.set_sound_effect_volume(sound_effect_volume);
+            self.audio_engine.set_spatial_sound_effect_volume(sound_effect_volume);
+            self.active_sound_effect_volume = sound_effect_volume;
+            audio_settings_changed = true;
+        }
 
         if (self.active_background_music_volume - background_music_volume).abs() > f32::EPSILON {
             self.audio_engine.set_background_music_volume(background_music_volume);
             self.active_background_music_volume = background_music_volume;
+            audio_settings_changed = true;
+        }
+
+        if audio_settings_changed {
+            // Persist immediately so a volume change survives a crash or a
+            // forced exit, not only a clean logout (`Drop` saves as well).
+            audio_settings.save();
+
+            crate::logging::log_debug!(
+                "settings: audio volumes applied (master={:.2}, sound_effects={:.2}, background_music={:.2}, music_muted={}; effective \
+                 master={:.2}, sound_effects={:.2}, spatial_sound_effects={:.2}, background_music={:.2})",
+                master_volume,
+                sound_effect_volume,
+                background_music_volume,
+                audio_settings.background_music_muted,
+                audio_settings.effective_master_volume(),
+                audio_settings.effective_sound_effect_volume(),
+                audio_settings.effective_spatial_sound_effect_volume(),
+                audio_settings.effective_background_music_volume(),
+            );
         }
 
         if self.active_graphics_settings.vsync != graphics_settings.vsync {
@@ -5987,11 +6043,16 @@ impl Client {
                     )),
                 },
                 InputEvent::ToggleAudioSettingsWindow => match self.interface.is_window_with_class_open(WindowClass::AudioSettings) {
-                    true => self.interface.close_window_with_class(WindowClass::AudioSettings),
-                    false => self.interface.open_window(AudioSettingsWindow::new(
-                        client_state().audio_settings(),
-                        client_state().audio_settings_capabilities(),
-                    )),
+                    true => {
+                        // The volumes are saved on change already; save again on close so
+                        // the file is up to date even if the last change was not picked up
+                        // by `update_settings` yet.
+                        self.client_state.follow(client_state().audio_settings()).save();
+                        self.interface.close_window_with_class(WindowClass::AudioSettings);
+                    }
+                    false => self
+                        .interface
+                        .open_window(AudioSettingsWindow::new(client_state().audio_settings())),
                 },
                 InputEvent::ToggleMinimapWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
@@ -8171,9 +8232,12 @@ impl Client {
             let is_context_menu_open = self.interface.is_window_with_class_open(WindowClass::ContextMenu);
             let is_item_info_open = self.interface.is_window_with_class_open(WindowClass::ItemInfo);
 
-            let mut interface_frame = self
-                .interface
-                .lay_out_windows(&self.client_state, scaling.get_factor(), input_report.mouse_position);
+            let mut interface_frame = self.interface.lay_out_windows(
+                &self.client_state,
+                scaling.get_factor(),
+                input_report.mouse_position,
+                input_report.left_mouse_button_down,
+            );
 
             // We can only decide what to do with the user input once we know if the mouse
             // is hovering a window, so we buffer any actions for the next frame.
@@ -9034,6 +9098,7 @@ impl ApplicationHandler for Client {
         }
 
         if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
+            crate::logging::log_debug!("settings: audio focus mute disabled (window focused)");
             self.audio_engine.mute(false);
         }
 
@@ -9077,6 +9142,7 @@ impl ApplicationHandler for Client {
                 }
 
                 if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
+                    crate::logging::log_debug!("settings: audio focus mute (muted={})", !focused);
                     self.audio_engine.mute(!focused);
                 }
 
@@ -9172,6 +9238,7 @@ impl ApplicationHandler for Client {
         }
 
         if *self.client_state.follow(client_state().audio_settings().mute_on_focus_loss()) {
+            crate::logging::log_debug!("settings: audio focus mute (window suspended)");
             self.audio_engine.mute(true);
         }
 

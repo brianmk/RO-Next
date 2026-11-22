@@ -189,6 +189,10 @@ pub struct Localization {
     audio_settings_window_title: String,
     mute_audio_on_focus_loss_button_text: String,
     mute_background_music_button_text: String,
+    #[serde(default = "default_master_volume_text")]
+    master_volume_text: String,
+    #[serde(default = "default_sound_effect_volume_text")]
+    sound_effect_volume_text: String,
     background_music_volume_text: String,
     create_character_window_title: String,
     character_name_text: String,
@@ -500,6 +504,18 @@ fn default_chat_button_text() -> String {
 
 fn default_hotbar_transparency_button_tooltip() -> String {
     "Make the hotbar window background transparent".to_owned()
+}
+
+/// Default for language files that were written before the master volume
+/// slider existed.
+fn default_master_volume_text() -> String {
+    "Master".to_owned()
+}
+
+/// Default for language files that were written before the sound effect volume
+/// slider existed.
+fn default_sound_effect_volume_text() -> String {
+    "Sound effects".to_owned()
 }
 
 impl Localization {
