@@ -565,6 +565,11 @@ where
         self.mouse_mode = mouse_mode;
     }
 
+    /// The currently active mouse mode.
+    pub fn mouse_mode(&self) -> &MouseMode<App> {
+        &self.mouse_mode
+    }
+
     /// Show the window chrome (move grip and resize handles) on all windows,
     /// even when they are not hovered.
     pub fn set_window_chrome_visible(&mut self, window_chrome_visible: bool) {

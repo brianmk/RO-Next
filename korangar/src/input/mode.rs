@@ -21,6 +21,13 @@ pub enum MouseInputMode {
         source: ItemSource,
         item: InventoryItem<ResourceMetadata>,
     },
+    /// The player pressed the left mouse button on an item box. The actual drag
+    /// (`MoveItem`) only starts after the button has been held for a moment or
+    /// the mouse moved a few pixels, so a plain click never picks an item up.
+    PrepareItemDrag {
+        source: ItemSource,
+        item: InventoryItem<ResourceMetadata>,
+    },
     MoveSkill {
         source: SkillSource,
         skill: LearnableSkill,
@@ -63,6 +70,9 @@ pub trait MouseModeExt {
     fn grabbed(&self) -> Option<Grabbed>;
 
     fn skill_target(&self) -> Option<(Option<HotbarSlot>, SkillId, SkillType, SkillLevel)>;
+
+    /// Returns the item/source of a pending (not yet started) item drag.
+    fn prepare_item_drag(&self) -> Option<(ItemSource, InventoryItem<ResourceMetadata>)>;
 }
 
 impl MouseModeExt for MouseMode<ClientState> {
@@ -104,6 +114,15 @@ impl MouseModeExt for MouseMode<ClientState> {
                 skill.actions.clone()?,
                 skill.animation_state.clone(),
             )),
+            _ => None,
+        }
+    }
+
+    fn prepare_item_drag(&self) -> Option<(ItemSource, InventoryItem<ResourceMetadata>)> {
+        match self {
+            MouseMode::Custom {
+                mode: MouseInputMode::PrepareItemDrag { source, item },
+            } => Some((*source, item.clone())),
             _ => None,
         }
     }

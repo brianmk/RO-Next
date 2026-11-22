@@ -95,9 +95,13 @@ where
         // item.
         let item = state.try_get(&self.item_path).unwrap().clone();
 
+        // Do not start dragging immediately: a quick click on an item must not
+        // pick it up by accident. The client promotes this pending drag to a real
+        // `MoveItem` once the left button was held long enough or the mouse moved
+        // beyond a small threshold while it was held.
         queue.queue(Event::SetMouseMode {
             mouse_mode: MouseMode::Custom {
-                mode: MouseInputMode::MoveItem { item, source: self.source },
+                mode: MouseInputMode::PrepareItemDrag { item, source: self.source },
             },
         });
     }
