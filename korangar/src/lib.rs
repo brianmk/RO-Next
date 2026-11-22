@@ -59,7 +59,6 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use cgmath::{Point3, Vector3};
-use hashbrown::HashMap;
 use image::{EncodableLayout, ImageFormat, ImageReader};
 use input::{MouseInputMode, MouseModeExt};
 use korangar_audio::{AudioEngine, SoundEffectKey};
@@ -189,11 +188,6 @@ const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 /// Duration of the one-shot attack/pickup animation for instant skills, where
 /// the server sends no attack motion (the official client uses a 400 ms hold).
 const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
-/// Window in which the completion packet of instant skills is treated as the
-/// duplicate of the start-of-use sound (milliseconds).
-const CAST_SOUND_DEDUPE_MS: u32 = 1_000;
-/// Stale start-of-use sound entries are dropped after this age (milliseconds).
-const CAST_SOUND_DEDUPE_TIMEOUT_MS: u32 = 5_000;
 /// Skill id of the Sage/Scholar/Professor `Free Cast` passive (`SA_FREECAST`),
 /// which allows movement while casting.
 const FREE_CAST_SKILL_ID: SkillId = SkillId(278);
@@ -689,9 +683,11 @@ pub struct Client {
     level_99_aura_entities: HashSet<EntityId>,
 
     /// Skill sounds that were already played at the start of an *instant* skill
-    /// use, so the follow-up completion packet does not play the same sound a
-    /// second time. Keyed by entity id: (skill id, client tick).
-    recent_cast_sounds: HashMap<EntityId, (SkillId, ClientTick)>,
+    /// Decides when a skill sound plays: instant casts wait for their
+    /// completion/damage packet instead of playing a pre-cast sound when the
+    /// cast is only acknowledged, and duplicate completion packets are
+    /// collapsed (see [`SkillSoundGate`]).
+    skill_sound_gate: SkillSoundGate,
 
     map_window_cycle: MapWindowCycle,
 
@@ -1379,7 +1375,7 @@ impl Client {
             current_map_name: None,
             level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
             level_99_aura_entities: HashSet::new(),
-            recent_cast_sounds: HashMap::new(),
+            skill_sound_gate: SkillSoundGate::default(),
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
@@ -2426,7 +2422,7 @@ impl Client {
             return;
         }
 
-        let effect_entries: Vec<(&'static str, crate::world::EffectAnchor)> =
+        let effect_entries: Vec<(&'static str, crate::world::EffectAnchor, bool)> =
             crate::world::skill_effect_entries(skill_id, variant).collect();
         let procedural = crate::world::skill_procedural_effects(skill_id, variant);
         let sprite_effects = crate::world::skill_sprite_effects(skill_id, variant);
@@ -2445,7 +2441,31 @@ impl Client {
         // (`effectIdOnCaster`, e.g. Pierce) are not spawned at the damaged
         // target. Effects aimed at the target cell fall back to the caster when
         // the packet does not carry a position (no-damage self casts).
-        for (effect_path, anchor) in effect_entries {
+        for (effect_path, anchor, overhead) in effect_entries {
+            // Overhead buff completion effects (Blessing, Gloria, Status
+            // Recovery, Kyrie, ...) anchor above the entity's head; the height
+            // follows the entity scale and the sitting head height, so it is
+            // also correct for other players and sitting characters.
+            if overhead && let Some(overhead_height) = self.overhead_effect_height_for_entity(source_entity_id) {
+                crate::logging::log_debug!(
+                    "skill effect: spawned '{}' on entity {} for skill {} ({:?}, overhead height {:.1})",
+                    effect_path,
+                    source_entity_id.0,
+                    skill_id.0,
+                    variant,
+                    overhead_height
+                );
+                self.spawn_entity_effect(
+                    effect_path,
+                    source_entity_id,
+                    Vector3::new(0.0, overhead_height, 0.0),
+                    1.0,
+                    Color::WHITE,
+                    0.0,
+                );
+                continue;
+            }
+
             crate::logging::log_debug!(
                 "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?})",
                 effect_path,
@@ -2773,32 +2793,33 @@ impl Client {
         self.cast_bars.start(source_entity_id, skill_name, cast_time, client_tick);
     }
 
-    /// Plays the mapped skill sound once and remembers it for
-    /// [`Self::take_duplicate_cast_sound`].
+    /// Overhead anchor height of an entity for buff/completion effects.
     ///
-    /// The 2019 server sends `ZC_USESKILL_ACK` (0x0B1A) at the start of every
-    /// skill use *and* `ZC_USE_SKILL` (0x09CB) when the skill completes. For
-    /// instant skills both packets arrive almost at the same time, so the
-    /// completion handler de-duplicates the start sound instead of playing the
-    /// same wav twice.
-    fn play_cast_sound(&mut self, entity_id: EntityId, skill_id: SkillId, position: Option<cgmath::Point3<f32>>, client_tick: ClientTick) {
-        self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), position);
-        self.recent_cast_sounds
-            .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_DEDUPE_TIMEOUT_MS);
-        self.recent_cast_sounds.insert(entity_id, (skill_id, client_tick));
+    /// Uses the same head anchor as the skill-name label and the cast bar and
+    /// adds the overhead clearance (see
+    /// [`crate::world::overhead_effect_height`]).
+    fn overhead_effect_height_for_entity(&self, entity_id: EntityId) -> Option<f32> {
+        self.client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(crate::world::overhead_effect_height)
     }
 
-    /// Returns `true` (and forgets the entry) when the completion packet is the
-    /// duplicate of a sound that was already played for this skill use.
-    fn take_duplicate_cast_sound(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
-        match self.recent_cast_sounds.get(&entity_id) {
-            Some(&(started_skill_id, started_tick))
-                if started_skill_id == skill_id && client_tick.0.wrapping_sub(started_tick.0) < CAST_SOUND_DEDUPE_MS =>
-            {
-                self.recent_cast_sounds.remove(&entity_id);
-                true
-            }
-            _ => false,
+    /// Plays the official sound of a skill once its completion (or damage)
+    /// packet arrives.
+    ///
+    /// The play timing is decided by [`SkillSoundGate`]; this only forwards the
+    /// audible part so the gate stays unit-testable without audio.
+    fn play_completion_sound(
+        &mut self,
+        entity_id: EntityId,
+        skill_id: SkillId,
+        position: Option<cgmath::Point3<f32>>,
+        client_tick: ClientTick,
+    ) {
+        if self.skill_sound_gate.claim_completion(entity_id, skill_id, client_tick) {
+            self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), position);
         }
     }
 
@@ -3325,13 +3346,6 @@ impl Client {
                         );
                     }
 
-                    let source_position = self
-                        .client_state
-                        .follow(client_state().entities())
-                        .iter()
-                        .find(|entity| entity.get_entity_id() == source_entity_id)
-                        .map(|entity| entity.get_position());
-
                     if let Some(entity) = self
                         .client_state
                         .follow_mut(client_state().entities())
@@ -3402,15 +3416,17 @@ impl Client {
                         self.spawn_cast_circle(source_entity_id, visuals.cast_circle_color, circle_duration);
                     }
 
-                    // The 2019 server sends no sound packet for most ambient casts, so
-                    // play the mapped skill sound here. Skills with a cast time play
-                    // their sound once when the cast *completes* (the server sends the
-                    // completion packet then): playing it here as well made every cast
-                    // with a cast bar audible twice. Instant casts have no cast bar and
-                    // play their single sound now; the completion packet they also
-                    // receive is de-duplicated in `SkillNoDamage`.
+                    // The 2019 server sends no sound packet for most casts, so the
+                    // client plays the mapped skill sound itself — but only when the
+                    // skill actually completes, never when the cast is merely
+                    // acknowledged. A cast acknowledgment is sent *before* the skill
+                    // takes effect, so playing here would be heard as a casting
+                    // pre-sound instead of the skill's effect sound (e.g. Gloria).
+                    // Cast-time skills play at their completion packet below; for an
+                    // instant skill the completion/damage packet claims the sound in
+                    // `SkillNoDamage`/`DamageEffect`.
                     if !has_cast_time {
-                        self.play_cast_sound(source_entity_id, skill_id, source_position, client_tick);
+                        self.skill_sound_gate.remember_instant_cast(source_entity_id, skill_id, client_tick);
                     }
                 }
                 NetworkEvent::SkillNoDamage {
@@ -3534,12 +3550,12 @@ impl Client {
                         );
 
                         // Instant/self-buff casts (0x09CB) have no sound packet on
-                        // the 2019 server either. For an instant skill the start-of-use
-                        // packet already played this sound; do not play it twice.
-                        if !self.take_duplicate_cast_sound(source_entity_id, skill_id, client_tick) {
-                            self.skill_sounds
-                                .play_skill_sound(skill_id, Some(source_entity_id), source_position);
-                        }
+                        // the 2019 server either: play the mapped official sound once
+                        // the server confirms that the skill completed. Instant
+                        // skills claimed their cast here (the step above only
+                        // recorded the acknowledgment), cast-time skills play their
+                        // single sound now.
+                        self.play_completion_sound(source_entity_id, skill_id, source_position, client_tick);
                     }
 
                     // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill
@@ -3563,6 +3579,10 @@ impl Client {
                         self.cast_bars.clear();
                         self.skill_name_texts.remove_entity(entity_id);
                     }
+
+                    // A cancelled cast must never play its sound later: drop the
+                    // pending acknowledgement (instant cast) and the played marker.
+                    self.skill_sound_gate.clear_entity(entity_id);
 
                     if let Some(entity) = self
                         .client_state
@@ -3603,6 +3623,21 @@ impl Client {
                     let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
 
                     if let Some(effect) = &visuals.completion
+                        && effect.overhead
+                        && self
+                            .skill_completion_tracker
+                            .claim(entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
+                        && let Some(height) = self.overhead_effect_height_for_entity(entity_id)
+                    {
+                        self.spawn_entity_effect(
+                            effect.path,
+                            entity_id,
+                            Vector3::new(effect.offset.x, height, effect.offset.z),
+                            effect.scale,
+                            visuals.light.0,
+                            visuals.light.1,
+                        );
+                    } else if let Some(effect) = &visuals.completion
                         && let Some(world_position) = world_position
                         && self
                             .skill_completion_tracker
@@ -3625,9 +3660,9 @@ impl Client {
                         self.spawn_skill_effect_variants(skill_id, variant, entity_id, world_position, client_tick);
                     }
 
-                    if !self.take_duplicate_cast_sound(entity_id, skill_id, client_tick) {
-                        self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), world_position);
-                    }
+                    // Ground skills complete on this packet: play the mapped sound
+                    // once (instant ground casts claimed their acknowledgment above).
+                    self.play_completion_sound(entity_id, skill_id, world_position, client_tick);
                 }
                 NetworkEvent::PlaySound { name, account_id, .. } => {
                     let entity_id = EntityId(account_id.0);
@@ -3824,6 +3859,7 @@ impl Client {
                     // session machine arms the map-entry watchdog for this case.
                     self.session.begin_map_entry(Instant::now());
                     self.skill_sounds.clear();
+                    self.skill_sound_gate.clear();
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -3933,6 +3969,7 @@ impl Client {
                     self.skill_name_texts.remove_entity(entity_id);
                     self.cast_bars.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
+                    self.skill_sound_gate.clear_entity(entity_id);
                     self.client_state.follow_mut(client_state().spirit_orbs()).remove(entity_id);
 
                     let remove_outcome = self.entity_lifecycle.on_remove_entity(entity_id, &reason);
@@ -4171,6 +4208,7 @@ impl Client {
 
                     self.map = None;
                     self.skill_sounds.clear();
+                    self.skill_sound_gate.clear();
                     // The server closes the storage on a map change; close the UI
                     // and drop the transient list immediately so it can't go stale.
                     self.close_storage_window();
@@ -4353,6 +4391,24 @@ impl Client {
                         .iter()
                         .find(|entity| entity.get_entity_id() == destination_entity_id)
                         .map(|entity| entity.get_tile_position());
+
+                    // Instant damage skills (e.g. Bash, Magnum Break) send no
+                    // completion packet: their acknowledged cast waits for this hit
+                    // packet to play the official skill sound (so it is heard at the
+                    // impact, not as a pre-cast sound). Cast-time damage skills are
+                    // unchanged.
+                    if let Some(skill_id) = skill_id
+                        && self.skill_sound_gate.claim_damage_hit(source_entity_id, skill_id, client_tick)
+                    {
+                        let source_position = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| entity.get_position());
+                        self.skill_sounds
+                            .play_skill_sound(skill_id, Some(source_entity_id), source_position);
+                    }
 
                     // Skill damage attribution (`ZC_NOTIFY_SKILL`, 0x01DE): play
                     // the official release/hit effect at the damaged target and the

@@ -55,8 +55,16 @@ mod skill_ids {
 pub struct CompletionEffect {
     /// Effect file, relative to `data\texture\effect\`.
     pub path: &'static str,
-    /// Offset from the caster's feet in world units.
+    /// Offset from the caster's feet in world units (ignored when `overhead`).
     pub offset: Vector3<f32>,
+    /// Whether this is an overhead buff effect anchored above the entity's head
+    /// (see [`overhead_effect_height`]) instead of at the fixed `offset`.
+    ///
+    /// Buff/support effects (Blessing, Angelus, Increase AGI, Gloria, ...) have
+    /// to play over the character's head; anchoring them at the feet/torso made
+    /// them appear at about half character height. The overhead anchor scales
+    /// with the entity scale and follows the sitting head height.
+    pub overhead: bool,
     /// Size multiplier of the screen sprite (1.0 = original size from the
     /// file).
     pub scale: f32,
@@ -111,12 +119,37 @@ const ANGEL_EFFECT: &str = "efst_angel_fluttering\\angel_fluttering.str";
 /// Blessing-of-souls sparkles, used for Incagi.
 const BLESSING_OF_SOULS_EFFECT: &str = "efst_c_blessings_of_soul\\blessingsofsoul.str";
 
-/// Height of the angel above the feet in world units (just above the head).
-const ANGEL_HEIGHT: f32 = 18.0;
-/// Height of the Angelus ring above the feet.
-const BLESSING_ANGELS_HEIGHT: f32 = 16.0;
-/// Height of the torso sparkle effects.
-const TORSO_HEIGHT: f32 = 10.0;
+/// Head anchor height in world units for a standing character (the same anchor
+/// the skill-name label and the cast bar use). Multiplied by the entity scale.
+const HEAD_HEIGHT: f32 = 21.0;
+/// Head anchor height in world units for a sitting character.
+const SITTING_HEAD_HEIGHT: f32 = 12.0;
+/// Extra clearance above the head so an overhead buff effect clears the
+/// head/hair instead of overlapping it. Multiplied by the entity scale.
+const OVERHEAD_CLEARANCE: f32 = 8.0;
+
+/// Vertical anchor (above the feet, in world units) of an overhead buff or
+/// completion effect for an entity.
+///
+/// This is the single overhead anchor used by every buff/support completion
+/// effect: the skill-name/cast-bar head height (21 standing, 12 sitting) plus a
+/// fixed clearance, scaled by the entity's sprite scale. It therefore works for
+/// tall/small entities and for sitting characters, and for other players as
+/// well as the local player.
+pub fn overhead_effect_height(entity: &crate::world::Entity) -> f32 {
+    overhead_effect_height_for(entity.is_sitting(), entity.get_scale())
+}
+
+/// Pure version of [`overhead_effect_height`] (no entity needed,
+/// unit-testable).
+pub fn overhead_effect_height_for(is_sitting: bool, scale: f32) -> f32 {
+    let head_height = match is_sitting {
+        true => SITTING_HEAD_HEIGHT,
+        false => HEAD_HEIGHT,
+    };
+
+    (head_height + OVERHEAD_CLEARANCE) * scale
+}
 
 /// Yellow tint of the Monk/Champion cast effects (`ring_yellow` based).
 const YELLOW_AURA_COLOR: Color = Color::rgb_u8(255, 225, 90);
@@ -167,10 +200,13 @@ const FURY_RINGS_AURA: SkillAuraSpec = SkillAuraSpec {
 /// the expanding rings (`effectIdOnCaster: 261`).
 static FURY_INSTANT_AURAS: [SkillAuraSpec; 2] = [BEGIN_SPELL_AURA, FURY_RINGS_AURA];
 
-fn completion(path: &'static str, height: f32, scale: f32) -> Option<CompletionEffect> {
+/// An overhead buff completion effect: anchored above the entity's head with
+/// [`overhead_effect_height`] instead of at the feet.
+fn overhead_completion(path: &'static str, scale: f32) -> Option<CompletionEffect> {
     Some(CompletionEffect {
         path,
-        offset: Vector3::new(0.0, height, 0.0),
+        offset: Vector3::new(0.0, 0.0, 0.0),
+        overhead: true,
         scale,
     })
 }
@@ -194,9 +230,11 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         skill_ids::BS_HAMMERFALL => SkillVisuals {
             cast_circle_color: crate::world::element_color(element),
             completion: Some(CompletionEffect {
-                // The hammer slam itself (the effect texture is `hammer.bmp`).
+                // The hammer slam itself (the effect texture is `hammer.bmp`):
+                // a ground effect, kept at the feet.
                 path: HAMMERFALL_EFFECT,
                 offset: Vector3::new(0.0, 0.0, 0.0),
+                overhead: false,
                 scale: 1.2,
             }),
             cast_aura: None,
@@ -217,7 +255,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Blessing: the animated angel above the head is what players expect.
         skill_ids::AL_BLESSING => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(ANGEL_EFFECT, ANGEL_HEIGHT, 1.0),
+            completion: overhead_completion(ANGEL_EFFECT, 1.0),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -226,7 +264,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Angelus: ring of blessing angels around the character.
         skill_ids::AL_ANGELUS => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(ANGELUS_EFFECT, BLESSING_ANGELS_HEIGHT, 1.0),
+            completion: overhead_completion(ANGELUS_EFFECT, 1.0),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -235,7 +273,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Incagi: blessing-of-souls sparkles around the torso.
         skill_ids::AL_INCAGI => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(BLESSING_OF_SOULS_EFFECT, TORSO_HEIGHT, 0.9),
+            completion: overhead_completion(BLESSING_OF_SOULS_EFFECT, 0.9),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -244,7 +282,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Concentration: generic sparkles around the torso.
         skill_ids::AC_CONCENTRATION => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(CONCENTRATION_EFFECT, TORSO_HEIGHT, 0.9),
+            completion: overhead_completion(CONCENTRATION_EFFECT, 0.9),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -318,10 +356,7 @@ mod tests {
             "blessing should use the angel effect, got {}",
             effect.path
         );
-        assert!(
-            effect.offset.y > 10.0,
-            "the angel has to be anchored above the head, not at the feet"
-        );
+        assert!(effect.overhead, "the Blessing angel is an overhead buff effect");
         assert!(effect.scale >= 0.9);
     }
 
@@ -393,5 +428,24 @@ mod tests {
         assert!(visuals.instant_auras.iter().all(|aura| aura.texture_path.contains("ring_yellow")));
         assert_eq!(visuals.instant_auras[1].duplicates, 4);
         assert!(visuals.instant_auras[1].duplicate_delay_ms > 0);
+    }
+
+    #[test]
+    fn overhead_effect_height_is_above_the_head_and_scales() {
+        use super::{HEAD_HEIGHT, OVERHEAD_CLEARANCE, SITTING_HEAD_HEIGHT, overhead_effect_height_for};
+
+        // Standing characters: head anchor plus clearance, above the 21-unit head.
+        let standing = overhead_effect_height_for(false, 1.0);
+        assert!(standing > HEAD_HEIGHT, "overhead anchor must be above the head");
+        assert!((standing - (HEAD_HEIGHT + OVERHEAD_CLEARANCE)).abs() < f32::EPSILON);
+
+        // Sitting characters use the lower sitting head anchor.
+        let sitting = overhead_effect_height_for(true, 1.0);
+        assert!((sitting - (SITTING_HEAD_HEIGHT + OVERHEAD_CLEARANCE)).abs() < f32::EPSILON);
+        assert!(sitting < standing);
+
+        // Entity scale (large/small characters, status size changes) scales it.
+        let scaled = overhead_effect_height_for(false, 2.0);
+        assert!((scaled - 2.0 * standing).abs() < f32::EPSILON);
     }
 }
