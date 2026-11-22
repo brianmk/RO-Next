@@ -1,9 +1,9 @@
 //! Cast progress bar above the local player's head.
 //!
-//! The original client shows a small progress bar with the skill name while a
-//! skill with a cast time is being cast. This module renders that bar in screen
-//! space above the caster: outlined skill name plus remaining/total seconds,
-//! with a filled progress bar below it.
+//! A small green progress bar is drawn in screen space a bit above the caster
+//! while a skill with a cast time is being cast. The bar carries no text: the
+//! skill name and the remaining/total seconds were removed by request, so only
+//! the filled track is visible.
 //!
 //! Only the local player gets a cast bar (population shells cast constantly and
 //! must not fill the screen); the bar is driven by server-confirmed cast start
@@ -14,28 +14,28 @@ use cgmath::Vector3;
 use ragnarok_packets::{ClientTick, EntityId};
 
 use crate::graphics::{Color, ScreenPosition, ScreenSize};
-use crate::loaders::{FontSize, Scaling};
-use crate::renderer::{AlignHorizontal, GameInterfaceRenderer};
+use crate::loaders::Scaling;
+use crate::renderer::GameInterfaceRenderer;
 use crate::world::{Camera, Entity};
 
-/// Font size of the skill name line, in unscaled pixels.
-const CAST_BAR_FONT_SIZE: f32 = 13.0;
 /// Height of the progress bar, in unscaled pixels.
 const CAST_BAR_HEIGHT: f32 = 8.0;
-/// Minimum width of the progress bar, in unscaled pixels.
-const CAST_BAR_MINIMUM_WIDTH: f32 = 100.0;
-/// Vertical gap between the skill name text and the progress bar.
-const CAST_BAR_GAP: f32 = 2.0;
+/// Width of the progress bar, in unscaled pixels.
+///
+/// The bar used to grow with the skill-name text; without text it has a fixed
+/// width instead.
+const CAST_BAR_WIDTH: f32 = 120.0;
+/// Vertical offset of the bar above the head anchor, in unscaled pixels.
+///
+/// The bar used to sit directly on the head anchor (below the skill-name line);
+/// without the text line it is moved a bit higher by this amount.
+const CAST_BAR_HEAD_OFFSET: f32 = 16.0;
 /// Head anchor height in world units (same anchor as the overhead chat text).
 const CAST_BAR_HEAD_HEIGHT: f32 = 21.0;
 /// Head anchor height of a sitting character.
 const CAST_BAR_SITTING_HEAD_HEIGHT: f32 = 12.0;
 /// Background color of the progress bar.
 const CAST_BAR_BACKGROUND_COLOR: Color = Color::rgba(0.0, 0.0, 0.0, 0.55);
-/// Color of the skill name text.
-const CAST_BAR_TEXT_COLOR: Color = Color::rgba(1.0, 0.95, 0.82, 1.0);
-/// Outline of the skill name / timer text.
-const CAST_BAR_OUTLINE_COLOR: Color = Color::rgba(0.0, 0.0, 0.0, 0.9);
 
 /// An active cast of the local player.
 struct CastBar {
@@ -139,12 +139,8 @@ impl CastBars {
         }
 
         let progress = (age as f32 / bar.duration_ms as f32).clamp(0.0, 1.0);
-        // Only the skill name is shown; the remaining/total seconds used to be
-        // appended to this line and made it harder to read at a glance.
-        let text = bar.skill_name.as_str();
 
-        let text_size = renderer.measure_text(text, FontSize(CAST_BAR_FONT_SIZE));
-        let bar_width = text_size.width.max(CAST_BAR_MINIMUM_WIDTH * scaling_factor);
+        let bar_width = CAST_BAR_WIDTH * scaling_factor;
         let bar_height = CAST_BAR_HEIGHT * scaling_factor;
 
         let center = ScreenPosition {
@@ -152,13 +148,12 @@ impl CastBars {
             top: screen_position.y * screen_size.height,
         };
 
-        let text_position = ScreenPosition {
-            left: center.left - text_size.width / 2.0,
-            top: center.top - text_size.height - bar_height - CAST_BAR_GAP * scaling_factor,
-        };
+        // No text on the cast bar: the skill name and the remaining/total
+        // seconds were removed by request. The bar itself is moved slightly
+        // further above the head anchor.
         let bar_position = ScreenPosition {
             left: center.left - bar_width / 2.0,
-            top: text_position.top + text_size.height + CAST_BAR_GAP * scaling_factor,
+            top: center.top - CAST_BAR_HEAD_OFFSET * scaling_factor - bar_height,
         };
 
         renderer.render_rectangle(
@@ -191,15 +186,6 @@ impl CastBars {
             bar_width,
             bar_height,
             progress
-        );
-
-        renderer.render_outlined_text(
-            text,
-            text_position,
-            CAST_BAR_TEXT_COLOR,
-            CAST_BAR_OUTLINE_COLOR,
-            FontSize(CAST_BAR_FONT_SIZE),
-            AlignHorizontal::Left,
         );
     }
 }
