@@ -1,0 +1,55 @@
+# Official skill-effect assets absent from the CondaRO GRF archives
+#
+# Scope: every learnable pre-renewal skill (rAthena pre-re skill_tree union,
+# 457 skills) and the official effect layers / wavs referenced by the
+# extracted Windows-client facts (tools/windows_client_skill_effects.json + the
+# full layer table /tmp/EffectTable.js, which is the same RE dump the client data
+# is generated from).
+#
+# Checked against:
+#   /home/phantom/Games/ragnarok/CondaRO-linux/client/game/CondaRO.grf
+#   /home/phantom/Games/ragnarok/CondaRO-linux/client/game/data.grf
+#   /home/phantom/Games/ragnarok/CondaRO-linux/client/game/palettes.grf
+#   (653,299 file names indexed).
+#
+# A layer is listed when the official table names an asset and that exact file is
+# not present in any archive. For a template name (%d/%s) any matching file counts.
+
+== Official visual layers (.str / .spr / .tga / .bmp) absent from the GRFs ==
+
+- SPR: official file 'shockwave'; expected in GRF as (unresolved)
+  referenced by: skill 118 HT_SHOCKWAVE (effect 145)
+  missing: data\sprite\이팩트\shockwave.spr (+ .act)
+
+
+== Official sound files (`wav`) referenced by effect layers but absent from the GRFs ==
+
+- wav 'effect/_enemy_hit_wind1' (expected data\wav\effect\_enemy_hit_wind1.wav)
+  referenced by: skill 282 SA_LIGHTNINGLOADER (effect 257), skill 1019 SA_ELEMENTWIND (effect 257)
+
+- wav 'effect/bash3d' (expected data\wav\effect\bash3d.wav)
+  referenced by: skill 368 PA_SACRIFICE (effect 366)
+
+- wav 'effect/bash3d5' (expected data\wav\effect\bash3d5.wav)
+  referenced by: skill 518 GS_DUST (effect 628)
+
+
+== Informational: audio the extracted `windows_client_skill_sounds.json` lists although
+   the EffectTable layer itself has no active wav (commented-out `//wav:` alternates and
+   symbolic `*_sound` blocks merged into the preceding numeric effect). ==
+
+- skill 16 MG_STONECURSE: extracted=['_stonecurse'] layer-derived=[]
+- skill 52 TF_POISON: extracted=['effect/assasin_enchantpoison', 'effect/ef_detoxication'] layer-derived=['effect/ef_detoxication']
+- skill 53 TF_DETOXIFY: extracted=['effect/assasin_enchantpoison', 'effect/ef_detoxication'] layer-derived=['effect/ef_detoxication']
+- skill 57 KN_BRANDISHSPEAR: extracted=['effect/hunter_shockwavetrap', 'effect/knight_brandish_spear'] layer-derived=['effect/knight_brandish_spear']
+- skill 136 AS_SONICBLOW: extracted=['effect/assasin_sonicblow', 'effect/ef_stonecurse'] layer-derived=['effect/ef_stonecurse']
+- skill 138 AS_ENCHANTPOISON: extracted=['effect/assasin_enchantpoison', 'effect/ef_detoxication'] layer-derived=['effect/ef_detoxication']
+- skill 142 NV_FIRSTAID: extracted=['_heal_effect', 'effect/hyper_novice/hn_breakinglimit', 'effect/hyper_novice/hn_double_bowlingbash', 'effect/hyper_novice/hn_ground_gravitation', 'effect/hyper_novice/hn_jack_frost_nova', 'effect/hyper_novice/hn_mega_sonic_blow', 'effect/hyper_novice/hn_meteor_storm_buster', 'effect/hyper_novice/hn_napalm_vulcan_strike', 'effect/hyper_novice/hn_overcoming_crisis', 'effect/hyper_novice/hn_rulebreak', 'effect/hyper_novice/hn_shield_chain_rush', 'effect/hyper_novice/hn_spiral_pierce_max'] layer-derived=['_heal_effect']
+- skill 378 ASC_EDP: extracted=['effect/assasin_cloaking', 'effect/ef_beginspell', 'effect/spirit_handler/sh_blessing_of_mystical_creatures', 'effect/spirit_handler/sh_chul_ho_battering', 'effect/spirit_handler/sh_chul_ho_sonic_claw', 'effect/spirit_handler/sh_colors_of_hyun_rok', 'effect/spirit_handler/sh_hogogong_strike', 'effect/spirit_handler/sh_howling_of_chul_ho', 'effect/spirit_handler/sh_hyun_rok_cannon', 'effect/spirit_handler/sh_hyun_rok_spirit_power', 'effect/spirit_handler/sh_hyun_roks_breeze', 'effect/spirit_handler/sh_ki_sul_rampage', 'effect/spirit_handler/sh_ki_sul_water_spraying', 'effect/spirit_handler/sh_marine_festival_of_ki_sul', 'effect/spirit_handler/sh_sandy_festival_of_ki_sul', 'effect/spirit_handler/sh_temporary_communion'] layer-derived=['effect/assasin_cloaking']
+
+
+== Note: current client data rows ==
+
+No current client mapping row (skill_effect_assets.ron / skill_sprite_effects.ron /
+skill_procedural_effects.ron) referenced by a learnable skill points at a missing
+asset: the generators already drop rows whose file is not in the archives.
