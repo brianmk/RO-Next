@@ -6,10 +6,13 @@
 (single multi-layer skill effect pipeline, 436 phases/603 layers)*. HEAD advanced twice during
 the audit: `1844a09d` (Assumptio aura/icon) and then **`4005da9e32a2e65ff8a906259f911afddb20f0c0`**,
 the merge of `feat/weapon-centralization` (`f85b1433` code+data+tests, `c8fceff7` report).
-**All citations in this revision were re-verified against `4005da9e`** and the weapon
+**All citations in this revision were re-verified against that tree** — the integration HEAD
+then advanced to `bf53400b` ("Merge branch 'feat/weapon-centralization' …"), whose tree is
+identical apart from re-committing this report, so the line numbers hold. The weapon
 centralization is now described as landed (§4.2), not in progress. The report itself was first
-committed as `85dc53cb docs: client hardcoded-systems audit report`; this revision supersedes it.
-HEAD may advance again after this pin — check `git log -1` before relying on line numbers.
+committed as `85dc53cb`; **this revision was written on top of `bf53400b` and may still be
+uncommitted** in the working tree when you read it. HEAD may advance again after this pin —
+check `git log -1` before relying on line numbers.
 **Mode:** read-only investigation. No code changes, no Wine, no user characters, no game sessions.
 **Date:** 2026-11-22
 **Companion lanes:** `skill-pipeline` (`notes/korangar-skill-effect-pipeline.md`), `skill-data`
@@ -103,7 +106,7 @@ complete example.
 | --- | --- | --- | --- |
 | extracted facts | `tools/windows_client_*.json`, `tools/skill_effects_official.json`, `tools/rathena_pre_re_learnable_skills.json` | `tools/rathena_pre_re_weapon_items.json` (707 weapons from rAthena `db/pre-re/item_db_equip.yml` + `pc.hpp` enums) + `tools/weapon_client_assets.json` (GRF scan: 245 per-job weapon families, projectile sprites), extracted by `tools/extract_weapon_items.py` / `extract_weapon_client_assets.py` | committed facts JSON, produced offline from the actual server/client data |
 | generator + drift guard | `tools/gen_skill_effects.py --check` (merges official rows + `tools/skill_effects_custom.ron` + legacy per-kind tables) | `tools/gen_weapons.py --check`, invariants in `tools/test_gen_weapons.py` (12 tests) | `tools/gen_<system>.py --check`, refuses to drift in CI |
-| runtime data file | `korangar/archive/data/client/skill_effects.ron` (3325 lines, `provenance` + `version` + sorted table) | `korangar/archive/data/client/weapons.ron` (381 lines: provenance/version, `paths`, `sex_suffix`, `fallbacks`, 30 `server_types`, 30 `kinds`, 47 `item_ranges`, 2 `item_views`, `projectiles`) | `data\client\<system>.ron`, served overridable from the archive |
+| runtime data file | `korangar/archive/data/client/skill_effects.ron` (3325 lines, `provenance` + `version` + sorted table) | `korangar/archive/data/client/weapons.ron` (381 lines: provenance/version, `paths`, `sex_suffix`, `fallbacks`, 30 `server_types`, 30 `kinds`, 47 `item_ranges`, an empty `item_views` table reserved for explicit item `View:` overrides, `projectiles`) | `data\client\<system>.ron`, served overridable from the archive |
 | loader | `world/library/skill_effects.rs`: `DATA_PATH`, `FALLBACK = include_str!(…)`, `OnceLock` archive copy with compiled fallback, binary search, `deny_unknown_fields` | `world/weapon.rs` (`DATA_PATH:73`, `FALLBACK:75`, `load:610`): `profile:642`, `part_candidates:662`, `projectile:729`, `projectile_for_weapon:737`, `animation_is_drawable:752` | one module + one API, no match arms at call sites |
 | validation | `korangar --check-skill-effects [PATH]`, malformed/unknown-field rejection, sorted/unique tests, compiled-fallback-valid test | 11 weapon unit tests + 12 generator/facts tests + fmt/clippy/release green (lane report §verification) | `--check-<system>`, exit 1 on schema error |
 | call-site consolidation | one `spawn_skill_effect_phase` used by every packet handler; old loaders deleted | one `request_weapon_animation` helper (`lib.rs:10473`) replaces the load blocks; networking `ZC_SPRITE_CHANGE` Weapon/Shield/Robe now routed (`version_20220406.rs:717`, `event.rs:449`) | exactly one entry point per subsystem |
@@ -132,7 +135,7 @@ Current runtime data-file loaders: **4** —
 
 ---
 
-## 4. Top 10 highest-risk hardcoded systems
+## 4. Top 10 highest-risk hardcoded systems (4.2 is now largely resolved by the merged weapon registry)
 
 ### 4.1 Entity appearance: job→sprite/palette/hair tables (P1, largest remaining)
 `korangar/src/world/entity/mod.rs`
@@ -427,10 +430,12 @@ paths have moved to `weapons.ron` (4045 merged).
 * animation action indices (`world/animation/mod.rs:45-65`) are the ACT **format** enum —
   acceptable.
 * Remaining hardcodes are the ones in §4.6/§4.3: skill behaviour flags, status auras,
-  procedural effect assets, falcon/arrow candidates, curated SKILL_SOUNDS.
+  procedural effect assets, the falcon companion candidates, and curated `SKILL_SOUNDS`.
+  Arrow/projectile asset lists are now data (`weapons.ron`), not Rust.
 
 ### 6.2 Entities / jobs / classes
-Everything in §4.1/4.2. Also checked and **clean/data-driven**:
+Everything in §4.1/4.2. The **weapon** half is now data-driven (merged §4.2); the remaining
+hardcodes are the job/appearance stems (§4.1). Also checked and **clean/data-driven**:
 `world/library/job_identity.rs` (`jobidentity.lub`), `baby_job.rs` (`JTtbl`),
 `monster_sprite.rs` (GRF-verified fallback chain, generated alias table),
 `accessory_name.rs` (`accname.lub`/`accessoryid.lub`), `world/entity` NPC/warp handling
@@ -438,8 +443,9 @@ Everything in §4.1/4.2. Also checked and **clean/data-driven**:
 `world/particles` (only quest icon hardcode), `state/minimap` markers are procedurally
 generated (documented) — acceptable.
 **Headgear rendering** uses the data-driven `accname.lub` table + one path template; headgear
-*view logic* (upper/middle/lower ordering, dedupe) is in `entity/mod.rs:604-635` and is
-behaviour, fine to keep.
+*view logic* (upper/middle/lower ordering, dedupe) is in `entity/mod.rs:576-605` and is
+behaviour, fine to keep. Shield/robe view ids are plumbed (networking → `AppearanceChanged` →
+`apply_sprite_change`) but the layers still need rendering.
 
 ### 6.3 Items / equipment
 * names/descriptions/cards/resources: archive data — good (`item_name.rs`,
@@ -449,7 +455,8 @@ behaviour, fine to keep.
   ranges. `world/item_details.rs` card slot logic is generic.
 * the hardcodes are the Korean stat parser (§4.3), item category/use switch (§4.8), and the
   duplicated `item_type` constants.
-* weapon item ids/ranges: weapon lane owns them; do not add an item view-id table here.
+* weapon item ids/ranges: **done** — `data\client\weapons.ron` (30 kinds / 47 id ranges /
+  707 ids / `item_views`); the item layer only needs the generic item facts (§8 Phase 2).
 
 ### 6.4 Status effects
 §4.7. Names/icons generated (content OK), semantics/aura hardcoded. No buff/debuff category
@@ -490,7 +497,10 @@ data exists — if the UI is to group buffs vs debuffs, that is a new data file,
 * documented bespoke interpretations exist but are localized and commented:
   direction nibble decode (`version_20220406.rs:471-487`), heal packet without entity id
   (`1076-1082`), state change 0x0229 (`1132-1140`) — acceptable.
-* the only networking liability is the 26 English login-failure strings (§4.4) and the
+* `ZC_SPRITE_CHANGE` Weapon/Shield/Robe is no longer dropped: the weapon merge routes it to
+  `NetworkEvent::AppearanceChanged` (`version_20220406.rs:717`, `event.rs:449`) and
+  `apply_sprite_change` updates the weapon layer live — a networking→render improvement.
+* the only networking liabilities are the 26 English login-failure strings (§4.4) and the
   duplicated item-type constants (§4.8).
 
 ### 6.8 Audio
@@ -522,6 +532,7 @@ data exists — if the UI is to group buffs vs debuffs, that is a new data file,
 | `korangar/archive/data/client/skill_effects.ron` | 436 phases / 603 layers | `tools/gen_skill_effects.py --check`; `--check-skill-effects` CLI; tests | **OK** |
 | `korangar/archive/data/client/skill_actions.ron` | 205 | `tools/gen_skill_actions.py --check`, include_str fallback, archive override | **OK** |
 | `korangar/archive/data/client/skill_sounds.ron` | 369 | `tools/gen_skill_sounds.py --check`, GRF-verified wavs | **OK** |
+| `korangar/archive/data/client/weapons.ron` | 381 lines; 30 kinds / 30 server types / 47 id ranges / 707 ids / Arrow projectile | `tools/gen_weapons.py --check`, `tools/test_gen_weapons.py` (12 tests), facts `rathena_pre_re_weapon_items.json` + `weapon_client_assets.json`, include_str fallback + archive override, 11 module tests; **merged `4005da9e`** | **OK** |
 | `world/library/skill_delays.rs` | 560 rows | `@generated by tools/gen_skill_delays.py` from pre-re `skill_db.yml`, `--check` | **OK (P3: not archive-overridable)** |
 | `world/library/skill_icon_alias.rs` | 241 | generated from GRF file probe; header documents categories | OK content, **generator untracked (P2)** |
 | `world/library/monster_sprite_alias.rs` | 232 | generated from GRF probe (all 1008 mob ids verified) | OK content, generator untracked |
@@ -548,7 +559,7 @@ Principle: **no new bespoke table in Rust**. Every phase produces the same five 
 facts JSON → generator with `--check` → `data\client\<system>.ron` (provenance + version +
 sorted) → loader with `include_str!` fallback + archive override + schema validation →
 `--check-<system>` CLI + tests + a short `notes/` report. Phases are ordered so the P0/CI work
-and the in-flight weapon lane are not disturbed.
+is not disturbed and the merged weapon registry (Phase 1a) is the template.
 
 ### Phase 0 — restore gates and stop the localization bleed (P0, ~1–2 days, no game data change)
 1. **Token ratchet**: migrate the 29/16 literals to `state/theme/tokens.rs`
@@ -567,26 +578,31 @@ and the in-flight weapon lane are not disturbed.
 
 **Acceptance:** all gates green; zero new hardcoded UI literals; no behaviour change.
 
-### Phase 1 — finish weapon centralization + entity appearance data (P1, ~1 week)
-Owner: `weapon-centralize` lane, with an appearance follow-up.
-1. Land `data\client\weapons.ron` + `world/weapon.rs` + `gen_weapons.py --check` +
-   `--check-weapons` CLI (per the lane's design; facts extractor already written).
-2. Route all five weapon-animation load sites + `Entity::set_attack` action/sound +
-   arrow/bow logic through the registry; delete `BOW_ITEM_VIEW_RANGE`, `WEAPON_TYPE_BOW`,
-   `is_bow_weapon`, `weapon_suffix_candidates`, `player_weapon_part_candidates`, arrow
-   `CANDIDATES`, and the `Attack` TODO.
-3. Add shield/robe profiles to the same data file and render them (closes the dead
-   `shield`/`robe` fields).
-4. New `data\client\jobs.ron` + `--check-jobs` merging `job_alias` data: job id → sprite stem,
+### Phase 1a — weapon centralization (DONE, merged `4005da9e`)
+`world/weapon.rs` + `data\client\weapons.ron` + `tools/gen_weapons.py --check` +
+`tools/test_gen_weapons.py` landed; the 22-arm suffix table, bow range/`W_BOW`, arrow
+`CANDIDATES`, five duplicated weapon-animation load blocks and dropped `ZC_SPRITE_CHANGE`
+Weapon/Shield/Robe packets are gone (verified by grep on the merged tree). The only residual
+weapon item is the auto-attack sound TODO (`entity/mod.rs:1046–1050`); the attack action is
+intentionally weapon-independent. **Do not redo this work; use it as the template.**
+
+### Phase 1b — entity appearance / job data (P1, ~1 week, next)
+Owner: an appearance follow-up lane (does not overlap weapons).
+1. New `data\client\jobs.ron` + `--check-jobs` merging `job_alias` data: job id → sprite stem,
    palette stem, sex suffixes, entity type, baby/transcendent flags, scale. Generator merges
    client `jobidentity`/GRF probe facts + rAthena `job_db`; delete the 146-arm match, hair
    arrays, palette overrides and `BABY_JOB_SCALE` magic.
-5. Move headgear path construction to a shared appearance helper; keep `accname.lub` names.
-6. Extend the appearance probe test (currently the ignored `job_audit` test) into a CI
-   `--check-appearance` that validates every job/weapon/shield sprite exists in the archive.
+2. Add shield/robe profiles (view id → part candidates) to the appearance/weapon data and
+   render the layers (closes `entity/mod.rs:255–259`); route headgear through the same
+   appearance path helper (`library/mod.rs:264–284`, keep `accname.lub` names).
+3. Extend the appearance probe test (currently the ignored `job_audit` test) into a CI
+   `--check-appearance` that validates every job/weapon/shield/robe sprite exists in the
+   archive, and a generator `--check` for `jobs.ron`.
+4. Add the auto-attack weapon sound via a `attack_sound` field in `weapons.ron`.
 
-**Acceptance:** one registry API per subsystem; no per-job match arms; `--check-*` green; the
-existing job audit test no longer needs to skip 4th/expanded jobs.
+**Acceptance:** no per-job match arms in `entity/mod.rs`; `world/weapon.rs` no longer imports
+`get_sprite_path_for_player_job`; shield/robe visible in world; `--check-*` green; the existing
+job audit test no longer needs to skip 4th/expanded jobs.
 
 ### Phase 2 — item facts and stats (P1, ~1 week)
 1. `tools/extract_item_facts.py` → committed JSON from rAthena `item_db_equip.yml`/`item_db.yml`
@@ -646,10 +662,11 @@ still render with the committed defaults.
 * Document, don't migrate: protocol enums/lengths, chat/party/hotbar protocol limits.
 
 ### Suggested sequencing / parallelization
-* **Now (parallel safe):** Phase 0 (UI team), Phase 1 (weapon lane owns appearance tables),
-  Phase 2 extractor/generator (items) — disjoint files.
-* **After Phase 1:** Phase 3 (status) and Phase 4 (skill behaviour) both consume `jobs.ron`
-  flags, so sequence 4 after 1 if possible.
+* **Done:** Phase 1a (weapon registry, merged `4005da9e`).
+* **Now (parallel safe):** Phase 0 (UI team), Phase 1b (appearance/job lane), Phase 2
+  extractor/generator (items) — disjoint files.
+* **After Phase 1b:** Phase 3 (status) and Phase 4 (skill behaviour) both consume `jobs.ron`
+  flags, so sequence 4 after 1b if possible.
 * **Last:** Phase 5/6 polish, and commit the five missing alias generators early (cheap, P2).
 
 ---
@@ -660,8 +677,12 @@ still render with the committed defaults.
   `ragnarok-formats`, `mixcrypt`, ACT/SPR/RSW/GND parsing, packet structs, `EquipPosition`,
   hotbar 4×38, chat 80, party 12). They are generated/contract-tested and must match the wire
   or file formats. The only cleanup there is deduplicating the item-type enum.
-* **Do not re-audit** the skill-effect pipeline or its data; the remaining skill work is
-  behavioural flags (Phase 4) and status auras (Phase 3), both additive.
+* **Do not re-audit** the skill-effect pipeline, its data, or the merged weapon registry/
+  `weapons.ron`; the remaining skill work is behavioural flags (Phase 4) and status auras
+  (Phase 3), both additive. The residual appearance work is §4.1/4.2/Phase 1b.
+* **Tree pin:** citations were verified at `4005da9e` (merge of `feat/weapon-centralization`).
+  The report was first committed at `85dc53cb` and is updated here; if HEAD moved after this
+  revision, re-check `git log -1` and expect small line shifts in `lib.rs`/`entity/mod.rs`.
 * **Avoid raising the token budget**: `scripts/ui-token-budget.sh --update` refuses raises by
   design; the 23→28 bump in `818ab3e1` is the reason the gate is red now.
 * **Careful with archive overrides**: the `include_str!` + `OnceLock` loader pattern logs and
@@ -680,8 +701,17 @@ still render with the committed defaults.
 ## 10. Appendix — how the numbers were produced
 
 ```bash
-# HEAD
+# HEAD pinned for this revision (audit start 935c3ecd; weapon merge 4005da9e)
 git log -1 --format='%H %s'
+git log --oneline -5
+# weapon centralization landed (merged into integration)
+git merge-base --is-ancestor f85b1433a44edc788c4603bf032da88c36203039 HEAD && echo merged
+rg -n 'weapon_suffix_candidates|BOW_ITEM_VIEW_RANGE|WEAPON_TYPE_BOW|is_bow_weapon|arrow_assets_failed' \
+   --include='*.rs' korangar/src korangar-networking/src   # expected: no output
+rg -n 'request_weapon_animation|projectile_for_weapon|weapons.ron' korangar/src/lib.rs korangar/src/world/weapon.rs
+# weapon data drift + generator invariants
+python3 tools/gen_weapons.py --check
+python3 tools/test_gen_weapons.py
 # interface style tokens (CI gate)
 ./scripts/ui-token-budget.sh            # exit 1 at HEAD: colors 29 > 28, FontSize 16 > 12
 ./scripts/ui-token-budget.sh --report
@@ -697,8 +727,9 @@ rg -n '^\s+(\d+|0x[0-9A-Fa-f]+)\s*(\||=>)' korangar/src
 rg -c 'SkillDelayRow \{' korangar/src/world/library/skill_delays.rs          # 560
 rg -c 'kind: ' korangar/archive/data/client/skill_effects.ron               # 603
 rg -c 'skill: ' korangar/archive/data/client/skill_effects.ron              # 436
-# runtime data-file loaders (the only three today)
+# runtime data-file loaders (4 after the weapon merge)
 rg -l 'include_str!\("../../../archive/data/client' korangar/src
+#   skill_effects.rs, skill_actions.rs, skill_sounds.rs, world/weapon.rs
 # legacy RON runtime usage (none)
 rg -n 'skill_effect_assets.ron|skill_sprite_effects.ron|skill_procedural_effects.ron' --include='*.rs' korangar/src
 # localization literal scan, replicating tests/ui_consistency.rs rules
@@ -711,9 +742,11 @@ EOF
 Key verification artifacts referenced above:
 `notes/korangar-skill-effect-pipeline.md` (pipeline pattern + verification),
 `notes/skill-effects-official-data.md` (official effect rows),
-`tools/gen_skill_effects.py` (merge + `--check` + `--validate-assets`),
-`korangar/src/world/library/skill_effects.rs` (loader/schema/placement),
-`/home/phantom/korangar-weapon-central` (`feat/weapon-centralization`: extractor + facts JSON
-already written, `weapons.ron`/`world/weapon.rs` pending).
+`notes/korangar-weapon-centralization.md` + `notes/korangar-weapon-centralization-evidence/`
+(weapon design, provenance, in-client evidence),
+`tools/gen_skill_effects.py` / `tools/gen_weapons.py` (generator + `--check`),
+`korangar/src/world/library/skill_effects.rs` / `korangar/src/world/weapon.rs`
+(loader/schema/placement), and the committed facts JSONs under `tools/`.
 
-*End of audit — read-only; no source files were modified. The only file added is this report.*
+*End of audit — read-only; no source files were modified by this audit. This report was first
+committed as `85dc53cb` and is updated here for the merged weapon centralization (`4005da9e`).*
