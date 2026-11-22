@@ -7,6 +7,7 @@ mod item_info;
 mod item_name;
 mod item_resource;
 mod item_stats;
+mod item_stats_fallback;
 pub(crate) mod job_alias;
 #[cfg(test)]
 mod job_audit;
@@ -43,6 +44,10 @@ pub use self::item_info::ItemInfo;
 pub use self::item_name::ItemName;
 pub use self::item_resource::{ItemResource, ItemResourceKey};
 pub use self::item_stats::{ItemStats, StatBonuses};
+pub(crate) use self::item_stats::{
+    ItemStatsSource, load as load_item_stats, resolve as resolve_item_stats, slot_count as item_stats_slot_count,
+    validate as validate_item_stats_data, validate_compiled as validate_compiled_item_stats,
+};
 pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 use self::monster_sprite::MonsterSprites;
@@ -80,6 +85,9 @@ pub struct Library {
 impl Library {
     pub fn new(game_file_loader: &GameFileLoader) -> mlua::Result<Self> {
         let job_identity_table = JobIdentity::load(game_file_loader)?;
+        // The item info table resolves the stats of every item from the item
+        // database data, so the data file has to be loaded first.
+        load_item_stats(game_file_loader);
         let item_info_table = ItemInfo::load(game_file_loader)?;
         let item_display_names = ItemDisplayNames::load(game_file_loader, &item_info_table);
         let map_sky_data_table = MapSkyData::load(game_file_loader)?;

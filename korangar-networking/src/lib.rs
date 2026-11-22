@@ -4,6 +4,7 @@
 mod entity;
 mod event;
 mod hotkey;
+pub mod item_type;
 mod items;
 mod message;
 mod packet_versions;
