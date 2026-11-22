@@ -277,12 +277,21 @@ impl SkillSoundPlayer {
         self.play(&wav, Some(entity_id), position);
     }
 
-    /// Plays the sound of a skill cast.
+    /// Plays the official sound of a skill phase.
     ///
-    /// The 2019 server sends no sound packet for ambient casts, so the cast
-    /// handlers call this with the caster entity and its position.
-    pub fn play_skill_sound(&self, skill_id: SkillId, entity_id: Option<EntityId>, position: Option<Point3<f32>>) {
-        let Some(wav) = self.first_existing(skill_sound_candidates(skill_id)) else {
+    /// The candidate priority is the same as [`Self::play_skill_sound`], but
+    /// the per-layer `wav` of the unified skill effect descriptors of
+    /// `phase` comes before the generated per-skill table (so the official
+    /// effect sound wins for the phase it belongs to; the hand-curated
+    /// [`SKILL_SOUNDS`] entries still override everything).
+    pub fn play_skill_sound_for_phase(
+        &self,
+        skill_id: SkillId,
+        phase: crate::world::SkillPhase,
+        entity_id: Option<EntityId>,
+        position: Option<Point3<f32>>,
+    ) {
+        let Some(wav) = self.first_existing(skill_sound_candidates_for(skill_id, phase)) else {
             return;
         };
 
@@ -457,19 +466,23 @@ impl SkillSoundPlayer {
     }
 }
 
-/// Returns the wav candidates of `skill_id` in play priority order.
+/// Returns the wav candidates of `skill_id` for one spawn phase.
 ///
-/// 1. the hand-curated, verified entries of [SKILL_SOUNDS] (these override the
-///    generated table so the classic casts keep their verified wav),
-/// 2. the official per-skill sound from `archive/data/client/skill_sounds.ron`,
-/// 3. the generic cast sound.
-pub(crate) fn skill_sound_candidates(skill_id: SkillId) -> &'static [&'static str] {
-    SKILL_SOUNDS
-        .iter()
-        .find(|(id, _)| SkillId(*id) == skill_id)
-        .map(|(_, candidates)| *candidates)
-        .or_else(|| crate::world::skill_sound_files(skill_id))
-        .unwrap_or(GENERIC_CAST_SOUND)
+/// 1. the hand-curated, verified entries of [SKILL_SOUNDS],
+/// 2. the `wav` of the unified skill effect descriptor layers of the phase,
+/// 3. the official per-skill sound of `archive/data/client/skill_sounds.ron`,
+/// 4. the generic cast sound.
+pub(crate) fn skill_sound_candidates_for(skill_id: SkillId, phase: crate::world::SkillPhase) -> &'static [&'static str] {
+    if let Some((_, candidates)) = SKILL_SOUNDS.iter().find(|(id, _)| SkillId(*id) == skill_id) {
+        return candidates;
+    }
+
+    let effect_sounds = crate::world::skill_effect_sound_files(skill_id, phase);
+    if !effect_sounds.is_empty() {
+        return effect_sounds;
+    }
+
+    crate::world::skill_sound_files(skill_id).unwrap_or(GENERIC_CAST_SOUND)
 }
 
 /// Normalizes a `ZC_SOUND` name to the path that the audio engine expects
@@ -560,12 +573,17 @@ mod tests {
         let position = Some(Point3::new(150.0, 5.0, 87.5));
 
         for (skill_id, _) in SKILL_SOUNDS {
-            player.play_skill_sound(SkillId(*skill_id), Some(EntityId(42)), position);
+            player.play_skill_sound_for_phase(
+                SkillId(*skill_id),
+                crate::world::SkillPhase::Success,
+                Some(EntityId(42)),
+                position,
+            );
         }
 
         // A second skill of the same entity takes over the lane and logs a
         // preemption.
-        player.play_skill_sound(SkillId(34), Some(EntityId(42)), position);
+        player.play_skill_sound_for_phase(SkillId(34), crate::world::SkillPhase::Success, Some(EntityId(42)), position);
 
         // A network sound (`ZC_SOUND`) for an entity.
         player.play_network_sound("effect\\ef_glow.wav", AccountId(43), position);
@@ -574,14 +592,26 @@ mod tests {
     #[test]
     fn generated_sounds_are_used_for_skills_without_a_curated_entry() {
         // Heal has no hand-curated entry; the generated official sound is used.
-        assert_eq!(skill_sound_candidates(SkillId(28))[0], "_heal_effect.wav");
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(28), crate::world::SkillPhase::Success)[0],
+            "_heal_effect.wav"
+        );
         // Storm Gust (from the generated table).
-        assert!(skill_sound_candidates(SkillId(89))[0].contains("wizard_stormgust"));
+        assert!(skill_sound_candidates_for(SkillId(89), crate::world::SkillPhase::Success)[0].contains("wizard_stormgust"));
         // The curated entries keep priority (verified classic casts).
-        assert_eq!(skill_sound_candidates(SkillId(34))[0], "effect\\ef_blessing.wav");
-        assert_eq!(skill_sound_candidates(SkillId(110))[0], "effect\\black_hammerfall.wav");
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(34), crate::world::SkillPhase::Success)[0],
+            "effect\\ef_blessing.wav"
+        );
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(110), crate::world::SkillPhase::Success)[0],
+            "effect\\black_hammerfall.wav"
+        );
         // Unknown skills fall back to the generic cast sound.
-        assert_eq!(skill_sound_candidates(SkillId(65_500)), GENERIC_CAST_SOUND);
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(65_500), crate::world::SkillPhase::Success),
+            GENERIC_CAST_SOUND
+        );
     }
 
     #[test]
@@ -589,7 +619,7 @@ mod tests {
         // The official Warp Portal sound is the portal-opening `ef_readyportal`
         // carried by the skill unit effects (EF_READYPORTAL2/EF_PORTAL2); the
         // old curated entry used the map-warp/teleport-away sound.
-        let candidates = skill_sound_candidates(SkillId(27));
+        let candidates = skill_sound_candidates_for(SkillId(27), crate::world::SkillPhase::Success);
         assert_eq!(candidates[0], "effect\\ef_readyportal.wav");
         assert!(
             !candidates.iter().any(|file| file.eq_ignore_ascii_case("effect\\warp.wav")),
@@ -601,16 +631,19 @@ mod tests {
     fn hammer_fall_uses_the_official_hammerfall_sound_and_bash_keeps_its_own() {
         // Official `SkillEffect[SK.BS_HAMMERFALL]` effect 102 carries
         // `wav: effect/black_hammerfall`.
-        assert_eq!(skill_sound_candidates(SkillId(110))[0], "effect\\black_hammerfall.wav");
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(110), crate::world::SkillPhase::Success)[0],
+            "effect\\black_hammerfall.wav"
+        );
         // SM_BASH (id 5) is a plain attack and must not use the Hammer Fall sound.
         assert!(
-            !skill_sound_candidates(SkillId(5))
+            !skill_sound_candidates_for(SkillId(5), crate::world::SkillPhase::Success)
                 .iter()
                 .any(|file| file.to_ascii_lowercase().contains("hammerfall")),
             "Bash must not play the Hammer Fall sound"
         );
         // Adjacent Blacksmith skills keep their own official sounds.
-        assert!(skill_sound_candidates(SkillId(112))[0].contains("black_weapon_perfection"));
+        assert!(skill_sound_candidates_for(SkillId(112), crate::world::SkillPhase::Success)[0].contains("black_weapon_perfection"));
     }
 
     #[test]

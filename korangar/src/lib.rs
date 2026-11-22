@@ -196,9 +196,6 @@ const FREE_CAST_SKILL_ID: SkillId = SkillId(278);
 /// Job ids that can learn `Free Cast`: Sage and its rebirth class (called
 /// Scholar or Professor depending on the game version).
 const FREE_CAST_JOB_IDS: [u16; 2] = [16, 4017];
-/// Completion-effect de-duplication phase used by the hand-written (special
-/// cased) completion visuals in [`skill_visuals`].
-const CUSTOM_COMPLETION_PHASE: u8 = u8::MAX;
 /// De-duplication phase of the procedural Storm Gust cloud.
 const STORM_CLOUD_PHASE: u8 = u8::MAX - 1;
 const DEFAULT_MAP: &str = "geffen";
@@ -573,23 +570,22 @@ fn load_message_table(game_file_loader: &GameFileLoader) -> Option<msgstringtabl
     message_table
 }
 
-/// Resolves the world anchor of a procedural effect row.
+/// Validates the unified skill effect descriptor data and returns the number of
+/// `(skill, phase)` descriptors.
 ///
-/// Returns `None` for the moving primitives (`Travel`/`Rain`), which need both
-/// the caster and the target position and are spawned by the caller.
-fn procedural_effect_center(
-    anchor: ProceduralAnchor,
-    source_entity_id: EntityId,
-    target_position: Option<Point3<f32>>,
-) -> Option<EffectCenter> {
-    match anchor {
-        ProceduralAnchor::Caster => Some(EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0))),
-        ProceduralAnchor::Target | ProceduralAnchor::Auto => Some(match target_position {
-            Some(position) => EffectCenter::Position(position),
-            // Self casts (no target cell) anchor their success effect on the caster.
-            None => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
-        }),
-        ProceduralAnchor::Travel | ProceduralAnchor::Rain => None,
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback
+/// (`korangar/archive/data/client/skill_effects.ron`) is validated. This is the
+/// `--check`-able schema entry point: the client binary exposes it as `korangar
+/// --check-skill-effects [PATH]`, so CI can validate the committed data file
+/// without starting a window, a network connection or the game archives.
+pub fn check_skill_effects(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_skill_effect_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_skill_effects().map_err(|error| format!("compiled fallback: {error}")),
     }
 }
 
@@ -2411,142 +2407,73 @@ impl Client {
         self.effect_holder.add_effect(Box::new(circle));
     }
 
-    /// Spawns one of the official client's hard-coded skill auras (the yellow
-    /// `EF_BEGINSPELL` cone / `EF_GUMGANG2` rings) on an entity.
+    /// Spawns every layer of one skill phase.
     ///
-    /// The aura is fully procedural and owned by the entity, so it follows the
-    /// caster and is removed with it (for example when the entity disappears).
-    fn spawn_skill_aura(&mut self, entity_id: EntityId, spec: SkillAuraSpec) {
-        let center = EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0));
-
-        let Some(aura) = SkillAura::new(&self.texture_loader, center, spec) else {
-            #[cfg(feature = "debug")]
-            print_debug!(
-                "[{}] failed to load the skill aura texture '{}'",
-                "error".red(),
-                spec.texture_path
-            );
-            return;
-        };
-
-        self.effect_holder.add_unit(Box::new(aura), entity_id);
-    }
-
-    /// Spawns the official effect layer of `skill_id` for one variant.
+    /// All visuals of a skill cast are driven by the single unified descriptor
+    /// table ([`crate::world::skill_effect_layers`]): the `.str` screen
+    /// sprites, the `.spr`/`.act` sprites, the texture billboards, the
+    /// procedural primitives and the entity/body/overhead anchored layers
+    /// of the phase spawn here, in data order.
     ///
-    /// Two data-driven layers are played from the same phase-aware,
-    /// de-duplicated spawn point:
-    ///
-    /// * the `.str` screen sprites from
-    ///   `archive/data/client/skill_effect_assets.ron`,
-    /// * the procedural primitives (hit flashes, projectiles/bolt rain, ground
-    ///   auras) from `archive/data/client/skill_procedural_effects.ron`,
-    /// * the animated `.spr`/`.act` sprite effects from
-    ///   `archive/data/client/skill_sprite_effects.ron`.
-    ///
-    /// Every cast spawns each variant at most once, even if several packets
-    /// (ground cast, damage, ...) describe the same cast.
-    fn spawn_skill_effect_variants(
+    /// Every phase spawns at most once per cast even if several packets (cast
+    /// start, ground cast, damage, ...) describe the same cast; the layer list
+    /// is bounded by [`crate::world::MAX_LAYERS_PER_PHASE`] and every
+    /// spawned effect goes through the effect holder's global/per-entity
+    /// budget and distance culling. The spawn path iterates the static
+    /// layer slice in place: no allocation per layer or per frame.
+    fn spawn_skill_effect_phase(
         &mut self,
         skill_id: SkillId,
-        variant: SkillEffectVariant,
+        phase: SkillPhase,
         source_entity_id: EntityId,
-        world_position: Option<Point3<f32>>,
+        target_entity_id: Option<EntityId>,
+        target_position: Option<Point3<f32>>,
         client_tick: ClientTick,
     ) {
-        if crate::world::has_custom_completion(skill_id) {
+        let layers = crate::world::skill_effect_layers(skill_id, phase);
+
+        if layers.is_empty() {
             return;
         }
 
-        let effect_entries: Vec<(&'static str, crate::world::EffectAnchor, bool)> =
-            crate::world::skill_effect_entries(skill_id, variant).collect();
-        let procedural = crate::world::skill_procedural_effects(skill_id, variant);
-        let sprite_effects = crate::world::skill_sprite_effects(skill_id, variant);
-
-        // All layers share one de-duplication key per cast phase.
-        if (!effect_entries.is_empty() || !procedural.is_empty() || !sprite_effects.is_empty())
-            && !self
-                .skill_completion_tracker
-                .claim(source_entity_id, skill_id, variant.phase(), client_tick)
+        if !self
+            .skill_completion_tracker
+            .claim(source_entity_id, skill_id, phase.index(), client_tick)
         {
             return;
         }
 
-        // A phase can have several `.str` layers (e.g. two hit flashes). The
-        // data file records the spawn anchor of every layer so on-caster effects
-        // (`effectIdOnCaster`, e.g. Pierce) are not spawned at the damaged
-        // target. Effects aimed at the target cell fall back to the caster when
-        // the packet does not carry a position (no-damage self casts).
-        for (effect_path, anchor, overhead) in effect_entries {
-            // Overhead buff completion effects (Blessing, Gloria, Status
-            // Recovery, Kyrie, ...) anchor above the entity's head; the height
-            // follows the entity scale and the sitting head height, so it is
-            // also correct for other players and sitting characters.
-            if overhead && let Some(overhead_height) = self.overhead_effect_height_for_entity(source_entity_id) {
-                crate::logging::log_debug!(
-                    "skill effect: spawned '{}' on entity {} for skill {} ({:?}, overhead height {:.1})",
-                    effect_path,
-                    source_entity_id.0,
-                    skill_id.0,
-                    variant,
-                    overhead_height
-                );
-                self.spawn_entity_effect(
-                    effect_path,
-                    source_entity_id,
-                    Vector3::new(0.0, overhead_height, 0.0),
-                    1.0,
-                    Color::WHITE,
-                    0.0,
-                );
-                continue;
-            }
-
-            crate::logging::log_debug!(
-                "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?})",
-                effect_path,
+        let spawn_count = layers.len().min(crate::world::MAX_LAYERS_PER_PHASE);
+        if layers.len() > spawn_count {
+            crate::logging::log_warn!(
+                "skill effect: skill {} phase {:?} has {} layers, spawning the first {}",
                 skill_id.0,
-                variant,
-                anchor
+                phase,
+                layers.len(),
+                spawn_count
             );
-
-            let position = match anchor {
-                crate::world::EffectAnchor::Caster => None,
-                crate::world::EffectAnchor::Target | crate::world::EffectAnchor::Travel | crate::world::EffectAnchor::Auto => {
-                    world_position
-                }
-            };
-
-            match position {
-                Some(world_position) => {
-                    self.spawn_position_effect(effect_path, world_position, Vector3::new(0.0, 0.0, 0.0), 1.0, Color::WHITE, 0.0);
-                }
-                None => {
-                    self.spawn_entity_effect(
-                        effect_path,
-                        source_entity_id,
-                        Vector3::new(0.0, 0.0, 0.0),
-                        1.0,
-                        Color::WHITE,
-                        0.0,
-                    );
-                }
-            }
         }
 
-        if !procedural.is_empty() {
-            self.spawn_procedural_effects(skill_id, variant, source_entity_id, world_position, procedural);
-        }
+        let source_position = self.entity_position(source_entity_id);
 
-        if !sprite_effects.is_empty() {
-            self.spawn_skill_sprite_effects(skill_id, variant, source_entity_id, world_position, sprite_effects);
+        for layer in &layers[..spawn_count] {
+            self.spawn_skill_effect_layer(
+                skill_id,
+                phase,
+                layer,
+                source_entity_id,
+                target_entity_id,
+                target_position,
+                source_position,
+                client_tick,
+            );
         }
 
         // Storm Gust's snow is a `.str` file, but the dark storm cloud above the
         // cell is a hard-coded official client effect (cloud1..7.tga), so it is
         // reproduced procedurally once per cast.
         if matches!(skill_id.0, 87 | 89)
-            && let (SkillEffectVariant::Success, Some(world_position)) = (variant, world_position)
+            && let (SkillPhase::Success, Some(world_position)) = (phase, target_position)
             && self
                 .skill_completion_tracker
                 .claim(source_entity_id, skill_id, STORM_CLOUD_PHASE, client_tick)
@@ -2557,140 +2484,293 @@ impl Client {
         }
     }
 
-    /// Spawns the procedural primitives of `skill_id` for one variant.
-    ///
-    /// The rows come from the generated data file (see
-    /// `archive/data/client/skill_procedural_effects.ron`). The anchor of a row
-    /// decides whether it is attached to the caster entity (and follows it) or
-    /// placed at the target cell.
-    fn spawn_procedural_effects(
+    /// Spawns one layer of a skill phase (see
+    /// [`Self::spawn_skill_effect_phase`]).
+    #[allow(clippy::too_many_arguments)]
+    fn spawn_skill_effect_layer(
         &mut self,
         skill_id: SkillId,
-        variant: SkillEffectVariant,
+        phase: SkillPhase,
+        layer: &SkillEffectLayer,
         source_entity_id: EntityId,
+        target_entity_id: Option<EntityId>,
         target_position: Option<Point3<f32>>,
-        effects: &'static [ProceduralEffectSpec],
+        source_position: Option<Point3<f32>>,
+        client_tick: ClientTick,
     ) {
-        let caster_position = self
-            .client_state
-            .follow(client_state().entities())
-            .iter()
-            .find(|entity| entity.get_entity_id() == source_entity_id)
-            .map(|entity| entity.get_position());
+        let Some((center, vertical, owner)) = self.skill_layer_center(layer, source_entity_id, target_entity_id, target_position) else {
+            return;
+        };
 
-        for effect in effects {
-            match effect.primitive {
-                ProceduralPrimitive::HitFlash => {
-                    let Some(center) = procedural_effect_center(effect.anchor, source_entity_id, target_position) else {
-                        continue;
-                    };
-                    let Some(flash) = HitFlash::spawn(&self.texture_loader, center, effect) else {
-                        continue;
-                    };
-
-                    crate::logging::log_debug!(
-                        "skill effect: spawned procedural hit flash '{}' for skill {} ({:?})",
-                        effect.texture,
-                        skill_id.0,
-                        variant
-                    );
-
-                    let _ = match effect.anchor {
-                        ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(flash), source_entity_id),
-                        _ => self.effect_holder.add_effect(Box::new(flash)),
-                    };
+        match layer.kind {
+            LayerKind::BodyFlash => {
+                if let Some(entity) = self
+                    .client_state
+                    .follow_mut(client_state().entities())
+                    .iter_mut()
+                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                {
+                    entity.start_body_flash(layer.tint, layer.hold_ms, layer.fade_ms, client_tick);
                 }
-                ProceduralPrimitive::Projectile => {
-                    let Some(target) = target_position else {
-                        continue;
-                    };
-                    let (mode, start) = match effect.anchor {
-                        ProceduralAnchor::Rain => (ProjectileMode::Rain, target),
-                        _ => {
-                            let Some(caster) = caster_position else {
-                                continue;
-                            };
-                            (ProjectileMode::Travel, caster)
-                        }
-                    };
+            }
+            LayerKind::Str => {
+                let Some(effect_path) = layer.file else {
+                    return;
+                };
+                let (light_color, light_intensity) = layer.light.unwrap_or((Color::WHITE, 0.0));
+                let effect_offset = layer.offset + Vector3::new(0.0, vertical, 0.0);
 
-                    if let Some(projectile) = Projectile::spawn(&self.texture_loader, effect, mode, start, target) {
-                        crate::logging::log_debug!(
-                            "skill effect: spawned procedural projectile '{}' for skill {} ({:?})",
-                            effect.texture,
-                            skill_id.0,
-                            variant
-                        );
-                        self.effect_holder.add_effect(Box::new(projectile));
+                crate::logging::log_debug!(
+                    "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?})",
+                    effect_path,
+                    skill_id.0,
+                    phase,
+                    layer.anchor
+                );
+
+                match center {
+                    EffectCenter::Entity(entity_id, _) => {
+                        self.spawn_entity_effect(effect_path, entity_id, effect_offset, layer.scale, light_color, light_intensity)
+                    }
+                    EffectCenter::Position(position) => {
+                        self.spawn_position_effect(effect_path, position, effect_offset, layer.scale, light_color, light_intensity)
                     }
                 }
-                ProceduralPrimitive::GroundAura => {
-                    let Some(center) = procedural_effect_center(effect.anchor, source_entity_id, target_position) else {
-                        continue;
-                    };
-                    let Some(aura) = spawn_ground_aura(&self.texture_loader, center, effect) else {
-                        continue;
+            }
+            LayerKind::Texture => {
+                let Some(params) = PrimitiveParams::from_layer(layer) else {
+                    return;
+                };
+                let center = self.texture_layer_center(center, layer, vertical);
+                let Some(flash) = HitFlash::spawn(&self.texture_loader, center, &params) else {
+                    return;
+                };
+
+                crate::logging::log_debug!(
+                    "skill effect: spawned texture layer '{}' for skill {} ({:?}, anchor {:?})",
+                    params.texture,
+                    skill_id.0,
+                    phase,
+                    layer.anchor
+                );
+
+                self.add_skill_effect(Box::new(flash), owner);
+            }
+            LayerKind::Cylinder => {
+                let Some(params) = PrimitiveParams::from_layer(layer) else {
+                    return;
+                };
+                let center = self.texture_layer_center(center, layer, vertical);
+                let Some(aura) = spawn_ground_aura(&self.texture_loader, center, &params) else {
+                    return;
+                };
+
+                crate::logging::log_debug!(
+                    "skill effect: spawned cylinder layer '{}' for skill {} ({:?}, anchor {:?})",
+                    params.texture,
+                    skill_id.0,
+                    phase,
+                    layer.anchor
+                );
+
+                self.add_skill_effect(Box::new(aura), owner);
+            }
+            LayerKind::Spr => {
+                // Official sprite layers use `duplicate` to spawn several copies
+                // around the entity (for example the six Blessing sparkles). The
+                // copies are spread on a ring of the layer spread (a small
+                // fallback radius keeps copies visible when the data has no
+                // spread); the first loadable candidate pair is used for all of
+                // them.
+                let count = layer.count.clamp(1, 16) as usize;
+                let spread = match layer.spread {
+                    spread if spread > 0.0 => spread,
+                    _ => 1.5,
+                };
+
+                for index in 0..count {
+                    let mut params = SpriteEffectParams::from_layer(layer);
+                    let angle = index as f32 * std::f32::consts::TAU / count as f32;
+                    params.offset += Vector3::new(angle.cos() * spread, vertical, angle.sin() * spread);
+
+                    let Some(sprite_effect) = SpriteEffect::spawn(&self.sprite_loader, &self.action_loader, center.clone(), &params) else {
+                        if index == 0 {
+                            crate::logging::log_debug!(
+                                "skill effect: no sprite effect asset could be loaded for skill {} ({:?})",
+                                skill_id.0,
+                                phase
+                            );
+                        }
+                        return;
                     };
 
                     crate::logging::log_debug!(
-                        "skill effect: spawned procedural ground aura '{}' for skill {} ({:?})",
-                        effect.texture,
+                        "skill effect: spawned sprite layer '{}' for skill {} ({:?}, anchor {:?}, copy {}/{})",
+                        params.files.first().copied().unwrap_or("<none>"),
                         skill_id.0,
-                        variant
+                        phase,
+                        layer.anchor,
+                        index + 1,
+                        count
                     );
 
-                    let _ = match effect.anchor {
-                        ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(aura), source_entity_id),
-                        _ => self.effect_holder.add_effect(Box::new(aura)),
-                    };
+                    self.effect_holder.add_effect(Box::new(sprite_effect));
+                }
+            }
+            LayerKind::Primitive => {
+                let Some(params) = PrimitiveParams::from_layer(layer) else {
+                    return;
+                };
+
+                match layer.primitive {
+                    Some(LayerPrimitive::Projectile) => {
+                        let Some(target) = target_position else {
+                            return;
+                        };
+                        let (mode, start) = match layer.anchor {
+                            LayerAnchor::Rain => (ProjectileMode::Rain, target),
+                            _ => {
+                                let Some(caster) = source_position else {
+                                    return;
+                                };
+                                (ProjectileMode::Travel, caster)
+                            }
+                        };
+
+                        if let Some(projectile) = Projectile::spawn(&self.texture_loader, &params, mode, start, target) {
+                            crate::logging::log_debug!(
+                                "skill effect: spawned projectile layer '{}' for skill {} ({:?})",
+                                params.texture,
+                                skill_id.0,
+                                phase
+                            );
+                            self.effect_holder.add_effect(Box::new(projectile));
+                        }
+                    }
+                    Some(LayerPrimitive::GroundAura) => {
+                        let center = self.texture_layer_center(center, layer, vertical);
+                        let Some(aura) = spawn_ground_aura(&self.texture_loader, center, &params) else {
+                            return;
+                        };
+
+                        crate::logging::log_debug!(
+                            "skill effect: spawned primitive ground aura '{}' for skill {} ({:?})",
+                            params.texture,
+                            skill_id.0,
+                            phase
+                        );
+
+                        self.add_skill_effect(Box::new(aura), owner);
+                    }
+                    Some(LayerPrimitive::HitFlash) | None => {
+                        let center = self.texture_layer_center(center, layer, vertical);
+                        let Some(flash) = HitFlash::spawn(&self.texture_loader, center, &params) else {
+                            return;
+                        };
+
+                        crate::logging::log_debug!(
+                            "skill effect: spawned primitive hit flash '{}' for skill {} ({:?})",
+                            params.texture,
+                            skill_id.0,
+                            phase
+                        );
+
+                        self.add_skill_effect(Box::new(flash), owner);
+                    }
                 }
             }
         }
     }
 
-    /// Spawns the animated sprite effects (`.spr` + `.act`) of `skill_id` for
-    /// one variant.
+    /// Adds a spawned skill effect, attached to its entity when the layer asked
+    /// for it (which makes the per-entity budget, cleanup on entity removal and
+    /// distance culling apply).
+    fn add_skill_effect(&mut self, effect: Box<dyn EffectBase + Send + Sync>, owner: Option<EntityId>) {
+        match owner {
+            Some(entity_id) => {
+                self.effect_holder.add_unit(effect, entity_id);
+            }
+            None => {
+                self.effect_holder.add_effect(effect);
+            }
+        }
+    }
+
+    /// The position of an entity of the current map, if it is known.
+    fn entity_position(&self, entity_id: EntityId) -> Option<Point3<f32>> {
+        self.client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| entity.get_position())
+    }
+
+    /// Overhead and body height anchors of an entity (in world units above its
+    /// feet), used by the `vertical` anchor of skill effect layers.
+    fn entity_effect_heights(&self, entity_id: EntityId) -> Option<(f32, f32)> {
+        self.client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| {
+                (
+                    crate::world::overhead_effect_height(entity),
+                    crate::world::body_effect_height(entity),
+                )
+            })
+    }
+
+    /// Resolves the spawn center, the entity-only vertical offset and the owner
+    /// entity of a layer.
     ///
-    /// The rows come from `archive/data/client/skill_sprite_effects.ron`. The
-    /// anchor of a row decides whether the sprite is attached to the caster
-    /// entity (and follows it), placed at the target, or played on the ground
-    /// cell; missing files spawn nothing and leave the generic cast circle in
-    /// place.
-    fn spawn_skill_sprite_effects(
-        &mut self,
-        skill_id: SkillId,
-        variant: SkillEffectVariant,
+    /// Entity anchors include the overhead/body height of the live entity (so
+    /// buff layers follow the entity scale and sitting state); fixed world
+    /// cells keep the plain data offset.
+    fn skill_layer_center(
+        &self,
+        layer: &SkillEffectLayer,
         source_entity_id: EntityId,
+        target_entity_id: Option<EntityId>,
         target_position: Option<Point3<f32>>,
-        effects: &'static [SpriteEffectSpec],
-    ) {
-        for effect in effects {
-            let center = match effect.anchor {
-                SpriteEffectAnchor::Caster => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
-                SpriteEffectAnchor::Target | SpriteEffectAnchor::Ground => match target_position {
-                    Some(target_position) => EffectCenter::Position(target_position),
-                    None => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
-                },
+    ) -> Option<(EffectCenter, f32, Option<EntityId>)> {
+        let placement = layer.placement(target_entity_id.is_some(), target_position.is_some())?;
+
+        let entity_center = |entity_id: EntityId, this: &Self| {
+            let (overhead_height, body_height) = this.entity_effect_heights(entity_id)?;
+            let vertical = match layer.vertical {
+                LayerVertical::Feet => 0.0,
+                LayerVertical::Body => body_height,
+                LayerVertical::Overhead => overhead_height,
             };
 
-            let Some(sprite_effect) = SpriteEffect::spawn(&self.sprite_loader, &self.action_loader, center, effect) else {
-                crate::logging::log_debug!(
-                    "skill effect: no sprite effect asset could be loaded for skill {} ({:?})",
-                    skill_id.0,
-                    variant
-                );
-                continue;
-            };
+            Some((
+                EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0)),
+                vertical,
+                layer.attached_entity.then_some(entity_id),
+            ))
+        };
 
-            crate::logging::log_debug!(
-                "skill effect: spawned sprite effect '{}' for skill {} ({:?}, anchor {:?})",
-                effect.files.first().map(String::as_str).unwrap_or("<none>"),
-                skill_id.0,
-                variant,
-                effect.anchor
-            );
+        match placement {
+            LayerPlacement::SourceEntity => entity_center(source_entity_id, self),
+            LayerPlacement::TargetEntity => entity_center(target_entity_id?, self),
+            LayerPlacement::TargetPosition => Some((EffectCenter::Position(target_position?), 0.0, None)),
+            LayerPlacement::SourcePosition => {
+                let position = self.entity_position(source_entity_id)?;
+                Some((EffectCenter::Position(position), 0.0, None))
+            }
+        }
+    }
 
-            self.effect_holder.add_effect(Box::new(sprite_effect));
+    /// Combines a resolved layer center with the layer offset and vertical
+    /// anchor for the texture/cylinder primitives (they take a center point
+    /// directly).
+    fn texture_layer_center(&self, center: EffectCenter, layer: &SkillEffectLayer, vertical: f32) -> EffectCenter {
+        match center {
+            EffectCenter::Entity(entity_id, _) => EffectCenter::Entity(
+                entity_id,
+                Point3::new(layer.offset.x, vertical + layer.offset.y, layer.offset.z),
+            ),
+            EffectCenter::Position(position) => EffectCenter::Position(position + layer.offset),
         }
     }
 
@@ -2829,19 +2909,6 @@ impl Client {
         self.cast_bars.start(source_entity_id, skill_name, cast_time, client_tick);
     }
 
-    /// Overhead anchor height of an entity for buff/completion effects.
-    ///
-    /// Uses the same head anchor as the skill-name label and the cast bar and
-    /// adds the overhead clearance (see
-    /// [`crate::world::overhead_effect_height`]).
-    fn overhead_effect_height_for_entity(&self, entity_id: EntityId) -> Option<f32> {
-        self.client_state
-            .follow(client_state().entities())
-            .iter()
-            .find(|entity| entity.get_entity_id() == entity_id)
-            .map(crate::world::overhead_effect_height)
-    }
-
     /// Plays the official sound of a skill once its completion (or damage)
     /// packet arrives.
     ///
@@ -2851,11 +2918,13 @@ impl Client {
         &mut self,
         entity_id: EntityId,
         skill_id: SkillId,
+        phase: SkillPhase,
         position: Option<cgmath::Point3<f32>>,
         client_tick: ClientTick,
     ) {
         if self.skill_sound_gate.claim_completion(entity_id, skill_id, client_tick) {
-            self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), position);
+            self.skill_sounds
+                .play_skill_sound_for_phase(skill_id, phase, Some(entity_id), position);
         }
     }
 
@@ -3447,7 +3516,11 @@ impl Client {
                         .map(|delays| delays.total_cast_ms().max(delays.aftercast_act_ms))
                         .unwrap_or(0);
                     let cast_animation_time = cast_time.max(attack_motion_time).max(animation_minimum);
-                    let visuals = skill_visuals(skill_id, element);
+                    // The cast circle tint is data-driven (a per-skill override in the
+                    // unified skill effect descriptors) and falls back to the element
+                    // color of the `ZC_USESKILL_ACK` packet.
+                    let cast_circle_color =
+                        crate::world::skill_cast_circle_color(skill_id).unwrap_or_else(|| crate::world::element_color(element));
 
                     if let Some(delays) = table_delays {
                         crate::logging::log_debug!(
@@ -3483,23 +3556,11 @@ impl Client {
                             CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                         }
 
-                        // Hard-coded body flash of the skill (for example the yellow
-                        // `EF_PORTAL5` flash of Zen).
-                        if let Some(flash) = &visuals.body_flash {
-                            entity.start_body_flash(flash.color, flash.hold_ms, flash.fade_ms, client_tick);
-                        }
-
                         // Targeted casts face their target, self-casts keep the current
                         // direction.
                         if destination_entity_id != source_entity_id {
                             entity.rotate_towards(position);
                         }
-                    }
-
-                    // Hard-coded cylinder aura of the official client (`EF_BEGINSPELL`
-                    // yellow cone for Zen and Fury).
-                    if let Some(aura) = visuals.cast_aura {
-                        self.spawn_skill_aura(source_entity_id, aura);
                     }
 
                     // Warp Portal fallback: the server asks the caster for the
@@ -3524,9 +3585,10 @@ impl Client {
                     // client (own character, other players and population shells).
                     self.show_skill_name_text(source_entity_id, skill_id, client_tick);
 
-                    // Official cast-start effect of the mapping (e.g. a caster
-                    // effect that plays while the skill is being cast).
-                    self.spawn_skill_effect_variants(skill_id, SkillEffectVariant::Cast, source_entity_id, None, client_tick);
+                    // Official cast-start effects of the unified descriptor table: the
+                    // cast-time body flash, the `EF_BEGINSPELL` cone and every other
+                    // layer of the `Cast` phase (per-cast de-duplicated).
+                    self.spawn_skill_effect_phase(skill_id, SkillPhase::Cast, source_entity_id, None, None, client_tick);
 
                     // Local player cast bars are driven by this server-confirmed
                     // cast-start packet (cast_time > 0), never by local requests.
@@ -3546,7 +3608,7 @@ impl Client {
                             .unwrap_or(0);
                         let circle_duration = cast_animation_time.max(animation_duration);
 
-                        self.spawn_cast_circle(source_entity_id, visuals.cast_circle_color, circle_duration);
+                        self.spawn_cast_circle(source_entity_id, cast_circle_color, circle_duration);
                     }
 
                     // The 2019 server sends no sound packet for most casts, so the
@@ -3619,8 +3681,6 @@ impl Client {
                                 .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)))
                         };
 
-                        let visuals = skill_visuals(skill_id, 0);
-
                         if let Some(entity) = self
                             .client_state
                             .follow_mut(client_state().entities())
@@ -3638,54 +3698,20 @@ impl Client {
                                 CasterAction::Pickup => entity.set_pickup(client_tick),
                                 CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                             }
-
-                            // Instant-only skills (no cast-time packet before this one)
-                            // flash their caster here; cast-time skills already flashed
-                            // when the cast started.
-                            if visuals.cast_aura.is_none()
-                                && let Some(flash) = &visuals.body_flash
-                            {
-                                entity.start_body_flash(flash.color, flash.hold_ms, flash.fade_ms, client_tick);
-                            }
-                        }
-
-                        for aura in visuals.instant_auras.iter().copied() {
-                            self.spawn_skill_aura(source_entity_id, aura);
-                        }
-
-                        // Target-bound auras (the green heal columns) follow the
-                        // healed entity, so they also show on other players.
-                        if destination_entity_id != EntityId(0) {
-                            for aura in visuals.target_auras.iter().copied() {
-                                self.spawn_skill_aura(destination_entity_id, aura);
-                            }
                         }
 
                         self.show_skill_name_text(source_entity_id, skill_id, client_tick);
 
-                        // Buff visuals (for example the Blessing angel) are screen
-                        // sprites anchored above the head.
-                        if let Some(effect) = &visuals.completion
-                            && self
-                                .skill_completion_tracker
-                                .claim(source_entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
-                        {
-                            self.spawn_entity_effect(
-                                effect.path,
-                                source_entity_id,
-                                effect.offset,
-                                effect.scale,
-                                visuals.light.0,
-                                visuals.light.1,
-                            );
-                        }
-
-                        // Official completion effect from the data-file mapping
-                        // (skipped for skills with a hand-written visual).
-                        self.spawn_skill_effect_variants(
+                        // Every layer of the `Success` phase of the unified descriptor
+                        // table: hand-written layers (Blessing angel, ...) and the
+                        // official layers of the same phase spawn side by side. The
+                        // target entity is passed so `Target`/`Auto` anchored layers
+                        // (heal columns, target buffs) follow the affected entity.
+                        self.spawn_skill_effect_phase(
                             skill_id,
-                            SkillEffectVariant::Success,
+                            SkillPhase::Success,
                             source_entity_id,
+                            (destination_entity_id != EntityId(0)).then_some(destination_entity_id),
                             destination_position,
                             client_tick,
                         );
@@ -3696,7 +3722,7 @@ impl Client {
                         // skills claimed their cast here (the step above only
                         // recorded the acknowledgment), cast-time skills play their
                         // single sound now.
-                        self.play_completion_sound(source_entity_id, skill_id, source_position, client_tick);
+                        self.play_completion_sound(source_entity_id, skill_id, SkillPhase::Success, source_position, client_tick);
                     }
 
                     // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill
@@ -3760,50 +3786,19 @@ impl Client {
 
                     self.show_skill_name_text(entity_id, skill_id, client_tick);
 
-                    let visuals = skill_visuals(skill_id, 0);
                     let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
 
-                    if let Some(effect) = &visuals.completion
-                        && effect.overhead
-                        && self
-                            .skill_completion_tracker
-                            .claim(entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
-                        && let Some(height) = self.overhead_effect_height_for_entity(entity_id)
-                    {
-                        self.spawn_entity_effect(
-                            effect.path,
-                            entity_id,
-                            Vector3::new(effect.offset.x, height, effect.offset.z),
-                            effect.scale,
-                            visuals.light.0,
-                            visuals.light.1,
-                        );
-                    } else if let Some(effect) = &visuals.completion
-                        && let Some(world_position) = world_position
-                        && self
-                            .skill_completion_tracker
-                            .claim(entity_id, skill_id, CUSTOM_COMPLETION_PHASE, client_tick)
-                    {
-                        self.spawn_position_effect(
-                            effect.path,
-                            world_position,
-                            effect.offset,
-                            effect.scale,
-                            visuals.light.0,
-                            visuals.light.1,
-                        );
-                    }
-
-                    // Official ground/completion effects from the data-file mapping.
-                    // `Success` follows the ground cell when one is known (the
-                    // official client plays e.g. Storm Gust's effect there).
-                    for variant in [SkillEffectVariant::Ground, SkillEffectVariant::Success] {
-                        self.spawn_skill_effect_variants(skill_id, variant, entity_id, world_position, client_tick);
+                    // Every layer of the `Ground` and `Success` phases of the unified
+                    // descriptor table. `Success` follows the ground cell when one is
+                    // known (the official client plays e.g. Storm Gust's effect there);
+                    // hand-written completions are ordinary `Success` layers now.
+                    for phase in [SkillPhase::Ground, SkillPhase::Success] {
+                        self.spawn_skill_effect_phase(skill_id, phase, entity_id, None, world_position, client_tick);
                     }
 
                     // Ground skills complete on this packet: play the mapped sound
                     // once (instant ground casts claimed their acknowledgment above).
-                    self.play_completion_sound(entity_id, skill_id, world_position, client_tick);
+                    self.play_completion_sound(entity_id, skill_id, SkillPhase::Ground, world_position, client_tick);
                 }
                 NetworkEvent::PlaySound { name, account_id, .. } => {
                     let entity_id = EntityId(account_id.0);
@@ -4556,7 +4551,7 @@ impl Client {
                             .find(|entity| entity.get_entity_id() == source_entity_id)
                             .map(|entity| entity.get_position());
                         self.skill_sounds
-                            .play_skill_sound(skill_id, Some(source_entity_id), source_position);
+                            .play_skill_sound_for_phase(skill_id, SkillPhase::Hit, Some(source_entity_id), source_position);
                     }
 
                     // Skill damage attribution (`ZC_NOTIFY_SKILL`, 0x01DE): play
@@ -4568,19 +4563,19 @@ impl Client {
                     {
                         let target_world_position = target_position
                             .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)));
-                        if !crate::world::has_custom_completion(skill_id) {
-                            if !crate::world::skill_has_effect(skill_id) && !crate::world::skill_has_procedural_effect(skill_id) {
-                                crate::logging::log_debug!("damage skill: skill {} has no effect mapping", skill_id.0);
-                            }
+                        if !crate::world::skill_has_effect(skill_id) {
+                            crate::logging::log_debug!("damage skill: skill {} has no effect mapping", skill_id.0);
+                        }
 
-                            for variant in [SkillEffectVariant::Success, SkillEffectVariant::Release, SkillEffectVariant::Hit] {
-                                self.spawn_skill_effect_variants(skill_id, variant, source_entity_id, target_world_position, client_tick);
-                            }
-
-                            self.spawn_skill_effect_variants(
+                        // Hand-written and official layers are no longer mutually
+                        // exclusive: every phase of the unified descriptor table
+                        // spawns, at the damaged target and on the caster.
+                        for phase in [SkillPhase::Success, SkillPhase::Release, SkillPhase::Hit, SkillPhase::Caster] {
+                            self.spawn_skill_effect_phase(
                                 skill_id,
-                                SkillEffectVariant::Caster,
+                                phase,
                                 source_entity_id,
+                                Some(destination_entity_id),
                                 target_world_position,
                                 client_tick,
                             );

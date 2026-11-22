@@ -15,8 +15,8 @@ use crate::graphics::{Color, ScreenSize, Texture};
 use crate::loaders::{ImageType, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
+use crate::world::effect::procedural::PrimitiveParams;
 use crate::world::effect::{EffectBase, EffectCenter, render_world_quad_blended};
-use crate::world::library::ProceduralEffectSpec;
 
 /// Fraction of the lifetime used to fade the burst in / out.
 const FADE_IN: f32 = 0.12;
@@ -43,8 +43,8 @@ pub struct HitFlash {
 impl HitFlash {
     /// Spawns the primitive for one data-file row. Returns `None` if the effect
     /// texture is not part of the game data.
-    pub fn spawn(texture_loader: &TextureLoader, center: EffectCenter, spec: &ProceduralEffectSpec) -> Option<Self> {
-        let texture = texture_loader.get_or_load(&spec.texture, ImageType::Color).ok()?;
+    pub fn spawn(texture_loader: &TextureLoader, center: EffectCenter, spec: &PrimitiveParams<'_>) -> Option<Self> {
+        let texture = texture_loader.get_or_load(spec.texture, ImageType::Color).ok()?;
 
         Some(Self {
             texture,
@@ -56,10 +56,10 @@ impl HitFlash {
             size_end: spec.size_end.max(1.0),
             spread: spec.spread,
             alpha: spec.alpha.clamp(0.0, 1.0),
-            color: Color::rgba(spec.color.0, spec.color.1, spec.color.2, 1.0),
+            color: Color::rgba(spec.color.red, spec.color.green, spec.color.blue, 1.0),
             additive: spec.additive,
             time: 0.0,
-            seed: spec.skill as u32 * 7919 + spec.texture.len() as u32,
+            seed: spec.seed,
             gets_deleted: false,
         })
     }

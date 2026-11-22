@@ -1,0 +1,71 @@
+[22:02:15.348 DEBUG korangar::world::library::skill_effects] skill effects: loaded 436 phases from the archive
+[bench-start] {"scenario":"full","idle_s":300,"walk_s":1,"effects_s":6,"ui_s":8,"window":"1280x720"}
+[22:02:48.907 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned sprite layer '
+[22:02:48.908 DEBUG korangar] skill effect: spawned texture layer 'effect\pok2.tga' for skill 34 (Success, anchor Auto)
+[22:02:48.908 DEBUG korangar] skill effect: spawned 'efst_angel_fluttering\angel_fluttering.str' for skill 34 (Success, anchor Caster)
+[22:02:48.909 [skill-sweep] spawned skill 34
+[22:02:50.508 DEBUG korangar] skill effect: spawned texture layer 'effect\ac_center2.tga' for skill 29 (Success, anchor Auto)
+[22:02:50.509 DEBUG korangar] skill effect: spawned texture layer 'effect\ac_center2.tga' for skill 29 (Success, anchor Auto)
+[22:02:50.509 DEBUG korangar] skill effect: spawned texture layer 'effect\ac_center2.tga' for skill 29 (Success, anchor Auto)
+[22:02:50.509 DEBUG korangar] skill effect: spawned texture layer 'effect\agi_up.bmp' for skill 29 (Success, anchor Auto)
+[22:02:50.509 DEBUG korangar] skill effect: spawned 'efst_c_blessings_of_soul\blessingsofsoul.str' for skill 29 (Success, anchor Caster)
+[skill-sweep] spawned skill 29
+[22:02:52.111 DEBUG korangar] skill effect: spawned 'angelus.str' for skill 33 (Success, anchor Auto)
+[skill-sweep] spawned skill 33
+[22:02:53.717 DEBUG korangar] skill effect: spawned 'concentration.str' for skill 45 (Success, anchor Caster)
+[skill-sweep] spawned skill 45
+[22:02:55.349 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_white.tga' for skill 28 (Success, anchor Auto)
+[22:02:55.349 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_white.tga' for skill 28 (Success, anchor Auto)
+[22:02:55.349 DEBUG korangar] skill effect: spawned texture layer 'effect\pok3.tga' for skill 28 (Success, anchor Auto)
+[22:02:55.349 DEBUG korangar] skill effect: spawned texture layer 'effect\pok3.tga' for skill 28 (Success, anchor Auto)
+[22:02:55.349 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_white.tga' for skill 28 (Hit, anchor Target)
+[22:02:55.349 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_white.tga' for skill 28 (Hit, anchor Target)
+[22:02:55.349 DEBUG korangar] skill effect: spawned texture layer 'effect\pok3.tga' for skill 28 (Hit, anchor Target)
+[22:02:55.350 DEBUG korangar] skill effect: spawned texture layer 'effect\pok3.tga' for skill 28 (Hit, anchor Target)
+[skill-sweep] spawned skill 28
+[22:02:56.960 DEBUG korangar] skill effect: spawned 'crashearth.str' for skill 110 (Success, anchor Auto)
+[22:02:56.961 DEBUG korangar] skill effect: spawned 'black_hammerfall.str' for skill 110 (Success, anchor Caster)
+[skill-sweep] spawned skill 110
+[22:02:58.592 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 270 (Cast, anchor Caster)
+[22:02:58.592 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 270 (Success, anchor Caster)
+[skill-sweep] spawned skill 270
+[22:03:00.223 DEBUG korangar] skill effect: spawned cylinder layer 'effect\ring_yellow.tga' for skill 401 (Cast, anchor Caster)
+[skill-sweep] spawned skill 401
+[22:03:01.827 DEBUG korangar] skill effect: spawned 'spearboomerang.str' for skill 59 (Success, anchor Caster)
+[skill-sweep] spawned skill 59
+[22:03:03.430 DEBUG korangar] skill effect: spawned 'bowling.str' for skill 62 (Success, anchor Caster)
+[22:03:03.430 DEBUG korangar] skill effect: spawned texture layer 'effect\lens1.tga' for skill 62 (Hit, anchor Target)
+[22:03:03.430 DEBUG korangar] skill effect: spawned texture layer 'effect\lens2.tga' for skill 62 (Hit, anchor Target)
+[skill-sweep] spawned skill 62
+[22:03:05.032 DEBUG korangar] skill effect: spawned 'twohand.str' for skill 357 (Success, anchor Auto)
+[skill-sweep] spawned skill 357
+[22:03:06.637 DEBUG korangar] skill effect: spawned 'asum.str' for skill 361 (Success, anchor Auto)
+[skill-sweep] spawned skill 361
+[22:03:07.506 DEBUG korangar] skill effect: spawned 'crashearth.str' for skill 110 (Success, anchor Auto)
+[22:03:07.506 DEBUG korangar] skill effect: spawned 'black_hammerfall.str' for skill 110 (Success, anchor Caster)
+[22:03:08.238 DEBUG korangar] skill effect: spawned 'stormgust.str' for skill 89 (Success, anchor Auto)
+[22:03:08.245 DEBUG korangar] skill effect: spawned procedural storm cloud for skill 89
+[22:03:08.246 DEBUG korangar] skill effect: spawned texture layer 'effect\ice.tga' for skill 89 (Hit, anchor Target)
+[skill-sweep] spawned skill 89
+[22:03:09.842 DEBUG korangar] skill effect: spawned texture layer 'effect\ice.tga' for skill 14 (Hit, anchor Target)
+[skill-sweep] spawned skill 14
+[22:03:11.444 DEBUG korangar] skill effect: spawned texture layer 'effect\pok3.tga' for skill 5 (Hit, anchor Target)
+[22:03:11.444 DEBUG korangar] skill effect: spawned texture layer 'effect\lens1.tga' for skill 5 (Hit, anchor Target)
+[22:03:11.444 DEBUG korangar] skill effect: spawned texture layer 'effect\lens2.tga' for skill 5 (Hit, anchor Target)
+[skill-sweep] spawned skill 5
+[22:03:13.046 DEBUG korangar] skill effect: spawned cylinder layer 'effect\magic_green.tga' for skill 70 (Ground, anchor Ground)
+[22:03:13.046 DEBUG korangar] skill effect: spawned cylinder layer 'effect\magic_green.tga' for skill 70 (Ground, anchor Ground)
+[22:03:13.046 DEBUG korangar] skill effect: spawned 'sanctuary.str' for skill 70 (Success, anchor Auto)
+[skill-sweep] spawned skill 70

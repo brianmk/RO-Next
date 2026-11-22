@@ -15,6 +15,15 @@ struct Arguments {
     #[arg(long)]
     sync_cache: bool,
 
+    /// Validate the unified skill effect descriptor data and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\skill_effects.ron`). Exits 0 when valid, 1 with the schema
+    /// errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_skill_effects: Option<Option<std::path::PathBuf>>,
+
     /// Increase log verbosity: -v info, -vv debug, -vvv trace.
     ///
     /// Logs are written to stderr; the launcher scripts redirect them to
@@ -42,6 +51,19 @@ fn main() {
     // If the presentation watchdog restarted this client on X11/XWayland, print one
     // clear line so it is obvious why the backend changed.
     korangar::log_presentation_fallback_startup_line();
+
+    if let Some(path) = arguments.check_skill_effects {
+        match korangar::check_skill_effects(path.as_deref()) {
+            Ok(count) => {
+                println!("skill effects: {count} (skill, phase) descriptors are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("skill effects: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
 
     korangar::logging::log_info!(
         "RO-Next {} starting (log verbosity {}, {} command line -v flags)",

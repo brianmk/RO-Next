@@ -1,0 +1,126 @@
+// Hand-written skill visuals, migrated from the old `skill_visuals()` table in
+// `korangar/src/world/skill_cast_effect.rs`.
+//
+// This is an **input** of `tools/gen_skill_effects.py`; the client never loads
+// it directly. The generator merges these rows with the official rows generated
+// from the legacy effect tables (and, when `--official` is given, with the full
+// official multi-layer rows from `tools/skill_effects_official.ron`) into the
+// single runtime data file `korangar/archive/data/client/skill_effects.ron`.
+//
+// Schema: one entry per (skill, phase). `phase` is one of
+// `Ground`, `Cast`, `Success`, `Release`, `Hit`, `Caster`. Every layer of a
+// phase spawns once per cast, in file order:
+//
+//   kind          Str | Spr | Texture | Cylinder | Primitive | BodyFlash
+//                 (Str      = .str screen sprite, `file` relative to data\texture\effect)
+//                 (Spr      = animated .spr/.act sprite, `files` relative to data\sprite\)
+//                 (Texture  = texture billboard/screen effect, `file` relative to data\texture\)
+//                 (Cylinder = texture cylinder/ground aura, `file` relative to data\texture\)
+//                 (Primitive= HitFlash | Projectile | GroundAura primitive, `primitive` + `file`)
+//                 (BodyFlash= caster sprite flash, `tint` + `hold_ms` + `fade_ms`)
+//   anchor        Caster | Target | Ground | Overhead | Body | Travel | Rain | Auto
+//                 (explicit anchor wins; otherwise `head: true` => overhead,
+//                  `attached_entity: true` => caster, else target/ground cell)
+//   attached_entity  follow/clean up with the anchor entity instead of the world cell
+//   head          official-client `head: true`: anchor above the head of the entity
+//   vertical      Feet | Body | Overhead (optional override of the height anchor)
+//   offset        world-unit offset from the anchor's feet
+//   scale         sprite/effect scale (1.0 = authored size)
+//   size/size_end billboard world size (start/end)
+//   duration_ms   0 = native animation timing
+//   delay_ms      duplicate delay / primitive stagger
+//   count         number of duplicates/burst quads
+//   spread        random world offset radius of a burst
+//   height        world height of the layer above the anchor (cylinder height for
+//                 `Cylinder` layers)
+//   bottom_radius/top_radius/rotation_speed/grow  cylinder geometry
+//   alpha/tint/blend  color and blending of texture/cylinder layers
+//   wav           official effect sound, relative to data\wav
+//   action        optional caster action override (Skill|Idle|Attack|Pickup|ReadyFight)
+//   light/light_intensity  point light of `.str` layers
+(
+    provenance: "Hand-written (older client) skill visuals migrated into the unified descriptor data: Blessing/Angelus/Inc AGI/Concentration overhead buffs, Hammer Fall, Zen/Fury cast auras and body flash, Warp/Heal cast circle tints",
+    effects: [
+        // AL_WARP (27): the ground cast circle is the cast visual; the open
+        // portal itself is a skill unit and rendered separately.
+        (skill: 27, phase: Cast, cast_circle_color: (160, 130, 255), layers: []),
+
+        // AL_HEAL (28): the green restoring columns are the official EF_HEAL
+        // cylinder rows (migrated from the procedural table); the cast circle is
+        // the classic buff tint.
+        (skill: 28, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
+        (skill: 28, phase: Success, layers: [
+            (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 1500, height: 20.0, bottom_radius: 5.0, top_radius: 5.0, alpha: 0.35, tint: (0.45, 1.0, 0.45), blend: Additive, rotation_speed: 4.36, grow: Height),
+            (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 1500, height: 24.0, bottom_radius: 7.0, top_radius: 7.0, alpha: 0.25, tint: (0.45, 1.0, 0.45), blend: Additive, rotation_speed: 4.36, grow: Height),
+        ]),
+
+        // AL_INCAGI (29): blessing-of-souls sparkles above the head (hand-written
+        // layer) plus the official AGI Up texture layers of effect 37, which the
+        // old `has_custom_completion` bypass used to drop.
+        (skill: 29, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
+        (skill: 29, phase: Success, layers: [
+            (kind: Str, anchor: Overhead, file: "efst_c_blessings_of_soul\\blessingsofsoul.str", scale: 0.9, light: (255, 230, 160), light_intensity: 35.0),
+        ]),
+
+        // AL_ANGELUS (33): the official `angelus.str` is `head: true` in
+        // `EffectTable[41]`; the official table must drive the overhead anchor.
+        (skill: 33, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
+        (skill: 33, phase: Success, layers: [
+            (kind: Str, anchor: Overhead, file: "angelus.str", scale: 1.0, wav: "effect\\ef_angelus.wav", light: (255, 235, 180), light_intensity: 45.0),
+        ]),
+
+        // AL_BLESSING (34): the animated angel above the head (hand-written)
+        // plus the official effect-42 layers (`축복` SPR, particle sparkles,
+        // ground glow), which the old bypass used to drop.
+        (skill: 34, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
+        (skill: 34, phase: Success, layers: [
+            (kind: Str, anchor: Overhead, file: "efst_angel_fluttering\\angel_fluttering.str", scale: 1.0, light: (255, 235, 180), light_intensity: 45.0),
+            (kind: Spr, head: true, attached_entity: true, files: ["이팩트\\축복"], duration_ms: 1500),
+        ]),
+
+        // AC_CONCENTRATION (45): official `concentration.str`, overhead.
+        (skill: 45, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
+        (skill: 45, phase: Success, layers: [
+            (kind: Str, anchor: Overhead, file: "concentration.str", scale: 0.9, wav: "effect\\ac_concentration.wav", light: (255, 230, 160), light_intensity: 35.0),
+        ]),
+
+        // Official `head: true` layers that the legacy `.str` generator's
+        // hand-curated overhead list missed (audit finding: 59/62/357 rendered at
+        // the feet). The unified schema carries the official `head` flag per layer,
+        // so these rows override the legacy rows of the same asset.
+        (skill: 59, phase: Success, layers: [
+            (kind: Str, anchor: Caster, head: true, file: "spearboomerang.str", light: (255, 235, 180), light_intensity: 35.0),
+        ]),
+        (skill: 62, phase: Success, layers: [
+            (kind: Str, anchor: Caster, head: true, file: "bowling.str", light: (255, 235, 180), light_intensity: 35.0),
+        ]),
+        (skill: 357, phase: Success, layers: [
+            (kind: Str, anchor: Caster, head: true, file: "twohand.str", light: (255, 235, 180), light_intensity: 35.0),
+        ]),
+
+        // BS_HAMMERFALL (110): the hammer slam animation itself (effect texture
+        // `hammer.bmp`), a ground effect kept at the feet, plus the official
+        // `crashearth.str`/hit-flash rows of effect 102.
+        (skill: 110, phase: Success, layers: [
+            (kind: Str, anchor: Caster, file: "black_hammerfall.str", scale: 1.2, wav: "effect\\black_hammerfall.wav", light: (210, 190, 150), light_intensity: 20.0),
+        ]),
+
+        // MO_EXPLOSIONSPIRITS (270): instant self buff. Official
+        // `beginCastEffectId: 12` cone plus the four expanding `EF_GUMGANG2`
+        // rings (`effectIdOnCaster: 261`), reproduced procedurally.
+        (skill: 270, phase: Cast, cast_circle_color: (255, 230, 160), layers: [
+            (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, alpha: 0.8, tint: (1.0, 0.88, 0.35), blend: Additive, grow: TopRadius),
+        ]),
+        (skill: 270, phase: Success, layers: [
+            (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1500, delay_ms: 100, count: 4, height: 4.0, bottom_radius: 4.0, top_radius: 10.0, alpha: 0.5, tint: (1.0, 0.88, 0.35), blend: Alpha, rotation_speed: 4.0, grow: BothRadii),
+        ]),
+
+        // CH_SOULCOLLECT (401): two-second self cast. The yellow `EF_BEGINSPELL`
+        // cone grows for the start of the cast and the caster's body flashes
+        // yellow (`EF_PORTAL5`).
+        (skill: 401, phase: Cast, cast_circle_color: (255, 230, 160), layers: [
+            (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, alpha: 0.8, tint: (1.0, 0.88, 0.35), blend: Additive, grow: TopRadius),
+            (kind: BodyFlash, tint: (1.0, 1.0, 0.0), hold_ms: 200, fade_ms: 600),
+        ]),
+    ],
+)

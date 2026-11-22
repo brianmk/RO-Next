@@ -16,14 +16,12 @@ mod monster_sprite;
 mod monster_sprite_alias;
 mod skill_actions;
 mod skill_delays;
-mod skill_effect_assets;
+mod skill_effects;
 mod skill_icon;
 mod skill_icon_alias;
 mod skill_information;
-mod skill_procedural_effects;
 mod skill_requirements;
 mod skill_sounds;
-mod skill_sprite_effects;
 mod skill_tree;
 
 use std::borrow::Cow;
@@ -51,13 +49,13 @@ use self::monster_sprite::MonsterSprites;
 pub(crate) use self::skill_actions::{caster_action_for_skill, default_caster_action};
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
-pub(crate) use self::skill_effect_assets::{EffectAnchor, SkillEffectVariant, skill_effect_entries, skill_has_effect};
-use self::skill_icon::SkillIcons;
-pub(crate) use self::skill_procedural_effects::{
-    ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, skill_has_procedural_effect, skill_procedural_effects,
+pub(crate) use self::skill_effects::{
+    LayerAnchor, LayerGrow, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, MAX_LAYERS_PER_PHASE, SkillEffectLayer, SkillPhase,
+    skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect,
+    validate as validate_skill_effect_data, validate_compiled as validate_compiled_skill_effects,
 };
+use self::skill_icon::SkillIcons;
 pub(crate) use self::skill_sounds::skill_sound_files;
-pub(crate) use self::skill_sprite_effects::{SpriteEffectAnchor, SpriteEffectSpec, skill_sprite_effects};
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;
@@ -96,9 +94,7 @@ impl Library {
         let item_descriptions = ItemDescriptions::load(game_file_loader);
         skill_actions::load(game_file_loader);
         skill_sounds::load(game_file_loader);
-        skill_effect_assets::load(game_file_loader);
-        skill_procedural_effects::load(game_file_loader);
-        skill_sprite_effects::load(game_file_loader);
+        skill_effects::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,

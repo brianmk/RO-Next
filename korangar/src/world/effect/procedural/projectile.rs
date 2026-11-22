@@ -20,8 +20,8 @@ use crate::graphics::{Color, ScreenSize, Texture};
 use crate::loaders::{ImageType, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
+use crate::world::effect::procedural::PrimitiveParams;
 use crate::world::effect::{EffectBase, render_world_quad_blended};
-use crate::world::library::ProceduralEffectSpec;
 
 /// How long the impact flash stays visible after a projectile lands.
 const IMPACT_DURATION: f32 = 0.2;
@@ -61,7 +61,7 @@ pub struct Projectile {
 }
 
 /// Count, per-projectile travel time and start delay of one data-file row.
-fn timing(spec: &ProceduralEffectSpec, mode: ProjectileMode) -> (u16, f32, f32) {
+fn timing(spec: &PrimitiveParams<'_>, mode: ProjectileMode) -> (u16, f32, f32) {
     let count = spec.count.clamp(1, 10);
     let duration = (spec.duration_ms.max(50) as f32) / 1000.0;
     let stagger = match (spec.delay_ms, mode) {
@@ -81,12 +81,12 @@ impl Projectile {
     /// texture is not part of the game data.
     pub fn spawn(
         texture_loader: &TextureLoader,
-        spec: &ProceduralEffectSpec,
+        spec: &PrimitiveParams<'_>,
         mode: ProjectileMode,
         start: Point3<f32>,
         end: Point3<f32>,
     ) -> Option<Self> {
-        let texture = texture_loader.get_or_load(&spec.texture, ImageType::Color).ok()?;
+        let texture = texture_loader.get_or_load(spec.texture, ImageType::Color).ok()?;
         let (count, duration, stagger) = timing(spec, mode);
 
         Some(Self {
@@ -102,10 +102,10 @@ impl Projectile {
             spread: spec.spread,
             height: spec.height,
             alpha: spec.alpha.clamp(0.0, 1.0),
-            color: Color::rgba(spec.color.0, spec.color.1, spec.color.2, 1.0),
+            color: Color::rgba(spec.color.red, spec.color.green, spec.color.blue, 1.0),
             additive: spec.additive,
             time: 0.0,
-            seed: spec.skill as u32 * 6151 + spec.texture.len() as u32,
+            seed: spec.seed,
             gets_deleted: false,
         })
     }
@@ -242,15 +242,14 @@ impl EffectBase for Projectile {
 #[cfg(test)]
 mod tests {
     use super::{IMPACT_DURATION, ProjectileMode, timing, total_duration_of};
-    use crate::world::library::{ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, SkillEffectVariant};
+    use crate::graphics::Color;
+    use crate::world::effect::AuraGrow;
+    use crate::world::effect::procedural::PrimitiveParams;
 
-    fn spec(delay_ms: u32, count: u16, duration_ms: u32) -> ProceduralEffectSpec {
-        ProceduralEffectSpec {
-            skill: 14,
-            variant: SkillEffectVariant::Hit,
-            anchor: ProceduralAnchor::Rain,
-            primitive: ProceduralPrimitive::Projectile,
-            texture: "effect\\icearrow.tga".to_owned(),
+    fn spec(delay_ms: u32, count: u16, duration_ms: u32) -> PrimitiveParams<'static> {
+        PrimitiveParams {
+            texture: "effect\\icearrow.tga",
+            seed: 14,
             count,
             duration_ms,
             delay_ms,
@@ -261,9 +260,10 @@ mod tests {
             bottom_radius: 0.0,
             top_radius: 0.0,
             alpha: 0.9,
-            color: (1.0, 1.0, 1.0),
+            color: Color::WHITE,
             additive: true,
             rotation_speed: 0.0,
+            grow: AuraGrow::Constant,
         }
     }
 

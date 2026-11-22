@@ -11,9 +11,9 @@ mod guild_emblem;
 mod item_details;
 mod library;
 pub(crate) use self::library::{
-    EffectAnchor, ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, SkillEffectVariant, SpriteEffectAnchor, SpriteEffectSpec,
-    caster_action_for_skill, default_caster_action, skill_effect_entries, skill_has_effect, skill_has_procedural_effect,
-    skill_procedural_effects, skill_sound_files, skill_sprite_effects,
+    LayerAnchor, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, MAX_LAYERS_PER_PHASE, SkillEffectLayer, SkillPhase,
+    caster_action_for_skill, default_caster_action, skill_action_override, skill_cast_circle_color, skill_effect_layers,
+    skill_effect_sound_files, skill_has_effect, skill_sound_files, validate_compiled_skill_effects, validate_skill_effect_data,
 };
 mod light;
 mod map;
