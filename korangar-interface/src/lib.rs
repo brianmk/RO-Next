@@ -59,6 +59,7 @@ pub mod prelude {
     pub use crate::components::drop_down::DropDownThemePathExt;
     pub use crate::components::either::Either;
     pub use crate::components::field::FieldThemePathExt;
+    pub use crate::components::slider::SliderThemePathExt;
     pub use crate::components::state_button::StateButtonThemePathExt;
     pub use crate::components::tabs::Tabs;
     pub use crate::components::text::TextThemePathExt;
@@ -807,6 +808,7 @@ where
         state: &'a State<App>,
         interface_scaling: f32,
         mouse_position: App::Position,
+        primary_button_down: bool,
     ) -> InterfaceFrame<'a, App> {
         if let Some(overlay_element) = &mut self.overlay_element {
             match self.windows.iter().find(|wrapper| wrapper.data.id == overlay_element.window_id) {
@@ -919,6 +921,7 @@ where
                 interface_scaling,
                 position,
                 mouse_position,
+                primary_button_down,
                 this.focused_element,
                 true,
                 &this.mouse_mode,
@@ -975,6 +978,7 @@ where
                 interface_scaling,
                 position,
                 mouse_position,
+                primary_button_down,
                 this.focused_element,
                 hovered_window.is_none(),
                 &this.mouse_mode,

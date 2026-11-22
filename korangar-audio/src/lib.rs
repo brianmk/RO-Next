@@ -220,6 +220,12 @@ struct EngineContext<F> {
     loading_sound_effect: HashSet<SoundEffectKey>,
     lookup: HashMap<String, SoundEffectKey>,
     manager: Box<dyn AudioManagerHandle>,
+    /// Linear master volume (0.0..=1.0). Every sub-track is multiplied with it.
+    main_volume: f32,
+    /// Whether the audio is temporarily muted (e.g. the window lost focus).
+    /// The mute overrides the master volume without discarding it, so unmuting
+    /// restores the volume the player configured.
+    muted: bool,
     object_kdtree: KDTree<AmbientKey, Sphere>,
     previous_query_result: Vec<AmbientKey>,
     query_result: Vec<AmbientKey>,
@@ -298,7 +304,9 @@ impl<F: FileLoader> AudioEngine<F> {
             last_listener_update: Instant::now(),
             loading_sound_effect,
             lookup: HashMap::default(),
+            main_volume: 1.0,
             manager,
+            muted: false,
             object_kdtree,
             previous_query_result: Vec::default(),
             query_result: Vec::default(),
@@ -318,12 +326,13 @@ impl<F: FileLoader> AudioEngine<F> {
         context.cache.statistics()
     }
 
-    /// Mutes or unmutes the audio.
+    /// Mutes or unmutes the audio without discarding the configured master
+    /// volume.
+    ///
+    /// While muted the effective main volume is `0.0`; unmuting restores the
+    /// volume that was set with [`Self::set_main_volume`].
     pub fn mute(&self, enable: bool) {
-        match enable {
-            true => self.set_main_volume(0.0),
-            false => self.set_main_volume(1.0),
-        };
+        self.engine_context.lock().unwrap().set_muted(enable)
     }
 
     /// Returns the music track that should be played for the given map file.
@@ -373,9 +382,14 @@ impl<F: FileLoader> AudioEngine<F> {
         sound_effect_key
     }
 
-    /// Sets the global volume.
+    /// Sets the global (master) volume.
+    ///
+    /// The volume is a linear gain in `0.0..=1.0`; values outside of that
+    /// range and non-finite values are clamped/sanitized. The master volume is
+    /// multiplied with every category volume by the mixer. A temporary
+    /// [`Self::mute`] overrides this volume without discarding it.
     pub fn set_main_volume(&self, volume: f32) {
-        self.engine_context.lock().unwrap().set_main_volume(linear_to_decibel(volume))
+        self.engine_context.lock().unwrap().set_main_volume(volume)
     }
 
     /// Sets the volume of the background music.
@@ -487,8 +501,21 @@ impl<F: FileLoader> AudioEngine<F> {
 }
 
 impl<F: FileLoader> EngineContext<F> {
-    fn set_main_volume(&mut self, volume: Decibels) {
-        self.manager.set_main_volume(volume, Duration::from_millis(500));
+    /// Apply the effective main volume (the master volume unless muted).
+    fn apply_main_volume(&mut self) {
+        let volume = effective_main_volume(self.main_volume, self.muted);
+
+        self.manager.set_main_volume(linear_to_decibel(volume), Duration::from_millis(500));
+    }
+
+    fn set_main_volume(&mut self, volume: f32) {
+        self.main_volume = sanitize_linear_volume(volume);
+        self.apply_main_volume();
+    }
+
+    fn set_muted(&mut self, muted: bool) {
+        self.muted = muted;
+        self.apply_main_volume();
     }
 
     fn set_background_music_volume(&mut self, volume: Decibels) {
@@ -1258,7 +1285,32 @@ fn difference<T: Ord + Copy>(vector_1: &mut [T], vector_2: &mut [T], result: &mu
     result.extend_from_slice(&vector_1[i..]);
 }
 
+/// The main volume that is actually applied to the mixer.
+///
+/// A mute temporarily overrides the master volume with silence; the master
+/// volume itself is kept so that unmuting restores it.
+pub(crate) fn effective_main_volume(main_volume: f32, muted: bool) -> f32 {
+    match muted {
+        true => 0.0,
+        false => sanitize_linear_volume(main_volume),
+    }
+}
+
+/// Clamp a linear volume into the valid `0.0..=1.0` range and turn non-finite
+/// values into silence.
+///
+/// The public volume setters funnel through this so a bad settings value, a
+/// division by zero or a NaN can never reach the audio engine.
+pub(crate) fn sanitize_linear_volume(linear: f32) -> f32 {
+    match linear.is_finite() {
+        true => linear.clamp(0.0, 1.0),
+        false => 0.0,
+    }
+}
+
 fn linear_to_decibel(linear: f32) -> Decibels {
+    let linear = sanitize_linear_volume(linear);
+
     if linear <= 0.0 {
         Decibels::SILENCE
     } else {
@@ -1268,7 +1320,42 @@ fn linear_to_decibel(linear: f32) -> Decibels {
 
 #[cfg(test)]
 mod tests {
-    use crate::difference;
+    use crate::{difference, effective_main_volume, linear_to_decibel, sanitize_linear_volume};
+
+    #[test]
+    fn linear_volume_is_clamped_and_nan_becomes_silence() {
+        assert_eq!(sanitize_linear_volume(0.0), 0.0);
+        assert_eq!(sanitize_linear_volume(0.5), 0.5);
+        assert_eq!(sanitize_linear_volume(1.0), 1.0);
+        assert_eq!(sanitize_linear_volume(1.5), 1.0);
+        assert_eq!(sanitize_linear_volume(-0.5), 0.0);
+        assert_eq!(sanitize_linear_volume(f32::NAN), 0.0);
+        assert_eq!(sanitize_linear_volume(f32::INFINITY), 0.0);
+        assert_eq!(sanitize_linear_volume(f32::NEG_INFINITY), 0.0);
+    }
+
+    #[test]
+    fn muting_overrides_but_does_not_discard_the_master_volume() {
+        assert_eq!(effective_main_volume(0.7, false), 0.7);
+        assert_eq!(effective_main_volume(0.7, true), 0.0);
+        // Unmuting restores the configured master volume again.
+        assert_eq!(effective_main_volume(0.7, false), 0.7);
+        assert_eq!(effective_main_volume(1.0, true), 0.0);
+        assert_eq!(effective_main_volume(f32::NAN, false), 0.0);
+        // A muted engine stays silent even if the master volume is changed.
+        assert_eq!(effective_main_volume(0.7, true), 0.0);
+    }
+
+    #[test]
+    fn linear_volume_maps_to_decibel_gain() {
+        // Compare the resulting amplitude because `Decibels` is an internal
+        // type that intentionally does not implement `Debug`.
+        assert_eq!(linear_to_decibel(1.0).as_amplitude(), 1.0);
+        assert!((linear_to_decibel(0.5).as_amplitude() - 0.5).abs() < 1e-6);
+        assert_eq!(linear_to_decibel(0.0).as_amplitude(), 0.0);
+        assert_eq!(linear_to_decibel(-1.0).as_amplitude(), 0.0);
+        assert_eq!(linear_to_decibel(f32::NAN).as_amplitude(), 0.0);
+    }
 
     #[test]
     fn test_difference() {

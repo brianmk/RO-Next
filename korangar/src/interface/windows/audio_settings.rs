@@ -3,30 +3,25 @@ use rust_state::Path;
 
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
-use crate::settings::{AudioSettings, AudioSettingsCapabilities, AudioSettingsCapabilitiesPathExt, AudioSettingsPathExt};
+use crate::settings::{AudioSettings, AudioSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
 #[derive(Default)]
-pub struct AudioSettingsWindow<A, B> {
+pub struct AudioSettingsWindow<A> {
     audio_settings_path: A,
-    audio_settings_capabilities_path: B,
 }
 
-impl<A, B> AudioSettingsWindow<A, B> {
-    pub fn new(audio_settings_path: A, audio_settings_capabilities_path: B) -> Self {
-        Self {
-            audio_settings_path,
-            audio_settings_capabilities_path,
-        }
+impl<A> AudioSettingsWindow<A> {
+    pub fn new(audio_settings_path: A) -> Self {
+        Self { audio_settings_path }
     }
 }
 
-impl<A, B> CustomWindow<ClientState> for AudioSettingsWindow<A, B>
+impl<A> CustomWindow<ClientState> for AudioSettingsWindow<A>
 where
     A: Path<ClientState, AudioSettings>,
-    B: Path<ClientState, AudioSettingsCapabilities>,
 {
     fn window_class() -> Option<WindowClass> {
         Some(WindowClass::AudioSettings)
@@ -55,12 +50,33 @@ where
                 split! {
                     children: (
                         text! {
+                            text: client_state().localization().master_volume_text(),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        slider! {
+                            value: self.audio_settings_path.master_volume(),
+                        }
+                    )
+                },
+                split! {
+                    children: (
+                        text! {
+                            text: client_state().localization().sound_effect_volume_text(),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        slider! {
+                            value: self.audio_settings_path.sound_effect_volume(),
+                        }
+                    )
+                },
+                split! {
+                    children: (
+                        text! {
                             text: client_state().localization().background_music_volume_text(),
                             overflow_behavior: OverflowBehavior::Shrink,
                         },
-                        drop_down! {
-                            selected: self.audio_settings_path.background_music_volume(),
-                            options: self.audio_settings_capabilities_path.background_music_volume_options(),
+                        slider! {
+                            value: self.audio_settings_path.background_music_volume(),
                         }
                     )
                 },

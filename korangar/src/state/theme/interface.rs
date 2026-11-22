@@ -4,6 +4,7 @@ use korangar_interface::components::button::ButtonTheme;
 use korangar_interface::components::collapsible::CollapsibleTheme;
 use korangar_interface::components::drop_down::DropDownTheme;
 use korangar_interface::components::field::FieldTheme;
+use korangar_interface::components::slider::SliderTheme;
 use korangar_interface::components::state_button::StateButtonTheme;
 use korangar_interface::components::text::TextTheme;
 use korangar_interface::components::text_box::TextBoxTheme;
@@ -225,6 +226,38 @@ impl Default for ItemCardTheme {
     }
 }
 
+/// Theme of the interactive volume sliders.
+///
+/// The component itself does not hardcode any colors: they are derived from the
+/// design tokens of the active theme, so the flat dark theme and the classic
+/// light theme both get a readable slider without duplicating the palette.
+fn default_slider_theme(tokens: DesignTokens) -> SliderTheme<ClientState> {
+    SliderTheme {
+        track_color: tokens.color.surface_sunken,
+        hovered_track_color: tokens.color.state_hover,
+        fill_color: tokens.color.text_accent,
+        hovered_fill_color: tokens.color.focus_ring,
+        foreground_color: tokens.color.text_primary,
+        highlight_color: tokens.color.text_accent,
+        shadow_color: Color::TRANSPARENT,
+        shadow_padding: ShadowPadding::uniform(0.0),
+        fill_shadow_color: Color::TRANSPARENT,
+        fill_shadow_padding: ShadowPadding::uniform(0.0),
+        height: 20.0,
+        corner_diameter: tokens.radius.small,
+        font_size: tokens.typography.font_label,
+        horizontal_alignment: HorizontalAlignment::Center { offset: 0.0, border: 3.0 },
+        vertical_alignment: VerticalAlignment::Center { offset: 0.0 },
+        overflow_behavior: OverflowBehavior::Shrink,
+    }
+}
+
+/// Default value of the optional slider theme block in theme files that were
+/// written before the slider existed.
+fn default_slider_theme_field() -> SliderTheme<ClientState> {
+    default_slider_theme(DesignTokens::default())
+}
+
 #[derive(Serialize, Deserialize, RustState, StateElement, StateWindow)]
 #[window_title("Theme Inspector")]
 pub struct InterfaceTheme {
@@ -242,6 +275,13 @@ pub struct InterfaceTheme {
     pub collapsible: CollapsibleTheme<ClientState>,
     #[hidden_element]
     pub drop_down: DropDownTheme<ClientState>,
+    /// Theme of the interactive sliders (audio volume settings).
+    ///
+    /// Optional in persisted theme files: themes written before the slider
+    /// existed load and get the default (token derived) slider theme.
+    #[hidden_element]
+    #[serde(default = "default_slider_theme_field")]
+    pub slider: SliderTheme<ClientState>,
     #[hidden_element]
     pub field: FieldTheme<ClientState>,
     #[hidden_element]
@@ -555,6 +595,7 @@ impl InterfaceTheme {
             },
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
+            slider: default_slider_theme(DesignTokens::default()),
             tokens: DesignTokens::default(),
             party: PartyTheme::default(),
         }
@@ -777,6 +818,7 @@ impl InterfaceTheme {
             },
             character_overview: CharacterOverviewTheme::default(),
             item_card: ItemCardTheme::default(),
+            slider: default_slider_theme(DesignTokens::default()),
             tokens: DesignTokens::default(),
             party: PartyTheme::default(),
         }
@@ -795,6 +837,7 @@ impl InterfaceTheme {
     fn default_classic() -> Self {
         let mut theme = Self::default_in_game();
         theme.tokens = DesignTokens::classic();
+        theme.slider = default_slider_theme(theme.tokens);
 
         // Classic bar colors: black labels, dark-blue values, dark tracks and
         // the classic green/blue/yellow progress colors on the light interface.

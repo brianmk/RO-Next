@@ -156,6 +156,31 @@ pub fn drop_down(token_stream: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+pub fn slider(token_stream: TokenStream) -> TokenStream {
+    create_component_macro!(korangar_interface::components::slider::Slider, {
+        value: !,
+        track_color: { korangar_interface::theme::theme().slider().track_color() },
+        hovered_track_color: { korangar_interface::theme::theme().slider().hovered_track_color() },
+        fill_color: { korangar_interface::theme::theme().slider().fill_color() },
+        hovered_fill_color: { korangar_interface::theme::theme().slider().hovered_fill_color() },
+        foreground_color: { korangar_interface::theme::theme().slider().foreground_color() },
+        highlight_color: { korangar_interface::theme::theme().slider().highlight_color() },
+        shadow_color: { korangar_interface::theme::theme().slider().shadow_color() },
+        shadow_padding: { korangar_interface::theme::theme().slider().shadow_padding() },
+        fill_shadow_color: { korangar_interface::theme::theme().slider().fill_shadow_color() },
+        fill_shadow_padding: { korangar_interface::theme::theme().slider().fill_shadow_padding() },
+        height: { korangar_interface::theme::theme().slider().height() },
+        corner_diameter: { korangar_interface::theme::theme().slider().corner_diameter() },
+        font_size: { korangar_interface::theme::theme().slider().font_size() },
+        horizontal_alignment: { korangar_interface::theme::theme().slider().horizontal_alignment() },
+        vertical_alignment: { korangar_interface::theme::theme().slider().vertical_alignment() },
+        overflow_behavior: { korangar_interface::theme::theme().slider().overflow_behavior() },
+    });
+
+    macro_impl(token_stream.into()).into()
+}
+
+#[proc_macro]
 pub fn collapsible(token_stream: TokenStream) -> TokenStream {
     create_component_macro!(korangar_interface::components::collapsible::Collapsible, {
         text: !,
