@@ -39,7 +39,7 @@ use crate::world::{
 #[cfg(feature = "debug")]
 use crate::world::{MarkerIdentifier, SubMesh};
 #[cfg(feature = "debug")]
-use crate::{Buffer, Color, ModelVertex};
+use crate::{Buffer, ModelVertex};
 
 const MALE_HAIR_LOOKUP: &[usize] = &[2, 2, 1, 7, 5, 4, 3, 6, 8, 9, 10, 12, 11];
 const FEMALE_HAIR_LOOKUP: &[usize] = &[2, 2, 4, 7, 1, 5, 3, 6, 12, 10, 9, 11, 8];

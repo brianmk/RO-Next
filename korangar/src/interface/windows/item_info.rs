@@ -19,9 +19,11 @@ use korangar_networking::InventoryItem;
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding, Texture};
 use crate::interface::windows::WindowClass;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt};
+use crate::state::theme::{
+    ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt, TypographyTokensPathExt,
+};
 use crate::state::{ClientState, client_theme};
 use crate::world::{CARD_SLOT_COUNT, CardNames, CardSlotState, ItemStats, ResourceMetadata, StatBonuses, random_option_lines};
 
@@ -219,11 +221,16 @@ impl Element<ClientState> for ItemCardSlots {
 
     fn lay_out<'a>(
         &'a self,
-        _state: &'a rust_state::State<ClientState>,
+        state: &'a rust_state::State<ClientState>,
         _store: ElementStore<'a>,
         slots: &'a Self::LayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
+        let typography = client_theme().tokens().typography();
+        let unknown_card_font_size = *state.get(&typography.font_body_lg());
+        let card_name_font_size = *state.get(&typography.font_xs());
+        let unavailable_font_size = *state.get(&typography.font_body());
+
         for (slot, area) in slots.iter().enumerate() {
             let slot_state = self.slot_state(slot);
 
@@ -275,7 +282,7 @@ impl Element<ClientState> for ItemCardSlots {
                             layout.add_text(
                                 icon_area,
                                 "?",
-                                FontSize(14.0),
+                                unknown_card_font_size,
                                 CARD_NAME_COLOR,
                                 CARD_NAME_COLOR,
                                 korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
@@ -288,7 +295,7 @@ impl Element<ClientState> for ItemCardSlots {
                     layout.add_text(
                         name_area,
                         card_name,
-                        FontSize(9.0),
+                        card_name_font_size,
                         CARD_NAME_COLOR,
                         CARD_NAME_COLOR,
                         korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
@@ -319,7 +326,7 @@ impl Element<ClientState> for ItemCardSlots {
                     layout.add_text(
                         icon_area,
                         "—",
-                        FontSize(12.0),
+                        unavailable_font_size,
                         SLOT_UNAVAILABLE_TEXT_COLOR,
                         SLOT_UNAVAILABLE_TEXT_COLOR,
                         korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
@@ -452,7 +459,7 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                 text! {
                     text: "Card slots",
                     height: 18.0,
-                    color: Color::rgb_u8(255, 160, 60),
+                    color: client_theme().tokens().color().text_accent(),
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 card_slots,
@@ -463,7 +470,7 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                             text! {
                                 text: "Random options",
                                 height: 18.0,
-                                color: Color::rgb_u8(255, 160, 60),
+                                color: client_theme().tokens().color().text_accent(),
                                 overflow_behavior: OverflowBehavior::Shrink,
                             },
                             text! {
@@ -477,7 +484,7 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                 text! {
                     text: "Description",
                     height: 18.0,
-                    color: Color::rgb_u8(255, 160, 60),
+                    color: client_theme().tokens().color().text_accent(),
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 scroll_view! {
