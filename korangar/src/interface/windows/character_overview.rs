@@ -602,11 +602,14 @@ where
                             event: InputEvent::ToggleBigMapWindow,
                         },
                         button! {
-                            text: client_state().localization().chat_button_text(),
+                            // Party lives where the chat shortcut used to be; the
+                            // chat window itself stays reachable via its hotkey
+                            // (Alt+C) and is still opened on login/whisper.
+                            text: client_state().localization().party_window_title(),
                             height: ACTION_BUTTON_HEIGHT,
                             font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
-                            event: InputEvent::ToggleChatWindow,
+                            event: InputEvent::TogglePartyWindow,
                         },
                         button! {
                             text: client_state().localization().game_settings_button_text(),

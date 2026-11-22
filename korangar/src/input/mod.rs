@@ -318,6 +318,13 @@ impl InputSystem {
             events.push(InputEvent::ToggleEquipmentWindow);
         }
 
+        // Chat window toggle (Alt+C). The character overview used to have a
+        // Chat button; it was replaced by the party button, so keep the chat
+        // window reachable with a hotkey like the other window shortcuts.
+        if alt_down && self.get_key(KeyCode::KeyC).pressed() {
+            events.push(InputEvent::ToggleChatWindow);
+        }
+
         if control_down && self.get_key(KeyCode::KeyS).pressed() {
             events.push(InputEvent::ToggleGameSettingsWindow);
         }
