@@ -1,4 +1,4 @@
-use korangar_interface::application::Size;
+use korangar_interface::application::{Application, Size};
 use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, StateElement};
@@ -23,6 +23,10 @@ use crate::state::theme::{
 use crate::state::{ChatMessage, ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_CHAT_MESSAGE_LENGTH: usize = 80;
+
+/// Vertical gap of the chat window, shared by the window layout and the
+/// message/input wrapper so the input row always fits exactly.
+const CHAT_WINDOW_GAPS: f32 = 2.0;
 
 /// Resolve the color of a chat message through the design tokens.
 ///
@@ -174,77 +178,134 @@ where
     }
 }
 
-/// Element wrapper that reserves space below a flexible child element.
+/// Chat message list plus the input row at the bottom.
 ///
-/// The chat window needs the message scroll view to fill the window while the
-/// input box at the bottom keeps its natural height. The plain vertical element
-/// order would give the scroll view all remaining space (input box invisible).
-/// This wrapper gives the child the available height minus the reservation and
-/// leaves that reservation to the next element in the window.
-struct ReserveBelow<Reserve, Gaps, Child> {
-    reserve_path: Reserve,
-    gaps_path: Gaps,
-    child: Child,
+/// The messages scroll view gets exactly the available height minus the input
+/// row (its theme height plus one window gap), the input row gets the
+/// remainder. The wrapper consumes the full available height, so the chat
+/// window keeps its stored size while resizing from the top and the input row
+/// always stays inside the window (the previous "reserve below" wrapper
+/// consumed only the scroll view and let the input row fall below the window
+/// bottom).
+struct ChatInputResolvers<'a, App: Application> {
+    available_area: PartialArea,
+    messages_height: f32,
+    input_height: f32,
+    gaps: f32,
+    used: [f32; 2],
+    current_index: std::cell::Cell<usize>,
+    text_layouter: &'a App::TextLayouter,
 }
 
-impl<Reserve, Gaps, Child> ReserveBelow<Reserve, Gaps, Child> {
-    fn new(reserve_path: Reserve, gaps_path: Gaps, child: Child) -> Self {
+impl<'a, App> ChatInputResolvers<'a, App>
+where
+    App: Application,
+{
+    fn new(available_area: PartialArea, messages_height: f32, input_height: f32, gaps: f32, text_layouter: &'a App::TextLayouter) -> Self {
         Self {
-            reserve_path,
-            gaps_path,
-            child,
+            available_area,
+            messages_height,
+            input_height,
+            gaps,
+            used: [0.0; 2],
+            current_index: std::cell::Cell::new(0),
+            text_layouter,
         }
     }
 }
 
-impl<Reserve, Gaps, Child> Element<ClientState> for ReserveBelow<Reserve, Gaps, Child>
+impl<'a, App> Resolvers<'a, App> for ChatInputResolvers<'a, App>
 where
-    Reserve: Selector<ClientState, f32>,
-    Gaps: Selector<ClientState, f32>,
-    Child: Element<ClientState>,
+    App: Application,
 {
-    type LayoutInfo = Child::LayoutInfo;
+    fn for_index(&self, index: usize) -> Resolver<'a, App> {
+        self.current_index.set(index);
 
-    fn create_layout_info(
-        &mut self,
-        state: &State<ClientState>,
-        mut store: ElementStoreMut,
-        resolvers: &mut dyn Resolvers<ClientState>,
-    ) -> Self::LayoutInfo {
-        let mut resolver = resolvers.for_index(0);
-        let available_area = resolver.push_available_area();
-        let reserve = *state.get(&self.reserve_path);
-        let gaps = *state.get(&self.gaps_path);
-        let available_height = available_area.height.unwrap_or(0.0);
-        let child_height = (available_height - reserve - gaps).max(0.0);
+        let (top, height) = match index {
+            0 => (self.available_area.top, self.messages_height),
+            _ => (self.available_area.top + self.messages_height + self.gaps, self.input_height),
+        };
 
-        let mut child_resolver = Resolver::new(
+        Resolver::new(
             PartialArea {
-                left: available_area.left,
-                top: available_area.top,
-                width: available_area.width,
-                height: Some(child_height),
+                left: self.available_area.left,
+                top,
+                width: self.available_area.width,
+                height: Some(height),
             },
+            0.0,
+            self.text_layouter,
+        )
+    }
+
+    fn give_back(&mut self, resolver: Resolver<'a, App>) {
+        self.used[self.current_index.get()] = resolver.get_used_height();
+    }
+}
+
+/// Chat message list plus the input row at the bottom.
+///
+/// The message list gets `available - input_row_height - gap`, the input row
+/// gets `input_row_height` at the bottom. The wrapper consumes exactly the
+/// available height, so the window keeps its stored size while resizing from
+/// the top and the input row can never end up below the window bottom.
+struct ChatMessagesWithInput<Children, InputHeight, Gaps> {
+    input_height: InputHeight,
+    gaps: Gaps,
+    children: Children,
+}
+
+impl<Children, InputHeight, Gaps> ChatMessagesWithInput<Children, InputHeight, Gaps> {
+    fn new(input_height: InputHeight, gaps: Gaps, children: Children) -> Self {
+        Self {
+            input_height,
             gaps,
-            resolver.get_text_layouter(),
-        );
+            children,
+        }
+    }
+}
 
-        let layout_info = self.child.create_layout_info(state, store.child_store(0), &mut child_resolver);
+impl<App, Children, InputHeight, Gaps> Element<App> for ChatMessagesWithInput<Children, InputHeight, Gaps>
+where
+    App: Application,
+    Children: Element<App>,
+    InputHeight: Selector<App, f32>,
+    Gaps: Selector<App, f32>,
+{
+    type LayoutInfo = Children::LayoutInfo;
 
-        resolver.commit_used_height(child_resolver.get_used_height() + reserve + gaps);
-        resolvers.give_back(resolver);
+    fn create_layout_info(&mut self, state: &State<App>, store: ElementStoreMut, resolvers: &mut dyn Resolvers<App>) -> Self::LayoutInfo {
+        with_single_resolver(resolvers, |resolver| {
+            let available_area = resolver.push_available_area();
+            let available_height = available_area.height.unwrap_or(0.0);
+            let input_height = *state.get(&self.input_height);
+            let gaps = *state.get(&self.gaps);
+            let messages_height = (available_height - input_height - gaps).max(0.0);
 
-        layout_info
+            let mut child_resolvers = ChatInputResolvers::new(
+                available_area,
+                messages_height,
+                input_height,
+                gaps,
+                resolver.get_text_layouter(),
+            );
+            let layout_info = self.children.create_layout_info(state, store, &mut child_resolvers as _);
+
+            let used_height = child_resolvers.used[0] + gaps + child_resolvers.used[1];
+            resolver.commit_used_height(used_height);
+
+            layout_info
+        })
     }
 
     fn lay_out<'a>(
         &'a self,
-        state: &'a State<ClientState>,
+        state: &'a State<App>,
         store: ElementStore<'a>,
         layout_info: &'a Self::LayoutInfo,
-        layout: &mut WindowLayout<'a, ClientState>,
+        layout: &mut WindowLayout<'a, App>,
     ) {
-        self.child.lay_out(state, store.child_store(0), layout_info, layout);
+        self.children.lay_out(state, store, layout_info, layout);
     }
 }
 
@@ -343,22 +404,24 @@ where
             true => chat.transparent_window_color,
             false => chat.window_color,
         });
-        let text_box_background_color = chat_color(chat_theme_path, transparent_chat_path, |chat, transparent| match transparent {
-            true => chat.transparent_text_box_background_color,
-            false => chat.text_box_background_color,
-        });
         let window_title_color = chat_color_constant(chat_theme_path, |chat| chat.window_title_color);
         let hovered_window_title_color = chat_color_constant(chat_theme_path, |chat| chat.hovered_window_title_color);
-        let text_box_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_foreground_color);
+        // The chat input row is always drawn on the dark
+        // `chat_input_focused_background` token (see below), in both the
+        // classic and the default theme. Use white text and a light ghost text
+        // so the input stays readable everywhere, including the
+        // transparent-chat variant.
+        let text_box_foreground_color = korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| Color::WHITE);
         // The focused chat input is drawn on a dark background; using the skinned
         // text box theme colors here would make the text unreadable with the classic
         // theme (which uses black text on light text boxes).
         let text_box_focused_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_focused_foreground_color);
-        let text_box_ghost_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.ghost_foreground_color);
-        // The focused chat input row is always drawn on a dark background, also
-        // in the light classic theme, so the background is a token and not one
-        // of the skinned text box colors.
-        let chat_input_focused_background_color = {
+        let text_box_ghost_foreground_color =
+            korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| Color::rgba_u8(205, 205, 205, 230));
+        // The chat input row (focused or not) is always drawn on a dark
+        // background, also in the light classic theme, so the background is a
+        // token and not one of the skinned text box colors.
+        let chat_input_background_color = {
             let tokens = client_theme().tokens();
             let color_tokens = tokens.color();
             korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
@@ -386,7 +449,7 @@ where
             background_color: window_background_color,
             resizable: true,
             border: 3.0,
-            gaps: 2.0,
+            gaps: CHAT_WINDOW_GAPS,
             title_gap: 0.0,
             minimum_height: 150.0,
             maximum_height: 800.0,
@@ -408,33 +471,47 @@ where
                     shadow_color: Color::TRANSPARENT,
                     shadow_padding: ShadowPadding::uniform(0.0),
                 },
-                ReserveBelow::new(
-                    // Reservation for the input box at the bottom (its theme height
-                    // plus the window gaps below it).
+                ChatMessagesWithInput::new(
                     korangar_interface::theme::theme().text_box().height(),
-                    korangar_interface::theme::theme().window().gaps(),
-                    scroll_view! {
-                        follow: true,
-                        // The window height comes from the stored window size
-                        // (and the resize grip changes it), so the message list
-                        // has to consume the available height and scroll beyond
-                        // it instead of stretching the window with the content.
-                        fit_content_height: false,
-                        children: ChatElement::new(self.chat_messages_path),
-                    },
+                    korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| CHAT_WINDOW_GAPS),
+                    (
+                        scroll_view! {
+                            follow: true,
+                            // The window height comes from the stored window size
+                            // (and the resize grip changes it), so the message list
+                            // has to consume the available height and scroll beyond
+                            // it instead of stretching the window with the content.
+                            fit_content_height: false,
+                            children: ChatElement::new(self.chat_messages_path),
+                        },
+                        text_box! {
+                            ghost_text: client_state().localization().chat_text_box_message(),
+                            state: current_text_path,
+                            input_handler: DefaultHandler::<_, _, MAXIMUM_CHAT_MESSAGE_LENGTH>::new(current_text_path, send_action),
+                            foreground_color: text_box_foreground_color,
+                            focused_foreground_color: text_box_focused_foreground_color,
+                            background_color: chat_input_background_color,
+                            hovered_background_color: {
+                                let tokens = client_theme().tokens();
+                                let color_tokens = tokens.color();
+                                korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+                                    *color_tokens.chat_input_focused_background().follow_safe(state)
+                                })
+                            },
+                            hovered_foreground_color: korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| Color::WHITE),
+                            ghost_foreground_color: text_box_ghost_foreground_color,
+                            focused_background_color: {
+                                let tokens = client_theme().tokens();
+                                let color_tokens = tokens.color();
+                                korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+                                    *color_tokens.chat_input_focused_background().follow_safe(state)
+                                })
+                            },
+                            focus_id: ChatTextBox,
+                            skinned: false,
+                        },
+                    ),
                 ),
-                text_box! {
-                    ghost_text: client_state().localization().chat_text_box_message(),
-                    state: current_text_path,
-                    input_handler: DefaultHandler::<_, _, MAXIMUM_CHAT_MESSAGE_LENGTH>::new(current_text_path, send_action),
-                    foreground_color: text_box_foreground_color,
-                    focused_foreground_color: text_box_focused_foreground_color,
-                    background_color: text_box_background_color,
-                    ghost_foreground_color: text_box_ghost_foreground_color,
-                    focused_background_color: chat_input_focused_background_color,
-                    focus_id: ChatTextBox,
-                    skinned: false,
-                },
             ),
         }
     }

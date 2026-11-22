@@ -612,12 +612,6 @@ where
             None
         };
 
-        let is_title_hovered = layout_info.title_area.check().run(layout);
-
-        if is_title_hovered {
-            layout.register_click_handler(MouseButton::Left, &self.move_click_action);
-        }
-
         let corner_diameter = *state.get(&self.corner_diameter);
 
         let horizontal_resize_area = Area {
@@ -633,16 +627,16 @@ where
                 width: layout_info.area.width - 40.0,
                 height: 6.0,
             },
-            // The top grip has to start *below* the title bar: the title area
-            // registers the window move handler and wins over the resize handler
-            // where both overlap, so a grip that reached into the title would
-            // move the window instead of resizing it (the bottom grip has no such
-            // conflict).
+            // The top grip overlaps the bottom edge of the title bar by a couple
+            // of pixels so there is no dead/rounded strip between the title and the
+            // grip. The hover checks below run *before* the title move check, so on
+            // the overlap rows the grip wins and the drag resizes the window from
+            // the top instead of moving it.
             VerticalResizeAnchor::Top => Area {
                 left: layout_info.area.left + 20.0,
-                top: layout_info.area.top + layout_info.title_area.height,
+                top: layout_info.area.top + layout_info.title_area.height - 2.0,
                 width: layout_info.area.width - 40.0,
-                height: 6.0,
+                height: 8.0,
             },
         };
 
@@ -654,9 +648,20 @@ where
             width: 12.0,
             height: 12.0,
         };
+
+        // Order matters: a hovered element consumes the hover (`can_be_hovered`),
+        // so the resize grips have to be checked before the title bar. Otherwise
+        // the move handler is registered for the top grip row and the window is
+        // moved instead of resized.
         let horizontal_resize_hovered = horizontal_resize_area.check().run(layout);
         let vertical_resize_hovered = vertical_resize_area.check().run(layout);
         let resize_hovered = resize_area.check().run(layout);
+
+        let is_title_hovered = layout_info.title_area.check().run(layout);
+
+        if is_title_hovered {
+            layout.register_click_handler(MouseButton::Left, &self.move_click_action);
+        }
 
         // While the window chrome is shown (the client turns it on while the interface
         // settings window is open) every window can be resized, even ones that do not
