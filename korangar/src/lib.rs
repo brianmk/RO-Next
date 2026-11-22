@@ -220,6 +220,16 @@ const MAIN_MENU_CLICK_SOUND_EFFECT: &str = "버튼소리.wav";
 /// Sound played when another entity teleports away / logs out (classic client
 /// plays the teleport warp effect together with this effect sound).
 const TELEPORT_VANISH_SOUND_EFFECT: &str = "effect\\ef_teleportation.wav";
+/// Classic item view ids of bows (item view ids 1700-1799).
+const BOW_ITEM_VIEW_RANGE: std::ops::RangeInclusive<u32> = 1700..=1799;
+/// Server weapon type `W_BOW` (rAthena `e_weapon_type`).
+const WEAPON_TYPE_BOW: u32 = 11;
+
+/// Whether the weapon value of an entity is a bow (server weapon type or item
+/// view id).
+fn is_bow_weapon(weapon: u32) -> bool {
+    weapon == WEAPON_TYPE_BOW || BOW_ITEM_VIEW_RANGE.contains(&weapon)
+}
 /// Maximum number of teleport-vanish effects spawned within
 /// `TELEPORT_VANISH_WINDOW`. Population-engine shells can vanish in bursts;
 /// this keeps the effect renderer cheap.
@@ -737,6 +747,11 @@ pub struct Client {
     current_map_name: Option<String>,
 
     particle_holder: ParticleHolder,
+    /// Cached classic arrow sprite/actions for bow attack projectiles.
+    arrow_assets: Option<std::sync::Arc<ArrowAssets>>,
+    /// Set when the arrow assets could not be loaded (avoids retrying every
+    /// hit).
+    arrow_assets_failed: bool,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
@@ -1349,6 +1364,8 @@ impl Client {
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
+            arrow_assets: None,
+            arrow_assets_failed: false,
             point_light_manager,
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
@@ -2234,6 +2251,31 @@ impl Client {
     ///
     /// Only `Teleported` and `LoggedOut` disappearances use this; out-of-sight
     /// and death disappearances keep their plain fade / death handling.
+    /// Loads the classic arrow sprite/actions once, on the first bow attack.
+    fn ensure_arrow_assets(&mut self) {
+        if self.arrow_assets.is_some() || self.arrow_assets_failed {
+            return;
+        }
+
+        // Classic clients draw the arrow with the arrow item sprite. The huge
+        // `ac_chargearrow` skill-effect sprite is only a last-resort fallback.
+        const CANDIDATES: [&str; 4] = ["아이템\\화살", "아이템\\강철화살", "아이템\\독화살", "아이템\\ac_chargearrow"];
+
+        for candidate in CANDIDATES {
+            let sprite = self.sprite_loader.get_or_load(&format!("{candidate}.spr"), None);
+            let actions = self.action_loader.get_or_load(&format!("{candidate}.act"));
+
+            if let (Ok(sprite), Ok(actions)) = (sprite, actions) {
+                crate::logging::log_debug!("arrow projectile: loaded sprite {}", candidate);
+                self.arrow_assets = Some(std::sync::Arc::new(ArrowAssets { sprite, actions }));
+                return;
+            }
+        }
+
+        self.arrow_assets_failed = true;
+        crate::logging::log_debug!("arrow projectile: could not load an arrow sprite from the game archives");
+    }
+
     fn spawn_teleport_vanish(&mut self, position: Point3<f32>) {
         // Defensive lifetime/rate handling for bursts of population-engine
         // shells: keep at most TELEPORT_VANISH_BURST_LIMIT effects per window.
@@ -4236,6 +4278,40 @@ impl Client {
                         };
 
                         self.particle_holder.spawn_particle(particle);
+                    }
+
+                    // Classic bow arrow projectile: only auto attacks (attack
+                    // packets carry no skill id) with a bow-type weapon spawn an
+                    // arrow that flies from the attacker to the target.
+                    if skill_id.is_none()
+                        && let Some(target_tile) = target_position
+                    {
+                        let attacker = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| (entity.get_weapon(), entity.get_position()));
+
+                        if let Some((weapon, attacker_position)) = attacker
+                            && is_bow_weapon(weapon)
+                            && let Some(target_world_position) = self.map.as_ref().and_then(|map| map.get_world_position(target_tile))
+                        {
+                            self.ensure_arrow_assets();
+
+                            if let Some(arrow_assets) = self.arrow_assets.clone() {
+                                crate::logging::log_debug!(
+                                    "arrow projectile: spawning arrow from {:?} to {:?}",
+                                    attacker_position,
+                                    target_world_position
+                                );
+                                self.particle_holder.spawn_particle(Box::new(ArrowProjectile::new(
+                                    arrow_assets,
+                                    attacker_position,
+                                    target_world_position,
+                                )));
+                            }
+                        }
                     }
                 }
                 NetworkEvent::EntityPickUpItem { entity_id, item_entity_id } => {

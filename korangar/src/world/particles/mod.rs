@@ -611,3 +611,124 @@ mod tests {
         assert!((pixels - 128.0).abs() < 1e-3);
     }
 }
+
+/// Loaded sprite/action pair of the classic arrow projectile.
+pub struct ArrowAssets {
+    pub sprite: Arc<Sprite>,
+    pub actions: Arc<Actions>,
+}
+
+/// Short-lived arrow that flies from the caster to the target on bow attacks.
+///
+/// Uses the classic `data\sprite\아이템\ac_chargearrow` sprite. The position is
+/// interpolated over [`ArrowProjectile::FLIGHT_SECONDS`]; the particle counts
+/// against the normal particle budget and is distance-culled through
+/// `culling_position` like every other particle.
+pub struct ArrowProjectile {
+    position: Point3<f32>,
+    start: Point3<f32>,
+    end: Point3<f32>,
+    elapsed: f32,
+    direction_index: usize,
+    assets: Arc<ArrowAssets>,
+}
+
+/// Linear flight position between caster and target for a normalized progress.
+fn arrow_position(start: Point3<f32>, end: Point3<f32>, progress: f32) -> Point3<f32> {
+    start + (end - start) * progress.clamp(0.0, 1.0)
+}
+
+impl ArrowProjectile {
+    /// Flight time from caster to target (within the requested 0.2-0.35 s).
+    pub const FLIGHT_SECONDS: f32 = 0.28;
+    const START_HEIGHT: f32 = 18.0;
+    const TARGET_HEIGHT: f32 = 14.0;
+
+    pub fn new(assets: Arc<ArrowAssets>, start: Point3<f32>, end: Point3<f32>) -> Self {
+        let start = start + Vector3::new(0.0, Self::START_HEIGHT, 0.0);
+        let end = end + Vector3::new(0.0, Self::TARGET_HEIGHT, 0.0);
+
+        // 8-direction sprite selection from the flight direction.
+        let delta = end - start;
+        let angle = delta.x.atan2(delta.z);
+        let direction_index = (((angle / std::f32::consts::FRAC_PI_4).round() as i32) & 7) as usize % 8;
+
+        Self {
+            position: start,
+            start,
+            end,
+            elapsed: 0.0,
+            direction_index,
+            assets,
+        }
+    }
+}
+
+impl Particle for ArrowProjectile {
+    fn culling_position(&self) -> Point3<f32> {
+        self.position
+    }
+
+    fn update(&mut self, delta_time: f32) -> bool {
+        self.elapsed += delta_time;
+
+        let progress = (self.elapsed / Self::FLIGHT_SECONDS).clamp(0.0, 1.0);
+        self.position = arrow_position(self.start, self.end, progress);
+
+        self.elapsed < Self::FLIGHT_SECONDS
+    }
+
+    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
+        let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
+        let screen_position = camera.clip_to_screen_space(clip_space_position);
+        let final_position = ScreenPosition {
+            left: screen_position.x * window_size.width,
+            top: screen_position.y * window_size.height,
+        };
+
+        // The arrow item sprite has an 8-direction action set; pick the action
+        // matching the flight direction and play through its motion frames.
+        let progress = (self.elapsed / Self::FLIGHT_SECONDS).clamp(0.0, 1.0);
+        let action_index = self.direction_index * 8 % self.assets.actions.actions.len().max(1);
+        let action = &self.assets.actions.actions[action_index];
+        let frame_count = action.motions.len().max(1);
+        let frame_index = ((progress * frame_count as f32) as usize).min(frame_count - 1);
+
+        self.assets.actions.render_sprite_frame(
+            renderer,
+            &self.assets.sprite,
+            action_index,
+            frame_index,
+            final_position,
+            ScreenClip::unbound(),
+            Color::WHITE,
+            1.0,
+        );
+    }
+}
+
+#[cfg(test)]
+mod arrow_projectile_tests {
+    use cgmath::Point3;
+
+    use super::{ArrowProjectile, arrow_position};
+
+    #[test]
+    fn arrow_interpolates_from_caster_to_target() {
+        let start = Point3::new(0.0, 0.0, 0.0);
+        let end = Point3::new(100.0, 20.0, -40.0);
+
+        assert_eq!(arrow_position(start, end, 0.0), start);
+        assert_eq!(arrow_position(start, end, 1.0), end);
+
+        let middle = arrow_position(start, end, 0.5);
+        assert!((middle.x - 50.0).abs() < f32::EPSILON);
+        assert!((middle.y - 10.0).abs() < f32::EPSILON);
+        assert!((middle.z + 20.0).abs() < f32::EPSILON);
+    }
+
+    #[test]
+    fn arrow_flight_time_is_within_the_requested_range() {
+        assert!((0.2..=0.35).contains(&ArrowProjectile::FLIGHT_SECONDS));
+    }
+}
