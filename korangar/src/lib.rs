@@ -695,7 +695,6 @@ pub struct Client {
     /// whose status is no longer active without allocating a set per frame).
     status_aura_frame: u64,
 
-
     /// Skill sounds that were already played at the start of an *instant* skill
     /// Decides when a skill sound plays: instant casts wait for their
     /// completion/damage packet instead of playing a pre-cast sound when the
