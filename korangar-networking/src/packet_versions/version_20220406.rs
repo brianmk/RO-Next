@@ -215,6 +215,24 @@ where
     Ok(())
 }
 
+/// Converts the 2019 `ZC_NOTIFY_SKILL` (0x01DE) into the regular damage event.
+///
+/// The packet carries the skill id (`SKID`) and the server start tick of the
+/// skill use, so the world layer can attribute skill damage (and play the
+/// mapped completion effect once per cast) instead of treating it like an auto
+/// attack.
+fn skill_damage_event(packet: DisplaySkillEffectAndDamagePacket) -> NetworkEvent {
+    NetworkEvent::DamageEffect {
+        source_entity_id: packet.source_entity_id,
+        destination_entity_id: packet.destination_entity_id,
+        damage_amount: (packet.damage > 0).then_some(packet.damage as usize),
+        attack_duration: packet.destination_delay,
+        is_critical: false,
+        skill_id: (packet.skill_id.0 != 0).then_some(packet.skill_id),
+        skill_start_tick: Some(packet.start_time),
+    }
+}
+
 pub fn register_map_server_packets<Callback>(
     packet_handler: &mut PacketHandler<NetworkEventList, Callback>,
 ) -> Result<(), DuplicateHandlerError>
@@ -1033,17 +1051,7 @@ where
         skill_id: packet.skill_id,
         until: packet.until,
     })?;
-    packet_handler.register(|packet: DisplaySkillEffectAndDamagePacket| {
-        // Reuse the regular damage event so skill damage shows damage numbers
-        // and plays the hit animation just like auto attacks.
-        NetworkEvent::DamageEffect {
-            source_entity_id: packet.source_entity_id,
-            destination_entity_id: packet.destination_entity_id,
-            damage_amount: (packet.damage > 0).then_some(packet.damage as usize),
-            attack_duration: packet.destination_delay,
-            is_critical: false,
-        }
-    })?;
+    packet_handler.register(|packet: DisplaySkillEffectAndDamagePacket| skill_damage_event(packet))?;
     packet_handler.register(|packet: DisplaySkillEffectNoDamagePacket| {
         // 2019 `ZC_USE_SKILL` (0x09CB): "skill used without damage". This is
         // what the server sends for instant/complete casts such as self-buffs
@@ -1277,6 +1285,8 @@ where
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
             attack_duration: packet.attack_duration,
             is_critical: false,
+            skill_id: None,
+            skill_start_tick: None,
         }),
         DamageType::CriticalHit => Some(NetworkEvent::DamageEffect {
             source_entity_id: packet.source_entity_id,
@@ -1284,6 +1294,8 @@ where
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
             attack_duration: packet.attack_duration,
             is_critical: true,
+            skill_id: None,
+            skill_start_tick: None,
         }),
         DamageType::PickUpItem => Some(NetworkEvent::EntityPickUpItem {
             entity_id: packet.source_entity_id,
@@ -1306,6 +1318,8 @@ where
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
             attack_duration: packet.attack_duration,
             is_critical: false,
+            skill_id: None,
+            skill_start_tick: None,
         }),
         DamageType::CriticalHit => Some(NetworkEvent::DamageEffect {
             source_entity_id: packet.source_entity_id,
@@ -1313,6 +1327,8 @@ where
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
             attack_duration: packet.attack_duration,
             is_critical: true,
+            skill_id: None,
+            skill_start_tick: None,
         }),
         DamageType::PickUpItem => Some(NetworkEvent::EntityPickUpItem {
             entity_id: packet.source_entity_id,
@@ -1731,4 +1747,64 @@ fn head_gear_sprite_types(equip_position: EquipPosition) -> Vec<SpriteChangeType
     }
 
     sprite_types
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::{ClientTick, DisplaySkillEffectAndDamagePacket, EntityId, SkillId, SkillLevel};
+
+    use super::skill_damage_event;
+    use crate::event::NetworkEvent;
+
+    fn skill_packet(skill_id: u16) -> DisplaySkillEffectAndDamagePacket {
+        DisplaySkillEffectAndDamagePacket {
+            skill_id: SkillId(skill_id),
+            source_entity_id: EntityId(20000076),
+            destination_entity_id: EntityId(1002),
+            start_time: ClientTick(12_345),
+            soruce_delay: 0,
+            destination_delay: 480,
+            damage: 1234,
+            level: SkillLevel(10),
+            div: 1,
+            skill_type: 6,
+        }
+    }
+
+    #[test]
+    fn skill_damage_keeps_its_skill_id_and_start_tick() {
+        let event = skill_damage_event(skill_packet(56));
+
+        let NetworkEvent::DamageEffect {
+            source_entity_id,
+            destination_entity_id,
+            damage_amount,
+            attack_duration,
+            is_critical,
+            skill_id,
+            skill_start_tick,
+        } = event
+        else {
+            panic!("expected DamageEffect");
+        };
+
+        assert_eq!(source_entity_id, EntityId(20000076));
+        assert_eq!(destination_entity_id, EntityId(1002));
+        assert_eq!(damage_amount, Some(1234));
+        assert_eq!(attack_duration, 480);
+        assert!(!is_critical);
+        assert_eq!(skill_id.map(|skill_id| skill_id.0), Some(56));
+        assert_eq!(skill_start_tick.map(|tick| tick.0), Some(12_345));
+    }
+
+    #[test]
+    fn skill_id_zero_means_auto_attack() {
+        let event = skill_damage_event(skill_packet(0));
+
+        let NetworkEvent::DamageEffect { skill_id, .. } = event else {
+            panic!("expected DamageEffect");
+        };
+
+        assert_eq!(skill_id, None);
+    }
 }

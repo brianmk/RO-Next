@@ -292,6 +292,16 @@ pub enum NetworkEvent {
         damage_amount: Option<usize>,
         attack_duration: u32,
         is_critical: bool,
+        /// Skill id of the damage source, when the client can attribute it.
+        ///
+        /// The 2019 `ZC_NOTIFY_SKILL` (0x01DE) carries the skill id; plain
+        /// attack packets (`ZC_NOTIFY_ACT` 0x08C8 / 0x008A) do not. `None`
+        /// therefore means "auto attack / unknown source", never "skill 0".
+        skill_id: Option<SkillId>,
+        /// Server start tick of the skill use from `ZC_NOTIFY_SKILL`. Multi-hit
+        /// packets of one cast share this tick, which lets the client play the
+        /// completion effect only once per cast.
+        skill_start_tick: Option<ClientTick>,
     },
     EntityPickUpItem {
         entity_id: EntityId,

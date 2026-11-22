@@ -18,9 +18,21 @@ equals the effect file name (normalized) with common effect suffixes
 (e.g. `MG_FIREBOLT` -> `firebolt`) are deliberately *not* generated: they are
 the medium-confidence batch that still needs a manual review.
 
-Every generated asset is checked against the real GRF archives; generation
-fails if a mapped `.str` does not exist. Skills without a high-confidence match
-are simply absent from the table and keep the current generic cast circle.
+Every generated asset is checked against the real GRF archives **and** against
+the effect whitelist of the Windows client
+(`tools/windows_client_effect_whitelist.txt`): the 401 `.str` effect paths that
+`CondaRO.exe` knows. Generation fails if a mapped `.str` does not exist in the
+archives or is not part of the official client effect set. A handful of
+official names that are not plain name matches (`Concentration.str`,
+`Firewall%d.str`, ...) are handled by `CURATED_OVERRIDES`.
+
+The whitelist can be regenerated (read-only) from the shipped Windows client:
+
+    strings -n 6 client/game/CondaRO.exe | grep -E '\\.str$' | sort -u \
+        > tools/windows_client_effect_whitelist.txt
+
+Skills without a high-confidence match are simply absent from the table and
+keep the current generic cast circle.
 
 Usage:
     ./tools/gen_skill_effect_assets.py                  # regenerate the committed file
@@ -44,10 +56,32 @@ from pathlib import Path
 DEFAULT_SSH = "rathena"
 DEFAULT_SERVER_ROOT = "/home/phantom/rathena"
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
+DEFAULT_WHITELIST = Path("tools/windows_client_effect_whitelist.txt")
 DEFAULT_OUTPUT = Path("korangar/src/world/library/skill_effect_assets.rs")
 SKILL_DB = "db/pre-re/skill_db.yml"
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 EFFECT_PREFIX = "data\\texture\\effect\\"
+
+# Hand-curated mappings where the official client name is not a plain name match.
+# Each value is the effect path relative to `data\\texture\\effect\\`; it must be
+# covered by the official whitelist (concrete name or `%d`/`%s` template).
+CURATED_OVERRIDES: dict[int, str] = {
+    # The Windows client uses `Concentration.str` for both Concentration skills;
+    # the data set also ships `ac_concentration.str`, but the official effect is
+    # the plain one.
+    45: "concentration.str",
+    # The official client uses the two-part `Firewall%d.str` template; the first
+    # frame set is `firewall1.str`.
+    18: "firewall1.str",
+    # There is no `LandMine.str` in the official effect set. The only official
+    # mine effect is the Rebellion `RL_h_mine\\mine.str`, which is used for both
+    # Land Mine skill ids as the closest official asset.
+    116: "rl_h_mine\\mine.str",
+    8210: "rl_h_mine\\mine.str",
+    # `PR_MAGNUS` ("Magnus Exorcismus") does not contain the effect name as a
+    # whole, but `magnus.str` is clearly the official effect.
+    79: "magnus.str",
+}
 
 # Effect-file suffixes that are stripped to build the "base" name of an effect.
 # Longer suffixes first so `_cast_bottom` is stripped as a whole.
@@ -82,13 +116,6 @@ EFFECT_SUFFIXES = (
     "_1",
     "_2",
     "_3",
-)
-
-# Hand-curated additions where the effect name is clearly the same skill but the
-# normalized name differs from the Aegis name / description (kept explicit so the
-# table can still be regenerated and reviewed). Magnus Exorcismus -> `magnus.str`.
-CURATED_EXTRAS = (
-    (79, "magnus.str", "PR_MAGNUS"),
 )
 
 GRF_HEADER_SIZE = 46
@@ -144,14 +171,15 @@ def read_grf_names(path: Path) -> list[str]:
     return names
 
 
-def collect_effect_assets(game_dir: Path, archive_dir: Path | None) -> dict[str, str]:
-    """Return normalized `.str` stem -> real file name for every effect in the data.
+def collect_effect_assets(game_dir: Path, archive_dir: Path | None) -> dict[str, list[str]]:
+    """Return normalized effect stem -> effect paths relative to `data\\texture\\effect\\`.
 
-    The normalized stem is used for matching; the real file name is what the
-    client loads. The dictionary key is the full normalized stem (suffixes kept)
-    and every suffix-stripped base is added as an alias by the caller.
+    The paths keep their sub folder (some official effects live there, for example
+    `rl_h_mine\\mine.str` or `su_nyanggrass\\su_nyanggrass.str`). Multiple files
+    can share the same normalized stem (`maximizepower.str` / `maximize power.str`)
+    so the caller can prefer the official spelling.
     """
-    assets: dict[str, str] = {}
+    assets: dict[str, list[str]] = {}
     for archive in ARCHIVES:
         path = game_dir / archive
         if not path.is_file():
@@ -160,15 +188,16 @@ def collect_effect_assets(game_dir: Path, archive_dir: Path | None) -> dict[str,
             lower = name.lower()
             if not lower.startswith(EFFECT_PREFIX) or not lower.endswith(".str"):
                 continue
-            file_name = name.rsplit("\\", 1)[-1]
-            stem = file_name[: -len(".str")]
-            assets.setdefault(normalize(stem), file_name)
+            relative = name[len(EFFECT_PREFIX):]
+            stem = relative.rsplit("\\", 1)[-1][: -len(".str")]
+            assets.setdefault(normalize(stem), []).append(relative)
     if archive_dir is not None:
         effect_dir = archive_dir / "data" / "texture" / "effect"
         if effect_dir.is_dir():
             for path in effect_dir.rglob("*.str"):
+                relative = str(path.relative_to(effect_dir))
                 stem = path.name[: -len(".str")]
-                assets.setdefault(normalize(stem), path.name)
+                assets.setdefault(normalize(stem), []).append(relative)
     return assets
 
 
@@ -204,50 +233,115 @@ def fetch_skill_db(ssh_host: str | None, server_root: str, local: str | None) ->
     return result.stdout
 
 
-def match_skills(skills: list[dict], assets: dict[str, str]) -> list[tuple[int, str, str]]:
-    """Return the high-confidence (id, effect file, match kind) list."""
-    # Build the lookup: normalized stem -> real file name, plus the suffix-stripped
-    # base as an alias (the base maps to the *shortest* real file name so
-    # `stormgust` wins over `stormgust_cast` when both exist).
-    lookups: dict[str, tuple[str, int]] = {}
-    for normalized_stem, file_name in assets.items():
-        lookups.setdefault(normalized_stem, (file_name, 0))
-    for normalized_stem, file_name in assets.items():
-        base, stripped = strip_effect_suffix(normalized_stem)
-        previous = lookups.get(base)
-        if previous is None or stripped < previous[1]:
-            lookups[base] = (file_name, stripped)
+def load_whitelist(path: Path) -> tuple[set[str], list[str]]:
+    """Return (normalized concrete effect names, raw `%d`/`%s` templates)."""
+    if not path.is_file():
+        raise SystemExit(f"Windows client effect whitelist not found: {path}")
+    concrete: set[str] = set()
+    templates: list[str] = []
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        basename = line.rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
+        if "%" in basename:
+            templates.append(basename)
+            continue
+        stem = basename[: -len(".str")] if basename.lower().endswith(".str") else basename
+        concrete.add(normalize(stem))
+    if not concrete and not templates:
+        raise SystemExit(f"empty Windows client effect whitelist: {path}")
+    return concrete, templates
 
-    existing = set(assets.values())
+
+def whitelist_allows(relative_path: str, concrete: set[str], templates: list[str]) -> bool:
+    basename = relative_path.rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
+    stem = basename[: -len(".str")] if basename.lower().endswith(".str") else basename
+    if normalize(stem) in concrete:
+        return True
+    for template in templates:
+        pattern = re.escape(template)
+        pattern = pattern.replace(r"%d", r"\d+").replace(r"%s", r".+")
+        if re.fullmatch(pattern, basename, flags=re.IGNORECASE):
+            return True
+    return False
+
+
+def match_skills(
+    skills: list[dict],
+    assets: dict[str, list[str]],
+    whitelist: tuple[set[str], list[str]],
+) -> list[tuple[int, str, str]]:
+    """Return the high-confidence (id, effect path, match kind) list."""
+    concrete, templates = whitelist
+
+    # Build the lookup: normalized stem -> (file, stripped suffix count). Alias
+    # entries for suffix-stripped bases keep the *shortest* real file name.
+    lookups: dict[str, list[tuple[str, int]]] = {}
+    for normalized_stem, files in assets.items():
+        for file in files:
+            lookups.setdefault(normalized_stem, []).append((file, 0))
+    for normalized_stem, files in assets.items():
+        base, stripped = strip_effect_suffix(normalized_stem)
+        if base == normalized_stem:
+            continue
+        for file in files:
+            previous = lookups.get(base)
+            if previous is None or stripped < previous[0][1]:
+                lookups[base] = [(file, stripped)]
+
+    def file_rank(candidate: tuple[str, int]) -> tuple:
+        file, stripped = candidate
+        return (
+            0 if whitelist_allows(file, concrete, templates) else 1,
+            stripped,
+            sum(1 for char in file.rsplit("\\", 1)[-1] if not char.isalnum()),
+            len(file),
+            -ord(file[0]) if file else 0,
+            file,
+        )
+
     matched: list[tuple[int, str, str]] = []
     for skill in skills:
-        aegis = normalize(skill["name"])
-        description = normalize(skill.get("description", ""))
+        aegis_key = normalize(skill["name"])
+        description_key = normalize(skill.get("description", ""))
 
-        candidates: list[tuple[int, int, int, str, str]] = []  # (kind, suffixes, length, file, kind_name)
-        for key, kind in ((aegis, "aegis"), (description, "description")):
+        candidates: list[tuple[int, tuple]] = []
+        for key, kind in ((aegis_key, "aegis"), (description_key, "description")):
             if not key:
                 continue
-            hit = lookups.get(key)
-            if hit is None:
-                continue
-            file_name, stripped = hit
-            exact = normalize(file_name[: -len(".str")]) == key
-            candidates.append((0 if exact and kind == "aegis" else 1, stripped, len(file_name), file_name, kind))
+            for candidate in lookups.get(key, ()):
+                # Exact Aegis-name matches rank before description matches.
+                candidates.append((0 if kind == "aegis" else 1, file_rank(candidate) + (kind,)))
 
         if not candidates:
             continue
 
         candidates.sort()
-        _, _, _, file_name, kind = candidates[0]
-        matched.append((skill["id"], file_name, kind))
+        file_rank_tuple = candidates[0][1]
+        file = file_rank_tuple[-2]
+        kind = file_rank_tuple[-1]
+        matched.append((skill["id"], file, kind))
 
-    # Curated extras (see CURATED_EXTRAS); only added when the file really exists.
-    known_ids = {skill_id for skill_id, _, _ in matched}
-    for skill_id, asset, _aegis in CURATED_EXTRAS:
-        if skill_id in known_ids or asset not in existing:
-            continue
-        matched.append((skill_id, asset, "curated"))
+    # Curated overrides for official names that are not plain name matches.
+    overrides = {skill_id: path for skill_id, path in CURATED_OVERRIDES.items()}
+    matched = [(skill_id, overrides.pop(skill_id, path), kind) for skill_id, path, kind in matched]
+    existing_paths = {path.lower(): path for files in assets.values() for path in files}
+    for skill_id, path in overrides.items():
+        if path.lower() not in existing_paths:
+            raise SystemExit(f"curated override for skill {skill_id} does not exist in the archives: {path}")
+        matched.append((skill_id, existing_paths[path.lower()], "curated"))
+
+    # Authoritative validation: every mapped effect must be part of the official
+    # Windows client effect whitelist.
+    invalid = [
+        (skill_id, path)
+        for skill_id, path, _ in matched
+        if not whitelist_allows(path, concrete, templates)
+    ]
+    if invalid:
+        details = "\n".join(f"  skill {skill_id}: {path}" for skill_id, path in invalid)
+        raise SystemExit(f"{len(invalid)} mapped effect(s) are not in the Windows client whitelist:\n{details}")
 
     matched.sort()
     return matched
@@ -261,7 +355,9 @@ def render(rows: list[tuple[int, str]]) -> str:
         "//! `data\\texture\\effect\\` that is played when the cast completes. Only",
         "//! high-confidence matches are generated (Aegis name or description equals",
         "//! the effect name, see `notes/korangar-skill-effect-audit.md`); every file",
-        "//! was verified to exist in the CondaRO/data GRF archives.",
+        "//! is verified to exist in the CondaRO/data GRF archives and to be part of",
+        "//! the Windows client effect whitelist",
+        "//! (`tools/windows_client_effect_whitelist.txt`).",
         "//!",
         "//! Generated by `tools/gen_skill_effect_assets.py`; do not edit by hand.",
         "//! Regenerate with: `./tools/gen_skill_effect_assets.py`",
@@ -269,12 +365,14 @@ def render(rows: list[tuple[int, str]]) -> str:
         "",
         "use ragnarok_packets::SkillId;",
         "",
-        "/// Skill id to effect file name inside `data\\texture\\effect\\`, sorted by",
+        "/// Skill id to effect file path inside `data\\texture\\effect\\`, sorted by",
         "/// skill id so the lookup is a binary search.",
         "#[rustfmt::skip]",
         "pub(crate) static SKILL_EFFECT_ASSETS: &[(u16, &str)] = &[",
     ]
-    lines.extend(f'    ({skill_id}, "{asset}"),' for skill_id, asset in rows)
+    for skill_id, asset in rows:
+        escaped = asset.replace("\\", "\\\\")
+        lines.append(f'    ({skill_id}, "{escaped}"),')
     lines.extend(
         [
             "];",
@@ -301,11 +399,14 @@ def render(rows: list[tuple[int, str]]) -> str:
             "    }",
             "",
             "    #[test]",
-            "    fn known_skills_have_effects_and_unknown_skills_do_not() {",
+            "    fn known_skills_have_official_effects_and_unknown_skills_do_not() {",
             "        // Storm Gust, Magnus Exorcismus and Pierce are high-confidence matches.",
             "        assert_eq!(skill_effect_asset(SkillId(89)), Some(\"stormgust.str\"));",
             "        assert_eq!(skill_effect_asset(SkillId(79)), Some(\"magnus.str\"));",
             "        assert_eq!(skill_effect_asset(SkillId(56)), Some(\"pierce.str\"));",
+            "        // Official spellings from the Windows client whitelist.",
+            "        assert_eq!(skill_effect_asset(SkillId(45)), Some(\"concentration.str\"));",
+            "        assert_eq!(skill_effect_asset(SkillId(122)), Some(\"blastmine.str\"));",
             "        // Skill 1 (Basic Skill) has no completion effect asset.",
             "        assert_eq!(skill_effect_asset(SkillId(1)), None);",
             "    }",
@@ -323,6 +424,7 @@ def main() -> int:
     parser.add_argument("--local", default=None, help="local rAthena tree instead of SSH")
     parser.add_argument("--game-dir", default=DEFAULT_GAME_DIR, help="client game directory with the GRF archives")
     parser.add_argument("--archive-dir", default=None, help="optional loose `archive/` directory (folder loader)")
+    parser.add_argument("--whitelist", default=str(DEFAULT_WHITELIST), help="Windows client effect whitelist")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
@@ -335,14 +437,15 @@ def main() -> int:
     assets = collect_effect_assets(game_dir, Path(args.archive_dir) if args.archive_dir else None)
     if not assets:
         raise SystemExit(f"no .str effect files found in the archives under {game_dir}")
+    whitelist = load_whitelist(Path(args.whitelist))
 
-    matched = match_skills(skills, assets)
+    matched = match_skills(skills, assets, whitelist)
 
     # Fail generation if a mapped asset does not exist in the archives (can only
-    # happen if the matching rules change) or if the table is empty.
-    existing = set(assets.values())
+    # happen for a curated override, validated above) or if the table is empty.
+    existing = {path.lower() for files in assets.values() for path in files}
     for skill_id, asset, _ in matched:
-        if asset not in existing:
+        if asset.lower() not in existing:
             raise SystemExit(f"skill {skill_id}: mapped effect does not exist in the archives: {asset}")
     if not matched:
         raise SystemExit("no high-confidence skill effect assets found")

@@ -721,6 +721,9 @@ pub struct Client {
     pending_item_drag: Option<(std::time::Instant, ScreenPosition)>,
     skill_name_texts: SkillNameTexts,
     cast_bars: CastBars,
+    /// De-duplicates the completion effect of one skill cast (ground-skill,
+    /// no-damage and damage packets can all describe the same cast).
+    skill_completion_tracker: SkillCompletionTracker,
     /// When the after-cast act delay of the last own skill ends, in client
     /// ticks. Server table values; paces follow-up skill/item actions only.
     aftercast_act_until: Option<ClientTick>,
@@ -1327,6 +1330,7 @@ impl Client {
             pending_item_drag: None,
             skill_name_texts: SkillNameTexts::default(),
             cast_bars: CastBars::default(),
+            skill_completion_tracker: SkillCompletionTracker::default(),
             aftercast_act_until: None,
             warp_portal,
             warp_skill_units: Vec::new(),
@@ -3116,7 +3120,9 @@ impl Client {
 
                         // Buff visuals (for example the Blessing angel) are screen
                         // sprites anchored above the head.
-                        if let Some(effect) = &visuals.completion {
+                        if let Some(effect) = &visuals.completion
+                            && self.skill_completion_tracker.claim(source_entity_id, skill_id, client_tick)
+                        {
                             self.spawn_entity_effect(
                                 effect.path,
                                 source_entity_id,
@@ -3197,6 +3203,7 @@ impl Client {
 
                     if let Some(effect) = &visuals.completion
                         && let Some(world_position) = world_position
+                        && self.skill_completion_tracker.claim(entity_id, skill_id, client_tick)
                     {
                         self.spawn_position_effect(
                             effect.path,
@@ -3923,6 +3930,8 @@ impl Client {
                     damage_amount,
                     attack_duration,
                     is_critical,
+                    skill_id,
+                    skill_start_tick,
                 } => {
                     let target_position = self
                         .client_state
@@ -3930,6 +3939,39 @@ impl Client {
                         .iter()
                         .find(|entity| entity.get_entity_id() == destination_entity_id)
                         .map(|entity| entity.get_tile_position());
+
+                    // Single-target damage skills complete through `ZC_NOTIFY_SKILL`
+                    // (0x01DE) instead of a no-damage/ground-skill packet. Attribute the
+                    // damage to the skill the server sent and play the mapped completion
+                    // effect once per cast. `skill_id` is `None` for auto attacks, so
+                    // those can never trigger a skill effect.
+                    if let Some(skill_id) = skill_id
+                        && self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id)
+                    {
+                        match crate::world::skill_effect_asset(skill_id) {
+                            Some(effect_path) if self.skill_completion_tracker.claim(source_entity_id, skill_id, client_tick) => {
+                                if let Some(world_position) = target_position
+                                    .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)))
+                                {
+                                    crate::logging::log_debug!(
+                                        "damage skill effect: spawned '{}' for skill {} (start tick {:?})",
+                                        effect_path,
+                                        skill_id.0,
+                                        skill_start_tick.map(|tick| tick.0)
+                                    );
+                                    self.spawn_position_effect(
+                                        effect_path,
+                                        world_position,
+                                        Vector3::new(0.0, 0.0, 0.0),
+                                        1.0,
+                                        Color::WHITE,
+                                        0.0,
+                                    );
+                                }
+                            }
+                            _ => crate::logging::log_debug!("damage skill: skill {} has no completion effect asset", skill_id.0),
+                        }
+                    }
 
                     // Auto attack logic.
                     if self

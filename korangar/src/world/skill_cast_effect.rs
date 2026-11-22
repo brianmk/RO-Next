@@ -103,7 +103,7 @@ const HAMMERFALL_EFFECT: &str = "black_hammerfall.str";
 /// Official Angelus effect (used instead of the blessing-angels placeholder).
 const ANGELUS_EFFECT: &str = "angelus.str";
 /// Official Improve Concentration effect (the old sparkle placeholder is gone).
-const CONCENTRATION_EFFECT: &str = "ac_concentration.str";
+const CONCENTRATION_EFFECT: &str = "concentration.str";
 /// Animated angel that flutters/rotates above the character. This is the asset
 /// that reads closest to the classic Blessing angel; the classic
 /// `blessing.str` is not part of the 2019 data set.
@@ -343,7 +343,7 @@ mod tests {
         assert_eq!(angelus.path, "angelus.str");
 
         let concentration = skill_visuals(SkillId(45), 0).completion.expect("concentration effect");
-        assert_eq!(concentration.path, "ac_concentration.str");
+        assert_eq!(concentration.path, "concentration.str");
     }
 
     #[test]

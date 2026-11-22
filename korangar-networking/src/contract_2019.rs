@@ -481,6 +481,22 @@ fn critical_2019_fixtures() {
     assert_eq!(pickup.len(), 69, "0x0A37 fixture must be 69 bytes");
     assert_eq!(fixture(Server::Map, &pickup), Ok(()), "0x0A37 pickup fixture");
 
+    // 0x01DE ZC_NOTIFY_SKILL, 33 bytes: skill damage carries `SKID` first.
+    let mut skill_damage = Vec::new();
+    skill_damage.extend_from_slice(&le16(0x01DE));
+    skill_damage.extend_from_slice(&le16(56)); // SKID (Pierce)
+    skill_damage.extend_from_slice(&le32(20000076)); // source entity id
+    skill_damage.extend_from_slice(&le32(1002)); // destination entity id
+    skill_damage.extend_from_slice(&le32(12_345)); // server start tick
+    skill_damage.extend_from_slice(&le32(0)); // source delay
+    skill_damage.extend_from_slice(&le32(480)); // destination delay
+    skill_damage.extend_from_slice(&le32(1234)); // damage
+    skill_damage.extend_from_slice(&le16(10)); // skill level
+    skill_damage.extend_from_slice(&le16(1)); // hit count
+    skill_damage.push(6); // skill type
+    assert_eq!(skill_damage.len(), 33, "0x01DE fixture must be 33 bytes");
+    assert_eq!(fixture(Server::Map, &skill_damage), Ok(()), "0x01DE skill damage fixture");
+
     // 0x07D8 ZC_REQ_GROUPINFO_CHANGE_V2, 8 bytes (party exp/item rules).
     let mut party_option = Vec::new();
     party_option.extend_from_slice(&le16(0x07D8));
