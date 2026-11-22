@@ -133,7 +133,13 @@ pub enum AuraStyleMarker {
 pub fn parse_aura_style_marker(text: &str) -> Option<AuraStyleMarker> {
     let text = text.trim_start();
 
-    let (prefix, rest) = text.split_at(text.len().min(AURA_STYLE_MARKER.len()));
+    // The marker itself is ASCII, but a chat message can contain multi-byte
+    // UTF-8 (Korean chat, accented names, ...). `split_at` panics when the byte
+    // index falls inside a character, so use `get` and treat a non-boundary
+    // index as "not an aura marker".
+    let split_index = text.len().min(AURA_STYLE_MARKER.len());
+    let prefix = text.get(..split_index)?;
+    let rest = text.get(split_index..)?;
 
     if !prefix.eq_ignore_ascii_case(AURA_STYLE_MARKER) {
         return None;
@@ -509,5 +515,18 @@ mod tests {
         assert_eq!(parse_aura_style_marker("@go prontera"), None);
         assert_eq!(parse_aura_style_marker(""), None);
         assert_eq!(parse_aura_style_marker("[KORANGAR_AURA2] cyan"), None);
+    }
+
+    #[test]
+    fn korean_chat_does_not_panic_on_the_byte_prefix() {
+        // The prefix is cut at the byte length of the ASCII marker (15); that
+        // byte index is in the middle of a 3-byte Korean character for many
+        // chat lines (e.g. right after `"VerifyBot2 : "`).
+        assert_eq!(parse_aura_style_marker("안녕하세요 한글채팅"), None);
+        assert_eq!(parse_aura_style_marker("VerifyBot2 : 요요요요요"), None);
+        assert_eq!(parse_aura_style_marker("도시… 아니 나라 수준의 규모"), None);
+        assert_eq!(parse_aura_style_marker("Señorita"), None);
+        // The marker still works when it directly follows multi-byte text.
+        assert_eq!(parse_aura_style_marker("한글 [KORANGAR_AURA] cyan"), None);
     }
 }
