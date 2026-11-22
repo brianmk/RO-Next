@@ -47,8 +47,13 @@ impl MouseButton {
 pub enum ResizeMode {
     /// Only update the horizontal dimensions of the window.
     Horizontal,
-    /// Only update the vertical dimensions of the window.
+    /// Only update the vertical dimensions of the window, dragging the bottom
+    /// edge.
     Vertical,
+    /// Only update the vertical dimensions of the window by dragging its top
+    /// edge: the height grows when the mouse moves up and the bottom edge
+    /// stays fixed.
+    VerticalTop,
     /// Update both the horizontal and vertical dimensions of the window.
     Both,
 }

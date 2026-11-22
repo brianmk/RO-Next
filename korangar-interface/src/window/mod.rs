@@ -155,6 +155,17 @@ pub struct WindowLayoutInfoSet<T> {
     children: T,
 }
 
+/// Which vertical edge of a window carries the vertical resize grip.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum VerticalResizeAnchor {
+    /// The grip is on the bottom edge (default for all windows).
+    #[default]
+    Bottom,
+    /// The grip is on the top edge; dragging up grows the window (used by the
+    /// chat window, whose input box sits at the bottom).
+    Top,
+}
+
 struct ResizeClickHandler {
     window_id: u64,
     resize_mode: ResizeMode,
@@ -252,6 +263,8 @@ where
     /// background and must not draw the opaque skinned window frame, otherwise
     /// the texture would cover their content.
     skinned: bool,
+    /// Which vertical edge carries the resize grip.
+    vertical_resize_anchor: VerticalResizeAnchor,
     elements: Elements,
     // HACK: This is a bit ugly since all of these store the window_id. Ideally, we would be able
     // to inject some data into the click action instead.
@@ -295,6 +308,7 @@ where
         theme: App::ThemeType,
         class: Option<App::WindowClass>,
         skinned: bool,
+        vertical_resize_anchor: VerticalResizeAnchor,
         elements: Elements,
     ) -> Self {
         Self {
@@ -323,6 +337,7 @@ where
             theme,
             class,
             skinned,
+            vertical_resize_anchor,
             elements,
             close_click_action: CloseClickHandler::default(),
             move_click_action: MoveClickHandler::default(),
@@ -397,6 +412,10 @@ where
         self.move_click_action.update(data.id);
         self.horizontal_resize_click_action.update(data.id);
         self.vertical_resize_click_action.update(data.id);
+        self.vertical_resize_click_action.resize_mode = match self.vertical_resize_anchor {
+            VerticalResizeAnchor::Bottom => ResizeMode::Vertical,
+            VerticalResizeAnchor::Top => ResizeMode::VerticalTop,
+        };
         self.resize_click_action.update(data.id);
 
         let store = store.get_or_create_from_window_id(data.id, generator);
@@ -577,11 +596,21 @@ where
             width: 6.0,
             height: layout_info.area.height - 40.0,
         };
-        let vertical_resize_area = Area {
-            left: layout_info.area.left + 20.0,
-            top: layout_info.area.top + layout_info.area.height - 3.0,
-            width: layout_info.area.width - 40.0,
-            height: 6.0,
+        let vertical_resize_area = match self.vertical_resize_anchor {
+            VerticalResizeAnchor::Bottom => Area {
+                left: layout_info.area.left + 20.0,
+                top: layout_info.area.top + layout_info.area.height - 3.0,
+                width: layout_info.area.width - 40.0,
+                height: 6.0,
+            },
+            // Keep the top grip below the title bar so it does not fight with the
+            // window move handler that covers the title.
+            VerticalResizeAnchor::Top => Area {
+                left: layout_info.area.left + 20.0,
+                top: layout_info.area.top + layout_info.title_area.height - 3.0,
+                width: layout_info.area.width - 40.0,
+                height: 6.0,
+            },
         };
 
         let radius = corner_diameter.bottom_right() / 2.0;
@@ -671,7 +700,7 @@ where
             } if *window_id == data.id);
         let vertical_resize_active = vertical_resize_hovered && vertical_resize_availabe
             || matches!(layout.get_mouse_mode(), MouseMode::ResizingWindow {
-                resize_mode: ResizeMode::Vertical,
+                resize_mode: ResizeMode::Vertical | ResizeMode::VerticalTop,
                 window_id,
             } if *window_id == data.id);
         let corner_resize_active = resize_hovered && horizontal_resize_available && vertical_resize_availabe

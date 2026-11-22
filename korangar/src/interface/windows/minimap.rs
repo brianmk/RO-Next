@@ -109,7 +109,9 @@ impl CustomWindow<ClientState> for MinimapWindow {
             // The window frame is color based (not the opaque nine slice skin)
             // so that the transparent mode works in every theme.
             skinned: false,
-            closable: true,
+            // The minimap is toggled with the map key (and dragged by its title), it
+            // should not have an X close button.
+            closable: false,
             resizable: false,
             minimum_width: 210.0,
             maximum_width: 210.0,

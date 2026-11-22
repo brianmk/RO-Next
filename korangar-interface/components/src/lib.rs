@@ -28,6 +28,7 @@ pub fn window(token_stream: TokenStream) -> TokenStream {
         theme: !,
         class: { None },
         skinned: { true },
+        vertical_resize_anchor: { korangar_interface::window::VerticalResizeAnchor::Bottom },
         elements: !,
     });
 
