@@ -72,6 +72,7 @@ use korangar_debug::profiling::Profiler;
 use korangar_interface::application::Clip;
 use korangar_interface::layout::MouseButton;
 use korangar_interface::{Interface, MouseMode, take_layout_profile};
+use korangar_messages::{MessageDomain, format_message};
 use korangar_networking::{
     DisconnectReason, HotkeyState, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem, SellItem,
     SupportedPacketVersion,
@@ -555,6 +556,40 @@ fn format_amount(value: u64) -> String {
     formatted
 }
 
+/// Wire value of [`BuyItemResult`] (`ZC_PC_PURCHASE_RESULT` result byte).
+///
+/// Only the protocol result code is mapped here; the user-facing texts live in
+/// `data\client\messages.ron` (`MessageDomain::BuyItem`).
+fn buy_item_result_code(result: &BuyItemResult) -> u16 {
+    match result {
+        // Handled by the outer `BuyingCompleted` match arm: a successful
+        // purchase only closes the windows and never shows a message.
+        BuyItemResult::Successful => unreachable!(),
+        BuyItemResult::NotEoughZeny => 1,
+        BuyItemResult::WeightLimitExceeded => 2,
+        BuyItemResult::TooManyItems => 3,
+        BuyItemResult::TooManyOfThisItem => 9,
+        BuyItemResult::PropsOpenAir => 10,
+        BuyItemResult::ExchangeFailed => 11,
+        BuyItemResult::ExchangeWellDone => 12,
+        BuyItemResult::ItemSoldOut => 13,
+        BuyItemResult::NotEnoughGoods => 14,
+    }
+}
+
+/// Wire value of [`AmmunitionActionType`] (`ZC_ACTION_FAILURE` result, u16).
+///
+/// Only the protocol result code is mapped here; the user-facing texts live in
+/// `data\client\messages.ron` (`MessageDomain::AmmunitionAction`).
+fn ammunition_action_code(action: &AmmunitionActionType) -> u16 {
+    match action {
+        AmmunitionActionType::EquipProperAmmunitionFirst => 0,
+        AmmunitionActionType::WeightLimitExceeded1 => 1,
+        AmmunitionActionType::WeightLimitExceeded2 => 2,
+        AmmunitionActionType::Equipped => 3,
+    }
+}
+
 /// Loads the client message table and logs whether it was found.
 ///
 /// `data/msgstringtable.txt` is part of the client archives; when it is missing
@@ -568,6 +603,38 @@ fn load_message_table(game_file_loader: &GameFileLoader) -> Option<msgstringtabl
     }
 
     message_table
+}
+
+/// Loads the archive override of the data-driven protocol result-code message
+/// table.
+///
+/// The client always has the compiled fallback (`korangar messages` crate,
+/// `include_str!` of `data\client\messages.ron`), so a missing or malformed
+/// archive override only logs a warning and never leaves result messages
+/// unavailable.
+fn load_protocol_messages(game_file_loader: &GameFileLoader) {
+    use korangar_loaders::FileLoader;
+
+    let bytes = match game_file_loader.get(korangar_messages::DATA_PATH) {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            crate::logging::log_debug!(
+                "messages: {} not found in the archives, using the compiled fallback",
+                korangar_messages::DATA_PATH
+            );
+            return;
+        }
+    };
+
+    let content = String::from_utf8_lossy(&bytes);
+
+    match korangar_messages::install(&content) {
+        Ok(count) => crate::logging::log_debug!("messages: loaded {count} result messages from the archive"),
+        Err(error) => crate::logging::log_warn!(
+            "messages: invalid {} ({error}), using the compiled fallback",
+            korangar_messages::DATA_PATH
+        ),
+    }
 }
 
 /// Validates the unified skill effect descriptor data and returns the number of
@@ -586,6 +653,26 @@ pub fn check_skill_effects(path: Option<&std::path::Path>) -> Result<usize, Stri
             crate::world::validate_skill_effect_data(&content).map_err(|error| format!("{}: {error}", path.display()))
         }
         None => crate::world::validate_compiled_skill_effects().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven protocol result-code message table and returns the
+/// number of message rows.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback
+/// (`korangar/archive/data/client/messages.ron`) is validated. This is the
+/// `--check`-able schema entry point: the client binary exposes it as `korangar
+/// --check-messages [PATH]`, so CI can validate the committed data file (and an
+/// archive override) without starting a window, a network connection or the
+/// game archives.
+pub fn check_messages(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            korangar_messages::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => korangar_messages::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
     }
 }
 
@@ -1042,6 +1129,13 @@ impl Client {
         // `ZC_MSG` system message, so load it once at startup.
         time_phase!("load message table", {
             let message_table = load_message_table(game_file_loader.as_ref());
+        });
+
+        // The protocol result-code texts are data as well (see the
+        // `korangar-messages` crate); an archive override wins over the
+        // compiled fallback.
+        time_phase!("load protocol messages", {
+            load_protocol_messages(game_file_loader.as_ref());
         });
 
         time_phase!("calculate game file hash", {
@@ -5276,13 +5370,10 @@ impl Client {
                         .follow_mut(client_state().party())
                         .apply_member_removed(account_id);
 
-                    let message = match result {
-                        0 => format!("{character_name} left the party."),
-                        1 => format!("{character_name} was expelled from the party."),
-                        2 => format!("{character_name} could not leave the party."),
-                        3 => format!("{character_name} could not be expelled from the party."),
-                        _ => format!("Party member {character_name} left the party."),
-                    };
+                    let message = format_message(MessageDomain::PartyMemberRemoved, u16::from(result), &[(
+                        "character_name",
+                        &character_name,
+                    )]);
 
                     self.push_chat_information(message);
 
@@ -5338,31 +5429,14 @@ impl Client {
                     self.interface.close_window_with_class(WindowClass::PartyInvite);
                     *self.client_state.follow_mut(client_state().party().invite()) = None;
 
-                    let message = match result {
-                        0 => format!("{character_name} is already in a party."),
-                        1 => format!("{character_name} rejected the party invitation."),
-                        2 => format!("{character_name} accepted the party invitation."),
-                        3 => "The party is full.".to_owned(),
-                        4 => format!("A character of {character_name}'s account is already in the party."),
-                        5 => format!("{character_name} blocks party invitations."),
-                        7 => format!("{character_name} is not online."),
-                        8 => format!("{character_name} is on a map where parties cannot be joined."),
-                        9 => "You cannot invite on this map.".to_owned(),
-                        10 => "Party changes are not possible in a memorial dungeon.".to_owned(),
-                        11 => format!("{character_name} does not meet the party level restrictions."),
-                        _ => format!("Party invitation result: {result}."),
-                    };
+                    let message = format_message(MessageDomain::PartyInviteReply, result.clamp(0, i32::from(u16::MAX)) as u16, &[
+                        ("character_name", &character_name),
+                    ]);
 
                     self.push_chat_information(message);
                 }
                 NetworkEvent::PartyCreationResult { result } => {
-                    let message = match result {
-                        0 => "Party created.".to_owned(),
-                        1 => "A party with that name already exists.".to_owned(),
-                        2 => "You are already in a party.".to_owned(),
-                        3 => "You cannot create a party on this map.".to_owned(),
-                        _ => format!("Party creation failed (result {result})."),
-                    };
+                    let message = format_message(MessageDomain::PartyCreation, u16::from(result), &[]);
 
                     self.push_chat_information(message);
                 }
@@ -5679,22 +5753,11 @@ impl Client {
                         self.interface.close_window_with_class(WindowClass::BuyCart);
                     }
                     result => {
-                        let message = match result {
-                            BuyItemResult::Successful => unreachable!(),
-                            BuyItemResult::NotEoughZeny => "You do not have enough zeny.",
-                            BuyItemResult::WeightLimitExceeded => "You are over your weight limit.",
-                            BuyItemResult::TooManyItems => "You have too many items.",
-                            BuyItemResult::TooManyOfThisItem => "You cannot hold that many of this item.",
-                            BuyItemResult::PropsOpenAir => "Open-air shop purchases have to be traded through RODEX.",
-                            BuyItemResult::ExchangeFailed => "The exchange failed.",
-                            BuyItemResult::ExchangeWellDone => "The exchange was well done.",
-                            BuyItemResult::ItemSoldOut => "The item is already sold out.",
-                            BuyItemResult::NotEnoughGoods => "There are not enough goods to exchange.",
-                        };
+                        let message = format_message(MessageDomain::BuyItem, buy_item_result_code(&result), &[]);
 
                         self.client_state
                             .follow_mut(client_state().chat_messages())
-                            .push(ChatMessage::new(message.to_owned(), MessageColor::Error));
+                            .push(ChatMessage::new(message, MessageColor::Error));
                     }
                 },
                 NetworkEvent::SellItemList { items } => {
@@ -5828,42 +5891,20 @@ impl Client {
                     self.pending_experience.add(amount, experience_type, experience_source);
                 }
                 NetworkEvent::SkillUseFailed { skill_id, cause } => {
-                    let reason = match cause {
-                        0 => "skill level is too low",
-                        1 => "not enough SP",
-                        2 => "not enough HP",
-                        3 => "not enough items",
-                        4 => "skill is still in delay",
-                        5 => "not enough zeny",
-                        6 => "wrong weapon",
-                        7 => "missing red gemstone",
-                        8 => "missing blue gemstone",
-                        9 => "too much weight",
-                        11 => "invalid target",
-                        12 => "too many ancilla",
-                        13 => "missing holy water",
-                        14 => "missing ancilla",
-                        22 => "skill is already active",
-                        23 => "condition not met",
-                        26 => "invalid position",
-                        _ => "the skill cannot be used",
-                    };
+                    let skill_id_text = skill_id.0.to_string();
+                    let message = format_message(MessageDomain::SkillUseFailed, u16::from(cause), &[("skill_id", &skill_id_text)]);
 
-                    self.push_chat_information(format!("Cannot use skill {}: {reason}.", skill_id.0));
+                    self.push_chat_information(message);
                 }
                 NetworkEvent::StatUpFailed => {
                     self.push_chat_information("You cannot raise that stat right now.".to_owned());
                 }
                 NetworkEvent::AmmunitionAction { action } => {
-                    let message = match action {
-                        AmmunitionActionType::EquipProperAmmunitionFirst => "You have to equip proper ammunition first.",
-                        AmmunitionActionType::WeightLimitExceeded1 | AmmunitionActionType::WeightLimitExceeded2 => {
-                            "You cannot carry that much ammunition (weight limit)."
-                        }
-                        AmmunitionActionType::Equipped => "Ammunition equipped.",
-                    };
-
-                    self.push_chat_information(message.to_owned());
+                    self.push_chat_information(format_message(
+                        MessageDomain::AmmunitionAction,
+                        ammunition_action_code(&action),
+                        &[],
+                    ));
                 }
                 NetworkEvent::AmmunitionEquipped { inventory_index } => {
                     crate::logging::log_debug!("ammunition equipped from inventory index {:?}", inventory_index);
@@ -5872,18 +5913,7 @@ impl Client {
                     self.push_chat_information(format!("{player_count} players are online."));
                 }
                 NetworkEvent::MapServerBan { error_code } => {
-                    let reason = match error_code {
-                        1 => "the server was closed",
-                        2 => "this account is already logged in",
-                        3 => "connection timed out",
-                        4 => "the server is full",
-                        5 => "account restriction",
-                        8 => "the server still recognizes the previous connection, please try again",
-                        9 => "too many connections from this IP",
-                        _ => "the server closed the connection",
-                    };
-
-                    self.push_chat_information(format!("Disconnected: {reason}."));
+                    self.push_chat_information(format_message(MessageDomain::MapServerBan, u16::from(error_code), &[]));
                     self.session.map_server_disconnected();
                     self.return_to_character_selection();
                 }
@@ -10478,9 +10508,10 @@ fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::{AttackRange, JobId, SkillId, SkillLevel, SkillType};
+    use ragnarok_bytes::{ByteWriter, ToBytes};
+    use ragnarok_packets::{AmmunitionActionType, AttackRange, BuyItemResult, JobId, SkillId, SkillLevel, SkillType};
 
-    use super::{has_free_cast, is_same_map_teleport};
+    use super::{ammunition_action_code, buy_item_result_code, has_free_cast, is_same_map_teleport};
     use crate::state::lifecycle::SessionState;
     use crate::state::skills::LearnedSkill;
 
@@ -10555,5 +10586,50 @@ mod tests {
             true,
             SessionState::CharSelect
         ));
+    }
+
+    /// The little-endian numeric value an enum is serialized to; the message
+    /// table keys are exactly this wire value.
+    fn wire_code<T: ToBytes>(value: &T) -> u16 {
+        let mut writer = ByteWriter::new();
+        value.to_bytes(&mut writer).expect("test-value encoding cannot fail");
+        let bytes = writer.into_inner();
+        match bytes.len() {
+            1 => u16::from(bytes[0]),
+            2 => u16::from_le_bytes([bytes[0], bytes[1]]),
+            4 => u16::try_from(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])).expect("test code fits into u16"),
+            length => panic!("unexpected enum width: {length}"),
+        }
+    }
+
+    #[test]
+    fn buy_item_result_codes_match_the_wire_values() {
+        for (result, code) in [
+            (BuyItemResult::NotEoughZeny, 1),
+            (BuyItemResult::WeightLimitExceeded, 2),
+            (BuyItemResult::TooManyItems, 3),
+            (BuyItemResult::TooManyOfThisItem, 9),
+            (BuyItemResult::PropsOpenAir, 10),
+            (BuyItemResult::ExchangeFailed, 11),
+            (BuyItemResult::ExchangeWellDone, 12),
+            (BuyItemResult::ItemSoldOut, 13),
+            (BuyItemResult::NotEnoughGoods, 14),
+        ] {
+            assert_eq!(buy_item_result_code(&result), code);
+            assert_eq!(wire_code(&result), code, "wire drift for {result:?}");
+        }
+    }
+
+    #[test]
+    fn ammunition_action_codes_match_the_wire_values() {
+        for (action, code) in [
+            (AmmunitionActionType::EquipProperAmmunitionFirst, 0),
+            (AmmunitionActionType::WeightLimitExceeded1, 1),
+            (AmmunitionActionType::WeightLimitExceeded2, 2),
+            (AmmunitionActionType::Equipped, 3),
+        ] {
+            assert_eq!(ammunition_action_code(&action), code);
+            assert_eq!(wire_code(&action), code, "wire drift for {action:?}");
+        }
     }
 }

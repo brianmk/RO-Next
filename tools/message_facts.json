@@ -1,0 +1,1098 @@
+{
+  "version": 1,
+  "generated_by": "tools/extract_message_facts.py",
+  "provenance": "rAthena packet documentation + msgstringtable.txt of the CondaRO client; current client default texts from korangar@f454127e",
+  "sources": {
+    "rathena": {
+      "repository": "https://github.com/rathena/rathena",
+      "revision": "226bd83d39584bc91b6bf133f40bce95aa1f178c",
+      "files": [
+        "src/map/clif.cpp",
+        "src/map/clif.hpp",
+        "src/map/mmo.hpp",
+        "src/login/loginclif.cpp"
+      ]
+    },
+    "official_client_messages": {
+      "archive": "CondaRO.grf",
+      "path": "data\\msgstringtable.txt",
+      "encoding": "EUC-KR",
+      "entries": 3575,
+      "dropped_leading_lines": 1,
+      "note": "classic table, every message terminated by '#'; ids are line indices"
+    },
+    "official_client_skill_fail_mapping": {
+      "repository": "https://github.com/MrAntares/roBrowserLegacy",
+      "file": "src/Engine/MapEngine/Skill.js",
+      "note": "reverse-engineered official client onSkillResult cause -> MsgStringTable mapping"
+    },
+    "client_defaults": {
+      "revision": "f454127e992af85e555ee759b9afb2a9ca649103",
+      "files": [
+        "korangar/src/lib.rs",
+        "korangar-networking/src/packet_versions/version_20220406.rs"
+      ]
+    }
+  },
+  "domains": [
+    {
+      "key": "party_member_removed",
+      "variant": "PartyMemberRemoved",
+      "server_source": "src/map/mmo.hpp enum e_party_member_withdraw + ZC_DELETE_MEMBER_FROM_GROUP (0x0105) docs",
+      "unknown": {
+        "template": "Party member {character_name} left the party.",
+        "args": [
+          "character_name"
+        ]
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "party.member_removed.left",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} left the party.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the server only sends a result code, the client composes the text from the member name",
+          "client_source": "lib.rs:5276"
+        },
+        {
+          "code": 1,
+          "key": "party.member_removed.expelled",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} was expelled from the party.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the server only sends a result code, the client composes the text from the member name",
+          "client_source": "lib.rs:5277"
+        },
+        {
+          "code": 2,
+          "key": "party.member_removed.cannot_leave",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} could not leave the party.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the server only sends a result code, the client composes the text from the member name",
+          "client_source": "lib.rs:5278"
+        },
+        {
+          "code": 3,
+          "key": "party.member_removed.cannot_expel",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} could not be expelled from the party.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the server only sends a result code, the client composes the text from the member name",
+          "client_source": "lib.rs:5279"
+        }
+      ],
+      "enum": {}
+    },
+    {
+      "key": "party_invite_reply",
+      "variant": "PartyInviteReply",
+      "server_source": "src/map/clif.cpp clif_party_invite_reply (ZC_PARTY_JOIN_REQ_ACK 0x02C5) docs",
+      "unknown": {
+        "template": "Party invitation result: {code}.",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "party.invite.already_in_party",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} is already in a party.",
+          "display": "current",
+          "msg_id": 80,
+          "official": "The Character already joined another party.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5345"
+        },
+        {
+          "code": 1,
+          "key": "party.invite.rejected",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} rejected the party invitation.",
+          "display": "current",
+          "msg_id": 81,
+          "official": "Request for party rejected.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5346"
+        },
+        {
+          "code": 2,
+          "key": "party.invite.accepted",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} accepted the party invitation.",
+          "display": "current",
+          "msg_id": 82,
+          "official": "Request for party accepted.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5347"
+        },
+        {
+          "code": 3,
+          "key": "party.invite.party_full",
+          "args": [],
+          "default": "The party is full.",
+          "display": "current",
+          "msg_id": 83,
+          "official": "Party Capacity exceeded.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5348"
+        },
+        {
+          "code": 4,
+          "key": "party.invite.account_already_in_party",
+          "args": [
+            "character_name"
+          ],
+          "default": "A character of {character_name}'s account is already in the party.",
+          "display": "current",
+          "msg_id": 608,
+          "official": "Character in the same account already joined.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5349"
+        },
+        {
+          "code": 5,
+          "key": "party.invite.blocked",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} blocks party invitations.",
+          "display": "current",
+          "msg_id": 1324,
+          "official": "The character blocked the party invitation.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5350"
+        },
+        {
+          "code": 7,
+          "key": "party.invite.offline",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} is not online.",
+          "display": "current",
+          "msg_id": 71,
+          "official": "The Character is not currently online or does not exist.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5351"
+        },
+        {
+          "code": 8,
+          "key": "party.invite.restricted_map",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} is on a map where parties cannot be joined.",
+          "display": "current",
+          "msg_id": 1388,
+          "official": "(%s) are currently in restricted map to join a party.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5352"
+        },
+        {
+          "code": 9,
+          "key": "party.invite.cannot_invite_on_map",
+          "args": [],
+          "default": "You cannot invite on this map.",
+          "display": "current",
+          "msg_id": 1871,
+          "official": "Cannot join a party in this map.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5353"
+        },
+        {
+          "code": 10,
+          "key": "party.invite.memorial_dungeon",
+          "args": [],
+          "default": "Party changes are not possible in a memorial dungeon.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: rAthena documents no MsgStringTable id",
+          "client_source": "lib.rs:5354"
+        },
+        {
+          "code": 11,
+          "key": "party.invite.level_restriction",
+          "args": [
+            "character_name"
+          ],
+          "default": "{character_name} does not meet the party level restrictions.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: rAthena documents no MsgStringTable id",
+          "client_source": "lib.rs:5355"
+        }
+      ]
+    },
+    {
+      "key": "party_creation",
+      "variant": "PartyCreation",
+      "server_source": "src/map/clif.cpp clif_party_created (ZC_ACK_MAKE_GROUP 0x00FA) docs",
+      "unknown": {
+        "template": "Party creation failed (result {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "party.creation.created",
+          "args": [],
+          "default": "Party created.",
+          "display": "current",
+          "msg_id": 77,
+          "official": "Party has successfully been organized.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5363"
+        },
+        {
+          "code": 1,
+          "key": "party.creation.name_exists",
+          "args": [],
+          "default": "A party with that name already exists.",
+          "display": "current",
+          "msg_id": 78,
+          "official": "That Party Name already exists.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5364"
+        },
+        {
+          "code": 2,
+          "key": "party.creation.already_in_party",
+          "args": [],
+          "default": "You are already in a party.",
+          "display": "current",
+          "msg_id": 79,
+          "official": "The Character is already in a party.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5365"
+        },
+        {
+          "code": 3,
+          "key": "party.creation.cannot_create_on_map",
+          "args": [],
+          "default": "You cannot create a party on this map.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: rAthena documents no MsgStringTable id",
+          "client_source": "lib.rs:5366"
+        }
+      ]
+    },
+    {
+      "key": "buy_item",
+      "variant": "BuyItem",
+      "server_source": "src/map/clif.cpp clif_npc_buy_result (ZC_PC_PURCHASE_RESULT 0x00CA) docs",
+      "unknown": {
+        "template": "Shop purchase failed (code {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 1,
+          "key": "shop.buy.not_enough_zeny",
+          "args": [],
+          "default": "You do not have enough zeny.",
+          "display": "current",
+          "msg_id": 55,
+          "official": "You do not have enough zeny.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"You do not have enough zeny.\"",
+          "client_source": "lib.rs:5681"
+        },
+        {
+          "code": 2,
+          "key": "shop.buy.weight_limit",
+          "args": [],
+          "default": "You are over your weight limit.",
+          "display": "current",
+          "msg_id": 56,
+          "official": "You are over your Weight Limit.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"You are over your Weight Limit.\"",
+          "client_source": "lib.rs:5682"
+        },
+        {
+          "code": 3,
+          "key": "shop.buy.too_many_items",
+          "args": [],
+          "default": "You have too many items.",
+          "display": "current",
+          "msg_id": 221,
+          "official": "Out of the maximum capacity",
+          "msg_id_source": "msgstringtable text match for rAthena text \"Out of the maximum capacity, you have too many items.\"",
+          "client_source": "lib.rs:5683"
+        },
+        {
+          "code": 9,
+          "key": "shop.buy.too_many_of_this_item",
+          "args": [],
+          "default": "You cannot hold that many of this item.",
+          "display": "current",
+          "msg_id": 1940,
+          "official": "Amounts are exceeded the possession of the item is not available for purchase.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"Amounts are exceeded the possession of the item is not available for purchase.\"",
+          "client_source": "lib.rs:5684"
+        },
+        {
+          "code": 10,
+          "key": "shop.buy.open_air_shop",
+          "args": [],
+          "default": "Open-air shop purchases have to be traded through RODEX.",
+          "display": "current",
+          "msg_id": 2917,
+          "official": "Street vending sales will be traded on RODEX",
+          "msg_id_source": "msgstringtable text match for rAthena text \"Props open-air store sales will be traded in RODEX\"",
+          "client_source": "lib.rs:5685"
+        },
+        {
+          "code": 11,
+          "key": "shop.buy.exchange_failed",
+          "args": [],
+          "default": "The exchange failed.",
+          "display": "current",
+          "msg_id": 3552,
+          "official": "Exchange failed.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"The exchange failed.\"",
+          "client_source": "lib.rs:5686"
+        },
+        {
+          "code": 12,
+          "key": "shop.buy.exchange_well_done",
+          "args": [],
+          "default": "The exchange was well done.",
+          "display": "current",
+          "msg_id": 3553,
+          "official": "Exchange successfuly completed.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"The exchange was well done.\"",
+          "client_source": "lib.rs:5687"
+        },
+        {
+          "code": 13,
+          "key": "shop.buy.item_sold_out",
+          "args": [],
+          "default": "The item is already sold out.",
+          "display": "current",
+          "msg_id": 3555,
+          "official": "The item has been sold and out of stock.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"The item is already sold and out of stock.\"",
+          "client_source": "lib.rs:5688"
+        },
+        {
+          "code": 14,
+          "key": "shop.buy.not_enough_goods",
+          "args": [],
+          "default": "There are not enough goods to exchange.",
+          "display": "current",
+          "msg_id": 3554,
+          "official": "Not enough items to exchange.",
+          "msg_id_source": "msgstringtable text match for rAthena text \"There is not enough goods to exchange.\"",
+          "client_source": "lib.rs:5689"
+        }
+      ]
+    },
+    {
+      "key": "skill_use_failed",
+      "variant": "SkillUseFailed",
+      "server_source": "src/map/clif.hpp enum useskill_fail_cause + ZC_ACK_TOUSESKILL (0x0110) docs; client msg ids from roBrowserLegacy onSkillResult",
+      "unknown": {
+        "template": "Cannot use skill {skill_id}: the skill cannot be used.",
+        "args": [
+          "skill_id"
+        ]
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "skill.fail.level_too_low",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: skill level is too low.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5812"
+        },
+        {
+          "code": 1,
+          "key": "skill.fail.not_enough_sp",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: not enough SP.",
+          "display": "current",
+          "msg_id": 202,
+          "official": "Insufficient SP",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5813"
+        },
+        {
+          "code": 2,
+          "key": "skill.fail.not_enough_hp",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: not enough HP.",
+          "display": "current",
+          "msg_id": 203,
+          "official": "Insufficient HP",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5814"
+        },
+        {
+          "code": 3,
+          "key": "skill.fail.not_enough_items",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: not enough items.",
+          "display": "current",
+          "msg_id": 808,
+          "official": "You do not have enough ingredients.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5815"
+        },
+        {
+          "code": 4,
+          "key": "skill.fail.still_in_delay",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: skill is still in delay.",
+          "display": "current",
+          "msg_id": 219,
+          "official": "There is a Delay after using a Skill.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5816"
+        },
+        {
+          "code": 5,
+          "key": "skill.fail.not_enough_zeny",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: not enough zeny.",
+          "display": "current",
+          "msg_id": 233,
+          "official": "Skill has failed because you do not have enough zeny.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5817"
+        },
+        {
+          "code": 6,
+          "key": "skill.fail.wrong_weapon",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: wrong weapon.",
+          "display": "current",
+          "msg_id": 239,
+          "official": "The skill cannot be used with this weapon.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5818"
+        },
+        {
+          "code": 7,
+          "key": "skill.fail.missing_red_gemstone",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: missing red gemstone.",
+          "display": "current",
+          "msg_id": 246,
+          "official": "Red Gemstone required.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5819"
+        },
+        {
+          "code": 8,
+          "key": "skill.fail.missing_blue_gemstone",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: missing blue gemstone.",
+          "display": "current",
+          "msg_id": 247,
+          "official": "Blue Gemstone required.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5820"
+        },
+        {
+          "code": 9,
+          "key": "skill.fail.too_much_weight",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: too much weight.",
+          "display": "current",
+          "msg_id": 580,
+          "official": "You can't use this Skill because you are over your Weight Limit.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5821"
+        },
+        {
+          "code": 11,
+          "key": "skill.fail.invalid_target",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: invalid target.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5823"
+        },
+        {
+          "code": 12,
+          "key": "skill.fail.too_many_ancilla",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: too many ancilla.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5824"
+        },
+        {
+          "code": 13,
+          "key": "skill.fail.missing_holy_water",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: missing holy water.",
+          "display": "current",
+          "msg_id": 1398,
+          "official": "[Holy Water] is required.",
+          "msg_id_source": "official client (roBrowserLegacy onSkillResult)",
+          "client_source": "lib.rs:5825"
+        },
+        {
+          "code": 14,
+          "key": "skill.fail.missing_ancilla",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: missing ancilla.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5826"
+        },
+        {
+          "code": 22,
+          "key": "skill.fail.already_active",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: skill is already active.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5827"
+        },
+        {
+          "code": 23,
+          "key": "skill.fail.condition_not_met",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: condition not met.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5828"
+        },
+        {
+          "code": 26,
+          "key": "skill.fail.invalid_position",
+          "args": [
+            "skill_id"
+          ],
+          "default": "Cannot use skill {skill_id}: invalid position.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: the official client shows no message for this cause",
+          "client_source": "lib.rs:5829"
+        }
+      ]
+    },
+    {
+      "key": "ammunition_action",
+      "variant": "AmmunitionAction",
+      "server_source": "src/map/clif.cpp clif_arrow_fail (ZC_ACTION_FAILURE 0x013B) docs",
+      "unknown": {
+        "template": "Unknown ammunition action (code {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "ammunition.equip_proper_first",
+          "args": [],
+          "default": "You have to equip proper ammunition first.",
+          "display": "current",
+          "msg_id": 242,
+          "official": "Please equip the proper ammunition first.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5847"
+        },
+        {
+          "code": 1,
+          "key": "ammunition.weight_limit_1",
+          "args": [],
+          "default": "You cannot carry that much ammunition (weight limit).",
+          "display": "current",
+          "msg_id": 243,
+          "official": "You can't attack or use skills because you've exceeded the Weight Limit.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5848"
+        },
+        {
+          "code": 2,
+          "key": "ammunition.weight_limit_2",
+          "args": [],
+          "default": "You cannot carry that much ammunition (weight limit).",
+          "display": "current",
+          "msg_id": 244,
+          "official": "You can't use skills because you've exceeded the Weight Limit.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5849"
+        },
+        {
+          "code": 3,
+          "key": "ammunition.equipped",
+          "args": [],
+          "default": "Ammunition equipped.",
+          "display": "current",
+          "msg_id": 245,
+          "official": "Ammunition has been equipped.",
+          "msg_id_source": "rAthena documentation; job-dependent alternatives [1040, 1175, 245], generic \"Ammunition has been equipped.\" selected",
+          "client_source": "lib.rs:5850"
+        }
+      ]
+    },
+    {
+      "key": "map_server_ban",
+      "variant": "MapServerBan",
+      "server_source": "src/map/clif.cpp clif_authfail_fd (SC_NOTIFY_BAN 0x0081) docs",
+      "unknown": {
+        "template": "Disconnected: the server closed the connection.",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 1,
+          "key": "map_ban.server_closed",
+          "args": [],
+          "default": "Disconnected: the server was closed.",
+          "display": "current",
+          "msg_id": 4,
+          "official": "Server Closed.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5864"
+        },
+        {
+          "code": 2,
+          "key": "map_ban.already_logged_in",
+          "args": [],
+          "default": "Disconnected: this account is already logged in.",
+          "display": "current",
+          "msg_id": 5,
+          "official": "Someone has Logged in with this ID.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5865"
+        },
+        {
+          "code": 3,
+          "key": "map_ban.connection_timed_out",
+          "args": [],
+          "default": "Disconnected: connection timed out.",
+          "display": "current",
+          "msg_id": 241,
+          "official": "You've been disconnected due to a time gap between you and the server.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5866"
+        },
+        {
+          "code": 4,
+          "key": "map_ban.server_full",
+          "args": [],
+          "default": "Disconnected: the server is full.",
+          "display": "current",
+          "msg_id": 264,
+          "official": "Server is jammed due to over population. Please try again shortly.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5867"
+        },
+        {
+          "code": 5,
+          "key": "map_ban.account_restriction",
+          "args": [],
+          "default": "Disconnected: account restriction.",
+          "display": "current",
+          "msg_id": 305,
+          "official": "You are underaged and cannot join this server.",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5868"
+        },
+        {
+          "code": 8,
+          "key": "map_ban.previous_connection",
+          "args": [],
+          "default": "Disconnected: the server still recognizes the previous connection, please try again.",
+          "display": "current",
+          "msg_id": 440,
+          "official": "Server still recognizes your last log-in. Please try again after a few minutes.",
+          "msg_id_source": "msgstringtable text match (rAthena id 441 is off by one in the 2019 CondaRO English table)",
+          "client_source": "lib.rs:5869",
+          "rathena_msg_id": 441
+        },
+        {
+          "code": 9,
+          "key": "map_ban.too_many_connections",
+          "args": [],
+          "default": "Disconnected: too many connections from this IP.",
+          "display": "current",
+          "msg_id": 529,
+          "official": "IP capacity of this Internet Cafe is full. Would you like to pay the personal base?",
+          "msg_id_source": "rAthena documentation (MsgStringTable id)",
+          "client_source": "lib.rs:5870"
+        }
+      ]
+    },
+    {
+      "key": "login_failed",
+      "variant": "LoginFailed",
+      "server_source": "src/login/loginclif.cpp logclif_sent_auth_result (SC_NOTIFY_BAN 0x0081) docs",
+      "unknown": {
+        "template": "Login failed (code {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 1,
+          "key": "login.failed.server_closed",
+          "args": [],
+          "default": "Server closed",
+          "display": "current",
+          "msg_id": 4,
+          "official": "Server Closed.",
+          "msg_id_source": "rAthena documentation (SC_NOTIFY_BAN MsgStringTable id)",
+          "client_source": "version_20220406.rs:42"
+        },
+        {
+          "code": 2,
+          "key": "login.failed.already_logged_in",
+          "args": [],
+          "default": "Someone has already logged in with this id",
+          "display": "current",
+          "msg_id": 5,
+          "official": "Someone has Logged in with this ID.",
+          "msg_id_source": "rAthena documentation (SC_NOTIFY_BAN MsgStringTable id)",
+          "client_source": "version_20220406.rs:45"
+        },
+        {
+          "code": 8,
+          "key": "login.failed.already_online",
+          "args": [],
+          "default": "Already online",
+          "display": "current",
+          "msg_id": 440,
+          "official": "Server still recognizes your last log-in. Please try again after a few minutes.",
+          "msg_id_source": "msgstringtable text match (rAthena id 441 is off by one in the 2019 CondaRO English table)",
+          "client_source": "version_20220406.rs:48",
+          "rathena_msg_id": 441
+        }
+      ]
+    },
+    {
+      "key": "login_failed2",
+      "variant": "LoginFailed2",
+      "server_source": "src/login/loginclif.cpp logclif_auth_failed (AC_REFUSE_LOGIN2 0x0840) docs",
+      "unknown": {
+        "template": "Login failed (code {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 0,
+          "key": "login.failed2.unregistered_id",
+          "args": [],
+          "default": "Unregistered id",
+          "display": "current",
+          "msg_id": 6,
+          "official": "Unregistered ID. Please make sure you have a registered account and you have correctly typed in the user ID.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:55"
+        },
+        {
+          "code": 1,
+          "key": "login.failed2.incorrect_password",
+          "args": [],
+          "default": "Incorrect password",
+          "display": "current",
+          "msg_id": 7,
+          "official": "Incorrect User ID or Password. Please try again.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:56"
+        },
+        {
+          "code": 2,
+          "key": "login.failed2.id_expired",
+          "args": [],
+          "default": "Id has expired",
+          "display": "current",
+          "msg_id": 8,
+          "official": "This ID is expired.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:57"
+        },
+        {
+          "code": 3,
+          "key": "login.failed2.rejected_from_server",
+          "args": [],
+          "default": "Rejected from server",
+          "display": "current",
+          "msg_id": 9,
+          "official": "Rejected from Server.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:58"
+        },
+        {
+          "code": 4,
+          "key": "login.failed2.blocked_by_gm",
+          "args": [],
+          "default": "Blocked by gm team",
+          "display": "current",
+          "msg_id": 705,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_BAN_BY_GM (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:59"
+        },
+        {
+          "code": 5,
+          "key": "login.failed2.game_outdated",
+          "args": [],
+          "default": "Game outdated",
+          "display": "current",
+          "msg_id": 310,
+          "official": "Your Game's Exe File is not the latest version.",
+          "msg_id_source": "msgstringtable text match",
+          "client_source": "version_20220406.rs:60"
+        },
+        {
+          "code": 6,
+          "key": "login.failed2.login_prohibited_until",
+          "args": [
+            "date"
+          ],
+          "default": "You are prohibited to log in until {date}.",
+          "display": "current",
+          "msg_id": 449,
+          "official": "You are prohibited to log in until %s.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:61"
+        },
+        {
+          "code": 7,
+          "key": "login.failed2.server_full",
+          "args": [],
+          "default": "Server is full",
+          "display": "current",
+          "msg_id": 264,
+          "official": "Server is jammed due to over population. Please try again shortly.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:64"
+        },
+        {
+          "code": 8,
+          "key": "login.failed2.company_account_limit",
+          "args": [],
+          "default": "Company account limit reached",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: no matching client message",
+          "client_source": "version_20220406.rs:66"
+        },
+        {
+          "code": 9,
+          "key": "login.failed2.banned_by_dba",
+          "args": [],
+          "default": "Banned by DBA team",
+          "display": "current",
+          "msg_id": 703,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_BAN_BY_DBA (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:69"
+        },
+        {
+          "code": 10,
+          "key": "login.failed2.unconfirmed_email",
+          "args": [],
+          "default": "Email not confirmed",
+          "display": "current",
+          "msg_id": 704,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_EMAIL_NOT_CONFIRMED (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:70"
+        },
+        {
+          "code": 11,
+          "key": "login.failed2.banned_by_gm",
+          "args": [],
+          "default": "Banned by GM team",
+          "display": "current",
+          "msg_id": 705,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_BAN_BY_GM (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:72"
+        },
+        {
+          "code": 12,
+          "key": "login.failed2.temporary_ban_database_work",
+          "args": [],
+          "default": "Working in DB",
+          "display": "current",
+          "msg_id": 706,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_TEMP_BAN_FOR_DBWORK (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:74"
+        },
+        {
+          "code": 13,
+          "key": "login.failed2.self_locked",
+          "args": [],
+          "default": "Self lock",
+          "display": "current",
+          "msg_id": 707,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_SELF_LOCK (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:77"
+        },
+        {
+          "code": 14,
+          "key": "login.failed2.not_permitted_group",
+          "args": [],
+          "default": "Not Permitted Group",
+          "display": "current",
+          "msg_id": 708,
+          "official": null,
+          "msg_id_source": "msgstringtable macro token MSI_REFUSE_NOT_PERMITTED_GROUP (the client substitutes its built-in string)",
+          "client_source": "version_20220406.rs:78"
+        },
+        {
+          "code": 99,
+          "key": "login.failed2.account_id_erased",
+          "args": [],
+          "default": "This ID has been totally erased",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: no matching client message",
+          "client_source": "version_20220406.rs:80"
+        },
+        {
+          "code": 100,
+          "key": "login.failed2.login_information_remains",
+          "args": [
+            "date"
+          ],
+          "default": "Login information remains at {date}",
+          "display": "current",
+          "msg_id": 809,
+          "official": "Login information remains at %s.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:81"
+        },
+        {
+          "code": 101,
+          "key": "login.failed2.locked_for_hacking_investigation",
+          "args": [],
+          "default": "Account has been locked for a hacking investigation. Please contact the GM Team for more information",
+          "display": "current",
+          "msg_id": 810,
+          "official": "Account has been locked for a hacking investigation. Please contact the GM Team for more information.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:85"
+        },
+        {
+          "code": 102,
+          "key": "login.failed2.temporary_locked_for_bug_investigation",
+          "args": [],
+          "default": "This account has been temporarily prohibited from login due to a bug-related investigation",
+          "display": "current",
+          "msg_id": 811,
+          "official": "This account has been temporarily prohibited from login due to a bug-related investigation.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:90"
+        },
+        {
+          "code": 103,
+          "key": "login.failed2.deleting_character",
+          "args": [],
+          "default": "This character is being deleted. Login is temporarily unavailable for the time being",
+          "display": "current",
+          "msg_id": 859,
+          "official": "Login is temporarily unavailable while this character is being deleted.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:93"
+        },
+        {
+          "code": 104,
+          "key": "login.failed2.deleting_spouse_character",
+          "args": [],
+          "default": "This character is being deleted. Login is temporarily unavailable for the time being",
+          "display": "current",
+          "msg_id": 860,
+          "official": "Login is temporarily unavailable while your spouse character is being deleted.",
+          "msg_id_source": "official client built-in message, matches msgstringtable text",
+          "client_source": "version_20220406.rs:98"
+        },
+        {
+          "code": 105,
+          "key": "login.failed2.unknown_error",
+          "args": [],
+          "default": "Unknown error",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "msg_id_source": "none: rAthena documents this as the \"default = Unknown Error.\" fallthrough",
+          "client_source": "version_20220406.rs:101"
+        }
+      ]
+    }
+  ]
+}

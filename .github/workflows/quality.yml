@@ -196,8 +196,33 @@ jobs:
 
       - name: Tests for korangar, korangar-networking and ragnarok-packets (default features)
         if: matrix.features == 'default'
-        run: cargo test -p korangar -p korangar-networking -p ragnarok-packets
+        run: cargo test -p korangar -p korangar-messages -p korangar-networking -p ragnarok-packets
 
       - name: Tests for korangar, korangar-networking and ragnarok-packets (all features)
         if: matrix.features == 'all-features'
-        run: cargo test -p korangar -p korangar-networking -p ragnarok-packets --all-features
+        run: cargo test -p korangar -p korangar-messages -p korangar-networking -p ragnarok-packets --all-features
+
+  generated-data:
+    name: Generated client data drift
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # `tools/gen_messages.py` is deterministic and only needs the committed
+      # facts (`tools/message_facts.json`), so this job needs no toolchain and
+      # no rAthena checkout.
+      - name: Protocol result-code message table is up to date
+        run: python3 tools/gen_messages.py --check
+
+      # The Rust-side schema/rendering/coverage tests run in the `tests` job
+      # (`cargo test -p korangar-messages ...`) and validate the same data file
+      # with `korangar --check-messages` (see `korangar/tests/message_tables.rs`).
+      - name: Shell check the generator
+        run: python3 -m py_compile tools/gen_messages.py tools/extract_message_facts.py

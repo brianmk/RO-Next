@@ -27,6 +27,7 @@ korangar-container = { workspace = true, features = ["interface"] }
 korangar-debug = { workspace = true, optional = true }
 korangar-interface = { workspace = true, features = ["serde", "cgmath", "theme-element"] }
 korangar-loaders = { workspace = true }
+korangar-messages = { workspace = true }
 korangar-networking = { workspace = true, features = ["interface"] }
 korangar-video = { workspace = true }
 libc = { workspace = true }
