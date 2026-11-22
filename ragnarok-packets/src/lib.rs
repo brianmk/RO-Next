@@ -4628,16 +4628,17 @@ pub struct UseSkillAtIdPacket {
 /// 2019-era target skill packet (`CZ_USE_SKILL_TOID`).
 ///
 /// rAthena parses targeted skill use from 0x089B for `PACKETVER >= 20130320`
-/// (our 20190605 server): 10 bytes, offsets 2/4/6 = skill id (u16), skill level
-/// (u16), target id (u32). [UseSkillAtIdPacket] (0x0438) is the 2022 layout; on
-/// the 2019 client 0x0438 is `CZ_DROP_ITEM`, so targeted casts were never
-/// executed.
+/// (our 20190605 server): 10 bytes. rAthena's own layout comment is
+/// `<skill lv>.W <skill id>.W <target id>.L`, so offsets are 2 = **level**
+/// (u16), 4 = **skill id** (u16), 6 = target id (u32). We previously sent the
+/// two in the opposite order, which the server read as skill=level/level=id and
+/// silently ignored.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x089B)]
 pub struct UseSkillAtTargetPacket2019 {
-    pub skill_id: SkillId,
     pub skill_level: SkillLevel,
+    pub skill_id: SkillId,
     pub target_id: EntityId,
 }
 
