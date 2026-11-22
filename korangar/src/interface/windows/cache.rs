@@ -50,6 +50,17 @@ impl WindowCache {
             )
         });
 
+        // The spirit sphere counter sits directly above the buff bar, so
+        // filling/consuming the five Champion spheres is visible without
+        // moving the eyes away from the character. The window is only open
+        // while the player has spheres.
+        self.entries.entry(WindowClass::SpiritSpheres).or_insert_with(|| {
+            WindowState::new(
+                Anchor::new(AnchorPoint::BottomCenter, ScreenPosition { left: -42.0, top: -172.0 }),
+                ScreenSize { width: 83.0, height: 19.0 },
+            )
+        });
+
         // The minimap belongs in the top right corner, like in the original client.
         self.entries.entry(WindowClass::Minimap).or_insert_with(|| {
             WindowState::new(

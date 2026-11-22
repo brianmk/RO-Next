@@ -305,6 +305,15 @@ pub struct ClientState {
 }
 
 impl ClientState {
+    /// Number of spirit spheres of the local player, `0` when there is no
+    /// player or no `ZC_SPIRITS`/`ZC_SPIRITS2` update was received yet.
+    pub fn own_spirit_orbs(&self) -> i16 {
+        self.entities
+            .first()
+            .map(|entity| self.spirit_orbs.get(entity.get_entity_id()))
+            .unwrap_or(0)
+    }
+
     pub fn new(
         game_file_loader: &GameFileLoader,
         graphics_settings: GraphicsSettings,

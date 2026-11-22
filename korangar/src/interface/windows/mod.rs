@@ -44,6 +44,7 @@ mod sell_cart;
 mod server_selection;
 mod skill_description;
 mod skill_tree;
+mod spirit_spheres;
 mod stats;
 mod storage;
 #[cfg(feature = "debug")]
@@ -97,6 +98,7 @@ pub use self::sell_cart::SellCartWindow;
 pub use self::server_selection::ServerSelectionWindow;
 pub use self::skill_description::SkillDescriptionWindow;
 pub use self::skill_tree::{SkillTreeWindow, SkillTreeWindowState, SkillTreeWindowStatePathExt};
+pub use self::spirit_spheres::SpiritSphereWindow;
 pub use self::stats::StatsWindow;
 pub use self::storage::StorageWindow;
 #[cfg(feature = "debug")]
@@ -126,6 +128,7 @@ pub enum WindowClass {
     Equipment,
     SkillTree,
     SkillDescription,
+    SpiritSpheres,
     Stats,
     Storage,
     FriendList,
@@ -166,7 +169,7 @@ impl WindowClass {
     pub fn is_background_overlay(self) -> bool {
         matches!(
             self,
-            Self::Chat | Self::Hotbar | Self::Minimap | Self::CharacterOverview | Self::BuffBar
+            Self::Chat | Self::Hotbar | Self::Minimap | Self::CharacterOverview | Self::BuffBar | Self::SpiritSpheres
         )
     }
 }

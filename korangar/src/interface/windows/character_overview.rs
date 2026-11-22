@@ -259,7 +259,18 @@ where
 {
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
         let player = player_path.follow_safe(state);
-        format!("Lv {} / Jlv {}", player.base_level, player.job_level)
+        let mut text = format!("Lv {} / Jlv {}", player.base_level, player.job_level);
+
+        // Tell the player how many spirit spheres are active while they have
+        // some (Dangerous Soul Collect/Zen fills all five, Critical
+        // Explosion/Fury consumes them); the compact HUD overlay shows the same
+        // count in-game.
+        let spirit_spheres = state.own_spirit_orbs();
+        if spirit_spheres > 0 {
+            text.push_str(&format!("  Spheres {spirit_spheres}"));
+        }
+
+        text
     })
 }
 

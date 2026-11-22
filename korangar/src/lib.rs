@@ -2457,6 +2457,27 @@ impl Client {
         }
     }
 
+    /// Shows the spirit sphere counter while the local player has spheres and
+    /// hides it again when they are consumed ("Critical Explosion"/Fury uses
+    /// all five). The overlay is a background HUD element like the buff bar.
+    fn update_spirit_spheres(&mut self) {
+        let own_spheres = match self.client_state.try_follow(this_entity()) {
+            Some(entity) => {
+                let entity_id = entity.get_entity_id();
+                self.client_state.follow(client_state().spirit_orbs()).get(entity_id)
+            }
+            None => 0,
+        };
+
+        let is_open = self.interface.is_window_with_class_open(WindowClass::SpiritSpheres);
+
+        match (own_spheres <= 0, is_open) {
+            (false, false) => self.interface.open_window(SpiritSphereWindow),
+            (true, true) => self.interface.close_window_with_class(WindowClass::SpiritSpheres),
+            _ => {}
+        }
+    }
+
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
@@ -2613,6 +2634,7 @@ impl Client {
                     self.guild_emblems.clear();
                     // Status effects belong to the map session as well.
                     self.client_state.follow_mut(client_state().status_effects()).clear();
+                    self.client_state.follow_mut(client_state().spirit_orbs()).clear();
 
                     if self.shutdown_requested {
                         // We are quitting; the clean logout is done, don't go back to
@@ -2788,9 +2810,9 @@ impl Client {
                 }
                 NetworkEvent::SkillNoDamage {
                     source_entity_id,
-                    destination_entity_id,
+                    destination_entity_id: _,
                     skill_id,
-                    level,
+                    level: _,
                     success,
                 } => {
                     // 2019 `ZC_USE_SKILL` (0x09CB): the caster performed an
@@ -2843,11 +2865,14 @@ impl Client {
                             .play_skill_sound(skill_id, Some(source_entity_id), source_position);
                     }
 
-                    // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill and
-                    // its `level` field is the skill level, not a healed amount. It
-                    // must not be rendered as a heal number (Blessing/AGI and other
-                    // self-buffs showed a green "10" above the caster). Real heal
-                    // numbers come from `ZC_RECOVERY`/0x0A27 (`NetworkEvent::HealEffect`).
+                    // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill
+                    // and its `level` field is the skill
+                    // level, not a healed amount. It
+                    // must not be rendered as a heal number (Blessing/AGI and
+                    // other self-buffs showed a green "10"
+                    // above the caster). Real heal
+                    // numbers come from `ZC_RECOVERY`/0x0A27
+                    // (`NetworkEvent::HealEffect`).
                 }
                 NetworkEvent::SkillGroundCast {
                     entity_id,
@@ -3174,6 +3199,7 @@ impl Client {
                     self.skill_name_texts.remove_entity(entity_id);
                     self.cast_bars.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
+                    self.client_state.follow_mut(client_state().spirit_orbs()).remove(entity_id);
 
                     // Classic teleport/logout behaviour: entities that leave via
                     // teleport/logout play a warp effect and sound at their last
@@ -3384,6 +3410,7 @@ impl Client {
                     self.close_storage_window();
                     self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
+                    self.client_state.follow_mut(client_state().spirit_orbs()).clear();
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
@@ -4092,6 +4119,7 @@ impl Client {
                     // music right away so there is no silent gap while the map
                     // server disconnects and the menu map is loaded again.
                     self.client_state.follow_mut(client_state().status_effects()).clear();
+                    self.client_state.follow_mut(client_state().spirit_orbs()).clear();
                     self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     self.networking_system.disconnect_from_map_server();
                 }
@@ -4947,7 +4975,7 @@ impl Client {
         _client_tick: ClientTick,
     ) {
         match skill_type {
-            SkillType::Passive => {}
+            SkillType::Passive => self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0)),
             SkillType::SelfCast => {
                 let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
 
@@ -5789,15 +5817,29 @@ impl Client {
                             self.client_state
                                 .follow(client_state().skill_tree().skills())
                                 .iter()
-                                .find(|learned_skill| {
-                                    learned_skill.skill_id == learnable_skill.skill_id
-                                        && learned_skill.skill_level.0 >= learnable_skill.maximum_level.0
+                                .find(|learned_skill| learned_skill.skill_id == learnable_skill.skill_id)
+                                .map(|learned_skill| {
+                                    // The character may have the skill at a lower level than
+                                    // the hotbar slot was created for (the skill was
+                                    // re-learned or copied onto a character that cannot max
+                                    // it); in that case cast the level the character really
+                                    // has instead of silently doing nothing.
+                                    let level = SkillLevel(learned_skill.skill_level.0.min(learnable_skill.maximum_level.0));
+                                    (learned_skill.skill_id, learned_skill.skill_type, level)
                                 })
-                                .map(|learned_skill| (learned_skill.skill_id, learned_skill.skill_type, learnable_skill.maximum_level))
                         });
 
-                    if let Some((skill_id, skill_type, level)) = skill {
-                        self.use_skill(Some(slot), skill_id, skill_type, level, client_tick);
+                    match skill {
+                        Some((skill_id, skill_type, level)) => {
+                            self.use_skill(Some(slot), skill_id, skill_type, level, client_tick);
+                        }
+                        None => {
+                            if let Some(learnable_skill) =
+                                self.client_state.follow(client_state().hotbar()).get_skill_in_slot(slot).as_ref()
+                            {
+                                self.push_chat_information(format!("You have not learned skill {}.", learnable_skill.skill_id.0));
+                            }
+                        }
                     }
                 }
                 InputEvent::UseSkill { skill_id, level } => {
@@ -5811,8 +5853,9 @@ impl Client {
                         .find(|learned_skill| learned_skill.skill_id == skill_id)
                         .map(|learned_skill| (learned_skill.skill_type, SkillLevel(level.0.min(learned_skill.skill_level.0))));
 
-                    if let Some((skill_type, level)) = skill {
-                        self.use_skill(None, skill_id, skill_type, level, client_tick);
+                    match skill {
+                        Some((skill_type, level)) => self.use_skill(None, skill_id, skill_type, level, client_tick),
+                        None => self.push_chat_information(format!("You have not learned skill {}.", skill_id.0)),
                     }
                 }
                 InputEvent::CastSkill {
@@ -5845,7 +5888,9 @@ impl Client {
 
                     {
                         match skill_type {
-                            SkillType::Passive => {}
+                            SkillType::Passive => {
+                                self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0));
+                            }
                             SkillType::Attack => {
                                 if let PickerTarget::Entity(entity_id) = input_report.mouse_target
                                     && let Some(map) = &self.map
@@ -5885,13 +5930,18 @@ impl Client {
                                                 direction: Direction::North,
                                             });
                                             let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
+                                        } else {
+                                            self.push_chat_information(format!("Skill {}: the target is out of range.", skill_id.0));
                                         }
+                                    } else {
+                                        self.push_chat_information(format!("Skill {}: the target is no longer in view.", skill_id.0));
                                     }
                                 } else {
                                     crate::logging::log_debug!(
                                         "cast skill {:?}: no entity target or map, dropping the attack cast",
                                         skill_id
                                     );
+                                    self.push_chat_information(format!("Skill {}: select a target first.", skill_id.0));
                                 }
                             }
                             SkillType::Ground | SkillType::Trap => {
@@ -5927,7 +5977,14 @@ impl Client {
                                                     direction: Direction::North,
                                                 });
                                                 let _ = self.networking_system.cast_ground_skill(skill_id, level, target_position);
+                                            } else {
+                                                self.push_chat_information(format!("Skill {}: that cell is out of range.", skill_id.0));
                                             }
+                                        } else {
+                                            self.push_chat_information(format!(
+                                                "Skill {}: the player position is not known yet.",
+                                                skill_id.0
+                                            ));
                                         }
                                     }
                                 } else {
@@ -5935,6 +5992,7 @@ impl Client {
                                         "cast skill {:?}: ground skill without a tile target, dropping the cast",
                                         skill_id
                                     );
+                                    self.push_chat_information(format!("Skill {}: click a cell on the ground to cast it.", skill_id.0));
                                 }
                             }
                             SkillType::SelfCast => match skill_id == ROLLING_CUTTER_ID {
@@ -5991,7 +6049,11 @@ impl Client {
                                                     direction: Direction::North,
                                                 });
                                                 let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
+                                            } else {
+                                                self.push_chat_information(format!("Skill {}: the target is out of range.", skill_id.0));
                                             }
+                                        } else {
+                                            self.push_chat_information(format!("Skill {}: the target is no longer in view.", skill_id.0));
                                         }
                                     }
                                 } else {
@@ -6940,6 +7002,7 @@ impl Client {
 
         self.handle_network_events(client_tick);
         self.update_status_effects(client_tick);
+        self.update_spirit_spheres();
         self.update_character_server_reconnect();
         self.update_pending_map_load();
 

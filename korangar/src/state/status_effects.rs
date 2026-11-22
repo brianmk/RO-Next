@@ -59,6 +59,9 @@ const EXTRA_NAMES: &[(u16, &str)] = &[
     (244, "DEX Food"),
     (245, "INT Food"),
     (246, "LUK Food"),
+    // EFST_EXPLOSIONSPIRITS ("Critical Explosion"/Fury, the Champion buff that
+    // consumes five spirit spheres); missing from the generated 2019 table.
+    (86, "Critical Explosion"),
     (665, "Monster transformation"),
     (673, "Push cart"),
     (889, "Bleeding"),
@@ -102,6 +105,7 @@ fn status_effect_icon(status_index: u16) -> Option<&'static str> {
         10 => Some("유저인터페이스\\item\\al_blessing.bmp"),
         12 => Some("유저인터페이스\\item\\al_incagi.bmp"),
         15 => Some("유저인터페이스\\item\\pr_impositio.bmp"),
+        86 => Some("유저인터페이스\\item\\mo_explosionspirits.bmp"),
         27 => Some("유저인터페이스\\item\\kn_riding.bmp"),
         // Body/health state debuffs (EFST_HEALTHSTATE_*).
         883 => Some("effect\\hl_poison.tga"),

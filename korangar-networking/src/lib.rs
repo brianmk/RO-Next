@@ -2290,6 +2290,30 @@ mod packet_handlers {
         }]));
     }
 
+    /// The targeted skill packet (`CZ_USE_SKILL_TOID`, 0x089B) must send
+    /// `<level>.W <skill id>.W <target id>.L`; swapping level and id made the
+    /// server silently ignore every targeted cast (all buffs, Zen, ...).
+    #[test]
+    fn targeted_skill_packet_sends_level_before_skill_id() {
+        use ragnarok_packets::{EntityId, SkillId, SkillLevel};
+
+        let mut writer = ByteWriter::new();
+        ragnarok_packets::UseSkillAtTargetPacket2019::new(SkillLevel(3), SkillId(401), EntityId(20_000_080))
+            .packet_to_bytes(&mut writer)
+            .unwrap();
+        let bytes = writer.into_inner();
+
+        assert_eq!(bytes.len(), 10);
+        assert_eq!(&bytes[0..2], &[0x9B, 0x08]);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 3, "level must be at offset 2");
+        assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 401, "skill id must be at offset 4");
+        assert_eq!(
+            u32::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9]]),
+            20_000_080,
+            "target id must be at offset 6"
+        );
+    }
+
     /// SC_NOTIFY_BAN (0x0081) on the map server: a 3-byte packet that used to
     /// desynchronize the stream and silently kick the client.
     #[test]
@@ -2445,6 +2469,8 @@ mod packet_handlers {
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x009C)));
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0B1B)));
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0984)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x01D0)));
+        assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x01E1)));
         assert!(handler.is_registered(ragnarok_packets::PacketHeader(0x0A37)));
         assert!(!handler.is_registered(ragnarok_packets::PacketHeader(0x0FFF)));
     }
