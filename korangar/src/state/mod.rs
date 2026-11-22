@@ -372,7 +372,8 @@ impl ClientState {
 
         time_phase!("create window state", {
             let welcome_string = format!(
-                "Welcome to ^ff8800Korangar^000000 version ^ff8800{}^000000!",
+                "Welcome to ^ff8800{}^000000 version ^ff8800{}^000000!",
+                crate::CLIENT_NAME,
                 env!("CARGO_PKG_VERSION")
             );
             let chat_messages = vec![ChatMessage::new(welcome_string, MessageColor::Server)];
