@@ -1,0 +1,16 @@
+(
+    language: English,
+    scaling: 0.75,
+    menu_theme: "^000001default^000000\0",
+    in_game_theme: "^000001default^000000\0",
+    world_theme: "^000001default^000000\0",
+    show_character_names: true,
+    show_chat_bubbles: true,
+    chat_bubble_background: true,
+    show_skill_names_above_characters: true,
+    transparent_chat: false,
+    minimap_transparent_frame: false,
+    character_overview_compact: false,
+    inventory_tab: Equipments,
+    level_99_aura_style: Auto,
+)

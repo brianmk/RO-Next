@@ -576,6 +576,11 @@ pub struct EffectHolder {
 }
 
 impl EffectHolder {
+    /// Number of active effects (used by the performance instrumentation).
+    pub fn count(&self) -> usize {
+        self.effects.len()
+    }
+
     pub fn add_effect(&mut self, effect: Box<dyn EffectBase + Send + Sync>) {
         self.effects.push((effect, None));
     }

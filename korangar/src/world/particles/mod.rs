@@ -372,6 +372,11 @@ pub struct ParticleHolder {
 }
 
 impl ParticleHolder {
+    /// Number of active particles (used by the performance instrumentation).
+    pub fn count(&self) -> usize {
+        self.particles.len()
+    }
+
     pub fn spawn_particle(&mut self, particle: Box<dyn Particle + Send + Sync>) {
         self.particles.push(particle);
     }

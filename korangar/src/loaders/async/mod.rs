@@ -14,6 +14,7 @@ use crate::loaders::error::LoadError;
 use crate::loaders::{
     ActionLoader, AnimationLoader, EntityPartFile, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader,
 };
+use crate::perf::{self, LoadKind};
 use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
@@ -59,6 +60,17 @@ enum LoadStatus {
 impl PartialEq for LoadStatus {
     fn eq(&self, other: &Self) -> bool {
         std::mem::discriminant(self) == std::mem::discriminant(other)
+    }
+}
+
+/// Load kind of a [`LoaderId`], used to attribute loader latency statistics.
+fn load_kind(id: &LoaderId) -> LoadKind {
+    match id {
+        LoaderId::Map(_) => LoadKind::Map,
+        LoaderId::AnimationData(_) => LoadKind::AnimationData,
+        LoaderId::ItemSprite(_) => LoadKind::ItemSprite,
+        LoaderId::SkillSprite(_) => LoadKind::SkillSprite,
+        LoaderId::SkillActions(_) => LoadKind::SkillActions,
     }
 }
 
@@ -373,14 +385,22 @@ impl AsyncLoader {
         F: FnOnce() -> Result<LoadableResource, LoadError> + Send + 'static,
     {
         let pending_loads = Arc::clone(&self.pending_loads);
+        let kind = load_kind(&id);
+        let requested_at = std::time::Instant::now();
+
+        perf::load_submitted(kind);
 
         pending_loads.lock().unwrap().insert(id.clone(), LoadStatus::Loading);
 
         self.thread_pool.spawn(move || {
+            let started = std::time::Instant::now();
+            perf::load_queue_latency(kind, started.saturating_duration_since(requested_at).as_nanos() as u64);
+
             #[cfg(feature = "debug")]
             let _measurement = threads::Loader::start_frame();
 
             let result = load_function();
+            perf::load_service_latency(kind, started.elapsed().as_nanos() as u64, result.is_err());
 
             let mut pending_loads = pending_loads.lock().unwrap();
 

@@ -1,0 +1,18 @@
+(
+    lighting_mode: Classic,
+    vsync: false,
+    max_fps: 30,
+    background_max_fps: 30,
+    triple_buffering: false,
+    texture_filtering: Linear,
+    msaa: Off,
+    ssaa: Off,
+    screen_space_anti_aliasing: Off,
+    shadow_method: Hard,
+    shadow_resolution: Normal,
+    shadow_detail: Low,
+    sdsm: false,
+    high_quality_interface: false,
+    window_resolution: R1280x720,
+    fullscreen: false,
+)
