@@ -397,6 +397,18 @@ pub enum NetworkEvent {
         account_id: AccountId,
         hair_id: u32,
     },
+    /// The server asked the client to use a skill from an item (skill items
+    /// such as the fly wing). The client has to send the actual skill request.
+    AutoRunSkill {
+        skill_id: SkillId,
+        skill_level: SkillLevel,
+    },
+    /// A sprite (appearance) change for the local player, e.g. when a headgear
+    /// equip/unequip acknowledgement carries a new view id.
+    LocalAppearanceChanged {
+        sprite_type: SpriteChangeType,
+        value: u32,
+    },
     /// A sprite (appearance) change for an entity that is not the job or hair,
     /// e.g. headgear or palette changes.
     AppearanceChanged {

@@ -701,6 +701,12 @@ pub struct Client {
     /// on a black screen.
     pending_map_load: Option<(String, Option<TilePosition>, Instant, u32)>,
 
+    /// Name of the map that is currently loaded. Used to detect same-map
+    /// teleports (fly wing, AL_TELEPORT, ...): the server sends a normal map
+    /// move packet even when the destination is the current map, but reloading
+    /// the whole map for that would hide the teleport and stall the client.
+    current_map_name: Option<String>,
+
     particle_holder: ParticleHolder,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
@@ -1302,6 +1308,7 @@ impl Client {
             map_entry_watchdog: None,
             map_entry_aborted: false,
             pending_map_load: None,
+            current_map_name: None,
             level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
             level_99_aura_entities: HashSet::new(),
             map_window_cycle: MapWindowCycle::Closed,
@@ -3315,6 +3322,43 @@ impl Client {
                     }
                 }
                 NetworkEvent::ChangeMap { map_name, position } => {
+                    // A same-map "map move" is a teleport (fly wing, AL_TELEPORT,
+                    // random warp, ...). The server sends the normal map move packet
+                    // with the current map name; reloading the map for it would take
+                    // long and hide the teleport, so reposition the player directly,
+                    // play the warp effect/sound and let the server spawn the
+                    // surrounding entities again.
+                    if self.current_map_name.as_deref() == Some(map_name.as_str()) {
+                        let old_position = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position());
+
+                        // Drop the transient state of the old position.
+                        self.client_state.follow_mut(client_state().entities()).truncate(1);
+                        self.client_state.follow_mut(client_state().dead_entities()).clear();
+                        self.client_state.follow_mut(client_state().ground_items()).clear();
+                        *self.client_state.follow_mut(client_state().buffered_action()) = None;
+                        self.particle_holder.clear();
+                        self.effect_holder.clear();
+                        self.chat_bubbles.clear();
+                        self.cast_bars.clear();
+                        self.skill_name_texts.clear();
+
+                        if let Some(position) = old_position {
+                            self.spawn_teleport_vanish(position);
+                        }
+
+                        let Some(map) = self.map.as_mut() else {
+                            continue;
+                        };
+                        let player = self.client_state.follow_mut(this_entity().manually_asserted());
+                        player.set_position(map, position, client_tick);
+                        self.player_camera.set_focus_point(player.get_position());
+
+                        // Ask the server for the entities around the new position
+                        // (same load-end acknowledgement as after a real map change).
+                        let _ = self.networking_system.map_loaded();
+                        continue;
+                    }
+
                     self.map = None;
                     self.skill_sounds.clear();
                     // The server closes the storage on a map change; close the UI
@@ -3966,6 +4010,37 @@ impl Client {
 
                     // Sprite layers changed: reload the animation data so both the world
                     // sprite and the equipment paper doll show the new appearance.
+                    if let Some(animation_data) = self.async_loader.request_animation_data_load(
+                        entity.get_entity_id(),
+                        entity.get_entity_type(),
+                        entity.get_entity_part_files(&self.library),
+                    ) {
+                        entity.set_animation_data(animation_data);
+                    }
+                }
+                NetworkEvent::AutoRunSkill { skill_id, skill_level } => {
+                    // Skill items (fly wing, casting scrolls, ...): the server only
+                    // tells us which skill the item wants; the client has to send the
+                    // skill request itself (that is what the original client does).
+                    // Item skills are self-targeted on this server setup (fly wing's
+                    // AL_TELEPORT level 1), so cast it on the local player.
+                    let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) else {
+                        continue;
+                    };
+
+                    let _ = self.networking_system.cast_skill(skill_id, skill_level, entity_id);
+                }
+                NetworkEvent::LocalAppearanceChanged { sprite_type, value } => {
+                    let Some(entity) = self.client_state.try_follow_mut(this_entity()) else {
+                        continue;
+                    };
+
+                    if !entity.apply_sprite_change(sprite_type, value as u16) {
+                        continue;
+                    }
+
+                    // Sprite layers changed: reload the animation data so that both the
+                    // world sprite and the equipment paper doll show the new appearance.
                     if let Some(animation_data) = self.async_loader.request_animation_data_load(
                         entity.get_entity_id(),
                         entity.get_entity_type(),
@@ -6197,6 +6272,7 @@ impl Client {
                             // Normal map switch
                             self.map_entry_aborted = false;
                             self.pending_map_load_error = None;
+                            self.current_map_name = Some(map_name.clone());
                             let map = self.map.insert(map);
 
                             map.set_ambient_sound_sources(&self.audio_engine);

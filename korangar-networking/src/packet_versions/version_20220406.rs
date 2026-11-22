@@ -1295,29 +1295,63 @@ where
 
         NetworkEvent::OpenDialog { text, npc_id }
     })?;
-    packet_handler.register(|packet: RequestEquipItemStatusPacket| match packet.result {
-        RequestEquipItemStatus::Success => Some(NetworkEvent::UpdateEquippedPosition {
-            index: packet.inventory_index,
-            equipped_position: packet.equipped_position,
-        }),
-        RequestEquipItemStatus::FailedDueToLevelRequirement => Some(NetworkEvent::ChatMessage {
-            text: "Your level is too low to equip this item.".to_owned(),
-            color: MessageColor::Error,
-        }),
-        RequestEquipItemStatus::Failed => Some(NetworkEvent::ChatMessage {
-            text: "You cannot equip this item (your class, job level or another requirement is not met).".to_owned(),
-            color: MessageColor::Error,
-        }),
+    packet_handler.register(|packet: RequestEquipItemStatusPacket| {
+        let mut events = Vec::new();
+
+        match packet.result {
+            RequestEquipItemStatus::Success => {
+                events.push(NetworkEvent::UpdateEquippedPosition {
+                    index: packet.inventory_index,
+                    equipped_position: packet.equipped_position,
+                });
+
+                // The 2019 server does not send a sprite change packet for headgear
+                // equips, the acknowledgement contains the view id of the equipped
+                // item instead (rAthena `clif_equipitemack` sends `wItemSpriteNumber`
+                // for EQP_VISIBLE items). Apply it so the world sprite and the paper
+                // doll show the new headgear right away.
+                for sprite_type in head_gear_sprite_types(packet.equipped_position) {
+                    events.push(NetworkEvent::LocalAppearanceChanged {
+                        sprite_type,
+                        value: u32::from(packet.view_id),
+                    });
+                }
+            }
+            RequestEquipItemStatus::FailedDueToLevelRequirement => events.push(NetworkEvent::ChatMessage {
+                text: "Your level is too low to equip this item.".to_owned(),
+                color: MessageColor::Error,
+            }),
+            RequestEquipItemStatus::Failed => events.push(NetworkEvent::ChatMessage {
+                text: "You cannot equip this item (your class, job level or another requirement is not met).".to_owned(),
+                color: MessageColor::Error,
+            }),
+        }
+
+        events
     })?;
-    packet_handler.register(|packet: RequestUnequipItemStatusPacket| match packet.result {
-        RequestUnequipItemStatus::Success => Some(NetworkEvent::UpdateEquippedPosition {
-            index: packet.inventory_index,
-            equipped_position: EquipPosition::NONE,
-        }),
-        RequestUnequipItemStatus::Failed => Some(NetworkEvent::ChatMessage {
-            text: "You cannot unequip this item.".to_owned(),
-            color: MessageColor::Error,
-        }),
+    packet_handler.register(|packet: RequestUnequipItemStatusPacket| {
+        let mut events = Vec::new();
+
+        match packet.result {
+            RequestUnequipItemStatus::Success => {
+                events.push(NetworkEvent::UpdateEquippedPosition {
+                    index: packet.inventory_index,
+                    equipped_position: EquipPosition::NONE,
+                });
+
+                // Unequipping does not send a sprite change either; clear the
+                // headgear layer that was just taken off.
+                for sprite_type in head_gear_sprite_types(packet.equipped_position) {
+                    events.push(NetworkEvent::LocalAppearanceChanged { sprite_type, value: 0 });
+                }
+            }
+            RequestUnequipItemStatus::Failed => events.push(NetworkEvent::ChatMessage {
+                text: "You cannot unequip this item.".to_owned(),
+                color: MessageColor::Error,
+            }),
+        }
+
+        events
     })?;
     packet_handler.register_noop::<Packet8302>()?;
     packet_handler.register_noop::<Packet0b18>()?;
@@ -1339,6 +1373,14 @@ where
             text: "Please wait 10 seconds before trying to log out.".to_string(),
             color: MessageColor::Error,
         },
+    })?;
+    // `ZC_AUTORUN_SKILL` (0x0147): the server tells us that an item wants to use a
+    // skill (e.g. the fly wing casts AL_TELEPORT). The official client then sends
+    // the normal skill request, which is what actually casts the skill and
+    // consumes the item, so the client must perform that step itself.
+    packet_handler.register(|packet: AutoRunSkillPacket| NetworkEvent::AutoRunSkill {
+        skill_id: packet.skill_id,
+        skill_level: SkillLevel(packet.skill_level),
     })?;
     packet_handler.register(|packet: UseSkillAckPacket2019| {
         let UseSkillAckPacket2019 {
@@ -1619,4 +1661,23 @@ fn present_guild_name(guild_name: String) -> Option<String> {
     let guild_name = guild_name.trim();
 
     (!guild_name.is_empty()).then(|| guild_name.to_owned())
+}
+
+/// Maps an equipment position mask to the sprite change types of the headgear
+/// layers it covers. Headgear has no dedicated sprite change packet on the 2019
+/// server, it is sent as the view id of the equip acknowledgement.
+fn head_gear_sprite_types(equip_position: EquipPosition) -> Vec<SpriteChangeType> {
+    let mut sprite_types = Vec::new();
+
+    if equip_position.contains(EquipPosition::HEAD_TOP) {
+        sprite_types.push(SpriteChangeType::HeadTop);
+    }
+    if equip_position.contains(EquipPosition::HEAD_MIDDLE) {
+        sprite_types.push(SpriteChangeType::HeadMiddle);
+    }
+    if equip_position.contains(EquipPosition::HEAD_LOWER) {
+        sprite_types.push(SpriteChangeType::HeadBottom);
+    }
+
+    sprite_types
 }

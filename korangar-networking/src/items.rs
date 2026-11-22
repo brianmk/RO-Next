@@ -35,6 +35,18 @@ pub struct InventoryItem<Meta> {
 }
 
 impl<Meta> InventoryItem<Meta> {
+    /// Whether the item is currently equipped. Equipped items are shown in the
+    /// equipment window and hidden from the inventory grid, like in the
+    /// original client.
+    pub fn is_equipped(&self) -> bool {
+        let equipped_position = match &self.details {
+            InventoryItemDetails::Regular { equipped_position, .. } => equipped_position,
+            InventoryItemDetails::Equippable { equipped_position, .. } => equipped_position,
+        };
+
+        !equipped_position.is_empty()
+    }
+
     pub fn is_identified(&self) -> bool {
         match &self.details {
             InventoryItemDetails::Regular { flags, .. } => flags.contains(RegularItemFlags::IDENTIFIED),

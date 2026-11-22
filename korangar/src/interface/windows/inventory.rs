@@ -157,6 +157,9 @@ where
                 .iter()
                 .enumerate()
                 .filter(|(_, item)| item_category(item) == selected_tab)
+                // Equipped items disappear from the inventory grid and are only
+                // shown in the equipment window (classic client behaviour).
+                .filter(|(_, item)| !item.is_equipped())
                 .map(|(position, _)| position)
                 .take(SLOTS_PER_TAB)
                 .collect();

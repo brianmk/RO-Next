@@ -2378,6 +2378,28 @@ pub struct ItemPickupAckPacket2019 {
     pub item_sprite_number: u16,
 }
 
+/// 2019 era `ZC_AUTORUN_SKILL` (0x0147): notification of an auto-casted
+/// skill. The server sends this for skill items (e.g. fly wing ->
+/// `itemskill "AL_TELEPORT",1`); the client is expected to perform the skill
+/// use itself (send a normal skill request), the item is not consumed before
+/// that.
+///
+/// Layout: `0147 <skill id>.W <type>.L <level>.W <sp cost>.W <range>.W
+/// <skill name>.24B <upgradable>.B`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0147)]
+pub struct AutoRunSkillPacket {
+    pub skill_id: SkillId,
+    pub skill_type: u32,
+    pub skill_level: u16,
+    pub skill_sp: u16,
+    pub skill_range: u16,
+    #[length(24)]
+    pub skill_name: String,
+    pub upgradable: u8,
+}
+
 /// 2019 era `ZC_SPIRITS` (0x01D0): monk spirit sphere count.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
@@ -5438,6 +5460,36 @@ mod tests {
         assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 9);
         assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 1);
         assert_eq!(u32::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9]]), 2206);
+    }
+
+    /// 2019 `ZC_AUTORUN_SKILL` (0x0147): the server tells the client that an
+    /// item wants to use a skill (fly wing -> AL_TELEPORT). Layout:
+    /// `0147 <skill id>.W <type>.L <level>.W <sp>.W <range>.W <name>.24B
+    /// <up>.B`.
+    #[test]
+    fn auto_run_skill_packet_layout() {
+        use crate::AutoRunSkillPacket;
+
+        let packet = AutoRunSkillPacket {
+            skill_id: crate::SkillId(26),
+            skill_type: 4,
+            skill_level: 1,
+            skill_sp: 10,
+            skill_range: 1,
+            skill_name: "Teleport".to_owned(),
+            upgradable: 0,
+        };
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(bytes.len(), 39);
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0147);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 26);
+        assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 4);
+        assert_eq!(u16::from_le_bytes([bytes[8], bytes[9]]), 1);
+        assert_eq!(&bytes[14..22], b"Teleport");
     }
 
     /// The whisper packet has to match the format the server expects:
