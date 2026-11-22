@@ -97,7 +97,10 @@ pub struct SkillVisuals {
 /// roughly one tile wide around the caster.
 pub const CAST_CIRCLE_RADIUS: f32 = 7.0;
 
-const DUST_EFFECT: &str = "dust.str";
+/// Hammer Fall: the hammer slam animation itself (effect texture `hammer.bmp`),
+/// the missing "hammer layer" that the previous `dust.str` placeholder did not
+/// show.
+const HAMMERFALL_EFFECT: &str = "black_hammerfall.str";
 const SPARKLE_EFFECT: &str = "strangelights.str";
 /// Animated angel that flutters/rotates above the character. This is the asset
 /// that reads closest to the classic Blessing angel; the classic
@@ -189,7 +192,8 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         skill_ids::BS_HAMMERFALL | skill_ids::BS_HAMMERFALL_AMBIENT => SkillVisuals {
             cast_circle_color: crate::world::element_color(element),
             completion: Some(CompletionEffect {
-                path: DUST_EFFECT,
+                // The hammer slam itself (the effect texture is `hammer.bmp`).
+                path: HAMMERFALL_EFFECT,
                 offset: Vector3::new(0.0, 0.0, 0.0),
                 scale: 1.2,
             }),

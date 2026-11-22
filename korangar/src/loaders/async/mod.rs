@@ -260,17 +260,26 @@ impl AsyncLoader {
     /// have the regular same-stem pair or the soul-falcon effect sprite.
     #[must_use]
     pub fn request_falcon_animation_data_load(&self, entity_id: EntityId) -> Option<Arc<AnimationData>> {
-        // The archive contains a static falcon icon pair (`ht_falcon.spr` +
-        // `h_falcon.act`) and animated falcon-like effect sprites. Load all
-        // candidates and pick the one with the most drawable animation frames,
-        // so the falcon flaps instead of showing up as a static icon.
+        // The CondaRO archives store the official hunter falcon as
+        // `아이템\ht_falcon.spr` + `아이템\h_falcon.act` (the sprite and action
+        // stems differ in this trimmed data). `soul_falcon`, `sp_soulfalcon`
+        // and `sn_falconassault` are *effect* sprites (Soul Linker / Falcon
+        // Assault), not the companion falcon, so they are only fallbacks. The
+        // candidates are tried in this fixed order: picking the sprite with the
+        // most drawable frames (the old heuristic) selected the Soul Linker
+        // effect instead of the hunter falcon.
+        // The official hunter falcon companion is the effect sprite
+        // `data\sprite\이팩트\매` (Korean "매" = falcon; `매2` is the
+        // alternate variant). The `이팩트\soul_falcon` and `아이템\*falcon*`
+        // sprites are Soul Linker / Falcon Assault effects.
         let candidates: Vec<Vec<EntityPartFile>> = vec![
+            vec![EntityPartFile::new("이팩트\\매")],
+            vec![EntityPartFile::new("이팩트\\매2")],
+            vec![EntityPartFile::with_action("아이템\\ht_falcon", "아이템\\h_falcon")],
+            vec![EntityPartFile::new("아이템\\ht_falcon")],
             vec![EntityPartFile::new("이팩트\\soul_falcon\\soul_falcon")],
             vec![EntityPartFile::new("아이템\\sp_soulfalcon")],
             vec![EntityPartFile::new("아이템\\sn_falconassault")],
-            vec![EntityPartFile::with_action("아이템\\ht_falcon", "아이템\\h_falcon")],
-            vec![EntityPartFile::new("아이템\\ht_falcon")],
-            vec![EntityPartFile::new("아이템\\h_falcon")],
         ];
 
         fn animated_part_score(animation_data: &AnimationData) -> usize {
@@ -283,17 +292,16 @@ impl AsyncLoader {
                 .sum()
         }
 
-        if let Some(animation_data) = candidates
-            .iter()
-            .filter_map(|parts| self.animation_loader.get(parts))
-            .max_by_key(|animation_data| animated_part_score(animation_data))
-        {
-            crate::logging::log_debug!(
-                "falcon animation: cache hit for entity {} (animated score {})",
-                entity_id.0,
-                animated_part_score(&animation_data)
-            );
-            return Some(animation_data);
+        for parts in &candidates {
+            if let Some(animation_data) = self.animation_loader.get(parts) {
+                crate::logging::log_debug!(
+                    "falcon animation: cache hit for entity {} with {:?} (animated score {})",
+                    entity_id.0,
+                    parts.first().map(|part| part.path.as_str()),
+                    animated_part_score(&animation_data)
+                );
+                return Some(animation_data);
+            }
         }
 
         crate::logging::log_debug!("falcon animation: requesting load for entity {}", entity_id.0);
@@ -303,34 +311,32 @@ impl AsyncLoader {
         let animation_loader = self.animation_loader.clone();
 
         self.request_visible_load(LoaderId::FalconAnimationData(entity_id), LoadKind::AnimationData, move || {
-            let mut best: Option<Arc<AnimationData>> = None;
-            let mut best_score = 0;
             let mut last_error = LoadError::UnsupportedFormat("no falcon sprite found in the game archives".to_owned());
 
+            // First candidate in priority order = the official hunter falcon.
             for parts in &candidates {
                 match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, parts) {
                     Ok(animation_data) => {
-                        let score = animated_part_score(&animation_data);
                         crate::logging::log_debug!(
-                            "falcon candidate {:?} loaded: {} pair(s), {} animation(s), animated score {}",
+                            "falcon candidate {:?} loaded: {} pair(s), {} animation(s), animated score {} (selected)",
                             parts.first().map(|part| part.path.as_str()),
                             animation_data.animation_pair.len(),
                             animation_data.animations.len(),
-                            score
+                            animated_part_score(&animation_data)
                         );
-                        if best.is_none() || score > best_score {
-                            best_score = score;
-                            best = Some(animation_data);
-                        }
+                        return Ok(LoadableResource::FalconAnimation(animation_data));
                     }
-                    Err(error) => last_error = error,
+                    Err(error) => {
+                        crate::logging::log_debug!(
+                            "falcon candidate {:?} unavailable: {error:?}",
+                            parts.first().map(|part| part.path.as_str())
+                        );
+                        last_error = error;
+                    }
                 }
             }
 
-            match best {
-                Some(animation_data) => Ok(LoadableResource::FalconAnimation(animation_data)),
-                None => Err(last_error),
-            }
+            Err(last_error)
         });
 
         None

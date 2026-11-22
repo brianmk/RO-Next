@@ -52,7 +52,11 @@ const BABY_JOB_SCALE: f32 = 0.75;
 /// Classic client `OPTION_FALCON` bit in the option/effect_state field.
 const OPTION_FALCON: u32 = 0x10;
 /// Height above the owner's position at which the falcon is drawn.
-const FALCON_HEIGHT: f32 = 42.0;
+///
+/// The classic client draws the falcon a little above the hunter's head; the
+/// previous value was too high (the bird floated over the head), so it was
+/// lowered a bit.
+const FALCON_HEIGHT: f32 = 26.0;
 
 /// Classic client weapon-variant suffixes per server weapon type (`W_*`).
 ///

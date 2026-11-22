@@ -35,8 +35,12 @@ pub struct StatusEffectDefinition {
 impl StatusEffectDefinition {
     /// Client texture path of the icon, relative to `data\texture` (the
     /// texture loader prepends that directory).
+    ///
+    /// Status icons are the transparent `.tga` textures of
+    /// `data\texture\effect\`, not the opaque skill icons of
+    /// `data\texture\유저인터페이스\item\`.
     pub fn icon_path(self) -> Option<String> {
-        self.icon.map(str::to_owned)
+        self.icon.map(|name| format!("effect\\{name}"))
     }
 }
 
@@ -96,27 +100,13 @@ pub fn status_effect_definition(status_index: u16) -> StatusEffectDefinition {
 
 /// Official client icon texture of a status effect, relative to `data\texture`.
 fn status_effect_icon(status_index: u16) -> Option<&'static str> {
-    match status_index {
-        0 => Some("유저인터페이스\\item\\sm_provoke.bmp"),
-        1 => Some("유저인터페이스\\item\\cr_endure.bmp"),
-        2 => Some("유저인터페이스\\item\\kn_twohandquicken.bmp"),
-        3 => Some("유저인터페이스\\item\\ac_concentration.bmp"),
-        9 => Some("유저인터페이스\\item\\al_angelus.bmp"),
-        10 => Some("유저인터페이스\\item\\al_blessing.bmp"),
-        12 => Some("유저인터페이스\\item\\al_incagi.bmp"),
-        15 => Some("유저인터페이스\\item\\pr_impositio.bmp"),
-        86 => Some("유저인터페이스\\item\\mo_explosionspirits.bmp"),
-        27 => Some("유저인터페이스\\item\\kn_riding.bmp"),
-        // Body/health state debuffs (EFST_HEALTHSTATE_*).
-        883 => Some("effect\\hl_poison.tga"),
-        884 => Some("effect\\hl_curse.tga"),
-        885 => Some("effect\\hl_silence.tga"),
-        886 => Some("effect\\hl_confusion.tga"),
-        887 => Some("effect\\hl_state_fear.tga"),
-        890 => Some("effect\\hl_heavypoison.tga"),
-        891 => Some("effect\\hl_state_fear.tga"),
-        _ => None,
-    }
+    // File name of the transparent status icon in `data\texture\effect\` (not
+    // the opaque skill icon of the hotbar/skill window, see
+    // `status_effect_icons`).
+    super::status_effect_icons::STATUS_EFFECT_ICONS
+        .binary_search_by_key(&status_index, |(index, _)| *index)
+        .ok()
+        .map(|position| super::status_effect_icons::STATUS_EFFECT_ICONS[position].1)
 }
 
 /// Element ids as sent by the 2019 server for elemental weapon enchantments.
@@ -368,10 +358,11 @@ mod tests {
     fn names_come_from_the_english_stateicon_table() {
         // EFST_TWOHANDQUICKEN is 2; the previous hard-coded table called it "Riding".
         assert_eq!(status_effect_definition(2).name, "Two-Hand Quicken");
-        assert!(
-            status_effect_definition(2)
-                .icon_path()
-                .is_some_and(|path| path.ends_with("kn_twohandquicken.bmp"))
+        // Status icons are the transparent `effect\*.tga` textures, not the
+        // opaque skill icons (the old code used `item\kn_twohandquicken.bmp`).
+        assert_eq!(
+            status_effect_definition(2).icon_path().as_deref(),
+            Some("effect\\투핸드퀴큰.tga")
         );
         assert_eq!(status_effect_definition(27).name, "Riding");
         assert_eq!(status_effect_definition(875).name, "Stone Curse");
