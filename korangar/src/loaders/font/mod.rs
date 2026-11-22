@@ -1,4 +1,5 @@
 mod color_span_iterator;
+mod coverage;
 mod font_file;
 mod layout_key;
 mod slug;
@@ -26,6 +27,7 @@ use serde::{Deserialize, Serialize};
 use wgpu::{Device, Queue};
 
 use self::color_span_iterator::ColorSpanIterator;
+use self::coverage::{FontCoverage, FontCoverageBuilder};
 use self::slug::SlugFontData;
 use super::GameFileLoader;
 use crate::graphics::{Color, ScreenSize, SlugFont};
@@ -250,6 +252,9 @@ pub(crate) struct GlyphCoordinate {
 pub struct FontLoader {
     font_system: Mutex<FontSystem>,
     primary_font_family: String,
+    /// Characters that at least one of the loaded fonts can render. Used to
+    /// replace unrenderable characters before they can become `.notdef` boxes.
+    coverage: FontCoverage,
     slug_font: SlugFont,
     glyph_cache: HashMap<ID, FaceGlyphs>,
     layout_cache: Mutex<SimpleCache<LayoutKey, CachedLayout>>,
@@ -262,13 +267,31 @@ impl FontLoader {
         let mut font_system = FontSystem::new_with_locale_and_db(Self::system_locale(), fontdb::Database::new());
         let mut glyph_cache = HashMap::new();
         let mut slug_data = SlugFontData::default();
+        let mut coverage_builder = FontCoverageBuilder::default();
 
         let fonts: Vec<FontFile> = fonts
             .iter()
-            .filter_map(|font_name| FontFile::new(font_name, game_file_loader, &mut font_system, &mut slug_data))
+            .filter_map(|font_name| {
+                FontFile::new(
+                    font_name,
+                    game_file_loader,
+                    &mut font_system,
+                    &mut slug_data,
+                    &mut coverage_builder,
+                )
+            })
             .collect();
 
         let primary_font_family = Self::extract_primary_font_family(&font_system, &fonts);
+        let coverage = coverage_builder.build();
+
+        // A missing fallback font used to be a silent failure that only showed
+        // up as square glyphs in Korean chat/NPC dialogue. Make it visible once.
+        if !coverage.contains('한') {
+            crate::logging::log_warn!(
+                "no loaded font covers Korean/Hangul; Korean text will be shown as '?' (is archive/data/font/NanumGothic.ttf missing?)"
+            );
+        }
 
         for (id, glyphs) in fonts.into_iter().flat_map(|font| font.faces) {
             glyph_cache.insert(id, glyphs);
@@ -297,6 +320,7 @@ impl FontLoader {
         Self {
             font_system: Mutex::new(font_system),
             primary_font_family,
+            coverage,
             slug_font,
             glyph_cache,
             layout_cache: Mutex::new(layout_cache),
@@ -390,6 +414,13 @@ impl FontLoader {
         available_width: Option<f32>,
         glyphs: Option<&mut Vec<GlyphInstruction>>,
     ) -> Vector2<f32> {
+        // Replace characters that none of the loaded fonts can render before they
+        // reach the shaper: missing glyphs would become `.notdef` boxes. This is
+        // the single display-safety gate of the renderer; ASCII text and text
+        // whose glyphs are all covered take the borrowed fast path.
+        let sanitized = self.coverage.sanitize(text);
+        let text = sanitized.as_ref();
+
         // TODO: NHA We currently call get_text_dimensions() with different
         //       "available_width" and "overflow_behavior" then when we call
         //       layout_text() for with the resulting available_width.

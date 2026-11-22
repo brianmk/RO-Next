@@ -10,6 +10,7 @@ use ttf_parser::Face;
 
 use crate::loaders::GameFileLoader;
 use crate::loaders::font::GlyphCoordinate;
+use crate::loaders::font::coverage::{FontCoverageBuilder, face_codepoints};
 use crate::loaders::font::slug::{SlugFontData, SlugGlyphBounds};
 use crate::loaders::rectangle::Rectangle;
 
@@ -27,6 +28,7 @@ impl FontFile {
         game_file_loader: &GameFileLoader,
         font_system: &mut FontSystem,
         slug_data: &mut SlugFontData,
+        coverage: &mut FontCoverageBuilder,
     ) -> Option<Self> {
         #[cfg(feature = "debug")]
         let timer = Timer::new_dynamic(format!("load font: {}", name.magenta()));
@@ -44,10 +46,15 @@ impl FontFile {
         let faces: Vec<(ID, FaceGlyphs)> = ids
             .iter()
             .filter_map(|&id| {
-                let glyphs = font_system.db().with_face_data(id, |data, index| {
+                // Collect the cmap of the face as well, so the text layout can
+                // replace characters that no loaded font can render instead of
+                // drawing a `.notdef` box for them.
+                let (glyphs, codepoints) = font_system.db().with_face_data(id, |data, index| {
                     let face = Face::parse(data, index).ok()?;
-                    Some(slug_data.add_face(&face))
+                    Some((slug_data.add_face(&face), face_codepoints(&face)))
                 })??;
+
+                coverage.add_face(codepoints);
 
                 let glyphs = glyphs.into_iter().map(|bounds| bounds.map(glyph_coordinate)).collect();
 

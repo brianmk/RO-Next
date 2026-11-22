@@ -9,6 +9,7 @@ pub mod minimap;
 pub mod party;
 pub mod skills;
 pub mod stat_buffer;
+mod status_effect_names;
 pub mod status_effects;
 pub mod theme;
 

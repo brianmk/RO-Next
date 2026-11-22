@@ -75,6 +75,33 @@ pub struct DialogWindowState {
     clear_next: bool,
 }
 
+/// Removes characters that can never be displayed in a dialog transcript.
+///
+/// NPC dialogs are server-sent strings (usually EUC-KR decoded, sometimes with
+/// leftover Latin-1 bytes or control characters). The renderer itself replaces
+/// every character that none of the loaded fonts can draw (the font coverage
+/// gate in `loaders::font`; Korean is covered by the shipped `NanumGothic`
+/// fallback), so this function only strips characters without a visible glyph
+/// and normalizes line endings. The client's color markup (`^RRGGBB`) is pure
+/// ASCII and is kept, so colored dialog lines keep their colors.
+fn sanitize_dialog_text(text: &str) -> String {
+    let mut sanitized = String::with_capacity(text.len());
+
+    for character in text.chars() {
+        match character {
+            '\r' => {}
+            '\n' | '\t' => sanitized.push(character),
+            character if character.is_control() => {}
+            character => sanitized.push(character),
+        }
+    }
+
+    // A dialog line is never rendered with trailing whitespace; trimming it keeps
+    // the layout (and the layout cache key) stable for server strings that end
+    // with a stray space.
+    sanitized.trim_end().to_owned()
+}
+
 impl DialogWindowState {
     /// Initialize the dialog. This is important so we have the correct entity
     /// id when sending packets to the server.
@@ -84,6 +111,10 @@ impl DialogWindowState {
     }
 
     /// Add text to the dialog.
+    ///
+    /// Characters that no loaded font can render are replaced with `?` by the
+    /// text renderer, so this can never show `.notdef` squares; colored markup
+    /// (`^RRGGBB`) is preserved.
     pub fn add_text(&mut self, text: String) {
         use korangar_interface::prelude::*;
 
@@ -94,7 +125,7 @@ impl DialogWindowState {
 
         self.elements.push(DialogElement::new(
             text! {
-                text: text,
+                text: sanitize_dialog_text(&text),
             },
             DialogElementKind::Text,
         ));
@@ -165,6 +196,10 @@ impl DialogWindowState {
         let npc_id = self.npc_id;
 
         choices.into_iter().enumerate().for_each(|(index, text)| {
+            // Menu options are single-line buttons; a line break would be laid
+            // out inside the button, so it is turned into a space.
+            let text = sanitize_dialog_text(&text).replace('\n', " ");
+
             self.elements.push(DialogElement::new(
                 button! {
                     text: text,
@@ -408,6 +443,33 @@ mod tests {
 
         assert_eq!(state.text_count(), 1);
         assert_eq!(state.next_button_count(), 0);
+    }
+
+    #[test]
+    fn dialog_text_keeps_the_server_text_and_color_markup() {
+        // Korean and the KS X 1001 symbols of the official quest scripts are
+        // covered by the fallback font, so the dialog keeps them verbatim.
+        let mut state = DialogWindowState::default();
+        state.add_text("^FF0000[알프]^000000 ⊂∑∀ ∠ ∫∝∝ ▲▼".to_owned());
+
+        assert_eq!(state.text_count(), 1);
+    }
+
+    #[test]
+    fn dialog_text_drops_control_characters_but_keeps_line_breaks() {
+        let mut state = DialogWindowState::default();
+        state.add_text("first\nsecond\u{0000}\u{0007}   ".to_owned());
+
+        assert_eq!(state.text_count(), 1);
+    }
+
+    #[test]
+    fn sanitized_dialog_text_keeps_markup_and_removes_controls() {
+        assert_eq!(
+            sanitize_dialog_text("^00FF00hello^000000\r\nworld\u{0000}  "),
+            "^00FF00hello^000000\nworld"
+        );
+        assert_eq!(sanitize_dialog_text("⊂∑∀ ∠ ∫∝∝"), "⊂∑∀ ∠ ∫∝∝");
     }
 
     #[test]
