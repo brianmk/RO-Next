@@ -465,8 +465,25 @@ where
                     let (delta_width, delta_height) = match resize_mode {
                         ResizeMode::Horizontal => (delta.width(), 0.0),
                         ResizeMode::Vertical => (0.0, delta.height()),
+                        // Dragging the top edge: moving the mouse up grows the window, so
+                        // the height changes opposite to the mouse delta. The anchor is
+                        // moved by the same amount below to keep the bottom edge fixed.
+                        ResizeMode::VerticalTop => (0.0, -delta.height()),
                         ResizeMode::Both => (delta.width(), delta.height()),
                     };
+
+                    if resize_mode == ResizeMode::VerticalTop {
+                        let new_position = App::Position::new(
+                            wrapper.display_information.real_area.left,
+                            wrapper.display_information.real_area.top + delta.height(),
+                        );
+                        let scaled_size = App::Size::new(
+                            wrapper.display_information.real_area.width * interface_scaling,
+                            wrapper.display_information.display_height * interface_scaling,
+                        );
+
+                        wrapper.data.anchor.update(self.window_size, new_position, scaled_size);
+                    }
 
                     let new_width = wrapper.display_information.real_area.width + delta_width / interface_scaling;
                     let new_height = wrapper.display_information.real_area.height + delta_height / interface_scaling;

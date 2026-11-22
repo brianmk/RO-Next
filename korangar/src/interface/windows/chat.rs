@@ -3,8 +3,8 @@ use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, StateElement};
 use korangar_interface::event::{ClickHandler, EventQueue};
-use korangar_interface::layout::area::Area;
-use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
+use korangar_interface::layout::area::{Area, PartialArea};
+use korangar_interface::layout::{Resolver, Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use korangar_interface::window::{CustomWindow, Window};
 use korangar_networking::MessageColor;
@@ -174,6 +174,80 @@ where
     }
 }
 
+/// Element wrapper that reserves space below a flexible child element.
+///
+/// The chat window needs the message scroll view to fill the window while the
+/// input box at the bottom keeps its natural height. The plain vertical element
+/// order would give the scroll view all remaining space (input box invisible).
+/// This wrapper gives the child the available height minus the reservation and
+/// leaves that reservation to the next element in the window.
+struct ReserveBelow<Reserve, Gaps, Child> {
+    reserve_path: Reserve,
+    gaps_path: Gaps,
+    child: Child,
+}
+
+impl<Reserve, Gaps, Child> ReserveBelow<Reserve, Gaps, Child> {
+    fn new(reserve_path: Reserve, gaps_path: Gaps, child: Child) -> Self {
+        Self {
+            reserve_path,
+            gaps_path,
+            child,
+        }
+    }
+}
+
+impl<Reserve, Gaps, Child> Element<ClientState> for ReserveBelow<Reserve, Gaps, Child>
+where
+    Reserve: Selector<ClientState, f32>,
+    Gaps: Selector<ClientState, f32>,
+    Child: Element<ClientState>,
+{
+    type LayoutInfo = Child::LayoutInfo;
+
+    fn create_layout_info(
+        &mut self,
+        state: &State<ClientState>,
+        mut store: ElementStoreMut,
+        resolvers: &mut dyn Resolvers<ClientState>,
+    ) -> Self::LayoutInfo {
+        let mut resolver = resolvers.for_index(0);
+        let available_area = resolver.push_available_area();
+        let reserve = *state.get(&self.reserve_path);
+        let gaps = *state.get(&self.gaps_path);
+        let available_height = available_area.height.unwrap_or(0.0);
+        let child_height = (available_height - reserve - gaps).max(0.0);
+
+        let mut child_resolver = Resolver::new(
+            PartialArea {
+                left: available_area.left,
+                top: available_area.top,
+                width: available_area.width,
+                height: Some(child_height),
+            },
+            gaps,
+            resolver.get_text_layouter(),
+        );
+
+        let layout_info = self.child.create_layout_info(state, store.child_store(0), &mut child_resolver);
+
+        resolver.commit_used_height(child_resolver.get_used_height() + reserve + gaps);
+        resolvers.give_back(resolver);
+
+        layout_info
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        state: &'a State<ClientState>,
+        store: ElementStore<'a>,
+        layout_info: &'a Self::LayoutInfo,
+        layout: &mut WindowLayout<'a, ClientState>,
+    ) {
+        self.child.lay_out(state, store.child_store(0), layout_info, layout);
+    }
+}
+
 /// Internal state of the chat window.
 #[derive(Default, RustState, StateElement)]
 pub struct ChatWindowState {
@@ -319,6 +393,9 @@ where
             // The chat window is an overlay: it uses its own (semi transparent)
             // background colour and must not draw the opaque skinned window frame.
             skinned: false,
+            // The input box sits at the bottom, so the vertical resize grip belongs
+            // on the top edge.
+            vertical_resize_anchor: korangar_interface::window::VerticalResizeAnchor::Top,
             elements: (
                 round_toggle! {
                     tooltip: client_state().localization().chat_transparency_button_tooltip(),
@@ -331,6 +408,17 @@ where
                     shadow_color: Color::TRANSPARENT,
                     shadow_padding: ShadowPadding::uniform(0.0),
                 },
+                ReserveBelow::new(
+                    // Reservation for the input box at the bottom (its theme height
+                    // plus the window gaps below it).
+                    korangar_interface::theme::theme().text_box().height(),
+                    korangar_interface::theme::theme().window().gaps(),
+                    scroll_view! {
+                        follow: true,
+                        fit_content_height: true,
+                        children: ChatElement::new(self.chat_messages_path),
+                    },
+                ),
                 text_box! {
                     ghost_text: client_state().localization().chat_text_box_message(),
                     state: current_text_path,
@@ -342,10 +430,6 @@ where
                     focused_background_color: chat_input_focused_background_color,
                     focus_id: ChatTextBox,
                     skinned: false,
-                },
-                scroll_view! {
-                    follow: true,
-                    children: ChatElement::new(self.chat_messages_path),
                 },
             ),
         }
