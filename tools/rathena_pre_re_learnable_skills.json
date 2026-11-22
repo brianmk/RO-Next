@@ -1,0 +1,9646 @@
+{
+ "classes": {
+  "Acolyte": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    410
+   ]
+  },
+  "Acolyte_High": {
+   "inherit": [
+    "Acolyte",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    410
+   ]
+  },
+  "Alchemist": {
+   "inherit": [
+    "Merchant",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    243,
+    244,
+    247,
+    410,
+    446,
+    496,
+    497,
+    498,
+    2535,
+    2544
+   ]
+  },
+  "Archer": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    410
+   ]
+  },
+  "Archer_High": {
+   "inherit": [
+    "Archer",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    410
+   ]
+  },
+  "Assassin": {
+   "inherit": [
+    "Novice",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    410,
+    1003,
+    1004
+   ]
+  },
+  "Assassin_Cross": {
+   "inherit": [
+    "Assassin",
+    "Novice",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    376,
+    378,
+    379,
+    406,
+    407,
+    410,
+    1003,
+    1004
+   ]
+  },
+  "Baby": {
+   "inherit": [],
+   "skills": [
+    1,
+    142,
+    143,
+    408,
+    409
+   ]
+  },
+  "Baby_Acolyte": {
+   "inherit": [
+    "Acolyte",
+    "Baby"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    408,
+    409,
+    410
+   ]
+  },
+  "Baby_Alchemist": {
+   "inherit": [
+    "Alchemist",
+    "Baby",
+    "Merchant"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    243,
+    244,
+    247,
+    408,
+    409,
+    410,
+    446,
+    496,
+    497,
+    498,
+    2535,
+    2544
+   ]
+  },
+  "Baby_Archer": {
+   "inherit": [
+    "Archer",
+    "Baby"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    408,
+    409,
+    410
+   ]
+  },
+  "Baby_Assassin": {
+   "inherit": [
+    "Assassin",
+    "Baby",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    408,
+    409,
+    410,
+    1003,
+    1004
+   ]
+  },
+  "Baby_Bard": {
+   "inherit": [
+    "Archer",
+    "Baby",
+    "Bard"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    408,
+    409,
+    410,
+    1010
+   ]
+  },
+  "Baby_Blacksmith": {
+   "inherit": [
+    "Baby",
+    "Blacksmith",
+    "Merchant"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    142,
+    143,
+    153,
+    154,
+    155,
+    408,
+    409,
+    410,
+    459,
+    1012,
+    1013,
+    2535,
+    2544
+   ]
+  },
+  "Baby_Crusader": {
+   "inherit": [
+    "Baby",
+    "Crusader",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    408,
+    409,
+    410,
+    1002
+   ]
+  },
+  "Baby_Crusader2": {
+   "inherit": [
+    "Baby",
+    "Crusader",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    408,
+    409,
+    410,
+    1002
+   ]
+  },
+  "Baby_Dancer": {
+   "inherit": [
+    "Archer",
+    "Baby",
+    "Dancer"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    408,
+    409,
+    410,
+    1011
+   ]
+  },
+  "Baby_Hunter": {
+   "inherit": [
+    "Archer",
+    "Baby",
+    "Hunter"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    142,
+    143,
+    147,
+    148,
+    408,
+    409,
+    410,
+    499,
+    1009
+   ]
+  },
+  "Baby_Knight": {
+   "inherit": [
+    "Baby",
+    "Knight",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    408,
+    409,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Baby_Knight2": {
+   "inherit": [
+    "Baby",
+    "Knight",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    408,
+    409,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Baby_Mage": {
+   "inherit": [
+    "Baby",
+    "Mage"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    142,
+    143,
+    157,
+    408,
+    409,
+    410
+   ]
+  },
+  "Baby_Merchant": {
+   "inherit": [
+    "Baby",
+    "Merchant"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    408,
+    409,
+    410,
+    2535,
+    2544
+   ]
+  },
+  "Baby_Monk": {
+   "inherit": [
+    "Acolyte",
+    "Baby",
+    "Monk"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    408,
+    409,
+    410,
+    1015,
+    1016
+   ]
+  },
+  "Baby_Priest": {
+   "inherit": [
+    "Acolyte",
+    "Baby",
+    "Priest"
+   ],
+   "skills": [
+    1,
+    9,
+    12,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    54,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    142,
+    143,
+    156,
+    408,
+    409,
+    410,
+    1014
+   ]
+  },
+  "Baby_Rogue": {
+   "inherit": [
+    "Baby",
+    "Rogue",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    2,
+    44,
+    46,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    124,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    408,
+    409,
+    410,
+    1005
+   ]
+  },
+  "Baby_Sage": {
+   "inherit": [
+    "Baby",
+    "Mage",
+    "Sage"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    90,
+    91,
+    93,
+    142,
+    143,
+    157,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    290,
+    408,
+    409,
+    410,
+    1007,
+    1008,
+    1017,
+    1018,
+    1019
+   ]
+  },
+  "Baby_Swordman": {
+   "inherit": [
+    "Baby",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    142,
+    143,
+    144,
+    145,
+    146,
+    408,
+    409,
+    410
+   ]
+  },
+  "Baby_Thief": {
+   "inherit": [
+    "Baby",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    408,
+    409,
+    410
+   ]
+  },
+  "Baby_Wizard": {
+   "inherit": [
+    "Baby",
+    "Mage",
+    "Wizard"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    80,
+    81,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    142,
+    143,
+    157,
+    408,
+    409,
+    410,
+    1006
+   ]
+  },
+  "Bard": {
+   "inherit": [
+    "Archer",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    410,
+    1010
+   ]
+  },
+  "Blacksmith": {
+   "inherit": [
+    "Merchant",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    142,
+    143,
+    153,
+    154,
+    155,
+    410,
+    459,
+    1012,
+    1013,
+    2535,
+    2544
+   ]
+  },
+  "Champion": {
+   "inherit": [
+    "Acolyte",
+    "Monk",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    370,
+    371,
+    372,
+    401,
+    410,
+    1015,
+    1016
+   ]
+  },
+  "Clown": {
+   "inherit": [
+    "Archer",
+    "Bard",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    315,
+    316,
+    317,
+    318,
+    319,
+    320,
+    321,
+    322,
+    394,
+    395,
+    396,
+    410,
+    487,
+    488,
+    489,
+    1010
+   ]
+  },
+  "Creator": {
+   "inherit": [
+    "Alchemist",
+    "Merchant",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    243,
+    244,
+    247,
+    410,
+    446,
+    478,
+    479,
+    490,
+    491,
+    496,
+    497,
+    498,
+    2535,
+    2544
+   ]
+  },
+  "Crusader": {
+   "inherit": [
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    410,
+    1002
+   ]
+  },
+  "Crusader2": {
+   "inherit": [
+    "Crusader",
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    410,
+    1002
+   ]
+  },
+  "Dancer": {
+   "inherit": [
+    "Archer",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    410,
+    1011
+   ]
+  },
+  "Dark_Collector": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410
+   ]
+  },
+  "Death_Knight": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410
+   ]
+  },
+  "Gangsi": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410
+   ]
+  },
+  "Gunslinger": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    500,
+    501,
+    502,
+    503,
+    504,
+    505,
+    506,
+    507,
+    508,
+    509,
+    510,
+    511,
+    512,
+    513,
+    514,
+    515,
+    516,
+    517,
+    518,
+    519,
+    520,
+    521
+   ]
+  },
+  "Gypsy": {
+   "inherit": [
+    "Archer",
+    "Dancer",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    142,
+    143,
+    147,
+    148,
+    304,
+    305,
+    306,
+    307,
+    308,
+    309,
+    310,
+    311,
+    312,
+    313,
+    323,
+    324,
+    325,
+    326,
+    327,
+    328,
+    329,
+    330,
+    394,
+    395,
+    396,
+    410,
+    487,
+    488,
+    489,
+    1011
+   ]
+  },
+  "High_Priest": {
+   "inherit": [
+    "Acolyte",
+    "Novice",
+    "Priest"
+   ],
+   "skills": [
+    1,
+    9,
+    12,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    54,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    142,
+    143,
+    156,
+    361,
+    362,
+    363,
+    410,
+    481,
+    1014
+   ]
+  },
+  "High_Wizard": {
+   "inherit": [
+    "Mage",
+    "Novice",
+    "Wizard"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    80,
+    81,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    142,
+    143,
+    157,
+    364,
+    365,
+    366,
+    400,
+    410,
+    483,
+    484,
+    1006
+   ]
+  },
+  "Hunter": {
+   "inherit": [
+    "Archer",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    142,
+    143,
+    147,
+    148,
+    410,
+    499,
+    1009
+   ]
+  },
+  "Knight": {
+   "inherit": [
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Knight2": {
+   "inherit": [
+    "Knight",
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Lord_Knight": {
+   "inherit": [
+    "Knight",
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    355,
+    356,
+    357,
+    358,
+    359,
+    397,
+    398,
+    399,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Lord_Knight2": {
+   "inherit": [
+    "Knight",
+    "Lord_Knight",
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    355,
+    356,
+    357,
+    358,
+    359,
+    397,
+    398,
+    399,
+    410,
+    495,
+    1001
+   ]
+  },
+  "Mage": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    142,
+    143,
+    157,
+    410
+   ]
+  },
+  "Mage_High": {
+   "inherit": [
+    "Mage",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    142,
+    143,
+    157,
+    410
+   ]
+  },
+  "Merchant": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    410,
+    2535,
+    2544
+   ]
+  },
+  "Merchant_High": {
+   "inherit": [
+    "Merchant",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    142,
+    143,
+    153,
+    154,
+    155,
+    410,
+    2535,
+    2544
+   ]
+  },
+  "Monk": {
+   "inherit": [
+    "Acolyte",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    142,
+    143,
+    156,
+    259,
+    260,
+    261,
+    262,
+    263,
+    264,
+    265,
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    410,
+    1015,
+    1016
+   ]
+  },
+  "Ninja": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    522,
+    523,
+    524,
+    525,
+    526,
+    527,
+    528,
+    529,
+    530,
+    531,
+    532,
+    533,
+    534,
+    535,
+    536,
+    537,
+    538,
+    539,
+    540,
+    541,
+    542,
+    543,
+    544
+   ]
+  },
+  "Novice": {
+   "inherit": [],
+   "skills": [
+    1,
+    142,
+    143,
+    410
+   ]
+  },
+  "Novice_High": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410
+   ]
+  },
+  "Paladin": {
+   "inherit": [
+    "Crusader",
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    367,
+    368,
+    369,
+    410,
+    480,
+    1002
+   ]
+  },
+  "Paladin2": {
+   "inherit": [
+    "Crusader",
+    "Novice",
+    "Paladin",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    22,
+    23,
+    28,
+    35,
+    55,
+    63,
+    64,
+    142,
+    143,
+    144,
+    145,
+    146,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
+    256,
+    257,
+    258,
+    367,
+    368,
+    369,
+    410,
+    480,
+    1002
+   ]
+  },
+  "Priest": {
+   "inherit": [
+    "Acolyte",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    9,
+    12,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    54,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    142,
+    143,
+    156,
+    410,
+    1014
+   ]
+  },
+  "Professor": {
+   "inherit": [
+    "Mage",
+    "Novice",
+    "Sage"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    90,
+    91,
+    93,
+    142,
+    143,
+    157,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    290,
+    373,
+    374,
+    375,
+    402,
+    403,
+    404,
+    405,
+    410,
+    482,
+    1007,
+    1008,
+    1017,
+    1018,
+    1019
+   ]
+  },
+  "Rogue": {
+   "inherit": [
+    "Novice",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    2,
+    44,
+    46,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    124,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    410,
+    1005
+   ]
+  },
+  "Sage": {
+   "inherit": [
+    "Mage",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    90,
+    91,
+    93,
+    142,
+    143,
+    157,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    287,
+    288,
+    289,
+    290,
+    410,
+    1007,
+    1008,
+    1017,
+    1018,
+    1019
+   ]
+  },
+  "Sniper": {
+   "inherit": [
+    "Archer",
+    "Hunter",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    43,
+    44,
+    45,
+    46,
+    47,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    142,
+    143,
+    147,
+    148,
+    380,
+    381,
+    382,
+    383,
+    410,
+    499,
+    1009
+   ]
+  },
+  "Soul_Linker": {
+   "inherit": [
+    "Novice",
+    "Taekwon"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    445,
+    447,
+    448,
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    460,
+    461,
+    462,
+    463,
+    464,
+    465,
+    466,
+    467,
+    468,
+    469,
+    470,
+    471,
+    472,
+    493,
+    494
+   ]
+  },
+  "Stalker": {
+   "inherit": [
+    "Novice",
+    "Rogue",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    2,
+    44,
+    46,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    124,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    389,
+    390,
+    410,
+    475,
+    476,
+    1005
+   ]
+  },
+  "Star_Gladiator": {
+   "inherit": [
+    "Novice",
+    "Taekwon"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    427,
+    428,
+    429,
+    430,
+    431,
+    432,
+    433,
+    434,
+    435,
+    436,
+    437,
+    438,
+    439,
+    440,
+    441,
+    442,
+    443,
+    444,
+    493
+   ]
+  },
+  "Star_Gladiator2": {
+   "inherit": [
+    "Novice",
+    "Star_Gladiator",
+    "Taekwon"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    427,
+    428,
+    429,
+    430,
+    431,
+    432,
+    433,
+    434,
+    435,
+    436,
+    437,
+    438,
+    439,
+    440,
+    441,
+    442,
+    443,
+    444,
+    493
+   ]
+  },
+  "Super_Baby": {
+   "inherit": [
+    "Baby"
+   ],
+   "skills": [
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    142,
+    143,
+    408,
+    409,
+    2535,
+    2544
+   ]
+  },
+  "Supernovice": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    142,
+    143,
+    410,
+    2535,
+    2544
+   ]
+  },
+  "Swordman": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    142,
+    143,
+    144,
+    145,
+    146,
+    410
+   ]
+  },
+  "Swordman_High": {
+   "inherit": [
+    "Novice",
+    "Swordman"
+   ],
+   "skills": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    142,
+    143,
+    144,
+    145,
+    146,
+    410
+   ]
+  },
+  "Taekwon": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    142,
+    143,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421,
+    422,
+    423,
+    424,
+    425,
+    426,
+    493
+   ]
+  },
+  "Thief": {
+   "inherit": [
+    "Novice"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    410
+   ]
+  },
+  "Thief_High": {
+   "inherit": [
+    "Novice",
+    "Thief"
+   ],
+   "skills": [
+    1,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    142,
+    143,
+    149,
+    150,
+    151,
+    152,
+    410
+   ]
+  },
+  "Whitesmith": {
+   "inherit": [
+    "Blacksmith",
+    "Merchant",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    142,
+    143,
+    153,
+    154,
+    155,
+    384,
+    387,
+    410,
+    459,
+    477,
+    485,
+    486,
+    1012,
+    1013,
+    2535,
+    2544
+   ]
+  },
+  "Wizard": {
+   "inherit": [
+    "Mage",
+    "Novice"
+   ],
+   "skills": [
+    1,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    80,
+    81,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    142,
+    143,
+    157,
+    410,
+    1006
+   ]
+  }
+ },
+ "provenance": {
+  "files": [
+   "db/pre-re/skill_db.yml",
+   "db/pre-re/skill_tree.yml"
+  ],
+  "note": "learnable = listed with MaxLevel != 0 in at least one class skill tree (Inherit resolved)",
+  "source": "rAthena pre-renewal skill database (facts only: ids, names, types, levels, class trees)"
+ },
+ "skills": {
+  "1": {
+   "description": "Basic Skill",
+   "id": 1,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Alchemist",
+    "Archer",
+    "Archer_High",
+    "Assassin",
+    "Assassin_Cross",
+    "Baby",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Bard",
+    "Blacksmith",
+    "Champion",
+    "Clown",
+    "Creator",
+    "Crusader",
+    "Crusader2",
+    "Dancer",
+    "Dark_Collector",
+    "Death_Knight",
+    "Gangsi",
+    "Gunslinger",
+    "Gypsy",
+    "High_Priest",
+    "High_Wizard",
+    "Hunter",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Mage",
+    "Mage_High",
+    "Merchant",
+    "Merchant_High",
+    "Monk",
+    "Ninja",
+    "Novice",
+    "Novice_High",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Professor",
+    "Rogue",
+    "Sage",
+    "Sniper",
+    "Soul_Linker",
+    "Stalker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High",
+    "Taekwon",
+    "Thief",
+    "Thief_High",
+    "Whitesmith",
+    "Wizard"
+   ],
+   "max_level": 9,
+   "name": "NV_BASIC",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "10": {
+   "description": "Sight",
+   "id": 10,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "MG_SIGHT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "100": {
+   "description": "Smith Two-handed Sword",
+   "id": 100,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_TWOHANDSWORD",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "1001": {
+   "description": "Charge Attack",
+   "id": 1001,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 1,
+   "name": "KN_CHARGEATK",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "1002": {
+   "description": "Shrink",
+   "id": 1002,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 1,
+   "name": "CR_SHRINK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "1003": {
+   "description": "Sonic Acceleration",
+   "id": 1003,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 1,
+   "name": "AS_SONICACCEL",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "1004": {
+   "description": "Throw Venom Knife",
+   "id": 1004,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 1,
+   "name": "AS_VENOMKNIFE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "1005": {
+   "description": "Close Confine",
+   "id": 1005,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "RG_CLOSECONFINE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "1006": {
+   "description": "Sight Blaster",
+   "id": 1006,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "WZ_SIGHTBLASTER",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "1007": {
+   "description": "Create Elemental Converter",
+   "id": 1007,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 1,
+   "name": "SA_CREATECON",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "1008": {
+   "description": "Elemental Change Water",
+   "id": 1008,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 1,
+   "name": "SA_ELEMENTWATER",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "1009": {
+   "description": "Phantasmic Arrow",
+   "id": 1009,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "HT_PHANTASMIC",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "101": {
+   "description": "Smith Axe",
+   "id": 101,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_AXE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "1010": {
+   "description": "Pang Voice",
+   "id": 1010,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 1,
+   "name": "BA_PANGVOICE",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "1011": {
+   "description": "Wink of Charm",
+   "id": 1011,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "DC_WINKCHARM",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "1012": {
+   "description": "Unfair Trick",
+   "id": 1012,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_UNFAIRLYTRICK",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "1013": {
+   "description": "Greed",
+   "id": 1013,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_GREED",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "1014": {
+   "description": "Redemptio",
+   "id": 1014,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 1,
+   "name": "PR_REDEMPTIO",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "1015": {
+   "description": "Ki Translation",
+   "id": 1015,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 1,
+   "name": "MO_KITRANSLATION",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "1016": {
+   "description": "Ki Explosion",
+   "id": 1016,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 1,
+   "name": "MO_BALKYOUNG",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "1017": {
+   "description": "Elemental Change Earth",
+   "id": 1017,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 1,
+   "name": "SA_ELEMENTGROUND",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "1018": {
+   "description": "Elemental Change Fire",
+   "id": 1018,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 1,
+   "name": "SA_ELEMENTFIRE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "1019": {
+   "description": "Elemental Change Wind",
+   "id": 1019,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 1,
+   "name": "SA_ELEMENTWIND",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "102": {
+   "description": "Smith Mace",
+   "id": 102,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_MACE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "103": {
+   "description": "Smith Knucklebrace",
+   "id": 103,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_KNUCKLE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "104": {
+   "description": "Smith Spear",
+   "id": 104,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_SPEAR",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "105": {
+   "description": "Hilt Binding",
+   "id": 105,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_HILTBINDING",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "106": {
+   "description": "Ore Discovery",
+   "id": 106,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_FINDINGORE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "107": {
+   "description": "Weaponry Research",
+   "id": 107,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "BS_WEAPONRESEARCH",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "108": {
+   "description": "Weapon Repair",
+   "id": 108,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_REPAIRWEAPON",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "109": {
+   "description": "Skin Tempering",
+   "id": 109,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_SKINTEMPER",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "11": {
+   "description": "Napalm Beat",
+   "id": 11,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_NAPALMBEAT",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "110": {
+   "description": "Hammer Fall",
+   "id": 110,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_HAMMERFALL",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "111": {
+   "description": "Adrenaline Rush",
+   "id": 111,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_ADRENALINE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "112": {
+   "description": "Weapon Perfection",
+   "id": 112,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_WEAPONPERFECT",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "113": {
+   "description": "Power-Thrust",
+   "id": 113,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_OVERTHRUST",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "114": {
+   "description": "Maximize Power",
+   "id": 114,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_MAXIMIZE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "115": {
+   "description": "Skid Trap",
+   "id": 115,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_SKIDTRAP",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "116": {
+   "description": "Land Mine",
+   "id": 116,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_LANDMINE",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "117": {
+   "description": "Ankle Snare",
+   "id": 117,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_ANKLESNARE",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "118": {
+   "description": "Shockwave Trap",
+   "id": 118,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_SHOCKWAVE",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "119": {
+   "description": "Sandman",
+   "id": 119,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_SANDMAN",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "12": {
+   "description": "Safety Wall",
+   "id": 12,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Priest",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Priest",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Priest",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_SAFETYWALL",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "120": {
+   "description": "Flasher",
+   "id": 120,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_FLASHER",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "121": {
+   "description": "Freezing Trap",
+   "id": 121,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_FREEZINGTRAP",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "122": {
+   "description": "Blast Mine",
+   "id": 122,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_BLASTMINE",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "123": {
+   "description": "Claymore Trap",
+   "id": 123,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_CLAYMORETRAP",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "124": {
+   "description": "Remove Trap",
+   "id": 124,
+   "jobs": [
+    "Baby_Hunter",
+    "Baby_Rogue",
+    "Hunter",
+    "Rogue",
+    "Sniper",
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "HT_REMOVETRAP",
+   "target_type": "Trap",
+   "type": "Misc"
+  },
+  "125": {
+   "description": "Talkie Box",
+   "id": 125,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "HT_TALKIEBOX",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "126": {
+   "description": "Beast Bane",
+   "id": 126,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 10,
+   "name": "HT_BEASTBANE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "127": {
+   "description": "Falconry Mastery",
+   "id": 127,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "HT_FALCON",
+   "target_type": "Passive",
+   "type": "Misc"
+  },
+  "128": {
+   "description": "Steel Crow",
+   "id": 128,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 10,
+   "name": "HT_STEELCROW",
+   "target_type": "Passive",
+   "type": "Misc"
+  },
+  "129": {
+   "description": "Blitz Beat",
+   "id": 129,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_BLITZBEAT",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "13": {
+   "description": "Soul Strike",
+   "id": 13,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_SOULSTRIKE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "130": {
+   "description": "Detect",
+   "id": 130,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 4,
+   "name": "HT_DETECTING",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "131": {
+   "description": "Spring Trap",
+   "id": 131,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "HT_SPRINGTRAP",
+   "target_type": "Trap",
+   "type": "Misc"
+  },
+  "132": {
+   "description": "Righthand Mastery",
+   "id": 132,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 5,
+   "name": "AS_RIGHT",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "133": {
+   "description": "Lefthand Mastery",
+   "id": 133,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 5,
+   "name": "AS_LEFT",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "134": {
+   "description": "Katar Mastery",
+   "id": 134,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_KATAR",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "135": {
+   "description": "Cloaking",
+   "id": 135,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_CLOAKING",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "136": {
+   "description": "Sonic Blow",
+   "id": 136,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_SONICBLOW",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "137": {
+   "description": "Grimtooth",
+   "id": 137,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 5,
+   "name": "AS_GRIMTOOTH",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "138": {
+   "description": "Enchant Poison",
+   "id": 138,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_ENCHANTPOISON",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "139": {
+   "description": "Poison React",
+   "id": 139,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_POISONREACT",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "14": {
+   "description": "Cold Bolt",
+   "id": 14,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_COLDBOLT",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "140": {
+   "description": "Venom Dust",
+   "id": 140,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_VENOMDUST",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "141": {
+   "description": "Venom Splasher",
+   "id": 141,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin"
+   ],
+   "max_level": 10,
+   "name": "AS_SPLASHER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "142": {
+   "description": "First Aid",
+   "id": 142,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Alchemist",
+    "Archer",
+    "Archer_High",
+    "Assassin",
+    "Assassin_Cross",
+    "Baby",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Bard",
+    "Blacksmith",
+    "Champion",
+    "Clown",
+    "Creator",
+    "Crusader",
+    "Crusader2",
+    "Dancer",
+    "Dark_Collector",
+    "Death_Knight",
+    "Gangsi",
+    "Gunslinger",
+    "Gypsy",
+    "High_Priest",
+    "High_Wizard",
+    "Hunter",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Mage",
+    "Mage_High",
+    "Merchant",
+    "Merchant_High",
+    "Monk",
+    "Ninja",
+    "Novice",
+    "Novice_High",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Professor",
+    "Rogue",
+    "Sage",
+    "Sniper",
+    "Soul_Linker",
+    "Stalker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High",
+    "Taekwon",
+    "Thief",
+    "Thief_High",
+    "Whitesmith",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "NV_FIRSTAID",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "143": {
+   "description": "Play Dead",
+   "id": 143,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Alchemist",
+    "Archer",
+    "Archer_High",
+    "Assassin",
+    "Assassin_Cross",
+    "Baby",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Bard",
+    "Blacksmith",
+    "Champion",
+    "Clown",
+    "Creator",
+    "Crusader",
+    "Crusader2",
+    "Dancer",
+    "Dark_Collector",
+    "Death_Knight",
+    "Gangsi",
+    "Gunslinger",
+    "Gypsy",
+    "High_Priest",
+    "High_Wizard",
+    "Hunter",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Mage",
+    "Mage_High",
+    "Merchant",
+    "Merchant_High",
+    "Monk",
+    "Ninja",
+    "Novice",
+    "Novice_High",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Professor",
+    "Rogue",
+    "Sage",
+    "Sniper",
+    "Soul_Linker",
+    "Stalker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High",
+    "Taekwon",
+    "Thief",
+    "Thief_High",
+    "Whitesmith",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "NV_TRICKDEAD",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "144": {
+   "description": "Moving HP-Recovery",
+   "id": 144,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 1,
+   "name": "SM_MOVINGRECOVERY",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "145": {
+   "description": "Fatal Blow",
+   "id": 145,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 1,
+   "name": "SM_FATALBLOW",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "146": {
+   "description": "Auto Berserk",
+   "id": 146,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 1,
+   "name": "SM_AUTOBERSERK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "147": {
+   "description": "Arrow Crafting",
+   "id": 147,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "AC_MAKINGARROW",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "148": {
+   "description": "Arrow Repel",
+   "id": 148,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "AC_CHARGEARROW",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "149": {
+   "description": "Sand Attack",
+   "id": 149,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 1,
+   "name": "TF_SPRINKLESAND",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "15": {
+   "description": "Frost Diver",
+   "id": 15,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_FROSTDIVER",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "150": {
+   "description": "Back Slide",
+   "id": 150,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 1,
+   "name": "TF_BACKSLIDING",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "151": {
+   "description": "Find Stone",
+   "id": 151,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 1,
+   "name": "TF_PICKSTONE",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "152": {
+   "description": "Stone Fling",
+   "id": 152,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 1,
+   "name": "TF_THROWSTONE",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "153": {
+   "description": "Cart Revolution",
+   "id": 153,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "MC_CARTREVOLUTION",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "154": {
+   "description": "Change Cart",
+   "id": 154,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "MC_CHANGECART",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "155": {
+   "description": "Crazy Uproar",
+   "id": 155,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "MC_LOUD",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "156": {
+   "description": "Holy Light",
+   "id": 156,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest"
+   ],
+   "max_level": 1,
+   "name": "AL_HOLYLIGHT",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "157": {
+   "description": "Energy Coat",
+   "id": 157,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "MG_ENERGYCOAT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "16": {
+   "description": "Stone Curse",
+   "id": 16,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_STONECURSE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "17": {
+   "description": "Fire Ball",
+   "id": 17,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_FIREBALL",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "18": {
+   "description": "Fire Wall",
+   "id": 18,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_FIREWALL",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "19": {
+   "description": "Fire Bolt",
+   "id": 19,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_FIREBOLT",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "2": {
+   "description": "Sword Mastery",
+   "id": 2,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Rogue",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_SWORD",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "20": {
+   "description": "Lightning Bolt",
+   "id": 20,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_LIGHTNINGBOLT",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "21": {
+   "description": "Thunderstorm",
+   "id": 21,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_THUNDERSTORM",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "210": {
+   "description": "Gank",
+   "id": 210,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 10,
+   "name": "RG_SNATCHER",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "211": {
+   "description": "Mug",
+   "id": 211,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 10,
+   "name": "RG_STEALCOIN",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "212": {
+   "description": "Back Stab",
+   "id": 212,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 10,
+   "name": "RG_BACKSTAP",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "213": {
+   "description": "Stalk",
+   "id": 213,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_TUNNELDRIVE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "214": {
+   "description": "Sightless Mind",
+   "id": 214,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_RAID",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "215": {
+   "description": "Divest Weapon",
+   "id": 215,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_STRIPWEAPON",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "216": {
+   "description": "Divest Shield",
+   "id": 216,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_STRIPSHIELD",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "217": {
+   "description": "Divest Armor",
+   "id": 217,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_STRIPARMOR",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "218": {
+   "description": "Divest Helm",
+   "id": 218,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_STRIPHELM",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "219": {
+   "description": "Snatch",
+   "id": 219,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_INTIMIDATE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "22": {
+   "description": "Divine Protection",
+   "id": 22,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "Crusader",
+    "Crusader2",
+    "High_Priest",
+    "Monk",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_DP",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "220": {
+   "description": "Scribble",
+   "id": 220,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "RG_GRAFFITI",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "221": {
+   "description": "Piece",
+   "id": 221,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_FLAGGRAFFITI",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "222": {
+   "description": "Remover",
+   "id": 222,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "RG_CLEANER",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "223": {
+   "description": "Slyness",
+   "id": 223,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "RG_GANGSTER",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "224": {
+   "description": "Haggle",
+   "id": 224,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "RG_COMPULSION",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "225": {
+   "description": "Intimidate",
+   "id": 225,
+   "jobs": [
+    "Baby_Rogue",
+    "Rogue",
+    "Stalker"
+   ],
+   "max_level": 10,
+   "name": "RG_PLAGIARISM",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "226": {
+   "description": "Axe Mastery",
+   "id": 226,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 10,
+   "name": "AM_AXEMASTERY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "227": {
+   "description": "Potion Research",
+   "id": 227,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 10,
+   "name": "AM_LEARNINGPOTION",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "228": {
+   "description": "Prepare Potion",
+   "id": 228,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 10,
+   "name": "AM_PHARMACY",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "229": {
+   "description": "Bomb",
+   "id": 229,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_DEMONSTRATION",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "23": {
+   "description": "Demon Bane",
+   "id": 23,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "Crusader",
+    "Crusader2",
+    "High_Priest",
+    "Monk",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_DEMONBANE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "230": {
+   "description": "Acid Terror",
+   "id": 230,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_ACIDTERROR",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "231": {
+   "description": "Aid Potion",
+   "id": 231,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_POTIONPITCHER",
+   "target_type": "Support",
+   "type": "None"
+  },
+  "232": {
+   "description": "Summon Flora",
+   "id": 232,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_CANNIBALIZE",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "233": {
+   "description": "Summon Marine Sphere",
+   "id": 233,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_SPHEREMINE",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "234": {
+   "description": "Alchemical Weapon",
+   "id": 234,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_CP_WEAPON",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "235": {
+   "description": "Synthesized Shield",
+   "id": 235,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_CP_SHIELD",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "236": {
+   "description": "Synthetic Armor",
+   "id": 236,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_CP_ARMOR",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "237": {
+   "description": "Biochemical Helm",
+   "id": 237,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_CP_HELM",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "238": {
+   "description": "Bioethics",
+   "id": 238,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_BIOETHICS",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "24": {
+   "description": "Ruwach",
+   "id": 24,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 1,
+   "name": "AL_RUWACH",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "243": {
+   "description": "Call Homunculus",
+   "id": 243,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_CALLHOMUN",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "244": {
+   "description": "Vaporize",
+   "id": 244,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_REST",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "247": {
+   "description": "Homunculus Resurrection",
+   "id": 247,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "AM_RESURRECTHOMUN",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "248": {
+   "description": "Faith",
+   "id": 248,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_TRUST",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "249": {
+   "description": "Guard",
+   "id": 249,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_AUTOGUARD",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "25": {
+   "description": "Pneuma",
+   "id": 25,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 1,
+   "name": "AL_PNEUMA",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "250": {
+   "description": "Smite",
+   "id": 250,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "CR_SHIELDCHARGE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "251": {
+   "description": "Shield Boomerang",
+   "id": 251,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "CR_SHIELDBOOMERANG",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "252": {
+   "description": "Shield Reflect",
+   "id": 252,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_REFLECTSHIELD",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "253": {
+   "description": "Holy Cross",
+   "id": 253,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_HOLYCROSS",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "2535": {
+   "description": "Open Buying Store",
+   "id": 2535,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "ALL_BUYING_STORE",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "254": {
+   "description": "Grand Cross",
+   "id": 254,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_GRANDCROSS",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "2544": {
+   "description": "Decorate Cart",
+   "id": 2544,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "MC_CARTDECORATE",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "255": {
+   "description": "Sacrifice",
+   "id": 255,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "CR_DEVOTION",
+   "target_type": "Support",
+   "type": "None"
+  },
+  "256": {
+   "description": "Resistant Souls",
+   "id": 256,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "CR_PROVIDENCE",
+   "target_type": "Support",
+   "type": "None"
+  },
+  "257": {
+   "description": "Defending Aura",
+   "id": 257,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "CR_DEFENDER",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "258": {
+   "description": "Spear Quicken",
+   "id": 258,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Crusader",
+    "Crusader2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "CR_SPEARQUICKEN",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "259": {
+   "description": "Iron Fists",
+   "id": 259,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 10,
+   "name": "MO_IRONHAND",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "26": {
+   "description": "Teleport",
+   "id": 26,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 2,
+   "name": "AL_TELEPORT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "260": {
+   "description": "Spiritual Cadence",
+   "id": 260,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_SPIRITSRECOVERY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "261": {
+   "description": "Summon Spirit Sphere",
+   "id": 261,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_CALLSPIRITS",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "262": {
+   "description": "Absorb Spirit Sphere",
+   "id": 262,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 1,
+   "name": "MO_ABSORBSPIRITS",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "263": {
+   "description": "Raging Trifecta Blow",
+   "id": 263,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 10,
+   "name": "MO_TRIPLEATTACK",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "264": {
+   "description": "Snap",
+   "id": 264,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 1,
+   "name": "MO_BODYRELOCATION",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "265": {
+   "description": "Dodge",
+   "id": 265,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 10,
+   "name": "MO_DODGE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "266": {
+   "description": "Occult Impaction",
+   "id": 266,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_INVESTIGATE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "267": {
+   "description": "Throw Spirit Sphere",
+   "id": 267,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_FINGEROFFENSIVE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "268": {
+   "description": "Mental Strength",
+   "id": 268,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_STEELBODY",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "269": {
+   "description": "Root",
+   "id": 269,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_BLADESTOP",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "27": {
+   "description": "Warp Portal",
+   "id": 27,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 4,
+   "name": "AL_WARP",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "270": {
+   "description": "Fury",
+   "id": 270,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_EXPLOSIONSPIRITS",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "271": {
+   "description": "Asura Strike",
+   "id": 271,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_EXTREMITYFIST",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "272": {
+   "description": "Raging Quadruple Blow",
+   "id": 272,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_CHAINCOMBO",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "273": {
+   "description": "Raging Thrust",
+   "id": 273,
+   "jobs": [
+    "Baby_Monk",
+    "Champion",
+    "Monk"
+   ],
+   "max_level": 5,
+   "name": "MO_COMBOFINISH",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "274": {
+   "description": "Study",
+   "id": 274,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 10,
+   "name": "SA_ADVANCEDBOOK",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "275": {
+   "description": "Cast Cancel",
+   "id": 275,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_CASTCANCEL",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "276": {
+   "description": "Magic Rod",
+   "id": 276,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_MAGICROD",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "277": {
+   "description": "Spell Breaker",
+   "id": 277,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_SPELLBREAKER",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "278": {
+   "description": "Free Cast",
+   "id": 278,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 10,
+   "name": "SA_FREECAST",
+   "target_type": "Passive",
+   "type": "Magic"
+  },
+  "279": {
+   "description": "Hindsight",
+   "id": 279,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 10,
+   "name": "SA_AUTOSPELL",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "28": {
+   "description": "Heal",
+   "id": 28,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "Crusader",
+    "Crusader2",
+    "High_Priest",
+    "Monk",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_HEAL",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "280": {
+   "description": "Endow Blaze",
+   "id": 280,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_FLAMELAUNCHER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "281": {
+   "description": "Endow Tsunami",
+   "id": 281,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_FROSTWEAPON",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "282": {
+   "description": "Endow Tornado",
+   "id": 282,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_LIGHTNINGLOADER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "283": {
+   "description": "Endow Quake",
+   "id": 283,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_SEISMICWEAPON",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "284": {
+   "description": "Dragonology",
+   "id": 284,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_DRAGONOLOGY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "285": {
+   "description": "Volcano",
+   "id": 285,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_VOLCANO",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "286": {
+   "description": "Deluge",
+   "id": 286,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_DELUGE",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "287": {
+   "description": "Whirlwind",
+   "id": 287,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_VIOLENTGALE",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "288": {
+   "description": "Magnetic Earth",
+   "id": 288,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_LANDPROTECTOR",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "289": {
+   "description": "Dispell",
+   "id": 289,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 5,
+   "name": "SA_DISPELL",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "29": {
+   "description": "Increase AGI",
+   "id": 29,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_INCAGI",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "290": {
+   "description": "Hocus-pocus",
+   "id": 290,
+   "jobs": [
+    "Baby_Sage",
+    "Professor",
+    "Sage"
+   ],
+   "max_level": 10,
+   "name": "SA_ABRACADABRA",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "3": {
+   "description": "Two-Handed Sword Mastery",
+   "id": 3,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_TWOHAND",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "30": {
+   "description": "Decrease AGI",
+   "id": 30,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_DECAGI",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "304": {
+   "description": "Amp",
+   "id": 304,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_ADAPTATION",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "305": {
+   "description": "Encore",
+   "id": 305,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_ENCORE",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "306": {
+   "description": "Lullaby",
+   "id": 306,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_LULLABY",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "307": {
+   "description": "Mental Sensing",
+   "id": 307,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "BD_RICHMANKIM",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "308": {
+   "description": "Down Tempo",
+   "id": 308,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_ETERNALCHAOS",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "309": {
+   "description": "Battle Theme",
+   "id": 309,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "BD_DRUMBATTLEFIELD",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "31": {
+   "description": "Aqua Benedicta",
+   "id": 31,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 1,
+   "name": "AL_HOLYWATER",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "310": {
+   "description": "Harmonic Lick",
+   "id": 310,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "BD_RINGNIBELUNGEN",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "311": {
+   "description": "Classical Pluck",
+   "id": 311,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_ROKISWEIL",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "312": {
+   "description": "Power Chord",
+   "id": 312,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "BD_INTOABYSS",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "313": {
+   "description": "Acoustic Rhythm",
+   "id": 313,
+   "jobs": [
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "BD_SIEGFRIED",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "315": {
+   "description": "Music Lessons",
+   "id": 315,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 10,
+   "name": "BA_MUSICALLESSON",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "316": {
+   "description": "Melody Strike",
+   "id": 316,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 5,
+   "name": "BA_MUSICALSTRIKE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "317": {
+   "description": "Unchained Serenade",
+   "id": 317,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 5,
+   "name": "BA_DISSONANCE",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "318": {
+   "description": "Unbarring Octave",
+   "id": 318,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 5,
+   "name": "BA_FROSTJOKER",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "319": {
+   "description": "Perfect Tablature",
+   "id": 319,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 10,
+   "name": "BA_WHISTLE",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "32": {
+   "description": "Signum Crucis",
+   "id": 32,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_CRUCIS",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "320": {
+   "description": "Impressive Riff",
+   "id": 320,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 10,
+   "name": "BA_ASSASSINCROSS",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "321": {
+   "description": "Magic Strings",
+   "id": 321,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 10,
+   "name": "BA_POEMBRAGI",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "322": {
+   "description": "Song of Lutie",
+   "id": 322,
+   "jobs": [
+    "Baby_Bard",
+    "Bard",
+    "Clown"
+   ],
+   "max_level": 10,
+   "name": "BA_APPLEIDUN",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "323": {
+   "description": "Dance Lessons",
+   "id": 323,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "DC_DANCINGLESSON",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "324": {
+   "description": "Slinging Arrow",
+   "id": 324,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "DC_THROWARROW",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "325": {
+   "description": "Hip Shaker",
+   "id": 325,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "DC_UGLYDANCE",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "326": {
+   "description": "Dazzler",
+   "id": 326,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "DC_SCREAM",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "327": {
+   "description": "Focus Ballet",
+   "id": 327,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "DC_HUMMING",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "328": {
+   "description": "Slow Grace",
+   "id": 328,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "DC_DONTFORGETME",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "329": {
+   "description": "Lady Luck",
+   "id": 329,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "DC_FORTUNEKISS",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "33": {
+   "description": "Angelus",
+   "id": 33,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_ANGELUS",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "330": {
+   "description": "Gypsy's Kiss",
+   "id": 330,
+   "jobs": [
+    "Baby_Dancer",
+    "Dancer",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "DC_SERVICEFORYOU",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "34": {
+   "description": "Blessing",
+   "id": 34,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "High_Priest",
+    "Monk",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AL_BLESSING",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "35": {
+   "description": "Cure",
+   "id": 35,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Baby_Acolyte",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Champion",
+    "Crusader",
+    "Crusader2",
+    "High_Priest",
+    "Monk",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 1,
+   "name": "AL_CURE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "355": {
+   "description": "Aura Blade",
+   "id": 355,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "LK_AURABLADE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "356": {
+   "description": "Parrying",
+   "id": 356,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "LK_PARRYING",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "357": {
+   "description": "Concentration",
+   "id": 357,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "LK_CONCENTRATION",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "358": {
+   "description": "Relax",
+   "id": 358,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 1,
+   "name": "LK_TENSIONRELAX",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "359": {
+   "description": "Frenzy",
+   "id": 359,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 1,
+   "name": "LK_BERSERK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "36": {
+   "description": "Enlarge Weight Limit",
+   "id": 36,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_INCCARRY",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "361": {
+   "description": "Assumptio",
+   "id": 361,
+   "jobs": [
+    "High_Priest"
+   ],
+   "max_level": 5,
+   "name": "HP_ASSUMPTIO",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "362": {
+   "description": "Basilica",
+   "id": 362,
+   "jobs": [
+    "High_Priest"
+   ],
+   "max_level": 5,
+   "name": "HP_BASILICA",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "363": {
+   "description": "Meditatio",
+   "id": 363,
+   "jobs": [
+    "High_Priest"
+   ],
+   "max_level": 10,
+   "name": "HP_MEDITATIO",
+   "target_type": "Passive",
+   "type": "Magic"
+  },
+  "364": {
+   "description": "Soul Drain",
+   "id": 364,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 10,
+   "name": "HW_SOULDRAIN",
+   "target_type": "Passive",
+   "type": "Magic"
+  },
+  "365": {
+   "description": "Stave Crasher",
+   "id": 365,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 1,
+   "name": "HW_MAGICCRASHER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "366": {
+   "description": "Mystical Amplification",
+   "id": 366,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 10,
+   "name": "HW_MAGICPOWER",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "367": {
+   "description": "Gloria Domini",
+   "id": 367,
+   "jobs": [
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "PA_PRESSURE",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "368": {
+   "description": "Martyr's Reckoning",
+   "id": 368,
+   "jobs": [
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "PA_SACRIFICE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "369": {
+   "description": "Battle Chant",
+   "id": 369,
+   "jobs": [
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "PA_GOSPEL",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "37": {
+   "description": "Discount",
+   "id": 37,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_DISCOUNT",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "370": {
+   "description": "Raging Palm Strike",
+   "id": 370,
+   "jobs": [
+    "Champion"
+   ],
+   "max_level": 5,
+   "name": "CH_PALMSTRIKE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "371": {
+   "description": "Glacier Fist",
+   "id": 371,
+   "jobs": [
+    "Champion"
+   ],
+   "max_level": 5,
+   "name": "CH_TIGERFIST",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "372": {
+   "description": "Chain Crush Combo",
+   "id": 372,
+   "jobs": [
+    "Champion"
+   ],
+   "max_level": 10,
+   "name": "CH_CHAINCRUSH",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "373": {
+   "description": "Indulge",
+   "id": 373,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 5,
+   "name": "PF_HPCONVERSION",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "374": {
+   "description": "Soul Exhale",
+   "id": 374,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 1,
+   "name": "PF_SOULCHANGE",
+   "target_type": "Attack",
+   "type": "None"
+  },
+  "375": {
+   "description": "Soul Siphon",
+   "id": 375,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 5,
+   "name": "PF_SOULBURN",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "376": {
+   "description": "Advanced Katar Mastery",
+   "id": 376,
+   "jobs": [
+    "Assassin_Cross"
+   ],
+   "max_level": 5,
+   "name": "ASC_KATAR",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "378": {
+   "description": "Enchant Deadly Poison",
+   "id": 378,
+   "jobs": [
+    "Assassin_Cross"
+   ],
+   "max_level": 5,
+   "name": "ASC_EDP",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "379": {
+   "description": "Soul Destroyer",
+   "id": 379,
+   "jobs": [
+    "Assassin_Cross"
+   ],
+   "max_level": 10,
+   "name": "ASC_BREAKER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "38": {
+   "description": "Overcharge",
+   "id": 38,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_OVERCHARGE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "380": {
+   "description": "Falcon Eyes",
+   "id": 380,
+   "jobs": [
+    "Sniper"
+   ],
+   "max_level": 10,
+   "name": "SN_SIGHT",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "381": {
+   "description": "Falcon Assault",
+   "id": 381,
+   "jobs": [
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "SN_FALCONASSAULT",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "382": {
+   "description": "Focused Arrow Strike",
+   "id": 382,
+   "jobs": [
+    "Sniper"
+   ],
+   "max_level": 5,
+   "name": "SN_SHARPSHOOTING",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "383": {
+   "description": "Wind Walker",
+   "id": 383,
+   "jobs": [
+    "Sniper"
+   ],
+   "max_level": 10,
+   "name": "SN_WINDWALK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "384": {
+   "description": "Shattering Strike",
+   "id": 384,
+   "jobs": [
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "WS_MELTDOWN",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "387": {
+   "description": "Cart Boost",
+   "id": 387,
+   "jobs": [
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "WS_CARTBOOST",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "389": {
+   "description": "Stealth",
+   "id": 389,
+   "jobs": [
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "ST_CHASEWALK",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "39": {
+   "description": "Pushcart",
+   "id": 39,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_PUSHCART",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "390": {
+   "description": "Counter Instinct",
+   "id": 390,
+   "jobs": [
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "ST_REJECTSWORD",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "394": {
+   "description": "Vulcan Arrow",
+   "id": 394,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 10,
+   "name": "CG_ARROWVULCAN",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "395": {
+   "description": "Sheltering Bliss",
+   "id": 395,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "CG_MOONLIT",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "396": {
+   "description": "Marionette Control",
+   "id": 396,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 1,
+   "name": "CG_MARIONETTE",
+   "target_type": "Support",
+   "type": "None"
+  },
+  "397": {
+   "description": "Spiral Pierce",
+   "id": 397,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "LK_SPIRALPIERCE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "398": {
+   "description": "Traumatic Blow",
+   "id": 398,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "LK_HEADCRUSH",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "399": {
+   "description": "Vital Strike",
+   "id": 399,
+   "jobs": [
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "LK_JOINTBEAT",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "4": {
+   "description": "Increase HP Recovery",
+   "id": 4,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_RECOVERY",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "40": {
+   "description": "Item Appraisal",
+   "id": 40,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "MC_IDENTIFY",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "400": {
+   "description": "Napalm Vulcan",
+   "id": 400,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 5,
+   "name": "HW_NAPALMVULCAN",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "401": {
+   "description": "Zen",
+   "id": 401,
+   "jobs": [
+    "Champion"
+   ],
+   "max_level": 1,
+   "name": "CH_SOULCOLLECT",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "402": {
+   "description": "Mind Breaker",
+   "id": 402,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 5,
+   "name": "PF_MINDBREAKER",
+   "target_type": "Attack",
+   "type": "None"
+  },
+  "403": {
+   "description": "Foresight",
+   "id": 403,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 1,
+   "name": "PF_MEMORIZE",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "404": {
+   "description": "Blinding Mist",
+   "id": 404,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 5,
+   "name": "PF_FOGWALL",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "405": {
+   "description": "Fiber Lock",
+   "id": 405,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 1,
+   "name": "PF_SPIDERWEB",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "406": {
+   "description": "Meteor Assault",
+   "id": 406,
+   "jobs": [
+    "Assassin_Cross"
+   ],
+   "max_level": 10,
+   "name": "ASC_METEORASSAULT",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "407": {
+   "description": "Create Deadly Poison",
+   "id": 407,
+   "jobs": [
+    "Assassin_Cross"
+   ],
+   "max_level": 1,
+   "name": "ASC_CDP",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "408": {
+   "description": "Baby",
+   "id": 408,
+   "jobs": [
+    "Baby",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Super_Baby"
+   ],
+   "max_level": 1,
+   "name": "WE_BABY",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "409": {
+   "description": "Call Parent",
+   "id": 409,
+   "jobs": [
+    "Baby",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Super_Baby"
+   ],
+   "max_level": 1,
+   "name": "WE_CALLPARENT",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "41": {
+   "description": "Vending",
+   "id": 41,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_VENDING",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "410": {
+   "description": "Call Baby",
+   "id": 410,
+   "jobs": [
+    "Acolyte",
+    "Acolyte_High",
+    "Alchemist",
+    "Archer",
+    "Archer_High",
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Acolyte",
+    "Baby_Alchemist",
+    "Baby_Archer",
+    "Baby_Assassin",
+    "Baby_Bard",
+    "Baby_Blacksmith",
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Mage",
+    "Baby_Merchant",
+    "Baby_Monk",
+    "Baby_Priest",
+    "Baby_Rogue",
+    "Baby_Sage",
+    "Baby_Swordman",
+    "Baby_Thief",
+    "Baby_Wizard",
+    "Bard",
+    "Blacksmith",
+    "Champion",
+    "Clown",
+    "Creator",
+    "Crusader",
+    "Crusader2",
+    "Dancer",
+    "Dark_Collector",
+    "Death_Knight",
+    "Gangsi",
+    "Gunslinger",
+    "Gypsy",
+    "High_Priest",
+    "High_Wizard",
+    "Hunter",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Mage",
+    "Mage_High",
+    "Merchant",
+    "Merchant_High",
+    "Monk",
+    "Ninja",
+    "Novice",
+    "Novice_High",
+    "Paladin",
+    "Paladin2",
+    "Priest",
+    "Professor",
+    "Rogue",
+    "Sage",
+    "Sniper",
+    "Soul_Linker",
+    "Stalker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High",
+    "Taekwon",
+    "Thief",
+    "Thief_High",
+    "Whitesmith",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "WE_CALLBABY",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "411": {
+   "description": "Running",
+   "id": 411,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 10,
+   "name": "TK_RUN",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "412": {
+   "description": "Tornado Stance",
+   "id": 412,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_READYSTORM",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "413": {
+   "description": "Tornado Kick",
+   "id": 413,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_STORMKICK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "414": {
+   "description": "Heel Drop Stance",
+   "id": 414,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_READYDOWN",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "415": {
+   "description": "Heel Drop",
+   "id": 415,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_DOWNKICK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "416": {
+   "description": "Roundhouse Stance",
+   "id": 416,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_READYTURN",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "417": {
+   "description": "Roundhouse Kick",
+   "id": 417,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_TURNKICK",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "418": {
+   "description": "Counter Kick Stance",
+   "id": 418,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_READYCOUNTER",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "419": {
+   "description": "Counter Kick",
+   "id": 419,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_COUNTER",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "42": {
+   "description": "Mammonite",
+   "id": 42,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Baby_Blacksmith",
+    "Baby_Merchant",
+    "Blacksmith",
+    "Creator",
+    "Merchant",
+    "Merchant_High",
+    "Super_Baby",
+    "Supernovice",
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "MC_MAMMONITE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "420": {
+   "description": "Tumbling",
+   "id": 420,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_DODGE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "421": {
+   "description": "Flying Kick",
+   "id": 421,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_JUMPKICK",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "422": {
+   "description": "Peaceful Break",
+   "id": 422,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 10,
+   "name": "TK_HPTIME",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "423": {
+   "description": "Happy Break",
+   "id": 423,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 10,
+   "name": "TK_SPTIME",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "424": {
+   "description": "Kihop",
+   "id": 424,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 5,
+   "name": "TK_POWER",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "425": {
+   "description": "Mild Wind",
+   "id": 425,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 7,
+   "name": "TK_SEVENWIND",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "426": {
+   "description": "Taekwon Jump",
+   "id": 426,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 5,
+   "name": "TK_HIGHJUMP",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "427": {
+   "description": "Feeling the Sun Moon and Stars",
+   "id": 427,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_FEEL",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "428": {
+   "description": "Warmth of the Sun",
+   "id": 428,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_SUN_WARM",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "429": {
+   "description": "Warmth of the Moon",
+   "id": 429,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_MOON_WARM",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "43": {
+   "description": "Owl's Eye",
+   "id": 43,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Sniper",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AC_OWL",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "430": {
+   "description": "Warmth of the Stars",
+   "id": 430,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_STAR_WARM",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "431": {
+   "description": "Comfort of the Sun",
+   "id": 431,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 4,
+   "name": "SG_SUN_COMFORT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "432": {
+   "description": "Comfort of the Moon",
+   "id": 432,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 4,
+   "name": "SG_MOON_COMFORT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "433": {
+   "description": "Comfort of the Stars",
+   "id": 433,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 4,
+   "name": "SG_STAR_COMFORT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "434": {
+   "description": "Hatred of the Sun Moon and Stars",
+   "id": 434,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_HATE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "435": {
+   "description": "Anger of the Sun",
+   "id": 435,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_SUN_ANGER",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "436": {
+   "description": "Anger of the Moon",
+   "id": 436,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_MOON_ANGER",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "437": {
+   "description": "Anger of the Stars",
+   "id": 437,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_STAR_ANGER",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "438": {
+   "description": "Blessing of the Sun",
+   "id": 438,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 5,
+   "name": "SG_SUN_BLESS",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "439": {
+   "description": "Blessing of the Moon",
+   "id": 439,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 5,
+   "name": "SG_MOON_BLESS",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "44": {
+   "description": "Vulture's Eye",
+   "id": 44,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Rogue",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Rogue",
+    "Sniper",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AC_VULTURE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "440": {
+   "description": "Blessing of the Stars",
+   "id": 440,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 5,
+   "name": "SG_STAR_BLESS",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "441": {
+   "description": "Demon of the Sun Moon and Stars",
+   "id": 441,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 10,
+   "name": "SG_DEVIL",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "442": {
+   "description": "Friend of the Sun Moon and Stars",
+   "id": 442,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 3,
+   "name": "SG_FRIEND",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "443": {
+   "description": "Knowledge of the Sun Moon and Stars",
+   "id": 443,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 10,
+   "name": "SG_KNOWLEDGE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "444": {
+   "description": "Union of the Sun Moon and Stars",
+   "id": 444,
+   "jobs": [
+    "Star_Gladiator",
+    "Star_Gladiator2"
+   ],
+   "max_level": 1,
+   "name": "SG_FUSION",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "445": {
+   "description": "Spirit of the Alchemist",
+   "id": 445,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_ALCHEMIST",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "446": {
+   "description": "Aid Berserk Potion",
+   "id": 446,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_BERSERKPITCHER",
+   "target_type": "Support",
+   "type": "None"
+  },
+  "447": {
+   "description": "Spirit of the Monk",
+   "id": 447,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_MONK",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "448": {
+   "description": "Spirit of the Star Gladiator",
+   "id": 448,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_STAR",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "449": {
+   "description": "Spirit of the Sage",
+   "id": 449,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_SAGE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "45": {
+   "description": "Improve Concentration",
+   "id": 45,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Sniper",
+    "Super_Baby",
+    "Supernovice"
+   ],
+   "max_level": 10,
+   "name": "AC_CONCENTRATION",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "450": {
+   "description": "Spirit of the Crusader",
+   "id": 450,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_CRUSADER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "451": {
+   "description": "Spirit of the Supernovice",
+   "id": 451,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_SUPERNOVICE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "452": {
+   "description": "Spirit of the Knight",
+   "id": 452,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_KNIGHT",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "453": {
+   "description": "Spirit of the Wizard",
+   "id": 453,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_WIZARD",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "454": {
+   "description": "Spirit of the Priest",
+   "id": 454,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_PRIEST",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "455": {
+   "description": "Spirit of the Artist",
+   "id": 455,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_BARDDANCER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "456": {
+   "description": "Spirit of the Rogue",
+   "id": 456,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_ROGUE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "457": {
+   "description": "Spirit of the Assasin",
+   "id": 457,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_ASSASIN",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "458": {
+   "description": "Spirit of the Blacksmith",
+   "id": 458,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_BLACKSMITH",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "459": {
+   "description": "Advanced Adrenaline Rush",
+   "id": 459,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 1,
+   "name": "BS_ADRENALINE2",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "46": {
+   "description": "Double Strafe",
+   "id": 46,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Baby_Rogue",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Rogue",
+    "Sniper",
+    "Stalker"
+   ],
+   "max_level": 10,
+   "name": "AC_DOUBLE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "460": {
+   "description": "Spirit of the Hunter",
+   "id": 460,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_HUNTER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "461": {
+   "description": "Spirit of the Soul Linker",
+   "id": 461,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_SOULLINKER",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "462": {
+   "description": "Kaizel",
+   "id": 462,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_KAIZEL",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "463": {
+   "description": "Kaahi",
+   "id": 463,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_KAAHI",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "464": {
+   "description": "Kaupe",
+   "id": 464,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 3,
+   "name": "SL_KAUPE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "465": {
+   "description": "Kaite",
+   "id": 465,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_KAITE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "466": {
+   "description": "Kaina",
+   "id": 466,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_KAINA",
+   "target_type": "Passive",
+   "type": "Magic"
+  },
+  "467": {
+   "description": "Estin",
+   "id": 467,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_STIN",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "468": {
+   "description": "Estun",
+   "id": 468,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_STUN",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "469": {
+   "description": "Esma",
+   "id": 469,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 10,
+   "name": "SL_SMA",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "47": {
+   "description": "Arrow Shower",
+   "id": 47,
+   "jobs": [
+    "Archer",
+    "Archer_High",
+    "Baby_Archer",
+    "Baby_Bard",
+    "Baby_Dancer",
+    "Baby_Hunter",
+    "Bard",
+    "Clown",
+    "Dancer",
+    "Gypsy",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 10,
+   "name": "AC_SHOWER",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "470": {
+   "description": "Eswoo",
+   "id": 470,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 7,
+   "name": "SL_SWOO",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "471": {
+   "description": "Eske",
+   "id": 471,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 3,
+   "name": "SL_SKE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "472": {
+   "description": "Eska",
+   "id": 472,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 3,
+   "name": "SL_SKA",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "475": {
+   "description": "Preserve",
+   "id": 475,
+   "jobs": [
+    "Stalker"
+   ],
+   "max_level": 1,
+   "name": "ST_PRESERVE",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "476": {
+   "description": "Divest All",
+   "id": 476,
+   "jobs": [
+    "Stalker"
+   ],
+   "max_level": 5,
+   "name": "ST_FULLSTRIP",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "477": {
+   "description": "Upgrade Weapon",
+   "id": 477,
+   "jobs": [
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "WS_WEAPONREFINE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "478": {
+   "description": "Aid Condensed Potion",
+   "id": 478,
+   "jobs": [
+    "Creator"
+   ],
+   "max_level": 10,
+   "name": "CR_SLIMPITCHER",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "479": {
+   "description": "Full Protection",
+   "id": 479,
+   "jobs": [
+    "Creator"
+   ],
+   "max_level": 5,
+   "name": "CR_FULLPROTECTION",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "48": {
+   "description": "Double Attack",
+   "id": 48,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 10,
+   "name": "TF_DOUBLE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "480": {
+   "description": "Shield Chain",
+   "id": 480,
+   "jobs": [
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "PA_SHIELDCHAIN",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "481": {
+   "description": "Mana Recharge",
+   "id": 481,
+   "jobs": [
+    "High_Priest"
+   ],
+   "max_level": 5,
+   "name": "HP_MANARECHARGE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "482": {
+   "description": "Double Casting",
+   "id": 482,
+   "jobs": [
+    "Professor"
+   ],
+   "max_level": 5,
+   "name": "PF_DOUBLECASTING",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "483": {
+   "description": "Ganbantein",
+   "id": 483,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 1,
+   "name": "HW_GANBANTEIN",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "484": {
+   "description": "Gravitation Field",
+   "id": 484,
+   "jobs": [
+    "High_Wizard"
+   ],
+   "max_level": 5,
+   "name": "HW_GRAVITATION",
+   "target_type": "Ground",
+   "type": "Misc"
+  },
+  "485": {
+   "description": "Cart Termination",
+   "id": 485,
+   "jobs": [
+    "Whitesmith"
+   ],
+   "max_level": 10,
+   "name": "WS_CARTTERMINATION",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "486": {
+   "description": "Maximum Power Thrust",
+   "id": 486,
+   "jobs": [
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "WS_OVERTHRUSTMAX",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "487": {
+   "description": "Longing for Freedom",
+   "id": 487,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "CG_LONGINGFREEDOM",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "488": {
+   "description": "Wand of Hermode",
+   "id": 488,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "CG_HERMODE",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "489": {
+   "description": "Tarot Card of Fate",
+   "id": 489,
+   "jobs": [
+    "Clown",
+    "Gypsy"
+   ],
+   "max_level": 5,
+   "name": "CG_TAROTCARD",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "49": {
+   "description": "Improve Dodge",
+   "id": 49,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 10,
+   "name": "TF_MISS",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "490": {
+   "description": "Acid Demonstration",
+   "id": 490,
+   "jobs": [
+    "Creator"
+   ],
+   "max_level": 10,
+   "name": "CR_ACIDDEMONSTRATION",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "491": {
+   "description": "Plant Cultivation",
+   "id": 491,
+   "jobs": [
+    "Creator"
+   ],
+   "max_level": 2,
+   "name": "CR_CULTIVATION",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "493": {
+   "description": "Taekwon Mission",
+   "id": 493,
+   "jobs": [
+    "Soul_Linker",
+    "Star_Gladiator",
+    "Star_Gladiator2",
+    "Taekwon"
+   ],
+   "max_level": 1,
+   "name": "TK_MISSION",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "494": {
+   "description": "Spirit of Rebirth",
+   "id": 494,
+   "jobs": [
+    "Soul_Linker"
+   ],
+   "max_level": 5,
+   "name": "SL_HIGH",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "495": {
+   "description": "Onehand Quicken",
+   "id": 495,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 1,
+   "name": "KN_ONEHAND",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "496": {
+   "description": "Twilight Alchemy 1",
+   "id": 496,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_TWILIGHT1",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "497": {
+   "description": "Twilight Alchemy 2",
+   "id": 497,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_TWILIGHT2",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "498": {
+   "description": "Twilight Alchemy 3",
+   "id": 498,
+   "jobs": [
+    "Alchemist",
+    "Baby_Alchemist",
+    "Creator"
+   ],
+   "max_level": 1,
+   "name": "AM_TWILIGHT3",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "499": {
+   "description": "Beast Strafing",
+   "id": 499,
+   "jobs": [
+    "Baby_Hunter",
+    "Hunter",
+    "Sniper"
+   ],
+   "max_level": 1,
+   "name": "HT_POWER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "5": {
+   "description": "Bash",
+   "id": 5,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_BASH",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "50": {
+   "description": "Steal",
+   "id": 50,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 10,
+   "name": "TF_STEAL",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "500": {
+   "description": "Flip the Coin",
+   "id": 500,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 5,
+   "name": "GS_GLITTERING",
+   "target_type": "Self",
+   "type": "Misc"
+  },
+  "501": {
+   "description": "Fling",
+   "id": 501,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_FLING",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "502": {
+   "description": "Triple Action",
+   "id": 502,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_TRIPLEACTION",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "503": {
+   "description": "Bulls Eye",
+   "id": 503,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_BULLSEYE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "504": {
+   "description": "Madness Canceller",
+   "id": 504,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_MADNESSCANCEL",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "505": {
+   "description": "Adjustment",
+   "id": 505,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_ADJUSTMENT",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "506": {
+   "description": "Increasing Accuracy",
+   "id": 506,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_INCREASING",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "507": {
+   "description": "Magical Bullet",
+   "id": 507,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_MAGICALBULLET",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "508": {
+   "description": "Cracker",
+   "id": 508,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 1,
+   "name": "GS_CRACKER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "509": {
+   "description": "Single Action",
+   "id": 509,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_SINGLEACTION",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "51": {
+   "description": "Hiding",
+   "id": 51,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 10,
+   "name": "TF_HIDING",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "510": {
+   "description": "Snake Eye",
+   "id": 510,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_SNAKEEYE",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "511": {
+   "description": "Chain Action",
+   "id": 511,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_CHAINACTION",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "512": {
+   "description": "Tracking",
+   "id": 512,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_TRACKING",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "513": {
+   "description": "Disarm",
+   "id": 513,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 5,
+   "name": "GS_DISARM",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "514": {
+   "description": "Piercing Shot",
+   "id": 514,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 5,
+   "name": "GS_PIERCINGSHOT",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "515": {
+   "description": "Rapid Shower",
+   "id": 515,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_RAPIDSHOWER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "516": {
+   "description": "Desperado",
+   "id": 516,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_DESPERADO",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "517": {
+   "description": "Gatling Fever",
+   "id": 517,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_GATLINGFEVER",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "518": {
+   "description": "Dust",
+   "id": 518,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_DUST",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "519": {
+   "description": "Full Buster",
+   "id": 519,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_FULLBUSTER",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "52": {
+   "description": "Envenom",
+   "id": 52,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 10,
+   "name": "TF_POISON",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "520": {
+   "description": "Spread Attack",
+   "id": 520,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_SPREADATTACK",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "521": {
+   "description": "Ground Drift",
+   "id": 521,
+   "jobs": [
+    "Gunslinger"
+   ],
+   "max_level": 10,
+   "name": "GS_GROUNDDRIFT",
+   "target_type": "Ground",
+   "type": "Weapon"
+  },
+  "522": {
+   "description": "Shuriken Training",
+   "id": 522,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_TOBIDOUGU",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "523": {
+   "description": "Throw Shuriken",
+   "id": 523,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_SYURIKEN",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "524": {
+   "description": "Throw Kunai",
+   "id": 524,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_KUNAI",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "525": {
+   "description": "Throw Huuma Shuriken",
+   "id": 525,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_HUUMA",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "526": {
+   "description": "Throw Zeny",
+   "id": 526,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_ZENYNAGE",
+   "target_type": "Attack",
+   "type": "Misc"
+  },
+  "527": {
+   "description": "Improvised Defense",
+   "id": 527,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_TATAMIGAESHI",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "528": {
+   "description": "Vanishing Slash",
+   "id": 528,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_KASUMIKIRI",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "529": {
+   "description": "Shadow Leap",
+   "id": 529,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_SHADOWJUMP",
+   "target_type": "Ground",
+   "type": "None"
+  },
+  "53": {
+   "description": "Detoxify",
+   "id": 53,
+   "jobs": [
+    "Assassin",
+    "Assassin_Cross",
+    "Baby_Assassin",
+    "Baby_Rogue",
+    "Baby_Thief",
+    "Rogue",
+    "Stalker",
+    "Super_Baby",
+    "Supernovice",
+    "Thief",
+    "Thief_High"
+   ],
+   "max_level": 1,
+   "name": "TF_DETOXIFY",
+   "target_type": "Support",
+   "type": "Weapon"
+  },
+  "530": {
+   "description": "Shadow Slash",
+   "id": 530,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_KIRIKAGE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "531": {
+   "description": "Cicada Skin Sheeding",
+   "id": 531,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_UTSUSEMI",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "532": {
+   "description": "Mirror Image",
+   "id": 532,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_BUNSINJYUTSU",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "533": {
+   "description": "Spirit of the Blade",
+   "id": 533,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_NINPOU",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "534": {
+   "description": "Crimson Fire Petal",
+   "id": 534,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_KOUENKA",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "535": {
+   "description": "Crimson Fire Formation",
+   "id": 535,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_KAENSIN",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "536": {
+   "description": "Raging Fire Dragon",
+   "id": 536,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_BAKUENRYU",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "537": {
+   "description": "Spear of Ice",
+   "id": 537,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_HYOUSENSOU",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "538": {
+   "description": "Hidden Water",
+   "id": 538,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_SUITON",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "539": {
+   "description": "Ice Meteor",
+   "id": 539,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_HYOUSYOURAKU",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "54": {
+   "description": "Resurrection",
+   "id": 54,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 4,
+   "name": "ALL_RESURRECTION",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "540": {
+   "description": "Wind Blade",
+   "id": 540,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_HUUJIN",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "541": {
+   "description": "Lightning Strike of Destruction",
+   "id": 541,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_RAIGEKISAI",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "542": {
+   "description": "Kamaitachi",
+   "id": 542,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_KAMAITACHI",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "543": {
+   "description": "Soul",
+   "id": 543,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 5,
+   "name": "NJ_NEN",
+   "target_type": "Self",
+   "type": "None"
+  },
+  "544": {
+   "description": "Final Strike",
+   "id": 544,
+   "jobs": [
+    "Ninja"
+   ],
+   "max_level": 10,
+   "name": "NJ_ISSEN",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "55": {
+   "description": "Spear Mastery",
+   "id": 55,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 10,
+   "name": "KN_SPEARMASTERY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "56": {
+   "description": "Pierce",
+   "id": 56,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "KN_PIERCE",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "57": {
+   "description": "Brandish Spear",
+   "id": 57,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "KN_BRANDISHSPEAR",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "58": {
+   "description": "Spear Stab",
+   "id": 58,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "KN_SPEARSTAB",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "59": {
+   "description": "Spear Boomerang",
+   "id": 59,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "KN_SPEARBOOMERANG",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "6": {
+   "description": "Provoke",
+   "id": 6,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_PROVOKE",
+   "target_type": "Attack",
+   "type": "None"
+  },
+  "60": {
+   "description": "Twohand Quicken",
+   "id": 60,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "KN_TWOHANDQUICKEN",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "61": {
+   "description": "Counter Attack",
+   "id": 61,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 5,
+   "name": "KN_AUTOCOUNTER",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "62": {
+   "description": "Bowling Bash",
+   "id": 62,
+   "jobs": [
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2"
+   ],
+   "max_level": 10,
+   "name": "KN_BOWLINGBASH",
+   "target_type": "Attack",
+   "type": "Weapon"
+  },
+  "63": {
+   "description": "Peco Peco Riding",
+   "id": 63,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 1,
+   "name": "KN_RIDING",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "64": {
+   "description": "Cavalier Mastery",
+   "id": 64,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2"
+   ],
+   "max_level": 5,
+   "name": "KN_CAVALIERMASTERY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "65": {
+   "description": "Mace Mastery",
+   "id": 65,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_MACEMASTERY",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "66": {
+   "description": "Impositio Manus",
+   "id": 66,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 5,
+   "name": "PR_IMPOSITIO",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "67": {
+   "description": "Suffragium",
+   "id": 67,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 3,
+   "name": "PR_SUFFRAGIUM",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "68": {
+   "description": "Aspersio",
+   "id": 68,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 5,
+   "name": "PR_ASPERSIO",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "69": {
+   "description": "B.S. Sacramenti",
+   "id": 69,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 5,
+   "name": "PR_BENEDICTIO",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "7": {
+   "description": "Magnum Break",
+   "id": 7,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_MAGNUM",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "70": {
+   "description": "Sanctuary",
+   "id": 70,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_SANCTUARY",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "71": {
+   "description": "Slow Poison",
+   "id": 71,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 4,
+   "name": "PR_SLOWPOISON",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "72": {
+   "description": "Status Recovery",
+   "id": 72,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 1,
+   "name": "PR_STRECOVERY",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "73": {
+   "description": "Kyrie Eleison",
+   "id": 73,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_KYRIE",
+   "target_type": "Support",
+   "type": "Magic"
+  },
+  "74": {
+   "description": "Magnificat",
+   "id": 74,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 5,
+   "name": "PR_MAGNIFICAT",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "75": {
+   "description": "Gloria",
+   "id": 75,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 5,
+   "name": "PR_GLORIA",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "76": {
+   "description": "Lex Divina",
+   "id": 76,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_LEXDIVINA",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "77": {
+   "description": "Turn Undead",
+   "id": 77,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_TURNUNDEAD",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "78": {
+   "description": "Lex Aeterna",
+   "id": 78,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 1,
+   "name": "PR_LEXAETERNA",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "79": {
+   "description": "Magnus Exorcismus",
+   "id": 79,
+   "jobs": [
+    "Baby_Priest",
+    "High_Priest",
+    "Priest"
+   ],
+   "max_level": 10,
+   "name": "PR_MAGNUS",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "8": {
+   "description": "Endure",
+   "id": 8,
+   "jobs": [
+    "Baby_Crusader",
+    "Baby_Crusader2",
+    "Baby_Knight",
+    "Baby_Knight2",
+    "Baby_Swordman",
+    "Crusader",
+    "Crusader2",
+    "Knight",
+    "Knight2",
+    "Lord_Knight",
+    "Lord_Knight2",
+    "Paladin",
+    "Paladin2",
+    "Super_Baby",
+    "Supernovice",
+    "Swordman",
+    "Swordman_High"
+   ],
+   "max_level": 10,
+   "name": "SM_ENDURE",
+   "target_type": "Self",
+   "type": "Weapon"
+  },
+  "80": {
+   "description": "Fire Pillar",
+   "id": 80,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_FIREPILLAR",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "81": {
+   "description": "Sightrasher",
+   "id": 81,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_SIGHTRASHER",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "83": {
+   "description": "Meteor Storm",
+   "id": 83,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_METEOR",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "84": {
+   "description": "Jupitel Thunder",
+   "id": 84,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_JUPITEL",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "85": {
+   "description": "Lord of Vermilion",
+   "id": 85,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_VERMILION",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "86": {
+   "description": "Water Ball",
+   "id": 86,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 5,
+   "name": "WZ_WATERBALL",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "87": {
+   "description": "Ice Wall",
+   "id": 87,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_ICEWALL",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "88": {
+   "description": "Frost Nova",
+   "id": 88,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_FROSTNOVA",
+   "target_type": "Self",
+   "type": "Magic"
+  },
+  "89": {
+   "description": "Storm Gust",
+   "id": 89,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "WZ_STORMGUST",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "9": {
+   "description": "Increase SP Recovery",
+   "id": 9,
+   "jobs": [
+    "Baby_Mage",
+    "Baby_Priest",
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Priest",
+    "High_Wizard",
+    "Mage",
+    "Mage_High",
+    "Priest",
+    "Professor",
+    "Sage",
+    "Super_Baby",
+    "Supernovice",
+    "Wizard"
+   ],
+   "max_level": 10,
+   "name": "MG_SRECOVERY",
+   "target_type": "Passive",
+   "type": "None"
+  },
+  "90": {
+   "description": "Earth Spike",
+   "id": 90,
+   "jobs": [
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Professor",
+    "Sage",
+    "Wizard"
+   ],
+   "max_level": 5,
+   "name": "WZ_EARTHSPIKE",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "91": {
+   "description": "Heaven's Drive",
+   "id": 91,
+   "jobs": [
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Professor",
+    "Sage",
+    "Wizard"
+   ],
+   "max_level": 5,
+   "name": "WZ_HEAVENDRIVE",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "92": {
+   "description": "Quagmire",
+   "id": 92,
+   "jobs": [
+    "Baby_Wizard",
+    "High_Wizard",
+    "Wizard"
+   ],
+   "max_level": 5,
+   "name": "WZ_QUAGMIRE",
+   "target_type": "Ground",
+   "type": "Magic"
+  },
+  "93": {
+   "description": "Sense",
+   "id": 93,
+   "jobs": [
+    "Baby_Sage",
+    "Baby_Wizard",
+    "High_Wizard",
+    "Professor",
+    "Sage",
+    "Wizard"
+   ],
+   "max_level": 1,
+   "name": "WZ_ESTIMATION",
+   "target_type": "Attack",
+   "type": "Magic"
+  },
+  "94": {
+   "description": "Iron Tempering",
+   "id": 94,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_IRON",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "95": {
+   "description": "Steel Tempering",
+   "id": 95,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_STEEL",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "96": {
+   "description": "Enchanted Stone Craft",
+   "id": 96,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_ENCHANTEDSTONE",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "97": {
+   "description": "Oridecon Research",
+   "id": 97,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 5,
+   "name": "BS_ORIDEOCON",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "98": {
+   "description": "Smith Dagger",
+   "id": 98,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_DAGGER",
+   "target_type": "Passive",
+   "type": "Weapon"
+  },
+  "99": {
+   "description": "Smith Sword",
+   "id": 99,
+   "jobs": [
+    "Baby_Blacksmith",
+    "Blacksmith",
+    "Whitesmith"
+   ],
+   "max_level": 3,
+   "name": "BS_SWORD",
+   "target_type": "Passive",
+   "type": "Weapon"
+  }
+ }
+}

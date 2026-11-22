@@ -2,13 +2,14 @@
  "provenance": {
   "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, field names and file names are extracted",
   "url": "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB/Skills/SkillEffect.js",
-  "packetver_note": "extracted facts; validated against CondaRO.exe + GRFs by gen_skill_effect_assets.py"
+  "packetver_note": "extracted facts (numeric ids, symbolic named-effect references, field names, file names); validated against CondaRO.exe + the GRFs"
  },
  "skills": {
   "5": [
    {
     "field": "hitEffectId",
     "effects": [
+     0,
      1
     ]
    }
@@ -56,11 +57,24 @@
    {
     "field": "hitEffectId",
     "effects": [
+     0,
      1
     ]
    }
   ],
   "13": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     0
+    ]
+   },
+   {
+    "field": "firstHitEffectId",
+    "effects": [
+     1
+    ]
+   },
    {
     "field": "damageEffectIdOnCaster",
     "effects": [
@@ -102,6 +116,9 @@
     "field": "successEffectId",
     "effects": [
      23
+    ],
+    "symbolic": [
+     "stonecurse_sound"
     ]
    }
   ],
@@ -167,6 +184,12 @@
     "field": "groundEffectIdByLevel",
     "effects": [
      30
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     0
     ]
    }
   ],
@@ -274,6 +297,25 @@
   ],
   "46": [
    {
+    "field": "hitEffectId",
+    "effects": [
+     0
+    ]
+   },
+   {
+    "field": "firstHitEffectId",
+    "effects": [
+     1
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
+   {
     "field": "damageEffectIdOnCaster",
     "effects": [
      16
@@ -282,9 +324,24 @@
   ],
   "47": [
    {
+    "field": "releaseEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
+   {
     "field": "hitEffectId",
     "effects": [
+     0,
      1
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_shower_target"
     ]
    }
   ],
@@ -362,6 +419,13 @@
     "field": "effectIdOnCaster",
     "effects": [
      151
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_spear_projectile"
     ]
    },
    {
@@ -711,6 +775,13 @@
   ],
   "111": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "98_beforecast"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      98
@@ -735,6 +806,13 @@
   ],
   "114": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "maximize_power_sounds"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      104
@@ -746,6 +824,24 @@
     "field": "effectId",
     "effects": [
      69
+    ]
+   }
+  ],
+  "116": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ht_landmine"
+    ]
+   }
+  ],
+  "117": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_anklesnare"
     ]
    }
   ],
@@ -930,6 +1026,12 @@
    }
   ],
   "148": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     0
+    ]
+   },
    {
     "field": "damageEffectIdOnCaster",
     "effects": [
@@ -1412,6 +1514,13 @@
     "effects": [
      249
     ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shield_projectile"
+    ]
    }
   ],
   "252": [
@@ -1521,6 +1630,9 @@
     "field": "effectId",
     "effects": [
      254
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -1535,6 +1647,9 @@
     "field": "effectIdOnCaster",
     "effects": [
      261
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -1572,6 +1687,9 @@
     "field": "effectId",
     "effects": [
      330
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -1687,7 +1805,23 @@
     ]
    }
   ],
+  "301": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sa_instantdeath"
+    ]
+   }
+  ],
   "306": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "278_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1697,6 +1831,13 @@
   ],
   "307": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "279_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      279
@@ -1704,6 +1845,13 @@
    }
   ],
   "308": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "280_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1713,6 +1861,13 @@
   ],
   "309": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "281_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      281
@@ -1720,6 +1875,13 @@
    }
   ],
   "310": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "282_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1729,6 +1891,13 @@
   ],
   "311": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "283_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      283
@@ -1736,6 +1905,13 @@
    }
   ],
   "312": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "284_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1745,9 +1921,34 @@
   ],
   "313": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "285_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      285
+    ]
+   }
+  ],
+  "316": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   }
+  ],
+  "317": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "277_ground"
     ]
    }
   ],
@@ -1761,6 +1962,13 @@
   ],
   "319": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "286_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      286
@@ -1768,6 +1976,13 @@
    }
   ],
   "320": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "287_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1777,6 +1992,13 @@
   ],
   "321": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "288_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      288
@@ -1785,9 +2007,34 @@
   ],
   "322": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "289_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      289
+    ]
+   }
+  ],
+  "324": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   }
+  ],
+  "325": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "290_ground"
     ]
    }
   ],
@@ -1801,6 +2048,13 @@
   ],
   "327": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "291_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      291
@@ -1808,6 +2062,13 @@
    }
   ],
   "328": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "292_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1817,6 +2078,13 @@
   ],
   "329": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "293_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      293
@@ -1824,6 +2092,13 @@
    }
   ],
   "330": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "294_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -1836,6 +2111,13 @@
     "field": "effectId",
     "effects": [
      494
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tomahawk_projectile"
     ]
    }
   ],
@@ -1895,6 +2177,13 @@
   ],
   "355": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "white_pulse"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      367
@@ -1922,6 +2211,9 @@
     "field": "effectId",
     "effects": [
      368
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -1930,6 +2222,9 @@
     "field": "effectId",
     "effects": [
      368
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -1971,6 +2266,13 @@
     "effects": [
      16
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_magicpower"
+    ]
    }
   ],
   "367": [
@@ -1991,6 +2293,13 @@
   ],
   "369": [
    {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "370_ground"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      370
@@ -2002,6 +2311,9 @@
     "field": "hitEffectId",
     "effects": [
      376
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -2010,6 +2322,9 @@
     "field": "effectId",
     "effects": [
      377
+    ],
+    "symbolic": [
+     "quake"
     ]
    },
    {
@@ -2103,6 +2418,20 @@
   ],
   "382": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "496_beforecast"
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
+   {
     "field": "hitEffectId",
     "effects": [
      388
@@ -2155,9 +2484,23 @@
     "effects": [
      393
     ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
    }
   ],
   "395": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "394_ground"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -2181,9 +2524,23 @@
   ],
   "397": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "339_beforecast"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      339
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "spear_hit_sound"
     ]
    }
   ],
@@ -2193,6 +2550,13 @@
     "effects": [
      399
     ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "enemy_hit_normal1"
+    ]
    }
   ],
   "399": [
@@ -2200,6 +2564,13 @@
     "field": "beginCastEffectId",
     "effects": [
      400
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "enemy_hit_normal1"
     ]
    }
   ],
@@ -2233,6 +2604,15 @@
     "field": "effectId",
     "effects": [
      505
+    ]
+   }
+  ],
+  "404": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "405_ground"
     ]
    }
   ],
@@ -2295,6 +2675,15 @@
     "field": "effectId",
     "effects": [
      414
+    ]
+   }
+  ],
+  "419": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tk_counter"
     ]
    }
   ],
@@ -2395,6 +2784,9 @@
     "field": "effectId",
     "effects": [
      433
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
@@ -2412,12 +2804,39 @@
     ]
    }
   ],
+  "457": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sl_assasin"
+    ]
+   }
+  ],
   "458": [
    {
     "field": "effectId",
     "effects": [
      424,
      503
+    ]
+   }
+  ],
+  "459": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bs_adrenaline2"
+    ]
+   }
+  ],
+  "460": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sl_hunter"
     ]
    }
   ],
@@ -2475,6 +2894,9 @@
     "field": "effectId",
     "effects": [
      555
+    ],
+    "symbolic": [
+     "ef_sl_stun"
     ]
    }
   ],
@@ -2520,10 +2942,20 @@
     "effects": [
      254,
      261
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
   "475": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "496_beforecast"
+    ]
+   },
    {
     "field": "effectId",
     "effects": [
@@ -2548,6 +2980,15 @@
     ]
    }
   ],
+  "480": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shield_projectile"
+    ]
+   }
+  ],
   "482": [
    {
     "field": "effectId",
@@ -2567,6 +3008,15 @@
     "field": "effectId",
     "effects": [
      223
+    ]
+   }
+  ],
+  "484": [
+   {
+    "field": "groundEffectId",
+    "effects": [],
+    "symbolic": [
+     "522_ground"
     ]
    }
   ],
@@ -2599,6 +3049,13 @@
     "field": "groundEffectId",
     "effects": [
      517
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "517_music"
     ]
    }
   ],
@@ -2659,6 +3116,15 @@
     ]
    }
   ],
+  "500": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "gunslinger_coin"
+    ]
+   }
+  ],
   "502": [
    {
     "field": "effectId",
@@ -2696,6 +3162,16 @@
     "field": "effectId",
     "effects": [
      456
+    ],
+    "symbolic": [
+     "ef_gs_increasing"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_gs_increasing_cast"
     ]
    }
   ],
@@ -2923,6 +3399,13 @@
   ],
   "654": [
    {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_firebreath"
+    ]
+   },
+   {
     "field": "hitEffectId",
     "effects": [
      49
@@ -3025,6 +3508,22 @@
     ]
    }
   ],
+  "1001": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "white_pulse"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "enemy_hit_normal1"
+    ]
+   }
+  ],
   "1002": [
    {
     "field": "effectId",
@@ -3073,6 +3572,13 @@
   ],
   "1009": [
    {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
+   {
     "field": "hitEffectId",
     "effects": [
      1
@@ -3092,6 +3598,15 @@
     "field": "successEffectId",
     "effects": [
      607
+    ]
+   }
+  ],
+  "1013": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_greed_sound"
     ]
    }
   ],
@@ -3151,6 +3666,15 @@
     ]
    }
   ],
+  "2005": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rk_windcutter"
+    ]
+   }
+  ],
   "2006": [
    {
     "field": "effectIdOnCaster",
@@ -3191,11 +3715,65 @@
     ]
    }
   ],
+  "2022": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gc_crossimpact"
+    ]
+   }
+  ],
+  "2027": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gc_poisoningweapon"
+    ]
+   }
+  ],
+  "2029": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gc_counterslash"
+    ]
+   }
+  ],
+  "2032": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gc_poisonsmoke"
+    ]
+   }
+  ],
+  "2035": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hallucinationwalk"
+    ]
+   }
+  ],
   "2036": [
    {
     "field": "effectId",
     "effects": [
      775
+    ]
+   }
+  ],
+  "2037": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gc_crossripperslasher"
     ]
    }
   ],
@@ -3210,6 +3788,15 @@
     "field": "hitEffectId",
     "effects": [
      152
+    ]
+   }
+  ],
+  "2039": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ancilla"
     ]
    }
   ],
@@ -3273,11 +3860,36 @@
     ]
    }
   ],
+  "2054": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_duplelight"
+    ]
+   }
+  ],
   "2201": [
    {
     "field": "effectId",
     "effects": [
      802
+    ]
+   }
+  ],
+  "2202": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_soulexpansion_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_soulexpansion_hit"
     ]
    }
   ],
@@ -3290,6 +3902,13 @@
    }
   ],
   "2204": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_jackfrost"
+    ]
+   },
    {
     "field": "hitEffectId",
     "effects": [
@@ -3310,6 +3929,15 @@
     "field": "effectId",
     "effects": [
      803
+    ]
+   }
+  ],
+  "2207": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_siennaexecrate"
     ]
    }
   ],
@@ -3334,6 +3962,45 @@
     "field": "groundEffectId",
     "effects": [
      728
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_hellinferno"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_hellinferno_cast"
+    ]
+   }
+  ],
+  "2213": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_comet"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_comet_cast"
+    ]
+   }
+  ],
+  "2214": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_chainlightning_cast"
     ]
    }
   ],
@@ -3367,6 +4034,42 @@
     ]
    }
   ],
+  "2218": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_tetravortex_fire"
+    ]
+   }
+  ],
+  "2219": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_tetravortex_water"
+    ]
+   }
+  ],
+  "2220": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_tetravortex_wind"
+    ]
+   }
+  ],
+  "2225": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wl_summon_atk_fire"
+    ]
+   }
+  ],
   "2230": [
    {
     "field": "effectId",
@@ -3383,11 +4086,27 @@
     ]
    }
   ],
+  "2234": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ra_fearbreeze"
+    ]
+   }
+  ],
   "2236": [
    {
     "field": "effectId",
     "effects": [
      745
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
     ]
    }
   ],
@@ -3396,6 +4115,33 @@
     "field": "effectId",
     "effects": [
      750
+    ]
+   }
+  ],
+  "2241": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wugrider"
+    ]
+   }
+  ],
+  "2243": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wugstrike"
+    ]
+   }
+  ],
+  "2244": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wugbite"
     ]
    }
   ],
@@ -3439,11 +4185,29 @@
     ]
    }
   ],
+  "2258": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_vulcanarm"
+    ]
+   }
+  ],
   "2259": [
    {
     "field": "effectId",
     "effects": [
      787
+    ]
+   }
+  ],
+  "2261": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_armscannon_cast"
     ]
    }
   ],
@@ -3463,11 +4227,95 @@
     ]
    }
   ],
+  "2275": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_repair"
+    ]
+   }
+  ],
+  "2278": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_axeboomerang"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_axeboomerang_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_axeboomerang_hit"
+    ]
+   }
+  ],
   "2279": [
    {
     "field": "effectId",
     "effects": [
      795
+    ]
+   }
+  ],
+  "2280": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nc_axetornado"
+    ]
+   }
+  ],
+  "2284": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sc_fatalmenace"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_sc_fatalmenace_cast"
+    ]
+   }
+  ],
+  "2285": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sc_reproduce"
+    ]
+   }
+  ],
+  "2286": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sc_autoshadowspell"
+    ]
+   }
+  ],
+  "2288": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
     ]
    }
   ],
@@ -3581,11 +4429,114 @@
     ]
    }
   ],
+  "2307": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cannonspear",
+     "ef_lg_cannonspear"
+    ]
+   }
+  ],
+  "2308": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_banishingpoint"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_banishingpoint_cast"
+    ]
+   }
+  ],
+  "2309": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_trample"
+    ]
+   }
+  ],
   "2310": [
    {
     "field": "beforeHitEffectId",
     "effects": [
      906
+    ]
+   }
+  ],
+  "2311": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_reflectdamage"
+    ]
+   }
+  ],
+  "2312": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_pinpointattack"
+    ]
+   }
+  ],
+  "2314": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rageburst"
+    ]
+   }
+  ],
+  "2315": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shieldspell"
+    ]
+   }
+  ],
+  "2316": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_exceedbreak"
+    ]
+   }
+  ],
+  "2317": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_overbrand"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_overbrand_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_overbrand_hit"
     ]
    }
   ],
@@ -3605,6 +4556,67 @@
     ]
    }
   ],
+  "2320": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_moonslasher"
+    ]
+   }
+  ],
+  "2321": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_rayofgenesis",
+     "ef_rayofgenesis"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_rayofgenesis_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_lg_rayofgenesis_hit"
+    ]
+   }
+  ],
+  "2322": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_piety"
+    ]
+   }
+  ],
+  "2323": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_earthdrive",
+     "ef_lg_earthdrive"
+    ]
+   }
+  ],
+  "2324": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hesperuslit"
+    ]
+   }
+  ],
   "2325": [
    {
     "field": "effectId",
@@ -3613,11 +4625,217 @@
     ]
    }
   ],
+  "2326": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dragoncombo"
+    ]
+   }
+  ],
+  "2327": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_skynetblow"
+    ]
+   }
+  ],
   "2328": [
    {
     "field": "effectId",
     "effects": [
      888
+    ]
+   }
+  ],
+  "2329": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_fallenempire",
+     "ef_sr_fallenempire"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sr_fallenempire_hit"
+    ]
+   }
+  ],
+  "2330": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sr_tigercannon",
+     "ef_tigercannon"
+    ]
+   }
+  ],
+  "2332": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rampageblaster",
+     "ef_sr_rampageblaster"
+    ]
+   }
+  ],
+  "2333": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_crescentelbow"
+    ]
+   }
+  ],
+  "2334": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cursedcircle"
+    ]
+   }
+  ],
+  "2335": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_lightningwalk",
+     "ef_sr_lightningwalk"
+    ]
+   }
+  ],
+  "2336": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_knucklearrow"
+    ]
+   }
+  ],
+  "2337": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_windmill"
+    ]
+   }
+  ],
+  "2338": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_raisingdragon"
+    ]
+   }
+  ],
+  "2341": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_powervelocity"
+    ]
+   }
+  ],
+  "2343": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gateofhell"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_sr_gateofhell_cast"
+    ]
+   }
+  ],
+  "2350": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_swing_dance"
+    ]
+   }
+  ],
+  "2351": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_symphony_of_lovers"
+    ]
+   }
+  ],
+  "2352": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_moonlit_serenade"
+    ]
+   }
+  ],
+  "2381": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rush_windmill"
+    ]
+   }
+  ],
+  "2382": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_echo_song"
+    ]
+   }
+  ],
+  "2383": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_harmonize"
+    ]
+   }
+  ],
+  "2413": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_metalicsound",
+     "ef_wm_metalicsound"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_metalicsound_hit"
     ]
    }
   ],
@@ -3637,6 +4855,15 @@
     ]
    }
   ],
+  "2416": [
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_reverberation_magic_hit"
+    ]
+   }
+  ],
   "2417": [
    {
     "field": "effectId",
@@ -3650,6 +4877,16 @@
     "field": "effectId",
     "effects": [
      857
+    ],
+    "symbolic": [
+     "ef_wm_severe_rainstorm"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_severe_rainstorm_cast"
     ]
    }
   ],
@@ -3666,6 +4903,15 @@
     "field": "groundEffectId",
     "effects": [
      879
+    ]
+   }
+  ],
+  "2421": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_valley_of_death"
     ]
    }
   ],
@@ -3701,6 +4947,15 @@
     ]
    }
   ],
+  "2426": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_great_echo"
+    ]
+   }
+  ],
   "2427": [
    {
     "field": "groundEffectId",
@@ -3726,6 +4981,22 @@
     "field": "effectIdOnCaster",
     "effects": [
      867
+    ]
+   }
+  ],
+  "2429": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sound_of_destruction"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_sound_of_destruction_cast"
     ]
    }
   ],
@@ -3791,6 +5062,13 @@
     "effects": [
      878
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_unlimited_humming_voice"
+    ]
    }
   ],
   "2443": [
@@ -3809,11 +5087,46 @@
     ]
    }
   ],
+  "2446": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_so_earthgrave"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_so_earthgrave_hit"
+    ]
+   }
+  ],
   "2447": [
    {
     "field": "effectId",
     "effects": [
      928
+    ],
+    "symbolic": [
+     "ef_so_diamonddust"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_so_diamonddust_cast"
+    ]
+   }
+  ],
+  "2448": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_so_poison_buster"
     ]
    }
   ],
@@ -3822,6 +5135,16 @@
     "field": "effectId",
     "effects": [
      922
+    ],
+    "symbolic": [
+     "ef_so_psychic_wave"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_so_psychic_wave_cast"
     ]
    }
   ],
@@ -3846,6 +5169,67 @@
     "field": "beforeHitEffectId",
     "effects": [
      930
+    ]
+   }
+  ],
+  "2464": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_so_el_cure"
+    ]
+   }
+  ],
+  "2476": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_cart_tornado"
+    ]
+   }
+  ],
+  "2477": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_cartcannon"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_cartcannon_cast"
+    ]
+   }
+  ],
+  "2478": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_cartboost"
+    ]
+   }
+  ],
+  "2479": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_thorntrap"
+    ]
+   }
+  ],
+  "2482": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_wallofthorn_cast"
     ]
    }
   ],
@@ -3889,6 +5273,296 @@
     ]
    }
   ],
+  "2492": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_mandragora"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_mandragora_cast"
+    ]
+   }
+  ],
+  "2494": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_gn_changematerial"
+    ]
+   }
+  ],
+  "2515": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ab_secrament"
+    ]
+   }
+  ],
+  "2516": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_severe_rainstorm_melee"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wm_severe_rainstorm_melee_cast"
+    ]
+   }
+  ],
+  "2517": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_howlingoflion",
+     "ef_sr_howlingoflion"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_sr_howlingoflion_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sr_howlingoflion_hit"
+    ]
+   }
+  ],
+  "2518": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rideinlightning"
+    ]
+   }
+  ],
+  "2557": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_s_storm"
+    ]
+   }
+  ],
+  "2558": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_e_chain"
+    ]
+   }
+  ],
+  "2560": [
+   {
+    "field": "successEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_c_marker1"
+    ]
+   }
+  ],
+  "2561": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_firedance"
+    ]
+   }
+  ],
+  "2562": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_h_mine"
+    ]
+   }
+  ],
+  "2563": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_p_alter"
+    ]
+   }
+  ],
+  "2564": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_fallen_angel"
+    ]
+   }
+  ],
+  "2566": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_d_tail"
+    ]
+   }
+  ],
+  "2567": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_fire_rain"
+    ]
+   }
+  ],
+  "2568": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_heat_barrel"
+    ]
+   }
+  ],
+  "2570": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_rl_slugshot"
+    ]
+   }
+  ],
+  "2576": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_fullmoonkick"
+    ]
+   }
+  ],
+  "2579": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_newmoonkick"
+    ]
+   }
+  ],
+  "2580": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_flashkick"
+    ]
+   }
+  ],
+  "2584": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_fallingstar"
+    ]
+   }
+  ],
+  "2588": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_document"
+    ]
+   }
+  ],
+  "2592": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_solarburst"
+    ]
+   }
+  ],
+  "2593": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sj_prominencekick"
+    ]
+   }
+  ],
+  "2596": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sp_soulgolem"
+    ]
+   }
+  ],
+  "2601": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sp_soulcurse"
+    ]
+   }
+  ],
+  "2608": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sp_soulrevolve"
+    ]
+   }
+  ],
+  "3004": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ko_jyumonjikiri"
+    ]
+   }
+  ],
+  "3005": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ko_setsudan"
+    ]
+   }
+  ],
   "5001": [
    {
     "field": "effectId",
@@ -3897,11 +5571,29 @@
     ]
    }
   ],
+  "5002": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ra_unlimit"
+    ]
+   }
+  ],
   "5003": [
    {
     "field": "effectId",
     "effects": [
      1049
+    ]
+   }
+  ],
+  "5004": [
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dragonbreath_water"
     ]
    }
   ],
@@ -3918,6 +5610,15 @@
     "field": "effectId",
     "effects": [
      1050
+    ]
+   }
+  ],
+  "5007": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_frigg_song"
     ]
    }
   ],
@@ -3953,11 +5654,2541 @@
     ]
    }
   ],
+  "5013": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_kings_grace"
+    ]
+   }
+  ],
   "5014": [
    {
     "field": "effectId",
     "effects": [
      1042
+    ]
+   }
+  ],
+  "5019": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_bite"
+    ]
+   }
+  ],
+  "5021": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_scratch"
+    ]
+   }
+  ],
+  "5026": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_sv_stemspear"
+    ]
+   }
+  ],
+  "5032": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_scaroftarou"
+    ]
+   }
+  ],
+  "5033": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_pickypeck"
+    ]
+   }
+  ],
+  "5035": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_arclousedash"
+    ]
+   }
+  ],
+  "5038": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_tunabelly"
+    ]
+   }
+  ],
+  "5040": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_bunchofshrimp"
+    ]
+   }
+  ],
+  "5041": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_freshshrimp"
+    ]
+   }
+  ],
+  "5045": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_powerofflock"
+    ]
+   }
+  ],
+  "5046": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_svg_spirit"
+    ]
+   }
+  ],
+  "5047": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_hiss"
+    ]
+   }
+  ],
+  "5048": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_nyanggrass"
+    ]
+   }
+  ],
+  "5049": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_grooming"
+    ]
+   }
+  ],
+  "5055": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_su_chattering"
+    ]
+   }
+  ],
+  "5076": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_nv_helpangel"
+    ]
+   }
+  ],
+  "5201": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servantweapon"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servantweapon_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servantweapon_hit"
+    ]
+   }
+  ],
+  "5202": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servantweapon_atk"
+    ]
+   }
+  ],
+  "5203": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servant_w_sign"
+    ]
+   }
+  ],
+  "5204": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servant_w_phantom"
+    ]
+   }
+  ],
+  "5205": [
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_servant_w_demol_hit"
+    ]
+   }
+  ],
+  "5206": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_chargingpierce_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_chargingpierce_hit"
+    ]
+   }
+  ],
+  "5208": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_hackandslasher"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_hackandslasher_hit"
+    ]
+   }
+  ],
+  "5209": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_hackandslasher_atk"
+    ]
+   }
+  ],
+  "5210": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_dragonic_aura"
+    ]
+   }
+  ],
+  "5211": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_madness_crusher"
+    ]
+   }
+  ],
+  "5212": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_vigor"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_vigor_cast"
+    ]
+   }
+  ],
+  "5213": [
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_stormslash_hit"
+    ]
+   }
+  ],
+  "5214": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_deadly_projection_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_deadly_projection_hit"
+    ]
+   }
+  ],
+  "5215": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_destructive_hurricane"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_destructive_hurricane_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_destructive_hurricane_hit"
+    ]
+   }
+  ],
+  "5216": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_rain_of_crystal_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_rain_of_crystal_hit"
+    ]
+   }
+  ],
+  "5217": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_mystery_illusion"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_mystery_illusion_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_mystery_illusion_hit"
+    ]
+   }
+  ],
+  "5218": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_violent_quake"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_violent_quake_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_violent_quake_hit"
+    ]
+   }
+  ],
+  "5219": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_violent_quake_atk"
+    ]
+   }
+  ],
+  "5220": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_soul_vc_strike_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_soul_vc_strike_hit"
+    ]
+   }
+  ],
+  "5221": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_strantum_tremor"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_strantum_tremor_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_strantum_tremor_hit"
+    ]
+   }
+  ],
+  "5222": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_all_bloom"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_all_bloom_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_all_bloom_hit"
+    ]
+   }
+  ],
+  "5223": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_all_bloom_atk"
+    ]
+   }
+  ],
+  "5224": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_all_bloom_atk2"
+    ]
+   }
+  ],
+  "5225": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crystal_impact"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crystal_impact_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crystal_impact_hit"
+    ]
+   }
+  ],
+  "5226": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crystal_impact_atk"
+    ]
+   }
+  ],
+  "5227": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_tornado_storm"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_tornado_storm_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_tornado_storm_hit"
+    ]
+   }
+  ],
+  "5230": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_astral_strike"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_astral_strike_cast"
+    ]
+   }
+  ],
+  "5232": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_climax"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_climax_cast"
+    ]
+   }
+  ],
+  "5233": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_rock_down"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_rock_down_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_rock_down_hit"
+    ]
+   }
+  ],
+  "5234": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_storm_cannon"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_storm_cannon_cast"
+    ]
+   }
+  ],
+  "5235": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crimson_arrow"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crimson_arrow_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crimson_arrow_hit"
+    ]
+   }
+  ],
+  "5236": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_crimson_arrow_atk"
+    ]
+   }
+  ],
+  "5237": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_frozen_slash"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_frozen_slash_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ag_frozen_slash_hit"
+    ]
+   }
+  ],
+  "5238": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_powerful_faith"
+    ]
+   }
+  ],
+  "5239": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_firm_faith"
+    ]
+   }
+  ],
+  "5241": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_oleum_sanctum"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_oleum_sanctum_hit"
+    ]
+   }
+  ],
+  "5242": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_sincere_faith"
+    ]
+   }
+  ],
+  "5243": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_massive_f_blaster"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_massive_f_blaster_hit"
+    ]
+   }
+  ],
+  "5244": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_exposion_blaster"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_exposion_blaster_hit"
+    ]
+   }
+  ],
+  "5245": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_first_brand"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_first_brand_hit"
+    ]
+   }
+  ],
+  "5246": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_first_faith_power"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_first_faith_power_cast"
+    ]
+   }
+  ],
+  "5247": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_judge"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_judge_cast"
+    ]
+   }
+  ],
+  "5248": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_second_flame"
+    ]
+   }
+  ],
+  "5249": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_second_faith"
+    ]
+   }
+  ],
+  "5250": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_second_judgement"
+    ]
+   }
+  ],
+  "5251": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_third_punish"
+    ]
+   }
+  ],
+  "5252": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_third_flame_bomb"
+    ]
+   }
+  ],
+  "5253": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_third_consecration"
+    ]
+   }
+  ],
+  "5254": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_third_exor_flame"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_iq_third_exor_flame_cast"
+    ]
+   }
+  ],
+  "5255": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_guard_stance"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_guard_stance_cast"
+    ]
+   }
+  ],
+  "5256": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_guardian_shield"
+    ]
+   }
+  ],
+  "5257": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_rebound_shield"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_rebound_shield_cast"
+    ]
+   }
+  ],
+  "5260": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_attack_stance"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_attack_stance_cast"
+    ]
+   }
+  ],
+  "5261": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_ultimate_sacrifice"
+    ]
+   }
+  ],
+  "5262": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_holy_shield"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_holy_shield_cast"
+    ]
+   }
+  ],
+  "5263": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_grand_judgement"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_grand_judgement_cast"
+    ]
+   }
+  ],
+  "5264": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_judgement_cross"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_judgement_cross_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_judgement_cross_hit"
+    ]
+   }
+  ],
+  "5265": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_shield_shooting"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_shield_shooting_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_shield_shooting_hit"
+    ]
+   }
+  ],
+  "5266": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_overslash"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_overslash_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_overslash_hit"
+    ]
+   }
+  ],
+  "5267": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_ig_cross_rain_cast"
+    ]
+   }
+  ],
+  "5268": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_reparatio"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_reparatio_cast"
+    ]
+   }
+  ],
+  "5269": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_mediale_votum"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_mediale_votum_cast"
+    ]
+   }
+  ],
+  "5271": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_argutus_vita"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_argutus_vita_cast"
+    ]
+   }
+  ],
+  "5272": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_argutus_telum"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_argutus_telum_cast"
+    ]
+   }
+  ],
+  "5273": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_arbitrium"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_arbitrium_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_arbitrium_hit"
+    ]
+   }
+  ],
+  "5274": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_arbitrium_atk"
+    ]
+   }
+  ],
+  "5275": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_presens_acies"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_presens_acies_cast"
+    ]
+   }
+  ],
+  "5277": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_effligo"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_effligo_hit"
+    ]
+   }
+  ],
+  "5278": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_competentia"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_competentia_cast"
+    ]
+   }
+  ],
+  "5279": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_pneumaticus_procella"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_pneumaticus_procella_cast"
+    ]
+   }
+  ],
+  "5280": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_dilectio_heal"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_dilectio_heal_cast"
+    ]
+   }
+  ],
+  "5281": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_religio"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_religio_cast"
+    ]
+   }
+  ],
+  "5282": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_benedictum"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_benedictum_cast"
+    ]
+   }
+  ],
+  "5283": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_petitio"
+    ]
+   }
+  ],
+  "5284": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cd_framen"
+    ]
+   }
+  ],
+  "5285": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_shadow_exceed_cast"
+    ]
+   }
+  ],
+  "5286": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_dancing_knife_cast"
+    ]
+   }
+  ],
+  "5287": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_savage_impact"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_savage_impact_hit"
+    ]
+   }
+  ],
+  "5289": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_eternal_slash"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_eternal_slash_hit"
+    ]
+   }
+  ],
+  "5290": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_potent_venom"
+    ]
+   }
+  ],
+  "5291": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_shadow_stab"
+    ]
+   }
+  ],
+  "5292": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_impact_crater"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_impact_crater_hit"
+    ]
+   }
+  ],
+  "5293": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_enchanting_shadow"
+    ]
+   }
+  ],
+  "5294": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_fatal_shadow_crow"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_shc_fatal_shadow_crow_hit"
+    ]
+   }
+  ],
+  "5295": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_axe_stomp"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_axe_stomp_hit"
+    ]
+   }
+  ],
+  "5296": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_rush_quake"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_rush_quake_hit"
+    ]
+   }
+  ],
+  "5298": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_a_machine"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_a_machine_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_a_machine_hit"
+    ]
+   }
+  ],
+  "5299": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_d_machine"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_d_machine_cast"
+    ]
+   }
+  ],
+  "5302": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_summon_abr_battle_warior"
+    ]
+   }
+  ],
+  "5303": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_summon_abr_dual_cannon"
+    ]
+   }
+  ],
+  "5305": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_summon_abr_infinity"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_summon_abr_infinity_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_summon_abr_infinity_hit"
+    ]
+   }
+  ],
+  "5314": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_dagger"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_dagger_hit"
+    ]
+   }
+  ],
+  "5315": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_unlucky_rush"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_unlucky_rush_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_unlucky_rush_hit"
+    ]
+   }
+  ],
+  "5316": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_chain_reaction_shot"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_chain_reaction_shot_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_chain_reaction_shot_hit"
+    ]
+   }
+  ],
+  "5317": [
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_from_the_abyss_hit"
+    ]
+   }
+  ],
+  "5318": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_slayer"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_slayer_cast"
+    ]
+   }
+  ],
+  "5319": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_strike"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_strike_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_strike_hit"
+    ]
+   }
+  ],
+  "5320": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_deft_stab"
+    ]
+   }
+  ],
+  "5321": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_square"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_abyss_square_hit"
+    ]
+   }
+  ],
+  "5322": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_frenzy_shot"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_frenzy_shot_hit"
+    ]
+   }
+  ],
+  "5324": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_wind_sign"
+    ]
+   }
+  ],
+  "5326": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_hawkrush"
+    ]
+   }
+  ],
+  "5328": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_calamitygale_cast"
+    ]
+   }
+  ],
+  "5329": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_hawkboomerang"
+    ]
+   }
+  ],
+  "5330": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_galestorm"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_galestorm_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_galestorm_hit"
+    ]
+   }
+  ],
+  "5331": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_deepblindtrap"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_deepblindtrap_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_deepblindtrap_hit"
+    ]
+   }
+  ],
+  "5332": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_solidtrap"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_solidtrap_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_solidtrap_hit"
+    ]
+   }
+  ],
+  "5333": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_swifttrap"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_swifttrap_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_swifttrap_hit"
+    ]
+   }
+  ],
+  "5334": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_crescive_bolt"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_crescive_bolt_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_crescive_bolt_hit"
+    ]
+   }
+  ],
+  "5335": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_flametrap"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_flametrap_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_wh_flametrap_hit"
+    ]
+   }
+  ],
+  "5339": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_advance_protection"
+    ]
+   }
+  ],
+  "5340": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_water_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_water_hit"
+    ]
+   }
+  ],
+  "5341": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_ground_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_ground_hit"
+    ]
+   }
+  ],
+  "5342": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_wind_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_wind_hit"
+    ]
+   }
+  ],
+  "5343": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_fire_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_acidified_zone_fire_hit"
+    ]
+   }
+  ],
+  "5344": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_woodenwarrior_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_woodenwarrior_hit"
+    ]
+   }
+  ],
+  "5345": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_wooden_fairy_cast"
+    ]
+   }
+  ],
+  "5347": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_researchreport"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_researchreport_cast"
+    ]
+   }
+  ],
+  "5348": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_helltree_cast"
+    ]
+   }
+  ],
+  "5351": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_mystic_symphony"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_mystic_symphony_cast"
+    ]
+   }
+  ],
+  "5352": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_kvasir_sonata"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_kvasir_sonata_cast"
+    ]
+   }
+  ],
+  "5353": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_roseblossom_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_roseblossom_hit"
+    ]
+   }
+  ],
+  "5354": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_roseblossom_atk"
+    ]
+   }
+  ],
+  "5355": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_rhythmshooting_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_rhythmshooting_hit"
+    ]
+   }
+  ],
+  "5356": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_metalic_fury"
+    ]
+   }
+  ],
+  "5357": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_soundblend"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_soundblend_cast"
+    ]
+   }
+  ],
+  "5358": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_gef_nocturn"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_gef_nocturn_cast"
+    ]
+   }
+  ],
+  "5359": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_roki_capriccio"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_roki_capriccio_cast"
+    ]
+   }
+  ],
+  "5360": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_ain_rhapsody"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_ain_rhapsody_cast"
+    ]
+   }
+  ],
+  "5361": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_musical_interlude"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_musical_interlude_cast"
+    ]
+   }
+  ],
+  "5362": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_jawaii_serenade"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_jawaii_serenade_cast"
+    ]
+   }
+  ],
+  "5363": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_nipelheim_requiem"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_nipelheim_requiem_cast"
+    ]
+   }
+  ],
+  "5364": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_pron_march"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_tr_pron_march_cast"
+    ]
+   }
+  ],
+  "5366": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_spell_enchanting"
+    ]
+   }
+  ],
+  "5367": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_activity_burn"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_activity_burn_cast"
+    ]
+   }
+  ],
+  "5368": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_increasing_activity"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_increasing_activity_cast"
+    ]
+   }
+  ],
+  "5369": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_diamond_storm"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_diamond_storm_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_diamond_storm_hit"
+    ]
+   }
+  ],
+  "5370": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_lightning_land"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_lightning_land_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_lightning_land_hit"
+    ]
+   }
+  ],
+  "5371": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_venom_swamp"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_venom_swamp_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_venom_swamp_hit"
+    ]
+   }
+  ],
+  "5372": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_conflagration"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_conflagration_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_conflagration_hit"
+    ]
+   }
+  ],
+  "5373": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_terra_drive"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_terra_drive_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_terra_drive_hit"
+    ]
+   }
+  ],
+  "5375": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_ardor"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_ardor_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_ardor_hit"
+    ]
+   }
+  ],
+  "5376": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_diluvio_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_diluvio_hit"
+    ]
+   }
+  ],
+  "5377": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_procella"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_procella_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_procella_hit"
+    ]
+   }
+  ],
+  "5378": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_terremotus"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_terremotus_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_terremotus_hit"
+    ]
+   }
+  ],
+  "5379": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_serpens"
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_serpens_cast"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_summon_elemental_serpens_hit"
+    ]
+   }
+  ],
+  "5380": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_cast"
+    ]
+   }
+  ],
+  "5382": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_chain_reaction_shot_atk"
+    ]
+   }
+  ],
+  "5383": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_abc_from_the_abyss_atk"
+    ]
+   }
+  ],
+  "5389": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_fire"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_fire_hit"
+    ]
+   }
+  ],
+  "5390": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_water"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_water_hit"
+    ]
+   }
+  ],
+  "5391": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_wind"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_wind_hit"
+    ]
+   }
+  ],
+  "5392": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_ground"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_ground_hit"
+    ]
+   }
+  ],
+  "5393": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_poison"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_elemental_buster_poison_hit"
+    ]
+   }
+  ],
+  "5403": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_intensive_aim"
+    ]
+   }
+  ],
+  "5404": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_grenade_fragment"
     ]
    }
   ],
@@ -3967,6 +8198,13 @@
     "effects": [
      2367
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_the_vigilante_at_night"
+    ]
    }
   ],
   "5406": [
@@ -3974,6 +8212,20 @@
     "field": "castAuraEffectId",
     "effects": [
      2367
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_only_one_bullet"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_only_one_bullet_hit"
     ]
    }
   ],
@@ -3983,6 +8235,13 @@
     "effects": [
      2367
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_spiral_shooting"
+    ]
    }
   ],
   "5408": [
@@ -3990,6 +8249,13 @@
     "field": "castAuraEffectId",
     "effects": [
      2367
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_magazine_for_one"
     ]
    }
   ],
@@ -3999,6 +8265,13 @@
     "effects": [
      2367
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_wild_fire"
+    ]
    }
   ],
   "5410": [
@@ -4006,6 +8279,13 @@
     "field": "castAuraEffectId",
     "effects": [
      830
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_basic_grenade"
     ]
    }
   ],
@@ -4023,6 +8303,13 @@
     "effects": [
      830
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_grenades_dropping"
+    ]
    }
   ],
   "5413": [
@@ -4030,6 +8317,13 @@
     "field": "castAuraEffectId",
     "effects": [
      830
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_auto_firing_launcher"
     ]
    }
   ],
@@ -4039,6 +8333,13 @@
     "effects": [
      840
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_hidden_card"
+    ]
    }
   ],
   "5415": [
@@ -4046,6 +8347,13 @@
     "field": "castAuraEffectId",
     "effects": [
      840
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_nw_mission_bombard_hit"
     ]
    }
   ],
@@ -4055,6 +8363,13 @@
     "effects": [
      830
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_protection"
+    ]
    }
   ],
   "5419": [
@@ -4062,6 +8377,13 @@
     "field": "castAuraEffectId",
     "effects": [
      830
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_warrior"
     ]
    }
   ],
@@ -4071,6 +8393,13 @@
     "effects": [
      830
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_magician"
+    ]
    }
   ],
   "5421": [
@@ -4078,6 +8407,13 @@
     "field": "castAuraEffectId",
     "effects": [
      454
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_soul_gathering"
     ]
    }
   ],
@@ -4095,6 +8431,13 @@
     "effects": [
      830
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_five_elements"
+    ]
    }
   ],
   "5424": [
@@ -4102,6 +8445,13 @@
     "field": "castAuraEffectId",
     "effects": [
      441
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_soul_stealing"
     ]
    }
   ],
@@ -4111,6 +8461,13 @@
     "effects": [
      2367
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_exorcism_of_malicious_soul"
+    ]
    }
   ],
   "5426": [
@@ -4118,6 +8475,13 @@
     "field": "castAuraEffectId",
     "effects": [
      845
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_blue_dragon"
     ]
    }
   ],
@@ -4127,6 +8491,13 @@
     "effects": [
      843
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_white_tiger"
+    ]
    }
   ],
   "5428": [
@@ -4134,6 +8505,13 @@
     "field": "castAuraEffectId",
     "effects": [
      840
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_red_phoenix"
     ]
    }
   ],
@@ -4143,6 +8521,13 @@
     "effects": [
      2368
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_black_tortoise"
+    ]
    }
   ],
   "5430": [
@@ -4150,6 +8535,13 @@
     "field": "castAuraEffectId",
     "effects": [
      2369
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_talisman_of_four_bearing_god"
     ]
    }
   ],
@@ -4159,6 +8551,13 @@
     "effects": [
      1565
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_circle_of_directions_and_elementals"
+    ]
    }
   ],
   "5432": [
@@ -4166,6 +8565,22 @@
     "field": "castAuraEffectId",
     "effects": [
      1556
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_soa_soul_of_heaven_and_earth"
+    ]
+   }
+  ],
+  "5435": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_chul_ho_sonic_claw"
     ]
    }
   ],
@@ -4175,6 +8590,13 @@
     "effects": [
      840
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_howling_of_chul_ho"
+    ]
    }
   ],
   "5437": [
@@ -4182,6 +8604,13 @@
     "field": "castAuraEffectId",
     "effects": [
      840
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_hogogong_strike"
     ]
    }
   ],
@@ -4191,6 +8620,13 @@
     "effects": [
      58
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_ki_sul_water_spraying"
+    ]
    }
   ],
   "5440": [
@@ -4198,6 +8634,13 @@
     "field": "castAuraEffectId",
     "effects": [
      845
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_marine_festival_of_ki_sul"
     ]
    }
   ],
@@ -4207,6 +8650,13 @@
     "effects": [
      842
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_sandy_festival_of_ki_sul"
+    ]
    }
   ],
   "5442": [
@@ -4215,6 +8665,13 @@
     "effects": [
      831
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_ki_sul_rampage"
+    ]
    }
   ],
   "5444": [
@@ -4222,6 +8679,13 @@
     "field": "castAuraEffectId",
     "effects": [
      58
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_colors_of_hyun_rok"
     ]
    }
   ],
@@ -4239,6 +8703,13 @@
     "effects": [
      841
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_hyun_rok_cannon"
+    ]
    }
   ],
   "5447": [
@@ -4246,6 +8717,13 @@
     "field": "castAuraEffectId",
     "effects": [
      2367
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_temporary_communion"
     ]
    }
   ],
@@ -4255,6 +8733,13 @@
     "effects": [
      2367
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_sh_blessing_of_mystical_creatures"
+    ]
    }
   ],
   "5451": [
@@ -4262,6 +8747,22 @@
     "field": "castAuraEffectId",
     "effects": [
      12
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_doublebowlingbash"
+    ]
+   }
+  ],
+  "5452": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_mega_sonic_blow"
     ]
    }
   ],
@@ -4271,6 +8772,13 @@
     "effects": [
      58
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_shield_chain_rush"
+    ]
    }
   ],
   "5454": [
@@ -4278,6 +8786,45 @@
     "field": "castAuraEffectId",
     "effects": [
      502
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_spiral_pierce_max"
+    ]
+   }
+  ],
+  "5455": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cast_circle_red"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_meteor_storm_buster"
+    ]
+   }
+  ],
+  "5456": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cast_circle_yellow"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_jupitel_thunder_storm"
     ]
    }
   ],
@@ -4301,6 +8848,13 @@
     "effects": [
      1709
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_hells_drive"
+    ]
    }
   ],
   "5459": [
@@ -4318,6 +8872,13 @@
     "effects": [
      58
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_napalm_vulcan_strike"
+    ]
    }
   ],
   "5461": [
@@ -4325,6 +8886,13 @@
     "field": "castAuraEffectId",
     "effects": [
      2369
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_breakinglimit"
     ]
    }
   ],
@@ -4334,6 +8902,40 @@
     "effects": [
      2369
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_hn_rulebreak"
+    ]
+   }
+  ],
+  "5465": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_rising_sun"
+    ]
+   }
+  ],
+  "5466": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_noon_blast"
+    ]
+   }
+  ],
+  "5467": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_sunset_blast"
+    ]
    }
   ],
   "5469": [
@@ -4341,6 +8943,13 @@
     "field": "castAuraEffectId",
     "effects": [
      58
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_midnight_kick"
     ]
    }
   ],
@@ -4350,6 +8959,13 @@
     "effects": [
      58
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_dawn_break"
+    ]
    }
   ],
   "5471": [
@@ -4357,6 +8973,13 @@
     "field": "castAuraEffectId",
     "effects": [
      441
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_twinkling_galaxy"
     ]
    }
   ],
@@ -4366,6 +8989,13 @@
     "effects": [
      441
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_star_burst"
+    ]
    }
   ],
   "5473": [
@@ -4373,6 +9003,13 @@
     "field": "castAuraEffectId",
     "effects": [
      441
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_star_cannon"
     ]
    }
   ],
@@ -4382,6 +9019,13 @@
     "effects": [
      845
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_all_in_the_sky"
+    ]
    }
   ],
   "5475": [
@@ -4390,6 +9034,31 @@
     "effects": [
      831
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ske_enchanting_sky"
+    ]
+   }
+  ],
+  "5476": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_tokedasu"
+    ]
+   }
+  ],
+  "5477": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_shimiru"
+    ]
    }
   ],
   "5478": [
@@ -4397,6 +9066,13 @@
     "field": "castAuraEffectId",
     "effects": [
      934
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_akumukesu"
     ]
    }
   ],
@@ -4414,11 +9090,27 @@
     ]
    }
   ],
+  "5480": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kagegari"
+    ]
+   }
+  ],
   "5481": [
    {
     "field": "castAuraEffectId",
     "effects": [
      454
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kagenomai"
     ]
    }
   ],
@@ -4427,6 +9119,20 @@
     "field": "castAuraEffectId",
     "effects": [
      454
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kagegissen"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kagegissen_hit"
     ]
    }
   ],
@@ -4437,6 +9143,13 @@
      454,
      986
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_fuumashouaku"
+    ]
    }
   ],
   "5484": [
@@ -4445,6 +9158,13 @@
     "effects": [
      454,
      986
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_fuumakouchiku"
     ]
    }
   ],
@@ -4455,6 +9175,22 @@
      454,
      986
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kunaiwaikyoku"
+    ]
+   }
+  ],
+  "5486": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kunaikaiten"
+    ]
    }
   ],
   "5487": [
@@ -4464,6 +9200,68 @@
      454,
      986
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kunaikussetsu"
+    ]
+   }
+  ],
+  "5488": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cast_circle_red"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_sekienhou"
+    ]
+   }
+  ],
+  "5489": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cast_circle_blue"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_reiketsuhou"
+    ]
+   }
+  ],
+  "5490": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_raidenpou_cast"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_raidenpou"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_raidenpou_hit"
+    ]
    }
   ],
   "5491": [
@@ -4471,6 +9269,36 @@
     "field": "castAuraEffectId",
     "effects": [
      58
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kinryuuhou"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kinryuuhou_hit"
+    ]
+   }
+  ],
+  "5492": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_cast_circle_violet"
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_antenpou"
     ]
    }
   ],
@@ -4480,6 +9308,13 @@
     "effects": [
      812
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_kageakumu"
+    ]
    }
   ],
   "5494": [
@@ -4487,6 +9322,13 @@
     "field": "castAuraEffectId",
     "effects": [
      812
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_hitouakumu"
     ]
    }
   ],
@@ -4496,6 +9338,13 @@
     "effects": [
      812
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ss_ankokuryuuakumu"
+    ]
    }
   ],
   "6001": [
@@ -4503,6 +9352,20 @@
     "field": "castAuraEffectId",
     "effects": [
      12
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_dragonic_breath"
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_dk_dragonic_breath_hit"
     ]
    }
   ],
@@ -4512,6 +9375,13 @@
     "effects": [
      1938
     ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_spark_blaster"
+    ]
    }
   ],
   "6003": [
@@ -4519,6 +9389,31 @@
     "field": "castAuraEffectId",
     "effects": [
      1938
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_triple_laser"
+    ]
+   }
+  ],
+  "6004": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_mt_mighty_smash"
+    ]
+   }
+  ],
+  "6005": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_explosive_powder"
     ]
    }
   ],
@@ -4528,6 +9423,13 @@
     "effects": [
      2228,
      2229
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_bo_mayhemic_thorns"
     ]
    }
   ],
@@ -4685,6 +9587,7 @@
    {
     "field": "hitEffectId",
     "effects": [
+     0,
      1
     ]
    }
@@ -4739,10 +9642,32 @@
     "field": "effectId",
     "effects": [
      368
+    ],
+    "symbolic": [
+     "quake"
     ]
    }
   ],
   "8207": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     0
+    ]
+   },
+   {
+    "field": "firstHitEffectId",
+    "effects": [
+     1
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
    {
     "field": "damageEffectIdOnCaster",
     "effects": [
@@ -4752,9 +9677,24 @@
   ],
   "8208": [
    {
+    "field": "releaseEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
+   {
     "field": "hitEffectId",
     "effects": [
+     0,
      1
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_shower_target"
     ]
    }
   ],
@@ -4763,6 +9703,15 @@
     "field": "effectId",
     "effects": [
      69
+    ]
+   }
+  ],
+  "8210": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_ht_landmine"
     ]
    }
   ],
@@ -4792,6 +9741,12 @@
   ],
   "8214": [
    {
+    "field": "hitEffectId",
+    "effects": [
+     0
+    ]
+   },
+   {
     "field": "damageEffectIdOnCaster",
     "effects": [
      16
@@ -4799,6 +9754,20 @@
    }
   ],
   "8215": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "496_beforecast"
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [],
+    "symbolic": [
+     "ef_arrow_projectile"
+    ]
+   },
    {
     "field": "hitEffectId",
     "effects": [
@@ -4822,9 +9791,23 @@
   ],
   "8218": [
    {
+    "field": "beginCastEffectId",
+    "effects": [],
+    "symbolic": [
+     "339_beforecast"
+    ]
+   },
+   {
     "field": "effectId",
     "effects": [
      339
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [],
+    "symbolic": [
+     "spear_hit_sound"
     ]
    }
   ],
@@ -4921,6 +9904,69 @@
     "field": "effectId",
     "effects": [
      37
+    ]
+   }
+  ],
+  "8443": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_flametechnic"
+    ]
+   }
+  ],
+  "8444": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_flamearmor"
+    ]
+   }
+  ],
+  "8446": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_cold_force"
+    ]
+   }
+  ],
+  "8449": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_grace_breeze"
+    ]
+   }
+  ],
+  "8452": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_earth_care"
+    ]
+   }
+  ],
+  "8455": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_deep_poisoning"
+    ]
+   }
+  ],
+  "8457": [
+   {
+    "field": "effectId",
+    "effects": [],
+    "symbolic": [
+     "ef_em_el_deadly_poison"
     ]
    }
   ]

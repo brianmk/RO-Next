@@ -66,6 +66,7 @@ FIELDS = (
     "successEffectIdOnCaster",
     "successEffectIdOnCasterByLevel",
     "successEffectIdOnCasterByScreenDirection",
+    "successEffectIdOnCasterAimed",
     "successEffectIdOnTargetByLevel",
     "successEffectIdOnTargetByScreenSide",
     # release / just before the hit
@@ -74,6 +75,7 @@ FIELDS = (
     "beforeHitEffectIdOnCaster",
     # damage hit / caster damage
     "hitEffectId",
+    "firstHitEffectId",
     "hitEffectIdOnCaster",
     "damageEffectIdOnTarget",
     "damageEffectIdOnCaster",
@@ -108,10 +110,18 @@ def strip_comments(text: str) -> str:
 
 
 def numeric_ids(value: str) -> list[int]:
-    """Return the numeric effect ids of a JS field value (numbers or arrays)."""
-    ids = [int(number) for number in re.findall(r"\b(\d{1,4})\b", value)]
-    # Field values like `effectId: 0` mean the standard hit flash, not a file.
-    return [effect_id for effect_id in ids if effect_id != 0]
+    """Return the numeric effect ids of a JS field value (numbers or arrays).
+
+    Effect id 0 is the official "standard hit flash" and is kept as a fact; the
+    generator reports it explicitly (its visual is a hard-coded primitive, not
+    an effect-table file).
+    """
+    return [int(number) for number in re.findall(r"\b(\d{1,4})\b", value)]
+
+
+def symbolic_names(value: str) -> list[str]:
+    """Return the symbolic effect-block names referenced by a field value."""
+    return sorted(set(re.findall(r"'((?:[^'\\]|\\.)*)'", value)))
 
 
 def parse_skill_effects(text: str, skill_ids: dict[str, int]) -> dict[int, list[dict]]:
@@ -143,12 +153,19 @@ def parse_skill_effects(text: str, skill_ids: dict[str, int]) -> dict[int, list[
         body = resolve(symbol)
         fields: list[dict] = []
         for field in FIELDS:
-            field_match = re.search(rf"\b{field}\s*:\s*(\[[^\]]*\]|\d+)", body)
+            field_match = re.search(rf"\b{field}\s*:\s*(\[[^\]]*\]|'[^']*'|\d+)", body)
             if field_match is None:
                 continue
-            ids = numeric_ids(field_match.group(1))
-            if ids:
-                fields.append({"field": field, "effects": sorted(set(ids))})
+            value = field_match.group(1)
+            ids = numeric_ids(value)
+            names = symbolic_names(value)
+            # `effects` is always present (possibly empty) so consumers that
+            # predate symbolic references keep working unchanged.
+            entry: dict = {"field": field, "effects": sorted(set(ids))}
+            if names:
+                entry["symbolic"] = names
+            if ids or names:
+                fields.append(entry)
         if fields:
             result[skill_id] = fields
     return result
@@ -206,7 +223,7 @@ def main() -> int:
         "provenance": {
             "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, field names and file names are extracted",
             "url": FILES["skill_effect"],
-            "packetver_note": "extracted facts; validated against CondaRO.exe + GRFs by gen_skill_effect_assets.py",
+            "packetver_note": "extracted facts (numeric ids, symbolic named-effect references, field names, file names); validated against CondaRO.exe + the GRFs",
         },
         "skills": {str(skill_id): fields for skill_id, fields in sorted(skills.items())},
         "effects": {str(effect_id): files for effect_id, files in sorted(effects.items())},
