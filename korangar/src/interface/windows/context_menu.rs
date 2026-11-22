@@ -6,6 +6,7 @@ use ragnarok_packets::{InventoryIndex, ItemId};
 use rust_state::State;
 
 use crate::input::InputEvent;
+use crate::interface::resource::ItemSource;
 use crate::interface::windows::WindowClass;
 use crate::state::ClientState;
 use crate::state::inventory::ItemUseAction;
@@ -123,6 +124,9 @@ pub struct ItemContextMenuWindow {
     item_id: ItemId,
     action: Option<ItemUseAction>,
     storage_action: Option<ItemStorageAction>,
+    /// Where the item is located; decides which state the "View Info" action
+    /// reads.
+    source: ItemSource,
 }
 
 impl ItemContextMenuWindow {
@@ -132,7 +136,14 @@ impl ItemContextMenuWindow {
             item_id,
             action,
             storage_action: None,
+            source: ItemSource::Inventory,
         }
+    }
+
+    /// Select the state that the "View Info" action reads the item from.
+    pub fn with_source(mut self, source: ItemSource) -> Self {
+        self.source = source;
+        self
     }
 
     /// Add the Kafra storage entries to the menu (only possible while a storage
@@ -214,6 +225,7 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
         };
 
         let info_index = self.inventory_index;
+        let info_source = self.source;
 
         window! {
             title: "Item",
@@ -235,6 +247,7 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                         queue.queue(InputEvent::OpenItemInfo {
                             inventory_index: info_index,
+                            source: info_source,
                         });
                         queue.queue(InputEvent::CloseContextMenu);
                     },

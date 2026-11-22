@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use hashbrown::HashMap;
 #[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
-use korangar_networking::{InventoryItem, NoMetadata, ShopItem};
+use korangar_networking::{InventoryItem, InventoryItemDetails, NoMetadata, ShopItem};
 use ragnarok_packets::{ClientTick, EntityId, ItemId, JobId, SkillId, TilePosition};
 use rayon::{ThreadPool, ThreadPoolBuilder};
 
@@ -19,7 +19,7 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 use crate::threads;
 use crate::world::{
     Actions, AnimationData, EntityType, ItemInfo, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
-    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState,
+    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, item_tooltip_text, resolve_card_names,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -228,18 +228,37 @@ impl AsyncLoader {
         });
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
-        let name = self.library.item_name(item.item_id, is_identified).into_owned();
         let stats = *self.library.get::<ItemStats>(item.item_id);
-        let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
+        let item_info = self.library.get::<ItemInfo>(item.item_id);
+        let description = item_info.description().to_vec();
+        let slot_count = self.library.item_slot_count(item.item_id);
+        let refinement_level = match &item.details {
+            InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
+            InventoryItemDetails::Regular { .. } => 0,
+        };
+        // The displayed name composes the refinement level and the slotted
+        // cards, like the official client. Cards and random options are not
+        // part of the item description; the card names have to be resolved
+        // here, where the item data is available.
+        let name = self
+            .library
+            .composed_item_name(item.item_id, is_identified, refinement_level, &item.slot);
+        let card_names = resolve_card_names(&self.library, &item);
 
         let metadata = ResourceMetadata {
             texture,
             name,
             stats,
             description,
+            card_names,
+            slot_count,
+            tooltip_text: Default::default(),
         };
 
-        InventoryItem { metadata, ..item }
+        // Compose the tooltip once; the interface only clones the cache.
+        let mut item = InventoryItem { metadata, ..item };
+        item.metadata.tooltip_text = item_tooltip_text(&item).into();
+        item
     }
 
     pub fn request_shop_item_metadata_load(&self, item: ShopItem<NoMetadata>) -> ShopItem<ResourceMetadata> {
@@ -249,15 +268,21 @@ impl AsyncLoader {
         });
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
-        let name = self.library.item_name(item.item_id, true).into_owned();
         let stats = *self.library.get::<ItemStats>(item.item_id);
-        let description = self.library.get::<ItemInfo>(item.item_id).description().to_vec();
+        let item_info = self.library.get::<ItemInfo>(item.item_id);
+        let description = item_info.description().to_vec();
+        let slot_count = self.library.item_slot_count(item.item_id);
+        // Shop items are plain item records without cards or refinement.
+        let name = self.library.composed_item_name(item.item_id, true, 0, &[0; 4]);
 
         let metadata = ResourceMetadata {
             texture,
-            name,
+            name: name.clone(),
             stats,
             description,
+            card_names: std::array::from_fn(|_| None),
+            slot_count,
+            tooltip_text: name.into(),
         };
 
         ShopItem { metadata, ..item }

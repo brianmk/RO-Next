@@ -9,9 +9,11 @@
 //! * `0x0984` (`ZC_EFST_SET_ENTER`) - active statuses are sent again when the
 //!   client enters the map or when a buffed entity enters the view.
 //!
-//! This module keeps the player's active status effects and their timers in the
-//! [`ClientState`](crate::state::ClientState) so that the buff bar can render
-//! them and count them down locally between packets.
+//! This module keeps the active status effects of all entities in the view and
+//! their timers in the [`ClientState`](crate::state::ClientState) so that the
+//! buff bar can render the player's effects and count them down locally between
+//! packets. Effects of other entities are tracked as well (the server sends
+//! area status packets); the buff bar only displays the player's own effects.
 
 use std::sync::Arc;
 
@@ -157,6 +159,65 @@ pub fn status_effect_definition(status_index: u16) -> StatusEffectDefinition {
     }
 }
 
+/// Element ids as sent by the 2019 server for elemental weapon enchantments.
+const ELEMENT_NAMES: [&str; 10] = [
+    "Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead",
+];
+
+/// Format the server-side values of a status effect for the buff tooltip.
+///
+/// Most status effects do not send values (`value1`..`value3` are zero). The
+/// handful that do use them for a meaningful property; those are labelled
+/// here (the status indices are the `EFST_*` ids of the client data). For every
+/// other status a generic value line is shown when the server sent a non-zero
+/// value, so that the data is never silently dropped.
+///
+/// The status ids with values are the ones rAthena marks with `SendVal*` in
+/// its status change database: weapon enchant (element), cash exp/item/job-exp
+/// boosts, push cart and monster transform.
+pub fn status_effect_value_lines(status_index: u16, values: [i32; 3]) -> Vec<String> {
+    if values.iter().all(|value| *value == 0) {
+        return Vec::new();
+    }
+
+    let first_value = values[0];
+
+    match status_index {
+        // EFST_WEAPONPROPERTY (`Enchantarms`): value 1 is the element.
+        64 => {
+            let element = usize::try_from(first_value)
+                .ok()
+                .and_then(|element| ELEMENT_NAMES.get(element))
+                .copied()
+                .unwrap_or("Unknown");
+
+            vec![format!("Element: {element}")]
+        }
+        // EFST_CASH_PLUSEXP (`Expboost`): value 1 is the boost percentage.
+        250 => vec![format!("Base EXP boost: {first_value}%")],
+        // EFST_CASH_RECEIVEITEM (`Itemboost`): value 1 is the boost percentage.
+        252 => vec![format!("Item drop boost: {first_value}%")],
+        // EFST_CASH_PLUSONLYJOBEXP (`Jexpboost`): value 1 is the boost
+        // percentage.
+        312 => vec![format!("Job EXP boost: {first_value}%")],
+        // EFST_ON_PUSH_CART (`Push_Cart`): value 1 is the cart type.
+        673 => vec![format!("Push cart: {first_value}")],
+        // EFST_MONSTER_TRANSFORM / EFST_ACTIVE_MONSTER_TRANSFORM: value 1 is
+        // the monster job id.
+        621 | 665 => vec![format!("Monster transform: #{first_value}")],
+        _ => {
+            let values = values
+                .iter()
+                .filter(|value| **value != 0)
+                .map(i32::to_string)
+                .collect::<Vec<_>>()
+                .join(" / ");
+
+            vec![format!("Value: {values}")]
+        }
+    }
+}
+
 /// One active status effect of the player.
 #[derive(Clone, Default, RustState, StateElement)]
 pub struct StatusEffect {
@@ -170,12 +231,33 @@ pub struct StatusEffect {
     total_duration_in_milliseconds: u32,
     /// Remaining duration at [`Self::started_at_client_tick`].
     remaining_in_milliseconds: u32,
+    /// Server-side status values (`val1`..`val3`), zero for statuses that do
+    /// not send any.
+    values: [i32; 3],
     started_at_client_tick: u64,
 }
 
 impl StatusEffect {
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn entity_id(&self) -> u32 {
+        self.entity_id
+    }
+
+    pub fn status_index(&self) -> u16 {
+        self.status_index
+    }
+
+    /// The server-side status values (`val1`..`val3`).
+    pub fn values(&self) -> [i32; 3] {
+        self.values
+    }
+
+    /// Display lines of the status-specific values, shown in the buff tooltip.
+    pub fn value_lines(&self) -> Vec<String> {
+        status_effect_value_lines(self.status_index(), self.values())
     }
 
     pub fn icon(&self) -> Option<&Arc<Texture>> {
@@ -234,6 +316,7 @@ impl StatusEffects {
         active: bool,
         total_duration_in_milliseconds: u32,
         remaining_in_milliseconds: u32,
+        values: [i32; 3],
         client_tick: u64,
         name: String,
         icon: Option<Arc<Texture>>,
@@ -257,6 +340,7 @@ impl StatusEffects {
                 effect.icon = icon;
                 effect.total_duration_in_milliseconds = total_duration_in_milliseconds;
                 effect.remaining_in_milliseconds = remaining_in_milliseconds;
+                effect.values = values;
                 effect.started_at_client_tick = client_tick;
             }
             None => self.effects.push(StatusEffect {
@@ -266,6 +350,7 @@ impl StatusEffects {
                 icon,
                 total_duration_in_milliseconds,
                 remaining_in_milliseconds,
+                values,
                 started_at_client_tick: client_tick,
             }),
         }
@@ -295,18 +380,19 @@ impl StatusEffects {
         &self.effects
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.effects.is_empty()
-    }
-
-    pub fn len(&self) -> usize {
-        self.effects.len()
+    /// Whether the given entity has no active status effects.
+    ///
+    /// The state tracks the effects of every entity in the view, so the buff
+    /// bar has to ask for the player's own entity specifically when deciding
+    /// whether it should be visible.
+    pub fn is_empty_for(&self, entity_id: u32) -> bool {
+        !self.effects.iter().any(|effect| effect.entity_id == entity_id)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{StatusEffects, status_effect_definition};
+    use super::{StatusEffects, status_effect_definition, status_effect_value_lines};
 
     #[test]
     fn known_buffs_have_names_and_icons() {
@@ -325,8 +411,22 @@ mod tests {
     }
 
     fn apply(effects: &mut StatusEffects, index: u16, active: bool, total: u32, remaining: u32, tick: u64) {
+        apply_with_values(effects, index, active, total, remaining, [0; 3], tick);
+    }
+
+    fn apply_with_values(effects: &mut StatusEffects, index: u16, active: bool, total: u32, remaining: u32, values: [i32; 3], tick: u64) {
         let definition = status_effect_definition(index);
-        effects.apply(1, index, active, total, remaining, tick, definition.name.to_owned(), None);
+        effects.apply(
+            1,
+            index,
+            active,
+            total,
+            remaining,
+            values,
+            tick,
+            definition.name.to_owned(),
+            None,
+        );
     }
 
     #[test]
@@ -334,18 +434,18 @@ mod tests {
         let mut effects = StatusEffects::default();
         apply(&mut effects, 10, true, 60_000, 60_000, 0);
 
-        assert_eq!(effects.len(), 1);
+        assert_eq!(effects.effects().len(), 1);
         assert_eq!(effects.effects()[0].name(), "Blessing");
         assert_eq!(effects.effects()[0].remaining_in_seconds(30_000), Some(30));
 
         // A refresh resets the timer and doesn't duplicate the entry.
         apply(&mut effects, 10, true, 60_000, 45_000, 30_000);
-        assert_eq!(effects.len(), 1);
+        assert_eq!(effects.effects().len(), 1);
         assert_eq!(effects.effects()[0].remaining_in_seconds(30_000), Some(45));
 
         // Ending the status removes it immediately.
         apply(&mut effects, 10, false, 0, 0, 31_000);
-        assert!(effects.is_empty());
+        assert!(effects.effects().is_empty());
     }
 
     #[test]
@@ -353,14 +453,14 @@ mod tests {
         let mut effects = StatusEffects::default();
         apply(&mut effects, 2, true, 0, 0, 0);
 
-        assert_eq!(effects.len(), 1);
+        assert_eq!(effects.effects().len(), 1);
         assert!(!effects.effects()[0].has_timer());
         assert_eq!(effects.effects()[0].remaining_in_seconds(10_000_000), None);
         effects.update(10_000_000);
-        assert_eq!(effects.len(), 1);
+        assert_eq!(effects.effects().len(), 1);
 
         apply(&mut effects, 2, false, 0, 0, 10_000_000);
-        assert!(effects.is_empty());
+        assert!(effects.effects().is_empty());
     }
 
     #[test]
@@ -369,10 +469,10 @@ mod tests {
         apply(&mut effects, 12, true, 10_000, 10_000, 0);
 
         effects.update(9_000);
-        assert_eq!(effects.len(), 1);
+        assert_eq!(effects.effects().len(), 1);
 
         effects.update(10_000);
-        assert!(effects.is_empty());
+        assert!(effects.effects().is_empty());
     }
 
     #[test]
@@ -382,6 +482,56 @@ mod tests {
         apply(&mut effects, 12, true, 60_000, 60_000, 0);
 
         effects.clear();
-        assert!(effects.is_empty());
+        assert!(effects.effects().is_empty());
+    }
+
+    #[test]
+    fn status_values_are_stored_and_updated() {
+        let mut effects = StatusEffects::default();
+        apply_with_values(&mut effects, 64, true, 60_000, 60_000, [3, 0, 0], 0);
+
+        assert_eq!(effects.effects()[0].values(), [3, 0, 0]);
+        assert_eq!(effects.effects()[0].value_lines(), vec!["Element: Fire".to_owned()]);
+
+        // A refresh with new values updates the stored values.
+        apply_with_values(&mut effects, 64, true, 60_000, 50_000, [1, 0, 0], 10_000);
+        assert_eq!(effects.effects().len(), 1);
+        assert_eq!(effects.effects()[0].values(), [1, 0, 0]);
+    }
+
+    #[test]
+    fn status_value_lines_label_known_statuses() {
+        assert_eq!(status_effect_value_lines(64, [3, 0, 0]), vec!["Element: Fire".to_owned()]);
+        assert_eq!(status_effect_value_lines(64, [99, 0, 0]), vec!["Element: Unknown".to_owned()]);
+        assert_eq!(status_effect_value_lines(250, [50, 0, 0]), vec![
+            "Base EXP boost: 50%".to_owned()
+        ]);
+        assert_eq!(status_effect_value_lines(252, [10, 0, 0]), vec![
+            "Item drop boost: 10%".to_owned()
+        ]);
+        assert_eq!(status_effect_value_lines(312, [25, 0, 0]), vec![
+            "Job EXP boost: 25%".to_owned()
+        ]);
+        assert_eq!(status_effect_value_lines(621, [1002, 0, 0]), vec![
+            "Monster transform: #1002".to_owned()
+        ]);
+    }
+
+    #[test]
+    fn status_value_lines_fall_back_to_raw_values() {
+        assert_eq!(status_effect_value_lines(1234, [5, 0, 7]), vec!["Value: 5 / 7".to_owned()]);
+        assert!(status_effect_value_lines(1234, [0, 0, 0]).is_empty());
+    }
+
+    #[test]
+    fn statuses_of_other_entities_are_kept_separately() {
+        let mut effects = StatusEffects::default();
+        let definition = status_effect_definition(10);
+        effects.apply(1, 10, true, 60_000, 60_000, [0; 3], 0, definition.name.to_owned(), None);
+        effects.apply(2, 10, true, 60_000, 60_000, [0; 3], 0, definition.name.to_owned(), None);
+
+        assert_eq!(effects.effects().len(), 2);
+        assert_eq!(effects.effects()[0].entity_id(), 1);
+        assert_eq!(effects.effects()[1].entity_id(), 2);
     }
 }

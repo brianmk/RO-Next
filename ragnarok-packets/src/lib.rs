@@ -1185,11 +1185,17 @@ pub struct ItemOptions {
 }
 
 bitflags::bitflags! {
+    /// Flags of a regular (stackable) item row (`NORMALITEM_INFO`).
+    ///
+    /// For PACKETVER 2019 the server fills the second flag bit with the
+    /// *favorite* mark of the item (`clif.cpp`: `Flag.PlaceETCTab =
+    /// it->favorite ? 1 : 0`), which is what the official client displays as
+    /// the item's star.
     #[derive(Debug, Clone)]
     #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
     pub struct RegularItemFlags: u8 {
         const IDENTIFIED = 0b01;
-        const IN_ETC_TAB = 0b10;
+        const FAVORITE = 0b10;
     }
 }
 
@@ -1235,12 +1241,16 @@ pub struct RegularItemListPacket {
 }
 
 bitflags::bitflags! {
+    /// Flags of an equippable item row (`EQUIPITEM_INFO`).
+    ///
+    /// The 2019 server sends the *favorite* mark in the third flag bit
+    /// (`clif.cpp`: `Flag.PlaceETCTab = it->favorite ? 1 : 0`).
     #[derive(Debug, Clone)]
     #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
     pub struct EquippableItemFlags: u8 {
         const IDENTIFIED = 0b001;
         const IS_BROKEN = 0b010;
-        const IN_ETC_TAB = 0b110;
+        const FAVORITE = 0b100;
     }
 }
 

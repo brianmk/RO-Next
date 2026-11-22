@@ -1,15 +1,21 @@
 //! Window that shows the details of an inventory item, including the raw item
 //! description from the client item data.
+//!
+//! Besides the description and the stats evaluated from it, the window lists
+//! the details that only the server knows about: the refinement level, the
+//! cards that are slotted into the item and its random options (see
+//! [`crate::world::item_detail_lines`]).
 
 use korangar_interface::element::Element;
 use korangar_interface::window::{CustomWindow, Window};
+use korangar_networking::InventoryItem;
 
 use crate::graphics::Color;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::state::ClientState;
 use crate::state::theme::InterfaceThemeType;
-use crate::world::{ItemStats, StatBonuses};
+use crate::world::{ItemStats, ResourceMetadata, StatBonuses, item_detail_lines};
 
 /// Width of the item info window.
 const ITEM_INFO_WIDTH: f32 = 420.0;
@@ -56,16 +62,19 @@ pub struct ItemInfoWindow {
     category: String,
     stats: ItemStats,
     description: String,
+    /// Refinement level, cards and random options of the item.
+    details: Vec<String>,
 }
 
 impl ItemInfoWindow {
-    pub fn new(name: String, identified: bool, category: String, stats: ItemStats, description: String) -> Self {
+    pub fn new(item: &InventoryItem<ResourceMetadata>, category: String) -> Self {
         Self {
-            name,
-            identified,
+            name: item.metadata.name.clone(),
+            identified: item.is_identified(),
             category,
-            stats,
-            description,
+            stats: item.metadata.stats,
+            description: item.metadata.description.join("\n"),
+            details: item_detail_lines(item),
         }
     }
 }
@@ -114,6 +123,8 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
         let required_level = self.stats.required_level.to_string();
         let bonuses = format_bonuses(&self.stats.bonuses);
         let description = self.description;
+        let has_details = !self.details.is_empty();
+        let details = self.details.join("\n");
 
         window! {
             title: self.name,
@@ -132,6 +143,25 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                 row("Defense".to_owned(), defense),
                 row("Required level".to_owned(), required_level),
                 row("Bonuses".to_owned(), bonuses),
+                either! {
+                    selector: ComputedSelector::new_default(move |_: &ClientState| has_details),
+                    on_true: split! {
+                        gaps: theme().window().gaps(),
+                        children: (
+                            text! {
+                                text: "Cards & random options",
+                                height: 18.0,
+                                color: Color::rgb_u8(255, 160, 60),
+                                overflow_behavior: OverflowBehavior::Shrink,
+                            },
+                            text! {
+                                text: details.clone(),
+                                overflow_behavior: OverflowBehavior::LineBreak,
+                            },
+                        ),
+                    },
+                    on_false: EmptyElement,
+                },
                 text! {
                     text: "Description",
                     height: 18.0,

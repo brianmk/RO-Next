@@ -2221,7 +2221,13 @@ impl Client {
             status_effects.update(client_tick.0 as u64);
         }
 
-        let is_empty = self.client_state.follow(client_state().status_effects()).is_empty();
+        // The status effect state tracks all entities in the view, but the buff
+        // bar is only shown for the player's own effects.
+        let own_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id().0);
+        let is_empty = match own_entity_id {
+            Some(entity_id) => self.client_state.follow(client_state().status_effects()).is_empty_for(entity_id),
+            None => true,
+        };
         let is_open = self.interface.is_window_with_class_open(WindowClass::BuffBar);
 
         match (is_empty, is_open) {
@@ -3090,15 +3096,11 @@ impl Client {
                     active,
                     total_duration_in_milliseconds,
                     remaining_in_milliseconds,
+                    values,
                 } => {
-                    // The buff bar only shows the player's own status effects. Status
-                    // effects of other entities are currently not displayed.
-                    let own_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id());
-
-                    if own_entity_id != Some(entity_id) {
-                        continue;
-                    }
-
+                    // Status effects of all entities are tracked (the server sends
+                    // area status packets); the buff bar only displays the player's
+                    // own effects.
                     let definition = status_effect_definition(status_index);
                     let icon = match (active, definition.icon_path()) {
                         (true, Some(path)) => match self.texture_loader.get_or_load(&path, ImageType::Color) {
@@ -3122,6 +3124,7 @@ impl Client {
                         active,
                         total_duration_in_milliseconds,
                         remaining_in_milliseconds,
+                        values,
                         client_tick,
                         definition.name.to_owned(),
                         icon,
@@ -3903,6 +3906,9 @@ impl Client {
                             let texture = inventory_item.metadata.texture.clone();
                             let stats = inventory_item.metadata.stats;
                             let description = inventory_item.metadata.description.clone();
+                            let card_names = inventory_item.metadata.card_names.clone();
+                            let slot_count = inventory_item.metadata.slot_count;
+                            let tooltip_text = inventory_item.metadata.tooltip_text.clone();
                             let quantity = match &inventory_item.details {
                                 korangar_networking::InventoryItemDetails::Regular { amount, .. } => *amount,
                                 korangar_networking::InventoryItemDetails::Equippable { .. } => 1,
@@ -3915,6 +3921,9 @@ impl Client {
                                         texture,
                                         stats,
                                         description,
+                                        card_names,
+                                        slot_count,
+                                        tooltip_text,
                                     },
                                     quantity,
                                 ),
@@ -4498,8 +4507,8 @@ impl Client {
                         }
                     }
                 }
-                InputEvent::OpenItemInfo { inventory_index } => {
-                    open_item_info_window(&self.client_state, &mut self.interface, inventory_index);
+                InputEvent::OpenItemInfo { inventory_index, source } => {
+                    open_item_info_window(&self.client_state, &mut self.interface, inventory_index, source);
                 }
                 InputEvent::CloseItemInfo => {
                     self.interface.close_window_with_class(WindowClass::ItemInfo);
@@ -6640,10 +6649,12 @@ fn open_storage_item_menu(
 
     interface.close_window_with_class(WindowClass::ContextMenu);
     interface.open_window_at(
-        ItemContextMenuWindow::new(storage_index, item.item_id, None).with_storage_action(Some(ItemStorageAction::Withdraw {
-            storage_index,
-            amount: item_amount(item),
-        })),
+        ItemContextMenuWindow::new(storage_index, item.item_id, None)
+            .with_source(ItemSource::Storage)
+            .with_storage_action(Some(ItemStorageAction::Withdraw {
+                storage_index,
+                amount: item_amount(item),
+            })),
         position,
     );
 }
@@ -6657,25 +6668,34 @@ fn item_amount(item: &korangar_networking::InventoryItem<ResourceMetadata>) -> u
     }
 }
 
-/// Open the info window of the inventory item with the given inventory index.
-fn open_item_info_window(state: &State<ClientState>, interface: &mut Interface<'static, ClientState>, inventory_index: InventoryIndex) {
-    let items = state.follow(client_state().inventory().items());
+/// Open the info window of the inventory or Kafra storage item with the given
+/// index.
+///
+/// The item info window shows the same details for both sources: the item
+/// description, the refinement level, the slotted cards and the random
+/// options (the storage rows carry the same packet data as the inventory
+/// rows).
+fn open_item_info_window(
+    state: &State<ClientState>,
+    interface: &mut Interface<'static, ClientState>,
+    inventory_index: InventoryIndex,
+    source: ItemSource,
+) {
+    let items = match source {
+        // Equipped items are part of the inventory item list as well.
+        ItemSource::Inventory | ItemSource::Equipment { .. } => state.follow(client_state().inventory().items()),
+        ItemSource::Storage => state.follow(client_state().storage().items()),
+    };
+
     let Some(item) = items.iter().find(|item| item.index == inventory_index) else {
         return;
     };
 
     let category = item_category(item);
     let category_label = item_category_label(state, category);
-    let description = item.metadata.description.join("\n");
 
     interface.close_window_with_class(WindowClass::ItemInfo);
-    interface.open_window(ItemInfoWindow::new(
-        item.metadata.name.clone(),
-        item.is_identified(),
-        category_label,
-        item.metadata.stats,
-        description,
-    ));
+    interface.open_window(ItemInfoWindow::new(item, category_label));
 }
 
 /// Returns `true` if the given environment variable is set to a truthy value.
