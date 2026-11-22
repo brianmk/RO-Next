@@ -5215,7 +5215,14 @@ impl Client {
                     }
                 }
                 InputEvent::OpenItemInfo { inventory_index, source } => {
-                    open_item_info_window(&self.client_state, &mut self.interface, inventory_index, source);
+                    open_item_info_window(
+                        &self.client_state,
+                        &mut self.interface,
+                        inventory_index,
+                        source,
+                        &self.library,
+                        &self.texture_loader,
+                    );
                 }
                 InputEvent::CloseItemInfo => {
                     self.interface.close_window_with_class(WindowClass::ItemInfo);
@@ -7478,6 +7485,8 @@ fn open_item_info_window(
     interface: &mut Interface<'static, ClientState>,
     inventory_index: InventoryIndex,
     source: ItemSource,
+    library: &Library,
+    texture_loader: &TextureLoader,
 ) {
     let items = match source {
         // Equipped items are part of the inventory item list as well.
@@ -7492,8 +7501,63 @@ fn open_item_info_window(
     let category = item_category(item);
     let category_label = item_category_label(state, category);
 
+    let artwork = load_item_artwork(library, texture_loader, item);
+    let card_icons = load_item_card_icons(library, texture_loader, item);
+
     interface.close_window_with_class(WindowClass::ItemInfo);
-    interface.open_window(ItemInfoWindow::new(item, category_label));
+    interface.open_window(ItemInfoWindow::new(item, category_label, artwork, card_icons));
+}
+
+/// Loads the large artwork (collection image) of an item for the item display
+/// window. Falls back to the small inventory icon when the collection image is
+/// missing.
+fn load_item_artwork(
+    library: &Library,
+    texture_loader: &TextureLoader,
+    item: &korangar_networking::InventoryItem<ResourceMetadata>,
+) -> Option<Arc<Texture>> {
+    let resource = library.get::<ItemResource>(ItemResourceKey {
+        item_id: item.item_id,
+        is_identified: item.is_identified(),
+    });
+    let path = format!("유저인터페이스\\collection\\{resource}.bmp");
+
+    texture_loader
+        .get_or_load(&path, ImageType::Color)
+        .ok()
+        .or_else(|| item.metadata.texture.clone())
+}
+
+/// Loads the small card item icons of the item's card slots for the item
+/// display window.
+///
+/// Unidentified items hide their cards, so no icons are loaded for them.
+/// Unknown card ids resolve to `None` and the window draws a generic filled
+/// slot instead.
+fn load_item_card_icons(
+    library: &Library,
+    texture_loader: &TextureLoader,
+    item: &korangar_networking::InventoryItem<ResourceMetadata>,
+) -> [Option<Arc<Texture>>; CARD_SLOT_COUNT] {
+    if !item.is_identified() {
+        return std::array::from_fn(|_| None);
+    }
+
+    std::array::from_fn(|slot| {
+        let card_id = item.slot[slot];
+
+        if card_id == 0 {
+            return None;
+        }
+
+        let resource = library.get::<ItemResource>(ItemResourceKey {
+            item_id: ItemId(card_id),
+            is_identified: true,
+        });
+        let path = format!("유저인터페이스\\item\\{resource}.bmp");
+
+        texture_loader.get_or_load(&path, ImageType::Color).ok()
+    })
 }
 
 /// Returns `true` if the given environment variable is set to a truthy value.

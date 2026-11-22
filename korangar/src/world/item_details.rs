@@ -42,29 +42,55 @@ pub fn resolve_card_names(library: &Library, item: &InventoryItem<NoMetadata>) -
     })
 }
 
-/// Number of card slots that are shown for an item.
-///
-/// The client data (`slotCount` in `iteminfo.lub`) is authoritative. If the
-/// server sends cards for a slot that the item data does not know about, the
-/// slot is still shown so that no socketed card is hidden.
-pub fn visible_card_slot_count(metadata: &ResourceMetadata) -> usize {
-    let highest_used_slot = metadata
-        .card_names
-        .iter()
-        .rposition(Option::is_some)
-        .map(|slot| slot + 1)
-        .unwrap_or(0);
-
-    usize::from(metadata.slot_count).max(highest_used_slot).min(CARD_SLOT_COUNT)
+/// State of one of the four card slots of an item in the item description.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CardSlotState {
+    /// A card is slotted into this slot (the card name/icon is available).
+    Filled,
+    /// The item has this card slot but nothing is slotted into it.
+    Empty,
+    /// The item does not have this card slot (slot index >= `slotCount`).
+    Unavailable,
 }
 
-/// One display line per visible card slot, e.g. `Slot 1: Poring Card`;
-/// empty slots are shown as `Slot 2: —`.
+/// Whether the item description should show the card slot row.
+///
+/// Equipment with card slots always shows all four slots (filled / empty /
+/// grayed out). Items without any card slots do not show a slot row.
+pub fn shows_card_slots(metadata: &ResourceMetadata) -> bool {
+    metadata.slot_count > 0 || metadata.card_names.iter().any(Option::is_some)
+}
+
+/// State of the card slot at the given index (0..4).
+///
+/// A card that the server sent is always shown as filled, even if the client
+/// item data claims a lower slot count, so no socketed card can be hidden.
+pub fn card_slot_state(metadata: &ResourceMetadata, slot: usize) -> CardSlotState {
+    if metadata.card_names.get(slot).is_some_and(Option::is_some) {
+        return CardSlotState::Filled;
+    }
+
+    match slot < usize::from(metadata.slot_count) {
+        true => CardSlotState::Empty,
+        false => CardSlotState::Unavailable,
+    }
+}
+
+/// One display line per card slot, e.g. `Slot 1: Poring Card`,
+/// `Slot 2: empty socket` or `Slot 4: unavailable`.
 pub fn card_slot_lines(metadata: &ResourceMetadata) -> Vec<String> {
-    (0..visible_card_slot_count(metadata))
+    (0..CARD_SLOT_COUNT)
         .map(|slot| {
-            let card_name = metadata.card_names[slot].as_deref().unwrap_or("—");
-            format!("Slot {}: {card_name}", slot + 1)
+            let number = slot + 1;
+
+            match card_slot_state(metadata, slot) {
+                CardSlotState::Filled => {
+                    let card_name = metadata.card_names[slot].as_deref().unwrap_or("—");
+                    format!("Slot {number}: {card_name}")
+                }
+                CardSlotState::Empty => format!("Slot {number}: empty socket"),
+                CardSlotState::Unavailable => format!("Slot {number}: unavailable"),
+            }
         })
         .collect()
 }
@@ -108,13 +134,36 @@ pub fn item_detail_lines(item: &InventoryItem<ResourceMetadata>) -> Vec<String> 
         return Vec::new();
     }
 
-    let mut lines = card_slot_lines(&item.metadata);
+    let mut lines = Vec::new();
+
+    if shows_card_slots(&item.metadata) {
+        lines.extend(card_slot_lines(&item.metadata));
+    }
+
     lines.extend(random_option_lines(&item.details));
     lines
 }
 
+/// Appends the item description to a tooltip text.
+fn push_description(text: &mut String, metadata: &ResourceMetadata) {
+    if metadata.description.is_empty() {
+        return;
+    }
+
+    text.push_str("\n\n");
+
+    for (index, line) in metadata.description.iter().enumerate() {
+        if index != 0 {
+            text.push('\n');
+        }
+
+        text.push_str(line);
+    }
+}
+
 /// Tooltip text of an item: its composed display name followed by one line per
-/// card slot, the random options and the favorite mark.
+/// card slot, the random options, the favorite mark and the full item
+/// description.
 pub fn item_tooltip_text(item: &InventoryItem<ResourceMetadata>) -> String {
     let mut text = item.metadata.name.clone();
 
@@ -126,6 +175,8 @@ pub fn item_tooltip_text(item: &InventoryItem<ResourceMetadata>) -> String {
     if item.is_favorite() {
         text.push_str("\nFavorite item");
     }
+
+    push_description(&mut text, &item.metadata);
 
     text
 }
@@ -244,33 +295,50 @@ mod tests {
     }
 
     #[test]
-    fn card_slots_show_names_and_empty_slots() {
-        let card_names: CardNames = [Some("Poring Card".to_owned()), None, Some("Item #4002".to_owned()), None];
-        let metadata = metadata_with(card_names, 4);
+    fn card_slot_states_cover_filled_empty_and_unavailable() {
+        // Two-slot item with a card in slot 1: slot 2 is a normal empty socket,
+        // slots 3 and 4 are unavailable/grayed out.
+        let card_names: CardNames = [Some("Poring Card".to_owned()), None, None, None];
+        let metadata = metadata_with(card_names, 2);
 
+        assert!(shows_card_slots(&metadata));
+        assert_eq!(card_slot_state(&metadata, 0), CardSlotState::Filled);
+        assert_eq!(card_slot_state(&metadata, 1), CardSlotState::Empty);
+        assert_eq!(card_slot_state(&metadata, 2), CardSlotState::Unavailable);
+        assert_eq!(card_slot_state(&metadata, 3), CardSlotState::Unavailable);
         assert_eq!(card_slot_lines(&metadata), vec![
             "Slot 1: Poring Card".to_owned(),
-            "Slot 2: —".to_owned(),
-            "Slot 3: Item #4002".to_owned(),
-            "Slot 4: —".to_owned(),
+            "Slot 2: empty socket".to_owned(),
+            "Slot 3: unavailable".to_owned(),
+            "Slot 4: unavailable".to_owned(),
         ]);
     }
 
     #[test]
-    fn card_slots_use_the_item_slot_count_and_never_hide_a_card() {
+    fn card_slots_always_show_four_entries_and_never_hide_a_card() {
         let card_names: CardNames = [None, None, Some("Poring Card".to_owned()), None];
 
-        // The item data says two slots but the server sent a card in slot 3.
+        // The item data says two slots but the server sent a card in slot 3:
+        // the card is still shown as filled (and slot 4 stays unavailable).
         let metadata = metadata_with(card_names, 2);
-        assert_eq!(card_slot_lines(&metadata), vec![
-            "Slot 1: —".to_owned(),
-            "Slot 2: —".to_owned(),
-            "Slot 3: Poring Card".to_owned()
-        ]);
+        let lines = card_slot_lines(&metadata);
 
-        // Items without card slots and without cards show nothing.
+        assert_eq!(lines.len(), 4);
+        assert_eq!(lines[2], "Slot 3: Poring Card");
+        assert_eq!(lines[3], "Slot 4: unavailable");
+
+        // Items without card slots and without cards do not show a slot row.
         let metadata = metadata_with(no_cards(), 0);
-        assert!(card_slot_lines(&metadata).is_empty());
+        assert!(!shows_card_slots(&metadata));
+        assert!(card_slot_lines(&metadata).iter().all(|line| line.ends_with("unavailable")));
+    }
+
+    #[test]
+    fn unslotted_items_have_no_card_slot_row_in_the_tooltip() {
+        let mut item = equippable(0, std::array::from_fn(|_| empty_option()), no_cards(), 0);
+        item.metadata.description = vec!["A potion.".to_owned()];
+
+        assert_eq!(item_tooltip_text(&item), "Test Sword\n\nA potion.");
     }
 
     #[test]
@@ -285,26 +353,29 @@ mod tests {
 
         assert_eq!(item_detail_lines(&item), vec![
             "Slot 1: Poring Card".to_owned(),
-            "Slot 2: —".to_owned(),
+            "Slot 2: empty socket".to_owned(),
             "Slot 3: Item #4002".to_owned(),
+            "Slot 4: unavailable".to_owned(),
             "Random option #12: 5".to_owned(),
         ]);
     }
 
     #[test]
-    fn tooltip_text_starts_with_the_composed_item_name() {
+    fn tooltip_text_contains_name_slots_and_description() {
         let item = equippable(7, std::array::from_fn(|_| empty_option()), no_cards(), 3);
         let mut item = item;
         item.metadata.name = "+7 Lucky Test Sword of Champion".to_owned();
+        item.metadata.description = vec!["A test sword.".to_owned(), String::new(), "Type: Sword".to_owned()];
 
         assert_eq!(
             item_tooltip_text(&item),
-            "+7 Lucky Test Sword of Champion\nSlot 1: —\nSlot 2: —\nSlot 3: —"
+            "+7 Lucky Test Sword of Champion\nSlot 1: empty socket\nSlot 2: empty socket\nSlot 3: empty socket\nSlot 4: unavailable\n\nA \
+             test sword.\n\nType: Sword"
         );
     }
 
     #[test]
-    fn unidentified_items_hide_their_details() {
+    fn unidentified_items_hide_cards_but_keep_the_description() {
         let card_names: CardNames = [Some("Poring Card".to_owned()), None, None, None];
         let mut item = equippable(
             7,
@@ -317,8 +388,13 @@ mod tests {
             *flags = EquippableItemFlags::empty();
         }
 
+        item.metadata.description = vec!["Can be identified by using a Magnifier.".to_owned()];
+
         assert!(!item.is_identified());
         assert!(item_detail_lines(&item).is_empty());
-        assert_eq!(item_tooltip_text(&item), "Test Sword");
+        assert_eq!(
+            item_tooltip_text(&item),
+            "Test Sword\n\nCan be identified by using a Magnifier."
+        );
     }
 }

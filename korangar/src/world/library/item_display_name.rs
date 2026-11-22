@@ -25,8 +25,11 @@ use ragnarok_packets::ItemId;
 use super::ItemInfo;
 use crate::loaders::GameFileLoader;
 
-/// Path of the classic client item display name table.
+/// Path of the classic client item display name table (identified items).
 pub(super) const DISPLAY_NAME_TABLE_PATH: &str = "data\\idnum2itemdisplaynametable.txt";
+
+/// Path of the classic client unidentified item display name table.
+pub(super) const UNIDENTIFIED_DISPLAY_NAME_TABLE_PATH: &str = "data\\num2itemdisplaynametable.txt";
 
 /// Resolved item display names.
 ///
@@ -57,6 +60,21 @@ impl ItemDisplayNames {
             for (item_id, name) in table {
                 if let Some(name) = sanitize_name(&name) {
                     identified.entry(ItemId(item_id)).or_insert(name);
+                }
+            }
+        }
+
+        // The unidentified name table (`num2itemdisplaynametable.txt`) of the
+        // CondaRO archive is English for 15,722 of the 16,607 ids; without it
+        // unidentified items would fall back to "Unidentified <identified name>".
+        for table_data in game_file_loader.get_all(UNIDENTIFIED_DISPLAY_NAME_TABLE_PATH) {
+            let Some(table) = parse_display_name_table(&table_data) else {
+                continue;
+            };
+
+            for (item_id, name) in table {
+                if let Some(name) = sanitize_name(&name) {
+                    unidentified.entry(ItemId(item_id)).or_insert(name);
                 }
             }
         }
@@ -255,6 +273,72 @@ mod tests {
 
         // Unknown ids fall back to a readable placeholder instead of squares.
         assert_eq!(names.name(ItemId(999_999), true).as_ref(), "Item #999999");
+
+        // Unidentified items use the English `num2itemdisplaynametable.txt`
+        // (`data\num2itemdisplaynametable.txt`, CondaRO.grf) instead of the
+        // synthesized "Unidentified <name>" fallback.
+        assert_eq!(names.name(ItemId(1104), false).as_ref(), "Unidentified Sword");
+        assert_eq!(names.name(ItemId(5123), false).as_ref(), "Unidentified Hat");
+
+        // The generated English name supplement in `archive/data/` covers the
+        // ids whose CondaRO name was still Korean (server item_db names).
+        assert_eq!(names.name(ItemId(7804), true).as_ref(), "Octopig's Leg");
+        assert_eq!(names.name(ItemId(12223), true).as_ref(), "Sweets Macaron Cake");
+
+        // Ids that are not in the server item database keep the readable
+        // `Item #id` placeholder (322 ids per the text-encoding audit).
+        assert_eq!(names.name(ItemId(17161), true).as_ref(), "Item #17161");
+
+        // No item name may contain glyphs the interface font cannot render.
+        for item_id in item_info_table
+            .keys()
+            .chain([ragnarok_packets::ItemId(7804), ragnarok_packets::ItemId(17161)].iter())
+        {
+            let name = names.name(*item_id, true);
+            assert!(
+                name.chars().all(|character| character.is_ascii_graphic() || character == ' '),
+                "item {} name is not displayable: {name}",
+                item_id.0
+            );
+        }
+
+        // The CondaRO name table has 1,049 Korean names; the generated English
+        // supplement covers 727 of them from the server item database, leaving
+        // 322 ids without an English name in any client table. Those ids still
+        // resolve to a displayable name (an English iteminfo name or the
+        // `Item #id` placeholder), never to Korean squares.
+        let mut korean_table_ids = Vec::new();
+        let mut supplement_ids = Vec::new();
+
+        for table_data in game_file_loader.get_all(super::DISPLAY_NAME_TABLE_PATH) {
+            let Some(table) = super::parse_display_name_table(&table_data) else {
+                continue;
+            };
+
+            for (item_id, name) in table {
+                if name.chars().any(|character| !character.is_ascii()) {
+                    korean_table_ids.push(item_id);
+                } else {
+                    supplement_ids.push(item_id);
+                }
+            }
+        }
+
+        // The generated supplement is the lowest-fidelity archive entry: it is
+        // a small ASCII-only table, so the English ids of that archive copy are
+        // exactly the supplement ids.
+        let supplement_count = supplement_ids.len();
+        assert!(supplement_count >= 727, "supplement ids: {supplement_count}");
+
+        // Sanitized resolution never produces Korean glyphs.
+        for item_id in &korean_table_ids {
+            let name = names.name(ragnarok_packets::ItemId(*item_id), true);
+            assert!(
+                name.chars().all(|character| character.is_ascii_graphic() || character == ' '),
+                "Korean table name for item {item_id} leaked into the client: {name}"
+            );
+        }
+        assert!(!korean_table_ids.is_empty());
     }
 
     #[test]

@@ -20,8 +20,8 @@ use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
 use crate::world::{
-    Actions, AnimationData, EntityType, ItemInfo, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata,
-    SkillListInformation, SkillListKey, SkillListRequirements, SpriteAnimationState, item_tooltip_text, resolve_card_names,
+    Actions, AnimationData, EntityType, ItemResource, ItemResourceKey, ItemStats, Library, Map, ResourceMetadata, SkillListInformation,
+    SkillListKey, SkillListRequirements, SpriteAnimationState, item_tooltip_text, resolve_card_names,
 };
 
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
@@ -367,8 +367,7 @@ impl AsyncLoader {
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
         let stats = *self.library.get::<ItemStats>(item.item_id);
-        let item_info = self.library.get::<ItemInfo>(item.item_id);
-        let description = item_info.description().to_vec();
+        let description = self.library.item_description(item.item_id, is_identified);
         let slot_count = self.library.item_slot_count(item.item_id);
         let refinement_level = match &item.details {
             InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
@@ -407,8 +406,7 @@ impl AsyncLoader {
         let full_path = format!("유저인터페이스\\item\\{resource_name}.bmp");
         let texture = self.request_item_sprite_load(item.item_id, &full_path, ImageType::Color);
         let stats = *self.library.get::<ItemStats>(item.item_id);
-        let item_info = self.library.get::<ItemInfo>(item.item_id);
-        let description = item_info.description().to_vec();
+        let description = self.library.item_description(item.item_id, true);
         let slot_count = self.library.item_slot_count(item.item_id);
         // Shop items are plain item records without cards or refinement.
         let name = self.library.composed_item_name(item.item_id, true, 0, &[0; 4]);
