@@ -6108,6 +6108,14 @@ impl Client {
 
                     self.client_state
                         .follow_mut(client_state().inventory())
+                        .update_item_sprite(item_id, texture.clone());
+
+                    // Kafra storage items are loaded from a separate inventory
+                    // state; without this update their icons stay blank when
+                    // the item sprite finished loading while the storage window
+                    // is open (the inventory may not contain the same item id).
+                    self.client_state
+                        .follow_mut(client_state().storage())
                         .update_item_sprite(item_id, texture);
                 }
                 (LoaderId::Map(map_name), LoadableResource::Map { map, position }) => {
