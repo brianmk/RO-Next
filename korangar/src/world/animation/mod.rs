@@ -79,6 +79,10 @@ pub struct AnimationState {
     duration: Option<u32>,
     factor: Option<f32>,
     looping: bool,
+    /// Playback speed multiplier. `1.0` is the native ACT timing; the hunter
+    /// falcon uses a faster value because its flap loop looks too slow with the
+    /// raw ACT delays.
+    speed: f32,
 }
 
 impl AnimationState {
@@ -92,7 +96,19 @@ impl AnimationState {
             duration: None,
             factor: None,
             looping: true,
+            speed: 1.0,
         }
+    }
+
+    /// Set a playback speed multiplier (e.g. `1.5` for a 50 % faster loop).
+    pub fn with_speed(mut self, speed: f32) -> Self {
+        self.speed = speed.max(0.01);
+        self
+    }
+
+    /// Change the playback speed of an existing animation.
+    pub fn set_speed(&mut self, speed: f32) {
+        self.speed = speed.max(0.01);
     }
 
     pub fn idle(&mut self, entity_type: EntityType, client_tick: ClientTick) {
@@ -222,7 +238,8 @@ impl AnimationState {
     }
 
     pub fn update(&mut self, client_tick: ClientTick) {
-        self.time = client_tick.0.wrapping_sub(self.start_time.0);
+        let elapsed = client_tick.0.wrapping_sub(self.start_time.0);
+        self.time = (elapsed as f32 * self.speed) as u32;
     }
 }
 

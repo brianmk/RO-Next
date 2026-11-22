@@ -57,6 +57,8 @@ const OPTION_FALCON: u32 = 0x10;
 /// previous value was too high (the bird floated over the head), so it was
 /// lowered a bit.
 const FALCON_HEIGHT: f32 = 26.0;
+/// The raw falcon ACT flap loop is too slow; play it 50 % faster.
+const FALCON_ANIMATION_SPEED: f32 = 1.5;
 
 /// Classic client weapon-variant suffixes per server weapon type (`W_*`).
 ///
@@ -777,7 +779,7 @@ impl Common {
             shield,
             robe,
             falcon_animation: None,
-            falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick),
+            falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick).with_speed(FALCON_ANIMATION_SPEED),
             weapon_animation: None,
             active_movement,
             entity_type,
