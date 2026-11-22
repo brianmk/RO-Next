@@ -35,11 +35,10 @@ use crate::world::effect::{AuraGrow, OFFICIAL_EFFECT_UNIT, SkillAuraSpec};
 
 /// Official skill ids used by this table (stable across the 2019 server).
 mod skill_ids {
-    pub const BS_HAMMERFALL: u16 = 5;
-    /// Skill id the ambient crafting loop uses
-    /// (`population_engine_ambient_craft_skill_id`, 110 = the hammering skill
-    /// on the CondaRO data).
-    pub const BS_HAMMERFALL_AMBIENT: u16 = 110;
+    /// `BS_HAMMERFALL` (Hammer Fall, the Blacksmith hammering skill; the
+    /// ambient plaza crafting loop uses the same id). Skill id 5 is `SM_BASH`
+    /// in the 2019 database and must not use the hammer visuals.
+    pub const BS_HAMMERFALL: u16 = 110;
     pub const AL_WARP: u16 = 27;
     pub const AL_INCAGI: u16 = 29;
     pub const AL_ANGELUS: u16 = 33;
@@ -189,7 +188,7 @@ fn plain(cast_circle_color: Color) -> SkillVisuals {
 pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
     match skill_id.0 {
         // Forging: hammer strike into the ground -> dust puff at the feet.
-        skill_ids::BS_HAMMERFALL | skill_ids::BS_HAMMERFALL_AMBIENT => SkillVisuals {
+        skill_ids::BS_HAMMERFALL => SkillVisuals {
             cast_circle_color: crate::world::element_color(element),
             completion: Some(CompletionEffect {
                 // The hammer slam itself (the effect texture is `hammer.bmp`).

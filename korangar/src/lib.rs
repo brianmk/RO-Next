@@ -2145,10 +2145,10 @@ impl Client {
         light_intensity: f32,
     ) {
         let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
+            crate::logging::log_debug!("entity effect: failed to load '{}'", effect_path);
             return;
         };
+        crate::logging::log_debug!("entity effect: spawned '{}' on entity {}", effect_path, entity_id.0);
         let frame_timer = effect.new_frame_timer();
 
         self.effect_holder.add_effect(Box::new(EffectWithLight::new(
@@ -2179,10 +2179,10 @@ impl Client {
         light_intensity: f32,
     ) {
         let Ok(effect) = self.effect_loader.get_or_load(effect_path, &self.texture_loader) else {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] failed to load effect '{}'", "error".red(), effect_path);
+            crate::logging::log_debug!("position effect: failed to load '{}'", effect_path);
             return;
         };
+        crate::logging::log_debug!("position effect: spawned '{}' at {:?} (scale {})", effect_path, position, scale);
         let frame_timer = effect.new_frame_timer();
         let light_id = NEXT_POSITION_EFFECT_LIGHT_ID.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 

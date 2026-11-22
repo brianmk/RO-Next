@@ -55,8 +55,7 @@ const MUTE_AUDIO_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MUTE_AUDIO";
 /// is never played. If a skill is not listed here, [GENERIC_CAST_SOUND] is
 /// used.
 pub const SKILL_SOUNDS: &[(u16, &[&str])] = &[
-    // BS_HAMMERFALL (the 2019 rAthena database uses both ids).
-    (5, &["black_hammerfall.wav"]),
+    // BS_HAMMERFALL (skill id 110; id 5 is SM_BASH, a plain attack skill).
     (110, &["black_hammerfall.wav"]),
     // AL_WARP
     (27, &["effect\\warp.wav"]),
@@ -429,7 +428,8 @@ mod tests {
 
     #[test]
     fn required_skills_are_in_the_sound_table() {
-        for skill_id in [5, 110, 27, 29, 33, 34, 45] {
+        // Skill id 5 is `SM_BASH` (plain attack), only 110 is `BS_HAMMERFALL`.
+        for skill_id in [110, 27, 29, 33, 34, 45] {
             assert!(
                 SKILL_SOUNDS.iter().any(|(id, _)| *id == skill_id),
                 "skill {skill_id} has no sound mapping"
