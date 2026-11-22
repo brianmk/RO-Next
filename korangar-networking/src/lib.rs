@@ -2087,7 +2087,7 @@ mod packet_handlers {
     fn item_add_packet_updates_the_inventory() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
 
-        // 0x0A37 ZC_ITEM_PICKUP_ACK, 61 byte 2019 layout (EQUIPSLOTINFO is u16[4]);
+        // 0x0A37 ZC_ITEM_PICKUP_ACK, 69 byte 2019 layout (EQUIPSLOTINFO is u32[4]);
         // index is client_index (slot 2 -> raw 4), a successful add of 7 Red
         // Potions to slot 2.
         let mut bytes = Vec::new();
@@ -2096,14 +2096,14 @@ mod packet_handlers {
         bytes.extend_from_slice(&7u16.to_le_bytes()); // amount
         bytes.extend_from_slice(&501u32.to_le_bytes()); // item id
         bytes.extend_from_slice(&[1, 0, 0]); // identified, damaged, refine
-        bytes.extend_from_slice(&[0u8; 8]); // cards (u16[4])
+        bytes.extend_from_slice(&[0u8; 16]); // cards (u32[4])
         bytes.extend_from_slice(&0u32.to_le_bytes()); // equip position
         bytes.extend_from_slice(&[0, 0]); // item type, result
         bytes.extend_from_slice(&0i32.to_le_bytes()); // hire expiration
         bytes.extend_from_slice(&0u16.to_le_bytes()); // bind on equip type
         bytes.extend_from_slice(&[0u8; 25]); // options
         bytes.extend_from_slice(&[0u8, 0, 0]); // favorite + item sprite number
-        assert_eq!(bytes.len(), 61);
+        assert_eq!(bytes.len(), 69);
 
         let events = feed(&mut handler, &bytes);
         // The 2019 pickup ack adds the item to the inventory; the "you got"

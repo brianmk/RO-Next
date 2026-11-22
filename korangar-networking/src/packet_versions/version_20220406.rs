@@ -542,7 +542,7 @@ where
             index: inventory_index,
             item_id,
             item_type,
-            slot: [u32::from(card[0]), u32::from(card[1]), u32::from(card[2]), u32::from(card[3])],
+            slot: card,
             hire_expiration_date: hire_expiration_date.max(0) as u32,
             details,
         };

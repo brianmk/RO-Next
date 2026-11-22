@@ -2264,8 +2264,9 @@ pub struct ItemPickupAckPacket2019 {
     pub identified: u8,
     pub damaged: u8,
     pub refinement_level: u8,
-    /// `EQUIPSLOTINFO` of the server: `{ uint16 card[4]; }` (8 bytes).
-    pub card: [u16; 4],
+    /// `EQUIPSLOTINFO` of the server: `{ uint32 card[4]; }` (16 bytes) for
+    /// PACKETVER >= 20181121, so the whole packet is 69 bytes.
+    pub card: [u32; 4],
     pub equip_position: EquipPosition,
     pub item_type: u8,
     pub result: u8,
