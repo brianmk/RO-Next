@@ -28,7 +28,7 @@ pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::procedural::*;
 pub use self::skill_aura::*;
-pub(crate) use self::sprite_effect::SpriteEffect;
+pub(crate) use self::sprite_effect::{SpriteEffect, SpriteEffectParams};
 pub use self::status_aura::{StatusAura, status_aura_spec};
 pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;

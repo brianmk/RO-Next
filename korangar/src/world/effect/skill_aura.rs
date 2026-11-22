@@ -17,7 +17,7 @@
 //! effect data (as reconstructed by the roBrowser legacy client
 //! `DB/Effects/EffectTable.js`). Sizes in the client effect table are expressed
 //! in units of 1/5 map cell; the world uses 10 world units per cell, so one
-//! official effect unit is [`OFFICIAL_EFFECT_UNIT`] world units.
+//! official effect unit is [`EFFECT_UNIT`] world units.
 //!
 //! The effect is fully procedural: it allocates nothing per frame and renders a
 //! fixed number of screen-space quads per frame (one per cylinder segment and
@@ -29,17 +29,9 @@ use cgmath::{Point3, Vector2, Vector3};
 use wgpu::BlendFactor;
 
 use crate::graphics::{Color, ScreenSize, Texture};
-use crate::loaders::{ImageType, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 use crate::world::effect::{EffectBase, EffectCenter, render_world_quad_blended};
-
-/// World units per official effect unit.
-///
-/// The official effect data uses 5 units per map cell (the same convention as
-/// the client's hard-coded effect primitives) and this client uses 10 world
-/// units per map cell.
-pub const OFFICIAL_EFFECT_UNIT: f32 = 2.0;
 
 /// Number of cylinder segments. The official client uses 20 sides for its
 /// effect cylinders.
@@ -64,9 +56,6 @@ pub enum AuraGrow {
 /// official client's hard-coded effect table.
 #[derive(Debug, Clone, Copy)]
 pub struct SkillAuraSpec {
-    /// Effect texture relative to `data\texture\` (for example
-    /// `effect\ring_yellow.tga`).
-    pub texture_path: &'static str,
     /// Duration of a single cylinder in milliseconds.
     pub duration_ms: u32,
     /// Height of the cylinder in world units.
@@ -117,20 +106,6 @@ pub struct SkillAura {
 }
 
 impl SkillAura {
-    /// Returns `None` if the game files do not contain the effect texture, in
-    /// which case the skill is simply not accompanied by the aura.
-    pub fn new(texture_loader: &TextureLoader, center: EffectCenter, spec: SkillAuraSpec) -> Option<Self> {
-        let texture = texture_loader.get_or_load(spec.texture_path, ImageType::Color).ok()?;
-
-        Some(Self {
-            texture,
-            center,
-            spec,
-            time: 0.0,
-            gets_deleted: false,
-        })
-    }
-
     /// Creates an aura from an already loaded texture (used by the data-driven
     /// procedural effect spec, whose textures are resolved at runtime).
     pub fn with_texture(texture: Arc<Texture>, center: EffectCenter, spec: SkillAuraSpec) -> Self {
@@ -317,16 +292,19 @@ impl EffectBase for SkillAura {
 
 #[cfg(test)]
 mod tests {
-    use super::{AuraGrow, OFFICIAL_EFFECT_UNIT, SkillAura, SkillAuraSpec};
+    use super::{AuraGrow, SkillAura, SkillAuraSpec};
     use crate::graphics::Color;
+
+    /// World units per official effect unit (5 units per map cell, 10 world
+    /// units per cell).
+    const EFFECT_UNIT: f32 = 2.0;
 
     fn begin_spell() -> SkillAuraSpec {
         SkillAuraSpec {
-            texture_path: "effect\\ring_yellow.tga",
             duration_ms: 1_000,
-            height: 4.0 * OFFICIAL_EFFECT_UNIT,
-            bottom_radius: 1.0 * OFFICIAL_EFFECT_UNIT,
-            top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+            height: 4.0 * EFFECT_UNIT,
+            bottom_radius: 1.0 * EFFECT_UNIT,
+            top_radius: 5.0 * EFFECT_UNIT,
             color: Color::rgb(0.95, 0.85, 0.35),
             alpha_max: 0.8,
             additive: true,
@@ -339,11 +317,10 @@ mod tests {
 
     fn gumgang2() -> SkillAuraSpec {
         SkillAuraSpec {
-            texture_path: "effect\\ring_yellow.tga",
             duration_ms: 1_500,
-            height: 2.0 * OFFICIAL_EFFECT_UNIT,
-            bottom_radius: 2.0 * OFFICIAL_EFFECT_UNIT,
-            top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+            height: 2.0 * EFFECT_UNIT,
+            bottom_radius: 2.0 * EFFECT_UNIT,
+            top_radius: 5.0 * EFFECT_UNIT,
             color: Color::rgb(0.95, 0.85, 0.35),
             alpha_max: 0.5,
             additive: false,
@@ -385,11 +362,10 @@ mod tests {
 
     fn heal_column() -> SkillAuraSpec {
         SkillAuraSpec {
-            texture_path: "effect\\ring_white.tga",
             duration_ms: 1_500,
-            height: 8.0 * OFFICIAL_EFFECT_UNIT,
-            bottom_radius: 0.95 * OFFICIAL_EFFECT_UNIT,
-            top_radius: 0.95 * OFFICIAL_EFFECT_UNIT,
+            height: 8.0 * EFFECT_UNIT,
+            bottom_radius: 0.95 * EFFECT_UNIT,
+            top_radius: 0.95 * EFFECT_UNIT,
             color: Color::rgb(0.7, 1.0, 0.7),
             alpha_max: 0.2,
             additive: true,

@@ -51,13 +51,21 @@ pub enum CasterAction {
     ReadyFight,
 }
 
-/// Returns the caster body animation of a skill, following the official
-/// client's skill action table.
+/// Returns the caster body animation of a skill.
 ///
-/// Skills that are not part of the table use the official default action, which
-/// is the casting gesture.
+/// Priority:
+///
+/// 1. the optional `action` override of the unified skill effect descriptors
+///    (`archive/data/client/skill_effects.ron`),
+/// 2. the official per-skill action table (`skill_actions.ron`),
+/// 3. the official default action, which is the casting gesture.
+///
+/// The effect descriptor and the action table stay separate data sources, so a
+/// skill effect override never has to duplicate the full action mapping.
 pub fn caster_action(skill_id: SkillId) -> CasterAction {
-    caster_action_for_skill(skill_id).unwrap_or_else(default_caster_action)
+    crate::world::skill_action_override(skill_id)
+        .or_else(|| caster_action_for_skill(skill_id))
+        .unwrap_or_else(default_caster_action)
 }
 
 #[cfg(test)]

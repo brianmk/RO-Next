@@ -2,10 +2,10 @@
 //!
 //! The official client plays a number of skill visuals as animated sprites from
 //! `data\\sprite\\이팩트\\...` (the `su_*` New World set, Soul Reaper effects,
-//! Falcon Assault, several classic buffs/attacks). The rows come from the
-//! generated mapping `archive/data/client/skill_sprite_effects.ron`; every
-//! `.spr`/`.act` pair was validated against the GRF archives by
-//! `tools/gen_skill_sprite_effects.py`.
+//! Falcon Assault, several classic buffs/attacks). The layers come from the
+//! unified data file `archive/data/client/skill_effects.ron` (`kind: Spr`, see
+//! [`crate::world::library::skill_effects`]); every `.spr`/`.act` pair was
+//! validated against the GRF archives by the data generators.
 //!
 //! A [`SpriteEffect`] owns its loaded [`Sprite`] and [`Actions`] (both are
 //! reference-counted loader caches), plays one action once and removes itself
@@ -31,8 +31,43 @@ use super::{EFFECT_ORIGIN, EffectBase, EffectCenter};
 use crate::graphics::Color;
 use crate::loaders::{ActionLoader, Sprite, SpriteLoader};
 use crate::renderer::EffectRenderer;
-use crate::world::library::SpriteEffectSpec;
+use crate::world::library::SkillEffectLayer;
 use crate::world::{Actions, Camera};
+
+/// Borrowed parameters of one `.spr`/`.act` sprite effect layer.
+///
+/// Built on the stack from a [`SkillEffectLayer`] by the skill effect spawner
+/// (no allocation): the effect copies the values into its own state when it is
+/// spawned.
+pub(crate) struct SpriteEffectParams<'a> {
+    /// Candidate sprite/action stems relative to `data\sprite\`, without the
+    /// `.spr`/`.act` extension. The first pair that exists is played.
+    pub files: &'a [&'a str],
+    /// World-space offset from the anchor's feet.
+    pub offset: Vector3<f32>,
+    /// Pixel scale of the sprite (`1.0` = authored size).
+    pub scale: f32,
+    /// Playback duration override in milliseconds (`0` = native ACT timing).
+    pub duration_ms: u32,
+    /// RGB tint of the sprite.
+    pub color: Color,
+    /// Additive blending.
+    pub additive: bool,
+}
+
+impl<'a> SpriteEffectParams<'a> {
+    /// Builds the sprite parameters of a `Spr` layer.
+    pub(crate) fn from_layer(layer: &'a SkillEffectLayer) -> Self {
+        Self {
+            files: layer.files,
+            offset: layer.offset,
+            scale: layer.scale,
+            duration_ms: layer.duration_ms,
+            color: layer.tint,
+            additive: layer.additive,
+        }
+    }
+}
 
 /// Minimum time an ACT frame is displayed for (the file delay can be zero or
 /// missing for hand-made effects).
@@ -115,9 +150,9 @@ impl SpriteEffect {
         sprite_loader: &SpriteLoader,
         action_loader: &ActionLoader,
         center: EffectCenter,
-        spec: &SpriteEffectSpec,
+        spec: &SpriteEffectParams<'_>,
     ) -> Option<Self> {
-        for stem in &spec.files {
+        for stem in spec.files {
             let sprite_file = format!("{stem}.spr");
             let action_file = format!("{stem}.act");
 
@@ -143,7 +178,7 @@ impl SpriteEffect {
         None
     }
 
-    fn from_loaded(sprite: Arc<Sprite>, actions: Arc<Actions>, center: EffectCenter, spec: &SpriteEffectSpec) -> Option<Self> {
+    fn from_loaded(sprite: Arc<Sprite>, actions: Arc<Actions>, center: EffectCenter, spec: &SpriteEffectParams<'_>) -> Option<Self> {
         let action = actions.actions.first()?;
         let frame_count = action.motions.len();
 
@@ -162,10 +197,10 @@ impl SpriteEffect {
             sprite,
             actions,
             center,
-            offset: spec.offset(),
+            offset: spec.offset,
             scale: if spec.scale > 0.0 { spec.scale } else { 1.0 },
-            color: Color::WHITE,
-            additive: false,
+            color: Color::rgba(spec.color.red, spec.color.green, spec.color.blue, 1.0),
+            additive: spec.additive,
             frame_time,
             frame_count,
             duration,
