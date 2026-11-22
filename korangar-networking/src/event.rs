@@ -28,7 +28,7 @@ pub enum NetworkEvent {
     },
     CharacterServerConnectionFailed {
         reason: LoginFailedReason,
-        message: &'static str,
+        message: String,
     },
     CharacterServerDisconnected {
         reason: DisconnectReason,

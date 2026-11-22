@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 korangar-interface = { workspace = true, optional = true }
+korangar-messages = { workspace = true }
 ragnarok-bytes = { workspace = true }
 ragnarok-packets = { workspace = true }
 rust-state = { workspace = true, optional = true }

@@ -29,6 +29,7 @@ korangar-container = { path = "korangar-container" }
 korangar-debug = { path = "korangar-debug" }
 korangar-interface = { path = "korangar-interface" }
 korangar-loaders = { path = "korangar-loaders" }
+korangar-messages = { path = "korangar-messages" }
 korangar-networking = { path = "korangar-networking" }
 korangar-video = { path = "korangar-video" }
 libc = "0.2"
@@ -99,6 +100,9 @@ opt-level = 3
 opt-level = 3
 
 [profile.dev.package.korangar-interface]
+opt-level = 3
+
+[profile.dev.package.korangar-messages]
 opt-level = 3
 
 [profile.dev.package.korangar-networking]

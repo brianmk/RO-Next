@@ -3,6 +3,7 @@ use std::net::IpAddr;
 use std::rc::Rc;
 use std::time::Instant;
 
+use korangar_messages::{MessageDomain, format_message};
 use ragnarok_packets::handler::{DuplicateHandlerError, PacketCallback, PacketHandler};
 use ragnarok_packets::*;
 
@@ -30,69 +31,47 @@ where
         },
     })?;
     packet_handler.register(|packet: LoginFailedPacket| {
-        let (reason, message) = match packet.reason {
-            LoginFailedReason::ServerClosed => (UnifiedLoginFailedReason::ServerClosed, "Server closed".to_string()),
-            LoginFailedReason::AlreadyLoggedIn => (
-                UnifiedLoginFailedReason::AlreadyLoggedIn,
-                "Someone has already logged in with this id".to_string(),
-            ),
-            LoginFailedReason::AlreadyOnline => (UnifiedLoginFailedReason::AlreadyOnline, "Already online".to_string()),
+        let reason = match packet.reason {
+            LoginFailedReason::ServerClosed => UnifiedLoginFailedReason::ServerClosed,
+            LoginFailedReason::AlreadyLoggedIn => UnifiedLoginFailedReason::AlreadyLoggedIn,
+            LoginFailedReason::AlreadyOnline => UnifiedLoginFailedReason::AlreadyOnline,
         };
+        let message = format_message(MessageDomain::LoginFailed, login_failed_reason_code(&packet.reason), &[]);
 
         NetworkEvent::LoginServerConnectionFailed { reason, message }
     })?;
     packet_handler.register(|packet: LoginFailedPacket2| {
-        let (reason, message) = match packet.reason {
-            LoginFailedReason2::UnregisteredId => (UnifiedLoginFailedReason::UnregisteredId, "Unregistered id".to_string()),
-            LoginFailedReason2::IncorrectPassword => (UnifiedLoginFailedReason::IncorrectPassword, "Incorrect password".to_string()),
-            LoginFailedReason2::IdExpired => (UnifiedLoginFailedReason::IdExpired, "Id has expired".to_string()),
-            LoginFailedReason2::RejectedFromServer => (UnifiedLoginFailedReason::RejectedFromServer, "Rejected from server".to_string()),
-            LoginFailedReason2::BlockedByGMTeam => (UnifiedLoginFailedReason::BlockedByGMTeam, "Blocked by gm team".to_string()),
-            LoginFailedReason2::GameOutdated => (UnifiedLoginFailedReason::GameOutdated, "Game outdated".to_string()),
-            LoginFailedReason2::LoginProhibitedUntil => (
-                UnifiedLoginFailedReason::LoginProhibitedUntil,
-                format!("You are prohibited to log in until {}.", packet.date),
-            ),
-            LoginFailedReason2::ServerFull => (UnifiedLoginFailedReason::ServerFull, "Server is full".to_string()),
-            LoginFailedReason2::CompanyAccountLimitReached => (
-                UnifiedLoginFailedReason::CompanyAccountLimitReached,
-                "Company account limit reached".to_string(),
-            ),
-            LoginFailedReason2::BannedByDBATeam => (UnifiedLoginFailedReason::BannedByDBATeam, "Banned by DBA team".to_string()),
-            LoginFailedReason2::UnconfirmedEmail => (UnifiedLoginFailedReason::UnconfirmedEmail, "Email not confirmed".to_string()),
-            LoginFailedReason2::BannedByGMTeam => (UnifiedLoginFailedReason::BannedByGMTeam, "Banned by GM team".to_string()),
-            LoginFailedReason2::TemporaryBanForDatabaseWork => (
-                UnifiedLoginFailedReason::TemporaryBanForDatabaseWork,
-                "Working in DB".to_string(),
-            ),
-            LoginFailedReason2::SelfLocked => (UnifiedLoginFailedReason::SelfLocked, "Self lock".to_string()),
-            LoginFailedReason2::NotPermittedGroup => (UnifiedLoginFailedReason::NotPermittedGroup, "Not Permitted Group".to_string()),
-            LoginFailedReason2::AccountIdErased => (
-                UnifiedLoginFailedReason::AccountIdErased,
-                "This ID has been totally erased".to_string(),
-            ),
-            LoginFailedReason2::LoginInformationRemains => (
-                UnifiedLoginFailedReason::LoginInformationRemains,
-                format!("Login information remains at {}", packet.date),
-            ),
-            LoginFailedReason2::LockedForHackingInvestigation => (
-                UnifiedLoginFailedReason::LockedForHackingInvestigation,
-                "Account has been locked for a hacking investigation. Please contact the GM Team for more information".to_string(),
-            ),
-            LoginFailedReason2::TemporaryLockedForBugInvestigation => (
-                UnifiedLoginFailedReason::TemporaryLockedForBugInvestigation,
-                "This account has been temporarily prohibited from login due to a bug-related investigation".to_string(),
-            ),
-            LoginFailedReason2::DeletingCharacter => (
-                UnifiedLoginFailedReason::DeletingCharacter,
-                "This character is being deleted. Login is temporarily unavailable for the time being".to_string(),
-            ),
-            LoginFailedReason2::DeletingSpouseCharacter => (
-                UnifiedLoginFailedReason::DeletingSpouseCharacter,
-                "This character is being deleted. Login is temporarily unavailable for the time being".to_string(),
-            ),
-            LoginFailedReason2::UnknownError => (UnifiedLoginFailedReason::UnknownError, "Unknown error".to_string()),
+        let reason = match packet.reason {
+            LoginFailedReason2::UnregisteredId => UnifiedLoginFailedReason::UnregisteredId,
+            LoginFailedReason2::IncorrectPassword => UnifiedLoginFailedReason::IncorrectPassword,
+            LoginFailedReason2::IdExpired => UnifiedLoginFailedReason::IdExpired,
+            LoginFailedReason2::RejectedFromServer => UnifiedLoginFailedReason::RejectedFromServer,
+            LoginFailedReason2::BlockedByGMTeam => UnifiedLoginFailedReason::BlockedByGMTeam,
+            LoginFailedReason2::GameOutdated => UnifiedLoginFailedReason::GameOutdated,
+            LoginFailedReason2::LoginProhibitedUntil => UnifiedLoginFailedReason::LoginProhibitedUntil,
+            LoginFailedReason2::ServerFull => UnifiedLoginFailedReason::ServerFull,
+            LoginFailedReason2::CompanyAccountLimitReached => UnifiedLoginFailedReason::CompanyAccountLimitReached,
+            LoginFailedReason2::BannedByDBATeam => UnifiedLoginFailedReason::BannedByDBATeam,
+            LoginFailedReason2::UnconfirmedEmail => UnifiedLoginFailedReason::UnconfirmedEmail,
+            LoginFailedReason2::BannedByGMTeam => UnifiedLoginFailedReason::BannedByGMTeam,
+            LoginFailedReason2::TemporaryBanForDatabaseWork => UnifiedLoginFailedReason::TemporaryBanForDatabaseWork,
+            LoginFailedReason2::SelfLocked => UnifiedLoginFailedReason::SelfLocked,
+            LoginFailedReason2::NotPermittedGroup => UnifiedLoginFailedReason::NotPermittedGroup,
+            LoginFailedReason2::AccountIdErased => UnifiedLoginFailedReason::AccountIdErased,
+            LoginFailedReason2::LoginInformationRemains => UnifiedLoginFailedReason::LoginInformationRemains,
+            LoginFailedReason2::LockedForHackingInvestigation => UnifiedLoginFailedReason::LockedForHackingInvestigation,
+            LoginFailedReason2::TemporaryLockedForBugInvestigation => UnifiedLoginFailedReason::TemporaryLockedForBugInvestigation,
+            LoginFailedReason2::DeletingCharacter => UnifiedLoginFailedReason::DeletingCharacter,
+            LoginFailedReason2::DeletingSpouseCharacter => UnifiedLoginFailedReason::DeletingSpouseCharacter,
+            LoginFailedReason2::UnknownError => UnifiedLoginFailedReason::UnknownError,
         };
+        // Only the result codes are mapped here; the user-facing texts live in
+        // `data\client\messages.ron`. The date argument is only used by the two
+        // "prohibited until"/"information remains" rows.
+        let message = format_message(MessageDomain::LoginFailed2, login_failed_reason2_code(&packet.reason), &[(
+            "date",
+            &packet.date,
+        )]);
 
         NetworkEvent::LoginServerConnectionFailed { reason, message }
     })?;
@@ -108,11 +87,7 @@ where
 {
     packet_handler.register(|packet: LoginFailedPacket| {
         let reason = packet.reason;
-        let message = match reason {
-            LoginFailedReason::ServerClosed => "Server closed",
-            LoginFailedReason::AlreadyLoggedIn => "Someone has already logged in with this id",
-            LoginFailedReason::AlreadyOnline => "Already online",
-        };
+        let message = format_message(MessageDomain::LoginFailed, login_failed_reason_code(&reason), &[]);
 
         NetworkEvent::CharacterServerConnectionFailed { reason, message }
     })?;
@@ -1762,6 +1737,52 @@ fn head_gear_sprite_types(equip_position: EquipPosition) -> Vec<SpriteChangeType
     sprite_types
 }
 
+/// Wire value of [`LoginFailedReason`] (`SC_NOTIFY_BAN` result byte, the
+/// `#[numeric_value]` of the packet enum).
+///
+/// The message text of each value lives in `data\client\messages.ron`
+/// (`MessageDomain::LoginFailed`).
+fn login_failed_reason_code(reason: &LoginFailedReason) -> u16 {
+    match reason {
+        LoginFailedReason::ServerClosed => 1,
+        LoginFailedReason::AlreadyLoggedIn => 2,
+        LoginFailedReason::AlreadyOnline => 8,
+    }
+}
+
+/// Wire value of [`LoginFailedReason2`] (`AC_REFUSE_LOGIN2` result, the
+/// `#[numeric_value]` of the packet enum; the variants without an explicit
+/// numeric value use their declaration index).
+///
+/// The message text of each value lives in `data\client\messages.ron`
+/// (`MessageDomain::LoginFailed2`).
+fn login_failed_reason2_code(reason: &LoginFailedReason2) -> u16 {
+    match reason {
+        LoginFailedReason2::UnregisteredId => 0,
+        LoginFailedReason2::IncorrectPassword => 1,
+        LoginFailedReason2::IdExpired => 2,
+        LoginFailedReason2::RejectedFromServer => 3,
+        LoginFailedReason2::BlockedByGMTeam => 4,
+        LoginFailedReason2::GameOutdated => 5,
+        LoginFailedReason2::LoginProhibitedUntil => 6,
+        LoginFailedReason2::ServerFull => 7,
+        LoginFailedReason2::CompanyAccountLimitReached => 8,
+        LoginFailedReason2::BannedByDBATeam => 9,
+        LoginFailedReason2::UnconfirmedEmail => 10,
+        LoginFailedReason2::BannedByGMTeam => 11,
+        LoginFailedReason2::TemporaryBanForDatabaseWork => 12,
+        LoginFailedReason2::SelfLocked => 13,
+        LoginFailedReason2::NotPermittedGroup => 14,
+        LoginFailedReason2::AccountIdErased => 99,
+        LoginFailedReason2::LoginInformationRemains => 100,
+        LoginFailedReason2::LockedForHackingInvestigation => 101,
+        LoginFailedReason2::TemporaryLockedForBugInvestigation => 102,
+        LoginFailedReason2::DeletingCharacter => 103,
+        LoginFailedReason2::DeletingSpouseCharacter => 104,
+        LoginFailedReason2::UnknownError => 105,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::{ClientTick, DisplaySkillEffectAndDamagePacket, EntityId, SkillId, SkillLevel};
@@ -1819,5 +1840,73 @@ mod tests {
         };
 
         assert_eq!(skill_id, None);
+    }
+}
+
+#[cfg(test)]
+mod message_code_tests {
+    use ragnarok_bytes::{ByteWriter, ToBytes};
+    use ragnarok_packets::{LoginFailedReason, LoginFailedReason2};
+
+    use super::{login_failed_reason_code, login_failed_reason2_code};
+
+    /// The little-endian numeric value an enum is serialized to; the message
+    /// table keys are exactly this wire value.
+    fn wire_code<T: ToBytes>(value: &T) -> u16 {
+        let mut writer = ByteWriter::new();
+        value.to_bytes(&mut writer).expect("test-value encoding cannot fail");
+        let bytes = writer.into_inner();
+        match bytes.len() {
+            1 => u16::from(bytes[0]),
+            2 => u16::from_le_bytes([bytes[0], bytes[1]]),
+            4 => u16::try_from(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])).expect("test code fits into u16"),
+            length => panic!("unexpected enum width: {length}"),
+        }
+    }
+
+    #[test]
+    fn login_failed_reason_codes_match_the_wire_values() {
+        for (reason, code) in [
+            (LoginFailedReason::ServerClosed, 1),
+            (LoginFailedReason::AlreadyLoggedIn, 2),
+            (LoginFailedReason::AlreadyOnline, 8),
+        ] {
+            assert_eq!(login_failed_reason_code(&reason), code);
+            assert_eq!(wire_code(&reason), code, "wire drift for {reason:?}");
+        }
+    }
+
+    #[test]
+    fn login_failed_reason2_codes_match_the_wire_values() {
+        for reason in [
+            LoginFailedReason2::UnregisteredId,
+            LoginFailedReason2::IncorrectPassword,
+            LoginFailedReason2::IdExpired,
+            LoginFailedReason2::RejectedFromServer,
+            LoginFailedReason2::BlockedByGMTeam,
+            LoginFailedReason2::GameOutdated,
+            LoginFailedReason2::LoginProhibitedUntil,
+            LoginFailedReason2::ServerFull,
+            LoginFailedReason2::CompanyAccountLimitReached,
+            LoginFailedReason2::BannedByDBATeam,
+            LoginFailedReason2::UnconfirmedEmail,
+            LoginFailedReason2::BannedByGMTeam,
+            LoginFailedReason2::TemporaryBanForDatabaseWork,
+            LoginFailedReason2::SelfLocked,
+            LoginFailedReason2::NotPermittedGroup,
+            LoginFailedReason2::AccountIdErased,
+            LoginFailedReason2::LoginInformationRemains,
+            LoginFailedReason2::LockedForHackingInvestigation,
+            LoginFailedReason2::TemporaryLockedForBugInvestigation,
+            LoginFailedReason2::DeletingCharacter,
+            LoginFailedReason2::DeletingSpouseCharacter,
+            LoginFailedReason2::UnknownError,
+        ] {
+            assert_eq!(
+                login_failed_reason2_code(&reason),
+                wire_code(&reason),
+                "wire drift for {reason:?}"
+            );
+        }
     }
 }

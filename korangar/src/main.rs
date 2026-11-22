@@ -33,6 +33,15 @@ struct Arguments {
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_skill_effects: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the data-driven protocol result-code message table and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\messages.ron`). Exits 0 when valid, 1 with the schema
+    /// errors otherwise.
+    #[arg(long = "check-messages", value_name = "PATH", num_args = 0..=1)]
+    check_messages: Option<Option<std::path::PathBuf>>,
+
     /// Increase log verbosity: -v info, -vv debug, -vvv trace.
     ///
     /// Logs are written to stderr; the launcher scripts redirect them to
@@ -82,6 +91,19 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("skill effects: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_messages {
+        match korangar::check_messages(path.as_deref()) {
+            Ok(count) => {
+                println!("messages: {count} protocol result messages are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("messages: invalid data: {error}");
                 std::process::exit(1);
             }
         }

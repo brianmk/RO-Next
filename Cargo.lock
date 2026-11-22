@@ -1914,6 +1914,7 @@ dependencies = [
  "korangar-debug",
  "korangar-interface",
  "korangar-loaders",
+ "korangar-messages",
  "korangar-networking",
  "korangar-video",
  "libc",
@@ -2016,12 +2017,21 @@ name = "korangar-loaders"
 version = "0.1.0"
 
 [[package]]
+name = "korangar-messages"
+version = "0.1.0"
+dependencies = [
+ "ron",
+ "serde",
+]
+
+[[package]]
 name = "korangar-networking"
 version = "0.1.0"
 dependencies = [
  "clap",
  "korangar-debug",
  "korangar-interface",
+ "korangar-messages",
  "ragnarok-bytes",
  "ragnarok-packets",
  "reqwest",
