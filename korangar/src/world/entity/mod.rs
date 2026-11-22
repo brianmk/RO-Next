@@ -47,6 +47,10 @@ const SOUND_COOLDOWN_DURATION: u32 = 200;
 const SPATIAL_SOUND_RANGE: f32 = 250.0;
 const FADE_IN_DURATION_MS: u32 = 500;
 const BABY_JOB_SCALE: f32 = 0.75;
+/// Grace period between the server reporting a death and the client starting
+/// the death animation, so an attack animation that is already playing (the
+/// killing blow) is not cut off instantly.
+const DEATH_GRACE_MS: u32 = 250;
 
 #[derive(Clone)]
 pub enum ResourceState<T> {
@@ -185,6 +189,11 @@ pub struct Common {
     pub accessory3: u16,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
+    /// Pending death: the tick at which the server reported the death. The
+    /// entity keeps its current (attack) animation for a short grace period
+    /// before the death animation starts, so the killing blow is visible.
+    #[hidden_element]
+    pending_death: Option<u32>,
     pub tile_position: TilePosition,
     pub world_position: Point3<f32>,
     pub scale: f32,
@@ -583,6 +592,7 @@ impl Common {
             health_points,
             maximum_health_points,
             animation_data: None,
+            pending_death: None,
             details,
             guild_id,
             guild_name,
@@ -626,6 +636,20 @@ impl Common {
         self.animation_state.is_dead()
     }
 
+    /// Marks the entity dead. If an attack/pickup/skill animation is currently
+    /// playing, the death is queued for a short grace period so the animation
+    /// that killed the entity can finish instead of being cut off instantly.
+    pub fn set_dead(&mut self, client_tick: ClientTick) {
+        let busy = self.animation_state.is_attack() || self.animation_state.is_pickup() || self.animation_state.is_skill();
+
+        if busy && self.animation_data.is_some() {
+            self.pending_death.get_or_insert(client_tick.0);
+        } else {
+            self.pending_death = None;
+            self.animation_state.dead(self.entity_type, client_tick);
+        }
+    }
+
     pub fn is_death_animation_over(&self) -> bool {
         match self.animation_data.as_ref() {
             Some(animation_data) => self.is_dead() && animation_data.is_animation_over(&self.animation_state),
@@ -650,6 +674,20 @@ impl Common {
                 && (self.animation_state.is_attack() || self.animation_state.is_pickup() || self.animation_state.is_skill())
             {
                 self.animation_state.idle(self.entity_type, client_tick);
+            }
+
+            // Start a queued death once the current animation finished or the
+            // grace period elapsed (cap: no stuck "dying" entities).
+            if let Some(death_tick) = self.pending_death {
+                let grace_over = client_tick.0.saturating_sub(death_tick) >= DEATH_GRACE_MS;
+                let animation_busy =
+                    self.animation_state.is_attack() || self.animation_state.is_pickup() || self.animation_state.is_skill();
+                let animation_finished = !animation_busy || animation_data.is_animation_over(&self.animation_state);
+
+                if grace_over || animation_finished {
+                    self.pending_death = None;
+                    self.animation_state.dead(self.entity_type, client_tick);
+                }
             }
 
             let frame = animation_data.get_frame(&self.animation_state, camera, self.direction);
@@ -1756,8 +1794,7 @@ impl Entity {
     }
 
     pub fn set_dead(&mut self, client_tick: ClientTick) {
-        let entity_type = self.get_entity_type();
-        self.get_common_mut().animation_state.dead(entity_type, client_tick);
+        self.get_common_mut().set_dead(client_tick);
     }
 
     pub fn set_idle(&mut self, client_tick: ClientTick) {

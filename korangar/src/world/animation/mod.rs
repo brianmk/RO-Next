@@ -428,9 +428,16 @@ impl AnimationData {
             _ => (animation_state.time as f32 / factor) as u32,
         };
 
-        let frame_index = match animation_state.looping {
-            true => frame_time as usize % animation.frames.len(),
-            false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+        // The sit pose must be static: the classic client shows a stable sitting
+        // pose, and cycling the sit action frames/directions makes the character
+        // (especially the head) bob around. Always use the first frame of the
+        // sitting action instead.
+        let frame_index = match animation_state.is_sitting() {
+            true => 0,
+            false => match animation_state.looping {
+                true => frame_time as usize % animation.frames.len(),
+                false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+            },
         };
 
         // Remove Doridori animation from Player
