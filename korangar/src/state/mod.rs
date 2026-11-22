@@ -198,6 +198,17 @@ pub struct ClientState {
     /// data).
     #[hidden_element]
     zeny: Option<u64>,
+    /// Items in the Kafra storage, filled while a storage window is open.
+    storage: Inventory,
+    /// Current number of items in the Kafra storage
+    /// (`ZC_NOTIFY_STOREITEM_COUNTINFO`).
+    storage_amount: u16,
+    /// Maximum number of items the Kafra storage can hold.
+    storage_maximum_amount: u16,
+    /// Name of the currently open storage as sent by the server (e.g.
+    /// "Storage").
+    storage_name: String,
+
     /// Player skill tree.
     skill_tree: SkillTree,
 
@@ -359,6 +370,11 @@ impl ClientState {
             let hotbar = Hotbar::default();
             let inventory = Inventory::default();
             let zeny = None;
+            let storage = Inventory::default();
+            let storage_amount = 0;
+            let storage_maximum_amount = 0;
+            let storage_name = String::new();
+
             let skill_tree = SkillTree::default();
             let skill_tree_window = SkillTreeWindowState::default();
         });
@@ -436,6 +452,11 @@ impl ClientState {
             hotbar,
             inventory,
             zeny,
+            storage,
+            storage_amount,
+            storage_maximum_amount,
+            storage_name,
+
             skill_tree,
             character_servers,
             character_slots,

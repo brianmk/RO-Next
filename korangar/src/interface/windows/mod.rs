@@ -43,6 +43,7 @@ mod server_selection;
 mod skill_description;
 mod skill_tree;
 mod stats;
+mod storage;
 #[cfg(feature = "debug")]
 mod theme_inspector;
 
@@ -61,7 +62,7 @@ pub use self::character_selection::CharacterSelectionWindow;
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
-pub use self::context_menu::{CharacterContextMenuWindow, ItemContextMenuWindow};
+pub use self::context_menu::{CharacterContextMenuWindow, ItemContextMenuWindow, ItemStorageAction};
 pub use self::dialog::{DialogWindow, DialogWindowState};
 pub use self::equipment::EquipmentWindow;
 pub use self::error::ErrorWindow;
@@ -93,6 +94,7 @@ pub use self::server_selection::ServerSelectionWindow;
 pub use self::skill_description::SkillDescriptionWindow;
 pub use self::skill_tree::{SkillTreeWindow, SkillTreeWindowState, SkillTreeWindowStatePathExt};
 pub use self::stats::StatsWindow;
+pub use self::storage::StorageWindow;
 #[cfg(feature = "debug")]
 pub use self::theme_inspector::{ThemeInspectorWindow, ThemeInspectorWindowState};
 
@@ -120,6 +122,7 @@ pub enum WindowClass {
     SkillTree,
     SkillDescription,
     Stats,
+    Storage,
     FriendList,
     FriendRequest,
     Login,

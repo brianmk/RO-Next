@@ -208,6 +208,12 @@ pub fn register_map_server_packets<Callback>(
 where
     Callback: PacketCallback,
 {
+    /// Inventory type byte of the shared list packets that belongs to the
+    /// normal player inventory.
+    const INVENTORY_TYPE_INVENTORY: u8 = 0;
+    /// Inventory type byte of the Kafra storage list.
+    const INVENTORY_TYPE_STORAGE: u8 = 2;
+
     // This is a bit of a workaround for the way that the inventory is
     // sent. There is a single packet to start the inventory list,
     // followed by an arbitary number of item packets, and in the
@@ -216,6 +222,10 @@ where
     // This variable provides some transient storage shared by all the inventory
     // handlers.
     let inventory_items: Rc<RefCell<Option<Vec<InventoryItem<NoMetadata>>>>> = Rc::new(RefCell::new(None));
+    // The same list packets are used for the Kafra storage; they are told apart
+    // by the inventory type byte (0 = inventory, 2 = storage).
+    let storage_items: Rc<RefCell<Option<Vec<InventoryItem<NoMetadata>>>>> = Rc::new(RefCell::new(None));
+    let storage_name: Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
 
     packet_handler.register(|_: MapServerPingPacket| NoNetworkEvents)?;
     packet_handler.register(|packet: SoundPacket| NetworkEvent::PlaySound {
@@ -434,8 +444,34 @@ where
     packet_handler.register_noop::<ExchangeCancelPacket2019>()?;
     packet_handler.register_noop::<ExchangeExecPacket2019>()?;
     packet_handler.register_noop::<ExchangeUndoPacket2019>()?;
-    packet_handler.register_noop::<StorageItemCountInfoPacket2019>()?;
-    packet_handler.register_noop::<StorageDeleteItemPacket2019>()?;
+    packet_handler.register(|packet: StorageItemCountInfoPacket2019| NetworkEvent::SetStorageAmount {
+        amount: packet.amount,
+        maximum_amount: packet.maximum_amount,
+    })?;
+    packet_handler.register(|packet: StorageDeleteItemPacket2019| NetworkEvent::StorageItemRemoved {
+        storage_index: packet.storage_index.saturating_sub(1),
+        amount: packet.amount,
+    })?;
+    packet_handler.register(|packet: StorageItemAddedPacket2019| NetworkEvent::StorageItemAdded {
+        item: InventoryItem {
+            // The 0x0A0A wire index is `server slot + 1`.
+            index: InventoryIndex(packet.storage_index.saturating_sub(1)),
+            metadata: NoMetadata,
+            item_id: packet.item_id,
+            item_type: packet.item_type,
+            slot: packet.card,
+            hire_expiration_date: 0,
+            details: InventoryItemDetails::Regular {
+                amount: u16::try_from(packet.amount.max(1)).unwrap_or(u16::MAX),
+                equipped_position: EquipPosition::empty(),
+                flags: match packet.identified != 0 {
+                    true => RegularItemFlags::IDENTIFIED,
+                    false => RegularItemFlags::empty(),
+                },
+            },
+        },
+    })?;
+    packet_handler.register(|_: StorageClosedPacket| NetworkEvent::StorageClosed)?;
     packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
     packet_handler.register_noop::<ExchangeAckPacket2019>()?;
     // 2019 era `ZC_ITEM_PICKUP_ACK` (0x0A37). The server uses this packet both for
@@ -529,20 +565,41 @@ where
     })?;
     packet_handler.register({
         let inventory_items = inventory_items.clone();
+        let storage_items = storage_items.clone();
+        let storage_name = storage_name.clone();
 
-        move |_: InventoyStartPacket| {
-            *inventory_items.borrow_mut() = Some(Vec::new());
+        move |packet: InventoyStartPacket| {
+            match packet.inventory_type {
+                INVENTORY_TYPE_INVENTORY => *inventory_items.borrow_mut() = Some(Vec::new()),
+                INVENTORY_TYPE_STORAGE => {
+                    *storage_items.borrow_mut() = Some(Vec::new());
+                    *storage_name.borrow_mut() = packet.inventory_name.clone();
+                }
+                // Cart and guild storage lists are not displayed yet. Their packets
+                // still have to be consumed so the stream stays in sync.
+                _ => {}
+            }
+
             NoNetworkEvents
         }
     })?;
     packet_handler.register({
         let inventory_items = inventory_items.clone();
+        let storage_items = storage_items.clone();
 
         move |packet: RegularItemListPacket| {
-            inventory_items
+            let is_storage = packet.inventory_type == INVENTORY_TYPE_STORAGE;
+
+            let target = match packet.inventory_type {
+                INVENTORY_TYPE_INVENTORY => inventory_items.clone(),
+                INVENTORY_TYPE_STORAGE => storage_items.clone(),
+                _ => return NoNetworkEvents,
+            };
+
+            target
                 .borrow_mut()
                 .as_mut()
-                .expect("Unexpected inventory packet")
+                .expect("Unexpected item list packet")
                 .extend(packet.item_information.into_iter().map(|item_information| {
                     let RegularItemInformation {
                         index,
@@ -556,7 +613,13 @@ where
                     } = item_information;
 
                     InventoryItem {
-                        index,
+                        // Storage rows use the `server slot + 1` wire encoding,
+                        // while InventoryIndex subtracts two. Shift them back so
+                        // the index is the plain 0-based storage slot.
+                        index: match is_storage {
+                            true => InventoryIndex(index.0.wrapping_add(1)),
+                            false => index,
+                        },
                         metadata: NoMetadata,
                         item_id,
                         item_type,
@@ -629,17 +692,29 @@ where
     // burst arrives, so the NPC list used to get swallowed here.
     packet_handler.register({
         let inventory_items = inventory_items.clone();
+        let storage_items = storage_items.clone();
 
         move |packet: EquippableItemListPacket2019| {
-            inventory_items
+            let is_storage = packet.inventory_type == INVENTORY_TYPE_STORAGE;
+
+            let target = match packet.inventory_type {
+                INVENTORY_TYPE_INVENTORY => inventory_items.clone(),
+                INVENTORY_TYPE_STORAGE => storage_items.clone(),
+                _ => return NoNetworkEvents,
+            };
+
+            target
                 .borrow_mut()
                 .as_mut()
-                .expect("Unexpected inventory packet")
+                .expect("Unexpected item list packet")
                 .extend(packet.item_information.into_iter().map(|item| {
                     let item = EquippableItemInformation::from(item);
 
                     InventoryItem {
-                        index: item.index,
+                        index: match is_storage {
+                            true => InventoryIndex(item.index.0.wrapping_add(1)),
+                            false => item.index,
+                        },
                         metadata: NoMetadata,
                         item_id: item.item_id,
                         item_type: item.item_type,
@@ -663,10 +738,22 @@ where
     })?;
     packet_handler.register({
         let inventory_items = inventory_items.clone();
+        let storage_items = storage_items.clone();
+        let storage_name = storage_name.clone();
 
-        move |_: InventoyEndPacket| {
-            let items = inventory_items.borrow_mut().take().expect("Unexpected inventory end packet");
-            NetworkEvent::SetInventory { items }
+        move |packet: InventoyEndPacket| -> NetworkEventList {
+            match packet.inventory_type {
+                INVENTORY_TYPE_INVENTORY => {
+                    let items = inventory_items.borrow_mut().take().unwrap_or_default();
+                    NetworkEvent::SetInventory { items }.into()
+                }
+                INVENTORY_TYPE_STORAGE => {
+                    let items = storage_items.borrow_mut().take().unwrap_or_default();
+                    let name = storage_name.borrow().clone();
+                    NetworkEvent::SetStorage { items, name }.into()
+                }
+                _ => NetworkEventList::default(),
+            }
         }
     })?;
     packet_handler.register_noop::<EquippableSwitchItemListPacket>()?;

@@ -41,10 +41,13 @@ pub enum ItemBoxContextMenu {
     None,
     /// Open the inventory item context menu (use/equip, view info, ...).
     Inventory,
+    /// Open the storage item context menu (take out, view info).
+    Storage,
 }
 
 struct ItemContextMenuHandler<P> {
     item_path: P,
+    context_menu: ItemBoxContextMenu,
 }
 
 impl<P> ClickHandler<ClientState> for ItemContextMenuHandler<P>
@@ -56,9 +59,13 @@ where
         // item.
         let item = state.try_get(&self.item_path).unwrap();
 
-        queue.queue(InputEvent::OpenInventoryItemMenu {
-            inventory_index: item.index,
-        });
+        match self.context_menu {
+            ItemBoxContextMenu::Inventory => queue.queue(InputEvent::OpenInventoryItemMenu {
+                inventory_index: item.index,
+            }),
+            ItemBoxContextMenu::Storage => queue.queue(InputEvent::OpenStorageItemMenu { storage_index: item.index }),
+            ItemBoxContextMenu::None => {}
+        }
     }
 }
 
@@ -108,10 +115,31 @@ where
     }
 }
 
+/// Forwards double clicks on an item to the client (used to store items in the
+/// Kafra storage or take them out when the storage window is open).
+struct ItemDoubleClickHandler<P> {
+    item_path: P,
+    source: ItemSource,
+}
+
+impl<P> ClickHandler<ClientState> for ItemDoubleClickHandler<P>
+where
+    P: Path<ClientState, InventoryItem<ResourceMetadata>, false>,
+{
+    fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        // Unwrapping here is fine since we only register the handler if the slot has a
+        // item.
+        let item = state.try_get(&self.item_path).unwrap().clone();
+
+        queue.queue(InputEvent::ItemDoubleClick { source: self.source, item });
+    }
+}
+
 pub struct ItemBox<A> {
     item_path: A,
     handler: ItemBoxHandler<A>,
     context_menu_handler: ItemContextMenuHandler<A>,
+    double_click_handler: ItemDoubleClickHandler<A>,
     context_menu: ItemBoxContextMenu,
     amount_display: AmountDisplay,
 }
@@ -127,7 +155,11 @@ where
         Self {
             item_path,
             handler: ItemBoxHandler::new(item_path, source),
-            context_menu_handler: ItemContextMenuHandler { item_path },
+            context_menu_handler: ItemContextMenuHandler {
+                item_path,
+                context_menu: ItemBoxContextMenu::None,
+            },
+            double_click_handler: ItemDoubleClickHandler { item_path, source },
             context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
         }
@@ -136,6 +168,7 @@ where
     /// Enable the right click context menu on this item box.
     pub fn with_context_menu(mut self, context_menu: ItemBoxContextMenu) -> Self {
         self.context_menu = context_menu;
+        self.context_menu_handler.context_menu = context_menu;
         self
     }
 }
@@ -223,8 +256,9 @@ where
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);
+                layout.register_click_handler(MouseButton::DoubleLeft, &self.double_click_handler);
 
-                if self.context_menu == ItemBoxContextMenu::Inventory {
+                if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
                 }
             }

@@ -136,6 +136,11 @@ impl Inventory {
         }
     }
 
+    /// Remove all items, e.g. when the storage window is closed.
+    pub fn clear(&mut self) {
+        self.items.clear();
+    }
+
     pub fn update_item_sprite(&mut self, item_id: ItemId, texture: Arc<Texture>) {
         self.items.iter_mut().filter(|item| item.item_id == item_id).for_each(|item| {
             item.metadata.texture = Some(texture.clone());

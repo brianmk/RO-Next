@@ -209,7 +209,11 @@ pub struct InventoryIndex(pub u16);
 
 impl FromBytes for InventoryIndex {
     fn from_bytes(byte_reader: &mut ByteReader) -> ConversionResult<Self> {
-        u16::from_bytes(byte_reader).map(|raw| Self(raw - 2))
+        // The storage list uses the same packet family as the inventory list but
+        // encodes the index as `server slot + 1` (so a valid storage index can be
+        // one, which would underflow the usual `- 2`). Wrap instead of panicking;
+        // the storage handler shifts the value back into the real slot.
+        u16::from_bytes(byte_reader).map(|raw| Self(raw.wrapping_sub(2)))
     }
 }
 
@@ -1109,6 +1113,68 @@ pub struct InventoyEndPacket {
     pub inventory_type: u8,
     pub flag: u8, // maybe char ?
 }
+
+/// 2019 era `ZC_ADD_ITEM_TO_STORE` (0x0A0A): an item was added to the Kafra
+/// storage. The index is the storage slot encoded as `server slot + 1`.
+///
+/// The 2019 layout has the refinement level *before* the card slots (the 2022
+/// layouts moved it and added a grade byte); 57 bytes total.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A0A)]
+pub struct StorageItemAddedPacket2019 {
+    pub storage_index: u16,
+    pub amount: i32,
+    pub item_id: ItemId,
+    pub item_type: u8,
+    pub identified: u8,
+    pub damaged: u8,
+    pub refinement_level: u8,
+    pub card: [u32; 4],
+    pub option_data: [ItemOptions; 5],
+}
+
+/// 2019 era `ZC_CLOSE_STORE` (0x00F8): the storage (or cart) window was closed
+/// by the server, e.g. because the player walked away from the Kafra.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F8)]
+pub struct StorageClosedPacket {}
+
+/// 2019 `CZ_MOVE_ITEM_FROM_BODY_TO_STORE` (0x07EC for PACKETVER 2019): move an
+/// item from the inventory into the Kafra storage. The inventory index uses the
+/// usual `+2` wire encoding of [InventoryIndex].
+///
+/// Note: the 0x00F3 opcode that older clients used for this is mapped to the
+/// global chat message handler on the 2019 server, so sending 0x00F3 gets the
+/// sender kicked with "malformed packet (no username data)".
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07EC)]
+pub struct StorageDepositPacket {
+    pub inventory_index: InventoryIndex,
+    pub amount: u32,
+}
+
+/// 2019 `CZ_MOVE_ITEM_FROM_STORE_TO_BODY` (0x0861 for PACKETVER 2019): move an
+/// item out of the Kafra storage. The server expects the storage slot encoded
+/// as `server slot + 1`, so callers have to add one to the slot from the
+/// storage list.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0861)]
+pub struct StorageWithdrawPacket {
+    pub storage_index: u16,
+    pub amount: u32,
+}
+
+/// 2019 `CZ_CLOSE_STORE` (0x0193 for PACKETVER 2019): close the Kafra storage
+/// window. The 0x00F7 opcode that older clients used for this is mapped to the
+/// trade item removal handler on the 2019 server.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0193)]
+pub struct CloseStoragePacket {}
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
