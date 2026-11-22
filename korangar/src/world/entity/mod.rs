@@ -1,5 +1,6 @@
 use std::string::String;
 use std::sync::Arc;
+use std::time::Instant;
 
 use arrayvec::ArrayVec;
 use cgmath::{EuclideanSpace, Point3, Vector2, Vector3, VectorSpace};
@@ -31,6 +32,7 @@ use crate::renderer::GameInterfaceRenderer;
 #[cfg(feature = "debug")]
 use crate::renderer::MarkerRenderer;
 use crate::state::ClientState;
+use crate::state::lifecycle::{ResourcePolicy, ResourceState};
 use crate::state::theme::{InterfaceThemeType, WorldTheme};
 use crate::world::{
     ActionEvent, AnimationData, AnimationState, Camera, FadeDirection, FadeState, IsBabyJob, JobIdentity, Library, MAX_WALK_PATH_SIZE, Map,
@@ -115,22 +117,6 @@ fn weapon_suffix_candidates(weapon: u32) -> &'static [&'static str] {
 /// the death animation, so an attack animation that is already playing (the
 /// killing blow) is not cut off instantly.
 const DEATH_GRACE_MS: u32 = 250;
-
-#[derive(Clone)]
-pub enum ResourceState<T> {
-    Available(T),
-    Unavailable,
-    Requested,
-}
-
-impl<T> ResourceState<T> {
-    pub fn as_option(&self) -> Option<&T> {
-        match self {
-            ResourceState::Available(value) => Some(value),
-            _requested_or_unavailable => None,
-        }
-    }
-}
 
 #[derive(Clone, RustState, StateElement)]
 pub struct Movement {
@@ -752,7 +738,7 @@ impl Common {
         let active_movement = None;
         let entity_type = job_id.into();
 
-        let details = ResourceState::Unavailable;
+        let details = ResourceState::new(ResourcePolicy::ENTITY_DETAILS);
         let guild_id = entity_data.guild_id;
         // Filled in later from the player details response (`0x0A30`).
         let guild_name = match entity_data.guild_name.trim() {
@@ -2015,6 +2001,24 @@ impl Entity {
         self.get_common().has_weapon_animation()
     }
 
+    /// Whether the body animation data of this entity is still missing
+    /// (requested but not loaded yet, or the load was lost/failed).
+    pub fn needs_animation_data(&self) -> bool {
+        self.get_common().animation_data.is_none()
+    }
+
+    /// Whether the falcon animation is required but still missing.
+    pub fn needs_falcon_animation(&self) -> bool {
+        let common = self.get_common();
+        common.has_falcon() && !common.has_falcon_animation()
+    }
+
+    /// Whether the equipped weapon animation is required but still missing.
+    pub fn needs_weapon_animation(&self) -> bool {
+        let common = self.get_common();
+        common.animation_data.is_some() && !common.has_weapon_animation() && !common.get_weapon_part_candidates().is_empty()
+    }
+
     fn get_common(&self) -> &Common {
         match self {
             Self::Player(player) => player.get_common(),
@@ -2103,11 +2107,13 @@ impl Entity {
         self.get_common().fade_state.is_done_fading_out(client_tick)
     }
 
-    pub fn are_details_unavailable(&self) -> bool {
-        match &self.get_common().details {
-            ResourceState::Unavailable => true,
-            _requested_or_available => false,
-        }
+    /// Whether the entity details/name have to be (re)requested now.
+    ///
+    /// A request that was lost is retried after the request timeout (bounded by
+    /// the attempt budget), so a lost `0x0A30`/`0x0ADF` response can no longer
+    /// leave an entity nameless for its whole lifetime.
+    pub fn details_need_request(&mut self, now: Instant) -> bool {
+        self.get_common_mut().details.needs_request(now)
     }
 
     pub fn set_job(&mut self, library: &Library, job_id: JobId) {
@@ -2158,12 +2164,12 @@ impl Entity {
         }
     }
 
-    pub fn set_details_requested(&mut self) {
-        self.get_common_mut().details = ResourceState::Requested;
+    pub fn set_details_requested(&mut self, now: Instant) {
+        self.get_common_mut().details.mark_requested(now);
     }
 
     pub fn set_details(&mut self, details: String) {
-        self.get_common_mut().details = ResourceState::Available(details);
+        self.get_common_mut().details.mark_available(details);
     }
 
     pub fn get_details(&self) -> Option<&String> {

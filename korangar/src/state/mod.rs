@@ -4,6 +4,7 @@ pub mod character_slots;
 pub mod friend_names;
 pub mod hotbar;
 pub mod inventory;
+pub mod lifecycle;
 pub mod localization;
 pub mod minimap;
 pub mod party;
