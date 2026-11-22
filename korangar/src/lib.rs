@@ -3608,6 +3608,76 @@ impl Client {
                     crate::state::friend_names::remember(requestee.character_id.0, &requestee.name);
                     self.interface.open_window(FriendRequestWindow::new(requestee));
                 }
+                // --- Party events (2019) -------------------------------------------
+                // The packet handlers exist first of all to keep the map server
+                // stream in sync: rAthena sends party packets during the login
+                // burst of a party character. The state/UI is filled in by the
+                // follow-up party commit.
+                NetworkEvent::PartyOption {
+                    experience_option,
+                    item_pickup,
+                    item_share,
+                } => {
+                    crate::logging::log_debug!(
+                        "party option: exp={} pickup={} share={}",
+                        experience_option,
+                        item_pickup,
+                        item_share
+                    );
+                }
+                NetworkEvent::PartyList { party_name, members } => {
+                    crate::logging::log_debug!("party list: {} with {} member(s)", party_name, members.len());
+                }
+                NetworkEvent::PartyMemberAdded { member } => {
+                    crate::logging::log_debug!("party member added: {} ({})", member.name, member.account_id.0);
+                }
+                NetworkEvent::PartyMemberRemoved {
+                    account_id,
+                    character_name,
+                    result,
+                } => {
+                    crate::logging::log_debug!("party member removed: {} ({}) result={}", character_name, account_id.0, result);
+                }
+                NetworkEvent::PartyMemberHealth {
+                    account_id,
+                    health_points,
+                    maximum_health_points,
+                } => {
+                    crate::logging::log_debug!(
+                        "party member hp: {} {}/{}",
+                        account_id.0,
+                        health_points,
+                        maximum_health_points
+                    );
+                }
+                NetworkEvent::PartyMemberPosition { account_id, position } => {
+                    crate::logging::log_debug!("party member position: {} {}/{}", account_id.0, position.x, position.y);
+                }
+                NetworkEvent::PartyMemberJobLevel {
+                    account_id,
+                    job_id,
+                    base_level,
+                } => {
+                    crate::logging::log_debug!("party member info: {} job={:?} level={}", account_id.0, job_id, base_level);
+                }
+                NetworkEvent::PartyMemberAlive { account_id, is_dead } => {
+                    crate::logging::log_debug!("party member alive state: {} dead={}", account_id.0, is_dead);
+                }
+                NetworkEvent::PartyInvite { party_id, party_name } => {
+                    self.push_chat_information(format!("Party invite from {} (#{}).", party_name, party_id.0));
+                }
+                NetworkEvent::PartyInviteReply { character_name, result } => {
+                    self.push_chat_information(format!("Party invitation for {} finished with result {}.", character_name, result));
+                }
+                NetworkEvent::PartyCreationResult { result } => {
+                    self.push_chat_information(format!("Party creation result: {}.", result));
+                }
+                NetworkEvent::PartyChatMessage { account_id, message } => {
+                    self.push_chat_information(format!("[Party] {}: {}", account_id.0, message));
+                }
+                NetworkEvent::PartyConfig { allow_invites } => {
+                    crate::logging::log_debug!("party invite config: allow={}", allow_invites);
+                }
                 NetworkEvent::FriendRemoved { account_id, character_id } => {
                     let friend_list = self.client_state.follow_mut(client_state().friend_list());
                     if let Some(index) = friend_list

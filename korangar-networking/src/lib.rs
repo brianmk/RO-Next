@@ -28,7 +28,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
 
 pub use self::entity::EntityData;
-pub use self::event::{DisconnectReason, NetworkEvent};
+pub use self::event::{DisconnectReason, NetworkEvent, PartyMemberDetails};
 pub use self::hotkey::HotkeyState;
 pub use self::items::{InventoryItem, InventoryItemDetails, ItemQuantity, NoMetadata, SellItem, ShopItem};
 pub use self::message::MessageColor;
@@ -1185,7 +1185,7 @@ mod packet_handlers {
     };
 
     use crate::event::NetworkEventList;
-    use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnifiedLoginFailedReason};
+    use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion};
 
     #[test]
     fn login_server() {
@@ -1675,6 +1675,113 @@ mod packet_handlers {
         );
     }
 
+    /// rAthena sends these party packets during the map login burst of a
+    /// character that is in a party (in this order before the NPC/skill burst).
+    ///
+    /// Every one of them has to be registered with its exact 2019 layout: an
+    /// unknown fixed-size packet (0x07D8 has no length field of its own) makes
+    /// the stream resync read its payload as a length, fail, and discard the
+    /// rest of the TCP read - which swallowed the NPC spawn burst and the whole
+    /// skill list for party characters (empty skill tree / no NPCs).
+    #[test]
+    fn party_login_burst_is_parsed_without_desync() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x07D8 ZC_PARTY_OPTION: exp option (u32), item pickup (u8), item share (u8).
+        let mut data = vec![0xD8, 0x07];
+        data.extend_from_slice(&1u32.to_le_bytes());
+        data.push(1);
+        data.push(0);
+
+        // 0x0AE4 ZC_ADD_MEMBER_TO_GROUP (89 bytes).
+        data.extend_from_slice(&0x0AE4u16.to_le_bytes());
+        data.extend_from_slice(&150_009u32.to_le_bytes()); // account id
+        data.extend_from_slice(&150_009u32.to_le_bytes()); // char id
+        data.extend_from_slice(&0u32.to_le_bytes()); // role: 0 = leader
+        data.extend_from_slice(&7u16.to_le_bytes()); // job
+        data.extend_from_slice(&99u16.to_le_bytes()); // base level
+        data.extend_from_slice(&155u16.to_le_bytes()); // x
+        data.extend_from_slice(&180u16.to_le_bytes()); // y
+        data.push(0); // online
+        data.extend_from_slice(&fixed_name("feeders", 24));
+        data.extend_from_slice(&fixed_name("MrChamp", 24));
+        data.extend_from_slice(&fixed_name("prontera", 16));
+        data.push(1); // share pickup
+        data.push(1); // share loot
+
+        // 0x0AE5 ZC_GROUP_LIST with one member (54 bytes).
+        data.extend_from_slice(&0x0AE5u16.to_le_bytes());
+        let party_list_length = 4u16 + 24 + 54;
+        data.extend_from_slice(&party_list_length.to_le_bytes());
+        data.extend_from_slice(&fixed_name("feeders", 24));
+        data.extend_from_slice(&150_009u32.to_le_bytes()); // account id
+        data.extend_from_slice(&150_009u32.to_le_bytes()); // char id
+        data.extend_from_slice(&fixed_name("MrChamp", 24));
+        data.extend_from_slice(&fixed_name("prontera", 16));
+        data.push(1); // role: 1 = normal member
+        data.push(0); // online
+        data.extend_from_slice(&7u16.to_le_bytes()); // job
+        data.extend_from_slice(&99u16.to_le_bytes()); // base level
+
+        // 0x080E ZC_NOTIFY_HP_TO_GROUPM (14 bytes).
+        data.extend_from_slice(&0x080Eu16.to_le_bytes());
+        data.extend_from_slice(&150_009u32.to_le_bytes());
+        data.extend_from_slice(&7500i32.to_le_bytes());
+        data.extend_from_slice(&7500i32.to_le_bytes());
+
+        // The skill list that used to be swallowed.
+        data.extend_from_slice(&0x010Fu16.to_le_bytes());
+        data.extend_from_slice(&(4u16 + 37).to_le_bytes());
+        data.extend_from_slice(&skill_data_2019(5, 1, 10, 8, 1, "Bash", 1));
+
+        let mut reader = ByteReader::without_metadata(&data);
+        let mut events = Vec::new();
+
+        while !reader.is_empty() {
+            match handler.process_one(&mut reader) {
+                HandlerResult::Ok(output) => events.extend(output.0),
+                HandlerResult::UnhandledPacket => {
+                    let offset = reader.get_offset();
+                    let header = u16::from_le_bytes([data[offset], data[offset + 1]]);
+                    panic!("party login burst desynchronized at 0x{header:04X}");
+                }
+                HandlerResult::PacketCutOff => panic!("party login burst was cut off"),
+                HandlerResult::InternalError(error) => panic!("party login burst handler failed: {error:?}"),
+            }
+        }
+
+        assert!(matches!(events[0], NetworkEvent::PartyOption { experience_option: 1, .. }));
+        assert!(matches!(&events[1], NetworkEvent::PartyMemberAdded { member } if member.name == "MrChamp" && member.leader));
+        assert!(matches!(&events[2], NetworkEvent::PartyList { party_name, members } if party_name == "feeders" && members.len() == 1));
+        assert!(matches!(
+            events[3],
+            NetworkEvent::PartyMemberHealth {
+                health_points: 7500,
+                maximum_health_points: 7500,
+                ..
+            }
+        ));
+        assert!(matches!(&events[4], NetworkEvent::SkillTree { skill_information } if skill_information.len() == 1));
+    }
+
+    /// Builds a NUL padded fixed length string field.
+    fn fixed_name(name: &str, length: usize) -> Vec<u8> {
+        let mut bytes = vec![0u8; length];
+        let name_bytes = name.as_bytes();
+        let copied = name_bytes.len().min(length - 1);
+        bytes[..copied].copy_from_slice(&name_bytes[..copied]);
+        bytes
+    }
+
+    #[test]
+    fn party_login_packets_are_registered() {
+        let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        for header in [0x07D8u16, 0x0AE4, 0x0AE5, 0x080E, 0x02C5, 0x00FA, 0x0105, 0x0107, 0x0109, 0x0ABD, 0x0AB2] {
+            assert!(handler.is_registered(ragnarok_packets::PacketHeader(header)), "0x{header:04X} must be registered");
+        }
+    }
+
     #[test]
     fn known_headers_are_registered() {
         let handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
@@ -1863,27 +1970,29 @@ mod packet_handlers {
     fn item_add_packet_updates_the_inventory() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
 
-        // 0x0A37 ZC_ITEM_PICKUP_ACK, 69 byte 2019 layout; index is client_index
-        // (slot 2 -> raw 4), a successful add of 7 Red Potions to slot 2.
+        // 0x0A37 ZC_ITEM_PICKUP_ACK, 61 byte 2019 layout (EQUIPSLOTINFO is u16[4]);
+        // index is client_index (slot 2 -> raw 4), a successful add of 7 Red
+        // Potions to slot 2.
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&0x0A37u16.to_le_bytes());
         bytes.extend_from_slice(&4u16.to_le_bytes()); // index
         bytes.extend_from_slice(&7u16.to_le_bytes()); // amount
         bytes.extend_from_slice(&501u32.to_le_bytes()); // item id
         bytes.extend_from_slice(&[1, 0, 0]); // identified, damaged, refine
-        bytes.extend_from_slice(&[0u8; 16]); // cards
+        bytes.extend_from_slice(&[0u8; 8]); // cards (u16[4])
         bytes.extend_from_slice(&0u32.to_le_bytes()); // equip position
         bytes.extend_from_slice(&[0, 0]); // item type, result
         bytes.extend_from_slice(&0i32.to_le_bytes()); // hire expiration
         bytes.extend_from_slice(&0u16.to_le_bytes()); // bind on equip type
         bytes.extend_from_slice(&[0u8; 25]); // options
-        bytes.extend_from_slice(&[0, 0, 0]); // favorite + low/high of look
-        assert_eq!(bytes.len(), 69);
+        bytes.extend_from_slice(&[0u8, 0, 0]); // favorite + item sprite number
+        assert_eq!(bytes.len(), 61);
 
         let events = feed(&mut handler, &bytes);
+        // The 2019 pickup ack adds the item to the inventory; the "you got"
+        // chat message is produced by the client from the same event elsewhere.
         assert!(matches!(events.0.as_slice(), [
             NetworkEvent::IventoryItemAdded { item },
-            NetworkEvent::ItemObtained { quantity: 7, .. },
         ] if item.index == ragnarok_packets::InventoryIndex(2)));
     }
 

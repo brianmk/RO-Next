@@ -451,6 +451,95 @@ pub enum NetworkEvent {
     RemoveSkill {
         skill_id: SkillId,
     },
+    /// Complete party roster (`ZC_GROUP_LIST`, 0x0AE5).
+    ///
+    /// Sent when the client joins a party and whenever the roster changes; the
+    /// entries carry the member names, map names, jobs and levels but no HP.
+    PartyList {
+        party_name: String,
+        members: Vec<PartyListMember>,
+    },
+    /// A party member joined or changed their map (`ZC_ADD_MEMBER_TO_GROUP`,
+    /// 0x0AE4).
+    PartyMemberAdded {
+        member: PartyMemberDetails,
+    },
+    /// A party member left or was expelled (`ZC_DELETE_MEMBER_FROM_GROUP`,
+    /// 0x0105).
+    PartyMemberRemoved {
+        account_id: AccountId,
+        character_name: String,
+        /// rAthena `e_party_member_withdraw` result code.
+        result: u8,
+    },
+    /// Party member HP update (`ZC_NOTIFY_HP_TO_GROUPM`, 0x080E).
+    PartyMemberHealth {
+        account_id: AccountId,
+        health_points: i32,
+        maximum_health_points: i32,
+    },
+    /// Party member position update (`ZC_NOTIFY_POSITION_TO_GROUPM`, 0x0107).
+    PartyMemberPosition {
+        account_id: AccountId,
+        position: TilePosition,
+    },
+    /// Party member job/level update (`ZC_NOTIFY_MEMBERINFO_TO_GROUPM`,
+    /// 0x0ABD).
+    PartyMemberJobLevel {
+        account_id: AccountId,
+        job_id: JobId,
+        base_level: u16,
+    },
+    /// Party member death state (`ZC_GROUP_ISALIVE`, 0x0AB2).
+    PartyMemberAlive {
+        account_id: AccountId,
+        is_dead: bool,
+    },
+    /// Party invitation prompt (`ZC_PARTY_JOIN_REQ`, 0x02C6).
+    PartyInvite {
+        party_id: PartyId,
+        party_name: String,
+    },
+    /// Result of an invitation (`ZC_PARTY_JOIN_REQ_ACK`, 0x02C5).
+    PartyInviteReply {
+        character_name: String,
+        result: i32,
+    },
+    /// Result of creating a party (`ZC_ACK_MAKE_GROUP`, 0x00FA).
+    PartyCreationResult {
+        result: u8,
+    },
+    /// Party chat message (`ZC_NOTIFY_CHAT_PARTY`, 0x0109).
+    PartyChatMessage {
+        account_id: AccountId,
+        message: String,
+    },
+    /// The party invite blocking config (`ZC_PARTY_CONFIG`, 0x02C9).
+    PartyConfig {
+        allow_invites: bool,
+    },
+    /// Party EXP sharing and item rule config (`ZC_PARTY_OPTION`, 0x07D8).
+    PartyOption {
+        /// 0 = EXP sharing disabled, 1 = enabled, 2 = cannot be changed.
+        experience_option: u32,
+        item_pickup: u8,
+        item_share: u8,
+    },
+}
+
+/// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).
+#[derive(Debug, Clone)]
+pub struct PartyMemberDetails {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    pub name: String,
+    pub party_name: String,
+    pub map_name: String,
+    pub job_id: JobId,
+    pub base_level: u16,
+    pub position: TilePosition,
+    pub online: bool,
+    pub leader: bool,
 }
 
 /// New-type so we can implement some `From` traits. This will help when

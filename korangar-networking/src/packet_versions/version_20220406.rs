@@ -438,7 +438,11 @@ where
     packet_handler.register_noop::<CartItemCountInfoPacket2019>()?;
     packet_handler.register_noop::<UserCountPacket2019>()?;
     packet_handler.register_noop::<RefuseEnterPacket2019>()?;
-    packet_handler.register_noop::<PartyMemberHealthPacket2019>()?;
+    packet_handler.register(|packet: PartyMemberHealthPacket2019| NetworkEvent::PartyMemberHealth {
+        account_id: packet.account_id,
+        health_points: packet.health_points,
+        maximum_health_points: packet.maximum_health_points,
+    })?;
     packet_handler.register_noop::<ExchangeAddItemPacket2019>()?;
     packet_handler.register_noop::<ExchangeConcludePacket2019>()?;
     packet_handler.register_noop::<ExchangeCancelPacket2019>()?;
@@ -852,7 +856,10 @@ where
             attack_speed,
         }
     })?;
-    packet_handler.register_noop::<UpdatePartyInvitationStatePacket>()?;
+    // rAthena sends the *deny* flag here: 0 = invites allowed, 1 = blocked.
+    packet_handler.register(|packet: UpdatePartyInvitationStatePacket| NetworkEvent::PartyConfig {
+        allow_invites: packet.allowed == 0,
+    })?;
     packet_handler.register_noop::<UpdateShowEquipPacket>()?;
     packet_handler.register_noop::<UpdateConfigurationPacket>()?;
     packet_handler.register_noop::<NavigateToMonsterPacket>()?;
@@ -1308,7 +1315,72 @@ where
         account_id: packet.account_id,
         character_id: packet.character_id,
     })?;
-    packet_handler.register_noop::<PartyInvitePacket>()?;
+    // Party packets sent during the map login burst of a character that is in
+    // a party. They have to be registered with their exact 2019 layout:
+    // an unknown fixed-size packet (e.g. ZC_PARTY_OPTION 0x07D8, 8 bytes)
+    // makes the stream resync read bytes 2..4 as a packet length, fail, and
+    // discard the rest of the TCP read. That discarded the NPC spawn burst and
+    // the skill list that rAthena sends after the party packets, leaving party
+    // characters without NPCs and skills.
+    packet_handler.register(|packet: PartyOptionPacket2019| NetworkEvent::PartyOption {
+        experience_option: packet.experience_option,
+        item_pickup: packet.item_pickup,
+        item_share: packet.item_share,
+    })?;
+    packet_handler.register(|packet: PartyListPacket2019| NetworkEvent::PartyList {
+        party_name: packet.party_name,
+        members: packet.members,
+    })?;
+    packet_handler.register(|packet: AddPartyMemberPacket2019| NetworkEvent::PartyMemberAdded {
+        member: crate::PartyMemberDetails {
+            account_id: packet.account_id,
+            character_id: packet.character_id,
+            name: packet.player_name,
+            party_name: packet.party_name,
+            map_name: packet.map_name,
+            job_id: packet.job_id,
+            base_level: packet.base_level,
+            position: packet.position,
+            online: packet.offline == 0,
+            leader: packet.role == 0,
+        },
+    })?;
+    packet_handler.register(|packet: PartyInvitePacket| NetworkEvent::PartyInvite {
+        party_id: packet.party_id,
+        party_name: packet.party_name,
+    })?;
+    packet_handler.register(|packet: PartyInviteReplyPacket2019| NetworkEvent::PartyInviteReply {
+        character_name: packet.character_name,
+        result: packet.result,
+    })?;
+    packet_handler.register(|packet: PartyCreationResultPacket| NetworkEvent::PartyCreationResult { result: packet.result })?;
+    packet_handler.register(|packet: RemovePartyMemberPacket2019| NetworkEvent::PartyMemberRemoved {
+        account_id: packet.account_id,
+        character_name: packet.character_name,
+        result: packet.result,
+    })?;
+    packet_handler.register(|packet: PartyMemberPositionPacket2019| NetworkEvent::PartyMemberPosition {
+        account_id: packet.account_id,
+        position: packet.position,
+    })?;
+    packet_handler.register(|packet: PartyChatMessagePacket2019| NetworkEvent::PartyChatMessage {
+        account_id: packet.account_id,
+        message: packet.message,
+    })?;
+    packet_handler.register(|packet: PartyMemberJobLevelPacket2019| NetworkEvent::PartyMemberJobLevel {
+        account_id: packet.account_id,
+        job_id: packet.job_id,
+        base_level: packet.base_level,
+    })?;
+    packet_handler.register(|packet: PartyMemberAlivePacket2019| NetworkEvent::PartyMemberAlive {
+        account_id: packet.account_id,
+        is_dead: packet.is_dead != 0,
+    })?;
+    // Party booking (the 2019 "party search") is not used by this client yet;
+    // the packets are registered so a booking broadcast cannot desynchronize
+    // the map server stream.
+    packet_handler.register_noop::<PartyBookingJoinRequestPacket2019>()?;
+    packet_handler.register_noop::<PartyBookingJoinResultPacket2019>()?;
     // `ZC_MSG_STATE_CHANGE` (0x0196) is used by the 2019 server to end statuses
     // (and to start them on non-player units); it has no duration fields.
     packet_handler.register(|packet: StatusChangeSequencePacket| NetworkEvent::StatusEffect {

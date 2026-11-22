@@ -5444,3 +5444,259 @@ mod sound_packet_tests {
         assert!(name_bytes[17..].iter().all(|byte| *byte == 0));
     }
 }
+
+// ---------------------------------------------------------------------------
+// Party packets for the 2019 rAthena server (PACKETVER 20190605).
+//
+// Before these were registered the login burst of a character that is in a
+// party contained unknown fixed-size packets. The client's stream resync reads
+// bytes 2..4 of an unknown packet as a packet length (only valid for variable
+// length packets), so it usually fails and discards the rest of the TCP read,
+// swallowing NPC spawns and the skill list that follow the party packets.
+// ---------------------------------------------------------------------------
+
+/// Result of creating a party (`ZC_ACK_MAKE_GROUP`, 0x00FA).
+///
+/// * `0` = party created
+/// * `1` = party name already exists
+/// * `2` = already in a party
+/// * `3` = cannot create a party on this map
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00FA)]
+pub struct PartyCreationResultPacket {
+    pub result: u8,
+}
+
+/// Result of a party invitation (`ZC_PARTY_JOIN_REQ_ACK`, 0x02C5).
+///
+/// `character_name` is the invitee and `result` is one of the rAthena
+/// `e_party_invite_reply` values (0 = already in a party, 1 = rejected,
+/// 2 = accepted, 3 = party full, ...).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x02C5)]
+pub struct PartyInviteReplyPacket2019 {
+    #[length(24)]
+    pub character_name: String,
+    pub result: i32,
+}
+
+/// `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4, 2019 layout): a party member joined or
+/// changed map. 89 bytes.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AE4)]
+pub struct AddPartyMemberPacket2019 {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    /// `0` = party leader, `1` = normal member (rAthena sends the inverted
+    /// "is normal member" role value here).
+    pub role: u32,
+    pub job_id: JobId,
+    pub base_level: u16,
+    pub position: TilePosition,
+    /// `0` = connected, `1` = disconnected.
+    pub offline: u8,
+    #[length(24)]
+    pub party_name: String,
+    #[length(24)]
+    pub player_name: String,
+    #[length(16)]
+    pub map_name: String,
+    pub share_pickup: i8,
+    pub share_loot: i8,
+}
+
+/// One entry of a `ZC_GROUP_LIST` (0x0AE5) party roster: 54 bytes.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct PartyListMember {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    #[length(24)]
+    pub name: String,
+    #[length(16)]
+    pub map_name: String,
+    /// `0` = party leader, `1` = normal member.
+    pub role: u8,
+    /// `0` = connected, `1` = disconnected.
+    pub offline: u8,
+    pub job_id: JobId,
+    pub base_level: u16,
+}
+
+/// `ZC_GROUP_LIST` (0x0AE5, 2019 layout): the complete party roster.
+///
+/// Layout: `{ header }.{W} { length }.{W} { party name }.{24B}
+/// { account id }.{L} { char id }.{L} { name }.{24B} { map name }.{16B}
+/// { role }.{B} { offline }.{B} { job }.{W} { base level }.{W}` repeated.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AE5)]
+#[variable_length]
+pub struct PartyListPacket2019 {
+    #[length(24)]
+    pub party_name: String,
+    #[repeating_remaining]
+    pub members: Vec<PartyListMember>,
+}
+
+/// `ZC_DELETE_MEMBER_FROM_GROUP` (0x0105): a member left or was expelled.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0105)]
+pub struct RemovePartyMemberPacket2019 {
+    pub account_id: AccountId,
+    #[length(24)]
+    pub character_name: String,
+    /// rAthena `e_party_member_withdraw`.
+    pub result: u8,
+}
+
+/// `ZC_NOTIFY_POSITION_TO_GROUPM` (0x0107): party member position on the map.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0107)]
+pub struct PartyMemberPositionPacket2019 {
+    pub account_id: AccountId,
+    pub position: TilePosition,
+}
+
+/// `ZC_NOTIFY_CHAT_PARTY` (0x0109): party chat message.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0109)]
+#[variable_length]
+pub struct PartyChatMessagePacket2019 {
+    pub account_id: AccountId,
+    #[length_remaining]
+    pub message: String,
+}
+
+/// `ZC_NOTIFY_MEMBERINFO_TO_GROUPM` (0x0ABD): party member job and base level.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0ABD)]
+pub struct PartyMemberJobLevelPacket2019 {
+    pub account_id: AccountId,
+    pub job_id: JobId,
+    pub base_level: u16,
+}
+
+/// `ZC_GROUP_ISALIVE` (0x0AB2): party member death state.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AB2)]
+pub struct PartyMemberAlivePacket2019 {
+    pub account_id: AccountId,
+    pub is_dead: u8,
+}
+
+/// `ZC_PARTY_REQ_MASTER_TO_JOIN` (0x0AE7): party booking join request.
+///
+/// Party booking (2019 "party search") is not used by the CondaRO client yet,
+/// but the packet is registered so that a party booking broadcast cannot
+/// desynchronize the packet stream.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AE7)]
+pub struct PartyBookingJoinRequestPacket2019 {
+    pub character_id: CharacterId,
+    pub account_id: AccountId,
+    #[length(24)]
+    pub name: String,
+    pub position: TilePosition,
+}
+
+/// `ZC_PARTY_JOIN_REQ_ACK_FROM_MASTER` (0x0AFA): party booking join result.
+///
+/// Registered for framing safety only, see [PartyBookingJoinRequestPacket2019].
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AFA)]
+pub struct PartyBookingJoinResultPacket2019 {
+    #[length(24)]
+    pub player_name: String,
+    #[length(24)]
+    pub party_name: String,
+    pub account_id: AccountId,
+    pub refused: u32,
+}
+
+/// `CZ_MAKE_GROUP` (0x00F9): create a party with the given name.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00F9)]
+pub struct CreatePartyPacket {
+    #[length(24)]
+    pub party_name: String,
+}
+
+/// `CZ_PARTY_JOIN_REQ` (0x02C4): invite a character by name.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x02C4)]
+pub struct PartyInviteRequestPacket2019 {
+    #[length(24)]
+    pub character_name: String,
+}
+
+/// `CZ_PARTY_JOIN_REQ_ACK` (0x02C7): accept (1) or reject (0) a party invite.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x02C7)]
+pub struct PartyInviteReplyRequestPacket2019 {
+    pub party_id: PartyId,
+    pub accept: u8,
+}
+
+/// `CZ_REQ_LEAVE_GROUP` (0x0100): leave the current party.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0100)]
+pub struct LeavePartyPacket {}
+
+/// `CZ_REQ_EXPEL_GROUP_MEMBER` (0x0103): expel a party member (leader only).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0103)]
+pub struct ExpelPartyMemberPacket {
+    pub account_id: AccountId,
+    #[length(24)]
+    pub character_name: String,
+}
+
+/// `CZ_REQUEST_CHAT_PARTY` (0x0108): party chat message.
+///
+/// The server expects the same `<name> : <message>` format (NUL terminated) as
+/// the regular global chat.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0108)]
+#[variable_length]
+pub struct PartyChatRequestPacket {
+    #[length_remaining_off_by_one]
+    pub message: String,
+}
+
+/// `ZC_PARTY_OPTION` / `ZC_REQ_GROUPINFO_CHANGE_V2` (0x07D8): the party EXP
+/// sharing and item rules.
+///
+/// rAthena sends this during the map login burst of a character that is in a
+/// party (see `clif_party_option`). An unregistered fixed-size packet makes the
+/// client's stream resync mis-read bytes 2..4 as a length and discard the rest
+/// of the TCP read, which swallowed the NPC spawn burst and the skill list for
+/// party characters. Layout: `{ header }.{W} { exp option }.{L}
+/// { item pickup }.{B} { item share }.{B}` (8 bytes).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07D8)]
+pub struct PartyOptionPacket2019 {
+    /// 0 = EXP sharing disabled, 1 = enabled, 2 = cannot be changed.
+    pub experience_option: u32,
+    /// 1 = "even share" item pickup rule.
+    pub item_pickup: u8,
+    /// 1 = item sharing enabled.
+    pub item_share: u8,
+}
