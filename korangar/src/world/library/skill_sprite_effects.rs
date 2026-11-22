@@ -173,13 +173,18 @@ mod tests {
     fn data_file_is_valid_and_has_entries() {
         load_fallback();
 
-        // AL_BLESSING: official `축복` sprite, success phase, raised to the head.
-        let blessing = rows(34, SkillEffectVariant::Success);
-        assert_eq!(blessing.len(), 1);
-        assert_eq!(blessing[0].files, vec!["이팩트\\축복".to_owned()]);
-        assert_eq!(blessing[0].anchor, SpriteEffectAnchor::Caster);
-        assert_eq!(blessing[0].duration_ms, 1500);
-        assert!(blessing[0].offset().y > 20.0);
+        // AL_HOLYWATER: classic official effect-table sprite, success phase,
+        // raised to the head (`head` flag of the effect table entry).
+        let holywater = rows(31, SkillEffectVariant::Success);
+        assert_eq!(holywater.len(), 1);
+        assert_eq!(holywater[0].files, vec!["이팩트\\성수뜨기".to_owned()]);
+        assert_eq!(holywater[0].anchor, SpriteEffectAnchor::Caster);
+        assert_eq!(holywater[0].duration_ms, 0);
+        assert!(holywater[0].offset().y > 20.0);
+
+        // Hand-written client visuals (Blessing angel) keep precedence: their
+        // sprite row is filtered out of the generated data file.
+        assert!(rows(34, SkillEffectVariant::Success).is_empty());
 
         // New World `su_*` skill: name-matched official sprite.
         let carrot = rows(5036, SkillEffectVariant::Success);

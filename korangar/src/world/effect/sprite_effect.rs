@@ -27,16 +27,15 @@ use std::sync::Arc;
 use cgmath::{InnerSpace, Point3, Rad, Vector2, Vector3};
 use wgpu::BlendFactor;
 
-use super::{EFFECT_ORIGIN, EffectBase, EffectCenter, project_point};
+use super::{EFFECT_ORIGIN, EffectBase, EffectCenter};
 use crate::graphics::Color;
 use crate::loaders::{ActionLoader, Sprite, SpriteLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::library::SpriteEffectSpec;
 use crate::world::{Actions, Camera};
 
-/// World units per ACT pixel for the authored sprite size. The ACT `size`/zoom
-/// values are in screen pixels of the classic 640x480 client and are rendered
-/// at their authored pixel size (the same convention as entity sprites).
+/// Minimum time an ACT frame is displayed for (the file delay can be zero or
+/// missing for hand-made effects).
 const MIN_FRAME_TIME_MS: f32 = 1.0;
 /// Upper bound for a single sprite effect, so a malformed data override can
 /// never keep an effect alive forever.
@@ -46,9 +45,9 @@ const MAX_FRAME_TIME_MS: f32 = 10_000.0;
 /// Distance (in world units, one cell is 5 units) that the effect is moved
 /// towards the camera for the depth test.
 ///
-/// Entity sprites are billboards drawn at the depth of the entity's feet, and
-/// the effect pass is drawn afterwards with a depth test against that buffer.
-/// A sprite effect anchored on an entity (for example the head sprite of
+/// Entity sprites are billboards drawn with the depth of the actor, and the
+/// effect pass is drawn afterwards with a depth test against that buffer. A
+/// sprite effect anchored on an entity (for example the head sprite of
 /// Blessing) overlaps the caster's own sprite, so its anchor has to be slightly
 /// closer to the camera than the entity or the whole effect would be occluded
 /// by the caster. 1.5 units is well below one cell, so walls/other actors in
@@ -106,8 +105,6 @@ pub(crate) struct SpriteEffect {
     /// Total playback duration in milliseconds.
     duration: f32,
     elapsed: f32,
-    /// Temporary render diagnostics counter (removed before the final commit).
-    logged_frames: std::sync::atomic::AtomicU8,
 }
 
 impl SpriteEffect {
@@ -173,7 +170,6 @@ impl SpriteEffect {
             frame_count,
             duration,
             elapsed: 0.0,
-            logged_frames: std::sync::atomic::AtomicU8::new(0),
         })
     }
 
@@ -182,8 +178,11 @@ impl SpriteEffect {
     }
 
     fn blend_factors(&self) -> (BlendFactor, BlendFactor) {
+        // Sprite textures are premultiplied by `SpriteLoader`, so the quad is
+        // submitted with the premultiplied factors directly. The forward effect
+        // pass only rewrites a straight-alpha `SrcAlpha` source factor; `One` is
+        // already the premultiplied form and is passed through unchanged.
         match self.additive {
-            // Sprite textures are premultiplied at load time (see `SpriteLoader`).
             true => (BlendFactor::One, BlendFactor::One),
             false => (BlendFactor::One, BlendFactor::OneMinusSrcAlpha),
         }
@@ -225,10 +224,6 @@ impl EffectBase for SpriteEffect {
             false => anchor,
         };
 
-        let Some((anchor_screen_position, _depth)) = project_point(camera, position, renderer.window_size()) else {
-            return;
-        };
-
         let Some(action) = self.actions.actions.first() else {
             return;
         };
@@ -237,18 +232,6 @@ impl EffectBase for SpriteEffect {
         };
 
         let (source_blend_factor, destination_blend_factor) = self.blend_factors();
-
-        let logged_frames = self.logged_frames.load(std::sync::atomic::Ordering::Relaxed);
-
-        if logged_frames < 2 {
-            crate::logging::log_debug!(
-                "sprite effect debug: anchor_screen={:?} pos={:?} clips={} frame={}",
-                anchor_screen_position,
-                position,
-                motion.sprite_clips.len(),
-                self.current_frame()
-            );
-        }
 
         for sprite_clip in &motion.sprite_clips {
             if sprite_clip.sprite_number < 0 {
@@ -282,8 +265,10 @@ impl EffectBase for SpriteEffect {
             let (sin, cos) = angle.0.sin_cos();
 
             // Quad corners in the order the effect renderer expects them:
-            // [top-left, top-right, bottom-left, bottom-right], relative to
-            // the anchored screen position of the effect.
+            // [top-left, top-right, bottom-left, bottom-right]. They are local
+            // pixel offsets from the anchor: the effect renderer projects the
+            // world anchor itself and adds that screen position (the same
+            // convention as the `.str` effects and `render_world_quad`).
             let local_corners = [
                 Vector2::new(-half_size.x, -half_size.y),
                 Vector2::new(half_size.x, -half_size.y),
@@ -294,26 +279,13 @@ impl EffectBase for SpriteEffect {
 
             let corner_screen_position = local_corners.map(|corner| {
                 let rotated = Vector2::new(corner.x * cos - corner.y * sin, corner.x * sin + corner.y * cos);
-                EFFECT_ORIGIN + anchor_screen_position + center + rotated
+                EFFECT_ORIGIN + center + rotated
             });
 
             let texture_coordinates = match sprite_clip.mirror_on != 0 {
                 true => MIRRORED_QUAD_TEXTURE_COORDINATES,
                 false => QUAD_TEXTURE_COORDINATES,
             };
-
-            let logged_frames = self.logged_frames.load(std::sync::atomic::Ordering::Relaxed);
-
-        if logged_frames < 2 {
-                crate::logging::log_debug!(
-                    "sprite effect debug: clip pos={:?} size={:?} tex={}x{} corners={:?}",
-                    sprite_clip.position,
-                    dimensions,
-                    texture_size.width,
-                    texture_size.height,
-                    corner_screen_position
-                );
-            }
 
             renderer.render_effect(
                 camera,
@@ -328,9 +300,6 @@ impl EffectBase for SpriteEffect {
                 destination_blend_factor,
             );
         }
-
-        self.logged_frames
-            .store(logged_frames.saturating_add(1), std::sync::atomic::Ordering::Relaxed);
     }
 }
 

@@ -16,7 +16,6 @@
     effects: [
         (skill: 10, variant: Success, anchor: Caster, files: ["이팩트\\sight"], offset: (0.0, 12.0, 0.0), scale: 1.0, duration_ms: 1000),
         (skill: 31, variant: Success, anchor: Caster, files: ["이팩트\\성수뜨기"], offset: (0.0, 30.0, 0.0), scale: 1.0, duration_ms: 0),
-        (skill: 34, variant: Success, anchor: Caster, files: ["이팩트\\축복"], offset: (0.0, 30.0, 0.0), scale: 1.0, duration_ms: 1500),
         (skill: 188, variant: Hit, anchor: Target, files: ["이팩트\\poisonhit"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 202, variant: Success, anchor: Caster, files: ["이팩트\\darkbreath"], offset: (0.0, 30.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 229, variant: Ground, anchor: Ground, files: ["이팩트\\데몬스트레이션"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
@@ -35,6 +34,7 @@
         (skill: 535, variant: Ground, anchor: Ground, files: ["이팩트\\화염진"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 544, variant: Success, anchor: Caster, files: ["이팩트\\일섬"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 653, variant: Success, anchor: Caster, files: ["이팩트\\어스퀘이크"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
+        (skill: 689, variant: Success, anchor: Caster, files: ["이팩트\\축복"], offset: (0.0, 30.0, 0.0), scale: 1.0, duration_ms: 1500),
         (skill: 721, variant: Success, anchor: Target, files: ["이팩트\\wideweb"], offset: (0.0, 8.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 1005, variant: Ground, anchor: Ground, files: ["이팩트\\cconfine"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 1010, variant: Success, anchor: Target, files: ["이팩트\\fvoice"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
@@ -57,8 +57,10 @@
         (skill: 5029, variant: Success, anchor: Target, files: ["이팩트\\su_sv_roottwist\\su_sv_roottwist"], offset: (0.0, 10.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 5036, variant: Success, anchor: Target, files: ["이팩트\\su_lunaticcarrotbeat\\su_lunaticcarrotbeat"], offset: (0.0, 8.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 5039, variant: Success, anchor: Caster, files: ["이팩트\\su_tunaparty\\su_tunaparty"], offset: (0.0, 20.0, 0.0), scale: 1.0, duration_ms: 0),
+        (skill: 5479, variant: Cast, anchor: Caster, files: ["이팩트\\rk_dragonbreath_water"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 8005, variant: Success, anchor: Caster, files: ["이팩트\\캐슬링"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 8008, variant: Success, anchor: Caster, files: ["이팩트\\블러드러스트"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
         (skill: 8039, variant: Ground, anchor: Ground, files: ["이팩트\\magma_flow"], offset: (0.0, 0.0, 0.0), scale: 1.0, duration_ms: 0),
+        (skill: 8239, variant: Success, anchor: Caster, files: ["이팩트\\축복"], offset: (0.0, 30.0, 0.0), scale: 1.0, duration_ms: 1500),
     ],
 )

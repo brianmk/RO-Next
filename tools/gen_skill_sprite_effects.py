@@ -67,15 +67,52 @@ SPRITE_ROOT = "data\\sprite\\"
 EFFECT_ROOT = "이팩트"
 GRF_HEADER_SIZE = 46
 
-# Phase group of the extracted skill table -> RON variant name.
-VARIANTS = {
-    "ground": "Ground",
-    "cast": "Cast",
-    "success": "Success",
-    "release": "Release",
-    "hit": "Hit",
-    "caster": "Caster",
+# Official `SkillEffect` field -> (client variant, spawn anchor hint).
+#
+# Mirrors `FIELD_SPECS` of `gen_skill_effect_assets.py` so the sprite layer is
+# spawned at the same moment/anchor as the `.str` layer. The anchor hint is then
+# refined with the entry's own `attachedEntity`/`head` flags.
+FIELD_SPECS = {
+    "groundEffectId": ("Ground", "Ground"),
+    "groundEffectIdByLevel": ("Ground", "Ground"),
+    "beginCastEffectId": ("Cast", "Caster"),
+    "beginCastEffectIdByLevel": ("Cast", "Caster"),
+    "castAuraEffectId": ("Cast", "Caster"),
+    "effectId": ("Success", "Auto"),
+    "successEffectId": ("Success", "Auto"),
+    "effectIdOnCaster": ("Success", "Caster"),
+    "successEffectIdOnCaster": ("Success", "Caster"),
+    "successEffectIdOnCasterByLevel": ("Success", "Caster"),
+    "successEffectIdOnCasterByScreenDirection": ("Success", "Caster"),
+    "successEffectIdOnTargetByLevel": ("Success", "Target"),
+    "successEffectIdOnTargetByScreenSide": ("Success", "Target"),
+    "releaseEffectId": ("Release", "Travel"),
+    "beforeHitEffectId": ("Release", "Travel"),
+    "beforeHitEffectIdOnCaster": ("Release", "Caster"),
+    "hitEffectId": ("Hit", "Target"),
+    "hitEffectIdOnCaster": ("Hit", "Caster"),
+    "damageEffectIdOnTarget": ("Hit", "Target"),
+    "damageEffectIdOnCaster": ("Caster", "Caster"),
 }
+
+#: Order of the variants in the generated file (matches the client enum).
+VARIANT_ORDER = ["Ground", "Cast", "Success", "Release", "Hit", "Caster"]
+
+# Skills whose visual is hand-written in the client instead of data-driven (see
+# `has_custom_completion` in `skill_visuals`). The client skips the data-driven
+# effect layers for these, so sprite rows for them could never spawn.
+CUSTOM_COMPLETION_SKILLS = frozenset(
+    {
+        27,  # AL_WARP
+        29,  # AL_INCAGI
+        33,  # AL_ANGELUS
+        34,  # AL_BLESSING (hand-written angel above the head)
+        45,  # AC_CONCENTRATION
+        110,  # BS_HAMMERFALL
+        270,  # MO_EXPLOSIONSPIRITS
+        401,  # CH_SOULCOLLECT
+    }
+)
 
 # A sprite attached to the actor's head is rendered around the head instead of
 # the feet. The Windows client offsets it in screen pixels (`head`, `yOffset`);
@@ -204,19 +241,25 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text())
 
 
-def anchor_for_variant(variant: str, attached_entity: bool) -> str:
+def anchor_for_field(variant: str, anchor_hint: str, attached_entity: bool) -> str:
     """Choose the spawn anchor of an effect-table row.
 
-    The extracted table only tells us when a sprite plays and whether it is
-    attached to an entity. Ground skills are always placed at the target cell;
-    hit/release effects land on the target; success/cast/caster effects are
-    attached to the actor (or to the target when the official entry is a free
-    standing sprite).
+    `anchor_hint` is the official play moment of the `SkillEffect` field (the
+    same anchor `gen_skill_effect_assets.py` records for the `.str` layer). It is
+    refined with the entry's `attachedEntity` flag, which says whether the sprite
+    follows the actor (for example a head buff) or is a free-standing sprite at
+    the target cell.
     """
-    if variant == "Ground":
+    if anchor_hint == "Ground" or variant == "Ground":
         return "Ground"
-    if variant in ("Hit", "Release"):
+    if anchor_hint == "Caster":
+        return "Caster"
+    if anchor_hint == "Target":
         return "Target"
+    if anchor_hint == "Travel":
+        return "Target"
+    # Auto: the packet decides the receiver; a sprite attached to the actor is
+    # played on it, a free-standing one at the target position.
     return "Caster" if attached_entity else "Target"
 
 
@@ -252,18 +295,22 @@ def build_rows(
     def add(row: dict) -> None:
         rows.append(row)
 
-    # 1. Authoritative rows: skill -> effect id (from the extracted skill table)
-    #    -> first `type: 'SPR'` object of that effect that exists in the GRFs.
+    # 1. Authoritative rows: skill -> `SkillEffect` field -> effect id (from the
+    #    extracted skill table) -> first `type: 'SPR'` object of that effect
+    #    that exists in the GRFs.
     for skill_text, fields in sorted(effects["skills"].items(), key=lambda item: int(item[0])):
         skill_id = int(skill_text)
-        for group, variant in VARIANTS.items():
-            effect_ids = fields.get(group, [])
-            added = False
-            for effect_id in effect_ids:
+        for field in fields:
+            spec = FIELD_SPECS.get(field["field"])
+            if spec is None:
+                continue
+            variant, anchor_hint = spec
+            for effect_id in field["effects"]:
                 entries = sprite_effects.get(str(effect_id))
                 if not entries:
-                    dropped["unknown_effect"].append(f"skill {skill_id} {variant}: effect {effect_id} is not an SPR entry")
+                    dropped["unknown_effect"].append(f"skill {skill_id} {variant} ({field['field']}): effect {effect_id} is not an SPR entry")
                     continue
+                added = False
                 for entry in entries:
                     stem = normalize_sprite_stem(entry.get("file", ""))
                     if stem is None:
@@ -276,7 +323,7 @@ def build_rows(
                         {
                             "skill": skill_id,
                             "variant": variant,
-                            "anchor": anchor_for_variant(variant, entry.get("attachedEntity", False)),
+                            "anchor": anchor_for_field(variant, anchor_hint, entry.get("attachedEntity", False)),
                             "files": [resolved],
                             "offset": offset_for_entry(entry),
                             "scale": 1.0,
@@ -328,9 +375,15 @@ def build_rows(
             }
         )
 
-    # 3. Remove duplicates and sort for the binary-search lookup in the client.
+    # 3. Drop the hand-written skills (their custom visual would never let this
+    #    layer spawn), remove duplicates and sort for the binary-search lookup.
     unique: dict[tuple, dict] = {}
     for row in rows:
+        if row["skill"] in CUSTOM_COMPLETION_SKILLS:
+            dropped.setdefault("custom_completion", []).append(
+                f"skill {row['skill']} {row['variant']}: the client uses a hand-written visual"
+            )
+            continue
         key = (row["skill"], row["variant"], tuple(row["files"]), row["source"])
         unique.setdefault(key, row)
     ordered = sorted(unique.values(), key=lambda row: (row["skill"], row["variant"], row["files"], row["source"]))
