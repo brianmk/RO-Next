@@ -60,12 +60,22 @@ impl PacketCallback for NoPacketCallback {}
 
 pub type HandlerFunction<Output> = Box<dyn Fn(&mut ByteReader) -> ConversionResult<Output>>;
 
+/// Layout metadata of a registered handler, taken from the packet trait.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PacketMetadata {
+    /// Whether the packet declares a variable length.
+    pub is_variable_length: bool,
+    /// The fixed wire size declared by `#[packet_size(N)]`, if any.
+    pub expected_size: Option<usize>,
+}
+
 /// A struct to help with reading packets from a [`ByteReader`] and
 /// converting them to some common event type.
 ///
 /// It allows passing a packet callback to monitor incoming packets.
 pub struct PacketHandler<Output, Callback> {
     handlers: HashMap<PacketHeader, HandlerFunction<Output>>,
+    metadata: HashMap<PacketHeader, PacketMetadata>,
     packet_callback: Callback,
 }
 
@@ -76,6 +86,7 @@ where
     fn default() -> Self {
         Self {
             handlers: Default::default(),
+            metadata: Default::default(),
             packet_callback: Default::default(),
         }
     }
@@ -90,6 +101,7 @@ where
     pub fn with_callback(packet_callback: Callback) -> Self {
         Self {
             handlers: Default::default(),
+            metadata: Default::default(),
             packet_callback,
         }
     }
@@ -101,6 +113,10 @@ where
         Return: Into<Output>,
     {
         let packet_callback = self.packet_callback.clone();
+        self.metadata.insert(Packet::HEADER, PacketMetadata {
+            is_variable_length: Packet::IS_VARIABLE_LENGTH,
+            expected_size: Packet::EXPECTED_SIZE,
+        });
         let old_handler = self.handlers.insert(
             Packet::HEADER,
             Box::new(move |byte_reader| {
@@ -126,6 +142,10 @@ where
         Packet: ragnarok_packets::Packet,
     {
         let packet_callback = self.packet_callback.clone();
+        self.metadata.insert(Packet::HEADER, PacketMetadata {
+            is_variable_length: Packet::IS_VARIABLE_LENGTH,
+            expected_size: Packet::EXPECTED_SIZE,
+        });
         let old_handler = self.handlers.insert(
             Packet::HEADER,
             Box::new(move |byte_reader| {
@@ -152,6 +172,21 @@ where
     /// declared length actually start another known packet.
     pub fn is_registered(&self, packet_header: PacketHeader) -> bool {
         self.handlers.contains_key(&packet_header)
+    }
+
+    /// Returns the layout metadata of a registered packet header.
+    pub fn metadata(&self, packet_header: PacketHeader) -> Option<PacketMetadata> {
+        self.metadata.get(&packet_header).copied()
+    }
+
+    /// Returns all registered packet headers, sorted ascending.
+    ///
+    /// Used by the contract tests to iterate every registered server packet and
+    /// by tooling that needs to know the complete registration set.
+    pub fn registered_headers(&self) -> Vec<PacketHeader> {
+        let mut headers: Vec<PacketHeader> = self.handlers.keys().copied().collect();
+        headers.sort();
+        headers
     }
 
     /// Take a single packet from the byte stream.

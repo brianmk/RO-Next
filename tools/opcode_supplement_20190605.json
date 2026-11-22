@@ -1,0 +1,367 @@
+{
+  "packetver": 20190605,
+  "comment": [
+    "Hand-maintained supplement for the 2019 opcode length registry.",
+    "The generator fills every opcode that has a `DEFINE_PACKET_HEADER` plus a matching",
+    "`PACKET_*` struct. This file covers the packets that rAthena does not define as a",
+    "struct at PACKETVER 20190605:",
+    "  * the hand-rolled char-server packets (char_clif.cpp writes them with WFIFO*),",
+    "  * the dynamic `enum packet_headers` opcodes (spawn/skill-unit/party/...),",
+    "  * packets that are sent with literal opcodes from clif.cpp.",
+    "Each `size`/`base_size` was verified against the server source; when a struct name is",
+    "given, the generator resolves the size with the same sizeof() probe as the generated",
+    "entries (and fails if the struct does not exist)."
+  ],
+  "entries": [
+    {
+      "opcode": "0x006a",
+      "name": "ZC_AUTH_FAIL",
+      "kind": "fixed",
+      "size": 3,
+      "source": "src/map/clif.cpp clif_authfail_fd: WFIFOW + WFIFOB"
+    },
+    {
+      "opcode": "0x006b",
+      "name": "HC_006B_char_list",
+      "kind": "variable",
+      "base_size": 27,
+      "source": "src/char/char_clif.cpp chclif_mmo_send006b: 2 header + 2 len + 3 slots + 20 unknown = 27, then CHARACTER_INFO rows"
+    },
+    {
+      "opcode": "0x006c",
+      "name": "HC_REFUSE_ENTER_CHARSELECT",
+      "kind": "fixed",
+      "size": 3,
+      "source": "src/char/char_clif.cpp chclif_reject: 2 header + 1 error"
+    },
+    {
+      "opcode": "0x006d",
+      "name": "HC_ACCEPT_MAKECHAR",
+      "kind": "fixed",
+      "source": "src/char/char_clif.cpp chclif_parse_createnewchar: 2 header + one 155 byte CHARACTER_INFO (no length field)",
+      "size": 157
+    },
+    {
+      "opcode": "0x006e",
+      "name": "HC_REFUSE_MAKECHAR",
+      "kind": "fixed",
+      "size": 3,
+      "source": "src/char/char_clif.cpp chclif_parse_createnewchar: 2 header + 1 error"
+    },
+    {
+      "opcode": "0x006f",
+      "name": "HC_ACCEPT_DELETECHAR",
+      "kind": "fixed",
+      "size": 2,
+      "source": "src/char/char_clif.cpp chclif_parse_chardelete2: header only"
+    },
+    {
+      "opcode": "0x0070",
+      "name": "HC_REFUSE_DELETECHAR",
+      "kind": "fixed",
+      "size": 3,
+      "source": "src/char/char_clif.cpp chclif_refuse_delchar: 2 header + 1 error"
+    },
+    {
+      "opcode": "0x008e",
+      "name": "ZC_NOTIFY_PLAYERCHAT",
+      "kind": "variable",
+      "base_size": 4,
+      "source": "src/map/clif.cpp clif_GlobalMessage self echo: 4 + strlen + 1"
+    },
+    {
+      "opcode": "0x00cb",
+      "name": "ZC_PC_SELL_RESULT",
+      "kind": "fixed",
+      "size": 3,
+      "source": "src/map/clif.cpp clif_npc_sell_result: 2 header + 1 result"
+    },
+    {
+      "opcode": "0x018b",
+      "name": "ZC_ACK_DISCONNECT",
+      "kind": "fixed",
+      "size": 4,
+      "source": "src/map/clif.cpp clif_disconnect_ack: 2 header + 2 result"
+    },
+    {
+      "opcode": "0x0196",
+      "name": "ZC_MSG_STATE_CHANGE",
+      "kind": "fixed",
+      "size": 9,
+      "source": "src/map/clif.cpp clif_status_change_sub (sc_notickType/status_change_endType): 2 + type 2 + istate 4 + flag 1"
+    },
+    {
+      "opcode": "0x01c8",
+      "name": "ZC_USE_ITEM_ACK",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_USE_ITEM_ACK",
+      "source": "src/map/clif.cpp clif_useitemack (useItemAckType=0x1c8 for PACKETVER >= 20181121)"
+    },
+    {
+      "opcode": "0x01d7",
+      "name": "ZC_SPRITE_CHANGE2",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_SPRITE_CHANGE",
+      "source": "src/map/clif.cpp clif_sprite_change (sendLookType=0x1d7)"
+    },
+    {
+      "opcode": "0x01f3",
+      "name": "ZC_NOTIFY_EFFECT",
+      "kind": "fixed",
+      "size": 10,
+      "source": "src/map/clif.cpp clif_specialeffect: packet_len(0x1f3)"
+    },
+    {
+      "opcode": "0x0207",
+      "name": "ZC_REQ_ADD_FRIENDS",
+      "kind": "fixed",
+      "size": 34,
+      "source": "src/map/clif.cpp clif_friendlist_req: 2 + account 4 + char 4 + name 24"
+    },
+    {
+      "opcode": "0x0209",
+      "name": "ZC_ACK_ADD_FRIENDS",
+      "kind": "fixed",
+      "size": 36,
+      "source": "src/map/clif.cpp clif_friendslist_reqack: 2 + type 2 + account 4 + char 4 + name 24"
+    },
+    {
+      "opcode": "0x020a",
+      "name": "ZC_DEL_FRIENDS",
+      "kind": "fixed",
+      "size": 10,
+      "source": "src/map/clif.cpp clif_friendslist_toggle_sub: 2 + account 4 + char 4"
+    },
+    {
+      "opcode": "0x020d",
+      "name": "HC_BLOCK_CHARACTER",
+      "kind": "variable",
+      "base_size": 4,
+      "source": "src/char/char_clif.cpp chclif_block_character: 4 + 24 byte TAG_CHARACTER_BLOCK_INFO rows"
+    },
+    {
+      "opcode": "0x0283",
+      "name": "ZC_ACCOUNT_ID",
+      "kind": "fixed",
+      "size": 6,
+      "source": "src/map/clif.cpp clif_parse_WantToConnection: 2 + account id 4"
+    },
+    {
+      "opcode": "0x02b4",
+      "name": "ZC_DEL_QUEST",
+      "kind": "fixed",
+      "size": 6,
+      "source": "src/map/clif.cpp clif_quest_delete: 2 + quest id 4"
+    },
+    {
+      "opcode": "0x02d9",
+      "name": "ZC_CONFIG",
+      "kind": "fixed",
+      "size": 10,
+      "source": "src/map/clif.cpp clif_configuration: 2 + type 4 + enabled 4"
+    },
+    {
+      "opcode": "0x0446",
+      "name": "ZC_QUEST_NOTIFY_EFFECT",
+      "kind": "fixed",
+      "size": 14,
+      "source": "src/map/clif.cpp clif_quest_show_event: packet_len(0x446)"
+    },
+    {
+      "opcode": "0x07d8",
+      "name": "ZC_REQ_GROUPINFO_CHANGE_V2",
+      "kind": "fixed",
+      "size": 8,
+      "source": "src/map/clif.cpp clif_party_option (cmd 0x7d8): 2 + exp 4 + item pickup 1 + item share 1"
+    },
+    {
+      "opcode": "0x08b9",
+      "name": "HC_ACK_PINCODE",
+      "kind": "fixed",
+      "size": 12,
+      "source": "src/char/char_clif.cpp chclif_pincode_sendstate: 2 + seed 4 + account 4 + state 2"
+    },
+    {
+      "opcode": "0x08d5",
+      "name": "HC_ACK_CHANGE_CHARACTER_SLOT",
+      "kind": "fixed",
+      "size": 8,
+      "source": "src/char/char_clif.cpp chclif_moveCharSlotReply: 2 + len 2 + reason 2 + remaining 2"
+    },
+    {
+      "opcode": "0x08e2",
+      "name": "ZC_ITEM_DROP_ANNOUNCE",
+      "kind": "fixed",
+      "size": 27,
+      "source": "src/map/clif.cpp item drop announce: WFIFOSET(fd,27)"
+    },
+    {
+      "opcode": "0x08fe",
+      "name": "ZC_QUEST_UPDATE_OBJECTIVE2",
+      "kind": "variable",
+      "base_size": 4,
+      "source": "src/map/clif.cpp clif_quest_update_objective: 4 + 12 byte objectives"
+    },
+    {
+      "opcode": "0x0977",
+      "name": "ZC_HP_INFO",
+      "kind": "fixed",
+      "size": 14,
+      "source": "src/map/clif.cpp clif_monster_hp_bar: 2 + id 4 + hp 4 + maxhp 4"
+    },
+    {
+      "opcode": "0x0983",
+      "name": "ZC_MSG_STATE_CHANGE3",
+      "kind": "fixed",
+      "size": 29,
+      "source": "src/map/clif.cpp clif_status_change_sub (status_changeType=0x983): 2 + type 2 + id 4 + flag 1 + 5 timer/val dwords"
+    },
+    {
+      "opcode": "0x099b",
+      "name": "ZC_MAPPROPERTY_R2",
+      "kind": "fixed",
+      "size": 8,
+      "source": "src/map/clif.cpp clif_map_property (maptypeproperty2Type=0x99b): 2 + type 2 + flags 4"
+    },
+    {
+      "opcode": "0x099d",
+      "name": "HC_ACK_CHARINFO_PER_PAGE",
+      "kind": "variable",
+      "base_size": 4,
+      "source": "src/char/char_clif.cpp chclif_mmo_send099d: 2 header + 2 len + CHARACTER_INFO rows"
+    },
+    {
+      "opcode": "0x09a0",
+      "name": "CH_SLOT_PAGE",
+      "kind": "fixed",
+      "size": 6,
+      "source": "src/char/char_clif.cpp chclif_charlist_notify (PACKETVER 20190605): 2 + total pages 4"
+    },
+    {
+      "opcode": "0x09ca",
+      "name": "ZC_SKILL_ENTRY5",
+      "kind": "fixed",
+      "size": 23,
+      "source": "src/map/clif.cpp clif_skill_unit (skill_entryType=0x9ca): 2 len + id 4 + creator 4 + x 2 + y 2 + unit 4 + range 1 + visible 1 + level 1"
+    },
+    {
+      "opcode": "0x09e7",
+      "name": "ZC_NOTIFY_UNREADMAIL",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_NOTIFY_UNREADMAIL",
+      "source": "src/map/clif.cpp clif_Mail_statuschange (rodexicon=0x9e7)"
+    },
+    {
+      "opcode": "0x09f8",
+      "name": "ZC_ALL_QUEST_LIST3",
+      "kind": "variable",
+      "base_size": 8,
+      "source": "src/map/clif.cpp clif_quest_send_list: offset starts at 8, then variable quest/objective rows"
+    },
+    {
+      "opcode": "0x09fa",
+      "name": "ZC_UPDATE_MISSION_HUNT_EX",
+      "kind": "variable",
+      "base_size": 6,
+      "source": "src/map/clif.cpp clif_quest_update_objective: 6 + 12 byte hunt rows"
+    },
+    {
+      "opcode": "0x09fd",
+      "name": "ZC_NOTIFY_MOVE",
+      "kind": "fixed",
+      "struct": "packet_unit_walking",
+      "source": "src/map/clif.cpp clif_set_unit_walking (unit_walkingType=0x9fd)"
+    },
+    {
+      "opcode": "0x09fe",
+      "name": "ZC_NOTIFY_STANDENTRY11",
+      "kind": "fixed",
+      "struct": "packet_spawn_unit",
+      "source": "src/map/clif.cpp clif_spawn_unit (spawn_unitType=0x9fe)"
+    },
+    {
+      "opcode": "0x09ff",
+      "name": "ZC_NOTIFY_STANDENTRY12",
+      "kind": "fixed",
+      "struct": "packet_idle_unit",
+      "source": "src/map/clif.cpp clif_set_unit_idle (idle_unitType=0x9ff)"
+    },
+    {
+      "opcode": "0x0a23",
+      "name": "ZC_ALL_ACH_LIST",
+      "kind": "variable",
+      "base_size": 22,
+      "source": "src/map/clif.cpp clif_achievement_list_info: len = 22 + 50 * count"
+    },
+    {
+      "opcode": "0x0a24",
+      "name": "ZC_ACH_UPDATE",
+      "kind": "fixed",
+      "size": 66,
+      "source": "src/map/clif.cpp clif_achievement_update: last field at offset 65"
+    },
+    {
+      "opcode": "0x0a9b",
+      "name": "ZC_EQUIPSWITCH_LIST",
+      "kind": "variable",
+      "base_size": 4,
+      "source": "src/map/clif.cpp clif_equipswitch_list: 4 + 6 byte { index, position } rows"
+    },
+    {
+      "opcode": "0x0acc",
+      "name": "ZC_NOTIFY_EXP2",
+      "kind": "fixed",
+      "size": 18,
+      "source": "src/map/clif.cpp clif_displayexp (cmd 0xacc for PACKETVER >= 20170830): 2 + id 4 + exp 8 + type 2 + quest 2"
+    },
+    {
+      "opcode": "0x0add",
+      "name": "ZC_ITEM_FALL_ENTRY5",
+      "kind": "fixed",
+      "struct": "packet_dropflooritem",
+      "source": "src/map/clif.cpp clif_dropflooritem (dropflooritemType=0xadd for PACKETVER >= 20170125)"
+    },
+    {
+      "opcode": "0x0ae4",
+      "name": "ZC_ADD_MEMBER_TO_GROUP",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_ADD_MEMBER_TO_GROUP",
+      "source": "src/map/clif.cpp clif_party_member_info (partymemberinfo=0xae4)"
+    },
+    {
+      "opcode": "0x0ae5",
+      "name": "ZC_GROUP_LIST",
+      "kind": "variable",
+      "struct": "PACKET_ZC_GROUP_LIST",
+      "source": "src/map/clif.cpp clif_party_info (partyinfo=0xae5), PACKET_ZC_GROUP_LIST_SUB rows"
+    },
+    {
+      "opcode": "0x0ac5",
+      "name": "HC_ACCEPT_ENTER_CHARSELECT",
+      "kind": "fixed",
+      "size": 156,
+      "source": "src/char/char_clif.cpp chclif_send_map_data: size = 156 for PACKETVER >= 20170315"
+    },
+    {
+      "opcode": "0x082d",
+      "name": "CH_082D_char_login_success",
+      "kind": "fixed",
+      "size": 29,
+      "source": "src/char/char_clif.cpp chclif_mmo_send082d: 2 + normal 1 + vip 1 + billing 1 + producible 1 + valid 1 + unused 20"
+    },
+    {
+      "opcode": "0x0b09",
+      "name": "ZC_ITEMLIST_NORMAL",
+      "kind": "variable",
+      "base_size": 5,
+      "source": "src/map/clif.cpp clif_inventoryList (inventorylistnormalType=0xb09 at PACKETVER 20190605): 2 header + 2 len + 1 invType + 34 byte NORMALITEM_INFO rows"
+    },
+    {
+      "opcode": "0x0b0a",
+      "name": "ZC_ITEMLIST_EQUIP",
+      "kind": "variable",
+      "base_size": 5,
+      "source": "src/map/clif.cpp clif_inventoryList (inventorylistequipType=0xb0a at PACKETVER 20190605): 2 header + 2 len + 1 invType + 67 byte EQUIPITEM_INFO rows"
+    }
+  ]
+}
