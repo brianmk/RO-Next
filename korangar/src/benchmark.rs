@@ -106,7 +106,11 @@ fn environment_seconds(name: &str, default: f64) -> f64 {
 }
 
 fn scenario_enabled() -> bool {
-    environment("KORANGAR_BENCH").is_some()
+    // Latched: this is called once per frame from the render loop, and
+    // `std::env::var` allocates a String each call.
+    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
+    *ENABLED.get_or_init(|| environment("KORANGAR_BENCH").is_some())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
