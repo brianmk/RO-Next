@@ -2852,10 +2852,23 @@ impl Client {
                         .open_window(ErrorWindow::new("Failed to switch character slots".to_owned()));
                 }
                 NetworkEvent::AddEntity { entity_data } => {
+                    let dead_sit = entity_data.dead_sit;
+
                     if let Some(map) = &self.map
                         && let Some(npc) = Npc::new(&self.library, map, &mut self.path_finder, entity_data, client_tick)
                     {
                         let mut npc = Entity::Npc(npc);
+
+                        // The idle-unit appear packet carries the spawn-time dead/sit
+                        // pose (`state`: 0 standing, 1 dead, 2 sitting). Only players
+                        // use it in practice.
+                        if dead_sit != 0 && npc.get_entity_type() == EntityType::Player {
+                            match dead_sit {
+                                1 => npc.set_dead(client_tick),
+                                2 => npc.set_sitting(client_tick),
+                                _ => {}
+                            }
+                        }
 
                         let entity_id = npc.get_entity_id();
                         let entity_type = npc.get_entity_type();
@@ -3302,15 +3315,73 @@ impl Client {
                     }
                 }
                 NetworkEvent::HealEffect { entity_id, heal_amount } => {
+                    // `ZC_RECOVERY` has no entity id (the server only sends it to the
+                    // player themselves), so `None` resolves to the local player.
+                    let position = entity_id
+                        .and_then(|entity_id| {
+                            self.client_state
+                                .follow(client_state().entities())
+                                .iter()
+                                .find(|entity| entity.get_entity_id() == entity_id)
+                                .map(|entity| entity.get_position())
+                        })
+                        .or_else(|| self.client_state.try_follow(this_entity()).map(|entity| entity.get_position()));
+
+                    if let Some(position) = position {
+                        self.particle_holder
+                            .spawn_particle(Box::new(HealNumber::new(position, heal_amount as u64)));
+                    }
+                }
+                NetworkEvent::ChangeDirection {
+                    entity_id,
+                    head_direction,
+                    direction,
+                } => {
                     if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_direction(direction);
+                        entity.set_head_direction(head_direction);
+                    }
+                }
+                NetworkEvent::StateChange {
+                    entity_id,
+                    body_state,
+                    health_state,
+                    effect_state,
+                    ..
+                } => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_body_state(body_state);
+                        entity.set_health_state(health_state);
+                        // Applies hide/cloak/invisible by hiding the entity; the
+                        // remaining option bits (falcon/cart/riding/costumes) are
+                        // stored for the appearance workstream.
+                        entity.set_effect_state(effect_state, client_tick);
+                    }
+
+                    // Load the hunter falcon animation lazily the first time the
+                    // option is enabled for this entity.
+                    let falcon_entity_index = self
                         .client_state
                         .follow(client_state().entities())
                         .iter()
-                        .find(|entity| entity.get_entity_id() == entity_id)
-                        .or_else(|| self.client_state.try_follow(this_entity()))
+                        .position(|entity| entity.get_entity_id() == entity_id && entity.has_falcon() && !entity.has_falcon_animation())
+                        .filter(|_| effect_state & 0x10 != 0);
+
+                    if let Some(index) = falcon_entity_index
+                        && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity_id)
+                        && let Some(entity) = self.client_state.follow_mut(client_state().entities()).get_mut(index)
                     {
-                        self.particle_holder
-                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), heal_amount as u64)));
+                        entity.set_falcon_animation(falcon_animation);
                     }
                 }
                 NetworkEvent::UpdateEntityHealth {
@@ -3594,40 +3665,6 @@ impl Client {
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     self.networking_system.disconnect_from_map_server();
-                }
-                NetworkEvent::ChangeEntityState {
-                    entity_id,
-                    body_state: _,
-                    health_state: _,
-                    effect_state,
-                } => {
-                    // The option bits (falcon/cart/riding/...) arrive in
-                    // `ZC_STATE_CHANGE` (0x0229). Update the entity state and load
-                    // the falcon animation lazily the first time it is enabled.
-                    let mut needs_falcon_animation = false;
-
-                    let entities = self.client_state.follow_mut(client_state().entities());
-                    if let Some(entity) = entities.iter_mut().find(|entity| entity.get_entity_id() == entity_id) {
-                        entity.set_effect_state(effect_state);
-                        needs_falcon_animation = entity.has_falcon() && !entity.has_falcon_animation();
-                    }
-
-                    let falcon_entity_index = needs_falcon_animation
-                        .then(|| {
-                            self.client_state
-                                .follow(client_state().entities())
-                                .iter()
-                                .position(|entity| entity.get_entity_id() == entity_id)
-                        })
-                        .flatten();
-                    let falcon_animation =
-                        falcon_entity_index.and_then(|_| self.async_loader.request_falcon_animation_data_load(entity_id));
-
-                    if let (Some(index), Some(falcon_animation)) = (falcon_entity_index, falcon_animation)
-                        && let Some(entity) = self.client_state.follow_mut(client_state().entities()).get_mut(index)
-                    {
-                        entity.set_falcon_animation(falcon_animation);
-                    }
                 }
                 NetworkEvent::FriendRequest { requestee } => {
                     crate::state::friend_names::remember(requestee.character_id.0, &requestee.name);

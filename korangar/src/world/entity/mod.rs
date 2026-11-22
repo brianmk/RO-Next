@@ -1778,10 +1778,6 @@ impl Entity {
         self.get_common().has_falcon()
     }
 
-    pub fn set_effect_state(&mut self, effect_state: u32) {
-        self.get_common_mut().set_effect_state(effect_state);
-    }
-
     pub fn set_falcon_animation(&mut self, animation_data: Arc<AnimationData>) {
         self.get_common_mut().set_falcon_animation(animation_data);
     }
@@ -2206,8 +2202,9 @@ mod guild_name_label_tests {
 
 #[cfg(test)]
 mod hair_style_tests {
-    use super::{resolve_head_id, MALE_HAIR_LOOKUP};
     use ragnarok_packets::Sex;
+
+    use super::{MALE_HAIR_LOOKUP, resolve_head_id};
 
     #[test]
     fn known_male_hair_style_is_translated() {

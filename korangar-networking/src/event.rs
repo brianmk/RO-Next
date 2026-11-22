@@ -278,9 +278,31 @@ pub enum NetworkEvent {
         entity_id: EntityId,
         item_entity_id: EntityId,
     },
+    /// A heal/recovery number (`ZC_RECOVERY`, 0x0A27). The 2019 packet is
+    /// sent only to the player themselves and carries no entity id, so the
+    /// receiver resolves the local player when `entity_id` is [`None`].
     HealEffect {
-        entity_id: EntityId,
+        entity_id: Option<EntityId>,
         heal_amount: usize,
+    },
+    /// An entity turned (`ZC_CHANGE_DIRECTION`, 0x009C).
+    ChangeDirection {
+        entity_id: EntityId,
+        head_direction: usize,
+        direction: Direction,
+    },
+    /// An entity's option/status state changed (`ZC_STATE_CHANGE`, 0x0229).
+    ///
+    /// `body_state` is the rAthena `opt1`
+    /// (freeze/stone/stun/sleep/burning/...), `health_state` the `opt2`
+    /// (poison/curse/silence/confusion/blind/...) and `effect_state` the
+    /// option bit mask (falcon/cart/riding/hide/cloak/...).
+    StateChange {
+        entity_id: EntityId,
+        body_state: u16,
+        health_state: u16,
+        effect_state: u32,
+        is_pk_mode_on: bool,
     },
     UpdateStat {
         stat_type: StatType,
@@ -367,15 +389,6 @@ pub enum NetworkEvent {
     },
     FriendAdded {
         friend: Friend,
-    },
-    /// The server sent a body/health/effect-state update for an entity
-    /// (`ZC_STATE_CHANGE`, 0x0229). `effect_state` carries the option bits
-    /// (cart, riding, falcon, invisibility, ...).
-    ChangeEntityState {
-        entity_id: EntityId,
-        body_state: u16,
-        health_state: u16,
-        effect_state: u32,
     },
     FriendRemoved {
         account_id: AccountId,

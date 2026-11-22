@@ -42,13 +42,16 @@ pub struct EntityData {
     pub shield: u32,
     /// Robe view id (`robe` in the entity-appear packets).
     pub robe: u16,
-    /// Option bit mask (`effectState`): falcon, cart, riding, hide/cloak, costumes, ...
+    /// Option bit mask (`effectState`): falcon, cart, riding, hide/cloak,
+    /// costumes, ...
     pub effect_state: u32,
     /// `bodyState` (`opt1`): freeze/stone/stun/sleep/burning/... visual state.
     pub body_state: u16,
-    /// `healthState` (`opt2`): poison/curse/silence/confusion/blind/... visual state.
+    /// `healthState` (`opt2`): poison/curse/silence/confusion/blind/... visual
+    /// state.
     pub health_state: u16,
-    /// Dead/sit state of the idle-unit packet (`state`: 0 standing, 1 dead, 2 sitting).
+    /// Dead/sit state of the idle-unit packet (`state`: 0 standing, 1 dead, 2
+    /// sitting).
     pub dead_sit: u8,
 }
 
