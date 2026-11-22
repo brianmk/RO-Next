@@ -473,6 +473,22 @@ impl SessionMachine {
         self.character_server_ready = false;
     }
 
+    /// Drop a stale character-server login session and go back to the login
+    /// screen.
+    ///
+    /// The character-server handshake is tied to the `login_id1/login_id2`
+    /// issued by the login server. If the character-server reconnect gives up
+    /// (for example after a map-server restart invalidated the old session),
+    /// retrying with those credentials can only loop; the client has to
+    /// authenticate again so the login server issues fresh ids.
+    pub fn reset_to_login(&mut self) {
+        self.clear_character_reconnect();
+        self.character_server_ready = false;
+        self.state = SessionState::Login;
+        self.pending_map_load = None;
+        self.shutdown_deadline = None;
+    }
+
     /// A pending map asset load (used by the tests; the client only reads the
     /// retry actions).
     #[cfg(test)]
@@ -883,6 +899,24 @@ mod tests {
         let actions = machine.tick(current, &observation);
         assert_eq!(actions, vec![SessionAction::CharacterReconnectGaveUp]);
         assert!(machine.character_reconnect_at.is_none());
+    }
+
+    #[test]
+    fn reset_to_login_drops_stale_character_reconnect_state() {
+        let now = Instant::now();
+        let mut machine = SessionMachine::new();
+        enter_map_loading(&mut machine, now);
+        machine.map_assets_loaded();
+        machine.character_server_disconnected();
+        machine.schedule_character_reconnect(now);
+
+        machine.reset_to_login();
+
+        assert_eq!(machine.state(), SessionState::Login);
+        assert!(machine.character_reconnect_at.is_none());
+        assert_eq!(machine.character_reconnect_attempts, 0);
+        assert!(!machine.character_server_ready);
+        assert!(machine.pending_map_load().is_none());
     }
 
     #[test]

@@ -2011,9 +2011,32 @@ impl Client {
                         .connect_to_character_server(self.saved_packet_version, saved_login_data, server);
                 }
                 SessionAction::CharacterReconnectGaveUp => {
-                    self.interface.open_window(ErrorWindow::new(
-                        "Could not connect to the character server. Please log in again.".to_owned(),
+                    // The character-server session is tied to the login ids from
+                    // the login server. Once the reconnect gives up (e.g. after a
+                    // map-server restart), retrying with those stale ids keeps
+                    // being rejected, so drop them and require a fresh login.
+                    self.saved_login_data = None;
+                    self.saved_character_server = None;
+                    self.networking_system.disconnect_from_character_server();
+                    self.networking_system.disconnect_from_login_server();
+                    self.session.reset_to_login();
+                    self.client_state
+                        .follow_mut(client_state().character_slots())
+                        .set_characters(Vec::new());
+
+                    #[cfg(not(feature = "debug"))]
+                    self.interface.close_all_windows();
+
+                    #[cfg(feature = "debug")]
+                    self.interface.close_all_windows_except(DEBUG_WINDOWS);
+
+                    self.interface.open_window(LoginWindow::new(
+                        client_state().login_window(),
+                        client_state().login_settings(),
+                        client_state().client_info(),
                     ));
+                    self.interface
+                        .open_window(ErrorWindow::new("Your session expired. Please log in again.".to_owned()));
                 }
             }
         }
