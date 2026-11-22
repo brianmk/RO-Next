@@ -1,6 +1,7 @@
 mod accessory_name;
 mod baby_job;
 mod card_composition;
+mod item_description;
 mod item_display_name;
 mod item_info;
 mod item_name;
@@ -31,6 +32,8 @@ use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
 pub use self::accessory_name::AccessoryName;
 pub use self::baby_job::IsBabyJob;
 use self::card_composition::{CardComposition, compose_item_name};
+pub use self::item_description::NO_DESCRIPTION;
+use self::item_description::{ItemDescriptions, sanitize_lines};
 pub use self::item_display_name::ItemDisplayNames;
 pub use self::item_info::ItemInfo;
 pub use self::item_name::ItemName;
@@ -58,6 +61,7 @@ pub struct Library {
     skill_icons: SkillIcons,
     accessory_name_table: <AccessoryName as Table>::Storage,
     card_composition: CardComposition,
+    item_descriptions: ItemDescriptions,
 }
 
 impl Library {
@@ -74,6 +78,7 @@ impl Library {
         let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
         let accessory_name_table = AccessoryName::load(game_file_loader)?;
         let card_composition = CardComposition::load(game_file_loader);
+        let item_descriptions = ItemDescriptions::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
@@ -88,6 +93,7 @@ impl Library {
             skill_icons,
             accessory_name_table,
             card_composition,
+            item_descriptions,
         })
     }
 
@@ -121,6 +127,31 @@ impl Library {
         ItemInfo::try_get(self, item_id)
             .map(|item_info| item_info.slot_count())
             .unwrap_or(0)
+    }
+
+    /// Description lines of an item from the classic description tables
+    /// (`idnum2itemdesctable.txt` / `num2itemdesctable.txt`).
+    ///
+    /// Falls back to the description from `iteminfo.lub` when the item is not
+    /// covered by the classic tables. Both sources are filtered to displayable
+    /// (Latin) text so untranslated Korean data can never reintroduce square
+    /// placeholder glyphs. If neither source has a usable description the
+    /// [`NO_DESCRIPTION`] placeholder is returned.
+    pub fn item_description(&self, item_id: ItemId, is_identified: bool) -> Vec<String> {
+        if let Some(lines) = self.item_descriptions.get(item_id, is_identified) {
+            return lines.to_vec();
+        }
+
+        let Some(item_info) = ItemInfo::try_get(self, item_id) else {
+            return vec![NO_DESCRIPTION.to_owned()];
+        };
+
+        let fallback = sanitize_lines(item_info.description());
+
+        match fallback.is_empty() {
+            true => vec![NO_DESCRIPTION.to_owned()],
+            false => fallback,
+        }
     }
 
     /// Composed display name of an item, following the official client
