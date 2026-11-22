@@ -228,6 +228,10 @@ pub struct ClientState {
     switch_request: Option<usize>,
     /// Name of the character being created currently.
     create_character_name: String,
+    /// Account e-mail address typed into the character deletion confirmation
+    /// window. The character server (rAthena `char_del_option: 1`) requires the
+    /// account e-mail as the deletion confirmation code.
+    delete_character_email: String,
 
     /// Size of the Korangar window.
     window_size: ScreenSize,
@@ -355,6 +359,7 @@ impl ClientState {
             // TODO: This could be in a single struct.
             let switch_request = None;
             let create_character_name = String::new();
+            let delete_character_email = String::new();
         });
 
         time_phase!("create party state", {
@@ -472,6 +477,7 @@ impl ClientState {
             currently_deleting,
             switch_request,
             create_character_name,
+            delete_character_email,
             window_size,
             buffered_action,
             #[cfg(feature = "debug")]

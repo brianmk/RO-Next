@@ -532,6 +532,44 @@ pub enum NetworkEvent {
         item_pickup: u8,
         item_share: u8,
     },
+    /// Experience was gained (or lost) by the local player (`ZC_NOTIFY_EXP2`,
+    /// 0x0ACC).
+    GainedExperience {
+        /// Signed: the server also sends negative amounts for EXP loss.
+        amount: i64,
+        experience_type: ExperienceType,
+        experience_source: ExperienceSource,
+    },
+    /// A skill could not be used (`ZC_ACK_TOUSESKILL`, 0x0110).
+    SkillUseFailed {
+        skill_id: SkillId,
+        /// rAthena `useskill_fail_cause`.
+        cause: u8,
+    },
+    /// A stat point allocation was refused (`ZC_STATUS_CHANGE_ACK`, 0x00BC).
+    StatUpFailed,
+    /// An ammunition related action failed (`ZC_ACTION_FAILURE`, 0x013B).
+    AmmunitionAction {
+        action: AmmunitionActionType,
+    },
+    /// The server equipped ammunition automatically (`ZC_EQUIP_ARROW`,
+    /// 0x013C).
+    AmmunitionEquipped {
+        inventory_index: InventoryIndex,
+    },
+    /// The number of online players, reply to `/who` (`ZC_USER_COUNT`,
+    /// 0x00C2).
+    UserCount {
+        player_count: i32,
+    },
+    /// The map server kicked the client (`SC_NOTIFY_BAN`, 0x0081).
+    MapServerBan {
+        error_code: u8,
+    },
+    /// The map server refused the map login (`ZC_REFUSE_ENTER`, 0x0074).
+    RefuseEnter {
+        error_code: u8,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

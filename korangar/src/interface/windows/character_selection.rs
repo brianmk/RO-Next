@@ -81,7 +81,10 @@ mod character_slot_preview {
                             let character_information = state.try_get(&character_information_path).unwrap();
                             let character_id = character_information.character_id;
 
-                            queue.queue(InputEvent::DeleteCharacter { character_id });
+                            // The character server requires the account e-mail as
+                            // the deletion confirmation code, so a separate window
+                            // asks for it instead of deleting immediately.
+                            queue.queue(InputEvent::OpenCharacterDeleteWindow { character_id });
                             queue.queue(Event::CloseOverlay);
                         },
                     },

@@ -73,8 +73,9 @@ use korangar_networking::{
 #[cfg(feature = "debug")]
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
-    AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId, Friend, HotbarSlot,
-    InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
+    ExperienceSource, ExperienceType, Friend, HotbarSlot, InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, StatType,
+    TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -436,6 +437,91 @@ fn initialize_shutdown_signal() {
     }
 }
 
+/// Time without a new experience packet after which the aggregated gain is
+/// shown in the chat.
+const EXPERIENCE_FEEDBACK_DELAY: Duration = Duration::from_millis(1500);
+
+/// Experience amounts that are aggregated into one feedback line.
+#[derive(Default)]
+struct PendingExperience {
+    base: i64,
+    job: i64,
+    quest_base: i64,
+    quest_job: i64,
+    last_packet: Option<Instant>,
+}
+
+impl PendingExperience {
+    fn add(&mut self, amount: i64, experience_type: ExperienceType, experience_source: ExperienceSource) {
+        match (experience_type, experience_source) {
+            (ExperienceType::BaseExperience, ExperienceSource::Regular) => self.base += amount,
+            (ExperienceType::BaseExperience, ExperienceSource::Quest) => self.quest_base += amount,
+            (ExperienceType::JobExperience, ExperienceSource::Regular) => self.job += amount,
+            (ExperienceType::JobExperience, ExperienceSource::Quest) => self.quest_job += amount,
+        }
+
+        self.last_packet = Some(Instant::now());
+    }
+
+    fn is_empty(&self) -> bool {
+        self.base == 0 && self.job == 0 && self.quest_base == 0 && self.quest_job == 0
+    }
+
+    /// Formats and clears the aggregated amounts. Returns [`None`] when nothing
+    /// was gained.
+    fn take_message(&mut self) -> Option<String> {
+        if self.is_empty() {
+            self.last_packet = None;
+            return None;
+        }
+
+        let mut parts = Vec::new();
+        let mut push = |amount: i64, label: &str| {
+            if amount != 0 {
+                parts.push(format!(
+                    "{}{} {}",
+                    if amount < 0 { "-" } else { "" },
+                    format_amount(amount.unsigned_abs()),
+                    label
+                ));
+            }
+        };
+
+        push(self.base, "base EXP");
+        push(self.job, "job EXP");
+        push(self.quest_base, "base EXP (quest)");
+        push(self.quest_job, "job EXP (quest)");
+
+        let message = match parts.is_empty() {
+            true => None,
+            false => Some(format!("Gained {}.", parts.join(", "))),
+        };
+
+        self.base = 0;
+        self.job = 0;
+        self.quest_base = 0;
+        self.quest_job = 0;
+        self.last_packet = None;
+
+        message
+    }
+}
+
+/// Formats a number with thousands separators, e.g. `12,345`.
+fn format_amount(value: u64) -> String {
+    let digits = value.to_string();
+    let mut formatted = String::with_capacity(digits.len() + digits.len() / 3);
+
+    for (index, digit) in digits.chars().enumerate() {
+        if index > 0 && (digits.len() - index).is_multiple_of(3) {
+            formatted.push(',');
+        }
+        formatted.push(digit);
+    }
+
+    formatted
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,
@@ -535,6 +621,11 @@ pub struct Client {
     shutdown_requested: bool,
     /// Deadline for the clean disconnect; the client exits when it is reached.
     shutdown_deadline: Option<Instant>,
+
+    /// Aggregated experience gains. rAthena sends one `ZC_NOTIFY_EXP2` packet
+    /// per kill (and per party member share), so the amounts are summed and
+    /// shown as a single chat line after a short idle period.
+    pending_experience: PendingExperience,
 
     /// When set, the client retries connecting to the character server at this
     /// time. Used after being kicked from a restarted map server (the
@@ -1164,6 +1255,7 @@ impl Client {
             saved_username,
             saved_packet_version,
             pending_stat_updates: PendingStatUpdates::new(),
+            pending_experience: PendingExperience::default(),
             shutdown_requested: false,
             shutdown_deadline: None,
             character_server_reconnect_at: None,
@@ -2071,6 +2163,22 @@ impl Client {
         self.push_chat_information(format!("Aura style set to \"{}\".", style.style_name()));
     }
 
+    /// Shows the aggregated experience gain in the chat once the packet burst
+    /// is over.
+    fn flush_experience_feedback(&mut self) {
+        let Some(last_packet) = self.pending_experience.last_packet else {
+            return;
+        };
+
+        if last_packet.elapsed() < EXPERIENCE_FEEDBACK_DELAY {
+            return;
+        }
+
+        if let Some(message) = self.pending_experience.take_message() {
+            self.push_chat_information(message);
+        }
+    }
+
     /// Pushes an informational message into the chat window.
     fn push_chat_information(&mut self, message: String) {
         self.client_state
@@ -2790,9 +2898,12 @@ impl Client {
                             .follow_mut(client_state().character_slots())
                             .remove_with_id(character_id);
                     }
+                    self.client_state.follow_mut(client_state().delete_character_email()).clear();
+                    self.interface.close_window_with_class(WindowClass::CharacterDeletion);
                 }
                 NetworkEvent::CharacterDeletionFailed { message, .. } => {
                     *self.client_state.follow_mut(client_state().currently_deleting()) = None;
+                    self.interface.close_window_with_class(WindowClass::CharacterDeletion);
                     self.interface.open_window(ErrorWindow::new(message.to_owned()))
                 }
                 NetworkEvent::CharacterSelected { login_data, .. } => {
@@ -4272,6 +4383,76 @@ impl Client {
                         .follow_mut(client_state().skill_tree_window().chosen_skill_level())
                         .remove(&skill_id);
                 }
+                // --- Feedback for small/no-op packets (exp, skill fail, ammo, ban)
+                NetworkEvent::GainedExperience {
+                    amount,
+                    experience_type,
+                    experience_source,
+                } => {
+                    self.pending_experience.add(amount, experience_type, experience_source);
+                }
+                NetworkEvent::SkillUseFailed { skill_id, cause } => {
+                    let reason = match cause {
+                        0 => "skill level is too low",
+                        1 => "not enough SP",
+                        2 => "not enough HP",
+                        3 => "not enough items",
+                        4 => "skill is still in delay",
+                        5 => "not enough zeny",
+                        6 => "wrong weapon",
+                        7 => "missing red gemstone",
+                        8 => "missing blue gemstone",
+                        9 => "too much weight",
+                        11 => "invalid target",
+                        12 => "too many ancilla",
+                        13 => "missing holy water",
+                        14 => "missing ancilla",
+                        22 => "skill is already active",
+                        23 => "condition not met",
+                        26 => "invalid position",
+                        _ => "the skill cannot be used",
+                    };
+
+                    self.push_chat_information(format!("Cannot use skill {}: {reason}.", skill_id.0));
+                }
+                NetworkEvent::StatUpFailed => {
+                    self.push_chat_information("You cannot raise that stat right now.".to_owned());
+                }
+                NetworkEvent::AmmunitionAction { action } => {
+                    let message = match action {
+                        AmmunitionActionType::EquipProperAmmunitionFirst => "You have to equip proper ammunition first.",
+                        AmmunitionActionType::WeightLimitExceeded1 | AmmunitionActionType::WeightLimitExceeded2 => {
+                            "You cannot carry that much ammunition (weight limit)."
+                        }
+                        AmmunitionActionType::Equipped => "Ammunition equipped.",
+                    };
+
+                    self.push_chat_information(message.to_owned());
+                }
+                NetworkEvent::AmmunitionEquipped { inventory_index } => {
+                    crate::logging::log_debug!("ammunition equipped from inventory index {:?}", inventory_index);
+                }
+                NetworkEvent::UserCount { player_count } => {
+                    self.push_chat_information(format!("{player_count} players are online."));
+                }
+                NetworkEvent::MapServerBan { error_code } => {
+                    let reason = match error_code {
+                        1 => "the server was closed",
+                        2 => "this account is already logged in",
+                        3 => "connection timed out",
+                        4 => "the server is full",
+                        5 => "account restriction",
+                        8 => "the server still recognizes the previous connection, please try again",
+                        9 => "too many connections from this IP",
+                        _ => "the server closed the connection",
+                    };
+
+                    self.push_chat_information(format!("Disconnected: {reason}."));
+                    self.return_to_character_selection();
+                }
+                NetworkEvent::RefuseEnter { error_code } => {
+                    self.push_chat_information(format!("The map server refused the login (error {error_code})."));
+                }
             }
         }
 
@@ -4717,10 +4898,19 @@ impl Client {
                 InputEvent::CreateCharacter { slot, name } => {
                     let _ = self.networking_system.create_character(slot, name);
                 }
-                InputEvent::DeleteCharacter { character_id } => {
+                InputEvent::OpenCharacterDeleteWindow { character_id } => {
+                    // Never keep the e-mail of a previous attempt around.
+                    self.client_state.follow_mut(client_state().delete_character_email()).clear();
+                    self.interface.open_window(CharacterDeletionWindow::new(
+                        character_id,
+                        client_state().delete_character_email(),
+                    ));
+                }
+                InputEvent::DeleteCharacter { character_id, email } => {
                     if self.client_state.follow(client_state().currently_deleting()).is_none() {
-                        let _ = self.networking_system.delete_character(character_id);
+                        let _ = self.networking_system.delete_character(character_id, email);
                         *self.client_state.follow_mut(client_state().currently_deleting()) = Some(character_id);
+                        self.interface.close_window_with_class(WindowClass::CharacterDeletion);
                     }
                 }
                 InputEvent::SwitchCharacterSlot {
@@ -6178,6 +6368,10 @@ impl Client {
 
         // Clear the previous render instructions so we can rendering the new frame.
         self.clear_render_instructions();
+
+        // Aggregate experience notifications arrive per kill; show them as one
+        // chat line once the burst is over.
+        self.flush_experience_feedback();
 
         // It is important that we first apply any changes that were dispatched during
         // the last frame.

@@ -5746,3 +5746,16 @@ pub struct PartyOptionPacket2019 {
     /// 1 = item sharing enabled.
     pub item_share: u8,
 }
+
+/// `SC_NOTIFY_BAN` (0x0081) as sent by the **map** server when it kicks an
+/// already connected session (e.g. "ID already logged in" after a stale
+/// connection). The login/character server variant is [LoginFailedPacket].
+///
+/// Unregistered this is a 3-byte unknown packet: the stream resync then reads
+/// the error code as a length and discards the rest of the TCP read.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0081)]
+pub struct NotifyBanPacket {
+    pub error_code: u8,
+}

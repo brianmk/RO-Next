@@ -181,10 +181,15 @@ where
     packet_handler.register(|_: CharacterDeletionSuccessPacket| NetworkEvent::CharacterDeleted)?;
     packet_handler.register(|packet: CharacterDeletionFailedPacket| {
         let reason = packet.reason;
+        // rAthena `chclif_refuse_delchar` error codes: 0 = incorrect e-mail
+        // address (also used for database/delete-time errors), 1 = invalid slot,
+        // 2 = character is in a party or guild.
         let message = match reason {
-            CharacterDeletionFailedReason::NotAllowed => "You are not allowed to delete this character",
-            CharacterDeletionFailedReason::CharacterNotFound => "Character was not found",
-            CharacterDeletionFailedReason::NotEligible => "Character is not eligible for deletion",
+            CharacterDeletionFailedReason::NotAllowed => {
+                "The account e-mail address is incorrect (or the character cannot be deleted yet)."
+            }
+            CharacterDeletionFailedReason::CharacterNotFound => "The character could not be found.",
+            CharacterDeletionFailedReason::NotEligible => "The character is in a party or guild and cannot be deleted.",
         };
         NetworkEvent::CharacterDeletionFailed { reason, message }
     })?;
@@ -436,8 +441,19 @@ where
     // parsed with their exact 2019 sizes; a real handler can replace the noop
     // later (shop: handled by the NPC shop branch, status effects: buff UI).
     packet_handler.register_noop::<CartItemCountInfoPacket2019>()?;
-    packet_handler.register_noop::<UserCountPacket2019>()?;
-    packet_handler.register_noop::<RefuseEnterPacket2019>()?;
+    packet_handler.register(|packet: UserCountPacket2019| NetworkEvent::UserCount {
+        player_count: packet.player_count,
+    })?;
+    packet_handler.register(|packet: RefuseEnterPacket2019| NetworkEvent::RefuseEnter {
+        error_code: packet.error_code,
+    })?;
+    // The map server sends `SC_NOTIFY_BAN` (0x0081) when it kicks the session
+    // (for example "ID already logged in" after a stale connection). Without a
+    // handler the 3-byte packet desynchronizes the stream and the disconnect
+    // happens silently.
+    packet_handler.register(|packet: NotifyBanPacket| NetworkEvent::MapServerBan {
+        error_code: packet.error_code,
+    })?;
     packet_handler.register(|packet: PartyMemberHealthPacket2019| NetworkEvent::PartyMemberHealth {
         account_id: packet.account_id,
         health_points: packet.health_points,
@@ -965,7 +981,11 @@ where
 
         NetworkEvent::VisualEffect { effect_path, entity_id }
     })?;
-    packet_handler.register_noop::<DisplayGainedExperiencePacket>()?;
+    packet_handler.register(|packet: DisplayGainedExperiencePacket| NetworkEvent::GainedExperience {
+        amount: packet.amount as i64,
+        experience_type: packet.experience_type,
+        experience_source: packet.experience_source,
+    })?;
     packet_handler.register_noop::<DisplayImagePacket>()?;
     packet_handler.register_noop::<StateChangePacket>()?;
 
@@ -1239,7 +1259,12 @@ where
         }
     })?;
     packet_handler.register_noop::<UseSkillSuccessPacket>()?;
-    packet_handler.register_noop::<ToUseSkillSuccessPacket>()?;
+    // `ZC_ACK_TOUSESKILL` is only sent when a skill cannot be used; `flag` is 0
+    // for a failure in the 2019 protocol.
+    packet_handler.register(|packet: ToUseSkillSuccessPacket| NetworkEvent::SkillUseFailed {
+        skill_id: packet.skill_id,
+        cause: packet.cause,
+    })?;
     packet_handler.register(|packet: NotifySkillUnitPacket| {
         let NotifySkillUnitPacket {
             entity_id,
@@ -1448,9 +1473,16 @@ where
 
     packet_handler.register(|packet: SellListPacket| NetworkEvent::SellItemList { items: packet.items })?;
     packet_handler.register(|packet: SellItemsResultPacket| NetworkEvent::SellingCompleted { result: packet.result })?;
-    packet_handler.register_noop::<RequestStatUpResponsePacket>()?;
-    packet_handler.register_noop::<EquipAmmunitionPacket>()?;
-    packet_handler.register_noop::<AmmunitionActionPacket>()?;
+    packet_handler.register(|packet: RequestStatUpResponsePacket| match packet.success {
+        ragnarok_packets::RequestStatUpResult::Success => Vec::new(),
+        ragnarok_packets::RequestStatUpResult::Failure => vec![NetworkEvent::StatUpFailed],
+    })?;
+    packet_handler.register(|packet: EquipAmmunitionPacket| NetworkEvent::AmmunitionEquipped {
+        inventory_index: packet.inventory_index,
+    })?;
+    packet_handler.register(|packet: AmmunitionActionPacket| NetworkEvent::AmmunitionAction {
+        action: packet.action_type,
+    })?;
     packet_handler.register(|packet: UpdateSkillPacket| {
         let UpdateSkillPacket {
             skill_id,

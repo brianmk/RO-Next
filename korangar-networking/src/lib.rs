@@ -851,8 +851,18 @@ where
         }
     }
 
-    pub fn delete_character(&mut self, character_id: CharacterId) -> Result<(), NotConnectedError> {
-        let email = "a@a.com".to_string();
+    /// Delete a character.
+    ///
+    /// The CondaRO character server runs with `char_del_option: 1`, i.e. it
+    /// requires the account e-mail address as the deletion confirmation code
+    /// (rAthena `CHAR_DEL_EMAIL`). Sending a hardcoded placeholder made every
+    /// deletion request fail. The login server never sends the address to the
+    /// client, so the user has to type it in.
+    pub fn delete_character(&mut self, character_id: CharacterId, email: String) -> Result<(), NotConnectedError> {
+        // The wire field is a fixed 40-byte C string. Keeping one byte for the
+        // terminator makes sure the server side `stricmp` sees a terminated
+        // string even for the maximum length address.
+        let email = email.trim().chars().take(39).collect::<String>();
 
         match self.character_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_character_server_packet(DeleteCharacterPacket::new(character_id, email)),
@@ -1813,6 +1823,111 @@ mod packet_handlers {
             ..
         }));
         assert!(matches!(&events[4], NetworkEvent::SkillTree { skill_information } if skill_information.len() == 1));
+    }
+
+    /// The 0x0ACC experience packet has to reach the client (it was a noop, so
+    /// no exp feedback ever appeared). Layout: account id u32, amount i64,
+    /// var id u16 (1 = base, 2 = job), exp type u16 (0 = normal, 1 = quest).
+    #[test]
+    fn experience_gain_packet_reaches_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut data = vec![0xCC, 0x0A];
+        data.extend_from_slice(&0u32.to_le_bytes());
+        data.extend_from_slice(&1234i64.to_le_bytes());
+        data.extend_from_slice(&1u16.to_le_bytes());
+        data.extend_from_slice(&0u16.to_le_bytes());
+
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::GainedExperience {
+            amount: 1234,
+            experience_type: ragnarok_packets::ExperienceType::BaseExperience,
+            experience_source: ragnarok_packets::ExperienceSource::Regular,
+        }]));
+    }
+
+    /// ZC_ACK_TOUSESKILL (0x0110) used to be a noop, so a failed cast was
+    /// completely silent.
+    #[test]
+    fn skill_use_failure_packet_reaches_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut data = vec![0x10, 0x01];
+        data.extend_from_slice(&5u16.to_le_bytes()); // skill id
+        data.extend_from_slice(&0u32.to_le_bytes()); // btype
+        data.extend_from_slice(&0u32.to_le_bytes()); // item id
+        data.push(0); // flag
+        data.push(1); // cause: not enough SP
+
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::SkillUseFailed {
+            skill_id: ragnarok_packets::SkillId(5),
+            cause: 1,
+        }]));
+    }
+
+    /// SC_NOTIFY_BAN (0x0081) on the map server: a 3-byte packet that used to
+    /// desynchronize the stream and silently kick the client.
+    #[test]
+    fn map_server_ban_packet_reaches_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let events = feed(&mut handler, &[0x81, 0x00, 2]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MapServerBan { error_code: 2 }]));
+    }
+
+    /// The remaining cheap feedback packets that used to be noops.
+    #[test]
+    fn small_feedback_packets_reach_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // ZC_USER_COUNT (0x00C2): header + players count.
+        let mut data = vec![0xC2, 0x00];
+        data.extend_from_slice(&17i32.to_le_bytes());
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::UserCount { player_count: 17 }]));
+
+        // ZC_STATUS_CHANGE_ACK (0x00BC): sp u16, ok u8, value u8 (ok = 0 = failure).
+        let data = [0xBC, 0x00, 1, 0, 0, 0];
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::StatUpFailed]));
+
+        // ZC_ACTION_FAILURE (0x013B): uint16 type.
+        let data = [0x3B, 0x01, 2, 0];
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::AmmunitionAction {
+            action: ragnarok_packets::AmmunitionActionType::WeightLimitExceeded2,
+        }]));
+
+        // ZC_EQUIP_ARROW (0x013C): uint16 inventory index (the wire value is the
+        // client index + 2, like every other inventory index field).
+        let data = [0x3C, 0x01, 5, 0];
+        let events = feed(&mut handler, &data);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::AmmunitionEquipped {
+            inventory_index: ragnarok_packets::InventoryIndex(3)
+        }]));
+    }
+
+    /// Character deletion has to send the real account e-mail address: rAthena
+    /// runs with `char_del_option: 1` and compares the 40-byte field with the
+    /// account e-mail, so the old hardcoded "a@a.com" made every request fail.
+    #[test]
+    fn delete_character_request_carries_the_account_email() {
+        use ragnarok_packets::*;
+
+        // The packet itself must use the real address, zero padded to 40 bytes
+        // and followed by the 10 ignored bytes (56 bytes total for 0x01FB).
+        let mut writer = ByteWriter::new();
+        DeleteCharacterPacket::new(CharacterId(150_044), "v1@test.local".to_owned())
+            .packet_to_bytes(&mut writer)
+            .unwrap();
+        let bytes = writer.into_inner();
+
+        assert_eq!(&bytes[..2], &[0xFB, 0x01]);
+        assert_eq!(&bytes[2..6], &150_044u32.to_le_bytes());
+        assert_eq!(&bytes[6..19], b"v1@test.local");
+        assert!(bytes[19..46].iter().all(|byte| *byte == 0));
+        assert_eq!(bytes.len(), 2 + 4 + 40 + 10);
     }
 
     /// The party requests have to use the 2019 opcodes and layouts, otherwise

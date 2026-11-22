@@ -103,10 +103,19 @@ pub enum InputEvent {
         /// Name of the new character.
         name: String,
     },
+    /// Open the confirmation window for deleting a character. The character
+    /// server requires the account e-mail address as the confirmation code
+    /// (`char_del_option: 1`), so the user has to type it in.
+    OpenCharacterDeleteWindow {
+        /// Id of the character to be deleted.
+        character_id: CharacterId,
+    },
     /// Delete a character.
     DeleteCharacter {
         /// Id of the character to be deleted.
         character_id: CharacterId,
+        /// Account e-mail address used as the deletion confirmation code.
+        email: String,
     },
     /// Switch the characters of two slots.
     SwitchCharacterSlot {
