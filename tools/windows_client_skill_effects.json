@@ -1,2470 +1,4929 @@
 {
  "provenance": {
-  "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids and file names are extracted",
+  "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, field names and file names are extracted",
   "url": "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB/Skills/SkillEffect.js",
   "packetver_note": "extracted facts; validated against CondaRO.exe + GRFs by gen_skill_effect_assets.py"
  },
  "skills": {
-  "5": {
-   "hit": [
-    1
-   ]
-  },
-  "6": {
-   "success": [
-    67
-   ]
-  },
-  "7": {
-   "success": [
-    17
-   ],
-   "hit": [
-    17,
-    49
-   ]
-  },
-  "8": {
-   "success": [
-    11
-   ]
-  },
-  "10": {
-   "success": [
-    22
-   ]
-  },
-  "11": {
-   "hit": [
-    1
-   ]
-  },
-  "13": {
-   "caster": [
-    15
-   ]
-  },
-  "14": {
-   "hit": [
-    26,
-    51
-   ]
-  },
-  "15": {
-   "hit": [
-    28,
-    51
-   ],
-   "caster": [
-    27
-   ]
-  },
-  "16": {
-   "success": [
-    23
-   ]
-  },
-  "17": {
-   "hit": [
-    1,
-    49
-   ],
-   "caster": [
-    24
-   ]
-  },
-  "18": {
-   "ground": [
-    25
-   ],
-   "hit": [
-    49
-   ]
-  },
-  "19": {
-   "hit": [
-    31,
-    49
-   ]
-  },
-  "20": {
-   "hit": [
-    29,
-    52
-   ]
-  },
-  "21": {
-   "ground": [
-    30
-   ]
-  },
-  "24": {
-   "hit": [
-    1
-   ]
-  },
-  "25": {
-   "ground": [
-    141
-   ]
-  },
-  "28": {
-   "success": [
-    312
-   ],
-   "hit": [
-    320
-   ]
-  },
-  "29": {
-   "success": [
-    37
-   ]
-  },
-  "30": {
-   "success": [
-    38
-   ]
-  },
-  "31": {
-   "success": [
-    39
-   ]
-  },
-  "32": {
-   "success": [
-    40
-   ]
-  },
-  "33": {
-   "success": [
-    41
-   ]
-  },
-  "34": {
-   "success": [
-    42
-   ]
-  },
-  "35": {
-   "success": [
-    66
-   ]
-  },
-  "42": {
-   "success": [
-    10
-   ]
-  },
-  "45": {
-   "success": [
-    153
-   ]
-  },
-  "46": {
-   "caster": [
-    16
-   ]
-  },
-  "47": {
-   "hit": [
-    1
-   ]
-  },
-  "50": {
-   "success": [
-    18
-   ]
-  },
-  "52": {
-   "hit": [
-    20
-   ]
-  },
-  "53": {
-   "success": [
-    21
-   ]
-  },
-  "54": {
-   "success": [
-    77,
-    140
-   ]
-  },
-  "56": {
-   "success": [
-    148
-   ],
-   "hit": [
-    147
-   ]
-  },
-  "57": {
-   "success": [
-    70,
-    144
-   ]
-  },
-  "58": {
-   "success": [
-    150
-   ]
-  },
-  "59": {
-   "success": [
-    151
-   ],
-   "hit": [
-    80
-   ]
-  },
-  "60": {
-   "success": [
-    130
-   ]
-  },
-  "61": {
-   "success": [
-    131
-   ]
-  },
-  "62": {
-   "success": [
-    149
-   ],
-   "hit": [
-    1
-   ]
-  },
-  "66": {
-   "success": [
-    84
-   ]
-  },
-  "67": {
-   "success": [
-    88
-   ]
-  },
-  "68": {
-   "success": [
-    86
-   ]
-  },
-  "69": {
-   "success": [
-    91
-   ]
-  },
-  "70": {
-   "ground": [
-    319
-   ],
-   "success": [
-    83
-   ]
-  },
-  "71": {
-   "success": [
-    136
-   ]
-  },
-  "72": {
-   "success": [
-    78
-   ]
-  },
-  "73": {
-   "success": [
-    112
-   ]
-  },
-  "74": {
-   "success": [
-    76
-   ]
-  },
-  "75": {
-   "success": [
-    75
-   ]
-  },
-  "76": {
-   "success": [
-    87
-   ]
-  },
-  "77": {
-   "hit": [
-    152
-   ]
-  },
-  "78": {
-   "success": [
-    85
-   ]
-  },
-  "79": {
-   "ground": [
-    318
-   ],
-   "success": [
-    113
-   ],
-   "hit": [
-    152
-   ]
-  },
-  "80": {
-   "ground": [
-    138
-   ],
-   "success": [
-    96
-   ],
-   "hit": [
-    97
-   ]
-  },
-  "81": {
-   "success": [
-    62
-   ],
-   "hit": [
-    49
-   ]
-  },
-  "83": {
-   "success": [
-    92
-   ],
-   "hit": [
-    49
-   ]
-  },
-  "84": {
-   "success": [
-    93
-   ],
-   "hit": [
-    94
-   ]
-  },
-  "85": {
-   "success": [
-    90
-   ],
-   "hit": [
-    52
-   ]
-  },
-  "87": {
-   "ground": [
-    74
-   ]
-  },
-  "88": {
-   "success": [
-    28
-   ],
-   "hit": [
-    51
-   ]
-  },
-  "89": {
-   "success": [
-    89
-   ],
-   "hit": [
-    51
-   ]
-  },
-  "90": {
-   "success": [
-    79
-   ],
-   "hit": [
-    147
-   ]
-  },
-  "91": {
-   "success": [
-    142
-   ],
-   "hit": [
-    147
-   ]
-  },
-  "92": {
-   "ground": [
-    95
-   ]
-  },
-  "108": {
-   "success": [
-    101
-   ]
-  },
-  "110": {
-   "success": [
-    102
-   ]
-  },
-  "111": {
-   "success": [
-    98
-   ]
-  },
-  "112": {
-   "success": [
-    103
-   ]
-  },
-  "113": {
-   "success": [
-    128
-   ]
-  },
-  "114": {
-   "success": [
-    104
-   ]
-  },
-  "115": {
-   "success": [
-    69
-   ]
-  },
-  "118": {
-   "success": [
-    145
-   ],
-   "hit": [
-    146
-   ]
-  },
-  "119": {
-   "hit": [
-    139
-   ]
-  },
-  "120": {
-   "hit": [
-    99
-   ]
-  },
-  "121": {
-   "hit": [
-    108
-   ]
-  },
-  "122": {
-   "hit": [
-    106
-   ]
-  },
-  "123": {
-   "hit": [
-    107
-   ]
-  },
-  "124": {
-   "success": [
-    100
-   ]
-  },
-  "129": {
-   "success": [
-    115
-   ]
-  },
-  "130": {
-   "success": [
-    119
-   ]
-  },
-  "131": {
-   "success": [
-    111
-   ]
-  },
-  "135": {
-   "success": [
-    120
-   ]
-  },
-  "136": {
-   "success": [
-    121,
-    143
-   ],
-   "hit": [
-    122
-   ]
-  },
-  "137": {
-   "release": [
-    123
-   ],
-   "hit": [
-    132
-   ]
-  },
-  "138": {
-   "success": [
-    20
-   ]
-  },
-  "139": {
-   "success": [
-    126
-   ],
-   "hit": [
-    127
-   ]
-  },
-  "140": {
-   "ground": [
-    171
-   ],
-   "success": [
-    124
-   ]
-  },
-  "141": {
-   "success": [
-    129
-   ]
-  },
-  "142": {
-   "success": [
-    309
-   ]
-  },
-  "148": {
-   "caster": [
-    16
-   ]
-  },
-  "149": {
-   "success": [
-    310
-   ]
-  },
-  "152": {
-   "hit": [
-    308
-   ]
-  },
-  "153": {
-   "cast": [
-    170
-   ],
-   "hit": [
-    170
-   ]
-  },
-  "155": {
-   "success": [
-    311
-   ]
-  },
-  "156": {
-   "success": [
-    152
-   ]
-  },
-  "157": {
-   "success": [
-    169
-   ]
-  },
-  "158": {
-   "success": [
-    148
-   ]
-  },
-  "159": {
-   "success": [
-    181
-   ]
-  },
-  "162": {
-   "success": [
-    174
-   ]
-  },
-  "163": {
-   "success": [
-    177
-   ]
-  },
-  "164": {
-   "success": [
-    173
-   ]
-  },
-  "165": {
-   "success": [
-    175
-   ]
-  },
-  "166": {
-   "success": [
-    179
-   ]
-  },
-  "167": {
-   "success": [
-    178
-   ]
-  },
-  "168": {
-   "success": [
-    172
-   ]
-  },
-  "170": {
-   "success": [
-    16
-   ]
-  },
-  "172": {
-   "success": [
-    191
-   ]
-  },
-  "173": {
-   "success": [
-    183
-   ]
-  },
-  "175": {
-   "success": [
-    185
-   ]
-  },
-  "176": {
-   "success": [
-    192
-   ]
-  },
-  "178": {
-   "success": [
-    193
-   ]
-  },
-  "179": {
-   "success": [
-    194
-   ]
-  },
-  "180": {
-   "success": [
-    195
-   ]
-  },
-  "181": {
-   "success": [
-    196
-   ]
-  },
-  "182": {
-   "success": [
-    197
-   ]
-  },
-  "184": {
-   "hit": [
-    51
-   ]
-  },
-  "185": {
-   "hit": [
-    147
-   ]
-  },
-  "186": {
-   "hit": [
-    49
-   ]
-  },
-  "187": {
-   "hit": [
-    52
-   ]
-  },
-  "188": {
-   "hit": [
-    53
-   ]
-  },
-  "189": {
-   "hit": [
-    152
-   ]
-  },
-  "190": {
-   "success": [
-    184
-   ],
-   "hit": [
-    180
-   ]
-  },
-  "191": {
-   "success": [
-    198
-   ]
-  },
-  "192": {
-   "hit": [
-    182
-   ]
-  },
-  "194": {
-   "success": [
-    67
-   ]
-  },
-  "199": {
-   "success": [
-    216
-   ]
-  },
-  "200": {
-   "success": [
-    217
-   ]
-  },
-  "201": {
-   "success": [
-    214
-   ]
-  },
-  "202": {
-   "success": [
-    212
-   ]
-  },
-  "205": {
-   "success": [
-    213
-   ]
-  },
-  "211": {
-   "success": [
-    268,
-    274
-   ]
-  },
-  "212": {
-   "hit": [
-    275
-   ]
-  },
-  "214": {
-   "success": [
-    276
-   ]
-  },
-  "215": {
-   "success": [
-    269
-   ]
-  },
-  "216": {
-   "success": [
-    270
-   ]
-  },
-  "217": {
-   "success": [
-    271
-   ]
-  },
-  "218": {
-   "success": [
-    272
-   ]
-  },
-  "219": {
-   "success": [
-    227
-   ]
-  },
-  "229": {
-   "ground": [
-    302
-   ]
-  },
-  "230": {
-   "hit": [
-    298
-   ]
-  },
-  "231": {
-   "success": [
-    299
-   ]
-  },
-  "234": {
-   "success": [
-    300
-   ]
-  },
-  "235": {
-   "success": [
-    300
-   ]
-  },
-  "236": {
-   "success": [
-    300
-   ]
-  },
-  "237": {
-   "success": [
-    300
-   ]
-  },
-  "249": {
-   "success": [
-    336
-   ]
-  },
-  "250": {
-   "success": [
-    246
-   ]
-  },
-  "251": {
-   "success": [
-    249
-   ]
-  },
-  "252": {
-   "success": [
-    252
-   ]
-  },
-  "253": {
-   "success": [
-    245
-   ]
-  },
-  "254": {
-   "success": [
-    226
-   ]
-  },
-  "255": {
-   "success": [
-    251
-   ]
-  },
-  "256": {
-   "success": [
-    248
-   ]
-  },
-  "257": {
-   "success": [
-    222
-   ]
-  },
-  "258": {
-   "success": [
-    250
-   ]
-  },
-  "262": {
-   "success": [
-    253
-   ]
-  },
-  "263": {
-   "success": [
-    329
-   ]
-  },
-  "264": {
-   "success": [
-    166
-   ]
-  },
-  "266": {
-   "success": [
-    267
-   ]
-  },
-  "267": {
-   "success": [
-    265
-   ],
-   "hit": [
-    1
-   ]
-  },
-  "268": {
-   "success": [
-    254
-   ]
-  },
-  "270": {
-   "cast": [
-    12
-   ],
-   "success": [
-    261
-   ]
-  },
-  "271": {
-   "cast": [
-    12
-   ],
-   "hit": [
-    266
-   ]
-  },
-  "272": {
-   "success": [
-    262,
-    263,
-    273
-   ]
-  },
-  "273": {
-   "success": [
-    330
-   ]
-  },
-  "276": {
-   "success": [
-    244
-   ]
-  },
-  "277": {
-   "success": [
-    234
-   ]
-  },
-  "280": {
-   "success": [
-    255
-   ]
-  },
-  "281": {
-   "success": [
-    256
-   ]
-  },
-  "282": {
-   "success": [
-    257
-   ]
-  },
-  "283": {
-   "success": [
-    258
-   ]
-  },
-  "285": {
-   "ground": [
-    239
-   ],
-   "success": [
-    225
-   ]
-  },
-  "286": {
-   "ground": [
-    240
-   ],
-   "success": [
-    236
-   ]
-  },
-  "287": {
-   "ground": [
-    241
-   ],
-   "success": [
-    237
-   ]
-  },
-  "288": {
-   "ground": [
-    242
-   ],
-   "success": [
-    238
-   ]
-  },
-  "289": {
-   "success": [
-    235
-   ]
-  },
-  "306": {
-   "success": [
-    278
-   ]
-  },
-  "307": {
-   "success": [
-    279
-   ]
-  },
-  "308": {
-   "success": [
-    280
-   ]
-  },
-  "309": {
-   "success": [
-    281
-   ]
-  },
-  "310": {
-   "success": [
-    282
-   ]
-  },
-  "311": {
-   "success": [
-    283
-   ]
-  },
-  "312": {
-   "success": [
-    284
-   ]
-  },
-  "313": {
-   "success": [
-    285
-   ]
-  },
-  "318": {
-   "cast": [
-    295
-   ]
-  },
-  "319": {
-   "success": [
-    286
-   ]
-  },
-  "320": {
-   "success": [
-    287
-   ]
-  },
-  "321": {
-   "success": [
-    288
-   ]
-  },
-  "322": {
-   "success": [
-    289
-   ]
-  },
-  "326": {
-   "cast": [
-    296
-   ]
-  },
-  "327": {
-   "success": [
-    291
-   ]
-  },
-  "328": {
-   "success": [
-    292
-   ]
-  },
-  "329": {
-   "success": [
-    293
-   ]
-  },
-  "330": {
-   "success": [
-    294
-   ]
-  },
-  "337": {
-   "success": [
-    494
-   ]
-  },
-  "338": {
-   "success": [
-    450
-   ]
-  },
-  "340": {
-   "success": [
-    451
-   ]
-  },
-  "341": {
-   "success": [
-    93
-   ],
-   "hit": [
-    94
-   ]
-  },
-  "342": {
-   "success": [
-    453
-   ]
-  },
-  "349": {
-   "success": [
-    456
-   ]
-  },
-  "355": {
-   "success": [
-    367
-   ]
-  },
-  "356": {
-   "success": [
-    336
-   ]
-  },
-  "357": {
-   "success": [
-    369
-   ]
-  },
-  "359": {
-   "success": [
-    368
-   ]
-  },
-  "360": {
-   "success": [
-    368
-   ]
-  },
-  "361": {
-   "success": [
-    440
-   ]
-  },
-  "362": {
-   "ground": [
-    374
-   ]
-  },
-  "364": {
-   "success": [
-    217
-   ]
-  },
-  "365": {
-   "success": [
-    380
-   ]
-  },
-  "366": {
-   "cast": [
-    16
-   ]
-  },
-  "367": {
-   "hit": [
-    365
-   ]
-  },
-  "368": {
-   "success": [
-    366
-   ]
-  },
-  "369": {
-   "success": [
-    370
-   ]
-  },
-  "370": {
-   "hit": [
-    376
-   ]
-  },
-  "371": {
-   "success": [
-    263,
-    377
-   ]
-  },
-  "372": {
-   "success": [
-    512
-   ]
-  },
-  "373": {
-   "success": [
-    378,
-    379,
-    383
-   ]
-  },
-  "374": {
-   "success": [
-    384,
-    385
-   ]
-  },
-  "375": {
-   "success": [
-    406
-   ]
-  },
-  "378": {
-   "success": [
-    493
-   ]
-  },
-  "379": {
-   "hit": [
-    361
-   ]
-  },
-  "380": {
-   "success": [
-    386
-   ]
-  },
-  "381": {
-   "success": [
-    387
-   ]
-  },
-  "382": {
-   "hit": [
-    388
-   ]
-  },
-  "383": {
-   "success": [
-    389
-   ]
-  },
-  "384": {
-   "success": [
-    390
-   ]
-  },
-  "387": {
-   "success": [
-    391
-   ]
-  },
-  "389": {
-   "cast": [
-    501
-   ]
-  },
-  "390": {
-   "success": [
-    392
-   ]
-  },
-  "394": {
-   "success": [
-    393
-   ]
-  },
-  "395": {
-   "success": [
-    394
-   ]
-  },
-  "396": {
-   "success": [
-    395
-   ],
-   "hit": [
-    396
-   ]
-  },
-  "397": {
-   "success": [
-    339
-   ]
-  },
-  "398": {
-   "cast": [
-    399
-   ]
-  },
-  "399": {
-   "cast": [
-    400
-   ]
-  },
-  "400": {
-   "success": [
-    401
-   ]
-  },
-  "401": {
-   "cast": [
-    12,
-    402
-   ]
-  },
-  "402": {
-   "success": [
-    403
-   ]
-  },
-  "403": {
-   "success": [
-    505
-   ]
-  },
-  "405": {
-   "ground": [
-    404
-   ]
-  },
-  "406": {
-   "success": [
-    409
-   ]
-  },
-  "408": {
-   "success": [
-    408
-   ]
-  },
-  "411": {
-   "ground": [
-    442
-   ],
-   "success": [
-    443
-   ]
-  },
-  "413": {
-   "success": [
-    435
-   ]
-  },
-  "415": {
-   "success": [
-    413
-   ]
-  },
-  "417": {
-   "success": [
-    414
-   ]
-  },
-  "421": {
-   "success": [
-    439
-   ],
-   "hit": [
-    457
-   ]
-  },
-  "426": {
-   "ground": [
-    411
-   ],
-   "success": [
-    445
-   ]
-  },
-  "427": {
-   "success": [
-    432
-   ]
-  },
-  "428": {
-   "success": [
-    488
-   ]
-  },
-  "429": {
-   "success": [
-    488
-   ]
-  },
-  "430": {
-   "success": [
-    488
-   ]
-  },
-  "431": {
-   "success": [
-    441
-   ]
-  },
-  "432": {
-   "success": [
-    441
-   ]
-  },
-  "433": {
-   "success": [
-    441
-   ]
-  },
-  "434": {
-   "ground": [
-    487
-   ]
-  },
-  "444": {
-   "success": [
-    433
-   ]
-  },
-  "446": {
-   "success": [
-    220
-   ],
-   "hit": [
-    541
-   ]
-  },
-  "458": {
-   "success": [
-    424,
-    503
-   ]
-  },
-  "461": {
-   "success": [
-    424,
-    503
-   ]
-  },
-  "462": {
-   "success": [
-    590
-   ]
-  },
-  "463": {
-   "success": [
-    543
-   ]
-  },
-  "464": {
-   "success": [
-    546
-   ]
-  },
-  "465": {
-   "success": [
-    419
-   ]
-  },
-  "467": {
-   "success": [
-    547
-   ]
-  },
-  "468": {
-   "success": [
-    555
-   ]
-  },
-  "469": {
-   "success": [
-    425,
-    553
-   ]
-  },
-  "470": {
-   "success": [
-    420,
-    589
-   ]
-  },
-  "471": {
-   "success": [
-    427
-   ]
-  },
-  "472": {
-   "success": [
-    254,
-    261
-   ]
-  },
-  "475": {
-   "success": [
-    496
-   ]
-  },
-  "476": {
-   "success": [
-    495
-   ]
-  },
-  "479": {
-   "success": [
-    300,
-    500
-   ]
-  },
-  "482": {
-   "success": [
-    521
-   ]
-  },
-  "483": {
-   "ground": [
-    224
-   ],
-   "success": [
-    223
-   ]
-  },
-  "485": {
-   "success": [
-    518
-   ]
-  },
-  "487": {
-   "success": [
-    500
-   ]
-  },
-  "488": {
-   "ground": [
-    517
-   ]
-  },
-  "489": {
-   "success": [
-    500
-   ]
-  },
-  "490": {
-   "success": [
-    537
-   ]
-  },
-  "494": {
-   "success": [
-    424,
-    503
-   ]
-  },
-  "496": {
-   "success": [
-    497
-   ]
-  },
-  "497": {
-   "success": [
-    498
-   ]
-  },
-  "498": {
-   "success": [
-    499
-   ]
-  },
-  "502": {
-   "success": [
-    648
-   ]
-  },
-  "503": {
-   "success": [
-    649
-   ]
-  },
-  "504": {
-   "success": [
-    625
-   ]
-  },
-  "505": {
-   "success": [
-    626
-   ]
-  },
-  "506": {
-   "success": [
-    456
-   ]
-  },
-  "507": {
-   "success": [
-    644
-   ]
-  },
-  "512": {
-   "success": [
-    646
-   ],
-   "hit": [
-    647
-   ]
-  },
-  "513": {
-   "success": [
-    627
-   ]
-  },
-  "515": {
-   "success": [
-    643
-   ]
-  },
-  "516": {
-   "success": [
-    637
-   ]
-  },
-  "517": {
-   "success": [
-    626
-   ]
-  },
-  "518": {
-   "success": [
-    628
-   ]
-  },
-  "519": {
-   "success": [
-    584
-   ]
-  },
-  "520": {
-   "success": [
-    645
-   ]
-  },
-  "523": {
-   "hit": [
-    613
-   ]
-  },
-  "524": {
-   "hit": [
-    614
-   ]
-  },
-  "525": {
-   "hit": [
-    615
-   ]
-  },
-  "526": {
-   "hit": [
-    616
-   ]
-  },
-  "527": {
-   "ground": [
-    631
-   ]
-  },
-  "528": {
-   "success": [
-    632
-   ]
-  },
-  "530": {
-   "success": [
-    630
-   ]
-  },
-  "532": {
-   "success": [
-    617
-   ]
-  },
-  "534": {
-   "success": [
-    618
-   ]
-  },
-  "535": {
-   "ground": [
-    634
-   ]
-  },
-  "536": {
-   "success": [
-    635
-   ]
-  },
-  "537": {
-   "success": [
-    619
-   ]
-  },
-  "538": {
-   "ground": [
-    620
-   ]
-  },
-  "539": {
-   "success": [
-    636
-   ]
-  },
-  "540": {
-   "success": [
-    621
-   ]
-  },
-  "541": {
-   "success": [
-    622
-   ]
-  },
-  "544": {
-   "success": [
-    633
-   ]
-  },
-  "653": {
-   "success": [
-    666
-   ]
-  },
-  "654": {
-   "hit": [
-    49
-   ]
-  },
-  "656": {
-   "hit": [
-    52
-   ]
-  },
-  "659": {
-   "success": [
-    668
-   ]
-  },
-  "661": {
-   "success": [
-    409
-   ]
-  },
-  "664": {
-   "success": [
-    89
-   ]
-  },
-  "665": {
-   "success": [
-    669
-   ]
-  },
-  "670": {
-   "ground": [
-    674
-   ]
-  },
-  "673": {
-   "hit": [
-    677
-   ]
-  },
-  "698": {
-   "success": [
-    717
-   ]
-  },
-  "706": {
-   "success": [
-    1020
-   ]
-  },
-  "1002": {
-   "success": [
-    599
-   ]
-  },
-  "1004": {
-   "hit": [
-    600
-   ]
-  },
-  "1005": {
-   "ground": [
-    604
-   ],
-   "success": [
-    602
-   ]
-  },
-  "1006": {
-   "success": [
-    601
-   ]
-  },
-  "1008": {
-   "success": [
-    256
-   ]
-  },
-  "1009": {
-   "hit": [
-    1
-   ]
-  },
-  "1010": {
-   "success": [
-    606
-   ]
-  },
-  "1011": {
-   "success": [
-    607
-   ]
-  },
-  "1016": {
-   "success": [
-    514
-   ]
-  },
-  "1017": {
-   "success": [
-    258
-   ]
-  },
-  "1018": {
-   "success": [
-    255
-   ]
-  },
-  "1019": {
-   "success": [
-    257
-   ]
-  },
-  "2001": {
-   "success": [
-    756
-   ]
-  },
-  "2002": {
-   "success": [
-    832
-   ]
-  },
-  "2004": {
-   "success": [
-    723
-   ]
-  },
-  "2006": {
-   "success": [
-    722
-   ]
-  },
-  "2008": {
-   "hit": [
-    587
-   ]
-  },
-  "2009": {
-   "success": [
-    731
-   ]
-  },
-  "2011": {
-   "success": [
-    749
-   ]
-  },
-  "2021": {
-   "success": [
-    788
-   ]
-  },
-  "2036": {
-   "success": [
-    775
-   ]
-  },
-  "2038": {
-   "success": [
-    718
-   ],
-   "hit": [
-    152
-   ]
-  },
-  "2040": {
-   "success": [
-    721
-   ]
-  },
-  "2043": {
-   "success": [
-    313
-   ]
-  },
-  "2044": {
-   "ground": [
-    754
-   ],
-   "success": [
-    883
-   ]
-  },
-  "2046": {
-   "success": [
-    755
-   ]
-  },
-  "2051": {
-   "success": [
-    325
-   ],
-   "hit": [
-    320
-   ]
-  },
-  "2052": {
-   "success": [
-    753
-   ]
-  },
-  "2201": {
-   "success": [
-    802
-   ]
-  },
-  "2203": {
-   "success": [
-    726
-   ]
-  },
-  "2204": {
-   "hit": [
-    28
-   ]
-  },
-  "2205": {
-   "success": [
-    729
-   ]
-  },
-  "2206": {
-   "success": [
-    803
-   ]
-  },
-  "2209": {
-   "success": [
-    799
-   ]
-  },
-  "2211": {
-   "success": [
-    727
-   ]
-  },
-  "2212": {
-   "ground": [
-    728
-   ]
-  },
-  "2215": {
-   "success": [
-    734
-   ]
-  },
-  "2216": {
-   "ground": [
-    732
-   ]
-  },
-  "2217": {
-   "cast": [
-    805
-   ],
-   "success": [
-    804
-   ]
-  },
-  "2230": {
-   "success": [
-    751
-   ]
-  },
-  "2233": {
-   "success": [
-    746
-   ]
-  },
-  "2236": {
-   "success": [
-    745
-   ]
-  },
-  "2237": {
-   "success": [
-    750
-   ]
-  },
-  "2247": {
-   "success": [
-    744
-   ]
-  },
-  "2249": {
-   "ground": [
-    739
-   ]
-  },
-  "2250": {
-   "ground": [
-    740
-   ]
-  },
-  "2251": {
-   "ground": [
-    741
-   ]
-  },
-  "2252": {
-   "ground": [
-    742
-   ]
-  },
-  "2259": {
-   "success": [
-    787
-   ]
-  },
-  "2270": {
-   "success": [
-    794
-   ]
-  },
-  "2272": {
-   "success": [
-    781
-   ]
-  },
-  "2279": {
-   "success": [
-    795
-   ]
-  },
-  "2289": {
-   "success": [
-    811
-   ]
-  },
-  "2292": {
-   "success": [
-    813
-   ]
-  },
-  "2293": {
-   "success": [
-    814
-   ]
-  },
-  "2294": {
-   "success": [
-    815
-   ]
-  },
-  "2295": {
-   "success": [
-    816
-   ]
-  },
-  "2296": {
-   "success": [
-    817
-   ]
-  },
-  "2297": {
-   "success": [
-    818
-   ]
-  },
-  "2298": {
-   "success": [
-    820
-   ]
-  },
-  "2299": {
-   "ground": [
-    822
-   ],
-   "success": [
-    823
-   ]
-  },
-  "2300": {
-   "ground": [
-    825
-   ]
-  },
-  "2301": {
-   "ground": [
-    827
-   ]
-  },
-  "2302": {
-   "ground": [
-    828
-   ]
-  },
-  "2303": {
-   "ground": [
-    829
-   ]
-  },
-  "2310": {
-   "hit": [
-    906
-   ]
-  },
-  "2318": {
-   "success": [
-    908
-   ]
-  },
-  "2319": {
-   "success": [
-    909
-   ]
-  },
-  "2325": {
-   "success": [
-    910
-   ]
-  },
-  "2328": {
-   "success": [
-    888
-   ]
-  },
-  "2414": {
-   "ground": [
-    856
-   ]
-  },
-  "2415": {
-   "success": [
-    860
-   ]
-  },
-  "2417": {
-   "success": [
-    863
-   ]
-  },
-  "2418": {
-   "success": [
-    857
-   ]
-  },
-  "2419": {
-   "ground": [
-    860
-   ]
-  },
-  "2420": {
-   "ground": [
-    879
-   ]
-  },
-  "2422": {
-   "success": [
-    858
-   ]
-  },
-  "2423": {
-   "success": [
-    861
-   ]
-  },
-  "2424": {
-   "success": [
-    862
-   ]
-  },
-  "2425": {
-   "success": [
-    847
-   ]
-  },
-  "2427": {
-   "ground": [
-    868
-   ],
-   "success": [
-    865
-   ]
-  },
-  "2428": {
-   "ground": [
-    866
-   ],
-   "success": [
-    867
-   ]
-  },
-  "2430": {
-   "ground": [
-    870
-   ],
-   "success": [
-    871
-   ]
-  },
-  "2431": {
-   "ground": [
-    872
-   ],
-   "success": [
-    871
-   ]
-  },
-  "2432": {
-   "ground": [
-    874
-   ],
-   "success": [
-    873
-   ]
-  },
-  "2433": {
-   "ground": [
-    876
-   ],
-   "success": [
-    875
-   ]
-  },
-  "2434": {
-   "ground": [
-    878
-   ]
-  },
-  "2443": {
-   "ground": [
-    920
-   ]
-  },
-  "2444": {
-   "ground": [
-    926
-   ]
-  },
-  "2447": {
-   "success": [
-    928
-   ]
-  },
-  "2449": {
-   "success": [
-    922
-   ]
-  },
-  "2452": {
-   "success": [
-    929
-   ]
-  },
-  "2453": {
-   "success": [
-    921
-   ]
-  },
-  "2454": {
-   "hit": [
-    930
-   ]
-  },
-  "2483": {
-   "success": [
-    915
-   ]
-  },
-  "2485": {
-   "success": [
-    916
-   ]
-  },
-  "2486": {
-   "success": [
-    917
-   ]
-  },
-  "2487": {
-   "success": [
-    918
-   ]
-  },
-  "2490": {
-   "success": [
-    919
-   ]
-  },
-  "5001": {
-   "success": [
-    1040
-   ]
-  },
-  "5003": {
-   "success": [
-    1049
-   ]
-  },
-  "5005": {
-   "success": [
-    1044
-   ]
-  },
-  "5006": {
-   "success": [
-    1050
-   ]
-  },
-  "5008": {
-   "success": [
-    1046
-   ]
-  },
-  "5009": {
-   "success": [
-    1043
-   ]
-  },
-  "5011": {
-   "success": [
-    1047
-   ]
-  },
-  "5012": {
-   "success": [
-    1048
-   ]
-  },
-  "5014": {
-   "success": [
-    1042
-   ]
-  },
-  "5457": {
-   "cast": [
-    1446
-   ]
-  },
-  "5479": {
-   "cast": [
-    1774
-   ]
-  },
-  "6006": {
-   "cast": [
-    2228,
-    2229
-   ]
-  },
-  "8004": {
-   "success": [
-    505
-   ]
-  },
-  "8005": {
-   "success": [
-    570
-   ]
-  },
-  "8006": {
-   "success": [
-    569
-   ]
-  },
-  "8008": {
-   "success": [
-    571
-   ]
-  },
-  "8010": {
-   "success": [
-    564
-   ]
-  },
-  "8011": {
-   "success": [
-    564
-   ]
-  },
-  "8016": {
-   "success": [
-    183
-   ]
-  },
-  "8020": {
-   "success": [
-    959
-   ]
-  },
-  "8024": {
-   "success": [
-    960
-   ]
-  },
-  "8026": {
-   "success": [
-    961
-   ]
-  },
-  "8028": {
-   "success": [
-    965
-   ]
-  },
-  "8030": {
-   "success": [
-    967
-   ]
-  },
-  "8036": {
-   "success": [
-    966
-   ]
-  },
-  "8039": {
-   "success": [
-    962
-   ]
-  },
-  "8041": {
-   "success": [
-    964
-   ]
-  },
-  "8043": {
-   "success": [
-    975
-   ]
-  }
+  "5": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "6": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     67
+    ]
+   }
+  ],
+  "7": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     17
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     17,
+     49
+    ]
+   }
+  ],
+  "8": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     11
+    ]
+   }
+  ],
+  "10": [
+   {
+    "field": "effectId",
+    "effects": [
+     22
+    ]
+   }
+  ],
+  "11": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "13": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     15
+    ]
+   }
+  ],
+  "14": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     51
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [
+     26
+    ]
+   }
+  ],
+  "15": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     28,
+     51
+    ]
+   },
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     27
+    ]
+   }
+  ],
+  "16": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     23
+    ]
+   }
+  ],
+  "17": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1,
+     49
+    ]
+   },
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     24
+    ]
+   }
+  ],
+  "18": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     25
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   }
+  ],
+  "19": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [
+     31
+    ]
+   }
+  ],
+  "20": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     52
+    ]
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effects": [
+     29
+    ]
+   }
+  ],
+  "21": [
+   {
+    "field": "groundEffectIdByLevel",
+    "effects": [
+     30
+    ]
+   }
+  ],
+  "24": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "25": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     141
+    ]
+   }
+  ],
+  "28": [
+   {
+    "field": "effectId",
+    "effects": [
+     312
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     320
+    ]
+   }
+  ],
+  "29": [
+   {
+    "field": "effectId",
+    "effects": [
+     37
+    ]
+   }
+  ],
+  "30": [
+   {
+    "field": "effectId",
+    "effects": [
+     38
+    ]
+   }
+  ],
+  "31": [
+   {
+    "field": "effectId",
+    "effects": [
+     39
+    ]
+   }
+  ],
+  "32": [
+   {
+    "field": "effectId",
+    "effects": [
+     40
+    ]
+   }
+  ],
+  "33": [
+   {
+    "field": "effectId",
+    "effects": [
+     41
+    ]
+   }
+  ],
+  "34": [
+   {
+    "field": "effectId",
+    "effects": [
+     42
+    ]
+   }
+  ],
+  "35": [
+   {
+    "field": "effectId",
+    "effects": [
+     66
+    ]
+   }
+  ],
+  "42": [
+   {
+    "field": "effectId",
+    "effects": [
+     10
+    ]
+   }
+  ],
+  "45": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     153
+    ]
+   }
+  ],
+  "46": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "47": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "50": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     18
+    ]
+   }
+  ],
+  "52": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     20
+    ]
+   }
+  ],
+  "53": [
+   {
+    "field": "effectId",
+    "effects": [
+     21
+    ]
+   }
+  ],
+  "54": [
+   {
+    "field": "effectId",
+    "effects": [
+     77,
+     140
+    ]
+   }
+  ],
+  "56": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     148
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     147
+    ]
+   }
+  ],
+  "57": [
+   {
+    "field": "effectId",
+    "effects": [
+     70
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     144
+    ]
+   }
+  ],
+  "58": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     150
+    ]
+   }
+  ],
+  "59": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     151
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     80
+    ]
+   }
+  ],
+  "60": [
+   {
+    "field": "effectId",
+    "effects": [
+     130
+    ]
+   }
+  ],
+  "61": [
+   {
+    "field": "effectId",
+    "effects": [
+     131
+    ]
+   }
+  ],
+  "62": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     149
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "66": [
+   {
+    "field": "effectId",
+    "effects": [
+     84
+    ]
+   }
+  ],
+  "67": [
+   {
+    "field": "effectId",
+    "effects": [
+     88
+    ]
+   }
+  ],
+  "68": [
+   {
+    "field": "effectId",
+    "effects": [
+     86
+    ]
+   }
+  ],
+  "69": [
+   {
+    "field": "effectId",
+    "effects": [
+     91
+    ]
+   }
+  ],
+  "70": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     319
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     83
+    ]
+   }
+  ],
+  "71": [
+   {
+    "field": "effectId",
+    "effects": [
+     136
+    ]
+   }
+  ],
+  "72": [
+   {
+    "field": "effectId",
+    "effects": [
+     78
+    ]
+   }
+  ],
+  "73": [
+   {
+    "field": "effectId",
+    "effects": [
+     112
+    ]
+   }
+  ],
+  "74": [
+   {
+    "field": "effectId",
+    "effects": [
+     76
+    ]
+   }
+  ],
+  "75": [
+   {
+    "field": "effectId",
+    "effects": [
+     75
+    ]
+   }
+  ],
+  "76": [
+   {
+    "field": "effectId",
+    "effects": [
+     87
+    ]
+   }
+  ],
+  "77": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     152
+    ]
+   }
+  ],
+  "78": [
+   {
+    "field": "effectId",
+    "effects": [
+     85
+    ]
+   }
+  ],
+  "79": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     318
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     113
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     152
+    ]
+   }
+  ],
+  "80": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     138
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     96
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     97
+    ]
+   }
+  ],
+  "81": [
+   {
+    "field": "effectId",
+    "effects": [
+     62
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   }
+  ],
+  "83": [
+   {
+    "field": "effectId",
+    "effects": [
+     92
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   }
+  ],
+  "84": [
+   {
+    "field": "effectId",
+    "effects": [
+     93
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     94
+    ]
+   }
+  ],
+  "85": [
+   {
+    "field": "effectId",
+    "effects": [
+     90
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     52
+    ]
+   }
+  ],
+  "86": [
+   {
+    "field": "beforeHitEffectIdOnCaster",
+    "effects": [
+     116
+    ]
+   },
+   {
+    "field": "hitEffectIdOnCaster",
+    "effects": [
+     117
+    ]
+   }
+  ],
+  "87": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     74
+    ]
+   }
+  ],
+  "88": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     28
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     51
+    ]
+   }
+  ],
+  "89": [
+   {
+    "field": "effectId",
+    "effects": [
+     89
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     51
+    ]
+   }
+  ],
+  "90": [
+   {
+    "field": "effectId",
+    "effects": [
+     79
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     147
+    ]
+   }
+  ],
+  "91": [
+   {
+    "field": "effectId",
+    "effects": [
+     142
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     147
+    ]
+   }
+  ],
+  "92": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     95
+    ]
+   }
+  ],
+  "108": [
+   {
+    "field": "effectId",
+    "effects": [
+     101
+    ]
+   }
+  ],
+  "110": [
+   {
+    "field": "effectId",
+    "effects": [
+     102
+    ]
+   }
+  ],
+  "111": [
+   {
+    "field": "effectId",
+    "effects": [
+     98
+    ]
+   }
+  ],
+  "112": [
+   {
+    "field": "effectId",
+    "effects": [
+     103
+    ]
+   }
+  ],
+  "113": [
+   {
+    "field": "effectId",
+    "effects": [
+     128
+    ]
+   }
+  ],
+  "114": [
+   {
+    "field": "effectId",
+    "effects": [
+     104
+    ]
+   }
+  ],
+  "115": [
+   {
+    "field": "effectId",
+    "effects": [
+     69
+    ]
+   }
+  ],
+  "118": [
+   {
+    "field": "effectId",
+    "effects": [
+     145
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     146
+    ]
+   }
+  ],
+  "119": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     139
+    ]
+   }
+  ],
+  "120": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     99
+    ]
+   }
+  ],
+  "121": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     108
+    ]
+   }
+  ],
+  "122": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     106
+    ]
+   }
+  ],
+  "123": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     107
+    ]
+   }
+  ],
+  "124": [
+   {
+    "field": "effectId",
+    "effects": [
+     100
+    ]
+   }
+  ],
+  "129": [
+   {
+    "field": "effectId",
+    "effects": [
+     115
+    ]
+   }
+  ],
+  "130": [
+   {
+    "field": "effectId",
+    "effects": [
+     119
+    ]
+   }
+  ],
+  "131": [
+   {
+    "field": "effectId",
+    "effects": [
+     111
+    ]
+   }
+  ],
+  "135": [
+   {
+    "field": "effectId",
+    "effects": [
+     120
+    ]
+   }
+  ],
+  "136": [
+   {
+    "field": "effectId",
+    "effects": [
+     143
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     121
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     122
+    ]
+   }
+  ],
+  "137": [
+   {
+    "field": "releaseEffectId",
+    "effects": [
+     123
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     132
+    ]
+   }
+  ],
+  "138": [
+   {
+    "field": "effectId",
+    "effects": [
+     20
+    ]
+   }
+  ],
+  "139": [
+   {
+    "field": "effectId",
+    "effects": [
+     126
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     127
+    ]
+   }
+  ],
+  "140": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     171
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     124
+    ]
+   }
+  ],
+  "141": [
+   {
+    "field": "effectId",
+    "effects": [
+     129
+    ]
+   }
+  ],
+  "142": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     309
+    ]
+   }
+  ],
+  "148": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "149": [
+   {
+    "field": "effectId",
+    "effects": [
+     310
+    ]
+   }
+  ],
+  "152": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     308
+    ]
+   }
+  ],
+  "153": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     170
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     170
+    ]
+   }
+  ],
+  "155": [
+   {
+    "field": "effectId",
+    "effects": [
+     311
+    ]
+   }
+  ],
+  "156": [
+   {
+    "field": "effectId",
+    "effects": [
+     152
+    ]
+   }
+  ],
+  "157": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     169
+    ]
+   }
+  ],
+  "158": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     148
+    ]
+   }
+  ],
+  "159": [
+   {
+    "field": "effectId",
+    "effects": [
+     181
+    ]
+   }
+  ],
+  "162": [
+   {
+    "field": "effectId",
+    "effects": [
+     174
+    ]
+   }
+  ],
+  "163": [
+   {
+    "field": "effectId",
+    "effects": [
+     177
+    ]
+   }
+  ],
+  "164": [
+   {
+    "field": "effectId",
+    "effects": [
+     173
+    ]
+   }
+  ],
+  "165": [
+   {
+    "field": "effectId",
+    "effects": [
+     175
+    ]
+   }
+  ],
+  "166": [
+   {
+    "field": "effectId",
+    "effects": [
+     179
+    ]
+   }
+  ],
+  "167": [
+   {
+    "field": "effectId",
+    "effects": [
+     178
+    ]
+   }
+  ],
+  "168": [
+   {
+    "field": "effectId",
+    "effects": [
+     172
+    ]
+   }
+  ],
+  "170": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "172": [
+   {
+    "field": "effectId",
+    "effects": [
+     191
+    ]
+   }
+  ],
+  "173": [
+   {
+    "field": "effectId",
+    "effects": [
+     183
+    ]
+   }
+  ],
+  "175": [
+   {
+    "field": "effectId",
+    "effects": [
+     185
+    ]
+   }
+  ],
+  "176": [
+   {
+    "field": "effectId",
+    "effects": [
+     192
+    ]
+   }
+  ],
+  "178": [
+   {
+    "field": "effectId",
+    "effects": [
+     193
+    ]
+   }
+  ],
+  "179": [
+   {
+    "field": "effectId",
+    "effects": [
+     194
+    ]
+   }
+  ],
+  "180": [
+   {
+    "field": "effectId",
+    "effects": [
+     195
+    ]
+   }
+  ],
+  "181": [
+   {
+    "field": "effectId",
+    "effects": [
+     196
+    ]
+   }
+  ],
+  "182": [
+   {
+    "field": "effectId",
+    "effects": [
+     197
+    ]
+   }
+  ],
+  "184": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     51
+    ]
+   }
+  ],
+  "185": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     147
+    ]
+   }
+  ],
+  "186": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   }
+  ],
+  "187": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     52
+    ]
+   }
+  ],
+  "188": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     53
+    ]
+   }
+  ],
+  "189": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     152
+    ]
+   }
+  ],
+  "190": [
+   {
+    "field": "effectId",
+    "effects": [
+     184
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     180
+    ]
+   }
+  ],
+  "191": [
+   {
+    "field": "effectId",
+    "effects": [
+     198
+    ]
+   }
+  ],
+  "192": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     182
+    ]
+   }
+  ],
+  "194": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     67
+    ]
+   }
+  ],
+  "199": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     216
+    ]
+   }
+  ],
+  "200": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     217
+    ]
+   }
+  ],
+  "201": [
+   {
+    "field": "effectId",
+    "effects": [
+     214
+    ]
+   }
+  ],
+  "202": [
+   {
+    "field": "effectId",
+    "effects": [
+     212
+    ]
+   }
+  ],
+  "205": [
+   {
+    "field": "effectId",
+    "effects": [
+     213
+    ]
+   }
+  ],
+  "211": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     268,
+     274
+    ]
+   }
+  ],
+  "212": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     275
+    ]
+   }
+  ],
+  "214": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     276
+    ]
+   }
+  ],
+  "215": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     269
+    ]
+   }
+  ],
+  "216": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     270
+    ]
+   }
+  ],
+  "217": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     271
+    ]
+   }
+  ],
+  "218": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     272
+    ]
+   }
+  ],
+  "219": [
+   {
+    "field": "effectId",
+    "effects": [
+     227
+    ]
+   }
+  ],
+  "229": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     302
+    ]
+   }
+  ],
+  "230": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     298
+    ]
+   }
+  ],
+  "231": [
+   {
+    "field": "effectId",
+    "effects": [
+     299
+    ]
+   }
+  ],
+  "234": [
+   {
+    "field": "effectId",
+    "effects": [
+     300
+    ]
+   }
+  ],
+  "235": [
+   {
+    "field": "effectId",
+    "effects": [
+     300
+    ]
+   }
+  ],
+  "236": [
+   {
+    "field": "effectId",
+    "effects": [
+     300
+    ]
+   }
+  ],
+  "237": [
+   {
+    "field": "effectId",
+    "effects": [
+     300
+    ]
+   }
+  ],
+  "249": [
+   {
+    "field": "effectId",
+    "effects": [
+     336
+    ]
+   }
+  ],
+  "250": [
+   {
+    "field": "effectId",
+    "effects": [
+     246
+    ]
+   }
+  ],
+  "251": [
+   {
+    "field": "effectId",
+    "effects": [
+     249
+    ]
+   }
+  ],
+  "252": [
+   {
+    "field": "effectId",
+    "effects": [
+     252
+    ]
+   }
+  ],
+  "253": [
+   {
+    "field": "effectId",
+    "effects": [
+     245
+    ]
+   }
+  ],
+  "254": [
+   {
+    "field": "effectId",
+    "effects": [
+     226
+    ]
+   }
+  ],
+  "255": [
+   {
+    "field": "effectId",
+    "effects": [
+     251
+    ]
+   }
+  ],
+  "256": [
+   {
+    "field": "effectId",
+    "effects": [
+     248
+    ]
+   }
+  ],
+  "257": [
+   {
+    "field": "effectId",
+    "effects": [
+     222
+    ]
+   }
+  ],
+  "258": [
+   {
+    "field": "effectId",
+    "effects": [
+     250
+    ]
+   }
+  ],
+  "262": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     253
+    ]
+   }
+  ],
+  "263": [
+   {
+    "field": "effectId",
+    "effects": [
+     329
+    ]
+   }
+  ],
+  "264": [
+   {
+    "field": "effectId",
+    "effects": [
+     166
+    ]
+   }
+  ],
+  "266": [
+   {
+    "field": "effectId",
+    "effects": [
+     267
+    ]
+   }
+  ],
+  "267": [
+   {
+    "field": "effectId",
+    "effects": [
+     265
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "268": [
+   {
+    "field": "effectId",
+    "effects": [
+     254
+    ]
+   }
+  ],
+  "270": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     12
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     261
+    ]
+   }
+  ],
+  "271": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     12
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     266
+    ]
+   }
+  ],
+  "272": [
+   {
+    "field": "effectId",
+    "effects": [
+     262,
+     273
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     263
+    ]
+   }
+  ],
+  "273": [
+   {
+    "field": "effectId",
+    "effects": [
+     330
+    ]
+   }
+  ],
+  "276": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     244
+    ]
+   }
+  ],
+  "277": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     234
+    ]
+   }
+  ],
+  "280": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     255
+    ]
+   }
+  ],
+  "281": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     256
+    ]
+   }
+  ],
+  "282": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     257
+    ]
+   }
+  ],
+  "283": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     258
+    ]
+   }
+  ],
+  "285": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     239
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     225
+    ]
+   }
+  ],
+  "286": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     240
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     236
+    ]
+   }
+  ],
+  "287": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     241
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     237
+    ]
+   }
+  ],
+  "288": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     242
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     238
+    ]
+   }
+  ],
+  "289": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     235
+    ]
+   }
+  ],
+  "306": [
+   {
+    "field": "effectId",
+    "effects": [
+     278
+    ]
+   }
+  ],
+  "307": [
+   {
+    "field": "effectId",
+    "effects": [
+     279
+    ]
+   }
+  ],
+  "308": [
+   {
+    "field": "effectId",
+    "effects": [
+     280
+    ]
+   }
+  ],
+  "309": [
+   {
+    "field": "effectId",
+    "effects": [
+     281
+    ]
+   }
+  ],
+  "310": [
+   {
+    "field": "effectId",
+    "effects": [
+     282
+    ]
+   }
+  ],
+  "311": [
+   {
+    "field": "effectId",
+    "effects": [
+     283
+    ]
+   }
+  ],
+  "312": [
+   {
+    "field": "effectId",
+    "effects": [
+     284
+    ]
+   }
+  ],
+  "313": [
+   {
+    "field": "effectId",
+    "effects": [
+     285
+    ]
+   }
+  ],
+  "318": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     295
+    ]
+   }
+  ],
+  "319": [
+   {
+    "field": "effectId",
+    "effects": [
+     286
+    ]
+   }
+  ],
+  "320": [
+   {
+    "field": "effectId",
+    "effects": [
+     287
+    ]
+   }
+  ],
+  "321": [
+   {
+    "field": "effectId",
+    "effects": [
+     288
+    ]
+   }
+  ],
+  "322": [
+   {
+    "field": "effectId",
+    "effects": [
+     289
+    ]
+   }
+  ],
+  "326": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     296
+    ]
+   }
+  ],
+  "327": [
+   {
+    "field": "effectId",
+    "effects": [
+     291
+    ]
+   }
+  ],
+  "328": [
+   {
+    "field": "effectId",
+    "effects": [
+     292
+    ]
+   }
+  ],
+  "329": [
+   {
+    "field": "effectId",
+    "effects": [
+     293
+    ]
+   }
+  ],
+  "330": [
+   {
+    "field": "effectId",
+    "effects": [
+     294
+    ]
+   }
+  ],
+  "337": [
+   {
+    "field": "effectId",
+    "effects": [
+     494
+    ]
+   }
+  ],
+  "338": [
+   {
+    "field": "effectId",
+    "effects": [
+     450
+    ]
+   }
+  ],
+  "340": [
+   {
+    "field": "effectId",
+    "effects": [
+     451
+    ]
+   }
+  ],
+  "341": [
+   {
+    "field": "effectId",
+    "effects": [
+     93
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     94
+    ]
+   }
+  ],
+  "342": [
+   {
+    "field": "effectId",
+    "effects": [
+     453
+    ]
+   }
+  ],
+  "349": [
+   {
+    "field": "effectId",
+    "effects": [
+     456
+    ]
+   }
+  ],
+  "350": [
+   {
+    "field": "effectId",
+    "effects": [
+     37
+    ]
+   }
+  ],
+  "355": [
+   {
+    "field": "effectId",
+    "effects": [
+     367
+    ]
+   }
+  ],
+  "356": [
+   {
+    "field": "effectId",
+    "effects": [
+     336
+    ]
+   }
+  ],
+  "357": [
+   {
+    "field": "effectId",
+    "effects": [
+     369
+    ]
+   }
+  ],
+  "359": [
+   {
+    "field": "effectId",
+    "effects": [
+     368
+    ]
+   }
+  ],
+  "360": [
+   {
+    "field": "effectId",
+    "effects": [
+     368
+    ]
+   }
+  ],
+  "361": [
+   {
+    "field": "effectId",
+    "effects": [
+     440
+    ]
+   }
+  ],
+  "362": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     374
+    ]
+   }
+  ],
+  "364": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     217
+    ]
+   }
+  ],
+  "365": [
+   {
+    "field": "effectId",
+    "effects": [
+     380
+    ]
+   }
+  ],
+  "366": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "367": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     365
+    ]
+   }
+  ],
+  "368": [
+   {
+    "field": "effectId",
+    "effects": [
+     366
+    ]
+   }
+  ],
+  "369": [
+   {
+    "field": "effectId",
+    "effects": [
+     370
+    ]
+   }
+  ],
+  "370": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     376
+    ]
+   }
+  ],
+  "371": [
+   {
+    "field": "effectId",
+    "effects": [
+     377
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     263
+    ]
+   }
+  ],
+  "372": [
+   {
+    "field": "effectId",
+    "effects": [
+     512
+    ]
+   }
+  ],
+  "373": [
+   {
+    "field": "effectId",
+    "effects": [
+     383
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     378
+    ]
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     379
+    ]
+   }
+  ],
+  "374": [
+   {
+    "field": "effectId",
+    "effects": [
+     384
+    ]
+   },
+   {
+    "field": "successEffectId",
+    "effects": [
+     385
+    ]
+   }
+  ],
+  "375": [
+   {
+    "field": "effectId",
+    "effects": [
+     406
+    ]
+   }
+  ],
+  "378": [
+   {
+    "field": "effectId",
+    "effects": [
+     493
+    ]
+   }
+  ],
+  "379": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     361
+    ]
+   }
+  ],
+  "380": [
+   {
+    "field": "effectId",
+    "effects": [
+     386
+    ]
+   }
+  ],
+  "381": [
+   {
+    "field": "effectId",
+    "effects": [
+     387
+    ]
+   }
+  ],
+  "382": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     388
+    ]
+   }
+  ],
+  "383": [
+   {
+    "field": "effectId",
+    "effects": [
+     389
+    ]
+   }
+  ],
+  "384": [
+   {
+    "field": "effectId",
+    "effects": [
+     390
+    ]
+   }
+  ],
+  "387": [
+   {
+    "field": "effectId",
+    "effects": [
+     391
+    ]
+   }
+  ],
+  "389": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     501
+    ]
+   }
+  ],
+  "390": [
+   {
+    "field": "effectId",
+    "effects": [
+     392
+    ]
+   }
+  ],
+  "394": [
+   {
+    "field": "effectId",
+    "effects": [
+     393
+    ]
+   }
+  ],
+  "395": [
+   {
+    "field": "effectId",
+    "effects": [
+     394
+    ]
+   }
+  ],
+  "396": [
+   {
+    "field": "effectId",
+    "effects": [
+     395
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     396
+    ]
+   }
+  ],
+  "397": [
+   {
+    "field": "effectId",
+    "effects": [
+     339
+    ]
+   }
+  ],
+  "398": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     399
+    ]
+   }
+  ],
+  "399": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     400
+    ]
+   }
+  ],
+  "400": [
+   {
+    "field": "effectId",
+    "effects": [
+     401
+    ]
+   }
+  ],
+  "401": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     12,
+     402
+    ]
+   }
+  ],
+  "402": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     403
+    ]
+   }
+  ],
+  "403": [
+   {
+    "field": "effectId",
+    "effects": [
+     505
+    ]
+   }
+  ],
+  "405": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     404
+    ]
+   }
+  ],
+  "406": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     409
+    ]
+   }
+  ],
+  "408": [
+   {
+    "field": "effectId",
+    "effects": [
+     408
+    ]
+   }
+  ],
+  "411": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     442
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     443
+    ]
+   }
+  ],
+  "413": [
+   {
+    "field": "effectId",
+    "effects": [
+     435
+    ]
+   }
+  ],
+  "415": [
+   {
+    "field": "effectId",
+    "effects": [
+     413
+    ]
+   }
+  ],
+  "417": [
+   {
+    "field": "effectId",
+    "effects": [
+     414
+    ]
+   }
+  ],
+  "421": [
+   {
+    "field": "effectId",
+    "effects": [
+     439
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     457
+    ]
+   }
+  ],
+  "426": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     411
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     445
+    ]
+   }
+  ],
+  "427": [
+   {
+    "field": "effectId",
+    "effects": [
+     432
+    ]
+   }
+  ],
+  "428": [
+   {
+    "field": "effectId",
+    "effects": [
+     488
+    ]
+   }
+  ],
+  "429": [
+   {
+    "field": "effectId",
+    "effects": [
+     488
+    ]
+   }
+  ],
+  "430": [
+   {
+    "field": "effectId",
+    "effects": [
+     488
+    ]
+   }
+  ],
+  "431": [
+   {
+    "field": "effectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "432": [
+   {
+    "field": "effectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "433": [
+   {
+    "field": "effectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "434": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     487
+    ]
+   }
+  ],
+  "444": [
+   {
+    "field": "effectId",
+    "effects": [
+     433
+    ]
+   }
+  ],
+  "446": [
+   {
+    "field": "effectId",
+    "effects": [
+     220
+    ]
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     541
+    ]
+   }
+  ],
+  "458": [
+   {
+    "field": "effectId",
+    "effects": [
+     424,
+     503
+    ]
+   }
+  ],
+  "461": [
+   {
+    "field": "effectId",
+    "effects": [
+     424,
+     503
+    ]
+   }
+  ],
+  "462": [
+   {
+    "field": "effectId",
+    "effects": [
+     590
+    ]
+   }
+  ],
+  "463": [
+   {
+    "field": "effectId",
+    "effects": [
+     543
+    ]
+   }
+  ],
+  "464": [
+   {
+    "field": "effectId",
+    "effects": [
+     546
+    ]
+   }
+  ],
+  "465": [
+   {
+    "field": "effectId",
+    "effects": [
+     419
+    ]
+   }
+  ],
+  "467": [
+   {
+    "field": "effectId",
+    "effects": [
+     547
+    ]
+   }
+  ],
+  "468": [
+   {
+    "field": "effectId",
+    "effects": [
+     555
+    ]
+   }
+  ],
+  "469": [
+   {
+    "field": "effectId",
+    "effects": [
+     553
+    ]
+   },
+   {
+    "field": "successEffectId",
+    "effects": [
+     425
+    ]
+   }
+  ],
+  "470": [
+   {
+    "field": "effectId",
+    "effects": [
+     589
+    ]
+   },
+   {
+    "field": "successEffectId",
+    "effects": [
+     420
+    ]
+   }
+  ],
+  "471": [
+   {
+    "field": "effectId",
+    "effects": [
+     427
+    ]
+   }
+  ],
+  "472": [
+   {
+    "field": "effectId",
+    "effects": [
+     254,
+     261
+    ]
+   }
+  ],
+  "475": [
+   {
+    "field": "effectId",
+    "effects": [
+     496
+    ]
+   }
+  ],
+  "476": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     495
+    ]
+   }
+  ],
+  "479": [
+   {
+    "field": "effectId",
+    "effects": [
+     300,
+     500
+    ]
+   }
+  ],
+  "482": [
+   {
+    "field": "effectId",
+    "effects": [
+     521
+    ]
+   }
+  ],
+  "483": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     224
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     223
+    ]
+   }
+  ],
+  "485": [
+   {
+    "field": "effectId",
+    "effects": [
+     518
+    ]
+   }
+  ],
+  "486": [
+   {
+    "field": "effectId",
+    "effects": [
+     128
+    ]
+   }
+  ],
+  "487": [
+   {
+    "field": "effectId",
+    "effects": [
+     500
+    ]
+   }
+  ],
+  "488": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     517
+    ]
+   }
+  ],
+  "489": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     500
+    ]
+   }
+  ],
+  "490": [
+   {
+    "field": "effectId",
+    "effects": [
+     537
+    ]
+   }
+  ],
+  "494": [
+   {
+    "field": "effectId",
+    "effects": [
+     424,
+     503
+    ]
+   }
+  ],
+  "495": [
+   {
+    "field": "effectId",
+    "effects": [
+     130
+    ]
+   }
+  ],
+  "496": [
+   {
+    "field": "effectId",
+    "effects": [
+     497
+    ]
+   }
+  ],
+  "497": [
+   {
+    "field": "effectId",
+    "effects": [
+     498
+    ]
+   }
+  ],
+  "498": [
+   {
+    "field": "effectId",
+    "effects": [
+     499
+    ]
+   }
+  ],
+  "502": [
+   {
+    "field": "effectId",
+    "effects": [
+     648
+    ]
+   }
+  ],
+  "503": [
+   {
+    "field": "effectId",
+    "effects": [
+     649
+    ]
+   }
+  ],
+  "504": [
+   {
+    "field": "effectId",
+    "effects": [
+     625
+    ]
+   }
+  ],
+  "505": [
+   {
+    "field": "effectId",
+    "effects": [
+     626
+    ]
+   }
+  ],
+  "506": [
+   {
+    "field": "effectId",
+    "effects": [
+     456
+    ]
+   }
+  ],
+  "507": [
+   {
+    "field": "effectId",
+    "effects": [
+     644
+    ]
+   }
+  ],
+  "512": [
+   {
+    "field": "effectId",
+    "effects": [
+     646
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     647
+    ]
+   }
+  ],
+  "513": [
+   {
+    "field": "effectId",
+    "effects": [
+     627
+    ]
+   }
+  ],
+  "515": [
+   {
+    "field": "effectId",
+    "effects": [
+     643
+    ]
+   }
+  ],
+  "516": [
+   {
+    "field": "effectId",
+    "effects": [
+     637
+    ]
+   }
+  ],
+  "517": [
+   {
+    "field": "effectId",
+    "effects": [
+     626
+    ]
+   }
+  ],
+  "518": [
+   {
+    "field": "effectId",
+    "effects": [
+     628
+    ]
+   }
+  ],
+  "519": [
+   {
+    "field": "effectId",
+    "effects": [
+     584
+    ]
+   }
+  ],
+  "520": [
+   {
+    "field": "effectId",
+    "effects": [
+     645
+    ]
+   }
+  ],
+  "523": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     613
+    ]
+   }
+  ],
+  "524": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     614
+    ]
+   }
+  ],
+  "525": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     615
+    ]
+   }
+  ],
+  "526": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     616
+    ]
+   }
+  ],
+  "527": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     631
+    ]
+   }
+  ],
+  "528": [
+   {
+    "field": "effectId",
+    "effects": [
+     632
+    ]
+   }
+  ],
+  "530": [
+   {
+    "field": "effectId",
+    "effects": [
+     630
+    ]
+   }
+  ],
+  "532": [
+   {
+    "field": "effectId",
+    "effects": [
+     617
+    ]
+   }
+  ],
+  "534": [
+   {
+    "field": "effectId",
+    "effects": [
+     618
+    ]
+   }
+  ],
+  "535": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     634
+    ]
+   }
+  ],
+  "536": [
+   {
+    "field": "effectId",
+    "effects": [
+     635
+    ]
+   }
+  ],
+  "537": [
+   {
+    "field": "effectId",
+    "effects": [
+     619
+    ]
+   }
+  ],
+  "538": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     620
+    ]
+   }
+  ],
+  "539": [
+   {
+    "field": "effectId",
+    "effects": [
+     636
+    ]
+   }
+  ],
+  "540": [
+   {
+    "field": "effectId",
+    "effects": [
+     621
+    ]
+   }
+  ],
+  "541": [
+   {
+    "field": "effectId",
+    "effects": [
+     622
+    ]
+   }
+  ],
+  "544": [
+   {
+    "field": "effectId",
+    "effects": [
+     633
+    ]
+   }
+  ],
+  "653": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     666
+    ]
+   }
+  ],
+  "654": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     49
+    ]
+   }
+  ],
+  "656": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     52
+    ]
+   }
+  ],
+  "659": [
+   {
+    "field": "effectId",
+    "effects": [
+     668
+    ]
+   }
+  ],
+  "661": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     409
+    ]
+   }
+  ],
+  "664": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     89
+    ]
+   }
+  ],
+  "665": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     669
+    ]
+   }
+  ],
+  "670": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     674
+    ]
+   }
+  ],
+  "673": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     677
+    ]
+   }
+  ],
+  "689": [
+   {
+    "field": "effectId",
+    "effects": [
+     42
+    ]
+   }
+  ],
+  "690": [
+   {
+    "field": "effectId",
+    "effects": [
+     37
+    ]
+   }
+  ],
+  "691": [
+   {
+    "field": "effectId",
+    "effects": [
+     440
+    ]
+   }
+  ],
+  "698": [
+   {
+    "field": "effectId",
+    "effects": [
+     717
+    ]
+   }
+  ],
+  "706": [
+   {
+    "field": "effectId",
+    "effects": [
+     1020
+    ]
+   }
+  ],
+  "1002": [
+   {
+    "field": "effectId",
+    "effects": [
+     599
+    ]
+   }
+  ],
+  "1004": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     600
+    ]
+   }
+  ],
+  "1005": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     604
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     602
+    ]
+   }
+  ],
+  "1006": [
+   {
+    "field": "effectId",
+    "effects": [
+     601
+    ]
+   }
+  ],
+  "1008": [
+   {
+    "field": "effectId",
+    "effects": [
+     256
+    ]
+   }
+  ],
+  "1009": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "1010": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     606
+    ]
+   }
+  ],
+  "1011": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     607
+    ]
+   }
+  ],
+  "1016": [
+   {
+    "field": "effectId",
+    "effects": [
+     514
+    ]
+   }
+  ],
+  "1017": [
+   {
+    "field": "effectId",
+    "effects": [
+     258
+    ]
+   }
+  ],
+  "1018": [
+   {
+    "field": "effectId",
+    "effects": [
+     255
+    ]
+   }
+  ],
+  "1019": [
+   {
+    "field": "effectId",
+    "effects": [
+     257
+    ]
+   }
+  ],
+  "2001": [
+   {
+    "field": "effectId",
+    "effects": [
+     756
+    ]
+   }
+  ],
+  "2002": [
+   {
+    "field": "effectId",
+    "effects": [
+     832
+    ]
+   }
+  ],
+  "2004": [
+   {
+    "field": "effectId",
+    "effects": [
+     723
+    ]
+   }
+  ],
+  "2006": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     722
+    ]
+   }
+  ],
+  "2008": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     587
+    ]
+   }
+  ],
+  "2009": [
+   {
+    "field": "effectId",
+    "effects": [
+     731
+    ]
+   }
+  ],
+  "2011": [
+   {
+    "field": "effectId",
+    "effects": [
+     749
+    ]
+   }
+  ],
+  "2021": [
+   {
+    "field": "effectId",
+    "effects": [
+     788
+    ]
+   }
+  ],
+  "2036": [
+   {
+    "field": "effectId",
+    "effects": [
+     775
+    ]
+   }
+  ],
+  "2038": [
+   {
+    "field": "effectId",
+    "effects": [
+     718
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     152
+    ]
+   }
+  ],
+  "2040": [
+   {
+    "field": "effectId",
+    "effects": [
+     721
+    ]
+   }
+  ],
+  "2043": [
+   {
+    "field": "effectId",
+    "effects": [
+     313
+    ]
+   }
+  ],
+  "2044": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     754
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     883
+    ]
+   }
+  ],
+  "2046": [
+   {
+    "field": "effectId",
+    "effects": [
+     755
+    ]
+   }
+  ],
+  "2051": [
+   {
+    "field": "effectId",
+    "effects": [
+     325
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     320
+    ]
+   }
+  ],
+  "2052": [
+   {
+    "field": "effectId",
+    "effects": [
+     753
+    ]
+   }
+  ],
+  "2201": [
+   {
+    "field": "effectId",
+    "effects": [
+     802
+    ]
+   }
+  ],
+  "2203": [
+   {
+    "field": "effectId",
+    "effects": [
+     726
+    ]
+   }
+  ],
+  "2204": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     28
+    ]
+   }
+  ],
+  "2205": [
+   {
+    "field": "effectId",
+    "effects": [
+     729
+    ]
+   }
+  ],
+  "2206": [
+   {
+    "field": "effectId",
+    "effects": [
+     803
+    ]
+   }
+  ],
+  "2209": [
+   {
+    "field": "effectId",
+    "effects": [
+     799
+    ]
+   }
+  ],
+  "2211": [
+   {
+    "field": "effectId",
+    "effects": [
+     727
+    ]
+   }
+  ],
+  "2212": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     728
+    ]
+   }
+  ],
+  "2215": [
+   {
+    "field": "effectId",
+    "effects": [
+     734
+    ]
+   }
+  ],
+  "2216": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     732
+    ]
+   }
+  ],
+  "2217": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     805
+    ]
+   },
+   {
+    "field": "effectId",
+    "effects": [
+     804
+    ]
+   }
+  ],
+  "2230": [
+   {
+    "field": "effectId",
+    "effects": [
+     751
+    ]
+   }
+  ],
+  "2233": [
+   {
+    "field": "effectId",
+    "effects": [
+     746
+    ]
+   }
+  ],
+  "2236": [
+   {
+    "field": "effectId",
+    "effects": [
+     745
+    ]
+   }
+  ],
+  "2237": [
+   {
+    "field": "effectId",
+    "effects": [
+     750
+    ]
+   }
+  ],
+  "2247": [
+   {
+    "field": "effectId",
+    "effects": [
+     744
+    ]
+   }
+  ],
+  "2249": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     739
+    ]
+   }
+  ],
+  "2250": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     740
+    ]
+   }
+  ],
+  "2251": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     741
+    ]
+   }
+  ],
+  "2252": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     742
+    ]
+   }
+  ],
+  "2259": [
+   {
+    "field": "effectId",
+    "effects": [
+     787
+    ]
+   }
+  ],
+  "2270": [
+   {
+    "field": "effectId",
+    "effects": [
+     794
+    ]
+   }
+  ],
+  "2272": [
+   {
+    "field": "effectId",
+    "effects": [
+     781
+    ]
+   }
+  ],
+  "2279": [
+   {
+    "field": "effectId",
+    "effects": [
+     795
+    ]
+   }
+  ],
+  "2289": [
+   {
+    "field": "effectId",
+    "effects": [
+     811
+    ]
+   }
+  ],
+  "2292": [
+   {
+    "field": "effectId",
+    "effects": [
+     813
+    ]
+   }
+  ],
+  "2293": [
+   {
+    "field": "effectId",
+    "effects": [
+     814
+    ]
+   }
+  ],
+  "2294": [
+   {
+    "field": "effectId",
+    "effects": [
+     815
+    ]
+   }
+  ],
+  "2295": [
+   {
+    "field": "effectId",
+    "effects": [
+     816
+    ]
+   }
+  ],
+  "2296": [
+   {
+    "field": "effectId",
+    "effects": [
+     817
+    ]
+   }
+  ],
+  "2297": [
+   {
+    "field": "effectId",
+    "effects": [
+     818
+    ]
+   }
+  ],
+  "2298": [
+   {
+    "field": "effectId",
+    "effects": [
+     820
+    ]
+   }
+  ],
+  "2299": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     822
+    ]
+   },
+   {
+    "field": "successEffectId",
+    "effects": [
+     823
+    ]
+   }
+  ],
+  "2300": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     825
+    ]
+   }
+  ],
+  "2301": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     827
+    ]
+   }
+  ],
+  "2302": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     828
+    ]
+   }
+  ],
+  "2303": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     829
+    ]
+   }
+  ],
+  "2310": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     906
+    ]
+   }
+  ],
+  "2318": [
+   {
+    "field": "effectId",
+    "effects": [
+     908
+    ]
+   }
+  ],
+  "2319": [
+   {
+    "field": "effectId",
+    "effects": [
+     909
+    ]
+   }
+  ],
+  "2325": [
+   {
+    "field": "effectId",
+    "effects": [
+     910
+    ]
+   }
+  ],
+  "2328": [
+   {
+    "field": "effectId",
+    "effects": [
+     888
+    ]
+   }
+  ],
+  "2414": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     856
+    ]
+   }
+  ],
+  "2415": [
+   {
+    "field": "effectId",
+    "effects": [
+     860
+    ]
+   }
+  ],
+  "2417": [
+   {
+    "field": "effectId",
+    "effects": [
+     863
+    ]
+   }
+  ],
+  "2418": [
+   {
+    "field": "effectId",
+    "effects": [
+     857
+    ]
+   }
+  ],
+  "2419": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     860
+    ]
+   }
+  ],
+  "2420": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     879
+    ]
+   }
+  ],
+  "2422": [
+   {
+    "field": "effectId",
+    "effects": [
+     858
+    ]
+   }
+  ],
+  "2423": [
+   {
+    "field": "effectId",
+    "effects": [
+     861
+    ]
+   }
+  ],
+  "2424": [
+   {
+    "field": "effectId",
+    "effects": [
+     862
+    ]
+   }
+  ],
+  "2425": [
+   {
+    "field": "effectId",
+    "effects": [
+     847
+    ]
+   }
+  ],
+  "2427": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     868
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     865
+    ]
+   }
+  ],
+  "2428": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     866
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     867
+    ]
+   }
+  ],
+  "2430": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     870
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     871
+    ]
+   }
+  ],
+  "2431": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     872
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     871
+    ]
+   }
+  ],
+  "2432": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     874
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     873
+    ]
+   }
+  ],
+  "2433": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     876
+    ]
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     875
+    ]
+   }
+  ],
+  "2434": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     878
+    ]
+   }
+  ],
+  "2443": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     920
+    ]
+   }
+  ],
+  "2444": [
+   {
+    "field": "groundEffectId",
+    "effects": [
+     926
+    ]
+   }
+  ],
+  "2447": [
+   {
+    "field": "effectId",
+    "effects": [
+     928
+    ]
+   }
+  ],
+  "2449": [
+   {
+    "field": "effectId",
+    "effects": [
+     922
+    ]
+   }
+  ],
+  "2452": [
+   {
+    "field": "effectId",
+    "effects": [
+     929
+    ]
+   }
+  ],
+  "2453": [
+   {
+    "field": "effectId",
+    "effects": [
+     921
+    ]
+   }
+  ],
+  "2454": [
+   {
+    "field": "beforeHitEffectId",
+    "effects": [
+     930
+    ]
+   }
+  ],
+  "2483": [
+   {
+    "field": "effectId",
+    "effects": [
+     915
+    ]
+   }
+  ],
+  "2485": [
+   {
+    "field": "effectId",
+    "effects": [
+     916
+    ]
+   }
+  ],
+  "2486": [
+   {
+    "field": "effectId",
+    "effects": [
+     917
+    ]
+   }
+  ],
+  "2487": [
+   {
+    "field": "effectId",
+    "effects": [
+     918
+    ]
+   }
+  ],
+  "2490": [
+   {
+    "field": "effectId",
+    "effects": [
+     919
+    ]
+   }
+  ],
+  "5001": [
+   {
+    "field": "effectId",
+    "effects": [
+     1040
+    ]
+   }
+  ],
+  "5003": [
+   {
+    "field": "effectId",
+    "effects": [
+     1049
+    ]
+   }
+  ],
+  "5005": [
+   {
+    "field": "effectId",
+    "effects": [
+     1044
+    ]
+   }
+  ],
+  "5006": [
+   {
+    "field": "effectId",
+    "effects": [
+     1050
+    ]
+   }
+  ],
+  "5008": [
+   {
+    "field": "effectId",
+    "effects": [
+     1046
+    ]
+   }
+  ],
+  "5009": [
+   {
+    "field": "effectId",
+    "effects": [
+     1043
+    ]
+   }
+  ],
+  "5011": [
+   {
+    "field": "effectId",
+    "effects": [
+     1047
+    ]
+   }
+  ],
+  "5012": [
+   {
+    "field": "effectId",
+    "effects": [
+     1048
+    ]
+   }
+  ],
+  "5014": [
+   {
+    "field": "effectId",
+    "effects": [
+     1042
+    ]
+   }
+  ],
+  "5405": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5406": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5407": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5408": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5409": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5410": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5411": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5412": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5413": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5414": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     840
+    ]
+   }
+  ],
+  "5415": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     840
+    ]
+   }
+  ],
+  "5418": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5419": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5420": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5421": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454
+    ]
+   }
+  ],
+  "5422": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     911
+    ]
+   }
+  ],
+  "5423": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     830
+    ]
+   }
+  ],
+  "5424": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "5425": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5426": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     845
+    ]
+   }
+  ],
+  "5427": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     843
+    ]
+   }
+  ],
+  "5428": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     840
+    ]
+   }
+  ],
+  "5429": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2368
+    ]
+   }
+  ],
+  "5430": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2369
+    ]
+   }
+  ],
+  "5431": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1565
+    ]
+   }
+  ],
+  "5432": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1556
+    ]
+   }
+  ],
+  "5436": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     840
+    ]
+   }
+  ],
+  "5437": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     840
+    ]
+   }
+  ],
+  "5439": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5440": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     845
+    ]
+   }
+  ],
+  "5441": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     842
+    ]
+   }
+  ],
+  "5442": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     831
+    ]
+   }
+  ],
+  "5444": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5445": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     841
+    ]
+   }
+  ],
+  "5446": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     841
+    ]
+   }
+  ],
+  "5447": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5448": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2367
+    ]
+   }
+  ],
+  "5451": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     12
+    ]
+   }
+  ],
+  "5453": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5454": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     502
+    ]
+   }
+  ],
+  "5457": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     1446
+    ]
+   },
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1449
+    ]
+   }
+  ],
+  "5458": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1709
+    ]
+   }
+  ],
+  "5459": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     9,
+     12
+    ]
+   }
+  ],
+  "5460": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5461": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2369
+    ]
+   }
+  ],
+  "5462": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2369
+    ]
+   }
+  ],
+  "5469": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5470": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5471": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "5472": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "5473": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     441
+    ]
+   }
+  ],
+  "5474": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     845
+    ]
+   }
+  ],
+  "5475": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     831
+    ]
+   }
+  ],
+  "5478": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     934
+    ]
+   }
+  ],
+  "5479": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     1774
+    ]
+   },
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     2373
+    ]
+   }
+  ],
+  "5481": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454
+    ]
+   }
+  ],
+  "5482": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454
+    ]
+   }
+  ],
+  "5483": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454,
+     986
+    ]
+   }
+  ],
+  "5484": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454,
+     986
+    ]
+   }
+  ],
+  "5485": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454,
+     986
+    ]
+   }
+  ],
+  "5487": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     454,
+     986
+    ]
+   }
+  ],
+  "5491": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     58
+    ]
+   }
+  ],
+  "5493": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     812
+    ]
+   }
+  ],
+  "5494": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     812
+    ]
+   }
+  ],
+  "5495": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     812
+    ]
+   }
+  ],
+  "6001": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     12
+    ]
+   }
+  ],
+  "6002": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1938
+    ]
+   }
+  ],
+  "6003": [
+   {
+    "field": "castAuraEffectId",
+    "effects": [
+     1938
+    ]
+   }
+  ],
+  "6006": [
+   {
+    "field": "beginCastEffectId",
+    "effects": [
+     2228,
+     2229
+    ]
+   }
+  ],
+  "8001": [
+   {
+    "field": "effectId",
+    "effects": [
+     312
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     320
+    ]
+   }
+  ],
+  "8002": [
+   {
+    "field": "effectId",
+    "effects": [
+     37
+    ]
+   }
+  ],
+  "8004": [
+   {
+    "field": "effectId",
+    "effects": [
+     505
+    ]
+   }
+  ],
+  "8005": [
+   {
+    "field": "effectId",
+    "effects": [
+     570
+    ]
+   }
+  ],
+  "8006": [
+   {
+    "field": "effectId",
+    "effects": [
+     569
+    ]
+   }
+  ],
+  "8008": [
+   {
+    "field": "effectId",
+    "effects": [
+     571
+    ]
+   }
+  ],
+  "8010": [
+   {
+    "field": "effectId",
+    "effects": [
+     564
+    ]
+   }
+  ],
+  "8011": [
+   {
+    "field": "effectId",
+    "effects": [
+     564
+    ]
+   }
+  ],
+  "8016": [
+   {
+    "field": "effectId",
+    "effects": [
+     183
+    ]
+   }
+  ],
+  "8020": [
+   {
+    "field": "effectId",
+    "effects": [
+     959
+    ]
+   }
+  ],
+  "8024": [
+   {
+    "field": "effectId",
+    "effects": [
+     960
+    ]
+   }
+  ],
+  "8026": [
+   {
+    "field": "effectId",
+    "effects": [
+     961
+    ]
+   }
+  ],
+  "8028": [
+   {
+    "field": "effectId",
+    "effects": [
+     965
+    ]
+   }
+  ],
+  "8030": [
+   {
+    "field": "effectId",
+    "effects": [
+     967
+    ]
+   }
+  ],
+  "8036": [
+   {
+    "field": "effectId",
+    "effects": [
+     966
+    ]
+   }
+  ],
+  "8039": [
+   {
+    "field": "effectId",
+    "effects": [
+     962
+    ]
+   }
+  ],
+  "8041": [
+   {
+    "field": "effectId",
+    "effects": [
+     964
+    ]
+   }
+  ],
+  "8043": [
+   {
+    "field": "effectId",
+    "effects": [
+     975
+    ]
+   }
+  ],
+  "8201": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "8202": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effects": [
+     17
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     17,
+     49
+    ]
+   }
+  ],
+  "8203": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     149
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "8204": [
+   {
+    "field": "effectId",
+    "effects": [
+     336
+    ]
+   }
+  ],
+  "8205": [
+   {
+    "field": "effectId",
+    "effects": [
+     252
+    ]
+   }
+  ],
+  "8206": [
+   {
+    "field": "effectId",
+    "effects": [
+     368
+    ]
+   }
+  ],
+  "8207": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "8208": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     1
+    ]
+   }
+  ],
+  "8209": [
+   {
+    "field": "effectId",
+    "effects": [
+     69
+    ]
+   }
+  ],
+  "8211": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     139
+    ]
+   }
+  ],
+  "8212": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     108
+    ]
+   }
+  ],
+  "8213": [
+   {
+    "field": "effectId",
+    "effects": [
+     100
+    ]
+   }
+  ],
+  "8214": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effects": [
+     16
+    ]
+   }
+  ],
+  "8215": [
+   {
+    "field": "hitEffectId",
+    "effects": [
+     388
+    ]
+   }
+  ],
+  "8216": [
+   {
+    "field": "effectIdOnCaster",
+    "effects": [
+     148
+    ]
+   },
+   {
+    "field": "hitEffectId",
+    "effects": [
+     147
+    ]
+   }
+  ],
+  "8218": [
+   {
+    "field": "effectId",
+    "effects": [
+     339
+    ]
+   }
+  ],
+  "8219": [
+   {
+    "field": "effectId",
+    "effects": [
+     222
+    ]
+   }
+  ],
+  "8220": [
+   {
+    "field": "effectId",
+    "effects": [
+     336
+    ]
+   }
+  ],
+  "8221": [
+   {
+    "field": "effectId",
+    "effects": [
+     251
+    ]
+   }
+  ],
+  "8222": [
+   {
+    "field": "effectId",
+    "effects": [
+     76
+    ]
+   }
+  ],
+  "8223": [
+   {
+    "field": "effectId",
+    "effects": [
+     130
+    ]
+   }
+  ],
+  "8224": [
+   {
+    "field": "effectId",
+    "effects": [
+     22
+    ]
+   }
+  ],
+  "8232": [
+   {
+    "field": "successEffectId",
+    "effects": [
+     67
+    ]
+   }
+  ],
+  "8234": [
+   {
+    "field": "effectId",
+    "effects": [
+     38
+    ]
+   }
+  ],
+  "8236": [
+   {
+    "field": "effectId",
+    "effects": [
+     87
+    ]
+   }
+  ],
+  "8238": [
+   {
+    "field": "effectId",
+    "effects": [
+     112
+    ]
+   }
+  ],
+  "8239": [
+   {
+    "field": "effectId",
+    "effects": [
+     42
+    ]
+   }
+  ],
+  "8240": [
+   {
+    "field": "effectId",
+    "effects": [
+     37
+    ]
+   }
+  ]
  },
  "effects": {
   "0": [
@@ -2653,7 +5112,7 @@
   ],
   "39": [
    {
-    "file": "\\xbc\\xba\\xbc\\xf6\\xb6\\xdf\\xb1\\xe2",
+    "file": "성수뜨기",
     "type": "SPR"
    }
   ],
@@ -2671,7 +5130,7 @@
   ],
   "42": [
    {
-    "file": "\\xc3\\xe0\\xba\\xb9",
+    "file": "축복",
     "type": "SPR"
    },
    {
@@ -2687,7 +5146,7 @@
   ],
   "44": [
    {
-    "file": "\\xb1\\xbc\\xb6\\xd2\\xbf\\xac\\xb1\\xe2",
+    "file": "굴뚝연기",
     "type": "SPR"
    }
   ],
@@ -3129,7 +5588,7 @@
   ],
   "165": [
    {
-    "file": "\\xc5\\xa9\\xb8\\xae\\xbd\\xba\\xb8\\xb6\\xbd\\xba",
+    "file": "크리스마스",
     "type": "SPR"
    }
   ],
@@ -3265,37 +5724,37 @@
   ],
   "204": [
    {
-    "file": "\\xbb\\xa1\\xb0\\xa3\\xc6\\xf7\\xbc\\xc7",
+    "file": "빨간포션",
     "type": "STR"
    }
   ],
   "205": [
    {
-    "file": "\\xc1\\xd6\\xc8\\xab\\xc6\\xf7\\xbc\\xc7",
+    "file": "주홍포션",
     "type": "STR"
    }
   ],
   "206": [
    {
-    "file": "\\xb3\\xeb\\xb6\\xf5\\xc6\\xf7\\xbc\\xc7",
+    "file": "노란포션",
     "type": "STR"
    }
   ],
   "207": [
    {
-    "file": "\\xc7\\xcf\\xbe\\xe1\\xc6\\xf7\\xbc\\xc7",
+    "file": "하얀포션",
     "type": "STR"
    }
   ],
   "208": [
    {
-    "file": "\\xc6\\xc4\\xb6\\xf5\\xc6\\xf7\\xbc\\xc7",
+    "file": "파란포션",
     "type": "STR"
    }
   ],
   "209": [
    {
-    "file": "\\xc3\\xca\\xb7\\xcf\\xc6\\xf7\\xbc\\xc7",
+    "file": "초록포션",
     "type": "STR"
    }
   ],
@@ -3337,19 +5796,19 @@
   ],
   "218": [
    {
-    "file": "\\xc1\\xfd\\xc1\\xdf",
+    "file": "집중",
     "type": "STR"
    }
   ],
   "219": [
    {
-    "file": "\\xb0\\xa2\\xbc\\xba",
+    "file": "각성",
     "type": "STR"
    }
   ],
   "220": [
    {
-    "file": "\\xb9\\xf6\\xbc\\xad\\xc5\\xa9",
+    "file": "버서크",
     "type": "STR"
    }
   ],
@@ -3367,13 +5826,13 @@
   ],
   "235": [
    {
-    "file": "\\xb5\\xf0\\xbd\\xba\\xc6\\xe7",
+    "file": "디스펠",
     "type": "STR"
    }
   ],
   "244": [
    {
-    "file": "\\xb8\\xc5\\xc1\\xf7\\xb7\\xce\\xb5\\xe5",
+    "file": "매직로드",
     "type": "STR"
    }
   ],
@@ -3495,7 +5954,7 @@
   ],
   "273": [
    {
-    "file": "\\xbf\\xac\\xc8\\xaf",
+    "file": "연환",
     "type": "STR"
    }
   ],
@@ -3513,13 +5972,13 @@
   ],
   "298": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xbf\\xb0\\xbb\\xea\\xba\\xb4.bmp",
+    "file": "유저인터페이스/item/염산병.bmp",
     "type": null
    }
   ],
   "302": [
    {
-    "file": "\\xb5\\xa5\\xb8\\xf3\\xbd\\xba\\xc6\\xae\\xb7\\xb9\\xc0\\xcc\\xbc\\xc7",
+    "file": "데몬스트레이션",
     "type": "SPR"
    }
   ],
@@ -3537,7 +5996,7 @@
   ],
   "308": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xb5\\xb9.bmp",
+    "file": "유저인터페이스/item/돌.bmp",
     "type": null
    }
   ],
@@ -3805,7 +6264,7 @@
   ],
   "382": [
    {
-    "file": "\\xc7\\xd1\\xba\\xb9\\xc3\\xb5\\xbb\\xe7",
+    "file": "한복천사",
     "type": "SPR"
    }
   ],
@@ -3829,13 +6288,13 @@
   ],
   "406": [
    {
-    "file": "\\xbc\\xd2\\xbf\\xef\\xb9\\xf8",
+    "file": "소울번",
     "type": "STR"
    }
   ],
   "407": [
    {
-    "file": "\\xbb\\xe7\\xb6\\xf7\\xc8\\xbf\\xb0\\xfa",
+    "file": "사람효과",
     "type": "STR"
    }
   ],
@@ -3893,7 +6352,7 @@
   ],
   "453": [
    {
-    "file": "\\xbd\\xba\\xc5\\xe9",
+    "file": "스톱",
     "type": "SPR"
    }
   ],
@@ -4053,7 +6512,7 @@
   ],
   "491": [
    {
-    "file": "\\xc2\\xfd\\xbd\\xd2\\xb6\\xb1",
+    "file": "찹쌀떡",
     "type": "STR"
    }
   ],
@@ -4355,13 +6814,13 @@
   ],
   "570": [
    {
-    "file": "\\xc4\\xb3\\xbd\\xbd\\xb8\\xb5",
+    "file": "캐슬링",
     "type": "SPR"
    }
   ],
   "571": [
    {
-    "file": "\\xba\\xed\\xb7\\xaf\\xb5\\xe5\\xb7\\xaf\\xbd\\xba\\xc6\\xae",
+    "file": "블러드러스트",
     "type": "SPR"
    }
   ],
@@ -4551,7 +7010,7 @@
   ],
   "600": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xba\\xa3\\xb3\\xd1\\xb3\\xaa\\xc0\\xcc\\xc7\\xc1.bmp",
+    "file": "유저인터페이스/item/베넘나이프.bmp",
     "type": null
    }
   ],
@@ -4601,7 +7060,7 @@
   ],
   "612": [
    {
-    "file": "\\xc7\\xd5\\xb0\\xdd\\x5f",
+    "file": "합격_",
     "type": "SPR"
    },
    {
@@ -4611,19 +7070,19 @@
   ],
   "613": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xbc\\xf6\\xb8\\xae\\xb0\\xcb.bmp",
+    "file": "유저인터페이스/item/수리검.bmp",
     "type": null
    }
   ],
   "614": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xc4\\xed\\xb3\\xaa\\xc0\\xcc\\x5f\\xb5\\xb6.bmp",
+    "file": "유저인터페이스/item/쿠나이_독.bmp",
     "type": null
    }
   ],
   "615": [
    {
-    "file": "\\xc0\\xaf\\xc0\\xfa\\xc0\\xce\\xc5\\xcd\\xc6\\xe4\\xc0\\xcc\\xbd\\xba/item/\\xc7\\xb3\\xb8\\xb6\\x5f\\xb3\\xfa\\xbf\\xec.bmp",
+    "file": "유저인터페이스/item/풍마_뇌우.bmp",
     "type": null
    }
   ],
@@ -4653,31 +7112,31 @@
   ],
   "630": [
    {
-    "file": "\\xb1\\xd7\\xb8\\xb2\\xc0\\xda\\xba\\xa3\\xb1\\xe2",
+    "file": "그림자베기",
     "type": "SPR"
    }
   ],
   "631": [
    {
-    "file": "\\xb4\\xd9\\xb4\\xd9\\xb9\\xcc\\x20\\xb5\\xda\\xc1\\xfd\\xb1\\xe2",
+    "file": "다다미 뒤집기",
     "type": "SPR"
    }
   ],
   "632": [
    {
-    "file": "\\xbe\\xc8\\xb0\\xb3\\xba\\xa3\\xb1\\xe2",
+    "file": "안개베기",
     "type": "SPR"
    }
   ],
   "633": [
    {
-    "file": "\\xc0\\xcf\\xbc\\xb6",
+    "file": "일섬",
     "type": "SPR"
    }
   ],
   "634": [
    {
-    "file": "\\xc8\\xad\\xbf\\xb0\\xc1\\xf8",
+    "file": "화염진",
     "type": "SPR"
    }
   ],
@@ -4695,85 +7154,85 @@
   ],
   "637": [
    {
-    "file": "\\xb5\\xa5\\xbd\\xba\\xc6\\xe4\\xb6\\xf3\\xb5\\xb5",
+    "file": "데스페라도",
     "type": "SPR"
    }
   ],
   "638": [
    {
-    "file": "\\xb6\\xf3\\xc0\\xcc\\xc6\\xae\\xb4\\xd7\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "file": "라이트닝스피어",
     "type": "SPR"
    }
   ],
   "639": [
    {
-    "file": "\\xba\\xed\\xb6\\xf3\\xc0\\xce\\xb5\\xe5\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "file": "블라인드스피어",
     "type": "SPR"
    }
   ],
   "640": [
    {
-    "file": "\\xc6\\xf7\\xc0\\xcc\\xc1\\xf0\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "file": "포이즌스피어",
     "type": "SPR"
    }
   ],
   "641": [
    {
-    "file": "\\xc7\\xc1\\xb8\\xae\\xc2\\xa1\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "file": "프리징스피어",
     "type": "SPR"
    }
   ],
   "642": [
    {
-    "file": "\\xc7\\xc3\\xb7\\xb9\\xbe\\xee\\xbd\\xba\\xc7\\xc7\\xbe\\xee",
+    "file": "플레어스피어",
     "type": "SPR"
    }
   ],
   "643": [
    {
-    "file": "\\xb7\\xa1\\xc7\\xc7\\xb5\\xe5\\xbb\\xfe\\xbf\\xf6",
+    "file": "래피드샤워",
     "type": "SPR"
    }
   ],
   "644": [
    {
-    "file": "\\xb8\\xc5\\xc1\\xf6\\xc4\\xc3\\xba\\xd2\\xb8\\xb4",
+    "file": "매지컬불릿",
     "type": "SPR"
    }
   ],
   "645": [
    {
-    "file": "\\xbd\\xba\\xc7\\xc1\\xb7\\xb9\\xb5\\xe5",
+    "file": "스프레드",
     "type": "SPR"
    }
   ],
   "646": [
    {
-    "file": "\\xc6\\xae\\xb7\\xa2\\xc5\\xb7",
+    "file": "트랙킹",
     "type": "STR"
    }
   ],
   "647": [
    {
-    "file": "\\xc6\\xae\\xb7\\xa1\\xc5\\xb7",
+    "file": "트래킹",
     "type": "SPR"
    }
   ],
   "648": [
    {
-    "file": "\\xc6\\xae\\xb8\\xae\\xc7\\xc3\\xbe\\xd7\\xbc\\xc7",
+    "file": "트리플액션",
     "type": "SPR"
    }
   ],
   "649": [
    {
-    "file": "\\xba\\xd2\\xbd\\xba\\xbe\\xc6\\xc0\\xcc",
+    "file": "불스아이",
     "type": "STR"
    }
   ],
   "666": [
    {
-    "file": "\\xbe\\xee\\xbd\\xba\\xc4\\xf9\\xc0\\xcc\\xc5\\xa9",
+    "file": "어스퀘이크",
     "type": "SPR"
    }
   ],
@@ -4821,7 +7280,7 @@
   ],
   "682": [
    {
-    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xb7\\xaf\\xba\\xea",
+    "file": "폭죽_러브",
     "type": "SPR"
    },
    {
@@ -4841,7 +7300,7 @@
   ],
   "684": [
    {
-    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xb9\\xdf\\xb7\\xbb\\xc5\\xb8\\xc0\\xce",
+    "file": "폭죽_발렌타인",
     "type": "SPR"
    },
    {
@@ -4851,7 +7310,7 @@
   ],
   "685": [
    {
-    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xbb\\xfd\\xc0\\xcf",
+    "file": "폭죽_생일",
     "type": "SPR"
    },
    {
@@ -4861,7 +7320,7 @@
   ],
   "686": [
    {
-    "file": "\\xc6\\xf8\\xc1\\xd7\\x5f\\xc5\\xa9\\xb8\\xae\\xbd\\xba\\xb8\\xb6\\xbd\\xba",
+    "file": "폭죽_크리스마스",
     "type": "SPR"
    },
    {
@@ -4991,7 +7450,7 @@
   ],
   "722": [
    {
-    "file": "\\xc0\\xcc\\xb1\\xd7\\xb4\\xcf\\xbc\\xc7\\xba\\xea\\xb7\\xb9\\xc0\\xcc\\xc5\\xa9",
+    "file": "이그니션브레이크",
     "type": "STR"
    }
   ],
@@ -5063,227 +7522,227 @@
   ],
   "756": [
    {
-    "file": "\\xb9\\xf6\\xbc\\xad\\xc5\\xa9",
+    "file": "버서크",
     "type": "STR"
    }
   ],
   "758": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "file": "effect/회전카운터1.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "file": "effect/회전카운터1.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "file": "effect/회전카운터1.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "file": "effect/회전카운터1.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd1.tga",
+    "file": "effect/회전카운터1.tga",
     "type": null
    }
   ],
   "759": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "file": "effect/회전카운터2.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "file": "effect/회전카운터2.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "file": "effect/회전카운터2.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "file": "effect/회전카운터2.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd2.tga",
+    "file": "effect/회전카운터2.tga",
     "type": null
    }
   ],
   "760": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "file": "effect/회전카운터3.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "file": "effect/회전카운터3.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "file": "effect/회전카운터3.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "file": "effect/회전카운터3.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd3.tga",
+    "file": "effect/회전카운터3.tga",
     "type": null
    }
   ],
   "761": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "file": "effect/회전카운터4.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "file": "effect/회전카운터4.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "file": "effect/회전카운터4.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "file": "effect/회전카운터4.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd4.tga",
+    "file": "effect/회전카운터4.tga",
     "type": null
    }
   ],
   "762": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "file": "effect/회전카운터5.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "file": "effect/회전카운터5.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "file": "effect/회전카운터5.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "file": "effect/회전카운터5.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd5.tga",
+    "file": "effect/회전카운터5.tga",
     "type": null
    }
   ],
   "763": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "file": "effect/회전카운터6.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "file": "effect/회전카운터6.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "file": "effect/회전카운터6.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "file": "effect/회전카운터6.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd6.tga",
+    "file": "effect/회전카운터6.tga",
     "type": null
    }
   ],
   "764": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "file": "effect/회전카운터7.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "file": "effect/회전카운터7.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "file": "effect/회전카운터7.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "file": "effect/회전카운터7.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd7.tga",
+    "file": "effect/회전카운터7.tga",
     "type": null
    }
   ],
   "765": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "file": "effect/회전카운터8.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "file": "effect/회전카운터8.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "file": "effect/회전카운터8.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "file": "effect/회전카운터8.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd8.tga",
+    "file": "effect/회전카운터8.tga",
     "type": null
    }
   ],
   "766": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "file": "effect/회전카운터9.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "file": "effect/회전카운터9.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "file": "effect/회전카운터9.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "file": "effect/회전카운터9.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd9.tga",
+    "file": "effect/회전카운터9.tga",
     "type": null
    }
   ],
   "767": [
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "file": "effect/회전카운터10.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "file": "effect/회전카운터10.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "file": "effect/회전카운터10.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "file": "effect/회전카운터10.tga",
     "type": null
    },
    {
-    "file": "effect/\\xc8\\xb8\\xc0\\xfc\\xc4\\xab\\xbf\\xee\\xc5\\xcd10.tga",
+    "file": "effect/회전카운터10.tga",
     "type": null
    }
   ],
@@ -7921,7 +10380,7 @@
     "type": "FUNC"
    },
    {
-    "file": "effect/\\xc5\\xe4\\xb8\\xb6.bmp",
+    "file": "effect/토마.bmp",
     "type": "FUNC"
    },
    {
@@ -8057,99 +10516,99 @@
     "type": "FUNC"
    },
    {
-    "file": "\\xb1\\xe2\\xba\\xbb\\xc6\\xae\\xb7\\xa6",
+    "file": "기본트랩",
     "type": "FUNC"
    },
    {
-    "file": "\\xb4\\xe3\\xc8\\xb2\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "file": "담황색트랩",
     "type": "FUNC"
    },
    {
-    "file": "\\xbe\\xcf\\xc3\\xbb\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "file": "암청색트랩",
     "type": "FUNC"
    },
    {
-    "file": "\\xc0\\xda\\xc8\\xab\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "file": "자홍색트랩",
     "type": "FUNC"
    },
    {
-    "file": "\\xc3\\xbb\\xb7\\xcf\\xbb\\xf6\\xc6\\xae\\xb7\\xa6",
+    "file": "청록색트랩",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa601",
+    "file": "외부소품\\트랩01",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa602",
+    "file": "외부소품\\트랩02",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603",
+    "file": "외부소품\\트랩03",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_2",
+    "file": "외부소품\\트랩03_2",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_3",
+    "file": "외부소품\\트랩03_3",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_4",
+    "file": "외부소품\\트랩03_4",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_5",
+    "file": "외부소품\\트랩03_5",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa603_6",
+    "file": "외부소품\\트랩03_6",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa604",
+    "file": "외부소품\\트랩04",
     "type": "FUNC"
    },
    {
-    "file": "\\xbf\\xdc\\xba\\xce\\xbc\\xd2\\xc7\\xb0\\x5c\\xc6\\xae\\xb7\\xa605",
+    "file": "외부소품\\트랩05",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xb0\\xa1\\xbd\\xc301",
+    "file": "event/3차트랩_가시01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xbc\\xf601",
+    "file": "event/3차트랩_변수01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc1\\xf601",
+    "file": "event/3차트랩_변지01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc7\\xb301",
+    "file": "event/3차트랩_변풍01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xba\\xaf\\xc8\\xad01",
+    "file": "event/3차트랩_변화01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xbc\\xf601",
+    "file": "event/3차트랩_수01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc1\\xf601",
+    "file": "event/3차트랩_지01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc7\\xb301",
+    "file": "event/3차트랩_풍01",
     "type": "FUNC"
    },
    {
-    "file": "event/3\\xc2\\xf7\\xc6\\xae\\xb7\\xa6_\\xc8\\xad01",
+    "file": "event/3차트랩_화01",
     "type": "FUNC"
    },
    {

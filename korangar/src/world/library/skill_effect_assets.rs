@@ -32,6 +32,27 @@ const DATA_PATH: &str = "data\\client\\skill_effect_assets.ron";
 /// Fallback copy of the same file, compiled into the client.
 const FALLBACK: &str = include_str!("../../../archive/data/client/skill_effect_assets.ron");
 
+/// Where an effect of a skill is played.
+///
+/// The official client does not play every effect at the same place: most
+/// effects are aimed at the target cell, but caster effects (for example
+/// `effectIdOnCaster`, Pierce's `pierce.str`) are anchored on the caster. The
+/// data file records the anchor of every row because the old generator only
+/// kept a coarse phase, which made on-caster effects spawn at the damaged
+/// target.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
+pub(crate) enum EffectAnchor {
+    /// On the caster (for example `effectIdOnCaster`).
+    Caster,
+    /// At the target cell; falls back to the caster when no target is known.
+    Target,
+    /// From the caster to the target (release/projectile style effects).
+    Travel,
+    /// At the target cell when the packet knows one, otherwise on the caster.
+    #[default]
+    Auto,
+}
+
 /// When an effect of a skill is played.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 pub(crate) enum SkillEffectVariant {
@@ -67,6 +88,8 @@ struct SkillEffectAssetFile {
 struct SkillEffectEntry {
     skill: u16,
     variant: SkillEffectVariant,
+    #[serde(default)]
+    anchor: EffectAnchor,
     file: String,
 }
 
@@ -74,6 +97,7 @@ struct SkillEffectEntry {
 struct StoredEntry {
     skill: u16,
     variant: SkillEffectVariant,
+    anchor: EffectAnchor,
     file: &'static str,
 }
 
@@ -87,6 +111,7 @@ fn parse(content: &str) -> Result<Vec<StoredEntry>, String> {
         .map(|entry| StoredEntry {
             skill: entry.skill,
             variant: entry.variant,
+            anchor: entry.anchor,
             file: Box::leak(entry.file.into_boxed_str()),
         })
         .collect();
@@ -130,15 +155,23 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
     count
 }
 
-/// Iterates over the effect files of `skill_id` for one variant.
-pub(crate) fn skill_effect_files(skill_id: SkillId, variant: SkillEffectVariant) -> impl Iterator<Item = &'static str> + 'static {
+/// Iterates over the effect files and spawn anchors of `skill_id` for one
+/// variant.
+///
+/// A phase can have several layers (for example two different `.str` files);
+/// every row is spawned once per cast. The anchor tells the caller whether the
+/// layer belongs on the caster or at the target cell.
+pub(crate) fn skill_effect_entries(
+    skill_id: SkillId,
+    variant: SkillEffectVariant,
+) -> impl Iterator<Item = (&'static str, EffectAnchor)> + 'static {
     ASSETS
         .get()
         .map(|assets| assets.as_slice())
         .unwrap_or(&[])
         .iter()
         .filter(move |entry| entry.skill == skill_id.0 && entry.variant == variant)
-        .map(|entry| entry.file)
+        .map(|entry| (entry.file, entry.anchor))
 }
 
 /// Whether the mapping has any entry for `skill_id`.
@@ -154,7 +187,7 @@ mod tests {
     use korangar_loaders::FileLoader;
     use ragnarok_packets::SkillId;
 
-    use super::{FALLBACK, SkillEffectVariant, parse, skill_effect_files};
+    use super::{EffectAnchor, FALLBACK, SkillEffectVariant, parse, skill_effect_entries};
 
     fn load_fallback() -> Result<(), String> {
         let entries = parse(FALLBACK)?;
@@ -163,7 +196,17 @@ mod tests {
     }
 
     fn file_of(skill_id: u16, variant: SkillEffectVariant) -> Option<&'static str> {
-        skill_effect_files(SkillId(skill_id), variant).next()
+        skill_effect_entries(SkillId(skill_id), variant).next().map(|(file, _anchor)| file)
+    }
+
+    fn anchor_of(skill_id: u16, variant: SkillEffectVariant) -> Option<EffectAnchor> {
+        skill_effect_entries(SkillId(skill_id), variant)
+            .next()
+            .map(|(_file, anchor)| anchor)
+    }
+
+    fn entries_of(skill_id: u16, variant: SkillEffectVariant) -> Vec<(&'static str, EffectAnchor)> {
+        skill_effect_entries(SkillId(skill_id), variant).collect()
     }
 
     #[test]
@@ -182,6 +225,37 @@ mod tests {
         assert_eq!(file_of(45, SkillEffectVariant::Success), Some("concentration.str"));
         // An unmapped skill has no entries.
         assert_eq!(file_of(1, SkillEffectVariant::Success), None);
+    }
+
+    #[test]
+    fn caster_effects_are_anchored_on_the_caster() {
+        assert!(load_fallback().is_ok());
+        // `effectIdOnCaster` (pierce) used to be spawned at the damaged target
+        // because the data file only stored the phase.
+        assert_eq!(anchor_of(56, SkillEffectVariant::Success), Some(EffectAnchor::Caster));
+        // `effectIdOnCaster` of Spear Stab and Brandish Spear as well.
+        assert_eq!(anchor_of(58, SkillEffectVariant::Success), Some(EffectAnchor::Caster));
+        assert_eq!(anchor_of(62, SkillEffectVariant::Success), Some(EffectAnchor::Caster));
+        // `hitEffectId` is aimed at the target cell.
+        assert_eq!(anchor_of(56, SkillEffectVariant::Hit), Some(EffectAnchor::Target));
+    }
+
+    #[test]
+    fn a_phase_can_have_several_effect_layers() {
+        assert!(load_fallback().is_ok());
+        // Bolt skills have both the element hit flash and the generic hit line.
+        let lightning = entries_of(20, SkillEffectVariant::Hit);
+        assert!(lightning.len() >= 2, "expected two hit layers, got {lightning:?}");
+        assert!(lightning.iter().all(|(_file, anchor)| *anchor == EffectAnchor::Target));
+    }
+
+    #[test]
+    fn every_row_has_a_known_anchor() {
+        let entries = parse(FALLBACK).expect("valid fallback");
+        assert!(entries.len() > 150, "mapping should stay broad, got {}", entries.len());
+        assert!(entries.iter().any(|entry| entry.anchor == EffectAnchor::Caster));
+        assert!(entries.iter().any(|entry| entry.anchor == EffectAnchor::Target));
+        assert!(entries.iter().any(|entry| entry.anchor == EffectAnchor::Auto));
     }
 
     #[test]

@@ -2270,6 +2270,12 @@ impl Entity {
         self.get_common_mut().animation_state.pickup(entity_type, client_tick);
     }
 
+    /// Combat-ready stance (official `READYFIGHT` skill action, `SM_ENDURE`).
+    pub fn set_ready_fight(&mut self, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.ready_fight(entity_type, client_tick);
+    }
+
     /// Sit down (`ZC_NOTIFY_ACT` with `DamageType::SitDown`).
     pub fn set_sitting(&mut self, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();

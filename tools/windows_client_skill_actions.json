@@ -1,0 +1,834 @@
+{
+ "provenance": {
+  "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, action names and hold flags are extracted",
+  "url": "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB/Skills/SkillAction.js",
+  "note": "official skill -> entity action assignment, including the 'prevent default skill action' entries"
+ },
+ "defaults": {
+  "DEFAULT": "Skill",
+  "DEFAULT_MONK": "Idle",
+  "DEFAULT_DORAM": "Attack"
+ },
+ "actions": {
+  "1": {
+   "action": "Idle",
+   "hold": false
+  },
+  "5": {
+   "action": "Attack",
+   "hold": false
+  },
+  "7": {
+   "action": "Attack",
+   "hold": false
+  },
+  "8": {
+   "action": "ReadyFight",
+   "hold": false
+  },
+  "29": {
+   "action": "Idle",
+   "hold": false
+  },
+  "34": {
+   "action": "Skill",
+   "hold": false
+  },
+  "42": {
+   "action": "Attack",
+   "hold": false
+  },
+  "46": {
+   "action": "Attack",
+   "hold": false
+  },
+  "47": {
+   "action": "Attack",
+   "hold": false
+  },
+  "52": {
+   "action": "Attack",
+   "hold": false
+  },
+  "56": {
+   "action": "Attack",
+   "hold": false
+  },
+  "57": {
+   "action": "Attack",
+   "hold": false
+  },
+  "58": {
+   "action": "Attack",
+   "hold": false
+  },
+  "59": {
+   "action": "Attack",
+   "hold": false
+  },
+  "61": {
+   "action": "Attack",
+   "hold": true
+  },
+  "62": {
+   "action": "Attack",
+   "hold": false
+  },
+  "110": {
+   "action": "Attack",
+   "hold": false
+  },
+  "116": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "117": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "118": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "119": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "120": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "121": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "122": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "123": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "124": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "125": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "136": {
+   "action": "Attack",
+   "hold": false
+  },
+  "143": {
+   "action": "Idle",
+   "hold": false
+  },
+  "148": {
+   "action": "Attack",
+   "hold": false
+  },
+  "149": {
+   "action": "Attack",
+   "hold": false
+  },
+  "150": {
+   "action": "Idle",
+   "hold": false
+  },
+  "151": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "152": {
+   "action": "Attack",
+   "hold": false
+  },
+  "153": {
+   "action": "Attack",
+   "hold": false
+  },
+  "212": {
+   "action": "Attack",
+   "hold": false
+  },
+  "214": {
+   "action": "Attack",
+   "hold": false
+  },
+  "219": {
+   "action": "Attack",
+   "hold": false
+  },
+  "229": {
+   "action": "Attack",
+   "hold": false
+  },
+  "230": {
+   "action": "Attack",
+   "hold": false
+  },
+  "231": {
+   "action": "Attack",
+   "hold": false
+  },
+  "232": {
+   "action": "Attack",
+   "hold": false
+  },
+  "250": {
+   "action": "Attack",
+   "hold": false
+  },
+  "251": {
+   "action": "Attack",
+   "hold": false
+  },
+  "253": {
+   "action": "Attack",
+   "hold": false
+  },
+  "261": {
+   "action": "Idle",
+   "hold": false
+  },
+  "262": {
+   "action": "Idle",
+   "hold": false
+  },
+  "263": {
+   "action": "Attack",
+   "hold": false
+  },
+  "264": {
+   "action": "Idle",
+   "hold": false
+  },
+  "266": {
+   "action": "Skill",
+   "hold": true
+  },
+  "267": {
+   "action": "Skill",
+   "hold": true
+  },
+  "268": {
+   "action": "Idle",
+   "hold": false
+  },
+  "269": {
+   "action": "Skill",
+   "hold": true
+  },
+  "270": {
+   "action": "Idle",
+   "hold": false
+  },
+  "271": {
+   "action": "Attack",
+   "hold": false
+  },
+  "272": {
+   "action": "Attack",
+   "hold": false
+  },
+  "273": {
+   "action": "Attack",
+   "hold": false
+  },
+  "306": {
+   "action": "Skill",
+   "hold": false
+  },
+  "307": {
+   "action": "Skill",
+   "hold": false
+  },
+  "308": {
+   "action": "Skill",
+   "hold": false
+  },
+  "309": {
+   "action": "Skill",
+   "hold": false
+  },
+  "310": {
+   "action": "Skill",
+   "hold": false
+  },
+  "312": {
+   "action": "Skill",
+   "hold": false
+  },
+  "313": {
+   "action": "Skill",
+   "hold": false
+  },
+  "316": {
+   "action": "Attack",
+   "hold": false
+  },
+  "317": {
+   "action": "Skill",
+   "hold": false
+  },
+  "319": {
+   "action": "Skill",
+   "hold": false
+  },
+  "320": {
+   "action": "Skill",
+   "hold": false
+  },
+  "321": {
+   "action": "Skill",
+   "hold": false
+  },
+  "322": {
+   "action": "Skill",
+   "hold": false
+  },
+  "324": {
+   "action": "Attack",
+   "hold": false
+  },
+  "325": {
+   "action": "Skill",
+   "hold": false
+  },
+  "327": {
+   "action": "Skill",
+   "hold": false
+  },
+  "328": {
+   "action": "Skill",
+   "hold": false
+  },
+  "329": {
+   "action": "Skill",
+   "hold": false
+  },
+  "330": {
+   "action": "Skill",
+   "hold": false
+  },
+  "337": {
+   "action": "Attack",
+   "hold": false
+  },
+  "338": {
+   "action": "Attack",
+   "hold": false
+  },
+  "358": {
+   "action": "Idle",
+   "hold": false
+  },
+  "366": {
+   "action": "Attack",
+   "hold": false
+  },
+  "368": {
+   "action": "Attack",
+   "hold": false
+  },
+  "370": {
+   "action": "Attack",
+   "hold": false
+  },
+  "371": {
+   "action": "Attack",
+   "hold": false
+  },
+  "372": {
+   "action": "Attack",
+   "hold": false
+  },
+  "379": {
+   "action": "Attack",
+   "hold": false
+  },
+  "380": {
+   "action": "Skill",
+   "hold": false
+  },
+  "382": {
+   "action": "Attack",
+   "hold": false
+  },
+  "389": {
+   "action": "Idle",
+   "hold": false
+  },
+  "394": {
+   "action": "Attack",
+   "hold": false
+  },
+  "395": {
+   "action": "Skill",
+   "hold": false
+  },
+  "396": {
+   "action": "Skill",
+   "hold": false
+  },
+  "397": {
+   "action": "Attack",
+   "hold": false
+  },
+  "398": {
+   "action": "Attack",
+   "hold": false
+  },
+  "399": {
+   "action": "Attack",
+   "hold": false
+  },
+  "401": {
+   "action": "Idle",
+   "hold": false
+  },
+  "406": {
+   "action": "Attack",
+   "hold": false
+  },
+  "412": {
+   "action": "Idle",
+   "hold": false
+  },
+  "413": {
+   "action": "Attack",
+   "hold": false
+  },
+  "414": {
+   "action": "Idle",
+   "hold": false
+  },
+  "415": {
+   "action": "Attack",
+   "hold": false
+  },
+  "416": {
+   "action": "Idle",
+   "hold": false
+  },
+  "417": {
+   "action": "Attack",
+   "hold": false
+  },
+  "418": {
+   "action": "Idle",
+   "hold": false
+  },
+  "419": {
+   "action": "Attack",
+   "hold": false
+  },
+  "420": {
+   "action": "Idle",
+   "hold": false
+  },
+  "421": {
+   "action": "Attack",
+   "hold": false
+  },
+  "426": {
+   "action": "Idle",
+   "hold": false
+  },
+  "480": {
+   "action": "Attack",
+   "hold": false
+  },
+  "488": {
+   "action": "Skill",
+   "hold": false
+  },
+  "490": {
+   "action": "Attack",
+   "hold": false
+  },
+  "502": {
+   "action": "Attack",
+   "hold": false
+  },
+  "503": {
+   "action": "Attack",
+   "hold": false
+  },
+  "512": {
+   "action": "Attack",
+   "hold": false
+  },
+  "513": {
+   "action": "Attack",
+   "hold": false
+  },
+  "514": {
+   "action": "Attack",
+   "hold": false
+  },
+  "515": {
+   "action": "Attack",
+   "hold": false
+  },
+  "516": {
+   "action": "Attack",
+   "hold": false
+  },
+  "518": {
+   "action": "Attack",
+   "hold": false
+  },
+  "519": {
+   "action": "Attack",
+   "hold": false
+  },
+  "520": {
+   "action": "Attack",
+   "hold": false
+  },
+  "521": {
+   "action": "Attack",
+   "hold": false
+  },
+  "523": {
+   "action": "Attack",
+   "hold": false
+  },
+  "524": {
+   "action": "Attack",
+   "hold": false
+  },
+  "525": {
+   "action": "Attack",
+   "hold": false
+  },
+  "526": {
+   "action": "Attack",
+   "hold": false
+  },
+  "527": {
+   "action": "Pickup",
+   "hold": true
+  },
+  "528": {
+   "action": "Attack",
+   "hold": false
+  },
+  "530": {
+   "action": "Attack",
+   "hold": false
+  },
+  "544": {
+   "action": "Attack",
+   "hold": false
+  },
+  "689": {
+   "action": "Skill",
+   "hold": false
+  },
+  "690": {
+   "action": "Idle",
+   "hold": false
+  },
+  "1004": {
+   "action": "Attack",
+   "hold": false
+  },
+  "1009": {
+   "action": "Attack",
+   "hold": false
+  },
+  "1011": {
+   "action": "Skill",
+   "hold": false
+  },
+  "1013": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "1015": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2002": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2004": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2005": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2006": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2008": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2022": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2023": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2029": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2030": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2031": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2034": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2036": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2037": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2233": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2236": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2238": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2239": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2249": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2250": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2251": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2252": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2253": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2254": {
+   "action": "Pickup",
+   "hold": false
+  },
+  "2257": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2258": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2259": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2260": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2261": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2264": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2265": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2278": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2279": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2280": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2284": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2288": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2307": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2308": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2309": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2310": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2312": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2314": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2317": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2320": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2321": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2323": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2326": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2327": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2328": {
+   "action": "Pickup",
+   "hold": true
+  },
+  "2329": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2330": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2333": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2334": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2335": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2338": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2339": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2340": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2341": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2343": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2344": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2345": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2346": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2347": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2348": {
+   "action": "Idle",
+   "hold": false
+  },
+  "2476": {
+   "action": "Attack",
+   "hold": false
+  },
+  "2493": {
+   "action": "Attack",
+   "hold": false
+  },
+  "5020": {
+   "action": "Idle",
+   "hold": false
+  },
+  "5022": {
+   "action": "Idle",
+   "hold": false
+  },
+  "5435": {
+   "action": "Attack",
+   "hold": false
+  },
+  "5437": {
+   "action": "Attack",
+   "hold": false
+  }
+ }
+}

@@ -5,9 +5,15 @@ Background: the official Windows client (`CondaRO.exe`) compiles its per-skill
 effect mapping into code; its effect **resources** live in the GRFs. The
 community reimplementation `roBrowserLegacy` (GPL-3.0) documents those mappings
 in `src/DB/Skills/SkillEffect.js`, `src/DB/Effects/EffectTable.js` and
-`src/DB/Skills/SkillConst.js`. This script only extracts **facts** (numeric
-skill ids, effect ids and effect file names) into a plain JSON file; none of the
-GPL source is copied into this repository.
+`src/DB/Skills/SkillConst.js`. This script only extracts **facts** (skill ids,
+effect ids, the exact `SkillEffect` field they come from and the effect files)
+into a plain JSON file; none of the GPL source is copied into this repository.
+
+The exact field name is kept because it decides **when** and **where** an
+effect is played (for example `effectIdOnCaster` plays on the caster while
+`successEffectIdOnTargetByLevel` plays at the target). Keeping the field in the
+facts lets `gen_skill_effect_assets.py` write the correct spawn anchor instead
+of guessing it from a coarse group.
 
 The extracted JSON (`tools/windows_client_skill_effects.json`) is the input of
 `gen_skill_effect_assets.py`, which validates every referenced effect file
@@ -29,7 +35,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 import urllib.request
 from pathlib import Path
@@ -43,23 +48,39 @@ FILES = {
     "effect_table": f"{BASE_URL}/Effects/EffectTable.js",
 }
 
-# SkillEffect fields we understand, grouped by the phase they belong to.
-FIELD_GROUPS = {
-    "ground": ("groundEffectId", "groundEffectIdByLevel"),
-    "cast": ("beginCastEffectId", "beginCastEffectIdByLevel"),
-    "success": (
-        "effectId",
-        "effectIdOnCaster",
-        "successEffectId",
-        "successEffectIdOnCaster",
-        "successEffectIdOnCasterByLevel",
-        "successEffectIdOnTargetByLevel",
-        "successEffectIdOnCasterByScreenDirection",
-    ),
-    "release": ("releaseEffectId",),
-    "hit": ("hitEffectId", "beforeHitEffectId", "damageEffectIdOnTarget"),
-    "caster": ("damageEffectIdOnCaster",),
-}
+#: `SkillEffect` fields we understand. The value is the official play moment of
+#: the field; `gen_skill_effect_assets.py` maps it to a client spawn phase and
+#: anchor. Order matters: it is the fallback priority of the generator.
+FIELDS = (
+    # ground target cell
+    "groundEffectId",
+    "groundEffectIdByLevel",
+    # cast start on the caster
+    "beginCastEffectId",
+    "beginCastEffectIdByLevel",
+    "castAuraEffectId",
+    # successful use
+    "effectId",
+    "successEffectId",
+    "effectIdOnCaster",
+    "successEffectIdOnCaster",
+    "successEffectIdOnCasterByLevel",
+    "successEffectIdOnCasterByScreenDirection",
+    "successEffectIdOnTargetByLevel",
+    "successEffectIdOnTargetByScreenSide",
+    # release / just before the hit
+    "releaseEffectId",
+    "beforeHitEffectId",
+    "beforeHitEffectIdOnCaster",
+    # damage hit / caster damage
+    "hitEffectId",
+    "hitEffectIdOnCaster",
+    "damageEffectIdOnTarget",
+    "damageEffectIdOnCaster",
+)
+
+#: SkillEffect values that are not effect ids but client instructions.
+IGNORED_FLAGS = ("hideCastBar", "hideCastAura", "hideCastEffect")
 
 
 def fetch(url: str) -> str:
@@ -82,6 +103,10 @@ def parse_skill_const(text: str) -> dict[str, int]:
     return {match.group(1): int(match.group(2)) for match in re.finditer(r"([A-Z0-9_]+)\s*:\s*(\d+)", text)}
 
 
+def strip_comments(text: str) -> str:
+    return re.sub(r"//[^\n]*", "", text)
+
+
 def numeric_ids(value: str) -> list[int]:
     """Return the numeric effect ids of a JS field value (numbers or arrays)."""
     ids = [int(number) for number in re.findall(r"\b(\d{1,4})\b", value)]
@@ -89,34 +114,63 @@ def numeric_ids(value: str) -> list[int]:
     return [effect_id for effect_id in ids if effect_id != 0]
 
 
-def parse_skill_effects(text: str, skill_ids: dict[str, int]) -> dict[int, dict]:
-    """Return skill id -> {field: [effect ids]} for all known fields."""
-    result: dict[int, dict] = {}
-    # Entries are one-liners (`SkillEffect[SK.X] = { ... };`) or multi-line blocks.
-    for match in re.finditer(r"SkillEffect\[SK\.([A-Z0-9_]+)\]\s*=\s*\{(.*?)\};", text, re.S):
-        symbol = match.group(1)
-        body = match.group(2)
+def parse_skill_effects(text: str, skill_ids: dict[str, int]) -> dict[int, list[dict]]:
+    """Return skill id -> [{"field": <SkillEffect field>, "effects": [ids]}]."""
+    text = strip_comments(text)
+    # One-liners and multi-line blocks. The value can be a literal object or an
+    # alias to another skill (`SkillEffect[SK.X] = SkillEffect[SK.Y];`).
+    raw: dict[str, str] = {}
+    for match in re.finditer(r"SkillEffect\[SK\.([A-Z0-9_]+)\]\s*=\s*(\{(?:[^{}]|\{[^{}]*\})*\}|SkillEffect\[SK\.[A-Z0-9_]+\])\s*;", text, re.S):
+        raw[match.group(1)] = match.group(2)
+
+    resolved: dict[str, str] = {}
+
+    def resolve(symbol: str, depth: int = 0) -> str:
+        if symbol in resolved:
+            return resolved[symbol]
+        value = raw.get(symbol, "")
+        alias = re.fullmatch(r"SkillEffect\[SK\.([A-Z0-9_]+)\]", value)
+        if alias and depth < 8:
+            value = resolve(alias.group(1), depth + 1)
+        resolved[symbol] = value
+        return value
+
+    result: dict[int, list[dict]] = {}
+    for symbol in raw:
         skill_id = skill_ids.get(symbol)
         if skill_id is None:
             continue
-
-        fields: dict[str, list[int]] = {}
-        for group, names in FIELD_GROUPS.items():
-            ids: list[int] = []
-            for field in names:
-                field_match = re.search(rf"\b{field}\s*:\s*(\[[^\]]*\]|\d+|'[^']*')", body)
-                if field_match is not None:
-                    ids.extend(numeric_ids(field_match.group(1)))
+        body = resolve(symbol)
+        fields: list[dict] = []
+        for field in FIELDS:
+            field_match = re.search(rf"\b{field}\s*:\s*(\[[^\]]*\]|\d+)", body)
+            if field_match is None:
+                continue
+            ids = numeric_ids(field_match.group(1))
             if ids:
-                fields[group] = sorted(set(ids))
-
+                fields.append({"field": field, "effects": sorted(set(ids))})
         if fields:
             result[skill_id] = fields
     return result
 
 
+def js_string_to_path(raw: str) -> str:
+    """Decode the JS string escapes used for Korean file names.
+
+    roBrowser Legacy stores EUC-KR file name bytes as individual `\\xNN`
+    characters in the JS source; the game loader turns them back into EUC-KR.
+    """
+    if "\\x" not in raw:
+        return raw
+    data = re.sub(rb"\\x([0-9a-fA-F]{2})", lambda match: bytes([int(match.group(1), 16)]), raw.encode("latin-1"))
+    try:
+        return data.decode("euc-kr")
+    except UnicodeDecodeError:
+        return raw
+
+
 def parse_effect_table(text: str) -> dict[int, list[dict]]:
-    """Return effect id -> [{type, file, min}] for the effect table entries."""
+    """Return effect id -> [{type, file}] for the effect table entries."""
     result: dict[int, list[dict]] = {}
     entries = list(re.finditer(r"\n\t(\d+): \[", text))
     for index, match in enumerate(entries):
@@ -126,7 +180,7 @@ def parse_effect_table(text: str) -> dict[int, list[dict]]:
         block = text[start:end]
         files: list[dict] = []
         for file_match in re.finditer(r"file:\s*'([^']+)'", block):
-            files.append({"file": file_match.group(1)})
+            files.append({"file": js_string_to_path(file_match.group(1))})
         # The type belongs to the whole entry; attach it to every file in it.
         type_match = re.search(r"type:\s*'([A-Za-z]+)'", block)
         entry_type = type_match.group(1) if type_match else None
@@ -150,7 +204,7 @@ def main() -> int:
 
     payload = {
         "provenance": {
-            "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids and file names are extracted",
+            "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, field names and file names are extracted",
             "url": FILES["skill_effect"],
             "packetver_note": "extracted facts; validated against CondaRO.exe + GRFs by gen_skill_effect_assets.py",
         },
