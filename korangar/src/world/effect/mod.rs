@@ -504,9 +504,11 @@ pub(crate) fn render_world_quad(
 
 /// Renders a textured quad with explicit blend factors.
 ///
-/// The default [`render_world_quad`] uses additive blending that ignores the
-/// texture alpha; effects whose textures have an alpha channel (the official
-/// level-99 aura components) use [`BlendFactor::SrcAlpha`] instead.
+/// The factors use the straight alpha convention of the official client effect
+/// data (`.str` frames and the hard-coded primitives). Effect textures and
+/// colors are premultiplied, so the forward effect pass translates a
+/// `SrcAlpha` source factor to `One` when it builds the pipeline; passing
+/// `SrcAlpha` here is therefore correct and does not darken the quad.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn render_world_quad_blended(
     renderer: &mut EffectRenderer,

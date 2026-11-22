@@ -23,15 +23,58 @@ const DRAWER_NAME: &str = "forward effect";
 const PASS_NAME: &str = "forward effect render pass";
 const INITIAL_INSTRUCTION_SIZE: usize = 256;
 
-/// These are the TOP5 combinations we currently find in the korean client
-/// files and will preload at start.
+/// These are the combinations that the korean client effect files and the
+/// hard-coded procedural primitives use; they are preloaded at start.
+///
+/// The list is already translated to premultiplied alpha (see
+/// [`premultiplied_blend_state`]): the client files describe a straight alpha
+/// pipeline, so every `SrcAlpha` source factor of the data becomes `One` here.
+/// `(One, DstAlpha)` and `(One, OneMinusSrcAlpha)` are the two dominant `.str`
+/// combinations, `(One, One)` is the additive glow of the procedural effects
+/// (hit flashes, projectiles, auras) and `(One, Zero)` is opaque.
 const PRELOAD_PIPELINES: &[(BlendFactor, BlendFactor)] = &[
-    (BlendFactor::SrcAlpha, BlendFactor::DstAlpha),
-    (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
+    (BlendFactor::One, BlendFactor::DstAlpha),
+    (BlendFactor::One, BlendFactor::OneMinusSrcAlpha),
+    (BlendFactor::One, BlendFactor::One),
     (BlendFactor::One, BlendFactor::Zero),
     (BlendFactor::Zero, BlendFactor::OneMinusSrcAlpha),
     (BlendFactor::OneMinusSrcAlpha, BlendFactor::OneMinusSrcAlpha),
 ];
+
+/// Translates the blend factors of the official client effect data (a straight
+/// alpha pipeline) into the factors of the client's premultiplied alpha
+/// pipeline.
+///
+/// Both the effect textures and the effect colors are premultiplied:
+///
+/// * [`TextureLoader::load_texture_data`] premultiplies the RGB of every
+///   `.tga`/`.png` texture (`.bmp` textures are color keyed, so their alpha is
+///   either zero or one and premultiplying is a no-op),
+/// * `Color::components_linear` premultiplies the RGB of the effect color.
+///
+/// The shader therefore outputs a premultiplied color. Applying a `SrcAlpha`
+/// source factor to it would multiply the color by the alpha a *second* time,
+/// which darkens every semi-transparent texel. For the `.str` effect data this
+/// made bright, semi-transparent flashes show up as dark/black halos. The
+/// dominant combinations in the client files are `(SrcAlpha, DstAlpha)` and
+/// `(SrcAlpha, OneMinusSrcAlpha)`; translating the source factor to `One`
+/// reproduces the straight alpha result exactly:
+///
+/// ```text
+/// straight:      src.rgb * src.a + dst.rgb * dst.a
+/// premultiplied: (src.rgb * src.a) * 1 + dst.rgb * dst.a
+/// ```
+///
+/// Destination factors operate on the scene color and are already correct.
+fn premultiplied_blend_state(source: BlendFactor, destination: BlendFactor) -> (BlendFactor, BlendFactor) {
+    let source = match source {
+        // Both factors scale the source color by (at most) its own alpha.
+        BlendFactor::SrcAlpha | BlendFactor::SrcAlphaSaturated => BlendFactor::One,
+        source => source,
+    };
+
+    (source, destination)
+}
 
 /// Renders the effects of the frame right after the forward pass.
 ///
@@ -335,7 +378,7 @@ impl Prepare for ForwardEffectDrawer {
         self.batches.clear();
 
         let first_effect = &instructions.effects[0];
-        let mut blend_state = (first_effect.source_blend_factor, first_effect.destination_blend_factor);
+        let mut blend_state = premultiplied_blend_state(first_effect.source_blend_factor, first_effect.destination_blend_factor);
         let mut offset = 0;
 
         if self.bindless_support {
@@ -345,7 +388,7 @@ impl Prepare for ForwardEffectDrawer {
             let mut texture_views = Vec::with_capacity_in(draw_count, &self.bump);
 
             for (index, instruction) in instructions.effects.iter().enumerate() {
-                let effect_blend_state = (instruction.source_blend_factor, instruction.destination_blend_factor);
+                let effect_blend_state = premultiplied_blend_state(instruction.source_blend_factor, instruction.destination_blend_factor);
 
                 if effect_blend_state != blend_state {
                     Self::push_effect_batch(
@@ -418,7 +461,7 @@ impl Prepare for ForwardEffectDrawer {
             self.bind_group = Self::create_bind_group_bindless(device, &self.bind_group_layout, &self.instance_data_buffer, &texture_views)
         } else {
             for (index, instruction) in instructions.effects.iter().enumerate() {
-                let effect_blend_state = (instruction.source_blend_factor, instruction.destination_blend_factor);
+                let effect_blend_state = premultiplied_blend_state(instruction.source_blend_factor, instruction.destination_blend_factor);
 
                 if effect_blend_state != blend_state {
                     Self::push_effect_batch(
@@ -616,5 +659,43 @@ impl ForwardEffectDrawer {
             count,
             blend_state,
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use wgpu::BlendFactor;
+
+    use super::premultiplied_blend_state;
+
+    #[test]
+    fn source_alpha_is_translated_to_one() {
+        // The two combinations that the client effect files actually use.
+        assert_eq!(
+            premultiplied_blend_state(BlendFactor::SrcAlpha, BlendFactor::DstAlpha),
+            (BlendFactor::One, BlendFactor::DstAlpha)
+        );
+        assert_eq!(
+            premultiplied_blend_state(BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
+            (BlendFactor::One, BlendFactor::OneMinusSrcAlpha)
+        );
+        // Additive blending with the texture alpha as a mask.
+        assert_eq!(
+            premultiplied_blend_state(BlendFactor::SrcAlpha, BlendFactor::One),
+            (BlendFactor::One, BlendFactor::One)
+        );
+    }
+
+    #[test]
+    fn factors_that_do_not_scale_by_source_alpha_are_unchanged() {
+        for (source, destination) in [
+            (BlendFactor::One, BlendFactor::One),
+            (BlendFactor::One, BlendFactor::Zero),
+            (BlendFactor::Zero, BlendFactor::OneMinusSrcAlpha),
+            (BlendFactor::OneMinusSrcAlpha, BlendFactor::OneMinusSrcAlpha),
+            (BlendFactor::DstAlpha, BlendFactor::One),
+        ] {
+            assert_eq!(premultiplied_blend_state(source, destination), (source, destination));
+        }
     }
 }

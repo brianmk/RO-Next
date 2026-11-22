@@ -94,6 +94,8 @@ impl SkillAuraSpec {
         self.duration_ms + self.duplicate_delay_ms * (self.duplicates as u32 - 1)
     }
 
+    /// Straight alpha factors of the official cylinder effect (translated to
+    /// premultiplied alpha by the forward effect pass).
     fn blend_factors(&self) -> (BlendFactor, BlendFactor) {
         match self.additive {
             true => (BlendFactor::SrcAlpha, BlendFactor::One),

@@ -42,6 +42,12 @@ pub(crate) const FULL_QUAD_TEXTURE_COORDINATES: [cgmath::Vector2<f32>; 4] = [
 ];
 
 /// Blend factors of the effect: additive for glows, alpha blending otherwise.
+///
+/// These are the straight alpha factors of the official client effect data
+/// (the same convention as the `.str` frames). The effect textures and colors
+/// are premultiplied, so the forward effect pass translates the `SrcAlpha`
+/// source factor to `One` before creating the blend state; see
+/// `premultiplied_blend_state` in `graphics/passes/forward/effect.rs`.
 pub(crate) fn blend_factors(additive: bool) -> (BlendFactor, BlendFactor) {
     match additive {
         true => (BlendFactor::SrcAlpha, BlendFactor::One),
