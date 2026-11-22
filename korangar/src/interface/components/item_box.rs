@@ -268,7 +268,6 @@ where
 
                 if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
-                    layout.register_click_handler(MouseButton::DoubleLeft, &self.double_click_handler);
                 }
             }
 

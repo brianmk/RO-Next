@@ -24,7 +24,7 @@ use crate::interface::resource::ItemSource;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
 use crate::state::ClientState;
-use crate::world::ResourceMetadata;
+use crate::world::{Player, ResourceMetadata};
 
 /// Width of the paper doll canvas.
 const CANVAS_WIDTH: f32 = 220.0;
@@ -41,8 +41,6 @@ const SLOT_BORDER_COLOR: Color = Color::rgba_u8(120, 120, 130, 110);
 const SLOT_FILLED_BORDER_COLOR: Color = Color::rgba_u8(88, 130, 180, 200);
 const SLOT_LABEL_COLOR: Color = Color::rgba_u8(160, 160, 170, 130);
 const CANVAS_COLOR: Color = Color::rgba_u8(0, 0, 0, 50);
-const FIGURE_COLOR: Color = Color::rgb_u8(78, 74, 88);
-const FIGURE_HIGHLIGHT_COLOR: Color = Color::rgb_u8(92, 88, 104);
 const REFINE_COLOR: Color = Color::rgb_u8(255, 190, 80);
 const REFINE_BACKGROUND_COLOR: Color = Color::rgba_u8(0, 0, 0, 170);
 
@@ -140,108 +138,8 @@ const SLOTS: [SlotDefinition; 11] = [
 
 const SLOT_COUNT: usize = SLOTS.len();
 
-/// Part of the figure that is drawn on the paper doll canvas.
-struct FigurePart {
-    left: f32,
-    top: f32,
-    width: f32,
-    height: f32,
-    corner_diameter: f32,
-    color: Color,
-}
-
-const FIGURE: [FigurePart; 10] = [
-    // Head.
-    FigurePart {
-        left: 90.0,
-        top: 54.0,
-        width: 40.0,
-        height: 40.0,
-        corner_diameter: 20.0,
-        color: FIGURE_HIGHLIGHT_COLOR,
-    },
-    // Neck.
-    FigurePart {
-        left: 102.0,
-        top: 90.0,
-        width: 16.0,
-        height: 14.0,
-        corner_diameter: 5.0,
-        color: FIGURE_COLOR,
-    },
-    // Torso.
-    FigurePart {
-        left: 76.0,
-        top: 100.0,
-        width: 68.0,
-        height: 82.0,
-        corner_diameter: 16.0,
-        color: FIGURE_COLOR,
-    },
-    // Left arm.
-    FigurePart {
-        left: 56.0,
-        top: 106.0,
-        width: 16.0,
-        height: 74.0,
-        corner_diameter: 8.0,
-        color: FIGURE_COLOR,
-    },
-    // Right arm.
-    FigurePart {
-        left: 148.0,
-        top: 106.0,
-        width: 16.0,
-        height: 74.0,
-        corner_diameter: 8.0,
-        color: FIGURE_COLOR,
-    },
-    // Hips.
-    FigurePart {
-        left: 82.0,
-        top: 180.0,
-        width: 56.0,
-        height: 16.0,
-        corner_diameter: 8.0,
-        color: FIGURE_COLOR,
-    },
-    // Left leg.
-    FigurePart {
-        left: 90.0,
-        top: 194.0,
-        width: 16.0,
-        height: 76.0,
-        corner_diameter: 7.0,
-        color: FIGURE_COLOR,
-    },
-    // Right leg.
-    FigurePart {
-        left: 114.0,
-        top: 194.0,
-        width: 16.0,
-        height: 76.0,
-        corner_diameter: 7.0,
-        color: FIGURE_COLOR,
-    },
-    // Left foot.
-    FigurePart {
-        left: 84.0,
-        top: 268.0,
-        width: 24.0,
-        height: 10.0,
-        corner_diameter: 5.0,
-        color: FIGURE_COLOR,
-    },
-    // Right foot.
-    FigurePart {
-        left: 112.0,
-        top: 268.0,
-        width: 24.0,
-        height: 10.0,
-        corner_diameter: 5.0,
-        color: FIGURE_COLOR,
-    },
-];
+/// Scale of the character sprite on the paper doll canvas.
+const CHARACTER_SCALE: f32 = 3.2;
 
 /// Path to the item that is equipped in a certain equipment position.
 #[derive(Clone, Copy)]
@@ -345,23 +243,26 @@ pub struct PaperDollLayoutInfo {
     slots: [Area; SLOT_COUNT],
 }
 
-pub struct PaperDoll<A> {
+pub struct PaperDoll<A, B> {
     item_paths: [EquipmentSlotPath<A>; SLOT_COUNT],
     handlers: [EquipmentSlotHandler<A>; SLOT_COUNT],
+    player_path: B,
     refine_displays: [Option<String>; SLOT_COUNT],
 }
 
-impl<A> PaperDoll<A>
+impl<A, B> PaperDoll<A, B>
 where
     A: Path<ClientState, Vec<InventoryItem<ResourceMetadata>>>,
+    B: Path<ClientState, Player>,
 {
-    pub fn new(items_path: A) -> Self {
+    pub fn new(items_path: A, player_path: B) -> Self {
         Self {
             item_paths: std::array::from_fn(|index| EquipmentSlotPath::new(SLOTS[index].equip_position, items_path)),
             handlers: std::array::from_fn(|index| EquipmentSlotHandler {
                 equip_position: SLOTS[index].equip_position,
                 items_path,
             }),
+            player_path,
             refine_displays: std::array::from_fn(|_| None),
         }
     }
@@ -372,9 +273,10 @@ where
     }
 }
 
-impl<A> Element<ClientState> for PaperDoll<A>
+impl<A, B> Element<ClientState> for PaperDoll<A, B>
 where
     A: Path<ClientState, Vec<InventoryItem<ResourceMetadata>>>,
+    B: Path<ClientState, Player>,
 {
     type LayoutInfo = PaperDollLayoutInfo;
 
@@ -440,22 +342,10 @@ where
             ShadowPadding::uniform(0.0),
         );
 
-        // The figure itself.
-        for part in &FIGURE {
-            let area = Area {
-                left: layout_info.canvas.left + part.left,
-                top: layout_info.canvas.top + part.top,
-                width: part.width,
-                height: part.height,
-            };
-
-            layout.add_rectangle(
-                area,
-                CornerDiameter::uniform(part.corner_diameter),
-                part.color,
-                Color::TRANSPARENT,
-                ShadowPadding::uniform(0.0),
-            );
+        // The character itself: all sprite layers (body, hair, headgear) are
+        // composited in the idle pose facing the viewer.
+        if let Some(animation_data) = state.follow(self.player_path).get_common().animation_data.as_ref() {
+            layout.add_character(layout_info.canvas, animation_data, Color::WHITE, CHARACTER_SCALE);
         }
 
         let is_dragging = matches!(layout.get_mouse_mode(), MouseMode::Custom {

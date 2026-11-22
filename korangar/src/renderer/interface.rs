@@ -16,7 +16,7 @@ use crate::loaders::{FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, Imag
 use crate::renderer::SpriteRenderer;
 use crate::renderer::skin::{SkinImage, SkinTextures};
 use crate::state::ClientState;
-use crate::world::{Actions, SpriteAnimationState};
+use crate::world::{Actions, AnimationData, SpriteAnimationState};
 
 /// Renders the interface provided by [`korangar_interface`].
 pub struct InterfaceRenderer {
@@ -679,6 +679,25 @@ struct SpriteInstruction<'a> {
     scaling: f32,
 }
 
+/// An instruction to render a composited character (all sprite parts of an
+/// animation data set, idle pose, front facing) into an interface area. This is
+/// used by the equipment paper doll.
+///
+/// These are not used outside this module but are exposed through
+/// [`CustomInstruction`]. Thus we explicitly allow a private interface.
+#[allow(private_interfaces)]
+/// Vertical anchor of the character feet inside the paper doll area (fraction
+/// of the area height).
+const CHARACTER_FEET_ANCHOR: f32 = 0.80;
+
+struct CharacterInstruction<'a> {
+    animation_data: &'a AnimationData,
+    clip_id: ClipId,
+    area: Area,
+    color: Color,
+    scaling: f32,
+}
+
 /// A custom layout instruction.
 ///
 /// Only pub to make the compiler happy, its not used outside of this module.
@@ -688,6 +707,8 @@ pub enum CustomInstruction<'a> {
     Texture(TextureInstruction),
     /// An instruction to render a sprite.
     Sprite(SpriteInstruction<'a>),
+    /// An instruction to render a composited character.
+    Character(CharacterInstruction<'a>),
 }
 
 impl RenderLayer<ClientState> for InterfaceRenderer {
@@ -764,6 +785,34 @@ impl RenderLayer<ClientState> for InterfaceRenderer {
 
                 actions.render_sprite(self, sprite, animation_state, position, 0, screen_clip, color, scaling);
             }
+            CustomInstruction::Character(CharacterInstruction {
+                animation_data,
+                clip_id,
+                area,
+                color,
+                scaling,
+            }) => {
+                // The sprite origin is at the feet of the character, so the character is
+                // anchored slightly below the vertical center of the area and grows
+                // upwards. This matches the original client's paper doll, where the
+                // character stands at the bottom of the panel.
+                let position = ScreenPosition {
+                    left: area.left + area.width / 2.0,
+                    top: area.top + area.height * CHARACTER_FEET_ANCHOR,
+                };
+                let screen_clip = clips[clip_id.as_index()];
+
+                // Every sprite part of the character (body, hair, headgear layers) is an
+                // animation pair. The idle action facing south is action index 0 with
+                // frame 0; all parts are drawn at the same position, their action clips
+                // contain the offsets relative to the character origin, exactly like in
+                // the original 2D client.
+                for animation_pair in &animation_data.animation_pair {
+                    animation_pair
+                        .actions
+                        .render_sprite_frame(self, &animation_pair.sprites, 0, 0, position, screen_clip, color, scaling);
+                }
+            }
             CustomInstruction::Texture(TextureInstruction {
                 texture,
                 clip_id,
@@ -803,6 +852,10 @@ pub trait LayoutExt<'a> {
         color: Color,
         scale: f32,
     );
+
+    /// Add an instruction to render a composited character in its idle pose
+    /// (front facing), e.g. for the equipment paper doll.
+    fn add_character(&mut self, area: Area, animation_data: &'a AnimationData, color: Color, scale: f32);
 }
 
 impl<'a> LayoutExt<'a> for WindowLayout<'a, ClientState> {
@@ -836,6 +889,20 @@ impl<'a> LayoutExt<'a> for WindowLayout<'a, ClientState> {
             actions,
             sprite,
             animation_state,
+            clip_id,
+            area,
+            color,
+            scaling,
+        }));
+    }
+
+    fn add_character(&mut self, area: Area, animation_data: &'a AnimationData, color: Color, scale: f32) {
+        let clip_id = self.get_active_clip_id();
+        let area = self.scale_area(area);
+        let scaling = scale * self.get_interface_scaling();
+
+        self.add_custom_instruction(CustomInstruction::Character(CharacterInstruction {
+            animation_data,
             clip_id,
             area,
             color,

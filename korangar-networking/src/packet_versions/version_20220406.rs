@@ -565,6 +565,16 @@ where
             account_id: packet.account_id,
             hair_id: packet.value,
         }),
+        SpriteChangeType::HeadTop | SpriteChangeType::HeadMiddle | SpriteChangeType::HeadBottom => Some(NetworkEvent::AppearanceChanged {
+            account_id: packet.account_id,
+            sprite_type: packet.sprite_type,
+            value: packet.value,
+        }),
+        SpriteChangeType::HairCollor | SpriteChangeType::ClothesColor => Some(NetworkEvent::AppearanceChanged {
+            account_id: packet.account_id,
+            sprite_type: packet.sprite_type,
+            value: packet.value,
+        }),
         _ => None,
     })?;
     packet_handler.register({
