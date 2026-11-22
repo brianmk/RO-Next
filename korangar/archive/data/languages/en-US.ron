@@ -121,6 +121,7 @@
     create_party_button_text: "Create party",
     leave_party_button_text: "Leave party",
     switch_slots_text: "Switch slots",
+    please_wait_text: "Please wait…",
     create_character_slot_text: "Create Character",
     map_text: "Map",
     party_name_text: "Party name",

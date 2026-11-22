@@ -633,6 +633,28 @@ fn get_entity_part_files(
     }
 }
 
+/// Composes the sprite part files of a character shown in a menu (the
+/// character selection window) from its character-list entry.
+///
+/// This uses exactly the same part composition as a spawned [`Player`] entity,
+/// so the preview shows the real body, hair, hair/clothes palette and the
+/// middle/upper/lower headgear layers in the same order as the world sprite and
+/// the equipment paper doll.
+pub fn character_preview_part_files(library: &Library, character_information: &CharacterInformation) -> Vec<EntityPartFile> {
+    get_entity_part_files(
+        library,
+        EntityType::Player,
+        character_information.job_id,
+        character_information.sex,
+        Some(character_information.head as usize),
+        character_information.head_palette as u16,
+        character_information.body_palette as u16,
+        character_information.accessory as u16,
+        character_information.accessory2 as u16,
+        character_information.accessory3 as u16,
+    )
+}
+
 /// Option bits (rAthena `enum e_option`) that make the entity invisible to
 /// other clients: hide, cloak, invisible and chase-walk.
 const OPTION_HIDDEN_MASK: u32 = 0x0000_0002 | 0x0000_0004 | 0x0000_0040 | 0x0000_4000;

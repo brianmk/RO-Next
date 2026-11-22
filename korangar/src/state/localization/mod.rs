@@ -282,6 +282,10 @@ pub struct Localization {
     leave_party_button_text: String,
     #[serde(default = "default_switch_slots_text")]
     switch_slots_text: String,
+    /// Shown on a character slot that is blocked by the anti-crash selection
+    /// cooldown after a logout.
+    #[serde(default = "default_please_wait_text")]
+    please_wait_text: String,
     #[serde(default = "default_create_character_slot_text")]
     create_character_slot_text: String,
     #[serde(default = "default_map_text")]
@@ -452,6 +456,12 @@ fn default_switch_slots_text() -> String {
 /// `create_character_slot_text` field existed.
 fn default_create_character_slot_text() -> String {
     "Create Character".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `please_wait_text` field existed.
+fn default_please_wait_text() -> String {
+    "Please wait…".to_owned()
 }
 
 /// Default for language files that were written before the `map_text` field

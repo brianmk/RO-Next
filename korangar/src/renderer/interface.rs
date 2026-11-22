@@ -802,15 +802,43 @@ impl RenderLayer<ClientState> for InterfaceRenderer {
                 };
                 let screen_clip = clips[clip_id.as_index()];
 
-                // Every sprite part of the character (body, hair, headgear layers) is an
-                // animation pair. The idle action facing south is action index 0 with
-                // frame 0; all parts are drawn at the same position, their action clips
-                // contain the offsets relative to the character origin, exactly like in
-                // the original 2D client.
-                for animation_pair in &animation_data.animation_pair {
-                    animation_pair
-                        .actions
-                        .render_sprite_frame(self, &animation_pair.sprites, 0, 0, position, screen_clip, color, scaling);
+                // Use the *composed* idle frame instead of the raw action clips of every
+                // animation pair. The loader resolves the per-part attach points (the
+                // head/hair/headgear of a player are positioned relative to the body
+                // attach point, not relative to their own sprite origin) when it builds
+                // the composed `AnimationFrame`. Drawing the raw clips placed the head of
+                // the paper doll at half of the character height instead of on top of
+                // the body.
+                //
+                // The idle action facing south is action index 0, frame 0. Every frame
+                // part carries its final offset and size relative to the character
+                // origin (the feet), so all parts can simply be drawn around the feet
+                // anchor.
+                let Some(frame) = animation_data.animations.first().and_then(|animation| animation.frames.first()) else {
+                    return;
+                };
+
+                for frame_part in &frame.frame_parts {
+                    let Some(animation_pair) = animation_data.animation_pair.get(frame_part.animation_index) else {
+                        continue;
+                    };
+                    let Some(texture) = animation_pair.sprites.textures.get(frame_part.sprite_number) else {
+                        continue;
+                    };
+
+                    // Both the part size and its offset are in interface pixels and have
+                    // to be scaled by the requested preview/interface scale.
+                    let size = ScreenSize {
+                        width: frame_part.size.x as f32 * scaling,
+                        height: frame_part.size.y as f32 * scaling,
+                    };
+                    let offset = Vector2::new(frame_part.offset.x as f32, frame_part.offset.y as f32) * scaling;
+                    let part_position = ScreenPosition {
+                        left: position.left + offset.x - size.width / 2.0,
+                        top: position.top + offset.y - size.height / 2.0,
+                    };
+
+                    self.render_sprite(texture.clone(), part_position, size, screen_clip, color, false);
                 }
             }
             CustomInstruction::Texture(TextureInstruction {

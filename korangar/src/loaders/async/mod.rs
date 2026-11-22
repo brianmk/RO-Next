@@ -27,6 +27,13 @@ use crate::world::{
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum LoaderId {
     AnimationData(EntityId),
+    /// Idle animation preview of one character selection slot.
+    ///
+    /// Deliberately a separate id (instead of a synthetic entity id) so a
+    /// preview load can never be mistaken for the animation data of a real
+    /// entity and the completion handler can route it to the character
+    /// selection state.
+    CharacterPreview(usize),
     /// Animation of the hunter falcon that is attached to a player entity.
     FalconAnimationData(EntityId),
     /// Animation of the equipped weapon that is drawn as its own layer on top
@@ -148,10 +155,30 @@ impl AsyncLoader {
         }
     }
 
+    /// Requests the composed idle animation of a character selection slot.
+    ///
+    /// This uses the same loader and cache as the entity animations, so the
+    /// preview of a character that is already known as an entity (for example
+    /// after returning to the selection screen) is served from the cache.
+    #[must_use]
+    pub fn request_character_preview_load(&self, slot: usize, entity_part_files: Vec<EntityPartFile>) -> Option<Arc<AnimationData>> {
+        self.request_animation_load(LoaderId::CharacterPreview(slot), EntityType::Player, entity_part_files)
+    }
+
     #[must_use]
     pub fn request_animation_data_load(
         &self,
         entity_id: EntityId,
+        entity_type: EntityType,
+        entity_part_files: Vec<EntityPartFile>,
+    ) -> Option<Arc<AnimationData>> {
+        self.request_animation_load(LoaderId::AnimationData(entity_id), entity_type, entity_part_files)
+    }
+
+    /// Shared implementation of the animation data load requests.
+    fn request_animation_load(
+        &self,
+        id: LoaderId,
         entity_type: EntityType,
         entity_part_files: Vec<EntityPartFile>,
     ) -> Option<Arc<AnimationData>> {
@@ -165,7 +192,6 @@ impl AsyncLoader {
         match self.animation_loader.get(&entity_part_files) {
             Some(animation_data) => Some(animation_data),
             None => {
-                let id = LoaderId::AnimationData(entity_id);
                 let resource_key = entity_part_files.clone();
 
                 {

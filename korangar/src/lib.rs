@@ -134,6 +134,7 @@ use crate::settings::{
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
     ServiceSettingsPathExt, WORLD_THEMES_PATH, parse_aura_style_marker,
 };
+use crate::state::character_slots::{MAX_CHARACTER_SLOTS, visible_character_slots};
 use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
@@ -3559,10 +3560,7 @@ impl Client {
                         #[cfg(feature = "debug")]
                         self.interface.close_all_windows_except(DEBUG_WINDOWS);
 
-                        self.interface.open_window(CharacterSelectionWindow::new(
-                            client_state().character_slots(),
-                            client_state().switch_request(),
-                        ));
+                        self.open_character_selection_window();
                     }
 
                     // A previous map entry may have been aborted because the map
@@ -5886,6 +5884,9 @@ impl Client {
                     let _ = self.networking_system.log_out();
                 }
                 InputEvent::LogOutCharacter => {
+                    // The next login is a fresh session, so the character
+                    // selection cooldown must not leak into it.
+                    self.client_state.follow_mut(client_state().character_selection_cooldown()).clear();
                     self.networking_system.disconnect_from_character_server();
                 }
                 InputEvent::Exit => SHUTDOWN_SIGNAL.store(true, Ordering::SeqCst),
@@ -6096,11 +6097,45 @@ impl Client {
                 InputEvent::CloseTopWindow => self.interface.close_top_window(&self.client_state),
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {
+                    // The cards of blocked characters do not register a click handler,
+                    // but a click can race with the layout update that removes the
+                    // handlers. Check the cooldown here as well so a fast double click
+                    // can never send a select packet while the server is still
+                    // cleaning up the previous session.
+                    let character_id = self
+                        .client_state
+                        .follow(client_state().character_slots())
+                        .character_in_slot(slot)
+                        .map(|character_information| character_information.character_id);
+
+                    if let Some(character_id) = character_id {
+                        let now = Instant::now();
+                        let remaining = self
+                            .client_state
+                            .follow(client_state().character_selection_cooldown())
+                            .remaining(character_id, now);
+
+                        if let Some(remaining) = remaining {
+                            crate::logging::log_debug!(
+                                "character selection: slot {slot} is still cooling down for {} ms, ignoring the click",
+                                remaining.as_millis()
+                            );
+                            continue;
+                        }
+                    }
+
                     crate::logging::log_debug!(
                         "character selection: requesting slot {} (character server connected: {})",
                         slot,
                         self.networking_system.is_character_server_connected()
                     );
+
+                    if let Some(character_id) = character_id {
+                        self.client_state
+                            .follow_mut(client_state().character_selection_cooldown())
+                            .remember_selection(character_id);
+                    }
+
                     if self.networking_system.select_character(slot).is_err() {
                         crate::logging::log_warn!("character selection: could not send the select packet (not connected)");
                     }
@@ -7145,6 +7180,11 @@ impl Client {
                         item.set_animation_data(animation_data);
                     }
                 }
+                (LoaderId::CharacterPreview(slot), LoadableResource::AnimationData(animation_data)) => {
+                    self.client_state
+                        .follow_mut(client_state().character_previews())
+                        .set_ready(slot, animation_data);
+                }
                 (LoaderId::FalconAnimationData(entity_id), LoadableResource::FalconAnimation(falcon_animation)) => {
                     crate::logging::log_debug!("falcon animation: applying to entity {}", entity_id.0);
                     if let Some(entity) = self
@@ -7193,6 +7233,7 @@ impl Client {
 
                             map.set_ambient_sound_sources(&self.audio_engine);
                             self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+                            self.directional_shadow_camera.set_level_bound(map.get_level_bound());
 
                             // The main menu map finished loading. Do not blindly open the
                             // character selection window here: the map load can finish after the
@@ -7207,10 +7248,7 @@ impl Client {
                             let login_open = self.interface.is_window_with_class_open(WindowClass::Login);
 
                             if character_server_connected && !character_selection_open {
-                                self.interface.open_window(CharacterSelectionWindow::new(
-                                    client_state().character_slots(),
-                                    client_state().switch_request(),
-                                ));
+                                self.open_character_selection_window();
                             } else if login_server_connected && !select_server_open && !character_selection_open {
                                 self.interface
                                     .open_window(ServerSelectionWindow::new(client_state().character_servers()));
@@ -7236,7 +7274,6 @@ impl Client {
                             }
 
                             self.start_camera.set_focus_point(START_CAMERA_FOCUS_POINT);
-                            self.directional_shadow_camera.set_level_bound(map.get_level_bound());
                         }
                         false => {
                             // Normal map switch: the map entry is complete.
@@ -7322,7 +7359,108 @@ impl Client {
     /// to the character selection screen (see
     /// `NetworkEvent::MapServerDisconnected`), and the error is shown
     /// there.
+    /// Keep the character selection previews in sync with the character
+    /// slots.
+    ///
+    /// Called every frame while the window is open. For every visible occupied
+    /// slot whose preview is not loaded yet, the composed idle animation of the
+    /// character is requested from the async loader; the result is applied by
+    /// [`Self::update_loaded_resources`]. When the window is not open the
+    /// loaded previews are dropped, so returning to the login screen does not
+    /// keep character sprites alive.
+    /// Repaint the character selection window while the anti-crash selection
+    /// cooldown is running, so the countdown text updates and the cards become
+    /// selectable again once the cooldown expired (the click handlers are only
+    /// registered during a layout pass).
+    fn update_character_selection_cooldown(&mut self) {
+        if !self.interface.is_window_with_class_open(WindowClass::CharacterSelection) {
+            return;
+        }
+
+        if self
+            .client_state
+            .follow(client_state().character_selection_cooldown())
+            .is_repainting(Instant::now())
+        {
+            self.interface.invalidate_layouts();
+        }
+    }
+
+    fn update_character_selection_previews(&mut self) {
+        if !self.interface.is_window_with_class_open(WindowClass::CharacterSelection) {
+            let previews = self.client_state.follow_mut(client_state().character_previews());
+            if previews.slot_count() > 0 {
+                previews.clear();
+            }
+            return;
+        }
+
+        let reported_slots = self.client_state.follow(client_state().character_slots()).get_slot_count();
+        let slot_count = visible_character_slots(reported_slots);
+
+        self.client_state
+            .follow_mut(client_state().character_previews())
+            .set_slot_count(slot_count);
+
+        if reported_slots > MAX_CHARACTER_SLOTS && crate::logging::enabled(crate::logging::LEVEL_DEBUG) {
+            crate::logging::log_debug!(
+                "character selection: server reports {reported_slots} slots, showing the first {MAX_CHARACTER_SLOTS}"
+            );
+        }
+
+        for slot in 0..slot_count {
+            // The character list can change while the window is open (delete,
+            // slot switch); clone the row so the state borrow ends before the
+            // loader is called.
+            let character_information = self
+                .client_state
+                .follow(client_state().character_slots())
+                .character_in_slot(slot)
+                .cloned();
+
+            let Some(character_information) = character_information else {
+                self.client_state.follow_mut(client_state().character_previews()).clear_slot(slot);
+                continue;
+            };
+
+            let character_id = character_information.character_id;
+            let is_current = self
+                .client_state
+                .follow(client_state().character_previews())
+                .is_current(slot, character_id);
+
+            if is_current {
+                continue;
+            }
+
+            let entity_part_files = character_preview_part_files(&self.library, &character_information);
+
+            self.client_state
+                .follow_mut(client_state().character_previews())
+                .request(slot, character_id);
+
+            // The appearance may already be cached (for example from a previous
+            // visit of the character selection screen): in that case no
+            // asynchronous load happens and the data can be applied right away.
+            if let Some(animation_data) = self.async_loader.request_character_preview_load(slot, entity_part_files) {
+                self.client_state
+                    .follow_mut(client_state().character_previews())
+                    .set_ready(slot, animation_data);
+            }
+        }
+    }
+
     fn handle_failed_load(&mut self, id: LoaderId, error: LoadError) {
+        // A missing preview sprite must not be requested again every frame: the
+        // slot keeps its name/level and simply shows no character.
+        if let LoaderId::CharacterPreview(slot) = &id {
+            crate::logging::log_debug!("character preview unavailable for slot {slot}: {error:?}");
+            self.client_state
+                .follow_mut(client_state().character_previews())
+                .set_unavailable(*slot);
+            return;
+        }
+
         // Missing weapon sprites are expected for some CondaRO jobs (the archives
         // are trimmed); the async loader caches the failure and the entity is
         // rendered without the weapon layer. Keep this out of the generic asset
@@ -7438,7 +7576,36 @@ impl Client {
 
     /// Leaves the current map and returns to the character selection screen,
     /// reloading the menu background map.
+    /// Open the character selection window, centred in the available screen
+    /// area, and start the anti-crash selection cooldown if the client just
+    /// returned from a map session.
+    fn open_character_selection_window(&mut self) {
+        self.client_state
+            .follow_mut(client_state().character_selection_cooldown())
+            .start(Instant::now());
+
+        let window_position = {
+            let state = self.client_state.follow(client_state());
+            character_selection_window_position(state)
+        };
+
+        self.interface.open_window_at_auto_size(
+            CharacterSelectionWindow::new(
+                client_state().character_slots(),
+                client_state().switch_request(),
+                client_state().character_previews(),
+                client_state().character_selection_cooldown(),
+            ),
+            window_position,
+        );
+    }
+
     fn return_to_character_selection(&mut self) {
+        // The server may still be cleaning up the old map session. Block rapid
+        // re-selection until the character selection window is shown and the
+        // grace period started.
+        self.client_state.follow_mut(client_state().character_selection_cooldown()).arm();
+
         self.map = None;
         self.session.recovery_finished();
         // Every entity of the map session is gone; status effects were already
@@ -7976,6 +8143,12 @@ impl Client {
         // complete the loading. When starting the actual render process, we
         // can't modify resources anymore until the next frame.
         self.update_loaded_resources(client_tick);
+
+        // The character previews are requested after the load results were
+        // applied, so an animation that already finished loading in this frame
+        // is not requested again.
+        self.update_character_selection_previews();
+        self.update_character_selection_cooldown();
 
         // Headless benchmark driver (`KORANGAR_BENCH`, see `benchmark.rs`); a
         // no-op in normal runs. Runs after the load results were applied so the

@@ -1,5 +1,7 @@
 #[cfg(feature = "debug")]
 pub mod cache_statistics;
+pub mod character_previews;
+pub mod character_selection_cooldown;
 pub mod character_slots;
 pub mod friend_names;
 pub mod hotbar;
@@ -64,6 +66,8 @@ use crate::settings::{
     AudioSettingsCapabilities, GameSettings, GraphicsSettingsCapabilities, InterfaceSettings, InterfaceSettingsCapabilities, LoginSettings,
     ServiceSettings,
 };
+use crate::state::character_previews::CharacterPreviews;
+use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
@@ -243,6 +247,15 @@ pub struct ClientState {
     character_servers: Vec<CharacterServerInformation>,
     /// List of all the slots and characters on the current character server.
     character_slots: CharacterSlots,
+    /// Idle preview animations of the characters in the character selection
+    /// window. Filled asynchronously whenever the window is open; the value is
+    /// managed by the client and not part of the interface layout.
+    #[hidden_element]
+    character_previews: CharacterPreviews,
+    /// Anti-crash grace period that blocks character selection for a moment
+    /// after logging out (the server may still be cleaning up the old session).
+    #[hidden_element]
+    character_selection_cooldown: CharacterSelectionCooldown,
     /// Id of the character that is currently being deleted. The server does not
     /// send back information about which character was deleted
     /// successfully, so we store it instead.
@@ -392,6 +405,8 @@ impl ClientState {
             let character_servers = Vec::new();
             // TODO: This could be in a single struct.
             let character_slots = CharacterSlots::default();
+            let character_previews = CharacterPreviews::default();
+            let character_selection_cooldown = CharacterSelectionCooldown::default();
             // TODO: This could be in a single struct.
             let currently_deleting = None;
             // TODO: This could be in a single struct.
@@ -517,6 +532,8 @@ impl ClientState {
             skill_tree,
             character_servers,
             character_slots,
+            character_previews,
+            character_selection_cooldown,
             currently_deleting,
             switch_request,
             create_character_name,
