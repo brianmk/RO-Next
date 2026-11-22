@@ -91,6 +91,9 @@ pub trait Particle {
     fn update(&mut self, delta_time: f32) -> bool;
 
     fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize);
+
+    /// World position used for distance culling.
+    fn culling_position(&self) -> Point3<f32>;
 }
 
 fn random_velocity() -> f32 {
@@ -124,6 +127,10 @@ impl DamageNumber {
 }
 
 impl Particle for DamageNumber {
+    fn culling_position(&self) -> Point3<f32> {
+        self.position
+    }
+
     fn update(&mut self, delta_time: f32) -> bool {
         self.velocity_y -= 200.0 * delta_time;
 
@@ -173,6 +180,10 @@ impl Miss {
 }
 
 impl Particle for Miss {
+    fn culling_position(&self) -> Point3<f32> {
+        self.position
+    }
+
     fn update(&mut self, delta_time: f32) -> bool {
         self.position.y += (self.timer - 0.1).max(0.0) * 70.0 * delta_time;
 
@@ -216,6 +227,10 @@ impl HealNumber {
 }
 
 impl Particle for HealNumber {
+    fn culling_position(&self) -> Point3<f32> {
+        self.position
+    }
+
     fn update(&mut self, delta_time: f32) -> bool {
         self.velocity_y -= 50.0 * delta_time;
 
@@ -284,6 +299,10 @@ impl Emote {
 }
 
 impl Particle for Emote {
+    fn culling_position(&self) -> Point3<f32> {
+        self.position
+    }
+
     fn update(&mut self, delta_time: f32) -> bool {
         self.timer += delta_time * 1000.0;
         self.timer < self.frame_count() as f32 * self.frame_time()
@@ -365,14 +384,104 @@ impl QuestIcon {
     }
 }
 
-#[derive(Default)]
+/// Default maximum number of simultaneously alive particles (damage/heal
+/// numbers, miss texts, emotes). In a crowded town with a population engine
+/// the damage number spam is the most allocation-heavy per-frame path, so the
+/// oldest particles are recycled when the budget is reached.
+const DEFAULT_MAXIMUM_PARTICLES: usize = 300;
+/// Default distance (in world units, one map cell is 5 units) beyond which
+/// particles are no longer rendered. `0.0` disables the distance culling.
+const DEFAULT_PARTICLE_CULL_DISTANCE: f32 = 2200.0;
+
+/// Environment knob for [`ParticleHolder::maximum_particles`]; `0` disables
+/// the cap.
+const MAXIMUM_PARTICLES_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MAX_PARTICLES";
+/// Environment knob for [`ParticleHolder::cull_distance`]; `0` disables
+/// culling.
+const PARTICLE_CULL_DISTANCE_ENVIRONMENT_VARIABLE: &str = "KORANGAR_PARTICLE_CULL_DISTANCE";
+
+fn environment_usize(name: &str, default: usize) -> usize {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.trim().parse::<usize>().ok())
+        .unwrap_or(default)
+}
+
+fn environment_f32(name: &str, default: f32) -> f32 {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.trim().parse::<f32>().ok())
+        .filter(|value| value.is_finite() && *value >= 0.0)
+        .unwrap_or(default)
+}
+
+/// Number of existing particles that have to be evicted for a new one.
+///
+/// Pure function so the budget policy can be unit tested without client state.
+fn particles_to_evict(current: usize, maximum: usize) -> usize {
+    if maximum > 0 && current >= maximum {
+        // Evict the oldest particle to make room, so a burst can never grow the
+        // list past the budget.
+        1
+    } else {
+        0
+    }
+}
+
 pub struct ParticleHolder {
     particles: Vec<Box<dyn Particle + Send + Sync>>,
     quest_icons: HashMap<EntityId, QuestIcon>,
+    /// Maximum number of simultaneously alive particles (`0` = unlimited).
+    maximum_particles: usize,
+    /// Distance in world units beyond which particles are culled (`0` = off).
+    cull_distance: f32,
+    /// Particles evicted by the budget since startup.
+    dropped_particles: u64,
+    /// Particles rendered / culled by distance in the last frame.
+    rendered_in_last_frame: std::cell::Cell<u32>,
+    culled_in_last_frame: std::cell::Cell<u32>,
+}
+
+impl Default for ParticleHolder {
+    fn default() -> Self {
+        Self {
+            particles: Vec::new(),
+            quest_icons: HashMap::new(),
+            maximum_particles: environment_usize(MAXIMUM_PARTICLES_ENVIRONMENT_VARIABLE, DEFAULT_MAXIMUM_PARTICLES),
+            cull_distance: environment_f32(PARTICLE_CULL_DISTANCE_ENVIRONMENT_VARIABLE, DEFAULT_PARTICLE_CULL_DISTANCE),
+            dropped_particles: 0,
+            rendered_in_last_frame: std::cell::Cell::new(0),
+            culled_in_last_frame: std::cell::Cell::new(0),
+        }
+    }
 }
 
 impl ParticleHolder {
+    /// Number of active particles (used by the performance instrumentation).
+    pub fn count(&self) -> usize {
+        self.particles.len()
+    }
+
+    /// Rendered and distance-culled particle counts of the last frame.
+    pub fn render_counts(&self) -> (u32, u32) {
+        (self.rendered_in_last_frame.get(), self.culled_in_last_frame.get())
+    }
+
+    /// Number of particles evicted by the budget since startup.
+    pub fn dropped_particles(&self) -> u64 {
+        self.dropped_particles
+    }
+
     pub fn spawn_particle(&mut self, particle: Box<dyn Particle + Send + Sync>) {
+        let evict = particles_to_evict(self.particles.len(), self.maximum_particles);
+
+        if evict > 0 {
+            // Remove the oldest particle (swap_remove keeps this O(1); the render
+            // order of independent particles is irrelevant).
+            self.particles.swap_remove(0);
+            self.dropped_particles += 1;
+        }
+
         self.particles.push(particle);
     }
 
@@ -407,9 +516,21 @@ impl ParticleHolder {
         scaling: Scaling,
         entities: &[Entity],
     ) {
-        self.particles
-            .iter()
-            .for_each(|particle| particle.render(renderer, camera, window_size));
+        let mut rendered = 0;
+        let mut culled = 0;
+
+        for particle in &self.particles {
+            if self.cull_distance > 0.0 && camera.distance_to(particle.culling_position()) > self.cull_distance {
+                culled += 1;
+                continue;
+            }
+
+            particle.render(renderer, camera, window_size);
+            rendered += 1;
+        }
+
+        self.rendered_in_last_frame.set(rendered);
+        self.culled_in_last_frame.set(culled);
 
         entities
             .iter()
@@ -420,7 +541,21 @@ impl ParticleHolder {
 
 #[cfg(test)]
 mod tests {
-    use super::{BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale, damage_text_pixels};
+    use super::{BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale, damage_text_pixels, particles_to_evict};
+
+    #[test]
+    fn particle_budget_evicts_only_when_full() {
+        assert_eq!(particles_to_evict(0, 300), 0);
+        assert_eq!(particles_to_evict(299, 300), 0);
+        assert_eq!(particles_to_evict(300, 300), 1);
+        assert_eq!(particles_to_evict(10_000, 300), 1);
+    }
+
+    #[test]
+    fn zero_particle_budget_means_unlimited() {
+        assert_eq!(particles_to_evict(usize::MAX / 2, 0), 0);
+        assert_eq!(particles_to_evict(0, 0), 0);
+    }
 
     #[test]
     fn values_below_1000_use_the_standard_size() {

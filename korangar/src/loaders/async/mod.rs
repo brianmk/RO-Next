@@ -1,7 +1,8 @@
-use std::cmp::PartialEq;
+use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 
-use hashbrown::HashMap;
+use hashbrown::{HashMap, HashSet};
 #[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
 use korangar_networking::{InventoryItem, InventoryItemDetails, NoMetadata, ShopItem};
@@ -14,6 +15,7 @@ use crate::loaders::error::LoadError;
 use crate::loaders::{
     ActionLoader, AnimationLoader, EntityPartFile, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader,
 };
+use crate::perf::{self, LoadKind};
 use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
 #[cfg(feature = "debug")]
 use crate::threads;
@@ -53,16 +55,22 @@ pub enum LoadResult {
     Failed { id: LoaderId, error: LoadError },
 }
 
-enum LoadStatus {
-    Loading,
-    Completed(LoadableResource),
-    Failed(LoadError),
-}
-
-impl PartialEq for LoadStatus {
-    fn eq(&self, other: &Self) -> bool {
-        std::mem::discriminant(self) == std::mem::discriminant(other)
-    }
+/// Shared bookkeeping of the async loader workers.
+///
+/// * `requested` deduplicates load requests: an identical `LoaderId` is only
+///   queued once, no matter how many frames ask for it while it is in flight.
+/// * `completed` is a FIFO of finished loads pushed by the workers, so the
+///   client drains results in completion order instead of scanning the whole
+///   pending map every frame.
+/// * `animation_in_flight` coalesces animation loads by *resource* (the
+///   composed body/head/headgear part list). Population-engine crowds are made
+///   of many characters that share the same appearance, so without this every
+///   shell would start an identical, expensive sprite/animation load.
+#[derive(Default)]
+struct PendingLoads {
+    requested: HashSet<LoaderId>,
+    completed: VecDeque<LoadResult>,
+    animation_in_flight: HashMap<Vec<EntityPartFile>, Vec<LoaderId>>,
 }
 
 pub struct AsyncLoader {
@@ -74,8 +82,13 @@ pub struct AsyncLoader {
     texture_loader: Arc<TextureLoader>,
     video_loader: Arc<VideoLoader>,
     library: Arc<Library>,
-    pending_loads: Arc<Mutex<HashMap<LoaderId, LoadStatus>>>,
-    thread_pool: ThreadPool,
+    pending_loads: Arc<Mutex<PendingLoads>>,
+    /// Worker lane for map loads. Map loads are big and block map entry, so
+    /// they must never wait behind a burst of sprite/animation loads.
+    map_thread_pool: ThreadPool,
+    /// Worker lane for every other load (entity animations, item/skill sprites,
+    /// ...).
+    visible_thread_pool: ThreadPool,
 }
 
 impl AsyncLoader {
@@ -90,9 +103,18 @@ impl AsyncLoader {
         video_loader: Arc<VideoLoader>,
         library: Arc<Library>,
     ) -> Self {
-        let thread_pool = ThreadPoolBuilder::new()
-            .thread_name(|number| format!("light task thread pool {number}"))
+        // Two lanes: a dedicated map loader thread (map entry latency must not
+        // depend on the sprite queue) and a small pool for everything else.
+        let map_thread_pool = ThreadPoolBuilder::new()
+            .thread_name(|number| format!("korangar map loader {number}"))
             .num_threads(1)
+            .start_handler(|_| init_tls_rand())
+            .build()
+            .unwrap();
+
+        let visible_thread_pool = ThreadPoolBuilder::new()
+            .thread_name(|number| format!("korangar loader {number}"))
+            .num_threads(2)
             .start_handler(|_| init_tls_rand())
             .build()
             .unwrap();
@@ -106,8 +128,9 @@ impl AsyncLoader {
             texture_loader,
             video_loader,
             library,
-            pending_loads: Arc::new(Mutex::new(HashMap::new())),
-            thread_pool,
+            pending_loads: Arc::new(Mutex::new(PendingLoads::default())),
+            map_thread_pool,
+            visible_thread_pool,
         }
     }
 
@@ -128,19 +151,86 @@ impl AsyncLoader {
         match self.animation_loader.get(&entity_part_files) {
             Some(animation_data) => Some(animation_data),
             None => {
+                let id = LoaderId::AnimationData(entity_id);
+                let resource_key = entity_part_files.clone();
+
+                {
+                    let mut pending = self.pending_loads.lock().unwrap();
+
+                    // The same appearance is already being loaded for another
+                    // entity: wait for that load instead of starting a duplicate
+                    // one. The worker delivers the result to every waiter.
+                    if let Some(waiters) = pending.animation_in_flight.get_mut(&resource_key) {
+                        waiters.push(id.clone());
+                        pending.requested.insert(id);
+                        perf::load_coalesced(LoadKind::AnimationData);
+                        return None;
+                    }
+
+                    if pending.requested.contains(&id) {
+                        return None;
+                    }
+
+                    pending.requested.insert(id.clone());
+                    pending.animation_in_flight.insert(resource_key.clone(), vec![id]);
+                }
+
                 let sprite_loader = self.sprite_loader.clone();
                 let action_loader = self.action_loader.clone();
                 let animation_loader = self.animation_loader.clone();
+                let pending_loads = Arc::clone(&self.pending_loads);
+                let requested_at = Instant::now();
 
-                self.request_load(LoaderId::AnimationData(entity_id), move || {
+                perf::load_submitted(LoadKind::AnimationData);
+
+                self.visible_thread_pool.spawn(move || {
+                    #[cfg(feature = "debug")]
+                    let _measurement = threads::Loader::start_frame();
+
+                    let started = Instant::now();
+                    perf::load_queue_latency(
+                        LoadKind::AnimationData,
+                        started.saturating_duration_since(requested_at).as_nanos() as u64,
+                    );
+
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("animation data load");
 
-                    let animation_data = match animation_loader.get(&entity_part_files) {
-                        Some(animation_data) => animation_data,
-                        None => animation_loader.load(&sprite_loader, &action_loader, entity_type, &entity_part_files)?,
+                    let result = match animation_loader.get(&entity_part_files) {
+                        Some(animation_data) => Ok(animation_data),
+                        None => animation_loader.load(&sprite_loader, &action_loader, entity_type, &entity_part_files),
                     };
-                    Ok(LoadableResource::AnimationData(animation_data))
+
+                    let service_nanos = started.elapsed().as_nanos() as u64;
+                    perf::load_service_latency(LoadKind::AnimationData, service_nanos, result.is_err());
+
+                    let mut pending = pending_loads.lock().unwrap();
+                    let waiters = pending.animation_in_flight.remove(&resource_key).unwrap_or_default();
+
+                    match result {
+                        Ok(animation_data) => {
+                            for waiter in waiters {
+                                pending.requested.remove(&waiter);
+                                pending.completed.push_back(LoadResult::Completed {
+                                    id: waiter,
+                                    resource: LoadableResource::AnimationData(animation_data.clone()),
+                                });
+                            }
+                        }
+                        Err(error) => {
+                            // `LoadError` is not `Clone`, so the waiters all get a
+                            // diagnostic message with the underlying error.
+                            let message = format!("{error:?}");
+
+                            for waiter in waiters {
+                                pending.requested.remove(&waiter);
+                                pending.completed.push_back(LoadResult::Failed {
+                                    id: waiter,
+                                    error: LoadError::UnsupportedFormat(message.clone()),
+                                });
+                            }
+                        }
+                    }
                 });
 
                 None
@@ -174,7 +264,7 @@ impl AsyncLoader {
         let action_loader = self.action_loader.clone();
         let animation_loader = self.animation_loader.clone();
 
-        self.request_load(LoaderId::FalconAnimationData(entity_id), move || {
+        self.request_visible_load(LoaderId::FalconAnimationData(entity_id), LoadKind::AnimationData, move || {
             let mut last_error = LoadError::UnsupportedFormat("no falcon sprite found in the game archives".to_owned());
 
             for parts in &candidates {
@@ -202,7 +292,7 @@ impl AsyncLoader {
             None => {
                 let sprite_loader = self.sprite_loader.clone();
 
-                self.request_load(LoaderId::SkillSprite(skill_id), move || {
+                self.request_visible_load(LoaderId::SkillSprite(skill_id), LoadKind::SkillSprite, move || {
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("skill sprite load");
 
@@ -227,7 +317,7 @@ impl AsyncLoader {
             None => {
                 let action_loader = self.action_loader.clone();
 
-                self.request_load(LoaderId::SkillActions(skill_id), move || {
+                self.request_visible_load(LoaderId::SkillActions(skill_id), LoadKind::SkillActions, move || {
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("skill actions load");
 
@@ -251,7 +341,7 @@ impl AsyncLoader {
                 let texture_loader = self.texture_loader.clone();
                 let path = path.to_string();
 
-                self.request_load(LoaderId::ItemSprite(item_id), move || {
+                self.request_visible_load(LoaderId::ItemSprite(item_id), LoadKind::ItemSprite, move || {
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("item sprite load");
 
@@ -363,25 +453,70 @@ impl AsyncLoader {
     }
 
     pub fn request_map_load(&self, map_name: String, position: Option<TilePosition>) {
+        let id = LoaderId::Map(map_name.clone());
+
         match self.map_loader.get(&map_name) {
             Some(map) => {
-                self.pending_loads.lock().unwrap().insert(
-                    LoaderId::Map(map_name.clone()),
-                    LoadStatus::Completed(LoadableResource::Map { map, position }),
-                );
+                let mut pending = self.pending_loads.lock().unwrap();
+
+                if pending.requested.contains(&id) {
+                    perf::load_coalesced(LoadKind::Map);
+                    return;
+                }
+
+                pending.requested.insert(id.clone());
+                pending.completed.push_back(LoadResult::Completed {
+                    id,
+                    resource: LoadableResource::Map { map, position },
+                });
             }
             None => {
+                {
+                    let mut pending = self.pending_loads.lock().unwrap();
+
+                    if pending.requested.contains(&id) {
+                        perf::load_coalesced(LoadKind::Map);
+                        return;
+                    }
+
+                    pending.requested.insert(id.clone());
+                }
+
                 let map_loader = self.map_loader.clone();
                 let model_loader = self.model_loader.clone();
                 let texture_loader = self.texture_loader.clone();
                 let video_loader = self.video_loader.clone();
                 let library = self.library.clone();
+                let pending_loads = Arc::clone(&self.pending_loads);
+                let requested_at = Instant::now();
 
-                self.request_load(LoaderId::Map(map_name.clone()), move || {
+                perf::load_submitted(LoadKind::Map);
+
+                // Map loads run on their own lane so they never wait behind a
+                // sprite/animation flood.
+                self.map_thread_pool.spawn(move || {
+                    #[cfg(feature = "debug")]
+                    let _measurement = threads::Loader::start_frame();
+
+                    let started = Instant::now();
+                    perf::load_queue_latency(LoadKind::Map, started.saturating_duration_since(requested_at).as_nanos() as u64);
+
                     #[cfg(feature = "debug")]
                     let _load_measurement = Profiler::start_measurement("map load");
-                    let map = map_loader.load(map_name, &model_loader, texture_loader, video_loader.clone(), &library)?;
-                    Ok(LoadableResource::Map { map, position })
+
+                    let result = map_loader.load(map_name, &model_loader, texture_loader, video_loader.clone(), &library);
+                    perf::load_service_latency(LoadKind::Map, started.elapsed().as_nanos() as u64, result.is_err());
+
+                    let mut pending = pending_loads.lock().unwrap();
+                    pending.requested.remove(&id);
+
+                    match result {
+                        Ok(map) => pending.completed.push_back(LoadResult::Completed {
+                            id,
+                            resource: LoadableResource::Map { map, position },
+                        }),
+                        Err(error) => pending.completed.push_back(LoadResult::Failed { id, error }),
+                    }
                 });
             }
         }
@@ -416,54 +551,71 @@ impl AsyncLoader {
         SkillTreeLayout { tabs }
     }
 
-    fn request_load<F>(&self, id: LoaderId, load_function: F)
+    /// Queue a non-map load on the visible-resource lane.
+    ///
+    /// Requests for an identical [`LoaderId`] that is already in flight are
+    /// dropped: loading the same resource twice would only duplicate work and
+    /// delay the rest of the queue.
+    fn request_visible_load<F>(&self, id: LoaderId, kind: LoadKind, load_function: F)
     where
         F: FnOnce() -> Result<LoadableResource, LoadError> + Send + 'static,
     {
-        let pending_loads = Arc::clone(&self.pending_loads);
+        {
+            let mut pending = self.pending_loads.lock().unwrap();
 
-        pending_loads.lock().unwrap().insert(id.clone(), LoadStatus::Loading);
-
-        self.thread_pool.spawn(move || {
-            #[cfg(feature = "debug")]
-            let _measurement = threads::Loader::start_frame();
-
-            let result = load_function();
-
-            let mut pending_loads = pending_loads.lock().unwrap();
-
-            if !pending_loads.contains_key(&id) {
+            if pending.requested.contains(&id) {
+                perf::load_coalesced(kind);
                 return;
             }
 
-            let status = match result {
-                Ok(resource) => LoadStatus::Completed(resource),
-                Err(err) => LoadStatus::Failed(err),
-            };
+            pending.requested.insert(id.clone());
+        }
 
-            pending_loads.insert(id, status);
+        let pending_loads = Arc::clone(&self.pending_loads);
+        let requested_at = Instant::now();
+
+        perf::load_submitted(kind);
+
+        self.visible_thread_pool.spawn(move || {
+            #[cfg(feature = "debug")]
+            let _measurement = threads::Loader::start_frame();
+
+            let started = Instant::now();
+            perf::load_queue_latency(kind, started.saturating_duration_since(requested_at).as_nanos() as u64);
+
+            let result = load_function();
+            perf::load_service_latency(kind, started.elapsed().as_nanos() as u64, result.is_err());
+
+            let mut pending = pending_loads.lock().unwrap();
+            pending.requested.remove(&id);
+
+            match result {
+                Ok(resource) => pending.completed.push_back(LoadResult::Completed { id, resource }),
+                Err(error) => pending.completed.push_back(LoadResult::Failed { id, error }),
+            }
         });
     }
 
+    /// Take all finished loads, in completion order.
+    ///
+    /// Workers push into a queue instead of the caller scanning the pending map
+    /// on every frame; the client drains this iterator once per frame.
     pub fn take_completed(&self) -> impl Iterator<Item = LoadResult> + '_ {
         std::iter::from_fn({
             let pending_loads = Arc::clone(&self.pending_loads);
 
             move || {
-                let mut pending_loads = pending_loads.lock().unwrap();
+                let mut pending = pending_loads.lock().unwrap();
 
-                let completed_id = pending_loads
-                    .iter()
-                    .find(|(_, status)| matches!(status, LoadStatus::Completed(_) | LoadStatus::Failed(_)))
-                    .map(|(id, _)| id.clone());
+                let result = pending.completed.pop_front()?;
 
-                let id = completed_id?;
-
-                match pending_loads.remove(&id).unwrap() {
-                    LoadStatus::Completed(resource) => Some(LoadResult::Completed { id, resource }),
-                    LoadStatus::Failed(error) => Some(LoadResult::Failed { id, error }),
-                    LoadStatus::Loading => unreachable!(),
+                match &result {
+                    LoadResult::Completed { id, .. } | LoadResult::Failed { id, .. } => {
+                        pending.requested.remove(id);
+                    }
                 }
+
+                Some(result)
             }
         })
     }

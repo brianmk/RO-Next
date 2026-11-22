@@ -785,6 +785,10 @@ fn bubble_alpha(y: f32) -> f32 {
 }
 
 impl EffectBase for Aura {
+    fn culling_position(&self) -> Option<Point3<f32>> {
+        Some(self.center.to_position())
+    }
+
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool {
         if self.gets_deleted {
             return false;

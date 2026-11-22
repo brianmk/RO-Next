@@ -1,0 +1,5 @@
+(
+    mute_on_focus_loss: true,
+    background_music_muted: true,
+    background_music_volume: Fifty,
+)

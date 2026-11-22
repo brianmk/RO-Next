@@ -32,6 +32,12 @@ pub trait EffectBase {
     fn register_point_lights(&self, point_light_manager: &mut PointLightManager, camera: &dyn Camera);
 
     fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera);
+
+    /// World position used for distance culling, `None` disables culling for
+    /// this effect (it is always rendered).
+    fn culling_position(&self) -> Option<Point3<f32>> {
+        None
+    }
 }
 
 pub trait EffectSourceExt {
@@ -370,6 +376,10 @@ impl EffectWithLight {
 }
 
 impl EffectBase for EffectWithLight {
+    fn culling_position(&self) -> Option<Point3<f32>> {
+        Some(self.center.to_position() + self.effect_offset)
+    }
+
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool {
         const FADE_SPEED: f32 = 5.0;
 
@@ -570,18 +580,171 @@ pub(crate) fn order_quad(
     )
 }
 
-#[derive(Default)]
+/// Default upper bound for simultaneously alive world effects.
+///
+/// A crowded population-engine town with several skill effects per character
+/// used to grow this list without bound; every entry is a boxed object that is
+/// updated and submitted every frame. The budget keeps the frame time bounded
+/// while still allowing far more effects than are visible at once.
+const DEFAULT_MAXIMUM_EFFECTS: usize = 200;
+/// Default upper bound for effects attached to a single entity (skill units,
+/// auras, cast circles). Independent from the global budget so one entity
+/// cannot use up the whole effect budget.
+const DEFAULT_MAXIMUM_EFFECTS_PER_ENTITY: usize = 24;
+/// Default distance (in world units, one map cell is 5 units) beyond which
+/// effects are no longer rendered. `0.0` disables the distance culling.
+const DEFAULT_EFFECT_CULL_DISTANCE: f32 = 1800.0;
+
+/// Environment knob for [`EffectHolder::maximum_effects`]; `0` disables the
+/// cap. Documented in `scripts/perf/README.md` and
+/// `notes/korangar-p0-performance-report.md`.
+const MAXIMUM_EFFECTS_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MAX_EFFECTS";
+/// Environment knob for [`EffectHolder::maximum_effects_per_entity`]; `0`
+/// disables the per-entity cap.
+const MAXIMUM_EFFECTS_PER_ENTITY_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MAX_EFFECTS_PER_ENTITY";
+/// Environment knob for [`EffectHolder::cull_distance`]; `0` disables culling.
+const EFFECT_CULL_DISTANCE_ENVIRONMENT_VARIABLE: &str = "KORANGAR_EFFECT_CULL_DISTANCE";
+
+const DROP_LOG_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5);
+
+fn environment_usize(name: &str, default: usize) -> usize {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.trim().parse::<usize>().ok())
+        .unwrap_or(default)
+}
+
+fn environment_f32(name: &str, default: f32) -> f32 {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.trim().parse::<f32>().ok())
+        .filter(|value| value.is_finite() && *value >= 0.0)
+        .unwrap_or(default)
+}
+
+/// Whether a new effect may be spawned with the given current counts.
+///
+/// Pure function so the budget policy can be unit tested without any client
+/// state.
+fn effect_budget_allows(current_total: usize, current_for_entity: usize, maximum_total: usize, maximum_per_entity: usize) -> bool {
+    if maximum_total > 0 && current_total >= maximum_total {
+        return false;
+    }
+
+    if maximum_per_entity > 0 && current_for_entity >= maximum_per_entity {
+        return false;
+    }
+
+    true
+}
+
 pub struct EffectHolder {
     effects: Vec<(Box<dyn EffectBase + Send + Sync>, Option<EntityId>)>,
+    /// Maximum number of simultaneously alive effects (`0` = unlimited).
+    maximum_effects: usize,
+    /// Maximum number of effects attached to a single entity (`0` = unlimited).
+    maximum_effects_per_entity: usize,
+    /// Distance in world units beyond which effects are culled (`0` =
+    /// disabled).
+    cull_distance: f32,
+    /// Effects dropped by the budget since startup (telemetry/logging).
+    dropped_effects: u64,
+    last_drop_log: std::cell::Cell<Option<std::time::Instant>>,
+    /// Number of effects rendered / culled by distance in the last frame.
+    rendered_in_last_frame: std::cell::Cell<u32>,
+    culled_in_last_frame: std::cell::Cell<u32>,
+}
+
+impl Default for EffectHolder {
+    fn default() -> Self {
+        Self {
+            effects: Vec::new(),
+            maximum_effects: environment_usize(MAXIMUM_EFFECTS_ENVIRONMENT_VARIABLE, DEFAULT_MAXIMUM_EFFECTS),
+            maximum_effects_per_entity: environment_usize(
+                MAXIMUM_EFFECTS_PER_ENTITY_ENVIRONMENT_VARIABLE,
+                DEFAULT_MAXIMUM_EFFECTS_PER_ENTITY,
+            ),
+            cull_distance: environment_f32(EFFECT_CULL_DISTANCE_ENVIRONMENT_VARIABLE, DEFAULT_EFFECT_CULL_DISTANCE),
+            dropped_effects: 0,
+            last_drop_log: std::cell::Cell::new(None),
+            rendered_in_last_frame: std::cell::Cell::new(0),
+            culled_in_last_frame: std::cell::Cell::new(0),
+        }
+    }
 }
 
 impl EffectHolder {
+    /// Number of active effects (used by the performance instrumentation).
+    pub fn count(&self) -> usize {
+        self.effects.len()
+    }
+
+    /// Rendered and distance-culled effect counts of the last frame.
+    pub fn render_counts(&self) -> (u32, u32) {
+        (self.rendered_in_last_frame.get(), self.culled_in_last_frame.get())
+    }
+
+    /// Number of effects dropped by the budget since startup.
+    pub fn dropped_effects(&self) -> u64 {
+        self.dropped_effects
+    }
+
+    /// Whether another effect owned by `entity_id` may be spawned.
+    fn budget_allows(&self, entity_id: Option<EntityId>) -> bool {
+        let current_for_entity = entity_id
+            .map(|entity_id| {
+                self.effects
+                    .iter()
+                    .filter(|(_, effect_entity_id)| *effect_entity_id == Some(entity_id))
+                    .count()
+            })
+            .unwrap_or(0);
+
+        effect_budget_allows(
+            self.effects.len(),
+            current_for_entity,
+            self.maximum_effects,
+            self.maximum_effects_per_entity,
+        )
+    }
+
+    fn log_dropped_effect(&self) {
+        // Rate limit the log line; a crowded town can drop many effects per
+        // second and logging every one would itself cost frame time.
+        let now = std::time::Instant::now();
+        let should_log = match self.last_drop_log.get() {
+            Some(last_log) => now.duration_since(last_log) >= DROP_LOG_INTERVAL,
+            None => true,
+        };
+
+        if should_log {
+            self.last_drop_log.set(Some(now));
+            crate::logging::log_debug!(
+                "effects: budget reached ({} alive, max {} global / {} per entity), dropped {} effects so far",
+                self.effects.len(),
+                self.maximum_effects,
+                self.maximum_effects_per_entity,
+                self.dropped_effects,
+            );
+        }
+    }
+
     pub fn add_effect(&mut self, effect: Box<dyn EffectBase + Send + Sync>) {
-        self.effects.push((effect, None));
+        self.add_effect_with_owner(effect, None);
     }
 
     pub fn add_unit(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: EntityId) {
-        self.effects.push((effect, Some(entity_id)));
+        self.add_effect_with_owner(effect, Some(entity_id));
+    }
+
+    fn add_effect_with_owner(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: Option<EntityId>) {
+        if !self.budget_allows(entity_id) {
+            self.dropped_effects += 1;
+            self.log_dropped_effect();
+            return;
+        }
+
+        self.effects.push((effect, entity_id));
     }
 
     pub fn remove_unit(&mut self, removed_entity_id: EntityId) {
@@ -595,17 +758,77 @@ impl EffectHolder {
         self.effects.clear();
     }
 
+    /// Whether the effect is beyond the culling distance of the camera.
+    fn is_culled(&self, effect: &(dyn EffectBase + Send + Sync), camera: &dyn Camera) -> bool {
+        if self.cull_distance <= 0.0 {
+            return false;
+        }
+
+        effect
+            .culling_position()
+            .is_some_and(|position| camera.distance_to(position) > self.cull_distance)
+    }
+
     pub fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) {
         self.effects.retain_mut(|(effect, _)| effect.update(entities, delta_time));
     }
 
     pub fn register_point_lights(&self, point_light_manager: &mut PointLightManager, camera: &dyn Camera) {
-        self.effects
-            .iter()
-            .for_each(|(effect, _)| effect.register_point_lights(point_light_manager, camera));
+        self.effects.iter().for_each(|(effect, _)| {
+            // Do not register lights for effects that are too far away to be
+            // rendered; this bounds the point light set in crowded towns.
+            if self.is_culled(effect.as_ref(), camera) {
+                return;
+            }
+
+            effect.register_point_lights(point_light_manager, camera);
+        });
     }
 
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera) {
-        self.effects.iter().for_each(|(effect, _)| effect.render(renderer, camera));
+        let mut rendered = 0;
+        let mut culled = 0;
+
+        for (effect, _) in &self.effects {
+            if self.is_culled(effect.as_ref(), camera) {
+                culled += 1;
+                continue;
+            }
+
+            effect.render(renderer, camera);
+            rendered += 1;
+        }
+
+        self.rendered_in_last_frame.set(rendered);
+        self.culled_in_last_frame.set(culled);
+    }
+}
+
+#[cfg(test)]
+mod budget_tests {
+    use super::effect_budget_allows;
+
+    #[test]
+    fn global_budget_blocks_new_effects() {
+        assert!(effect_budget_allows(0, 0, 2, 0));
+        assert!(effect_budget_allows(1, 0, 2, 0));
+        assert!(!effect_budget_allows(2, 0, 2, 0));
+        assert!(!effect_budget_allows(3, 0, 2, 0));
+    }
+
+    #[test]
+    fn zero_budget_means_unlimited() {
+        assert!(effect_budget_allows(1_000_000, 1_000_000, 0, 0));
+        assert!(effect_budget_allows(0, 0, 0, 0));
+    }
+
+    #[test]
+    fn per_entity_budget_is_independent_of_global_budget() {
+        // Global has room, the entity does not.
+        assert!(!effect_budget_allows(1, 2, 10, 2));
+        // Entity has room, the global budget does not.
+        assert!(!effect_budget_allows(10, 0, 10, 2));
+        // Both have room.
+        assert!(effect_budget_allows(9, 1, 10, 2));
     }
 }
