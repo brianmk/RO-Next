@@ -14,13 +14,6 @@ use crate::{
     NoMetadata, ShopItem, UnifiedCharacterSelectionFailedReason, UnifiedLoginFailedReason,
 };
 
-/// Item types from the server's `enum item_types` (`common/mmo.hpp`), used to
-/// classify the items of the storage packet that carries no equipment position.
-const ITEM_TYPE_ARMOR: u8 = 4;
-const ITEM_TYPE_WEAPON: u8 = 5;
-const ITEM_TYPE_PET_ARMOR: u8 = 8;
-const ITEM_TYPE_AMMO: u8 = 10;
-
 pub fn register_login_server_packets<Callback>(
     packet_handler: &mut PacketHandler<NetworkEventList, Callback>,
 ) -> Result<(), DuplicateHandlerError>
@@ -549,10 +542,8 @@ where
         // server, `ZC_ADD_ITEM_TO_STORE` is also sent when the player stores an
         // item, and without this the storage tooltip lost refine/cards/options
         // until the storage was reopened).
-        let is_equipment = matches!(
-            item_type,
-            ITEM_TYPE_ARMOR | ITEM_TYPE_WEAPON | ITEM_TYPE_PET_ARMOR | ITEM_TYPE_AMMO
-        ) || damaged != 0
+        let is_equipment = crate::item_type::is_equipment(item_type)
+            || damaged != 0
             || refinement_level != 0
             || card.iter().any(|card| *card != 0)
             || option_data.iter().any(|option| option.index != 0);
@@ -564,8 +555,8 @@ where
                 // position (the item is displayed in the storage and the server
                 // sends the real position again when it is withdrawn).
                 equip_position: match item_type {
-                    ITEM_TYPE_WEAPON => EquipPosition::RIGHT_HAND,
-                    ITEM_TYPE_AMMO => EquipPosition::AMMO,
+                    crate::item_type::WEAPON => EquipPosition::RIGHT_HAND,
+                    crate::item_type::AMMO => EquipPosition::AMMO,
                     _ => EquipPosition::empty(),
                 },
                 equipped_position: EquipPosition::empty(),

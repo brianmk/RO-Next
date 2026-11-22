@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
 use korangar_interface::element::StateElement;
+pub use korangar_networking::item_type;
+use korangar_networking::item_type::ItemTypeCategory;
 use korangar_networking::{InventoryItem, InventoryItemDetails, NoMetadata};
 use ragnarok_packets::{EquipPosition, InventoryIndex, ItemId};
 use rust_state::RustState;
@@ -38,45 +40,10 @@ pub fn item_use_action<Meta>(item: &InventoryItem<Meta>) -> Option<ItemUseAction
         return Some(ItemUseAction::Equip(*equip_position));
     }
 
-    match item.item_type {
-        item_type::HEALING | item_type::USABLE | item_type::DELAY_CONSUME | item_type::CASH | item_type::CASH_OLD => {
-            Some(ItemUseAction::Use)
-        }
-        _ => None,
+    match item_type::is_usable(item.item_type) {
+        true => Some(ItemUseAction::Use),
+        false => None,
     }
-}
-
-/// Item type values as sent by the server (`enum item_types` in rAthena's
-/// `common/mmo.hpp`).
-pub mod item_type {
-    /// Healing items (potions, herbs, ...).
-    pub const HEALING: u8 = 0;
-    /// Usable items (usable from the inventory, e.g. some boxes/scrolls).
-    pub const USABLE: u8 = 2;
-    /// Miscellaneous items.
-    pub const ETC: u8 = 3;
-    /// Armor (and shields/headgear/garments/shoes/accessories).
-    pub const ARMOR: u8 = 4;
-    /// Weapons.
-    pub const WEAPON: u8 = 5;
-    /// Cards.
-    pub const CARD: u8 = 6;
-    /// Pet eggs.
-    pub const PET_EGG: u8 = 7;
-    /// Pet armor.
-    pub const PET_ARMOR: u8 = 8;
-    /// Ammunition.
-    pub const AMMO: u8 = 10;
-    /// Items that are consumed after a delay (e.g. some buff items).
-    pub const DELAY_CONSUME: u8 = 11;
-    /// Cash shop consumables.
-    ///
-    /// Older rAthena versions use 12 for this and current versions use 18. In
-    /// the fallback below both are treated as consumables: shadow gear (12 in
-    /// current versions) is equippable and therefore classified before the
-    /// switch.
-    pub const CASH_OLD: u8 = 12;
-    pub const CASH: u8 = 18;
 }
 
 /// Returns the inventory tab an item belongs to.
@@ -91,15 +58,10 @@ pub fn item_category<Meta>(item: &InventoryItem<Meta>) -> ItemCategory {
         return ItemCategory::Equipments;
     }
 
-    match item.item_type {
-        item_type::ARMOR | item_type::WEAPON | item_type::PET_ARMOR | item_type::AMMO => ItemCategory::Equipments,
-        item_type::HEALING | item_type::USABLE | item_type::DELAY_CONSUME | item_type::CASH | item_type::CASH_OLD => {
-            ItemCategory::Consumables
-        }
-        item_type::ETC | item_type::CARD | item_type::PET_EGG => ItemCategory::Misc,
-        // Unknown item types (`IT_UNKNOWN`, `IT_UNKNOWN2`, ...) are put into the
-        // misc tab so that no item can disappear from the inventory.
-        _ => ItemCategory::Misc,
+    match item_type::category(item.item_type) {
+        ItemTypeCategory::Equipments => ItemCategory::Equipments,
+        ItemTypeCategory::Consumables => ItemCategory::Consumables,
+        ItemTypeCategory::Misc => ItemCategory::Misc,
     }
 }
 
@@ -190,5 +152,87 @@ impl Inventory {
         };
 
         *equipped_position = new_equipped_position;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use korangar_networking::NoMetadata;
+    use ragnarok_packets::{InventoryIndex, ItemId, RegularItemFlags};
+
+    use super::*;
+
+    fn item(item_type: u8) -> InventoryItem<NoMetadata> {
+        InventoryItem {
+            metadata: NoMetadata,
+            index: InventoryIndex(0),
+            item_id: ItemId(501),
+            item_type,
+            slot: [0; 4],
+            hire_expiration_date: 0,
+            details: InventoryItemDetails::Regular {
+                amount: 1,
+                equipped_position: EquipPosition::empty(),
+                flags: RegularItemFlags::IDENTIFIED,
+            },
+        }
+    }
+
+    #[test]
+    fn tabs_and_use_action_use_the_single_item_type_source() {
+        // The item type classification lives in `korangar_networking::item_type`;
+        // the inventory must not carry a second copy of the constants.
+        for (item_type, category) in [
+            (item_type::HEALING, ItemCategory::Consumables),
+            (item_type::USABLE, ItemCategory::Consumables),
+            (item_type::DELAY_CONSUME, ItemCategory::Consumables),
+            (item_type::CASH, ItemCategory::Consumables),
+            (item_type::CASH_OLD, ItemCategory::Consumables),
+            (item_type::ARMOR, ItemCategory::Equipments),
+            (item_type::WEAPON, ItemCategory::Equipments),
+            (item_type::PET_ARMOR, ItemCategory::Equipments),
+            (item_type::AMMO, ItemCategory::Equipments),
+            (item_type::ETC, ItemCategory::Misc),
+            (item_type::CARD, ItemCategory::Misc),
+            (item_type::PET_EGG, ItemCategory::Misc),
+            (item_type::UNKNOWN, ItemCategory::Misc),
+            (item_type::UNKNOWN2, ItemCategory::Misc),
+        ] {
+            assert_eq!(item_category(&item(item_type)), category, "item type {item_type}");
+        }
+
+        assert_eq!(item_use_action(&item(item_type::HEALING)), Some(ItemUseAction::Use));
+        assert_eq!(item_use_action(&item(item_type::USABLE)), Some(ItemUseAction::Use));
+        assert_eq!(item_use_action(&item(item_type::CASH)), Some(ItemUseAction::Use));
+        assert_eq!(item_use_action(&item(item_type::WEAPON)), None);
+        assert_eq!(item_use_action(&item(item_type::ETC)), None);
+    }
+
+    #[test]
+    fn equippable_details_win_over_the_item_type() {
+        // The server marks equipment with an equipment position; that is more
+        // reliable than the item type across server versions.
+        let mut equippable = item(item_type::ETC);
+        equippable.details = InventoryItemDetails::Equippable {
+            equip_position: EquipPosition::RIGHT_HAND,
+            equipped_position: EquipPosition::empty(),
+            bind_on_equip_type: 0,
+            w_item_sprite_number: 0,
+            option_count: 0,
+            option_data: std::array::from_fn(|_| ragnarok_packets::ItemOptions {
+                index: 0,
+                value: 0,
+                parameter: 0,
+            }),
+            refinement_level: 0,
+            enchantment_level: 0,
+            flags: ragnarok_packets::EquippableItemFlags::IDENTIFIED,
+        };
+
+        assert_eq!(item_category(&equippable), ItemCategory::Equipments);
+        assert_eq!(
+            item_use_action(&equippable),
+            Some(ItemUseAction::Equip(EquipPosition::RIGHT_HAND))
+        );
     }
 }

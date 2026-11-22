@@ -589,6 +589,24 @@ pub fn check_skill_effects(path: Option<&std::path::Path>) -> Result<usize, Stri
     }
 }
 
+/// Validates the item stats data (`archive/data/client/item_stats.ron`) and
+/// returns the number of item rows.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. This is the
+/// `--check`-able schema entry point: the client binary exposes it as `korangar
+/// --check-items [PATH]`, so CI can validate the committed data file without
+/// starting a window, a network connection or the game archives.
+pub fn check_item_stats(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_item_stats_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_item_stats().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,

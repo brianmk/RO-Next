@@ -92,6 +92,13 @@ jobs:
       - name: Clippy (all features)
         run: cargo clippy --workspace --all-features -- -Dwarnings
 
+      - name: Item stats data parity (facts -> item_stats.ron)
+        run: |
+          python3 -m venv /tmp/item-data-venv
+          /tmp/item-data-venv/bin/pip install --quiet pyyaml
+          /tmp/item-data-venv/bin/python tools/test_item_stats.py
+          /tmp/item-data-venv/bin/python tools/gen_item_stats.py --check
+
   packet-contract:
     name: Packet contract (2019 layouts)
     runs-on: ubuntu-latest
@@ -201,3 +208,7 @@ jobs:
       - name: Tests for korangar, korangar-networking and ragnarok-packets (all features)
         if: matrix.features == 'all-features'
         run: cargo test -p korangar -p korangar-networking -p ragnarok-packets --all-features
+
+      - name: Item stats data file schema (compiled fallback)
+        if: matrix.features == 'default'
+        run: cargo run -p korangar -- --check-items

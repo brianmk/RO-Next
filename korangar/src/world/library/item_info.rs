@@ -2,7 +2,10 @@ use hashbrown::HashMap;
 use mlua::Lua;
 use ragnarok_packets::ItemId;
 
-use super::{HashMapExt, ItemName, ItemResource, ItemStats, Library, LuaExt, Table, fix_encoding};
+use super::{
+    HashMapExt, ItemName, ItemResource, ItemStats, ItemStatsSource, Library, LuaExt, Table, fix_encoding, item_stats_slot_count,
+    resolve_item_stats,
+};
 use crate::loaders::GameFileLoader;
 
 #[derive(Debug, Clone)]
@@ -11,12 +14,14 @@ pub struct ItemInfo {
     pub(super) unidentified_name: ItemName,
     pub(super) identified_resource: ItemResource,
     pub(super) unidentified_resource: ItemResource,
-    /// Stats evaluated from the identified item description.
+    /// Stats of the item from the item database data (`item_stats.ron`).
     pub(super) stats: ItemStats,
     /// The raw identified description lines from `iteminfo.lub`, used by the
     /// item info window.
     pub(super) description: Vec<String>,
-    /// Number of card slots of the item (`slotCount` in `iteminfo.lub`).
+    /// Number of card slots of the item (`Slots` in the item database, with
+    /// `slotCount` in `iteminfo.lub` as the fallback for items that are not in
+    /// the database).
     pub(super) slot_count: u8,
 }
 
@@ -41,9 +46,13 @@ impl Table for ItemInfo {
 
         let globals = state.globals();
         let mut result = HashMap::new();
+        let mut data_rows = 0;
+        let mut description_fallbacks = 0;
+        let mut generic_fallbacks = 0;
 
         if let Ok(table) = globals.get::<mlua::Table>("tbl") {
             for (item_id, item_table) in table.pairs::<u32, mlua::Table>().flatten() {
+                let item_id = ItemId(item_id);
                 let identified_description = item_table
                     .get::<mlua::Table>("identifiedDescriptionName")
                     .ok()
@@ -56,21 +65,36 @@ impl Table for ItemInfo {
                     })
                     .unwrap_or_default();
 
-                let slot_count = item_table.get::<u32>("slotCount").ok().unwrap_or(0).clamp(0, u8::MAX as u32) as u8;
+                let (stats, source) = resolve_item_stats(item_id, &identified_description);
+                match source {
+                    ItemStatsSource::Data => data_rows += 1,
+                    ItemStatsSource::DescriptionFallback => description_fallbacks += 1,
+                    ItemStatsSource::GenericFallback => generic_fallbacks += 1,
+                }
+
+                // The server item database is authoritative for the card slot
+                // count; `iteminfo.lub` may be stale (or missing the item).
+                let slot_count = item_stats_slot_count(item_id)
+                    .unwrap_or_else(|| item_table.get::<u32>("slotCount").ok().unwrap_or(0).clamp(0, u8::MAX as u32) as u8);
 
                 let info = ItemInfo {
                     identified_name: ItemName::from_option(item_table.get("identifiedDisplayName").ok().map(fix_encoding)),
                     unidentified_name: ItemName::from_option(item_table.get("unidentifiedDisplayName").ok().map(fix_encoding)),
                     identified_resource: ItemResource::from_option(item_table.get("identifiedResourceName").ok().map(fix_encoding)),
                     unidentified_resource: ItemResource::from_option(item_table.get("unidentifiedResourceName").ok().map(fix_encoding)),
-                    stats: ItemStats::parse(&identified_description),
+                    stats,
                     description: identified_description,
                     slot_count,
                 };
 
-                result.insert(ItemId(item_id), info);
+                result.insert(item_id, info);
             }
         }
+
+        crate::logging::log_debug!(
+            "item stats: {data_rows} items from the item database data, {description_fallbacks} description fallbacks, \
+             {generic_fallbacks} generic fallbacks"
+        );
 
         Ok(result.compact())
     }

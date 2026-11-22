@@ -1,134 +1,263 @@
-//! First pass evaluation of the stats of an item from its client description
-//! (`iteminfo.lub`).
+//! Data-driven stats of an item (`data\client\item_stats.ron`).
 //!
-//! The client does not receive structured item stats from the server. All it
-//! has is the item description, which the official client shows in the item
-//! tooltip. For equipment the descriptions generated for the server contain the
-//! base stats of the item in a fairly regular format:
+//! The client does not receive structured item stats from the server. The
+//! official client shows them in the item tooltip because they are plain text
+//! in the localized `iteminfo.lub` description. Parsing that text is not
+//! viable: the stat fields are grammar of one specific translation (the Korean
+//! stat field labels), so with an English or otherwise translated
+//! `iteminfo.lub` every stat silently became zero.
 //!
-//! ```text
-//! 계열 : ^777777검^000000      공격 : ^77777725^000000
-//! 무게 : ^77777750^000000
-//! 무기레벨 : ^7777771^000000
-//! 요구레벨 : ^7777772^000000
-//! 장착 : ^777777노비스계열/검사계열/상인계열/도둑계열 장착가능^000000
-//! ```
+//! The authoritative values are the **item database rows the server uses**
+//! (rAthena `db/pre-re/item_db*.yml`). They are extracted by
+//! `tools/extract_item_facts.py`, written into this client's data file by
+//! `tools/gen_item_stats.py` and loaded here:
 //!
-//! Additional stat bonuses are separate lines that use the English stat
-//! abbreviations even in the Korean item data:
+//! * `archive/data/client/item_stats.ron` — the data file. It is loaded at
+//!   runtime through [`GameFileLoader`] (`data\client\item_stats.ron`), so a
+//!   server can override it without rebuilding the client.
+//! * the same file is embedded with `include_str!` as the compiled fallback, so
+//!   the archive override and the compiled table can never drift apart.
 //!
-//! ```text
-//! STR + 2, HIT + 10
-//! ```
+//! The file is a strictly ascending list of `(item id, stats)`; the loader
+//! rejects duplicate/out-of-order ids and unknown fields (a malformed override
+//! falls back to the compiled table with a warning instead of leaving the
+//! client without stats). `korangar --check-items [PATH]` validates the schema
+//! without starting a window, network connection or game archives.
 //!
-//! This module parses those lines into [`ItemStats`]. It is a *first pass*: it
-//! only understands the simple, unconditional flat values. Percentage bonuses
-//! and bonuses that only apply under a condition (e.g. "LUK 90 or higher") are
-//! ignored on purpose. The authoritative values for the derived character stats
-//! are the ones the server sends through the status packets.
+//! The client description text remains display-only
+//! ([`crate::world::ItemDescriptions`]). Only for item ids that are **not** in
+//! the facts (custom items of a server that were never added to its item
+//! database, or client-only leftover ids) a clearly logged last-resort
+//! description parser is used ([`super::item_stats_fallback`]); items without
+//! any data or description get [`ItemStats::DEFAULT`], which is documented
+//! here instead of being a silent zero.
 
+use std::sync::OnceLock;
+
+use korangar_loaders::FileLoader;
 use ragnarok_packets::ItemId;
+use serde::Deserialize;
 
-use super::{Library, Table};
+use super::{Library, Table, item_stats_fallback};
 use crate::loaders::GameFileLoader;
 
-/// Stats of a single item evaluated from its client description.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+/// Data file path inside the client archive (`data\client\...`).
+const DATA_PATH: &str = "data\\client\\item_stats.ron";
+/// Fallback copy of the same file, compiled into the client.
+const FALLBACK: &str = include_str!("../../../archive/data/client/item_stats.ron");
+/// Schema version the loader understands.
+const SUPPORTED_VERSION: u32 = 1;
+
+/// Stats of a single item, from the server item database.
+///
+/// `Default` (all zero) is the documented generic fallback for items that are
+/// neither in the data file nor described by the client data; it is never
+/// silently substituted for an item that is covered by the data.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct ItemStats {
-    /// Weapon attack (`공격`).
+    /// Weapon attack (`Attack` in the item database).
     pub attack: i32,
-    /// Defense (`방어`).
+    /// Defense (`Defense`).
     pub defense: i32,
-    /// Weight (`무게`).
+    /// Weight in the client stat panel unit (the database weight divided by
+    /// 10, like the server displays and calculates it).
     pub weight: i32,
-    /// Weapon level (`무기레벨`) for weapons, `0` otherwise.
+    /// Weapon level (`WeaponLevel`) for weapons, `0` otherwise.
     pub weapon_level: u8,
-    /// Required base level (`요구레벨`).
+    /// Armor level (`ArmorLevel`) for armor, `0` otherwise.
+    pub armor_level: u8,
+    /// Minimum required level (`EquipLevelMin`).
     pub required_level: u16,
-    /// Flat stat bonuses from the description (e.g. `STR + 2`).
+    /// Card slots (`Slots`).
+    pub slots: u8,
+    /// Whether the item can be refined (`Refineable`).
+    pub refineable: bool,
+    /// Unconditional flat stat bonuses of the item script (e.g. `STR + 2`).
     pub bonuses: StatBonuses,
 }
 
 impl ItemStats {
-    /// All zero stats, used for items that have no description.
+    /// All zero stats: the generic fallback for items without any data or
+    /// description. Not used for items that are covered by the data file.
     pub const DEFAULT: Self = Self {
         attack: 0,
         defense: 0,
         weight: 0,
         weapon_level: 0,
+        armor_level: 0,
         required_level: 0,
+        slots: 0,
+        refineable: false,
         bonuses: StatBonuses::DEFAULT,
     };
+}
 
-    /// Parse the stats of an item from its (already encoding-fixed) identified
-    /// description lines.
-    pub fn parse(description: &[String]) -> Self {
-        let mut stats = Self::default();
+/// Where the stats of an item came from. Used for the startup log and the
+/// tests; the display code only consumes [`ItemStats`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum ItemStatsSource {
+    /// A row of the item facts data (the normal path).
+    Data,
+    /// Last-resort description parser (only for item ids missing from the
+    /// data).
+    DescriptionFallback,
+    /// Neither data nor a parseable description: [`ItemStats::DEFAULT`].
+    GenericFallback,
+}
 
-        for line in description {
-            let line = strip_color_codes(line);
-            let line = line.trim();
+/// The parsed data file: strictly ascending `(item id, stats)` rows.
+struct ItemStatsTable(Vec<(u32, ItemStats)>);
 
-            if line.is_empty() {
-                continue;
-            }
+/// The compiled fallback table, parsed on first use.
+static COMPILED: OnceLock<ItemStatsTable> = OnceLock::new();
+/// Table loaded from the client archive, if the file exists there.
+static ARCHIVE: OnceLock<ItemStatsTable> = OnceLock::new();
 
-            let mut is_stat_line = false;
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ItemStatsFile {
+    #[allow(dead_code)]
+    provenance: String,
+    version: u32,
+    items: Vec<(u32, ItemStats)>,
+}
 
-            if let Some(class) = labeled_value(line, "계열") {
-                // Only used for the classification of the item, which is not
-                // needed right now but helps to skip the equip restriction
-                // line below.
-                let _ = class;
-                is_stat_line = true;
-            }
+fn parse(content: &str) -> Result<ItemStatsTable, String> {
+    let file: ItemStatsFile = ron::from_str(content).map_err(|error| format!("schema error: {error}"))?;
 
-            if let Some(attack) = labeled_number(line, "공격").or_else(|| labeled_number(line, "Attack")) {
-                stats.attack = attack;
-                is_stat_line = true;
-            }
-
-            if let Some(defense) = labeled_number(line, "방어").or_else(|| labeled_number(line, "Defense")) {
-                stats.defense = defense;
-                is_stat_line = true;
-            }
-
-            if let Some(weight) = labeled_number(line, "무게").or_else(|| labeled_number(line, "Weight")) {
-                stats.weight = weight;
-                is_stat_line = true;
-            }
-
-            if let Some(weapon_level) = labeled_number(line, "무기레벨").or_else(|| labeled_number(line, "Weapon Level")) {
-                stats.weapon_level = weapon_level.clamp(0, u8::MAX as i32) as u8;
-                is_stat_line = true;
-            }
-
-            if let Some(required_level) = labeled_number(line, "요구레벨").or_else(|| labeled_number(line, "Required Level")) {
-                stats.required_level = required_level.clamp(0, u16::MAX as i32) as u16;
-                is_stat_line = true;
-            }
-
-            // The equip restriction line of the item description.
-            if line.contains("장착") || line.contains("Equip") {
-                is_stat_line = true;
-            }
-
-            if is_stat_line || is_conditional(line) {
-                continue;
-            }
-
-            parse_bonus_line(line, &mut stats.bonuses);
-        }
-
-        stats
+    if file.version != SUPPORTED_VERSION {
+        return Err(format!(
+            "unsupported schema version {} (this client understands {SUPPORTED_VERSION})",
+            file.version
+        ));
     }
+
+    if file.items.is_empty() {
+        return Err("the data file contains no item rows".to_owned());
+    }
+
+    let mut previous = 0;
+    for (item_id, _) in &file.items {
+        if *item_id == 0 {
+            return Err("the data file contains item id 0".to_owned());
+        }
+        if *item_id <= previous {
+            return Err(format!(
+                "item ids must be strictly ascending and unique; {item_id} follows {previous}"
+            ));
+        }
+        previous = *item_id;
+    }
+
+    Ok(ItemStatsTable(file.items))
+}
+
+fn compiled() -> &'static ItemStatsTable {
+    COMPILED.get_or_init(|| match parse(FALLBACK) {
+        Ok(table) => table,
+        Err(error) => {
+            crate::logging::log_warn!("item stats: compiled fallback is invalid ({error})");
+            ItemStatsTable(Vec::new())
+        }
+    })
+}
+
+fn table() -> &'static ItemStatsTable {
+    ARCHIVE.get().unwrap_or_else(compiled)
+}
+
+/// Loads the item stats data from the client archive (or keeps the compiled
+/// fallback). Returns the number of loaded item rows.
+///
+/// A malformed data file is reported and the compiled fallback is used instead,
+/// so a bad override can never leave the client without stats. The data file is
+/// embedded in the binary, so the compiled table is always available.
+pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
+    let from_archive = game_file_loader
+        .get(DATA_PATH)
+        .ok()
+        .map(|bytes| String::from_utf8_lossy(&bytes).into_owned());
+
+    let table = match from_archive.as_deref() {
+        Some(content) => match parse(content) {
+            Ok(table) => table,
+            Err(error) => {
+                crate::logging::log_warn!("item stats: invalid {DATA_PATH} ({error}), using the compiled fallback");
+                ItemStatsTable(compiled().0.clone())
+            }
+        },
+        None => ItemStatsTable(compiled().0.clone()),
+    };
+
+    let count = table.0.len();
+    let _ = ARCHIVE.set(table);
+    crate::logging::log_debug!("item stats: loaded {count} item rows from the item database data");
+    count
+}
+
+/// Stats row of an item from the data file, or `None` when the item is not
+/// covered by the facts (custom/client-only item).
+pub(crate) fn lookup(item_id: ItemId) -> Option<&'static ItemStats> {
+    let table = table();
+    table
+        .0
+        .binary_search_by_key(&item_id.0, |(id, _)| *id)
+        .ok()
+        .map(|index| &table.0[index].1)
+}
+
+/// Number of card slots from the item database (`Slots`), when available.
+///
+/// The server item database is authoritative for custom item changes, while
+/// `iteminfo.lub`'s `slotCount` is client data that may be stale.
+pub(crate) fn slot_count(item_id: ItemId) -> Option<u8> {
+    lookup(item_id).map(|stats| stats.slots)
+}
+
+/// Resolves the stats of an item and records where they came from.
+///
+/// The data file is the normal path. Only an item id that is missing there
+/// falls back to the description parser (logged once per item id at debug
+/// level, because client-only leftover ids are expected) and finally to
+/// [`ItemStats::DEFAULT`] (logged once per item id at warn level; the generic
+/// fallback is documented on [`ItemStats::DEFAULT`], it is not a silent zero).
+pub(crate) fn resolve(item_id: ItemId, description: &[String]) -> (ItemStats, ItemStatsSource) {
+    if let Some(stats) = lookup(item_id) {
+        return (*stats, ItemStatsSource::Data);
+    }
+
+    if !description.is_empty() {
+        let stats = item_stats_fallback::parse(description);
+        // Client-only leftover ids are expected (the client `iteminfo.lub` is
+        // larger than the server item database), so this is a debug message;
+        // the per-startup summary in `ItemInfo::load` counts them.
+        crate::logging::log_debug!(
+            "item stats: item {} is not in the item database data; using the last-resort description parser",
+            item_id.0
+        );
+        return (stats, ItemStatsSource::DescriptionFallback);
+    }
+
+    crate::logging::warn_once(
+        module_path!(),
+        &format!("item-stats-generic-fallback:{}", item_id.0),
+        format_args!(
+            "item stats: item {} has no item database row and no description; showing zero stats (documented generic fallback)",
+            item_id.0
+        ),
+    );
+    (ItemStats::DEFAULT, ItemStatsSource::GenericFallback)
 }
 
 impl Table for ItemStats {
     type Key<'a> = ItemId;
     type Storage = ();
 
-    fn load(_game_file_loader: &GameFileLoader) -> mlua::Result<Self::Storage> {
+    fn load(game_file_loader: &GameFileLoader) -> mlua::Result<Self::Storage> {
+        // The stats are stored per item in `ItemInfo`; the table is a
+        // process-wide static so the data file is loaded exactly once.
+        load(game_file_loader);
         Ok(())
     }
 
@@ -143,8 +272,9 @@ impl Table for ItemStats {
     }
 }
 
-/// Flat stat bonuses of an item.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+/// Flat stat bonuses of an item (e.g. `STR + 2`).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields, default)]
 pub struct StatBonuses {
     pub strength: i32,
     pub agility: i32,
@@ -181,27 +311,6 @@ impl StatBonuses {
         attack_speed: 0,
     };
 
-    fn add(&mut self, stat: BonusStat, amount: i32) {
-        let value = match stat {
-            BonusStat::Strength => &mut self.strength,
-            BonusStat::Agility => &mut self.agility,
-            BonusStat::Vitality => &mut self.vitality,
-            BonusStat::Intelligence => &mut self.intelligence,
-            BonusStat::Dexterity => &mut self.dexterity,
-            BonusStat::Luck => &mut self.luck,
-            BonusStat::Attack => &mut self.attack,
-            BonusStat::MagicAttack => &mut self.magic_attack,
-            BonusStat::Defense => &mut self.defense,
-            BonusStat::MagicDefense => &mut self.magic_defense,
-            BonusStat::Hit => &mut self.hit,
-            BonusStat::Flee => &mut self.flee,
-            BonusStat::Critical => &mut self.critical,
-            BonusStat::AttackSpeed => &mut self.attack_speed,
-        };
-
-        *value += amount;
-    }
-
     /// Add the bonuses of another item to these bonuses.
     pub fn merge(&mut self, other: &Self) {
         self.strength += other.strength;
@@ -226,298 +335,245 @@ impl StatBonuses {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum BonusStat {
-    Strength,
-    Agility,
-    Vitality,
-    Intelligence,
-    Dexterity,
-    Luck,
-    Attack,
-    MagicAttack,
-    Defense,
-    MagicDefense,
-    Hit,
-    Flee,
-    Critical,
-    AttackSpeed,
+/// Validates a data file against the schema and returns the number of item
+/// rows it contains.
+///
+/// This is the `--check`-able entry point: the client binary exposes it as
+/// `korangar --check-items [PATH]`, so CI can validate the committed data file
+/// (or an archive override) without starting a window or a network connection.
+pub(crate) fn validate(content: &str) -> Result<usize, String> {
+    parse(content).map(|table| table.0.len())
 }
 
-impl BonusStat {
-    fn from_token(token: &str) -> Option<Self> {
-        Some(match token {
-            "STR" => Self::Strength,
-            "AGI" => Self::Agility,
-            "VIT" => Self::Vitality,
-            "INT" => Self::Intelligence,
-            "DEX" => Self::Dexterity,
-            "LUK" => Self::Luck,
-            "ATK" => Self::Attack,
-            "MATK" => Self::MagicAttack,
-            "DEF" => Self::Defense,
-            "MDEF" => Self::MagicDefense,
-            "HIT" => Self::Hit,
-            "FLEE" => Self::Flee,
-            "CRI" | "CRIT" => Self::Critical,
-            "ASPD" => Self::AttackSpeed,
-            _ => return None,
-        })
-    }
-}
-
-/// Remove the color codes (`^rrggbb`) the client uses to colorize the item
-/// description.
-fn strip_color_codes(line: &str) -> String {
-    let mut result = String::with_capacity(line.len());
-    let mut characters = line.chars().peekable();
-
-    while let Some(character) = characters.next() {
-        if character != '^' {
-            result.push(character);
-            continue;
-        }
-
-        let mut code_length = 0;
-
-        while code_length < 6 {
-            match characters.peek() {
-                Some(next) if next.is_ascii_hexdigit() => {
-                    characters.next();
-                    code_length += 1;
-                }
-                _ => break,
-            }
-        }
-
-        // A caret that is not followed by a color code is part of the text.
-        if code_length < 6 {
-            result.push('^');
-        }
-    }
-
-    result
-}
-
-/// Returns the raw value of a labeled field in a description line, e.g. `공격`
-/// in `계열 : 검    공격 : 25`.
-fn labeled_value<'a>(line: &'a str, label: &str) -> Option<&'a str> {
-    let index = line.find(label)?;
-    let rest = line[index + label.len()..].trim_start();
-    let rest = rest.strip_prefix(':')?;
-
-    Some(rest.trim())
-}
-
-/// Returns the number of a labeled field in a description line.
-fn labeled_number(line: &str, label: &str) -> Option<i32> {
-    let value = labeled_value(line, label)?;
-    parse_leading_number(value)
-}
-
-fn parse_leading_number(value: &str) -> Option<i32> {
-    let start = value.find(|character: char| character.is_ascii_digit() || character == '-')?;
-    let number: String = value[start..]
-        .chars()
-        .take_while(|character| character.is_ascii_digit() || *character == '-')
-        .collect();
-
-    number.parse().ok()
-}
-
-/// Lines that describe a conditional bonus. We don't want to count those as
-/// always active stats.
-fn is_conditional(line: &str) -> bool {
-    const CONDITIONAL_MARKERS: &[&str] = &[
-        "이상", "이하", "때", "동안", "경우", "제련", "정련", "착용", "확률", "마다", "초 ", "매 ", "레벨",
-    ];
-
-    CONDITIONAL_MARKERS.iter().any(|marker| line.contains(marker))
-}
-
-/// Scan a description line for flat stat bonuses like `STR + 2` or `HIT+10`.
-fn parse_bonus_line(line: &str, bonuses: &mut StatBonuses) {
-    let bytes = line.as_bytes();
-    let mut index = 0;
-
-    while index < bytes.len() {
-        if !bytes[index].is_ascii_alphabetic() {
-            index += 1;
-            continue;
-        }
-
-        let token_start = index;
-
-        while index < bytes.len() && bytes[index].is_ascii_alphabetic() {
-            index += 1;
-        }
-
-        let token = &line[token_start..index];
-        let stat = BonusStat::from_token(&token.to_ascii_uppercase());
-
-        let mut cursor = index;
-
-        while cursor < bytes.len() && bytes[cursor].is_ascii_whitespace() {
-            cursor += 1;
-        }
-
-        let sign = match bytes.get(cursor) {
-            Some(b'+') => 1,
-            Some(b'-') => -1,
-            _ => continue,
-        };
-
-        cursor += 1;
-
-        while cursor < bytes.len() && bytes[cursor].is_ascii_whitespace() {
-            cursor += 1;
-        }
-
-        let number_start = cursor;
-
-        while cursor < bytes.len() && bytes[cursor].is_ascii_digit() {
-            cursor += 1;
-        }
-
-        if number_start == cursor {
-            continue;
-        }
-
-        let amount = match line[number_start..cursor].parse::<i32>() {
-            Ok(amount) => amount,
-            Err(_) => continue,
-        };
-
-        let mut percent_cursor = cursor;
-
-        while percent_cursor < bytes.len() && bytes[percent_cursor].is_ascii_whitespace() {
-            percent_cursor += 1;
-        }
-
-        // Percentage bonuses don't stack linearly, so we skip them for now.
-        if bytes.get(percent_cursor) == Some(&b'%') {
-            index = percent_cursor + 1;
-            continue;
-        }
-
-        if let Some(stat) = stat {
-            bonuses.add(stat, amount * sign);
-        }
-
-        index = cursor;
-    }
+/// Validates the compiled fallback (used by `--check-items` without a path and
+/// by the tests).
+pub(crate) fn validate_compiled() -> Result<usize, String> {
+    validate(FALLBACK)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn lines(lines: &[&str]) -> Vec<String> {
-        lines.iter().map(|line| line.to_string()).collect()
+    #[test]
+    fn compiled_data_file_is_valid_and_sorted() {
+        let count = validate_compiled().expect("the compiled item stats data must be valid");
+        assert_eq!(count, 6169, "one row per item of the CondaRO pre-re item database");
+
+        let table = compiled();
+        assert!(
+            table.0.windows(2).all(|pair| pair[0].0 < pair[1].0),
+            "rows must be sorted and unique"
+        );
     }
 
     #[test]
-    fn parses_weapon_description() {
-        let stats = ItemStats::parse(&lines(&[
-            "누구나 사용할 수 있을 것만 같은 검. 성직자만은 사용하지 못한다.",
-            "계열 : ^777777검^000000      공격 : ^77777725^000000",
-            "무게 : ^77777750^000000",
-            "무기레벨 : ^7777771^000000",
-            "요구레벨 : ^7777772^000000",
-            "장착 : ^777777노비스계열/검사계열/상인계열/도둑계열 장착가능^000000",
-        ]));
+    fn data_rows_contain_the_authoritative_values() {
+        // Falchion (1104): one-handed sword, attack 39, weight 600/10 = 60,
+        // weapon level 1, required level 2, three slots, refineable.
+        let falchion = lookup(ItemId(1104)).expect("Falchion must be covered by the data");
+        assert_eq!(falchion.attack, 39);
+        assert_eq!(falchion.defense, 0);
+        assert_eq!(falchion.weight, 60);
+        assert_eq!(falchion.weapon_level, 1);
+        assert_eq!(falchion.required_level, 2);
+        assert_eq!(falchion.slots, 3);
+        assert!(falchion.refineable);
 
-        assert_eq!(stats.attack, 25);
-        assert_eq!(stats.defense, 0);
-        assert_eq!(stats.weight, 50);
-        assert_eq!(stats.weapon_level, 1);
-        assert_eq!(stats.required_level, 2);
-        assert!(stats.bonuses.is_empty());
+        // Haedonggum (1123) has the unconditional `bonus bInt,3;` script.
+        let haedonggum = lookup(ItemId(1123)).expect("Haedonggum must be covered by the data");
+        assert_eq!(haedonggum.bonuses.intelligence, 3);
+        assert_eq!(haedonggum.bonuses.strength, 0);
+
+        // Red Potion (501): a consumable without stats but with a weight.
+        let potion = lookup(ItemId(501)).expect("Red Potion must be covered by the data");
+        assert_eq!(potion.weight, 7);
+        assert_eq!(potion.attack, 0);
+        assert!(potion.bonuses.is_empty());
     }
 
     #[test]
-    fn parses_armor_description() {
-        let stats = ItemStats::parse(&lines(&[
-            "순면으로 되어 있는 옷으로 착용감이 상쾌하고 기분을 좋게 해준다",
-            "계열 : ^777777갑옷^000000    방어 : ^77777710^000000",
-            "무게 : ^77777710^000000",
-            "장착 : ^777777전직업 장착가능^000000",
-        ]));
+    fn data_path_does_not_depend_on_the_description_language() {
+        // An English description without any of the old Korean/English stat
+        // labels used to produce an all-zero stat panel. The data file must
+        // win before the description is ever consulted.
+        let english = vec!["A basic one-handed sword.".to_owned()];
 
-        assert_eq!(stats.attack, 0);
-        assert_eq!(stats.defense, 10);
-        assert_eq!(stats.weight, 10);
-        assert_eq!(stats.weapon_level, 0);
+        let (stats, source) = resolve(ItemId(1104), &english);
+
+        assert_eq!(source, ItemStatsSource::Data);
+        assert_eq!(stats.attack, 39);
+        assert_eq!(stats.weight, 60);
+        assert_eq!(stats.bonuses, StatBonuses::DEFAULT);
     }
 
     #[test]
-    fn parses_required_level_without_value() {
-        let stats = ItemStats::parse(&lines(&[
-            "계열 : ^777777지팡이^000000  공격 : ^77777715^000000",
-            "무게 : ^77777740^000000",
-            "무기레벨 : ^7777771^000000",
-            "요구레벨 : ^777777없음^000000",
-        ]));
+    fn unknown_item_without_description_uses_the_documented_generic_fallback() {
+        let (stats, source) = resolve(ItemId(999_999), &[]);
 
-        assert_eq!(stats.required_level, 0);
+        assert_eq!(source, ItemStatsSource::GenericFallback);
+        assert_eq!(stats, ItemStats::DEFAULT);
     }
 
     #[test]
-    fn parses_flat_bonus_lines() {
-        let stats = ItemStats::parse(&lines(&[
-            "STR +2",
-            "DEX -1",
-            "MATK + 30",
-            "HIT+30",
-            "STR + 5, AGI + 2",
-            "ATK + 10, MATK + 10",
-        ]));
+    fn unknown_item_with_description_uses_the_logged_description_fallback() {
+        // The last-resort parser still understands the English labels of the
+        // classic description tables, but it is only reached for unknown ids.
+        let description = vec!["Attack:^CC0000 42^000000".to_owned(), "Weight:^009900 15^000000".to_owned()];
 
-        assert_eq!(stats.bonuses.strength, 7);
-        assert_eq!(stats.bonuses.agility, 2);
-        assert_eq!(stats.bonuses.dexterity, -1);
-        assert_eq!(stats.bonuses.magic_attack, 40);
-        assert_eq!(stats.bonuses.hit, 30);
-        assert_eq!(stats.bonuses.attack, 10);
+        let (stats, source) = resolve(ItemId(999_998), &description);
+
+        assert_eq!(source, ItemStatsSource::DescriptionFallback);
+        assert_eq!(stats.attack, 42);
+        assert_eq!(stats.weight, 15);
     }
 
     #[test]
-    fn parses_mixed_case_bonus_lines() {
-        let stats = ItemStats::parse(&lines(&["STR + 1, Dex + 1, Luk + 1"]));
-
-        assert_eq!(stats.bonuses.strength, 1);
-        assert_eq!(stats.bonuses.dexterity, 1);
-        assert_eq!(stats.bonuses.luck, 1);
+    fn slot_count_comes_from_the_item_database() {
+        assert_eq!(slot_count(ItemId(1104)), Some(3));
+        assert_eq!(slot_count(ItemId(501)), Some(0));
+        assert_eq!(slot_count(ItemId(999_999)), None);
     }
 
     #[test]
-    fn ignores_percentage_bonuses() {
-        let stats = ItemStats::parse(&lines(&["MATK + 5%", "ASPD + 3 %"]));
+    #[ignore = "requires the game archives (run from the korangar crate root, client/game_archives.ron)"]
+    fn condaro_archives_are_covered_by_the_item_database_data() {
+        // End-to-end check on the real CondaRO client data: the iteminfo table
+        // that the client loads must resolve its stats from the item database
+        // data, not from the localized description text.
+        let game_file_loader = GameFileLoader::default();
+        game_file_loader.load_archives_from_settings();
 
-        assert_eq!(stats.bonuses.magic_attack, 0);
-        assert_eq!(stats.bonuses.attack_speed, 0);
+        let lua_archive_existed = std::path::Path::new("lua_files.7z").exists();
+        game_file_loader.load_patched_lua_files();
+
+        if !lua_archive_existed {
+            game_file_loader.remove_patched_lua_files();
+        }
+
+        assert_eq!(
+            load(&game_file_loader),
+            6169,
+            "the archive data must contain the committed item rows"
+        );
+
+        let item_info = crate::world::ItemInfo::load(&game_file_loader).expect("iteminfo.lub must load from the archives");
+        let mut from_data = 0;
+        let mut compared = 0;
+        let mut description_differences = 0;
+        let mut field_differences = [0usize; 6];
+        let mut samples: Vec<(ItemId, ItemStats, ItemStats, Vec<String>)> = Vec::new();
+
+        for (item_id, info) in item_info.iter() {
+            if lookup(*item_id).is_none() {
+                continue;
+            }
+
+            from_data += 1;
+
+            // Diagnostic only: how often the last-resort description parser
+            // would have produced different values. The data file is the
+            // authoritative source either way.
+            let parsed = item_stats_fallback::parse(&info.description);
+
+            // Compare only the fields the old description parser produced
+            // (the data file additionally carries armor level, slots and
+            // refineability, which the description text never had).
+            let differs = parsed.attack != info.stats.attack
+                || parsed.defense != info.stats.defense
+                || parsed.weight != info.stats.weight
+                || parsed.weapon_level != info.stats.weapon_level
+                || parsed.required_level != info.stats.required_level
+                || parsed.bonuses != info.stats.bonuses;
+
+            if differs {
+                description_differences += 1;
+                field_differences[0] += usize::from(parsed.attack != info.stats.attack);
+                field_differences[1] += usize::from(parsed.defense != info.stats.defense);
+                field_differences[2] += usize::from(parsed.weight != info.stats.weight);
+                field_differences[3] += usize::from(parsed.weapon_level != info.stats.weapon_level);
+                field_differences[4] += usize::from(parsed.required_level != info.stats.required_level);
+                field_differences[5] += usize::from(parsed.bonuses != info.stats.bonuses);
+
+                if samples.len() < 8 {
+                    samples.push((*item_id, info.stats, parsed, info.description.iter().take(6).cloned().collect()));
+                }
+            }
+
+            compared += 1;
+        }
+
+        eprintln!(
+            "item stats archive check: {from_data}/{} iteminfo items covered by the item database data; the description parser would \
+             disagree on {description_differences}/{compared} (attack {}, defense {}, weight {}, weapon level {}, required level {}, \
+             bonuses {})",
+            item_info.len(),
+            field_differences[0],
+            field_differences[1],
+            field_differences[2],
+            field_differences[3],
+            field_differences[4],
+            field_differences[5],
+        );
+
+        for (item_id, data, parsed, description) in &samples {
+            eprintln!(
+                "  disagreement sample {}: data attack={} defense={} weight={} weapon_level={} required_level={} bonuses={:?} | \
+                 description-parser attack={} defense={} weight={} weapon_level={} required_level={} bonuses={:?} | {description:?}",
+                item_id.0,
+                data.attack,
+                data.defense,
+                data.weight,
+                data.weapon_level,
+                data.required_level,
+                data.bonuses,
+                parsed.attack,
+                parsed.defense,
+                parsed.weight,
+                parsed.weapon_level,
+                parsed.required_level,
+                parsed.bonuses,
+            );
+        }
+
+        assert!(
+            from_data >= 5_000,
+            "only {from_data} of {} iteminfo items are covered",
+            item_info.len()
+        );
+
+        // Well-known items have the authoritative values.
+        assert_eq!(lookup(ItemId(1104)).map(|stats| stats.attack), Some(39));
+        assert_eq!(lookup(ItemId(1123)).map(|stats| stats.bonuses.intelligence), Some(3));
+        assert_eq!(lookup(ItemId(501)).map(|stats| stats.weight), Some(7));
     }
 
     #[test]
-    fn ignores_conditional_bonus_lines() {
-        let stats = ItemStats::parse(&lines(&["LUK 90이상일 때 ATK +20. DEX 90이상일 때 CRI +5.", "STR + 2"]));
-
-        assert_eq!(stats.bonuses.attack, 0);
-        assert_eq!(stats.bonuses.critical, 0);
-        assert_eq!(stats.bonuses.strength, 2);
+    fn load_without_archives_keeps_the_compiled_fallback() {
+        // The compiled table is embedded in the binary, so a missing/malformed
+        // archive override can never leave the client without item stats.
+        let loader = GameFileLoader::default();
+        assert_eq!(load(&loader), 6169);
+        assert_eq!(lookup(ItemId(1104)).map(|stats| stats.attack), Some(39));
     }
 
     #[test]
-    fn does_not_confuse_partial_stat_names() {
-        let stats = ItemStats::parse(&lines(&["MATK + 10"]));
-
-        assert_eq!(stats.bonuses.magic_attack, 10);
-        assert_eq!(stats.bonuses.attack, 0);
-    }
-
-    #[test]
-    fn strips_color_codes() {
-        assert_eq!(strip_color_codes("^777777무게^000000 : ^77777710^000000"), "무게 : 10");
-        assert_eq!(strip_color_codes("a ^ b"), "a ^ b");
+    fn malformed_data_is_rejected() {
+        // Missing version field.
+        assert!(validate("(provenance: \"x\", items: [(1, (weight: 1))])").is_err());
+        // Unknown field (deny_unknown_fields).
+        assert!(validate("(provenance: \"x\", version: 1, items: [(1, (attck: 1))])").is_err());
+        // Unsupported schema version.
+        assert!(validate("(provenance: \"x\", version: 2, items: [(1, (weight: 1))])").is_err());
+        // Empty table.
+        assert!(validate("(provenance: \"x\", version: 1, items: [])").is_err());
+        // Duplicate item ids.
+        assert!(validate("(provenance: \"x\", version: 1, items: [(2, (weight: 1)), (2, (weight: 2))])").is_err());
+        // Out-of-order item ids.
+        assert!(validate("(provenance: \"x\", version: 1, items: [(2, (weight: 1)), (1, (weight: 2))])").is_err());
+        // Item id 0.
+        assert!(validate("(provenance: \"x\", version: 1, items: [(0, (weight: 1))])").is_err());
+        // Syntactically invalid RON.
+        assert!(validate("not ron at all").is_err());
     }
 }
