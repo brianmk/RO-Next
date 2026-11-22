@@ -2025,7 +2025,7 @@ impl Client {
             .follow(client_state().interface_settings().scaling())
             .get_factor();
         let width = HOTBAR_ROW_WIDTH * scaling;
-        let height = HOTBAR_SLOT_SIZE * scaling;
+        let height = HOTBAR_WINDOW_HEIGHT * scaling;
         let margin = 18.0 * scaling;
         let position = ScreenPosition {
             left: ((window_size.width - width) / 2.0).max(0.0),
@@ -3191,6 +3191,11 @@ impl Client {
                     // another skill, ...). Stop the looping cast gesture and
                     // clear the local player's cast bar and skill label so a
                     // cancelled cast never leaves a stuck bar or animation.
+                    crate::logging::log_debug!(
+                        "skill cast cancelled (ZC_DISPEL / 0x01B9): entity={}",
+                        entity_id.0
+                    );
+
                     if self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(entity_id) {
                         self.cast_bars.clear();
                         self.skill_name_texts.remove_entity(entity_id);

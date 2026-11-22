@@ -33,18 +33,28 @@ use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 /// The default slot size of the shared skill box component is 40 pixels; the
 /// hotbar uses 2.5 times that so the icons are large enough to be used as the
 /// main skill bar.
-pub const HOTBAR_SLOT_SIZE: f32 = 100.0;
+pub const HOTBAR_SLOT_SIZE: f32 = 98.0;
+/// Gap between two slots (also shows the window background, which makes the
+/// transparency toggle visible between the opaque slot cards).
+pub const HOTBAR_SLOT_GAP: f32 = 2.0;
 /// Clickable size of the round transparency toggle in interface pixels.
 pub const HOTBAR_TOGGLE_SIZE: f32 = 20.0;
 /// Gap between the last slot and the transparency toggle.
 pub const HOTBAR_TOGGLE_GAP: f32 = 4.0;
+/// Small padding around the slot row, so the window background is visible above
+/// and below the cards (and disappears in transparent mode).
+pub const HOTBAR_PADDING: f32 = 2.0;
 /// Width of the whole hotbar row in interface pixels.
 ///
-/// Ten large slots plus the round toggle. At the maximum supported interface
-/// scale (1.25) the row is 1280 screen pixels wide, which is exactly the width
-/// of a 1280x720 window.
-pub const HOTBAR_ROW_WIDTH: f32 =
-    VISIBLE_HOTBAR_SLOTS as f32 * HOTBAR_SLOT_SIZE + HOTBAR_TOGGLE_GAP + HOTBAR_TOGGLE_SIZE;
+/// Ten large slots, the gaps and the round toggle. At the maximum supported
+/// interface scale (1.25) the row is less than 1280 screen pixels wide, so it
+/// fits a 1280x720 window.
+pub const HOTBAR_ROW_WIDTH: f32 = VISIBLE_HOTBAR_SLOTS as f32 * HOTBAR_SLOT_SIZE
+    + (VISIBLE_HOTBAR_SLOTS - 1) as f32 * HOTBAR_SLOT_GAP
+    + HOTBAR_TOGGLE_GAP
+    + HOTBAR_TOGGLE_SIZE;
+/// Height of the whole hotbar window in interface pixels.
+pub const HOTBAR_WINDOW_HEIGHT: f32 = HOTBAR_SLOT_SIZE + HOTBAR_PADDING * 2.0;
 
 pub struct HotbarWindow<A, B> {
     hotbar_path: A,
@@ -75,7 +85,7 @@ impl<'a, App: Application> Resolvers<'a, App> for HotbarCellResolvers<'a, App> {
     fn for_index(&self, index: usize) -> Resolver<'a, App> {
         let area = match index < VISIBLE_HOTBAR_SLOTS {
             true => PartialArea {
-                left: self.slots_left + index as f32 * HOTBAR_SLOT_SIZE,
+                left: self.slots_left + index as f32 * (HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP),
                 top: self.top,
                 width: HOTBAR_SLOT_SIZE,
                 height: Some(HOTBAR_SLOT_SIZE),
@@ -126,17 +136,30 @@ where
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
             let available_area = resolver.push_available_area();
-            let toggle_top = available_area.top + (HOTBAR_SLOT_SIZE - HOTBAR_TOGGLE_SIZE) / 2.0;
+            let row_top = available_area.top + HOTBAR_PADDING;
+            let toggle_top = row_top + (HOTBAR_SLOT_SIZE - HOTBAR_TOGGLE_SIZE) / 2.0;
+            let toggle_left = available_area.left
+                + VISIBLE_HOTBAR_SLOTS as f32 * HOTBAR_SLOT_SIZE
+                + (VISIBLE_HOTBAR_SLOTS - 1) as f32 * HOTBAR_SLOT_GAP
+                + HOTBAR_TOGGLE_GAP;
 
             let mut cell_resolvers = HotbarCellResolvers::<ClientState> {
                 slots_left: available_area.left,
-                top: available_area.top,
-                toggle_left: available_area.left
-                    + VISIBLE_HOTBAR_SLOTS as f32 * HOTBAR_SLOT_SIZE
-                    + HOTBAR_TOGGLE_GAP,
+                top: row_top,
+                toggle_left,
                 toggle_top,
                 text_layouter: resolver.get_text_layouter(),
             };
+
+            crate::logging::log_trace!(
+                "hotbar row: available=({}, {}, {}x{}) toggle_left={} toggle_top={}",
+                available_area.left,
+                available_area.top,
+                available_area.width,
+                available_area.height.unwrap_or(-1.0),
+                cell_resolvers.toggle_left,
+                cell_resolvers.toggle_top,
+            );
 
             let slots = self.slots.create_layout_info(state, store.child_store(0), &mut cell_resolvers);
 
@@ -149,7 +172,14 @@ where
             let mut toggle_resolver = Resolver::new(toggle_area, 0.0, resolver.get_text_layouter());
             let toggle = self.toggle.create_layout_info(state, store.child_store(1), &mut toggle_resolver);
 
-            resolver.commit_used_height(HOTBAR_SLOT_SIZE);
+            crate::logging::log_trace!(
+                "hotbar row toggle cell: left={} top={} size={}",
+                toggle_area.left,
+                toggle_area.top,
+                toggle_area.width,
+            );
+
+            resolver.commit_used_height(HOTBAR_WINDOW_HEIGHT);
 
             HotbarRowLayoutInfo { slots, toggle }
         })
@@ -185,6 +215,11 @@ where
     fn handle_click(&self, state: &State<ClientState>, _: &mut EventQueue<ClientState>) {
         state.update_value_with(self.value_path, |transparent| *transparent = !*transparent);
         state.update_value_with(self.settings_path, |settings| settings.save());
+
+        crate::logging::log_debug!(
+            "hotbar transparency toggled: transparent_hotbar={}",
+            *state.get(&self.value_path)
+        );
     }
 }
 
@@ -238,7 +273,6 @@ where
             |window| window.shadow_padding,
             ShadowPadding::uniform(0.0),
         );
-        let border = hotbar_window_value(window_theme_path, transparent_path, |window| window.border, 0.0);
         let corner_diameter = hotbar_window_value(
             window_theme_path,
             transparent_path,
@@ -286,7 +320,10 @@ where
             background_color: background_color,
             shadow_color: shadow_color,
             shadow_padding: shadow_padding,
-            border: border,
+            // No window padding: the slot row is the whole window, which keeps
+            // the HUD as slim as possible and makes the ten slots plus the
+            // round toggle exactly fill the fixed width.
+            border: 0.0,
             corner_diameter: corner_diameter,
             // The frame is color based so that the transparent mode works in
             // every theme and the background can be hidden without hiding the
@@ -296,8 +333,8 @@ where
             resizable: false,
             minimum_width: HOTBAR_ROW_WIDTH,
             maximum_width: HOTBAR_ROW_WIDTH,
-            minimum_height: HOTBAR_SLOT_SIZE,
-            maximum_height: HOTBAR_SLOT_SIZE,
+            minimum_height: HOTBAR_WINDOW_HEIGHT,
+            maximum_height: HOTBAR_WINDOW_HEIGHT,
             elements: (
                 HotbarRow::new(slots, transparency_toggle),
             ),

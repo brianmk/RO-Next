@@ -76,7 +76,7 @@ pub use self::friend_list::{FriendListWindow, FriendListWindowState};
 pub use self::friend_request::FriendRequestWindow;
 pub use self::game_settings::GameSettingsWindow;
 pub use self::graphics_settings::GraphicsSettingsWindow;
-pub use self::hotbar::{HOTBAR_ROW_WIDTH, HOTBAR_SLOT_SIZE, HotbarWindow};
+pub use self::hotbar::{HOTBAR_ROW_WIDTH, HOTBAR_WINDOW_HEIGHT, HotbarWindow};
 pub use self::interface_settings::InterfaceSettingsWindow;
 pub use self::inventory::InventoryWindow;
 pub use self::item_info::ItemInfoWindow;
