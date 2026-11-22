@@ -59,6 +59,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use cgmath::{Point3, Vector3};
+use hashbrown::HashMap;
 use image::{EncodableLayout, ImageFormat, ImageReader};
 use input::{MouseInputMode, MouseModeExt};
 use korangar_audio::{AudioEngine, SoundEffectKey};
@@ -682,6 +683,18 @@ pub struct Client {
     level_99_aura_style_cell: Arc<AtomicU8>,
     /// Entities that currently have a level-99 aura effect attached.
     level_99_aura_entities: HashSet<EntityId>,
+
+    /// Status effects with a persistent glow
+    /// ([`crate::world::status_aura_spec`]) that currently have an aura
+    /// effect attached, keyed by entity and status id. The value is the
+    /// shared "still active" flag (cleared when the status ends, which
+    /// removes the effect on its next update) and the last reconciliation
+    /// frame seen by [`Self::update_status_auras`].
+    status_aura_flags: HashMap<(EntityId, u16), (Arc<AtomicBool>, u64)>,
+    /// Frame counter of the status aura reconciliation (used to detect entries
+    /// whose status is no longer active without allocating a set per frame).
+    status_aura_frame: u64,
+
 
     /// Skill sounds that were already played at the start of an *instant* skill
     /// Decides when a skill sound plays: instant casts wait for their
@@ -1395,6 +1408,8 @@ impl Client {
             level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
             level_99_aura_entities: HashSet::new(),
             skill_sound_gate: SkillSoundGate::default(),
+            status_aura_flags: HashMap::new(),
+            status_aura_frame: 0,
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
@@ -2578,10 +2593,10 @@ impl Client {
                         variant
                     );
 
-                    match effect.anchor {
+                    let _ = match effect.anchor {
                         ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(flash), source_entity_id),
                         _ => self.effect_holder.add_effect(Box::new(flash)),
-                    }
+                    };
                 }
                 ProceduralPrimitive::Projectile => {
                     let Some(target) = target_position else {
@@ -2622,10 +2637,10 @@ impl Client {
                         variant
                     );
 
-                    match effect.anchor {
+                    let _ = match effect.anchor {
                         ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(aura), source_entity_id),
                         _ => self.effect_holder.add_effect(Box::new(aura)),
-                    }
+                    };
                 }
             }
         }
@@ -3002,6 +3017,85 @@ impl Client {
         for entity_id in stale {
             self.level_99_aura_entities.remove(&entity_id);
         }
+    }
+
+    /// Spawns, keeps alive and removes the persistent glow effects of active
+    /// status effects (the Assumptio glow and any future status aura, see
+    /// [`crate::world::status_aura_spec`]).
+    ///
+    /// The active statuses are reconciled every frame instead of being wired to
+    /// the status packets: status start/refresh/end, local timer expiry, death,
+    /// warp and entities entering/leaving the view then all behave the same,
+    /// and adding another glowing status only needs a new registry entry.
+    ///
+    /// The reconciliation itself does not allocate: the per-frame active set is
+    /// encoded as the last-seen frame next to each spawned aura, so only the
+    /// (rare) spawn path touches the allocator.
+    fn update_status_auras(&mut self) {
+        self.status_aura_frame = self.status_aura_frame.wrapping_add(1);
+        let frame = self.status_aura_frame;
+
+        let statuses = self.client_state.follow(client_state().status_effects());
+        let entities = self.client_state.follow(client_state().entities());
+
+        for status in statuses.effects() {
+            let status_index = status.status_index();
+            if crate::world::status_aura_spec(status_index).is_none() {
+                continue;
+            }
+
+            let Some(entity) = entities.iter().find(|entity| entity.get_entity_id().0 == status.entity_id()) else {
+                // The entity left the view; the server re-sends its statuses
+                // with `ZC_EFST_SET_ENTER` when it comes back.
+                continue;
+            };
+            let entity_id = entity.get_entity_id();
+
+            if entity.is_dead() || entity.is_fading() {
+                continue;
+            }
+
+            let key = (entity_id, status_index);
+            if let Some((_, last_seen)) = self.status_aura_flags.get_mut(&key) {
+                *last_seen = frame;
+                continue;
+            }
+
+            let Some(spec) = crate::world::status_aura_spec(status_index) else {
+                continue;
+            };
+            let is_active = Arc::new(AtomicBool::new(true));
+
+            let Some(aura) = crate::world::StatusAura::new(&self.texture_loader, entity_id, spec, is_active.clone()) else {
+                crate::logging::log_warn!("status aura: failed to load the glow textures of status {}", status_index);
+                // Do not retry every frame if the textures are missing.
+                self.status_aura_flags.insert(key, (Arc::new(AtomicBool::new(false)), frame));
+                continue;
+            };
+
+            if self.effect_holder.add_unit(Box::new(aura), entity_id) {
+                crate::logging::log_debug!(
+                    "status aura: spawned glow for status {} on entity {}",
+                    status_index,
+                    entity_id.0
+                );
+                self.status_aura_flags.insert(key, (is_active, frame));
+            }
+            // If the effect budget rejected the aura, do not record it: the
+            // spawn is retried on the next frame, when the budget may have
+            // room.
+        }
+
+        // Deactivate auras whose status ended (or whose entity is no longer
+        // eligible); the effect removes itself on its next update.
+        self.status_aura_flags.retain(|_, (is_active, last_seen)| {
+            if *last_seen == frame {
+                return true;
+            }
+
+            is_active.store(false, Ordering::Relaxed);
+            false
+        });
     }
 
     /// Updates the local status effect timers and shows/hides the buff bar.
@@ -3884,6 +3978,7 @@ impl Client {
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
+                    self.status_aura_flags.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
                 }
@@ -4243,6 +4338,7 @@ impl Client {
                     self.particle_holder.clear();
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
+                    self.status_aura_flags.clear();
                     self.chat_bubbles.clear();
                     self.pending_item_drag = None;
                     self.pending_item_drag = None;
@@ -8436,6 +8532,7 @@ impl Client {
         );
 
         self.update_level_99_auras();
+        self.update_status_auras();
 
         self.process_buffered_action();
 
