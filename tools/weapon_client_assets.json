@@ -1,0 +1,875 @@
+{
+  "ammo_item_sprites": {
+    "ac_chargearrow": {
+      "act": true,
+      "spr": true
+    },
+    "brokenarrow": {
+      "act": true,
+      "spr": true
+    },
+    "dc_throwarrow": {
+      "act": true,
+      "spr": true
+    },
+    "ma_chargearrow": {
+      "act": true,
+      "spr": true
+    },
+    "ra_arrowstorm": {
+      "act": true,
+      "spr": true
+    },
+    "\uac15\ucca0\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\uadf8\ub9bc\uc790\uc758\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ub0a0\uce74\ub85c\uc6b4\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ub179\uc2a8\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ub3c5\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ub3cc\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ub9c8\uc11d\ud0c4": {
+      "act": true,
+      "spr": true
+    },
+    "\uba5c\ub860\ud3ed\ud0c4": {
+      "act": true,
+      "spr": true
+    },
+    "\ubb34\ud615\uc758\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ubc14\ub098\ub098\ud3ed\ud0c4": {
+      "act": true,
+      "spr": true
+    },
+    "\ubc14\ub78c\uc758\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ubd88\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\ube59\uacb0\ud0c4": {
+      "act": true,
+      "spr": true
+    },
+    "\ubf08\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\uc0ac\uacfc\ud3ed\ud0c4": {
+      "act": true,
+      "spr": true
+    },
+    "\uc0ac\ub0e5\uc6a9\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\uc218\uc815\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    },
+    "\uc2ac\ub7ec\uadf8\ud0c4_1": {
+      "act": true,
+      "spr": true
+    },
+    "\uc2ac\ub7ec\uadf8\ud0c4_2": {
+      "act": true,
+      "spr": true
+    },
+    "\uc2ac\ub7ec\uadf8\ud0c4_3": {
+      "act": true,
+      "spr": true
+    },
+    "\ud654\uc0b4": {
+      "act": true,
+      "spr": true
+    }
+  },
+  "classic_weapon_directory": {
+    "files": 0,
+    "present": false
+  },
+  "per_job_variant_files": 5228,
+  "provenance": {
+    "archives": [
+      {
+        "files": 149167,
+        "name": "data.grf",
+        "sha256": "6dcae744fb8e5fc1fcafbe8cfb3f5392e9d89b431e56811c3618462d5de2d53a",
+        "size": 3167729595
+      },
+      {
+        "files": 34565,
+        "name": "CondaRO.grf",
+        "sha256": "813c721325d667a6ae0d2b7f9225756d5d91646a685c3380e08688d8bea3d0da",
+        "size": 145362482
+      },
+      {
+        "files": 498263,
+        "name": "palettes.grf",
+        "sha256": "a18d003337c6e7d0333d5bde0832784cc7b60e36d5b72a813a3ce4a9b1b76170",
+        "size": 204600439
+      }
+    ],
+    "scanner": "tools/extract_weapon_client_assets.py",
+    "source": "CondaRO client archives (kRO 2019-06-05 data set)"
+  },
+  "variants": {
+    "1116": {
+      "stems": 14
+    },
+    "1117": {
+      "stems": 13
+    },
+    "1119": {
+      "stems": 27
+    },
+    "1120": {
+      "stems": 26
+    },
+    "1121": {
+      "stems": 3
+    },
+    "1122": {
+      "stems": 27
+    },
+    "1123": {
+      "stems": 27
+    },
+    "1125": {
+      "stems": 26
+    },
+    "1126": {
+      "stems": 27
+    },
+    "1127": {
+      "stems": 26
+    },
+    "1128": {
+      "stems": 26
+    },
+    "1129": {
+      "stems": 13
+    },
+    "1142": {
+      "stems": 27
+    },
+    "1143": {
+      "stems": 27
+    },
+    "1144": {
+      "stems": 27
+    },
+    "1149": {
+      "stems": 13
+    },
+    "1154": {
+      "stems": 14
+    },
+    "1155": {
+      "stems": 13
+    },
+    "1157": {
+      "stems": 14
+    },
+    "1158": {
+      "stems": 13
+    },
+    "1160": {
+      "stems": 14
+    },
+    "1162": {
+      "stems": 13
+    },
+    "1185": {
+      "stems": 13
+    },
+    "1207": {
+      "stems": 44
+    },
+    "1208": {
+      "stems": 43
+    },
+    "1216": {
+      "stems": 44
+    },
+    "1217": {
+      "stems": 43
+    },
+    "1219": {
+      "stems": 44
+    },
+    "1220": {
+      "stems": 43
+    },
+    "1238": {
+      "stems": 44
+    },
+    "1239": {
+      "stems": 38
+    },
+    "1240": {
+      "stems": 44
+    },
+    "13016": {
+      "stems": 38
+    },
+    "13049": {
+      "stems": 51
+    },
+    "13150": {
+      "stems": 3
+    },
+    "13150_\uac80\uad11": {
+      "stems": 3
+    },
+    "13151": {
+      "stems": 3
+    },
+    "13151_\uac80\uad11": {
+      "stems": 3
+    },
+    "13152": {
+      "stems": 3
+    },
+    "13152_\uac80\uad11": {
+      "stems": 3
+    },
+    "13153": {
+      "stems": 3
+    },
+    "13153_\uac80\uad11": {
+      "stems": 3
+    },
+    "13154": {
+      "stems": 3
+    },
+    "13154_\uac80\uad11": {
+      "stems": 3
+    },
+    "13155": {
+      "stems": 3
+    },
+    "13155_\uac80\uad11": {
+      "stems": 3
+    },
+    "13156": {
+      "stems": 3
+    },
+    "13156_\uac80\uad11": {
+      "stems": 3
+    },
+    "13160": {
+      "stems": 3
+    },
+    "13160_\uac80\uad11": {
+      "stems": 3
+    },
+    "13161": {
+      "stems": 3
+    },
+    "13161_\uac80\uad11": {
+      "stems": 3
+    },
+    "13162": {
+      "stems": 3
+    },
+    "13162_\uac80\uad11": {
+      "stems": 3
+    },
+    "13412": {
+      "stems": 26
+    },
+    "13413": {
+      "stems": 26
+    },
+    "13428": {
+      "stems": 12
+    },
+    "1354": {
+      "stems": 21
+    },
+    "1355": {
+      "stems": 20
+    },
+    "1357": {
+      "stems": 21
+    },
+    "1358": {
+      "stems": 20
+    },
+    "1360": {
+      "stems": 21
+    },
+    "1361": {
+      "stems": 20
+    },
+    "1363": {
+      "stems": 21
+    },
+    "1366": {
+      "stems": 21
+    },
+    "1372": {
+      "stems": 21
+    },
+    "1373": {
+      "stems": 20
+    },
+    "1410": {
+      "stems": 14
+    },
+    "1411": {
+      "stems": 13
+    },
+    "1457": {
+      "stems": 14
+    },
+    "1458": {
+      "stems": 13
+    },
+    "1460": {
+      "stems": 14
+    },
+    "1461": {
+      "stems": 13
+    },
+    "1463": {
+      "stems": 14
+    },
+    "1464": {
+      "stems": 13
+    },
+    "1466": {
+      "stems": 14
+    },
+    "1468": {
+      "stems": 14
+    },
+    "1472": {
+      "stems": 11
+    },
+    "1473": {
+      "stems": 6
+    },
+    "1476": {
+      "stems": 13
+    },
+    "1481": {
+      "stems": 13
+    },
+    "1504": {
+      "stems": 25
+    },
+    "1505": {
+      "stems": 24
+    },
+    "1516": {
+      "stems": 25
+    },
+    "1517": {
+      "stems": 24
+    },
+    "1518": {
+      "stems": 3
+    },
+    "1519": {
+      "stems": 25
+    },
+    "1520": {
+      "stems": 24
+    },
+    "1522": {
+      "stems": 3
+    },
+    "1524": {
+      "stems": 7
+    },
+    "1529": {
+      "stems": 25
+    },
+    "1530": {
+      "stems": 29
+    },
+    "1530_\uac80\uad11": {
+      "stems": 29
+    },
+    "1531": {
+      "stems": 25
+    },
+    "1532": {
+      "stems": 3
+    },
+    "1534": {
+      "stems": 4
+    },
+    "1539": {
+      "stems": 7
+    },
+    "1550": {
+      "stems": 3
+    },
+    "1551": {
+      "stems": 3
+    },
+    "1553": {
+      "stems": 7
+    },
+    "1554": {
+      "stems": 7
+    },
+    "1555": {
+      "stems": 6
+    },
+    "1556": {
+      "stems": 6
+    },
+    "1557": {
+      "stems": 3
+    },
+    "1558": {
+      "stems": 6
+    },
+    "1568": {
+      "stems": 6
+    },
+    "1569": {
+      "stems": 6
+    },
+    "1570": {
+      "stems": 6
+    },
+    "1571": {
+      "stems": 6
+    },
+    "16039": {
+      "stems": 29
+    },
+    "1610": {
+      "stems": 11
+    },
+    "1611": {
+      "stems": 11
+    },
+    "1613": {
+      "stems": 11
+    },
+    "1614": {
+      "stems": 11
+    },
+    "1615": {
+      "stems": 11
+    },
+    "1623": {
+      "stems": 6
+    },
+    "1710": {
+      "stems": 13
+    },
+    "1711": {
+      "stems": 13
+    },
+    "1713": {
+      "stems": 13
+    },
+    "1714": {
+      "stems": 13
+    },
+    "1715": {
+      "stems": 13
+    },
+    "1716": {
+      "stems": 13
+    },
+    "1718": {
+      "stems": 3
+    },
+    "1719": {
+      "stems": 1
+    },
+    "1720": {
+      "stems": 5
+    },
+    "1726": {
+      "stems": 3
+    },
+    "1729": {
+      "stems": 5
+    },
+    "1801": {
+      "stems": 3
+    },
+    "1802": {
+      "stems": 3
+    },
+    "1803": {
+      "stems": 3
+    },
+    "1804": {
+      "stems": 3
+    },
+    "1805": {
+      "stems": 3
+    },
+    "1806": {
+      "stems": 3
+    },
+    "1807": {
+      "stems": 3
+    },
+    "1808": {
+      "stems": 3
+    },
+    "1809": {
+      "stems": 3
+    },
+    "1810": {
+      "stems": 3
+    },
+    "1811": {
+      "stems": 3
+    },
+    "1812": {
+      "stems": 3
+    },
+    "1813": {
+      "stems": 3
+    },
+    "1814": {
+      "stems": 3
+    },
+    "1815": {
+      "stems": 3
+    },
+    "1816": {
+      "stems": 3
+    },
+    "1817": {
+      "stems": 3
+    },
+    "1818": {
+      "stems": 3
+    },
+    "1819": {
+      "stems": 3
+    },
+    "1820": {
+      "stems": 3
+    },
+    "1821": {
+      "stems": 3
+    },
+    "1822": {
+      "stems": 3
+    },
+    "1823": {
+      "stems": 3
+    },
+    "1824": {
+      "stems": 3
+    },
+    "1825": {
+      "stems": 3
+    },
+    "1826": {
+      "stems": 3
+    },
+    "1827": {
+      "stems": 3
+    },
+    "1828": {
+      "stems": 3
+    },
+    "1829": {
+      "stems": 3
+    },
+    "1956": {
+      "stems": 3
+    },
+    "1957": {
+      "stems": 3
+    },
+    "1958": {
+      "stems": 3
+    },
+    "1959": {
+      "stems": 3
+    },
+    "1960": {
+      "stems": 3
+    },
+    "1961": {
+      "stems": 3
+    },
+    "gun_gatling2": {
+      "stems": 1
+    },
+    "handgun2": {
+      "stems": 1
+    },
+    "\uac00\ub4dc": {
+      "stems": 20
+    },
+    "\uac00\uc774\uc544\uc18c\ub4dc": {
+      "stems": 2
+    },
+    "\uac80": {
+      "stems": 31
+    },
+    "\uac80_\uac80": {
+      "stems": 3
+    },
+    "\uac80_\uac80_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uac80_\uac80\uad11": {
+      "stems": 30
+    },
+    "\uac80_\ub3c4\ub07c": {
+      "stems": 3
+    },
+    "\uac80_\ub3c4\ub07c_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uac80\uad11": {
+      "stems": 8
+    },
+    "\uad8c\ucd1d": {
+      "stems": 3
+    },
+    "\uad8c\ucd1d_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uad8c\ucd1d\uad11": {
+      "stems": 2
+    },
+    "\uadf8\ub77c\ub514\uc6b0\uc2a4": {
+      "stems": 2
+    },
+    "\uae30\uad00\ucd1d": {
+      "stems": 3
+    },
+    "\uae30\uad00\ucd1d_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uae30\uad00\ucd1d\uad11": {
+      "stems": 2
+    },
+    "\ub108\ud074": {
+      "stems": 3
+    },
+    "\ub108\ud074_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub2e8\uac80": {
+      "stems": 54
+    },
+    "\ub2e8\uac80_\uac80": {
+      "stems": 3
+    },
+    "\ub2e8\uac80_\uac80_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub2e8\uac80_\uac80\uad11": {
+      "stems": 54
+    },
+    "\ub2e8\uac80_\ub2e8\uac80": {
+      "stems": 3
+    },
+    "\ub2e8\uac80_\ub2e8\uac80_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub2e8\uac80_\ub3c4\ub07c": {
+      "stems": 3
+    },
+    "\ub2e8\uac80_\ub3c4\ub07c_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub2e8\uac80\uad11": {
+      "stems": 10
+    },
+    "\ub3c4\ub07c": {
+      "stems": 29
+    },
+    "\ub3c4\ub07c_\uac80\uad11": {
+      "stems": 29
+    },
+    "\ub3c4\ub07c_\ub3c4\ub07c": {
+      "stems": 3
+    },
+    "\ub3c4\ub07c_\ub3c4\ub07c_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub3c4\ub07c\uad11": {
+      "stems": 6
+    },
+    "\ub77c\uc774\ud2b8\uc571\uc2e4\ub860": {
+      "stems": 2
+    },
+    "\ub77c\uc774\ud50c": {
+      "stems": 3
+    },
+    "\ub77c\uc774\ud50c_\uac80\uad11": {
+      "stems": 3
+    },
+    "\ub86f\ub4dc": {
+      "stems": 31
+    },
+    "\ub86f\ub4dc_\uac80\uad11": {
+      "stems": 7
+    },
+    "\ub9dd\uace0\uc288": {
+      "stems": 2
+    },
+    "\ub9e4\ub4dc\ubc14\ub2c8": {
+      "stems": 10
+    },
+    "\ubbf8\ub7ec\uc274\ub4dc": {
+      "stems": 3
+    },
+    "\ubc1c\uad11": {
+      "stems": 4
+    },
+    "\ubc84\uc2a4\ud130": {
+      "stems": 2
+    },
+    "\ubc84\ud074\ub7ec": {
+      "stems": 11
+    },
+    "\ube14\ub7ec\ub4dc\uc5d1\uc2a4": {
+      "stems": 2
+    },
+    "\uc0ac\uc2dc\ubbf8": {
+      "stems": 2
+    },
+    "\uc0f7\uac74": {
+      "stems": 3
+    },
+    "\uc0f7\uac74_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uc138\uc774\ubc84": {
+      "stems": 2
+    },
+    "\uc18c\ub4dc\uba54\uc774\uc2a4": {
+      "stems": 2
+    },
+    "\uc218\ub9ac\uac80": {
+      "stems": 5
+    },
+    "\uc274\ub4dc": {
+      "stems": 3
+    },
+    "\uc2a4\ud0ac": {
+      "stems": 1
+    },
+    "\uc2a4\ud154\ub808\ud1a0": {
+      "stems": 2
+    },
+    "\uc2a4\ud328\ub108": {
+      "stems": 2
+    },
+    "\uc544\uc774\uc5b8\ub4dc\ub77c\uc774\ubc84": {
+      "stems": 2
+    },
+    "\uc545\uae30": {
+      "stems": 3
+    },
+    "\uc591\uc190\uac80": {
+      "stems": 14
+    },
+    "\uc591\uc190\uac80_\uac80\uad11": {
+      "stems": 14
+    },
+    "\uc591\uc190\ub3c4\ub07c": {
+      "stems": 21
+    },
+    "\uc591\uc190\ub3c4\ub07c_\uac80\uad11": {
+      "stems": 22
+    },
+    "\uc591\uc190\ucc3d": {
+      "stems": 14
+    },
+    "\uc591\uc190\ucc3d_\uac80\uad11": {
+      "stems": 14
+    },
+    "\uc81c\ub2c8": {
+      "stems": 2
+    },
+    "\uc96c\uc5bc\uc18c\ub4dc": {
+      "stems": 2
+    },
+    "\ucc3d": {
+      "stems": 14
+    },
+    "\ucc3d_\uac80\uad11": {
+      "stems": 14
+    },
+    "\ucc44\ucc0d": {
+      "stems": 3
+    },
+    "\ucc45": {
+      "stems": 6
+    },
+    "\uccb4\uc778": {
+      "stems": 2
+    },
+    "\uce20\ub8e8\uae30": {
+      "stems": 2
+    },
+    "\uce74\ud0c0\ub974_\uce74\ud0c0\ub974": {
+      "stems": 3
+    },
+    "\uce74\ud0c0\ub974_\uce74\ud0c0\ub974_\uac80\uad11": {
+      "stems": 3
+    },
+    "\uce94\ub514\ucf00\uc778\ub86f\ub4dc": {
+      "stems": 17
+    },
+    "\ud074\ub7fd": {
+      "stems": 34
+    },
+    "\ud074\ub7fd_\uac80\uad11": {
+      "stems": 9
+    },
+    "\ud22c\ud578\ub4dc\uc5d1\uc2a4": {
+      "stems": 2
+    },
+    "\ud3ec\uc774\uc98c\ub098\uc774\ud504": {
+      "stems": 2
+    },
+    "\ud504\ub9b0\uc138\uc2a4\ub098\uc774\ud504": {
+      "stems": 2
+    },
+    "\ud574\ub3d9\uac80": {
+      "stems": 2
+    },
+    "\ud574\uba38": {
+      "stems": 2
+    },
+    "\ud65c": {
+      "stems": 13
+    }
+  },
+  "weapon_info_table_present": false
+}

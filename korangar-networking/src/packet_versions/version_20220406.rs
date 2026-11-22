@@ -711,6 +711,14 @@ where
             sprite_type: packet.sprite_type,
             value: packet.value,
         }),
+        // Equipment changes: the server sends the new weapon type (`W_*`) /
+        // shield / robe look after equipping or unequipping. The entity layer
+        // routes the weapon value through the data-driven weapon registry.
+        SpriteChangeType::Weapon | SpriteChangeType::Shield | SpriteChangeType::Robe => Some(NetworkEvent::AppearanceChanged {
+            account_id: packet.account_id,
+            sprite_type: packet.sprite_type,
+            value: packet.value,
+        }),
         _ => None,
     })?;
     packet_handler.register({

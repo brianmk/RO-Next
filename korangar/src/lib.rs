@@ -213,16 +213,6 @@ const MAIN_MENU_CLICK_SOUND_EFFECT: &str = "버튼소리.wav";
 /// Sound played when another entity teleports away / logs out (classic client
 /// plays the teleport warp effect together with this effect sound).
 const TELEPORT_VANISH_SOUND_EFFECT: &str = "effect\\ef_teleportation.wav";
-/// Classic item view ids of bows (item view ids 1700-1799).
-const BOW_ITEM_VIEW_RANGE: std::ops::RangeInclusive<u32> = 1700..=1799;
-/// Server weapon type `W_BOW` (rAthena `e_weapon_type`).
-const WEAPON_TYPE_BOW: u32 = 11;
-
-/// Whether the weapon value of an entity is a bow (server weapon type or item
-/// view id).
-fn is_bow_weapon(weapon: u32) -> bool {
-    weapon == WEAPON_TYPE_BOW || BOW_ITEM_VIEW_RANGE.contains(&weapon)
-}
 /// Maximum number of teleport-vanish effects spawned within
 /// `TELEPORT_VANISH_WINDOW`. Population-engine shells can vanish in bursts;
 /// this keeps the effect renderer cheap.
@@ -752,11 +742,10 @@ pub struct Client {
     current_map_name: Option<String>,
 
     particle_holder: ParticleHolder,
-    /// Cached classic arrow sprite/actions for bow attack projectiles.
-    arrow_assets: Option<std::sync::Arc<ArrowAssets>>,
-    /// Set when the arrow assets could not be loaded (avoids retrying every
-    /// hit).
-    arrow_assets_failed: bool,
+    /// Lazily loaded flying-projectile sprite/action pairs, keyed by the
+    /// projectile kind from the weapon data file. `None` marks a projectile
+    /// whose sprites are missing, so the failed load is not retried per hit.
+    projectile_assets: HashMap<crate::world::weapon::ProjectileKind, Option<Arc<ArrowAssets>>>,
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
@@ -1411,8 +1400,7 @@ impl Client {
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
-            arrow_assets: None,
-            arrow_assets_failed: false,
+            projectile_assets: HashMap::new(),
             point_light_manager,
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
@@ -2353,36 +2341,46 @@ impl Client {
         )));
     }
 
+    /// Loads the flying projectile sprites of `projectile` once, lazily.
+    ///
+    /// The candidate sprite paths (item sprites first, large skill-effect
+    /// sprites as last resort) and the flight time come from the weapon data
+    /// file, so no arrow/ammo path is hard-coded in the client loop.
+    fn ensure_projectile_assets(&mut self, projectile: crate::world::weapon::ProjectileKind) {
+        if self.projectile_assets.contains_key(&projectile) {
+            return;
+        }
+
+        let Some(profile) = crate::world::weapon::projectile(projectile) else {
+            crate::logging::log_debug!("projectile: no data profile for {:?}", projectile);
+            self.projectile_assets.insert(projectile, None);
+            return;
+        };
+
+        for candidate in profile.assets().iter().chain(profile.fallback_assets().iter()) {
+            let sprite = self.sprite_loader.get_or_load(&format!("{candidate}.spr"), None);
+            let actions = self.action_loader.get_or_load(&format!("{candidate}.act"));
+
+            if let (Ok(sprite), Ok(actions)) = (sprite, actions) {
+                crate::logging::log_debug!("projectile: loaded sprite {} ({:?})", candidate, projectile);
+                self.projectile_assets
+                    .insert(projectile, Some(Arc::new(ArrowAssets { sprite, actions })));
+                return;
+            }
+        }
+
+        crate::logging::log_debug!(
+            "projectile: could not load a sprite for {:?} from the game archives",
+            projectile
+        );
+        self.projectile_assets.insert(projectile, None);
+    }
+
     /// Spawns the one-shot teleport/logout disappear effect (warp swirl +
     /// `ef_teleportation.wav`) at the position where an entity vanished.
     ///
     /// Only `Teleported` and `LoggedOut` disappearances use this; out-of-sight
     /// and death disappearances keep their plain fade / death handling.
-    /// Loads the classic arrow sprite/actions once, on the first bow attack.
-    fn ensure_arrow_assets(&mut self) {
-        if self.arrow_assets.is_some() || self.arrow_assets_failed {
-            return;
-        }
-
-        // Classic clients draw the arrow with the arrow item sprite. The huge
-        // `ac_chargearrow` skill-effect sprite is only a last-resort fallback.
-        const CANDIDATES: [&str; 4] = ["아이템\\화살", "아이템\\강철화살", "아이템\\독화살", "아이템\\ac_chargearrow"];
-
-        for candidate in CANDIDATES {
-            let sprite = self.sprite_loader.get_or_load(&format!("{candidate}.spr"), None);
-            let actions = self.action_loader.get_or_load(&format!("{candidate}.act"));
-
-            if let (Ok(sprite), Ok(actions)) = (sprite, actions) {
-                crate::logging::log_debug!("arrow projectile: loaded sprite {}", candidate);
-                self.arrow_assets = Some(std::sync::Arc::new(ArrowAssets { sprite, actions }));
-                return;
-            }
-        }
-
-        self.arrow_assets_failed = true;
-        crate::logging::log_debug!("arrow projectile: could not load an arrow sprite from the game archives");
-    }
-
     fn spawn_teleport_vanish(&mut self, position: Point3<f32>) {
         // Defensive lifetime/rate handling for bursts of population-engine
         // shells: keep at most TELEPORT_VANISH_BURST_LIMIT effects per window.
@@ -3969,13 +3967,7 @@ impl Client {
                         player.set_falcon_animation(falcon_animation);
                     }
 
-                    let weapon_candidates = player.get_weapon_part_candidates();
-                    if !weapon_candidates.is_empty()
-                        && !player.has_weapon_animation()
-                        && let Some(weapon_animation) = self.async_loader.request_weapon_animation_data_load(entity_id, weapon_candidates)
-                    {
-                        player.set_weapon_animation(weapon_animation);
-                    }
+                    request_weapon_animation(&self.async_loader, &mut player);
 
                     let layout = self.async_loader.request_skill_tree_layout_load(player.get_job_id(), client_tick);
                     *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
@@ -4114,14 +4106,7 @@ impl Client {
                             npc.set_falcon_animation(falcon_animation);
                         }
 
-                        let weapon_candidates = npc.get_weapon_part_candidates();
-                        if !weapon_candidates.is_empty()
-                            && !npc.has_weapon_animation()
-                            && let Some(weapon_animation) =
-                                self.async_loader.request_weapon_animation_data_load(entity_id, weapon_candidates)
-                        {
-                            npc.set_weapon_animation(weapon_animation);
-                        }
+                        request_weapon_animation(&self.async_loader, &mut npc);
 
                         #[cfg(feature = "debug")]
                         npc.generate_pathing_mesh(&self.device, &self.queue, self.graphics_engine.bindless_support(), map);
@@ -4672,9 +4657,10 @@ impl Client {
                         self.particle_holder.spawn_particle(particle);
                     }
 
-                    // Classic bow arrow projectile: only auto attacks (attack
-                    // packets carry no skill id) with a bow-type weapon spawn an
-                    // arrow that flies from the attacker to the target.
+                    // Classic auto-attack projectile (arrows): the weapon data
+                    // file decides which weapons fire one, so the client loop
+                    // has no hard-coded bow type / item view id range. Only auto
+                    // attacks (attack packets carry no skill id) spawn it.
                     if skill_id.is_none()
                         && let Some(target_tile) = target_position
                     {
@@ -4686,21 +4672,23 @@ impl Client {
                             .map(|entity| (entity.get_weapon(), entity.get_position()));
 
                         if let Some((weapon, attacker_position)) = attacker
-                            && is_bow_weapon(weapon)
+                            && let Some(projectile) = crate::world::weapon::projectile_for_weapon(weapon)
                             && let Some(target_world_position) = self.map.as_ref().and_then(|map| map.get_world_position(target_tile))
                         {
-                            self.ensure_arrow_assets();
+                            self.ensure_projectile_assets(projectile.kind());
 
-                            if let Some(arrow_assets) = self.arrow_assets.clone() {
+                            if let Some(Some(projectile_assets)) = self.projectile_assets.get(&projectile.kind()).cloned() {
                                 crate::logging::log_debug!(
-                                    "arrow projectile: spawning arrow from {:?} to {:?}",
+                                    "projectile: spawning {:?} from {:?} to {:?}",
+                                    projectile.kind(),
                                     attacker_position,
                                     target_world_position
                                 );
                                 self.particle_holder.spawn_particle(Box::new(ArrowProjectile::new(
-                                    arrow_assets,
+                                    projectile_assets,
                                     attacker_position,
                                     target_world_position,
+                                    projectile.flight_seconds(),
                                 )));
                             }
                         }
@@ -5082,15 +5070,7 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
 
-                    let weapon_candidates = entity.get_weapon_part_candidates();
-                    if !weapon_candidates.is_empty()
-                        && !entity.has_weapon_animation()
-                        && let Some(weapon_animation) = self
-                            .async_loader
-                            .request_weapon_animation_data_load(entity.get_entity_id(), weapon_candidates)
-                    {
-                        entity.set_weapon_animation(weapon_animation);
-                    }
+                    request_weapon_animation(&self.async_loader, entity);
 
                     // Only the own character's job change affects the local skill tree
                     // window. Population shells send job changes for jobs that do not
@@ -5142,15 +5122,7 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
 
-                    let weapon_candidates = entity.get_weapon_part_candidates();
-                    if !weapon_candidates.is_empty()
-                        && !entity.has_weapon_animation()
-                        && let Some(weapon_animation) = self
-                            .async_loader
-                            .request_weapon_animation_data_load(entity.get_entity_id(), weapon_candidates)
-                    {
-                        entity.set_weapon_animation(weapon_animation);
-                    }
+                    request_weapon_animation(&self.async_loader, entity);
                 }
                 NetworkEvent::AppearanceChanged {
                     account_id,
@@ -5166,18 +5138,26 @@ impl Client {
                         continue;
                     };
 
-                    if !entity.apply_sprite_change(sprite_type, value as u16) {
+                    let Some(outcome) = entity.apply_sprite_change(sprite_type, value) else {
                         continue;
+                    };
+
+                    if outcome.body {
+                        // Sprite layers changed: reload the animation data so both the
+                        // world sprite and the equipment paper doll show the new appearance.
+                        if let Some(animation_data) = self.async_loader.request_animation_data_load(
+                            entity.get_entity_id(),
+                            entity.get_entity_type(),
+                            entity.get_entity_part_files(&self.library),
+                        ) {
+                            entity.set_animation_data(animation_data);
+                        }
                     }
 
-                    // Sprite layers changed: reload the animation data so both the world
-                    // sprite and the equipment paper doll show the new appearance.
-                    if let Some(animation_data) = self.async_loader.request_animation_data_load(
-                        entity.get_entity_id(),
-                        entity.get_entity_type(),
-                        entity.get_entity_part_files(&self.library),
-                    ) {
-                        entity.set_animation_data(animation_data);
+                    if outcome.weapon {
+                        // Equipping/unequipping a weapon does not change the body
+                        // sprite; reload only the (data-driven) weapon layer.
+                        request_weapon_animation(&self.async_loader, entity);
                     }
                 }
                 NetworkEvent::AutoRunSkill { skill_id, skill_level } => {
@@ -5197,18 +5177,24 @@ impl Client {
                         continue;
                     };
 
-                    if !entity.apply_sprite_change(sprite_type, value as u16) {
+                    let Some(outcome) = entity.apply_sprite_change(sprite_type, value) else {
                         continue;
+                    };
+
+                    if outcome.body {
+                        // Sprite layers changed: reload the animation data so that both the
+                        // world sprite and the equipment paper doll show the new appearance.
+                        if let Some(animation_data) = self.async_loader.request_animation_data_load(
+                            entity.get_entity_id(),
+                            entity.get_entity_type(),
+                            entity.get_entity_part_files(&self.library),
+                        ) {
+                            entity.set_animation_data(animation_data);
+                        }
                     }
 
-                    // Sprite layers changed: reload the animation data so that both the
-                    // world sprite and the equipment paper doll show the new appearance.
-                    if let Some(animation_data) = self.async_loader.request_animation_data_load(
-                        entity.get_entity_id(),
-                        entity.get_entity_type(),
-                        entity.get_entity_part_files(&self.library),
-                    ) {
-                        entity.set_animation_data(animation_data);
+                    if outcome.weapon {
+                        request_weapon_animation(&self.async_loader, entity);
                     }
                 }
                 NetworkEvent::LoggedOut => {
@@ -7894,8 +7880,9 @@ impl Client {
             return;
         }
 
-        // Missing weapon sprites are expected for some CondaRO jobs (the archives
-        // are trimmed); the async loader caches the failure and the entity is
+        // Missing/placeholder weapon sprites are expected in this data set (the
+        // CondaRO archives have no drawable per-job weapon clips; see
+        // `world::weapon`); the async loader caches the failure and the entity is
         // rendered without the weapon layer. Keep this out of the generic asset
         // failure reporting (and out of stderr) so map entry does not spam the
         // user or the log for every population-engine shell.
@@ -10474,6 +10461,36 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 /// therefore defaults to "rooted", which is the safe behaviour.
 fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
     FREE_CAST_JOB_IDS.contains(&job_id.0) && skills.iter().any(|skill| skill.skill_id == FREE_CAST_SKILL_ID)
+}
+
+/// Requests the equipped weapon animation layer for `entity` through the
+/// data-driven weapon module and applies it when it becomes available.
+///
+/// Every packet path that changes the body/weapon appearance (character login,
+/// entity spawn, job change, hair change, equipment change) goes through this
+/// function. The candidate paths come from [`crate::world::weapon`], so no call
+/// site knows weapon types, item view ids or sprite suffixes.
+fn request_weapon_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
+    let profile = crate::world::weapon::profile(entity.get_weapon());
+    let candidates = entity.get_weapon_part_candidates();
+
+    crate::logging::log_debug!(
+        "weapon layer: entity {} kind {:?} ({}) range {} ammo {:?} -> {} candidate(s)",
+        entity.get_entity_id().0,
+        profile.kind(),
+        profile.subtype(),
+        profile.attack_range(),
+        profile.ammo(),
+        candidates.len()
+    );
+
+    if candidates.is_empty() || entity.has_weapon_animation() {
+        return;
+    }
+
+    if let Some(weapon_animation) = async_loader.request_weapon_animation_data_load(entity.get_entity_id(), candidates) {
+        entity.set_weapon_animation(weapon_animation);
+    }
 }
 
 #[cfg(test)]
