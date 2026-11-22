@@ -2,7 +2,7 @@ use std::string::String;
 use std::sync::Arc;
 
 use arrayvec::ArrayVec;
-use cgmath::{EuclideanSpace, Point3, Vector2, VectorSpace};
+use cgmath::{EuclideanSpace, Point3, Vector2, Vector3, VectorSpace};
 use korangar_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use korangar_debug::logging::Colorize;
@@ -47,6 +47,45 @@ const SOUND_COOLDOWN_DURATION: u32 = 200;
 const SPATIAL_SOUND_RANGE: f32 = 250.0;
 const FADE_IN_DURATION_MS: u32 = 500;
 const BABY_JOB_SCALE: f32 = 0.75;
+/// Classic client `OPTION_FALCON` bit in the option/effect_state field.
+const OPTION_FALCON: u32 = 0x10;
+/// Height above the owner's position at which the falcon is drawn.
+const FALCON_HEIGHT: f32 = 42.0;
+
+/// Classic client weapon-variant suffixes per server weapon type (`W_*`).
+///
+/// The 2019 data set stores weapon sprites as per-job variants next to the body
+/// sprite, e.g. `data\sprite\인간족\궁수\궁수_남_활.spr/.act`. The suffix is
+/// derived from the weapon type the server sends in the entity-appear packets;
+/// newer clients also use item view ids as suffix, so those are tried first.
+fn weapon_suffix_candidates(weapon: u32) -> &'static [&'static str] {
+    match weapon {
+        0 => &[],
+        1 => &["단검"],
+        2 => &["검", "한손검"],
+        3 => &["양손검", "검"],
+        4 => &["창"],
+        5 => &["양손창", "창"],
+        6 => &["도끼"],
+        7 => &["양손도끼", "도끼"],
+        8 => &["철퇴", "클럽"],
+        9 => &["양손철퇴", "철퇴"],
+        10 => &["롯드", "스태프"],
+        11 => &["활"],
+        12 => &["너클"],
+        13 => &["악기"],
+        14 => &["채찍"],
+        15 => &["책"],
+        16 => &["카타르"],
+        17 => &["리볼버", "권총"],
+        18 => &["소총", "라이플"],
+        19 => &["개틀링"],
+        20 => &["샷건"],
+        21 => &["수류탄"],
+        22 => &["후우마"],
+        _ => &[],
+    }
+}
 
 #[derive(Clone)]
 pub enum ResourceState<T> {
@@ -183,6 +222,27 @@ pub struct Common {
     /// Middle headgear view id (`accessory3` in the network packets).
     #[hidden_element]
     pub accessory3: u16,
+    /// Body/health/effect state option bits (`effect_state` in the packets).
+    ///
+    /// `OPTION_FALCON` (0x10) means the player currently has the hunter falcon.
+    #[hidden_element]
+    pub effect_state: u32,
+    /// Weapon type/view id (`weapon` in the packets), `0` if unarmed.
+    #[hidden_element]
+    pub weapon: u32,
+    /// Shield view id (`shield` in the packets), `0` if none.
+    ///
+    /// Kept for the follow-up shield-layer work; not rendered yet.
+    #[hidden_element]
+    #[allow(dead_code)]
+    pub shield: u32,
+    /// Animation of the hunter falcon, loaded lazily when the entity actually
+    /// has the falcon option (`effect_state & OPTION_FALCON`).
+    #[hidden_element]
+    falcon_animation: Option<Arc<AnimationData>>,
+    /// Independent animation state of the falcon (perched/flapping loop).
+    #[hidden_element]
+    falcon_animation_state: AnimationState,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
     pub tile_position: TilePosition,
@@ -429,6 +489,7 @@ fn get_entity_part_files(
     accessory: u16,
     accessory2: u16,
     accessory3: u16,
+    weapon: u32,
 ) -> Vec<EntityPartFile> {
     let sex_sprite_path = match sex == Sex::Female {
         true => "여",
@@ -508,6 +569,21 @@ fn get_entity_part_files(
                 push_accessory(accessory);
             }
 
+            // Equipped weapon: the 2019 data set stores per-job weapon variants
+            // next to the body sprite (`인간족\<job>\<job>_<sex>_<variant>`), not
+            // in a `무기` folder. Candidates that do not exist in the archives are
+            // skipped by the animation loader (optional-part path), so a missing
+            // weapon never renders the black placeholder.
+            if weapon != 0 {
+                let job_stem = get_sprite_path_for_player_job(job_id);
+                let numeric = format!("{weapon}");
+
+                for suffix in std::iter::once(numeric.as_str()).chain(weapon_suffix_candidates(weapon).iter().copied()) {
+                    let path = format!("인간족\\{job_stem}\\{job_stem}_{sex_sprite_path}_{suffix}");
+                    entity_part_files.push(EntityPartFile::new(path));
+                }
+            }
+
             entity_part_files
         }
         EntityType::Npc => vec![EntityPartFile::new(format!("npc\\{}", library.get::<JobIdentity>(job_id)))],
@@ -547,6 +623,17 @@ impl Common {
         let accessory = entity_data.accessory;
         let accessory2 = entity_data.accessory2;
         let accessory3 = entity_data.accessory3;
+        let effect_state = entity_data.effect_state;
+        crate::logging::log_debug!(
+            "entity spawn id={} job={} effect_state=0x{:X} weapon={} shield={}",
+            entity_data.entity_id.0,
+            job_id.0,
+            effect_state,
+            entity_data.weapon,
+            entity_data.shield
+        );
+        let weapon = entity_data.weapon;
+        let shield = entity_data.shield;
 
         let active_movement = None;
         let entity_type = job_id.into();
@@ -577,6 +664,11 @@ impl Common {
             accessory,
             accessory2,
             accessory3,
+            effect_state,
+            weapon,
+            shield,
+            falcon_animation: None,
+            falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick),
             active_movement,
             entity_type,
             movement_speed,
@@ -594,6 +686,24 @@ impl Common {
         }
     }
 
+    /// Whether the entity currently has the hunter falcon option set.
+    pub fn has_falcon(&self) -> bool {
+        self.effect_state & OPTION_FALCON != 0
+    }
+
+    /// Updates the option bits from a `ZC_STATE_CHANGE` (0x0229) packet.
+    pub fn set_effect_state(&mut self, effect_state: u32) {
+        self.effect_state = effect_state;
+    }
+
+    pub fn set_falcon_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.falcon_animation = Some(animation_data);
+    }
+
+    pub fn has_falcon_animation(&self) -> bool {
+        self.falcon_animation.is_some()
+    }
+
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         get_entity_part_files(
             library,
@@ -606,6 +716,7 @@ impl Common {
             self.accessory,
             self.accessory2,
             self.accessory3,
+            self.weapon,
         )
     }
 
@@ -643,6 +754,16 @@ impl Common {
 
         if self.fade_state.is_fading() && self.fade_state.is_done_fading_in(client_tick) {
             self.fade_state = FadeState::Opaque;
+        }
+
+        // The hunter falcon has its own animation (perched/flapping loop) and is
+        // drawn above the owner. Keep its animation running independently from the
+        // owner's body animation.
+        if let Some(falcon_animation) = self.falcon_animation.clone() {
+            self.falcon_animation_state.update(client_tick);
+            if falcon_animation.is_animation_over(&self.falcon_animation_state) {
+                self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+            }
         }
 
         if let Some(animation_data) = self.animation_data.as_ref() {
@@ -1050,6 +1171,8 @@ impl Common {
     }
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {
+        let alpha = self.fade_state.calculate_alpha(client_tick);
+
         if let Some(animation_data) = self.animation_data.as_ref() {
             animation_data.render(
                 instructions,
@@ -1059,7 +1182,26 @@ impl Common {
                 self.world_position,
                 &self.animation_state,
                 self.direction,
-                self.fade_state.calculate_alpha(client_tick),
+                alpha,
+                self.scale,
+            );
+        }
+
+        // Falcon companion: drawn above the owner (classic client shows it perched
+        // on / flying above the hunter). Only rendered while the option bit is set.
+        if self.has_falcon()
+            && let Some(falcon_animation) = self.falcon_animation.as_ref()
+        {
+            let falcon_position = self.world_position + Vector3::new(0.0, FALCON_HEIGHT * self.scale, 0.0);
+            falcon_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                falcon_position,
+                &self.falcon_animation_state,
+                self.direction,
+                alpha,
                 self.scale,
             );
         }
@@ -1420,6 +1562,7 @@ impl Player {
             common.accessory,
             common.accessory2,
             common.accessory3,
+            common.weapon,
         )
     }
 }
@@ -1564,6 +1707,23 @@ pub enum Entity {
 }
 
 impl Entity {
+    /// Whether this entity currently has the hunter falcon option set.
+    pub fn has_falcon(&self) -> bool {
+        self.get_common().has_falcon()
+    }
+
+    pub fn set_effect_state(&mut self, effect_state: u32) {
+        self.get_common_mut().set_effect_state(effect_state);
+    }
+
+    pub fn set_falcon_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.get_common_mut().set_falcon_animation(animation_data);
+    }
+
+    pub fn has_falcon_animation(&self) -> bool {
+        self.get_common().has_falcon_animation()
+    }
+
     fn get_common(&self) -> &Common {
         match self {
             Self::Player(player) => player.get_common(),

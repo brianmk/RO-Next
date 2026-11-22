@@ -33,6 +33,16 @@ pub struct EntityData {
     pub accessory2: u16,
     /// Middle headgear view id (`accessory3` in the packets).
     pub accessory3: u16,
+    /// Body/health/effect state option bits (the classic "option" field).
+    ///
+    /// `effect_state` carries the option flags, e.g. `OPTION_FALCON` (0x10).
+    pub effect_state: u32,
+    /// Weapon type/view id (`weapon` in the packets), `0` if unarmed.
+    pub weapon: u32,
+    /// Shield view id (`shield` in the packets), `0` if none.
+    pub shield: u32,
+    /// Robe view id (`robe` in the packets), `0` if none.
+    pub robe: u16,
 }
 
 impl EntityData {
@@ -58,6 +68,10 @@ impl EntityData {
             accessory: character_information.accessory as u16,
             accessory2: character_information.accessory2 as u16,
             accessory3: character_information.accessory3 as u16,
+            effect_state: character_information.effect_state as u32,
+            weapon: character_information.weapon as u32,
+            shield: character_information.shield as u32,
+            robe: 0,
         }
     }
 }
@@ -82,6 +96,10 @@ impl From<EntityAppearPacket> for EntityData {
             accessory: packet.accessory,
             accessory2: packet.accessory2,
             accessory3: packet.accessory3,
+            effect_state: packet.effect_state,
+            weapon: packet.weapon,
+            shield: packet.shield,
+            robe: packet.robe,
         }
     }
 }
@@ -106,6 +124,10 @@ impl From<EntityAppear2Packet> for EntityData {
             accessory: packet.accessory,
             accessory2: packet.accessory2,
             accessory3: packet.accessory3,
+            effect_state: packet.effect_state,
+            weapon: packet.weapon,
+            shield: packet.shield,
+            robe: packet.robe,
         }
     }
 }
@@ -132,6 +154,10 @@ impl From<MovingEntityAppearPacket> for EntityData {
             accessory: packet.accessory,
             accessory2: packet.accessory2,
             accessory3: packet.accessory3,
+            effect_state: packet.effect_state,
+            weapon: packet.weapon,
+            shield: packet.shield,
+            robe: packet.robe,
         }
     }
 }

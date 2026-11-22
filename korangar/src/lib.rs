@@ -2780,6 +2780,12 @@ impl Client {
                         player.set_animation_data(animation_data);
                     }
 
+                    if player.has_falcon()
+                        && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity_id)
+                    {
+                        player.set_falcon_animation(falcon_animation);
+                    }
+
                     let layout = self.async_loader.request_skill_tree_layout_load(player.get_job_id(), client_tick);
                     *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
                     *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
@@ -2872,6 +2878,12 @@ impl Client {
                                 .request_animation_data_load(entity_id, entity_type, entity_part_files)
                         {
                             npc.set_animation_data(animation_data);
+                        }
+
+                        if npc.has_falcon()
+                            && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity_id)
+                        {
+                            npc.set_falcon_animation(falcon_animation);
                         }
 
                         #[cfg(feature = "debug")]
@@ -3519,6 +3531,12 @@ impl Client {
                         entity.set_animation_data(animation_data);
                     }
 
+                    if entity.has_falcon()
+                        && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity.get_entity_id())
+                    {
+                        entity.set_falcon_animation(falcon_animation);
+                    }
+
                     // Only the own character's job change affects the local skill tree
                     // window. Population shells send job changes for jobs that do not
                     // exist in this client's skill tree tables, which used to panic when
@@ -3562,6 +3580,12 @@ impl Client {
                     ) {
                         entity.set_animation_data(animation_data);
                     }
+
+                    if entity.has_falcon()
+                        && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity.get_entity_id())
+                    {
+                        entity.set_falcon_animation(falcon_animation);
+                    }
                 }
                 NetworkEvent::LoggedOut => {
                     // The server confirmed the logout; switch away from the map
@@ -3570,6 +3594,40 @@ impl Client {
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
                     self.networking_system.disconnect_from_map_server();
+                }
+                NetworkEvent::ChangeEntityState {
+                    entity_id,
+                    body_state: _,
+                    health_state: _,
+                    effect_state,
+                } => {
+                    // The option bits (falcon/cart/riding/...) arrive in
+                    // `ZC_STATE_CHANGE` (0x0229). Update the entity state and load
+                    // the falcon animation lazily the first time it is enabled.
+                    let mut needs_falcon_animation = false;
+
+                    let entities = self.client_state.follow_mut(client_state().entities());
+                    if let Some(entity) = entities.iter_mut().find(|entity| entity.get_entity_id() == entity_id) {
+                        entity.set_effect_state(effect_state);
+                        needs_falcon_animation = entity.has_falcon() && !entity.has_falcon_animation();
+                    }
+
+                    let falcon_entity_index = needs_falcon_animation
+                        .then(|| {
+                            self.client_state
+                                .follow(client_state().entities())
+                                .iter()
+                                .position(|entity| entity.get_entity_id() == entity_id)
+                        })
+                        .flatten();
+                    let falcon_animation =
+                        falcon_entity_index.and_then(|_| self.async_loader.request_falcon_animation_data_load(entity_id));
+
+                    if let (Some(index), Some(falcon_animation)) = (falcon_entity_index, falcon_animation)
+                        && let Some(entity) = self.client_state.follow_mut(client_state().entities()).get_mut(index)
+                    {
+                        entity.set_falcon_animation(falcon_animation);
+                    }
                 }
                 NetworkEvent::FriendRequest { requestee } => {
                     crate::state::friend_names::remember(requestee.character_id.0, &requestee.name);
@@ -5243,6 +5301,17 @@ impl Client {
                         .find(|item| item.get_entity_id() == entity_id)
                     {
                         item.set_animation_data(animation_data);
+                    }
+                }
+                (LoaderId::FalconAnimationData(entity_id), LoadableResource::FalconAnimation(falcon_animation)) => {
+                    crate::logging::log_debug!("falcon animation: applying to entity {}", entity_id.0);
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_falcon_animation(falcon_animation);
                     }
                 }
                 (LoaderId::ItemSprite(item_id), LoadableResource::ItemSprite { texture }) => {

@@ -863,7 +863,12 @@ where
     })?;
     packet_handler.register_noop::<DisplayGainedExperiencePacket>()?;
     packet_handler.register_noop::<DisplayImagePacket>()?;
-    packet_handler.register_noop::<StateChangePacket>()?;
+    packet_handler.register(|packet: StateChangePacket| NetworkEvent::ChangeEntityState {
+        entity_id: packet.entity_id,
+        body_state: packet.body_state,
+        health_state: packet.health_state,
+        effect_state: packet.effect_state,
+    })?;
 
     packet_handler.register(|packet: QuestEffectPacket| match packet.effect {
         QuestEffect::None => NetworkEvent::RemoveQuestEffect {

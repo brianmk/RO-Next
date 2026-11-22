@@ -368,6 +368,15 @@ pub enum NetworkEvent {
     FriendAdded {
         friend: Friend,
     },
+    /// The server sent a body/health/effect-state update for an entity
+    /// (`ZC_STATE_CHANGE`, 0x0229). `effect_state` carries the option bits
+    /// (cart, riding, falcon, invisibility, ...).
+    ChangeEntityState {
+        entity_id: EntityId,
+        body_state: u16,
+        health_state: u16,
+        effect_state: u32,
+    },
     FriendRemoved {
         account_id: AccountId,
         character_id: CharacterId,

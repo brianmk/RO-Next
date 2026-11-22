@@ -25,6 +25,8 @@ use crate::world::{
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub enum LoaderId {
     AnimationData(EntityId),
+    /// Animation of the hunter falcon that is attached to a player entity.
+    FalconAnimationData(EntityId),
     ItemSprite(ItemId),
     Map(String),
     SkillSprite(SkillId),
@@ -33,6 +35,7 @@ pub enum LoaderId {
 
 pub enum LoadableResource {
     AnimationData(Arc<AnimationData>),
+    FalconAnimation(Arc<AnimationData>),
     ItemSprite { texture: Arc<Texture> },
     SkillSprite { sprite: Arc<Sprite> },
     SkillActions { actions: Arc<Actions> },
@@ -143,6 +146,51 @@ impl AsyncLoader {
                 None
             }
         }
+    }
+
+    /// Requests the hunter falcon animation for `entity_id`.
+    ///
+    /// The trimmed archive stores the falcon sprite and action under different
+    /// stems (`ht_falcon.spr` + `h_falcon.act`), so the first candidate uses an
+    /// explicit action-path override. Further candidates cover archives that
+    /// have the regular same-stem pair or the soul-falcon effect sprite.
+    #[must_use]
+    pub fn request_falcon_animation_data_load(&self, entity_id: EntityId) -> Option<Arc<AnimationData>> {
+        let candidates: Vec<Vec<EntityPartFile>> = vec![
+            vec![EntityPartFile::with_action("아이템\\ht_falcon", "아이템\\h_falcon")],
+            vec![EntityPartFile::new("아이템\\ht_falcon")],
+            vec![EntityPartFile::new("아이템\\h_falcon")],
+            vec![EntityPartFile::new("이팩트\\soul_falcon\\soul_falcon")],
+        ];
+
+        if let Some(animation_data) = candidates.iter().find_map(|parts| self.animation_loader.get(parts)) {
+            crate::logging::log_debug!("falcon animation: cache hit for entity {}", entity_id.0);
+            return Some(animation_data);
+        }
+
+        crate::logging::log_debug!("falcon animation: requesting load for entity {}", entity_id.0);
+
+        let sprite_loader = self.sprite_loader.clone();
+        let action_loader = self.action_loader.clone();
+        let animation_loader = self.animation_loader.clone();
+
+        self.request_load(LoaderId::FalconAnimationData(entity_id), move || {
+            let mut last_error = LoadError::UnsupportedFormat("no falcon sprite found in the game archives".to_owned());
+
+            for parts in &candidates {
+                match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, parts) {
+                    Ok(animation_data) => {
+                        crate::logging::log_debug!("falcon animation: loaded candidate {:?}", parts);
+                        return Ok(LoadableResource::FalconAnimation(animation_data));
+                    }
+                    Err(error) => last_error = error,
+                }
+            }
+
+            Err(last_error)
+        });
+
+        None
     }
 
     #[must_use]
