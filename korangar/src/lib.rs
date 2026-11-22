@@ -58,7 +58,7 @@ use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use cgmath::{Point3, Vector3};
+use cgmath::{InnerSpace, Point3, Vector3};
 use hashbrown::HashMap;
 use image::{EncodableLayout, ImageFormat, ImageReader};
 use input::{MouseInputMode, MouseModeExt};
@@ -777,9 +777,12 @@ pub struct Client {
     /// ticks. Server table values; paces follow-up skill/item actions only.
     aftercast_act_until: Option<ClientTick>,
     warp_portal: Option<WarpPortal>,
-    /// Active warp-portal skill units: (entity id, world position, spawn time).
-    /// Rendered as the flat ground portal of the original client.
-    warp_skill_units: Vec<(EntityId, Point3<f32>, Instant)>,
+    /// Active warp-portal skill units: (unit entity id, world position, spawn
+    /// time, expiry). The expiry is a safety net in case the server's
+    /// `ZC_SKILL_DISAPPEAR` is lost; the normal removal goes through
+    /// `RemoveSkillUnit`. Rendered as the flat ground portal of the original
+    /// client.
+    warp_skill_units: Vec<(EntityId, Point3<f32>, Instant, Instant)>,
     /// Sound of the entity teleport/logout disappear effect.
     teleport_vanish_sound_effect: SoundEffectKey,
     /// Spawn times of recently started teleport-vanish effects (burst limiter).
@@ -3499,6 +3502,24 @@ impl Client {
                         self.spawn_skill_aura(source_entity_id, aura);
                     }
 
+                    // Warp Portal fallback: the server asks the caster for the
+                    // destination (ZC_WARPLIST) before it creates the portal skill
+                    // units. When the skill use packet already carries the target
+                    // cell, show the blue portal there immediately; the real
+                    // `AddSkillUnit` packet replaces it (same cell) when the warp
+                    // opens. This keeps the portal visible even when the warp
+                    // destination menu cannot be answered.
+                    if skill_id.0 == 27
+                        && let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position))
+                    {
+                        let now = Instant::now();
+                        let lifetime = Duration::from_secs(20);
+                        let provisional_id = EntityId(0xFF00_0000 | ((position.x as u32) << 8) | position.y as u32);
+                        self.warp_skill_units
+                            .retain(|(unit_entity_id, ..)| *unit_entity_id != provisional_id);
+                        self.warp_skill_units.push((provisional_id, world_position, now, now + lifetime));
+                    }
+
                     // Show the skill name above the caster's head, like the original
                     // client (own character, other players and population shells).
                     self.show_skill_name_text(source_entity_id, skill_id, client_tick);
@@ -3630,6 +3651,14 @@ impl Client {
 
                         for aura in visuals.instant_auras.iter().copied() {
                             self.spawn_skill_aura(source_entity_id, aura);
+                        }
+
+                        // Target-bound auras (the green heal columns) follow the
+                        // healed entity, so they also show on other players.
+                        if destination_entity_id != EntityId(0) {
+                            for aura in visuals.target_auras.iter().copied() {
+                                self.spawn_skill_aura(destination_entity_id, aura);
+                            }
                         }
 
                         self.show_skill_name_text(source_entity_id, skill_id, client_tick);
@@ -4817,6 +4846,20 @@ impl Client {
 
                     self.interface.open_window(DialogWindow::new(client_state().dialog_window()));
                 }
+                NetworkEvent::WarpPointList { skill_id, maps } => {
+                    // Warp Portal (`AL_WARP`) finished casting: the server asks for
+                    // the destination map and creates the portal units only after
+                    // the client answered. Show the destination list in the dialog
+                    // window and send the choice back in `SelectWarpPoint`.
+                    if maps.is_empty() {
+                        continue;
+                    }
+
+                    self.client_state
+                        .follow_mut(client_state().dialog_window())
+                        .start_warp_point_list(skill_id, maps);
+                    self.interface.open_window(DialogWindow::new(client_state().dialog_window()));
+                }
                 NetworkEvent::AddQuestEffect { quest_effect } => {
                     if let Some(map) = &self.map {
                         self.particle_holder.add_quest_icon(&self.texture_loader, map, quest_effect)
@@ -5392,6 +5435,7 @@ impl Client {
                     entity_id,
                     unit_id,
                     position,
+                    skill_level,
                 } => {
                     // Warp portal skill units have no sprite in the game files; the
                     // client draws the classic portal effect for them (like for warp
@@ -5402,9 +5446,20 @@ impl Client {
 
                         if let Some(world_position) = world_position {
                             // `WarpWaiting` and `WarpActive` are separate packets for the
-                            // same unit, so replace the previous position.
-                            self.warp_skill_units.retain(|(unit_entity_id, ..)| *unit_entity_id != entity_id);
-                            self.warp_skill_units.push((entity_id, world_position, Instant::now()));
+                            // same unit, so replace the previous position (this also
+                            // prevents duplicate visuals for the same portal). Drop a
+                            // provisional portal of the same cell as well.
+                            self.warp_skill_units.retain(|(unit_entity_id, unit_position, ..)| {
+                                *unit_entity_id != entity_id
+                                    && (*unit_entity_id >= EntityId(0xFF00_0000) || (*unit_position - world_position).magnitude() > 8.0)
+                            });
+
+                            // Pre-renewal Warp Portal lasts 5 s per skill level; the
+                            // expiry is only a safety net (the server sends a removal
+                            // packet when the unit ends).
+                            let lifetime = Duration::from_millis(5_000 * u64::from(skill_level.max(1)) + 1_000);
+                            self.warp_skill_units
+                                .push((entity_id, world_position, Instant::now(), Instant::now() + lifetime));
                         }
 
                         continue;
@@ -6396,7 +6451,24 @@ impl Client {
                         }
                     }
                 }
-                InputEvent::CloseTopWindow => self.interface.close_top_window(&self.client_state),
+                InputEvent::CloseTopWindow => {
+                    let pending_warp_point = self.client_state.follow(client_state().dialog_window()).warp_point_skill();
+                    let dialog_was_open = self.interface.is_window_with_class_open(WindowClass::Dialog);
+                    self.interface.close_top_window(&self.client_state);
+
+                    // Closing the Warp Portal destination list without a choice
+                    // answers the server with an invalid destination so it can drop
+                    // the pending cast state (`skill_castend_map` clears the menu).
+                    if !self.interface.is_window_with_class_open(WindowClass::Dialog)
+                        && dialog_was_open
+                        && let Some(skill_id) = pending_warp_point
+                    {
+                        let dialog = self.client_state.follow_mut(client_state().dialog_window());
+                        dialog.clear_warp_point();
+                        dialog.clear_choices();
+                        let _ = self.networking_system.select_warp_point(skill_id, String::new());
+                    }
+                }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {
                     // The cards of blocked characters do not register a click handler,
@@ -6779,6 +6851,24 @@ impl Client {
                     if option == -1 {
                         self.interface.close_window_with_class(WindowClass::Dialog);
                     }
+                }
+                InputEvent::SelectWarpPoint { option } => {
+                    let destination = self
+                        .client_state
+                        .follow(client_state().dialog_window())
+                        .warp_point_destination(option);
+
+                    if let Some((skill_id, map_name)) = destination {
+                        let _ = self.networking_system.select_warp_point(skill_id, map_name);
+                    }
+
+                    // The official client closes the destination list as soon as the
+                    // option was picked; the server creates the portal units after
+                    // answering with `CZ_SELECT_WARPPOINT`.
+                    let dialog = self.client_state.follow_mut(client_state().dialog_window());
+                    dialog.clear_warp_point();
+                    dialog.clear_choices();
+                    self.interface.close_window_with_class(WindowClass::Dialog);
                 }
                 InputEvent::MoveItem { source, destination, item } => match (source, destination) {
                     (ItemSource::Inventory, ItemSource::Equipment { position }) => {
@@ -8909,6 +8999,13 @@ impl Client {
         let allocations_after_interface = crate::perf::thread_allocation_snapshot();
         let after_interface = std::time::Instant::now();
 
+        // Drop warp portals whose server removal packet was lost (safety net; the
+        // normal removal is the `RemoveSkillUnit` packet).
+        {
+            let now = std::time::Instant::now();
+            self.warp_skill_units.retain(|(_, _, _, expires_at)| *expires_at > now);
+        }
+
         {
             let mut render_context = MapRenderContext {
                 map: &map,
@@ -9743,7 +9840,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
     /// Active warp-portal skill units, rendered like warp NPCs.
-    warp_skill_units: &'a [(EntityId, Point3<f32>, Instant)],
+    warp_skill_units: &'a [(EntityId, Point3<f32>, Instant, Instant)],
     effect_renderer: &'a mut EffectRenderer,
     bottom_interface_renderer: &'a GameInterfaceRenderer,
     middle_interface_renderer: &'a mut GameInterfaceRenderer,
@@ -10109,7 +10206,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         // Warp portal skill units (e.g. cast by an ambient NPC) are drawn as the
         // flat ground portal of the original client, with a short fade-in so that
         // the transition from the cast circle is smooth.
-        for (_, position, spawn_time) in self.warp_skill_units {
+        for (_, position, spawn_time, _) in self.warp_skill_units {
             let fade = (spawn_time.elapsed().as_secs_f32() / 0.35).clamp(0.0, 1.0);
             warp_portal.render_skill_unit(
                 self.effect_renderer,

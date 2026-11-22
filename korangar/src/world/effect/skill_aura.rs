@@ -55,6 +55,9 @@ pub enum AuraGrow {
     /// The radii stay constant for the whole lifetime (data-driven ground
     /// rings).
     Constant,
+    /// The radii stay constant while the *height* grows from the ground (the
+    /// green `EF_HEAL` restoring column of the official client).
+    Height,
 }
 
 /// Description of one client "cylinder" effect. All values are tuned to the
@@ -168,12 +171,25 @@ impl SkillAura {
             AuraGrow::TopRadius => (spec.bottom_radius, spec.top_radius * progress),
             AuraGrow::BothRadii => (spec.bottom_radius * progress, spec.top_radius * progress),
             AuraGrow::Constant => (spec.bottom_radius, spec.top_radius),
+            // Constant radii: only the height grows (heal column).
+            AuraGrow::Height => (spec.bottom_radius, spec.top_radius),
+        }
+    }
+
+    /// Height of a cylinder after `elapsed` milliseconds. `AuraGrow::Height`
+    /// effects grow from the ground over their first second, like the official
+    /// client's cylinder animation 1.
+    fn cylinder_height(spec: &SkillAuraSpec, elapsed: f32) -> f32 {
+        match spec.grow {
+            AuraGrow::Height => spec.height * (elapsed / 1_000.0).clamp(0.0, 1.0),
+            _ => spec.height,
         }
     }
 
     fn render_cylinder(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, anchor: Point3<f32>, elapsed_ms: f32) {
         let (bottom_radius, top_radius) = Self::cylinder_radii(&self.spec, elapsed_ms);
         let alpha = Self::cylinder_alpha(&self.spec, elapsed_ms);
+        let height = Self::cylinder_height(&self.spec, elapsed_ms);
 
         if alpha <= 0.001 || (bottom_radius <= 0.05 && top_radius <= 0.05) {
             return;
@@ -226,7 +242,7 @@ impl SkillAura {
         }
 
         let segment_angle = std::f32::consts::TAU / CYLINDER_SEGMENTS as f32;
-        let height = Vector3::new(0.0, self.spec.height, 0.0);
+        let height = Vector3::new(0.0, height, 0.0);
 
         for segment in 0..CYLINDER_SEGMENTS {
             let angle_start = angle + segment as f32 * segment_angle;
@@ -311,13 +327,13 @@ mod tests {
             height: 4.0 * OFFICIAL_EFFECT_UNIT,
             bottom_radius: 1.0 * OFFICIAL_EFFECT_UNIT,
             top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+            color: Color::rgb(0.95, 0.85, 0.35),
             alpha_max: 0.8,
             additive: true,
             rotation_speed: 0.0,
             grow: AuraGrow::TopRadius,
             duplicates: 1,
             duplicate_delay_ms: 0,
-            color: Color::rgb(0.95, 0.85, 0.35),
         }
     }
 
@@ -328,13 +344,13 @@ mod tests {
             height: 2.0 * OFFICIAL_EFFECT_UNIT,
             bottom_radius: 2.0 * OFFICIAL_EFFECT_UNIT,
             top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+            color: Color::rgb(0.95, 0.85, 0.35),
             alpha_max: 0.5,
             additive: false,
             rotation_speed: 4.0,
             grow: AuraGrow::BothRadii,
             duplicates: 4,
             duplicate_delay_ms: 100,
-            color: Color::rgb(0.95, 0.85, 0.35),
         }
     }
 
@@ -365,6 +381,37 @@ mod tests {
         assert_eq!(top_end, spec.top_radius);
         // Four duplicates 100 ms apart, each living 1500 ms.
         assert_eq!(spec.total_duration_ms(), 1_800);
+    }
+
+    fn heal_column() -> SkillAuraSpec {
+        SkillAuraSpec {
+            texture_path: "effect\\ring_white.tga",
+            duration_ms: 1_500,
+            height: 8.0 * OFFICIAL_EFFECT_UNIT,
+            bottom_radius: 0.95 * OFFICIAL_EFFECT_UNIT,
+            top_radius: 0.95 * OFFICIAL_EFFECT_UNIT,
+            color: Color::rgb(0.7, 1.0, 0.7),
+            alpha_max: 0.2,
+            additive: true,
+            rotation_speed: 4.36,
+            grow: AuraGrow::Height,
+            duplicates: 1,
+            duplicate_delay_ms: 0,
+        }
+    }
+
+    #[test]
+    fn heal_column_grows_from_the_ground_and_keeps_its_radius() {
+        let spec = heal_column();
+
+        assert_eq!(SkillAura::cylinder_height(&spec, 0.0), 0.0);
+        assert!((SkillAura::cylinder_height(&spec, 500.0) - spec.height * 0.5).abs() < 1e-5);
+        assert_eq!(SkillAura::cylinder_height(&spec, 1_000.0), spec.height);
+        assert_eq!(SkillAura::cylinder_height(&spec, 1_500.0), spec.height);
+
+        let (bottom, top) = SkillAura::cylinder_radii(&spec, 750.0);
+        assert_eq!(bottom, spec.bottom_radius);
+        assert_eq!(top, spec.top_radius);
     }
 
     #[test]

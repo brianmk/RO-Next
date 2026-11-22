@@ -1479,6 +1479,7 @@ where
             entity_id,
             position,
             unit_id,
+            skill_level,
             ..
         } = packet;
 
@@ -1486,11 +1487,24 @@ where
             entity_id,
             unit_id,
             position,
+            skill_level,
         }
     })?;
     packet_handler.register(|packet: SkillUnitDisappearPacket| {
         let SkillUnitDisappearPacket { entity_id } = packet;
         NetworkEvent::RemoveSkillUnit { entity_id }
+    })?;
+    // `ZC_WARPLIST` (0x0ABE): the caster of a Warp Portal has to choose the
+    // destination; the server creates the portal units only after the client
+    // answers with `SelectWarpPointPacket`.
+    packet_handler.register(|packet: WarpPointListPacket| NetworkEvent::WarpPointList {
+        skill_id: packet.skill_id,
+        maps: packet
+            .maps
+            .into_iter()
+            .map(|entry| entry.map_name)
+            .filter(|map_name| !map_name.trim().is_empty())
+            .collect(),
     })?;
     packet_handler.register(|packet: NotifyGroundSkillPacket| {
         let NotifyGroundSkillPacket {
