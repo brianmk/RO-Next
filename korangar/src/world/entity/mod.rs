@@ -983,11 +983,12 @@ impl Common {
         // The hunter falcon has its own animation (perched/flapping loop) and is
         // drawn above the owner. Keep its animation running independently from the
         // owner's body animation.
-        if let Some(falcon_animation) = self.falcon_animation.clone() {
+        if self.falcon_animation.is_some() {
+            // The falcon flaps in a continuous loop. Do not reset the state when
+            // the (per-direction) ACT duration is over: the frame selection already
+            // wraps modulo the frame count, and resetting here causes a one-frame
+            // freeze/duplicate frame at the loop point (visible as a stutter).
             self.falcon_animation_state.update(client_tick);
-            if falcon_animation.is_animation_over(&self.falcon_animation_state) {
-                self.falcon_animation_state.idle(EntityType::Npc, client_tick);
-            }
         }
 
         if let Some(animation_data) = self.animation_data.as_ref() {
