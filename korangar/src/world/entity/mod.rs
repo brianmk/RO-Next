@@ -222,20 +222,36 @@ pub struct Common {
     /// Middle headgear view id (`accessory3` in the network packets).
     #[hidden_element]
     pub accessory3: u16,
-    /// Body/health/effect state option bits (`effect_state` in the packets).
+    /// Hair style id (`head` in the entity-appear packets and the character
+    /// information row). The official client always renders the hair sprite,
+    /// so it must be carried for every player entity, not only the local one.
+    #[hidden_element]
+    pub hair_id: Option<usize>,
+    /// Option bit mask (`effectState`): falcon, cart, riding, hide/cloak,
+    /// costumes, ... (server `enum e_option`, rAthena `status.hpp`).
     ///
     /// `OPTION_FALCON` (0x10) means the player currently has the hunter falcon.
     #[hidden_element]
     pub effect_state: u32,
-    /// Weapon type/view id (`weapon` in the packets), `0` if unarmed.
+    /// `bodyState` (`opt1`): freeze/stone/stun/sleep/burning/... visual state.
+    #[hidden_element]
+    pub body_state: u16,
+    /// `healthState` (`opt2`): poison/curse/silence/confusion/blind/... state.
+    #[hidden_element]
+    pub health_state: u16,
+    /// Weapon view id (`weapon` in the entity-appear packets), `0` if unarmed.
     #[hidden_element]
     pub weapon: u32,
-    /// Shield view id (`shield` in the packets), `0` if none.
+    /// Shield view id (`shield` in the entity-appear packets), `0` if none.
     ///
     /// Kept for the follow-up shield-layer work; not rendered yet.
     #[hidden_element]
     #[allow(dead_code)]
     pub shield: u32,
+    /// Robe view id (`robe` in the entity-appear packets).
+    #[allow(dead_code)]
+    #[hidden_element]
+    pub robe: u16,
     /// Animation of the hunter falcon, loaded lazily when the entity actually
     /// has the falcon option (`effect_state & OPTION_FALCON`).
     #[hidden_element]
@@ -509,13 +525,7 @@ fn get_entity_part_files(
         format!("인간족\\머리통\\{}\\{}_{}", sex_sprite_path, head_id, sex_sprite_path)
     }
 
-    let head_id = match (sex, head) {
-        (Sex::Male, Some(head)) if (0..MALE_HAIR_LOOKUP.len()).contains(&head) => MALE_HAIR_LOOKUP[head],
-        (Sex::Male, Some(head)) => head,
-        (Sex::Female, Some(head)) if (0..FEMALE_HAIR_LOOKUP.len()).contains(&head) => FEMALE_HAIR_LOOKUP[head],
-        (Sex::Female, Some(head)) => head,
-        _ => 1,
-    };
+    let head_id = resolve_head_id(sex, head);
 
     match entity_type {
         EntityType::Player => {
@@ -601,6 +611,27 @@ fn get_entity_part_files(
     }
 }
 
+/// Option bits (rAthena `enum e_option`) that make the entity invisible to
+/// other clients: hide, cloak, invisible and chase-walk.
+const OPTION_HIDDEN_MASK: u32 = 0x0000_0002 | 0x0000_0004 | 0x0000_0040 | 0x0000_4000;
+
+fn option_hides_entity(effect_state: u32) -> bool {
+    effect_state & OPTION_HIDDEN_MASK != 0
+}
+
+/// Translate a network hair style id into the translated sprite id used by the
+/// game files. Hair style ids are per sex; unknown ids are passed through and a
+/// missing value falls back to the default hair style 1.
+fn resolve_head_id(sex: Sex, head: Option<usize>) -> usize {
+    match (sex, head) {
+        (Sex::Male, Some(head)) if (0..MALE_HAIR_LOOKUP.len()).contains(&head) => MALE_HAIR_LOOKUP[head],
+        (Sex::Male, Some(head)) => head,
+        (Sex::Female, Some(head)) if (0..FEMALE_HAIR_LOOKUP.len()).contains(&head) => FEMALE_HAIR_LOOKUP[head],
+        (Sex::Female, Some(head)) => head,
+        _ => 1,
+    }
+}
+
 impl Common {
     pub fn new(
         library: &Library,
@@ -623,17 +654,22 @@ impl Common {
         let accessory = entity_data.accessory;
         let accessory2 = entity_data.accessory2;
         let accessory3 = entity_data.accessory3;
+        let hair_id = Some(entity_data.head as usize);
+        let weapon = entity_data.weapon;
+        let shield = entity_data.shield;
+        let robe = entity_data.robe;
         let effect_state = entity_data.effect_state;
+        let body_state = entity_data.body_state;
+        let health_state = entity_data.health_state;
+
         crate::logging::log_debug!(
             "entity spawn id={} job={} effect_state=0x{:X} weapon={} shield={}",
             entity_data.entity_id.0,
             job_id.0,
             effect_state,
-            entity_data.weapon,
-            entity_data.shield
+            weapon,
+            shield
         );
-        let weapon = entity_data.weapon;
-        let shield = entity_data.shield;
 
         let active_movement = None;
         let entity_type = job_id.into();
@@ -664,9 +700,13 @@ impl Common {
             accessory,
             accessory2,
             accessory3,
+            hair_id,
             effect_state,
+            body_state,
+            health_state,
             weapon,
             shield,
+            robe,
             falcon_animation: None,
             falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick),
             active_movement,
@@ -681,7 +721,12 @@ impl Common {
             animation_state,
             stopped_moving: false,
             sound_state: SoundState::default(),
-            fade_state: FadeState::new(FADE_IN_DURATION_MS, client_tick),
+            // Entities that are hidden/cloaked/invisible through their option
+            // bits must not be drawn at all, even while fading in.
+            fade_state: match option_hides_entity(effect_state) {
+                true => FadeState::from_alpha(0.0, FadeDirection::Out, client_tick, 0),
+                false => FadeState::new(FADE_IN_DURATION_MS, client_tick),
+            },
             scale,
         }
     }
@@ -691,9 +736,30 @@ impl Common {
         self.effect_state & OPTION_FALCON != 0
     }
 
-    /// Updates the option bits from a `ZC_STATE_CHANGE` (0x0229) packet.
-    pub fn set_effect_state(&mut self, effect_state: u32) {
+    /// Update the option bit mask (`effectState`) and apply the visual
+    /// consequences that the entity layer already understands: hidden,
+    /// cloaked or invisible entities disappear/appear by fading.
+    pub fn set_effect_state(&mut self, effect_state: u32, client_tick: ClientTick) {
+        let was_hidden = option_hides_entity(self.effect_state);
+        let hidden = option_hides_entity(effect_state);
         self.effect_state = effect_state;
+
+        if hidden != was_hidden {
+            self.fade_state = match hidden {
+                true => FadeState::from_alpha(0.0, FadeDirection::Out, client_tick, 0),
+                false => FadeState::Opaque,
+            };
+        }
+    }
+
+    /// Update the `bodyState` (`opt1`) visual state.
+    pub fn set_body_state(&mut self, body_state: u16) {
+        self.body_state = body_state;
+    }
+
+    /// Update the `healthState` (`opt2`) visual state.
+    pub fn set_health_state(&mut self, health_state: u16) {
+        self.health_state = health_state;
     }
 
     pub fn set_falcon_animation(&mut self, animation_data: Arc<AnimationData>) {
@@ -710,7 +776,7 @@ impl Common {
             self.entity_type,
             self.job_id,
             self.sex,
-            None,
+            self.hair_id,
             self.head_palette,
             self.body_palette,
             self.accessory,
@@ -1900,6 +1966,32 @@ impl Entity {
         self.get_common_mut().animation_state.dead(entity_type, client_tick);
     }
 
+    /// Update the body direction (`0x009C` `ZC_CHANGE_DIRECTION`). The network
+    /// direction is converted to the client's `Direction` enum by the packet
+    /// handler; the head direction is a separate value.
+    pub fn set_direction(&mut self, direction: Direction) {
+        self.get_common_mut().direction = direction;
+    }
+
+    pub fn set_head_direction(&mut self, head_direction: usize) {
+        self.get_common_mut().head_direction = head_direction;
+    }
+
+    /// Option bit mask (`effectState`) update (`0x0229` `ZC_STATE_CHANGE`).
+    pub fn set_effect_state(&mut self, effect_state: u32, client_tick: ClientTick) {
+        self.get_common_mut().set_effect_state(effect_state, client_tick);
+    }
+
+    /// `bodyState` (`opt1`) update (`0x0229`).
+    pub fn set_body_state(&mut self, body_state: u16) {
+        self.get_common_mut().set_body_state(body_state);
+    }
+
+    /// `healthState` (`opt2`) update (`0x0229`).
+    pub fn set_health_state(&mut self, health_state: u16) {
+        self.get_common_mut().set_health_state(health_state);
+    }
+
     pub fn set_idle(&mut self, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();
         self.get_common_mut().animation_state.idle(entity_type, client_tick);
@@ -2109,5 +2201,27 @@ mod guild_name_label_tests {
         assert_eq!(guild_name_label(EntityType::Monster, Some("Domination")), None);
         assert_eq!(guild_name_label(EntityType::Warp, Some("Domination")), None);
         assert_eq!(guild_name_label(EntityType::Hidden, Some("Domination")), None);
+    }
+}
+
+#[cfg(test)]
+mod hair_style_tests {
+    use super::{resolve_head_id, MALE_HAIR_LOOKUP};
+    use ragnarok_packets::Sex;
+
+    #[test]
+    fn known_male_hair_style_is_translated() {
+        let expected = MALE_HAIR_LOOKUP[9];
+        assert_eq!(resolve_head_id(Sex::Male, Some(9)), expected);
+    }
+
+    #[test]
+    fn unknown_hair_style_is_passed_through() {
+        assert_eq!(resolve_head_id(Sex::Male, Some(999)), 999);
+    }
+
+    #[test]
+    fn missing_hair_style_falls_back_to_default() {
+        assert_eq!(resolve_head_id(Sex::Female, None), 1);
     }
 }
