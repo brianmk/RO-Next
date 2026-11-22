@@ -2326,11 +2326,12 @@ impl Client {
             return;
         }
 
-        let effect_path = crate::world::skill_effect_files(skill_id, variant).next();
+        let effect_entries: Vec<(&'static str, crate::world::EffectAnchor)> =
+            crate::world::skill_effect_entries(skill_id, variant).collect();
         let procedural = crate::world::skill_procedural_effects(skill_id, variant);
 
         // Both layers share one de-duplication key per cast phase.
-        if (effect_path.is_some() || !procedural.is_empty())
+        if (!effect_entries.is_empty() || !procedural.is_empty())
             && !self
                 .skill_completion_tracker
                 .claim(source_entity_id, skill_id, variant.phase(), client_tick)
@@ -2338,27 +2339,32 @@ impl Client {
             return;
         }
 
-        if let Some(effect_path) = effect_path {
+        // A phase can have several `.str` layers (e.g. two hit flashes). The
+        // data file records the spawn anchor of every layer so on-caster effects
+        // (`effectIdOnCaster`, e.g. Pierce) are not spawned at the damaged
+        // target. Effects aimed at the target cell fall back to the caster when
+        // the packet does not carry a position (no-damage self casts).
+        for (effect_path, anchor) in effect_entries {
             crate::logging::log_debug!(
-                "skill effect: spawned '{}' for skill {} ({:?})",
+                "skill effect: spawned '{}' for skill {} ({:?}, anchor {:?})",
                 effect_path,
                 skill_id.0,
-                variant
+                variant,
+                anchor
             );
 
-            // `Success` plays at the ground cell when the caller knows one (the
-            // official client plays e.g. Storm Gust's effect at the target cell)
-            // and on the caster for no-damage casts.
-            let position_effect = matches!(
-                variant,
-                SkillEffectVariant::Ground | SkillEffectVariant::Release | SkillEffectVariant::Hit
-            ) || (variant == SkillEffectVariant::Success && world_position.is_some());
+            let position = match anchor {
+                crate::world::EffectAnchor::Caster => None,
+                crate::world::EffectAnchor::Target | crate::world::EffectAnchor::Travel | crate::world::EffectAnchor::Auto => {
+                    world_position
+                }
+            };
 
-            match (position_effect, world_position) {
-                (true, Some(world_position)) => {
+            match position {
+                Some(world_position) => {
                     self.spawn_position_effect(effect_path, world_position, Vector3::new(0.0, 0.0, 0.0), 1.0, Color::WHITE, 0.0);
                 }
-                _ => {
+                None => {
                     self.spawn_entity_effect(
                         effect_path,
                         source_entity_id,
@@ -3188,6 +3194,7 @@ impl Client {
                             CasterAction::Attack => entity.set_attack(cast_animation_time, false, client_tick),
                             // Pickup-style skills play the pickup animation.
                             CasterAction::Pickup => entity.set_pickup(client_tick),
+                            CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                         }
 
                         // Hard-coded body flash of the skill (for example the yellow
@@ -3251,10 +3258,10 @@ impl Client {
                 }
                 NetworkEvent::SkillNoDamage {
                     source_entity_id,
-                    // The 2019 no-damage packet no longer renders a heal number
-                    // (see the comment at the end of this arm); the destination and
-                    // the level are not needed here.
-                    destination_entity_id: _,
+                    // The destination is used to place target-anchored success
+                    // effects (Heal, Resurrection, ...) at the ally that received
+                    // the skill instead of on the caster.
+                    destination_entity_id,
                     skill_id,
                     level,
                     success,
@@ -3291,6 +3298,21 @@ impl Client {
                             .find(|entity| entity.get_entity_id() == source_entity_id)
                             .map(|entity| entity.get_position());
 
+                        // World position of the skill target, when the packet names
+                        // one and it is not the caster. Target/`Auto` anchored
+                        // success effects (for example the Heal sparkles) play
+                        // there; without it they fall back to the caster.
+                        let destination_position = if destination_entity_id == source_entity_id {
+                            None
+                        } else {
+                            self.client_state
+                                .follow(client_state().entities())
+                                .iter()
+                                .find(|entity| entity.get_entity_id() == destination_entity_id)
+                                .map(|entity| entity.get_tile_position())
+                                .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)))
+                        };
+
                         let visuals = skill_visuals(skill_id, 0);
 
                         if let Some(entity) = self
@@ -3308,6 +3330,7 @@ impl Client {
                                 CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
                                 CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                                 CasterAction::Pickup => entity.set_pickup(client_tick),
+                                CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                             }
 
                             // Instant-only skills (no cast-time packet before this one)
@@ -3345,7 +3368,13 @@ impl Client {
 
                         // Official completion effect from the data-file mapping
                         // (skipped for skills with a hand-written visual).
-                        self.spawn_skill_effect_variants(skill_id, SkillEffectVariant::Success, source_entity_id, None, client_tick);
+                        self.spawn_skill_effect_variants(
+                            skill_id,
+                            SkillEffectVariant::Success,
+                            source_entity_id,
+                            destination_position,
+                            client_tick,
+                        );
 
                         // Instant/self-buff casts (0x09CB) have no sound packet on
                         // the 2019 server either. For an instant skill the start-of-use
@@ -3407,6 +3436,7 @@ impl Client {
                             CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
                             CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                             CasterAction::Pickup => entity.set_pickup(client_tick),
+                            CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                         }
                     }
 

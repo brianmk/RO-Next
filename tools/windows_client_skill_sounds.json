@@ -1,0 +1,4320 @@
+{
+ "provenance": {
+  "source": "roBrowserLegacy (GPL-3.0) RE dump of the official client tables; only numeric ids, field names and wav names are extracted",
+  "url": "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB/Skills/SkillEffect.js",
+  "note": "effect table `wav` facts in official play priority order; validated against the CondaRO GRFs by gen_skill_sounds.py"
+ },
+ "skills": {
+  "5": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "6": [
+   {
+    "field": "successEffectId",
+    "effect_id": 67,
+    "wav": "effect/swordman_provoke"
+   }
+  ],
+  "7": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 17,
+    "wav": "effect/ef_magnumbreak"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 17,
+    "wav": "effect/ef_magnumbreak"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "10": [
+   {
+    "field": "effectId",
+    "effect_id": 22,
+    "wav": "effect/ef_sight"
+   }
+  ],
+  "11": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "14": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 51,
+    "wav": "_hit_fist%d"
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effect_id": 26,
+    "wav": "effect/ef_icearrow%d"
+   }
+  ],
+  "15": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 28,
+    "wav": "effect/ef_frostdiver2"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 51,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "16": [
+   {
+    "field": "successEffectId",
+    "effect_id": 23,
+    "wav": "_stonecurse"
+   }
+  ],
+  "17": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   },
+   {
+    "field": "damageEffectIdOnCaster",
+    "effect_id": 24,
+    "wav": "effect/ef_fireball"
+   }
+  ],
+  "18": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 25,
+    "wav": "effect/ef_firewall"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "19": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   },
+   {
+    "field": "damageEffectIdOnTarget",
+    "effect_id": 31,
+    "wav": "effect/ef_firearrow%d"
+   }
+  ],
+  "20": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 52,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "21": [
+   {
+    "field": "groundEffectIdByLevel",
+    "effect_id": 30,
+    "wav": "effect/magician_thunderstorm"
+   }
+  ],
+  "24": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "28": [
+   {
+    "field": "effectId",
+    "effect_id": 312,
+    "wav": "_heal_effect"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 320,
+    "wav": "_heal_effect"
+   }
+  ],
+  "29": [
+   {
+    "field": "effectId",
+    "effect_id": 37,
+    "wav": "effect/ef_incagility"
+   }
+  ],
+  "30": [
+   {
+    "field": "effectId",
+    "effect_id": 38,
+    "wav": "effect/ef_decagility"
+   }
+  ],
+  "31": [
+   {
+    "field": "effectId",
+    "effect_id": 39,
+    "wav": "effect/ef_aqua"
+   }
+  ],
+  "32": [
+   {
+    "field": "effectId",
+    "effect_id": 40,
+    "wav": "effect/ef_signum"
+   }
+  ],
+  "33": [
+   {
+    "field": "effectId",
+    "effect_id": 41,
+    "wav": "effect/ef_angelus"
+   }
+  ],
+  "34": [
+   {
+    "field": "effectId",
+    "effect_id": 42,
+    "wav": "effect/ef_blessing"
+   }
+  ],
+  "35": [
+   {
+    "field": "effectId",
+    "effect_id": 66,
+    "wav": "effect/acolyte_cure"
+   }
+  ],
+  "42": [
+   {
+    "field": "effectId",
+    "effect_id": 10,
+    "wav": "effect/ef_coin2"
+   }
+  ],
+  "45": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 153,
+    "wav": "effect/ac_concentration"
+   }
+  ],
+  "46": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "47": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "50": [
+   {
+    "field": "successEffectId",
+    "effect_id": 18,
+    "wav": "effect/ef_steal"
+   }
+  ],
+  "52": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 20,
+    "wav": "effect/ef_detoxication"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 20,
+    "wav": "effect/assasin_enchantpoison"
+   }
+  ],
+  "53": [
+   {
+    "field": "effectId",
+    "effect_id": 21,
+    "wav": "effect/ef_detoxication"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 21,
+    "wav": "effect/assasin_enchantpoison"
+   }
+  ],
+  "54": [
+   {
+    "field": "effectId",
+    "effect_id": 77,
+    "wav": "effect/priest_resurrection"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 140,
+    "wav": "effect/priest_resurrection"
+   }
+  ],
+  "57": [
+   {
+    "field": "effectId",
+    "effect_id": 70,
+    "wav": "effect/knight_brandish_spear"
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 144,
+    "wav": "effect/knight_brandish_spear"
+   },
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 144,
+    "wav": "effect/hunter_shockwavetrap"
+   }
+  ],
+  "58": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 150,
+    "wav": "_enemy_hit_normal1"
+   }
+  ],
+  "59": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 151,
+    "wav": "effect/knight_spear_boomerang"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 80,
+    "wav": "effect/ef_fireball"
+   }
+  ],
+  "60": [
+   {
+    "field": "effectId",
+    "effect_id": 130,
+    "wav": "effect/knight_twohandquicken"
+   }
+  ],
+  "61": [
+   {
+    "field": "effectId",
+    "effect_id": 131,
+    "wav": "effect/knight_autocounter"
+   }
+  ],
+  "62": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 149,
+    "wav": "_enemy_hit_normal1"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "66": [
+   {
+    "field": "effectId",
+    "effect_id": 84,
+    "wav": "effect/priest_impositio"
+   }
+  ],
+  "67": [
+   {
+    "field": "effectId",
+    "effect_id": 88,
+    "wav": "effect/priest_suffragium"
+   }
+  ],
+  "68": [
+   {
+    "field": "effectId",
+    "effect_id": 86,
+    "wav": "effect/priest_aspersio"
+   }
+  ],
+  "69": [
+   {
+    "field": "effectId",
+    "effect_id": 91,
+    "wav": "effect/priest_benedictio"
+   }
+  ],
+  "70": [
+   {
+    "field": "effectId",
+    "effect_id": 83,
+    "wav": "effect/priest_sanctuary"
+   }
+  ],
+  "71": [
+   {
+    "field": "effectId",
+    "effect_id": 136,
+    "wav": "effect/priest_slowpoison"
+   }
+  ],
+  "72": [
+   {
+    "field": "effectId",
+    "effect_id": 78,
+    "wav": "effect/priest_recovery"
+   }
+  ],
+  "73": [
+   {
+    "field": "effectId",
+    "effect_id": 112,
+    "wav": "effect/priest_kyrie_eleison_a"
+   }
+  ],
+  "74": [
+   {
+    "field": "effectId",
+    "effect_id": 76,
+    "wav": "effect/priest_magnificat"
+   }
+  ],
+  "75": [
+   {
+    "field": "effectId",
+    "effect_id": 75,
+    "wav": "effect/priest_gloria"
+   }
+  ],
+  "76": [
+   {
+    "field": "effectId",
+    "effect_id": 87,
+    "wav": "effect/priest_lexdivina"
+   }
+  ],
+  "78": [
+   {
+    "field": "effectId",
+    "effect_id": 85,
+    "wav": "effect/priest_lexaeterna"
+   }
+  ],
+  "79": [
+   {
+    "field": "effectId",
+    "effect_id": 113,
+    "wav": "effect/priest_magnus"
+   }
+  ],
+  "80": [
+   {
+    "field": "effectId",
+    "effect_id": 96,
+    "wav": "effect/wizard_fire_pillar_a"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 97,
+    "wav": "effect/wizard_fire_pillar_b"
+   }
+  ],
+  "81": [
+   {
+    "field": "effectId",
+    "effect_id": 62,
+    "wav": "effect/wizard_sightrasher"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "83": [
+   {
+    "field": "effectId",
+    "effect_id": 92,
+    "wav": "effect/wizard_meteor"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "84": [
+   {
+    "field": "effectId",
+    "effect_id": 93,
+    "wav": "effect/hunter_shockwavetrap"
+   }
+  ],
+  "85": [
+   {
+    "field": "effectId",
+    "effect_id": 90,
+    "wav": "effect/wizard_fire_ivy"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 52,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "86": [
+   {
+    "field": "beforeHitEffectIdOnCaster",
+    "effect_id": 116,
+    "wav": "effect/wizard_waterball_chulung"
+   },
+   {
+    "field": "hitEffectIdOnCaster",
+    "effect_id": 117,
+    "wav": "effect/wizard_waterball_chulung"
+   }
+  ],
+  "87": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 74,
+    "wav": "effect/wizard_icewall"
+   }
+  ],
+  "88": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 28,
+    "wav": "effect/ef_frostdiver2"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 51,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "89": [
+   {
+    "field": "effectId",
+    "effect_id": 89,
+    "wav": "effect/wizard_stormgust"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 51,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "90": [
+   {
+    "field": "effectId",
+    "effect_id": 79,
+    "wav": "effect/wizard_earthspike"
+   }
+  ],
+  "91": [
+   {
+    "field": "effectId",
+    "effect_id": 142,
+    "wav": "effect/wizard_earthspike"
+   }
+  ],
+  "92": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 95,
+    "wav": "effect/wizard_quagmire"
+   }
+  ],
+  "108": [
+   {
+    "field": "effectId",
+    "effect_id": 101,
+    "wav": "effect/black_weapon_repair_a"
+   }
+  ],
+  "110": [
+   {
+    "field": "effectId",
+    "effect_id": 102,
+    "wav": "effect/black_hammerfall"
+   }
+  ],
+  "111": [
+   {
+    "field": "effectId",
+    "effect_id": 98,
+    "wav": "effect/black_adrenalinerush_b"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 98,
+    "wav": "effect/black_adrenalinerush_a"
+   }
+  ],
+  "112": [
+   {
+    "field": "effectId",
+    "effect_id": 103,
+    "wav": "effect/black_weapon_perfection"
+   }
+  ],
+  "113": [
+   {
+    "field": "effectId",
+    "effect_id": 128,
+    "wav": "effect/black_overthrust"
+   }
+  ],
+  "115": [
+   {
+    "field": "effectId",
+    "effect_id": 69,
+    "wav": "effect/hunter_skidtrap"
+   }
+  ],
+  "118": [
+   {
+    "field": "effectId",
+    "effect_id": 145,
+    "wav": "effect/hunter_shockwavetrap"
+   }
+  ],
+  "119": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 139,
+    "wav": "effect/hunter_sandman"
+   }
+  ],
+  "120": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 99,
+    "wav": "effect/hunter_flasher"
+   }
+  ],
+  "121": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 108,
+    "wav": "effect/hunter_freezingtrap"
+   }
+  ],
+  "122": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 106,
+    "wav": "effect/hunter_blastmine"
+   }
+  ],
+  "123": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 107,
+    "wav": "effect/hunter_claymoretrap"
+   }
+  ],
+  "124": [
+   {
+    "field": "effectId",
+    "effect_id": 100,
+    "wav": "effect/hunter_removetrap"
+   }
+  ],
+  "129": [
+   {
+    "field": "effectId",
+    "effect_id": 115,
+    "wav": "effect/hunter_blitzbeat"
+   }
+  ],
+  "130": [
+   {
+    "field": "effectId",
+    "effect_id": 119,
+    "wav": "effect/hunter_detecting"
+   }
+  ],
+  "131": [
+   {
+    "field": "effectId",
+    "effect_id": 111,
+    "wav": "effect/hunter_springtrap"
+   }
+  ],
+  "135": [
+   {
+    "field": "effectId",
+    "effect_id": 120,
+    "wav": "effect/assasin_cloaking"
+   }
+  ],
+  "136": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 121,
+    "wav": "effect/ef_stonecurse"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 122,
+    "wav": "effect/assasin_sonicblow"
+   }
+  ],
+  "137": [
+   {
+    "field": "releaseEffectId",
+    "effect_id": 123,
+    "wav": "effect/ef_frostdiver"
+   }
+  ],
+  "138": [
+   {
+    "field": "effectId",
+    "effect_id": 20,
+    "wav": "effect/ef_detoxication"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 20,
+    "wav": "effect/assasin_enchantpoison"
+   }
+  ],
+  "139": [
+   {
+    "field": "effectId",
+    "effect_id": 126,
+    "wav": "effect/assasin_poisonreact"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 127,
+    "wav": "effect/assasin_poisonreact"
+   }
+  ],
+  "140": [
+   {
+    "field": "effectId",
+    "effect_id": 124,
+    "wav": "effect/assasin_poisonreact"
+   }
+  ],
+  "141": [
+   {
+    "field": "effectId",
+    "effect_id": 129,
+    "wav": "effect/assasin_venomsplasher"
+   }
+  ],
+  "142": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "_heal_effect"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_double_bowlingbash"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_mega_sonic_blow"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_shield_chain_rush"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_spiral_pierce_max"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_meteor_storm_buster"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_jack_frost_nova"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_ground_gravitation"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_napalm_vulcan_strike"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_breakinglimit"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_rulebreak"
+   },
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 309,
+    "wav": "effect/hyper_novice/hn_overcoming_crisis"
+   }
+  ],
+  "148": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "153": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 170,
+    "wav": "effect/ef_magnumbreak"
+   },
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 170,
+    "wav": "effect/ef_magnumbreak"
+   }
+  ],
+  "155": [
+   {
+    "field": "effectId",
+    "effect_id": 311,
+    "wav": "effect/고성방가"
+   }
+  ],
+  "170": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "173": [
+   {
+    "field": "effectId",
+    "effect_id": 183,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "184": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 51,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "186": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "187": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 52,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "188": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 53,
+    "wav": "effect/ef_poisonattack"
+   }
+  ],
+  "194": [
+   {
+    "field": "successEffectId",
+    "effect_id": 67,
+    "wav": "effect/swordman_provoke"
+   }
+  ],
+  "211": [
+   {
+    "field": "successEffectId",
+    "effect_id": 274,
+    "wav": "effect/rog_steal coin"
+   }
+  ],
+  "212": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 275,
+    "wav": "effect/rog_back stap"
+   }
+  ],
+  "215": [
+   {
+    "field": "successEffectId",
+    "effect_id": 269,
+    "wav": "effect/t_벽튕김"
+   }
+  ],
+  "216": [
+   {
+    "field": "successEffectId",
+    "effect_id": 270,
+    "wav": "effect/t_벽튕김"
+   }
+  ],
+  "217": [
+   {
+    "field": "successEffectId",
+    "effect_id": 271,
+    "wav": "effect/t_벽튕김"
+   }
+  ],
+  "218": [
+   {
+    "field": "successEffectId",
+    "effect_id": 272,
+    "wav": "effect/t_벽튕김"
+   }
+  ],
+  "219": [
+   {
+    "field": "effectId",
+    "effect_id": 227,
+    "wav": "effect/rog_intimidate"
+   }
+  ],
+  "234": [
+   {
+    "field": "effectId",
+    "effect_id": 300,
+    "wav": "apocalips_attack"
+   }
+  ],
+  "235": [
+   {
+    "field": "effectId",
+    "effect_id": 300,
+    "wav": "apocalips_attack"
+   }
+  ],
+  "236": [
+   {
+    "field": "effectId",
+    "effect_id": 300,
+    "wav": "apocalips_attack"
+   }
+  ],
+  "237": [
+   {
+    "field": "effectId",
+    "effect_id": 300,
+    "wav": "apocalips_attack"
+   }
+  ],
+  "249": [
+   {
+    "field": "effectId",
+    "effect_id": 336,
+    "wav": "effect/kyrie_guard"
+   }
+  ],
+  "251": [
+   {
+    "field": "effectId",
+    "effect_id": 249,
+    "wav": "effect/cru_shield boomerang"
+   }
+  ],
+  "253": [
+   {
+    "field": "effectId",
+    "effect_id": 245,
+    "wav": "effect/cru_holy cross"
+   }
+  ],
+  "254": [
+   {
+    "field": "effectId",
+    "effect_id": 226,
+    "wav": "effect/cru_grand cross"
+   }
+  ],
+  "258": [
+   {
+    "field": "effectId",
+    "effect_id": 250,
+    "wav": "effect/knight_twohandquicken"
+   }
+  ],
+  "262": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 253,
+    "wav": "effect/흡기"
+   }
+  ],
+  "263": [
+   {
+    "field": "effectId",
+    "effect_id": 329,
+    "wav": "effect/ef_hit2"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 329,
+    "wav": "effect/ef_hit4"
+   }
+  ],
+  "266": [
+   {
+    "field": "effectId",
+    "effect_id": 267,
+    "wav": "effect/mon_침투경"
+   }
+  ],
+  "267": [
+   {
+    "field": "effectId",
+    "effect_id": 265,
+    "wav": "effect/mon_탄지신통"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "268": [
+   {
+    "field": "effectId",
+    "effect_id": 254,
+    "wav": "effect/mon_금강불괴"
+   }
+  ],
+  "270": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 261,
+    "wav": "effect/mon_폭기"
+   },
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "271": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 266,
+    "wav": "effect/mon_아수라 패황권"
+   },
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "272": [
+   {
+    "field": "effectId",
+    "effect_id": 262,
+    "wav": "effect/mon_폭기"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 273,
+    "wav": "effect/mon_연환"
+   }
+  ],
+  "276": [
+   {
+    "field": "successEffectId",
+    "effect_id": 244,
+    "wav": "effect/sage_magic rod"
+   }
+  ],
+  "277": [
+   {
+    "field": "successEffectId",
+    "effect_id": 234,
+    "wav": "effect/sage_spell breake"
+   }
+  ],
+  "280": [
+   {
+    "field": "successEffectId",
+    "effect_id": 255,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "281": [
+   {
+    "field": "successEffectId",
+    "effect_id": 256,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "282": [
+   {
+    "field": "successEffectId",
+    "effect_id": 257,
+    "wav": "effect/_enemy_hit_wind1"
+   }
+  ],
+  "283": [
+   {
+    "field": "successEffectId",
+    "effect_id": 258,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "306": [
+   {
+    "field": "effectId",
+    "effect_id": 278,
+    "wav": "effect/자장가"
+   }
+  ],
+  "307": [
+   {
+    "field": "effectId",
+    "effect_id": 279,
+    "wav": "effect/김서방돈"
+   }
+  ],
+  "308": [
+   {
+    "field": "effectId",
+    "effect_id": 280,
+    "wav": "effect/영원의 혼돈"
+   }
+  ],
+  "309": [
+   {
+    "field": "effectId",
+    "effect_id": 281,
+    "wav": "effect/전장의"
+   }
+  ],
+  "310": [
+   {
+    "field": "effectId",
+    "effect_id": 282,
+    "wav": "effect/니벨룽겐의 반지"
+   }
+  ],
+  "311": [
+   {
+    "field": "effectId",
+    "effect_id": 283,
+    "wav": "effect/로키"
+   }
+  ],
+  "312": [
+   {
+    "field": "effectId",
+    "effect_id": 284,
+    "wav": "effect/심연속으로"
+   }
+  ],
+  "313": [
+   {
+    "field": "effectId",
+    "effect_id": 285,
+    "wav": "effect/불사신"
+   }
+  ],
+  "319": [
+   {
+    "field": "effectId",
+    "effect_id": 286,
+    "wav": "effect/달빛세레나데"
+   }
+  ],
+  "320": [
+   {
+    "field": "effectId",
+    "effect_id": 287,
+    "wav": "effect/석양의 어쌔신"
+   }
+  ],
+  "321": [
+   {
+    "field": "effectId",
+    "effect_id": 288,
+    "wav": "effect/브라기의 시"
+   }
+  ],
+  "322": [
+   {
+    "field": "effectId",
+    "effect_id": 289,
+    "wav": "effect/이둔의 사과"
+   }
+  ],
+  "327": [
+   {
+    "field": "effectId",
+    "effect_id": 291,
+    "wav": "effect/흥얼거림"
+   }
+  ],
+  "328": [
+   {
+    "field": "effectId",
+    "effect_id": 292,
+    "wav": "effect/나를잊지말아요"
+   }
+  ],
+  "329": [
+   {
+    "field": "effectId",
+    "effect_id": 293,
+    "wav": "effect/행운의"
+   }
+  ],
+  "330": [
+   {
+    "field": "effectId",
+    "effect_id": 294,
+    "wav": "effect/당신을 위한 서비스"
+   }
+  ],
+  "340": [
+   {
+    "field": "effectId",
+    "effect_id": 451,
+    "wav": "effect/ef_soulstrike"
+   }
+  ],
+  "341": [
+   {
+    "field": "effectId",
+    "effect_id": 93,
+    "wav": "effect/hunter_shockwavetrap"
+   }
+  ],
+  "349": [
+   {
+    "field": "effectId",
+    "effect_id": 456,
+    "wav": "effect/mon_폭기"
+   }
+  ],
+  "350": [
+   {
+    "field": "effectId",
+    "effect_id": 37,
+    "wav": "effect/ef_incagility"
+   }
+  ],
+  "355": [
+   {
+    "field": "effectId",
+    "effect_id": 367,
+    "wav": "effect/오라 블레이드"
+   }
+  ],
+  "356": [
+   {
+    "field": "effectId",
+    "effect_id": 336,
+    "wav": "effect/kyrie_guard"
+   }
+  ],
+  "357": [
+   {
+    "field": "effectId",
+    "effect_id": 369,
+    "wav": "effect/knight_twohandquicken"
+   }
+  ],
+  "359": [
+   {
+    "field": "effectId",
+    "effect_id": 368,
+    "wav": "effect/버서크"
+   }
+  ],
+  "360": [
+   {
+    "field": "effectId",
+    "effect_id": 368,
+    "wav": "effect/버서크"
+   }
+  ],
+  "361": [
+   {
+    "field": "effectId",
+    "effect_id": 440,
+    "wav": "effect/아숨프티오"
+   }
+  ],
+  "365": [
+   {
+    "field": "effectId",
+    "effect_id": 380,
+    "wav": "effect/매직 크래쉬"
+   }
+  ],
+  "366": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "367": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 365,
+    "wav": "effect/프레셔"
+   }
+  ],
+  "368": [
+   {
+    "field": "effectId",
+    "effect_id": 366,
+    "wav": "effect/bash3d"
+   }
+  ],
+  "369": [
+   {
+    "field": "effectId",
+    "effect_id": 370,
+    "wav": "effect/가스펠"
+   }
+  ],
+  "370": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 376,
+    "wav": "effect/맹호경파산"
+   }
+  ],
+  "371": [
+   {
+    "field": "effectId",
+    "effect_id": 377,
+    "wav": "effect/mon_폭기"
+   }
+  ],
+  "374": [
+   {
+    "field": "effectId",
+    "effect_id": 384,
+    "wav": "effect/소울 체인지"
+   }
+  ],
+  "378": [
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/assasin_cloaking"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_chul_ho_sonic_claw"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_howling_of_chul_ho"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_hogogong_strike"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_ki_sul_water_spraying"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_marine_festival_of_ki_sul"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_sandy_festival_of_ki_sul"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_ki_sul_rampage"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_colors_of_hyun_rok"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_hyun_roks_breeze"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_hyun_rok_cannon"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_temporary_communion"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_blessing_of_mystical_creatures"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_chul_ho_battering"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/ef_beginspell"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 493,
+    "wav": "effect/spirit_handler/sh_hyun_rok_spirit_power"
+   }
+  ],
+  "379": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 361,
+    "wav": "effect/기공포"
+   }
+  ],
+  "380": [
+   {
+    "field": "effectId",
+    "effect_id": 386,
+    "wav": "effect/hunter_detecting"
+   }
+  ],
+  "381": [
+   {
+    "field": "effectId",
+    "effect_id": 387,
+    "wav": "effect/hunter_blitzbeat"
+   }
+  ],
+  "382": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 388,
+    "wav": "effect/샤프슈팅"
+   }
+  ],
+  "383": [
+   {
+    "field": "effectId",
+    "effect_id": 389,
+    "wav": "effect/윈드워크"
+   }
+  ],
+  "387": [
+   {
+    "field": "effectId",
+    "effect_id": 391,
+    "wav": "effect/ef_incagility"
+   }
+  ],
+  "390": [
+   {
+    "field": "effectId",
+    "effect_id": 392,
+    "wav": "effect/kyrie_guard"
+   }
+  ],
+  "394": [
+   {
+    "field": "effectId",
+    "effect_id": 393,
+    "wav": "effect/애로우 발칸"
+   }
+  ],
+  "395": [
+   {
+    "field": "effectId",
+    "effect_id": 394,
+    "wav": "effect/달빛세레나데"
+   }
+  ],
+  "397": [
+   {
+    "field": "effectId",
+    "effect_id": 339,
+    "wav": "permeter_attack"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 339,
+    "wav": "effect/ef_magnumbreak"
+   }
+  ],
+  "398": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 399,
+    "wav": "effect/헤드 크러쉬"
+   }
+  ],
+  "399": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 400,
+    "wav": "effect/비트 조인트"
+   }
+  ],
+  "401": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "402": [
+   {
+    "field": "successEffectId",
+    "effect_id": 403,
+    "wav": "effect/swordman_provoke"
+   }
+  ],
+  "406": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 409,
+    "wav": "effect/메테오 어썰트"
+   }
+  ],
+  "421": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 457,
+    "wav": "effect/t_날라차기"
+   }
+  ],
+  "426": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 445,
+    "wav": "effect/t_회피2"
+   }
+  ],
+  "431": [
+   {
+    "field": "effectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "432": [
+   {
+    "field": "effectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "433": [
+   {
+    "field": "effectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "446": [
+   {
+    "field": "effectId",
+    "effect_id": 220,
+    "wav": "effect/ac_concentration"
+   }
+  ],
+  "462": [
+   {
+    "field": "effectId",
+    "effect_id": 590,
+    "wav": "effect/priest_resurrection"
+   }
+  ],
+  "463": [
+   {
+    "field": "effectId",
+    "effect_id": 543,
+    "wav": "effect/t_보조마법"
+   }
+  ],
+  "467": [
+   {
+    "field": "effectId",
+    "effect_id": 547,
+    "wav": "effect/t_에너지방출"
+   }
+  ],
+  "468": [
+   {
+    "field": "effectId",
+    "effect_id": 555,
+    "wav": "effect/t_에너지방출"
+   }
+  ],
+  "469": [
+   {
+    "field": "effectId",
+    "effect_id": 553,
+    "wav": "effect/t_날라차기"
+   }
+  ],
+  "470": [
+   {
+    "field": "effectId",
+    "effect_id": 589,
+    "wav": "effect/t_보조마법"
+   }
+  ],
+  "472": [
+   {
+    "field": "effectId",
+    "effect_id": 254,
+    "wav": "effect/mon_금강불괴"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 261,
+    "wav": "effect/mon_폭기"
+   }
+  ],
+  "475": [
+   {
+    "field": "effectId",
+    "effect_id": 496,
+    "wav": "effect/black_maximize_power_sword_bic"
+   }
+  ],
+  "479": [
+   {
+    "field": "effectId",
+    "effect_id": 300,
+    "wav": "apocalips_attack"
+   }
+  ],
+  "486": [
+   {
+    "field": "effectId",
+    "effect_id": 128,
+    "wav": "effect/black_overthrust"
+   }
+  ],
+  "488": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 517,
+    "wav": "effect/헤르모드의 지팡이"
+   }
+  ],
+  "495": [
+   {
+    "field": "effectId",
+    "effect_id": 130,
+    "wav": "effect/knight_twohandquicken"
+   }
+  ],
+  "502": [
+   {
+    "field": "effectId",
+    "effect_id": 648,
+    "wav": "effect/트리플액션"
+   }
+  ],
+  "506": [
+   {
+    "field": "effectId",
+    "effect_id": 456,
+    "wav": "effect/mon_폭기"
+   }
+  ],
+  "507": [
+   {
+    "field": "effectId",
+    "effect_id": 644,
+    "wav": "effect/매지컬블릿"
+   }
+  ],
+  "513": [
+   {
+    "field": "effectId",
+    "effect_id": 627,
+    "wav": "effect/디스암"
+   }
+  ],
+  "515": [
+   {
+    "field": "effectId",
+    "effect_id": 643,
+    "wav": "effect/래피드샤워"
+   }
+  ],
+  "516": [
+   {
+    "field": "effectId",
+    "effect_id": 637,
+    "wav": "effect/데스페라도"
+   }
+  ],
+  "518": [
+   {
+    "field": "effectId",
+    "effect_id": 628,
+    "wav": "effect/bash3d5"
+   }
+  ],
+  "523": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 613,
+    "wav": "effect/닌자_던지기"
+   }
+  ],
+  "524": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 614,
+    "wav": "effect/닌자_던지기"
+   }
+  ],
+  "525": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 615,
+    "wav": "effect/닌자_던지기"
+   }
+  ],
+  "526": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 616,
+    "wav": "effect/닌자_던지기"
+   }
+  ],
+  "527": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 631,
+    "wav": "effect/다다미뒤집기"
+   }
+  ],
+  "528": [
+   {
+    "field": "effectId",
+    "effect_id": 632,
+    "wav": "effect/안개베기"
+   }
+  ],
+  "530": [
+   {
+    "field": "effectId",
+    "effect_id": 630,
+    "wav": "effect/그림자베기"
+   }
+  ],
+  "534": [
+   {
+    "field": "effectId",
+    "effect_id": 618,
+    "wav": "effect/ef_firearrow%d"
+   }
+  ],
+  "535": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 634,
+    "wav": "effect/화염진"
+   }
+  ],
+  "536": [
+   {
+    "field": "effectId",
+    "effect_id": 635,
+    "wav": "effect/폭염룡"
+   }
+  ],
+  "537": [
+   {
+    "field": "effectId",
+    "effect_id": 619,
+    "wav": "effect/ef_icearrow%d"
+   }
+  ],
+  "539": [
+   {
+    "field": "effectId",
+    "effect_id": 636,
+    "wav": "effect/빙정락"
+   }
+  ],
+  "540": [
+   {
+    "field": "effectId",
+    "effect_id": 621,
+    "wav": "effect/풍인"
+   }
+  ],
+  "541": [
+   {
+    "field": "effectId",
+    "effect_id": 622,
+    "wav": "effect/ef_thunderstorm"
+   }
+  ],
+  "544": [
+   {
+    "field": "effectId",
+    "effect_id": 633,
+    "wav": "effect/일섬"
+   }
+  ],
+  "653": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 666,
+    "wav": "effect/earth_quake"
+   }
+  ],
+  "654": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "656": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 52,
+    "wav": "_hit_fist%d"
+   }
+  ],
+  "659": [
+   {
+    "field": "effectId",
+    "effect_id": 668,
+    "wav": "effect/dragonfear"
+   }
+  ],
+  "661": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 409,
+    "wav": "effect/메테오 어썰트"
+   }
+  ],
+  "664": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 89,
+    "wav": "effect/wizard_stormgust"
+   }
+  ],
+  "665": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 669,
+    "wav": "effect/wideb"
+   }
+  ],
+  "689": [
+   {
+    "field": "effectId",
+    "effect_id": 42,
+    "wav": "effect/ef_blessing"
+   }
+  ],
+  "690": [
+   {
+    "field": "effectId",
+    "effect_id": 37,
+    "wav": "effect/ef_incagility"
+   }
+  ],
+  "691": [
+   {
+    "field": "effectId",
+    "effect_id": 440,
+    "wav": "effect/아숨프티오"
+   }
+  ],
+  "698": [
+   {
+    "field": "effectId",
+    "effect_id": 717,
+    "wav": "effect/wewish"
+   }
+  ],
+  "1005": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 604,
+    "wav": "effect/ef_hit6"
+   }
+  ],
+  "1008": [
+   {
+    "field": "effectId",
+    "effect_id": 256,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "1009": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "1010": [
+   {
+    "field": "successEffectId",
+    "effect_id": 606,
+    "wav": "amon_ra_die01"
+   }
+  ],
+  "1017": [
+   {
+    "field": "effectId",
+    "effect_id": 258,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "1018": [
+   {
+    "field": "effectId",
+    "effect_id": 255,
+    "wav": "_enemy_hit_wind1"
+   }
+  ],
+  "1019": [
+   {
+    "field": "effectId",
+    "effect_id": 257,
+    "wav": "effect/_enemy_hit_wind1"
+   }
+  ],
+  "2002": [
+   {
+    "field": "effectId",
+    "effect_id": 832,
+    "wav": "effect/기공포"
+   }
+  ],
+  "2006": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 722,
+    "wav": "effect/wl_jackfrost"
+   }
+  ],
+  "2008": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 587,
+    "wav": "dragon_breath"
+   }
+  ],
+  "2009": [
+   {
+    "field": "effectId",
+    "effect_id": 731,
+    "wav": "dragon_h"
+   }
+  ],
+  "2038": [
+   {
+    "field": "effectId",
+    "effect_id": 718,
+    "wav": "effect/ab_judex"
+   }
+  ],
+  "2040": [
+   {
+    "field": "effectId",
+    "effect_id": 721,
+    "wav": "effect/ab_adoramus"
+   }
+  ],
+  "2043": [
+   {
+    "field": "effectId",
+    "effect_id": 313,
+    "wav": "_heal_effect"
+   }
+  ],
+  "2044": [
+   {
+    "field": "effectId",
+    "effect_id": 883,
+    "wav": "effect/ef_readyportal"
+   }
+  ],
+  "2051": [
+   {
+    "field": "effectId",
+    "effect_id": 325,
+    "wav": "_heal_effect"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 320,
+    "wav": "_heal_effect"
+   }
+  ],
+  "2201": [
+   {
+    "field": "effectId",
+    "effect_id": 802,
+    "wav": "effect/wl_whiteimprison"
+   }
+  ],
+  "2203": [
+   {
+    "field": "effectId",
+    "effect_id": 726,
+    "wav": "effect/t_에너지방출"
+   }
+  ],
+  "2204": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 28,
+    "wav": "effect/ef_frostdiver2"
+   }
+  ],
+  "2206": [
+   {
+    "field": "effectId",
+    "effect_id": 803,
+    "wav": "effect/wl_recognizedspell"
+   }
+  ],
+  "2209": [
+   {
+    "field": "effectId",
+    "effect_id": 799,
+    "wav": "effect/wl_stasis"
+   }
+  ],
+  "2211": [
+   {
+    "field": "effectId",
+    "effect_id": 727,
+    "wav": "effect/crimson_r"
+   }
+  ],
+  "2215": [
+   {
+    "field": "effectId",
+    "effect_id": 734,
+    "wav": "effect/chainlight"
+   }
+  ],
+  "2216": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 732,
+    "wav": "effect/wizard_earthspike"
+   }
+  ],
+  "2217": [
+   {
+    "field": "effectId",
+    "effect_id": 804,
+    "wav": "effect/wl_tetravortex"
+   }
+  ],
+  "2289": [
+   {
+    "field": "effectId",
+    "effect_id": 811,
+    "wav": "effect/bodypaint"
+   }
+  ],
+  "2295": [
+   {
+    "field": "effectId",
+    "effect_id": 816,
+    "wav": "effect/laziness"
+   }
+  ],
+  "2299": [
+   {
+    "field": "successEffectId",
+    "effect_id": 823,
+    "wav": "effect/manhole"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 822,
+    "wav": "effect/dimension"
+   }
+  ],
+  "2300": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 825,
+    "wav": "effect/dimension"
+   }
+  ],
+  "2301": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 827,
+    "wav": "effect/chaospanic"
+   }
+  ],
+  "2302": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 828,
+    "wav": "effect/maelstrom"
+   }
+  ],
+  "2303": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 829,
+    "wav": "effect/bloodylust"
+   }
+  ],
+  "2310": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 906,
+    "wav": "effect/프레셔"
+   },
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 906,
+    "wav": "effect/lg_shieldpress"
+   }
+  ],
+  "2318": [
+   {
+    "field": "effectId",
+    "effect_id": 908,
+    "wav": "effect/lg_prestige"
+   }
+  ],
+  "2319": [
+   {
+    "field": "effectId",
+    "effect_id": 909,
+    "wav": "effect/lg_banding"
+   }
+  ],
+  "2325": [
+   {
+    "field": "effectId",
+    "effect_id": 910,
+    "wav": "effect/lg_inspiration"
+   }
+  ],
+  "2328": [
+   {
+    "field": "effectId",
+    "effect_id": 888,
+    "wav": "effect/sr_earthshaker"
+   }
+  ],
+  "2414": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 856,
+    "wav": "effect/reverberation"
+   }
+  ],
+  "2415": [
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/나락의노래"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_tokedasu"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_shimiru"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_akumukesu"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kagegari"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kagegissen"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_fuumashouaku"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_fuumakouchiku"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kunaiwaikyoku"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kunaikussetsu"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_sekienhou"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_reiketsuhou"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_raidenpou"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/ef_beginspell"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kinryuuhou"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_antenpou"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_hitouakumu"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_ankokuryuuakumu"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_four_charm"
+   }
+  ],
+  "2418": [
+   {
+    "field": "effectId",
+    "effect_id": 857,
+    "wav": "effect/rainstorm"
+   }
+  ],
+  "2419": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/나락의노래"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_tokedasu"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_shimiru"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_akumukesu"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kagegari"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kagegissen"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_fuumashouaku"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_fuumakouchiku"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kunaiwaikyoku"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kunaikussetsu"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_sekienhou"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_reiketsuhou"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_raidenpou"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/ef_beginspell"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_kinryuuhou"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_antenpou"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_hitouakumu"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_ankokuryuuakumu"
+   },
+   {
+    "field": "groundEffectId",
+    "effect_id": 860,
+    "wav": "effect/shinkiro_shiranui/ss_four_charm"
+   }
+  ],
+  "2420": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 879,
+    "wav": "effect/세이렌의목소리"
+   }
+  ],
+  "2422": [
+   {
+    "field": "effectId",
+    "effect_id": 858,
+    "wav": "effect/안식의자장가"
+   }
+  ],
+  "2423": [
+   {
+    "field": "effectId",
+    "effect_id": 861,
+    "wav": "effect/순환하는자연의소리"
+   }
+  ],
+  "2424": [
+   {
+    "field": "effectId",
+    "effect_id": 862,
+    "wav": "effect/ab_ancilla"
+   }
+  ],
+  "2425": [
+   {
+    "field": "effectId",
+    "effect_id": 847,
+    "wav": "effect/수줍은하루의우울"
+   }
+  ],
+  "2427": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 868,
+    "wav": "effect/마나의노래"
+   }
+  ],
+  "2428": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 866,
+    "wav": "effect/워그와함께춤을"
+   }
+  ],
+  "2430": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 870,
+    "wav": "effect/새터데이나이트피버"
+   }
+  ],
+  "2431": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 872,
+    "wav": "effect/레라드의이슬"
+   }
+  ],
+  "2432": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 874,
+    "wav": "effect/멜로디오브싱크"
+   }
+  ],
+  "2433": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 876,
+    "wav": "effect/비욘드오브워크라이"
+   }
+  ],
+  "2434": [
+   {
+    "field": "groundEffectId",
+    "effect_id": 878,
+    "wav": "effect/언리미티드허밍보이스"
+   }
+  ],
+  "2447": [
+   {
+    "field": "effectId",
+    "effect_id": 928,
+    "wav": "effect/wl_jackfrost"
+   }
+  ],
+  "2449": [
+   {
+    "field": "effectId",
+    "effect_id": 922,
+    "wav": "effect/s사이킥웨이브"
+   }
+  ],
+  "2452": [
+   {
+    "field": "effectId",
+    "effect_id": 929,
+    "wav": "effect/s워머"
+   }
+  ],
+  "2454": [
+   {
+    "field": "beforeHitEffectId",
+    "effect_id": 930,
+    "wav": "effect/프레셔"
+   }
+  ],
+  "5001": [
+   {
+    "field": "effectId",
+    "effect_id": 1040,
+    "wav": "effect/gc_darkcrow"
+   }
+  ],
+  "5003": [
+   {
+    "field": "effectId",
+    "effect_id": 1049,
+    "wav": "effect/gn_illusiondoping"
+   }
+  ],
+  "5006": [
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/nc_magma_eruption"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_axe_stomp"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_rush_quake"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_a_machine"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_d_machine"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_summon_abr_battle_warior"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_summon_abr_dual_cannon"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_summon_abr_infinity"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_spark_blaster"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_triple_laser"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_mighty_smash"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_rush_strike"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_powerful_swing"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1050,
+    "wav": "effect/mt_energy_cannonade"
+   }
+  ],
+  "5008": [
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/so_elemental_shield"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_spell_enchanting"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_activity_burn"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_increasing_activity"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_diamond_storm"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_lightning_land"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_venom_swamp"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_conflagration"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_terra_drive"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 1046,
+    "wav": "effect/em_psychic_stream"
+   }
+  ],
+  "5009": [
+   {
+    "field": "effectId",
+    "effect_id": 1043,
+    "wav": "effect/sr_flashcombo"
+   }
+  ],
+  "5011": [
+   {
+    "field": "effectId",
+    "effect_id": 1047,
+    "wav": "effect/ab_offertorium"
+   }
+  ],
+  "5012": [
+   {
+    "field": "effectId",
+    "effect_id": 1048,
+    "wav": "effect/wl_telekinesis_intense"
+   }
+  ],
+  "5014": [
+   {
+    "field": "effectId",
+    "effect_id": 1042,
+    "wav": "effect/all_full_throttle"
+   }
+  ],
+  "5405": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5406": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5407": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5408": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5409": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5410": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5411": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5412": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5413": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5414": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 840,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5415": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 840,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5418": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5419": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5420": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5421": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5422": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 911,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5423": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 830,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5424": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5425": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5426": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 845,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5427": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 843,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5428": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 840,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5429": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2368,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5430": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2369,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5431": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1565,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5432": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1556,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5436": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 840,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5437": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 840,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5439": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5440": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 845,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5441": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 842,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5442": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 831,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5444": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5445": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 841,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5446": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 841,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5447": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5448": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2367,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5451": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5453": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5454": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 502,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5457": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1449,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5458": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1709,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5459": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5460": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5461": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2369,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5462": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2369,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5469": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5470": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5471": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5472": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5473": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 441,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5474": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 845,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5475": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 831,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5479": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 1774,
+    "wav": "effect/ef_beginspell"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "_hit_spear"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "_enemy_hit_normal1"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ef_hit2"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ef_entry"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/풍차를향해돌격"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/스윙댄스"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/마법력 증폭"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/metalic"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ab_ancilla"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/가시나무덫"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_advance_protection"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_acidified_zone_water"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_acidified_zone_ground"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_acidified_zone_wind"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_acidified_zone_fire"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_researchreport"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_wooden_attack"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_explosive_powder"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_mayhemic_thorns"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/bo_mystery_powder"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_banishingpoint"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_cannonspear"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_earthdrive"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_exceedbreak"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_hesperuslit"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_kings_grace"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_moonslasher"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_overbrand"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_piety"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_pinpointattack"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_rageburst"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_rayofgenesis"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_reflectdamage"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_shieldspell"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/lg_trample"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_guard_stance"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_guardian_shield"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_rebound_shield"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_ultimate_sacrifice"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_grand_judgement"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_judgement_cross"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_shield_shooting"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_overslash"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_imperial_cross"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ig_imperial_pressure"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_crescentelbow"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_cursedcircle"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_dragoncombo"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_fallenempire"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_gateofhell"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_howlingoflion"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_knucklearrow"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_lightningwalk"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_powervelocity"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_raisingdragon"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_rampageblaster"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_rideinlightning"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_skynetblow"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_tigercannon"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/sr_windmill"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_oleum_sanctum"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_massive_f_blaster"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_exposion_blaster"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_first_brand"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_first_faith_power"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_judge"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_second_flame"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_second_faith"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_second_judgement"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_third_punish"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_third_flame_bomb"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_third_consecration"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_third_exor_flame"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/iq_blazing_flame_blast"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wl_jackfrost"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wl_siennaexecrate"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_deadly_projection"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_destructive_hurricane"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_rain_of_crystal"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_mystery_illusion"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_violent_quake"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_all_bloom"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_crystal_impact"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_tornado_storm"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_climax"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_rock_down"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_storm_cannon"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_frozen_slash"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ag_energy_conversion"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wm_frigg_song"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ab_duplelight"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_mediale_votum"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_argutus_vita"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_arbitrium"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_presens_acies"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_effligo"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_competentia"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_pneumaticus_procella"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_dilectio_heal"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_religio"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_benedictum"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_petitio"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_framen"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/cd_divinus_flos"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "wug_bite"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "wug_strike"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "wolf_stand"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "dragon_breath"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_servantweapon"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_servant_w_sign"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_servant_w_phantom"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_servant_w_demol"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_chargingpierce1"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_chargingpierce2"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_hackandslasher"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_dragonic_aura1"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_madness_crusher"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_vigor"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_stormslash1"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_dragonic_breath"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/dk_dragonic_pierce"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/hallucinationwalk"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_shadow_exceed"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_dancing_knife"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_savage_impact"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_eternal_slash"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_potent_venom"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_shadow_stab"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_impact_crater"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_fatal_shadow_crow"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/shc_cross_slash"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/RL_S_STORM"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ef_firewall"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/달빛세레나데"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/사운드오브디스트럭션"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/그레이트에코"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/사망의골짜기에서"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_mystic_symphony"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_kvasir_sonata"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_rhythmshooting"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_metalic_fury"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_gef_nocturn"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_roki_capriccio"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_ain_rhapsody"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_musical_interlude"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_jawaii_serenade"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_nipelheim_requiem"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/tr_pron_march"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/하모나이즈"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/메아리의노래"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/연인들을위한심포니"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_abyss_dagger"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_unlucky_rush"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_chain_reaction_shot"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_from_the_abyss"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_abyss_slayer"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_abyss_strike"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_abyss_square"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_frenzy_shot"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_chasing_break"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_chasing_shot"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/abc_abyss_flame"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_wind_sign"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_hawkrush"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_calamitygale"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_hawkboomerang"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_galestorm"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_crescive_bolt"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/wh_wild_walk"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/RL_C_MARKER"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_intensive_aim"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_only_one_bullet"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_spiral_shooting"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_magazine_for_one"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_wild_fire"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_basic_grenade"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_auto_firing_launcher"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_hidden_card"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/ef_beginspell"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/night_watch/nw_midnight_fallen"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/_stun"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/reproduce"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/rl_h_mine"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/rl_d_tail"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/rl_fire_rain"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/rl_slugshot"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "ra_unlimit"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_scratch"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_scaroftarou"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_pickypeck"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_tunabelly"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_powerofflock"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_svg_spirit"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_hiss"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_nyanggrass"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_grooming"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/su_chattering"
+   },
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 2373,
+    "wav": "effect/priest_sanctuary"
+   }
+  ],
+  "5481": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5482": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5483": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5484": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5485": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5487": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 454,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "5491": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 58,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "6001": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 12,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "6002": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1938,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "6003": [
+   {
+    "field": "castAuraEffectId",
+    "effect_id": 1938,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "6006": [
+   {
+    "field": "beginCastEffectId",
+    "effect_id": 2228,
+    "wav": "effect/ef_beginspell"
+   }
+  ],
+  "8001": [
+   {
+    "field": "effectId",
+    "effect_id": 312,
+    "wav": "_heal_effect"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 320,
+    "wav": "_heal_effect"
+   }
+  ],
+  "8002": [
+   {
+    "field": "effectId",
+    "effect_id": 37,
+    "wav": "effect/ef_incagility"
+   }
+  ],
+  "8016": [
+   {
+    "field": "effectId",
+    "effect_id": 183,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "8201": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "8202": [
+   {
+    "field": "successEffectIdOnCaster",
+    "effect_id": 17,
+    "wav": "effect/ef_magnumbreak"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 17,
+    "wav": "effect/ef_magnumbreak"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 49,
+    "wav": "effect/ef_firehit"
+   }
+  ],
+  "8203": [
+   {
+    "field": "effectIdOnCaster",
+    "effect_id": 149,
+    "wav": "_enemy_hit_normal1"
+   },
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "8204": [
+   {
+    "field": "effectId",
+    "effect_id": 336,
+    "wav": "effect/kyrie_guard"
+   }
+  ],
+  "8206": [
+   {
+    "field": "effectId",
+    "effect_id": 368,
+    "wav": "effect/버서크"
+   }
+  ],
+  "8207": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "8208": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 1,
+    "wav": "effect/ef_hit2"
+   }
+  ],
+  "8209": [
+   {
+    "field": "effectId",
+    "effect_id": 69,
+    "wav": "effect/hunter_skidtrap"
+   }
+  ],
+  "8211": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 139,
+    "wav": "effect/hunter_sandman"
+   }
+  ],
+  "8212": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 108,
+    "wav": "effect/hunter_freezingtrap"
+   }
+  ],
+  "8213": [
+   {
+    "field": "effectId",
+    "effect_id": 100,
+    "wav": "effect/hunter_removetrap"
+   }
+  ],
+  "8214": [
+   {
+    "field": "damageEffectIdOnCaster",
+    "effect_id": 16,
+    "wav": "effect/ef_bash"
+   }
+  ],
+  "8215": [
+   {
+    "field": "hitEffectId",
+    "effect_id": 388,
+    "wav": "effect/샤프슈팅"
+   }
+  ],
+  "8218": [
+   {
+    "field": "effectId",
+    "effect_id": 339,
+    "wav": "permeter_attack"
+   },
+   {
+    "field": "effectId",
+    "effect_id": 339,
+    "wav": "effect/ef_magnumbreak"
+   }
+  ],
+  "8220": [
+   {
+    "field": "effectId",
+    "effect_id": 336,
+    "wav": "effect/kyrie_guard"
+   }
+  ],
+  "8222": [
+   {
+    "field": "effectId",
+    "effect_id": 76,
+    "wav": "effect/priest_magnificat"
+   }
+  ],
+  "8223": [
+   {
+    "field": "effectId",
+    "effect_id": 130,
+    "wav": "effect/knight_twohandquicken"
+   }
+  ],
+  "8224": [
+   {
+    "field": "effectId",
+    "effect_id": 22,
+    "wav": "effect/ef_sight"
+   }
+  ],
+  "8232": [
+   {
+    "field": "successEffectId",
+    "effect_id": 67,
+    "wav": "effect/swordman_provoke"
+   }
+  ],
+  "8234": [
+   {
+    "field": "effectId",
+    "effect_id": 38,
+    "wav": "effect/ef_decagility"
+   }
+  ],
+  "8236": [
+   {
+    "field": "effectId",
+    "effect_id": 87,
+    "wav": "effect/priest_lexdivina"
+   }
+  ],
+  "8238": [
+   {
+    "field": "effectId",
+    "effect_id": 112,
+    "wav": "effect/priest_kyrie_eleison_a"
+   }
+  ],
+  "8239": [
+   {
+    "field": "effectId",
+    "effect_id": 42,
+    "wav": "effect/ef_blessing"
+   }
+  ],
+  "8240": [
+   {
+    "field": "effectId",
+    "effect_id": 37,
+    "wav": "effect/ef_incagility"
+   }
+  ]
+ }
+}

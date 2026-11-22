@@ -12,8 +12,9 @@ in sync automatically.
 
 Source data:
 
-* `tools/windows_client_skill_effects.json` - numeric skill/effect ids and
-  effect file names extracted from the Windows client tables
+* `tools/windows_client_skill_effects.json` - numeric skill/effect ids, the
+  exact official `SkillEffect` field they come from and the effect file names
+  extracted from the Windows client tables
   (`tools/extract_windows_client_skill_effects.py`).
 * `tools/windows_client_effect_whitelist.txt` - the 401 `.str` effect paths
   referenced by `CondaRO.exe` (extracted from the shipped Windows client).
@@ -34,19 +35,25 @@ File format (RON, see `SkillEffectAssetFile` in
     (
         provenance: "...",
         effects: [
-            (skill: 89, variant: Ground, file: "stormgust.str"),
+            (skill: 89, variant: Ground, anchor: Target, file: "stormgust.str"),
             ...
         ],
     )
 
-Variants tell the client *when* to play the effect:
+`variant` tells the client *when* to play the effect:
 
-* `Ground`  - ground-target skill completion, at the target cell
-* `Cast`    - when a cast starts, on the caster
-* `Success` - when a no-damage/successful use completes, on the caster
-* `Release` - when a targeted skill lands, at the target
-* `Hit`     - on skill damage hits, at the target
+* `Ground`  - ground-target skill completion
+* `Cast`    - when a cast starts
+* `Success` - when a no-damage/successful use completes
+* `Release` - when a targeted skill lands
+* `Hit`     - on skill damage hits
 * `Caster`  - on the caster when its skill damage packet arrives
+
+`anchor` tells the client *where* to play it (`Caster`, `Target`, `Auto` = the
+target cell when the packet knows one and the caster otherwise, `Travel` = the
+target cell, falling back to the caster). It comes from the exact official
+field, e.g. `effectIdOnCaster` is anchored on the caster while `effectId` is
+aimed at the target.
 
 Usage:
     ./tools/gen_skill_effect_assets.py                     # regenerate the data file
@@ -70,16 +77,43 @@ DEFAULT_WHITELIST = Path("tools/windows_client_effect_whitelist.txt")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effect_assets.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 EFFECT_PREFIX = "data\\texture\\effect\\"
+GRF_HEADER_SIZE = 46
 
-# JSON field group -> RON variant name used by the client.
-VARIANTS = {
-    "ground": "Ground",
-    "cast": "Cast",
-    "success": "Success",
-    "release": "Release",
-    "hit": "Hit",
-    "caster": "Caster",
+#: Official `SkillEffect` field -> (client variant, spawn anchor).
+#:
+#: The anchor is what fixes the "on-caster effects played at the target cell"
+#: bug: the old generator collapsed fields into coarse groups and only kept the
+#: variant, so `effectIdOnCaster` (e.g. Pierce's `pierce.str`) was spawned at
+#: the damaged target instead of on the caster.
+FIELD_SPECS = {
+    "groundEffectId": ("Ground", "Target"),
+    "groundEffectIdByLevel": ("Ground", "Target"),
+    "beginCastEffectId": ("Cast", "Caster"),
+    "beginCastEffectIdByLevel": ("Cast", "Caster"),
+    "castAuraEffectId": ("Cast", "Caster"),
+    "effectId": ("Success", "Auto"),
+    "successEffectId": ("Success", "Auto"),
+    "effectIdOnCaster": ("Success", "Caster"),
+    "successEffectIdOnCaster": ("Success", "Caster"),
+    "successEffectIdOnCasterByLevel": ("Success", "Caster"),
+    "successEffectIdOnCasterByScreenDirection": ("Success", "Caster"),
+    "successEffectIdOnTargetByLevel": ("Success", "Target"),
+    "successEffectIdOnTargetByScreenSide": ("Success", "Target"),
+    "releaseEffectId": ("Release", "Travel"),
+    "beforeHitEffectId": ("Release", "Travel"),
+    "beforeHitEffectIdOnCaster": ("Release", "Caster"),
+    "hitEffectId": ("Hit", "Target"),
+    "hitEffectIdOnCaster": ("Hit", "Caster"),
+    "damageEffectIdOnTarget": ("Hit", "Target"),
+    "damageEffectIdOnCaster": ("Caster", "Caster"),
 }
+
+#: Order of the variants in the generated file (matches the client enum).
+VARIANT_ORDER = ["Ground", "Cast", "Success", "Release", "Hit", "Caster"]
+ANCHOR_ORDER = ["Caster", "Target", "Travel", "Auto"]
+
+#: A single variant layer should not spawn an unbounded number of .str files.
+MAX_FILES_PER_VARIANT = 4
 
 GRF_HEADER_SIZE = 46
 
@@ -135,6 +169,13 @@ def load_whitelist(path: Path) -> tuple[set[str], list[str]]:
 
 def whitelist_allows(relative_path: str, concrete: set[str], templates: list[str]) -> bool:
     basename = relative_path.rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
+    # The whitelist was extracted from the ASCII strings of `CondaRO.exe`, so a
+    # Korean file name can never appear in it. Such a file is still official
+    # when the official effect table references it and it ships in the GRF
+    # archives (there is no other source that could have put it there under that
+    # exact name); reject only non-ASCII names that are also absent.
+    if any(ord(character) > 127 for character in basename):
+        return True
     stem = basename[: -len(".str")] if basename.lower().endswith(".str") else basename
     if normalize(stem) in concrete:
         return True
@@ -177,32 +218,32 @@ def resolve_effect_file(file_name: str, assets: dict[str, str]) -> str | None:
             if regex.match(relative):
                 return relative
         return None
-    for suffix in (".str",):
-        path = f"{candidate}{suffix}".lower()
-        if path in assets:
-            return assets[path]
-    return None
+    path = f"{candidate}.str".lower()
+    return assets.get(path)
 
 
-def load_effects(path: Path) -> dict:
+def load_facts(path: Path) -> dict:
     payload = json.loads(path.read_text())
-    skills = {int(skill_id): fields for skill_id, fields in payload["skills"].items()}
-    effects = {int(effect_id): files for effect_id, files in payload["effects"].items()}
+    skills: dict[int, list[dict]] = {}
+    for skill_id, fields in payload["skills"].items():
+        skills[int(skill_id)] = fields
+    effects = {int(effect_id): files for effect_id, files in payload.get("effects", {}).items()}
     return {"skills": skills, "effects": effects}
 
 
-def build_rows(effects: dict, assets: dict[str, str], whitelist: tuple[set[str], list[str]]) -> list[tuple[int, str, str]]:
+def build_rows(facts: dict, assets: dict[str, str], whitelist: tuple[set[str], list[str]]) -> list[tuple[int, str, str, str]]:
     concrete, templates = whitelist
-    rows: list[tuple[int, str, str]] = []
-    skipped: list[tuple[int, str, str]] = []
+    rows: dict[tuple[int, str, str, str], None] = {}
 
     def files_for(effect_ids: list[int]) -> list[str]:
         resolved: list[str] = []
         for effect_id in effect_ids:
-            for entry in effects["effects"].get(effect_id, ()):
+            for entry in facts["effects"].get(effect_id, ()):
                 if entry.get("type") not in (None, "STR"):
                     continue
-                file_name = entry["file"]
+                file_name = entry.get("file")
+                if not file_name:
+                    continue
                 resolved_path = resolve_effect_file(file_name, assets)
                 if resolved_path is None:
                     continue
@@ -212,19 +253,28 @@ def build_rows(effects: dict, assets: dict[str, str], whitelist: tuple[set[str],
                     resolved.append(resolved_path)
         return resolved
 
-    for skill_id, fields in sorted(effects["skills"].items()):
-        for group, variant in VARIANTS.items():
-            for file in files_for(fields.get(group, [])):
-                rows.append((skill_id, variant, file))
-                # The first resolvable file of a group is enough for our client;
-                # further variants of the same group would spawn on top of it.
-                break
+    for skill_id, fields in sorted(facts["skills"].items()):
+        per_variant: dict[str, list[tuple[str, str]]] = {}
+        for field in fields:
+            spec = FIELD_SPECS.get(field["field"])
+            if spec is None:
+                continue
+            variant, anchor = spec
+            for file in files_for(field["effects"]):
+                per_variant.setdefault(variant, [])
+                entry = (anchor, file)
+                if entry not in per_variant[variant]:
+                    per_variant[variant].append(entry)
+        for variant, entries in per_variant.items():
+            # Deterministic order; the client spawns every kept file of a phase.
+            entries.sort(key=lambda entry: (ANCHOR_ORDER.index(entry[0]), entry[1]))
+            for anchor, file in entries[:MAX_FILES_PER_VARIANT]:
+                rows[(skill_id, variant, anchor, file)] = None
 
-    rows.sort(key=lambda row: (row[0], row[1], row[2]))
-    return rows
+    return sorted(rows, key=lambda row: (row[0], VARIANT_ORDER.index(row[1]), ANCHOR_ORDER.index(row[2]), row[3]))
 
 
-def render(rows: list[tuple[int, str, str]]) -> str:
+def render(rows: list[tuple[int, str, str, str]]) -> str:
     lines = [
         "// Official skill -> effect mapping for the client.",
         "//",
@@ -232,9 +282,11 @@ def render(rows: list[tuple[int, str, str]]) -> str:
         "// Regenerate with: `./tools/gen_skill_effect_assets.py`",
         "// Drift check:      `./tools/gen_skill_effect_assets.py --check`",
         "//",
-        "// Format: (skill id, variant, effect path relative to data\\texture\\effect\\)",
-        "// Variants: Ground, Cast, Success, Release, Hit, Caster (see the loader in",
-        "// `korangar/src/world/library/skill_effect_assets.rs`).",
+        "// Format: (skill id, variant, anchor, effect path relative to data\\texture\\effect\\)",
+        "// Variants: Ground, Cast, Success, Release, Hit, Caster",
+        "// Anchors:  Caster, Target, Travel (target cell, caster fallback), Auto",
+        "//           (target cell when the packet knows one, caster otherwise);",
+        "//           see the loader in `korangar/src/world/library/skill_effect_assets.rs`.",
         "//",
         "// The mapping is loaded at runtime from this data file through the normal",
         "// client file loader, so a server can override it without rebuilding the",
@@ -243,9 +295,9 @@ def render(rows: list[tuple[int, str, str]]) -> str:
         '    provenance: "Windows client effect tables (roBrowserLegacy RE dump), validated against CondaRO.exe and the GRFs",',
         "    effects: [",
     ]
-    for skill_id, variant, file in rows:
+    for skill_id, variant, anchor, file in rows:
         escaped = file.replace("\\", "\\\\")
-        lines.append(f'        (skill: {skill_id}, variant: {variant}, file: "{escaped}"),')
+        lines.append(f'        (skill: {skill_id}, variant: {variant}, anchor: {anchor}, file: "{escaped}"),')
     lines.extend(["    ],", ")", ""])
     return "\n".join(lines)
 
@@ -264,19 +316,19 @@ def main() -> int:
     if not game_dir.is_dir():
         raise SystemExit(f"game directory with GRF archives not found: {game_dir}")
 
-    effects = load_effects(Path(args.effects))
+    facts = load_facts(Path(args.effects))
     assets = collect_effect_assets(game_dir, Path(args.archive_dir) if args.archive_dir else None)
     if not assets:
         raise SystemExit(f"no .str effect files found in the archives under {game_dir}")
     whitelist = load_whitelist(Path(args.whitelist))
 
-    rows = build_rows(effects, assets, whitelist)
+    rows = build_rows(facts, assets, whitelist)
     if not rows:
         raise SystemExit("no official skill effects could be resolved against the archives/whitelist")
 
     # Re-validate the final rows (defensive: every file must exist and be official).
     valid_paths = {path.lower() for path in assets.values()}
-    for skill_id, _variant, file in rows:
+    for skill_id, _variant, _anchor, file in rows:
         if file.lower() not in valid_paths:
             raise SystemExit(f"skill {skill_id}: effect does not exist in the archives: {file}")
         if not whitelist_allows(file, *whitelist):

@@ -146,13 +146,7 @@ impl SkillSoundPlayer {
     /// The 2019 server sends no sound packet for ambient casts, so the cast
     /// handlers call this with the caster entity and its position.
     pub fn play_skill_sound(&self, skill_id: SkillId, entity_id: Option<EntityId>, position: Option<Point3<f32>>) {
-        let candidates = SKILL_SOUNDS
-            .iter()
-            .find(|(id, _)| SkillId(*id) == skill_id)
-            .map(|(_, candidates)| *candidates)
-            .unwrap_or(GENERIC_CAST_SOUND);
-
-        let Some(wav) = self.first_existing(candidates) else {
+        let Some(wav) = self.first_existing(skill_sound_candidates(skill_id)) else {
             return;
         };
 
@@ -327,6 +321,21 @@ impl SkillSoundPlayer {
     }
 }
 
+/// Returns the wav candidates of `skill_id` in play priority order.
+///
+/// 1. the hand-curated, verified entries of [SKILL_SOUNDS] (these override the
+///    generated table so the classic casts keep their verified wav),
+/// 2. the official per-skill sound from `archive/data/client/skill_sounds.ron`,
+/// 3. the generic cast sound.
+pub(crate) fn skill_sound_candidates(skill_id: SkillId) -> &'static [&'static str] {
+    SKILL_SOUNDS
+        .iter()
+        .find(|(id, _)| SkillId(*id) == skill_id)
+        .map(|(_, candidates)| *candidates)
+        .or_else(|| crate::world::skill_sound_files(skill_id))
+        .unwrap_or(GENERIC_CAST_SOUND)
+}
+
 /// Normalizes a `ZC_SOUND` name to the path that the audio engine expects
 /// (relative to `data/wav`, backslash separated, with a `.wav` extension).
 fn normalize_network_sound_name(name: &str) -> Option<String> {
@@ -424,6 +433,19 @@ mod tests {
 
         // A network sound (`ZC_SOUND`) for an entity.
         player.play_network_sound("effect\\ef_glow.wav", AccountId(43), position);
+    }
+
+    #[test]
+    fn generated_sounds_are_used_for_skills_without_a_curated_entry() {
+        // Heal has no hand-curated entry; the generated official sound is used.
+        assert_eq!(skill_sound_candidates(SkillId(28))[0], "_heal_effect.wav");
+        // Storm Gust (from the generated table).
+        assert!(skill_sound_candidates(SkillId(89))[0].contains("wizard_stormgust"));
+        // The curated entries keep priority (verified classic casts).
+        assert_eq!(skill_sound_candidates(SkillId(34))[0], "effect\\ef_blessing.wav");
+        assert_eq!(skill_sound_candidates(SkillId(110))[0], "black_hammerfall.wav");
+        // Unknown skills fall back to the generic cast sound.
+        assert_eq!(skill_sound_candidates(SkillId(65_500)), GENERIC_CAST_SOUND);
     }
 
     #[test]

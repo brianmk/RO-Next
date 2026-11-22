@@ -154,6 +154,19 @@ impl AnimationState {
         self.looping = looping;
     }
 
+    /// Combat-ready stance (official `READYFIGHT` action, `SM_ENDURE`).
+    ///
+    /// The stance loops until the next action replaces it, like every other
+    /// non-timed pose.
+    pub fn ready_fight(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.action_type = AnimationActionType::ReadyFight;
+        self.action_base_offset = self.action_type.action_base_offset(entity_type);
+        self.start_time = client_tick;
+        self.duration = None;
+        self.factor = None;
+        self.looping = true;
+    }
+
     pub fn pickup(&mut self, entity_type: EntityType, client_tick: ClientTick) {
         self.action_type = AnimationActionType::Pickup;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
