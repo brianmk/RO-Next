@@ -52,6 +52,9 @@ pub enum AuraGrow {
     TopRadius,
     /// Both radii grow with the elapsed time (`EF_GUMGANG2`'s expanding rings).
     BothRadii,
+    /// The radii stay constant for the whole lifetime (data-driven ground
+    /// rings).
+    Constant,
 }
 
 /// Description of one client "cylinder" effect. All values are tuned to the
@@ -81,6 +84,8 @@ pub struct SkillAuraSpec {
     pub duplicates: usize,
     /// Delay between duplicates in milliseconds.
     pub duplicate_delay_ms: u32,
+    /// Base tint of the effect (the texture is multiplied with it).
+    pub color: Color,
 }
 
 impl SkillAuraSpec {
@@ -121,6 +126,18 @@ impl SkillAura {
         })
     }
 
+    /// Creates an aura from an already loaded texture (used by the data-driven
+    /// procedural effect spec, whose textures are resolved at runtime).
+    pub fn with_texture(texture: Arc<Texture>, center: EffectCenter, spec: SkillAuraSpec) -> Self {
+        Self {
+            texture,
+            center,
+            spec,
+            time: 0.0,
+            gets_deleted: false,
+        }
+    }
+
     /// Alpha of a single cylinder after `elapsed` milliseconds. The original
     /// client fades the effect in over the first quarter and out over the last
     /// quarter of its lifetime.
@@ -148,6 +165,7 @@ impl SkillAura {
         match spec.grow {
             AuraGrow::TopRadius => (spec.bottom_radius, spec.top_radius * progress),
             AuraGrow::BothRadii => (spec.bottom_radius * progress, spec.top_radius * progress),
+            AuraGrow::Constant => (spec.bottom_radius, spec.top_radius),
         }
     }
 
@@ -164,8 +182,47 @@ impl SkillAura {
             height: renderer.window_size().height,
         };
         let (source_blend_factor, destination_blend_factor) = self.spec.blend_factors();
-        let color = Color::rgba(0.95, 0.85, 0.35, alpha);
+        let color = Color::rgba(self.spec.color.red, self.spec.color.green, self.spec.color.blue, alpha);
         let angle = elapsed_ms * 0.001 * self.spec.rotation_speed;
+
+        // A zero-height cylinder is a flat ground ring/decal: draw one horizontal
+        // textured quad instead of a degenerate cylinder.
+        if self.spec.height <= 0.01 {
+            let radius = bottom_radius.max(top_radius);
+            // Ground decals are drawn a hair above the terrain to avoid
+            // z-fighting with the ground depth buffer.
+            let anchor = anchor + Vector3::new(0.0, 0.15, 0.0);
+            let (sin, cos) = angle.sin_cos();
+            let right = Vector3::new(cos * radius, 0.0, sin * radius);
+            let forward = Vector3::new(-sin * radius, 0.0, cos * radius);
+            let corners = [
+                anchor - right + forward,
+                anchor + right + forward,
+                anchor + right - forward,
+                anchor - right - forward,
+            ];
+            let texture_coordinates = [
+                Vector2::new(0.0, 0.0),
+                Vector2::new(1.0, 0.0),
+                Vector2::new(1.0, 1.0),
+                Vector2::new(0.0, 1.0),
+            ];
+
+            render_world_quad_blended(
+                renderer,
+                camera,
+                anchor,
+                screen_size,
+                self.texture.clone(),
+                color,
+                corners,
+                texture_coordinates,
+                source_blend_factor,
+                destination_blend_factor,
+            );
+            return;
+        }
+
         let segment_angle = std::f32::consts::TAU / CYLINDER_SEGMENTS as f32;
         let height = Vector3::new(0.0, self.spec.height, 0.0);
 
@@ -243,6 +300,7 @@ impl EffectBase for SkillAura {
 #[cfg(test)]
 mod tests {
     use super::{AuraGrow, OFFICIAL_EFFECT_UNIT, SkillAura, SkillAuraSpec};
+    use crate::graphics::Color;
 
     fn begin_spell() -> SkillAuraSpec {
         SkillAuraSpec {
@@ -257,6 +315,7 @@ mod tests {
             grow: AuraGrow::TopRadius,
             duplicates: 1,
             duplicate_delay_ms: 0,
+            color: Color::rgb(0.95, 0.85, 0.35),
         }
     }
 
@@ -273,6 +332,7 @@ mod tests {
             grow: AuraGrow::BothRadii,
             duplicates: 4,
             duplicate_delay_ms: 100,
+            color: Color::rgb(0.95, 0.85, 0.35),
         }
     }
 

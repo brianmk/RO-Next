@@ -33,7 +33,7 @@ const DATA_PATH: &str = "data\\client\\skill_effect_assets.ron";
 const FALLBACK: &str = include_str!("../../../archive/data/client/skill_effect_assets.ron");
 
 /// When an effect of a skill is played.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Deserialize)]
 pub(crate) enum SkillEffectVariant {
     /// Ground-target skill completion, at the target cell.
     Ground,
