@@ -20,6 +20,7 @@ use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::{FontSize, OverflowBehavior};
+use crate::state::localization::LocalizationPathExt;
 use crate::state::party::{Party, PartyInvitePrompt, PartyPathExt};
 use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
@@ -90,10 +91,11 @@ where
     ) -> Self::LayoutInfo {
         let party = state.follow(self.party_path);
 
+        let party_title = state.get(&client_state().localization().party_window_title()).clone();
         self.title = match party.is_in_party() {
-            true if party.name.is_empty() => "Party".to_owned(),
-            true => format!("Party: {}", party.name),
-            false => "You are not in a party.".to_owned(),
+            true if party.name.is_empty() => party_title,
+            true => format!("{party_title}: {}", party.name),
+            false => state.get(&client_state().localization().not_in_party_text()).clone(),
         };
 
         self.lines = party.members.iter().map(|member| member.display_name()).collect();
@@ -347,7 +349,7 @@ impl CustomWindow<ClientState> for PartyWindow {
         struct InvitePartyName;
 
         window! {
-            title: "Party",
+            title: client_state().localization().party_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
@@ -357,39 +359,39 @@ impl CustomWindow<ClientState> for PartyWindow {
             elements: (
                 PartyRoster::new(client_state().party()),
                 text! {
-                    text: "Create a party",
+                    text: client_state().localization().create_party_text(),
                 },
                 text_box! {
-                    ghost_text: "Party name",
+                    ghost_text: client_state().localization().party_name_text(),
                     state: create_input_path,
                     input_handler: DefaultHandler::<_, _, MAXIMUM_NAME_LENGTH>::new(create_input_path, create_action),
                     focus_id: CreatePartyName,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 button! {
-                    text: "Create party",
+                    text: client_state().localization().create_party_button_text(),
                     disabled: create_disabled,
                     disabled_tooltip: "Enter a party name first",
                     event: create_action,
                 },
                 text! {
-                    text: "Invite a character",
+                    text: client_state().localization().invite_character_text(),
                 },
                 text_box! {
-                    ghost_text: "Character name",
+                    ghost_text: client_state().localization().character_name_text(),
                     state: invite_input_path,
                     input_handler: DefaultHandler::<_, _, MAXIMUM_NAME_LENGTH>::new(invite_input_path, invite_action),
                     focus_id: InvitePartyName,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 button! {
-                    text: "Invite",
+                    text: client_state().localization().invite_button_text(),
                     disabled: invite_disabled,
                     disabled_tooltip: "You have to be in a party to invite characters",
                     event: invite_action,
                 },
                 button! {
-                    text: "Leave party",
+                    text: client_state().localization().leave_party_button_text(),
                     disabled: leave_disabled,
                     disabled_tooltip: "You are not in a party",
                     event: leave_action,
@@ -436,7 +438,7 @@ where
         };
 
         window! {
-            title: "Party invitation",
+            title: client_state().localization().party_invitation_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
@@ -448,11 +450,11 @@ where
                     gaps: 8.0,
                     children: (
                         button! {
-                            text: "Accept",
+                            text: client_state().localization().accept_button_text(),
                             event: accept_action,
                         },
                         button! {
-                            text: "Reject",
+                            text: client_state().localization().reject_button_text(),
                             event: reject_action,
                         },
                     ),

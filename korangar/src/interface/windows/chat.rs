@@ -13,13 +13,33 @@ use rust_state::{Path, PathExt, RustState, Selector, State};
 use super::WindowClass;
 use crate::graphics::{Color, ShadowPadding};
 use crate::input::InputEvent;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
-use crate::state::theme::{ChatTheme, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::theme::{
+    ChatTheme, ColorTokens, ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, SpacingTokensPathExt,
+    TypographyTokensPathExt,
+};
 use crate::state::{ChatMessage, ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_CHAT_MESSAGE_LENGTH: usize = 80;
+
+/// Resolve the color of a chat message through the design tokens.
+///
+/// Server-colored messages keep their RGB color from the network, every other
+/// class uses the semantic token so a theme can style it.
+fn message_color<P>(state: &State<ClientState>, tokens: P, message_color: MessageColor) -> Color
+where
+    P: Path<ClientState, ColorTokens> + Copy,
+{
+    match message_color {
+        MessageColor::Rgb { red, green, blue } => Color::rgb_u8(red, green, blue),
+        MessageColor::Broadcast => *state.get(&tokens.chat_broadcast()),
+        MessageColor::Server => *state.get(&tokens.chat_server()),
+        MessageColor::Information => *state.get(&tokens.chat_information()),
+        MessageColor::Error => *state.get(&tokens.chat_error()),
+    }
+}
 
 /// ZST for getting the focus id of the chat text box. This is only needed to
 /// focus the chat when pressing enter.
@@ -55,32 +75,31 @@ where
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
             let chat_messages = state.get(&self.chat_messages_path);
-            // TODO: Theme this.
-            let message_spacing = 5.0;
+            let tokens = client_theme().tokens();
+            let color_tokens = tokens.color();
+            let typography = tokens.typography();
+            let spacing = tokens.spacing();
+
+            let message_spacing = *state.get(&spacing.chat_message_gap());
+            let message_font_size = *state.get(&typography.font_body_lg());
+            let highlight_color = *state.get(&color_tokens.text_overlay_accent());
+            let message_alignment = HorizontalAlignment::Left {
+                offset: *state.get(&spacing.lg()),
+                border: *state.get(&spacing.text_border()),
+            };
 
             let mut total_height = 0.0;
             let message_heights = chat_messages
                 .iter()
                 .map(|chat_message| {
-                    let color = match chat_message.color {
-                        MessageColor::Rgb { red, green, blue } => Color::rgb_u8(red, green, blue),
-                        // TODO: Make the color right.
-                        MessageColor::Broadcast => Color::monochrome_u8(255),
-                        // TODO: Make the color right.
-                        MessageColor::Server => Color::monochrome_u8(255),
-                        // TODO: Make the color right.
-                        MessageColor::Error => Color::monochrome_u8(255),
-                        // TODO: Make the color right.
-                        MessageColor::Information => Color::monochrome_u8(255),
-                    };
+                    let color = message_color(state, color_tokens, chat_message.color);
 
                     let (size, _) = resolver.get_text_dimensions(
                         &chat_message.text,
                         color,
-                        Color::rgb_u8(255, 160, 60),
-                        // TODO: Theme this.
-                        FontSize(14.0),
-                        HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
+                        highlight_color,
+                        message_font_size,
+                        message_alignment,
                         OverflowBehavior::LineBreak,
                     );
 
@@ -108,25 +127,25 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let chat_messages = state.get(&self.chat_messages_path);
-        // TODO: Theme this.
-        let message_spacing = 5.0;
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+        let spacing = tokens.spacing();
+
+        let message_spacing = *state.get(&spacing.chat_message_gap());
+        let message_font_size = *state.get(&typography.font_body_lg());
+        let highlight_color = *state.get(&color_tokens.text_overlay_accent());
+        let message_alignment = HorizontalAlignment::Left {
+            offset: *state.get(&spacing.lg()),
+            border: *state.get(&spacing.text_border()),
+        };
 
         let mut offset = 0.0;
         chat_messages
             .iter()
             .zip(layout_info.message_heights.iter())
             .for_each(|(chat_message, message_height)| {
-                let color = match chat_message.color {
-                    MessageColor::Rgb { red, green, blue } => Color::rgb_u8(red, green, blue),
-                    // TODO: Make the color right.
-                    MessageColor::Broadcast => Color::monochrome_u8(255),
-                    // TODO: Make the color right.
-                    MessageColor::Server => Color::monochrome_u8(255),
-                    // TODO: Make the color right.
-                    MessageColor::Error => Color::monochrome_u8(255),
-                    // TODO: Make the color right.
-                    MessageColor::Information => Color::monochrome_u8(255),
-                };
+                let color = message_color(state, color_tokens, chat_message.color);
 
                 if offset != 0.0 {
                     offset += message_spacing;
@@ -142,11 +161,10 @@ where
                 layout.add_text(
                     text_area,
                     &chat_message.text,
-                    // TODO: Theme this.
-                    FontSize(14.0),
+                    message_font_size,
                     color,
-                    Color::rgb_u8(255, 160, 60),
-                    HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
+                    highlight_color,
+                    message_alignment,
                     VerticalAlignment::Center { offset: 0.0 },
                     OverflowBehavior::LineBreak,
                 );
@@ -263,6 +281,16 @@ where
         // theme (which uses black text on light text boxes).
         let text_box_focused_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_focused_foreground_color);
         let text_box_ghost_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.ghost_foreground_color);
+        // The focused chat input row is always drawn on a dark background, also
+        // in the light classic theme, so the background is a token and not one
+        // of the skinned text box colors.
+        let chat_input_focused_background_color = {
+            let tokens = client_theme().tokens();
+            let color_tokens = tokens.color();
+            korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+                *color_tokens.chat_input_focused_background().follow_safe(state)
+            })
+        };
 
         let send_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
             let text = state.get(&current_text_path);
@@ -311,7 +339,7 @@ where
                     focused_foreground_color: text_box_focused_foreground_color,
                     background_color: text_box_background_color,
                     ghost_foreground_color: text_box_ghost_foreground_color,
-                    focused_background_color: Color::rgba(0.0, 0.0, 0.0, 0.8),
+                    focused_background_color: chat_input_focused_background_color,
                     focus_id: ChatTextBox,
                     skinned: false,
                 },

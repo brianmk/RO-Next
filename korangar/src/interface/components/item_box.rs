@@ -16,12 +16,9 @@ use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
-use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, ItemCardThemePathExt};
 use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
-
-/// Marker color of the favorite star of an item card.
-const FAVORITE_COLOR: Color = Color::rgb_u8(255, 200, 60);
 
 #[derive(Default)]
 struct AmountDisplay {
@@ -305,8 +302,8 @@ where
                     marker_area,
                     "*",
                     FontSize(14.0),
-                    FAVORITE_COLOR,
-                    FAVORITE_COLOR,
+                    *state.get(&client_theme().tokens().color().state_favorite()),
+                    *state.get(&client_theme().tokens().color().state_favorite()),
                     HorizontalAlignment::Left { offset: 0.0, border: 1.0 },
                     VerticalAlignment::Top { offset: 0.0 },
                     OverflowBehavior::Shrink,

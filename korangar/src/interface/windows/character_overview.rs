@@ -7,10 +7,12 @@ use crate::input::InputEvent;
 use crate::interface::components::progress_bar::{BarStyle, LOW_HEALTH_FRACTION, LabeledProgressBar, MiniBar, StackedMiniBars};
 use crate::interface::components::round_button::RoundButton;
 use crate::interface::windows::WindowClass;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
-use crate::state::theme::{CharacterOverviewThemePathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::theme::{
+    CharacterOverviewThemePathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt,
+};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::Player;
 
@@ -57,7 +59,7 @@ const EXPANDED_BAR_GAP: f32 = 4.0;
 const EXPANDED_BAR_HEIGHT: f32 = 14.0;
 /// Size of the compact action buttons in the expanded form.
 const ACTION_BUTTON_HEIGHT: f32 = 18.0;
-const ACTION_BUTTON_FONT_SIZE: f32 = 10.5;
+
 /// Font size of the level line in the expanded form.
 const HEADER_FONT_SIZE: f32 = 11.0;
 
@@ -209,7 +211,7 @@ where
     A: Path<ClientState, bool>,
 {
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| match *compact_path.follow_safe(state) {
-        true => Color::rgba_u8(0, 0, 0, 180),
+        true => client_theme().follow_safe(state).tokens.color.surface_overlay,
         false => client_theme().follow_safe(state).window.background_color,
     })
 }
@@ -467,14 +469,14 @@ where
                 text! {
                     text: self.player_name_path,
                     color: korangar_interface::theme::theme().text().highlight_color(),
-                    font_size: FontSize(HEADER_FONT_SIZE),
+                    font_size: client_theme().tokens().typography().font_label(),
                     height: HEADER_FONT_SIZE + 3.0,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 text! {
                     text: levels_display(player_path),
                     color: client_theme().character_overview().value_color(),
-                    font_size: FontSize(HEADER_FONT_SIZE),
+                    font_size: client_theme().tokens().typography().font_label(),
                     height: HEADER_FONT_SIZE + 3.0,
                     horizontal_alignment: HorizontalAlignment::Right { offset: 0.0, border: 0.0 },
                     overflow_behavior: OverflowBehavior::Shrink,
@@ -540,21 +542,21 @@ where
                         button! {
                             text: client_state().localization().inventory_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleInventoryWindow,
                         },
                         button! {
                             text: client_state().localization().equipment_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleEquipmentWindow,
                         },
                         button! {
                             text: client_state().localization().skill_tree_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleSkillTreeWindow,
                         },
@@ -566,21 +568,21 @@ where
                         button! {
                             text: client_state().localization().stats_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleStatsWindow,
                         },
                         button! {
                             text: client_state().localization().friend_list_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleFriendListWindow,
                         },
                         button! {
                             text: client_state().localization().menu_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleMenuWindow,
                         },
@@ -592,21 +594,21 @@ where
                         button! {
                             text: client_state().localization().big_map_window_title(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleBigMapWindow,
                         },
                         button! {
                             text: client_state().localization().chat_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleChatWindow,
                         },
                         button! {
                             text: client_state().localization().game_settings_button_text(),
                             height: ACTION_BUTTON_HEIGHT,
-                            font_size: FontSize(ACTION_BUTTON_FONT_SIZE),
+                            font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
                             event: InputEvent::ToggleGameSettingsWindow,
                         },

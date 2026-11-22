@@ -25,10 +25,12 @@ mod character_slot_preview {
     use ragnarok_packets::{CharacterInformation, CharacterInformationPathExt};
     use rust_state::{ManuallyAssertExt, Path, State};
 
-    use crate::graphics::{Color, CornerDiameter, ScreenPosition, ScreenSize, ShadowPadding};
+    use crate::graphics::{CornerDiameter, ScreenPosition, ScreenSize, ShadowPadding};
     use crate::input::InputEvent;
-    use crate::loaders::{FontSize, OverflowBehavior};
-    use crate::state::ClientState;
+    use crate::loaders::OverflowBehavior;
+    use crate::state::localization::LocalizationPathExt;
+    use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt};
+    use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
     pub struct OverlayHandler<A, B> {
         position: ScreenPosition,
@@ -74,7 +76,7 @@ mod character_slot_preview {
                 gaps: 4.0,
                 children: (
                     button! {
-                        text: "Delete",
+                        text: client_state().localization().delete_button_text(),
                         event: move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                             // We should not be able to get here if the character is not present, so it's
                             // fine to unwrap.
@@ -89,14 +91,14 @@ mod character_slot_preview {
                         },
                     },
                     button! {
-                        text: "Switch",
+                        text: client_state().localization().switch_button_text(),
                         event: move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                             state.update_value(switch_request_path, Some(slot));
                             queue.queue(Event::CloseOverlay);
                         },
                     },
                     button! {
-                        text: "Cancel",
+                        text: client_state().localization().cancel_button_text(),
                         event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                             queue.queue(Event::CloseOverlay);
                         },
@@ -184,28 +186,35 @@ mod character_slot_preview {
             layout_info: &'a Self::LayoutInfo,
             layout: &mut WindowLayout<'a, ClientState>,
         ) {
+            let color_tokens = client_theme().tokens().color();
+            let typography = client_theme().tokens().typography();
+            let body_font_size = *state.get(&typography.font_body_lg());
+            let title_font_size = *state.get(&typography.font_title());
+            let accent_color = *state.get(&color_tokens.text_accent());
+            let overlay_text_color = *state.get(&color_tokens.text_overlay());
+
             if let Some(switch_request) = state.get(&self.switch_request) {
                 let is_hoverered = layout_info.area.check().run(layout);
 
                 let background_color = match is_hoverered {
-                    true => Color::monochrome_u8(80),
-                    false => Color::monochrome_u8(60),
+                    true => *state.get(&color_tokens.state_active()),
+                    false => *state.get(&color_tokens.state_hover()),
                 };
                 layout.add_rectangle(
                     layout_info.area,
                     CornerDiameter::uniform(25.0),
                     background_color,
-                    Color::rgba_u8(0, 0, 0, 100),
+                    *state.get(&color_tokens.border()),
                     ShadowPadding::diagonal(2.0, 5.0),
                 );
 
                 if *switch_request == self.slot {
                     layout.add_text(
                         layout_info.area,
-                        "Cancel",
-                        FontSize(14.0),
-                        Color::WHITE,
-                        Color::rgb_u8(255, 160, 60),
+                        state.follow(client_state().localization().cancel_button_text()).as_str(),
+                        body_font_size,
+                        overlay_text_color,
+                        accent_color,
                         HorizontalAlignment::Center { offset: 0.0, border: 5.0 },
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -217,10 +226,10 @@ mod character_slot_preview {
                 } else {
                     layout.add_text(
                         layout_info.area,
-                        "Switch slots",
-                        FontSize(14.0),
-                        Color::WHITE,
-                        Color::rgb_u8(255, 160, 60),
+                        state.follow(client_state().localization().switch_slots_text()).as_str(),
+                        body_font_size,
+                        overlay_text_color,
+                        accent_color,
                         HorizontalAlignment::Center { offset: 0.0, border: 5.0 },
                         VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -238,23 +247,23 @@ mod character_slot_preview {
                 let is_hoverered = layout_info.area.check().run(layout);
 
                 let background_color = match is_hoverered {
-                    true => Color::monochrome_u8(110),
-                    false => Color::monochrome_u8(90),
+                    true => *state.get(&color_tokens.surface_highlight()),
+                    false => *state.get(&color_tokens.surface_selected()),
                 };
                 layout.add_rectangle(
                     layout_info.area,
                     CornerDiameter::uniform(25.0),
                     background_color,
-                    Color::rgba_u8(0, 0, 0, 100),
+                    *state.get(&color_tokens.border()),
                     ShadowPadding::diagonal(2.0, 5.0),
                 );
 
                 layout.add_text(
                     layout_info.area,
                     &character_information.name,
-                    FontSize(18.0),
-                    Color::rgb_u8(255, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    title_font_size,
+                    *state.get(&color_tokens.text_value()),
+                    accent_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 5.0 },
                     VerticalAlignment::Top { offset: 0.0 },
                     OverflowBehavior::Shrink,
@@ -262,10 +271,10 @@ mod character_slot_preview {
 
                 layout.add_text(
                     layout_info.area,
-                    "Base level",
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    state.follow(client_state().localization().base_level_text()).as_str(),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 30.0 },
                     OverflowBehavior::Shrink,
@@ -276,9 +285,9 @@ mod character_slot_preview {
                     self.click_handler
                         .base_level_str
                         .get_str(self.character_information.manually_asserted().base_level(), state),
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 44.0 },
                     OverflowBehavior::Shrink,
@@ -286,10 +295,10 @@ mod character_slot_preview {
 
                 layout.add_text(
                     layout_info.area,
-                    "Job level",
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    state.follow(client_state().localization().job_level_text()).as_str(),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 66.0 },
                     OverflowBehavior::Shrink,
@@ -300,9 +309,9 @@ mod character_slot_preview {
                     self.click_handler
                         .job_level_str
                         .get_str(self.character_information.manually_asserted().job_level(), state),
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 80.0 },
                     OverflowBehavior::Shrink,
@@ -310,10 +319,10 @@ mod character_slot_preview {
 
                 layout.add_text(
                     layout_info.area,
-                    "Map",
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    state.follow(client_state().localization().map_text()).as_str(),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 102.0 },
                     OverflowBehavior::Shrink,
@@ -326,9 +335,9 @@ mod character_slot_preview {
                         .map_name
                         .strip_suffix(".gat")
                         .unwrap_or(&character_information.map_name),
-                    FontSize(14.0),
-                    Color::rgb_u8(200, 200, 150),
-                    Color::rgb_u8(255, 160, 60),
+                    body_font_size,
+                    *state.get(&color_tokens.text_secondary()),
+                    accent_color,
                     HorizontalAlignment::Left { offset: 5.0, border: 3.0 },
                     VerticalAlignment::Top { offset: 116.0 },
                     OverflowBehavior::Shrink,
@@ -347,23 +356,23 @@ mod character_slot_preview {
                 let is_hoverered = layout_info.area.check().run(layout);
 
                 let background_color = match is_hoverered {
-                    true => Color::monochrome_u8(55),
-                    false => Color::monochrome_u8(40),
+                    true => *state.get(&color_tokens.state_disabled()),
+                    false => *state.get(&color_tokens.surface_raised()),
                 };
                 layout.add_rectangle(
                     layout_info.area,
                     CornerDiameter::uniform(25.0),
                     background_color,
-                    Color::rgba_u8(0, 0, 0, 100),
+                    *state.get(&color_tokens.border()),
                     ShadowPadding::diagonal(2.0, 5.0),
                 );
 
                 layout.add_text(
                     layout_info.area,
-                    "Create Character",
-                    FontSize(14.0),
-                    Color::monochrome_u8(85),
-                    Color::rgb_u8(255, 160, 60),
+                    state.follow(client_state().localization().create_character_slot_text()).as_str(),
+                    body_font_size,
+                    *state.get(&color_tokens.text_disabled()),
+                    accent_color,
                     HorizontalAlignment::Center { offset: 0.0, border: 5.0 },
                     VerticalAlignment::Center { offset: 0.0 },
                     OverflowBehavior::Shrink,
@@ -638,7 +647,7 @@ where
         }
 
         window! {
-            title: "Select Character",
+            title: client_state().localization().select_character_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::Menu,
             minimum_width: 900.0,

@@ -15,10 +15,11 @@ use rust_state::{ManuallyAssertExt, Path, PathExt, Selector, State, VecIndexExt}
 use super::WindowClass;
 use crate::InputEvent;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::ClientState;
-use crate::state::theme::InterfaceThemeType;
+use crate::state::localization::LocalizationPathExt;
+use crate::state::theme::{DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt, TypographyTokensPathExt};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::ResourceMetadata;
 
 struct PartialEqDisplayStr<T> {
@@ -132,12 +133,14 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let item = state.get(&self.item_path);
+        let item_card_theme = client_theme().item_card();
+        let item_font_size = *state.get(&client_theme().tokens().typography().font_lg());
 
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(4.0),
-            Color::rgb_u8(80, 80, 80),
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&item_card_theme.background_color()),
+            *state.get(&item_card_theme.border_color()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -147,9 +150,9 @@ where
             layout.add_text(
                 layout_info.texture_area,
                 self.amount_string.get_str(),
-                FontSize(16.0),
-                Color::monochrome_u8(220),
-                Color::rgb_u8(255, 160, 60),
+                item_font_size,
+                *state.get(&item_card_theme.text_color()),
+                *state.get(&item_card_theme.highlight_color()),
                 HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
                 VerticalAlignment::Bottom { offset: 0.0 },
                 OverflowBehavior::Shrink,
@@ -159,9 +162,9 @@ where
         layout.add_text(
             layout_info.text_area,
             &item.metadata.0.name,
-            FontSize(16.0),
-            Color::monochrome_u8(220),
-            Color::rgb_u8(255, 160, 60),
+            item_font_size,
+            *state.get(&item_card_theme.text_color()),
+            *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Left { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,
@@ -170,9 +173,9 @@ where
         layout.add_text(
             layout_info.text_area,
             self.price_string.get_str(),
-            FontSize(16.0),
-            Color::rgb_u8(250, 230, 130),
-            Color::rgb_u8(255, 160, 60),
+            item_font_size,
+            *state.get(&item_card_theme.highlight_color()),
+            *state.get(&item_card_theme.text_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
             VerticalAlignment::Center { offset: 0.0 },
             OverflowBehavior::Shrink,
@@ -341,7 +344,7 @@ where
         use korangar_interface::prelude::*;
 
         window! {
-            title: "Cart",
+            title: client_state().localization().cart_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             resizable: true,
@@ -350,7 +353,7 @@ where
                     gaps: theme().window().gaps(),
                     children: (
                         button! {
-                            text: "Sell",
+                            text: client_state().localization().sell_button_text(),
                             event: move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                                 let cart = state.get(&self.cart_path);
                                 let items = cart
@@ -365,7 +368,7 @@ where
                             }
                         },
                         button! {
-                            text: "Cancel",
+                            text: client_state().localization().cancel_button_text(),
                             event: InputEvent::CloseShop,
                         },
                     ),

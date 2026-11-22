@@ -10,10 +10,12 @@ use rust_state::{Path, State};
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::SkillSource;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
 use crate::state::skills::{LearnableSkill, LearnedSkill};
-use crate::state::theme::{GlobalThemePathExt, InterfaceThemePathExt, SkillTreeThemePathExt};
+use crate::state::theme::{
+    ColorTokensPathExt, DesignTokensPathExt, GlobalThemePathExt, InterfaceThemePathExt, SkillTreeThemePathExt, TypographyTokensPathExt,
+};
 use crate::state::{ClientState, client_theme};
 
 struct LevelDisplay {
@@ -169,9 +171,11 @@ where
             false => layout_info.area.check().run(layout),
         };
 
+        let color_tokens = client_theme().tokens().color();
+        let skill_font_size = *state.get(&client_theme().tokens().typography().font_body());
         let background_color = match !is_drop_target && is_hovered {
-            true => Color::rgb_u8(60, 60, 60),
-            false => Color::rgb_u8(40, 40, 40),
+            true => *state.get(&color_tokens.state_hover()),
+            false => *state.get(&color_tokens.surface_raised()),
         };
 
         layout.add_rectangle(
@@ -180,7 +184,7 @@ where
             // used to leave large dark areas around the skill icon.
             CornerDiameter::uniform(6.0),
             background_color,
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&color_tokens.border()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -252,12 +256,9 @@ where
             layout.add_text(
                 layout_info.area,
                 self.level_display.string.as_ref().unwrap(),
-                // TODO: Put this in the theme
-                FontSize(12.0),
-                // TODO: Put this in the theme
-                Color::WHITE,
-                // TODO: Put this in the theme
-                Color::rgb_u8(255, 160, 60),
+                skill_font_size,
+                *state.get(&color_tokens.text_overlay()),
+                *state.get(&color_tokens.text_overlay_accent()),
                 // TODO: Put this in the theme
                 HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
                 // TODO: Put this in the theme

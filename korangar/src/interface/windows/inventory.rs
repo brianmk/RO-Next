@@ -96,7 +96,7 @@ where
                     gaps: theme().window().gaps(),
                     children: (
                         text! {
-                            text: "Zeny",
+                            text: client_state().localization().zeny_text(),
                             height: 18.0,
                             overflow_behavior: OverflowBehavior::Shrink,
                         },

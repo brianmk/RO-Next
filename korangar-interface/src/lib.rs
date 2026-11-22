@@ -1,3 +1,7 @@
+// The `Element` trait is implemented for tuples up to 140 fields (the
+// localization struct alone has more than 100 fields), which needs deeper macro
+// recursion.
+#![recursion_limit = "512"]
 #![allow(incomplete_features)]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
@@ -944,6 +948,23 @@ where
             }
         });
 
+        // Publish whether a foreground window is open so the keyboard input
+        // system can decide what Escape does, and (when KORANGAR_UI_RECTS_DUMP
+        // is set) write the window rectangles for the golden screenshot
+        // harness.
+        let has_foreground_windows = this
+            .windows
+            .iter()
+            .any(|wrapper| !App::is_background_window_class(wrapper.window.get_class()));
+        crate::window::set_has_foreground_windows(has_foreground_windows);
+
+        dump_window_rects(
+            &this.windows,
+            this.window_size.width(),
+            this.window_size.height(),
+            interface_scaling,
+        );
+
         if crate::logging::enabled(crate::logging::LEVEL_TRACE) {
             let windows: Vec<(f32, f32, f32, f32)> = this
                 .windows
@@ -980,6 +1001,56 @@ where
             interface_scaling,
             text_layouter: &this.text_layouter,
         }
+    }
+}
+
+/// Write the screen rectangles of all open windows to the file named by
+/// `KORANGAR_UI_RECTS_DUMP`, if that environment variable is set.
+///
+/// The golden screenshot harness uses this to crop exactly the window it wants
+/// to compare without having to hard-code positions that depend on the theme,
+/// the interface scaling and the user's window cache:
+///
+/// ```text
+/// window_size=1280x720 scaling=0.750
+/// InventoryWindow 490 180 300 275
+/// ```
+///
+/// The file is written atomically (temp file + rename) so a reader never sees
+/// a half-written list.
+fn dump_window_rects<App: Application>(windows: &[WindowWrapper<App>], window_size_width: f32, window_size_height: f32, scaling: f32) {
+    let Some(path) = std::env::var_os("KORANGAR_UI_RECTS_DUMP") else {
+        return;
+    };
+
+    use std::fmt::Write;
+
+    let mut output = String::new();
+    let _ = writeln!(
+        output,
+        "window_size={window_size_width}x{window_size_height} scaling={scaling:.3}"
+    );
+    // Window positions are anchor positions in screen pixels, the window size
+    // is tracked in interface pixels and scaled by the interface scaling when
+    // it is rendered. The harness works on the rendered screenshot, so convert
+    // the size here (and leave the position as it is).
+    for wrapper in windows {
+        let area = wrapper.display_information.real_area;
+        let _ = writeln!(
+            output,
+            "{} {} {} {} {}",
+            wrapper.data.debug_name,
+            area.left,
+            area.top,
+            area.width * scaling,
+            area.height * scaling
+        );
+    }
+
+    let path = std::path::PathBuf::from(path);
+    let temporary_path = path.with_extension("tmp");
+    if std::fs::write(&temporary_path, output).is_ok() {
+        let _ = std::fs::rename(&temporary_path, &path);
     }
 }
 

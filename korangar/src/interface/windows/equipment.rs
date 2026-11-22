@@ -5,8 +5,9 @@ use rust_state::Path;
 use crate::interface::components::equipment_stats::EquipmentStats;
 use crate::interface::components::paper_doll::PaperDoll;
 use crate::interface::windows::WindowClass;
-use crate::state::ClientState;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::world::{Player, ResourceMetadata};
 
 /// Total width of the equipment window. The content is split into two equally
@@ -38,7 +39,7 @@ where
         use korangar_interface::prelude::*;
 
         window! {
-            title: "Equipment",
+            title: client_state().localization().equipment_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,

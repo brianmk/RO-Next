@@ -15,10 +15,11 @@ use super::WindowClass;
 use crate::InputEvent;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::interface::components::zeny::format_zeny;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt};
-use crate::state::{ClientState, client_theme};
+use crate::state::localization::LocalizationPathExt;
+use crate::state::theme::{DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt, TypographyTokensPathExt};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::ResourceMetadata;
 
 struct PartialEqDisplayStr<T> {
@@ -133,6 +134,7 @@ where
     ) {
         let item = state.get(&self.item_path);
         let item_card_theme = client_theme().item_card();
+        let item_font_size = *state.get(&client_theme().tokens().typography().font_lg());
 
         layout.add_rectangle(
             layout_info.area,
@@ -148,7 +150,7 @@ where
             layout.add_text(
                 layout_info.texture_area,
                 self.amount_string.get_str(),
-                FontSize(16.0),
+                item_font_size,
                 *state.get(&item_card_theme.text_color()),
                 *state.get(&item_card_theme.highlight_color()),
                 HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
@@ -160,7 +162,7 @@ where
         layout.add_text(
             layout_info.text_area,
             &item.metadata.0.name,
-            FontSize(16.0),
+            item_font_size,
             *state.get(&item_card_theme.text_color()),
             *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Left { offset: 3.0, border: 3.0 },
@@ -171,7 +173,7 @@ where
         layout.add_text(
             layout_info.text_area,
             self.price_string.get_str(),
-            FontSize(16.0),
+            item_font_size,
             *state.get(&item_card_theme.highlight_color()),
             *state.get(&item_card_theme.text_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
@@ -366,11 +368,12 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let item_card_theme = client_theme().item_card();
+        let total_font_size = *state.get(&client_theme().tokens().typography().font_subtitle());
 
         layout.add_text(
             *layout_info,
             &self.text,
-            FontSize(15.0),
+            total_font_size,
             *state.get(&item_card_theme.text_color()),
             *state.get(&item_card_theme.highlight_color()),
             HorizontalAlignment::Right { offset: 3.0, border: 3.0 },
@@ -402,7 +405,7 @@ where
         use korangar_interface::prelude::*;
 
         window! {
-            title: "Cart",
+            title: client_state().localization().cart_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             resizable: true,
@@ -411,7 +414,7 @@ where
                     gaps: theme().window().gaps(),
                     children: (
                         button! {
-                            text: "Buy",
+                            text: client_state().localization().buy_button_text(),
                             event: move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                                 let cart = state.get(&self.cart_path);
                                 let items = cart
@@ -426,7 +429,7 @@ where
                             }
                         },
                         button! {
-                            text: "Cancel",
+                            text: client_state().localization().cancel_button_text(),
                             event: InputEvent::CloseShop,
                         },
                     ),

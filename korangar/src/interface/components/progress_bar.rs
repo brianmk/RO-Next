@@ -19,6 +19,7 @@ use rust_state::{Selector, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt};
 use crate::state::{ClientState, client_theme};
 
 /// Fraction of the health bar below which the "low health" color is used.
@@ -71,9 +72,6 @@ fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f3
         ShadowPadding::uniform(0.0),
     );
 }
-
-/// Color of the value text that is rendered inside a bar.
-const BAR_VALUE_COLOR: Color = Color::rgba_u8(255, 255, 255, 235);
 
 /// Layout parameters of a labelled bar.
 pub struct BarStyle {
@@ -206,8 +204,8 @@ where
                 bar_area,
                 value,
                 FontSize(self.style.value_font_size),
-                BAR_VALUE_COLOR,
-                BAR_VALUE_COLOR,
+                *state.get(&client_theme().tokens().color().bar_value_text()),
+                *state.get(&client_theme().tokens().color().bar_value_text()),
                 HorizontalAlignment::Center { offset: 0.0, border: 2.0 },
                 VerticalAlignment::Center { offset: 0.0 },
                 OverflowBehavior::Shrink,

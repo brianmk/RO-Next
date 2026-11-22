@@ -3,8 +3,9 @@ use ragnarok_packets::{BuyOrSellOption, ShopId};
 
 use super::WindowClass;
 use crate::input::InputEvent;
-use crate::state::ClientState;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 
 pub struct BuyOrSellWindow {
     shop_id: ShopId,
@@ -25,19 +26,19 @@ impl CustomWindow<ClientState> for BuyOrSellWindow {
         use korangar_interface::prelude::*;
 
         window! {
-            title: "Buy or sell",
+            title: client_state().localization().buy_or_sell_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             elements: (
                 button! {
-                    text: "Buy",
+                    text: client_state().localization().buy_button_text(),
                     event: InputEvent::BuyOrSell {
                         shop_id: self.shop_id,
                         buy_or_sell: BuyOrSellOption::Buy,
                     },
                 },
                 button! {
-                    text: "Sell",
+                    text: client_state().localization().sell_button_text(),
                     event: InputEvent::BuyOrSell {
                         shop_id: self.shop_id,
                         buy_or_sell: BuyOrSellOption::Sell,

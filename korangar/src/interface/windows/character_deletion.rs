@@ -15,8 +15,9 @@ use rust_state::{Path, PathExt, State};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
-use crate::state::ClientState;
+use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
+use crate::state::{ClientState, ClientStatePathExt, client_state};
 
 /// Maximum length of the e-mail address.
 ///
@@ -64,7 +65,7 @@ where
         };
 
         window! {
-            title: "Delete character",
+            title: client_state().localization().delete_character_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::Menu,
             closable: true,
@@ -75,14 +76,14 @@ where
                     text: "Deleting a character is permanent. To confirm, enter the e-mail address of this account.",
                 },
                 text_box! {
-                    ghost_text: "Account e-mail",
+                    ghost_text: client_state().localization().account_email_text(),
                     state: self.email_path,
                     input_handler: DefaultHandler::<_, _, MAXIMUM_EMAIL_LENGTH>::new(self.email_path, delete_action),
                     focus_id: EmailTextBox,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 button! {
-                    text: "Delete character",
+                    text: client_state().localization().delete_character_window_title(),
                     disabled,
                     disabled_tooltip: "Enter the account e-mail address first",
                     event: delete_action,

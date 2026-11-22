@@ -156,3 +156,17 @@ pub enum WindowClass {
     #[cfg(feature = "debug")]
     CacheStatistics,
 }
+
+impl WindowClass {
+    /// Whether the class is a permanently visible HUD overlay.
+    ///
+    /// Escape does not close these overlays before it opens the menu: they are
+    /// part of the normal in-game HUD (chat, hotbar, minimap, ...) and would
+    /// otherwise make Escape feel like it does nothing.
+    pub fn is_background_overlay(self) -> bool {
+        matches!(
+            self,
+            Self::Chat | Self::Hotbar | Self::Minimap | Self::CharacterOverview | Self::BuffBar
+        )
+    }
+}
