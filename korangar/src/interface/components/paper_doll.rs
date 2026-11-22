@@ -7,6 +7,8 @@
 //! interface) and the item slots are placed around it, at the position that
 //! corresponds to the body part the item is worn on.
 
+use std::sync::Arc;
+
 use korangar_interface::MouseMode;
 use korangar_interface::element::Element;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
@@ -248,6 +250,9 @@ pub struct PaperDoll<A, B> {
     handlers: [EquipmentSlotHandler<A>; SLOT_COUNT],
     player_path: B,
     refine_displays: [Option<String>; SLOT_COUNT],
+    /// Cached tooltip text per slot (composed name, card slots and random
+    /// options), cloned from the pre-composed item metadata.
+    tooltips: [Option<Arc<str>>; SLOT_COUNT],
 }
 
 impl<A, B> PaperDoll<A, B>
@@ -264,6 +269,7 @@ where
             }),
             player_path,
             refine_displays: std::array::from_fn(|_| None),
+            tooltips: std::array::from_fn(|_| None),
         }
     }
 
@@ -290,7 +296,9 @@ where
         // store borrows of the state for the duration of the layout, so the
         // text has to be cached in the element.
         for index in 0..SLOT_COUNT {
-            self.refine_displays[index] = match state.try_get(&self.item_paths[index]) {
+            let item = state.try_get(&self.item_paths[index]);
+
+            self.refine_displays[index] = match item {
                 Some(item) => match &item.details {
                     InventoryItemDetails::Equippable { refinement_level, .. } if *refinement_level > 0 => {
                         Some(format!("+{refinement_level}"))
@@ -299,6 +307,8 @@ where
                 },
                 None => None,
             };
+
+            self.tooltips[index] = item.map(|item| item.metadata.tooltip_text.clone());
         }
 
         with_single_resolver(resolvers, |resolver| {
@@ -449,8 +459,8 @@ where
                     layout.register_click_handler(MouseButton::Left, &self.handlers[index]);
                 }
 
-                let tooltip = match item {
-                    Some(item) => item.metadata.name.as_str(),
+                let tooltip = match &self.tooltips[index] {
+                    Some(tooltip) => tooltip.as_ref(),
                     None => slot.name,
                 };
 

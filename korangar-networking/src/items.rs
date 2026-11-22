@@ -41,6 +41,17 @@ impl<Meta> InventoryItem<Meta> {
             InventoryItemDetails::Equippable { flags, .. } => flags.contains(EquippableItemFlags::IDENTIFIED),
         }
     }
+
+    /// Whether the item was marked as a favorite by the player.
+    ///
+    /// The 2019 server sends the favorite flag in the item list and pickup
+    /// packets; the inventory window shows a marker for favorite items.
+    pub fn is_favorite(&self) -> bool {
+        match &self.details {
+            InventoryItemDetails::Regular { flags, .. } => flags.contains(RegularItemFlags::FAVORITE),
+            InventoryItemDetails::Equippable { flags, .. } => flags.contains(EquippableItemFlags::FAVORITE),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

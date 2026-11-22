@@ -194,10 +194,12 @@ pub enum InputEvent {
         /// Equipment position to equip the item to.
         equip_position: EquipPosition,
     },
-    /// Open the info window of an inventory item.
+    /// Open the info window of an inventory or storage item.
     OpenItemInfo {
-        /// Inventory index of the item.
+        /// Inventory/storage index of the item.
         inventory_index: InventoryIndex,
+        /// Where the item is located (inventory or Kafra storage).
+        source: ItemSource,
     },
     /// Close the item info window.
     CloseItemInfo,

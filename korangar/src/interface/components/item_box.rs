@@ -1,8 +1,11 @@
+use std::sync::Arc;
+
 use korangar_interface::MouseMode;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{BaseLayoutInfo, Element};
 use korangar_interface::event::{ClickHandler, DropHandler, Event, EventQueue};
 use korangar_interface::layout::area::Area;
+use korangar_interface::layout::tooltip::TooltipExt;
 use korangar_interface::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use korangar_networking::{InventoryItem, InventoryItemDetails};
@@ -16,6 +19,9 @@ use crate::renderer::LayoutExt;
 use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
 use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
+
+/// Marker color of the favorite star of an item card.
+const FAVORITE_COLOR: Color = Color::rgb_u8(255, 200, 60);
 
 #[derive(Default)]
 struct AmountDisplay {
@@ -150,7 +156,14 @@ pub struct ItemBox<A> {
     double_click_handler: ItemDoubleClickHandler<A>,
     context_menu: ItemBoxContextMenu,
     amount_display: AmountDisplay,
+    /// Cached tooltip text of the item in this box (composed name, card slots,
+    /// options, favorite). Cloned from the pre-composed item metadata, so no
+    /// tooltip string is built per frame.
+    tooltip: Option<Arc<str>>,
 }
+
+/// Tooltip id of the item box tooltip.
+struct ItemBoxTooltip;
 
 impl<A> ItemBox<A>
 where
@@ -170,6 +183,7 @@ where
             double_click_handler: ItemDoubleClickHandler { item_path, source },
             context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
+            tooltip: None,
         }
     }
 
@@ -195,6 +209,8 @@ where
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
             let area = resolver.with_height(40.0);
+
+            self.tooltip = state.try_get(&self.item_path).map(|item| item.metadata.tooltip_text.clone());
 
             if let Some(item) = state.try_get(&self.item_path)
                 && item.metadata.texture.as_ref().is_some()
@@ -237,6 +253,10 @@ where
             },
         };
 
+        let is_dragging = matches!(layout.get_mouse_mode(), MouseMode::Custom {
+            mode: MouseInputMode::MoveItem { .. },
+        });
+
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(20.0),
@@ -247,6 +267,13 @@ where
 
         if is_hovered {
             layout.register_drop_handler(&self.handler);
+        }
+
+        if is_hovered
+            && !is_dragging
+            && let Some(tooltip) = self.tooltip.as_deref()
+        {
+            layout.add_tooltip(tooltip, ItemBoxTooltip.tooltip_id());
         }
 
         if let Some(item) = state.try_get(&self.item_path)
@@ -261,6 +288,26 @@ where
             };
 
             layout.add_texture(texture_area, texture.clone(), Color::WHITE, false);
+
+            if item.is_favorite() {
+                let marker_area = Area {
+                    left: layout_info.area.left + 2.0,
+                    top: layout_info.area.top + 1.0,
+                    width: 12.0,
+                    height: 12.0,
+                };
+
+                layout.add_text(
+                    marker_area,
+                    "*",
+                    FontSize(14.0),
+                    FAVORITE_COLOR,
+                    FAVORITE_COLOR,
+                    HorizontalAlignment::Left { offset: 0.0, border: 1.0 },
+                    VerticalAlignment::Top { offset: 0.0 },
+                    OverflowBehavior::Shrink,
+                );
+            }
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);

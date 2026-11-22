@@ -116,6 +116,11 @@ pub enum NetworkEvent {
         active: bool,
         total_duration_in_milliseconds: u32,
         remaining_in_milliseconds: u32,
+        /// The up to three server-side status values (`val1`..`val3`).
+        ///
+        /// Only a handful of status effects send values (elemental weapon
+        /// enchant, exp/item boosts, ...); they are zero for the rest.
+        values: [i32; 3],
     },
     /// An entity completed a skill cast without dealing damage.
     ///

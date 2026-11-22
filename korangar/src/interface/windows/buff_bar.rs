@@ -19,8 +19,9 @@ use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
 use crate::state::localization::LocalizationPathExt;
+use crate::state::status_effects::StatusEffect;
 use crate::state::theme::InterfaceThemeType;
-use crate::state::{ClientState, ClientStatePathExt, client_state};
+use crate::state::{ClientState, ClientStatePathExt, client_state, this_entity};
 
 /// Size of one buff icon slot in interface pixels.
 const ICON_SIZE: f32 = 34.0;
@@ -38,6 +39,22 @@ const BAR_WIDTH: f32 = BAR_PADDING * 2.0 + ICONS_PER_ROW as f32 * ICON_SIZE + (I
 /// Tooltip id used for the buff icons.
 struct BuffBarTooltip;
 
+/// The status effects of the local player.
+///
+/// The client state tracks the status effects of every entity in the view (the
+/// server sends area status packets), but the buff bar only displays the
+/// player's own effects.
+fn own_effects(state: &State<ClientState>) -> Vec<&StatusEffect> {
+    let own_entity_id = state.try_get(&this_entity()).map(|entity| entity.get_entity_id().0);
+
+    state
+        .follow(client_state().status_effects())
+        .effects()
+        .iter()
+        .filter(|effect| Some(effect.entity_id()) == own_entity_id)
+        .collect()
+}
+
 /// The icon grid of the buff bar.
 #[derive(Default)]
 struct BuffBarElement {
@@ -52,19 +69,28 @@ impl BuffBarElement {
         effect_count.div_ceil(ICONS_PER_ROW).max(1)
     }
 
-    fn effect_tooltip(effect: &crate::state::status_effects::StatusEffect, client_tick: u64) -> String {
-        match effect.remaining_in_seconds(client_tick) {
+    fn effect_tooltip(effect: &StatusEffect, client_tick: u64) -> String {
+        let mut tooltip = match effect.remaining_in_seconds(client_tick) {
             Some(seconds) => {
                 let minutes = seconds / 60;
                 let seconds = seconds % 60;
                 format!("{}\n{}:{:02} remaining", effect.name(), minutes, seconds)
             }
             None => effect.name().to_owned(),
+        };
+
+        // Status-specific values (elemental enchant, exp boosts, ...) are only
+        // sent for a few statuses; they are shown when available.
+        for line in effect.value_lines() {
+            tooltip.push('\n');
+            tooltip.push_str(&line);
         }
+
+        tooltip
     }
 
     /// Short remaining time text drawn over the icon, e.g. `12` or `1:05`.
-    fn remaining_text(effect: &crate::state::status_effects::StatusEffect, client_tick: u64) -> Option<String> {
+    fn remaining_text(effect: &StatusEffect, client_tick: u64) -> Option<String> {
         let seconds = effect.remaining_in_seconds(client_tick)?;
 
         match seconds >= 60 {
@@ -86,19 +112,12 @@ impl Element<ClientState> for BuffBarElement {
         with_single_resolver(resolvers, |resolver| {
             let status_effects = state.follow(client_state().status_effects());
             let client_tick = status_effects.current_client_tick();
+            let effects = own_effects(state);
 
-            self.tooltips = status_effects
-                .effects()
-                .iter()
-                .map(|effect| Self::effect_tooltip(effect, client_tick))
-                .collect();
-            self.remaining_texts = status_effects
-                .effects()
-                .iter()
-                .map(|effect| Self::remaining_text(effect, client_tick))
-                .collect();
+            self.tooltips = effects.iter().map(|effect| Self::effect_tooltip(effect, client_tick)).collect();
+            self.remaining_texts = effects.iter().map(|effect| Self::remaining_text(effect, client_tick)).collect();
 
-            let rows = Self::rows(status_effects.len());
+            let rows = Self::rows(effects.len());
             let height = BAR_PADDING * 2.0 + rows as f32 * ICON_SIZE + (rows.saturating_sub(1)) as f32 * ICON_GAP;
 
             Self::LayoutInfo {
@@ -116,13 +135,13 @@ impl Element<ClientState> for BuffBarElement {
     ) {
         use korangar_interface::prelude::*;
 
-        let status_effects = state.follow(client_state().status_effects());
+        let effects = own_effects(state);
 
         let background_color = *state.get(&theme().window().background_color());
         let border_color = *state.get(&theme().window().highlight_color());
         let name_color = *state.get(&theme().window().title_color());
 
-        for (index, effect) in status_effects.effects().iter().enumerate() {
+        for (index, effect) in effects.iter().enumerate() {
             let column = index % ICONS_PER_ROW;
             let row = index / ICONS_PER_ROW;
 

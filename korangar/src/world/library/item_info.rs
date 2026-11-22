@@ -16,12 +16,19 @@ pub struct ItemInfo {
     /// The raw identified description lines from `iteminfo.lub`, used by the
     /// item info window.
     pub(super) description: Vec<String>,
+    /// Number of card slots of the item (`slotCount` in `iteminfo.lub`).
+    pub(super) slot_count: u8,
 }
 
 impl ItemInfo {
     /// The raw identified item description lines.
     pub fn description(&self) -> &[String] {
         &self.description
+    }
+
+    /// Number of card slots of the item.
+    pub fn slot_count(&self) -> u8 {
+        self.slot_count
     }
 }
 
@@ -49,6 +56,8 @@ impl Table for ItemInfo {
                     })
                     .unwrap_or_default();
 
+                let slot_count = item_table.get::<u32>("slotCount").ok().unwrap_or(0).clamp(0, u8::MAX as u32) as u8;
+
                 let info = ItemInfo {
                     identified_name: ItemName::from_option(item_table.get("identifiedDisplayName").ok().map(fix_encoding)),
                     unidentified_name: ItemName::from_option(item_table.get("unidentifiedDisplayName").ok().map(fix_encoding)),
@@ -56,6 +65,7 @@ impl Table for ItemInfo {
                     unidentified_resource: ItemResource::from_option(item_table.get("unidentifiedResourceName").ok().map(fix_encoding)),
                     stats: ItemStats::parse(&identified_description),
                     description: identified_description,
+                    slot_count,
                 };
 
                 result.insert(ItemId(item_id), info);
@@ -77,6 +87,7 @@ impl Table for ItemInfo {
             unidentified_resource: ItemResource::not_found_value(),
             stats: ItemStats::DEFAULT,
             description: Vec::new(),
+            slot_count: 0,
         };
         Self::try_get(library, key).unwrap_or(&DEFAULT)
     }

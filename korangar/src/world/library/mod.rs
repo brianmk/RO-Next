@@ -1,5 +1,6 @@
 mod accessory_name;
 mod baby_job;
+mod card_composition;
 mod item_display_name;
 mod item_info;
 mod item_name;
@@ -29,6 +30,7 @@ use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
 
 pub use self::accessory_name::AccessoryName;
 pub use self::baby_job::IsBabyJob;
+use self::card_composition::{CardComposition, compose_item_name};
 pub use self::item_display_name::ItemDisplayNames;
 pub use self::item_info::ItemInfo;
 pub use self::item_name::ItemName;
@@ -55,6 +57,7 @@ pub struct Library {
     monster_sprites: MonsterSprites,
     skill_icons: SkillIcons,
     accessory_name_table: <AccessoryName as Table>::Storage,
+    card_composition: CardComposition,
 }
 
 impl Library {
@@ -70,6 +73,7 @@ impl Library {
         let monster_sprites = MonsterSprites::load(game_file_loader, &job_identity_table);
         let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
         let accessory_name_table = AccessoryName::load(game_file_loader)?;
+        let card_composition = CardComposition::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
@@ -83,6 +87,7 @@ impl Library {
             monster_sprites,
             skill_icons,
             accessory_name_table,
+            card_composition,
         })
     }
 
@@ -108,6 +113,60 @@ impl Library {
     #[inline(always)]
     pub fn item_name(&self, item_id: ItemId, is_identified: bool) -> Cow<'_, str> {
         self.item_display_names.name(item_id, is_identified)
+    }
+
+    /// Number of card slots of an item (`slotCount` from `iteminfo.lub`).
+    #[inline(always)]
+    pub fn item_slot_count(&self, item_id: ItemId) -> u8 {
+        ItemInfo::try_get(self, item_id)
+            .map(|item_info| item_info.slot_count())
+            .unwrap_or(0)
+    }
+
+    /// Composed display name of an item, following the official client
+    /// convention: `[+N ][card prefixes ]<base name>[ card postfixes]`.
+    ///
+    /// Unidentified items only show their unidentified name (neither the
+    /// refinement level nor the cards are revealed). Cards that are missing
+    /// from the composition tables fall back to their display name without the
+    /// `Card` suffix; card ids that cannot be resolved at all are appended in
+    /// brackets so they neither crash the name nor disappear silently.
+    pub fn composed_item_name(&self, item_id: ItemId, is_identified: bool, refinement_level: u8, card_slots: &[u32; 4]) -> String {
+        let base_name = self.item_name(item_id, is_identified).into_owned();
+
+        if !is_identified {
+            return base_name;
+        }
+
+        let mut prefixes = Vec::new();
+        let mut postfixes = Vec::new();
+        let mut unresolved_cards = Vec::new();
+
+        for card_slot in card_slots.iter().copied().filter(|card_slot| *card_slot != 0) {
+            let card_id = ItemId(card_slot);
+
+            if let Some(prefix) = self.card_composition.prefix(card_id) {
+                let prefix = prefix.to_owned();
+
+                match self.card_composition.is_postfix(card_id) {
+                    true => postfixes.push(prefix),
+                    false => prefixes.push(prefix),
+                }
+
+                continue;
+            }
+
+            // The card is missing from the composition tables. Derive a prefix
+            // from its display name; unresolvable ids are shown in brackets.
+            let display_name = self.item_name(card_id, true).into_owned();
+
+            match display_name.starts_with("Item #") {
+                true => unresolved_cards.push(display_name),
+                false => prefixes.push(display_name.strip_suffix(" Card").unwrap_or(&display_name).to_owned()),
+            }
+        }
+
+        compose_item_name(&base_name, refinement_level, &prefixes, &postfixes, &unresolved_cards)
     }
 
     /// Returns whether the job has a job identity (name/sprite) in this data

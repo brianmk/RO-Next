@@ -13,6 +13,13 @@ use crate::{
     NoMetadata, ShopItem, UnifiedCharacterSelectionFailedReason, UnifiedLoginFailedReason,
 };
 
+/// Item types from the server's `enum item_types` (`common/mmo.hpp`), used to
+/// classify the items of the storage packet that carries no equipment position.
+const ITEM_TYPE_ARMOR: u8 = 4;
+const ITEM_TYPE_WEAPON: u8 = 5;
+const ITEM_TYPE_PET_ARMOR: u8 = 8;
+const ITEM_TYPE_AMMO: u8 = 10;
+
 pub fn register_login_server_packets<Callback>(
     packet_handler: &mut PacketHandler<NetworkEventList, Callback>,
 ) -> Result<(), DuplicateHandlerError>
@@ -472,24 +479,81 @@ where
         storage_index: packet.storage_index.saturating_sub(1),
         amount: packet.amount,
     })?;
-    packet_handler.register(|packet: StorageItemAddedPacket2019| NetworkEvent::StorageItemAdded {
-        item: InventoryItem {
-            // The 0x0A0A wire index is `server slot + 1`.
-            index: InventoryIndex(packet.storage_index.saturating_sub(1)),
-            metadata: NoMetadata,
-            item_id: packet.item_id,
-            item_type: packet.item_type,
-            slot: packet.card,
-            hire_expiration_date: 0,
-            details: InventoryItemDetails::Regular {
-                amount: u16::try_from(packet.amount.max(1)).unwrap_or(u16::MAX),
+    packet_handler.register(|packet: StorageItemAddedPacket2019| {
+        let StorageItemAddedPacket2019 {
+            storage_index,
+            amount,
+            item_id,
+            item_type,
+            identified,
+            damaged,
+            refinement_level,
+            card,
+            option_data,
+        } = packet;
+
+        // The 0x0A0A packet does not carry the equipment position, but it
+        // carries everything else about the item: refinement, broken state,
+        // cards and random options. Items with those details are equipment, so
+        // build the equippable variant to keep them (starting with the 2019
+        // server, `ZC_ADD_ITEM_TO_STORE` is also sent when the player stores an
+        // item, and without this the storage tooltip lost refine/cards/options
+        // until the storage was reopened).
+        let is_equipment = matches!(
+            item_type,
+            ITEM_TYPE_ARMOR | ITEM_TYPE_WEAPON | ITEM_TYPE_PET_ARMOR | ITEM_TYPE_AMMO
+        ) || damaged != 0
+            || refinement_level != 0
+            || card.iter().any(|card| *card != 0)
+            || option_data.iter().any(|option| option.index != 0);
+
+        let details = match is_equipment {
+            true => InventoryItemDetails::Equippable {
+                // The packet has no equipment position. Weapons and ammunition
+                // have an unambiguous slot; other equipment keeps an empty
+                // position (the item is displayed in the storage and the server
+                // sends the real position again when it is withdrawn).
+                equip_position: match item_type {
+                    ITEM_TYPE_WEAPON => EquipPosition::RIGHT_HAND,
+                    ITEM_TYPE_AMMO => EquipPosition::AMMO,
+                    _ => EquipPosition::empty(),
+                },
                 equipped_position: EquipPosition::empty(),
-                flags: match packet.identified != 0 {
+                bind_on_equip_type: 0,
+                w_item_sprite_number: 0,
+                option_count: option_data.len() as u8,
+                option_data,
+                refinement_level,
+                enchantment_level: 0,
+                flags: {
+                    let mut flags = EquippableItemFlags::empty();
+                    flags.set(EquippableItemFlags::IDENTIFIED, identified != 0);
+                    flags.set(EquippableItemFlags::IS_BROKEN, damaged != 0);
+                    flags
+                },
+            },
+            false => InventoryItemDetails::Regular {
+                amount: u16::try_from(amount.max(1)).unwrap_or(u16::MAX),
+                equipped_position: EquipPosition::empty(),
+                flags: match identified != 0 {
                     true => RegularItemFlags::IDENTIFIED,
                     false => RegularItemFlags::empty(),
                 },
             },
-        },
+        };
+
+        NetworkEvent::StorageItemAdded {
+            item: InventoryItem {
+                // The 0x0A0A wire index is `server slot + 1`.
+                index: InventoryIndex(storage_index.saturating_sub(1)),
+                metadata: NoMetadata,
+                item_id,
+                item_type,
+                slot: card,
+                hire_expiration_date: 0,
+                details,
+            },
+        }
     })?;
     packet_handler.register(|_: StorageClosedPacket| NetworkEvent::StorageClosed)?;
     packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
@@ -518,12 +582,9 @@ where
             bind_on_equip_type,
             option_data,
             item_sprite_number,
+            favorite,
             ..
         } = packet;
-
-        // TODO: Not sure where to store `favorite`, it is not used by the inventory
-        // yet.
-        let _ = packet.favorite;
 
         let details = match equip_position.is_empty() {
             true => InventoryItemDetails::Regular {
@@ -532,6 +593,7 @@ where
                 flags: {
                     let mut flags = RegularItemFlags::empty();
                     flags.set(RegularItemFlags::IDENTIFIED, identified != 0);
+                    flags.set(RegularItemFlags::FAVORITE, favorite != 0);
                     flags
                 },
             },
@@ -548,6 +610,7 @@ where
                     let mut flags = EquippableItemFlags::empty();
                     flags.set(EquippableItemFlags::IDENTIFIED, identified != 0);
                     flags.set(EquippableItemFlags::IS_BROKEN, damaged != 0);
+                    flags.set(EquippableItemFlags::FAVORITE, favorite != 0);
                     flags
                 },
             },
@@ -948,6 +1011,9 @@ where
         active: packet.state != 0,
         total_duration_in_milliseconds: packet.duration_in_milliseconds,
         remaining_in_milliseconds: packet.remaining_in_milliseconds,
+        // The server fields are unsigned in the packet layout but carry signed
+        // status values (e.g. elemental enchants).
+        values: packet.value.map(|value| value as i32),
     })?;
     // Sent on map load / when an entity enters the view with active statuses.
     // Missing this handler used to discard the rest of the packet burst.
@@ -957,6 +1023,7 @@ where
         active: true,
         total_duration_in_milliseconds: packet.duration,
         remaining_in_milliseconds: packet.remaining_duration,
+        values: [packet.value1, packet.value2, packet.value3],
     })?;
     packet_handler.register_noop::<QuestNotificationPacket1>()?;
     packet_handler.register_noop::<HuntingQuestNotificationPacket>()?;
@@ -1424,6 +1491,8 @@ where
         active: packet.state != 0,
         total_duration_in_milliseconds: 0,
         remaining_in_milliseconds: 0,
+        // This packet variant has no value fields.
+        values: [0; 3],
     })?;
     packet_handler.register_noop::<ReputationPacket>()?;
     packet_handler.register_noop::<ClanInfoPacket>()?;

@@ -8,6 +8,7 @@ mod entity;
 mod fade_state;
 mod ground_item;
 mod guild_emblem;
+mod item_details;
 mod library;
 mod light;
 mod map;
@@ -33,6 +34,7 @@ pub use self::entity::*;
 pub use self::fade_state::*;
 pub use self::ground_item::*;
 pub use self::guild_emblem::*;
+pub use self::item_details::*;
 pub use self::library::*;
 pub use self::light::*;
 pub use self::map::*;
@@ -86,4 +88,17 @@ pub struct ResourceMetadata {
     pub stats: ItemStats,
     /// Raw item description lines from the client item data.
     pub description: Vec<String>,
+    /// Resolved display names of the cards slotted into the item.
+    ///
+    /// Cards are part of the server packet, not of the item description, so
+    /// they have to be resolved together with the rest of the item metadata.
+    pub card_names: CardNames,
+    /// Number of card slots of the item (`slotCount` in `iteminfo.lub`).
+    pub slot_count: u8,
+    /// Pre-composed tooltip text: composed item name, card slots, random
+    /// options and the favorite mark.
+    ///
+    /// The tooltip is composed once when the item metadata is loaded so that
+    /// the interface does not have to allocate it on every frame.
+    pub tooltip_text: Arc<str>,
 }
