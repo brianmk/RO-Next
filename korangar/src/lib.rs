@@ -7424,12 +7424,15 @@ impl Client {
 
         let reported_slots = self.client_state.follow(client_state().character_slots()).get_slot_count();
         let slot_count = visible_character_slots(reported_slots);
+        let previous_slot_count = self.client_state.follow(client_state().character_previews()).slot_count();
 
         self.client_state
             .follow_mut(client_state().character_previews())
             .set_slot_count(slot_count);
 
-        if reported_slots > MAX_CHARACTER_SLOTS && crate::logging::enabled(crate::logging::LEVEL_DEBUG) {
+        // Log the clamp once per character list, not every frame the window is
+        // open.
+        if reported_slots > MAX_CHARACTER_SLOTS && previous_slot_count != slot_count {
             crate::logging::log_debug!(
                 "character selection: server reports {reported_slots} slots, showing the first {MAX_CHARACTER_SLOTS}"
             );

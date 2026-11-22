@@ -2,10 +2,11 @@
 //!
 //! The equipment window of the original client shows the equipped items on a
 //! figure of the character, with a dedicated slot for every equipment position.
-//! This component recreates that layout. The figure itself is drawn with simple
-//! rounded rectangles (korangar does not render 3D character models inside the
-//! interface) and the item slots are placed around it, at the position that
-//! corresponds to the body part the item is worn on.
+//! This component recreates that layout. The figure itself is the real
+//! composited character sprite (body, hair, headgear and palettes) in its idle
+//! front-facing frame, using the same rendering path as the in-world sprite;
+//! the item slots are placed around it, at the position that corresponds to the
+//! body part the item is worn on.
 
 use std::sync::Arc;
 
@@ -24,7 +25,7 @@ use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
 use crate::loaders::OverflowBehavior;
-use crate::renderer::LayoutExt;
+use crate::renderer::{CHARACTER_FEET_ANCHOR, LayoutExt};
 use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt};
 use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata};
@@ -130,8 +131,14 @@ const SLOTS: [SlotDefinition; 11] = [
 
 const SLOT_COUNT: usize = SLOTS.len();
 
-/// Scale of the character sprite on the paper doll canvas.
-const CHARACTER_SCALE: f32 = 3.2;
+/// Maximum scale of the character sprite on the paper doll canvas.
+///
+/// Most characters reach this scale; characters with very tall headgear (or
+/// big wings) are scaled down just enough that no part is clipped at the top of
+/// the canvas.
+const CHARACTER_MAX_SCALE: f32 = 3.2;
+/// Space kept between the top of the character and the top of the canvas.
+const CHARACTER_TOP_MARGIN: f32 = 6.0;
 
 /// Path to the item that is equipped in a certain equipment position.
 #[derive(Clone, Copy)]
@@ -362,7 +369,9 @@ where
         // The character itself: all sprite layers (body, hair, headgear) are
         // composited in the idle pose facing the viewer.
         if let Some(animation_data) = state.follow(self.player_path).get_common().animation_data.as_ref() {
-            layout.add_character(layout_info.canvas, animation_data, Color::WHITE, CHARACTER_SCALE);
+            let scale = character_scale(animation_data.animations.first().and_then(|animation| animation.frames.first()));
+
+            layout.add_character(layout_info.canvas, animation_data, Color::WHITE, scale);
         }
 
         let is_dragging = matches!(layout.get_mouse_mode(), MouseMode::Custom {
@@ -476,5 +485,58 @@ where
                 layout.add_tooltip(tooltip, PaperDollSlotTooltip.tooltip_id());
             }
         }
+    }
+}
+
+/// Scale of the character sprite on the paper doll canvas.
+///
+/// The idle frame of the composed animation data is the full drawn height of
+/// the character (including hair, headgear and wings). The sprite is anchored
+/// with its feet at [`CHARACTER_FEET_ANCHOR`] of the canvas, so the available
+/// height is the distance from that anchor to the top margin. The scale is
+/// capped at [`CHARACTER_MAX_SCALE`] so normal characters keep the familiar
+/// paper-doll size.
+fn character_scale(frame: Option<&crate::world::AnimationFrame>) -> f32 {
+    let frame_height = frame
+        .map(|frame| frame.size.y as f32)
+        .filter(|height| *height > 0.0)
+        .unwrap_or(96.0);
+    let available_height = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - CHARACTER_TOP_MARGIN;
+
+    (available_height / frame_height).min(CHARACTER_MAX_SCALE)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CANVAS_HEIGHT, CHARACTER_FEET_ANCHOR, CHARACTER_MAX_SCALE, CHARACTER_TOP_MARGIN, character_scale};
+
+    #[test]
+    fn normal_characters_use_the_maximum_paper_doll_scale() {
+        // Typical player idle frames are around 70-80 pixels tall.
+        for frame_height in [60.0, 70.0, 80.0] {
+            assert_eq!(character_scale_for_height(frame_height), CHARACTER_MAX_SCALE);
+        }
+    }
+
+    #[test]
+    fn tall_headgear_is_scaled_down_to_stay_inside_the_canvas() {
+        let tall_frame = 120.0;
+        let scale = character_scale_for_height(tall_frame);
+        let top = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - tall_frame * scale;
+
+        assert!(scale < CHARACTER_MAX_SCALE);
+        assert!(top >= CHARACTER_TOP_MARGIN - 0.001, "character is clipped at the top: {top}");
+    }
+
+    fn character_scale_for_height(frame_height: f32) -> f32 {
+        let available_height = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - CHARACTER_TOP_MARGIN;
+        (available_height / frame_height).min(CHARACTER_MAX_SCALE)
+    }
+
+    #[test]
+    fn helper_matches_the_formula() {
+        // The helper used by the component only differs from the test formula by
+        // taking the frame out of the animation data.
+        assert!((character_scale(None) - character_scale_for_height(96.0)).abs() < 0.001);
     }
 }

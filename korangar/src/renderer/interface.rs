@@ -688,7 +688,7 @@ struct SpriteInstruction<'a> {
 #[allow(private_interfaces)]
 /// Vertical anchor of the character feet inside the paper doll area (fraction
 /// of the area height).
-const CHARACTER_FEET_ANCHOR: f32 = 0.80;
+pub const CHARACTER_FEET_ANCHOR: f32 = 0.80;
 
 struct CharacterInstruction<'a> {
     animation_data: &'a AnimationData,
