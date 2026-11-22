@@ -35,7 +35,7 @@ use crate::state::ClientState;
 use crate::state::lifecycle::{ResourcePolicy, ResourceState};
 use crate::state::theme::{InterfaceThemeType, WorldTheme};
 use crate::world::{
-    ActionEvent, AnimationData, AnimationLoopMode, AnimationState, Camera, FadeDirection, FadeState, IsBabyJob, JobIdentity, Library,
+    ActionEvent, AnimationData, AnimationLoopMode, AnimationState, Camera, FadeDirection, FadeState, JobIdentity, Library,
     MAX_WALK_PATH_SIZE, Map, PathFinder,
 };
 #[cfg(feature = "debug")]
@@ -43,12 +43,9 @@ use crate::world::{MarkerIdentifier, SubMesh};
 #[cfg(feature = "debug")]
 use crate::{Buffer, ModelVertex};
 
-const MALE_HAIR_LOOKUP: &[usize] = &[2, 2, 1, 7, 5, 4, 3, 6, 8, 9, 10, 12, 11];
-const FEMALE_HAIR_LOOKUP: &[usize] = &[2, 2, 4, 7, 1, 5, 3, 6, 12, 10, 9, 11, 8];
 const SOUND_COOLDOWN_DURATION: u32 = 200;
 const SPATIAL_SOUND_RANGE: f32 = 250.0;
 const FADE_IN_DURATION_MS: u32 = 500;
-const BABY_JOB_SCALE: f32 = 0.75;
 /// Converts the encoded `c_level` of another player into a level that the aura
 /// logic can use.
 ///
@@ -142,18 +139,12 @@ pub struct SpriteChangeOutcome {
 
 impl From<JobId> for EntityType {
     fn from(job_id: JobId) -> Self {
-        match job_id.0 {
-            // `JT_WARPNPC`: the invisible map connection NPC. The client renders the
-            // classic portal effect for it instead of a sprite.
-            45 => EntityType::Warp,
-            // `JT_HIDDEN_NPC` and `JT_HIDDEN_WARP_NPC`: NPCs that are not supposed to be
-            // visible in the world at all.
-            111 | 139 => EntityType::Hidden,
-            0..=44 | 4000..=5999 => EntityType::Player,
-            46..=999 | 10000..=19999 => EntityType::Npc,
-            1000..=3999 | 20000..=29999 => EntityType::Monster,
-            _ => EntityType::Npc,
-        }
+        // Entity classification is data-driven (`jobs.ron` `entity_types`): the
+        // registry knows every player job and the special warp/hidden NPC ids
+        // (`JT_WARPNPC` 45, `JT_HIDDEN_NPC` 111, `JT_HIDDEN_WARP_NPC` 139), and
+        // the client job-id ranges are the documented fallback for NPC/monster
+        // ids and unknown values.
+        crate::world::jobs::entity_type(job_id)
     }
 }
 
@@ -313,210 +304,6 @@ pub struct Common {
     body_flash: Option<EntityFlash>,
 }
 
-#[cfg_attr(feature = "debug", korangar_debug::profile)]
-#[allow(clippy::invisible_characters)]
-pub(crate) fn get_sprite_path_for_player_job(job_id: JobId) -> &'static str {
-    // Some jobs that CondaRO content uses have no sprite in this trimmed data set
-    // (4th jobs, KAGEROU/OBORO/REBELLION, …) or are not mapped by the client at
-    // all (alternate/costume/unsupported jobs). Use a verified existing sprite
-    // instead of rendering the black `missing.spr` placeholder.
-    if let Some(alias) = crate::world::library::job_alias::player_job_sprite_alias(job_id) {
-        return alias;
-    }
-
-    match job_id.0 {
-        0 => "초보자",             // NOVICE
-        1 => "검사",               // SWORDMAN
-        2 => "마법사",             // MAGICIAN
-        3 => "궁수",               // ARCHER
-        4 => "성직자",             // ACOLYTE
-        5 => "상인",               // MERCHANT
-        6 => "도둑",               // THIEF
-        7 => "기사",               // KNIGHT
-        8 => "성투사",             // PRIEST
-        9 => "위저드",             // WIZARD
-        10 => "제철공",            // BLACKSMITH
-        11 => "헌터",              // HUNTER
-        12 => "어세신",            // ASSASSIN
-        13 => "페코페코_기사",     // KNIGHT2
-        14 => "크루세이더",        // CRUSADER
-        15 => "몽크",              // MONK
-        16 => "세이지",            // SAGE
-        17 => "로그",              // ROGUE
-        18 => "연금술사",          // ALCHEMIST
-        19 => "바드",              // BARD
-        20 => "무희",              // DANCER
-        23 => "슈퍼노비스",        // SUPERNOVICE
-        24 => "건너",              // GUNSLINGER
-        25 => "닌자",              // NINJA
-        4001 => "초보자",          // NOVICE_H
-        4002 => "검사",            // SWORDMAN_H
-        4003 => "마법사",          // MAGICIAN_H
-        4004 => "궁수",            // ARCHER_H
-        4005 => "성직자",          // ACOLYTE_H
-        4006 => "상인",            // MERCHANT_H
-        4007 => "도둑",            // THIEF_H
-        4008 => "로드나이트",      // KNIGHT_H
-        4009 => "하이프리",        // PRIEST_H
-        4010 => "하이위저드",      // WIZARD_H
-        4011 => "화이트스미스",    // BLACKSMITH_H
-        4012 => "스나이퍼",        // HUNTER_H
-        4013 => "어쌔신크로스",    // ASSASSIN_H
-        4014 => "엔대운",          // CHICKEN_H
-        4015 => "팔라딘",          // CRUSADER_H
-        4016 => "챔피온",          // MONK_H
-        4017 => "프로페서",        // SAGE_H
-        4018 => "스토커",          // ROGUE_H
-        4019 => "크리에이터",      // ALCHEMIST_H
-        4020 => "클라운",          // BARD_H
-        4021 => "집시",            // DANCER_H
-        4023 => "초보자",          // NOVICE_B
-        4024 => "검사",            // SWORDMAN_B
-        4025 => "마법사",          // MAGICIAN_B
-        4026 => "궁수",            // ARCHER_B
-        4027 => "성직자",          // ACOLYTE_B
-        4028 => "상인",            // MERCHANT_B
-        4029 => "도둑",            // THIEF_B
-        4030 => "기사",            // KNIGHT_B
-        4031 => "성투사",          // PRIEST_B
-        4032 => "위저드",          // WIZARD_B
-        4033 => "제철공",          // BLACKSMITH_B
-        4034 => "헌터",            // HUNTER_B
-        4035 => "어세신",          // ASSASSIN_B
-        4037 => "크루세이더",      // CRUSADER_B
-        4038 => "몽크",            // MONK_B
-        4039 => "세이지",          // SAGE_B
-        4040 => "로그",            // ROGUE_B
-        4041 => "연금술사",        // ALCHEMIST_B
-        4042 => "바드",            // BARD_B
-        4043 => "무희",            // DANCER_B
-        4045 => "슈퍼노비스",      // SUPERNOVICE_B
-        4054 => "룬나이트",        // RUNE_KNIGHT
-        4055 => "워록",            // WARLOCK
-        4056 => "레인져",          // RANGER
-        4057 => "아크비숍",        // ARCH_BISHOP
-        4058 => "미케닉",          // MECHANIC
-        4059 => "길로틴크로스",    // GUILLOTINE_CROSS
-        4066 => "가드",            // ROYAL_GUARD
-        4067 => "소서러",          // SORCERER
-        4068 => "민스트럴",        // MINSTREL
-        4069 => "원더러",          // WANDERER
-        4070 => "슈라",            // SURA
-        4071 => "제네릭",          // GENETIC
-        4072 => "쉐도우체이서",    // SHADOW_CHASER
-        4060 => "룬나이트",        // RUNE_KNIGHT_H
-        4061 => "워록",            // WARLOCK_H
-        4062 => "레인져",          // RANGER_H
-        4063 => "아크비숍",        // ARCH_BISHOP_H
-        4064 => "미케닉",          // MECHANIC_H
-        4065 => "길로틴크로스",    // GUILLOTINE_CROSS_H
-        4073 => "가드",            // ROYAL_GUARD_H
-        4074 => "소서러",          // SORCERER_H
-        4075 => "민스트럴",        // MINSTREL_H
-        4076 => "원더러",          // WANDERER_H
-        4077 => "슈라",            // SURA_H
-        4078 => "제네릭",          // GENETIC_H
-        4079 => "쉐도우체이서",    // SHADOW_CHASER_H
-        4096 => "룬나이트",        // RUNE_KNIGHT_B
-        4097 => "워록",            // WARLOCK_B
-        4098 => "레인져",          // RANGER_B
-        4099 => "아크비숍",        // ARCHBISHOP_B
-        4100 => "미케닉",          // MECHANIC_B
-        4101 => "길로틴크로스",    // GUILLOTINE_CROSS_B
-        4102 => "가드",            // ROYAL_GUARD_B
-        4103 => "소서러",          // SORCERER_B
-        4104 => "민스트럴",        // MINSTREL_B
-        4105 => "원더러",          // WANDERER_B
-        4106 => "슈라",            // SURA_B
-        4107 => "제네릭",          // GENETIC_B
-        4108 => "쉐도우체이서",    // SHADOW_CHASER_B
-        4046 => "태권소년",        // TAEKWON
-        4047 => "권성",            // STAR
-        4049 => "소울링커",        // LINKER
-        4190 => "슈퍼노비스",      // SUPERNOVICE2
-        4191 => "슈퍼노비스",      // SUPERNOVICE2_B
-        4211 => "KAGEROU",         // KAGEROU
-        4212 => "OBORO",           // OBORO
-        4215 => "REBELLION",       // REBELLION
-        4222 => "닌자",            // NINJA_B
-        4223 => "KAGEROU",         // KAGEROU_B
-        4224 => "OBORO",           // OBORO_B
-        4225 => "태권소년",        // TAEKWON_B
-        4226 => "권성",            // STAR_B
-        4227 => "소울링커",        // LINKER_B
-        4228 => "건너",            // GUNSLINGER_B
-        4229 => "REBELLION",       // REBELLION_B
-        4239 => "성제",            // STAR EMPEROR
-        4240 => "소울리퍼",        // SOUL REAPER
-        4241 => "성제",            // STAR_EMPEROR_B
-        4242 => "소울리퍼",        // SOUL_REAPER_B
-        4252 => "DRAGON_KNIGHT",   // DRAGON KNIGHT
-        4253 => "MEISTER",         // MEISTER
-        4254 => "SHADOW_CROSS",    // SHADOW CROSS
-        4255 => "ARCH_MAGE",       // ARCH MAGE
-        4256 => "CARDINAL",        // CARDINAL
-        4257 => "WINDHAWK",        // WINDHAWK
-        4258 => "IMPERIAL_GUARD",  // IMPERIAL GUARD
-        4259 => "BIOLO",           // BIOLO
-        4260 => "ABYSS_CHASER",    // ABYSS CHASER
-        4261 => "ELEMETAL_MASTER", // ELEMENTAL MASTER
-        4262 => "INQUISITOR",      // INQUISITOR
-        4263 => "TROUBADOUR",      // TROUBADOUR
-        4264 => "TROUVERE",        // TROUVERE
-        4302 => "SKY_EMPEROR",     // SKY EMPEROR
-        4303 => "SOUL_ASCETIC",    // SOUL ASCETIC
-        4304 => "SHINKIRO",        // SHINKIRO
-        4305 => "SHIRANUI",        // SHIRANUI
-        4306 => "NIGHT_WATCH",     // NIGHT WATCH
-        4307 => "HYPER_NOVICE",    // HYPER NOVICE
-        _ => {
-            crate::world::library::job_alias::warn_once("no player job sprite, using the novice sprite", job_id);
-
-            "초보자" // NOVICE
-        }
-    }
-}
-
-/// Palette file name for a player body (clothes color).
-///
-/// The classic palette files use the official job names, which do not always
-/// match the sprite directory names (for example `하이프리_여.spr` but
-/// `하이프리스트_여_0.pal`).
-pub(crate) fn get_body_palette_name(job_id: JobId) -> &'static str {
-    // Palette files use the same job names as the sprites; aliased jobs use the
-    // palette of the sprite they were mapped to.
-    if let Some(alias) = crate::world::library::job_alias::player_job_sprite_alias(job_id) {
-        return alias;
-    }
-
-    match job_id.0 {
-        // High Priest: sprite is `하이프리`, palette files are `하이프리스트`.
-        4009 => "하이프리스트",
-        // Assassin Cross: palette files use `어세신크로스`.
-        4013 => "어세신크로스",
-        // Royal Guard: sprite is `가드`, palette files are `로얄가드`.
-        4066 | 4073 | 4102 => "로얄가드",
-        // Rebellion: sprite is `REBELLION`, palette files are `리벨리온`.
-        4215 | 4229 => "리벨리온",
-        _ => get_sprite_path_for_player_job(job_id),
-    }
-}
-
-fn player_body_palette_path(sex_sprite_path: &str, job_id: JobId, color: u16) -> String {
-    format!(
-        "data\\palette\\몸\\{}_{}_{}.pal",
-        get_body_palette_name(job_id),
-        sex_sprite_path,
-        color
-    )
-}
-
-/// Palette file for a hair color. The file name uses the hair style from the
-/// character data (the untranslated id), not the sprite lookup id.
-fn player_head_palette_path(sex_sprite_path: &str, hair_style: usize, color: u16) -> String {
-    format!("data\\palette\\머리\\머리{}_{}_{}.pal", hair_style, sex_sprite_path, color)
-}
-
 #[allow(clippy::too_many_arguments)]
 fn get_entity_part_files(
     library: &Library,
@@ -530,30 +317,15 @@ fn get_entity_part_files(
     accessory2: u16,
     accessory3: u16,
 ) -> Vec<EntityPartFile> {
-    let sex_sprite_path = match sex == Sex::Female {
-        true => "여",
-        false => "남",
-    };
-
-    fn player_body_path(sex_sprite_path: &str, job_id: JobId) -> String {
-        format!(
-            "인간족\\몸통\\{}\\{}_{}",
-            sex_sprite_path,
-            get_sprite_path_for_player_job(job_id),
-            sex_sprite_path
-        )
-    }
-
-    fn player_head_path(sex_sprite_path: &str, head_id: usize) -> String {
-        format!("인간족\\머리통\\{}\\{}_{}", sex_sprite_path, head_id, sex_sprite_path)
-    }
-
-    let head_id = resolve_head_id(sex, head);
+    let head_id = crate::world::jobs::resolve_head_id(sex, head);
 
     match entity_type {
         EntityType::Player => {
-            let body = player_body_path(sex_sprite_path, job_id);
-            let head_sprite = player_head_path(sex_sprite_path, head_id);
+            // The part paths come from the job data (`jobs.ron` path templates)
+            // and the registry resolves the verified sprite/palette stems; no
+            // job-specific path or stem is hardcoded here.
+            let body = crate::world::jobs::body_part_path(job_id, sex);
+            let head_sprite = crate::world::jobs::head_part_path(head_id, sex);
 
             // Hair and clothes colors are external `.pal` files for players. A
             // missing palette file is handled by the sprite loader, which then
@@ -561,10 +333,10 @@ fn get_entity_part_files(
             // The palette file is paired with the rendered hair sprite, i.e. it
             // uses the same (translated) hair id as the sprite path.
             let mut entity_part_files = vec![
-                EntityPartFile::with_palette(body, Some(player_body_palette_path(sex_sprite_path, job_id, body_palette))),
+                EntityPartFile::with_palette(body, crate::world::jobs::body_palette_path(job_id, sex, body_palette)),
                 EntityPartFile::with_palette(
                     head_sprite,
-                    Some(player_head_palette_path(sex_sprite_path, head_id, head_palette)),
+                    Some(crate::world::jobs::head_palette_path(head_id, sex, head_palette)),
                 ),
             ];
 
@@ -695,22 +467,9 @@ fn option_hides_entity(effect_state: u32) -> bool {
     effect_state & OPTION_HIDDEN_MASK != 0
 }
 
-/// Translate a network hair style id into the translated sprite id used by the
-/// game files. Hair style ids are per sex; unknown ids are passed through and a
-/// missing value falls back to the default hair style 1.
-fn resolve_head_id(sex: Sex, head: Option<usize>) -> usize {
-    match (sex, head) {
-        (Sex::Male, Some(head)) if (0..MALE_HAIR_LOOKUP.len()).contains(&head) => MALE_HAIR_LOOKUP[head],
-        (Sex::Male, Some(head)) => head,
-        (Sex::Female, Some(head)) if (0..FEMALE_HAIR_LOOKUP.len()).contains(&head) => FEMALE_HAIR_LOOKUP[head],
-        (Sex::Female, Some(head)) => head,
-        _ => 1,
-    }
-}
-
 impl Common {
     pub fn new(
-        library: &Library,
+        _library: &Library,
         entity_data: &EntityData,
         tile_position: TilePosition,
         world_position: Point3<f32>,
@@ -761,10 +520,7 @@ impl Common {
         };
         let guild_label = guild_name_label(entity_type, guild_name.as_deref());
         let animation_state = AnimationState::new(entity_type, client_tick);
-        let scale = match library.get::<IsBabyJob>(job_id) {
-            IsBabyJob(true) => BABY_JOB_SCALE,
-            IsBabyJob(false) => 1.0,
-        };
+        let scale = crate::world::jobs::scale(job_id);
 
         Self {
             tile_position,
@@ -2098,13 +1854,13 @@ impl Entity {
         }
     }
 
-    /// Whether this entity uses a transcendent (rebirth) second job.
+    /// Whether this entity uses a transcendent (rebirth) job.
     ///
     /// The classic level-99 aura uses a violet tint for transcendent
-    /// characters. The transcendent job ids are `4001..=4023` in the classic
-    /// job database (Lord Knight, High Priest, ...).
+    /// characters. The flag comes from the job data (`jobs.ron`), so it follows
+    /// the server job database instead of a magic id range.
     pub fn is_transcendent_job(&self) -> bool {
-        matches!(self.get_job_id().0, 4001..=4023)
+        crate::world::jobs::is_transcendent(self.get_job_id())
     }
 
     pub fn get_entity_type(&self) -> EntityType {
@@ -2164,11 +1920,8 @@ impl Entity {
         self.get_common_mut().details.needs_request(now)
     }
 
-    pub fn set_job(&mut self, library: &Library, job_id: JobId) {
-        let scale = match library.get::<IsBabyJob>(job_id) {
-            IsBabyJob(true) => BABY_JOB_SCALE,
-            IsBabyJob(false) => 1.0,
-        };
+    pub fn set_job(&mut self, _library: &Library, job_id: JobId) {
+        let scale = crate::world::jobs::scale(job_id);
 
         let common = self.get_common_mut();
         common.job_id = job_id;
@@ -2553,29 +2306,6 @@ mod guild_name_label_tests {
         assert_eq!(guild_name_label(EntityType::Monster, Some("Domination")), None);
         assert_eq!(guild_name_label(EntityType::Warp, Some("Domination")), None);
         assert_eq!(guild_name_label(EntityType::Hidden, Some("Domination")), None);
-    }
-}
-
-#[cfg(test)]
-mod hair_style_tests {
-    use ragnarok_packets::Sex;
-
-    use super::{MALE_HAIR_LOOKUP, resolve_head_id};
-
-    #[test]
-    fn known_male_hair_style_is_translated() {
-        let expected = MALE_HAIR_LOOKUP[9];
-        assert_eq!(resolve_head_id(Sex::Male, Some(9)), expected);
-    }
-
-    #[test]
-    fn unknown_hair_style_is_passed_through() {
-        assert_eq!(resolve_head_id(Sex::Male, Some(999)), 999);
-    }
-
-    #[test]
-    fn missing_hair_style_falls_back_to_default() {
-        assert_eq!(resolve_head_id(Sex::Female, None), 1);
     }
 }
 

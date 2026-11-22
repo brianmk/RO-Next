@@ -579,6 +579,51 @@ pub fn check_skill_effects(path: Option<&std::path::Path>) -> Result<usize, Stri
     }
 }
 
+/// Validates the data-driven job/appearance registry and returns the number of
+/// job rows.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback
+/// (`korangar/archive/data/client/jobs.ron`) is validated. Exposed as
+/// `korangar --check-jobs [PATH]`, so CI can validate the committed data file
+/// without the game archives.
+pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::jobs::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::jobs::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates every job/body/hair/palette/headgear sprite of the job registry
+/// against the real game archives.
+///
+/// This is the `--check-appearance` entry point and replaces the previously
+/// `#[ignore]`d job audit test: it loads `client/game_archives.ron`, checks
+/// that every job row resolves to an existing body sprite, palette and skill
+/// tree, that every hair style and head sprite id exists, and that every
+/// headgear view id of the client name table has an accessory sprite. Returns
+/// the audit report; exits non-zero in `main` on the first problem.
+pub fn check_appearance() -> Result<crate::world::AppearanceAudit, String> {
+    let game_file_loader = GameFileLoader::default();
+    game_file_loader.load_archives_from_settings();
+
+    // The `.lub` files are 32-bit Lua 5.1 bytecode; the host Lua needs the
+    // patched (unified) archive to load the job identity/skill tree tables.
+    let lua_archive_existed = std::path::Path::new("lua_files.7z").exists();
+    game_file_loader.load_patched_lua_files();
+
+    let report = crate::world::jobs::check_appearance(&game_file_loader);
+
+    if !lua_archive_existed {
+        game_file_loader.remove_patched_lua_files();
+    }
+
+    report
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,
@@ -10532,6 +10577,34 @@ mod tests {
     #[test]
     fn unknown_jobs_default_to_rooted() {
         assert!(!has_free_cast(JobId(9999), &[learned(278)]));
+    }
+
+    #[test]
+    fn job_registry_data_is_valid() {
+        let rows = super::check_jobs(None).expect("the committed job data has to be valid");
+        assert_eq!(rows, 181, "one row per real rAthena e_job id");
+        assert!(crate::world::jobs::profile(JobId(4252)).is_some());
+        assert!(crate::world::jobs::profile(JobId(65535)).is_none());
+    }
+
+    #[test]
+    fn job_registry_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-jobs-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(jobs: [)").expect("failed to write the malformed fixture");
+
+        let result = super::check_jobs(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn job_registry_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/jobs.ron");
+        let error = super::check_jobs(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
     }
 
     /// Regression test for the logout -> re-select black screen: after logging

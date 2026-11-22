@@ -9,6 +9,7 @@ mod fade_state;
 mod ground_item;
 mod guild_emblem;
 mod item_details;
+pub(crate) mod jobs;
 mod library;
 pub(crate) use self::library::{
     LayerAnchor, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, MAX_LAYERS_PER_PHASE, SkillEffectLayer, SkillPhase,
@@ -43,6 +44,7 @@ pub use self::fade_state::*;
 pub use self::ground_item::*;
 pub use self::guild_emblem::*;
 pub use self::item_details::*;
+pub use self::jobs::AppearanceAudit;
 pub use self::library::*;
 pub use self::light::*;
 pub use self::map::*;

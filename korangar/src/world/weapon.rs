@@ -65,8 +65,7 @@ use korangar_loaders::FileLoader;
 use ragnarok_packets::{JobId, Sex};
 use serde::Deserialize;
 
-use super::AnimationData;
-use super::entity::get_sprite_path_for_player_job;
+use super::{AnimationData, jobs};
 use crate::loaders::{EntityPartFile, GameFileLoader};
 
 /// Data file path inside the client archive (`data\client\...`).
@@ -679,7 +678,7 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<Entit
         }
     };
 
-    let job_stem = get_sprite_path_for_player_job(job_id);
+    let job_stem = jobs::player_sprite_stem(job_id);
     let sex_suffix = match sex {
         Sex::Female => registry.sex_suffix.female.as_str(),
         _ => registry.sex_suffix.male.as_str(),
@@ -965,6 +964,11 @@ mod tests {
     /// used to test the weapon layer gate without the (placeholder-only) game
     /// assets.
     fn fake_animation(sprite_number: usize) -> AnimationData {
+        // `Matrix4::identity` is a trait method; the fields only exist in debug
+        // builds, so the import must be gated as well.
+        #[cfg(feature = "debug")]
+        use cgmath::SquareMatrix;
+
         let part = AnimationFramePart {
             sprite_number,
             ..Default::default()

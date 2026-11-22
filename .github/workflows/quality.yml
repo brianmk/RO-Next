@@ -86,13 +86,15 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all --check
 
-      # The weapon registry is generated from committed facts; keep the data
-      # file and the generator in sync (no game files or extra Python packages
-      # needed for this check).
-      - name: Generated weapon data is up to date
+      # The weapon and job/appearance registries are generated from committed
+      # facts; keep the data files and the generators in sync (no game files or
+      # extra Python packages needed for these checks).
+      - name: Generated content data is up to date
         run: |
           python3 tools/gen_weapons.py --check
           python3 tools/test_gen_weapons.py
+          python3 tools/gen_jobs.py --check
+          python3 tools/test_gen_jobs.py
 
       - name: Clippy (default features)
         run: cargo clippy --workspace -- -Dwarnings

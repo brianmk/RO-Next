@@ -1,5 +1,4 @@
 mod accessory_name;
-mod baby_job;
 mod card_composition;
 mod item_description;
 mod item_display_name;
@@ -8,8 +7,6 @@ mod item_name;
 mod item_resource;
 mod item_stats;
 pub(crate) mod job_alias;
-#[cfg(test)]
-mod job_audit;
 mod job_identity;
 mod map_sky_data;
 mod monster_sprite;
@@ -34,7 +31,6 @@ use mlua::Lua;
 use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
 
 pub use self::accessory_name::AccessoryName;
-pub use self::baby_job::IsBabyJob;
 use self::card_composition::{CardComposition, compose_item_name};
 pub use self::item_description::NO_DESCRIPTION;
 use self::item_description::{ItemDescriptions, sanitize_lines};
@@ -69,7 +65,6 @@ pub struct Library {
     skill_information_table: <SkillListInformation as Table>::Storage,
     skill_requirements_table: <SkillListRequirements as Table>::Storage,
     skill_tree_table: <SkillTreeLayout as Table>::Storage,
-    baby_job_table: <IsBabyJob as Table>::Storage,
     monster_sprites: MonsterSprites,
     skill_icons: SkillIcons,
     accessory_name_table: <AccessoryName as Table>::Storage,
@@ -86,7 +81,6 @@ impl Library {
         let skill_information_table = SkillListInformation::load(game_file_loader)?;
         let skill_requirements_table = SkillListRequirements::load(game_file_loader)?;
         let skill_tree_table = SkillTreeLayout::load(game_file_loader)?;
-        let baby_job_table = IsBabyJob::load(game_file_loader)?;
         let monster_sprites = MonsterSprites::load(game_file_loader, &job_identity_table);
         let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
         let accessory_name_table = AccessoryName::load(game_file_loader)?;
@@ -98,6 +92,9 @@ impl Library {
         // The data-driven weapon registry (weapon types, sprite candidates,
         // projectiles) is loaded here so every subsystem sees the same table.
         crate::world::weapon::load(game_file_loader);
+        // The data-driven job/appearance registry (job sprites, palettes, hair
+        // styles, job flags) is loaded here so every subsystem sees one table.
+        crate::world::jobs::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
@@ -107,7 +104,6 @@ impl Library {
             skill_information_table,
             skill_requirements_table,
             skill_tree_table,
-            baby_job_table,
             monster_sprites,
             skill_icons,
             accessory_name_table,
@@ -221,15 +217,13 @@ impl Library {
 
     /// Returns whether the job has a job identity (name/sprite) in this data
     /// set.
-    #[cfg(test)]
-    pub fn has_job_identity(&self, job_id: JobId) -> bool {
+    pub(crate) fn has_job_identity(&self, job_id: JobId) -> bool {
         job_identity::JobIdentity::try_get(self, job_id).is_some()
     }
 
     /// Returns whether the job resolves to a non-empty skill tree (directly or
     /// via the generated fallback table).
-    #[cfg(test)]
-    pub fn has_skill_tree(&self, job_id: JobId) -> bool {
+    pub(crate) fn has_skill_tree(&self, job_id: JobId) -> bool {
         skill_tree::SkillTreeLayout::resolve(self, job_id).is_some()
     }
 
@@ -267,16 +261,18 @@ impl Library {
         }
 
         let accessory_name = self.accessory_name_table.get(&view_id)?;
-        let sex_sprite_path = match sex {
-            Sex::Female => "여",
-            Sex::Male => "남",
-            _ => return None,
-        };
 
-        Some(format!(
-            "악세사리\\{sex_sprite_path}\\{sex_sprite_path}{}",
-            accessory_name.name()
-        ))
+        // The accessory path template is data (`jobs.ron` `paths.headgear`);
+        // the name itself is still the data-driven `accname.lub` table.
+        crate::world::jobs::headgear_part_path(accessory_name.name(), sex)
+    }
+
+    /// View ids of every headgear the client name table knows.
+    ///
+    /// Used by the `--check-appearance` audit to validate that every headgear
+    /// sprite exists in the archives.
+    pub(crate) fn accessory_view_ids(&self) -> impl Iterator<Item = u16> + '_ {
+        self.accessory_name_table.keys().copied()
     }
 }
 
