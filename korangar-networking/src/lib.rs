@@ -607,7 +607,11 @@ where
                 }
                 // Send a keep-alive packet to the server.
                 _ = interval.tick() => {
-                    ping_factory(&time_synchronization).packet_to_bytes(&mut byte_writer).unwrap();
+                    if ping_factory(&time_synchronization).packet_to_bytes(&mut byte_writer).is_err() {
+                        eprintln!("[network] failed to serialise ping packet; skipping keep-alive");
+                        byte_writer.clear();
+                        continue;
+                    }
                     stream.write_all(byte_writer.as_slice()).await.map_err(|_| NetworkTaskError::ConnectionClosed)?;
                     byte_writer.clear();
                 }
@@ -651,7 +655,12 @@ where
         self.packet_callback.outgoing_packet(&login_packet);
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
-        login_packet.packet_to_bytes(&mut byte_writer).unwrap();
+        if login_packet.packet_to_bytes(&mut byte_writer).is_err() {
+            // Packet serialisation of a well-formed login packet is not expected to
+            // fail; if it does, fail the connection instead of panicking.
+            self.login_server_connection = ServerConnection::Disconnected;
+            return;
+        }
         if action_sender.send(byte_writer.into_inner()).is_err() {
             // The connection task failed before it could accept the login packet
             // (e.g. a transient connection error). Fail gracefully instead of panicking.
@@ -708,7 +717,10 @@ where
         self.packet_callback.outgoing_packet(&login_packet);
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
-        login_packet.packet_to_bytes(&mut byte_writer).unwrap();
+        if login_packet.packet_to_bytes(&mut byte_writer).is_err() {
+            self.character_server_connection = ServerConnection::Disconnected;
+            return;
+        }
         if action_sender.send(byte_writer.into_inner()).is_err() {
             // The character server connection task dropped before accepting the login
             // packet (e.g. transient connection error); fail gracefully, don't panic.
@@ -768,7 +780,10 @@ where
         self.packet_callback.outgoing_packet(&login_packet);
 
         let mut byte_writer = ByteWriter::with_encoding(UTF_8);
-        login_packet.packet_to_bytes(&mut byte_writer).unwrap();
+        if login_packet.packet_to_bytes(&mut byte_writer).is_err() {
+            self.map_server_connection = ServerConnection::Disconnected;
+            return;
+        }
         if action_sender.send(byte_writer.into_inner()).is_err() {
             // The map server connection task dropped before accepting the login packet
             // (e.g. transient connection error); fail gracefully, don't panic.
@@ -840,9 +855,8 @@ where
             ServerConnection::Connected { action_sender, .. } => {
                 self.packet_callback.outgoing_packet(&packet);
 
-                // FIX: Don't unwrap.
                 let mut byte_writer = ByteWriter::with_encoding(UTF_8);
-                packet.packet_to_bytes(&mut byte_writer).unwrap();
+                packet.packet_to_bytes(&mut byte_writer).map_err(|_| NotConnectedError)?;
                 action_sender.send(byte_writer.into_inner()).map_err(|_| NotConnectedError)
             }
             _ => Err(NotConnectedError),
@@ -854,9 +868,8 @@ where
             ServerConnection::Connected { action_sender, .. } => {
                 self.packet_callback.outgoing_packet(&packet);
 
-                // FIX: Don't unwrap.
                 let mut byte_writer = ByteWriter::with_encoding(UTF_8);
-                packet.packet_to_bytes(&mut byte_writer).unwrap();
+                packet.packet_to_bytes(&mut byte_writer).map_err(|_| NotConnectedError)?;
                 action_sender.send(byte_writer.into_inner()).map_err(|_| NotConnectedError)
             }
             _ => Err(NotConnectedError),

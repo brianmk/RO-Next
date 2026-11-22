@@ -2526,7 +2526,11 @@ impl Client {
                         #[cfg(feature = "debug")]
                         print_debug!("Disconnection from the character server with error");
 
-                        let socket_address = self.saved_login_server_address.unwrap();
+                        let Some(socket_address) = self.saved_login_server_address else {
+                            // No address means the user never completed the login
+                            // flow; nothing to reconnect to.
+                            continue;
+                        };
                         self.networking_system.connect_to_login_server(
                             self.saved_packet_version,
                             socket_address,
@@ -2966,22 +2970,31 @@ impl Client {
                 NetworkEvent::CharacterSelected { login_data, .. } => {
                     self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
 
-                    let saved_login_data = self.saved_login_data.as_ref().unwrap();
+                    let Some(saved_login_data) = self.saved_login_data.as_ref() else {
+                        // The character selection cannot be processed without the
+                        // login data. Show the error instead of panicking.
+                        self.interface.open_window(ErrorWindow::new("Character selection failed: missing login data.".to_owned()));
+                        continue;
+                    };
+                    let saved_login_data = saved_login_data.clone();
                     self.networking_system.disconnect_from_character_server();
                     self.networking_system
-                        .connect_to_map_server(self.saved_packet_version, saved_login_data, login_data);
+                        .connect_to_map_server(self.saved_packet_version, &saved_login_data, login_data);
                     // NOTE: Nothing else must be sent to the map server until it responds:
                     // rAthena requires the first read of a session to contain exactly the
                     // login packet and disconnects otherwise. The client tick is part of
                     // the map server login success packet, so there is no need to request
                     // it here.
 
-                    let character_information = self
+                    let Some(character_information) = self
                         .client_state
                         .follow(client_state().character_slots())
                         .with_id(login_data.character_id)
                         .cloned()
-                        .unwrap();
+                    else {
+                        self.interface.open_window(ErrorWindow::new("Character selection failed: the server did not send that character slot.".to_owned()));
+                        continue;
+                    };
 
                     let mut player = Entity::Player(Player::new(
                         &self.library,
