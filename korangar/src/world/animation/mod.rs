@@ -70,6 +70,41 @@ impl AnimationActionType {
     }
 }
 
+/// How a looping animation advances when it reaches its last frame.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum AnimationLoopMode {
+    /// Jump from the last frame back to the first (native ACT looping).
+    #[default]
+    Repeat,
+    /// Play the frames forwards, then backwards (`0..n-1, n-2..1`). Useful for
+    /// animations whose last frame does not line up with the first one.
+    PingPong,
+}
+
+/// Resolve a frame index for a looping animation.
+fn looped_frame_index(frame_time: u32, frame_count: usize, loop_mode: AnimationLoopMode) -> usize {
+    if frame_count <= 1 {
+        return 0;
+    }
+
+    match loop_mode {
+        AnimationLoopMode::Repeat => frame_time as usize % frame_count,
+        AnimationLoopMode::PingPong => {
+            // With two frames a ping-pong loop is identical to repeating.
+            if frame_count == 2 {
+                return frame_time as usize % frame_count;
+            }
+
+            let cycle = frame_count * 2 - 2;
+            let position = frame_time as usize % cycle;
+            match position < frame_count {
+                true => position,
+                false => cycle - position,
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct AnimationState {
     action_type: AnimationActionType,
@@ -83,6 +118,8 @@ pub struct AnimationState {
     /// falcon uses a faster value because its flap loop looks too slow with the
     /// raw ACT delays.
     speed: f32,
+    /// How the animation loops once it reaches the last frame.
+    loop_mode: AnimationLoopMode,
 }
 
 impl AnimationState {
@@ -97,7 +134,23 @@ impl AnimationState {
             factor: None,
             looping: true,
             speed: 1.0,
+            loop_mode: AnimationLoopMode::default(),
         }
+    }
+
+    /// Select how a looping animation wraps at its end (repeat or ping-pong).
+    pub fn with_loop_mode(mut self, loop_mode: AnimationLoopMode) -> Self {
+        self.loop_mode = loop_mode;
+        self
+    }
+
+    /// Change the loop mode of an existing animation.
+    pub fn set_loop_mode(&mut self, loop_mode: AnimationLoopMode) {
+        self.loop_mode = loop_mode;
+    }
+
+    pub fn loop_mode(&self) -> AnimationLoopMode {
+        self.loop_mode
     }
 
     /// Set a playback speed multiplier (e.g. `1.5` for a 50 % faster loop).
@@ -465,7 +518,7 @@ impl AnimationData {
         let frame_index = match animation_state.is_sitting() {
             true => 0,
             false => match animation_state.looping {
-                true => frame_time as usize % animation.frames.len(),
+                true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
                 false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
             },
         };
@@ -609,7 +662,7 @@ impl AnimationData {
 mod tests {
     use ragnarok_packets::ClientTick;
 
-    use super::{AnimationActionType, AnimationState};
+    use super::{AnimationActionType, AnimationLoopMode, AnimationState, looped_frame_index};
     use crate::world::EntityType;
 
     #[test]
@@ -749,5 +802,33 @@ mod tests {
         // No artificial duration: the ACT file defines the animation length, so the
         // full animation is played instead of squeezing it into a fixed time.
         assert_eq!(state.duration, None);
+    }
+}
+
+#[cfg(test)]
+mod loop_mode_tests {
+    use super::{AnimationLoopMode, looped_frame_index};
+
+    #[test]
+    fn repeat_wraps_to_the_first_frame() {
+        let frames = |t: u32| looped_frame_index(t, 4, AnimationLoopMode::Repeat);
+        assert_eq!([frames(0), frames(1), frames(2), frames(3), frames(4)], [0, 1, 2, 3, 0]);
+    }
+
+    #[test]
+    fn pingpong_reverses_without_repeating_the_end_frames() {
+        let frames = |t: u32| looped_frame_index(t, 4, AnimationLoopMode::PingPong);
+        // 0,1,2,3,2,1 then back to 0.
+        assert_eq!(
+            [frames(0), frames(1), frames(2), frames(3), frames(4), frames(5), frames(6)],
+            [0, 1, 2, 3, 2, 1, 0]
+        );
+    }
+
+    #[test]
+    fn pingpong_handles_short_and_empty_animations() {
+        assert_eq!(looped_frame_index(5, 0, AnimationLoopMode::PingPong), 0);
+        assert_eq!(looped_frame_index(5, 1, AnimationLoopMode::PingPong), 0);
+        assert_eq!(looped_frame_index(5, 2, AnimationLoopMode::PingPong), 1);
     }
 }
