@@ -2264,8 +2264,9 @@ pub struct ItemPickupAckPacket2019 {
     pub identified: u8,
     pub damaged: u8,
     pub refinement_level: u8,
-    /// `EQUIPSLOTINFO` of the server: `{ uint16 card[4]; }` (8 bytes).
-    pub card: [u16; 4],
+    /// `EQUIPSLOTINFO` of the server: `{ uint32 card[4]; }` (16 bytes) for
+    /// PACKETVER >= 20181121 / RE >= 20180704 (the 20190605 server we target).
+    pub card: [u32; 4],
     pub equip_position: EquipPosition,
     pub item_type: u8,
     pub result: u8,
@@ -5236,6 +5237,50 @@ mod tests {
     use ragnarok_bytes::{ByteWriter, ToBytes};
 
     use crate::{InventoryIndex, ItemId, PacketExt, WhisperPacket};
+
+    /// The 2019 add-item packet (`ZC_ITEM_PICKUP_ACK` 0x0A37) has to match the
+    /// server layout for PACKETVER 20190605 exactly: the equipment card slots
+    /// are an `EQUIPSLOTINFO` with `uint32 card[4]` (16 bytes, PACKETVER >=
+    /// 20181121 / RE >= 20180704), which makes the fixed packet 69 bytes long.
+    /// A wrong size desynchronizes the packet stream and silently drops the
+    /// inventory update (bought items only appeared after a relog).
+    #[test]
+    fn item_pickup_ack_packet_2019_layout() {
+        use crate::{EquipPosition, ItemPickupAckPacket2019};
+
+        let packet = ItemPickupAckPacket2019 {
+            inventory_index: InventoryIndex(7),
+            amount: 1,
+            item_id: ItemId(2206),
+            identified: 1,
+            damaged: 0,
+            refinement_level: 0,
+            card: [0; 4],
+            equip_position: EquipPosition::HEAD_TOP,
+            item_type: 4,
+            result: 0,
+            hire_expiration_date: 0,
+            bind_on_equip_type: 0,
+            option_data: std::array::from_fn(|_| crate::ItemOptions {
+                index: 0,
+                value: 0,
+                parameter: 0,
+            }),
+            favorite: 0,
+            item_sprite_number: 44,
+        };
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(bytes.len(), 69);
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0A37);
+        // inventory index is sent as server index (index + 2).
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 9);
+        assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 1);
+        assert_eq!(u32::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9]]), 2206);
+    }
 
     /// The whisper packet has to match the format the server expects:
     /// `0096 <len>.W <name>.24B <message>.?B 00`.

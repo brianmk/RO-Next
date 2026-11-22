@@ -10,8 +10,8 @@ use korangar_interface::element::StateElement;
 use korangar_interface::window::{StateWindow, Window};
 use korangar_networking::EntityData;
 use ragnarok_packets::{
-    AccountId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex, StatType, TilePosition,
-    WorldPosition,
+    AccountId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex, SpriteChangeType, StatType,
+    TilePosition, WorldPosition,
 };
 use rust_state::{Path, RustState, VecItem};
 #[cfg(feature = "debug")]
@@ -1668,6 +1668,26 @@ impl Entity {
         let common = self.get_common_mut();
         common.job_id = job_id;
         common.scale = scale;
+    }
+
+    /// Applies an appearance (sprite) change for headgear or palettes. Returns
+    /// `true` if the change is handled (i.e. the animation data has to be
+    /// reloaded).
+    pub fn apply_sprite_change(&mut self, sprite_type: SpriteChangeType, value: u16) -> bool {
+        // The packet field names follow the official client: `accessory` is the
+        // lower, `accessory2` the upper and `accessory3` the middle headgear.
+        let common = self.get_common_mut();
+
+        match sprite_type {
+            SpriteChangeType::HeadTop => common.accessory2 = value,
+            SpriteChangeType::HeadMiddle => common.accessory3 = value,
+            SpriteChangeType::HeadBottom => common.accessory = value,
+            SpriteChangeType::HairCollor => common.head_palette = value,
+            SpriteChangeType::ClothesColor => common.body_palette = value,
+            _ => return false,
+        }
+
+        true
     }
 
     pub fn set_hair(&mut self, hair_id: usize) {

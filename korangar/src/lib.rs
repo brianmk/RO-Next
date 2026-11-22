@@ -143,9 +143,11 @@ static NEXT_POSITION_EFFECT_LIGHT_ID: std::sync::atomic::AtomicU32 = std::sync::
 /// Unknown/unparseable 2019 server packets are logged at debug verbosity
 /// (`-vv` / `KORANGAR_LOG_LEVEL=2`) so that missing handlers can be spotted
 /// without the debug packet inspector.
+#[cfg(not(feature = "debug"))]
 #[derive(Clone, Copy, Default)]
 struct ClientPacketCallback;
 
+#[cfg(not(feature = "debug"))]
 impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
     fn unknown_packet(&self, bytes: Vec<u8>) {
         let header = bytes
@@ -3588,6 +3590,34 @@ impl Client {
 
                     entity.set_hair(hair_id as usize);
 
+                    if let Some(animation_data) = self.async_loader.request_animation_data_load(
+                        entity.get_entity_id(),
+                        entity.get_entity_type(),
+                        entity.get_entity_part_files(&self.library),
+                    ) {
+                        entity.set_animation_data(animation_data);
+                    }
+                }
+                NetworkEvent::AppearanceChanged {
+                    account_id,
+                    sprite_type,
+                    value,
+                } => {
+                    let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id().0 == account_id.0)
+                    else {
+                        continue;
+                    };
+
+                    if !entity.apply_sprite_change(sprite_type, value as u16) {
+                        continue;
+                    }
+
+                    // Sprite layers changed: reload the animation data so both the world
+                    // sprite and the equipment paper doll show the new appearance.
                     if let Some(animation_data) = self.async_loader.request_animation_data_load(
                         entity.get_entity_id(),
                         entity.get_entity_type(),

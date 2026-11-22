@@ -48,7 +48,7 @@ where
                 split! {
                     gaps: 8.0,
                     children: (
-                        PaperDoll::new(self.items_path),
+                        PaperDoll::new(self.items_path, self.player_path),
                         EquipmentStats::new(self.items_path, self.player_path),
                     ),
                 },

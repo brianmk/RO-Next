@@ -370,6 +370,13 @@ pub enum NetworkEvent {
         account_id: AccountId,
         hair_id: u32,
     },
+    /// A sprite (appearance) change for an entity that is not the job or hair,
+    /// e.g. headgear or palette changes.
+    AppearanceChanged {
+        account_id: AccountId,
+        sprite_type: SpriteChangeType,
+        value: u32,
+    },
     LoggedOut,
     FriendRequest {
         requestee: Friend,

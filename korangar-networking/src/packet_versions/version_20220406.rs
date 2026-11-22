@@ -538,7 +538,7 @@ where
             index: inventory_index,
             item_id,
             item_type,
-            slot: [u32::from(card[0]), u32::from(card[1]), u32::from(card[2]), u32::from(card[3])],
+            slot: card,
             hire_expiration_date: hire_expiration_date.max(0) as u32,
             details,
         };
@@ -560,6 +560,16 @@ where
         SpriteChangeType::Hair => Some(NetworkEvent::ChangeHair {
             account_id: packet.account_id,
             hair_id: packet.value,
+        }),
+        SpriteChangeType::HeadTop | SpriteChangeType::HeadMiddle | SpriteChangeType::HeadBottom => Some(NetworkEvent::AppearanceChanged {
+            account_id: packet.account_id,
+            sprite_type: packet.sprite_type,
+            value: packet.value,
+        }),
+        SpriteChangeType::HairCollor | SpriteChangeType::ClothesColor => Some(NetworkEvent::AppearanceChanged {
+            account_id: packet.account_id,
+            sprite_type: packet.sprite_type,
+            value: packet.value,
         }),
         _ => None,
     })?;

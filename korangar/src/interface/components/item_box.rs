@@ -15,7 +15,6 @@ use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
 use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
 use crate::state::{ClientState, client_theme};
-use crate::state::inventory::{ItemUseAction, item_use_action};
 use crate::world::ResourceMetadata;
 
 #[derive(Default)]
@@ -269,7 +268,6 @@ where
 
                 if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
-                    layout.register_click_handler(MouseButton::DoubleLeft, &self.double_click_handler);
                 }
             }
 
