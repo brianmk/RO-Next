@@ -83,9 +83,12 @@ impl SpriteLoader {
     fn load_palette(&self, path: &str) -> Option<Palette> {
         let bytes = match self.game_file_loader.get(path) {
             Ok(bytes) => bytes,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                print_debug!("Failed to load palette: {:?}", _error);
+            Err(error) => {
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load sprite palette `{path}`: {error:?}; keeping the embedded palette"),
+                );
 
                 return None;
             }
@@ -93,9 +96,12 @@ impl SpriteLoader {
 
         let palette = Palette::from_bytes(&mut ByteReader::without_metadata(&bytes));
 
-        #[cfg(feature = "debug")]
         if let Err(error) = &palette {
-            print_debug!("Failed to load palette: {:?}", error);
+            crate::logging::warn_once(
+                module_path!(),
+                path,
+                format_args!("malformed sprite palette `{path}`: {error:?}; keeping the embedded palette"),
+            );
         }
 
         palette.ok()
@@ -107,12 +113,18 @@ impl SpriteLoader {
 
         let bytes = match self.game_file_loader.get(&format!("data\\sprite\\{path}")) {
             Ok(bytes) => bytes,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load sprite: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                // Never recurse into the fallback if the fallback itself is
+                // missing: that used to overflow the stack.
+                if path == FALLBACK_SPRITE_FILE {
+                    return Err(LoadError::File(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load sprite `data\\sprite\\{path}`: {error:?}; using the fallback sprite"),
+                );
 
                 return self.get_or_load(FALLBACK_SPRITE_FILE, None);
             }
@@ -121,12 +133,16 @@ impl SpriteLoader {
 
         let sprite_data = match SpriteData::from_bytes(&mut byte_reader) {
             Ok(sprite_data) => sprite_data,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load sprite: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                if path == FALLBACK_SPRITE_FILE {
+                    return Err(LoadError::Conversion(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("malformed sprite `data\\sprite\\{path}`: {error:?}; using the fallback sprite"),
+                );
 
                 return self.get_or_load(FALLBACK_SPRITE_FILE, None);
             }
@@ -139,11 +155,10 @@ impl SpriteLoader {
         // to the default palette instead of panicking while decoding the palette
         // based image data.
         let embedded_palette = sprite_data.palette.clone().unwrap_or_else(|| {
-            #[cfg(feature = "debug")]
-            print_debug!(
-                "[{}] sprite '{}' has no embedded palette, using default palette",
-                "warning".yellow(),
-                path
+            crate::logging::warn_once(
+                module_path!(),
+                path,
+                format_args!("sprite `data\\sprite\\{path}` has no embedded palette; using the default palette"),
             );
 
             Palette::default()

@@ -188,7 +188,9 @@ impl EffectLoader {
 
 fn parse_blend_factor(value: i32, previous: Option<BlendFactor>, is_source: bool) -> BlendFactor {
     match value {
-        0 => previous.unwrap(),
+        // A malformed effect can omit the previous factor; fall back to `Zero`
+        // instead of panicking on missing effect data.
+        0 => previous.unwrap_or(BlendFactor::Zero),
         1 => BlendFactor::Zero,
         2 => BlendFactor::One,
         3 => BlendFactor::Src,
@@ -208,8 +210,7 @@ fn parse_blend_factor(value: i32, previous: Option<BlendFactor>, is_source: bool
         12 if is_source => BlendFactor::SrcAlpha,
         12 if !is_source => BlendFactor::OneMinusSrcAlpha,
         _ => {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] unknown blend factor found in frame data: {value}", "error".red());
+            crate::logging::log_warn!("unknown blend factor found in effect frame data: {value}; using zero");
             BlendFactor::Zero
         }
     }
@@ -222,8 +223,7 @@ fn parse_animation_type(value: i32) -> AnimationType {
         2 => AnimationType::Type2,
         3 => AnimationType::Type3,
         _ => {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] unknown animation type found in frame data: {value}", "error".red());
+            crate::logging::log_warn!("unknown animation type found in effect frame data: {value}; using type 1");
             AnimationType::Type1
         }
     }
@@ -234,8 +234,7 @@ fn parse_frame_type(value: i32) -> FrameType {
         0 => FrameType::Basic,
         1 => FrameType::Morphing,
         _ => {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] unknown frame type found in frame data: {value}", "error".red());
+            crate::logging::log_warn!("unknown frame type found in effect frame data: {value}; using basic");
             FrameType::Basic
         }
     }
@@ -245,8 +244,7 @@ fn parse_mt_present(value: i32) -> MultiTexturePresent {
     match value {
         0 => MultiTexturePresent::None,
         _ => {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] unknown multi texture present found in frame data: {value}", "error".red());
+            crate::logging::log_warn!("unknown multi texture present found in effect frame data: {value}; using none");
             MultiTexturePresent::None
         }
     }

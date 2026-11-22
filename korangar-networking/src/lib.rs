@@ -166,6 +166,23 @@ where
     }
 }
 
+/// Report a failure to build one of the server packet handlers.
+///
+/// Duplicate handler registration is a client build bug, not a server problem.
+/// It must not panic inside the networking thread: report the exact packet
+/// header in the log and tell the client to show the error window, then skip
+/// the connection attempt.
+fn report_packet_handler_registration_failure(
+    server: &'static str,
+    error: &DuplicateHandlerError,
+    event_sender: &UnboundedSender<NetworkEvent>,
+) {
+    eprintln!("[network] failed to create the {server} server packet handler: {error}");
+    let _ = event_sender.send(NetworkEvent::InternalError {
+        message: format!("Client setup failed for the {server} server: {error}. Please report this bug."),
+    });
+}
+
 fn declared_length(data: &[u8], packet_start: usize) -> Option<usize> {
     if packet_start + 4 > data.len() {
         return None;
@@ -255,7 +272,14 @@ where
         let thread_time_synchronization = Arc::clone(&time_synchronization);
 
         std::thread::spawn(move || {
-            let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+            let Ok(runtime) = tokio::runtime::Builder::new_current_thread().enable_all().build() else {
+                // The networking thread cannot run without a runtime. Failing
+                // gracefully returns from the thread (the command channel is
+                // dropped), which the client reports as a disconnected server
+                // instead of aborting the process.
+                eprintln!("[network] failed to create the Tokio runtime; networking is unavailable");
+                return;
+            };
 
             let _guard = runtime.enter();
             let local_set = tokio::task::LocalSet::new();
@@ -280,7 +304,13 @@ where
                                 let _ = handle.await;
                             }
 
-                            let packet_handler = Self::create_login_server_packet_handler(packet_callback.clone(), packet_version).unwrap();
+                            let packet_handler = match Self::create_login_server_packet_handler(packet_callback.clone(), packet_version) {
+                                Ok(packet_handler) => packet_handler,
+                                Err(error) => {
+                                    report_packet_handler_registration_failure("login", &error, &event_sender);
+                                    continue;
+                                }
+                            };
                             let handle = local_set.spawn_local(Self::handle_server_connection(
                                 address,
                                 action_receiver,
@@ -307,8 +337,14 @@ where
                                 let _ = handle.await;
                             }
 
-                            let packet_handler =
-                                Self::create_character_server_packet_handler(packet_callback.clone(), packet_version).unwrap();
+                            let packet_handler = match Self::create_character_server_packet_handler(packet_callback.clone(), packet_version)
+                            {
+                                Ok(packet_handler) => packet_handler,
+                                Err(error) => {
+                                    report_packet_handler_registration_failure("character", &error, &event_sender);
+                                    continue;
+                                }
+                            };
                             let handle = local_set.spawn_local(Self::handle_server_connection(
                                 address,
                                 action_receiver,
@@ -335,7 +371,13 @@ where
                                 let _ = handle.await;
                             }
 
-                            let packet_handler = Self::create_map_server_packet_handler(packet_callback.clone(), packet_version).unwrap();
+                            let packet_handler = match Self::create_map_server_packet_handler(packet_callback.clone(), packet_version) {
+                                Ok(packet_handler) => packet_handler,
+                                Err(error) => {
+                                    report_packet_handler_registration_failure("map", &error, &event_sender);
+                                    continue;
+                                }
+                            };
                             let handle = local_set.spawn_local(Self::handle_server_connection(
                                 address,
                                 action_receiver,
@@ -516,7 +558,12 @@ where
                                 // and make the server selection unresponsive).
                                 keep_tail_from = Some(0);
                             } else {
-                                let account_id = AccountId::from_bytes(&mut byte_reader).unwrap();
+                                let Ok(account_id) = AccountId::from_bytes(&mut byte_reader) else {
+                                    // Reading a `u32` cannot fail with four bytes
+                                    // available, but never panic in the networking
+                                    // thread if that invariant changes.
+                                    break Err(NetworkTaskError::ConnectionClosed);
+                                };
                                 events.push(NetworkEvent::AccountId { account_id });
                                 read_account_id = false;
                             }
@@ -1600,21 +1647,104 @@ mod packet_handlers {
     }
 
     #[test]
-    fn login_server() {
-        let result = NetworkingSystem::create_login_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406);
-        assert!(result.is_ok());
+    fn every_supported_version_registers_all_server_handlers() {
+        // Every registered packet version must produce three working handlers.
+        // This is the guarantee that connection setup never fails for a version
+        // the client claims to support.
+        assert!(
+            !SupportedPacketVersion::ALL.is_empty(),
+            "at least one packet version must be supported"
+        );
+
+        for &packet_version in SupportedPacketVersion::ALL {
+            let login = NetworkingSystem::create_login_server_packet_handler(NoPacketCallback, packet_version);
+            assert!(
+                login.is_ok(),
+                "login server handler registration failed for {packet_version:?}: {:?}",
+                login.err()
+            );
+
+            let character = NetworkingSystem::create_character_server_packet_handler(NoPacketCallback, packet_version);
+            assert!(
+                character.is_ok(),
+                "character server handler registration failed for {packet_version:?}: {:?}",
+                character.err()
+            );
+
+            let map = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, packet_version);
+            assert!(
+                map.is_ok(),
+                "map server handler registration failed for {packet_version:?}: {:?}",
+                map.err()
+            );
+
+            // A version with no registered handlers is almost certainly a
+            // forgotten `match` arm; require a plausible amount of handlers.
+            assert!(map.expect("map handler checked above").registered_headers().len() > 100);
+        }
     }
 
     #[test]
-    fn character_server() {
-        let result = NetworkingSystem::create_character_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406);
-        assert!(result.is_ok());
+    fn duplicate_handler_registration_is_reported_as_an_internal_error_event() {
+        // The networking thread cannot build a connection when its handler
+        // registration fails; it must report the exact header through an
+        // `InternalError` event (shown as an error window) instead of panicking.
+        let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
+        let error = ragnarok_packets::handler::DuplicateHandlerError::new(PacketHeader(0x0064));
+
+        super::report_packet_handler_registration_failure("map", &error, &sender);
+
+        let event = receiver.try_recv().expect("a registration failure must emit an event");
+        match event {
+            crate::NetworkEvent::InternalError { message } => {
+                assert!(message.contains("0x0064"), "message must name the header: {message}");
+                assert!(message.contains("map"), "message must name the server: {message}");
+            }
+            other => panic!("expected NetworkEvent::InternalError, got {other:?}"),
+        }
     }
 
     #[test]
-    fn map_server() {
-        let result = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406);
-        assert!(result.is_ok());
+    fn duplicate_registration_returns_the_exact_header_instead_of_panicking() {
+        // The networking thread builds its handlers with these exact functions.
+        // Registering the same version twice must return the duplicate header
+        // (which the thread reports as a client error window), not panic.
+        for &packet_version in SupportedPacketVersion::ALL {
+            let mut login_handler = NetworkingSystem::create_login_server_packet_handler(NoPacketCallback, packet_version)
+                .expect("login handler registration must succeed for a supported version");
+            let login_duplicate = crate::packet_versions::version_20220406::register_login_server_packets(&mut login_handler)
+                .expect_err("registering the same login handler set twice must be rejected");
+            assert!(
+                login_handler.registered_headers().contains(&login_duplicate.packet_header),
+                "duplicate login registration must carry a registered header, got {login_duplicate}"
+            );
+
+            let mut character_handler = NetworkingSystem::create_character_server_packet_handler(NoPacketCallback, packet_version)
+                .expect("character handler registration must succeed for a supported version");
+            let character_duplicate = crate::packet_versions::version_20220406::register_character_server_packets(&mut character_handler)
+                .expect_err("registering the same character handler set twice must be rejected");
+            assert!(
+                character_handler.registered_headers().contains(&character_duplicate.packet_header),
+                "duplicate character registration must carry a registered header, got {character_duplicate}"
+            );
+
+            let mut map_handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, packet_version)
+                .expect("map handler registration must succeed for a supported version");
+            let map_duplicate = crate::packet_versions::version_20220406::register_map_server_packets(&mut map_handler)
+                .expect_err("registering the same map handler set twice must be rejected");
+            assert!(
+                map_handler.registered_headers().contains(&map_duplicate.packet_header),
+                "duplicate map registration must carry a registered header, got {map_duplicate}"
+            );
+
+            // The error names the exact header, which is what the networking
+            // thread logs and forwards to the error window.
+            assert!(
+                map_duplicate
+                    .to_string()
+                    .contains(&format!("0x{:04X}", map_duplicate.packet_header.0))
+            );
+        }
     }
 
     #[test]

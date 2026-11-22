@@ -21,3 +21,12 @@ derive = []
 interface = ["korangar-interface", "rust-state"]
 packet-to-state-element = ["interface"]
 unicode = ["korangar-debug/unicode"]
+
+[lints.clippy]
+# P0-6 hardening: no panics on data the server (or the game files) can send us.
+# Production paths must return a `Result` or fall back to a logged default;
+# genuine start-up invariants document their exception with
+# `#[expect(clippy::..., reason = "...")]` at the call site.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

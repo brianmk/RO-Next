@@ -61,6 +61,12 @@ pub enum NetworkEvent {
     MapServerDisconnected {
         reason: DisconnectReason,
     },
+    /// A client-internal failure that is not caused by the server, for example
+    /// a packet handler that could not be registered because of a duplicate
+    /// header. The networking thread reports it here instead of panicking.
+    InternalError {
+        message: String,
+    },
     /// Initial player status.
     InitialStats {
         strength_stat_points_cost: u8,

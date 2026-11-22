@@ -4,7 +4,7 @@ use cgmath::{Array, EuclideanSpace, Matrix4, Point3, Rad, SquareMatrix, Vector2,
 use hashbrown::{HashMap, HashSet};
 use korangar_collision::{AABB, multiply_matrix4_and_point3};
 #[cfg(feature = "debug")]
-use korangar_debug::logging::{Colorize, Timer, print_debug};
+use korangar_debug::logging::{Colorize, Timer};
 use korangar_loaders::FileLoader;
 use num::Zero;
 use ragnarok_bytes::{ByteReader, FromBytes};
@@ -467,12 +467,16 @@ impl ModelLoader {
 
         let bytes = match self.game_file_loader.get(&format!("data\\model\\{model_file}")) {
             Ok(bytes) => bytes,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load model: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                if model_file == FALLBACK_MODEL_FILE {
+                    return Err(LoadError::File(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    model_file,
+                    format_args!("failed to load model `data\\model\\{model_file}`: {error:?}; using the fallback model"),
+                );
 
                 return self.load(
                     texture_set_builder,
@@ -487,12 +491,16 @@ impl ModelLoader {
 
         let model_data = match ModelData::from_bytes(&mut byte_reader) {
             Ok(model_data) => model_data,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load model: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                if model_file == FALLBACK_MODEL_FILE {
+                    return Err(LoadError::Conversion(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    model_file,
+                    format_args!("malformed model `data\\model\\{model_file}`: {error:?}; using the fallback model"),
+                );
 
                 return self.load(
                     texture_set_builder,
@@ -508,11 +516,11 @@ impl ModelLoader {
         // TODO: The model operation to modify texture keyframe is not implemented yet.
         let version: InternalVersion = model_data.version.into();
         if version.equals_or_above(2, 4) {
-            #[cfg(feature = "debug")]
-            {
-                print_debug!("Failed to load model because version {} is unsupported", version);
-                print_debug!("Replacing with fallback");
-            }
+            crate::logging::warn_once(
+                module_path!(),
+                model_file,
+                format_args!("model `data\\model\\{model_file}` uses the unsupported format version {version}; using the fallback model"),
+            );
 
             return self.load(
                 texture_set_builder,

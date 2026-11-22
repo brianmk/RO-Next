@@ -23,9 +23,10 @@ impl From<Direction> for u16 {
 
 impl From<u16> for Direction {
     fn from(value: u16) -> Self {
-        let value = value & 7;
-
-        match value {
+        // The server sends the direction in the lowest three bits; masking makes
+        // the match total without needing an unreachable branch (which would
+        // abort the client on an out-of-range value).
+        match value & 7 {
             0 => Direction::North,
             1 => Direction::NorthEast,
             2 => Direction::East,
@@ -33,8 +34,7 @@ impl From<u16> for Direction {
             4 => Direction::South,
             5 => Direction::SouthWest,
             6 => Direction::West,
-            7 => Direction::NorthWest,
-            _ => unreachable!(),
+            _ => Direction::NorthWest,
         }
     }
 }

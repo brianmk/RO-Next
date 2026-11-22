@@ -334,24 +334,35 @@ impl FontLoader {
 
     fn system_locale() -> String {
         sys_locale::get_locale().unwrap_or_else(|| {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] failed to get system locale, falling back to en-US", "warning".yellow());
+            crate::logging::warn_once(
+                module_path!(),
+                "system-locale",
+                format_args!("failed to get the system locale; falling back to en-US"),
+            );
             "en-US".to_string()
         })
     }
 
     fn extract_primary_font_family(font_system: &FontSystem, fonts: &[FontFile]) -> String {
-        let primary_font_id = fonts
-            .first()
-            .and_then(|font| font.faces.first())
-            .map(|(id, _)| *id)
-            .expect("no primary font ID found");
+        // A missing/corrupt game font must not abort the client during start-up:
+        // the text layout falls back to the system default font family instead.
+        let primary_font_id = fonts.first().and_then(|font| font.faces.first()).map(|(id, _)| *id);
 
-        font_system
-            .db()
-            .face(primary_font_id)
-            .and_then(|face| face.families.first().map(|(family, _)| family.clone()))
-            .expect("primary font has no family name")
+        let family = primary_font_id
+            .and_then(|primary_font_id| font_system.db().face(primary_font_id))
+            .and_then(|face| face.families.first().map(|(family, _)| family.clone()));
+
+        match family {
+            Some(family) => family,
+            None => {
+                crate::logging::warn_once(
+                    module_path!(),
+                    "font-family",
+                    format_args!("no usable game font was loaded; falling back to the system default font family"),
+                );
+                "sans-serif".to_owned()
+            }
+        }
     }
 
     #[allow(clippy::too_many_arguments)]

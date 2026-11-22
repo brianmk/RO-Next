@@ -113,11 +113,13 @@ impl AnimationLoader {
             );
 
             if part_index >= 2 && !(sprite_loader.file_exists(&file.sprite_path()) && action_loader.file_exists(&file.action_path())) {
-                #[cfg(feature = "debug")]
-                print_debug!(
-                    "[{}] missing accessory files for {}, skipping the headgear part",
-                    "error".red(),
-                    file.path.magenta()
+                crate::logging::warn_once(
+                    module_path!(),
+                    &file.path,
+                    format_args!(
+                        "missing accessory sprite/action files for `{}`; skipping this headgear part",
+                        file.path
+                    ),
                 );
                 continue;
             }
@@ -164,12 +166,20 @@ impl AnimationLoader {
                         }
 
                         let Some(texture) = animation_pair.sprites.textures.get(sprite_number) else {
-                            #[cfg(feature = "debug")]
-                            print_debug!(
-                                "[{}] sprite clip references missing texture {} (sprite has {} textures)",
-                                "error".red(),
-                                sprite_number,
-                                animation_pair.sprites.textures.len()
+                            let part_path = entity_part_files
+                                .get(animation_index)
+                                .map(|file| file.path.as_str())
+                                .unwrap_or("<unknown part>");
+                            let key = format!("{part_path}:texture:{sprite_number}");
+
+                            crate::logging::warn_once(
+                                module_path!(),
+                                &key,
+                                format_args!(
+                                    "animation part `{part_path}` references missing sprite texture {sprite_number} (sprite has {} \
+                                     textures); skipping the clip",
+                                    animation_pair.sprites.textures.len()
+                                ),
                             );
 
                             continue;

@@ -55,12 +55,18 @@ impl ActionLoader {
 
         let bytes = match self.game_file_loader.get(&format!("data\\sprite\\{path}")) {
             Ok(bytes) => bytes,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load actions: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                // Never recurse into the fallback if the fallback itself is
+                // missing: that used to overflow the stack.
+                if path == FALLBACK_ACTIONS_FILE {
+                    return Err(LoadError::File(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load action file `data\\sprite\\{path}`: {error:?}; using the fallback actions"),
+                );
 
                 return self.get_or_load(FALLBACK_ACTIONS_FILE);
             }
@@ -69,12 +75,16 @@ impl ActionLoader {
 
         let actions_data = match ActionsData::from_bytes(&mut byte_reader) {
             Ok(actions_data) => actions_data,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load actions: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                if path == FALLBACK_ACTIONS_FILE {
+                    return Err(LoadError::Conversion(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("malformed action file `data\\sprite\\{path}`: {error:?}; using the fallback actions"),
+                );
 
                 return self.get_or_load(FALLBACK_ACTIONS_FILE);
             }

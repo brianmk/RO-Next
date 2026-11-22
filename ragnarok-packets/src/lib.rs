@@ -1266,7 +1266,11 @@ impl FixedByteSize for RegularItemFlags {
 
 impl FromBytes for RegularItemFlags {
     fn from_bytes(byte_reader: &mut ByteReader) -> ConversionResult<Self> {
-        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader).map(|raw| Self::from_bits(raw).expect("Invalid equip position"))
+        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader)
+            // Unknown flag bits are ignored instead of panicking: the server may
+            // legitimately send flags this client does not know about yet, and a
+            // malformed packet must never take the connection down.
+            .map(Self::from_bits_truncate)
     }
 }
 
@@ -1321,7 +1325,11 @@ impl FixedByteSize for EquippableItemFlags {
 
 impl FromBytes for EquippableItemFlags {
     fn from_bytes(byte_reader: &mut ByteReader) -> ConversionResult<Self> {
-        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader).map(|raw| Self::from_bits(raw).expect("Invalid equip position"))
+        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader)
+            // Unknown flag bits are ignored instead of panicking: the server may
+            // legitimately send flags this client does not know about yet, and a
+            // malformed packet must never take the connection down.
+            .map(Self::from_bits_truncate)
     }
 }
 
@@ -1677,7 +1685,10 @@ impl FromBytes for StatType {
 
 impl ToBytes for StatType {
     fn to_bytes(&self, _byte_writer: &mut ByteWriter) -> ConversionResult<usize> {
-        panic!("this should be derived");
+        // `StatType` is only ever sent by the server; it has no client-side
+        // serialized form. Return an error instead of panicking if a future
+        // packet tries to serialize it.
+        Err(ConversionError::from_message("StatType cannot be serialized to the wire"))
     }
 }
 
@@ -1857,7 +1868,10 @@ pub enum StatUpType {
 
 impl FromBytes for StatUpType {
     fn from_bytes(_: &mut ByteReader) -> ConversionResult<Self> {
-        todo!()
+        // `StatUpType` is only serialized by the client; the server never sends
+        // it. Report a conversion error instead of panicking if a packet ever
+        // tries to read it back.
+        Err(ConversionError::from_message("StatUpType is send-only"))
     }
 }
 
@@ -4462,7 +4476,11 @@ impl FixedByteSize for EquipPosition {
 
 impl FromBytes for EquipPosition {
     fn from_bytes(byte_reader: &mut ByteReader) -> ConversionResult<Self> {
-        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader).map(|raw| Self::from_bits(raw).expect("Invalid equip position"))
+        <Self as bitflags::Flags>::Bits::from_bytes(byte_reader)
+            // Unknown flag bits are ignored instead of panicking: the server may
+            // legitimately send flags this client does not know about yet, and a
+            // malformed packet must never take the connection down.
+            .map(Self::from_bits_truncate)
     }
 }
 

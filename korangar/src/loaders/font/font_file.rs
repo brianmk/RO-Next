@@ -4,7 +4,7 @@ use cgmath::Point2;
 use cosmic_text::FontSystem;
 use cosmic_text::fontdb::{ID, Source};
 #[cfg(feature = "debug")]
-use korangar_debug::logging::{Colorize, Timer, print_debug};
+use korangar_debug::logging::{Colorize, Timer};
 use korangar_loaders::FileLoader;
 use ttf_parser::Face;
 
@@ -36,8 +36,11 @@ impl FontFile {
         let ttf_file_path = format!("{}\\{}.ttf", FONT_FOLDER_PATH, name);
 
         let Ok(font_data) = game_file_loader.get(&ttf_file_path) else {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] failed to load font file '{}'", "error".red(), ttf_file_path.magenta());
+            crate::logging::warn_once(
+                module_path!(),
+                &ttf_file_path,
+                format_args!("failed to load font file `{ttf_file_path}`; text using this font falls back to the next loaded font"),
+            );
             return None;
         };
 
@@ -63,8 +66,11 @@ impl FontFile {
             .collect();
 
         if faces.is_empty() {
-            #[cfg(feature = "debug")]
-            print_debug!("[{}] failed to parse font file '{}'", "error".red(), ttf_file_path.magenta());
+            crate::logging::warn_once(
+                module_path!(),
+                &ttf_file_path,
+                format_args!("failed to parse font file `{ttf_file_path}`; text using this font falls back to the next loaded font"),
+            );
             return None;
         }
 

@@ -36,15 +36,15 @@ pub const GAT_TILE_SIZE: f32 = 5.0;
 const MAX_CACHE_COUNT: u32 = 8;
 const MAX_CACHE_SIZE: usize = usize::MAX;
 
-#[cfg(feature = "debug")]
-fn assert_byte_reader_empty(mut byte_reader: ByteReader, file_name: &str) {
-    use korangar_debug::logging::{Colorize, print_debug};
-
+fn warn_on_trailing_bytes(mut byte_reader: ByteReader, file_name: &str) {
     if !byte_reader.is_empty() {
-        print_debug!(
-            "incomplete read on file {}; {} bytes remaining",
-            file_name.magenta(),
-            byte_reader.remaining_bytes().len().yellow(),
+        crate::logging::warn_once(
+            module_path!(),
+            file_name,
+            format_args!(
+                "malformed map resource `{file_name}`: {} unread bytes after parsing; the map loads with the parsed part",
+                byte_reader.remaining_bytes().len()
+            ),
         );
     }
 }
@@ -411,8 +411,9 @@ fn parse_generic_data<Data: FromBytes>(resource_file: &str, game_file_loader: &G
 
     let data = Data::from_bytes(&mut byte_reader).map_err(LoadError::Conversion)?;
 
-    #[cfg(feature = "debug")]
-    assert_byte_reader_empty(byte_reader, resource_file);
+    // Malformed map resources must be visible in release builds too; the map
+    // still loads with the successfully parsed part.
+    warn_on_trailing_bytes(byte_reader, resource_file);
 
     Ok(data)
 }

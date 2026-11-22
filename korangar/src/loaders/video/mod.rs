@@ -2,7 +2,7 @@ use std::iter;
 use std::sync::Arc;
 
 #[cfg(feature = "debug")]
-use korangar_debug::logging::{Colorize, Timer, print_debug};
+use korangar_debug::logging::{Colorize, Timer};
 use korangar_loaders::FileLoader;
 use korangar_video::ivf::Ivf;
 use wgpu::TextureFormat;
@@ -39,8 +39,11 @@ impl VideoLoader {
         let timer = Timer::new_dynamic(format!("load video data from {}", path.magenta()));
 
         let Ok(mut file_data) = self.game_file_loader.get(&path) else {
-            #[cfg(feature = "debug")]
-            print_debug!("Could not find IVF video file `{}`", path);
+            crate::logging::warn_once(
+                module_path!(),
+                &path,
+                format_args!("could not find the IVF video file `{path}`; using the placeholder texture"),
+            );
             return None;
         };
 
@@ -49,16 +52,25 @@ impl VideoLoader {
 
         let mut ivf = match Ivf::new(file_data.as_slice()) {
             Ok(ivf_file) => ivf_file,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                print_debug!("Can't open IVF video file `{}`: {}", path, _error);
+            Err(error) => {
+                crate::logging::warn_once(
+                    module_path!(),
+                    &path,
+                    format_args!("can't open the IVF video file `{path}`: {error:?}; using the placeholder texture"),
+                );
                 return None;
             }
         };
 
         if ivf.four_cc() != [b'A', b'V', b'0', b'1'] && ivf.four_cc() != [b'a', b'v', b'0', b'1'] {
-            #[cfg(feature = "debug")]
-            print_debug!("IVF is not an AV1 video file: {:?}", ivf.four_cc());
+            crate::logging::warn_once(
+                module_path!(),
+                &path,
+                format_args!(
+                    "`{path}` is not an AV1 video file ({:?}); using the placeholder texture",
+                    ivf.four_cc()
+                ),
+            );
             return None;
         }
 
@@ -89,13 +101,26 @@ impl VideoLoader {
         match self.load_video(path) {
             Some(video) => video,
             None => {
-                #[cfg(feature = "debug")]
-                print_debug!("Failed to load video. Using placeholder texture");
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load video `{path}`; using the placeholder texture"),
+                );
 
-                let (image, _) = self
-                    .texture_loader
-                    .load_texture_data(FALLBACK_PNG_FILE)
-                    .expect("can't load fallback PNG file");
+                // The fallback texture is part of the base game archive. If even
+                // that is missing (broken installation), use an in-memory 1x1
+                // image instead of panicking.
+                let (image, _) = match self.texture_loader.load_texture_data(FALLBACK_PNG_FILE) {
+                    Ok(result) => result,
+                    Err(error) => {
+                        crate::logging::warn_once(
+                            module_path!(),
+                            FALLBACK_PNG_FILE,
+                            format_args!("the fallback texture `{FALLBACK_PNG_FILE}` is missing: {error:?}"),
+                        );
+                        (image::RgbaImage::new(1, 1), false)
+                    }
+                };
                 let (width, height) = image.dimensions();
                 let texture = self.texture_loader.create_color(path, image, false);
 

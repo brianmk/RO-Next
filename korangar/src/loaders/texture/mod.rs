@@ -499,8 +499,11 @@ impl TextureLoader {
 
         #[allow(clippy::question_mark)]
         let Some(dds) = Dds::read_bc7(dds_file_data.as_slice()) else {
-            #[cfg(feature = "debug")]
-            print_debug!("Could not decode DDS file: {}", dds_file_path);
+            crate::logging::warn_once(
+                module_path!(),
+                &dds_file_path,
+                format_args!("could not decode the compressed DDS texture `{dds_file_path}`; falling back to the uncompressed texture"),
+            );
             return None;
         };
 
@@ -530,11 +533,11 @@ impl TextureLoader {
             ".png" | ".PNG" => ImageFormat::Png,
             ".tga" | ".TGA" => ImageFormat::Tga,
             _ => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("File with unknown image format found: {:?}", path);
-                    print_debug!("Replacing with fallback");
-                }
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("texture `{path}` has an unknown image format; using the fallback texture"),
+                );
 
                 return self.load_texture_data(FALLBACK_PNG_FILE);
             }
@@ -542,12 +545,18 @@ impl TextureLoader {
 
         let file_data = match self.game_file_loader.get(&format!("data\\texture\\{path}")) {
             Ok(file_data) => file_data,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load image: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                // Never recurse into the fallback if the fallback itself is
+                // missing: that used to overflow the stack.
+                if path == FALLBACK_PNG_FILE {
+                    return Err(LoadError::File(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load texture `data\\texture\\{path}`: {error:?}; using the fallback texture"),
+                );
 
                 return self.load_texture_data(FALLBACK_PNG_FILE);
             }
@@ -558,20 +567,26 @@ impl TextureLoader {
 
         let mut image_buffer = match reader.decode() {
             Ok(image) => image.to_rgba8(),
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to decode image: {:?}", _error);
-                    print_debug!("Replacing with fallback");
-                }
-
+            Err(error) => {
                 let fallback_path = match image_format {
                     ImageFormat::Bmp => FALLBACK_BMP_FILE,
                     ImageFormat::Jpeg => FALLBACK_JPEG_FILE,
                     ImageFormat::Png => FALLBACK_PNG_FILE,
                     ImageFormat::Tga => FALLBACK_TGA_FILE,
-                    _ => unreachable!(),
+                    _ => FALLBACK_PNG_FILE,
                 };
+
+                if path == fallback_path {
+                    return Err(LoadError::UnsupportedFormat(format!(
+                        "can't decode the fallback texture `data\\texture\\{path}`: {error:?}"
+                    )));
+                }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to decode texture `data\\texture\\{path}`: {error:?}; using the fallback texture"),
+                );
 
                 return self.load_texture_data(fallback_path);
             }
@@ -610,11 +625,11 @@ impl TextureLoader {
             ".png" | ".PNG" => ImageFormat::Png,
             ".tga" | ".TGA" => ImageFormat::Tga,
             _ => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("File with unknown image format found: {:?}", path);
-                    print_debug!("Replacing with fallback");
-                }
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("grayscale texture `{path}` has an unknown image format; using the fallback texture"),
+                );
 
                 return self.load_grayscale_texture_data(FALLBACK_PNG_FILE);
             }
@@ -622,12 +637,16 @@ impl TextureLoader {
 
         let file_data = match self.game_file_loader.get(&format!("data\\texture\\{path}")) {
             Ok(file_data) => file_data,
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to load image: {:?}", _error);
-                    print_debug!("Replacing with fallback");
+            Err(error) => {
+                if path == FALLBACK_PNG_FILE {
+                    return Err(LoadError::File(error));
                 }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to load grayscale texture `data\\texture\\{path}`: {error:?}; using the fallback texture"),
+                );
 
                 return self.load_grayscale_texture_data(FALLBACK_PNG_FILE);
             }
@@ -638,18 +657,24 @@ impl TextureLoader {
 
         let image_buffer = match reader.decode() {
             Ok(image) => image.to_luma8(),
-            Err(_error) => {
-                #[cfg(feature = "debug")]
-                {
-                    print_debug!("Failed to decode image: {:?}", _error);
-                    print_debug!("Replacing with fallback");
-                }
-
+            Err(error) => {
                 let fallback_path = match image_format {
                     ImageFormat::Png => FALLBACK_PNG_FILE,
                     ImageFormat::Tga => FALLBACK_TGA_FILE,
-                    _ => unreachable!(),
+                    _ => FALLBACK_PNG_FILE,
                 };
+
+                if path == fallback_path {
+                    return Err(LoadError::UnsupportedFormat(format!(
+                        "can't decode the fallback grayscale texture `data\\texture\\{path}`: {error:?}"
+                    )));
+                }
+
+                crate::logging::warn_once(
+                    module_path!(),
+                    path,
+                    format_args!("failed to decode grayscale texture `data\\texture\\{path}`: {error:?}; using the fallback texture"),
+                );
 
                 return self.load_grayscale_texture_data(fallback_path);
             }

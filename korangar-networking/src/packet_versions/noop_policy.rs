@@ -254,9 +254,18 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
     },
 ];
 
-/// Register a packet that is deliberately only parsed. Panics when the packet
-/// is not in [`IGNORED_NOOPS`], so a noop can never be added without a
-/// documented classification.
+/// Register a packet that is deliberately only parsed.
+///
+/// Panics when the packet is not in [`IGNORED_NOOPS`], so a noop can never be
+/// added without a documented classification. This is a start-up invariant:
+/// the version module is a compile-time constant and the contract tests
+/// (`unclassified_noop_is_rejected`) run it before any release. The panic is
+/// therefore an explicit exception to the "no panics in the networking crate"
+/// rule instead of being silently tolerated.
+#[expect(
+    clippy::panic,
+    reason = "start-up invariant: a noop registration without a documented classification is a build bug caught by the contract tests"
+)]
 pub fn register_ignored_noop<Callback, Packet>(
     packet_handler: &mut PacketHandler<NetworkEventList, Callback>,
 ) -> Result<(), DuplicateHandlerError>

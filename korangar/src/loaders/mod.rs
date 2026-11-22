@@ -2,6 +2,7 @@ mod action;
 mod animation;
 mod archive;
 mod color;
+pub mod diagnostics;
 mod rectangle;
 
 mod r#async;
@@ -21,6 +22,9 @@ mod video;
 pub use self::action::*;
 pub use self::animation::*;
 pub use self::r#async::*;
+pub use self::diagnostics::{
+    AssetFailureSeverity, TransientAssetNoticeLimiter, asset_failure_log_key, asset_failure_severity, transient_asset_failure_message,
+};
 pub use self::effect::EffectLoader;
 pub use self::font::{
     FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, OverflowBehavior, Scaling, TEXT_SHADOW_RADIUS, take_layout_cache_statistics,
@@ -29,7 +33,7 @@ pub use self::gamefile::*;
 pub use self::map::{GAT_TILE_SIZE, MapLoader};
 pub use self::minimap_marker::{MARKER_DIRECTION_COUNT, generate_direction_markers};
 pub use self::model::*;
-pub use self::server::{ClientInfo, ClientInfoPathExt, PacketVersion, ServiceId, load_client_info};
+pub use self::server::{ClientInfo, ClientInfoPathExt, PacketVersion, Service, ServiceId, load_client_info};
 pub use self::smoothing::{smooth_ground_normals, smooth_model_normals};
 pub use self::sprite::*;
 pub use self::texture::{ImageType, TextureLoader, TextureSetBuilder, TextureSetTexture};

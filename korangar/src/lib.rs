@@ -41,6 +41,7 @@ mod interface;
 pub mod crash;
 mod loaders;
 pub mod logging;
+mod login_server;
 #[cfg(feature = "debug")]
 mod networking;
 mod renderer;
@@ -50,7 +51,7 @@ mod world;
 
 use std::collections::HashSet;
 use std::io::Cursor;
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::SocketAddr;
 use std::ops::Deref;
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
@@ -118,7 +119,9 @@ use crate::interface::cursor::{MouseCursor, MouseCursorState};
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::interface::windows::*;
 use crate::loaders::error::LoadError;
-use crate::loaders::*;
+use crate::loaders::{
+    AssetFailureSeverity, TransientAssetNoticeLimiter, asset_failure_log_key, asset_failure_severity, transient_asset_failure_message, *,
+};
 #[cfg(feature = "debug")]
 use crate::renderer::DebugMarkerRenderer;
 use crate::renderer::{AlignHorizontal, EffectRenderer, GameInterfaceRenderer, SpriteRenderer};
@@ -671,6 +674,9 @@ pub struct Client {
     character_server_reconnect_at: Option<Instant>,
     /// Remaining character server reconnect attempts.
     character_server_reconnect_attempts: u32,
+    /// Rate limiter for non-modal "some resources could not be loaded" chat
+    /// notices (transient asset failures; the warn log has no such limit).
+    transient_asset_notices: TransientAssetNoticeLimiter,
     /// Message that is shown at the character selection screen after a map
     /// failed to load (the map connection was dropped in that case).
     pending_map_load_error: Option<String>,
@@ -1321,6 +1327,7 @@ impl Client {
             pending_context_menu: None,
             shop_open: false,
             guild_emblems: GuildEmblemCache::default(),
+            transient_asset_notices: TransientAssetNoticeLimiter::default(),
             pending_map_load_error: None,
             map_entry_abort_deadline: None,
             map_entry_watchdog: None,
@@ -2620,6 +2627,12 @@ impl Client {
 
                     self.interface.open_window(ErrorWindow::new(message.to_owned()));
                 }
+                NetworkEvent::InternalError { message } => {
+                    // A client build/setup bug (e.g. duplicate packet handler).
+                    // Log it as an error and show the message, never panic.
+                    crate::logging::log_error!("internal client error: {message}");
+                    self.interface.open_window(ErrorWindow::new(message));
+                }
                 NetworkEvent::LoginServerDisconnected { reason } => {
                     if reason != DisconnectReason::ClosedByClient {
                         // TODO: Make this an on-screen popup.
@@ -2906,7 +2919,6 @@ impl Client {
                     // The 2019 no-damage packet no longer renders a heal number
                     // (see the comment at the end of this arm); the destination and
                     // the level are not needed here.
-
                     destination_entity_id: _,
                     skill_id,
                     level: _,
@@ -5226,31 +5238,20 @@ impl Client {
                     username,
                     password,
                 } => {
-                    let service = self
-                        .client_state
-                        .follow(client_state().client_info().services())
-                        .iter()
-                        .find(|service| service.service_id() == service_id)
-                        .unwrap();
-                    let address = format!("{}:{}", service.address, service.port);
-                    let socket_address = address
-                        .to_socket_addrs()
-                        .expect("Failed to resolve IP")
-                        .next()
-                        .expect("ill formatted service IP");
-
-                    let packet_version = match service.packet_version {
-                        Some(packet_version) => match packet_version {
-                            PacketVersion::_20220406 => SupportedPacketVersion::_20220406,
-                            PacketVersion::Unsupported(packet_version) => {
-                                self.interface.open_window(ErrorWindow::new(format!(
-                                    "Selected server has an unsupported package version: {packet_version}"
-                                )));
-                                continue;
-                            }
-                        },
-                        None => FALLBACK_PACKET_VERSION,
+                    // The selected service can be stale (persisted `recent_service_id`
+                    // from an older client info) and its address can fail DNS
+                    // resolution. Both must show an error window, never panic.
+                    let services = self.client_state.follow(client_state().client_info().services()).clone();
+                    let target = match crate::login_server::resolve_login_server(&services, service_id) {
+                        Ok(target) => target,
+                        Err(error) => {
+                            crate::logging::log_warn!("cannot connect to the selected login server: {error:?}");
+                            self.interface.open_window(ErrorWindow::new(error.user_message()));
+                            continue;
+                        }
                     };
+                    let socket_address = target.socket_address;
+                    let packet_version = target.packet_version;
 
                     self.saved_login_server_address = Some(socket_address);
                     self.saved_username = username.clone();
@@ -6713,12 +6714,19 @@ impl Client {
     /// `NetworkEvent::MapServerDisconnected`), and the error is shown
     /// there.
     fn handle_failed_load(&mut self, id: LoaderId, error: LoadError) {
-        match id {
-            LoaderId::Map(map_name) => {
+        match asset_failure_severity(&id) {
+            AssetFailureSeverity::Fatal => {
+                let LoaderId::Map(map_name) = id else {
+                    // Severity and variant classification disagree; treat it as
+                    // a transient failure below instead of panicking.
+                    self.report_transient_asset_failure(id, error);
+                    return;
+                };
+
                 // Only report the first failure of a map entry; retries after the
                 // client returned to the character selection must not spam.
                 if self.pending_map_load_error.is_none() {
-                    eprintln!("map load failed: {map_name}: {error:?}");
+                    crate::logging::log_warn!("map load failed: {map_name}: {error:?}");
                 }
 
                 let message = format!(
@@ -6727,10 +6735,32 @@ impl Client {
 
                 self.abort_map_entry(message);
             }
-            other => {
-                eprintln!("resource load failed: {other:?}: {error:?}");
-            }
+            AssetFailureSeverity::Transient => self.report_transient_asset_failure(id, error),
         }
+    }
+
+    /// Report a recoverable asset failure: always at warn level (visible in
+    /// release) and, at most a few times per session, as a non-modal chat line.
+    fn report_transient_asset_failure(&mut self, id: LoaderId, error: LoadError) {
+        let key = asset_failure_log_key(&id);
+        crate::logging::warn_once(
+            module_path!(),
+            &key,
+            format_args!("resource load failed for {key}: {error:?} (a placeholder is used instead)"),
+        );
+
+        if self.transient_asset_notices.should_notify() {
+            let message = transient_asset_failure_message(&id, &error);
+            self.push_chat_warning(message);
+        }
+    }
+
+    /// Push a non-modal warning into the chat window.
+    fn push_chat_warning(&mut self, message: String) {
+        crate::logging::log_warn!("{message}");
+        self.client_state
+            .follow_mut(client_state().chat_messages())
+            .push(ChatMessage::new(message, MessageColor::Error));
     }
 
     /// Close the Kafra storage window and clear the transient storage state.

@@ -223,8 +223,10 @@ impl GameFileLoader {
     }
 
     pub fn remove_patched_lua_files(&self) {
-        if Path::new(LUA_ARCHIVE_FILE_NAME).exists() {
-            std::fs::remove_file(LUA_ARCHIVE_FILE_NAME).unwrap();
+        if Path::new(LUA_ARCHIVE_FILE_NAME).exists()
+            && let Err(error) = std::fs::remove_file(LUA_ARCHIVE_FILE_NAME)
+        {
+            crate::logging::log_warn!("failed to remove the patched Lua archive `{LUA_ARCHIVE_FILE_NAME}`: {error:?}");
         }
     }
 
@@ -275,15 +277,15 @@ impl GameFileLoader {
         for file_name in lua_files {
             let bytes = match self.get(&file_name) {
                 Ok(bytes) => bytes,
-                Err(_error) => {
+                Err(error) => {
+                    crate::logging::warn_once(
+                        module_path!(),
+                        &file_name,
+                        format_args!("failed to extract `{file_name}` from the game archives while patching Lua files: {error:?}"),
+                    );
+
                     #[cfg(feature = "debug")]
                     {
-                        print_debug!(
-                            "[{}] failed to extract file {} from the grf: {:?}",
-                            "warning".yellow(),
-                            file_name.magenta(),
-                            _error
-                        );
                         failed_count += 1;
                     }
 
@@ -296,12 +298,21 @@ impl GameFileLoader {
                 Ok(bytes) => lua_archive.add_file(&file_name, bytes, Compression::Default),
                 // If the operation fails the file with this error, the Lua file is not actually a
                 // pre-compiled binary but rather a source file, so we can safely ignore it.
-                #[cfg(feature = "debug")]
-                Err(lunify::LunifyError::IncorrectSignature) => total_count -= 1,
-                Err(_error) => {
+                Err(lunify::LunifyError::IncorrectSignature) => {
                     #[cfg(feature = "debug")]
                     {
-                        print_debug!("[{}] error upcasting {}: {:?}", "warning".yellow(), file_name.magenta(), _error,);
+                        total_count -= 1;
+                    }
+                }
+                Err(error) => {
+                    crate::logging::warn_once(
+                        module_path!(),
+                        &file_name,
+                        format_args!("could not upcast the Lua bytecode file `{file_name}`: {error:?}"),
+                    );
+
+                    #[cfg(feature = "debug")]
+                    {
                         failed_count += 1;
                     }
                 }
@@ -315,7 +326,9 @@ impl GameFileLoader {
             failed_count.red(),
         );
 
-        lua_archive.finish().expect("can't save lua archive");
+        if let Err(error) = lua_archive.finish() {
+            crate::logging::log_warn!("can't save the patched Lua archive `{LUA_ARCHIVE_FILE_NAME}`: {error:?}");
+        }
     }
 
     #[allow(unused_variables)]

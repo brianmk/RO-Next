@@ -728,42 +728,46 @@ where
                 _ => return NoNetworkEvents,
             };
 
-            target
-                .borrow_mut()
-                .as_mut()
-                .expect("Unexpected item list packet")
-                .extend(packet.item_information.into_iter().map(|item_information| {
-                    let RegularItemInformation {
-                        index,
-                        item_id,
-                        item_type,
+            let mut slot = target.borrow_mut();
+            // A list without a preceding start packet used to panic inside the
+            // networking thread. Ignore the packet instead: the stream is still
+            // in sync because the packet itself was parsed completely.
+            let Some(items) = slot.as_mut() else {
+                eprintln!("[network] regular item list without a preceding start packet; ignoring");
+                return NoNetworkEvents;
+            };
+            items.extend(packet.item_information.into_iter().map(|item_information| {
+                let RegularItemInformation {
+                    index,
+                    item_id,
+                    item_type,
+                    amount,
+                    equipped_position,
+                    slot,
+                    hire_expiration_date,
+                    flags,
+                } = item_information;
+
+                InventoryItem {
+                    // Storage rows use the `server slot + 1` wire encoding,
+                    // while InventoryIndex subtracts two. Shift them back so
+                    // the index is the plain 0-based storage slot.
+                    index: match is_storage {
+                        true => InventoryIndex(index.0.wrapping_add(1)),
+                        false => index,
+                    },
+                    metadata: NoMetadata,
+                    item_id,
+                    item_type,
+                    slot,
+                    hire_expiration_date,
+                    details: InventoryItemDetails::Regular {
                         amount,
                         equipped_position,
-                        slot,
-                        hire_expiration_date,
                         flags,
-                    } = item_information;
-
-                    InventoryItem {
-                        // Storage rows use the `server slot + 1` wire encoding,
-                        // while InventoryIndex subtracts two. Shift them back so
-                        // the index is the plain 0-based storage slot.
-                        index: match is_storage {
-                            true => InventoryIndex(index.0.wrapping_add(1)),
-                            false => index,
-                        },
-                        metadata: NoMetadata,
-                        item_id,
-                        item_type,
-                        slot,
-                        hire_expiration_date,
-                        details: InventoryItemDetails::Regular {
-                            amount,
-                            equipped_position,
-                            flags,
-                        },
-                    }
-                }));
+                    },
+                }
+            }));
             NoNetworkEvents
         }
     })?;
@@ -771,19 +775,40 @@ where
         let inventory_items = inventory_items.clone();
 
         move |packet: EquippableItemListPacket| {
-            inventory_items
-                .borrow_mut()
-                .as_mut()
-                .expect("Unexpected inventory packet")
-                .extend(packet.item_information.into_iter().map(|item| {
-                    let EquippableItemInformation {
-                        index,
-                        item_id,
-                        item_type,
+            let mut slot = inventory_items.borrow_mut();
+            // See above: never panic on an out-of-order inventory packet.
+            let Some(items) = slot.as_mut() else {
+                eprintln!("[network] equippable inventory without a preceding start packet; ignoring");
+                return NoNetworkEvents;
+            };
+            items.extend(packet.item_information.into_iter().map(|item| {
+                let EquippableItemInformation {
+                    index,
+                    item_id,
+                    item_type,
+                    equip_position,
+                    equipped_position,
+                    slot,
+                    hire_expiration_date,
+                    bind_on_equip_type,
+                    w_item_sprite_number,
+                    option_count,
+                    option_data,
+                    refinement_level,
+                    enchantment_level,
+                    flags,
+                } = item;
+
+                InventoryItem {
+                    index,
+                    metadata: NoMetadata,
+                    item_id,
+                    item_type,
+                    slot,
+                    hire_expiration_date,
+                    details: InventoryItemDetails::Equippable {
                         equip_position,
                         equipped_position,
-                        slot,
-                        hire_expiration_date,
                         bind_on_equip_type,
                         w_item_sprite_number,
                         option_count,
@@ -791,28 +816,9 @@ where
                         refinement_level,
                         enchantment_level,
                         flags,
-                    } = item;
-
-                    InventoryItem {
-                        index,
-                        metadata: NoMetadata,
-                        item_id,
-                        item_type,
-                        slot,
-                        hire_expiration_date,
-                        details: InventoryItemDetails::Equippable {
-                            equip_position,
-                            equipped_position,
-                            bind_on_equip_type,
-                            w_item_sprite_number,
-                            option_count,
-                            option_data,
-                            refinement_level,
-                            enchantment_level,
-                            flags,
-                        },
-                    }
-                }));
+                    },
+                }
+            }));
             NoNetworkEvents
         }
     })?;
@@ -835,36 +841,39 @@ where
                 _ => return NoNetworkEvents,
             };
 
-            target
-                .borrow_mut()
-                .as_mut()
-                .expect("Unexpected item list packet")
-                .extend(packet.item_information.into_iter().map(|item| {
-                    let item = EquippableItemInformation::from(item);
+            let mut slot = target.borrow_mut();
+            // See above: a 2019 equippable list can arrive without a start packet
+            // (e.g. after a reconnect); ignore it instead of panicking.
+            let Some(items) = slot.as_mut() else {
+                eprintln!("[network] 2019 equippable item list without a preceding start packet; ignoring");
+                return NoNetworkEvents;
+            };
+            items.extend(packet.item_information.into_iter().map(|item| {
+                let item = EquippableItemInformation::from(item);
 
-                    InventoryItem {
-                        index: match is_storage {
-                            true => InventoryIndex(item.index.0.wrapping_add(1)),
-                            false => item.index,
-                        },
-                        metadata: NoMetadata,
-                        item_id: item.item_id,
-                        item_type: item.item_type,
-                        slot: item.slot,
-                        hire_expiration_date: item.hire_expiration_date,
-                        details: InventoryItemDetails::Equippable {
-                            equip_position: item.equip_position,
-                            equipped_position: item.equipped_position,
-                            bind_on_equip_type: item.bind_on_equip_type,
-                            w_item_sprite_number: item.w_item_sprite_number,
-                            option_count: item.option_count,
-                            option_data: item.option_data,
-                            refinement_level: item.refinement_level,
-                            enchantment_level: item.enchantment_level,
-                            flags: item.flags,
-                        },
-                    }
-                }));
+                InventoryItem {
+                    index: match is_storage {
+                        true => InventoryIndex(item.index.0.wrapping_add(1)),
+                        false => item.index,
+                    },
+                    metadata: NoMetadata,
+                    item_id: item.item_id,
+                    item_type: item.item_type,
+                    slot: item.slot,
+                    hire_expiration_date: item.hire_expiration_date,
+                    details: InventoryItemDetails::Equippable {
+                        equip_position: item.equip_position,
+                        equipped_position: item.equipped_position,
+                        bind_on_equip_type: item.bind_on_equip_type,
+                        w_item_sprite_number: item.w_item_sprite_number,
+                        option_count: item.option_count,
+                        option_data: item.option_data,
+                        refinement_level: item.refinement_level,
+                        enchantment_level: item.enchantment_level,
+                        flags: item.flags,
+                    },
+                }
+            }));
             NoNetworkEvents
         }
     })?;
