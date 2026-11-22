@@ -1,0 +1,3564 @@
+{
+  "provenance": {
+    "source": "roBrowserLegacy src/DB/Status/StatusInfo.js + src/DB/Status/StatusConst.js (GPL-3.0 reverse-engineering of the official client's hard-coded classic status table); only facts are vendored",
+    "url": "https://github.com/MrAntares/roBrowserLegacy",
+    "commit": "2f9a9d6cf5b04a8ac7a44077080772046e15bcb7",
+    "files": {
+      "StatusInfo.js": {
+        "sha256": "68788aee20c804eed90d19afb3caaee10f2833f33d3bbc2674cbe3049d10e47f",
+        "bytes": 79555
+      },
+      "StatusConst.js": {
+        "sha256": "89f9acf9268062f481f063149c863011eacf7ccc7d2d1f4de84f5dea641a130f",
+        "bytes": 30161
+      }
+    }
+  },
+  "entries": [
+    {
+      "sc": "PROVOKE",
+      "sc_id": 0,
+      "icon": "프로보크.tga",
+      "name": "Provoke",
+      "category": "Buff",
+      "description": [
+        "Reduces VIT DEF",
+        "Increases ATK"
+      ]
+    },
+    {
+      "sc": "ENDURE",
+      "sc_id": 1,
+      "icon": "인듀어.tga",
+      "name": "Endure",
+      "category": "Buff",
+      "description": [
+        "Enables attacking and movement",
+        "while receiving damage"
+      ]
+    },
+    {
+      "sc": "TWOHANDQUICKEN",
+      "sc_id": 2,
+      "icon": "투핸드퀴큰.tga",
+      "name": "Two Hand Quicken",
+      "category": "Buff",
+      "description": [
+        "When using two handed weapons,",
+        "increases ASPD"
+      ]
+    },
+    {
+      "sc": "CONCENTRATION",
+      "sc_id": 3,
+      "icon": "집중력향상.tga",
+      "name": "Attention Concentration",
+      "category": "Buff",
+      "description": [
+        "Increases DEX, AGI",
+        "Reveals nearby hidden enemies"
+      ]
+    },
+    {
+      "sc": "HIDING",
+      "sc_id": 4,
+      "icon": "하이딩.tga",
+      "name": "Hiding",
+      "category": "Buff",
+      "description": [
+        "Avoids enemy attacks by hiding in the ground",
+        "Can be discovered with detection skills"
+      ]
+    },
+    {
+      "sc": "CLOAKING",
+      "sc_id": 5,
+      "icon": "클로킹.tga",
+      "name": "Cloaking",
+      "category": "Buff",
+      "description": [
+        "Invisible"
+      ]
+    },
+    {
+      "sc": "ENCHANTPOISON",
+      "sc_id": 6,
+      "icon": "인찬트포이즌.tga",
+      "name": "Enchant Poison",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Poison Property"
+      ]
+    },
+    {
+      "sc": "POISONREACT",
+      "sc_id": 7,
+      "icon": "포이즌리액트.tga",
+      "name": "Poison React",
+      "category": "Buff",
+      "description": [
+        "Counters a Poison attack with a one-time attack",
+        "When hit by a physical non-poison attack,",
+        "there is a chance to cast Envenom on target"
+      ]
+    },
+    {
+      "sc": "QUAGMIRE",
+      "sc_id": 8,
+      "icon": "콰그마이어.tga",
+      "name": "Quagmire",
+      "category": "Debuff",
+      "description": [
+        "Reduces Movement Speed",
+        "Reduces AGI/DEX"
+      ]
+    },
+    {
+      "sc": "ANGELUS",
+      "sc_id": 9,
+      "icon": "안젤루스.tga",
+      "name": "Angelus",
+      "category": "Buff",
+      "description": [
+        "Increases VIT DEF"
+      ]
+    },
+    {
+      "sc": "BLESSING",
+      "sc_id": 10,
+      "icon": "블레싱.tga",
+      "name": "Blessing",
+      "category": "Buff",
+      "description": [
+        "Increases DEX, INT and STR",
+        "Recovers from a few status effects"
+      ]
+    },
+    {
+      "sc": "CRUCIS",
+      "sc_id": 11,
+      "icon": "시그넘크루시스.tga",
+      "name": "Signum Crucis",
+      "category": "Buff",
+      "description": [
+        "Reduces Undead and Demon monsters DEF"
+      ]
+    },
+    {
+      "sc": "INC_AGI",
+      "sc_id": 12,
+      "icon": "민첩성증가.tga",
+      "name": "Increase agility",
+      "category": "Buff",
+      "description": [
+        "Increases Movement Speed",
+        "Increases Attack Speed"
+      ]
+    },
+    {
+      "sc": "DEC_AGI",
+      "sc_id": 13,
+      "icon": "민첩성감소.tga",
+      "name": "Decrease Agility",
+      "category": "Debuff",
+      "description": [
+        "Reduces Movement Speed",
+        "Reduces ASPD"
+      ]
+    },
+    {
+      "sc": "SLOWPOISON",
+      "sc_id": 14,
+      "icon": "슬로우포이즌.tga",
+      "name": "Slow Poison",
+      "category": "Buff",
+      "description": [
+        "Temporarily stops Poison Damage"
+      ]
+    },
+    {
+      "sc": "IMPOSITIO",
+      "sc_id": 15,
+      "icon": "임포시티오마누스.tga",
+      "name": "Impositio Manus",
+      "category": "Buff",
+      "description": [
+        "Increases Weapon damage"
+      ]
+    },
+    {
+      "sc": "SUFFRAGIUM",
+      "sc_id": 16,
+      "icon": "수줍은하루의우울.tga",
+      "name": "Suffragium",
+      "category": "Buff",
+      "description": [
+        "Reduces cast time."
+      ]
+    },
+    {
+      "sc": "ASPERSIO",
+      "sc_id": 17,
+      "icon": "아스페르시오.tga",
+      "name": "Aspersio",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Holy Property"
+      ]
+    },
+    {
+      "sc": "BENEDICTIO",
+      "sc_id": 18,
+      "icon": "성체강복.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Enchants Armor with Holy Property"
+      ]
+    },
+    {
+      "sc": "KYRIE",
+      "sc_id": 19,
+      "icon": "기리에엘레이손.tga",
+      "name": "Kyrie Eleison",
+      "category": "Buff",
+      "description": [
+        "A defensive barrier that blocks a certain number of attacks"
+      ]
+    },
+    {
+      "sc": "MAGNIFICAT",
+      "sc_id": 20,
+      "icon": "마니피캇.tga",
+      "name": "Magnificat",
+      "category": "Buff",
+      "description": [
+        "Increases natural SP Recovery Speed"
+      ]
+    },
+    {
+      "sc": "GLORIA",
+      "sc_id": 21,
+      "icon": "글로리아.tga",
+      "name": "Gloria",
+      "category": "Buff",
+      "description": [
+        "Increases LUK"
+      ]
+    },
+    {
+      "sc": "LEXAETERNA",
+      "sc_id": 22,
+      "icon": "렉스에테르나.tga",
+      "name": "Lex Aeterna",
+      "category": "Debuff",
+      "description": [
+        "Doubles damage of the next attack"
+      ]
+    },
+    {
+      "sc": "ADRENALINE",
+      "sc_id": 23,
+      "icon": "아드레날린러쉬.tga",
+      "name": "Adrenaline Rush",
+      "category": "Buff",
+      "description": [
+        "Increases Attack Speed of",
+        "Axes and Mace weapons"
+      ]
+    },
+    {
+      "sc": "WEAPONPERFECT",
+      "sc_id": 24,
+      "icon": "웨폰퍼펙션.tga",
+      "name": "Weapon Perfection",
+      "category": "Buff",
+      "description": [
+        "Applies 100% damage to",
+        "small, medium and large monsters"
+      ]
+    },
+    {
+      "sc": "OVERTHRUST",
+      "sc_id": 25,
+      "icon": "오버트러스트.tga",
+      "name": "Over Thrust",
+      "category": "Buff",
+      "description": [
+        "Increases weapon damage.",
+        "Increases the possibility of breaking the weapon."
+      ]
+    },
+    {
+      "sc": "MAXIMIZE",
+      "sc_id": 26,
+      "icon": "맥시마이즈파워.tga",
+      "name": "Maximize Power",
+      "category": "Buff",
+      "description": [
+        "Increases damage to the maximum",
+        "Drains SP over time"
+      ]
+    },
+    {
+      "sc": "RIDING",
+      "sc_id": 27,
+      "icon": "라이딩.tga",
+      "name": "Riding Vehicle",
+      "category": "Toggle",
+      "description": []
+    },
+    {
+      "sc": "FALCON",
+      "sc_id": 28,
+      "icon": "팔콘.tga",
+      "name": "Falconry Mastery",
+      "category": "Toggle",
+      "description": [
+        "Falcon Rental"
+      ]
+    },
+    {
+      "sc": "TRICKDEAD",
+      "sc_id": 29,
+      "icon": "죽은척하기.tga",
+      "name": "Trick Dead (Play Dead)",
+      "category": "Toggle",
+      "description": [
+        "Pretend Dead Status"
+      ]
+    },
+    {
+      "sc": "SHOUT",
+      "sc_id": 30,
+      "icon": "고성지르기.tga",
+      "name": "Loud Exclamation (Crazy Uproar)",
+      "category": "Buff",
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "ENERGYCOAT",
+      "sc_id": 31,
+      "icon": "에너지코트.tga",
+      "name": "Energy Coat",
+      "category": "Buff",
+      "description": [
+        "Reduces damage in proportion",
+        "to the amount of SP remaining"
+      ]
+    },
+    {
+      "sc": "BROKENARMOR",
+      "sc_id": 32,
+      "icon": "갑옷파괴.tga",
+      "name": "Armor is damaged",
+      "category": "Debuff",
+      "description": []
+    },
+    {
+      "sc": "BROKENWEAPON",
+      "sc_id": 33,
+      "icon": "무기파괴.tga",
+      "name": "Weapon is damaged.",
+      "category": "Debuff",
+      "description": []
+    },
+    {
+      "sc": "ILLUSION",
+      "sc_id": 34,
+      "icon": "환각.tga",
+      "name": "Illusion",
+      "category": "Debuff",
+      "description": [
+        "Screen distortion",
+        "Shows more damage",
+        "Randomly interrupts casting"
+      ]
+    },
+    {
+      "sc": "WEIGHTOVER50",
+      "sc_id": 35,
+      "icon": "무게50이상.tga",
+      "name": "Overweight 50%",
+      "category": "Debuff",
+      "description": [
+        "HP/SP will not be restored"
+      ]
+    },
+    {
+      "sc": "WEIGHTOVER90",
+      "sc_id": 36,
+      "icon": "무게90이상.tga",
+      "name": "Overweight 90%",
+      "category": "Debuff",
+      "description": [
+        "HP/SP will not be restored",
+        "Attacks/Skills are disabled"
+      ]
+    },
+    {
+      "sc": "ATTHASTE_POTION1",
+      "sc_id": 37,
+      "icon": "공속물약.tga",
+      "name": "Concentration Potion",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "ATTHASTE_POTION2",
+      "sc_id": 38,
+      "icon": "공속물약.tga",
+      "name": "Awakening Potion",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "ATTHASTE_POTION3",
+      "sc_id": 39,
+      "icon": "공속물약.tga",
+      "name": "Berserk Potion",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "MOVHASTE_POTION",
+      "sc_id": 41,
+      "icon": "민첩성증가.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases Movement Speed"
+      ]
+    },
+    {
+      "sc": "MOVHASTE_INFINITY",
+      "sc_id": 42,
+      "icon": "민첩성증가.tga",
+      "name": "Increases Movement Speed",
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "NOEQUIPWEAPON",
+      "sc_id": 50,
+      "icon": "스트립웨폰.tga",
+      "name": "Weapon Off Status",
+      "category": "Debuff",
+      "description": [
+        "Weapons cannot be worn"
+      ]
+    },
+    {
+      "sc": "NOEQUIPSHIELD",
+      "sc_id": 51,
+      "icon": "스트립쉴드.tga",
+      "name": "Shield Off Status",
+      "category": "Debuff",
+      "description": [
+        "Shields cannot be worn"
+      ]
+    },
+    {
+      "sc": "NOEQUIPARMOR",
+      "sc_id": 52,
+      "icon": "스트립아머.tga",
+      "name": "Armor Off Status",
+      "category": "Debuff",
+      "description": [
+        "Armor cannot be worn"
+      ]
+    },
+    {
+      "sc": "NOEQUIPHELM",
+      "sc_id": 53,
+      "icon": "스트립헬름.tga",
+      "name": "Headgear Off Status",
+      "category": "Debuff",
+      "description": [
+        "Headgear cannot be worn"
+      ]
+    },
+    {
+      "sc": "PROTECTWEAPON",
+      "sc_id": 54,
+      "icon": "케미컬프로텍션[웨폰].tga",
+      "name": "Chemical Protection (Weapon)",
+      "category": "Buff",
+      "description": [
+        "Prevents weapon from being stripped/broken"
+      ]
+    },
+    {
+      "sc": "PROTECTSHIELD",
+      "sc_id": 55,
+      "icon": "케미컬프로텍션[쉴드].tga",
+      "name": "Chemical Protection (Shield)",
+      "category": "Buff",
+      "description": [
+        "Prevents shield from being stripped/broken"
+      ]
+    },
+    {
+      "sc": "PROTECTARMOR",
+      "sc_id": 56,
+      "icon": "케미컬프로텍션[아머].tga",
+      "name": "Chemical Protection (Armor)",
+      "category": "Buff",
+      "description": [
+        "Prevents body Armor from being stripped/broken"
+      ]
+    },
+    {
+      "sc": "PROTECTHELM",
+      "sc_id": 57,
+      "icon": "케미컬프로텍션[헬름].tga",
+      "name": "Chemical Protection Helm (Biochemical Helm)",
+      "category": "Buff",
+      "description": [
+        "Protect helm from being destroyed"
+      ]
+    },
+    {
+      "sc": "AUTOGUARD",
+      "sc_id": 58,
+      "icon": "오토가드.tga",
+      "name": "Auto Guard",
+      "category": "Buff",
+      "description": [
+        "Has a chance to block physical attacks"
+      ]
+    },
+    {
+      "sc": "REFLECTSHIELD",
+      "sc_id": 59,
+      "icon": "리플렉트쉴드.tga",
+      "name": "Reflect Shield",
+      "category": "Buff",
+      "description": [
+        "When attacked with physical short range attacks",
+        "reflect a portion of the damage"
+      ]
+    },
+    {
+      "sc": "DEVOTION",
+      "sc_id": 60,
+      "icon": "헌신.tga",
+      "name": "Devotion",
+      "category": "Buff",
+      "description": [
+        "A Crusader is taking damage for you"
+      ]
+    },
+    {
+      "sc": "PROVIDENCE",
+      "sc_id": 61,
+      "icon": "신의뜻.tga",
+      "name": "Providence",
+      "category": "Buff",
+      "description": [
+        "Increased resistance",
+        "to undead and demon monsters"
+      ]
+    },
+    {
+      "sc": "DEFENDER",
+      "sc_id": 62,
+      "icon": "디펜더.tga",
+      "name": "Defender (Defending Aura)",
+      "category": "Buff",
+      "description": [
+        "Reduce Damage from Ranged Physical Attack",
+        "Reduces Movement Speed and Attack Speed"
+      ]
+    },
+    {
+      "sc": "WEAPONPROPERTY",
+      "sc_id": 64,
+      "icon": "연마제.tga",
+      "name": "Granted a weapon property",
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "AUTOSPELL",
+      "sc_id": 65,
+      "icon": "오토스펠.tga",
+      "name": "Auto Spell",
+      "category": "Buff",
+      "description": [
+        "When physically attacking",
+        "the selected skill will automatically cast without casting time.",
+        "SP consumed is 2/3 the regular amount",
+        "Skill will not cast without sufficient SP"
+      ]
+    },
+    {
+      "sc": "SPEARQUICKEN",
+      "sc_id": 68,
+      "icon": "스피어퀴큰.tga",
+      "name": "Spear Quicken",
+      "category": "Buff",
+      "description": [
+        "Increase ASPD when using Spear",
+        "Increase Critical rate",
+        "Increase Flee"
+      ]
+    },
+    {
+      "sc": "BDPLAYING",
+      "sc_id": 69,
+      "icon": "바드노래.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "STEELBODY",
+      "sc_id": 87,
+      "icon": "steelbody.tga",
+      "name": "Steel Body",
+      "category": "Buff",
+      "description": [
+        "Sets DEF and MDEF to a fixed amount.",
+        "Reduces Movement Speed and ASPD",
+        "Skills are disabled"
+      ]
+    },
+    {
+      "sc": "EXTREMITYFIST",
+      "sc_id": 88,
+      "icon": "extremityfist.tga",
+      "name": "Asura Strike (Guillotine Fist)",
+      "category": "Debuff",
+      "description": [
+        "SP recovery is disabled"
+      ]
+    },
+    {
+      "sc": "PROPERTYFIRE",
+      "sc_id": 90,
+      "icon": "프레임런쳐.tga",
+      "name": "Flame Launcher",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Fire Property"
+      ]
+    },
+    {
+      "sc": "PROPERTYWATER",
+      "sc_id": 91,
+      "icon": "프로스트웨폰.tga",
+      "name": "Frost Weapon (Endow Tsunami)",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Water Property"
+      ]
+    },
+    {
+      "sc": "PROPERTYWIND",
+      "sc_id": 92,
+      "icon": "라이트닝로더.tga",
+      "name": "Lightning Loader",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Wind Property"
+      ]
+    },
+    {
+      "sc": "PROPERTYGROUND",
+      "sc_id": 93,
+      "icon": "사이즈믹웨폰.tga",
+      "name": "Seismic Weapon",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Earth Property"
+      ]
+    },
+    {
+      "sc": "PROPERTYUNDEAD",
+      "sc_id": 97,
+      "icon": "bd_undead.tga",
+      "name": "Enchants Armor with Undead Property",
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "PARRYING",
+      "sc_id": 104,
+      "icon": "icon10.tga",
+      "name": "Parrying",
+      "category": "Buff",
+      "description": [
+        "Blocks physical attacks by chance"
+      ]
+    },
+    {
+      "sc": "TENSIONRELAX",
+      "sc_id": 106,
+      "icon": "icon08.tga",
+      "name": "Tension Relax",
+      "category": "Buff",
+      "description": [
+        "Increases natural HP recovery"
+      ]
+    },
+    {
+      "sc": "ASSUMPTIO",
+      "sc_id": 110,
+      "icon": "icon05.tga",
+      "name": "Assumptio",
+      "category": "Buff",
+      "description": [
+        "Reduces damage taken"
+      ]
+    },
+    {
+      "sc": "GROUNDMAGIC",
+      "sc_id": 112,
+      "icon": "i_장판.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Ground skill effect"
+      ]
+    },
+    {
+      "sc": "EDP",
+      "sc_id": 114,
+      "icon": "i_치독.tga",
+      "name": "Enchant Deadly Poison",
+      "category": "Buff",
+      "description": [
+        "Applies a deadly poison to weapon",
+        "Damage increase does not apply to boss monsters"
+      ]
+    },
+    {
+      "sc": "TRUESIGHT",
+      "sc_id": 115,
+      "icon": "icon09.tga",
+      "name": "True Sight",
+      "category": "Buff",
+      "description": [
+        "Increases all stats",
+        "Increases ATK, HIT, CRIT"
+      ]
+    },
+    {
+      "sc": "WINDWALK",
+      "sc_id": 116,
+      "icon": "icon06.tga",
+      "name": "Wind Walk",
+      "category": "Buff",
+      "description": [
+        "Increases Movement Speed/Evasion"
+      ]
+    },
+    {
+      "sc": "MELTDOWN",
+      "sc_id": 117,
+      "icon": "icon03.tga",
+      "name": "Meltdown",
+      "category": "Buff",
+      "description": [
+        "When attacking a player",
+        "there is a chance to destroy his/her weapon/armor",
+        "When attacking a monster"
+      ]
+    },
+    {
+      "sc": "CARTBOOST",
+      "sc_id": 118,
+      "icon": "icon07.tga",
+      "name": "Cart Boost",
+      "category": "Buff",
+      "description": [
+        "Increases Movement Speed"
+      ]
+    },
+    {
+      "sc": "SWORDREJECT",
+      "sc_id": 120,
+      "icon": "icon04.tga",
+      "name": "Sword Reject",
+      "category": "Buff",
+      "description": [
+        "Reflects damage back to attacking monsters",
+        "(for all monster attacks)",
+        "Damage received is reduced by 1/2",
+        "You receive the other 1/2 of damage"
+      ]
+    },
+    {
+      "sc": "MARIONETTE_MASTER",
+      "sc_id": 121,
+      "icon": "icon01.tga",
+      "name": "Marionette Control (caster)",
+      "category": "Buff",
+      "description": [
+        "Passes the stats",
+        "to a Player"
+      ]
+    },
+    {
+      "sc": "MARIONETTE",
+      "sc_id": 122,
+      "icon": "icon01.tga",
+      "name": "Marionette Control (target)",
+      "category": "Buff",
+      "description": [
+        "Target Player",
+        "who receives the stats"
+      ]
+    },
+    {
+      "sc": "BLOODING",
+      "sc_id": 124,
+      "icon": "출혈상태.tga",
+      "name": "Bleeding",
+      "category": "Buff",
+      "description": [
+        "HP, SP recovery disabled",
+        "HP lost every 10 seconds"
+      ]
+    },
+    {
+      "sc": "JOINTBEAT",
+      "sc_id": 125,
+      "icon": "관절공격.tga",
+      "name": "Joint Beat",
+      "category": "Buff",
+      "description": [
+        "Applies various status effects",
+        "due to joint damage."
+      ]
+    },
+    {
+      "sc": "PROTECTEXP",
+      "sc_id": 130,
+      "icon": "엄마아빠사랑해요.tga",
+      "name": "Mom and Dad I Love You",
+      "category": "Buff",
+      "description": [
+        "No EXP loss upon death"
+      ]
+    },
+    {
+      "sc": "AUTOBERSERK",
+      "sc_id": 132,
+      "icon": "금강불괴.tga",
+      "name": "Auto Berserk",
+      "category": "Buff",
+      "description": [
+        "Rage when close to death"
+      ]
+    },
+    {
+      "sc": "RUN",
+      "sc_id": 133,
+      "icon": "i_run.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "STORMKICK_ON",
+      "sc_id": 135,
+      "icon": "i_stormkick.tga",
+      "name": "Whirlwind Kick (Tornado Kick)",
+      "category": "Buff",
+      "description": [
+        "When attacking an enemy",
+        "there is a chance to prepare a Whirlwind Kick"
+      ]
+    },
+    {
+      "sc": "DOWNKICK_ON",
+      "sc_id": 137,
+      "icon": "i_downkick.tga",
+      "name": "Prepare Down Kick",
+      "category": "Buff",
+      "description": [
+        "Hit an enemy",
+        "for a chance to preform a kick"
+      ]
+    },
+    {
+      "sc": "TURNKICK_ON",
+      "sc_id": 139,
+      "icon": "i_turnkick.tga",
+      "name": "Ready Turn Kick",
+      "category": "Buff",
+      "description": [
+        "When attacking,"
+      ]
+    },
+    {
+      "sc": "COUNTER_ON",
+      "sc_id": 141,
+      "icon": "i_counter.tga",
+      "name": "Prepare Counter Kick",
+      "category": "Buff",
+      "description": [
+        "Hit an enemy",
+        "to be ready for a counter kick"
+      ]
+    },
+    {
+      "sc": "DODGE_ON",
+      "sc_id": 143,
+      "icon": "i_dodge.tga",
+      "name": "Dodge",
+      "category": "Buff",
+      "description": [
+        "Allows Flying Kick to be used as a counter",
+        "When receiving enemy magic attack",
+        "there is a chance of completely avoiding it",
+        "If Spurt is also active",
+        "chance of avoiding physical attacks as well"
+      ]
+    },
+    {
+      "sc": "STRUP",
+      "sc_id": 145,
+      "icon": "i_run.tga",
+      "name": "Spurt",
+      "category": "Buff",
+      "description": [
+        "Increases STR",
+        "if the user is unequipped",
+        "and the skill level is high enough"
+      ]
+    },
+    {
+      "sc": "PROPERTYDARK",
+      "sc_id": 146,
+      "icon": "캐시갑옷속성부여.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Enchants Armor with Shadow Property"
+      ]
+    },
+    {
+      "sc": "ADRENALINE2",
+      "sc_id": 147,
+      "icon": "아드레날린러쉬.tga",
+      "name": "Full Adrenaline Rush",
+      "category": "Buff",
+      "description": [
+        "Increases Weapon ASPD except Bows"
+      ]
+    },
+    {
+      "sc": "PROPERTYTELEKINESIS",
+      "sc_id": 148,
+      "icon": "i_p_tele.tga",
+      "name": "Warm Wind",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Ghost Property"
+      ]
+    },
+    {
+      "sc": "PLUSATTACKPOWER",
+      "sc_id": 150,
+      "icon": "plusattackpower.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases ATK"
+      ]
+    },
+    {
+      "sc": "PLUSMAGICPOWER",
+      "sc_id": 151,
+      "icon": "plusmagicpower.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases MATK"
+      ]
+    },
+    {
+      "sc": "KAIZEL",
+      "sc_id": 156,
+      "icon": "i_kaizel.tga",
+      "name": "Kaizel",
+      "category": "Buff",
+      "description": [
+        "Cast time not affected by DEX",
+        "Upon death, you will revive with Kyrie Eleison for 2 seconds"
+      ]
+    },
+    {
+      "sc": "KAAHI",
+      "sc_id": 157,
+      "icon": "i_kaahi.tga",
+      "name": "Kaahi",
+      "category": "Buff",
+      "description": [
+        "Whenever you are hit by non-skills",
+        "SP is consumed and HP is recovered"
+      ]
+    },
+    {
+      "sc": "KAUPE",
+      "sc_id": 158,
+      "icon": "i_kaupe.tga",
+      "name": "Kaupe",
+      "category": "Buff",
+      "description": [
+        "Chance to evade an enemy attack."
+      ]
+    },
+    {
+      "sc": "ONEHANDQUICKEN",
+      "sc_id": 161,
+      "icon": "i_onehand.tga",
+      "name": "One-hand Quicken",
+      "category": "Buff",
+      "description": [
+        "Using One-handed Weapon",
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "SUN_COMFORT",
+      "sc_id": 169,
+      "icon": "i_suncomfort.tga",
+      "name": "Comfort of the Sun",
+      "category": "Buff",
+      "description": [
+        "Improves VIT DEF"
+      ]
+    },
+    {
+      "sc": "MOON_COMFORT",
+      "sc_id": 170,
+      "icon": "i_mooncomfort.tga",
+      "name": "Comfort of the Moon",
+      "category": "Buff",
+      "description": [
+        "Improves FLEE"
+      ]
+    },
+    {
+      "sc": "STAR_COMFORT",
+      "sc_id": 171,
+      "icon": "i_starcomfort.tga",
+      "name": "Comfort of the Stars",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "PRESERVE",
+      "sc_id": 181,
+      "icon": "i_프리저브.tga",
+      "name": "Preserve",
+      "category": "Buff",
+      "description": [
+        "Allows you to keep copied skill"
+      ]
+    },
+    {
+      "sc": "CHASEWALK2",
+      "sc_id": 182,
+      "icon": "i_체이스힘.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "DOUBLECASTING",
+      "sc_id": 186,
+      "icon": "i_더블캐스팅.tga",
+      "name": "Double Casting",
+      "category": "Buff",
+      "description": [
+        "When casting a Bolt Skill",
+        "there is a chance to cast another automatically"
+      ]
+    },
+    {
+      "sc": "OVERTHRUSTMAX",
+      "sc_id": 188,
+      "icon": "i_오버맥스.tga",
+      "name": "Maximum Over Thrust",
+      "category": "Buff",
+      "description": [
+        "Increases weapon damage.",
+        "Increases the possibility of breaking the weapon."
+      ]
+    },
+    {
+      "sc": "TAROTCARD",
+      "sc_id": 191,
+      "icon": "i_타로카드.tga",
+      "name": "Tarot Card of Fate",
+      "category": "Buff",
+      "description": [
+        "Applies one of 14 cards and their effects"
+      ]
+    },
+    {
+      "sc": "CR_SHRINK",
+      "sc_id": 197,
+      "icon": "i_shrink.tga",
+      "name": "Shrink",
+      "category": "Buff",
+      "description": [
+        "When Autoguarding attacks",
+        "there is a chance to push the attack back"
+      ]
+    },
+    {
+      "sc": "WZ_SIGHTBLASTER",
+      "sc_id": 198,
+      "icon": "i_sightblaster.tga",
+      "name": "Sight Blaster",
+      "category": "Buff",
+      "description": [
+        "Attacks an enemy with a single attack",
+        "that ventures too close"
+      ]
+    },
+    {
+      "sc": "RG_CCONFINE_M",
+      "sc_id": 200,
+      "icon": "i_closeconfine.tga",
+      "name": "Close Confine",
+      "category": "Buff",
+      "description": [
+        "Both Players cannot Move",
+        "Increases FLEE",
+        "Does not affect boss monsters"
+      ]
+    },
+    {
+      "sc": "RG_CCONFINE_S",
+      "sc_id": 201,
+      "icon": "i_closeconfine.tga",
+      "name": "Close Confine",
+      "category": "Buff",
+      "description": [
+        "Both Players cannot Move",
+        "Increases FLEE",
+        "Does not affect Boss"
+      ]
+    },
+    {
+      "sc": "GS_MADNESSCANCEL",
+      "sc_id": 203,
+      "icon": "i_madness.tga",
+      "name": "Madness Canceller (Last Stand)",
+      "category": "Buff",
+      "description": [
+        "Increases ATK",
+        "Increases Attack Speed",
+        "Immobilized"
+      ]
+    },
+    {
+      "sc": "GS_GATLINGFEVER",
+      "sc_id": 204,
+      "icon": "i_fever.tga",
+      "name": "Gatling Fever",
+      "category": "Buff",
+      "description": [
+        "Increases Damage and ASPD",
+        "Reduces Movement Speed"
+      ]
+    },
+    {
+      "sc": "EARTHSCROLL",
+      "sc_id": 205,
+      "icon": "글로리아.tga",
+      "name": "Happy Break (Enjoyable Rest)",
+      "category": "Buff",
+      "description": [
+        "When sitting with another Taekwon",
+        "A certain amount of SP is regained",
+        "Chance for Earth Spike scrolls to not be destroyed when used"
+      ]
+    },
+    {
+      "sc": "NJ_UTSUSEMI",
+      "sc_id": 206,
+      "icon": "i_maemi.tga",
+      "name": "Cicada Skin Shedding",
+      "category": "Buff",
+      "description": [
+        "Avoids a certain number of physical attacks",
+        "When avoiding, move in the opposite direction of the attacker"
+      ]
+    },
+    {
+      "sc": "NJ_BUNSINJYUTSU",
+      "sc_id": 207,
+      "icon": "i_bunsin.tga",
+      "name": "Illusionary Shadow",
+      "category": "Buff",
+      "description": [
+        "Avoids a certain number of physical attacks",
+        "Magical attacks cannot be avoided"
+      ]
+    },
+    {
+      "sc": "NJ_NEN",
+      "sc_id": 208,
+      "icon": "i_nen.tga",
+      "name": "Soul",
+      "category": "Buff",
+      "description": [
+        "Increases INT, STR"
+      ]
+    },
+    {
+      "sc": "GS_ADJUSTMENT",
+      "sc_id": 209,
+      "icon": "i_adjustment.tga",
+      "name": "Adjustment",
+      "category": "Buff",
+      "description": [
+        "Reduces HIT",
+        "Increases FLEE",
+        "Reduces damage of incoming ranged physical attacks"
+      ]
+    },
+    {
+      "sc": "GS_ACCURACY",
+      "sc_id": 210,
+      "icon": "i_accuracy",
+      "name": "Increasing Accuracy (Increase Accuracy)",
+      "category": "Buff",
+      "description": [
+        "Increases Accuracy",
+        "Increases DEX",
+        "Increases AGI"
+      ]
+    },
+    {
+      "sc": "GRIFFON",
+      "sc_id": 217,
+      "icon": "라이딩.tga",
+      "name": "Riding Griffon",
+      "category": "Toggle",
+      "description": []
+    },
+    {
+      "sc": "FOOD_STR",
+      "sc_id": 241,
+      "icon": "str_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "FOOD_AGI",
+      "sc_id": 242,
+      "icon": "agi_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases AGI"
+      ]
+    },
+    {
+      "sc": "FOOD_VIT",
+      "sc_id": 243,
+      "icon": "vit_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases VIT"
+      ]
+    },
+    {
+      "sc": "FOOD_DEX",
+      "sc_id": 244,
+      "icon": "dex_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases DEX"
+      ]
+    },
+    {
+      "sc": "FOOD_INT",
+      "sc_id": 245,
+      "icon": "int_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases INT"
+      ]
+    },
+    {
+      "sc": "FOOD_LUK",
+      "sc_id": 246,
+      "icon": "luk_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases LUK"
+      ]
+    },
+    {
+      "sc": "FOOD_BASICAVOIDANCE",
+      "sc_id": 247,
+      "icon": "gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Improves FLEE"
+      ]
+    },
+    {
+      "sc": "FOOD_BASICHIT",
+      "sc_id": 248,
+      "icon": "gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Improves HIT"
+      ]
+    },
+    {
+      "sc": "FOOD_CRITICALSUCCESSVALUE",
+      "sc_id": 249,
+      "icon": "gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Improves CRIT"
+      ]
+    },
+    {
+      "sc": "CASH_PLUSEXP",
+      "sc_id": 250,
+      "icon": "exp.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases acquired EXP"
+      ]
+    },
+    {
+      "sc": "CASH_DEATHPENALTY",
+      "sc_id": 251,
+      "icon": "death.tga",
+      "name": "Life Insurance",
+      "category": "Buff",
+      "description": [
+        "No EXP loss upon death"
+      ]
+    },
+    {
+      "sc": "CASH_RECEIVEITEM",
+      "sc_id": 252,
+      "icon": "item.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "When killing monsters",
+        "the drop chance is doubled"
+      ]
+    },
+    {
+      "sc": "FOOD_STR_CASH",
+      "sc_id": 271,
+      "icon": "str_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "FOOD_AGI_CASH",
+      "sc_id": 272,
+      "icon": "agi_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases AGI"
+      ]
+    },
+    {
+      "sc": "FOOD_VIT_CASH",
+      "sc_id": 273,
+      "icon": "vit_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases VIT"
+      ]
+    },
+    {
+      "sc": "FOOD_DEX_CASH",
+      "sc_id": 274,
+      "icon": "dex_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases DEX"
+      ]
+    },
+    {
+      "sc": "FOOD_INT_CASH",
+      "sc_id": 275,
+      "icon": "int_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases INT"
+      ]
+    },
+    {
+      "sc": "FOOD_LUK_CASH",
+      "sc_id": 276,
+      "icon": "luk_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases LUK"
+      ]
+    },
+    {
+      "sc": "SLOWCAST",
+      "sc_id": 282,
+      "icon": "slowcast.tga",
+      "name": "Slow Cast",
+      "category": "Debuff",
+      "description": [
+        "Increases Casting Time"
+      ]
+    },
+    {
+      "sc": "CRITICALWOUND",
+      "sc_id": 286,
+      "icon": "criticalwound.tga",
+      "name": "Critical Wounds",
+      "category": "Debuff",
+      "description": [
+        "Reduces effects of healing skills"
+      ]
+    },
+    {
+      "sc": "MOVHASTE_HORSE",
+      "sc_id": 289,
+      "icon": "민첩성증가.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases Movement Speed"
+      ]
+    },
+    {
+      "sc": "PROTECT_DEF",
+      "sc_id": 290,
+      "icon": "gogi.tga",
+      "name": "Defense Protection",
+      "category": "Buff",
+      "description": [
+        "Increases physical DEF"
+      ]
+    },
+    {
+      "sc": "PROTECT_MDEF",
+      "sc_id": 291,
+      "icon": "마법방어포션.tga",
+      "name": "Magic Armor Potions",
+      "category": "Buff",
+      "description": [
+        "Increases resistance to magical attacks"
+      ]
+    },
+    {
+      "sc": "HEALPLUS",
+      "sc_id": 292,
+      "icon": "중형생명수.tga",
+      "name": "Enhanced Healing Potion",
+      "category": "Buff",
+      "description": [
+        "When healing via recovery items",
+        "the healing effect is increased"
+      ]
+    },
+    {
+      "sc": "S_LIFEPOTION",
+      "sc_id": 293,
+      "icon": "소형생명수.tga",
+      "name": "Small Life Potion",
+      "category": "Buff",
+      "description": [
+        "Recoverys HP every 5 seconds",
+        "No effect if Berserk State is active"
+      ]
+    },
+    {
+      "sc": "L_LIFEPOTION",
+      "sc_id": 294,
+      "icon": "중형생명수.tga",
+      "name": "Medium Life Potion",
+      "category": "Buff",
+      "description": [
+        "Recovers HP every 4 seconds",
+        "No effect if Berserk State is active"
+      ]
+    },
+    {
+      "sc": "CRITICALPERCENT",
+      "sc_id": 295,
+      "icon": "스트라이킹.tga",
+      "name": "Varnish",
+      "category": "Buff",
+      "description": [
+        "Increases Critical"
+      ]
+    },
+    {
+      "sc": "PLUSAVOIDVALUE",
+      "sc_id": 296,
+      "icon": null,
+      "name": "Cup of Welcome",
+      "category": "Buff",
+      "description": [
+        "Increase Perfect Dodge by 20"
+      ]
+    },
+    {
+      "sc": "ATKER_ASPD",
+      "sc_id": 297,
+      "icon": null,
+      "name": "Great Phantom",
+      "category": "Buff",
+      "description": [
+        "Increases Max HP",
+        "Increases HP recovery"
+      ]
+    },
+    {
+      "sc": "TARGET_ASPD",
+      "sc_id": 298,
+      "icon": "plusmagicpower.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Max SP increased, SP consumption reduced"
+      ]
+    },
+    {
+      "sc": "ATKER_MOVESPEED",
+      "sc_id": 299,
+      "icon": null,
+      "name": "ÃÃÃÂ»Â´Ã",
+      "category": "Buff",
+      "description": [
+        "Increases Max SP",
+        "Increases SP recovery"
+      ]
+    },
+    {
+      "sc": "ATKER_BLOOD",
+      "sc_id": 300,
+      "icon": null,
+      "name": "SP Consumption Reduction Potion",
+      "category": "Buff",
+      "description": [
+        "Reduced SP Consumption of skills by 15%"
+      ]
+    },
+    {
+      "sc": "TARGET_BLOOD",
+      "sc_id": 301,
+      "icon": "소형생명수.tga",
+      "name": "Resistance Potion",
+      "category": "Buff",
+      "description": [
+        "Increases resistance to",
+        "Stun, Frozen, Stone, Sleep, Silence",
+        "Blind, Curse, Poison, Bleeding, Confusion"
+      ]
+    },
+    {
+      "sc": "ARMOR_PROPERTY",
+      "sc_id": 302,
+      "icon": "캐시갑옷속성부여.tga",
+      "name": "Armor Property",
+      "category": "Buff",
+      "description": [
+        "Changes your Elemental Property"
+      ]
+    },
+    {
+      "sc": "HELLPOWER",
+      "sc_id": 304,
+      "icon": "npc_hellpower.tga",
+      "name": "Hell Power",
+      "category": "Buff",
+      "description": [
+        "Can not be revived",
+        "Sacrifice is Disabled",
+        "Token of Siegfried disabled"
+      ]
+    },
+    {
+      "sc": "CASH_PLUSONLYJOBEXP",
+      "sc_id": 312,
+      "icon": "job.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases Job EXP acquired."
+      ]
+    },
+    {
+      "sc": "PARTYFLEE",
+      "sc_id": 313,
+      "icon": "icon06.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases Flee Rate"
+      ]
+    },
+    {
+      "sc": "ANGEL_PROTECT",
+      "sc_id": 314,
+      "icon": "death.tga",
+      "name": "Guardian Angel",
+      "category": "Buff",
+      "description": [
+        "No EXP loss upon death"
+      ]
+    },
+    {
+      "sc": "ENCHANTBLADE",
+      "sc_id": 316,
+      "icon": "rk_enchant.tga",
+      "name": "Enchant Blade",
+      "category": "Buff",
+      "description": [
+        "Adds magic damage to physical attacks"
+      ]
+    },
+    {
+      "sc": "REFRESH",
+      "sc_id": 318,
+      "icon": "rk_nauthiz.tga",
+      "name": "Rune Stone: Refresh",
+      "category": "Buff",
+      "description": [
+        "Removes all debuffs when cast",
+        "Grants immunity to debuffs",
+        "Recovers a certain amount of HP"
+      ]
+    },
+    {
+      "sc": "GIANTGROWTH",
+      "sc_id": 319,
+      "icon": "rk_turisuss.tga",
+      "name": "Rune Stone: Giant Growth",
+      "category": "Buff",
+      "description": [
+        "Increases STR",
+        "There is a chance to vastly increase damage",
+        "of close range physical attacks",
+        "Chance to destroy weapon with each hit"
+      ]
+    },
+    {
+      "sc": "STONEHARDSKIN",
+      "sc_id": 320,
+      "icon": "rk_hagalaz.tga",
+      "name": "Rune Stone: Stone Hard Skin",
+      "category": "Buff",
+      "description": [
+        "Resists damage equal to the HP consumed when casting",
+        "Players that attack you with weapons",
+        "will break them by chance.",
+        "On monsters, they will have reduced ATK for 10 seconds"
+      ]
+    },
+    {
+      "sc": "VITALITYACTIVATION",
+      "sc_id": 321,
+      "icon": "rk_isha.tga",
+      "name": "Rune Stone: Vitality Activation",
+      "category": "Buff",
+      "description": [
+        "To the caster,",
+        "Increases Healing skills and Item effects",
+        "Stops SP regeneration",
+        "Reduces SP recovery item effects"
+      ]
+    },
+    {
+      "sc": "FIGHTINGSPIRIT",
+      "sc_id": 322,
+      "icon": "rk_eisir.tga",
+      "name": "Rune Stone: Fighting Spirit",
+      "category": "Buff",
+      "description": [
+        "Increases ATK",
+        "Increases ASPD of caster"
+      ]
+    },
+    {
+      "sc": "ABUNDANCE",
+      "sc_id": 323,
+      "icon": "rk_uruz.tga",
+      "name": "Rune Stone: Abundance",
+      "category": "Buff",
+      "description": [
+        "Recovers SP every 10 seconds"
+      ]
+    },
+    {
+      "sc": "CLOAKINGEXCEED",
+      "sc_id": 333,
+      "icon": "포이즈닝웨폰.tga",
+      "name": "Cloaking Exceed",
+      "category": "Buff",
+      "description": [
+        "Hides from Insects and Demon types too.",
+        "Remains hidden until a certain number of hits received.",
+        "Increases Movement Speed"
+      ]
+    },
+    {
+      "sc": "HALLUCINATIONWALK",
+      "sc_id": 334,
+      "icon": "할루시네이션워크.tga",
+      "name": "Hallucination Walk",
+      "category": "Buff",
+      "description": [
+        "Improves Evasion Rate",
+        "Chance to evade Magical Damage."
+      ]
+    },
+    {
+      "sc": "RENOVATIO",
+      "sc_id": 336,
+      "icon": "레노바티오.tga",
+      "name": "Renovatio",
+      "category": "Buff",
+      "description": [
+        "Recovers HP every 5 seconds",
+        "When used on Undead monsters",
+        "it deals high damage according to skill level"
+      ]
+    },
+    {
+      "sc": "WEAPONBLOCKING",
+      "sc_id": 337,
+      "icon": "웨폰블로킹.tga",
+      "name": "Weapon Blocking",
+      "category": "Buff",
+      "description": [
+        "When hit by close range physical attacks",
+        "there is a chance to nullify the damage"
+      ]
+    },
+    {
+      "sc": "POISONINGWEAPON",
+      "sc_id": 341,
+      "icon": "포이즈닝웨폰.tga",
+      "name": "Poisoning Weapon",
+      "category": "Buff",
+      "description": [
+        "Applies the poison coated on your weapon to the target"
+      ]
+    },
+    {
+      "sc": "TOXIN",
+      "sc_id": 342,
+      "icon": "신경마비독.tga",
+      "name": "Toxin",
+      "category": "Buff",
+      "description": [
+        "Interferes with skills every 10 seconds",
+        "Phen card is ignored",
+        "Every 10 seconds, SP is consumed"
+      ]
+    },
+    {
+      "sc": "PARALYSE",
+      "sc_id": 343,
+      "icon": "감각마비독.tga",
+      "name": "Paralyze",
+      "category": "Buff",
+      "description": [
+        "Reduces Attack Speed",
+        "Reduces FLEE",
+        "Reduces Movement Speed"
+      ]
+    },
+    {
+      "sc": "VENOMBLEED",
+      "sc_id": 344,
+      "icon": "쇠약독.tga",
+      "name": "Venom Bleed",
+      "category": "Debuff",
+      "description": [
+        "Reduces Max HP"
+      ]
+    },
+    {
+      "sc": "MAGICMUSHROOM",
+      "sc_id": 345,
+      "icon": "웃음버섯.tga",
+      "name": "Magic Mushroom (Laughing Poison Mushroom)",
+      "category": "Buff",
+      "description": [
+        "Uses Smile Emoticon",
+        "Casts random spells every 4 seconds",
+        "Drains HP every 4 seconds"
+      ]
+    },
+    {
+      "sc": "DEATHHURT",
+      "sc_id": 346,
+      "icon": "상처오염독.tga",
+      "name": "Death Hurt (Contaminated Wound Poison)",
+      "category": "Debuff",
+      "description": [
+        "Reduces effects of healing skills"
+      ]
+    },
+    {
+      "sc": "PYREXIA",
+      "sc_id": 347,
+      "icon": "열병독.tga",
+      "name": "Pyrexia",
+      "category": "Buff",
+      "description": [
+        "Dark and Hallucinating state"
+      ]
+    },
+    {
+      "sc": "OBLIVIONCURSE",
+      "sc_id": 348,
+      "icon": "망각의재.tga",
+      "name": "Oblivion Curse",
+      "category": "Debuff",
+      "description": [
+        "Oblivion status"
+      ]
+    },
+    {
+      "sc": "LEECHESEND",
+      "sc_id": 349,
+      "icon": "거머리.tga",
+      "name": "Leech End",
+      "category": "Buff",
+      "description": [
+        "Drains HP every second"
+      ]
+    },
+    {
+      "sc": "FROSTMISTY",
+      "sc_id": 351,
+      "icon": "frostmisty.tga",
+      "name": "Freezing Status",
+      "category": "Debuff",
+      "description": [
+        "Decreases Defense, ASPD and Movement speed",
+        "Increases Fixed Cast time."
+      ]
+    },
+    {
+      "sc": "FEARBREEZE",
+      "sc_id": 352,
+      "icon": "ra_fearbreeze.tga",
+      "name": "Fear Breeze",
+      "category": "Buff",
+      "description": [
+        "When attacking with a bow",
+        "there is a chance to cause additional attacks"
+      ]
+    },
+    {
+      "sc": "MARSHOFABYSS",
+      "sc_id": 354,
+      "icon": "marshofabyss.tga",
+      "name": "Marsh of Abyss",
+      "category": "Debuff",
+      "description": [
+        "Slows Movement",
+        "Reduces DEF, Flee"
+      ]
+    },
+    {
+      "sc": "RECOGNIZEDSPELL",
+      "sc_id": 355,
+      "icon": "recognizespell.tga",
+      "name": "Recognized Spell",
+      "category": "Buff",
+      "description": [
+        "Magic Skills deals Max Damage",
+        "All skills consumes more SP"
+      ]
+    },
+    {
+      "sc": "WUGRIDER",
+      "sc_id": 357,
+      "icon": "wolfmount.tga",
+      "name": "Warg Rider",
+      "category": "Buff",
+      "description": [
+        "Bows are Disabled",
+        "Warg Skills are only allowed"
+      ]
+    },
+    {
+      "sc": "ACCELERATION",
+      "sc_id": 361,
+      "icon": "엑셀레이션.tga",
+      "name": "Acceleration",
+      "category": "Buff",
+      "description": [
+        "Increases movement speed of the Magic Gear"
+      ]
+    },
+    {
+      "sc": "HOVERING",
+      "sc_id": 362,
+      "icon": "호버링.tga",
+      "name": "Hovering",
+      "category": "Buff",
+      "description": [
+        "Traps and some ground skills do not have any effect"
+      ]
+    },
+    {
+      "sc": "MVPCARD_TAOGUNKA",
+      "sc_id": 368,
+      "icon": "mvpcard_taogunka.tga",
+      "name": "Tao Gunka Scroll",
+      "category": "Buff",
+      "description": [
+        "Increases Max HP",
+        "Reduces DEF/MDEF"
+      ]
+    },
+    {
+      "sc": "MVPCARD_MISTRESS",
+      "sc_id": 369,
+      "icon": "mvpcard_mistress.tga",
+      "name": "Mistress Scroll",
+      "category": "Buff",
+      "description": [
+        "Nullify the Gemstone requirement of certain spells",
+        "Increases SP consumption"
+      ]
+    },
+    {
+      "sc": "MVPCARD_ORCHERO",
+      "sc_id": 370,
+      "icon": "mvpcard_orchero.tga",
+      "name": "Orc Hero Scroll",
+      "category": "Buff",
+      "description": [
+        "Immunity to stun status"
+      ]
+    },
+    {
+      "sc": "MVPCARD_ORCLORD",
+      "sc_id": 371,
+      "icon": "mvpcard_orclord.tga",
+      "name": "Orc Lord Scroll",
+      "category": "Buff",
+      "description": [
+        "Reflects a part of physical damage taken"
+      ]
+    },
+    {
+      "sc": "OVERHEAT",
+      "sc_id": 373,
+      "icon": "오버히트.tga",
+      "name": "Over Heat",
+      "category": "Buff",
+      "description": [
+        "Heating caused by skill use",
+        "Drains HP every second"
+      ]
+    },
+    {
+      "sc": "SHAPESHIFT",
+      "sc_id": 374,
+      "icon": "셰이프쉬프트.tga",
+      "name": "Shape Shift",
+      "category": "Buff",
+      "description": [
+        "Changes your Mado Gear elemental property"
+      ]
+    },
+    {
+      "sc": "INFRAREDSCAN",
+      "sc_id": 375,
+      "icon": "인프라레드스캔.tga",
+      "name": "Infrared Scan",
+      "category": "Buff",
+      "description": [
+        "Discovers targets in hiding",
+        "Chance to Reduce FLEE of nearby enemy"
+      ]
+    },
+    {
+      "sc": "NEUTRALBARRIER",
+      "sc_id": 377,
+      "icon": "뉴트럴배리어.tga",
+      "name": "Neutral Barrier",
+      "category": "Buff",
+      "description": [
+        "DEF/MDEF up",
+        "Neutralizes ranged attacks"
+      ]
+    },
+    {
+      "sc": "STEALTHFIELD",
+      "sc_id": 379,
+      "icon": "스텔스필드.tga",
+      "name": "Stealth Field",
+      "category": "Buff",
+      "description": [
+        "Cloaks everyone in a radius around caster",
+        "Consumes SP while active",
+        "Reduces Movement Speed"
+      ]
+    },
+    {
+      "sc": "MANU_ATK",
+      "sc_id": 381,
+      "icon": "efst_atk.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increase physical attack against",
+        "all monsters in Manuk fields"
+      ]
+    },
+    {
+      "sc": "MANU_DEF",
+      "sc_id": 382,
+      "icon": "efst_def.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Decrease physical/magical damage",
+        "from the monsters in Manuk field"
+      ]
+    },
+    {
+      "sc": "SPL_ATK",
+      "sc_id": 383,
+      "icon": "efst_atk.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increase physical ATK against",
+        "all monsters in Splendid fields"
+      ]
+    },
+    {
+      "sc": "SPL_DEF",
+      "sc_id": 384,
+      "icon": "efst_def.tga",
+      "name": "Honey Jam",
+      "category": "Buff",
+      "description": [
+        "Decrease Physical, Magical damage received",
+        "from the monsters in Splendid field"
+      ]
+    },
+    {
+      "sc": "REPRODUCE",
+      "sc_id": 385,
+      "icon": "리프로듀스.tga",
+      "name": "Reproduce",
+      "category": "Buff",
+      "description": [
+        "Activates when targetted by a skill",
+        "Only one skill can be learnt"
+      ]
+    },
+    {
+      "sc": "MANU_MATK",
+      "sc_id": 386,
+      "icon": "efst_matk.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increase Magical attack against",
+        "all monsters in Manuk Field"
+      ]
+    },
+    {
+      "sc": "SPL_MATK",
+      "sc_id": 387,
+      "icon": "efst_matk.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increase Magical attack against",
+        "all monsters in Splendide fields"
+      ]
+    },
+    {
+      "sc": "STR_SCROLL",
+      "sc_id": 388,
+      "icon": "str_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "INT_SCROLL",
+      "sc_id": 389,
+      "icon": "int_gogi.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases INT"
+      ]
+    },
+    {
+      "sc": "LG_REFLECTDAMAGE",
+      "sc_id": 390,
+      "icon": "lg_reflectdamage.tga",
+      "name": "Reflect Damage",
+      "category": "Toggle",
+      "description": [
+        "Reflects some of the damages received to all enemies in an area",
+        "Consumes SP every second"
+      ]
+    },
+    {
+      "sc": "FORCEOFVANGUARD",
+      "sc_id": 391,
+      "icon": "포스오브뱅가드.tga",
+      "name": "Force of Vanguard",
+      "category": "Buff",
+      "description": [
+        "Max HP, Defense increased",
+        "When physicalled attacked there is a chance to earn a rage counter",
+        "SP consumed while active"
+      ]
+    },
+    {
+      "sc": "AUTOSHADOWSPELL",
+      "sc_id": 393,
+      "icon": "오토쉐도우스펠.tga",
+      "name": "Auto Shadow Spell",
+      "category": "Buff",
+      "description": [
+        "Automatically casts",
+        "an available magic spell"
+      ]
+    },
+    {
+      "sc": "SHADOWFORM",
+      "sc_id": 394,
+      "icon": "쉐도우폼.tga",
+      "name": "Shadow Form",
+      "category": "Buff",
+      "description": [
+        "For a certain number of hits",
+        "have a target take the damage instead"
+      ]
+    },
+    {
+      "sc": "SHIELDSPELL_DEF",
+      "sc_id": 396,
+      "icon": "lg_shieldspell_쨔챈.tga",
+      "name": "Shield Spell (DEF)",
+      "category": "Buff",
+      "description": [
+        "Invokes a magical spell based on DEF"
+      ]
+    },
+    {
+      "sc": "SHIELDSPELL_MDEF",
+      "sc_id": 397,
+      "icon": "lg_shieldspell_쨍쨋.tga",
+      "name": "Shield Spell (MDEF)",
+      "category": "Buff",
+      "description": [
+        "Invokes a magical spell based on MDEF"
+      ]
+    },
+    {
+      "sc": "SHIELDSPELL_REF",
+      "sc_id": 398,
+      "icon": "lg_shieldspell_쩔짭.tga",
+      "name": "Shield Spell (Refine)",
+      "category": "Buff",
+      "description": [
+        "Invokes a magical effect based on refine"
+      ]
+    },
+    {
+      "sc": "BODYPAINT",
+      "sc_id": 399,
+      "icon": null,
+      "name": "Body Painting",
+      "category": "Buff",
+      "description": [
+        "Reveals hidden enemies",
+        "Chance to inflict Blind to enemies",
+        "Reduces Enemy ASPD"
+      ]
+    },
+    {
+      "sc": "ADORAMUS",
+      "sc_id": 401,
+      "icon": "민첩성감소.tga",
+      "name": "Adoramus",
+      "category": "Buff",
+      "description": [
+        "Blinds and reduces Movement Speed"
+      ]
+    },
+    {
+      "sc": "PRESTIGE",
+      "sc_id": 402,
+      "icon": "lg_prestige.tga",
+      "name": "Prestige",
+      "category": "Buff",
+      "description": [
+        "Chance to evade Magical Attacks",
+        "Defense Up"
+      ]
+    },
+    {
+      "sc": "INVISIBILITY",
+      "sc_id": 403,
+      "icon": "인비지빌리티.tga",
+      "name": "Invisibility",
+      "category": "Buff",
+      "description": [
+        "Conceals yourself from view",
+        "All attacks become Ghost Lvl 1 property",
+        "Drains SP",
+        "Skills and items cannot be used"
+      ]
+    },
+    {
+      "sc": "DEADLYINFECT",
+      "sc_id": 404,
+      "icon": "데들리인펙트.tga",
+      "name": "Deadly Infect",
+      "category": "Buff",
+      "description": [
+        "When attacking",
+        "or being attacked",
+        "your status effects are applies to them"
+      ]
+    },
+    {
+      "sc": "BANDING",
+      "sc_id": 405,
+      "icon": "lg_banding.tga",
+      "name": "Banding",
+      "category": "Buff",
+      "description": [
+        "Banding status"
+      ]
+    },
+    {
+      "sc": "INSPIRATION",
+      "sc_id": 407,
+      "icon": "lg_inspiration.tga",
+      "name": "Inspiration",
+      "category": "Buff",
+      "description": [
+        "Hit rate, Stats, Damage, Max HP increased",
+        "All buffs and status effects removed",
+        "Drains HP, SP over time",
+        "Cannot receive status effects",
+        "Lose a percentage of your EXP"
+      ]
+    },
+    {
+      "sc": "ENERVATION",
+      "sc_id": 408,
+      "icon": "masquerade_enervation.tga",
+      "name": "Masquerade: Enervation",
+      "category": "Debuff",
+      "description": [
+        "Reduces ATK",
+        "Removes Spirit Spheres"
+      ]
+    },
+    {
+      "sc": "GROOMY",
+      "sc_id": 409,
+      "icon": "masquerade_groomy.tga",
+      "name": "Masquerade: Gloomy",
+      "category": "Debuff",
+      "description": [
+        "Decreases ASPD and HIT",
+        "Forced to release mounts and any related animals.",
+        "Mounts and any related animals are disabled."
+      ]
+    },
+    {
+      "sc": "RAISINGDRAGON",
+      "sc_id": 410,
+      "icon": "잠룡승천.tga",
+      "name": "Rising Dragon",
+      "category": "Buff",
+      "description": [
+        "Maximum Spheres Increased",
+        "Increases Maximum HP/SP",
+        "Increases Attack Speed",
+        "Maintains Fury State",
+        "Slowly Drains HP per seconds"
+      ]
+    },
+    {
+      "sc": "IGNORANCE",
+      "sc_id": 411,
+      "icon": "masquerade_ignorance.tga",
+      "name": "Masquerade: Ignorance",
+      "category": "Debuff",
+      "description": [
+        "Lost a certain amount of SP",
+        "Skills and Magics are disabled"
+      ]
+    },
+    {
+      "sc": "LAZINESS",
+      "sc_id": 412,
+      "icon": "masquerade_laziness.tga",
+      "name": "Masquerade: Laziness",
+      "category": "Debuff",
+      "description": [
+        "Reduces Movement Speed and FLEE",
+        "Increases casting time",
+        "Adds a certain amount of SP when using a skill"
+      ]
+    },
+    {
+      "sc": "LIGHTNINGWALK",
+      "sc_id": 413,
+      "icon": "icon02.tga",
+      "name": "Lightning Walk",
+      "category": "Buff",
+      "description": [
+        "When targetted by a magic attack,",
+        "after a chance to avoid",
+        "move straight to the caster"
+      ]
+    },
+    {
+      "sc": "ACARAJE",
+      "sc_id": 414,
+      "icon": "공속물약.tga",
+      "name": "Acaraje",
+      "category": "Buff",
+      "description": [
+        "Increases HIT and ASPD"
+      ]
+    },
+    {
+      "sc": "UNLUCKY",
+      "sc_id": 415,
+      "icon": "masquerade_unlucky.tga",
+      "name": "Masquerade: Unlucky",
+      "category": "Debuff",
+      "description": [
+        "Reduces critical rate",
+        "Reduces perfect dodge",
+        "Using skills costs zeny",
+        "Damage over time causes a certain status ailments."
+      ]
+    },
+    {
+      "sc": "WEAKNESS",
+      "sc_id": 418,
+      "icon": "masquerade_weakness.tga",
+      "name": "Masquerade: Weakness",
+      "category": "Debuff",
+      "description": [
+        "Reduces Max HP",
+        "When evaded, weapon, shield is taken off.",
+        "Cannot equip weapons and shield"
+      ]
+    },
+    {
+      "sc": "CRESCENTELBOW",
+      "sc_id": 419,
+      "icon": "기리에엘레이손.tga",
+      "name": "Crescent Elbow",
+      "category": "Buff",
+      "description": [
+        "Knocks back opponent and deals damage",
+        "You still take some of the damage",
+        "Does not affect boss monsters"
+      ]
+    },
+    {
+      "sc": "STRIPACCESSARY",
+      "sc_id": 421,
+      "icon": "스트립액세서리.tga",
+      "name": "Accessory Off Status",
+      "category": "Debuff",
+      "description": [
+        "Cannot Equip Accessories"
+      ]
+    },
+    {
+      "sc": "POPECOOKIE",
+      "sc_id": 423,
+      "icon": "gogi.tga",
+      "name": "Pope Cookie",
+      "category": "Buff",
+      "description": [
+        "Increases ATK and MATK",
+        "Increases Resistance to all property."
+      ]
+    },
+    {
+      "sc": "GENTLETOUCH_ENERGYGAIN",
+      "sc_id": 425,
+      "icon": "점혈구.tga",
+      "name": "Gentle Touch - Energy Gain",
+      "category": "Buff",
+      "description": [
+        "When attacked or when attacking, there is a chance to",
+        "earn a Spirit Sphere"
+      ]
+    },
+    {
+      "sc": "GENTLETOUCH_CHANGE",
+      "sc_id": 426,
+      "icon": "점혈반.tga",
+      "name": "Gentle Touch - Change",
+      "category": "Buff",
+      "description": [
+        "Reduces DEF and MDEF",
+        "Increases Damage and ASPD"
+      ]
+    },
+    {
+      "sc": "GENTLETOUCH_REVITALIZE",
+      "sc_id": 427,
+      "icon": "점혈활.tga",
+      "name": "Gentle Touch - Revitalize",
+      "category": "Buff",
+      "description": [
+        "Increases VIT, Max HP",
+        "Increases DEF",
+        "Increases natural HP Recovery",
+        "Movement speed increased"
+      ]
+    },
+    {
+      "sc": "SWING",
+      "sc_id": 429,
+      "icon": "스윙댄스.tga",
+      "name": "Swing Dance",
+      "category": "Buff",
+      "description": [
+        "Increases Movement Speed",
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "SYMPHONY_LOVE",
+      "sc_id": 430,
+      "icon": "연인들을위한심포니.tga",
+      "name": "Symphony of Love",
+      "category": "Buff",
+      "description": [
+        "Increases MDEF"
+      ]
+    },
+    {
+      "sc": "DEEP_SLEEP",
+      "sc_id": 435,
+      "icon": "안식의자장가.tga",
+      "name": "Deep Sleep Status",
+      "category": "Buff",
+      "description": [
+        "Increases Damage Received by 1.5 times",
+        "Recovers HP/SP every 2 seconds"
+      ]
+    },
+    {
+      "sc": "SIRCLEOFNATURE",
+      "sc_id": 436,
+      "icon": "순환하는자연의소리.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Consumes SP and recovers HP"
+      ]
+    },
+    {
+      "sc": "COLD",
+      "sc_id": 437,
+      "icon": "다이아몬드더스트.tga",
+      "name": "Frozen",
+      "category": "Debuff",
+      "description": [
+        "Movement, Attack, Skill and Items are not available",
+        "Drains SP and HP continuously",
+        "Increases the damage taken caused by Maces, Axes and 2H Axes",
+        "Increases the damage taken caused by Wind Property spells",
+        "Reduces the damage taken caused by Daggers, Swords, 2H Swords and Arrows"
+      ]
+    },
+    {
+      "sc": "GLOOMYDAY",
+      "sc_id": 438,
+      "icon": "수줍은하루의우울.tga",
+      "name": "Gloomy Day",
+      "category": "Buff",
+      "description": [
+        "Increases the damage of specific skills",
+        "Reduces FLEE, ASPD"
+      ]
+    },
+    {
+      "sc": "SONG_OF_MANA",
+      "sc_id": 439,
+      "icon": "마나의노래.tga",
+      "name": "Song of Mana",
+      "category": "Buff",
+      "description": [
+        "Recovers SP every 5 seconds"
+      ]
+    },
+    {
+      "sc": "DANCE_WITH_WUG",
+      "sc_id": 441,
+      "icon": "워그와함께춤을.tga",
+      "name": "Dance With Warg",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD",
+        "Reduces Fixed casting time"
+      ]
+    },
+    {
+      "sc": "RUSH_WINDMILL",
+      "sc_id": 442,
+      "icon": "풍차를향해돌격.tga",
+      "name": "Rush Windmill Attack",
+      "category": "Buff",
+      "description": [
+        "Increases Damage"
+      ]
+    },
+    {
+      "sc": "ECHOSONG",
+      "sc_id": 443,
+      "icon": "마스커레이드.tga",
+      "name": "Echo Song",
+      "category": "Buff",
+      "description": [
+        "Increases DEF"
+      ]
+    },
+    {
+      "sc": "HARMONIZE",
+      "sc_id": 444,
+      "icon": "하모나이즈.tga",
+      "name": "Harmonize",
+      "category": "Buff",
+      "description": [
+        "Increases all Stats"
+      ]
+    },
+    {
+      "sc": "STRIKING",
+      "sc_id": 445,
+      "icon": "스트라이킹.tga",
+      "name": "Striking",
+      "category": "Buff",
+      "description": [
+        "Increases Weapon damage and chance of critical"
+      ]
+    },
+    {
+      "sc": "WARMER",
+      "sc_id": 446,
+      "icon": "워머.tga",
+      "name": "Warmer",
+      "category": "Buff",
+      "description": [
+        "Removes Frozen/Freezing status",
+        "Immunity to Frozen/Freezing status",
+        "Recovers HP every 3 seconds"
+      ]
+    },
+    {
+      "sc": "MOONLIT_SERENADE",
+      "sc_id": 447,
+      "icon": "달빛의세레나데.tga",
+      "name": "Moonlit Serenade",
+      "category": "Buff",
+      "description": [
+        "Increases damage of magic skills"
+      ]
+    },
+    {
+      "sc": "SATURDAY_NIGHT_FEVER",
+      "sc_id": 448,
+      "icon": "새터데이나이트피버.tga",
+      "name": "Wild",
+      "category": "Debuff",
+      "description": [
+        "Decreases HP/SP per 3 seconds",
+        "Damage increased, Defense and Evasion dropped",
+        "Skills and items cannot be used."
+      ]
+    },
+    {
+      "sc": "ANALYZE",
+      "sc_id": 450,
+      "icon": "애널라이즈.tga",
+      "name": "Analyze",
+      "category": "Buff",
+      "description": [
+        "Reduces Physical and Magical Defense"
+      ]
+    },
+    {
+      "sc": "LERADS_DEW",
+      "sc_id": 451,
+      "icon": "레라드의이슬.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases Max HP"
+      ]
+    },
+    {
+      "sc": "MELODYOFSINK",
+      "sc_id": 452,
+      "icon": "멜로디오브싱크.tga",
+      "name": "Melody of Sink",
+      "category": "Buff",
+      "description": [
+        "Increases Magical Damage",
+        "Decreases Physical Damage"
+      ]
+    },
+    {
+      "sc": "BEYOND_OF_WARCRY",
+      "sc_id": 453,
+      "icon": null,
+      "name": "Warcry of Beyond",
+      "category": "Buff",
+      "description": [
+        "Increases physical attack power",
+        "Decreases magic attack power"
+      ]
+    },
+    {
+      "sc": "UNLIMITED_HUMMING_VOICE",
+      "sc_id": 454,
+      "icon": "언리미티드허밍보이스.tga",
+      "name": "Unlimited Humming Voice",
+      "category": "Buff",
+      "description": [
+        "increase their SP consumption"
+      ]
+    },
+    {
+      "sc": "GN_CARTBOOST",
+      "sc_id": 461,
+      "icon": "icon07.tga",
+      "name": "Cart Boost",
+      "category": "Buff",
+      "description": [
+        "Increases Movement Speed"
+      ]
+    },
+    {
+      "sc": "THORNS_TRAP",
+      "sc_id": 463,
+      "icon": "가시나무덫.tga",
+      "name": "Thorn Trap",
+      "category": "Debuff",
+      "description": [
+        "Periodically applies damage"
+      ]
+    },
+    {
+      "sc": "AB_SECRAMENT",
+      "sc_id": 472,
+      "icon": "세크라멘트.tga",
+      "name": "Sacrament",
+      "category": "Buff",
+      "description": [
+        "Reduces fixed casting time"
+      ]
+    },
+    {
+      "sc": "ASSUMPTIO2",
+      "sc_id": 473,
+      "icon": "icon05.tga",
+      "name": "Assumptio",
+      "category": "Buff",
+      "description": [
+        "Increases Defense"
+      ]
+    },
+    {
+      "sc": "STOMACHACHE",
+      "sc_id": 476,
+      "icon": "안티매터리얼.tga",
+      "name": "Stomachache",
+      "category": "Buff",
+      "description": [
+        "Reduces All Stats",
+        "Reduces Movement Speed",
+        "Forced to sit down once in every 10 sec",
+        "Consume certain amount of SP for 10 sec"
+      ]
+    },
+    {
+      "sc": "SAVAGE_STEAK",
+      "sc_id": 491,
+      "icon": "str_gogi.tga",
+      "name": "Savage Roast",
+      "category": "Buff",
+      "description": [
+        "Increases STR"
+      ]
+    },
+    {
+      "sc": "COCKTAIL_WARG_BLOOD",
+      "sc_id": 492,
+      "icon": "int_gogi.tga",
+      "name": "Wolf Blood Cocktail",
+      "category": "Buff",
+      "description": [
+        "Increases INT"
+      ]
+    },
+    {
+      "sc": "MINOR_BBQ",
+      "sc_id": 493,
+      "icon": "vit_gogi.tga",
+      "name": "Minorous Beef Stew",
+      "category": "Buff",
+      "description": [
+        "Increases VIT"
+      ]
+    },
+    {
+      "sc": "SIROMA_ICE_TEA",
+      "sc_id": 494,
+      "icon": "dex_gogi.tga",
+      "name": "Siroma Iced Tea",
+      "category": "Buff",
+      "description": [
+        "Increases DEX"
+      ]
+    },
+    {
+      "sc": "DROCERA_HERB_STEAMED",
+      "sc_id": 495,
+      "icon": "agi_gogi.tga",
+      "name": "Drosera Herb Salad",
+      "category": "Buff",
+      "description": [
+        "Increases AGI"
+      ]
+    },
+    {
+      "sc": "PUTTI_TAILS_NOODLES",
+      "sc_id": 496,
+      "icon": "luk_gogi.tga",
+      "name": "Petite Tail Noodle",
+      "category": "Buff",
+      "description": [
+        "Increases LUK"
+      ]
+    },
+    {
+      "sc": "MORA_BUFF",
+      "sc_id": 573,
+      "icon": "gogi.tga",
+      "name": "Mora Berry",
+      "category": "Buff",
+      "description": [
+        "Increases Resistance to every monsters",
+        "in the fields near the town of Mora."
+      ]
+    },
+    {
+      "sc": "PAIN_KILLER",
+      "sc_id": 577,
+      "icon": "세라4.tga",
+      "name": "Pain Killer",
+      "category": "Buff",
+      "description": [
+        "No movement delay in receiving damage",
+        "Reduced damage taken"
+      ]
+    },
+    {
+      "sc": "G_LIFEPOTION",
+      "sc_id": 578,
+      "icon": "중형생명수.tga",
+      "name": "Rapid Life-giving Water",
+      "category": "Buff",
+      "description": [
+        "Recovers HP every 3 seconds",
+        "No effect if Berserk State is active"
+      ]
+    },
+    {
+      "sc": "VITALIZE_POTION",
+      "sc_id": 579,
+      "icon": "에이라1.tga",
+      "name": "Vitalize Potion",
+      "category": "Buff",
+      "description": [
+        "Increases ATK and MATK",
+        "Increase effects of heal and healing items"
+      ]
+    },
+    {
+      "sc": "LIGHT_OF_REGENE",
+      "sc_id": 580,
+      "icon": "에이라1.tga",
+      "name": "Light Of Regeneration",
+      "category": "Buff",
+      "description": [
+        "When the summoner died",
+        "Homunculus will sacrifice to revive the summoner"
+      ]
+    },
+    {
+      "sc": "OVERED_BOOST",
+      "sc_id": 581,
+      "icon": "에이라2.tga",
+      "name": "Overed Boost",
+      "category": "Buff",
+      "description": [
+        "Increases ASPD and Evasion",
+        "to a fixed amount"
+      ]
+    },
+    {
+      "sc": "ODINS_POWER",
+      "sc_id": 583,
+      "icon": "all_odins_power.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases ATK and MATK",
+        "Decreases DEF and MDEF"
+      ]
+    },
+    {
+      "sc": "STYLE_CHANGE",
+      "sc_id": 584,
+      "icon": "efst_atk.tga",
+      "name": "Style Change",
+      "category": "Toggle",
+      "description": [
+        "Homunculus in Fighter Style"
+      ]
+    },
+    {
+      "sc": "MAGMA_FLOW",
+      "sc_id": 605,
+      "icon": "디이터1.tga",
+      "name": "Magma Flow",
+      "category": "Buff",
+      "description": [
+        "When receiving damage",
+        "there is a chance to eject magma around it"
+      ]
+    },
+    {
+      "sc": "GRANITIC_ARMOR",
+      "sc_id": 606,
+      "icon": "디이터2.tga",
+      "name": "Granitic Armor",
+      "category": "Buff",
+      "description": [
+        "Reduced damage taken",
+        "Lose some HP when the status ends."
+      ]
+    },
+    {
+      "sc": "PYROCLASTIC",
+      "sc_id": 607,
+      "icon": "디이터4.tga",
+      "name": "Pyroclastic",
+      "category": "Buff",
+      "description": [
+        "Weapon of Deeter and Owner",
+        "Change to Fire Property",
+        "Increased weapon damage"
+      ]
+    },
+    {
+      "sc": "VOLCANIC_ASH",
+      "sc_id": 608,
+      "icon": "디이터5.tga",
+      "name": "Volcanic Ash",
+      "category": "Debuff",
+      "description": [
+        "Reduced hit rate",
+        "Skill has a chance of failing",
+        "Increases fire damage taken"
+      ]
+    },
+    {
+      "sc": "MAGIC_CANDY",
+      "sc_id": 611,
+      "icon": "plusmagicpower.tga",
+      "name": "Magic Candy",
+      "category": "Buff",
+      "description": [
+        "Increases MATK",
+        "Reduced fixed casting time.",
+        "Casting cannot be interrupted.",
+        "Drains SP every 10 seconds"
+      ]
+    },
+    {
+      "sc": "ALL_RIDING",
+      "sc_id": 613,
+      "icon": "라이딩.tga",
+      "name": "Riding",
+      "category": "Toggle",
+      "description": []
+    },
+    {
+      "sc": "MACRO_POSTDELAY",
+      "sc_id": 616,
+      "icon": null,
+      "name": "Macros Disabled",
+      "category": "System",
+      "description": [
+        "Macro is deactivated."
+      ]
+    },
+    {
+      "sc": "OVERLAPEXPUP",
+      "sc_id": 618,
+      "icon": "item.tga",
+      "name": "Maldango Canned Cat",
+      "category": "Buff",
+      "description": [
+        "When killing monsters in Maldango",
+        "Increases Base and Job EXP",
+        "Increases Item drop rate"
+      ]
+    },
+    {
+      "sc": "MONSTER_TRANSFORM",
+      "sc_id": 621,
+      "icon": "변신.tga",
+      "name": "Monster Transformation",
+      "category": "Buff",
+      "description": [
+        "Transformed into monster."
+      ]
+    },
+    {
+      "sc": "SIT",
+      "sc_id": 622,
+      "icon": "앉기.tga",
+      "name": "Sit",
+      "category": "Toggle",
+      "description": []
+    },
+    {
+      "sc": "MACRO_PERMIT",
+      "sc_id": 630,
+      "icon": null,
+      "name": "Using Macros",
+      "category": "System",
+      "description": [
+        "Macro is activated"
+      ]
+    },
+    {
+      "sc": "SKF_CAST",
+      "sc_id": 632,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Reduces casting time"
+      ]
+    },
+    {
+      "sc": "SKF_ASPD",
+      "sc_id": 633,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases ASPD"
+      ]
+    },
+    {
+      "sc": "SKF_ATK",
+      "sc_id": 634,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases ATK"
+      ]
+    },
+    {
+      "sc": "SKF_MATK",
+      "sc_id": 635,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases MATK"
+      ]
+    },
+    {
+      "sc": "REWARD_PLUSONLYJOBEXP",
+      "sc_id": 636,
+      "icon": "job.tga",
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Increases gained Job experience"
+      ]
+    },
+    {
+      "sc": "HANDICAPSTATE_NORECOVER",
+      "sc_id": 637,
+      "icon": null,
+      "name": "Recovery disabled status",
+      "category": "Debuff",
+      "description": [
+        "HP and SP recovery are disabled"
+      ]
+    },
+    {
+      "sc": "SET_NUM_DEF",
+      "sc_id": 638,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "DEF amount is set."
+      ]
+    },
+    {
+      "sc": "SET_NUM_MDEF",
+      "sc_id": 639,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "MDEF amount is set."
+      ]
+    },
+    {
+      "sc": "SET_PER_DEF",
+      "sc_id": 640,
+      "icon": null,
+      "name": "DEF amount is fixed at certain percentage.",
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "SET_PER_MDEF",
+      "sc_id": 641,
+      "icon": null,
+      "name": "MDEF amount is fixed at certain percentage.",
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "MEIKYOUSISUI",
+      "sc_id": 646,
+      "icon": "meikyousisui.tga",
+      "name": "Pure Soul",
+      "category": "Buff",
+      "description": [
+        "Recovers a certain amount of HP",
+        "Recovers a certain amount of SP",
+        "Unable to move",
+        "Chance to ignore damage when attacked",
+        "Effect wears off by chance when hit."
+      ]
+    },
+    {
+      "sc": "ATTHASTE_CASH",
+      "sc_id": 647,
+      "icon": "aspdcash.tga",
+      "name": "ASPD Reinforce Potion",
+      "category": "Buff",
+      "description": [
+        "Increase Attack Speed"
+      ]
+    },
+    {
+      "sc": "RWC2011",
+      "sc_id": 650,
+      "icon": null,
+      "name": "Firecracker",
+      "category": "Buff",
+      "description": [
+        "Increases all stats",
+        "Increases ATK, MATK"
+      ]
+    },
+    {
+      "sc": "IZAYOI",
+      "sc_id": 652,
+      "icon": "izayoi.tga",
+      "name": "16th Night",
+      "category": "Buff",
+      "description": [
+        "Removes Fixed casting time",
+        "Reduced variable casting time",
+        "Increases MATK",
+        "Drains SP per second"
+      ]
+    },
+    {
+      "sc": "KG_KAGEHUMI",
+      "sc_id": 654,
+      "icon": "kg_kagehumi.tga",
+      "name": "Shadow Step",
+      "category": "Debuff",
+      "description": [
+        "Unable to move",
+        "Cannot use certain skills or item",
+        "Stealth or teleport skills and items are disabled.",
+        "Unable to use Emergency Call skill"
+      ]
+    },
+    {
+      "sc": "KYOMU",
+      "sc_id": 655,
+      "icon": "kyomu.tga",
+      "name": "Kyomu",
+      "category": "Debuff",
+      "description": [
+        "Reflects wont take effect when hit by Physical or Magical Attacks",
+        "Chance the skill will fail when casting"
+      ]
+    },
+    {
+      "sc": "KAGEMUSYA",
+      "sc_id": 656,
+      "icon": "kagemusya.tga",
+      "name": "Shadow Warrior",
+      "category": "Buff",
+      "description": [
+        "Enchanted with Double Attack effect",
+        "Drains SP per second",
+        "Status ends when received a certain number of hits."
+      ]
+    },
+    {
+      "sc": "ZANGETSU",
+      "sc_id": 657,
+      "icon": "zangetsu.tga",
+      "name": "Distorted Crescent Moon",
+      "category": "Buff",
+      "description": [
+        "ATK and MATK changed, depending on HP and SP"
+      ]
+    },
+    {
+      "sc": "PHI_DEMON",
+      "sc_id": 658,
+      "icon": null,
+      "name": "%s",
+      "category": null,
+      "description": [
+        "Gives Demon type monster",
+        "Increases Physical and Magic damage"
+      ]
+    },
+    {
+      "sc": "GENSOU",
+      "sc_id": 659,
+      "icon": "gensou.tga",
+      "name": "Oboro Gensou",
+      "category": "Buff",
+      "description": [
+        "Randomly increase/decrease HP and SP",
+        "When hit by Magical Attacks half of the damage",
+        "will be distributed around the area"
+      ]
+    },
+    {
+      "sc": "AKAITSUKI",
+      "sc_id": 660,
+      "icon": "akaitsuki.tga",
+      "name": "Ominous Crimson Moonlight",
+      "category": "Debuff",
+      "description": [
+        "When receiving recovery skills",
+        "healed amount will be converted to damage."
+      ]
+    },
+    {
+      "sc": "GM_BATTLE",
+      "sc_id": 662,
+      "icon": null,
+      "name": "ÃÃ¼ÃÃµÂ¾Ã ",
+      "category": "Buff",
+      "description": [
+        "Increases ATK and MATK",
+        "Reduced MHP and MSP"
+      ]
+    },
+    {
+      "sc": "GM_BATTLE2",
+      "sc_id": 663,
+      "icon": null,
+      "name": "Â°Ã­Â±ÃÃÃ¼ÃÃµÂ¾Ã ",
+      "category": "Buff",
+      "description": [
+        "Increases ATK and MATK",
+        "Reduces MHP and MSP"
+      ]
+    },
+    {
+      "sc": "MYSTICPOWDER",
+      "sc_id": 666,
+      "icon": null,
+      "name": "Mystic Powder",
+      "category": "Buff",
+      "description": [
+        "Increases FLEE and LUK"
+      ]
+    },
+    {
+      "sc": "M_LIFEPOTION",
+      "sc_id": 670,
+      "icon": "중형생명수.tga",
+      "name": "Mysterious Life Potion",
+      "category": "Buff",
+      "description": [
+        "Recovers a certain amount of HP every 3 seconds",
+        "No effect on Berserk status."
+      ]
+    },
+    {
+      "sc": "FLOWER_LEAF",
+      "sc_id": 675,
+      "icon": "flower_leaf.tga",
+      "name": "ÃÂ³Â¼ÂºÃÃ Â²ÃÂ°Â¡ÃÃ¶",
+      "category": "Buff",
+      "description": [
+        "Increases FLEE",
+        "Increases perfect dodge"
+      ]
+    },
+    {
+      "sc": "RAY_OF_PROTECTION",
+      "sc_id": 676,
+      "icon": "all_ray_of_protection.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "GLASTHEIM_ATK",
+      "sc_id": 677,
+      "icon": "glastheim_atk.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "GLASTHEIM_DEF",
+      "sc_id": 678,
+      "icon": "glastheim_def.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "GLASTHEIM_HEAL",
+      "sc_id": 679,
+      "icon": "glastheim_heal.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "CLIENT_ONLY_EQUIP_ARROW",
+      "sc_id": 695,
+      "icon": "ArrowN.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "FRIGG_SONG",
+      "sc_id": 715,
+      "icon": "frigg_song.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "FULL_THROTTLE",
+      "sc_id": 720,
+      "icon": "full_throttle.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "DARKCROW",
+      "sc_id": 730,
+      "icon": "darkcrow.tga",
+      "name": null,
+      "category": null,
+      "description": []
+    },
+    {
+      "sc": "ATTACK_PROPERTY_NOTHING",
+      "sc_id": 897,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Neutral Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_WATER",
+      "sc_id": 898,
+      "icon": "weapon_property_water.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Water Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_GROUND",
+      "sc_id": 899,
+      "icon": "weapon_property_ground.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Earth Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_FIRE",
+      "sc_id": 900,
+      "icon": "weapon_property_fire.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Fire Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_WIND",
+      "sc_id": 901,
+      "icon": "weapon_property_wind.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Wind Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_POISON",
+      "sc_id": 902,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Poison Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_SAINT",
+      "sc_id": 903,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Holy Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_DARKNESS",
+      "sc_id": 904,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Dark Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_TELEKINESIS",
+      "sc_id": 905,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Ghost Property"
+      ]
+    },
+    {
+      "sc": "ATTACK_PROPERTY_UNDEAD",
+      "sc_id": 906,
+      "icon": "weapon_property.tga",
+      "name": "Weapon Property",
+      "category": "Buff",
+      "description": [
+        "Enchants Weapon with Undead Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_NOTHING",
+      "sc_id": 907,
+      "icon": "resist_elemental_nothing.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Neutral Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_WATER",
+      "sc_id": 908,
+      "icon": "resist_elemental_water.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Water Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_GROUND",
+      "sc_id": 909,
+      "icon": "resist_elemental_ground.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Earth Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_FIRE",
+      "sc_id": 910,
+      "icon": "resist_elemental_fire.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Fire Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_WIND",
+      "sc_id": 911,
+      "icon": "resist_elemental_wind.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Wind Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_POISON",
+      "sc_id": 912,
+      "icon": "resist_elemental_poison.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Poison Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_SAINT",
+      "sc_id": 913,
+      "icon": "resist_elemental_saint.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Holy Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_DARKNESS",
+      "sc_id": 914,
+      "icon": "resist_elemental_darkness.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Dark Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_TELEKINESIS",
+      "sc_id": 915,
+      "icon": "resist_elemental_telekinesis.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Ghost Property"
+      ]
+    },
+    {
+      "sc": "RESIST_PROPERTY_UNDEAD",
+      "sc_id": 916,
+      "icon": "resist_elemental_undead.tga",
+      "name": "Resist Property",
+      "category": "Buff",
+      "description": [
+        "Increases your resistance to the Undead Property"
+      ]
+    },
+    {
+      "sc": "RWC_SCROLL2011",
+      "sc_id": null,
+      "icon": null,
+      "name": "Red Booster",
+      "category": "Buff",
+      "description": [
+        "Increases ATK and MATK",
+        "Increases ASPD",
+        "Reduced variable casting time",
+        "When receiving Physical and Magical damage",
+        "there is a chance to cast Improve Concentration skill"
+      ]
+    }
+  ]
+}

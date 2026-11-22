@@ -24,6 +24,15 @@ struct Arguments {
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_skill_effects: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the data-driven status-effect table and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\status_effects.ron`). Exits 0 when valid, 1 with the
+    /// schema errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_status_effects: Option<Option<std::path::PathBuf>>,
+
     /// Increase log verbosity: -v info, -vv debug, -vvv trace.
     ///
     /// Logs are written to stderr; the launcher scripts redirect them to
@@ -60,6 +69,19 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("skill effects: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_status_effects {
+        match korangar::check_status_effects(path.as_deref()) {
+            Ok(count) => {
+                println!("status effects: {count} statuses are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("status effects: invalid data: {error}");
                 std::process::exit(1);
             }
         }
