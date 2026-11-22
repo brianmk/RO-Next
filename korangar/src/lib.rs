@@ -3009,6 +3009,14 @@ impl Client {
                         player.set_falcon_animation(falcon_animation);
                     }
 
+                    let weapon_candidates = player.get_weapon_part_candidates();
+                    if !weapon_candidates.is_empty()
+                        && !player.has_weapon_animation()
+                        && let Some(weapon_animation) = self.async_loader.request_weapon_animation_data_load(entity_id, weapon_candidates)
+                    {
+                        player.set_weapon_animation(weapon_animation);
+                    }
+
                     let layout = self.async_loader.request_skill_tree_layout_load(player.get_job_id(), client_tick);
                     *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
                     *self.client_state.follow_mut(client_state().skill_tree().layout()) = layout;
@@ -3123,6 +3131,15 @@ impl Client {
                             && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity_id)
                         {
                             npc.set_falcon_animation(falcon_animation);
+                        }
+
+                        let weapon_candidates = npc.get_weapon_part_candidates();
+                        if !weapon_candidates.is_empty()
+                            && !npc.has_weapon_animation()
+                            && let Some(weapon_animation) =
+                                self.async_loader.request_weapon_animation_data_load(entity_id, weapon_candidates)
+                        {
+                            npc.set_weapon_animation(weapon_animation);
                         }
 
                         #[cfg(feature = "debug")]
@@ -3883,6 +3900,16 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
 
+                    let weapon_candidates = entity.get_weapon_part_candidates();
+                    if !weapon_candidates.is_empty()
+                        && !entity.has_weapon_animation()
+                        && let Some(weapon_animation) = self
+                            .async_loader
+                            .request_weapon_animation_data_load(entity.get_entity_id(), weapon_candidates)
+                    {
+                        entity.set_weapon_animation(weapon_animation);
+                    }
+
                     // Only the own character's job change affects the local skill tree
                     // window. Population shells send job changes for jobs that do not
                     // exist in this client's skill tree tables, which used to panic when
@@ -3931,6 +3958,16 @@ impl Client {
                         && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(entity.get_entity_id())
                     {
                         entity.set_falcon_animation(falcon_animation);
+                    }
+
+                    let weapon_candidates = entity.get_weapon_part_candidates();
+                    if !weapon_candidates.is_empty()
+                        && !entity.has_weapon_animation()
+                        && let Some(weapon_animation) = self
+                            .async_loader
+                            .request_weapon_animation_data_load(entity.get_entity_id(), weapon_candidates)
+                    {
+                        entity.set_weapon_animation(weapon_animation);
                     }
                 }
                 NetworkEvent::AppearanceChanged {
@@ -6097,6 +6134,16 @@ impl Client {
                         .find(|entity| entity.get_entity_id() == entity_id)
                     {
                         entity.set_falcon_animation(falcon_animation);
+                    }
+                }
+                (LoaderId::WeaponAnimationData(entity_id), LoadableResource::WeaponAnimation(weapon_animation)) => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_weapon_animation(weapon_animation);
                     }
                 }
                 (LoaderId::ItemSprite(item_id), LoadableResource::ItemSprite { texture }) => {

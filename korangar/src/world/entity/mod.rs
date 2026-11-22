@@ -58,6 +58,30 @@ const FALCON_HEIGHT: f32 = 42.0;
 /// sprite, e.g. `data\sprite\인간족\궁수\궁수_남_활.spr/.act`. The suffix is
 /// derived from the weapon type the server sends in the entity-appear packets;
 /// newer clients also use item view ids as suffix, so those are tried first.
+/// Candidate weapon sprite part files for a player.
+///
+/// The 2019 data set stores per-job weapon variants next to the body sprite
+/// (`data\sprite\인간족\<job_sprite_stem>\<stem>_<sex>_<variant>`), not in a
+/// `무기` folder. The numeric weapon value (item view id, as population shells
+/// send) is tried first, then the classic suffixes for the weapon type.
+pub(crate) fn player_weapon_part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<EntityPartFile> {
+    if weapon == 0 {
+        return Vec::new();
+    }
+
+    let sex_sprite_path = match sex == Sex::Female {
+        true => "여",
+        false => "남",
+    };
+    let job_stem = get_sprite_path_for_player_job(job_id);
+    let numeric = format!("{weapon}");
+
+    std::iter::once(numeric.as_str())
+        .chain(weapon_suffix_candidates(weapon).iter().copied())
+        .map(|suffix| EntityPartFile::new(format!("인간족\\{job_stem}\\{job_stem}_{sex_sprite_path}_{suffix}")))
+        .collect()
+}
+
 fn weapon_suffix_candidates(weapon: u32) -> &'static [&'static str] {
     match weapon {
         0 => &[],
@@ -264,6 +288,10 @@ pub struct Common {
     /// Independent animation state of the falcon (perched/flapping loop).
     #[hidden_element]
     falcon_animation_state: AnimationState,
+    /// Equipped weapon animation, drawn as its own layer on top of the body
+    /// animation using the body animation state (same ACT action layout).
+    #[hidden_element]
+    weapon_animation: Option<Arc<AnimationData>>,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
     /// Pending death: the tick at which the server reported the death. The
@@ -521,7 +549,6 @@ fn get_entity_part_files(
     accessory: u16,
     accessory2: u16,
     accessory3: u16,
-    weapon: u32,
 ) -> Vec<EntityPartFile> {
     let sex_sprite_path = match sex == Sex::Female {
         true => "여",
@@ -593,21 +620,6 @@ fn get_entity_part_files(
 
             if accessory != 0 {
                 push_accessory(accessory);
-            }
-
-            // Equipped weapon: the 2019 data set stores per-job weapon variants
-            // next to the body sprite (`인간족\<job>\<job>_<sex>_<variant>`), not
-            // in a `무기` folder. Candidates that do not exist in the archives are
-            // skipped by the animation loader (optional-part path), so a missing
-            // weapon never renders the black placeholder.
-            if weapon != 0 {
-                let job_stem = get_sprite_path_for_player_job(job_id);
-                let numeric = format!("{weapon}");
-
-                for suffix in std::iter::once(numeric.as_str()).chain(weapon_suffix_candidates(weapon).iter().copied()) {
-                    let path = format!("인간족\\{job_stem}\\{job_stem}_{sex_sprite_path}_{suffix}");
-                    entity_part_files.push(EntityPartFile::new(path));
-                }
             }
 
             entity_part_files
@@ -726,6 +738,7 @@ impl Common {
             robe,
             falcon_animation: None,
             falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick),
+            weapon_animation: None,
             active_movement,
             entity_type,
             movement_speed,
@@ -789,6 +802,30 @@ impl Common {
         self.falcon_animation.is_some()
     }
 
+    pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
+        player_weapon_part_candidates(self.job_id, self.sex, self.weapon)
+    }
+
+    pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
+        // Some trimmed archives contain weapon ACTs whose frames reference no
+        // sprite (sprite_number == usize::MAX placeholder). Do not keep such an
+        // animation: it would never draw anything.
+        let has_drawable_frames = animation_data
+            .animations
+            .iter()
+            .take(8)
+            .flat_map(|animation| animation.frames.iter())
+            .any(|frame| frame.frame_parts.iter().any(|part| part.sprite_number != usize::MAX));
+
+        if has_drawable_frames {
+            self.weapon_animation = Some(animation_data);
+        }
+    }
+
+    pub fn has_weapon_animation(&self) -> bool {
+        self.weapon_animation.is_some()
+    }
+
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
         get_entity_part_files(
             library,
@@ -801,7 +838,6 @@ impl Common {
             self.accessory,
             self.accessory2,
             self.accessory3,
-            self.weapon,
         )
     }
 
@@ -1307,6 +1343,22 @@ impl Common {
             );
         }
 
+        // Equipped weapon: rendered as its own animation layer with the body
+        // animation state/action/frame so the weapon follows idle/walk/attack.
+        if let Some(weapon_animation) = self.weapon_animation.as_ref() {
+            weapon_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                self.world_position,
+                &self.animation_state,
+                self.direction,
+                alpha,
+                self.scale,
+            );
+        }
+
         // Falcon companion: drawn above the owner (classic client shows it perched
         // on / flying above the hunter). Only rendered while the option bit is set.
         if self.has_falcon()
@@ -1682,7 +1734,6 @@ impl Player {
             common.accessory,
             common.accessory2,
             common.accessory3,
-            common.weapon,
         )
     }
 }
@@ -1838,6 +1889,18 @@ impl Entity {
 
     pub fn has_falcon_animation(&self) -> bool {
         self.get_common().has_falcon_animation()
+    }
+
+    pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
+        self.get_common().get_weapon_part_candidates()
+    }
+
+    pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.get_common_mut().set_weapon_animation(animation_data);
+    }
+
+    pub fn has_weapon_animation(&self) -> bool {
+        self.get_common().has_weapon_animation()
     }
 
     fn get_common(&self) -> &Common {
