@@ -405,6 +405,16 @@ impl InputSystem {
             }
         }
 
+        // Page through the four hotkey tabs of the 2019 client with F11/F12.
+        // The function keys F1-F10 stay the "use this slot" keys.
+        if self.get_key(KeyCode::F11).pressed() {
+            events.push(InputEvent::CycleHotbarTab { delta: -1 });
+        }
+
+        if self.get_key(KeyCode::F12).pressed() {
+            events.push(InputEvent::CycleHotbarTab { delta: 1 });
+        }
+
         #[cfg(feature = "debug")]
         if control_down && self.get_key(KeyCode::KeyM).pressed() && self.get_key(KeyCode::ShiftLeft).down() {
             events.push(InputEvent::ToggleMapsWindow);

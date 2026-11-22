@@ -313,7 +313,11 @@ where
         text: packet.message,
         color: MessageColor::Server,
     })?;
-    packet_handler.register_noop::<MessageTablePacket>()?;
+    // `ZC_MSG` carries only a msgstringtable id; the client resolves it with
+    // `data/msgstringtable.txt` (see korangar/src/msgstringtable.rs).
+    packet_handler.register(|packet: MessageTablePacket| NetworkEvent::MessageString {
+        message_id: packet.message_id,
+    })?;
     packet_handler.register(|packet: EntityMessagePacket| {
         // Drop the alpha channel because it might be 0.
         let color = MessageColor::Rgb {

@@ -17,6 +17,8 @@
 #![feature(thread_local)]
 
 // Helper macro to time and print the startup time of Korangar
+mod msgstringtable;
+
 macro_rules! time_phase {
     ($message:expr, { $($statements:tt)* }) => {
         #[cfg(feature = "debug")]
@@ -74,8 +76,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
-    ExperienceSource, ExperienceType, Friend, HotbarSlot, InventoryIndex, SellItemsResult, SkillId, SkillLevel, SkillType, StatType,
-    TilePosition, UnitId, WorldPosition,
+    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, SellItemsResult, SkillId, SkillLevel,
+    SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -85,7 +87,7 @@ use settings::{
     AudioSettings, AudioSettingsPathExt, AuraStyle, GraphicsSettingsCapabilities, GraphicsSettingsPathExt, InterfaceSettings,
     InterfaceSettingsPathExt,
 };
-use state::hotbar::HotbarPathExt;
+use state::hotbar::{HOTBAR_ENTRIES_PER_TAB, HOTBAR_TAB_COUNT, HotbarPathExt};
 use state::inventory::InventoryPathExt;
 use state::localization::Localization;
 use state::skills::SkillTreePathExt;
@@ -522,6 +524,21 @@ fn format_amount(value: u64) -> String {
     formatted
 }
 
+/// Loads the client message table and logs whether it was found.
+///
+/// `data/msgstringtable.txt` is part of the client archives; when it is missing
+/// the client falls back to raw message ids instead of hiding the messages.
+fn load_message_table(game_file_loader: &GameFileLoader) -> Option<msgstringtable::MessageTable> {
+    let message_table = msgstringtable::MessageTable::load(game_file_loader);
+
+    match &message_table {
+        Some(table) => crate::logging::log_debug!("msgstringtable: {} entries loaded", table.len()),
+        None => crate::logging::log_warn!("data/msgstringtable.txt not found in the archives; system messages fall back to raw ids"),
+    }
+
+    message_table
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,
@@ -621,6 +638,10 @@ pub struct Client {
     shutdown_requested: bool,
     /// Deadline for the clean disconnect; the client exits when it is reached.
     shutdown_deadline: Option<Instant>,
+
+    /// Client message table (`data/msgstringtable.txt`) for `ZC_MSG` (0x0291)
+    /// system messages.
+    message_table: Option<msgstringtable::MessageTable>,
 
     /// Aggregated experience gains. rAthena sends one `ZC_NOTIFY_EXP2` packet
     /// per kill (and per party member share), so the amounts are summed and
@@ -925,6 +946,12 @@ impl Client {
 
             game_file_loader.load_archives_from_settings();
             game_file_loader.load_patched_lua_files();
+        });
+
+        // The message table is small (a few hundred KiB) and is needed for every
+        // `ZC_MSG` system message, so load it once at startup.
+        time_phase!("load message table", {
+            let message_table = load_message_table(game_file_loader.as_ref());
         });
 
         time_phase!("calculate game file hash", {
@@ -1255,6 +1282,7 @@ impl Client {
             saved_username,
             saved_packet_version,
             pending_stat_updates: PendingStatUpdates::new(),
+            message_table,
             pending_experience: PendingExperience::default(),
             shutdown_requested: false,
             shutdown_deadline: None,
@@ -4191,17 +4219,26 @@ impl Client {
                     *self.client_state.follow_mut(client_state().friend_online()) = vec![false; friend_count];
                 }
                 NetworkEvent::SetHotkeyData { tab, hotkeys } => {
-                    // FIX: Since we only have one hotbar at the moment, we ignore
-                    // everything but 0.
-                    if tab.0 != 0 {
+                    // The 2019 server sends 4 tabs with 38 entries each. Keep all of
+                    // them and distinguish skill hotkeys from item hotkeys (the old
+                    // code treated every entry as a skill id, so item hotkeys were
+                    // "cast" as skills and every tab but 0 was dropped).
+                    let tab_index = tab.0 as usize;
+
+                    if tab_index >= HOTBAR_TAB_COUNT {
                         continue;
                     }
 
-                    if let Some(job_id) = self.client_state.try_follow(this_entity()).map(Entity::get_job_id) {
-                        for (index, hotkey) in hotkeys.into_iter().take(10).enumerate() {
-                            match hotkey {
-                                HotkeyState::Bound(hotkey) => {
-                                    // TODO: Properly distinguish between skill and item.
+                    let job_id = self.client_state.try_follow(this_entity()).map(Entity::get_job_id);
+
+                    for (index, hotkey) in hotkeys.into_iter().take(HOTBAR_ENTRIES_PER_TAB).enumerate() {
+                        match hotkey {
+                            HotkeyState::Bound(hotkey) => match hotkey.hotkey_type {
+                                HotkeyType::Skill => {
+                                    let Some(job_id) = job_id else {
+                                        continue;
+                                    };
+
                                     let skill_id = SkillId(hotkey.item_or_skill_id as u16);
 
                                     let mut skill = self.async_loader.request_learnable_skill_load(job_id, skill_id, client_tick);
@@ -4209,15 +4246,24 @@ impl Client {
 
                                     self.client_state
                                         .follow_mut(client_state().hotbar())
-                                        .set_slot(HotbarSlot(index as u16), skill);
+                                        .apply_skill(tab_index, index, Some(skill));
                                 }
-                                HotkeyState::Unbound => self
-                                    .client_state
-                                    .follow_mut(client_state().hotbar())
-                                    .unset_slot(HotbarSlot(index as u16)),
-                            }
+                                HotkeyType::Item => {
+                                    self.client_state.follow_mut(client_state().hotbar()).apply_item(
+                                        tab_index,
+                                        index,
+                                        ItemId(hotkey.item_or_skill_id),
+                                        hotkey.quantity_or_skill_level,
+                                    );
+                                }
+                            },
+                            HotkeyState::Unbound => self.client_state.follow_mut(client_state().hotbar()).clear_entry(tab_index, index),
                         }
                     }
+
+                    // Refresh the visible slots when the active tab was updated
+                    // (also for tabs other than 0).
+                    self.client_state.follow_mut(client_state().hotbar()).refresh_visible_slots();
                 }
                 NetworkEvent::OpenShop { items } => {
                     self.shop_open = true;
@@ -4461,6 +4507,20 @@ impl Client {
                 }
                 NetworkEvent::RefuseEnter { error_code } => {
                     self.push_chat_information(format!("The map server refused the login (error {error_code})."));
+                }
+                NetworkEvent::MessageString { message_id } => {
+                    let text = match self.message_table.as_ref().and_then(|table| table.get(message_id)) {
+                        Some(text) => text.to_owned(),
+                        None => format!("Message #{message_id}"),
+                    };
+
+                    self.client_state
+                        .follow_mut(client_state().chat_messages())
+                        .push(ChatMessage::new(text, MessageColor::Rgb {
+                            red: 240,
+                            green: 220,
+                            blue: 120,
+                        }));
                 }
             }
         }
@@ -5287,7 +5347,33 @@ impl Client {
                         position,
                     );
                 }
+                InputEvent::CycleHotbarTab { delta } => {
+                    self.client_state.follow_mut(client_state().hotbar()).cycle_tab(delta);
+
+                    let tab = self.client_state.follow(client_state().hotbar()).active_tab();
+                    self.push_chat_information(format!("Hotbar page {}/{}.", tab + 1, HOTBAR_TAB_COUNT));
+                }
                 InputEvent::UseSkillInSlot { slot } => {
+                    // Item hotkeys use the first matching inventory item, like the
+                    // original client uses the first stack of that item.
+                    if let Some(item) = self.client_state.follow(client_state().hotbar()).item_in_slot(slot) {
+                        let inventory_index = self
+                            .client_state
+                            .follow(client_state().inventory().items())
+                            .iter()
+                            .find(|inventory_item| inventory_item.item_id == item.item_id)
+                            .map(|inventory_item| inventory_item.index);
+
+                        match inventory_index {
+                            Some(inventory_index) => {
+                                let _ = self.networking_system.use_item(inventory_index, item.item_id);
+                            }
+                            None => self.push_chat_information("The item of that hotkey is not in your inventory.".to_owned()),
+                        }
+
+                        continue;
+                    }
+
                     // Skills that require a target switch to a target selection
                     // mouse mode, while self cast skills are used immediately,
                     // like in the original client.

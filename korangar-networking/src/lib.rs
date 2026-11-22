@@ -1825,6 +1825,16 @@ mod packet_handlers {
         assert!(matches!(&events[4], NetworkEvent::SkillTree { skill_information } if skill_information.len() == 1));
     }
 
+    /// ZC_MSG (0x0291) used to be a noop, so msgstringtable system messages
+    /// were dropped completely.
+    #[test]
+    fn message_table_packet_reaches_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let events = feed(&mut handler, &[0x91, 0x02, 77, 0]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MessageString { message_id: 77 }]));
+    }
+
     /// The 0x0ACC experience packet has to reach the client (it was a noop, so
     /// no exp feedback ever appeared). Layout: account id u32, amount i64,
     /// var id u16 (1 = base, 2 = job), exp type u16 (0 = normal, 1 = quest).

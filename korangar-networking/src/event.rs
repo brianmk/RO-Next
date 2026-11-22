@@ -575,6 +575,10 @@ pub enum NetworkEvent {
     RefuseEnter {
         error_code: u8,
     },
+    /// A system message from the client message table (`ZC_MSG`, 0x0291).
+    MessageString {
+        message_id: u16,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

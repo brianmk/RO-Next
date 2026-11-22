@@ -295,9 +295,15 @@ pub enum InputEvent {
         /// Level to cast the skill at.
         level: SkillLevel,
     },
-    /// Use the skill in a hotbar slot, like in the original client. Skills
-    /// that require a target start a target selection, self cast skills are
-    /// cast immediately.
+    /// Switch the visible hotbar tab (F11/F12 like a paging key).
+    CycleHotbarTab {
+        /// +1 for the next tab, -1 for the previous one.
+        delta: i32,
+    },
+    /// Use the skill or item in a hotbar slot, like in the original client.
+    /// Skills that require a target start a target selection, self cast skills
+    /// are cast immediately; item hotkeys use the first matching inventory
+    /// item.
     UseSkillInSlot {
         /// Slot of the hotbar that the skill is bound to.
         slot: HotbarSlot,
