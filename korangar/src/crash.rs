@@ -27,7 +27,7 @@ fn install_panic_hook() {
 
         eprintln!();
         eprintln!(
-            "=== korangar: panic (log verbosity {}) ===",
+            "=== RO-Next: panic (log verbosity {}) ===",
             korangar_interface::logging::verbosity()
         );
         eprintln!("{panic_info}");
@@ -38,6 +38,7 @@ fn install_panic_hook() {
 }
 
 /// Guards against recursive faults inside the signal handler.
+#[cfg(unix)]
 static IN_FATAL_SIGNAL: AtomicBool = AtomicBool::new(false);
 
 #[cfg(all(target_os = "linux", target_env = "gnu"))]
@@ -46,10 +47,11 @@ unsafe extern "C" {
     fn backtrace_symbols_fd(buffer: *const *mut libc::c_void, size: libc::c_int, fd: libc::c_int);
 }
 
+#[cfg(unix)]
 const FATAL_SIGNALS: [libc::c_int; 5] = [libc::SIGSEGV, libc::SIGABRT, libc::SIGBUS, libc::SIGILL, libc::SIGFPE];
 
+#[cfg(unix)]
 fn install_signal_handlers() {
-    #[cfg(unix)]
     for signal in FATAL_SIGNALS {
         // SAFETY: the handler only writes to stderr and re-raises the signal.
         unsafe {
@@ -58,16 +60,22 @@ fn install_signal_handlers() {
     }
 }
 
+/// Windows has no POSIX fatal-signal handlers; the panic hook above still logs
+/// panics, and the process is left to Windows Error Reporting for hard faults.
+#[cfg(not(unix))]
+fn install_signal_handlers() {}
+
 /// Async-signal-safe-ish fatal signal handler: write a marker, dump a backtrace
 /// and re-raise the signal with the default handler so the process can core
 /// dump like it would without the handler.
+#[cfg(unix)]
 unsafe extern "C" fn fatal_signal_handler(signal: libc::c_int) {
     if IN_FATAL_SIGNAL.swap(true, Ordering::SeqCst) {
         // Recursive fault while handling the first one, bail out immediately.
         unsafe { libc::_exit(128 + signal) };
     }
 
-    let header = b"\n=== korangar: fatal signal received ===\n";
+    let header = b"\n=== RO-Next: fatal signal received ===\n";
     unsafe {
         libc::write(libc::STDERR_FILENO, header.as_ptr().cast(), header.len());
     }
@@ -98,7 +106,7 @@ unsafe extern "C" fn fatal_signal_handler(signal: libc::c_int) {
     }
 }
 
-#[cfg(all(target_os = "linux", target_env = "gnu"))]
+#[cfg(all(unix, target_os = "linux", target_env = "gnu"))]
 unsafe fn backtrace_to_stderr() {
     const MAXIMUM_FRAMES: usize = 128;
     let mut frames: [*mut libc::c_void; MAXIMUM_FRAMES] = [std::ptr::null_mut(); MAXIMUM_FRAMES];
@@ -114,7 +122,7 @@ unsafe fn backtrace_to_stderr() {
     }
 }
 
-#[cfg(not(all(target_os = "linux", target_env = "gnu")))]
+#[cfg(all(unix, not(all(target_os = "linux", target_env = "gnu"))))]
 unsafe fn backtrace_to_stderr() {
     let message = b"(no signal backtrace support on this platform)\n";
     unsafe {

@@ -291,8 +291,11 @@ impl Default for InterfaceSettings {
         Self {
             language: Language::English,
             scaling: Scaling::new(1.0),
-            menu_theme: DEFAULT_THEME_NAME.to_string(),
-            in_game_theme: DEFAULT_THEME_NAME.to_string(),
+            // RO-Next default: the built-in classic Ragnarok Online theme for
+            // both the menu and the in-game interface. `world_theme` keeps the
+            // default preset; it is independent of the interface theme.
+            menu_theme: CLASSIC_THEME_NAME.to_string(),
+            in_game_theme: CLASSIC_THEME_NAME.to_string(),
             world_theme: DEFAULT_THEME_NAME.to_string(),
             show_character_names: true,
             show_chat_bubbles: true,

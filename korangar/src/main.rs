@@ -1,3 +1,10 @@
+//! RO-Next client entry point.
+//!
+//! Windows builds use the GUI subsystem so launching the client from the patcher
+//! does not open a console window; stderr logging still works when a console or
+//! redirection is attached.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use clap::Parser;
 use korangar::Client;
 
@@ -37,7 +44,7 @@ fn main() {
     korangar::log_presentation_fallback_startup_line();
 
     korangar::logging::log_info!(
-        "korangar {} starting (log verbosity {}, {} command line -v flags)",
+        "RO-Next {} starting (log verbosity {}, {} command line -v flags)",
         env!("CARGO_PKG_VERSION"),
         verbosity,
         arguments.verbose,
@@ -47,7 +54,7 @@ fn main() {
         client.run();
     }
 
-    korangar::logging::log_info!("korangar exited normally");
+    korangar::logging::log_info!("RO-Next exited normally");
 }
 
 /// Removes environment variables that would make the display backend detection
@@ -60,23 +67,28 @@ fn main() {
 /// recover from that once the Wayland connection is attempted, so the variable
 /// is sanitized before anything else looks at the environment.
 fn sanitize_environment() {
-    let Ok(value) = std::env::var("WAYLAND_SOCKET") else {
-        return;
-    };
+    // WAYLAND_SOCKET is a Linux/libwayland concept; Windows has no such
+    // variable and no POSIX fcntl(2), so this is a no-op there.
+    #[cfg(unix)]
+    {
+        let Ok(value) = std::env::var("WAYLAND_SOCKET") else {
+            return;
+        };
 
-    let valid = value.trim().parse::<libc::c_int>().ok().is_some_and(|file_descriptor| {
-        // SAFETY: `fcntl` with `F_GETFD` only queries the file descriptor
-        // table and does not dereference any pointer.
-        unsafe { libc::fcntl(file_descriptor, libc::F_GETFD) != -1 }
-    });
+        let valid = value.trim().parse::<libc::c_int>().ok().is_some_and(|file_descriptor| {
+            // SAFETY: `fcntl` with `F_GETFD` only queries the file descriptor
+            // table and does not dereference any pointer.
+            unsafe { libc::fcntl(file_descriptor, libc::F_GETFD) != -1 }
+        });
 
-    if !valid {
-        // SAFETY: This runs at the very start of `main`, before any thread or
-        // library is started, so there is no concurrent access to the
-        // environment.
-        unsafe { std::env::remove_var("WAYLAND_SOCKET") };
+        if !valid {
+            // SAFETY: This runs at the very start of `main`, before any thread or
+            // library is started, so there is no concurrent access to the
+            // environment.
+            unsafe { std::env::remove_var("WAYLAND_SOCKET") };
 
-        korangar::logging::log_warn!("[display] ignoring invalid WAYLAND_SOCKET environment variable");
+            korangar::logging::log_warn!("[display] ignoring invalid WAYLAND_SOCKET environment variable");
+        }
     }
 }
 
