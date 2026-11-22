@@ -485,6 +485,7 @@ impl AnimationData {
         animation_state: &AnimationState,
         direction: Direction,
         fade_alpha: f32,
+        tint: Color,
         scale: f32,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
@@ -508,7 +509,15 @@ impl AnimationData {
 
             let position = world_matrix.transform_point(Point3::from_value(0.0));
             let distance = camera.distance_to(position);
-            let color = frame_part.color * fade_alpha;
+            // Optional tint of the whole entity (status effect colors such as
+            // the red Fury glow, or short body flashes such as the Zen cast
+            // flash). White means "unchanged".
+            let color = Color::rgba(
+                frame_part.color.red * tint.red,
+                frame_part.color.green * tint.green,
+                frame_part.color.blue * tint.blue,
+                frame_part.color.alpha * tint.alpha,
+            ) * fade_alpha;
 
             instructions.push(EntityInstruction {
                 world: world_matrix,

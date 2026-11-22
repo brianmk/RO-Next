@@ -94,6 +94,7 @@ impl GroundItem {
                 &self.animation_state,
                 Direction::South,
                 self.fade_state.calculate_alpha(client_tick),
+                crate::graphics::Color::WHITE,
                 1.0,
             );
         }

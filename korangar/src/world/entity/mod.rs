@@ -23,7 +23,7 @@ use wgpu::{BufferUsages, Device, Queue};
 use crate::graphics::reduce_vertices;
 #[cfg(feature = "debug")]
 use crate::graphics::{BindlessSupport, DebugRectangleInstruction};
-use crate::graphics::{EntityInstruction, ScreenPosition, ScreenSize};
+use crate::graphics::{Color, EntityInstruction, ScreenPosition, ScreenSize};
 use crate::loaders::{EntityPartFile, GameFileLoader};
 #[cfg(feature = "debug")]
 use crate::loaders::{GAT_TILE_SIZE, split_mesh_by_texture};
@@ -331,6 +331,10 @@ pub struct Common {
     sound_state: SoundState,
     #[hidden_element]
     fade_state: FadeState,
+    /// Temporary sprite tint of a hard-coded skill effect (`None` when the
+    /// entity is not flashing).
+    #[hidden_element]
+    body_flash: Option<EntityFlash>,
 }
 
 #[cfg_attr(feature = "debug", korangar_debug::profile)]
@@ -643,6 +647,52 @@ fn get_entity_part_files(
 /// other clients: hide, cloak, invisible and chase-walk.
 const OPTION_HIDDEN_MASK: u32 = 0x0000_0002 | 0x0000_0004 | 0x0000_0040 | 0x0000_4000;
 
+/// `OPT3_EXPLOSIONSPIRITS` (`0x0000_0008` in the `effectState` field, see
+/// rAthena `status.hpp`): while Fury (`MO_EXPLOSIONSPIRITS`) is active the
+/// official client tints the character red (`(1.0, 0.75, 0.75)` sprite color
+/// multiplier), which is the persistent "Fury glow".
+const OPTION_EXPLOSIONSPIRITS: u32 = 0x0000_0008;
+
+/// A temporary tint of an entity's sprites, used by hard-coded skill effects
+/// (for example the yellow `EF_PORTAL5` flash of Zen).
+#[derive(Debug, Clone, Copy)]
+pub struct EntityFlash {
+    color: Color,
+    start_tick: ClientTick,
+    hold_ms: u32,
+    fade_ms: u32,
+}
+
+impl EntityFlash {
+    /// Weight of the flash color at `client_tick`, `0.0` when it is over.
+    fn weight(&self, client_tick: ClientTick) -> f32 {
+        let elapsed = client_tick.0.saturating_sub(self.start_tick.0);
+
+        if elapsed >= self.hold_ms + self.fade_ms {
+            return 0.0;
+        }
+
+        if elapsed < self.hold_ms {
+            1.0
+        } else {
+            let fade_elapsed = elapsed - self.hold_ms;
+            1.0 - fade_elapsed as f32 / self.fade_ms as f32
+        }
+    }
+}
+
+/// Blends `base` towards `target` by `weight`.
+fn blend_color(base: Color, target: Color, weight: f32) -> Color {
+    let weight = weight.clamp(0.0, 1.0);
+
+    Color::rgba(
+        base.red * (1.0 - weight) + target.red * weight,
+        base.green * (1.0 - weight) + target.green * weight,
+        base.blue * (1.0 - weight) + target.blue * weight,
+        base.alpha * (1.0 - weight) + target.alpha * weight,
+    )
+}
+
 fn option_hides_entity(effect_state: u32) -> bool {
     effect_state & OPTION_HIDDEN_MASK != 0
 }
@@ -759,6 +809,7 @@ impl Common {
                 true => FadeState::from_alpha(0.0, FadeDirection::Out, client_tick, 0),
                 false => FadeState::new(FADE_IN_DURATION_MS, client_tick),
             },
+            body_flash: None,
             scale,
         }
     }
@@ -782,6 +833,40 @@ impl Common {
                 false => FadeState::Opaque,
             };
         }
+    }
+
+    /// Starts a short body flash (hard-coded skill effect color flash, for
+    /// example the yellow `EF_PORTAL5` flash of Zen). Calling this while a
+    /// flash is running restarts it.
+    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, client_tick: ClientTick) {
+        self.body_flash = Some(EntityFlash {
+            color,
+            start_tick: client_tick,
+            hold_ms,
+            fade_ms,
+        });
+    }
+
+    /// Sprite tint of the entity at `client_tick`.
+    ///
+    /// This combines the persistent status effect colors understood by the
+    /// entity layer (the red Fury glow, `OPT3_EXPLOSIONSPIRITS`) with a
+    /// temporary body flash. White means "unchanged". The tint is a plain
+    /// multiplication, so it works for both palette and RGBA sprites without
+    /// touching the animation data.
+    fn sprite_tint(&self, client_tick: ClientTick) -> Color {
+        let mut tint = if self.effect_state & OPTION_EXPLOSIONSPIRITS != 0 {
+            // Official client: R = 1.0, G = 0.75, B = 0.75 while Fury is active.
+            Color::rgb(1.0, 0.75, 0.75)
+        } else {
+            Color::WHITE
+        };
+
+        if let Some(flash) = self.body_flash {
+            tint = blend_color(tint, flash.color, flash.weight(client_tick));
+        }
+
+        tint
     }
 
     /// Update the `bodyState` (`opt1`) visual state.
@@ -1328,6 +1413,7 @@ impl Common {
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {
         let alpha = self.fade_state.calculate_alpha(client_tick);
+        let tint = self.sprite_tint(client_tick);
 
         if let Some(animation_data) = self.animation_data.as_ref() {
             animation_data.render(
@@ -1339,6 +1425,7 @@ impl Common {
                 &self.animation_state,
                 self.direction,
                 alpha,
+                tint,
                 self.scale,
             );
         }
@@ -1355,6 +1442,7 @@ impl Common {
                 &self.animation_state,
                 self.direction,
                 alpha,
+                tint,
                 self.scale,
             );
         }
@@ -1374,6 +1462,7 @@ impl Common {
                 &self.falcon_animation_state,
                 self.direction,
                 alpha,
+                tint,
                 self.scale,
             );
         }
@@ -2159,6 +2248,12 @@ impl Entity {
         self.get_common_mut()
             .animation_state
             .skill(entity_type, cast_time, looping, client_tick);
+    }
+
+    /// Starts a short body flash (hard-coded skill effect color flash, for
+    /// example the yellow `EF_PORTAL5` flash of Zen).
+    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, client_tick: ClientTick) {
+        self.get_common_mut().start_body_flash(color, hold_ms, fade_ms, client_tick);
     }
 
     /// Duration of the skill-cast animation of this entity in milliseconds.
