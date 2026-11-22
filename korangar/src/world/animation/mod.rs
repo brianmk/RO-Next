@@ -145,10 +145,12 @@ impl AnimationState {
     }
 
     /// Change the loop mode of an existing animation.
+    #[allow(dead_code)]
     pub fn set_loop_mode(&mut self, loop_mode: AnimationLoopMode) {
         self.loop_mode = loop_mode;
     }
 
+    #[allow(dead_code)]
     pub fn loop_mode(&self) -> AnimationLoopMode {
         self.loop_mode
     }
@@ -160,6 +162,7 @@ impl AnimationState {
     }
 
     /// Change the playback speed of an existing animation.
+    #[allow(dead_code)]
     pub fn set_speed(&mut self, speed: f32) {
         self.speed = speed.max(0.01);
     }
@@ -819,10 +822,9 @@ mod loop_mode_tests {
     fn pingpong_reverses_without_repeating_the_end_frames() {
         let frames = |t: u32| looped_frame_index(t, 4, AnimationLoopMode::PingPong);
         // 0,1,2,3,2,1 then back to 0.
-        assert_eq!(
-            [frames(0), frames(1), frames(2), frames(3), frames(4), frames(5), frames(6)],
-            [0, 1, 2, 3, 2, 1, 0]
-        );
+        assert_eq!([frames(0), frames(1), frames(2), frames(3), frames(4), frames(5), frames(6)], [
+            0, 1, 2, 3, 2, 1, 0
+        ]);
     }
 
     #[test]

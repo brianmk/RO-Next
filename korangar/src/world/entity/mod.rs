@@ -35,8 +35,8 @@ use crate::state::ClientState;
 use crate::state::lifecycle::{ResourcePolicy, ResourceState};
 use crate::state::theme::{InterfaceThemeType, WorldTheme};
 use crate::world::{
-    ActionEvent, AnimationData, AnimationLoopMode, AnimationState, Camera, FadeDirection, FadeState, IsBabyJob, JobIdentity, Library, MAX_WALK_PATH_SIZE, Map,
-    PathFinder,
+    ActionEvent, AnimationData, AnimationLoopMode, AnimationState, Camera, FadeDirection, FadeState, IsBabyJob, JobIdentity, Library,
+    MAX_WALK_PATH_SIZE, Map, PathFinder,
 };
 #[cfg(feature = "debug")]
 use crate::world::{MarkerIdentifier, SubMesh};
@@ -820,7 +820,9 @@ impl Common {
             shield,
             robe,
             falcon_animation: None,
-            falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick).with_speed(FALCON_ANIMATION_SPEED).with_loop_mode(AnimationLoopMode::PingPong),
+            falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick)
+                .with_speed(FALCON_ANIMATION_SPEED)
+                .with_loop_mode(AnimationLoopMode::PingPong),
             weapon_animation: None,
             active_movement,
             entity_type,
