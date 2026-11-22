@@ -130,16 +130,26 @@ impl Color {
     /// Converts the sRGB color into a linear representation for the shaders.
     /// Since we use pre-multiplied alpha blending, we premultiply the alpha
     /// here too.
+    ///
+    /// The channels are clamped to `[0, 1]` first. Interpolated `.str` effect
+    /// frames can overshoot their keyframes (the official effect data contains
+    /// negative alpha values between a `0` and a `255` key), and a negative or
+    /// greater-than-one alpha would otherwise produce negative (black) or
+    /// over-bright fragments in the premultiplied effect pipeline.
     pub fn components_linear(self) -> [f32; 4] {
+        let alpha = self.alpha.clamp(0.0, 1.0);
+
         let srgb = [self.red, self.green, self.blue];
         let linear = srgb.map(|channel| {
+            let channel = channel.clamp(0.0, 1.0);
+
             if channel <= 0.04045 {
                 channel / 12.92
             } else {
                 ((channel + 0.055) / 1.055).powf(2.4)
             }
         });
-        [linear[0] * self.alpha, linear[1] * self.alpha, linear[2] * self.alpha, self.alpha]
+        [linear[0] * alpha, linear[1] * alpha, linear[2] * alpha, alpha]
     }
 }
 
@@ -366,5 +376,26 @@ impl StateElement<ClientState> for Color {
                 Inner { path: self_path }
             ),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Color;
+
+    #[test]
+    fn linear_components_clamp_out_of_range_channels() {
+        // Negative channels/alpha (from interpolated `.str` effect frames) must
+        // not produce negative (black) fragments.
+        let color = Color::rgba(-0.5, 2.0, 0.5, -0.25);
+        let components = color.components_linear();
+        assert!(components.iter().all(|component| component.is_finite()));
+        assert_eq!(components[0], 0.0);
+        assert_eq!(components[3], 0.0);
+
+        let color = Color::rgba(0.5, 0.5, 0.5, 1.5);
+        let components = color.components_linear();
+        assert!(components[3] <= 1.0);
+        assert!(components[0] <= 1.0);
     }
 }

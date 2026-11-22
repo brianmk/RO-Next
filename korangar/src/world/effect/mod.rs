@@ -19,6 +19,7 @@ mod aura;
 mod cast_circle;
 mod procedural;
 mod skill_aura;
+mod status_aura;
 mod storm_cloud;
 mod teleport_vanish;
 mod warp;
@@ -26,6 +27,7 @@ pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::procedural::*;
 pub use self::skill_aura::*;
+pub use self::status_aura::{StatusAura, status_aura_spec};
 pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
@@ -737,22 +739,32 @@ impl EffectHolder {
         }
     }
 
-    pub fn add_effect(&mut self, effect: Box<dyn EffectBase + Send + Sync>) {
-        self.add_effect_with_owner(effect, None);
+    /// Adds an effect that is not attached to an entity.
+    ///
+    /// Returns `false` if the effect budget rejected the effect.
+    pub fn add_effect(&mut self, effect: Box<dyn EffectBase + Send + Sync>) -> bool {
+        self.add_effect_with_owner(effect, None)
     }
 
-    pub fn add_unit(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: EntityId) {
-        self.add_effect_with_owner(effect, Some(entity_id));
+    /// Adds an effect that is owned by an entity (and follows/cleans up with
+    /// it).
+    ///
+    /// Returns `false` if the effect budget rejected the effect; callers that
+    /// keep their own bookkeeping (for example the status auras) should then
+    /// retry later instead of recording the effect as spawned.
+    pub fn add_unit(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: EntityId) -> bool {
+        self.add_effect_with_owner(effect, Some(entity_id))
     }
 
-    fn add_effect_with_owner(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: Option<EntityId>) {
+    fn add_effect_with_owner(&mut self, effect: Box<dyn EffectBase + Send + Sync>, entity_id: Option<EntityId>) -> bool {
         if !self.budget_allows(entity_id) {
             self.dropped_effects += 1;
             self.log_dropped_effect();
-            return;
+            return false;
         }
 
         self.effects.push((effect, entity_id));
+        true
     }
 
     pub fn remove_unit(&mut self, removed_entity_id: EntityId) {

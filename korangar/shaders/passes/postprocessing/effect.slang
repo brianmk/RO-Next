@@ -30,5 +30,18 @@ func vs_main(input: PostprocessingVertexInput) -> EffectVertexOutput {
 
 [[shader("pixel")]]
 func fs_main(input: EffectVertexOutput) -> float4 {
-    return texture.Sample(linear_sampler, input.texture_coordinates) * input.color;
+    let color = texture.Sample(linear_sampler, input.texture_coordinates) * input.color;
+
+    // Effect textures are premultiplied, so a zero alpha also means a zero
+    // (black) color. Opaque (One/Zero) and destination-alpha blend modes would
+    // still write that black into the frame buffer - that is what produced the
+    // black background around the Angelus bell and the black frames of other
+    // `.str` effects, whose magenta color-keyed textures have an alpha of zero
+    // in their background. Discarding fully transparent texels is a no-op for
+    // every other blend mode (they contribute zero there as well).
+    if (color.a <= 0.0001) {
+        discard;
+    }
+
+    return color;
 }
