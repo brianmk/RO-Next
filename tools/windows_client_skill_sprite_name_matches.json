@@ -1,0 +1,174 @@
+{
+  "provenance": {
+    "source": "high-confidence skill-name match between the rAthena skill names (CondaRO 2019 pre-re database) and the CondaRO.exe .spr effect whitelist (tools/windows_client_spr_whitelist.txt)",
+    "note": "each file below is part of the official Windows-client sprite whitelist and exists as a .spr+.act pair in the CondaRO GRFs; gen_skill_sprite_effects.py re-validates both",
+    "reason": "the extracted skill->effect table predates the New World (su_*) / Star Emperor (sj_*) / Soul Reaper (sp_*) effects, so these skills have no effect id; the official client file names still encode the skill name exactly",
+    "phase_rule": "self/buff effects spawn on the caster (Success), damage/ground effects at the target/ground cell; tuned after the in-client pass"
+  },
+  "matches": [
+    {
+      "skill": 10,
+      "aegis": "MG_SIGHT",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\sight"],
+      "offset": [0.0, 12.0, 0.0],
+      "duration_ms": 1000
+    },
+    {
+      "skill": 721,
+      "aegis": "NPC_WIDEWEB",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\wideweb"],
+      "offset": [0.0, 8.0, 0.0]
+    },
+    {
+      "skill": 2586,
+      "aegis": "SJ_BOOKOFDIMENSION",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\book_of_dimension\\book_of_dimension"],
+      "offset": [0.0, 24.0, 0.0]
+    },
+    {
+      "skill": 2587,
+      "aegis": "SJ_BOOKOFCREATINGSTAR",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\book_of_creatingstar\\book_of_creatingstar"],
+      "offset": [0.0, 24.0, 0.0]
+    },
+    {
+      "skill": 2597,
+      "aegis": "SP_SOULSHADOW",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\soul_shadow\\soul_shadow"],
+      "offset": [0.0, 20.0, 0.0]
+    },
+    {
+      "skill": 2598,
+      "aegis": "SP_SOULFALCON",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\soul_falcon\\soul_falcon"],
+      "offset": [0.0, 26.0, 0.0]
+    },
+    {
+      "skill": 2599,
+      "aegis": "SP_SOULFAIRY",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\soul_fairy\\soul_fairy"],
+      "offset": [0.0, 22.0, 0.0]
+    },
+    {
+      "skill": 2600,
+      "aegis": "SP_CURSEEXPLOSION",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\curse_explosion\\curse_explosion"],
+      "offset": [0.0, 16.0, 0.0]
+    },
+    {
+      "skill": 2607,
+      "aegis": "SP_SOULREAPER",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\soul_reaper\\soul_reaper"],
+      "offset": [0.0, 24.0, 0.0]
+    },
+    {
+      "skill": 2610,
+      "aegis": "SP_SOULEXPLOSION",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\soul_explosion\\soul_explosion"],
+      "offset": [0.0, 16.0, 0.0]
+    },
+    {
+      "skill": 5024,
+      "aegis": "SU_SPRITEMABLE",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\su_spritemable\\su_spritemable_blue"],
+      "offset": [-14.0, 22.0, 0.0],
+      "duration_ms": 1500
+    },
+    {
+      "skill": 5024,
+      "aegis": "SU_SPRITEMABLE",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\su_spritemable\\su_spritemable_green"],
+      "offset": [14.0, 22.0, 0.0],
+      "duration_ms": 1500
+    },
+    {
+      "skill": 5024,
+      "aegis": "SU_SPRITEMABLE",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\su_spritemable\\su_spritemable_red"],
+      "offset": [0.0, 22.0, -14.0],
+      "duration_ms": 1500
+    },
+    {
+      "skill": 5026,
+      "aegis": "SU_SV_STEMSPEAR",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\sv_stemspear\\sv_stemspear"],
+      "offset": [0.0, 12.0, 0.0]
+    },
+    {
+      "skill": 5028,
+      "aegis": "SU_CN_METEOR",
+      "variant": "Ground",
+      "anchor": "Ground",
+      "files": ["이팩트\\su_cn_meteor\\su_cn_meteor"],
+      "offset": [0.0, 0.0, 0.0]
+    },
+    {
+      "skill": 5029,
+      "aegis": "SU_SV_ROOTTWIST",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\su_sv_roottwist\\su_sv_roottwist"],
+      "offset": [0.0, 10.0, 0.0]
+    },
+    {
+      "skill": 5036,
+      "aegis": "SU_LUNATICCARROTBEAT",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\su_lunaticcarrotbeat\\su_lunaticcarrotbeat"],
+      "offset": [0.0, 8.0, 0.0]
+    },
+    {
+      "skill": 5039,
+      "aegis": "SU_TUNAPARTY",
+      "variant": "Success",
+      "anchor": "Caster",
+      "files": ["이팩트\\su_tunaparty\\su_tunaparty"],
+      "offset": [0.0, 20.0, 0.0]
+    },
+    {
+      "skill": 5044,
+      "aegis": "SU_SOULATTACK",
+      "variant": "Success",
+      "anchor": "Target",
+      "files": ["이팩트\\su_soulattack"],
+      "offset": [0.0, 10.0, 0.0]
+    },
+    {
+      "skill": 8039,
+      "aegis": "MH_MAGMA_FLOW",
+      "variant": "Ground",
+      "anchor": "Ground",
+      "files": ["이팩트\\magma_flow"],
+      "offset": [0.0, 0.0, 0.0]
+    }
+  ]
+}

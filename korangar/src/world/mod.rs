@@ -11,9 +11,9 @@ mod guild_emblem;
 mod item_details;
 mod library;
 pub(crate) use self::library::{
-    EffectAnchor, ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, SkillEffectVariant, caster_action_for_skill,
-    default_caster_action, skill_effect_entries, skill_has_effect, skill_has_procedural_effect, skill_procedural_effects,
-    skill_sound_files,
+    EffectAnchor, ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, SkillEffectVariant, SpriteEffectAnchor,
+    SpriteEffectSpec, caster_action_for_skill, default_caster_action, skill_effect_entries, skill_has_effect,
+    skill_has_procedural_effect, skill_procedural_effects, skill_sound_files, skill_sprite_effects,
 };
 mod light;
 mod map;

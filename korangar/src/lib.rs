@@ -2352,7 +2352,9 @@ impl Client {
     /// * the `.str` screen sprites from
     ///   `archive/data/client/skill_effect_assets.ron`,
     /// * the procedural primitives (hit flashes, projectiles/bolt rain, ground
-    ///   auras) from `archive/data/client/skill_procedural_effects.ron`.
+    ///   auras) from `archive/data/client/skill_procedural_effects.ron`,
+    /// * the animated `.spr`/`.act` sprite effects from
+    ///   `archive/data/client/skill_sprite_effects.ron`.
     ///
     /// Every cast spawns each variant at most once, even if several packets
     /// (ground cast, damage, ...) describe the same cast.
@@ -2371,9 +2373,10 @@ impl Client {
         let effect_entries: Vec<(&'static str, crate::world::EffectAnchor)> =
             crate::world::skill_effect_entries(skill_id, variant).collect();
         let procedural = crate::world::skill_procedural_effects(skill_id, variant);
+        let sprite_effects = crate::world::skill_sprite_effects(skill_id, variant);
 
-        // Both layers share one de-duplication key per cast phase.
-        if (!effect_entries.is_empty() || !procedural.is_empty())
+        // All layers share one de-duplication key per cast phase.
+        if (!effect_entries.is_empty() || !procedural.is_empty() || !sprite_effects.is_empty())
             && !self
                 .skill_completion_tracker
                 .claim(source_entity_id, skill_id, variant.phase(), client_tick)
@@ -2421,6 +2424,10 @@ impl Client {
 
         if !procedural.is_empty() {
             self.spawn_procedural_effects(skill_id, variant, source_entity_id, world_position, procedural);
+        }
+
+        if !sprite_effects.is_empty() {
+            self.spawn_skill_sprite_effects(skill_id, variant, source_entity_id, world_position, sprite_effects);
         }
 
         // Storm Gust's snow is a `.str` file, but the dark storm cloud above the
@@ -2526,6 +2533,52 @@ impl Client {
                     }
                 }
             }
+        }
+    }
+
+    /// Spawns the animated sprite effects (`.spr` + `.act`) of `skill_id` for
+    /// one variant.
+    ///
+    /// The rows come from `archive/data/client/skill_sprite_effects.ron`. The
+    /// anchor of a row decides whether the sprite is attached to the caster
+    /// entity (and follows it), placed at the target, or played on the ground
+    /// cell; missing files spawn nothing and leave the generic cast circle in
+    /// place.
+    fn spawn_skill_sprite_effects(
+        &mut self,
+        skill_id: SkillId,
+        variant: SkillEffectVariant,
+        source_entity_id: EntityId,
+        target_position: Option<Point3<f32>>,
+        effects: &'static [SpriteEffectSpec],
+    ) {
+        for effect in effects {
+            let center = match effect.anchor {
+                SpriteEffectAnchor::Caster => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
+                SpriteEffectAnchor::Target | SpriteEffectAnchor::Ground => match target_position {
+                    Some(target_position) => EffectCenter::Position(target_position),
+                    None => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
+                },
+            };
+
+            let Some(sprite_effect) = SpriteEffect::spawn(&self.sprite_loader, &self.action_loader, center, effect) else {
+                crate::logging::log_debug!(
+                    "skill effect: no sprite effect asset could be loaded for skill {} ({:?})",
+                    skill_id.0,
+                    variant
+                );
+                continue;
+            };
+
+            crate::logging::log_debug!(
+                "skill effect: spawned sprite effect '{}' for skill {} ({:?}, anchor {:?})",
+                effect.files.first().map(String::as_str).unwrap_or("<none>"),
+                skill_id.0,
+                variant,
+                effect.anchor
+            );
+
+            self.effect_holder.add_effect(Box::new(sprite_effect));
         }
     }
 
