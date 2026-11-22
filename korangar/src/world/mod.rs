@@ -10,7 +10,10 @@ mod ground_item;
 mod guild_emblem;
 mod item_details;
 mod library;
-pub(crate) use self::library::{SkillEffectVariant, skill_effect_files, skill_has_effect};
+pub(crate) use self::library::{
+    ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, SkillEffectVariant, skill_effect_files, skill_has_effect,
+    skill_has_procedural_effect, skill_procedural_effects,
+};
 mod light;
 mod map;
 mod model;

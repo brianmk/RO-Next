@@ -143,6 +143,7 @@ const BEGIN_SPELL_AURA: SkillAuraSpec = SkillAuraSpec {
     grow: AuraGrow::TopRadius,
     duplicates: 1,
     duplicate_delay_ms: 0,
+    color: YELLOW_AURA_COLOR,
 };
 
 /// `EF_GUMGANG2` (effect 261, "Fury Cast Animation"): four expanding yellow
@@ -159,6 +160,7 @@ const FURY_RINGS_AURA: SkillAuraSpec = SkillAuraSpec {
     grow: AuraGrow::BothRadii,
     duplicates: 4,
     duplicate_delay_ms: 100,
+    color: YELLOW_AURA_COLOR,
 };
 
 /// Auras of an instant Fury cast: the cast cone (`beginCastEffectId: 12`) and

@@ -567,6 +567,26 @@ fn load_message_table(game_file_loader: &GameFileLoader) -> Option<msgstringtabl
     message_table
 }
 
+/// Resolves the world anchor of a procedural effect row.
+///
+/// Returns `None` for the moving primitives (`Travel`/`Rain`), which need both
+/// the caster and the target position and are spawned by the caller.
+fn procedural_effect_center(
+    anchor: ProceduralAnchor,
+    source_entity_id: EntityId,
+    target_position: Option<Point3<f32>>,
+) -> Option<EffectCenter> {
+    match anchor {
+        ProceduralAnchor::Caster => Some(EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0))),
+        ProceduralAnchor::Target | ProceduralAnchor::Auto => Some(match target_position {
+            Some(position) => EffectCenter::Position(position),
+            // Self casts (no target cell) anchor their success effect on the caster.
+            None => EffectCenter::Entity(source_entity_id, Point3::new(0.0, 0.0, 0.0)),
+        }),
+        ProceduralAnchor::Travel | ProceduralAnchor::Rain => None,
+    }
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,
@@ -2282,12 +2302,18 @@ impl Client {
         self.effect_holder.add_unit(Box::new(aura), entity_id);
     }
 
-    /// Spawns the official effect files of `skill_id` for one variant.
+    /// Spawns the official effect layer of `skill_id` for one variant.
     ///
-    /// The files come from the data-file mapping (see
-    /// `archive/data/client/skill_effect_assets.ron`); every cast spawns each
-    /// variant at most once, even if several packets (ground cast, damage,
-    /// ...) describe the same cast.
+    /// Two data-driven layers are played from the same phase-aware,
+    /// de-duplicated spawn point:
+    ///
+    /// * the `.str` screen sprites from
+    ///   `archive/data/client/skill_effect_assets.ron`,
+    /// * the procedural primitives (hit flashes, projectiles/bolt rain, ground
+    ///   auras) from `archive/data/client/skill_procedural_effects.ron`.
+    ///
+    /// Every cast spawns each variant at most once, even if several packets
+    /// (ground cast, damage, ...) describe the same cast.
     fn spawn_skill_effect_variants(
         &mut self,
         skill_id: SkillId,
@@ -2300,14 +2326,19 @@ impl Client {
             return;
         }
 
-        for effect_path in crate::world::skill_effect_files(skill_id, variant) {
-            if !self
+        let effect_path = crate::world::skill_effect_files(skill_id, variant).next();
+        let procedural = crate::world::skill_procedural_effects(skill_id, variant);
+
+        // Both layers share one de-duplication key per cast phase.
+        if (effect_path.is_some() || !procedural.is_empty())
+            && !self
                 .skill_completion_tracker
                 .claim(source_entity_id, skill_id, variant.phase(), client_tick)
-            {
-                break;
-            }
+        {
+            return;
+        }
 
+        if let Some(effect_path) = effect_path {
             crate::logging::log_debug!(
                 "skill effect: spawned '{}' for skill {} ({:?})",
                 effect_path,
@@ -2340,6 +2371,10 @@ impl Client {
             }
         }
 
+        if !procedural.is_empty() {
+            self.spawn_procedural_effects(skill_id, variant, source_entity_id, world_position, procedural);
+        }
+
         // Storm Gust's snow is a `.str` file, but the dark storm cloud above the
         // cell is a hard-coded official client effect (cloud1..7.tga), so it is
         // reproduced procedurally once per cast.
@@ -2352,6 +2387,97 @@ impl Client {
         {
             crate::logging::log_debug!("skill effect: spawned procedural storm cloud for skill {}", skill_id.0);
             self.effect_holder.add_unit(Box::new(cloud), source_entity_id);
+        }
+    }
+
+    /// Spawns the procedural primitives of `skill_id` for one variant.
+    ///
+    /// The rows come from the generated data file (see
+    /// `archive/data/client/skill_procedural_effects.ron`). The anchor of a row
+    /// decides whether it is attached to the caster entity (and follows it) or
+    /// placed at the target cell.
+    fn spawn_procedural_effects(
+        &mut self,
+        skill_id: SkillId,
+        variant: SkillEffectVariant,
+        source_entity_id: EntityId,
+        target_position: Option<Point3<f32>>,
+        effects: &'static [ProceduralEffectSpec],
+    ) {
+        let caster_position = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == source_entity_id)
+            .map(|entity| entity.get_position());
+
+        for effect in effects {
+            match effect.primitive {
+                ProceduralPrimitive::HitFlash => {
+                    let Some(center) = procedural_effect_center(effect.anchor, source_entity_id, target_position) else {
+                        continue;
+                    };
+                    let Some(flash) = HitFlash::spawn(&self.texture_loader, center, effect) else {
+                        continue;
+                    };
+
+                    crate::logging::log_debug!(
+                        "skill effect: spawned procedural hit flash '{}' for skill {} ({:?})",
+                        effect.texture,
+                        skill_id.0,
+                        variant
+                    );
+
+                    match effect.anchor {
+                        ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(flash), source_entity_id),
+                        _ => self.effect_holder.add_effect(Box::new(flash)),
+                    }
+                }
+                ProceduralPrimitive::Projectile => {
+                    let Some(target) = target_position else {
+                        continue;
+                    };
+                    let (mode, start) = match effect.anchor {
+                        ProceduralAnchor::Rain => (ProjectileMode::Rain, target),
+                        _ => {
+                            let Some(caster) = caster_position else {
+                                continue;
+                            };
+                            (ProjectileMode::Travel, caster)
+                        }
+                    };
+
+                    if let Some(projectile) = Projectile::spawn(&self.texture_loader, effect, mode, start, target) {
+                        crate::logging::log_debug!(
+                            "skill effect: spawned procedural projectile '{}' for skill {} ({:?})",
+                            effect.texture,
+                            skill_id.0,
+                            variant
+                        );
+                        self.effect_holder.add_effect(Box::new(projectile));
+                    }
+                }
+                ProceduralPrimitive::GroundAura => {
+                    let Some(center) = procedural_effect_center(effect.anchor, source_entity_id, target_position) else {
+                        continue;
+                    };
+                    let Some(aura) = spawn_ground_aura(&self.texture_loader, center, effect) else {
+                        continue;
+                    };
+
+                    crate::logging::log_debug!(
+                        "skill effect: spawned procedural ground aura '{}' for skill {} ({:?})",
+                        effect.texture,
+                        skill_id.0,
+                        variant
+                    );
+
+                    match effect.anchor {
+                        ProceduralAnchor::Caster => self.effect_holder.add_unit(Box::new(aura), source_entity_id),
+                        _ => self.effect_holder.add_effect(Box::new(aura)),
+                    }
+                }
+            }
         }
     }
 
@@ -4046,15 +4172,8 @@ impl Client {
                     {
                         let target_world_position = target_position
                             .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)));
-                        let caster_world_position = self
-                            .client_state
-                            .follow(client_state().entities())
-                            .iter()
-                            .find(|entity| entity.get_entity_id() == source_entity_id)
-                            .map(|entity| entity.get_position());
-
                         if !crate::world::has_custom_completion(skill_id) {
-                            if !crate::world::skill_has_effect(skill_id) {
+                            if !crate::world::skill_has_effect(skill_id) && !crate::world::skill_has_procedural_effect(skill_id) {
                                 crate::logging::log_debug!("damage skill: skill {} has no effect mapping", skill_id.0);
                             }
 
@@ -4066,7 +4185,7 @@ impl Client {
                                 skill_id,
                                 SkillEffectVariant::Caster,
                                 source_entity_id,
-                                caster_world_position,
+                                target_world_position,
                                 client_tick,
                             );
                         }

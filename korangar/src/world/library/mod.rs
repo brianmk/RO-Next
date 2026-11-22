@@ -19,6 +19,7 @@ mod skill_effect_assets;
 mod skill_icon;
 mod skill_icon_alias;
 mod skill_information;
+mod skill_procedural_effects;
 mod skill_requirements;
 mod skill_tree;
 
@@ -48,6 +49,9 @@ use self::monster_sprite::MonsterSprites;
 pub use self::skill_delays::{SkillDelays, skill_delays};
 pub(crate) use self::skill_effect_assets::{SkillEffectVariant, skill_effect_files, skill_has_effect};
 use self::skill_icon::SkillIcons;
+pub(crate) use self::skill_procedural_effects::{
+    ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, skill_has_procedural_effect, skill_procedural_effects,
+};
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;
@@ -85,6 +89,7 @@ impl Library {
         let card_composition = CardComposition::load(game_file_loader);
         let item_descriptions = ItemDescriptions::load(game_file_loader);
         skill_effect_assets::load(game_file_loader);
+        skill_procedural_effects::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
