@@ -4336,9 +4336,15 @@ pub struct RequestEquipItemPacket {
 #[derive(Debug, Clone, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 pub enum RequestEquipItemStatus {
+    #[numeric_value(0)]
     Success,
-    Failed,
+    /// The server rejected the equip because the required level is not reached.
+    #[numeric_value(1)]
     FailedDueToLevelRequirement,
+    /// The server rejected the equip for any other reason (class, job, slot,
+    /// requirements, ...).
+    #[numeric_value(2)]
+    Failed,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]

@@ -15,6 +15,7 @@ use crate::loaders::{FontSize, OverflowBehavior};
 use crate::renderer::LayoutExt;
 use crate::state::theme::{InterfaceThemePathExt, ItemCardThemePathExt};
 use crate::state::{ClientState, client_theme};
+use crate::state::inventory::{ItemUseAction, item_use_action};
 use crate::world::ResourceMetadata;
 
 #[derive(Default)]
@@ -131,6 +132,14 @@ where
         // item.
         let item = state.try_get(&self.item_path).unwrap().clone();
 
+        // The first click of the double click picked the item up; cancel that drag
+        // state before the double-click action runs.
+        queue.queue(Event::SetMouseMode {
+            mouse_mode: MouseMode::Default,
+        });
+
+        // The client decides whether this is a storage move (storage window open)
+        // or a use/equip action.
         queue.queue(InputEvent::ItemDoubleClick { source: self.source, item });
     }
 }
@@ -260,6 +269,7 @@ where
 
                 if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);
+                    layout.register_click_handler(MouseButton::DoubleLeft, &self.double_click_handler);
                 }
             }
 

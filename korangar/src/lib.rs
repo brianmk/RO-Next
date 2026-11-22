@@ -121,7 +121,7 @@ use crate::settings::{
     FRAMERATE_LOG_INTERVAL_SECONDS, GameSettingsPathExt, GraphicsSettings, IN_GAME_THEMES_PATH, LightingMode, MENU_THEMES_PATH,
     ServiceSettingsPathExt, WORLD_THEMES_PATH, parse_aura_style_marker,
 };
-use crate::state::inventory::{ItemCategory, item_category, item_use_action};
+use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
@@ -4471,18 +4471,31 @@ impl Client {
                 InputEvent::ItemDoubleClick { source, item } => {
                     // Double clicking is the quick way to move a whole stack while
                     // the Kafra storage window is open.
-                    if !self.interface.is_window_with_class_open(WindowClass::Storage) {
+                    if self.interface.is_window_with_class_open(WindowClass::Storage) {
+                        match source {
+                            ItemSource::Inventory => {
+                                let _ = self.networking_system.storage_deposit(item.index, item_amount(&item).max(1));
+                            }
+                            ItemSource::Storage => {
+                                let _ = self.networking_system.storage_withdraw(item.index.0, item_amount(&item).max(1));
+                            }
+                            ItemSource::Equipment { .. } => {}
+                        }
                         continue;
                     }
 
-                    match source {
-                        ItemSource::Inventory => {
-                            let _ = self.networking_system.storage_deposit(item.index, item_amount(&item).max(1));
+                    // Otherwise double clicking an inventory item uses consumables and
+                    // tries to equip equipment; the server validates requirements.
+                    if let ItemSource::Inventory = source {
+                        match item_use_action(&item) {
+                            Some(ItemUseAction::Use) if item.is_identified() => {
+                                let _ = self.networking_system.use_item(item.index, item.item_id);
+                            }
+                            Some(ItemUseAction::Equip(equip_position)) => {
+                                let _ = self.networking_system.request_item_equip(item.index, equip_position);
+                            }
+                            _ => {}
                         }
-                        ItemSource::Storage => {
-                            let _ = self.networking_system.storage_withdraw(item.index.0, item_amount(&item).max(1));
-                        }
-                        ItemSource::Equipment { .. } => {}
                     }
                 }
                 InputEvent::OpenItemInfo { inventory_index } => {
