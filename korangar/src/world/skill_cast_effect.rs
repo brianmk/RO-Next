@@ -44,6 +44,9 @@ mod skill_ids {
     pub const AL_ANGELUS: u16 = 33;
     pub const AL_BLESSING: u16 = 34;
     pub const AC_CONCENTRATION: u16 = 45;
+    /// `AL_HEAL` (Heal): the green restoring column is drawn on the healed
+    /// target when the cast completes.
+    pub const AL_HEAL: u16 = 28;
     /// `MO_EXPLOSIONSPIRITS` (Fury): consumes five spirit spheres and starts
     /// the `EFST_EXPLOSIONSPIRITS` status.
     pub const MO_EXPLOSIONSPIRITS: u16 = 270;
@@ -94,6 +97,9 @@ pub struct SkillVisuals {
     /// Hard-coded cylinder auras spawned when an *instant* skill completes
     /// (used by Fury, which has no cast time).
     pub instant_auras: &'static [SkillAuraSpec],
+    /// Hard-coded cylinder auras spawned on the skill *target* when an instant
+    /// skill completes (used by Heal, which restores the healed target).
+    pub target_auras: &'static [SkillAuraSpec],
     /// Flash of the caster's sprite when the skill starts.
     pub body_flash: Option<BodyFlash>,
     /// Point light spawned with the cast (color, intensity).
@@ -170,13 +176,13 @@ const BEGIN_SPELL_AURA: SkillAuraSpec = SkillAuraSpec {
     height: 4.0 * OFFICIAL_EFFECT_UNIT,
     bottom_radius: 1.0 * OFFICIAL_EFFECT_UNIT,
     top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+    color: YELLOW_AURA_COLOR,
     alpha_max: 0.8,
     additive: true,
     rotation_speed: 0.0,
     grow: AuraGrow::TopRadius,
     duplicates: 1,
     duplicate_delay_ms: 0,
-    color: YELLOW_AURA_COLOR,
 };
 
 /// `EF_GUMGANG2` (effect 261, "Fury Cast Animation"): four expanding yellow
@@ -187,14 +193,57 @@ const FURY_RINGS_AURA: SkillAuraSpec = SkillAuraSpec {
     height: 2.0 * OFFICIAL_EFFECT_UNIT,
     bottom_radius: 2.0 * OFFICIAL_EFFECT_UNIT,
     top_radius: 5.0 * OFFICIAL_EFFECT_UNIT,
+    color: YELLOW_AURA_COLOR,
     alpha_max: 0.5,
     additive: false,
     rotation_speed: 4.0,
     grow: AuraGrow::BothRadii,
     duplicates: 4,
     duplicate_delay_ms: 100,
-    color: YELLOW_AURA_COLOR,
 };
+
+/// Official heal effect tint (`EF_HEAL`, effect 312: pale green cylinder).
+const HEAL_AURA_COLOR: Color = Color::rgb(0.45, 1.0, 0.45);
+
+/// `EF_HEAL` (effect 312) of the official client: two rotating, pale green
+/// white-ring cylinders that grow from the ground around the healed target.
+/// Sizes/alpha/timings are the official effect table values (5 effect units per
+/// map cell, 10 world units per cell).
+const HEAL_AURA_INNER: SkillAuraSpec = SkillAuraSpec {
+    texture_path: "effect\\ring_white.tga",
+    duration_ms: 1_500,
+    // The official cylinder data is very narrow; widen it so the column is not
+    // completely hidden behind the healed character sprite.
+    height: 10.0 * OFFICIAL_EFFECT_UNIT,
+    bottom_radius: 2.5 * OFFICIAL_EFFECT_UNIT,
+    top_radius: 2.5 * OFFICIAL_EFFECT_UNIT,
+    color: HEAL_AURA_COLOR,
+    alpha_max: 0.35,
+    additive: true,
+    rotation_speed: 4.36,
+    grow: AuraGrow::Height,
+    duplicates: 1,
+    duplicate_delay_ms: 0,
+};
+
+const HEAL_AURA_OUTER: SkillAuraSpec = SkillAuraSpec {
+    texture_path: "effect\\ring_white.tga",
+    duration_ms: 1_500,
+    height: 12.0 * OFFICIAL_EFFECT_UNIT,
+    bottom_radius: 3.5 * OFFICIAL_EFFECT_UNIT,
+    top_radius: 3.5 * OFFICIAL_EFFECT_UNIT,
+    color: HEAL_AURA_COLOR,
+    alpha_max: 0.25,
+    additive: true,
+    rotation_speed: 4.36,
+    grow: AuraGrow::Height,
+    duplicates: 1,
+    duplicate_delay_ms: 0,
+};
+
+/// Heal (`AL_HEAL`, skill 28) restores the *target*: the green `EF_HEAL`
+/// columns are spawned on the target, not on the caster.
+static HEAL_TARGET_AURAS: [SkillAuraSpec; 2] = [HEAL_AURA_INNER, HEAL_AURA_OUTER];
 
 /// Auras of an instant Fury cast: the cast cone (`beginCastEffectId: 12`) and
 /// the expanding rings (`effectIdOnCaster: 261`).
@@ -217,6 +266,7 @@ fn plain(cast_circle_color: Color) -> SkillVisuals {
         completion: None,
         cast_aura: None,
         instant_auras: &[],
+        target_auras: &[],
         body_flash: None,
         light: (cast_circle_color, 25.0),
     }
@@ -239,6 +289,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             }),
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(210, 190, 150), 20.0),
         },
@@ -249,6 +300,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: None,
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(160, 120, 255), 40.0),
         },
@@ -258,6 +310,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: overhead_completion(ANGEL_EFFECT, 1.0),
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(255, 235, 180), 45.0),
         },
@@ -267,6 +320,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: overhead_completion(ANGELUS_EFFECT, 1.0),
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(255, 235, 180), 45.0),
         },
@@ -276,6 +330,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: overhead_completion(BLESSING_OF_SOULS_EFFECT, 0.9),
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(255, 230, 160), 35.0),
         },
@@ -285,6 +340,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: overhead_completion(CONCENTRATION_EFFECT, 0.9),
             cast_aura: None,
             instant_auras: &[],
+            target_auras: &[],
             body_flash: None,
             light: (Color::rgb_u8(255, 230, 160), 35.0),
         },
@@ -296,8 +352,20 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: None,
             cast_aura: Some(BEGIN_SPELL_AURA),
             instant_auras: &[],
+            target_auras: &[],
             body_flash: Some(ZEN_FLASH),
             light: (YELLOW_AURA_COLOR, 40.0),
+        },
+        // Heal (`AL_HEAL`): green restoring columns on the healed target (self or
+        // another player), like the official client's `EF_HEAL` effect.
+        skill_ids::AL_HEAL => SkillVisuals {
+            cast_circle_color: Color::rgb_u8(255, 230, 160),
+            completion: None,
+            cast_aura: None,
+            instant_auras: &[],
+            target_auras: &HEAL_TARGET_AURAS,
+            body_flash: None,
+            light: (HEAL_AURA_COLOR, 30.0),
         },
         // Fury (`MO_EXPLOSIONSPIRITS`): instant self buff. The official client
         // keeps the idle pose and plays the `EF_BEGINSPELL` cone plus the four
@@ -307,6 +375,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             completion: None,
             cast_aura: None,
             instant_auras: &FURY_INSTANT_AURAS,
+            target_auras: &[],
             body_flash: None,
             light: (YELLOW_AURA_COLOR, 45.0),
         },
@@ -418,6 +487,29 @@ mod tests {
         assert_eq!(flash.hold_ms, 200);
         assert_eq!(flash.fade_ms, 600);
         assert!(flash.color.red > 0.9 && flash.color.blue < 0.1);
+    }
+
+    #[test]
+    fn heal_spawns_green_columns_on_the_healed_target() {
+        let visuals = skill_visuals(SkillId(28), 3);
+
+        assert_eq!(visuals.target_auras.len(), 2, "EF_HEAL is two concentric cylinders");
+        for aura in visuals.target_auras {
+            assert!(aura.texture_path.contains("ring_white"));
+            assert_eq!(aura.grow, crate::world::effect::AuraGrow::Height);
+            // The official effect tint is (0.7, 1.0, 0.7): green.
+            assert!(aura.color.green > aura.color.red && aura.color.green > aura.color.blue);
+            assert!(aura.duration_ms >= 1_000);
+        }
+        // A heal is a target effect, not a caster aura.
+        assert!(visuals.instant_auras.is_empty());
+        assert!(visuals.cast_aura.is_none());
+    }
+
+    #[test]
+    fn unrelated_skills_have_no_target_auras() {
+        assert!(skill_visuals(SkillId(5), 0).target_auras.is_empty());
+        assert!(skill_visuals(SkillId(27), 0).target_auras.is_empty());
     }
 
     #[test]

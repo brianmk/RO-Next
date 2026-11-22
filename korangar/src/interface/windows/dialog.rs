@@ -4,7 +4,7 @@ use korangar_interface::element::store::ElementStoreMut;
 use korangar_interface::element::{Element, ElementBox, ErasedElement, StateElement};
 use korangar_interface::layout::{Resolvers, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
-use ragnarok_packets::EntityId;
+use ragnarok_packets::{EntityId, SkillId};
 use rust_state::{Path, RustState, State};
 
 use super::WindowClass;
@@ -73,6 +73,17 @@ pub struct DialogWindowState {
     /// Whether or not the elements should be cleared the next time
     /// [`start`](Self::start) is called.
     clear_next: bool,
+    /// When set, the choice buttons are a Warp Portal destination list
+    /// (`ZC_WARPLIST`) instead of an NPC menu. The picked entry answers the
+    /// server with `CZ_SELECT_WARPPOINT`, which then creates the portal units.
+    #[hidden_element]
+    warp_point: Option<WarpPointList>,
+}
+
+/// Pending Warp Portal destination list of the dialog window.
+pub struct WarpPointList {
+    skill_id: SkillId,
+    maps: Vec<String>,
 }
 
 /// Removes characters that can never be displayed in a dialog transcript.
@@ -107,7 +118,63 @@ impl DialogWindowState {
     /// id when sending packets to the server.
     pub fn initialize(&mut self, npc_id: EntityId) -> &mut Self {
         self.npc_id = npc_id;
+        self.warp_point = None;
         self
+    }
+
+    /// Shows the Warp Portal destination list (`ZC_WARPLIST`).
+    ///
+    /// The server sends this when a Warp Portal (`AL_WARP`) finished casting;
+    /// the portal is created only after the client answers with the chosen
+    /// destination. The list replaces the current NPC dialog content, like the
+    /// official client's separate warp point window.
+    pub fn start_warp_point_list(&mut self, skill_id: SkillId, maps: Vec<String>) {
+        use korangar_interface::prelude::*;
+
+        self.elements.clear();
+        self.clear_next = false;
+
+        self.elements.push(DialogElement::new(
+            text! {
+                text: "Choose a warp destination".to_owned(),
+            },
+            DialogElementKind::Text,
+        ));
+
+        maps.iter().enumerate().for_each(|(index, map_name)| {
+            let label = map_name.trim_end_matches(".gat").replace('_', " ");
+
+            self.elements.push(DialogElement::new(
+                button! {
+                    text: label,
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::SelectWarpPoint { option: index });
+                    },
+                },
+                DialogElementKind::Choice,
+            ));
+        });
+
+        self.warp_point = Some(WarpPointList { skill_id, maps });
+    }
+
+    /// Destination of the `option`-th Warp Portal choice, if the window is
+    /// currently showing a destination list.
+    pub fn warp_point_destination(&self, option: usize) -> Option<(SkillId, String)> {
+        let warp_point = self.warp_point.as_ref()?;
+        let map_name = warp_point.maps.get(option)?.clone();
+
+        Some((warp_point.skill_id, map_name))
+    }
+
+    /// Skill id of the pending Warp Portal destination list, if any.
+    pub fn warp_point_skill(&self) -> Option<SkillId> {
+        self.warp_point.as_ref().map(|warp_point| warp_point.skill_id)
+    }
+
+    /// Leaves the Warp Portal destination mode.
+    pub fn clear_warp_point(&mut self) {
+        self.warp_point = None;
     }
 
     /// Add text to the dialog.
@@ -257,6 +324,7 @@ impl DialogWindowState {
     pub fn end(&mut self) {
         self.elements.clear();
         self.clear_next = false;
+        self.warp_point = None;
     }
 }
 
@@ -267,6 +335,7 @@ impl Default for DialogWindowState {
             // Arguably not very clean but avoids using an Option.
             npc_id: EntityId(0),
             clear_next: false,
+            warp_point: None,
         }
     }
 }

@@ -261,6 +261,11 @@ pub enum InputEvent {
         /// Id of the option.
         option: i8,
     },
+    /// The player picked a destination of the Warp Portal destination list.
+    SelectWarpPoint {
+        /// Zero-based index into the servers map list.
+        option: usize,
+    },
     /// Move an item in the user interface.
     MoveItem {
         /// Source of the move.

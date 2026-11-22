@@ -1185,6 +1185,14 @@ where
         }
     }
 
+    /// Answers a Warp Portal destination list (`ZC_WARPLIST`, 0x0ABE) with the
+    /// chosen destination map. The server then creates the portal units.
+    pub fn select_warp_point(&mut self, skill_id: SkillId, map_name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(SelectWarpPointPacket::new(skill_id, map_name)),
+        }
+    }
+
     /// Use an item from the inventory (potions, usable items, ...).
     pub fn use_item(&mut self, item_index: InventoryIndex, item_id: ItemId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {

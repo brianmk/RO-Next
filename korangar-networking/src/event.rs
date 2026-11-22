@@ -180,6 +180,17 @@ pub enum NetworkEvent {
     SkillCastCancelled {
         entity_id: EntityId,
     },
+    /// The map server asks the player to choose the destination of a Warp
+    /// Portal (`AL_WARP`, `ZC_WARPLIST` 0x0ABE).
+    ///
+    /// The client answers with [`SelectWarpPointPacket`]. The server then
+    /// creates the portal skill units, which arrive as `AddSkillUnit` events
+    /// and are rendered as the classic blue portal.
+    WarpPointList {
+        skill_id: SkillId,
+        /// Destination map names (as sent by the server, usually with `.gat`).
+        maps: Vec<String>,
+    },
     /// The map server asked the client to play a 3d sound effect (`ZC_SOUND`,
     /// 0x01D3). `name` is the file name relative to `data/wav`.
     PlaySound {
@@ -452,6 +463,9 @@ pub enum NetworkEvent {
         entity_id: EntityId,
         unit_id: UnitId,
         position: TilePosition,
+        /// Skill level of the unit (`NotifySkillUnitPacket` carries it); used
+        /// to derive the lifetime of warp portals.
+        skill_level: u8,
     },
     RemoveSkillUnit {
         entity_id: EntityId,
