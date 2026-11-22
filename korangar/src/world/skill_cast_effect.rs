@@ -100,13 +100,14 @@ pub const CAST_CIRCLE_RADIUS: f32 = 7.0;
 /// the missing "hammer layer" that the previous `dust.str` placeholder did not
 /// show.
 const HAMMERFALL_EFFECT: &str = "black_hammerfall.str";
-const SPARKLE_EFFECT: &str = "strangelights.str";
+/// Official Angelus effect (used instead of the blessing-angels placeholder).
+const ANGELUS_EFFECT: &str = "angelus.str";
+/// Official Improve Concentration effect (the old sparkle placeholder is gone).
+const CONCENTRATION_EFFECT: &str = "ac_concentration.str";
 /// Animated angel that flutters/rotates above the character. This is the asset
 /// that reads closest to the classic Blessing angel; the classic
 /// `blessing.str` is not part of the 2019 data set.
 const ANGEL_EFFECT: &str = "efst_angel_fluttering\\angel_fluttering.str";
-/// Ring of blessing angels, used for Angelus.
-const BLESSING_ANGELS_EFFECT: &str = "efst_blessing_of_angels\\tensi3.str";
 /// Blessing-of-souls sparkles, used for Incagi.
 const BLESSING_OF_SOULS_EFFECT: &str = "efst_c_blessings_of_soul\\blessingsofsoul.str";
 
@@ -223,7 +224,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Angelus: ring of blessing angels around the character.
         skill_ids::AL_ANGELUS => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(BLESSING_ANGELS_EFFECT, BLESSING_ANGELS_HEIGHT, 1.0),
+            completion: completion(ANGELUS_EFFECT, BLESSING_ANGELS_HEIGHT, 1.0),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -241,7 +242,7 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
         // Concentration: generic sparkles around the torso.
         skill_ids::AC_CONCENTRATION => SkillVisuals {
             cast_circle_color: Color::rgb_u8(255, 230, 160),
-            completion: completion(SPARKLE_EFFECT, TORSO_HEIGHT, 0.9),
+            completion: completion(CONCENTRATION_EFFECT, TORSO_HEIGHT, 0.9),
             cast_aura: None,
             instant_auras: &[],
             body_flash: None,
@@ -269,7 +270,18 @@ pub fn skill_visuals(skill_id: SkillId, element: u32) -> SkillVisuals {
             body_flash: None,
             light: (YELLOW_AURA_COLOR, 45.0),
         },
-        _ => plain(crate::world::element_color(element)),
+        _ => {
+            let mut visuals = plain(crate::world::element_color(element));
+
+            // High-confidence official effect from the generated table (see
+            // `gen_skill_effect_assets.py`). Skills without a match keep the
+            // generic element cast circle and no completion effect.
+            if let Some(effect_path) = crate::world::skill_effect_asset(skill_id) {
+                visuals.completion = completion(effect_path, 0.0, 1.0);
+            }
+
+            visuals
+        }
     }
 }
 
@@ -305,6 +317,39 @@ mod tests {
     #[test]
     fn unknown_skills_have_no_completion_effect() {
         assert!(skill_visuals(SkillId(1), 3).completion.is_none());
+    }
+
+    #[test]
+    fn high_confidence_skills_play_their_official_effect() {
+        // The generated high-confidence table (skill_effect_assets.rs) is wired
+        // into the default arm, so e.g. Storm Gust, Magnus Exorcismus and
+        // Pierce get their official `.str` completion effect.
+        for (skill_id, expected) in [(89_u16, "stormgust.str"), (79, "magnus.str"), (56, "pierce.str")] {
+            let visuals = skill_visuals(SkillId(skill_id), 0);
+            let effect = visuals
+                .completion
+                .unwrap_or_else(|| panic!("skill {skill_id} has no completion effect"));
+            assert!(
+                effect.path.ends_with(expected),
+                "skill {skill_id}: {} does not end with {expected}",
+                effect.path
+            );
+        }
+    }
+
+    #[test]
+    fn angelus_and_concentration_use_the_official_effects() {
+        let angelus = skill_visuals(SkillId(33), 0).completion.expect("angelus effect");
+        assert_eq!(angelus.path, "angelus.str");
+
+        let concentration = skill_visuals(SkillId(45), 0).completion.expect("concentration effect");
+        assert_eq!(concentration.path, "ac_concentration.str");
+    }
+
+    #[test]
+    fn skills_without_an_asset_keep_the_generic_circle() {
+        // Basic Skill has no completion effect asset.
+        assert!(skill_visuals(SkillId(1), 0).completion.is_none());
     }
 
     #[test]

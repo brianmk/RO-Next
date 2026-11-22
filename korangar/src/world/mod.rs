@@ -10,6 +10,7 @@ mod ground_item;
 mod guild_emblem;
 mod item_details;
 mod library;
+pub(crate) use self::library::skill_effect_asset;
 mod light;
 mod map;
 mod model;
