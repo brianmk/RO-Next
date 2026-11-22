@@ -57,7 +57,7 @@ const EFST_ASSUMPTIO2: u16 = 473;
 /// The head/name label height used elsewhere in the client is 21 world units,
 /// so 14 units is roughly two thirds of the character height (upper torso/head
 /// area). The glow must be around the body, not around the feet.
-const BODY_HEIGHT: f32 = 14.0;
+const BODY_HEIGHT: f32 = 13.0;
 /// Factor applied to the body glow height while the entity is sitting (the
 /// sitting head height is 12 of the standing 21 world units).
 const SITTING_HEIGHT_FACTOR: f32 = 12.0 / 21.0;

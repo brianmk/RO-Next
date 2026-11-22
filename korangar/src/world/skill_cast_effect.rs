@@ -132,7 +132,7 @@ const HEAD_HEIGHT: f32 = 21.0;
 const SITTING_HEAD_HEIGHT: f32 = 12.0;
 /// Extra clearance above the head so an overhead buff effect clears the
 /// head/hair instead of overlapping it. Multiplied by the entity scale.
-const OVERHEAD_CLEARANCE: f32 = 8.0;
+const OVERHEAD_CLEARANCE: f32 = 5.0;
 
 /// Vertical anchor (above the feet, in world units) of an overhead buff or
 /// completion effect for an entity.
