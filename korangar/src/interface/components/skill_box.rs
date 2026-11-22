@@ -193,8 +193,7 @@ where
         let size_scale = (self.size / DEFAULT_SKILL_BOX_SIZE).clamp(1.0, 1.75);
         let color_tokens = client_theme().tokens().color();
         let skill_font_size = *state.get(&client_theme().tokens().typography().font_body());
-        let level_font_size =
-            <crate::loaders::FontSize as korangar_interface::application::FontSize>::scaled(&skill_font_size, size_scale);
+        let level_font_size = <crate::loaders::FontSize as korangar_interface::application::FontSize>::scaled(&skill_font_size, size_scale);
         let background_color = match !is_drop_target && is_hovered {
             true => *state.get(&color_tokens.state_hover()),
             false => *state.get(&color_tokens.surface_raised()),
@@ -280,9 +279,9 @@ where
                     layout_info.area,
                     self.level_display.string.as_ref().unwrap(),
                     level_font_size,
-                *state.get(&color_tokens.text_overlay()),
-                *state.get(&color_tokens.text_overlay_accent()),
-                // TODO: Put this in the theme
+                    *state.get(&color_tokens.text_overlay()),
+                    *state.get(&color_tokens.text_overlay_accent()),
+                    // TODO: Put this in the theme
                     HorizontalAlignment::Right {
                         offset: 3.0 * size_scale,
                         border: 3.0 * size_scale,

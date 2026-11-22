@@ -43,9 +43,9 @@ pub use self::item_stats::{ItemStats, StatBonuses};
 pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 use self::monster_sprite::MonsterSprites;
-use self::skill_icon::SkillIcons;
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
+use self::skill_icon::SkillIcons;
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;

@@ -147,6 +147,7 @@ def format_rust(skills: list[tuple[int, list[dict[str, int]]]]) -> str:
     out.append("}")
     out.append("")
     out.append("/// One entry per skill with a non-zero delay, sorted by skill id.")
+    out.append("#[rustfmt::skip]")
     out.append("pub static SKILL_DELAYS: &[SkillDelayRow] = &[")
     for skill_id, levels in skills:
         entries = ", ".join(

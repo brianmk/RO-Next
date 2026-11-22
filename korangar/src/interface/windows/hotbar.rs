@@ -7,10 +7,10 @@
 //! as possible. The transparency toggle only removes the window background and
 //! chrome; the slot cards, skill icons and the toggle itself stay opaque.
 
-use korangar_interface::application::Application;
 use korangar_components::skill_box;
-use korangar_interface::element::store::{ElementStore, ElementStoreMut};
+use korangar_interface::application::Application;
 use korangar_interface::element::Element;
+use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::layout::area::PartialArea;
 use korangar_interface::layout::{Resolver, Resolvers, WindowLayout, with_single_resolver};
@@ -264,9 +264,18 @@ where
         let transparent_path = settings_path.transparent_hotbar();
         let window_theme_path = client_theme().window();
 
-        let background_color =
-            hotbar_window_value(window_theme_path, transparent_path, |window| window.background_color, Color::TRANSPARENT);
-        let shadow_color = hotbar_window_value(window_theme_path, transparent_path, |window| window.shadow_color, Color::TRANSPARENT);
+        let background_color = hotbar_window_value(
+            window_theme_path,
+            transparent_path,
+            |window| window.background_color,
+            Color::TRANSPARENT,
+        );
+        let shadow_color = hotbar_window_value(
+            window_theme_path,
+            transparent_path,
+            |window| window.shadow_color,
+            Color::TRANSPARENT,
+        );
         let shadow_padding = hotbar_window_value(
             window_theme_path,
             transparent_path,

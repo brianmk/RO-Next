@@ -1307,11 +1307,20 @@ impl<App: Application> InterfaceFrame<'_, App> {
         }
     }
 
+    /// Handle the mouse button release.
+    ///
+    /// `reset_mouse_mode` controls whether the mouse mode falls back to
+    /// [`MouseMode::Default`]. A click handler that started a sticky mode
+    /// during the same click (for example a targeted skill selection started by
+    /// a double click in the skill tree) passes `false`, so the release of that
+    /// very click does not immediately cancel the selection again.
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
-    pub fn drop(&mut self, state: &State<App>) {
-        self.event_queue.queue(Event::SetMouseMode {
-            mouse_mode: MouseMode::Default,
-        });
+    pub fn drop(&mut self, state: &State<App>, reset_mouse_mode: bool) {
+        if reset_mouse_mode {
+            self.event_queue.queue(Event::SetMouseMode {
+                mouse_mode: MouseMode::Default,
+            });
+        }
 
         if let Some(layout) = &self.overlay_layout {
             layout.handle_drop(state, self.event_queue, self.mouse_mode);

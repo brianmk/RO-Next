@@ -80,8 +80,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
-    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult,
-    SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult, SkillId,
+    SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -136,8 +136,7 @@ use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::party::PartyPathExt;
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::stat_buffer::PendingStatUpdates;
-use crate::state::theme::{InterfaceTheme, InterfaceThemeType, WorldTheme};
-use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceTheme, InterfaceThemeType, WorldTheme};
 use crate::state::{BufferedAction, SelectedServicePath, client_theme};
 use crate::system::{FrameTimers, GameTimer};
 #[cfg(feature = "debug")]
@@ -183,7 +182,6 @@ const CLIENT_NAME: &str = "Korangar";
 const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 /// Minimum duration of the skill-cast animation for casts without a usable cast
 /// time, so that they are still visible.
-const MINIMUM_SKILL_CAST_ANIMATION_MS: u32 = 300;
 /// Duration of the one-shot attack/pickup animation for instant skills, where
 /// the server sends no attack motion (the official client uses a 400 ms hold).
 const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
@@ -2020,10 +2018,7 @@ impl Client {
         self.interface.close_window_with_class(WindowClass::Hotbar);
 
         let window_size = *self.client_state.follow(client_state().window_size());
-        let scaling = self
-            .client_state
-            .follow(client_state().interface_settings().scaling())
-            .get_factor();
+        let scaling = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
         let width = HOTBAR_ROW_WIDTH * scaling;
         let height = HOTBAR_WINDOW_HEIGHT * scaling;
         let margin = 18.0 * scaling;
@@ -2042,10 +2037,7 @@ impl Client {
     /// of the screen, below the minimap.
     fn open_buff_bar_window(&mut self) {
         let window_size = *self.client_state.follow(client_state().window_size());
-        let scaling = self
-            .client_state
-            .follow(client_state().interface_settings().scaling())
-            .get_factor();
+        let scaling = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
         // The minimap is a fixed 250 interface pixel tall window at the top
         // right, so the status strip starts below it. The offset is computed
         // from the current scale instead of using a cached window position.
@@ -2515,7 +2507,10 @@ impl Client {
 
         // Sage/Scholar/Professor with the `Free Cast` passive can move while
         // casting. Unknown jobs default to "blocked".
-        if has_free_cast(player.get_job_id(), self.client_state.follow(client_state().skill_tree().skills())) {
+        if has_free_cast(
+            player.get_job_id(),
+            self.client_state.follow(client_state().skill_tree().skills()),
+        ) {
             return false;
         }
 
@@ -3085,7 +3080,7 @@ impl Client {
                     // the level are not needed here.
                     destination_entity_id: _,
                     skill_id,
-                    level: _,
+                    level,
                     success,
                 } => {
                     // 2019 `ZC_USE_SKILL` (0x09CB): the caster performed an
@@ -3099,7 +3094,8 @@ impl Client {
                             // after-cast act delay instead of a global constant.
                             if let Some(delays) = skill_delays(skill_id, level as u16) {
                                 crate::logging::log_debug!(
-                                    "skill delay table: skill={} level={} cast={}ms fixed={}ms aftercast_act={}ms aftercast_walk={}ms cooldown={}ms",
+                                    "skill delay table: skill={} level={} cast={}ms fixed={}ms aftercast_act={}ms aftercast_walk={}ms \
+                                     cooldown={}ms",
                                     skill_id.0,
                                     level,
                                     delays.cast_ms,
@@ -3191,10 +3187,7 @@ impl Client {
                     // another skill, ...). Stop the looping cast gesture and
                     // clear the local player's cast bar and skill label so a
                     // cancelled cast never leaves a stuck bar or animation.
-                    crate::logging::log_debug!(
-                        "skill cast cancelled (ZC_DISPEL / 0x01B9): entity={}",
-                        entity_id.0
-                    );
+                    crate::logging::log_debug!("skill cast cancelled (ZC_DISPEL / 0x01B9): entity={}", entity_id.0);
 
                     if self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(entity_id) {
                         self.cast_bars.clear();
@@ -5315,10 +5308,7 @@ impl Client {
         client_tick: ClientTick,
     ) {
         if self.aftercast_act_active(client_tick) {
-            crate::logging::log_debug!(
-                "ignoring skill {}: after-cast act delay still running",
-                skill_id.0
-            );
+            crate::logging::log_debug!("ignoring skill {}: after-cast act delay still running", skill_id.0);
             return;
         }
 
@@ -7699,8 +7689,11 @@ impl Client {
                     if let Some((_, skill_id, skill_type, level)) = skill_target {
                         // A skill target is being selected. Any click ends the
                         // selection, and a left click casts the skill at whatever
-                        // is under the cursor. The mouse mode is reset by the
-                        // mouse button release.
+                        // is under the cursor. The mode is reset here explicitly
+                        // because the release that starts a selection no longer
+                        // resets it (the mode is sticky for one click).
+                        interface_frame.set_mouse_mode(MouseMode::Default);
+
                         if mouse_button == MouseButton::Left {
                             self.input_event_buffer.push(InputEvent::CastSkill {
                                 skill_id,
@@ -7792,7 +7785,10 @@ impl Client {
             }
 
             if input_report.mouse_button_released {
-                interface_frame.drop(&self.client_state);
+                // A click that starts a sticky mouse mode (targeted skill
+                // selection) must not be cancelled by the release of that same
+                // click; the mode stays until the next click.
+                interface_frame.drop(&self.client_state, skill_target.is_none());
             }
 
             if let Some(delta) = input_report.scroll {
@@ -9188,9 +9184,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         if self.currently_playing {
             // The progress fill uses the theme's green success token, so the
             // cast bar is green in the default and in the classic theme.
-            let cast_bar_fill_color = *self
-                .client_state
-                .follow(client_theme().tokens().color().state_success());
+            let cast_bar_fill_color = *self.client_state.follow(client_theme().tokens().color().state_success());
 
             self.cast_bars.render(
                 self.middle_interface_renderer,
@@ -9289,7 +9283,7 @@ fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::{JobId, SkillId, SkillLevel};
+    use ragnarok_packets::{AttackRange, JobId, SkillId, SkillLevel, SkillType};
 
     use super::has_free_cast;
     use crate::state::skills::LearnedSkill;
@@ -9298,6 +9292,11 @@ mod tests {
         LearnedSkill {
             skill_id: SkillId(skill_id),
             skill_level: SkillLevel(1),
+            skill_type: SkillType::Passive,
+            spell_point_cost: 0,
+            attack_range: AttackRange(1),
+            skill_name: String::new(),
+            upgradable: false,
         }
     }
 

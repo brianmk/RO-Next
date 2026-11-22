@@ -415,7 +415,11 @@ where
                     korangar_interface::theme::theme().window().gaps(),
                     scroll_view! {
                         follow: true,
-                        fit_content_height: true,
+                        // The window height comes from the stored window size
+                        // (and the resize grip changes it), so the message list
+                        // has to consume the available height and scroll beyond
+                        // it instead of stretching the window with the content.
+                        fit_content_height: false,
                         children: ChatElement::new(self.chat_messages_path),
                     },
                 ),
