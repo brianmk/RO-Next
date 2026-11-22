@@ -93,6 +93,10 @@ use settings::{
 };
 use state::hotbar::{HOTBAR_ENTRIES_PER_TAB, HOTBAR_TAB_COUNT, HotbarPathExt};
 use state::inventory::InventoryPathExt;
+use state::lifecycle::{
+    AddEntityDecision, EntityLifecycle, RemoveEntityOutcome, ResourcePolicy, ResourceRetryQueue, SHUTDOWN_DISCONNECT_TIMEOUT,
+    SessionAction, SessionEvent, SessionMachine, SessionObservation, SessionState,
+};
 use state::localization::Localization;
 use state::skills::SkillTreePathExt;
 use state::theme::{CursorThemePathExt, IndicatorThemePathExt, InterfaceThemePathExt, WorldThemePathExt};
@@ -656,12 +660,11 @@ pub struct Client {
 
     map_window_cycle: MapWindowCycle,
 
-    /// Set when a quit was requested (exit button, window close or
-    /// SIGTERM/SIGHUP). The client then asks the map server for a clean
-    /// disconnect before exiting.
-    shutdown_requested: bool,
-    /// Deadline for the clean disconnect; the client exits when it is reached.
-    shutdown_deadline: Option<Instant>,
+    /// Explicit session/connection lifecycle (login → character selection →
+    /// map entry → in game → recovery → shutdown). Owns the map entry/abort,
+    /// map load retry, character-server reconnect and shutdown timers that used
+    /// to be loose fields on the client.
+    session: SessionMachine,
 
     /// Client message table (`data/msgstringtable.txt`) for `ZC_MSG` (0x0291)
     /// system messages.
@@ -672,36 +675,12 @@ pub struct Client {
     /// shown as a single chat line after a short idle period.
     pending_experience: PendingExperience,
 
-    /// When set, the client retries connecting to the character server at this
-    /// time. Used after being kicked from a restarted map server (the
-    /// character server can briefly reject the re-login while the old map
-    /// session is still registered).
-    character_server_reconnect_at: Option<Instant>,
-    /// Remaining character server reconnect attempts.
-    character_server_reconnect_attempts: u32,
     /// Rate limiter for non-modal "some resources could not be loaded" chat
     /// notices (transient asset failures; the warn log has no such limit).
     transient_asset_notices: TransientAssetNoticeLimiter,
-    /// Message that is shown at the character selection screen after a map
-    /// failed to load (the map connection was dropped in that case).
-    pending_map_load_error: Option<String>,
-    /// Deadline for the map server disconnect that aborts a failed map entry.
-    /// If the disconnect event does not arrive in time the client recovers
-    /// directly instead of waiting forever on a black screen.
-    map_entry_abort_deadline: Option<Instant>,
-    /// Deadline until which the client expects the map server to send the map
-    /// change packet after a character was selected.
-    ///
-    /// A packet that cannot be parsed desynchronizes the map server stream and
-    /// silently swallows the `ZC_NPCACK_MAPMOVE` packet, which used to leave
-    /// the client on a black screen forever. This watchdog aborts such a map
-    /// entry instead.
-    map_entry_watchdog: Option<Instant>,
-    /// Set while the client recovers from an aborted map entry. Used to
-    /// suppress the follow-up "Rejected from server" window, which is only
-    /// a side effect of aborting the entry and would cover the actual map
-    /// error.
-    map_entry_aborted: bool,
+    /// Explicit per-entity lifecycle: first spawn vs. duplicate `AddEntity`
+    /// (job change/respawn), death/despawn and warp cleanup.
+    entity_lifecycle: EntityLifecycle,
 
     /// Context menu that should be opened once the name of the target entity
     /// is known. Stores the entity id and the screen position of the click.
@@ -720,11 +699,11 @@ pub struct Client {
     /// per map session.
     guild_emblems: GuildEmblemCache,
 
-    /// Watchdog for map loads requested after a map change: (map name, spawn
-    /// position, last request time, attempts). Re-requests the load if the
-    /// map does not arrive, so a failed/lost load cannot leave the client
-    /// on a black screen.
-    pending_map_load: Option<(String, Option<TilePosition>, Instant, u32)>,
+    /// Deadline/retry tracking for asynchronous animation and asset loads of
+    /// visible entities. A load that never completes or fails is retried a
+    /// bounded number of times instead of silently leaving the resource
+    /// missing forever.
+    asset_retries: ResourceRetryQueue<LoaderId>,
 
     /// Name of the map that is currently loaded. Used to detect same-map
     /// teleports (fly wing, AL_TELEPORT, ...): the server sends a normal map
@@ -1328,19 +1307,13 @@ impl Client {
             pending_stat_updates: PendingStatUpdates::new(),
             message_table,
             pending_experience: PendingExperience::default(),
-            shutdown_requested: false,
-            shutdown_deadline: None,
-            character_server_reconnect_at: None,
-            character_server_reconnect_attempts: 0,
+            session: SessionMachine::new(),
+            entity_lifecycle: EntityLifecycle::new(),
+            asset_retries: ResourceRetryQueue::new(ResourcePolicy::ANIMATION_DATA),
             pending_context_menu: None,
             shop_open: false,
             guild_emblems: GuildEmblemCache::default(),
             transient_asset_notices: TransientAssetNoticeLimiter::default(),
-            pending_map_load_error: None,
-            map_entry_abort_deadline: None,
-            map_entry_watchdog: None,
-            map_entry_aborted: false,
-            pending_map_load: None,
             current_map_name: None,
             level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
             level_99_aura_entities: HashSet::new(),
@@ -1859,93 +1832,61 @@ impl Client {
         self.top_interface_renderer.update_scaling(scaling);
     }
 
-    /// Retry a lost/failed map load instead of leaving the client on a black
-    /// screen.
+    /// Drive the explicit session lifecycle (P1-3): map entry watchdog, map
+    /// load retries, map abort recovery and the character-server reconnect
+    /// backoff.
     ///
-    /// A map change sets `self.map` to `None` and requests the load
-    /// asynchronously. If that request is dropped or fails, nothing would
-    /// ever fill the map in again. This watchdog re-requests the load a few
-    /// times with a delay and finally shows an error window.
-    fn update_pending_map_load(&mut self) {
-        if self.map.is_some() {
-            self.pending_map_load = None;
-            return;
-        }
+    /// The [`SessionMachine`] only decides *what* has to happen; the client
+    /// executes the returned actions here, so the transition logic stays
+    /// testable without a window, a network or a game server.
+    fn update_session_lifecycle(&mut self) {
+        let now = Instant::now();
 
-        let Some((map_name, position, requested_at, attempts)) = self.pending_map_load.clone() else {
-            return;
+        let observation = SessionObservation {
+            map_assets_loaded: self.map.is_some(),
+            player_present: self.client_state.try_follow(this_entity()).is_some(),
+            login_server_connected: self.networking_system.is_login_server_connected(),
+            login_surface_visible: self.interface.is_window_with_class_open(WindowClass::Login)
+                || self.interface.is_window_with_class_open(WindowClass::SelectServer),
         };
 
-        if requested_at.elapsed() < Duration::from_secs(8) {
-            return;
+        let actions = self.session.tick(now, &observation);
+
+        for action in actions {
+            match action {
+                SessionAction::AbortMapEntry { reason } => self.abort_map_entry(reason),
+                SessionAction::RecoverToCharacterSelection => self.return_to_character_selection(),
+                SessionAction::RetryMapLoad { map_name, position } => {
+                    self.async_loader.request_map_load(map_name, position);
+                }
+                SessionAction::MapLoadGaveUp { map_name } => {
+                    // Do not leave the client on a black screen: recover to the
+                    // character selection and show the reason there.
+                    let message = format!("Failed to load the map '{map_name}'. Please try again.");
+                    self.session.set_map_load_error(message.clone());
+                    self.interface.open_window(ErrorWindow::new(message));
+                    self.return_to_character_selection();
+                }
+                SessionAction::ReconnectCharacterServer => {
+                    let Some(saved_login_data) = self.saved_login_data.as_ref() else {
+                        self.session.clear_character_reconnect();
+                        continue;
+                    };
+                    let Some(server) = self.saved_character_server.clone() else {
+                        self.session.clear_character_reconnect();
+                        continue;
+                    };
+
+                    self.networking_system
+                        .connect_to_character_server(self.saved_packet_version, saved_login_data, server);
+                }
+                SessionAction::CharacterReconnectGaveUp => {
+                    self.interface.open_window(ErrorWindow::new(
+                        "Could not connect to the character server. Please log in again.".to_owned(),
+                    ));
+                }
+            }
         }
-
-        if attempts >= 4 {
-            self.pending_map_load = None;
-            self.interface.open_window(ErrorWindow::new(format!(
-                "Failed to load the map '{map_name}'. Please try again."
-            )));
-            return;
-        }
-
-        self.async_loader.request_map_load(map_name.clone(), position);
-        self.pending_map_load = Some((map_name, position, Instant::now(), attempts + 1));
-    }
-
-    /// Drive the character server reconnect retries. Called once per frame.
-    fn update_character_server_reconnect(&mut self) {
-        let Some(next_attempt) = self.character_server_reconnect_at else {
-            return;
-        };
-
-        // Only stop when we are actually in game. The menu map is also stored in
-        // `self.map`, but it is shown at the character selection screen, where a
-        // character server reconnect must still be possible (for example after
-        // aborting a map entry whose map data is missing).
-        let in_game = self.map.is_some() && self.client_state.try_follow(this_player()).is_some();
-
-        if self.shutdown_requested || in_game {
-            self.character_server_reconnect_at = None;
-            return;
-        }
-
-        if self.interface.is_window_with_class_open(WindowClass::Login)
-            || self.interface.is_window_with_class_open(WindowClass::SelectServer)
-            || self.networking_system.is_login_server_connected()
-        {
-            // The player is still on the login / server selection screens: connecting to
-            // the character server is the explicit job of the server-selection
-            // flow, not of the map-restart recovery.
-            self.character_server_reconnect_at = None;
-            return;
-        }
-
-        if self.networking_system.is_character_server_connected() {
-            self.character_server_reconnect_at = None;
-            return;
-        }
-
-        if Instant::now() < next_attempt {
-            return;
-        }
-
-        if self.character_server_reconnect_attempts == 0 {
-            self.character_server_reconnect_at = None;
-            self.interface.open_window(ErrorWindow::new(
-                "Could not connect to the character server. Please log in again.".to_owned(),
-            ));
-            return;
-        }
-
-        let (Some(login_data), Some(server)) = (self.saved_login_data.as_ref(), self.saved_character_server.clone()) else {
-            self.character_server_reconnect_at = None;
-            return;
-        };
-
-        self.character_server_reconnect_attempts -= 1;
-        self.networking_system
-            .connect_to_character_server(self.saved_packet_version, login_data, server);
-        self.character_server_reconnect_at = Some(Instant::now() + Duration::from_secs(2));
     }
 
     /// Prints one line about the display backend and the window properties.
@@ -2104,15 +2045,24 @@ impl Client {
         // not burst a request per character/entity.
         const MAXIMUM_NAME_REQUESTS_PER_FRAME: usize = 8;
 
-        let entity_ids: Vec<_> = self
-            .client_state
-            .follow(client_state().entities())
-            .iter()
-            .filter(|entity| matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc))
-            .filter(|entity| entity.are_details_unavailable())
-            .map(|entity| entity.get_entity_id())
-            .take(MAXIMUM_NAME_REQUESTS_PER_FRAME)
-            .collect();
+        let now = Instant::now();
+        let mut entity_ids = Vec::new();
+
+        for entity in self.client_state.follow_mut(client_state().entities()).iter_mut() {
+            if entity_ids.len() >= MAXIMUM_NAME_REQUESTS_PER_FRAME {
+                break;
+            }
+
+            if !matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc) {
+                continue;
+            }
+
+            // `details_need_request` also handles the retry of a lost response
+            // and gives up after the attempt budget (with a warning).
+            if entity.details_need_request(now) {
+                entity_ids.push(entity.get_entity_id());
+            }
+        }
 
         for entity_id in entity_ids {
             if self.networking_system.entity_details(entity_id).is_ok()
@@ -2122,7 +2072,7 @@ impl Client {
                     .iter_mut()
                     .find(|entity| entity.get_entity_id() == entity_id)
             {
-                entity.set_details_requested();
+                entity.set_details_requested(now);
             }
         }
     }
@@ -2163,16 +2113,18 @@ impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn request_entity_details(&mut self, input_report: &InputReport) {
+        let now = Instant::now();
+
         if let PickerTarget::Entity(entity_id) = input_report.mouse_target
             && let Some(entity) = self
                 .client_state
                 .follow_mut(client_state().entities())
                 .iter_mut()
                 .find(|entity| entity.get_entity_id() == entity_id)
-            && entity.are_details_unavailable()
+            && entity.details_need_request(now)
             && self.networking_system.entity_details(entity_id).is_ok()
         {
-            entity.set_details_requested();
+            entity.set_details_requested(now);
         }
     }
 
@@ -2727,6 +2679,7 @@ impl Client {
                     }
 
                     self.saved_login_data = Some(login_data);
+                    self.session.transition(SessionEvent::LoginSucceeded);
 
                     // A previously established character/map connection (e.g. from a session
                     // that was kicked or logged out) must not block the new server selection.
@@ -2746,8 +2699,8 @@ impl Client {
                     // server (map-restart recovery state): reset the retry state and the
                     // remembered server so the Select Server window is shown and only the
                     // player's click connects.
-                    self.character_server_reconnect_at = None;
-                    self.character_server_reconnect_attempts = 0;
+                    self.session.character_server_disconnected();
+                    self.session.clear_character_reconnect();
                     self.saved_character_server = None;
 
                     *self.client_state.follow_mut(client_state().character_servers()) = character_servers;
@@ -2792,7 +2745,14 @@ impl Client {
                     }
                 }
                 NetworkEvent::CharacterServerConnected { normal_slot_count } => {
-                    self.character_server_reconnect_at = None;
+                    crate::logging::log_debug!(
+                        "character server: connected ({} slots), requesting the character list",
+                        normal_slot_count
+                    );
+                    self.session.character_server_connected();
+                    if self.session.state() == SessionState::Recovering {
+                        self.session.transition(SessionEvent::CharacterServerConnected);
+                    }
 
                     self.client_state
                         .follow_mut(client_state().character_slots())
@@ -2801,26 +2761,27 @@ impl Client {
                     let _ = self.networking_system.request_character_list();
                 }
                 NetworkEvent::CharacterServerConnectionFailed { message, .. } => {
+                    self.session.character_server_disconnected();
                     self.networking_system.disconnect_from_character_server();
 
                     if self.map.is_none() && self.saved_login_data.is_some() {
                         // The character server can be briefly unavailable (e.g. while the map
                         // server restarts and the old map session is still registered).
                         // Retry instead of ending up on a dead screen.
-                        self.character_server_reconnect_attempts = 30;
-                        self.character_server_reconnect_at = Some(Instant::now());
+                        self.session.schedule_character_reconnect(Instant::now());
                     } else {
                         self.interface.open_window(ErrorWindow::new(message.to_owned()));
                     }
                 }
                 NetworkEvent::CharacterServerDisconnected { reason } => {
+                    self.session.character_server_disconnected();
+
                     if reason != DisconnectReason::ClosedByClient {
                         // TODO: Make this an on-screen popup.
                         #[cfg(feature = "debug")]
                         print_debug!("Disconnection from the character server with error");
 
-                        self.character_server_reconnect_attempts = 30;
-                        self.character_server_reconnect_at = Some(Instant::now());
+                        self.session.schedule_character_reconnect(Instant::now());
                     } else if !self.networking_system.is_map_server_connected()
                         && !self.networking_system.is_login_server_connected()
                         && !self.interface.is_window_with_class_open(WindowClass::SelectServer)
@@ -2853,7 +2814,7 @@ impl Client {
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
 
-                    if self.shutdown_requested {
+                    if self.session.state() == SessionState::Shutdown {
                         // We are quitting; the clean logout is done, don't go back to
                         // the character selection screen.
                         continue;
@@ -2865,6 +2826,7 @@ impl Client {
                         print_debug!("Disconnection from the map server with error");
                     }
 
+                    self.session.map_server_disconnected();
                     self.return_to_character_selection();
                 }
                 NetworkEvent::InitialStats {
@@ -2911,6 +2873,8 @@ impl Client {
                     }
                 }
                 NetworkEvent::ResurrectPlayer { entity_id } => {
+                    self.entity_lifecycle.on_resurrect(entity_id);
+
                     // The server only revives the character, it does not send a separate
                     // stand-up packet, so restore the idle animation ourselves. Without this
                     // the player stayed in the dead pose after respawning.
@@ -3275,7 +3239,7 @@ impl Client {
                 }
                 NetworkEvent::AccountId { .. } => {}
                 NetworkEvent::CharacterList { characters } => {
-                    self.character_server_reconnect_at = None;
+                    self.session.clear_character_reconnect();
 
                     self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
 
@@ -3302,11 +3266,12 @@ impl Client {
                     // A previous map entry may have been aborted because the map
                     // data was missing; show the reason now that we are back at
                     // the character selection screen.
-                    if let Some(message) = self.pending_map_load_error.take() {
+                    if let Some(message) = self.session.take_map_load_error() {
                         self.interface.open_window(ErrorWindow::new(message));
                     }
                 }
                 NetworkEvent::CharacterSelectionFailed { message, .. } => {
+                    crate::logging::log_debug!("character selection: server rejected the selection: {message}");
                     // The map server may still be restarting. Stay on the character
                     // selection screen and refresh the list so selecting the character can
                     // simply be retried once the map server is back.
@@ -3315,7 +3280,7 @@ impl Client {
                     // Aborting a map entry (e.g. because the map data is missing) can
                     // make the server reject a follow-up request. The map error is the
                     // actionable message, so don't cover it with "Rejected from server".
-                    if !self.map_entry_aborted {
+                    if !self.session.map_entry_aborted() {
                         self.interface.open_window(ErrorWindow::new(message.to_owned()));
                     }
                 }
@@ -3334,6 +3299,7 @@ impl Client {
                     self.interface.open_window(ErrorWindow::new(message.to_owned()))
                 }
                 NetworkEvent::CharacterSelected { login_data, .. } => {
+                    crate::logging::log_debug!("character selection: server accepted the character, connecting to the map server");
                     self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
 
                     let Some(saved_login_data) = self.saved_login_data.as_ref() else {
@@ -3407,6 +3373,7 @@ impl Client {
                         .clear();
 
                     self.client_state.follow_mut(client_state().entities()).push(player);
+                    self.retrack_local_player();
 
                     self.interface.close_window_with_class(WindowClass::CharacterSelection);
                     self.interface.open_window(MinimapWindow);
@@ -3436,8 +3403,9 @@ impl Client {
                     // The map server sends the map change packet (and with it the
                     // map data we have to load) right after the login handshake.
                     // If the packet stream is desynchronized that packet would be
-                    // lost and the client would stay on a black screen.
-                    self.map_entry_watchdog = Some(Instant::now() + Duration::from_secs(20));
+                    // lost and the client would stay on a black screen forever; the
+                    // session machine arms the map-entry watchdog for this case.
+                    self.session.begin_map_entry(Instant::now());
                     self.skill_sounds.clear();
 
                     self.particle_holder.clear();
@@ -3487,16 +3455,33 @@ impl Client {
                         let entity_type = npc.get_entity_type();
                         let entity_part_files = npc.get_entity_part_files(&self.library);
 
+                        // Explicit lifecycle bookkeeping: the server re-sends
+                        // `AddEntity` for entities that are already visible (job
+                        // change, respawn). The machine records the spawn and the
+                        // client replaces the old entity instead of duplicating it.
+                        let add_decision = self.entity_lifecycle.on_add_entity(entity_id);
+                        let spawn_outcome = self.entity_lifecycle.on_spawned(entity_id, npc.get_job_id());
+
+                        if spawn_outcome.previous_state.is_some() || spawn_outcome.job_changed {
+                            crate::logging::log_debug!(
+                                "entity: replacing already visible entity {} (previous state {:?}, job changed {})",
+                                entity_id.0,
+                                spawn_outcome.previous_state,
+                                spawn_outcome.job_changed
+                            );
+                        }
+
                         let entities = self.client_state.follow_mut(client_state().entities());
 
-                        // If the entity was already visible, we use it's old alpha value.
-                        if let Some(entity) = entities.iter().find(|entity| entity.get_entity_id() == entity_id) {
+                        // If the entity was already visible, we use its old alpha value.
+                        if matches!(add_decision, AddEntityDecision::Replace { .. })
+                            && let Some(entity) = entities.iter().find(|entity| entity.get_entity_id() == entity_id)
+                        {
                             npc.inherit_fade_state(entity, client_tick);
                         };
 
-                        // Sometimes (like after a job change) the server will tell the client
-                        // that a new entity appeared, even though it was already on screen. So
-                        // to prevent the entity existing twice, we remove the old one.
+                        // Remove the old copy of a replaced entity so it never
+                        // exists twice.
                         entities.retain(|entity| entity.get_entity_id() != entity_id);
 
                         if let Some(animation_data) =
@@ -3533,6 +3518,26 @@ impl Client {
                     self.cast_bars.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
                     self.client_state.follow_mut(client_state().spirit_orbs()).remove(entity_id);
+
+                    let remove_outcome = self.entity_lifecycle.on_remove_entity(entity_id, &reason);
+                    match remove_outcome {
+                        RemoveEntityOutcome::Known { state, died } => {
+                            crate::logging::log_debug!(
+                                "entity lifecycle: remove entity {} -> {:?} (died: {})",
+                                entity_id.0,
+                                state,
+                                died
+                            );
+                        }
+                        RemoveEntityOutcome::Unknown => {
+                            crate::logging::log_debug!("entity lifecycle: remove for untracked entity {}", entity_id.0);
+                        }
+                    }
+
+                    // The entity is gone; pending visual loads for it are moot.
+                    self.asset_retries.forget(&LoaderId::AnimationData(entity_id));
+                    self.asset_retries.forget(&LoaderId::FalconAnimationData(entity_id));
+                    self.asset_retries.forget(&LoaderId::WeaponAnimationData(entity_id));
 
                     // Classic teleport/logout behaviour: entities that leave via
                     // teleport/logout play a warp effect and sound at their last
@@ -3713,6 +3718,13 @@ impl Client {
                         self.client_state.follow_mut(client_state().dead_entities()).clear();
                         self.client_state.follow_mut(client_state().ground_items()).clear();
                         *self.client_state.follow_mut(client_state().buffered_action()) = None;
+                        // A teleport is a warp as well: everything but the player is
+                        // re-spawned by the server, so drop the entity bookkeeping and
+                        // pending visual loads of the old position. Status effects stay
+                        // (a teleport must not remove buffs).
+                        self.entity_lifecycle.on_warp();
+                        self.asset_retries.clear();
+                        self.retrack_local_player();
                         self.particle_holder.clear();
                         self.effect_holder.clear();
                         self.chat_bubbles.clear();
@@ -3763,10 +3775,19 @@ impl Client {
                     self.client_state.follow_mut(client_state().ground_items()).clear();
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
 
+                    // Everything else belongs to the old map session: forget the
+                    // entity bookkeeping and pending visual loads, and clear the
+                    // status effects (the server re-sends the buffs of the new map
+                    // session; a stale buff bar must never survive a warp).
+                    self.entity_lifecycle.on_warp();
+                    self.asset_retries.clear();
+                    self.client_state.follow_mut(client_state().status_effects()).clear();
+                    self.retrack_local_player();
+
                     // Close any remaining dialogs.
                     self.interface.close_window_with_class(WindowClass::Dialog);
 
-                    self.pending_map_load = Some((map_name.clone(), Some(position), Instant::now(), 0));
+                    self.session.map_change_received(map_name.clone(), Some(position), Instant::now());
                     self.async_loader.request_map_load(map_name, Some(position));
                 }
                 NetworkEvent::UpdateClientTick { client_tick, received_at } => {
@@ -4303,6 +4324,7 @@ impl Client {
                     }
 
                     entity.set_job(&self.library, job_id);
+                    self.entity_lifecycle.on_job_change(entity.get_entity_id(), job_id);
 
                     if let Some(animation_data) = self.async_loader.request_animation_data_load(
                         entity.get_entity_id(),
@@ -5108,6 +5130,7 @@ impl Client {
                     };
 
                     self.push_chat_information(format!("Disconnected: {reason}."));
+                    self.session.map_server_disconnected();
                     self.return_to_character_selection();
                 }
                 NetworkEvent::RefuseEnter { error_code } => {
@@ -5457,6 +5480,7 @@ impl Client {
                     self.saved_password = password.clone();
                     self.saved_packet_version = packet_version;
 
+                    self.session.transition(SessionEvent::LoginStarted);
                     self.networking_system
                         .connect_to_login_server(packet_version, socket_address, username, password);
                 }
@@ -5706,7 +5730,14 @@ impl Client {
                 InputEvent::CloseTopWindow => self.interface.close_top_window(&self.client_state),
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {
-                    let _ = self.networking_system.select_character(slot);
+                    crate::logging::log_debug!(
+                        "character selection: requesting slot {} (character server connected: {})",
+                        slot,
+                        self.networking_system.is_character_server_connected()
+                    );
+                    if self.networking_system.select_character(slot).is_err() {
+                        crate::logging::log_warn!("character selection: could not send the select packet (not connected)");
+                    }
                 }
                 InputEvent::OpenCharacterCreationWindow { slot } => {
                     // Clear the name before opening the window.
@@ -6716,6 +6747,13 @@ impl Client {
                 }
             };
 
+            if matches!(
+                id,
+                LoaderId::AnimationData(_) | LoaderId::FalconAnimationData(_) | LoaderId::WeaponAnimationData(_)
+            ) {
+                self.asset_retries.note_available(&id);
+            }
+
             match (id, resource) {
                 (LoaderId::AnimationData(entity_id), LoadableResource::AnimationData(animation_data)) => {
                     if let Some(entity) = self
@@ -6782,8 +6820,6 @@ impl Client {
                         .update_item_sprite(item_id, texture);
                 }
                 (LoaderId::Map(map_name), LoadableResource::Map { map, position }) => {
-                    self.pending_map_load = None;
-
                     match self.client_state.try_follow(this_entity()).is_none() {
                         true => {
                             // Load of main menu map
@@ -6829,7 +6865,7 @@ impl Client {
                             // was missing; tell the player why, now that the character
                             // selection window is back (opening the error last keeps it
                             // on top).
-                            if let Some(message) = self.pending_map_load_error.take() {
+                            if let Some(message) = self.session.take_map_load_error() {
                                 self.interface.open_window(ErrorWindow::new(message));
                             }
 
@@ -6837,9 +6873,8 @@ impl Client {
                             self.directional_shadow_camera.set_level_bound(map.get_level_bound());
                         }
                         false => {
-                            // Normal map switch
-                            self.map_entry_aborted = false;
-                            self.pending_map_load_error = None;
+                            // Normal map switch: the map entry is complete.
+                            self.session.map_assets_loaded();
                             self.current_map_name = Some(map_name.clone());
                             let map = self.map.insert(map);
 
@@ -6943,7 +6978,7 @@ impl Client {
 
                 // Only report the first failure of a map entry; retries after the
                 // client returned to the character selection must not spam.
-                if self.pending_map_load_error.is_none() {
+                if !self.session.has_map_load_error() {
                     crate::logging::log_warn!("map load failed: {map_name}: {error:?}");
                 }
 
@@ -6953,7 +6988,16 @@ impl Client {
 
                 self.abort_map_entry(message);
             }
-            AssetFailureSeverity::Transient => self.report_transient_asset_failure(id, error),
+            AssetFailureSeverity::Transient => {
+                if matches!(
+                    id,
+                    LoaderId::AnimationData(_) | LoaderId::FalconAnimationData(_) | LoaderId::WeaponAnimationData(_)
+                ) {
+                    self.asset_retries.note_failed(&id, Instant::now(), &format!("{error:?}"));
+                }
+
+                self.report_transient_asset_failure(id, error);
+            }
         }
     }
 
@@ -7000,14 +7044,14 @@ impl Client {
     /// Without this the client would keep `self.map == None` and render a black
     /// screen forever, because a failed map load used to be dropped silently.
     fn abort_map_entry(&mut self, message: String) {
-        self.pending_map_load_error = Some(message);
-        self.map_entry_aborted = true;
+        // The session machine records the error, sets the abort deadline and
+        // moves to `Recovering`; the client only has to drop the map connection.
+        self.session.map_entry_failed(message, Instant::now());
 
         if self.client_state.try_follow(this_player()).is_none() {
             // The menu background map failed to load; there is no map entry to
             // abort and therefore nothing to go back to.
-            self.map_entry_abort_deadline = None;
-            if let Some(message) = self.pending_map_load_error.take() {
+            if let Some(message) = self.session.take_map_load_error() {
                 self.interface.open_window(ErrorWindow::new(message));
             }
             return;
@@ -7016,12 +7060,12 @@ impl Client {
         if self.networking_system.is_map_server_connected() {
             // Dropping the map connection triggers `NetworkEvent::MapServerDisconnected`,
             // which is responsible for going back to the character selection.
-            self.map_entry_abort_deadline = Some(Instant::now() + Duration::from_millis(2000));
+            // If that event does not arrive the session machine recovers on its
+            // own once the abort deadline expires.
             self.networking_system.disconnect_from_map_server();
         } else {
             // The connection is already gone (e.g. the server kicked us while the
             // map was loading); recover directly.
-            self.map_entry_abort_deadline = None;
             self.return_to_character_selection();
         }
     }
@@ -7030,8 +7074,11 @@ impl Client {
     /// reloading the menu background map.
     fn return_to_character_selection(&mut self) {
         self.map = None;
-        self.map_entry_abort_deadline = None;
-        self.map_entry_watchdog = None;
+        self.session.recovery_finished();
+        // Every entity of the map session is gone; status effects were already
+        // cleared by the map-server disconnect handler.
+        self.entity_lifecycle.on_warp();
+        self.asset_retries.clear();
 
         if self.networking_system.is_character_server_connected() {
             // The map connection failed (e.g. while the map server is still
@@ -7040,8 +7087,7 @@ impl Client {
             // player can simply try again.
             let _ = self.networking_system.request_character_list();
         } else {
-            self.character_server_reconnect_attempts = 30;
-            self.character_server_reconnect_at = Some(Instant::now());
+            self.session.schedule_character_reconnect(Instant::now());
         }
 
         self.particle_holder.clear();
@@ -7093,6 +7139,152 @@ impl Client {
         }
     }
 
+    /// Re-register the local player in the entity lifecycle after a warp.
+    ///
+    /// A warp clears all entity bookkeeping (only the player survives the map
+    /// change), so the player has to be tracked again explicitly.
+    fn retrack_local_player(&mut self) {
+        let Some(player) = self.client_state.try_follow(this_entity()) else {
+            return;
+        };
+
+        let entity_id = player.get_entity_id();
+        let job_id = player.get_job_id();
+        let _ = self.entity_lifecycle.on_add_entity(entity_id);
+        self.entity_lifecycle.on_spawned(entity_id, job_id);
+    }
+
+    /// Find a visible entity by id.
+    fn find_entity_mut(&mut self, entity_id: EntityId) -> Option<&mut Entity> {
+        self.client_state
+            .follow_mut(client_state().entities())
+            .iter_mut()
+            .find(|entity| entity.get_entity_id() == entity_id)
+    }
+
+    /// Track visual resources that are still missing and retry loads whose
+    /// deadline expired.
+    ///
+    /// This is a reconciliation loop: the [`AsyncLoader`] already deduplicates
+    /// in-flight requests, so an entity whose animation data did not arrive is
+    /// simply re-requested after the [`ResourcePolicy::ANIMATION_DATA`] timeout
+    /// (bounded by its attempt budget). A load that failed or was lost can
+    /// therefore no longer leave an entity without a sprite forever, and a
+    /// resource that really is missing gives up with a warning instead of
+    /// retrying silently every frame.
+    fn update_asset_load_retries(&mut self, now: Instant) {
+        if self.map.is_none() {
+            return;
+        }
+
+        let mut missing: Vec<LoaderId> = Vec::new();
+        for entity in self.client_state.follow(client_state().entities()).iter() {
+            let entity_id = entity.get_entity_id();
+
+            if entity.needs_animation_data() {
+                missing.push(LoaderId::AnimationData(entity_id));
+            }
+            if entity.needs_falcon_animation() {
+                missing.push(LoaderId::FalconAnimationData(entity_id));
+            }
+            if entity.needs_weapon_animation() {
+                missing.push(LoaderId::WeaponAnimationData(entity_id));
+            }
+        }
+
+        for id in missing {
+            if !self.asset_retries.is_tracked(&id) {
+                self.asset_retries.note_request(id, now);
+            }
+        }
+
+        for id in self.asset_retries.keys_due(now) {
+            self.retry_visual_load(id, now);
+        }
+    }
+
+    /// Re-request one visual resource (`animation data`, falcon or weapon
+    /// layer).
+    fn retry_visual_load(&mut self, id: LoaderId, now: Instant) {
+        let entity_id = match id {
+            LoaderId::AnimationData(entity_id) | LoaderId::FalconAnimationData(entity_id) | LoaderId::WeaponAnimationData(entity_id) => {
+                entity_id
+            }
+            _ => {
+                self.asset_retries.forget(&id);
+                return;
+            }
+        };
+
+        let entity_info = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| {
+                (
+                    entity.get_entity_type(),
+                    entity.get_entity_part_files(&self.library),
+                    entity.has_falcon(),
+                    entity.get_weapon_part_candidates(),
+                    entity.has_weapon_animation(),
+                )
+            });
+
+        let Some((entity_type, entity_part_files, has_falcon, weapon_candidates, has_weapon_animation)) = entity_info else {
+            self.asset_retries.forget(&id);
+            return;
+        };
+
+        match id {
+            LoaderId::AnimationData(_) => match self
+                .async_loader
+                .request_animation_data_load(entity_id, entity_type, entity_part_files)
+            {
+                Some(animation_data) => {
+                    if let Some(entity) = self.find_entity_mut(entity_id) {
+                        entity.set_animation_data(animation_data);
+                    }
+                    self.asset_retries.note_available(&LoaderId::AnimationData(entity_id));
+                }
+                None => self.asset_retries.note_request(LoaderId::AnimationData(entity_id), now),
+            },
+            LoaderId::FalconAnimationData(_) => {
+                if !has_falcon {
+                    self.asset_retries.note_available(&LoaderId::FalconAnimationData(entity_id));
+                    return;
+                }
+
+                match self.async_loader.request_falcon_animation_data_load(entity_id) {
+                    Some(falcon_animation) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_falcon_animation(falcon_animation);
+                        }
+                        self.asset_retries.note_available(&LoaderId::FalconAnimationData(entity_id));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::FalconAnimationData(entity_id), now),
+                }
+            }
+            LoaderId::WeaponAnimationData(_) => {
+                if weapon_candidates.is_empty() || has_weapon_animation {
+                    self.asset_retries.note_available(&LoaderId::WeaponAnimationData(entity_id));
+                    return;
+                }
+
+                match self.async_loader.request_weapon_animation_data_load(entity_id, weapon_candidates) {
+                    Some(weapon_animation) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_weapon_animation(weapon_animation);
+                        }
+                        self.asset_retries.note_available(&LoaderId::WeaponAnimationData(entity_id));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::WeaponAnimationData(entity_id), now),
+                }
+            }
+            _ => self.asset_retries.forget(&id),
+        }
+    }
+
     /// Per-frame tick for all entities, dead entities, and ground items.
     ///
     /// Must be called after [`Self::handle_network_events`] so the entity
@@ -7137,14 +7329,32 @@ impl Client {
             .iter_mut()
             .for_each(|item| item.update(client_tick));
 
-        // Remove entities that have finished fading out.
-        self.client_state
-            .follow_mut(client_state().entities())
-            .retain(|entity| !entity.should_be_removed(client_tick));
+        // Remove entities that have finished fading out and drop their
+        // lifecycle/retry bookkeeping as well.
+        let mut disappeared_entities = Vec::new();
+        self.client_state.follow_mut(client_state().entities()).retain(|entity| {
+            let keep = !entity.should_be_removed(client_tick);
+            if !keep {
+                disappeared_entities.push(entity.get_entity_id());
+            }
+            keep
+        });
 
-        self.client_state
-            .follow_mut(client_state().dead_entities())
-            .retain(|entity| !entity.should_be_removed(client_tick));
+        let mut disappeared_dead_entities = Vec::new();
+        self.client_state.follow_mut(client_state().dead_entities()).retain(|entity| {
+            let keep = !entity.should_be_removed(client_tick);
+            if !keep {
+                disappeared_dead_entities.push(entity.get_entity_id());
+            }
+            keep
+        });
+
+        for entity_id in disappeared_entities.into_iter().chain(disappeared_dead_entities) {
+            self.entity_lifecycle.on_entity_disappeared(entity_id);
+            self.asset_retries.forget(&LoaderId::AnimationData(entity_id));
+            self.asset_retries.forget(&LoaderId::FalconAnimationData(entity_id));
+            self.asset_retries.forget(&LoaderId::WeaponAnimationData(entity_id));
+        }
 
         self.client_state
             .follow_mut(client_state().ground_items())
@@ -7272,23 +7482,26 @@ impl Client {
         crate::perf::frame_begin();
 
         if SHUTDOWN_SIGNAL.load(Ordering::SeqCst) {
-            self.shutdown_requested = true;
+            // The session machine owns the shutdown sequence and its deadline.
+            self.session.request_shutdown();
         }
 
-        if self.shutdown_requested {
+        if self.session.state() == SessionState::Shutdown {
             // Ask the map server for a clean disconnect (CZ_REQ_DISCONNECT) instead of
             // just dropping the TCP connection. The map server then saves the character
             // and reports the account offline to the character/login server, so an
             // immediate relogin is not rejected with "already online".
-            if self.shutdown_deadline.is_none() {
+            if self.session.shutdown_deadline().is_none() {
                 if self.networking_system.is_map_server_connected() {
                     let _ = self.networking_system.request_disconnect();
-                    self.shutdown_deadline = Some(Instant::now() + Duration::from_millis(2000));
+                    self.session
+                        .set_shutdown_deadline(Some(Instant::now() + SHUTDOWN_DISCONNECT_TIMEOUT));
                 } else if self.networking_system.is_character_server_connected() {
                     self.networking_system.disconnect_from_character_server();
                 } else if self.networking_system.is_login_server_connected() {
                     self.networking_system.disconnect_from_login_server();
                 } else {
+                    self.session.finish_shutdown();
                     event_loop.exit();
                     return;
                 }
@@ -7298,42 +7511,24 @@ impl Client {
             // deadline expired. Close the remaining sockets in server order first so the
             // login server can clear its online state before the process exits.
             if !self.networking_system.is_map_server_connected()
-                || self.shutdown_deadline.is_some_and(|deadline| Instant::now() >= deadline)
+                || self.session.shutdown_deadline().is_some_and(|deadline| Instant::now() >= deadline)
             {
                 self.networking_system.disconnect_from_map_server();
                 self.networking_system.disconnect_from_character_server();
                 self.networking_system.disconnect_from_login_server();
                 self.audio_engine.play_background_music_track(None);
+                self.session.finish_shutdown();
                 event_loop.exit();
                 return;
             }
         }
 
-        // Defensive guard: if the map server never sends the map change packet
-        // (for example because an unparsable packet desynchronized the stream)
-        // the client would render an empty black frame forever. Abort the map
-        // entry once the deadline expires, unless a map load is actually in
-        // flight (that case is handled by `update_pending_map_load`).
-        if let Some(deadline) = self.map_entry_watchdog {
-            if self.map.is_some() {
-                self.map_entry_watchdog = None;
-            } else if self.pending_map_load.is_none() && Instant::now() >= deadline {
-                self.map_entry_watchdog = None;
-                self.abort_map_entry("The server did not send the map entry data. Please try again.".to_owned());
-            }
-        }
-
-        // A failed map load aborts the map entry; if the map server disconnect
-        // that triggers the clean recovery does not arrive in time, recover
-        // directly so the client never stays on a black screen forever.
-        if let Some(deadline) = self.map_entry_abort_deadline {
-            if self.map.is_some() {
-                self.map_entry_abort_deadline = None;
-            } else if Instant::now() >= deadline {
-                self.map_entry_abort_deadline = None;
-                self.return_to_character_selection();
-            }
-        }
+        // Drive the explicit session lifecycle: map-entry watchdog, map load
+        // retries, abort recovery and the character-server reconnect backoff.
+        // The old loose timers (`map_entry_watchdog`, `map_entry_abort_deadline`,
+        // `pending_map_load`, `character_server_reconnect_at`, …) are owned by
+        // the session machine now.
+        self.update_session_lifecycle();
 
         // Clear the previous render instructions so we can rendering the new frame.
         self.clear_render_instructions();
@@ -7379,8 +7574,7 @@ impl Client {
         self.handle_network_events(client_tick);
         self.update_status_effects(client_tick);
         self.update_spirit_spheres();
-        self.update_character_server_reconnect();
-        self.update_pending_map_load();
+        self.update_asset_load_retries(Instant::now());
 
         let interface_has_focus = self.process_user_events(
             &input_report,

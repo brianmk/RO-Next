@@ -192,7 +192,7 @@ pub fn drive(client: &mut Client, client_tick: u64) {
             escape(&failure)
         ));
         bench.finished = true;
-        client.shutdown_requested = true;
+        client.session.request_shutdown();
         return;
     }
 
@@ -580,7 +580,7 @@ fn stage_map_change(client: &mut Client, bench: &mut BenchState, _now: Instant) 
 
     bench.stage = Stage::Done;
     bench.finished = true;
-    client.shutdown_requested = true;
+    client.session.request_shutdown();
 }
 
 // ---------------------------------------------------------------------------
