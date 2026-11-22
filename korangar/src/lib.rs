@@ -861,6 +861,24 @@ pub struct Client {
     client_state: State<ClientState>,
 }
 
+/// Whether an incoming `ChangeMap` packet with the same map name is a
+/// same-map teleport (fly wing, `AL_TELEPORT`, ...) that can be applied without
+/// loading the map data again.
+///
+/// This must be false for a fresh character map entry: after a logout the
+/// client keeps the name of the last map (for the "same map" teleport check)
+/// but has no loaded map and is in `MapLoading`. Treating that case as a
+/// teleport used to skip the map load and left the client on a black screen
+/// until the map entry watchdog fired.
+fn is_same_map_teleport(
+    current_map_name: Option<&str>,
+    incoming_map_name: &str,
+    has_loaded_map: bool,
+    session_state: SessionState,
+) -> bool {
+    current_map_name == Some(incoming_map_name) && has_loaded_map && session_state == SessionState::InGame
+}
+
 impl Client {
     pub fn init(sync_cache: bool) -> Option<Self> {
         crate::logging::log_info!("client: initializing (sync_cache={})", sync_cache);
@@ -3697,6 +3715,10 @@ impl Client {
                     self.client_state.follow_mut(client_state().dialog_window()).end();
 
                     self.map = None;
+                    // A fresh character map entry must always take the full map
+                    // load path; the previous map name only describes the map
+                    // session we just left.
+                    self.current_map_name = None;
                     // A storage window from a previous session must never show up
                     // in the new character's game state.
                     self.close_storage_window();
@@ -4010,7 +4032,12 @@ impl Client {
                     // long and hide the teleport, so reposition the player directly,
                     // play the warp effect/sound and let the server spawn the
                     // surrounding entities again.
-                    if self.current_map_name.as_deref() == Some(map_name.as_str()) {
+                    if is_same_map_teleport(
+                        self.current_map_name.as_deref(),
+                        map_name.as_str(),
+                        self.map.is_some(),
+                        self.session.state(),
+                    ) {
                         let old_position = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position());
 
                         // Drop the transient state of the old position.
@@ -7607,6 +7634,11 @@ impl Client {
         self.client_state.follow_mut(client_state().character_selection_cooldown()).arm();
 
         self.map = None;
+        // The same-map teleport fast path must never apply to the next character
+        // map entry: the client is back at the character selection and the map
+        // is unloaded. Keeping the old name used to skip the map load for a
+        // character that lives on the same map as the menu background.
+        self.current_map_name = None;
         self.session.recovery_finished();
         // Every entity of the map session is gone; status effects were already
         // cleared by the map-server disconnect handler.
@@ -10028,7 +10060,8 @@ fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
 mod tests {
     use ragnarok_packets::{AttackRange, JobId, SkillId, SkillLevel, SkillType};
 
-    use super::has_free_cast;
+    use super::{has_free_cast, is_same_map_teleport};
+    use crate::state::lifecycle::SessionState;
     use crate::state::skills::LearnedSkill;
 
     fn learned(skill_id: u16) -> LearnedSkill {
@@ -10062,5 +10095,45 @@ mod tests {
     #[test]
     fn unknown_jobs_default_to_rooted() {
         assert!(!has_free_cast(JobId(9999), &[learned(278)]));
+    }
+
+    /// Regression test for the logout -> re-select black screen: after logging
+    /// out the client keeps the name of the last map but has no loaded map and
+    /// is in `MapLoading`. A `ChangeMap` with the same name is a *fresh map
+    /// entry* in that situation and must take the full map load path instead of
+    /// the same-map teleport shortcut (which skipped the load and left the
+    /// client on a black screen).
+    #[test]
+    fn fresh_character_map_entry_is_not_a_same_map_teleport() {
+        assert!(!is_same_map_teleport(
+            Some("prontera"),
+            "prontera",
+            false,
+            SessionState::MapLoading
+        ));
+        // Even if a menu background map finished loading, the session is still
+        // in the map entry and the character map has to be loaded.
+        assert!(!is_same_map_teleport(
+            Some("prontera"),
+            "prontera",
+            true,
+            SessionState::MapLoading
+        ));
+        assert!(!is_same_map_teleport(None, "prontera", false, SessionState::MapLoading));
+    }
+
+    #[test]
+    fn in_game_same_map_move_is_a_teleport() {
+        assert!(is_same_map_teleport(Some("prontera"), "prontera", true, SessionState::InGame));
+        // Different map, missing map data or not in the game: never a
+        // same-map teleport.
+        assert!(!is_same_map_teleport(Some("prontera"), "geffen", true, SessionState::InGame));
+        assert!(!is_same_map_teleport(Some("prontera"), "prontera", false, SessionState::InGame));
+        assert!(!is_same_map_teleport(
+            Some("prontera"),
+            "prontera",
+            true,
+            SessionState::CharSelect
+        ));
     }
 }
