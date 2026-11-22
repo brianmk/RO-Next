@@ -6922,6 +6922,16 @@ impl Client {
     /// `NetworkEvent::MapServerDisconnected`), and the error is shown
     /// there.
     fn handle_failed_load(&mut self, id: LoaderId, error: LoadError) {
+        // Missing weapon sprites are expected for some CondaRO jobs (the archives
+        // are trimmed); the async loader caches the failure and the entity is
+        // rendered without the weapon layer. Keep this out of the generic asset
+        // failure reporting (and out of stderr) so map entry does not spam the
+        // user or the log for every population-engine shell.
+        if let LoaderId::WeaponAnimationData(entity_id) = &id {
+            crate::logging::log_debug!("weapon animation unavailable for entity {}: {error:?}", entity_id.0);
+            return;
+        }
+
         match asset_failure_severity(&id) {
             AssetFailureSeverity::Fatal => {
                 let LoaderId::Map(map_name) = id else {

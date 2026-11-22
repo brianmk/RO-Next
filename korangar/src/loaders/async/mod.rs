@@ -93,6 +93,15 @@ pub struct AsyncLoader {
     /// Worker lane for every other load (entity animations, item/skill sprites,
     /// ...).
     visible_thread_pool: ThreadPool,
+    /// Candidate paths of weapon animations that are known to be missing from
+    /// the archives.
+    ///
+    /// CondaRO's archives do not contain every per-job weapon sprite variant
+    /// (e.g. the Sniper bow). Without this cache every population-engine shell
+    /// spawn would queue another archive scan on the two loader threads for a
+    /// sprite that can never be found, delaying the loads the client actually
+    /// needs right after map entry.
+    failed_weapon_candidates: Arc<Mutex<HashSet<String>>>,
 }
 
 impl AsyncLoader {
@@ -124,6 +133,7 @@ impl AsyncLoader {
             .unwrap();
 
         Self {
+            failed_weapon_candidates: Arc::new(Mutex::new(HashSet::new())),
             action_loader,
             animation_loader,
             map_loader,
@@ -342,6 +352,15 @@ impl AsyncLoader {
             return None;
         }
 
+        // Remember the first candidate path as the identity of the
+        // (job, sex, weapon) combination: all candidates of one entity share
+        // the same prefix and the archives are static, so a failed lookup can
+        // be cached forever.
+        let cache_key = weapon_part_candidates[0].path.clone();
+        if self.failed_weapon_candidates.lock().unwrap().contains(&cache_key) {
+            return None;
+        }
+
         if let Some(animation_data) = weapon_part_candidates
             .iter()
             .find_map(|parts| self.animation_loader.get(std::slice::from_ref(parts)))
@@ -352,6 +371,7 @@ impl AsyncLoader {
         let sprite_loader = self.sprite_loader.clone();
         let action_loader = self.action_loader.clone();
         let animation_loader = self.animation_loader.clone();
+        let failed_weapon_candidates = Arc::clone(&self.failed_weapon_candidates);
 
         self.request_visible_load(LoaderId::WeaponAnimationData(entity_id), LoadKind::AnimationData, move || {
             let mut last_error = LoadError::UnsupportedFormat("no weapon sprite found in the game archives".to_owned());
@@ -369,6 +389,12 @@ impl AsyncLoader {
                     Err(error) => last_error = error,
                 }
             }
+
+            // No candidate could be loaded: remember the combination so the
+            // next entity with the same job/sex/weapon does not scan the
+            // archives again.
+            failed_weapon_candidates.lock().unwrap().insert(cache_key.clone());
+            crate::logging::log_debug!("weapon animation not in the archives, disabling the weapon layer for `{cache_key}`");
 
             Err(last_error)
         });
