@@ -340,6 +340,12 @@ cargo test -p korangar-networking item_type
   `integration/all-fixes-20261121`. The item stats code/data is additive and
   the new data file lives in the existing `korangar/archive/data/client/`
   mechanism; no new runtime archive setup is required.
+* Merge-checked against the then-current integration HEAD `c954572d` (weapon
+  centralization merged after `f454127e`): `git merge` auto-merges cleanly
+  (`quality.yml`, `version_20220406.rs`, `lib.rs`, `world/library/mod.rs`),
+  the merged tree compiles (`cargo check -p korangar -p korangar-networking`,
+  exit 0) and the item stats tests pass (19 passed / 1 ignored). The temporary
+  merge branch was discarded, `p1/item-stats` stays based on `f454127e`.
 * Merge-conflict hot spots: `world/library/mod.rs`,
   `world/library/item_info.rs`, `state/inventory.rs`, `main.rs` (CLI argument
   list) and `korangar-networking` (if another branch touches item type values).
