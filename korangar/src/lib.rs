@@ -58,6 +58,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use cgmath::{Point3, Vector3};
+use hashbrown::HashMap;
 use image::{EncodableLayout, ImageFormat, ImageReader};
 use input::{MouseInputMode, MouseModeExt};
 use korangar_audio::{AudioEngine, SoundEffectKey};
@@ -179,6 +180,14 @@ const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 /// Minimum duration of the skill-cast animation for casts without a usable cast
 /// time, so that they are still visible.
 const MINIMUM_SKILL_CAST_ANIMATION_MS: u32 = 300;
+/// Duration of the one-shot attack/pickup animation for instant skills, where
+/// the server sends no attack motion (the official client uses a 400 ms hold).
+const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
+/// Window in which the completion packet of instant skills is treated as the
+/// duplicate of the start-of-use sound (milliseconds).
+const CAST_SOUND_DEDUPE_MS: u32 = 1_000;
+/// Stale start-of-use sound entries are dropped after this age (milliseconds).
+const CAST_SOUND_DEDUPE_TIMEOUT_MS: u32 = 5_000;
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// Background music that is played while the client is *not* inside a map:
@@ -631,6 +640,11 @@ pub struct Client {
     level_99_aura_style_cell: Arc<AtomicU8>,
     /// Entities that currently have a level-99 aura effect attached.
     level_99_aura_entities: HashSet<EntityId>,
+
+    /// Skill sounds that were already played at the start of an *instant* skill
+    /// use, so the follow-up completion packet does not play the same sound a
+    /// second time. Keyed by entity id: (skill id, client tick).
+    recent_cast_sounds: HashMap<EntityId, (SkillId, ClientTick)>,
 
     map_window_cycle: MapWindowCycle,
 
@@ -1315,6 +1329,7 @@ impl Client {
             current_map_name: None,
             level_99_aura_style_cell: Arc::new(AtomicU8::new(AuraStyle::Auto.encode())),
             level_99_aura_entities: HashSet::new(),
+            recent_cast_sounds: HashMap::new(),
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
@@ -2209,6 +2224,27 @@ impl Client {
         self.effect_holder.add_effect(Box::new(circle));
     }
 
+    /// Spawns one of the official client's hard-coded skill auras (the yellow
+    /// `EF_BEGINSPELL` cone / `EF_GUMGANG2` rings) on an entity.
+    ///
+    /// The aura is fully procedural and owned by the entity, so it follows the
+    /// caster and is removed with it (for example when the entity disappears).
+    fn spawn_skill_aura(&mut self, entity_id: EntityId, spec: SkillAuraSpec) {
+        let center = EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0));
+
+        let Some(aura) = SkillAura::new(&self.texture_loader, center, spec) else {
+            #[cfg(feature = "debug")]
+            print_debug!(
+                "[{}] failed to load the skill aura texture '{}'",
+                "error".red(),
+                spec.texture_path
+            );
+            return;
+        };
+
+        self.effect_holder.add_unit(Box::new(aura), entity_id);
+    }
+
     /// Applies an aura style selected through `/aura` or by the server-side
     /// aura stylist NPC (via the private chat marker) and persists it
     /// immediately.
@@ -2342,6 +2378,35 @@ impl Client {
         let skill_name = self.library.get::<SkillListInformation>(skill_id).name.clone();
 
         self.cast_bars.start(source_entity_id, skill_name, cast_time, client_tick);
+    }
+
+    /// Plays the mapped skill sound once and remembers it for
+    /// [`Self::take_duplicate_cast_sound`].
+    ///
+    /// The 2019 server sends `ZC_USESKILL_ACK` (0x0B1A) at the start of every
+    /// skill use *and* `ZC_USE_SKILL` (0x09CB) when the skill completes. For
+    /// instant skills both packets arrive almost at the same time, so the
+    /// completion handler de-duplicates the start sound instead of playing the
+    /// same wav twice.
+    fn play_cast_sound(&mut self, entity_id: EntityId, skill_id: SkillId, position: Option<cgmath::Point3<f32>>, client_tick: ClientTick) {
+        self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), position);
+        self.recent_cast_sounds
+            .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_DEDUPE_TIMEOUT_MS);
+        self.recent_cast_sounds.insert(entity_id, (skill_id, client_tick));
+    }
+
+    /// Returns `true` (and forgets the entry) when the completion packet is the
+    /// duplicate of a sound that was already played for this skill use.
+    fn take_duplicate_cast_sound(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        match self.recent_cast_sounds.get(&entity_id) {
+            Some(&(started_skill_id, started_tick))
+                if started_skill_id == skill_id && client_tick.0.wrapping_sub(started_tick.0) < CAST_SOUND_DEDUPE_MS =>
+            {
+                self.recent_cast_sounds.remove(&entity_id);
+                true
+            }
+            _ => false,
+        }
     }
 
     fn show_skill_name_text(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) {
@@ -2766,15 +2831,38 @@ impl Client {
                         .iter_mut()
                         .find(|entity| entity.get_entity_id() == source_entity_id)
                     {
-                        // Casts with a cast time loop the casting gesture until the cast
-                        // finishes; instant casts play the action once.
-                        entity.set_skill_cast(cast_animation_time, has_cast_time, client_tick);
+                        match caster_action(skill_id) {
+                            // Stance/buff skills (Zen, Fury, Endure, ...) keep the idle
+                            // pose in the official client; the hard-coded skill effect
+                            // is the visual feedback instead of a casting gesture.
+                            CasterAction::Idle => entity.set_idle(client_tick),
+                            // Casts with a cast time loop the casting gesture until the
+                            // cast finishes; instant casts play the action once.
+                            CasterAction::Skill => entity.set_skill_cast(cast_animation_time, has_cast_time, client_tick),
+                            // Attack skills play the attack animation (like the
+                            // official client's `ATTACK` skill action).
+                            CasterAction::Attack => entity.set_attack(cast_animation_time, false, client_tick),
+                            // Pickup-style skills play the pickup animation.
+                            CasterAction::Pickup => entity.set_pickup(client_tick),
+                        }
+
+                        // Hard-coded body flash of the skill (for example the yellow
+                        // `EF_PORTAL5` flash of Zen).
+                        if let Some(flash) = &visuals.body_flash {
+                            entity.start_body_flash(flash.color, flash.hold_ms, flash.fade_ms, client_tick);
+                        }
 
                         // Targeted casts face their target, self-casts keep the current
                         // direction.
                         if destination_entity_id != source_entity_id {
                             entity.rotate_towards(position);
                         }
+                    }
+
+                    // Hard-coded cylinder aura of the official client (`EF_BEGINSPELL`
+                    // yellow cone for Zen and Fury).
+                    if let Some(aura) = visuals.cast_aura {
+                        self.spawn_skill_aura(source_entity_id, aura);
                     }
 
                     // Show the skill name above the caster's head, like the original
@@ -2803,13 +2891,22 @@ impl Client {
                     }
 
                     // The 2019 server sends no sound packet for most ambient casts, so
-                    // play the mapped skill sound here (one lane per entity: a new cast
-                    // preempts the previous cast sound).
-                    self.skill_sounds
-                        .play_skill_sound(skill_id, Some(source_entity_id), source_position);
+                    // play the mapped skill sound here. Skills with a cast time play
+                    // their sound once when the cast *completes* (the server sends the
+                    // completion packet then): playing it here as well made every cast
+                    // with a cast bar audible twice. Instant casts have no cast bar and
+                    // play their single sound now; the completion packet they also
+                    // receive is de-duplicated in `SkillNoDamage`.
+                    if !has_cast_time {
+                        self.play_cast_sound(source_entity_id, skill_id, source_position, client_tick);
+                    }
                 }
                 NetworkEvent::SkillNoDamage {
                     source_entity_id,
+                    // The 2019 no-damage packet no longer renders a heal number
+                    // (see the comment at the end of this arm); the destination and
+                    // the level are not needed here.
+
                     destination_entity_id: _,
                     skill_id,
                     level: _,
@@ -2831,20 +2928,40 @@ impl Client {
                             .find(|entity| entity.get_entity_id() == source_entity_id)
                             .map(|entity| entity.get_position());
 
+                        let visuals = skill_visuals(skill_id, 0);
+
                         if let Some(entity) = self
                             .client_state
                             .follow_mut(client_state().entities())
                             .iter_mut()
                             .find(|entity| entity.get_entity_id() == source_entity_id)
                         {
-                            // This packet has no cast time: play the whole ACT skill
-                            // animation once at its natural frame speed.
-                            entity.set_skill_cast(0, false, client_tick);
+                            match caster_action(skill_id) {
+                                // Stance/buff skills keep the idle pose (see the
+                                // `SkillCast` arm above).
+                                CasterAction::Idle => entity.set_idle(client_tick),
+                                // This packet has no cast time: play the whole ACT skill
+                                // animation once at its natural frame speed.
+                                CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
+                                CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
+                                CasterAction::Pickup => entity.set_pickup(client_tick),
+                            }
+
+                            // Instant-only skills (no cast-time packet before this one)
+                            // flash their caster here; cast-time skills already flashed
+                            // when the cast started.
+                            if visuals.cast_aura.is_none()
+                                && let Some(flash) = &visuals.body_flash
+                            {
+                                entity.start_body_flash(flash.color, flash.hold_ms, flash.fade_ms, client_tick);
+                            }
+                        }
+
+                        for aura in visuals.instant_auras.iter().copied() {
+                            self.spawn_skill_aura(source_entity_id, aura);
                         }
 
                         self.show_skill_name_text(source_entity_id, skill_id, client_tick);
-
-                        let visuals = skill_visuals(skill_id, 0);
 
                         // Buff visuals (for example the Blessing angel) are screen
                         // sprites anchored above the head.
@@ -2860,9 +2977,12 @@ impl Client {
                         }
 
                         // Instant/self-buff casts (0x09CB) have no sound packet on
-                        // the 2019 server either.
-                        self.skill_sounds
-                            .play_skill_sound(skill_id, Some(source_entity_id), source_position);
+                        // the 2019 server either. For an instant skill the start-of-use
+                        // packet already played this sound; do not play it twice.
+                        if !self.take_duplicate_cast_sound(source_entity_id, skill_id, client_tick) {
+                            self.skill_sounds
+                                .play_skill_sound(skill_id, Some(source_entity_id), source_position);
+                        }
                     }
 
                     // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill
@@ -2889,7 +3009,12 @@ impl Client {
                         .iter_mut()
                         .find(|entity| entity.get_entity_id() == entity_id)
                     {
-                        entity.set_skill_cast(0, false, client_tick);
+                        match caster_action(skill_id) {
+                            CasterAction::Idle => entity.set_idle(client_tick),
+                            CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
+                            CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
+                            CasterAction::Pickup => entity.set_pickup(client_tick),
+                        }
                     }
 
                     self.show_skill_name_text(entity_id, skill_id, client_tick);
@@ -2910,7 +3035,9 @@ impl Client {
                         );
                     }
 
-                    self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), world_position);
+                    if !self.take_duplicate_cast_sound(entity_id, skill_id, client_tick) {
+                        self.skill_sounds.play_skill_sound(skill_id, Some(entity_id), world_position);
+                    }
                 }
                 NetworkEvent::PlaySound { name, account_id, .. } => {
                     let entity_id = EntityId(account_id.0);
