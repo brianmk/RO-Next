@@ -4383,12 +4383,24 @@ impl Client {
                     *self.client_state.follow_mut(client_state().buffered_action()) = None;
 
                     // Everything else belongs to the old map session: forget the
-                    // entity bookkeeping and pending visual loads, and clear the
-                    // status effects (the server re-sends the buffs of the new map
-                    // session; a stale buff bar must never survive a warp).
+                    // entity bookkeeping and pending visual loads. The local
+                    // player's status effects are kept: the server only re-sends
+                    // statuses with the `DisplayPc`/`DisplayNpc` flag when the
+                    // player enters the new map, so clearing all of them would make
+                    // timed buffs (Assumptio, Blessing, ...) vanish from the buff
+                    // bar and lose their world aura until they are recast. Timed
+                    // statuses still expire locally and an end packet removes them;
+                    // statuses of other entities are dropped with the old session.
                     self.entity_lifecycle.on_warp();
                     self.asset_retries.clear();
-                    self.client_state.follow_mut(client_state().status_effects()).clear();
+                    let own_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id().0);
+                    if let Some(own_entity_id) = own_entity_id {
+                        self.client_state
+                            .follow_mut(client_state().status_effects())
+                            .retain_for_entity(own_entity_id);
+                    } else {
+                        self.client_state.follow_mut(client_state().status_effects()).clear();
+                    }
                     self.retrack_local_player();
 
                     // Close any remaining dialogs.
@@ -4424,7 +4436,11 @@ impl Client {
                     };
 
                     if active && definition.icon.is_none() {
-                        crate::logging::log_debug!("status: status effect {} has no icon/name mapping", status_index);
+                        crate::logging::log_debug!(
+                            "status: status effect {} ({}) has no icon mapping",
+                            status_index,
+                            definition.name
+                        );
                     }
 
                     let client_tick = client_tick.0 as u64;

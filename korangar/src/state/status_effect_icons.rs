@@ -95,6 +95,15 @@ pub(crate) const STATUS_EFFECT_ICONS: &[(u16, &str)] = &[
     (92, "라이트닝로더.tga"),
     (93, "사이즈믹웨폰.tga"),
     (108, "expiatio.tga"),
+    // `EFST_ASSUMPTIO` (Priest Assumptio) and `EFST_ASSUMPTIO2` (party/cash
+    // Assumptio) are not listed in the 2019 client's `stateiconimginfo.lub`,
+    // but the official hard-coded status icon table (ported by roBrowser in
+    // `src/DB/Status/StatusInfo.js`) maps both `SC.ASSUMPTIO` and
+    // `SC.ASSUMPTIO2` to `icon05.tga`. The same texture is the explicit
+    // `stateiconimginfo.lub` image of `EFST_ASSUMPTIO_BUFF` (1121 ->
+    // `ICON05.tga`), and `data\texture\effect\ICON05.tga` exists in
+    // `data.grf`, so both ids share that file.
+    (110, "icon05.tga"),
     (115, "icon09.tga"),
     (116, "icon06.tga"),
     (120, "icon04.tga"),
@@ -146,6 +155,7 @@ pub(crate) const STATUS_EFFECT_ICONS: &[(u16, &str)] = &[
     (400, "exeedbreak.tga"),
     (416, "cursedcircle_target.tga"),
     (470, "mandragora.tga"),
+    (473, "icon05.tga"),
     (480, "hp_increase_potion.tga"),
     (481, "sp_increase_potion.tga"),
     (482, "en_white_potz.tga"),

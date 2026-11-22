@@ -321,9 +321,24 @@ impl StatusEffects {
         self.current_client_tick
     }
 
-    /// Removes all status effects (map change, leaving the game).
+    /// Removes all status effects (leaving the game, map server disconnect).
     pub fn clear(&mut self) {
         self.effects.clear();
+    }
+
+    /// Keeps only the status effects of one entity.
+    ///
+    /// The map server only re-sends the statuses that carry the
+    /// `DisplayPc`/`DisplayNpc` flag when the player enters a new map (or logs
+    /// back in), so clearing everything on a warp makes timed buffs such as
+    /// Assumptio disappear from the buff bar (and their aura from the world)
+    /// even though the server still applies them. Keeping the local player's
+    /// known statuses across a map change preserves the buff bar/aura; the
+    /// client-side timers still expire them, and an end packet removes them.
+    /// Statuses of other entities are dropped because those entities belong to
+    /// the old map session.
+    pub fn retain_for_entity(&mut self, entity_id: u32) {
+        self.effects.retain(|effect| effect.entity_id == entity_id);
     }
 
     pub fn effects(&self) -> &[StatusEffect] {
@@ -519,5 +534,58 @@ mod tests {
         assert_eq!(effects.effects().len(), 2);
         assert_eq!(effects.effects()[0].entity_id(), 1);
         assert_eq!(effects.effects()[1].entity_id(), 2);
+    }
+
+    #[test]
+    fn assumptio_uses_the_official_status_icon() {
+        // EFST_ASSUMPTIO (110) and EFST_ASSUMPTIO2 (473) are not in the 2019
+        // `stateiconimginfo.lub`, but the official hard-coded status icon table
+        // (roBrowser `StatusInfo.js`) maps both to `icon05.tga`, which exists in
+        // `data.grf`. Without the mapping the buff bar only drew the (shrunk,
+        // unreadable) fallback name - the "no status icon" report.
+        for status_index in [110_u16, 473] {
+            let definition = status_effect_definition(status_index);
+            assert_eq!(definition.name, "Assumptio");
+            assert_eq!(definition.icon_path().as_deref(), Some("effect\\icon05.tga"));
+        }
+    }
+
+    #[test]
+    fn status_icon_table_is_sorted_and_non_empty() {
+        // The lookup is a binary search, so the generated table must stay
+        // strictly sorted by status index and every entry needs a file name.
+        let icons = super::super::status_effect_icons::STATUS_EFFECT_ICONS;
+        assert!(!icons.is_empty());
+
+        for window in icons.windows(2) {
+            assert!(
+                window[0].0 < window[1].0,
+                "status icon table is not sorted: {} then {}",
+                window[0].0,
+                window[1].0
+            );
+        }
+
+        for (status_index, file_name) in icons {
+            assert!(!file_name.is_empty(), "status {status_index} has an empty icon file name");
+            assert!(
+                file_name.to_ascii_lowercase().ends_with(".tga"),
+                "status {status_index} icon {file_name:?} is not a .tga status icon"
+            );
+        }
+    }
+
+    #[test]
+    fn retain_for_entity_keeps_only_the_local_statuses() {
+        let mut effects = StatusEffects::default();
+        let definition = status_effect_definition(110);
+        effects.apply(1, 110, true, 60_000, 60_000, [0; 3], 0, definition.name.to_owned(), None);
+        effects.apply(2, 110, true, 60_000, 60_000, [0; 3], 0, definition.name.to_owned(), None);
+
+        effects.retain_for_entity(1);
+
+        assert_eq!(effects.effects().len(), 1);
+        assert_eq!(effects.effects()[0].entity_id(), 1);
+        assert_eq!(effects.effects()[0].status_index(), 110);
     }
 }
