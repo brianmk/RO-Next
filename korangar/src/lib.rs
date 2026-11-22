@@ -182,7 +182,7 @@ impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
     }
 }
 
-const CLIENT_NAME: &str = "Korangar";
+const CLIENT_NAME: &str = "RO-Next";
 const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 /// Minimum duration of the skill-cast animation for casts without a usable cast
 /// time, so that they are still visible.
@@ -917,7 +917,7 @@ impl Client {
                         debug_fns: GlDebugFns::Auto,
                     },
                     dx12: Dx12BackendOptions {
-                        shader_compiler: Dx12Compiler::StaticDxc.with_env(),
+                        shader_compiler: Dx12Compiler::Auto.with_env(),
                         presentation_system: Dx12SwapchainKind::DxgiFromHwnd,
                         latency_waitable_object: Dx12UseFrameLatencyWaitableObject::Wait,
                         force_shader_model: ForceShaderModelToken::default(),
