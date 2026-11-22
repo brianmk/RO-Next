@@ -1,0 +1,266 @@
+// Curated status-effect overlay (the only hand-written status content left).
+//
+// Read by `tools/extract_status_facts.py` and merged into
+// `tools/status_facts.json`; the client data file
+// `korangar/archive/data/client/status_effects.ron` is generated from that
+// facts document by `tools/gen_status_effects.py`. Nothing in this file is
+// loaded by the client at runtime, so a wrong row can never break a packet
+// path - the generator/extractor validate it first.
+//
+// Everything the official sources already provide (names from
+// `stateiconinfo.lub`, icons from `stateiconimginfo.lub`/the roBrowserLegacy
+// classic table, categories from the client title colours and the
+// `db/pre-re/status.yml` `Flags`, value-carrying statuses from `SendVal1..3`,
+// display flags, duration lookups) is extracted automatically and does *not*
+// belong here. This file only holds:
+//
+// * `names`   - English names of client-only statuses whose client title is a
+//               format placeholder/description instead of a name (the old
+//               `EXTRA_NAMES` table of `state/status_effects.rs`),
+// * `icons`   - the few icon choices the old hand-generated table made
+//               deliberately (generic weapon-property icon, `.tga` suffix),
+// * `value_labels` - the value semantics of the `SendVal1..3` statuses (the
+//               server only says "this status sends values"; what a value
+//               *means* is not part of the wire/DB facts),
+// * `auras`   - persistent status glow specs:
+//               * Assumptio: the procedural reproduction of the official
+//                 `EF_ASSUMPTIO` shield moved verbatim out of
+//                 `world/effect/status_aura.rs` (commit 48a10e20: centered
+//                 shield, animated water-field body frames, `whitelight.tga`
+//                 ground/body glow, sitting-aware body height),
+//               * Blessing/Increase Agility/Angelus/Improve Concentration:
+//                 documented **procedural** additions (the official client has
+//                 no persistent loop effect for these; it only plays the
+//                 one-shot cast effect). The textures and tints are taken from
+//                 those official cast effects (`pok2.tga`, `ac_center2.tga`,
+//                 `agi_up.bmp`, `lens1/2.tga`) so they match the game's look;
+//                 removing a row removes the aura without any Rust change.
+//
+// Values documented as "procedural" are not official persistent-effect data;
+// the audit/report says so explicitly.
+(
+    provenance: "Curated status-effect overlay: extra English names, deliberate icon choices, SendVal value semantics and persistent aura specs.",
+    version: 1,
+
+    names: [
+        // Client-only food statuses: the 2019 `stateiconinfo.lub` only has the
+        // `%s` time placeholder for them, so the buff bar needs a real name.
+        (id: 241, name: "STR Food", source: "client-only food buff (no stateiconinfo title)"),
+        (id: 242, name: "AGI Food", source: "client-only food buff (no stateiconinfo title)"),
+        (id: 243, name: "VIT Food", source: "client-only food buff (no stateiconinfo title)"),
+        (id: 244, name: "DEX Food", source: "client-only food buff (no stateiconinfo title)"),
+        (id: 245, name: "INT Food", source: "client-only food buff (no stateiconinfo title)"),
+        (id: 246, name: "LUK Food", source: "client-only food buff (no stateiconinfo title)"),
+        // EFST_EXPLOSIONSPIRITS (Champion Fury) is missing from the 2019
+        // English title table; the name comes from the official skill name.
+        (id: 86, name: "Critical Explosion", source: "2019 client data has no English title; official skill name"),
+        (id: 665, name: "Monster transformation", source: "2019 client data has no English title; status.yml Active_Monster_Transform"),
+        (id: 673, name: "Push cart", source: "2019 client data has no English title; status.yml Push_Cart"),
+        (id: 889, name: "Bleeding", source: "2019 client data has no English title; status.yml Bleeding"),
+    ],
+
+    // Categories for statuses the official title table has no data for at all
+    // (no title colour, no `db/pre-re/status.yml` display icon).
+    categories: [
+        (id: 889, category: Debuff, source: "health-state debuff (Bleeding); the 2019 title table has no entry for EFST_HEALTHSTATE_BLOODING"),
+    ],
+
+    icons: [
+        // The old hand-generated table used one generic `weapon_property.tga`
+        // for every elemental weapon enchant. The client Lua table now names a
+        // per-element icon; keep the old generic icon deliberately (the
+        // buff-bar entry is the enchant status, and the element is shown by
+        // the value line instead of four near-identical icons).
+        (id: 898, icon: "weapon_property.tga", source: "deliberate generic icon (old table)"),
+        (id: 899, icon: "weapon_property.tga", source: "deliberate generic icon (old table)"),
+        (id: 900, icon: "weapon_property.tga", source: "deliberate generic icon (old table)"),
+        (id: 901, icon: "weapon_property.tga", source: "deliberate generic icon (old table)"),
+        // The classic table has `i_accuracy` without the texture extension.
+        (id: 210, icon: "i_accuracy.tga", source: "old table normalised the missing .tga suffix"),
+    ],
+
+    value_labels: [
+        // EFST_WEAPONPROPERTY (Enchantarms): val1 is the enchant element id.
+        (id: 64, labels: [(slot: 1, label: "Element", format: Element)]),
+        // EFST_CASH_PLUSEXP (Expboost): val1 is the boost percentage.
+        (id: 250, labels: [(slot: 1, label: "Base EXP boost", format: Percent)]),
+        // EFST_CASH_RECEIVEITEM (Itemboost): val1 is the boost percentage.
+        (id: 252, labels: [(slot: 1, label: "Item drop boost", format: Percent)]),
+        // EFST_CASH_PLUSONLYJOBEXP (Jexpboost): val1 is the boost percentage.
+        (id: 312, labels: [(slot: 1, label: "Job EXP boost", format: Percent)]),
+        // EFST_ON_PUSH_CART (Push_Cart): val1 is the cart type.
+        (id: 673, labels: [(slot: 1, label: "Push cart", format: Number)]),
+        // EFST_MONSTER_TRANSFORM / EFST_ACTIVE_MONSTER_TRANSFORM: val1 is the
+        // monster job id.
+        (id: 621, labels: [(slot: 1, label: "Monster transform", format: Id)]),
+        (id: 665, labels: [(slot: 1, label: "Monster transform", format: Id)]),
+    ],
+
+    auras: [
+        // Assumptio: the first data row - the visual of commit 48a10e20 moved
+        // verbatim out of Rust so a new aura is a data row, not a match arm.
+        // Textures: the 2019 water-field status aura body frames plus the
+        // shared white light; the sizes are deliberately larger than the
+        // 21-world-unit character so the shield is visible around the body.
+        (
+            ids: [110, 473],
+            name: "Assumptio",
+            kind: PersistentGlow,
+            source: "procedural reproduction of the official EF_ASSUMPTIO shield (commit 48a10e20); textures verified in data.grf",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\efst_waterfield2\\bubble1.bmp",
+            body_frames: [
+                "effect\\efst_waterfield2\\aurawaterfield1.tga",
+                "effect\\efst_waterfield2\\aurawaterfield2.tga",
+                "effect\\efst_waterfield2\\aurawaterfield3.tga",
+                "effect\\efst_waterfield2\\aurawaterfield4.tga",
+            ],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (0.45, 0.8, 1.0),
+            body_color: (0.65, 0.88, 1.0),
+            glow_color: (0.8, 0.95, 1.0),
+            ground_radius: 11.0,
+            ring_radius: 7.5,
+            body_size: 26.0,
+            body_glow_size: 15.0,
+            ground_alpha: 0.42,
+            ring_alpha: 0.65,
+            body_alpha: 0.6,
+            body_glow_alpha: 0.38,
+            body_frame_rate: 8.0,
+            ring_rotation_speed: 0.8,
+            body_rotation_speed: 0.35,
+            body_camera_offset: 2.5,
+            pulse_speed: 2.2,
+            pulse_amount: 0.22,
+            body_height: 13.0,
+        ),
+        // Blessing: procedural blue-white blessing glow. Official data only
+        // has the one-shot cast effect (`effect\\pok2.tga` tint 0.1/0.75/1.0,
+        // `efst_c_blessings_of_soul` sparkle frames); no persistent loop effect
+        // exists in the 2019 effect table.
+        (
+            ids: [10],
+            name: "Blessing",
+            kind: PersistentGlow,
+            source: "procedural addition, documented: official client has no persistent Blessing glow; textures/tint from the official cast effect",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\pok2.tga",
+            body_frames: [
+                "effect\\efst_c_blessings_of_soul\\nyang_1.bmp",
+                "effect\\efst_c_blessings_of_soul\\nyang_2.bmp",
+                "effect\\efst_c_blessings_of_soul\\nyang_3.bmp",
+            ],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (0.6, 0.85, 1.0),
+            body_color: (0.45, 0.8, 1.0),
+            glow_color: (0.85, 0.95, 1.0),
+            ground_radius: 9.0,
+            ring_radius: 6.0,
+            body_size: 22.0,
+            body_glow_size: 13.0,
+            ground_alpha: 0.3,
+            ring_alpha: 0.4,
+            body_alpha: 0.4,
+            body_glow_alpha: 0.3,
+            body_frame_rate: 6.0,
+            ring_rotation_speed: 0.9,
+            body_rotation_speed: 0.3,
+            body_camera_offset: 2.0,
+            pulse_speed: 1.8,
+            pulse_amount: 0.15,
+            body_height: 12.0,
+        ),
+        // Increase Agility: procedural green-amber speed glow, textures from
+        // the official cast effect (`effect\\ac_center2.tga`, `agi_up.bmp`).
+        (
+            ids: [12],
+            name: "Increase Agility",
+            kind: PersistentGlow,
+            source: "procedural addition, documented: official client has no persistent Increase AGI glow; textures from the official cast effect",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\ac_center2.tga",
+            body_frames: ["effect\\agi_up.bmp"],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (0.55, 1.0, 0.6),
+            body_color: (0.6, 1.0, 0.65),
+            glow_color: (0.85, 1.0, 0.85),
+            ground_radius: 8.5,
+            ring_radius: 5.5,
+            body_size: 20.0,
+            body_glow_size: 12.0,
+            ground_alpha: 0.28,
+            ring_alpha: 0.45,
+            body_alpha: 0.4,
+            body_glow_alpha: 0.3,
+            body_frame_rate: 4.0,
+            ring_rotation_speed: 1.1,
+            body_rotation_speed: 0.25,
+            body_camera_offset: 2.0,
+            pulse_speed: 2.1,
+            pulse_amount: 0.16,
+            body_height: 12.0,
+        ),
+        // Angelus: procedural golden DEF glow, textures from the official cast
+        // effect (the `angelus.str` screen sprite has no usable texture).
+        (
+            ids: [9],
+            name: "Angelus",
+            kind: PersistentGlow,
+            source: "procedural addition, documented: official client has no persistent Angelus glow; shared effect textures",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\ring_yellow.tga",
+            body_frames: ["effect\\lens1.tga", "effect\\lens2.tga"],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (1.0, 0.92, 0.7),
+            body_color: (1.0, 0.9, 0.6),
+            glow_color: (1.0, 0.95, 0.8),
+            ground_radius: 9.0,
+            ring_radius: 6.0,
+            body_size: 21.0,
+            body_glow_size: 12.5,
+            ground_alpha: 0.3,
+            ring_alpha: 0.4,
+            body_alpha: 0.4,
+            body_glow_alpha: 0.3,
+            body_frame_rate: 5.0,
+            ring_rotation_speed: 0.7,
+            body_rotation_speed: 0.4,
+            body_camera_offset: 2.0,
+            pulse_speed: 2.0,
+            pulse_amount: 0.18,
+            body_height: 12.0,
+        ),
+        // Improve Concentration: procedural blue concentration glow, textures
+        // from the official cast effect (`concentration.str` plus the shared
+        // lens textures).
+        (
+            ids: [3],
+            name: "Improve Concentration",
+            kind: PersistentGlow,
+            source: "procedural addition, documented: official client has no persistent Concentration glow; shared effect textures",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\lens1.tga",
+            body_frames: ["effect\\lens2.tga", "effect\\lens1.tga"],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (0.5, 0.8, 1.0),
+            body_color: (0.55, 0.85, 1.0),
+            glow_color: (0.8, 0.95, 1.0),
+            ground_radius: 8.5,
+            ring_radius: 5.5,
+            body_size: 20.0,
+            body_glow_size: 12.0,
+            ground_alpha: 0.28,
+            ring_alpha: 0.4,
+            body_alpha: 0.38,
+            body_glow_alpha: 0.3,
+            body_frame_rate: 5.0,
+            ring_rotation_speed: 0.5,
+            body_rotation_speed: 0.5,
+            body_camera_offset: 2.0,
+            pulse_speed: 2.4,
+            pulse_amount: 0.16,
+            body_height: 12.0,
+        ),
+    ],
+)

@@ -59,3 +59,13 @@ jobs:
 
       - name: Run unit tests
         run: cargo test --all-features
+
+      # Data-generated content (status effects) is checked into the tree. The
+      # generator's --check mode is the drift guard: CI fails when the committed
+      # RON file does not match the committed facts JSON, or when the parity /
+      # schema invariants of the data test fail. Neither step needs the game
+      # data or the server tree.
+      - name: Check generated status-effect data
+        run: |
+          ./tools/gen_status_effects.py --check
+          ./tools/test_status_effects_data.py

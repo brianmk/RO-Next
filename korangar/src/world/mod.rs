@@ -12,8 +12,10 @@ mod item_details;
 mod library;
 pub(crate) use self::library::{
     LayerAnchor, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, MAX_LAYERS_PER_PHASE, SkillEffectLayer, SkillPhase,
-    caster_action_for_skill, default_caster_action, skill_action_override, skill_cast_circle_color, skill_effect_layers,
-    skill_effect_sound_files, skill_has_effect, skill_sound_files, validate_compiled_skill_effects, validate_skill_effect_data,
+    StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, caster_action_for_skill, default_caster_action,
+    skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect, skill_sound_files,
+    status_effect_info, status_effect_refresh_policy, status_effect_value_lines, validate_compiled_skill_effects,
+    validate_compiled_status_effects, validate_skill_effect_data, validate_status_effect_data,
 };
 mod light;
 mod map;

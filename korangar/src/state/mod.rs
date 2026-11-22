@@ -14,8 +14,6 @@ pub mod skill_cooldowns;
 pub mod skills;
 pub mod spirit_orbs;
 pub mod stat_buffer;
-mod status_effect_icons;
-mod status_effect_names;
 pub mod status_effects;
 pub mod theme;
 

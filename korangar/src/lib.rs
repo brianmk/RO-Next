@@ -684,6 +684,26 @@ pub fn check_messages(path: Option<&std::path::Path>) -> Result<usize, String> {
     }
 }
 
+/// Validates the data-driven status-effect table and returns the number of
+/// status entries.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback
+/// (`korangar/archive/data/client/status_effects.ron`) is validated. This is
+/// the `--check`-able schema entry point: the client binary exposes it as
+/// `korangar --check-status-effects [PATH]`, so CI can validate the committed
+/// data file without starting a window, a network connection or the game
+/// archives.
+pub fn check_status_effects(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_status_effect_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_status_effects().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
 pub struct Client {
     game_file_loader: Arc<GameFileLoader>,
     action_loader: Arc<ActionLoader>,
@@ -3228,13 +3248,15 @@ impl Client {
     }
 
     /// Spawns, keeps alive and removes the persistent glow effects of active
-    /// status effects (the Assumptio glow and any future status aura, see
+    /// status effects (the Assumptio glow and the documented buff glows, see
     /// [`crate::world::status_aura_spec`]).
     ///
     /// The active statuses are reconciled every frame instead of being wired to
     /// the status packets: status start/refresh/end, local timer expiry, death,
     /// warp and entities entering/leaving the view then all behave the same,
-    /// and adding another glowing status only needs a new registry entry.
+    /// and adding another glowing status only needs a data row in
+    /// `archive/data/client/status_effects.ron` (see
+    /// `tools/status_effect_custom.ron`).
     ///
     /// The reconciliation itself does not allocate: the per-frame active set is
     /// encoded as the last-seen frame next to each spawned aura, so only the
