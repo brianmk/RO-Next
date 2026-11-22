@@ -1,6 +1,7 @@
 mod action;
 mod animation;
 mod cameras;
+mod cast_bar;
 mod chat_bubble;
 mod effect;
 mod entity;
@@ -25,6 +26,7 @@ use std::sync::Arc;
 pub use self::action::*;
 pub use self::animation::*;
 pub use self::cameras::*;
+pub use self::cast_bar::*;
 pub use self::chat_bubble::*;
 pub use self::effect::*;
 pub use self::entity::*;
