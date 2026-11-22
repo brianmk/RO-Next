@@ -19,6 +19,7 @@ mod aura;
 mod cast_circle;
 mod procedural;
 mod skill_aura;
+mod sprite_effect;
 mod storm_cloud;
 mod teleport_vanish;
 mod warp;
@@ -26,6 +27,7 @@ pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::procedural::*;
 pub use self::skill_aura::*;
+pub(crate) use self::sprite_effect::SpriteEffect;
 pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
@@ -310,6 +312,7 @@ impl FrameTimer {
     }
 }
 
+#[derive(Clone)]
 pub enum EffectCenter {
     Entity(EntityId, Point3<f32>),
     Position(Point3<f32>),

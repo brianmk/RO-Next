@@ -32,8 +32,8 @@ use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 ///
 /// The default slot size of the shared skill box component is 40 pixels; the
 /// hotbar originally used 98 pixels (about 2.5 times the default) and was
-/// reduced by 30% to 68.6 pixels and then by another 15% to 58.31 pixels on user
-/// request, which is about 1.46 times the default size.
+/// reduced by 30% to 68.6 pixels and then by another 15% to 58.31 pixels on
+/// user request, which is about 1.46 times the default size.
 pub const HOTBAR_SLOT_SIZE: f32 = 58.31;
 /// Gap between two slots (also shows the window background, which makes the
 /// transparency toggle visible between the opaque slot cards).

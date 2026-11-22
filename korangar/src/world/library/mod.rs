@@ -23,6 +23,7 @@ mod skill_information;
 mod skill_procedural_effects;
 mod skill_requirements;
 mod skill_sounds;
+mod skill_sprite_effects;
 mod skill_tree;
 
 use std::borrow::Cow;
@@ -56,6 +57,7 @@ pub(crate) use self::skill_procedural_effects::{
     ProceduralAnchor, ProceduralEffectSpec, ProceduralPrimitive, skill_has_procedural_effect, skill_procedural_effects,
 };
 pub(crate) use self::skill_sounds::skill_sound_files;
+pub(crate) use self::skill_sprite_effects::{SpriteEffectAnchor, SpriteEffectSpec, skill_sprite_effects};
 pub use self::skill_tree::SkillTreeLayout;
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;
@@ -96,6 +98,7 @@ impl Library {
         skill_sounds::load(game_file_loader);
         skill_effect_assets::load(game_file_loader);
         skill_procedural_effects::load(game_file_loader);
+        skill_sprite_effects::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,
