@@ -33,7 +33,7 @@ use korangar_audio::{AudioEngine, SpatialSoundHandle};
 #[cfg(feature = "debug")]
 use korangar_debug::logging::{Colorize, print_debug};
 use korangar_loaders::FileLoader;
-use ragnarok_packets::{AccountId, EntityId, SkillId};
+use ragnarok_packets::{AccountId, ClientTick, EntityId, SkillId};
 
 use crate::loaders::GameFileLoader;
 
@@ -55,10 +55,19 @@ const MUTE_AUDIO_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MUTE_AUDIO";
 /// is never played. If a skill is not listed here, [GENERIC_CAST_SOUND] is
 /// used.
 pub const SKILL_SOUNDS: &[(u16, &[&str])] = &[
-    // BS_HAMMERFALL (skill id 110; id 5 is SM_BASH, a plain attack skill).
-    (110, &["black_hammerfall.wav"]),
-    // AL_WARP
-    (27, &["effect\\warp.wav"]),
+    // BS_HAMMERFALL (skill id 110; id 5 is SM_BASH, a plain attack skill that
+    // must keep its own hit sound). The official `EffectTable[102]` entry of
+    // `SkillEffect[SK.BS_HAMMERFALL]` carries `wav: effect/black_hammerfall`,
+    // so the sound lives in `data\wav\effect\`. The old entry pointed at a
+    // root-level duplicate (`data\wav\black_hammerfall.wav`), which is not
+    // the path the official client uses.
+    (110, &["effect\\black_hammerfall.wav"]),
+    // AL_WARP: the official Warp Portal sound is the portal-opening effect
+    // (`effect/ef_readyportal`, carried by `EF_READYPORTAL2`/`EF_PORTAL2`, the
+    // skill unit effects `UNT_PRE_WARPPORTAL`/`UNT_WARPPORTAL` are mapped to).
+    // `effect/warp.wav` is the map-warp/teleport-away sound and was wrong for
+    // the cast; `ef_portal` is the entry/warp-away sound as a fallback.
+    (27, &["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
     // AL_INCAGI
     (29, &["effect\\ef_incagility.wav"]),
     // AL_ANGELUS
@@ -74,6 +83,133 @@ pub const SKILL_SOUNDS: &[(u16, &[&str])] = &[
 
 /// Generic cast sound for skills that are not part of [SKILL_SOUNDS].
 pub const GENERIC_CAST_SOUND: &[&str] = &["effect\\ef_beginspell.wav", "effect\\em_spell_enchanting.wav"];
+
+/// Window after the cast-start packet in which the completion/damage packet of
+/// the same skill use still counts as "this cast" (milliseconds).
+///
+/// Instant skills acknowledge the cast and then send their completion packet
+/// (`ZC_USE_SKILL`) or damage packet a moment later; a delayed damage packet
+/// (attack motion) can arrive a few hundred milliseconds after the
+/// acknowledgement.
+const CAST_SOUND_PENDING_MS: u32 = 2_000;
+/// Window in which a second completion packet is treated as a duplicate of the
+/// sound that already played for this cast (milliseconds).
+const CAST_SOUND_PLAYED_DEDUPE_MS: u32 = 1_000;
+/// Stale bookkeeping entries are dropped after this age (milliseconds).
+const CAST_SOUND_STATE_RETENTION_MS: u32 = 5_000;
+
+/// Decides *when* a skill sound is played for one entity.
+///
+/// The sound must never play when an instant cast is only **acknowledged**
+/// (`ZC_USESKILL_ACK` is sent before the skill takes effect), because that is
+/// heard as a pre-cast/casting sound instead of the skill's effect sound. For
+/// instant skills the sound therefore waits for the completion packet
+/// (`ZC_USE_SKILL`) or, for damage skills without one, for the damage packet.
+/// Cast-time skills already play their sound when the completion packet arrives
+/// (nothing is played when the cast starts).
+///
+/// The gate is pure state so the play policy can be unit tested without a
+/// client or an audio device.
+#[derive(Default)]
+pub(crate) struct SkillSoundGate {
+    /// Instant casts that still wait for their completion/damage packet:
+    /// (skill id, client tick of the cast-start packet).
+    pending: HashMap<EntityId, (SkillId, ClientTick)>,
+    /// Last sound that actually played per entity: (skill id, client tick).
+    /// Collapses duplicate completion packets of one cast.
+    played: HashMap<EntityId, (SkillId, ClientTick)>,
+}
+
+impl SkillSoundGate {
+    /// Records the cast-start packet of an **instant** skill.
+    ///
+    /// No sound is played here: it is claimed by the completion packet
+    /// ([`Self::claim_completion`]) or by the damage packet
+    /// ([`Self::claim_damage_hit`]).
+    pub(crate) fn remember_instant_cast(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) {
+        self.retain(client_tick);
+        self.pending.insert(entity_id, (skill_id, client_tick));
+    }
+
+    /// Claims the sound on the completion packet (`ZC_USE_SKILL`,
+    /// `ZC_USESKILL_ACK` completion and ground-skill packets).
+    ///
+    /// Returns `true` when the official skill sound should play now. For an
+    /// instant skill this consumes the pending cast (the sound must play once
+    /// at completion). For a cast-time skill the first completion packet
+    /// claims the sound and later duplicates within the dedupe window are
+    /// suppressed.
+    pub(crate) fn claim_completion(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        self.retain(client_tick);
+
+        if self.take_pending(entity_id, skill_id, client_tick) {
+            self.played.insert(entity_id, (skill_id, client_tick));
+            return true;
+        }
+
+        if self.played_recently(entity_id, skill_id, client_tick) {
+            return false;
+        }
+
+        self.played.insert(entity_id, (skill_id, client_tick));
+        true
+    }
+
+    /// Claims the sound on a damage packet of a skill (`ZC_NOTIFY_SKILL`).
+    ///
+    /// Only instant skills have a pending cast; cast-time damage skills keep
+    /// their previous (silent) behaviour, so this only returns `true` when the
+    /// damage packet completes an instant skill whose cast was acknowledged
+    /// just before.
+    pub(crate) fn claim_damage_hit(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        self.retain(client_tick);
+
+        if self.take_pending(entity_id, skill_id, client_tick) {
+            self.played.insert(entity_id, (skill_id, client_tick));
+            return true;
+        }
+
+        false
+    }
+
+    /// Forgets the pending cast of an entity (interrupted/cancelled cast) and
+    /// its played marker, e.g. when the entity leaves the map.
+    pub(crate) fn clear_entity(&mut self, entity_id: EntityId) {
+        self.pending.remove(&entity_id);
+        self.played.remove(&entity_id);
+    }
+
+    /// Forgets all entities, e.g. on a map change.
+    pub(crate) fn clear(&mut self) {
+        self.pending.clear();
+        self.played.clear();
+    }
+
+    fn take_pending(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        match self.pending.get(&entity_id) {
+            Some(&(pending_skill_id, pending_tick))
+                if pending_skill_id == skill_id && client_tick.0.wrapping_sub(pending_tick.0) < CAST_SOUND_PENDING_MS =>
+            {
+                self.pending.remove(&entity_id);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    fn played_recently(&self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        self.played.get(&entity_id).is_some_and(|&(played_skill_id, played_tick)| {
+            played_skill_id == skill_id && client_tick.0.wrapping_sub(played_tick.0) < CAST_SOUND_PLAYED_DEDUPE_MS
+        })
+    }
+
+    fn retain(&mut self, client_tick: ClientTick) {
+        self.pending
+            .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_STATE_RETENTION_MS);
+        self.played
+            .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_STATE_RETENTION_MS);
+    }
+}
 
 /// Plays map sound effects and skill sounds with one lane per entity.
 ///
@@ -443,9 +579,38 @@ mod tests {
         assert!(skill_sound_candidates(SkillId(89))[0].contains("wizard_stormgust"));
         // The curated entries keep priority (verified classic casts).
         assert_eq!(skill_sound_candidates(SkillId(34))[0], "effect\\ef_blessing.wav");
-        assert_eq!(skill_sound_candidates(SkillId(110))[0], "black_hammerfall.wav");
+        assert_eq!(skill_sound_candidates(SkillId(110))[0], "effect\\black_hammerfall.wav");
         // Unknown skills fall back to the generic cast sound.
         assert_eq!(skill_sound_candidates(SkillId(65_500)), GENERIC_CAST_SOUND);
+    }
+
+    #[test]
+    fn warp_portal_uses_the_official_portal_opening_sound() {
+        // The official Warp Portal sound is the portal-opening `ef_readyportal`
+        // carried by the skill unit effects (EF_READYPORTAL2/EF_PORTAL2); the
+        // old curated entry used the map-warp/teleport-away sound.
+        let candidates = skill_sound_candidates(SkillId(27));
+        assert_eq!(candidates[0], "effect\\ef_readyportal.wav");
+        assert!(
+            !candidates.iter().any(|file| file.eq_ignore_ascii_case("effect\\warp.wav")),
+            "Warp Portal must not use the map-warp sound: {candidates:?}"
+        );
+    }
+
+    #[test]
+    fn hammer_fall_uses_the_official_hammerfall_sound_and_bash_keeps_its_own() {
+        // Official `SkillEffect[SK.BS_HAMMERFALL]` effect 102 carries
+        // `wav: effect/black_hammerfall`.
+        assert_eq!(skill_sound_candidates(SkillId(110))[0], "effect\\black_hammerfall.wav");
+        // SM_BASH (id 5) is a plain attack and must not use the Hammer Fall sound.
+        assert!(
+            !skill_sound_candidates(SkillId(5))
+                .iter()
+                .any(|file| file.to_ascii_lowercase().contains("hammerfall")),
+            "Bash must not play the Hammer Fall sound"
+        );
+        // Adjacent Blacksmith skills keep their own official sounds.
+        assert!(skill_sound_candidates(SkillId(112))[0].contains("black_weapon_perfection"));
     }
 
     #[test]
@@ -506,6 +671,96 @@ mod tests {
 
         state.lanes.remove(&EntityId(1));
         assert_eq!(state.lanes_len(), 1);
+    }
+
+    #[test]
+    fn instant_skill_sound_waits_for_completion() {
+        let mut gate = SkillSoundGate::default();
+        let entity_id = EntityId(1);
+        // Gloria is an instant self buff: the cast-start packet must not play a
+        // sound, the completion packet plays it exactly once.
+        let gloria = SkillId(75);
+
+        gate.remember_instant_cast(entity_id, gloria, ClientTick(100));
+        assert!(gate.claim_completion(entity_id, gloria, ClientTick(120)));
+        assert!(
+            !gate.claim_completion(entity_id, gloria, ClientTick(140)),
+            "duplicate completion must be silent"
+        );
+    }
+
+    #[test]
+    fn instant_damage_skill_sound_plays_on_the_damage_packet() {
+        let mut gate = SkillSoundGate::default();
+        let entity_id = EntityId(1);
+        let bash = SkillId(5);
+
+        gate.remember_instant_cast(entity_id, bash, ClientTick(100));
+        assert!(
+            gate.claim_damage_hit(entity_id, bash, ClientTick(300)),
+            "damage packet claims the cast sound"
+        );
+        assert!(
+            !gate.claim_completion(entity_id, bash, ClientTick(320)),
+            "completion must not double up"
+        );
+        assert!(
+            !gate.claim_damage_hit(entity_id, bash, ClientTick(340)),
+            "duplicate damage packet must be silent"
+        );
+    }
+
+    #[test]
+    fn cast_time_skill_plays_once_when_the_completion_packet_arrives() {
+        let mut gate = SkillSoundGate::default();
+        let entity_id = EntityId(1);
+        // Incagi has a cast time: nothing plays at cast start, the completion
+        // packet plays the sound once.
+        let incagi = SkillId(29);
+
+        assert!(gate.claim_completion(entity_id, incagi, ClientTick(1_000)));
+        assert!(!gate.claim_completion(entity_id, incagi, ClientTick(1_050)));
+    }
+
+    #[test]
+    fn pending_cast_expires_without_double_playing() {
+        let mut gate = SkillSoundGate::default();
+        let entity_id = EntityId(1);
+        let gloria = SkillId(75);
+
+        gate.remember_instant_cast(entity_id, gloria, ClientTick(0));
+        // The completion arrives after the pending window and still plays once
+        // (fallback path), no second play for a duplicate.
+        assert!(gate.claim_completion(entity_id, gloria, ClientTick(5_000)));
+        assert!(!gate.claim_completion(entity_id, gloria, ClientTick(5_100)));
+    }
+
+    #[test]
+    fn cancelled_cast_never_plays_a_damage_sound() {
+        let mut gate = SkillSoundGate::default();
+        let entity_id = EntityId(1);
+        let bash = SkillId(5);
+
+        gate.remember_instant_cast(entity_id, bash, ClientTick(100));
+        gate.clear_entity(entity_id);
+        assert!(
+            !gate.claim_damage_hit(entity_id, bash, ClientTick(120)),
+            "cancelled cast must stay silent"
+        );
+    }
+
+    #[test]
+    fn sound_gate_is_per_entity() {
+        let mut gate = SkillSoundGate::default();
+        let blessing = SkillId(34);
+        gate.remember_instant_cast(EntityId(1), blessing, ClientTick(100));
+        gate.remember_instant_cast(EntityId(2), blessing, ClientTick(100));
+
+        assert!(gate.claim_completion(EntityId(1), blessing, ClientTick(120)));
+        assert!(
+            gate.claim_completion(EntityId(2), blessing, ClientTick(120)),
+            "other entities are independent"
+        );
     }
 
     #[test]

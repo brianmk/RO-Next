@@ -161,6 +161,35 @@ mod tests {
     }
 
     #[test]
+    fn gloria_uses_the_official_gloria_effect_sound() {
+        // Official tables: `SkillEffect[SK.PR_GLORIA] = { effectId: 75 }`,
+        // `EffectTable[75]` is the STR effect `gloria.str` with
+        // `wav: 'effect/priest_gloria'`. Gloria is an instant skill, so this
+        // sound has to play once at completion and never as a pre-cast sound
+        // (timing is covered by `SkillSoundGate` tests in `world::skill_sound`).
+        assert_eq!(
+            files_for(75).as_deref().map(|files| files[0]),
+            Some("effect\\priest_gloria.wav"),
+            "Gloria (PR_GLORIA, id 75) must use the official priest_gloria.wav"
+        );
+        // AL_CURE (id 35) is a different skill and keeps its own sound; the
+        // Gloria facts must never leak onto it.
+        assert_eq!(files_for(35).as_deref().map(|files| files[0]), Some("effect\\acolyte_cure.wav"));
+    }
+
+    #[test]
+    fn instant_buff_sounds_are_mapped() {
+        // Blessing, Increase AGI, Angelus and Concentration are the instant
+        // buffs used for the regression checks; each must have an official wav.
+        for skill_id in [34, 29, 33, 45] {
+            assert!(
+                files_for(skill_id).is_some_and(|files| !files.is_empty()),
+                "skill {skill_id} has no sound"
+            );
+        }
+    }
+
+    #[test]
     fn distinctive_sounds_win_over_generic_hit_sounds() {
         // Fire Ball's effect layers include the generic `ef_hit2` impact sound;
         // the distinctive fire ball sounds must be preferred.

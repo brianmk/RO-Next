@@ -90,6 +90,17 @@ struct SkillEffectEntry {
     variant: SkillEffectVariant,
     #[serde(default)]
     anchor: EffectAnchor,
+    /// Whether this is an overhead buff completion effect anchored above the
+    /// entity's head (see `world::skill_cast_effect::overhead_effect_height`)
+    /// instead of at the ordinary anchor.
+    ///
+    /// Generated data writes `overhead: true` for caster-anchored buff/support
+    /// completion effects and an explicit `overhead: false` for every other
+    /// entity-anchored completion effect (body auras, on-caster attack flashes,
+    /// ground effects). That makes the overhead anchor the default for buffs
+    /// while keeping a data-level override for exceptions.
+    #[serde(default)]
+    overhead: bool,
     file: String,
 }
 
@@ -98,6 +109,7 @@ struct StoredEntry {
     skill: u16,
     variant: SkillEffectVariant,
     anchor: EffectAnchor,
+    overhead: bool,
     file: &'static str,
 }
 
@@ -112,6 +124,7 @@ fn parse(content: &str) -> Result<Vec<StoredEntry>, String> {
             skill: entry.skill,
             variant: entry.variant,
             anchor: entry.anchor,
+            overhead: entry.overhead,
             file: Box::leak(entry.file.into_boxed_str()),
         })
         .collect();
@@ -164,14 +177,14 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
 pub(crate) fn skill_effect_entries(
     skill_id: SkillId,
     variant: SkillEffectVariant,
-) -> impl Iterator<Item = (&'static str, EffectAnchor)> + 'static {
+) -> impl Iterator<Item = (&'static str, EffectAnchor, bool)> + 'static {
     ASSETS
         .get()
         .map(|assets| assets.as_slice())
         .unwrap_or(&[])
         .iter()
         .filter(move |entry| entry.skill == skill_id.0 && entry.variant == variant)
-        .map(|entry| (entry.file, entry.anchor))
+        .map(|entry| (entry.file, entry.anchor, entry.overhead))
 }
 
 /// Whether the mapping has any entry for `skill_id`.
@@ -184,7 +197,6 @@ pub(crate) fn skill_has_effect(skill_id: SkillId) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use korangar_loaders::FileLoader;
     use ragnarok_packets::SkillId;
 
     use super::{EffectAnchor, FALLBACK, SkillEffectVariant, parse, skill_effect_entries};
@@ -196,16 +208,24 @@ mod tests {
     }
 
     fn file_of(skill_id: u16, variant: SkillEffectVariant) -> Option<&'static str> {
-        skill_effect_entries(SkillId(skill_id), variant).next().map(|(file, _anchor)| file)
+        skill_effect_entries(SkillId(skill_id), variant)
+            .next()
+            .map(|(file, _anchor, _overhead)| file)
     }
 
     fn anchor_of(skill_id: u16, variant: SkillEffectVariant) -> Option<EffectAnchor> {
         skill_effect_entries(SkillId(skill_id), variant)
             .next()
-            .map(|(_file, anchor)| anchor)
+            .map(|(_file, anchor, _overhead)| anchor)
     }
 
-    fn entries_of(skill_id: u16, variant: SkillEffectVariant) -> Vec<(&'static str, EffectAnchor)> {
+    fn overhead_of(skill_id: u16, variant: SkillEffectVariant) -> Option<bool> {
+        skill_effect_entries(SkillId(skill_id), variant)
+            .next()
+            .map(|(_file, _anchor, overhead)| overhead)
+    }
+
+    fn entries_of(skill_id: u16, variant: SkillEffectVariant) -> Vec<(&'static str, EffectAnchor, bool)> {
         skill_effect_entries(SkillId(skill_id), variant).collect()
     }
 
@@ -246,7 +266,46 @@ mod tests {
         // Bolt skills have both the element hit flash and the generic hit line.
         let lightning = entries_of(20, SkillEffectVariant::Hit);
         assert!(lightning.len() >= 2, "expected two hit layers, got {lightning:?}");
-        assert!(lightning.iter().all(|(_file, anchor)| *anchor == EffectAnchor::Target));
+        assert!(lightning.iter().all(|(_file, anchor, _overhead)| *anchor == EffectAnchor::Target));
+    }
+
+    #[test]
+    fn gloria_effect_is_raised_from_the_feet() {
+        assert!(load_fallback().is_ok());
+        // The classic Gloria buff halo is anchored around the character body
+        // (between the torso sparkles at 10 and the Angelus ring at 16), not at
+        // the feet where plain `.str` effects render.
+        assert_eq!(
+            overhead_of(75, SkillEffectVariant::Success),
+            Some(true),
+            "Gloria is an overhead buff"
+        );
+        // A normal ground/attack effect keeps its normal anchor.
+        assert_eq!(overhead_of(89, SkillEffectVariant::Success), Some(false));
+        assert_eq!(overhead_of(56, SkillEffectVariant::Hit), Some(false));
+    }
+
+    #[test]
+    fn acolyte_and_priest_buff_effects_are_overhead() {
+        assert!(load_fallback().is_ok());
+        // Blessing, Inc AGI, Angelus and Concentration are hand-written visuals
+        // (`skill_visuals`), the rest comes from this table.
+        for skill_id in [32, 35, 66, 67, 68, 71, 72, 73, 74, 75] {
+            assert_eq!(
+                overhead_of(skill_id, SkillEffectVariant::Success),
+                Some(true),
+                "Acolyte/Priest buff {skill_id} must be anchored above the head"
+            );
+        }
+
+        // Ground/target effects and body auras are explicit exceptions.
+        for skill_id in [56, 70, 79, 89, 157] {
+            assert_eq!(
+                overhead_of(skill_id, SkillEffectVariant::Success),
+                Some(false),
+                "skill {skill_id} must keep its own anchor"
+            );
+        }
     }
 
     #[test]
