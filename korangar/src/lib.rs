@@ -589,6 +589,7 @@ pub struct Client {
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
     skill_name_texts: SkillNameTexts,
+    cast_bars: CastBars,
     warp_portal: Option<WarpPortal>,
     /// Active warp-portal skill units: (entity id, world position, spawn time).
     /// Rendered as the flat ground portal of the original client.
@@ -1181,6 +1182,7 @@ impl Client {
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
             skill_name_texts: SkillNameTexts::default(),
+            cast_bars: CastBars::default(),
             warp_portal,
             warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
@@ -2127,6 +2129,27 @@ impl Client {
     /// Called once per cast (never per animation frame). The label replaces a
     /// previous label of the same entity, so recasts refresh instead of
     /// stacking.
+    /// Starts the local player's cast bar for a server-confirmed cast with a
+    /// cast time.
+    ///
+    /// Only the local player gets a cast bar. Called from the cast-start packet
+    /// handler, so a rejected/failed cast never shows one.
+    fn start_own_cast_bar(&mut self, source_entity_id: EntityId, skill_id: SkillId, cast_time: u32, client_tick: ClientTick) {
+        if cast_time == 0 {
+            return;
+        }
+
+        let own_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id());
+
+        if own_entity_id != Some(source_entity_id) {
+            return;
+        }
+
+        let skill_name = self.library.get::<SkillListInformation>(skill_id).name.clone();
+
+        self.cast_bars.start(source_entity_id, skill_name, cast_time, client_tick);
+    }
+
     fn show_skill_name_text(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) {
         let is_character = self
             .client_state
@@ -2529,6 +2552,10 @@ impl Client {
                     // client (own character, other players and population shells).
                     self.show_skill_name_text(source_entity_id, skill_id, client_tick);
 
+                    // Local player cast bars are driven by this server-confirmed
+                    // cast-start packet (cast_time > 0), never by local requests.
+                    self.start_own_cast_bar(source_entity_id, skill_id, cast_time, client_tick);
+
                     if has_cast_time {
                         // The circle has to stay for the full cast: the cast time can be
                         // shorter than one ACT cycle (the animation then plays a full
@@ -2564,6 +2591,10 @@ impl Client {
                     // completion effect, so self-buffs and the blacksmith crafting loop
                     // become visible.
                     if success {
+                        if self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id) {
+                            self.cast_bars.clear();
+                        }
+
                         let source_position = self
                             .client_state
                             .follow(client_state().entities())
@@ -2886,6 +2917,7 @@ impl Client {
                 NetworkEvent::RemoveEntity { entity_id, reason } => {
                     self.chat_bubbles.remove_entity(entity_id);
                     self.skill_name_texts.remove_entity(entity_id);
+                    self.cast_bars.remove_entity(entity_id);
                     self.skill_sounds.remove_entity(entity_id);
 
                     // Classic teleport/logout behaviour: entities that leave via
@@ -3065,6 +3097,8 @@ impl Client {
                     self.level_99_aura_entities.clear();
                     self.chat_bubbles.clear();
                     self.skill_name_texts.clear();
+                    self.cast_bars.clear();
+                    self.cast_bars.clear();
                     self.warp_skill_units.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
@@ -3643,12 +3677,7 @@ impl Client {
                     health_points,
                     maximum_health_points,
                 } => {
-                    crate::logging::log_debug!(
-                        "party member hp: {} {}/{}",
-                        account_id.0,
-                        health_points,
-                        maximum_health_points
-                    );
+                    crate::logging::log_debug!("party member hp: {} {}/{}", account_id.0, health_points, maximum_health_points);
                 }
                 NetworkEvent::PartyMemberPosition { account_id, position } => {
                     crate::logging::log_debug!("party member position: {} {}/{}", account_id.0, position.x, position.y);
@@ -3667,7 +3696,10 @@ impl Client {
                     self.push_chat_information(format!("Party invite from {} (#{}).", party_name, party_id.0));
                 }
                 NetworkEvent::PartyInviteReply { character_name, result } => {
-                    self.push_chat_information(format!("Party invitation for {} finished with result {}.", character_name, result));
+                    self.push_chat_information(format!(
+                        "Party invitation for {} finished with result {}.",
+                        character_name, result
+                    ));
                 }
                 NetworkEvent::PartyCreationResult { result } => {
                     self.push_chat_information(format!("Party creation result: {}.", result));
@@ -4123,16 +4155,12 @@ impl Client {
         skill_id: SkillId,
         skill_type: SkillType,
         level: SkillLevel,
-        client_tick: ClientTick,
+        _client_tick: ClientTick,
     ) {
         match skill_type {
             SkillType::Passive => {}
             SkillType::SelfCast => {
                 let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
-
-                // Local casts show the label immediately; the server broadcast for
-                // the same cast simply refreshes the same label.
-                self.show_skill_name_text(entity_id, skill_id, client_tick);
 
                 match skill_id == ROLLING_CUTTER_ID {
                     true => {
@@ -4879,13 +4907,6 @@ impl Client {
                     // skill tree); the learned list is only used for the range, with a
                     // fallback so a cast is never silently dropped just because the
                     // learned entry is missing (e.g. high-job/trimmed skill trees).
-                    // The local player is about to cast (target/ground skill selected):
-                    // show the skill name above our own head immediately, without
-                    // waiting for the server broadcast.
-                    if let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) {
-                        self.show_skill_name_text(entity_id, skill_id, client_tick);
-                    }
-
                     let attack_range = self
                         .client_state
                         .follow(client_state().skill_tree().skills())
@@ -5648,6 +5669,7 @@ impl Client {
         self.client_state.follow_mut(client_state().dead_entities()).clear();
         self.chat_bubbles.clear();
         self.skill_name_texts.clear();
+        self.cast_bars.clear();
         self.client_state.follow_mut(client_state().ground_items()).clear();
         self.pending_context_menu = None;
         *self.client_state.follow_mut(client_state().buffered_action()) = None;
@@ -6489,6 +6511,7 @@ impl Client {
                 particle_holder: &mut self.particle_holder,
                 effect_holder: &mut self.effect_holder,
                 chat_bubbles: &self.chat_bubbles,
+                cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
                 warp_portal: self.warp_portal.as_ref(),
                 warp_skill_units: &self.warp_skill_units,
@@ -7166,6 +7189,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     particle_holder: &'a mut ParticleHolder,
     effect_holder: &'a mut EffectHolder,
     chat_bubbles: &'a ChatBubbles,
+    cast_bars: &'a CastBars,
     skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
     /// Active warp-portal skill units, rendered like warp NPCs.
@@ -7651,6 +7675,19 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             );
 
             self.skill_name_texts.render(
+                self.middle_interface_renderer,
+                self.current_camera,
+                self.client_state.follow(client_state().entities()),
+                self.screen_size,
+                self.scaling,
+                self.client_tick,
+            );
+        }
+
+        // Cast progress bar above the local player's head while a cast with a cast
+        // time is running (driven by server-confirmed cast starts).
+        if self.currently_playing {
+            self.cast_bars.render(
                 self.middle_interface_renderer,
                 self.current_camera,
                 self.client_state.follow(client_state().entities()),
