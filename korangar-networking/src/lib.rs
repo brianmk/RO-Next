@@ -1393,7 +1393,7 @@ mod packet_handlers {
         let map_handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
         let headers = map_handler.registered_headers();
 
-        for dead_header in [0x0ADEu16, 0x08E2, 0x07FB, 0x0283] {
+        for dead_header in [0x08E2u16, 0x07FB] {
             assert!(
                 !headers.contains(&PacketHeader(dead_header)),
                 "dead 2022 packet 0x{dead_header:04X} is still registered"
@@ -1401,12 +1401,7 @@ mod packet_handlers {
         }
 
         let packet_source = include_str!("../../ragnarok-packets/src/lib.rs");
-        for dead_struct in [
-            "CriticalWeightUpdatePacket",
-            "NavigateToMonsterPacket",
-            "UseSkillSuccessPacket",
-            "Packet8302",
-        ] {
+        for dead_struct in ["NavigateToMonsterPacket", "UseSkillSuccessPacket"] {
             assert!(
                 !packet_source.contains(&format!("pub struct {dead_struct}")),
                 "dead 2022 struct {dead_struct} still exists"
@@ -1549,6 +1544,26 @@ mod packet_handlers {
             panic!("map auth failure packet was not handled");
         };
         assert!(matches!(events.0.as_slice(), [NetworkEvent::MapServerAuthFailed { reason: 1 }]));
+
+        // `ZC_NOTIFY_CRITICALWEIGHT` (0x0ADE): header + percentage u32.
+        let mut bytes = vec![0xDE, 0x0A];
+        bytes.extend_from_slice(&50u32.to_le_bytes());
+        assert_eq!(bytes.len(), 6);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("critical weight packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CriticalWeight { percentage: 50 }]));
+
+        // `ZC_AUTH_OK_GID` (0x0283): header + account id u32 (classified noop).
+        let mut bytes = vec![0x83, 0x02];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        assert_eq!(bytes.len(), 6);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("auth ok gid packet was not handled");
+        };
+        assert!(events.0.is_empty());
 
         // `ZC_UPDATE_MAPINFO` (0x0192): header + x u16 + y u16 + cell type u16 +
         // map name[16].

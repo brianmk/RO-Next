@@ -654,6 +654,12 @@ pub enum NetworkEvent {
     ShowEquipmentWindow {
         open: bool,
     },
+    /// Weight percentage at which the client renders the weight in red
+    /// (`ZC_NOTIFY_CRITICALWEIGHT`, 0x0ADE, rAthena
+    /// `natural_heal_weight_rate`).
+    CriticalWeight {
+        percentage: u32,
+    },
     /// A dynamic map cell changed (`ZC_UPDATE_MAPINFO`, 0x0192).
     MapCellChanged {
         position: TilePosition,

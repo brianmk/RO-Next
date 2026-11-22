@@ -87,6 +87,12 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
     },
     // ------------------------------------------------------------ map server
     IgnoredNoop {
+        header: 0x0283,
+        server: NoopServer::Map,
+        class: IgnoreClass::NoClientAction,
+        reason: "ZC_AUTH_OK_GID: re-confirms the player block id that the client already knows from login; parsed for framing",
+    },
+    IgnoredNoop {
         header: 0x0B1B,
         server: NoopServer::Map,
         class: IgnoreClass::NoClientAction,

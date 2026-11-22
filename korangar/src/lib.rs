@@ -4722,6 +4722,11 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::CriticalWeight { percentage } => {
+                    if let Some(player) = self.client_state.try_follow_mut(this_player()) {
+                        player.critical_weight_percentage = percentage;
+                    }
+                }
                 NetworkEvent::MapCellChanged {
                     position,
                     cell_type,

@@ -63,6 +63,15 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
         "dead registration: 2019 sends ZC_NOTIFY_MOVE as 0x09FD (enum unit_walkingType); 0x0086 is used by pre-2015 PACKETVERs",
     ),
     (
+        0x0283,
+        "not derivable: ZC_AUTH_OK_GID is written by hand in clif_parse_AuthOk (packet 0x0283, 6 bytes); the client only parses it for \
+         framing",
+    ),
+    (
+        0x0ADE,
+        "not derivable: ZC_NOTIFY_CRITICALWEIGHT is written by hand in clif_weight_limit (packet 0x0ADE, 6 bytes, u32 percentage)",
+    ),
+    (
         0x008A,
         "dead registration: 2019 sends ZC_NOTIFY_ACT as 0x08C8 (enum damageType); 0x008A is the pre-2012 layout",
     ),

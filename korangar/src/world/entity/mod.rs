@@ -1388,6 +1388,10 @@ pub struct Player {
     pub attack_speed: u32,
     /// Current attack range (`ZC_ATTACK_RANGE`, 0x013A).
     pub attack_range: AttackRange,
+    /// Weight percentage above which the weight should be shown in red
+    /// (`ZC_NOTIFY_CRITICALWEIGHT`, 0x0ADE; rAthena
+    /// `natural_heal_weight_rate`).
+    pub critical_weight_percentage: u32,
     /// Merchant cart item count/weight (`ZC_NOTIFY_CARTITEM_COUNTINFO`, 0x0121
     /// and `SP_CARTINFO` through 0x00B0).
     pub cart_items: u16,
@@ -1486,6 +1490,7 @@ impl Player {
             luck_stat_points_cost: 0,
             attack_speed: 0,
             attack_range: AttackRange(1),
+            critical_weight_percentage: 0,
             cart_items: 0,
             cart_maximum_items: 0,
             cart_weight: 0,

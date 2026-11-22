@@ -1350,6 +1350,10 @@ where
     })?;
     register_ignored_noop::<_, Packet0b18>(packet_handler)?;
     packet_handler.register(|packet: MapServerAuthFailedPacket| NetworkEvent::MapServerAuthFailed { reason: packet.reason })?;
+    packet_handler.register(|packet: CriticalWeightUpdatePacket| NetworkEvent::CriticalWeight { percentage: packet.weight })?;
+    // `ZC_AUTH_OK_GID` (0x0283) only re-confirms the player's block id that the
+    // client already knows from login/character selection; parsed for framing.
+    register_ignored_noop::<_, MapServerAuthOkPacket>(packet_handler)?;
     packet_handler.register(|packet: MapServerLoginSuccessPacket| NetworkEvent::UpdateClientTick {
         client_tick: packet.client_tick,
         received_at: Instant::now(),

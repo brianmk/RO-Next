@@ -421,6 +421,27 @@ pub struct ConnectionRefusedPacket {
 }
 
 /// Sent by the map server as a response to [MapServerLoginPacket] succeeding.
+/// 2019 `ZC_AUTH_OK_GID` (0x0283): sent right after the map login packet with
+/// the player's block id (`sd->id`, which equals the account id). The client
+/// already knows that id, so the packet only needs to be parsed for framing.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0283)]
+#[packet_size(6)]
+pub struct MapServerAuthOkPacket {
+    pub account_id: AccountId,
+}
+
+/// `ZC_NOTIFY_CRITICALWEIGHT` (0x0ADE): weight percentage at which the client
+/// displays the weight in red (rAthena `natural_heal_weight_rate`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0ADE)]
+#[packet_size(6)]
+pub struct CriticalWeightUpdatePacket {
+    pub weight: u32,
+}
+
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
 #[header(0x02EB)]
