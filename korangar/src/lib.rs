@@ -2840,20 +2840,11 @@ impl Client {
                             .play_skill_sound(skill_id, Some(source_entity_id), source_position);
                     }
 
-                    // Keep the previous behaviour of showing the heal amount above the
-                    // destination (heal skills use this packet too). Self-buffs send a
-                    // level instead of a heal amount, so only positive values are shown.
-                    if level > 0
-                        && let Some(entity) = self
-                            .client_state
-                            .follow(client_state().entities())
-                            .iter()
-                            .find(|entity| entity.get_entity_id() == destination_entity_id)
-                            .or_else(|| self.client_state.try_follow(this_entity()))
-                    {
-                        self.particle_holder
-                            .spawn_particle(Box::new(HealNumber::new(entity.get_position(), level as u64)));
-                    }
+                    // `ZC_USE_SKILL` (0x09CB) is sent for every no-damage skill and
+                    // its `level` field is the skill level, not a healed amount. It
+                    // must not be rendered as a heal number (Blessing/AGI and other
+                    // self-buffs showed a green "10" above the caster). Real heal
+                    // numbers come from `ZC_RECOVERY`/0x0A27 (`NetworkEvent::HealEffect`).
                 }
                 NetworkEvent::SkillGroundCast {
                     entity_id,
@@ -2984,10 +2975,11 @@ impl Client {
                     let Some(saved_login_data) = self.saved_login_data.as_ref() else {
                         // The character selection cannot be processed without the
                         // login data. Show the error instead of panicking.
-                        self.interface.open_window(ErrorWindow::new("Character selection failed: missing login data.".to_owned()));
+                        self.interface
+                            .open_window(ErrorWindow::new("Character selection failed: missing login data.".to_owned()));
                         continue;
                     };
-                    let saved_login_data = saved_login_data.clone();
+                    let saved_login_data = *saved_login_data;
                     self.networking_system.disconnect_from_character_server();
                     self.networking_system
                         .connect_to_map_server(self.saved_packet_version, &saved_login_data, login_data);
@@ -3003,7 +2995,9 @@ impl Client {
                         .with_id(login_data.character_id)
                         .cloned()
                     else {
-                        self.interface.open_window(ErrorWindow::new("Character selection failed: the server did not send that character slot.".to_owned()));
+                        self.interface.open_window(ErrorWindow::new(
+                            "Character selection failed: the server did not send that character slot.".to_owned(),
+                        ));
                         continue;
                     };
 
