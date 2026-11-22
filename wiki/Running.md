@@ -55,5 +55,58 @@ If the client panics, the panic message and a full backtrace are printed (no `RU
 needed). Fatal signals like `SIGSEGV`/`SIGABRT` are also caught and print a marker plus a backtrace
 before the signal is re-raised, so the log file ends with the crash information.
 
+
+# Building and checking locally
+
+The shader compiler `slangc` is not committed to this repository; the client build expects it on
+`PATH`. Locally it lives in the workspace `tools/bin` directory:
+
+```fish
+cd /home/phantom/Games/ragnarok/CondaRO-linux/korangar
+PATH="$PWD/../tools/bin:$PATH" cargo build
+```
+
+The same `PATH` prefix is needed for the quality gates (CI downloads the pinned `SLANG_VERSION`
+into `$GITHUB_WORKSPACE/tools/bin` instead, so a plain `cargo clippy` works there):
+
+```fish
+PATH="$PWD/../tools/bin:$PATH" cargo fmt --all --check
+PATH="$PWD/../tools/bin:$PATH" cargo clippy --workspace -- -Dwarnings
+PATH="$PWD/../tools/bin:$PATH" cargo clippy --workspace --all-features -- -Dwarnings
+PATH="$PWD/../tools/bin:$PATH" cargo test -p korangar -p korangar-networking -p ragnarok-packets
+```
+
+# Packet layout contract (2019)
+
+The client speaks the rAthena `PACKETVER 20190605` protocol, but the packet structs are hand-written.
+To stop 2019-vs-2022 layout drift from silently desynchronizing the stream, two committed artifacts
+guard the wire format:
+
+* `ragnarok-packets/src/opcode_lengths_2019.rs` - generated registry of the exact 2019 wire size of
+  every server-to-client opcode (fixed size or variable-length base size).
+* `ragnarok-packets/tests/contract_2019.rs` and the `contract_2019` module in `korangar-networking` -
+  fixtures that feed synthetic 2019-sized buffers into the structs/handlers and assert that exactly
+  the declared number of bytes is consumed.
+
+Regenerate the registry after pinning a different server commit with:
+
+```fish
+./tools/gen_opcode_lengths.py           # reads the rAthena tree through ssh (see --help)
+./tools/gen_opcode_lengths.py --check   # fail if the committed file is out of date
+```
+
+The generator preprocesses the rAthena headers with `-DPACKETVER=20190605`, runs a `sizeof()` probe
+for every packet struct and merges the checked-in `tools/opcode_supplement_20190605.json` (for
+hand-rolled char-server and dynamic `enum packet_headers` opcodes). Run the contract tests with:
+
+```fish
+cargo test -p ragnarok-packets --test contract_2019
+cargo test -p korangar-networking --lib contract_2019
+```
+
+A layout mismatch is logged (once per opcode) but never breaks a running client; set
+`KORANGAR_PACKET_STRICT=1` to turn it into a parse error for scripted runs. New opcodes must add a
+registry entry (or an explicit entry in the contract ignore list) and a fixture.
+
 # Troubleshooting
 If the client keeps crashing or you have any other problems, please consult the wiki page on [Troubleshooting](Troubleshooting.md).
