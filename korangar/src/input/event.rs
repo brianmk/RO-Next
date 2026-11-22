@@ -189,6 +189,16 @@ pub enum InputEvent {
     },
     /// Close the Kafra storage window and tell the server about it.
     CloseStorage,
+    /// Double click on an item in the inventory or the Kafra storage.
+    ///
+    /// While the storage window is open this stores the inventory item or takes
+    /// the storage item out; otherwise it does nothing.
+    ItemDoubleClick {
+        /// Source of the item.
+        source: ItemSource,
+        /// Item that was double clicked.
+        item: InventoryItem<ResourceMetadata>,
+    },
     /// Pick up an item from the ground.
     PickUpItem {
         /// Id of the item entity to pick up.

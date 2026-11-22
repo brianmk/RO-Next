@@ -4154,6 +4154,23 @@ impl Client {
                     let _ = self.networking_system.close_storage();
                     self.close_storage_window();
                 }
+                InputEvent::ItemDoubleClick { source, item } => {
+                    // Double clicking is the quick way to move a whole stack while
+                    // the Kafra storage window is open.
+                    if !self.interface.is_window_with_class_open(WindowClass::Storage) {
+                        continue;
+                    }
+
+                    match source {
+                        ItemSource::Inventory => {
+                            let _ = self.networking_system.storage_deposit(item.index, item_amount(&item).max(1));
+                        }
+                        ItemSource::Storage => {
+                            let _ = self.networking_system.storage_withdraw(item.index.0, item_amount(&item).max(1));
+                        }
+                        ItemSource::Equipment { .. } => {}
+                    }
+                }
                 InputEvent::OpenItemInfo { inventory_index } => {
                     open_item_info_window(&self.client_state, &mut self.interface, inventory_index);
                 }

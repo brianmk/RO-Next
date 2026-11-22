@@ -475,7 +475,63 @@ where
     packet_handler.register(|_: StorageClosedPacket| NetworkEvent::StorageClosed)?;
     packet_handler.register_noop::<ExchangeRequestPacket2019>()?;
     packet_handler.register_noop::<ExchangeAckPacket2019>()?;
-    packet_handler.register_noop::<ItemPickupAckPacket2019>()?;
+    // 0x0A37 (2019 `ZC_ITEM_PICKUP_ACK`) is also how the server adds any item
+    // to the inventory (pickups, @item, quest rewards, ...). Without a real
+    // handler the item never showed up until the next full inventory list.
+    packet_handler.register(|packet: ItemPickupAckPacket2019| -> NetworkEventList {
+        if packet.result != 0 {
+            return NetworkEventList::default();
+        }
+
+        // `packet.inventory_index` is the `client_index` (server slot + 2).
+        let index = InventoryIndex(packet.inventory_index.wrapping_sub(2));
+
+        let equipped_position = EquipPosition::from_bits_truncate(packet.equip_position);
+
+        let details = match equipped_position.is_empty() {
+            true => InventoryItemDetails::Regular {
+                amount: packet.amount,
+                equipped_position,
+                flags: match packet.identified != 0 {
+                    true => RegularItemFlags::IDENTIFIED,
+                    false => RegularItemFlags::empty(),
+                },
+            },
+            false => InventoryItemDetails::Equippable {
+                equip_position: equipped_position,
+                equipped_position: EquipPosition::empty(),
+                bind_on_equip_type: packet.bind_on_equip_type,
+                w_item_sprite_number: packet.item_sprite_number,
+                option_count: packet.option_data.iter().filter(|option| option.index != 0).count() as u8,
+                option_data: packet.option_data,
+                refinement_level: packet.refinement_level,
+                enchantment_level: 0,
+                flags: match (packet.identified != 0, packet.damaged != 0) {
+                    (true, true) => EquippableItemFlags::IDENTIFIED | EquippableItemFlags::IS_BROKEN,
+                    (true, false) => EquippableItemFlags::IDENTIFIED,
+                    (false, true) => EquippableItemFlags::IS_BROKEN,
+                    (false, false) => EquippableItemFlags::empty(),
+                },
+            },
+        };
+
+        let item = InventoryItem {
+            metadata: NoMetadata,
+            index,
+            item_id: packet.item_id,
+            item_type: packet.item_type,
+            slot: packet.card,
+            hire_expiration_date: u32::try_from(packet.hire_expiration_date).unwrap_or(0),
+            details,
+        };
+
+        vec![NetworkEvent::IventoryItemAdded { item }, NetworkEvent::ItemObtained {
+            item_id: packet.item_id,
+            quantity: packet.amount,
+            is_identified: packet.identified != 0,
+        }]
+        .into()
+    })?;
     packet_handler.register_noop::<SpiritsPacket2019>()?;
     packet_handler.register_noop::<Spirits2Packet2019>()?;
     packet_handler.register_noop::<UpdateAttackRangePacket>()?;

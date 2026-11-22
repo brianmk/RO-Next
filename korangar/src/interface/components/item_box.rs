@@ -114,10 +114,31 @@ where
     }
 }
 
+/// Forwards double clicks on an item to the client (used to store items in the
+/// Kafra storage or take them out when the storage window is open).
+struct ItemDoubleClickHandler<P> {
+    item_path: P,
+    source: ItemSource,
+}
+
+impl<P> ClickHandler<ClientState> for ItemDoubleClickHandler<P>
+where
+    P: Path<ClientState, InventoryItem<ResourceMetadata>, false>,
+{
+    fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        // Unwrapping here is fine since we only register the handler if the slot has a
+        // item.
+        let item = state.try_get(&self.item_path).unwrap().clone();
+
+        queue.queue(InputEvent::ItemDoubleClick { source: self.source, item });
+    }
+}
+
 pub struct ItemBox<A> {
     item_path: A,
     handler: ItemBoxHandler<A>,
     context_menu_handler: ItemContextMenuHandler<A>,
+    double_click_handler: ItemDoubleClickHandler<A>,
     context_menu: ItemBoxContextMenu,
     amount_display: AmountDisplay,
 }
@@ -137,6 +158,7 @@ where
                 item_path,
                 context_menu: ItemBoxContextMenu::None,
             },
+            double_click_handler: ItemDoubleClickHandler { item_path, source },
             context_menu: ItemBoxContextMenu::None,
             amount_display: AmountDisplay::default(),
         }
@@ -229,6 +251,7 @@ where
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);
+                layout.register_click_handler(MouseButton::DoubleLeft, &self.double_click_handler);
 
                 if self.context_menu != ItemBoxContextMenu::None {
                     layout.register_click_handler(MouseButton::Right, &self.context_menu_handler);

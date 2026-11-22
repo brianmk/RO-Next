@@ -1836,6 +1836,8 @@ mod packet_handlers {
         .unwrap();
         let bytes = writer.into_inner();
         assert_eq!(bytes.len(), 8);
+        // 2019 uses 0x07EC for the deposit request.
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x07EC);
         // Inventory index 0 is encoded as 2.
         assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 2);
 
@@ -1848,12 +1850,42 @@ mod packet_handlers {
         .unwrap();
         let bytes = writer.into_inner();
         assert_eq!(bytes.len(), 8);
+        // 2019 uses 0x0861 for the withdraw request.
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0861);
         // The caller passes the storage slot + 1.
         assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 1);
 
         let mut writer = ByteWriter::new();
         CloseStoragePacket {}.packet_to_bytes(&mut writer).unwrap();
-        assert_eq!(writer.into_inner(), vec![0xF7, 0x00]);
+        assert_eq!(writer.into_inner(), vec![0x93, 0x01]);
+    }
+
+    #[test]
+    fn item_add_packet_updates_the_inventory() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0A37 ZC_ITEM_PICKUP_ACK, 69 byte 2019 layout; index is client_index
+        // (slot 2 -> raw 4), a successful add of 7 Red Potions to slot 2.
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x0A37u16.to_le_bytes());
+        bytes.extend_from_slice(&4u16.to_le_bytes()); // index
+        bytes.extend_from_slice(&7u16.to_le_bytes()); // amount
+        bytes.extend_from_slice(&501u32.to_le_bytes()); // item id
+        bytes.extend_from_slice(&[1, 0, 0]); // identified, damaged, refine
+        bytes.extend_from_slice(&[0u8; 16]); // cards
+        bytes.extend_from_slice(&0u32.to_le_bytes()); // equip position
+        bytes.extend_from_slice(&[0, 0]); // item type, result
+        bytes.extend_from_slice(&0i32.to_le_bytes()); // hire expiration
+        bytes.extend_from_slice(&0u16.to_le_bytes()); // bind on equip type
+        bytes.extend_from_slice(&[0u8; 25]); // options
+        bytes.extend_from_slice(&[0, 0, 0]); // favorite + low/high of look
+        assert_eq!(bytes.len(), 69);
+
+        let events = feed(&mut handler, &bytes);
+        assert!(matches!(events.0.as_slice(), [
+            NetworkEvent::IventoryItemAdded { item },
+            NetworkEvent::ItemObtained { quantity: 7, .. },
+        ] if item.index == ragnarok_packets::InventoryIndex(2)));
     }
 
     #[test]

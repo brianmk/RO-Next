@@ -1141,33 +1141,39 @@ pub struct StorageItemAddedPacket2019 {
 #[header(0x00F8)]
 pub struct StorageClosedPacket {}
 
-/// 2019 era `CZ_MOVE_ITEM_FROM_BODY_TO_STORE` (0x00F3): move an item from the
-/// inventory into the Kafra storage. The inventory index uses the usual
-/// `+2` wire encoding of [InventoryIndex].
+/// 2019 `CZ_MOVE_ITEM_FROM_BODY_TO_STORE` (0x07EC for PACKETVER 2019): move an
+/// item from the inventory into the Kafra storage. The inventory index uses the
+/// usual `+2` wire encoding of [InventoryIndex].
+///
+/// Note: the 0x00F3 opcode that older clients used for this is mapped to the
+/// global chat message handler on the 2019 server, so sending 0x00F3 gets the
+/// sender kicked with "malformed packet (no username data)".
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x00F3)]
+#[header(0x07EC)]
 pub struct StorageDepositPacket {
     pub inventory_index: InventoryIndex,
     pub amount: u32,
 }
 
-/// 2019 era `CZ_MOVE_ITEM_FROM_STORE_TO_BODY` (0x00F5): move an item out of the
-/// Kafra storage. The 2019 server expects the storage slot encoded as
-/// `server slot + 1`, so callers have to add one to the slot from the storage
-/// list.
+/// 2019 `CZ_MOVE_ITEM_FROM_STORE_TO_BODY` (0x0861 for PACKETVER 2019): move an
+/// item out of the Kafra storage. The server expects the storage slot encoded
+/// as `server slot + 1`, so callers have to add one to the slot from the
+/// storage list.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x00F5)]
+#[header(0x0861)]
 pub struct StorageWithdrawPacket {
     pub storage_index: u16,
     pub amount: u32,
 }
 
-/// 2019 era `CZ_CLOSE_STORE` (0x00F7): close the Kafra storage window.
+/// 2019 `CZ_CLOSE_STORE` (0x0193 for PACKETVER 2019): close the Kafra storage
+/// window. The 0x00F7 opcode that older clients used for this is mapped to the
+/// trade item removal handler on the 2019 server.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-#[header(0x00F7)]
+#[header(0x0193)]
 pub struct CloseStoragePacket {}
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
