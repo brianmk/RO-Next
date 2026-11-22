@@ -75,10 +75,6 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
         "not sent by the 2019 server: colored entity messages use 0x09CD/0x017F; 0x02C1 is registered from the 2022 packet set",
     ),
     (
-        0x07FB,
-        "dead registration: 2019 sends ZC_USESKILL_ACK as 0x0B1A; 0x07FB is the pre-2013 layout",
-    ),
-    (
         0x084B,
         "dead registration: 2019 sends ZC_ITEM_FALL_ENTRY5 as 0x0ADD; 0x084B is the 2021+ layout",
     ),
@@ -86,10 +82,6 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
         0x09F9,
         "not derivable: ZC_ADD_QUEST has no length field and appends variable objective rows; the client struct expects a fixed 3-row \
          tail (known drift, documented in the P0 report)",
-    ),
-    (
-        0x0ADE,
-        "dead registration: 2019 sends ZC_CRITICAL_WEIGHT as part of 0x00B0 stat updates; 0x0ADE was added in a later PACKETVER",
     ),
     (
         0x0B39,

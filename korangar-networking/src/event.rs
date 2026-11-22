@@ -601,6 +601,65 @@ pub enum NetworkEvent {
     MessageString {
         message_id: u16,
     },
+    /// Spirit-sphere count of an entity (`ZC_SPIRITS` 0x01D0 / `ZC_SPIRITS2`
+    /// 0x01E1). Sphere rendering is owned by the skill-souls/cast-bar lane;
+    /// this event is the typed packet-layer hand-off.
+    SpiritOrbs {
+        entity_id: EntityId,
+        amount: i16,
+    },
+    /// A skill cooldown/delay was started (`ZC_SKILL_POSTDELAY`, 0x043D).
+    /// Cooldown UI is owned by the skill-souls/cast-bar lane.
+    SkillCooldown {
+        skill_id: SkillId,
+        until: ClientTick,
+    },
+    /// The player's attack range changed (`ZC_ATTACK_RANGE`, 0x013A).
+    AttackRangeChanged {
+        attack_range: AttackRange,
+    },
+    /// An entity stopped moving at a server-corrected position
+    /// (`ZC_STOPMOVE`, 0x0088).
+    EntityStopped {
+        entity_id: EntityId,
+        position: TilePosition,
+    },
+    /// A minimap marker was placed/removed (`ZC_COMPASS`, 0x0144).
+    MinimapMarker {
+        npc_id: EntityId,
+        marker_type: MarkerType,
+        position: LargeTilePosition,
+        id: u8,
+        color: ColorRGBA,
+    },
+    /// Map type/flags (`ZC_NOTIFY_MAPPROPERTY2`, 0x099B).
+    MapProperties {
+        map_type: u16,
+        flags: u32,
+    },
+    /// Merchant cart item/weight counts (`ZC_NOTIFY_CARTITEM_COUNTINFO`,
+    /// 0x0121).
+    CartInfo {
+        current_count: i16,
+        maximum_count: i16,
+        current_weight: i32,
+        maximum_weight: i32,
+    },
+    /// The map server rejected the map login (`ZC_AUTH_FAIL`, 0x006A).
+    MapServerAuthFailed {
+        reason: u8,
+    },
+    /// The server asked the client to show/hide the equipment window
+    /// (`ZC_CONFIG_NOTIFY`, 0x02DA).
+    ShowEquipmentWindow {
+        open: bool,
+    },
+    /// A dynamic map cell changed (`ZC_UPDATE_MAPINFO`, 0x0192).
+    MapCellChanged {
+        position: TilePosition,
+        cell_type: u16,
+        map_name: String,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).
