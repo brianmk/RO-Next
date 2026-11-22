@@ -16,15 +16,19 @@ pub fn direction_index_from_tile_delta(previous: TilePosition, next: TilePositio
     let delta_x = (next.x as isize - previous.x as isize).clamp(-1, 1);
     let delta_y = (next.y as isize - previous.y as isize).clamp(-1, 1);
 
+    // The minimap texture is generated bottom-up and flipped vertically for
+    // display, so a map step that increases tile y (south) is now drawn DOWN and
+    // a step that decreases tile y is drawn UP. The arrow direction index is
+    // therefore the vertical mirror of the raw tile delta: north<->south.
     match (delta_x, delta_y) {
-        (0, -1) => Some(0),
-        (1, -1) => Some(1),
+        (0, -1) => Some(4),
+        (1, -1) => Some(3),
         (1, 0) => Some(2),
-        (1, 1) => Some(3),
-        (0, 1) => Some(4),
-        (-1, 1) => Some(5),
+        (1, 1) => Some(1),
+        (0, 1) => Some(0),
+        (-1, 1) => Some(7),
         (-1, 0) => Some(6),
-        (-1, -1) => Some(7),
+        (-1, -1) => Some(5),
         _ => None,
     }
 }
