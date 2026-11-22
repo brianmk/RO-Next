@@ -296,30 +296,14 @@ def binary_sha256(path):
         return None
 
 def git_sha():
+    # Worktrees store the branch ref in the common git dir, so use git itself
+    # and only fall back to parsing the worktree `.git` file if git is missing.
     try:
-        with open(os.path.join(repo_root, ".git"), "r") as handle:
-            content = handle.read().strip()
-        if content.startswith("gitdir:"):
-            git_dir = os.path.normpath(os.path.join(repo_root, content.split(":", 1)[1].strip()))
-        else:
-            git_dir = os.path.join(repo_root, ".git")
-        with open(os.path.join(git_dir, "HEAD"), "r") as handle:
-            ref = handle.read().strip()
-        if ref.startswith("ref:"):
-            ref_path = os.path.join(git_dir, ref.split(":", 1)[1].strip())
-            try:
-                with open(ref_path, "r") as handle:
-                    return handle.read().strip()
-            except OSError:
-                packed = os.path.join(git_dir, "packed-refs")
-                with open(packed, "r") as handle:
-                    for line in handle:
-                        parts = line.strip().split()
-                        if len(parts) == 2 and parts[1] == ref.split(":", 1)[1].strip():
-                            return parts[0]
-                return None
-        return ref
-    except OSError:
+        import subprocess
+
+        output = subprocess.check_output(["git", "-C", repo_root, "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL)
+        return output.strip()
+    except Exception:
         return None
 
 def host_load():

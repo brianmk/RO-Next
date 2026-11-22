@@ -805,11 +805,17 @@ mod tests {
 
     #[test]
     fn percentiles_are_sane() {
+        // Nearest-rank percentile: index = round((len - 1) * p / 100).
         let mut values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        assert_eq!(percentile(&mut values, 50.0), 5);
+        assert_eq!(percentile(&mut values, 0.0), 1);
+        assert_eq!(percentile(&mut values, 50.0), 6);
         assert_eq!(percentile(&mut values, 95.0), 10);
         assert_eq!(percentile(&mut values, 100.0), 10);
         assert_eq!(percentile(&mut [], 50.0), 0);
+
+        let mut single = [42];
+        assert_eq!(percentile(&mut single, 50.0), 42);
+        assert_eq!(percentile(&mut single, 95.0), 42);
     }
 
     #[test]

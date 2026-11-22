@@ -58,7 +58,7 @@ fn local_entity_id(state: &State<ClientState>) -> Option<u32> {
 /// remaining time is part of the key because the countdown text is drawn on the
 /// icon. This is what turns the per-frame `format!` churn into a no-op on
 /// frames where the second did not change.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 struct BuffLabelKey {
     status_index: u16,
     remaining_seconds: Option<u32>,
