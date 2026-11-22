@@ -123,6 +123,7 @@
     create_party_button_text: "Gruppe erstellen",
     leave_party_button_text: "Gruppe verlassen",
     switch_slots_text: "Plätze wechseln",
+    please_wait_text: "Bitte warten…",
     create_character_slot_text: "Charakter erstellen",
     map_text: "Karte",
     party_name_text: "Gruppenname",

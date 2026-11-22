@@ -4,6 +4,21 @@ use rust_state::{Path, PathExt, RustState, Selector};
 
 use crate::state::ClientState;
 
+/// Maximum number of character slots the character selection window shows.
+///
+/// The character server may report more slots (rAthena allows up to
+/// `MAX_CHARS`) and premium accounts can even have more than nine; the
+/// selection window intentionally shows a compact 3x3 grid and therefore hides
+/// the slots behind the ninth. Empty slots inside the visible grid keep their
+/// create-character behaviour.
+pub const MAX_CHARACTER_SLOTS: usize = 9;
+
+/// Number of character slots the selection window should display for a
+/// character server that reports `reported_slots` slots.
+pub fn visible_character_slots(reported_slots: usize) -> usize {
+    reported_slots.min(MAX_CHARACTER_SLOTS)
+}
+
 #[derive(Default, RustState, StateElement)]
 pub struct CharacterSlots {
     slots: Vec<Option<CharacterInformation>>,
@@ -37,6 +52,12 @@ impl CharacterSlots {
                 *slot = None;
             }
         })
+    }
+
+    /// Character in the given slot, `None` if the slot is empty or out of
+    /// range.
+    pub fn character_in_slot(&self, slot: usize) -> Option<&CharacterInformation> {
+        self.slots.get(slot).and_then(|slot| slot.as_ref())
     }
 
     pub fn with_id(&self, character_id: CharacterId) -> Option<&CharacterInformation> {
@@ -104,5 +125,19 @@ where
 {
     fn in_slot(self, slot: usize) -> impl Path<ClientState, CharacterInformation, false> {
         SlotPath { path: self, slot }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{MAX_CHARACTER_SLOTS, visible_character_slots};
+
+    #[test]
+    fn at_most_nine_slots_are_visible() {
+        assert_eq!(visible_character_slots(0), 0);
+        assert_eq!(visible_character_slots(6), 6);
+        assert_eq!(visible_character_slots(MAX_CHARACTER_SLOTS), 9);
+        assert_eq!(visible_character_slots(12), 9);
+        assert_eq!(visible_character_slots(15), 9);
     }
 }

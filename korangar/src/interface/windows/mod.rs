@@ -62,7 +62,7 @@ pub use self::cache::WindowCache;
 pub use self::character_creation::CharacterCreationWindow;
 pub use self::character_deletion::CharacterDeletionWindow;
 pub use self::character_overview::CharacterOverviewWindow;
-pub use self::character_selection::CharacterSelectionWindow;
+pub use self::character_selection::{CharacterSelectionWindow, character_selection_window_position};
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
