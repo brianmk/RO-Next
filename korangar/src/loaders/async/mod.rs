@@ -29,6 +29,9 @@ pub enum LoaderId {
     AnimationData(EntityId),
     /// Animation of the hunter falcon that is attached to a player entity.
     FalconAnimationData(EntityId),
+    /// Animation of the equipped weapon that is drawn as its own layer on top
+    /// of the player body animation.
+    WeaponAnimationData(EntityId),
     ItemSprite(ItemId),
     Map(String),
     SkillSprite(SkillId),
@@ -38,6 +41,7 @@ pub enum LoaderId {
 pub enum LoadableResource {
     AnimationData(Arc<AnimationData>),
     FalconAnimation(Arc<AnimationData>),
+    WeaponAnimation(Arc<AnimationData>),
     ItemSprite { texture: Arc<Texture> },
     SkillSprite { sprite: Arc<Sprite> },
     SkillActions { actions: Arc<Actions> },
@@ -246,15 +250,39 @@ impl AsyncLoader {
     /// have the regular same-stem pair or the soul-falcon effect sprite.
     #[must_use]
     pub fn request_falcon_animation_data_load(&self, entity_id: EntityId) -> Option<Arc<AnimationData>> {
+        // The archive contains a static falcon icon pair (`ht_falcon.spr` +
+        // `h_falcon.act`) and animated falcon-like effect sprites. Load all
+        // candidates and pick the one with the most drawable animation frames,
+        // so the falcon flaps instead of showing up as a static icon.
         let candidates: Vec<Vec<EntityPartFile>> = vec![
+            vec![EntityPartFile::new("이팩트\\soul_falcon\\soul_falcon")],
+            vec![EntityPartFile::new("아이템\\sp_soulfalcon")],
+            vec![EntityPartFile::new("아이템\\sn_falconassault")],
             vec![EntityPartFile::with_action("아이템\\ht_falcon", "아이템\\h_falcon")],
             vec![EntityPartFile::new("아이템\\ht_falcon")],
             vec![EntityPartFile::new("아이템\\h_falcon")],
-            vec![EntityPartFile::new("이팩트\\soul_falcon\\soul_falcon")],
         ];
 
-        if let Some(animation_data) = candidates.iter().find_map(|parts| self.animation_loader.get(parts)) {
-            crate::logging::log_debug!("falcon animation: cache hit for entity {}", entity_id.0);
+        fn animated_part_score(animation_data: &AnimationData) -> usize {
+            animation_data
+                .animations
+                .iter()
+                .take(8)
+                .flat_map(|animation| animation.frames.iter())
+                .map(|frame| frame.frame_parts.iter().filter(|part| part.sprite_number != usize::MAX).count())
+                .sum()
+        }
+
+        if let Some(animation_data) = candidates
+            .iter()
+            .filter_map(|parts| self.animation_loader.get(parts))
+            .max_by_key(|animation_data| animated_part_score(animation_data))
+        {
+            crate::logging::log_debug!(
+                "falcon animation: cache hit for entity {} (animated score {})",
+                entity_id.0,
+                animated_part_score(&animation_data)
+            );
             return Some(animation_data);
         }
 
@@ -265,13 +293,78 @@ impl AsyncLoader {
         let animation_loader = self.animation_loader.clone();
 
         self.request_visible_load(LoaderId::FalconAnimationData(entity_id), LoadKind::AnimationData, move || {
+            let mut best: Option<Arc<AnimationData>> = None;
+            let mut best_score = 0;
             let mut last_error = LoadError::UnsupportedFormat("no falcon sprite found in the game archives".to_owned());
 
             for parts in &candidates {
                 match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, parts) {
                     Ok(animation_data) => {
-                        crate::logging::log_debug!("falcon animation: loaded candidate {:?}", parts);
-                        return Ok(LoadableResource::FalconAnimation(animation_data));
+                        let score = animated_part_score(&animation_data);
+                        crate::logging::log_debug!(
+                            "falcon candidate {:?} loaded: {} pair(s), {} animation(s), animated score {}",
+                            parts.first().map(|part| part.path.as_str()),
+                            animation_data.animation_pair.len(),
+                            animation_data.animations.len(),
+                            score
+                        );
+                        if best.is_none() || score > best_score {
+                            best_score = score;
+                            best = Some(animation_data);
+                        }
+                    }
+                    Err(error) => last_error = error,
+                }
+            }
+
+            match best {
+                Some(animation_data) => Ok(LoadableResource::FalconAnimation(animation_data)),
+                None => Err(last_error),
+            }
+        });
+
+        None
+    }
+
+    /// Requests the weapon animation for `entity_id`.
+    ///
+    /// Weapon sprites/actions are stored as per-job variants next to the body
+    /// sprite (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`). The weapon
+    /// is drawn as its own animation layer using the body animation state, so
+    /// its frames/offsets are not affected by the body/head composition.
+    #[must_use]
+    pub fn request_weapon_animation_data_load(
+        &self,
+        entity_id: EntityId,
+        weapon_part_candidates: Vec<EntityPartFile>,
+    ) -> Option<Arc<AnimationData>> {
+        if weapon_part_candidates.is_empty() {
+            return None;
+        }
+
+        if let Some(animation_data) = weapon_part_candidates
+            .iter()
+            .find_map(|parts| self.animation_loader.get(std::slice::from_ref(parts)))
+        {
+            return Some(animation_data);
+        }
+
+        let sprite_loader = self.sprite_loader.clone();
+        let action_loader = self.action_loader.clone();
+        let animation_loader = self.animation_loader.clone();
+
+        self.request_visible_load(LoaderId::WeaponAnimationData(entity_id), LoadKind::AnimationData, move || {
+            let mut last_error = LoadError::UnsupportedFormat("no weapon sprite found in the game archives".to_owned());
+
+            for part in &weapon_part_candidates {
+                let parts = std::slice::from_ref(part);
+                if !(sprite_loader.file_exists(&format!("{}.spr", part.path)) && action_loader.file_exists(&format!("{}.act", part.path))) {
+                    continue;
+                }
+
+                match animation_loader.load(&sprite_loader, &action_loader, EntityType::Player, parts) {
+                    Ok(animation_data) => {
+                        return Ok(LoadableResource::WeaponAnimation(animation_data));
                     }
                     Err(error) => last_error = error,
                 }
