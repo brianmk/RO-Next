@@ -33,10 +33,13 @@ pub struct EntityData {
     pub accessory2: u16,
     /// Middle headgear view id (`accessory3` in the packets).
     pub accessory3: u16,
-    /// Weapon view id (`weapon` in the entity-appear packets).
+    /// Equipped weapon value (`weapon` in the entity-appear packets), `0` if
+    /// unarmed.
     ///
-    /// Carried through to the world layer so the weapon sprite can be composed
-    /// once the weapon asset mapping is available (task-105).
+    /// The server sends the rAthena weapon type (`W_*`, e.g. `W_BOW = 11`);
+    /// population shells / custom servers can also send an item view id. The
+    /// world layer resolves both forms through the data-driven weapon registry
+    /// (`world::weapon`).
     pub weapon: u32,
     /// Shield view id (`shield` in the entity-appear packets).
     pub shield: u32,

@@ -370,10 +370,13 @@ impl AsyncLoader {
 
     /// Requests the weapon animation for `entity_id`.
     ///
-    /// Weapon sprites/actions are stored as per-job variants next to the body
-    /// sprite (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`). The weapon
-    /// is drawn as its own animation layer using the body animation state, so
-    /// its frames/offsets are not affected by the body/head composition.
+    /// The candidate paths are built by the data-driven weapon registry
+    /// ([`crate::world::weapon::part_candidates`]): per-job weapon variants
+    /// next to the body sprite
+    /// (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`) first, then the
+    /// classic job-independent weapon layer. The weapon is drawn as its own
+    /// animation layer using the body animation state, so its
+    /// frames/offsets are not affected by the body/head composition.
     #[must_use]
     pub fn request_weapon_animation_data_load(
         &self,

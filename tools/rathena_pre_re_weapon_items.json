@@ -1,0 +1,6534 @@
+{
+  "ammo_types": [
+    {
+      "name": "AMMO_ARROW",
+      "value": 1
+    },
+    {
+      "name": "AMMO_DAGGER",
+      "value": 2
+    },
+    {
+      "name": "AMMO_BULLET",
+      "value": 3
+    },
+    {
+      "name": "AMMO_SHELL",
+      "value": 4
+    },
+    {
+      "name": "AMMO_GRENADE",
+      "value": 5
+    },
+    {
+      "name": "AMMO_SHURIKEN",
+      "value": 6
+    },
+    {
+      "name": "AMMO_KUNAI",
+      "value": 7
+    },
+    {
+      "name": "AMMO_CANNONBALL",
+      "value": 8
+    },
+    {
+      "name": "AMMO_THROWWEAPON",
+      "value": 9
+    }
+  ],
+  "items": [
+    {
+      "aegis": "Sword",
+      "id": 1101,
+      "name": "Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Sword_",
+      "id": 1102,
+      "name": "Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Sword__",
+      "id": 1103,
+      "name": "Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Falchion",
+      "id": 1104,
+      "name": "Falchion",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Falchion_",
+      "id": 1105,
+      "name": "Falchion",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Falchion__",
+      "id": 1106,
+      "name": "Falchion",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Blade",
+      "id": 1107,
+      "name": "Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Blade_",
+      "id": 1108,
+      "name": "Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Blade__",
+      "id": 1109,
+      "name": "Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Lapier",
+      "id": 1110,
+      "name": "Rapier",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Lapier_",
+      "id": 1111,
+      "name": "Rapier",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Lapier__",
+      "id": 1112,
+      "name": "Rapier",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Scimiter",
+      "id": 1113,
+      "name": "Scimitar",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Scimiter_",
+      "id": 1114,
+      "name": "Scimitar",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Scimiter__",
+      "id": 1115,
+      "name": "Scimitar",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Katana",
+      "id": 1116,
+      "name": "Katana",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Katana_",
+      "id": 1117,
+      "name": "Katana",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Katana__",
+      "id": 1118,
+      "name": "Katana",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Tsurugi",
+      "id": 1119,
+      "name": "Tsurugi",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tsurugi_",
+      "id": 1120,
+      "name": "Tsurugi",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tsurugi__",
+      "id": 1121,
+      "name": "Tsurugi",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ring_Pommel_Saber",
+      "id": 1122,
+      "name": "Ring Pommel Saber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Haedonggum",
+      "id": 1123,
+      "name": "Haedonggum",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Orcish_Sword",
+      "id": 1124,
+      "name": "Orcish Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ring_Pommel_Saber_",
+      "id": 1125,
+      "name": "Ring Pommel Saber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Saber",
+      "id": 1126,
+      "name": "Saber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Saber_",
+      "id": 1127,
+      "name": "Saber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hae_Dong_Gum_",
+      "id": 1128,
+      "name": "Haedonggum",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Flamberge",
+      "id": 1129,
+      "name": "Flamberge",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Nagan",
+      "id": 1130,
+      "name": "Nagan",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Ice_Falchon",
+      "id": 1131,
+      "name": "Ice Falchion",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Edge",
+      "id": 1132,
+      "name": "Edge",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Fire_Brand",
+      "id": 1133,
+      "name": "Fireblend",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Scissores_Sword",
+      "id": 1134,
+      "name": "Caesar's Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cutlas",
+      "id": 1135,
+      "name": "Cutlus",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Solar_Sword",
+      "id": 1136,
+      "name": "Solar Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Excalibur",
+      "id": 1137,
+      "name": "Excalibur",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mysteltainn_",
+      "id": 1138,
+      "name": "Mysteltainn",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tale_Fing_",
+      "id": 1139,
+      "name": "Tirfing",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Byeorrun_Gum",
+      "id": 1140,
+      "name": "Byeollungum",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Immaterial_Sword",
+      "id": 1141,
+      "name": "Immaterial Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Jewel_Sword",
+      "id": 1142,
+      "name": "Jeweled Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gaia_Sword",
+      "id": 1143,
+      "name": "Gaia Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Sasimi",
+      "id": 1144,
+      "name": "Sashimi",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Holy_Avenger",
+      "id": 1145,
+      "name": "Holy Avenger",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Town_Sword",
+      "id": 1146,
+      "name": "Town Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Town_Sword_",
+      "id": 1147,
+      "name": "Town Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Star_Dust_Blade",
+      "id": 1148,
+      "name": "Star Dust Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Flamberge_",
+      "id": 1149,
+      "name": "Flamberge",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Slayer",
+      "id": 1151,
+      "name": "Slayer",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Slayer_",
+      "id": 1152,
+      "name": "Slayer",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Slayer__",
+      "id": 1153,
+      "name": "Slayer",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Bastard_Sword",
+      "id": 1154,
+      "name": "Bastard Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Bastard_Sword_",
+      "id": 1155,
+      "name": "Bastard Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Bastard_Sword__",
+      "id": 1156,
+      "name": "Bastard Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Two_Hand_Sword",
+      "id": 1157,
+      "name": "Two-Handed Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Hand_Sword_",
+      "id": 1158,
+      "name": "Two-Handed Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Hand_Sword__",
+      "id": 1159,
+      "name": "Two-Handed Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Broad_Sword",
+      "id": 1160,
+      "name": "Broad Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Balmung",
+      "id": 1161,
+      "name": "Balmung",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Broad_Sword_",
+      "id": 1162,
+      "name": "Broad Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Claymore",
+      "id": 1163,
+      "name": "Claymore",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Muramasa",
+      "id": 1164,
+      "name": "Muramasa",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Masamune",
+      "id": 1165,
+      "name": "Masamune",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Dragon_Slayer",
+      "id": 1166,
+      "name": "Dragon Slayer",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Schweizersabel",
+      "id": 1167,
+      "name": "Schweizersabel",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Zweihander",
+      "id": 1168,
+      "name": "Zweihander",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Executioner_",
+      "id": 1169,
+      "name": "Executioner",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Katzbalger",
+      "id": 1170,
+      "name": "Katzbalger",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Zweihander_",
+      "id": 1171,
+      "name": "Zweihander",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Claymore_",
+      "id": 1172,
+      "name": "Claymore",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Muramasa_C",
+      "id": 1173,
+      "name": "Muramasa",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Executioner_C",
+      "id": 1174,
+      "name": "Executioner",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Altas_Weapon",
+      "id": 1175,
+      "name": "Atlas Weapon",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Muscle_Cutter",
+      "id": 1176,
+      "name": "Muscle Cutter",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Muramash",
+      "id": 1177,
+      "name": "Muramash",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Schweizersabel_",
+      "id": 1178,
+      "name": "Schweizersabel",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Executioner__",
+      "id": 1179,
+      "name": "Executioner",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Dragon_Slayer_",
+      "id": 1180,
+      "name": "Dragon Slayer",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tae_Goo_Lyeon",
+      "id": 1181,
+      "name": "Tae Goo Lyeon",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bloody_Eater",
+      "id": 1182,
+      "name": "Bloody Eater",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Two_Handed_Sword1",
+      "id": 1183,
+      "name": "Brave Assaulter's Katzbalger",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Two_Handed_Sword2",
+      "id": 1184,
+      "name": "Valorous Assaulter's Katzbalger",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Violet_Fear",
+      "id": 1185,
+      "name": "Violet Fear",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Death_Guidance",
+      "id": 1186,
+      "name": "Death Guidance",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Twohand_Sword1",
+      "id": 1187,
+      "name": "Glorious Claymore",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Veteran_Sword",
+      "id": 1188,
+      "name": "Veteran Sword",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krasnaya",
+      "id": 1189,
+      "name": "Krasnaya",
+      "range": 2,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Claymore_C",
+      "id": 1190,
+      "name": "Claymore",
+      "range": 1,
+      "subtype": "2hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Knife",
+      "id": 1201,
+      "name": "Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Knife_",
+      "id": 1202,
+      "name": "Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Knife__",
+      "id": 1203,
+      "name": "Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Cutter",
+      "id": 1204,
+      "name": "Cutter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Cutter_",
+      "id": 1205,
+      "name": "Cutter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Cutter__",
+      "id": 1206,
+      "name": "Cutter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Main_Gauche",
+      "id": 1207,
+      "name": "Main Gauche",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Main_Gauche_",
+      "id": 1208,
+      "name": "Main Gauche",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Main_Gauche__",
+      "id": 1209,
+      "name": "Main Gauche",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Dirk",
+      "id": 1210,
+      "name": "Dirk",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dirk_",
+      "id": 1211,
+      "name": "Dirk",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dirk__",
+      "id": 1212,
+      "name": "Dirk",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dagger",
+      "id": 1213,
+      "name": "Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dagger_",
+      "id": 1214,
+      "name": "Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dagger__",
+      "id": 1215,
+      "name": "Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Stiletto",
+      "id": 1216,
+      "name": "Stiletto",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Stiletto_",
+      "id": 1217,
+      "name": "Stiletto",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Stiletto__",
+      "id": 1218,
+      "name": "Stiletto",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Gladius",
+      "id": 1219,
+      "name": "Gladius",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gladius_",
+      "id": 1220,
+      "name": "Gladius",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gladius__",
+      "id": 1221,
+      "name": "Gladius",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Damascus",
+      "id": 1222,
+      "name": "Damascus",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Forturn_Sword",
+      "id": 1223,
+      "name": "Fortune Sword",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sword_Breaker",
+      "id": 1224,
+      "name": "Swordbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mail_Breaker",
+      "id": 1225,
+      "name": "Mailbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Damascus_",
+      "id": 1226,
+      "name": "Damascus",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Weeder_Knife",
+      "id": 1227,
+      "name": "Weeder Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Combat_Knife",
+      "id": 1228,
+      "name": "Combat Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mama's_Knife",
+      "id": 1229,
+      "name": "Kitchen Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "House_Auger",
+      "id": 1230,
+      "name": "Ice Pick",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bazerald",
+      "id": 1231,
+      "name": "Bazerald",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Assasin_Dagger",
+      "id": 1232,
+      "name": "Assassin Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Exercise",
+      "id": 1233,
+      "name": "Exorciser",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Moonlight_Sword",
+      "id": 1234,
+      "name": "Moonlight Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Azoth",
+      "id": 1235,
+      "name": "Azoth",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sucsamad",
+      "id": 1236,
+      "name": "Sucsamad",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Grimtooth_",
+      "id": 1237,
+      "name": "Grimtooth",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Zeny_Knife",
+      "id": 1238,
+      "name": "Zeny Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Poison_Knife",
+      "id": 1239,
+      "name": "Poison Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Princess_Knife",
+      "id": 1240,
+      "name": "Princess Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cursed_Dagger",
+      "id": 1241,
+      "name": "Cursed Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Counter_Dagger",
+      "id": 1242,
+      "name": "Dagger of Counter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Novice_Knife",
+      "id": 1243,
+      "name": "Novice Main-Gauche",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Holy_Dagger",
+      "id": 1244,
+      "name": "Holy Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cinquedea",
+      "id": 1245,
+      "name": "Cinquedea",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Cinquedea_",
+      "id": 1246,
+      "name": "Cinquedea",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Kindling_Dagger",
+      "id": 1247,
+      "name": "Kindle Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Obsidian_Dagger",
+      "id": 1248,
+      "name": "Obsidian Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Fisherman's_Dagger",
+      "id": 1249,
+      "name": "Fisherman's Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Jur",
+      "id": 1250,
+      "name": "Jur",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Jur_",
+      "id": 1251,
+      "name": "Jur",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Katar",
+      "id": 1252,
+      "name": "Katar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_",
+      "id": 1253,
+      "name": "Katar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jamadhar",
+      "id": 1254,
+      "name": "Jamadhar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jamadhar_",
+      "id": 1255,
+      "name": "Jamadhar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Cold_Icicle",
+      "id": 1256,
+      "name": "Katar of Frozen Icicle",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Thornbush",
+      "id": 1257,
+      "name": "Katar of Quaking",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Raging_Blaze",
+      "id": 1258,
+      "name": "Katar of Raging Blaze",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Piercing_Wind",
+      "id": 1259,
+      "name": "Katar of Piercing Wind",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ghoul_Leg",
+      "id": 1260,
+      "name": "Sharpened Legbone of Ghoul",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Infiltrator",
+      "id": 1261,
+      "name": "Infiltrator",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Nail_Of_Loki",
+      "id": 1262,
+      "name": "Loki's Nail",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Unholy_Touch",
+      "id": 1263,
+      "name": "Unholy Touch",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Various_Jur",
+      "id": 1264,
+      "name": "Specialty Jur",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Bloody_Roar",
+      "id": 1265,
+      "name": "Bloody Roar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Infiltrator_",
+      "id": 1266,
+      "name": "Infiltrator",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Infiltrator_C",
+      "id": 1267,
+      "name": "Infiltrator",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Wild_Beast_Claw",
+      "id": 1268,
+      "name": "Wild Beast Claw",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Inverse_Scale",
+      "id": 1269,
+      "name": "Inverse Scale",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Drill_Katar",
+      "id": 1270,
+      "name": "Drill Katar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Blood_Tears",
+      "id": 1271,
+      "name": "Blood Tears",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Scratcher",
+      "id": 1272,
+      "name": "Scratcher",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Bloody_Roar_C",
+      "id": 1273,
+      "name": "Refined Bloody Roar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Unholy_Touch_C",
+      "id": 1274,
+      "name": "Refined Unholy Touch",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Katar_Of_Cold_Icicle_",
+      "id": 1275,
+      "name": "Katar of Frozen Icicle",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Thornbush_",
+      "id": 1276,
+      "name": "Katar of Quaking",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Raging_Blaze_",
+      "id": 1277,
+      "name": "Katar of Raging Blaze",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Katar_Of_Piercing_Wind_",
+      "id": 1278,
+      "name": "Katar of Piercing Wind",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Katar1",
+      "id": 1279,
+      "name": "Brave Carnage Katar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Katar2",
+      "id": 1280,
+      "name": "Valorous Carnage Katar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Katar1",
+      "id": 1281,
+      "name": "Glorious Bloody Roar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Katar2",
+      "id": 1282,
+      "name": "Glorious Jamadhar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Katar_Of_Speed",
+      "id": 1283,
+      "name": "Katar Of Speed",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krishna",
+      "id": 1284,
+      "name": "Krishna",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Cakram",
+      "id": 1285,
+      "name": "Chakram",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jamadhar_C",
+      "id": 1286,
+      "name": "Jamadhar",
+      "range": 1,
+      "subtype": "Katar",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Axe",
+      "id": 1301,
+      "name": "Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Axe_",
+      "id": 1302,
+      "name": "Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Axe__",
+      "id": 1303,
+      "name": "Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Orcish_Axe",
+      "id": 1304,
+      "name": "Orcish Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Cleaver",
+      "id": 1305,
+      "name": "Cleaver",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "War_Axe",
+      "id": 1306,
+      "name": "War Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Windhawk",
+      "id": 1307,
+      "name": "Windhawk",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Golden_Axe",
+      "id": 1308,
+      "name": "Golden Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Orcish_Axe_",
+      "id": 1309,
+      "name": "Orcish Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Onehand_Axe1",
+      "id": 1310,
+      "name": "Glorious Cleaver",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Vecer_Axe",
+      "id": 1311,
+      "name": "Vecer Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Orcish_Axe_C",
+      "id": 1312,
+      "name": "Orcish Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tourist_Axe",
+      "id": 1313,
+      "name": "Tourist Axe",
+      "range": 1,
+      "subtype": "1hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "F_Tomahawk_C",
+      "id": 1314,
+      "name": "Tomahawk",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "F_Right_Epsilon_C",
+      "id": 1315,
+      "name": "Light Epsilon",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Battle_Axe",
+      "id": 1351,
+      "name": "Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Battle_Axe_",
+      "id": 1352,
+      "name": "Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Battle_Axe__",
+      "id": 1353,
+      "name": "Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Hammer",
+      "id": 1354,
+      "name": "Hammer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Hammer_",
+      "id": 1355,
+      "name": "Hammer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Hammer__",
+      "id": 1356,
+      "name": "Hammer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Buster",
+      "id": 1357,
+      "name": "Buster",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Buster_",
+      "id": 1358,
+      "name": "Buster",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Buster__",
+      "id": 1359,
+      "name": "Buster",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Handed_Axe",
+      "id": 1360,
+      "name": "Two-Handed Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Handed_Axe_",
+      "id": 1361,
+      "name": "Two-Handed Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Handed_Axe__",
+      "id": 1362,
+      "name": "Two-Handed Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Brood_Axe",
+      "id": 1363,
+      "name": "Bloody Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Great_Axe",
+      "id": 1364,
+      "name": "Great Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sabbath",
+      "id": 1365,
+      "name": "Sabbath",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Right_Epsilon",
+      "id": 1366,
+      "name": "Light Epsilon",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Slaughter",
+      "id": 1367,
+      "name": "Slaughter",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tomahawk",
+      "id": 1368,
+      "name": "Tomahawk",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Guillotine",
+      "id": 1369,
+      "name": "Guillotine",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Doom_Slayer",
+      "id": 1370,
+      "name": "Doom Slayer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Doom_Slayer_",
+      "id": 1371,
+      "name": "Doom Slayer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Right_Epsilon_C",
+      "id": 1372,
+      "name": "Light Epsilon",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Brood_Axe_C",
+      "id": 1373,
+      "name": "Refined Bloody Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tomahawk_C",
+      "id": 1374,
+      "name": "Tomahawk",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Berdysz",
+      "id": 1375,
+      "name": "Berdysz",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Heart_Breaker",
+      "id": 1376,
+      "name": "Heart Breaker",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Hurricane_Fury",
+      "id": 1377,
+      "name": "Hurricane's Fury",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Great_Axe_C",
+      "id": 1378,
+      "name": "Refined Great Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Two_Handed_Axe1",
+      "id": 1379,
+      "name": "Valorous Insane Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Two_Handed_Axe2",
+      "id": 1380,
+      "name": "Brave Insane Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "N_Battle_Axe",
+      "id": 1381,
+      "name": "Novice Battle Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Twohand_Axe1",
+      "id": 1382,
+      "name": "Glorious Two-Handed Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Holy_Celestial_Axe",
+      "id": 1383,
+      "name": "Celestial Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Veteran_Axe",
+      "id": 1384,
+      "name": "Veteran Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Bradium_Stonehammer",
+      "id": 1385,
+      "name": "Bradium Stone Hammer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Doom_Slayer_I",
+      "id": 1386,
+      "name": "Doom Slayer",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Giant_Axe",
+      "id": 1387,
+      "name": "Giant Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Two_Handed_Axe_C",
+      "id": 1388,
+      "name": "Two-Handed Axe",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "E_Tomahawk_C",
+      "id": 1389,
+      "name": "Tomahawk",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "E_Right_Epsilon_C",
+      "id": 1390,
+      "name": "Light Epsilon",
+      "range": 1,
+      "subtype": "2hAxe",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Javelin",
+      "id": 1401,
+      "name": "Javelin",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Javelin_",
+      "id": 1402,
+      "name": "Javelin",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Javelin__",
+      "id": 1403,
+      "name": "Javelin",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Spear",
+      "id": 1404,
+      "name": "Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Spear_",
+      "id": 1405,
+      "name": "Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Spear__",
+      "id": 1406,
+      "name": "Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Pike",
+      "id": 1407,
+      "name": "Pike",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Pike_",
+      "id": 1408,
+      "name": "Pike",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Pike__",
+      "id": 1409,
+      "name": "Pike",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Lance",
+      "id": 1410,
+      "name": "Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lance_",
+      "id": 1411,
+      "name": "Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lance__",
+      "id": 1412,
+      "name": "Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gungnir",
+      "id": 1413,
+      "name": "Gungnir",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Gelerdria",
+      "id": 1414,
+      "name": "Gelerdria",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Skewer",
+      "id": 1415,
+      "name": "Brocca",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tjungkuletti",
+      "id": 1416,
+      "name": "Tjungkuletti",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pole_Axe",
+      "id": 1417,
+      "name": "Pole Axe",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gungnir_",
+      "id": 1418,
+      "name": "Gungnir",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pole_Axe_C",
+      "id": 1419,
+      "name": "Pole Axe",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Long_Horn",
+      "id": 1420,
+      "name": "Long Horn",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Battle_Hook",
+      "id": 1421,
+      "name": "Battle Hook",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Hunting_Spear",
+      "id": 1422,
+      "name": "Hunting Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pole_XO",
+      "id": 1423,
+      "name": "Pole XO",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Skewer_C",
+      "id": 1424,
+      "name": "Refined Brocca",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Spear1",
+      "id": 1425,
+      "name": "Assaulter Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Onehand_Spear1",
+      "id": 1426,
+      "name": "Glorious Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spear_Of_Excellent",
+      "id": 1427,
+      "name": "Spear Of Excellent",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Long_Horn_M",
+      "id": 1428,
+      "name": "Long Horn",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Hunting_Spear_M",
+      "id": 1429,
+      "name": "Hunting Spear",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pike_C",
+      "id": 1430,
+      "name": "Pike",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "F_Pole_Axe_C",
+      "id": 1431,
+      "name": "Pole Axe",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "E_Pole_Axe_C",
+      "id": 1432,
+      "name": "Pole Axe",
+      "range": 3,
+      "subtype": "1hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guisarme",
+      "id": 1451,
+      "name": "Guisarme",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Guisarme_",
+      "id": 1452,
+      "name": "Guisarme",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Guisarme__",
+      "id": 1453,
+      "name": "Guisarme",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Glaive",
+      "id": 1454,
+      "name": "Glaive",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Glaive_",
+      "id": 1455,
+      "name": "Glaive",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Glaive__",
+      "id": 1456,
+      "name": "Glaive",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Partizan",
+      "id": 1457,
+      "name": "Partizan",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Partizan_",
+      "id": 1458,
+      "name": "Partizan",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Partizan__",
+      "id": 1459,
+      "name": "Partizan",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Trident",
+      "id": 1460,
+      "name": "Trident",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Trident_",
+      "id": 1461,
+      "name": "Trident",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Trident__",
+      "id": 1462,
+      "name": "Trident",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Halberd",
+      "id": 1463,
+      "name": "Halberd",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Halberd_",
+      "id": 1464,
+      "name": "Halberd",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Halberd__",
+      "id": 1465,
+      "name": "Halberd",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Crescent_Scythe",
+      "id": 1466,
+      "name": "Crescent Scythe",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bill_Guisarme",
+      "id": 1467,
+      "name": "Bill Guisarme",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Zephyrus",
+      "id": 1468,
+      "name": "Zephyrus",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Longinus's_Spear",
+      "id": 1469,
+      "name": "Longinus's Spear",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Brionac",
+      "id": 1470,
+      "name": "Brionac",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Hell_Fire",
+      "id": 1471,
+      "name": "Hellfire",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Staff_Of_Soul",
+      "id": 1472,
+      "name": "Soul Staff",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Wizardy_Staff",
+      "id": 1473,
+      "name": "Wizardry Staff",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Gae_Bolg",
+      "id": 1474,
+      "name": "Gae Bolg",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Horseback_Lance",
+      "id": 1475,
+      "name": "Equestrian's Spear",
+      "range": 4,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Crescent_Scythe_",
+      "id": 1476,
+      "name": "Crescent Scythe",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spectral_Spear",
+      "id": 1477,
+      "name": "Spectral Spear",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Ahlspiess",
+      "id": 1478,
+      "name": "Ahlspiess",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spectral_Spear_",
+      "id": 1479,
+      "name": "Spectral Spear",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Gae_Bolg_",
+      "id": 1480,
+      "name": "Gae Bolg",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Zephyrus_",
+      "id": 1481,
+      "name": "Zephyrus",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Lance1",
+      "id": 1482,
+      "name": "Assaulter Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ivory_Lance",
+      "id": 1483,
+      "name": "Ivory Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Cardo",
+      "id": 1484,
+      "name": "Cardo",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Battle_Fork",
+      "id": 1485,
+      "name": "Battle Fork",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Krieger_Twohand_Spear1",
+      "id": 1486,
+      "name": "Glorious Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Lance_C",
+      "id": 1487,
+      "name": "Lance",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ahlspiess_C",
+      "id": 1488,
+      "name": "Ahlspiess",
+      "range": 3,
+      "subtype": "2hSpear",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Club",
+      "id": 1501,
+      "name": "Club",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Club_",
+      "id": 1502,
+      "name": "Club",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Club__",
+      "id": 1503,
+      "name": "Club",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Mace",
+      "id": 1504,
+      "name": "Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Mace_",
+      "id": 1505,
+      "name": "Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Mace__",
+      "id": 1506,
+      "name": "Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Smasher",
+      "id": 1507,
+      "name": "Smasher",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Smasher_",
+      "id": 1508,
+      "name": "Smasher",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Smasher__",
+      "id": 1509,
+      "name": "Smasher",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Flail",
+      "id": 1510,
+      "name": "Flail",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Flail_",
+      "id": 1511,
+      "name": "Flail",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Flail__",
+      "id": 1512,
+      "name": "Flail",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Morning_Star",
+      "id": 1513,
+      "name": "Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Morning_Star_",
+      "id": 1514,
+      "name": "Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Morning_Star__",
+      "id": 1515,
+      "name": "Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Sword_Mace",
+      "id": 1516,
+      "name": "Sword Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Sword_Mace_",
+      "id": 1517,
+      "name": "Sword Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Sword_Mace__",
+      "id": 1518,
+      "name": "Sword Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Chain",
+      "id": 1519,
+      "name": "Chain",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Chain_",
+      "id": 1520,
+      "name": "Chain",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Chain__",
+      "id": 1521,
+      "name": "Chain",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Stunner",
+      "id": 1522,
+      "name": "Stunner",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Spike",
+      "id": 1523,
+      "name": "Spike",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Golden_Mace",
+      "id": 1524,
+      "name": "Golden Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Long_Mace",
+      "id": 1525,
+      "name": "Long Mace",
+      "range": 3,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Slash",
+      "id": 1526,
+      "name": "Slash",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Quadrille",
+      "id": 1527,
+      "name": "Quadrille",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Grand_Cross",
+      "id": 1528,
+      "name": "Grand Cross",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Iron_Driver",
+      "id": 1529,
+      "name": "Iron Driver",
+      "range": 2,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Mjolnir",
+      "id": 1530,
+      "name": "Mjolnir",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spanner",
+      "id": 1531,
+      "name": "Wrench",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Stunner_",
+      "id": 1532,
+      "name": "Stunner",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Warrior_Balmung",
+      "id": 1533,
+      "name": "Warrior's Balmung",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spanner_C",
+      "id": 1534,
+      "name": "Wrench",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hollgrehenn_Hammer",
+      "id": 1535,
+      "name": "Hollgrehenn's Hammer",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Good_Morning_Star",
+      "id": 1536,
+      "name": "Good Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Quadrille_C",
+      "id": 1537,
+      "name": "Refined Quadrille",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Spike_",
+      "id": 1538,
+      "name": "Spike",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Golden_Mace_",
+      "id": 1539,
+      "name": "Golden Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Grand_Cross_",
+      "id": 1540,
+      "name": "Grand Cross",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Nemesis",
+      "id": 1541,
+      "name": "Nemesis",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Morning_Star1",
+      "id": 1542,
+      "name": "Valorous Battlefield Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Morning_Star2",
+      "id": 1543,
+      "name": "Brave Battlefield Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lunakaligo",
+      "id": 1544,
+      "name": "Lunakaligo",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "N_Mace",
+      "id": 1545,
+      "name": "Novice Mace",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Onehand_Mace1",
+      "id": 1546,
+      "name": "Glorious Morning Star",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mace_Of_Madness",
+      "id": 1547,
+      "name": "Mace Of Madness",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Veteran_Hammer",
+      "id": 1548,
+      "name": "Veteran Hammer",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Pilebuncker",
+      "id": 1549,
+      "name": "Pile Bunker",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book",
+      "id": 1550,
+      "name": "Book",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Bible",
+      "id": 1551,
+      "name": "Bible",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tablet",
+      "id": 1552,
+      "name": "Tablet",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Billows",
+      "id": 1553,
+      "name": "Book of Billows",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Mother_Earth",
+      "id": 1554,
+      "name": "Book of Mother Earth",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Blazing_Sun",
+      "id": 1555,
+      "name": "Book of the Blazing Sun",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Gust_Of_Wind",
+      "id": 1556,
+      "name": "Book of Gust of Wind",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_The_Apocalypse",
+      "id": 1557,
+      "name": "Book of the Apocalypse",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Girl's_Diary",
+      "id": 1558,
+      "name": "Girl's Diary",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Legacy_Of_Dragon",
+      "id": 1559,
+      "name": "Legacy of Dragon",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Diary_Of_Great_Sage",
+      "id": 1560,
+      "name": "Sage's Diary",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hardback",
+      "id": 1561,
+      "name": "Hardcover Book",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bible_Of_Battlefield",
+      "id": 1562,
+      "name": "Battlefield Textbook",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Diary_Of_Great_Sage_C",
+      "id": 1563,
+      "name": "Sage's Diary",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Encyclopedia",
+      "id": 1564,
+      "name": "Encyclopedia",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Death_Note",
+      "id": 1565,
+      "name": "Ledger of Death",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Diary_Of_Great_Basil",
+      "id": 1566,
+      "name": "Diary Of Great Basil",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Hardback_C",
+      "id": 1567,
+      "name": "Refined Hardcover Book",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Book_Of_Billows_",
+      "id": 1568,
+      "name": "Book of Billows",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Mother_Earth_",
+      "id": 1569,
+      "name": "Book of Mother Earth",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Blazing_Sun_",
+      "id": 1570,
+      "name": "Book of Blazing Sun",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Book_Of_Gust_Of_Wind_",
+      "id": 1571,
+      "name": "Book of Gust of Wind",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Principles_Of_Magic",
+      "id": 1572,
+      "name": "Principles of Magic",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ancient_Magic",
+      "id": 1573,
+      "name": "Ancient Magic",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Book1",
+      "id": 1574,
+      "name": "Brave Battle Strategy Book",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Book2",
+      "id": 1575,
+      "name": "Valorous Battle Strategy Book",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Book1",
+      "id": 1576,
+      "name": "Glorious Tablet",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Book2",
+      "id": 1577,
+      "name": "Glorious Apocalypse",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Book_Of_Prayer",
+      "id": 1578,
+      "name": "Book Of Prayer",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Death_Note_M",
+      "id": 1579,
+      "name": "Book of the Dead",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Encyclopedia_C",
+      "id": 1580,
+      "name": "Giant Encyclopedia",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "F_Diary_Of_Great_Sage_C",
+      "id": 1581,
+      "name": "Diary Of Great Sage",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "E_Diary_Of_Great_Sage_C",
+      "id": 1582,
+      "name": "Diary Of Great Sage",
+      "range": 1,
+      "subtype": "Book",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Angra_Manyu",
+      "id": 1599,
+      "name": "Angra Manyu",
+      "range": 2,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Rod",
+      "id": 1601,
+      "name": "Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Rod_",
+      "id": 1602,
+      "name": "Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Rod__",
+      "id": 1603,
+      "name": "Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Wand",
+      "id": 1604,
+      "name": "Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Wand_",
+      "id": 1605,
+      "name": "Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Wand__",
+      "id": 1606,
+      "name": "Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Staff",
+      "id": 1607,
+      "name": "Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Staff_",
+      "id": 1608,
+      "name": "Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Staff__",
+      "id": 1609,
+      "name": "Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Arc_Wand",
+      "id": 1610,
+      "name": "Arc Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Arc_Wand_",
+      "id": 1611,
+      "name": "Arc Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Arc_Wand__",
+      "id": 1612,
+      "name": "Arc Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Mighty_Staff",
+      "id": 1613,
+      "name": "Mighty Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Blessed_Wand",
+      "id": 1614,
+      "name": "Wand of Occult",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Bone_Wand",
+      "id": 1615,
+      "name": "Evil Bone Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Staff_Of_Wing",
+      "id": 1616,
+      "name": "Wing Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Survival_Rod",
+      "id": 1617,
+      "name": "Survivor's Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Survival_Rod_",
+      "id": 1618,
+      "name": "Survivor's Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Survival_Rod2",
+      "id": 1619,
+      "name": "Survivor's Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Survival_Rod2_",
+      "id": 1620,
+      "name": "Survivor's Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hypnotist's_Staff",
+      "id": 1621,
+      "name": "Hypnotist's Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hypnotist's_Staff_",
+      "id": 1622,
+      "name": "Hypnotist's Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Mighty_Staff_C",
+      "id": 1623,
+      "name": "Mighty Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lich_Bone_Wand",
+      "id": 1624,
+      "name": "Lich's Bone Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Healing_Staff",
+      "id": 1625,
+      "name": "Healing Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Piercing_Staff",
+      "id": 1626,
+      "name": "Piercing Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Staffy",
+      "id": 1627,
+      "name": "Staffy",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Survival_Rod_C",
+      "id": 1628,
+      "name": "Refined Survivor's Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Walking_Stick",
+      "id": 1629,
+      "name": "Gentleman's Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Release_Of_Wish",
+      "id": 1630,
+      "name": "Release of Wish",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Holy_Stick",
+      "id": 1631,
+      "name": "Holy Stick",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Staff1",
+      "id": 1632,
+      "name": "Warlock's Magic Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Staff2",
+      "id": 1633,
+      "name": "Warlock's Battle Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Staff3",
+      "id": 1634,
+      "name": "Strong Recovery Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Staff4",
+      "id": 1635,
+      "name": "Speedy Recovery Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Thorn_Staff",
+      "id": 1636,
+      "name": "Thorn Staff of Darkness",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Eraser",
+      "id": 1637,
+      "name": "Eraser",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Healing_Staff_C",
+      "id": 1638,
+      "name": "Staff Of Healing",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "N_Rod",
+      "id": 1639,
+      "name": "Novice Rod",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Onehand_Staff1",
+      "id": 1640,
+      "name": "Glorious Arc Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Onehand_Staff2",
+      "id": 1641,
+      "name": "Glorious Cure Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Staff_Of_Darkness",
+      "id": 1642,
+      "name": "Staff Of Darkness",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dead_Tree_Cane",
+      "id": 1643,
+      "name": "Dead Tree Cane",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Piercing_Staff_M",
+      "id": 1644,
+      "name": "Staff of Piercing",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lich_Bone_Wand_M",
+      "id": 1645,
+      "name": "Lich's Bone Wand",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "La'cryma_Stick",
+      "id": 1646,
+      "name": "La'cryma Stick",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Croce_Staff",
+      "id": 1647,
+      "name": "Croce Staff",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Staff_Of_Bordeaux",
+      "id": 1648,
+      "name": "Staff Of Bordeaux",
+      "range": 1,
+      "subtype": "Staff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bow",
+      "id": 1701,
+      "name": "Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Bow_",
+      "id": 1702,
+      "name": "Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Bow__",
+      "id": 1703,
+      "name": "Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Composite_Bow",
+      "id": 1704,
+      "name": "Composite Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Composite_Bow_",
+      "id": 1705,
+      "name": "Composite Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Composite_Bow__",
+      "id": 1706,
+      "name": "Composite Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Great_Bow",
+      "id": 1707,
+      "name": "Great Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Great_Bow_",
+      "id": 1708,
+      "name": "Great Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Great_Bow__",
+      "id": 1709,
+      "name": "Great Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "CrossBow",
+      "id": 1710,
+      "name": "Crossbow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "CrossBow_",
+      "id": 1711,
+      "name": "Crossbow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "CrossBow__",
+      "id": 1712,
+      "name": "Crossbow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Arbalest",
+      "id": 1713,
+      "name": "Arbalest",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Kakkung",
+      "id": 1714,
+      "name": "Gakkung Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Arbalest_",
+      "id": 1715,
+      "name": "Arbalest",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Kakkung_",
+      "id": 1716,
+      "name": "Gakkung Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hunter_Bow",
+      "id": 1718,
+      "name": "Hunter Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Bow_Of_Roguemaster",
+      "id": 1719,
+      "name": "Roguemaster's Bow",
+      "range": 11,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bow_Of_Rudra",
+      "id": 1720,
+      "name": "Rudra Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Repeting_CrossBow",
+      "id": 1721,
+      "name": "Repeating Crossbow",
+      "range": 9,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Balistar",
+      "id": 1722,
+      "name": "Ballista",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Luna_Bow",
+      "id": 1723,
+      "name": "Luna Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Dragon_Wing",
+      "id": 1724,
+      "name": "Dragon Wing",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bow_Of_Minstrel",
+      "id": 1725,
+      "name": "Minstrel Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Hunter_Bow_",
+      "id": 1726,
+      "name": "Hunter Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Balistar_",
+      "id": 1727,
+      "name": "Ballista",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Balistar_C",
+      "id": 1728,
+      "name": "Ballista",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bow_Of_Rudra_C",
+      "id": 1729,
+      "name": "Rudra Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Burning_Bow",
+      "id": 1730,
+      "name": "Burning Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Frozen_Bow",
+      "id": 1731,
+      "name": "Frozen Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Earth_Bow",
+      "id": 1732,
+      "name": "Earth Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gust_Bow",
+      "id": 1733,
+      "name": "Gust Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Orc_Archer_Bow",
+      "id": 1734,
+      "name": "Orc Archer Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Kkakkung",
+      "id": 1735,
+      "name": "Kkakkung",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Double_Bound",
+      "id": 1736,
+      "name": "Double Bound",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ixion_Wing",
+      "id": 1737,
+      "name": "Ixion Wings",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Bow1",
+      "id": 1738,
+      "name": "Valorous Battle CrossBow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Bow2",
+      "id": 1739,
+      "name": "Brave Battle CrossBow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Nepenthes_Bow",
+      "id": 1740,
+      "name": "Nepenthes Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cursed_Lyre",
+      "id": 1741,
+      "name": "Cursed Lyre",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "N_Composite_Bow",
+      "id": 1742,
+      "name": "Novice Composite Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Bow1",
+      "id": 1743,
+      "name": "Glorious Hunter Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Bow_Of_Evil",
+      "id": 1744,
+      "name": "Bow Of Evil",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Falken_Blitz",
+      "id": 1745,
+      "name": "Falken Blitz",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Waghnakh",
+      "id": 1801,
+      "name": "Waghnak",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Waghnakh_",
+      "id": 1802,
+      "name": "Waghnak",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Knuckle_Duster",
+      "id": 1803,
+      "name": "Knuckle Dusters",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Knuckle_Duster_",
+      "id": 1804,
+      "name": "Knuckle Dusters",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Hora",
+      "id": 1805,
+      "name": "Studded Knuckles",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Hora_",
+      "id": 1806,
+      "name": "Studded Knuckles",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Fist",
+      "id": 1807,
+      "name": "Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Fist_",
+      "id": 1808,
+      "name": "Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Claw",
+      "id": 1809,
+      "name": "Claw",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Claw_",
+      "id": 1810,
+      "name": "Claw",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Finger",
+      "id": 1811,
+      "name": "Finger",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Finger_",
+      "id": 1812,
+      "name": "Finger",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Kaiser_Knuckle",
+      "id": 1813,
+      "name": "Kaiser Knuckle",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Berserk",
+      "id": 1814,
+      "name": "Berserk",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Claw_Of_Garm",
+      "id": 1815,
+      "name": "Hatii Claw",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Berserk_",
+      "id": 1816,
+      "name": "Berserk",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Kaiser_Knuckle_C",
+      "id": 1817,
+      "name": "Kaiser Knuckle",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Magma_Fist",
+      "id": 1818,
+      "name": "Magma Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Icicle_Fist",
+      "id": 1819,
+      "name": "Icicle Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Electric_Fist",
+      "id": 1820,
+      "name": "Electric Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Seismic_Fist",
+      "id": 1821,
+      "name": "Seismic Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Combo_Battle_Glove",
+      "id": 1822,
+      "name": "Combo Battle Glove",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Knuckle1",
+      "id": 1823,
+      "name": "Valorous Battle Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Knuckle2",
+      "id": 1824,
+      "name": "Brave Battle Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Horn_Of_Hilthrion",
+      "id": 1825,
+      "name": "Horn of Hillslion",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Knuckle1",
+      "id": 1826,
+      "name": "Glorious Claw",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Knuckle2",
+      "id": 1827,
+      "name": "Glorious Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Monk_Knuckle",
+      "id": 1828,
+      "name": "Monk Knuckle",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Fist_C",
+      "id": 1829,
+      "name": "Fist",
+      "range": 1,
+      "subtype": "Knuckle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Violin",
+      "id": 1901,
+      "name": "Violin",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Violin_",
+      "id": 1902,
+      "name": "Violin",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Mandolin",
+      "id": 1903,
+      "name": "Mandolin",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Mandolin_",
+      "id": 1904,
+      "name": "Mandolin",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Lute",
+      "id": 1905,
+      "name": "Lute",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Lute_",
+      "id": 1906,
+      "name": "Lute",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Guitar",
+      "id": 1907,
+      "name": "Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guitar_",
+      "id": 1908,
+      "name": "Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Harp",
+      "id": 1909,
+      "name": "Harp",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Harp_",
+      "id": 1910,
+      "name": "Harp",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guh_Moon_Goh",
+      "id": 1911,
+      "name": "Gumoongoh",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guh_Moon_Goh_",
+      "id": 1912,
+      "name": "Gumoongoh",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Electronic_Guitar",
+      "id": 1913,
+      "name": "Electric Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Guitar_Of_Passion",
+      "id": 1914,
+      "name": "Burning Passion Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guitar_Of_Blue_Solo",
+      "id": 1915,
+      "name": "Loner's Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guitar_Of_Vast_Land",
+      "id": 1916,
+      "name": "Green Acre Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Guitar_Of_Gentle_Breeze",
+      "id": 1917,
+      "name": "Gentle Breeze Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Oriental_Lute",
+      "id": 1918,
+      "name": "Oriental Lute",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Base_Guitar",
+      "id": 1919,
+      "name": "Bass Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Berserk_Guitar",
+      "id": 1920,
+      "name": "Berserk Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Guh_Moon_Gom",
+      "id": 1921,
+      "name": "Gun Moon Gom",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Oriental_Lute_",
+      "id": 1922,
+      "name": "Oriental Lute",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Instrument1",
+      "id": 1923,
+      "name": "Valorous Battlefield Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Instrument2",
+      "id": 1924,
+      "name": "Brave Battlefield Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Cello",
+      "id": 1925,
+      "name": "Cello",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Harp_Of_Nepenthes",
+      "id": 1926,
+      "name": "Harp of Nepenthes",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Instrument1",
+      "id": 1927,
+      "name": "Glorious Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Berserk_Guitar_I",
+      "id": 1928,
+      "name": "Spirited Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Guitar_C",
+      "id": 1929,
+      "name": "Guitar",
+      "range": 1,
+      "subtype": "Musical",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Rope",
+      "id": 1950,
+      "name": "Rope",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Rope_",
+      "id": 1951,
+      "name": "Rope",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Line",
+      "id": 1952,
+      "name": "Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Line_",
+      "id": 1953,
+      "name": "Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Wire",
+      "id": 1954,
+      "name": "Wire Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Wire_",
+      "id": 1955,
+      "name": "Wire Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Rante",
+      "id": 1956,
+      "name": "Rante Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Rante_",
+      "id": 1957,
+      "name": "Rante Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tail",
+      "id": 1958,
+      "name": "Tail Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Tail_",
+      "id": 1959,
+      "name": "Tail Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Whip",
+      "id": 1960,
+      "name": "Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Whip_",
+      "id": 1961,
+      "name": "Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lariat",
+      "id": 1962,
+      "name": "Lariat Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Rapture_Rose",
+      "id": 1963,
+      "name": "Rapture Rose",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Chemeti",
+      "id": 1964,
+      "name": "Chemeti Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Whip_Of_Red_Flame",
+      "id": 1965,
+      "name": "Red Flame Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Whip_Of_Ice_Piece",
+      "id": 1966,
+      "name": "Icicle Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Whip_Of_Earth",
+      "id": 1967,
+      "name": "Gaia Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jump_Rope",
+      "id": 1968,
+      "name": "Skipping Rope",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Bladed_Whip",
+      "id": 1969,
+      "name": "Blade Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Queen's_Whip",
+      "id": 1970,
+      "name": "Queen's Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Electric_Wire",
+      "id": 1971,
+      "name": "Electric Wire",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Electric_Eel",
+      "id": 1972,
+      "name": "Electric Eel",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sea_Witch_Foot",
+      "id": 1973,
+      "name": "Sea Witch's Foot",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Carrot_Whip",
+      "id": 1974,
+      "name": "Carrot Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Queen_Is_Whip",
+      "id": 1975,
+      "name": "Queen Is Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Queen's_Whip_",
+      "id": 1976,
+      "name": "Queen's Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Whip1",
+      "id": 1977,
+      "name": "Valorous Battle Lariat",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Whip2",
+      "id": 1978,
+      "name": "Brave Battle Lariat",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Stem_Of_Nepenthes",
+      "id": 1979,
+      "name": "Stem of Nepenthes",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Whip_Of_Balance",
+      "id": 1980,
+      "name": "Whip of Balance",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Whip1",
+      "id": 1981,
+      "name": "Glorious Lariat",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Phenomena_Whip",
+      "id": 1982,
+      "name": "Phenomena Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Rante_C",
+      "id": 1983,
+      "name": "Rante Whip",
+      "range": 2,
+      "subtype": "Whip",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Destruction_Rod",
+      "id": 2000,
+      "name": "Staff of Destruction",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Divine_Cross",
+      "id": 2001,
+      "name": "Divine Cross",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Twohand_Staff1",
+      "id": 2002,
+      "name": "Glorious Destruction Staff",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Destruction_Rod_M",
+      "id": 2003,
+      "name": "Staff of Destruction",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Kronos",
+      "id": 2004,
+      "name": "Kronos",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Dea_Staff",
+      "id": 2005,
+      "name": "Dea Staff",
+      "range": 1,
+      "subtype": "2hStaff",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jujube_Dagger",
+      "id": 13000,
+      "name": "Jujube Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Dragon_Killer",
+      "id": 13001,
+      "name": "Dragon Killer",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Ginnungagap",
+      "id": 13002,
+      "name": "Ginnungagap",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Coward",
+      "id": 13003,
+      "name": "Cowardice Blade",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Coward_",
+      "id": 13004,
+      "name": "Cowardice Blade",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Angelwing_Short_Sword",
+      "id": 13005,
+      "name": "Angelic Wing Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Khukri",
+      "id": 13006,
+      "name": "Khukri",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jitte",
+      "id": 13007,
+      "name": "Jitte",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Jitte_",
+      "id": 13008,
+      "name": "Jitte",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Kamaitachi",
+      "id": 13009,
+      "name": "Kamaitachi",
+      "range": 2,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Asura",
+      "id": 13010,
+      "name": "Asura",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Asura_",
+      "id": 13011,
+      "name": "Asura",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Murasame",
+      "id": 13012,
+      "name": "Murasame",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Murasame_",
+      "id": 13013,
+      "name": "Murasame",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Hakujin",
+      "id": 13014,
+      "name": "Hakujin",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Hakujin_",
+      "id": 13015,
+      "name": "Hakujin",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Poison_Knife_",
+      "id": 13016,
+      "name": "Poison Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "House_Auger_",
+      "id": 13017,
+      "name": "Ice Pick",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sucsamad_",
+      "id": 13018,
+      "name": "Sucsamad",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Ginnungagap_",
+      "id": 13019,
+      "name": "Ginnungagap",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Warrior_Balmung_",
+      "id": 13020,
+      "name": "Warrior's Balmung",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Combat_Knife_C",
+      "id": 13021,
+      "name": "Combat Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Counter_Dagger_C",
+      "id": 13022,
+      "name": "Dagger of Counter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Asura_C",
+      "id": 13023,
+      "name": "Ashura",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Sword_Breaker_C",
+      "id": 13024,
+      "name": "Refined Swordbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mail_Breaker_C",
+      "id": 13025,
+      "name": "Refined Mailbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Moonlight_Sword_C",
+      "id": 13026,
+      "name": "Moonlight Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Scalpel",
+      "id": 13027,
+      "name": "Scalpel",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Tooth_Blade",
+      "id": 13028,
+      "name": "Tooth Blade",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Prinsence_Knife",
+      "id": 13029,
+      "name": "Prinsense Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Dragon_Killer_",
+      "id": 13030,
+      "name": "Dragon Killer",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Sword_Breaker_",
+      "id": 13031,
+      "name": "Swordbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Mail_Breaker_",
+      "id": 13032,
+      "name": "Mailbreaker",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Assasin_Dagger_",
+      "id": 13033,
+      "name": "Assassin Dagger",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Twilight_Desert",
+      "id": 13034,
+      "name": "Desert Twilight",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Sandstorm",
+      "id": 13035,
+      "name": "Sandstorm",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "BF_Dagger1",
+      "id": 13036,
+      "name": "Brave Assassin's Damascus",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Dagger2",
+      "id": 13037,
+      "name": "Valorous Assassin's Damascus",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Dagger_Of_Hunter",
+      "id": 13038,
+      "name": "Dagger of Hunter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Ivory_Knife",
+      "id": 13039,
+      "name": "Ivory Knife",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "N_Cutter",
+      "id": 13040,
+      "name": "Novice Cutter",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "N_Main_Gauche",
+      "id": 13041,
+      "name": "Novice Main Gauche",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Dagger1",
+      "id": 13042,
+      "name": "Glorious Gladius",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Fortune_Sword_I",
+      "id": 13043,
+      "name": "Fortune Sword",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "House_Auger_I",
+      "id": 13044,
+      "name": "Ice Pick",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Kamaitachi_I",
+      "id": 13045,
+      "name": "Kamaitachi",
+      "range": 2,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieg",
+      "id": 13046,
+      "name": "Krierg",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Weihna",
+      "id": 13047,
+      "name": "Weihna",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Damascus_C",
+      "id": 13048,
+      "name": "Damascus",
+      "range": 1,
+      "subtype": "Dagger",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Six_Shooter",
+      "id": 13100,
+      "name": "Six Shooter",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Six_Shooter_",
+      "id": 13101,
+      "name": "Six Shooter",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Crimson_Bolt",
+      "id": 13102,
+      "name": "Crimson Bolt",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Crimson_Bolt_",
+      "id": 13103,
+      "name": "Crimson Bolt",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "The_Garrison",
+      "id": 13104,
+      "name": "Garrison",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "The_Garrison_",
+      "id": 13105,
+      "name": "Garrison",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Gold_Lux",
+      "id": 13106,
+      "name": "Gold Lux",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Wasteland_Outlaw",
+      "id": 13107,
+      "name": "Wasteland's Outlaw",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Pistol1",
+      "id": 13108,
+      "name": "Soldier Revolver",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Wasteland_Outlaw_C",
+      "id": 13109,
+      "name": "Wasteland Outlaw",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Pistol1",
+      "id": 13110,
+      "name": "Glorious Pistol",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "P_Revolver1",
+      "id": 13112,
+      "name": "Eden Revlover I",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "P_Revolver2",
+      "id": 13113,
+      "name": "Eden Revlover II",
+      "range": 7,
+      "subtype": "Revolver",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Branch",
+      "id": 13150,
+      "name": "Branch",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "The_Cyclone",
+      "id": 13151,
+      "name": "Cyclone",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "The_Cyclone_",
+      "id": 13152,
+      "name": "Cyclone",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Dusk",
+      "id": 13153,
+      "name": "Dusk",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Rolling_Stone",
+      "id": 13154,
+      "name": "Rolling Stone",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Black_Rose",
+      "id": 13155,
+      "name": "Black Rose",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Gate_Keeper",
+      "id": 13156,
+      "name": "Gate Keeper",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Drifter",
+      "id": 13157,
+      "name": "Drifter",
+      "range": 9,
+      "subtype": "Gatling",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Butcher",
+      "id": 13158,
+      "name": "Butcher",
+      "range": 9,
+      "subtype": "Gatling",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Butcher_",
+      "id": 13159,
+      "name": "Butcher",
+      "range": 9,
+      "subtype": "Gatling",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Destroyer",
+      "id": 13160,
+      "name": "Destroyer",
+      "range": 9,
+      "subtype": "Grenade",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Destroyer_",
+      "id": 13161,
+      "name": "Destroyer",
+      "range": 9,
+      "subtype": "Grenade",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Inferno",
+      "id": 13162,
+      "name": "Inferno",
+      "range": 9,
+      "subtype": "Grenade",
+      "view": 0,
+      "weapon_level": 2
+    },
+    {
+      "aegis": "Long_Barrel",
+      "id": 13163,
+      "name": "Long Barrel",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Long_Barrel_",
+      "id": 13164,
+      "name": "Long Barrel",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jungle_Carbine",
+      "id": 13165,
+      "name": "Jungle Carbine",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Jungle_Carbine_",
+      "id": 13166,
+      "name": "Jungle Carbine",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Gate_KeeperDD",
+      "id": 13167,
+      "name": "Gate Keeper-DD",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Thunder_P",
+      "id": 13168,
+      "name": "Thunder P",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Thunder_P_",
+      "id": 13169,
+      "name": "Thunder P",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lever_Action_Rifle",
+      "id": 13170,
+      "name": "Lever Action Rifle",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Rifle1",
+      "id": 13171,
+      "name": "Soldier Rifle",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Gatling_Gun1",
+      "id": 13172,
+      "name": "Soldier Gatling Gun",
+      "range": 9,
+      "subtype": "Gatling",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Shotgun1",
+      "id": 13173,
+      "name": "Soldier Shotgun",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Launcher1",
+      "id": 13174,
+      "name": "Soldier Grenade Launcher",
+      "range": 9,
+      "subtype": "Grenade",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Lever_Action_Rifle_C",
+      "id": 13175,
+      "name": "Lever Action Rifle",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Rifle1",
+      "id": 13176,
+      "name": "Glorious Rifle",
+      "range": 9,
+      "subtype": "Rifle",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Gatling1",
+      "id": 13177,
+      "name": "Glorious Gatling Gun",
+      "range": 9,
+      "subtype": "Gatling",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Shotgun1",
+      "id": 13178,
+      "name": "Glorious Shotgun",
+      "range": 9,
+      "subtype": "Shotgun",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Launcher1",
+      "id": 13179,
+      "name": "Glorious Grenade Launcher",
+      "range": 9,
+      "subtype": "Grenade",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Bird_Wing",
+      "id": 13300,
+      "name": "Huuma Wing Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Giant_Wheel",
+      "id": 13301,
+      "name": "Huuma Giant Wheel Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Giant_Wheel_",
+      "id": 13302,
+      "name": "Huuma Giant Wheel Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Blaze",
+      "id": 13303,
+      "name": "Huuma Blaze Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Calm_Mind",
+      "id": 13304,
+      "name": "Huuma Calm Mind",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Huuma_Shuriken1",
+      "id": 13305,
+      "name": "Brave Huuma Front Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Huuma_Shuriken2",
+      "id": 13306,
+      "name": "Valorous Huuma Front Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Krieger_Huuma_Shuriken1",
+      "id": 13307,
+      "name": "Glorious Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Blaze_I",
+      "id": 13308,
+      "name": "Huuma Blaze Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Huuma_Giant_Wheel_C",
+      "id": 13309,
+      "name": "Huuma Giant Wheel Shuriken",
+      "range": 1,
+      "subtype": "Huuma",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cutlas_",
+      "id": 13400,
+      "name": "Cutlus",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Excalibur_C",
+      "id": 13401,
+      "name": "Excalibur",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Cutlas_C",
+      "id": 13402,
+      "name": "Cutlus",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Solar_Sword_C",
+      "id": 13403,
+      "name": "Solar Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Platinum_Shotel",
+      "id": 13404,
+      "name": "Platinum Shotel",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Curved_Sword",
+      "id": 13405,
+      "name": "Curved Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Edger",
+      "id": 13406,
+      "name": "Edger",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Nagan_C",
+      "id": 13407,
+      "name": "Refined Nagan",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Fire_Brand_C",
+      "id": 13408,
+      "name": "Refined Fireblend",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Immaterial_Sword_C",
+      "id": 13409,
+      "name": "Refined Immaterial Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "BF_Sword1",
+      "id": 13410,
+      "name": "Valorous Gladiator Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "BF_Sword2",
+      "id": 13411,
+      "name": "Brave Gladiator Blade",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Twin_Edge_B",
+      "id": 13412,
+      "name": "Twin Edge of Naght Sieger",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Twin_Edge_R",
+      "id": 13413,
+      "name": "Twin Edge of Naght Sieger",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Elemental_Sword",
+      "id": 13414,
+      "name": "Elemental Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "N_Falchion",
+      "id": 13415,
+      "name": "Novice Falchion",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 1
+    },
+    {
+      "aegis": "Krieger_Onehand_Sword1",
+      "id": 13416,
+      "name": "Glorious Flamberge",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Onehand_Sword2",
+      "id": 13417,
+      "name": "Glorious Rapier",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Krieger_Onehand_Sword3",
+      "id": 13418,
+      "name": "Glorious Holy Avenger",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Holy_Saber",
+      "id": 13419,
+      "name": "Holy saber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Honglyun's_Sword",
+      "id": 13420,
+      "name": "Honglyun's Sword",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Ruber",
+      "id": 13421,
+      "name": "Ruber",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Flamberge_C",
+      "id": 13422,
+      "name": "Flamberge",
+      "range": 1,
+      "subtype": "1hSword",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Erde",
+      "id": 16000,
+      "name": "Erde",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Red_Square_Bag",
+      "id": 16001,
+      "name": "Red Square Bag",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Stunner_C",
+      "id": 16002,
+      "name": "Stunner",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 3
+    },
+    {
+      "aegis": "Pilebuncker_S",
+      "id": 16030,
+      "name": "Pile Bunker S",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pilebuncker_P",
+      "id": 16031,
+      "name": "Pile Bunker P",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Pilebuncker_T",
+      "id": 16032,
+      "name": "Pile Bunker T",
+      "range": 1,
+      "subtype": "Mace",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "Shooting_Star_C",
+      "id": 18100,
+      "name": "Shooting Star",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "F_Bow_Of_Rudra_C",
+      "id": 18101,
+      "name": "Rudra Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    },
+    {
+      "aegis": "E_Bow_Of_Rudra_C",
+      "id": 18102,
+      "name": "Rudra Bow",
+      "range": 5,
+      "subtype": "Bow",
+      "view": 0,
+      "weapon_level": 4
+    }
+  ],
+  "provenance": {
+    "item_db": "item_db_equip.yml",
+    "item_db_sha256": "d6604ac72624cca980bef7e8c189764885bbb8c513c738bcc31ce47a76fcce1b",
+    "server_head": "876717697fd0f8bb3f25294685cb9efb5db7dff1",
+    "source": "rAthena pre-renewal item database of the CondaRO server tree",
+    "weapon_items": 707
+  },
+  "server_weapon_types": [
+    {
+      "name": "W_FIST",
+      "value": 0
+    },
+    {
+      "name": "W_DAGGER",
+      "value": 1
+    },
+    {
+      "name": "W_1HSWORD",
+      "value": 2
+    },
+    {
+      "name": "W_2HSWORD",
+      "value": 3
+    },
+    {
+      "name": "W_1HSPEAR",
+      "value": 4
+    },
+    {
+      "name": "W_2HSPEAR",
+      "value": 5
+    },
+    {
+      "name": "W_1HAXE",
+      "value": 6
+    },
+    {
+      "name": "W_2HAXE",
+      "value": 7
+    },
+    {
+      "name": "W_MACE",
+      "value": 8
+    },
+    {
+      "name": "W_2HMACE",
+      "value": 9
+    },
+    {
+      "name": "W_STAFF",
+      "value": 10
+    },
+    {
+      "name": "W_BOW",
+      "value": 11
+    },
+    {
+      "name": "W_KNUCKLE",
+      "value": 12
+    },
+    {
+      "name": "W_MUSICAL",
+      "value": 13
+    },
+    {
+      "name": "W_WHIP",
+      "value": 14
+    },
+    {
+      "name": "W_BOOK",
+      "value": 15
+    },
+    {
+      "name": "W_KATAR",
+      "value": 16
+    },
+    {
+      "name": "W_REVOLVER",
+      "value": 17
+    },
+    {
+      "name": "W_RIFLE",
+      "value": 18
+    },
+    {
+      "name": "W_GATLING",
+      "value": 19
+    },
+    {
+      "name": "W_SHOTGUN",
+      "value": 20
+    },
+    {
+      "name": "W_GRENADE",
+      "value": 21
+    },
+    {
+      "name": "W_HUUMA",
+      "value": 22
+    },
+    {
+      "name": "W_2HSTAFF",
+      "value": 23
+    },
+    {
+      "name": "W_DOUBLE_DD",
+      "value": 25
+    },
+    {
+      "name": "W_DOUBLE_SS",
+      "value": 26
+    },
+    {
+      "name": "W_DOUBLE_AA",
+      "value": 27
+    },
+    {
+      "name": "W_DOUBLE_DS",
+      "value": 28
+    },
+    {
+      "name": "W_DOUBLE_DA",
+      "value": 29
+    },
+    {
+      "name": "W_DOUBLE_SA",
+      "value": 30
+    }
+  ]
+}

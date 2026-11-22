@@ -95,6 +95,9 @@ impl Library {
         skill_actions::load(game_file_loader);
         skill_sounds::load(game_file_loader);
         skill_effects::load(game_file_loader);
+        // The data-driven weapon registry (weapon types, sprite candidates,
+        // projectiles) is loaded here so every subsystem sees the same table.
+        crate::world::weapon::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,

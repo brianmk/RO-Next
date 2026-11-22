@@ -28,6 +28,7 @@ mod skill_name_text;
 mod skill_sound;
 mod sound;
 mod video;
+pub(crate) mod weapon;
 
 use std::sync::Arc;
 

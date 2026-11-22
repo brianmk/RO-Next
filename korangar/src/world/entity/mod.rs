@@ -70,65 +70,6 @@ const FALCON_HEIGHT: f32 = 26.0;
 /// The raw falcon ACT flap loop is too slow; play it 50 % faster.
 const FALCON_ANIMATION_SPEED: f32 = 1.5;
 
-/// Classic client weapon-variant suffixes per server weapon type (`W_*`).
-///
-/// The 2019 data set stores weapon sprites as per-job variants next to the body
-/// sprite, e.g. `data\sprite\인간족\궁수\궁수_남_활.spr/.act`. The suffix is
-/// derived from the weapon type the server sends in the entity-appear packets;
-/// newer clients also use item view ids as suffix, so those are tried first.
-/// Candidate weapon sprite part files for a player.
-///
-/// The 2019 data set stores per-job weapon variants next to the body sprite
-/// (`data\sprite\인간족\<job_sprite_stem>\<stem>_<sex>_<variant>`), not in a
-/// `무기` folder. The numeric weapon value (item view id, as population shells
-/// send) is tried first, then the classic suffixes for the weapon type.
-pub(crate) fn player_weapon_part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<EntityPartFile> {
-    if weapon == 0 {
-        return Vec::new();
-    }
-
-    let sex_sprite_path = match sex == Sex::Female {
-        true => "여",
-        false => "남",
-    };
-    let job_stem = get_sprite_path_for_player_job(job_id);
-    let numeric = format!("{weapon}");
-
-    std::iter::once(numeric.as_str())
-        .chain(weapon_suffix_candidates(weapon).iter().copied())
-        .map(|suffix| EntityPartFile::new(format!("인간족\\{job_stem}\\{job_stem}_{sex_sprite_path}_{suffix}")))
-        .collect()
-}
-
-fn weapon_suffix_candidates(weapon: u32) -> &'static [&'static str] {
-    match weapon {
-        0 => &[],
-        1 => &["단검"],
-        2 => &["검", "한손검"],
-        3 => &["양손검", "검"],
-        4 => &["창"],
-        5 => &["양손창", "창"],
-        6 => &["도끼"],
-        7 => &["양손도끼", "도끼"],
-        8 => &["철퇴", "클럽"],
-        9 => &["양손철퇴", "철퇴"],
-        10 => &["롯드", "스태프"],
-        11 => &["활"],
-        12 => &["너클"],
-        13 => &["악기"],
-        14 => &["채찍"],
-        15 => &["책"],
-        16 => &["카타르"],
-        17 => &["리볼버", "권총"],
-        18 => &["소총", "라이플"],
-        19 => &["개틀링"],
-        20 => &["샷건"],
-        21 => &["수류탄"],
-        22 => &["후우마"],
-        _ => &[],
-    }
-}
-
 /// Grace period between the server reporting a death and the client starting
 /// the death animation, so an attack animation that is already playing (the
 /// killing blow) is not cut off instantly.
@@ -176,6 +117,27 @@ pub enum EntityType {
     Npc,
     Player,
     Warp,
+}
+
+/// Equipment appearance slots the entity layer keeps from the server.
+///
+/// The server sends these through `ZC_SPRITE_CHANGE` (`0x01D7`) and the
+/// equipment acknowledgement packets. Only the weapon is rendered as its own
+/// layer so far; shield and robe are kept for the follow-up layer work.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EquipmentLook {
+    Weapon,
+    Shield,
+    Robe,
+}
+
+/// Sprite layers that have to be reloaded after an appearance change.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct SpriteChangeOutcome {
+    /// Body/head/headgear layer changed: reload the body animation data.
+    pub body: bool,
+    /// Equipped weapon changed: reload the weapon animation layer.
+    pub weapon: bool,
 }
 
 impl From<JobId> for EntityType {
@@ -276,10 +238,16 @@ pub struct Common {
     /// `healthState` (`opt2`): poison/curse/silence/confusion/blind/... state.
     #[hidden_element]
     pub health_state: u16,
-    /// Weapon view id (`weapon` in the entity-appear packets), `0` if unarmed.
+    /// Equipped weapon value (`weapon` in the entity-appear packets), `0` if
+    /// unarmed.
+    ///
+    /// The server sends the rAthena weapon type (`W_*`, e.g. `W_BOW = 11`); the
+    /// value can also be an item view id (population shells / custom servers).
+    /// The weapon module resolves both forms to a sprite family and projectile;
+    /// see `crate::world::weapon`.
     #[hidden_element]
     pub weapon: u32,
-    /// Shield view id (`shield` in the entity-appear packets), `0` if none.
+    /// Shield value (`shield` in the entity-appear packets), `0` if none.
     ///
     /// Kept for the follow-up shield-layer work; not rendered yet.
     #[hidden_element]
@@ -922,11 +890,17 @@ impl Common {
         self.falcon_animation.is_some()
     }
 
+    /// Candidate sprite part files of the equipped weapon.
+    ///
+    /// The candidate construction (per-job variant, classic weapon layer,
+    /// numeric view id, sprite family fallback order) lives in
+    /// [`crate::world::weapon::part_candidates`]; the entity layer only asks
+    /// for the ordered attempts.
     pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
-        player_weapon_part_candidates(self.job_id, self.sex, self.weapon)
+        super::weapon::part_candidates(self.job_id, self.sex, self.weapon)
     }
 
-    /// Weapon type (server `W_*`) or item view id of the equipped weapon.
+    /// Equipped weapon value: a server `W_*` weapon type or an item view id.
     pub fn get_weapon(&self) -> u32 {
         self.weapon
     }
@@ -935,15 +909,23 @@ impl Common {
         // Some trimmed archives contain weapon ACTs whose frames reference no
         // sprite (sprite_number == usize::MAX placeholder). Do not keep such an
         // animation: it would never draw anything.
-        let has_drawable_frames = animation_data
-            .animations
-            .iter()
-            .take(8)
-            .flat_map(|animation| animation.frames.iter())
-            .any(|frame| frame.frame_parts.iter().any(|part| part.sprite_number != usize::MAX));
-
-        if has_drawable_frames {
+        if super::weapon::animation_is_drawable(&animation_data) {
             self.weapon_animation = Some(animation_data);
+        }
+    }
+
+    /// Applies an equipped weapon change (server `ZC_SPRITE_CHANGE` with
+    /// `Weapon` / `Shield` / `Robe`).
+    pub fn set_equipment_look(&mut self, value: u32, slot: EquipmentLook) {
+        match slot {
+            EquipmentLook::Weapon => {
+                if self.weapon != value {
+                    self.weapon = value;
+                    self.weapon_animation = None;
+                }
+            }
+            EquipmentLook::Shield => self.shield = value,
+            EquipmentLook::Robe => self.robe = value as u16,
         }
     }
 
@@ -2193,24 +2175,51 @@ impl Entity {
         common.scale = scale;
     }
 
-    /// Applies an appearance (sprite) change for headgear or palettes. Returns
-    /// `true` if the change is handled (i.e. the animation data has to be
-    /// reloaded).
-    pub fn apply_sprite_change(&mut self, sprite_type: SpriteChangeType, value: u16) -> bool {
+    /// Applies an appearance (sprite) change for headgear, palettes or
+    /// equipment.
+    ///
+    /// Returns the sprite layers that have to be reloaded, or `None` for sprite
+    /// change types the entity layer does not handle.
+    pub fn apply_sprite_change(&mut self, sprite_type: SpriteChangeType, value: u32) -> Option<SpriteChangeOutcome> {
         // The packet field names follow the official client: `accessory` is the
         // lower, `accessory2` the upper and `accessory3` the middle headgear.
         let common = self.get_common_mut();
+        let mut outcome = SpriteChangeOutcome::default();
 
         match sprite_type {
-            SpriteChangeType::HeadTop => common.accessory2 = value,
-            SpriteChangeType::HeadMiddle => common.accessory3 = value,
-            SpriteChangeType::HeadBottom => common.accessory = value,
-            SpriteChangeType::HairCollor => common.head_palette = value,
-            SpriteChangeType::ClothesColor => common.body_palette = value,
-            _ => return false,
+            SpriteChangeType::HeadTop => {
+                common.accessory2 = value as u16;
+                outcome.body = true;
+            }
+            SpriteChangeType::HeadMiddle => {
+                common.accessory3 = value as u16;
+                outcome.body = true;
+            }
+            SpriteChangeType::HeadBottom => {
+                common.accessory = value as u16;
+                outcome.body = true;
+            }
+            SpriteChangeType::HairCollor => {
+                common.head_palette = value as u16;
+                outcome.body = true;
+            }
+            SpriteChangeType::ClothesColor => {
+                common.body_palette = value as u16;
+                outcome.body = true;
+            }
+            // Equipping/unequipping a weapon does not change the body sprite,
+            // but it changes the weapon animation layer. The server sends the
+            // weapon type in `ZC_SPRITE_CHANGE` when the equipment changes.
+            SpriteChangeType::Weapon => {
+                common.set_equipment_look(value, EquipmentLook::Weapon);
+                outcome.weapon = true;
+            }
+            SpriteChangeType::Shield => common.set_equipment_look(value, EquipmentLook::Shield),
+            SpriteChangeType::Robe => common.set_equipment_look(value, EquipmentLook::Robe),
+            _ => return None,
         }
 
-        true
+        Some(outcome)
     }
 
     pub fn set_hair(&mut self, hair_id: usize) {
