@@ -446,7 +446,26 @@ where
     // 2019 map-load burst packets: sent on every map load / when entities turn or
     // enter the view. They are registered (as noop for now) so that they do not
     // throw away the rest of the TCP read, which used to lose spawn packets.
-    packet_handler.register_noop::<ChangeDirectionPacket2019>()?;
+    // `ZC_CHANGE_DIRECTION` (0x009C): sent for every entity that turns and for
+    // the player themselves on every map load. Parsing only is not enough, the
+    // facing has to be applied to the entity.
+    packet_handler.register(|packet: ChangeDirectionPacket2019| {
+        let ChangeDirectionPacket2019 {
+            entity_id,
+            head_direction,
+            direction,
+        } = packet;
+
+        // The wire direction uses the same packed encoding as the position
+        // nibble in the spawn packets, so mirror `WorldPosition::from_bytes`.
+        let direction = (8u16.wrapping_sub(u16::from(direction)) + 4) & 7;
+
+        NetworkEvent::ChangeDirection {
+            entity_id,
+            head_direction: head_direction as usize,
+            direction: Direction::from(direction),
+        }
+    })?;
     packet_handler.register_noop::<NotifyActorInitPacket>()?;
     // Remaining frequent 2019 packets that the client does not use yet. They are
     // parsed with their exact 2019 sizes; a real handler can replace the noop
@@ -1008,7 +1027,13 @@ where
             success: result != 0,
         }
     })?;
-    packet_handler.register_noop::<DisplayPlayerHealEffect>()?;
+    // `ZC_RECOVERY` (0x0A27): the server sends this only to the player that was
+    // healed and the packet contains no entity id, so the event carries no id and
+    // the world layer resolves the local player.
+    packet_handler.register(|packet: DisplayPlayerHealEffect| NetworkEvent::HealEffect {
+        entity_id: None,
+        heal_amount: packet.heal_amount as usize,
+    })?;
     packet_handler.register(|packet: StatusChangePacket| NetworkEvent::StatusEffect {
         entity_id: packet.entity_id,
         status_index: packet.index,
@@ -1058,7 +1083,15 @@ where
         experience_source: packet.experience_source,
     })?;
     packet_handler.register_noop::<DisplayImagePacket>()?;
-    packet_handler.register_noop::<StateChangePacket>()?;
+    // `ZC_STATE_CHANGE` (0x0229): live body/health/option/PK state updates
+    // (sitting/standing changes are separate, they come as ZC_NOTIFY_ACT).
+    packet_handler.register(|packet: StateChangePacket| NetworkEvent::StateChange {
+        entity_id: packet.entity_id,
+        body_state: packet.body_state,
+        health_state: packet.health_state,
+        effect_state: packet.effect_state,
+        is_pk_mode_on: packet.is_pk_mode_on != 0,
+    })?;
 
     packet_handler.register(|packet: QuestEffectPacket| match packet.effect {
         QuestEffect::None => NetworkEvent::RemoveQuestEffect {

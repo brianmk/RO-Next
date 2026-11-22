@@ -1328,8 +1328,9 @@ mod packet_handlers {
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
-        AccountId, CharacterId, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket, PacketExt,
-        RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
+        AccountId, CharacterId, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket,
+        LoginFailedPacket2, LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket,
+        RequestPlayerDetailsSuccessPacket,
     };
 
     use crate::event::NetworkEventList;
@@ -1398,6 +1399,81 @@ mod packet_handlers {
                 account_id: AccountId(0x1234_5678),
             }] if name == "effect\\ef_blessing"
         ));
+    }
+
+    #[test]
+    fn heal_packet_emits_heal_effect_without_entity_id() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // `ZC_RECOVERY` (0x0A27), 2019 layout: header + type (SP_HP = 5) + amount u32.
+        let mut bytes = vec![0x27, 0x0A];
+        bytes.extend_from_slice(&5u16.to_le_bytes());
+        bytes.extend_from_slice(&123u32.to_le_bytes());
+        assert_eq!(bytes.len(), 8);
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("heal packet was not handled");
+        };
+
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::HealEffect {
+            entity_id: None,
+            heal_amount: 123,
+        }]));
+    }
+
+    #[test]
+    fn state_change_packet_emits_state_change() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // `ZC_STATE_CHANGE` (0x0229), 2019 layout:
+        // header + AID u32 + bodyState u16 + healthState u16 + effectState u32 +
+        // isPKMode u8.
+        let mut bytes = vec![0x29, 0x02];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        bytes.extend_from_slice(&2u16.to_le_bytes()); // sitting? at least a state value
+        bytes.extend_from_slice(&1u16.to_le_bytes());
+        bytes.extend_from_slice(&0x10u32.to_le_bytes()); // OPTION_FALCON
+        bytes.push(1);
+        assert_eq!(bytes.len(), 15);
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("state change packet was not handled");
+        };
+
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::StateChange {
+            entity_id: EntityId(0x0102_0304),
+            body_state: 2,
+            health_state: 1,
+            effect_state: 0x10,
+            is_pk_mode_on: true,
+        }]));
+    }
+
+    #[test]
+    fn change_direction_packet_emits_change_direction() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // `ZC_CHANGE_DIRECTION` (0x009C), 2019 layout: header + srcId u32 + headDir u16
+        // + dir u8.
+        let mut bytes = vec![0x9C, 0x00];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        bytes.extend_from_slice(&3u16.to_le_bytes());
+        bytes.push(4);
+        assert_eq!(bytes.len(), 9);
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("change direction packet was not handled");
+        };
+
+        // Wire direction 4 maps to client direction `(8 - 4 + 4) & 7 = 0`.
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ChangeDirection {
+            entity_id: EntityId(0x0102_0304),
+            head_direction: 3,
+            direction: Direction::North,
+        }]));
     }
 
     #[test]

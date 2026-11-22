@@ -30,6 +30,11 @@ const MAX_CACHE_SIZE: usize = usize::MAX;
 pub struct EntityPartFile {
     pub path: String,
     pub palette_path: Option<String>,
+    /// Optional action (`.act`) path override. The trimmed game data has some
+    /// sprite/action pairs under different file stems (e.g. the hunter falcon
+    /// is `ht_falcon.spr` + `h_falcon.act`); this allows loading such a
+    /// pair.
+    pub action_path: Option<String>,
 }
 
 impl EntityPartFile {
@@ -37,6 +42,7 @@ impl EntityPartFile {
         Self {
             path: path.into(),
             palette_path: None,
+            action_path: None,
         }
     }
 
@@ -44,7 +50,25 @@ impl EntityPartFile {
         Self {
             path: path.into(),
             palette_path,
+            action_path: None,
         }
+    }
+
+    /// Creates a part whose sprite and action files have different stems.
+    pub fn with_action(path: impl Into<String>, action_path: impl Into<String>) -> Self {
+        Self {
+            path: path.into(),
+            palette_path: None,
+            action_path: Some(action_path.into()),
+        }
+    }
+
+    fn sprite_path(&self) -> String {
+        format!("{}.spr", self.path)
+    }
+
+    fn action_path(&self) -> String {
+        format!("{}.act", self.action_path.as_deref().unwrap_or(&self.path))
     }
 }
 
@@ -81,9 +105,14 @@ impl AnimationLoader {
             // Additional parts (headgear accessories) are optional: if their
             // sprite or action is missing from the game archives, skip the part
             // instead of drawing the fallback (black) sprite.
-            if part_index >= 2
-                && !(sprite_loader.file_exists(&format!("{}.spr", file.path)) && action_loader.file_exists(&format!("{}.act", file.path)))
-            {
+            crate::logging::log_debug!(
+                "animation part {} sprite_exists={} action_exists={}",
+                file.path,
+                sprite_loader.file_exists(&file.sprite_path()),
+                action_loader.file_exists(&file.action_path())
+            );
+
+            if part_index >= 2 && !(sprite_loader.file_exists(&file.sprite_path()) && action_loader.file_exists(&file.action_path())) {
                 #[cfg(feature = "debug")]
                 print_debug!(
                     "[{}] missing accessory files for {}, skipping the headgear part",
@@ -94,8 +123,8 @@ impl AnimationLoader {
             }
 
             animation_pairs.push(AnimationPair {
-                sprites: sprite_loader.get_or_load(&format!("{}.spr", file.path), file.palette_path.as_deref())?,
-                actions: action_loader.get_or_load(&format!("{}.act", file.path))?,
+                sprites: sprite_loader.get_or_load(&file.sprite_path(), file.palette_path.as_deref())?,
+                actions: action_loader.get_or_load(&file.action_path())?,
             });
         }
 
