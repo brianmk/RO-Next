@@ -42,6 +42,10 @@ impl TeleportVanish {
 }
 
 impl EffectBase for TeleportVanish {
+    fn culling_position(&self) -> Option<Point3<f32>> {
+        Some(self.position)
+    }
+
     fn update(&mut self, _entities: &[crate::world::Entity], delta_time: f32) -> bool {
         self.time += delta_time;
 

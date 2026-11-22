@@ -204,6 +204,12 @@ pub struct Common {
     /// answered a name request (see [`Entity::set_details`]).
     #[hidden_element]
     guild_name: Option<String>,
+    /// Cached `<guild name>` label rendered under the character name.
+    ///
+    /// Composing it once when the guild name is set avoids a `String`
+    /// allocation per entity per frame in crowded towns.
+    #[hidden_element]
+    guild_label: Option<String>,
     #[hidden_element]
     animation_state: AnimationState,
     stopped_moving: bool,
@@ -558,6 +564,7 @@ impl Common {
             "" => None,
             guild_name => Some(guild_name.to_owned()),
         };
+        let guild_label = guild_name_label(entity_type, guild_name.as_deref());
         let animation_state = AnimationState::new(entity_type, client_tick);
         let scale = match library.get::<IsBabyJob>(job_id) {
             IsBabyJob(true) => BABY_JOB_SCALE,
@@ -586,6 +593,7 @@ impl Common {
             details,
             guild_id,
             guild_name,
+            guild_label,
             animation_state,
             stopped_moving: false,
             sound_state: SoundState::default(),
@@ -620,6 +628,13 @@ impl Common {
 
     pub fn set_guild_name(&mut self, guild_name: Option<String>) {
         self.guild_name = guild_name;
+        self.guild_label = guild_name_label(self.entity_type, self.guild_name.as_deref());
+    }
+
+    /// Cached `<guild name>` label for the name plate, `None` when the entity
+    /// is not a player in a guild.
+    pub fn get_guild_label(&self) -> Option<&str> {
+        self.guild_label.as_deref()
     }
 
     pub fn is_dead(&self) -> bool {
@@ -1728,6 +1743,11 @@ impl Entity {
     /// guild.
     pub fn get_guild_name(&self) -> Option<&str> {
         self.get_common().get_guild_name()
+    }
+
+    /// Cached `<guild name>` label for the name plate.
+    pub fn get_guild_label(&self) -> Option<&str> {
+        self.get_common().get_guild_label()
     }
 
     /// Updates the guild name of the entity.

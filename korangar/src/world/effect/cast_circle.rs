@@ -92,6 +92,10 @@ impl CastCircle {
 }
 
 impl EffectBase for CastCircle {
+    fn culling_position(&self) -> Option<Point3<f32>> {
+        Some(self.center.to_position() + self.offset)
+    }
+
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool {
         self.center.follow_entity(entities);
         self.time += delta_time;

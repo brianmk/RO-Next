@@ -182,6 +182,19 @@ pub fn sample_counts(effects: u32, particles: u32, entities: u32) {
     CURRENT_ENTITIES.store(entities, Ordering::Relaxed);
 }
 
+/// Sample how many effects/particles were rendered vs. culled by the budgets in
+/// the current frame (called once per frame, after the world render pass).
+pub fn sample_render_counts(rendered_effects: u32, culled_effects: u32, rendered_particles: u32, culled_particles: u32) {
+    if !enabled() {
+        return;
+    }
+
+    RENDERED_EFFECTS.store(rendered_effects, Ordering::Relaxed);
+    CULLED_EFFECTS.store(culled_effects, Ordering::Relaxed);
+    RENDERED_PARTICLES.store(rendered_particles, Ordering::Relaxed);
+    CULLED_PARTICLES.store(culled_particles, Ordering::Relaxed);
+}
+
 /// Sample the number of open interface windows for the current frame.
 pub fn sample_windows(windows: u32) {
     if !enabled() {
@@ -286,6 +299,17 @@ pub fn load_submitted(kind: LoadKind) {
     }
 
     load_stats().lock().unwrap()[kind.index()].submitted += 1;
+}
+
+/// Record that a load request was coalesced into an already in-flight load of
+/// the same resource (the request did not spawn a worker task).
+pub fn load_coalesced(kind: LoadKind) {
+    if !enabled() {
+        return;
+    }
+
+    let mut stats = load_stats().lock().unwrap();
+    stats[kind.index()].coalesced += 1;
 }
 
 /// Record the queue latency (submit -> worker start) of an async load.
@@ -574,12 +598,9 @@ pub fn end_stage() -> Option<StageSummary> {
     let divisor = frames as f64;
 
     // Mean of one field in milliseconds (per frame).
-    let mean_ms = |field: fn(&FrameSample) -> u64| -> f64 {
-        stage.samples.iter().map(field).sum::<u64>() as f64 / divisor / 1_000_000.0
-    };
-    let mean_count = |field: fn(&FrameSample) -> u32| -> f64 {
-        stage.samples.iter().map(|sample| field(sample) as u64).sum::<u64>() as f64 / divisor
-    };
+    let mean_ms = |field: fn(&FrameSample) -> u64| -> f64 { stage.samples.iter().map(field).sum::<u64>() as f64 / divisor / 1_000_000.0 };
+    let mean_count =
+        |field: fn(&FrameSample) -> u32| -> f64 { stage.samples.iter().map(|sample| field(sample) as u64).sum::<u64>() as f64 / divisor };
 
     let mut totals: Vec<u64> = stage.samples.iter().map(|sample| sample.total_nanos).collect();
     let total_p50 = percentile(&mut totals, 50.0);
@@ -607,7 +628,12 @@ pub fn end_stage() -> Option<StageSummary> {
         interface_allocations_per_frame: stage.samples.iter().map(|sample| sample.interface_allocations as f64).sum::<f64>() / divisor,
         world_allocations_per_frame: stage.samples.iter().map(|sample| sample.world_allocations as f64).sum::<f64>() / divisor,
         gpu_allocations_per_frame: stage.samples.iter().map(|sample| sample.gpu_allocations as f64).sum::<f64>() / divisor,
-        allocated_kib_per_frame: stage.samples.iter().map(|sample| sample.allocated_bytes as f64 / 1024.0).sum::<f64>() / divisor,
+        allocated_kib_per_frame: stage
+            .samples
+            .iter()
+            .map(|sample| sample.allocated_bytes as f64 / 1024.0)
+            .sum::<f64>()
+            / divisor,
         effects_mean: mean_count(|sample| sample.effects),
         particles_mean: mean_count(|sample| sample.particles),
         entities_mean: mean_count(|sample| sample.entities),
@@ -638,14 +664,7 @@ pub fn frame_begin() {
 
 /// Record one rendered frame with the frame phase durations measured in the
 /// render loop. Called from `record_frame_phase`.
-pub fn record_frame(
-    wait_nanos: u64,
-    sim_nanos: u64,
-    interface_nanos: u64,
-    world_nanos: u64,
-    gpu_nanos: u64,
-    phase_allocations: [u64; 4],
-) {
+pub fn record_frame(wait_nanos: u64, sim_nanos: u64, interface_nanos: u64, world_nanos: u64, gpu_nanos: u64, phase_allocations: [u64; 4]) {
     if !enabled() {
         return;
     }
@@ -763,7 +782,8 @@ pub fn loader_log_line() -> Option<String> {
 
     Some(format!(
         "[loader] submitted={total_submitted} completed={total_completed} failed={total_failed} coalesced={total_coalesced} \
-         map_q_p50={:.2}ms map_q_p95={:.2}ms map_svc_p50={:.2}ms map_svc_p95={:.2}ms anim_q_p95={:.2}ms anim_svc_p95={:.2}ms          sprite_svc_p95={:.2}ms item_svc_p95={:.2}ms",
+         map_q_p50={:.2}ms map_q_p95={:.2}ms map_svc_p50={:.2}ms map_svc_p95={:.2}ms anim_q_p95={:.2}ms anim_svc_p95={:.2}ms          \
+         sprite_svc_p95={:.2}ms item_svc_p95={:.2}ms",
         milliseconds(map.queue_p50_nanos),
         milliseconds(map.queue_p95_nanos),
         milliseconds(map.service_p50_nanos),
@@ -781,7 +801,7 @@ pub fn loader_log_line() -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{LoadKind, LoadKindStatistics, LOAD_KIND_COUNT, StageSummary, percentile};
+    use super::{LOAD_KIND_COUNT, LoadKind, LoadKindStatistics, StageSummary, percentile};
 
     #[test]
     fn percentiles_are_sane() {
@@ -826,6 +846,10 @@ mod tests {
     #[test]
     fn default_load_statistics_are_zero() {
         let statistics = [LoadKindStatistics::default(); LOAD_KIND_COUNT];
-        assert!(statistics.iter().all(|statistics| statistics.submitted == 0 && statistics.service_p95_nanos == 0));
+        assert!(
+            statistics
+                .iter()
+                .all(|statistics| statistics.submitted == 0 && statistics.service_p95_nanos == 0)
+        );
     }
 }

@@ -6,19 +6,18 @@
 //! builds with the same command:
 //!
 //! 1. `login`      - log in with the configured test account, select the first
-//!                   character and enter the map.
+//!    character and enter the map.
 //! 2. `town_idle`  - stand still in the town (crowded with population-engine
-//!                   shells) and let the world render.
+//!    shells) and let the world render.
 //! 3. `town_walk`  - walk a fixed loop around the spawn point, crossing the
-//!                   crowded plaza (entity updates, animation loads).
+//!    crowded plaza (entity updates, animation loads).
 //! 4. `effects`    - burst of world effects + damage/heal/miss numbers around
-//!                   the player.
+//!    the player.
 //! 5. `ui_updates` - open the common windows, inject a known buff set and
-//!                   invalidate the window layouts every frame (the worst case
-//!                   for a busy network frame), so buff bar / UI label churn is
-//!                   measured.
+//!    invalidate the window layouts every frame (the worst case for a busy
+//!    network frame), so buff bar / UI label churn is measured.
 //! 6. `map_change` - request three map loads through the real async loader and
-//!                   record the completion latency.
+//!    record the completion latency.
 //!
 //! Every stage prints a machine readable `[bench-stage] {...}` line (also
 //! appended to `KORANGAR_BENCH_OUT` when set, see [`crate::perf`]). Per-stage
@@ -48,12 +47,10 @@ use ragnarok_packets::TilePosition;
 use crate::graphics::Color;
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
-use crate::loaders::ImageType;
-use crate::perf;
-use crate::loaders::ClientInfoPathExt;
+use crate::loaders::{ClientInfoPathExt, ImageType};
 use crate::state::{ClientStatePathExt, client_state, status_effect_definition, this_entity};
 use crate::world::{DamageNumber, HealNumber, Miss};
-use crate::Client;
+use crate::{Client, perf};
 
 /// Windows counted for the `windows_mean` metric of a stage.
 const COUNTED_WINDOWS: &[WindowClass] = &[
@@ -185,7 +182,11 @@ pub fn drive(client: &mut Client, client_tick: u64) {
     }
 
     if let Some(failure) = bench.failure.clone() {
-        perf::emit(&format!(r#"[bench-error] {{"stage":"{:?}","reason":"{}"}}"#, bench.stage, escape(&failure)));
+        perf::emit(&format!(
+            r#"[bench-error] {{"stage":"{:?}","reason":"{}"}}"#,
+            bench.stage,
+            escape(&failure)
+        ));
         bench.finished = true;
         client.shutdown_requested = true;
         return;
@@ -328,12 +329,7 @@ fn stage_login(client: &mut Client, bench: &mut BenchState, now: Instant) {
             return;
         }
 
-        let Some(character_server) = client
-            .client_state
-            .follow(client_state().character_servers())
-            .first()
-            .cloned()
-        else {
+        let Some(character_server) = client.client_state.follow(client_state().character_servers()).first().cloned() else {
             // The login data has not arrived yet; retry shortly.
             bench.next_action = now + Duration::from_millis(250);
             return;
@@ -387,7 +383,10 @@ fn stage_town_walk(client: &mut Client, bench: &mut BenchState, now: Instant) {
     }
 
     if now >= bench.next_action {
-        let base = bench.spawn_tile.or_else(|| player_tile(client)).unwrap_or(TilePosition { x: 156, y: 191 });
+        let base = bench
+            .spawn_tile
+            .or_else(|| player_tile(client))
+            .unwrap_or(TilePosition { x: 156, y: 191 });
         let (offset_x, offset_y) = WALK_OFFSETS[bench.walk_index % WALK_OFFSETS.len()];
         bench.walk_index += 1;
 
@@ -478,17 +477,15 @@ fn stage_effects(client: &mut Client, bench: &mut BenchState, now: Instant) {
                     100 + u64::from(tick) * 37 + u64::from(index),
                     index == 0,
                 ))),
-                1 => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
-                    position + offset,
-                    10_000 + u64::from(index),
-                    false,
-                ))),
+                1 => {
+                    client
+                        .particle_holder
+                        .spawn_particle(Box::new(DamageNumber::new(position + offset, 10_000 + u64::from(index), false)))
+                }
                 2 => client
                     .particle_holder
                     .spawn_particle(Box::new(HealNumber::new(position + offset, 500 + u64::from(index)))),
-                _ => client
-                    .particle_holder
-                    .spawn_particle(Box::new(Miss::new(position + offset))),
+                _ => client.particle_holder.spawn_particle(Box::new(Miss::new(position + offset))),
             }
         }
 
@@ -591,7 +588,10 @@ fn in_game(client: &Client) -> bool {
 }
 
 fn player_tile(client: &Client) -> Option<TilePosition> {
-    client.client_state.try_follow(this_entity()).map(|entity| entity.get_tile_position())
+    client
+        .client_state
+        .try_follow(this_entity())
+        .map(|entity| entity.get_tile_position())
 }
 
 fn player_position(client: &Client) -> Option<cgmath::Point3<f32>> {
@@ -634,7 +634,6 @@ fn finish_stage(_bench: &mut BenchState, name: &'static str) {
         .collect();
 
     perf::emit(&format!(r#"[bench-load] {{"stage":"{name}","kinds":{{{}}}}}"#, kinds.join(",")));
-
 }
 
 fn apply_benchmark_buffs(client: &mut Client, client_tick: u64) {
@@ -644,12 +643,9 @@ fn apply_benchmark_buffs(client: &mut Client, client_tick: u64) {
 
     for (index, status_index) in BENCHMARK_BUFFS.iter().enumerate() {
         let definition = status_effect_definition(*status_index);
-        let icon = definition.icon.and_then(|path| {
-            client
-                .texture_loader
-                .get_or_load(path, ImageType::Color)
-                .ok()
-        });
+        let icon = definition
+            .icon
+            .and_then(|path| client.texture_loader.get_or_load(path, ImageType::Color).ok());
 
         // Stagger the durations so the remaining-time labels differ per buff.
         let total_milliseconds = 60_000 + index as u32 * 30_000;

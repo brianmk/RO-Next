@@ -1741,6 +1741,17 @@ impl Client {
         if let Some(line) = crate::perf::loader_log_line() {
             println!("{line}");
         }
+
+        // Budget telemetry: how many effects/particles are alive and how many
+        // were dropped by the documented caps since startup. A crowded town
+        // should show the counts staying at the caps instead of growing.
+        println!(
+            "[budget] effects={} effects_dropped={} particles={} particles_dropped={}",
+            self.effect_holder.count(),
+            self.effect_holder.dropped_effects(),
+            self.particle_holder.count(),
+            self.particle_holder.dropped_particles(),
+        );
         println!(
             "[perf-phase] stage={} wait={:.2}ms sim={:.2}ms interface={:.2}ms world={:.2}ms gpu={:.2}ms frame_total={:.2}ms",
             crate::perf::current_stage().unwrap_or("-"),
@@ -3907,7 +3918,6 @@ impl Client {
                     self.client_state
                         .follow_mut(client_state().party())
                         .apply_health(account_id, health_points, maximum_health_points);
-
                 }
                 NetworkEvent::PartyMemberPosition { account_id, position } => {
                     self.client_state
@@ -3963,7 +3973,6 @@ impl Client {
                     };
 
                     self.push_chat_information(message);
-
                 }
                 NetworkEvent::PartyCreationResult { result } => {
                     let message = match result {
@@ -7096,6 +7105,10 @@ impl Client {
             self.client_state.follow(client_state().entities()).len() as u32,
         );
 
+        let (rendered_effects, culled_effects) = self.effect_holder.render_counts();
+        let (rendered_particles, culled_particles) = self.particle_holder.render_counts();
+        crate::perf::sample_render_counts(rendered_effects, culled_effects, rendered_particles, culled_particles);
+
         record_frame_phase(
             after_wait.saturating_duration_since(before_wait),
             after_sim.saturating_duration_since(after_wait),
@@ -7946,7 +7959,9 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         self.middle_interface_renderer
             .render_outlined_text(name, position, color, Color::BLACK, name_font_size, AlignHorizontal::Center);
 
-        let Some(guild_label) = guild_name_label(entity.get_entity_type(), entity.get_guild_name()) else {
+        // The label is cached on the entity (`<guild name>`), so this path does
+        // not allocate a String per entity per frame.
+        let Some(guild_label) = entity.get_guild_label() else {
             return;
         };
 
@@ -7959,7 +7974,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         };
 
         self.middle_interface_renderer.render_outlined_text(
-            &guild_label,
+            guild_label,
             guild_name_position,
             GUILD_NAME_COLOR,
             Color::BLACK,
@@ -7975,7 +7990,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         if guild_id != 0 {
             let guild_label_size = self
                 .middle_interface_renderer
-                .measure_text(&guild_label, FontSize(GUILD_NAME_FONT_SIZE));
+                .measure_text(guild_label, FontSize(GUILD_NAME_FONT_SIZE));
             let emblem_extent = GUILD_EMBLEM_ICON_SIZE * self.scaling.get_factor();
             let emblem_gap = 2.0 * self.scaling.get_factor();
             let emblem_position = ScreenPosition {
