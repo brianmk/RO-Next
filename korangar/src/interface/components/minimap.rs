@@ -134,7 +134,7 @@ where
                 layout.with_layer(|layout| {
                     for marker in markers {
                         let center_x = map_area.left + draw_width * ((marker.position.x as f32 + 0.5) / cells_width);
-                        let center_y = map_area.top + draw_height * ((marker.position.y as f32 + 0.5) / cells_height);
+                        let center_y = map_area.top + draw_height * (1.0 - (marker.position.y as f32 + 0.5) / cells_height);
                         let color = Color::rgba_u8(marker.color[0], marker.color[1], marker.color[2], marker.color[3]);
 
                         layout.add_rectangle(
@@ -169,7 +169,7 @@ where
         }
 
         let marker_center_x = map_area.left + draw_width * ((player_position.x as f32 + 0.5) / cells_width);
-        let marker_center_y = map_area.top + draw_height * ((player_position.y as f32 + 0.5) / cells_height);
+        let marker_center_y = map_area.top + draw_height * (1.0 - (player_position.y as f32 + 0.5) / cells_height);
 
         let marker_textures = state.get(&client_state().minimap().marker_textures()).clone();
         let marker_direction = *state.get(&client_state().minimap().player_direction());

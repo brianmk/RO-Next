@@ -143,6 +143,18 @@ pub fn generate_minimap(
         }
     }
 
+    // The ground/GAT rows are stored bottom-up (RO map y=0 is the south edge),
+    // while the minimap window draws the texture top-down. Flip the rows so the
+    // minimap matches the world orientation (previously it appeared upside down).
+    let row_len = map_width as usize * 4;
+    for y in 0..(map_height as usize / 2) {
+        let top = y * row_len;
+        let bottom = (map_height as usize - 1 - y) * row_len;
+        for byte in 0..row_len {
+            image_data.swap(top + byte, bottom + byte);
+        }
+    }
+
     let image = RgbaImage::from_raw(map_width, map_height, image_data)?;
     let texture = texture_loader.create_color(&format!("minimap/{resource_file}"), image, false);
 
