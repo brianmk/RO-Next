@@ -10,8 +10,8 @@ use korangar_interface::element::StateElement;
 use korangar_interface::window::{StateWindow, Window};
 use korangar_networking::EntityData;
 use ragnarok_packets::{
-    AccountId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex, SpriteChangeType, StatType,
-    TilePosition, WorldPosition,
+    AccountId, AttackRange, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex, SpriteChangeType,
+    StatType, TilePosition, WorldPosition,
 };
 use rust_state::{Path, RustState, VecItem};
 #[cfg(feature = "debug")]
@@ -1386,6 +1386,14 @@ pub struct Player {
     pub luck_stat_points_cost: u8,
     /// Attack motion (server `SP_ASPD`), in milliseconds.
     pub attack_speed: u32,
+    /// Current attack range (`ZC_ATTACK_RANGE`, 0x013A).
+    pub attack_range: AttackRange,
+    /// Merchant cart item count/weight (`ZC_NOTIFY_CARTITEM_COUNTINFO`, 0x0121
+    /// and `SP_CARTINFO` through 0x00B0).
+    pub cart_items: u16,
+    pub cart_maximum_items: i16,
+    pub cart_weight: u32,
+    pub cart_maximum_weight: u32,
     pub skill_points: u32,
     /// Base attack including the weapon attack (server `SP_ATK1`).
     pub attack: u32,
@@ -1477,6 +1485,11 @@ impl Player {
             bonus_luck: 0,
             luck_stat_points_cost: 0,
             attack_speed: 0,
+            attack_range: AttackRange(1),
+            cart_items: 0,
+            cart_maximum_items: 0,
+            cart_weight: 0,
+            cart_maximum_weight: 0,
             skill_points: 0,
             attack: 0,
             bonus_attack: 0,
@@ -1603,6 +1616,11 @@ impl Player {
             StatType::NextBaseExperience(next_base_experience) => self.next_base_experience = next_base_experience,
             StatType::JobExperience(job_experience) => self.job_experience = job_experience,
             StatType::NextJobExperience(next_job_experience) => self.next_job_experience = next_job_experience,
+            StatType::CartInfo(items, weight, maximum_weight) => {
+                self.cart_items = items;
+                self.cart_weight = weight;
+                self.cart_maximum_weight = maximum_weight;
+            }
             _ => {}
         }
     }

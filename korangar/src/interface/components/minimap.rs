@@ -22,6 +22,8 @@ const PADDING: f32 = 4.0;
 const FALLBACK_MARKER_SIZE: f32 = 7.0;
 /// The arrow texture is drawn at `view_size / this` pixels.
 const MARKER_SIZE_DIVISOR: f32 = 13.0;
+/// Size of a server-placed minimap marker in interface pixels.
+const MARKER_SIZE: f32 = 5.0;
 
 const BACKGROUND_COLOR: Color = Color::rgb_u8(22, 24, 28);
 const FALLBACK_MARKER_COLOR: Color = Color::rgb_u8(80, 255, 110);
@@ -120,6 +122,37 @@ where
         };
 
         layout.add_texture(map_area, texture, Color::WHITE, true);
+
+        // Server-placed NPC/quest markers (`ZC_COMPASS`, 0x0144).
+        let markers_path = client_state().minimap().markers();
+        let markers = state.get(&markers_path);
+        if !markers.is_empty() {
+            let cells_width = *state.get(&client_state().minimap().cells_width()) as f32;
+            let cells_height = *state.get(&client_state().minimap().cells_height()) as f32;
+
+            if cells_width > 0.0 && cells_height > 0.0 {
+                layout.with_layer(|layout| {
+                    for marker in markers {
+                        let center_x = map_area.left + draw_width * ((marker.position.x as f32 + 0.5) / cells_width);
+                        let center_y = map_area.top + draw_height * ((marker.position.y as f32 + 0.5) / cells_height);
+                        let color = Color::rgba_u8(marker.color[0], marker.color[1], marker.color[2], marker.color[3]);
+
+                        layout.add_rectangle(
+                            Area {
+                                left: center_x - MARKER_SIZE / 2.0,
+                                top: center_y - MARKER_SIZE / 2.0,
+                                width: MARKER_SIZE,
+                                height: MARKER_SIZE,
+                            },
+                            CornerDiameter::uniform(1.0),
+                            color,
+                            FALLBACK_MARKER_OUTLINE_COLOR,
+                            ShadowPadding::uniform(0.5),
+                        );
+                    }
+                });
+            }
+        }
 
         // Player marker: an arrow that points into the direction the player is
         // facing, positioned by the player's tile relative to the map size in

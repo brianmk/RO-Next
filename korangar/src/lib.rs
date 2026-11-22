@@ -78,8 +78,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
-    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, SellItemsResult, SkillId, SkillLevel,
-    SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, MarkerType, SellItemsResult, SkillId,
+    SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -2421,6 +2421,9 @@ impl Client {
 
     /// Updates the local status effect timers and shows/hides the buff bar.
     fn update_status_effects(&mut self, client_tick: ClientTick) {
+        self.client_state.follow_mut(client_state().minimap()).prune_markers(client_tick.0);
+        self.client_state.follow_mut(client_state().skill_cooldowns()).prune(client_tick);
+
         {
             let status_effects = self.client_state.follow_mut(client_state().status_effects());
             status_effects.set_client_tick(client_tick.0 as u64);
@@ -4625,6 +4628,123 @@ impl Client {
                 }
                 NetworkEvent::RefuseEnter { error_code } => {
                     self.push_chat_information(format!("The map server refused the login (error {error_code})."));
+                }
+                NetworkEvent::SpiritOrbs { entity_id, amount } => {
+                    self.client_state.follow_mut(client_state().spirit_orbs()).set(entity_id, amount);
+                }
+                NetworkEvent::SkillCooldown { skill_id, until } => {
+                    self.client_state
+                        .follow_mut(client_state().skill_cooldowns())
+                        .start(skill_id, until);
+                }
+                NetworkEvent::AttackRangeChanged { attack_range } => {
+                    if let Some(player) = self.client_state.try_follow_mut(this_player()) {
+                        player.attack_range = attack_range;
+                    }
+                }
+                NetworkEvent::EntityStopped { entity_id, position } => {
+                    let Some(map) = &self.map else {
+                        continue;
+                    };
+
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.stop_movement();
+                        entity.set_position(map, position, client_tick);
+                    }
+                }
+                NetworkEvent::MinimapMarker {
+                    npc_id,
+                    marker_type,
+                    position,
+                    id: _,
+                    color,
+                } => {
+                    let minimap = self.client_state.follow_mut(client_state().minimap());
+
+                    match marker_type {
+                        MarkerType::RemoveMark => minimap.remove_marker(npc_id),
+                        MarkerType::DisplayFor15Seconds | MarkerType::DisplayUntilLeave => {
+                            let expires_at = match marker_type {
+                                MarkerType::DisplayFor15Seconds => Some(client_tick.0.wrapping_add(15_000)),
+                                MarkerType::DisplayUntilLeave => None,
+                                MarkerType::RemoveMark => unreachable!(),
+                            };
+
+                            minimap.add_marker(crate::state::minimap::MinimapMarker {
+                                entity_id: npc_id,
+                                position: TilePosition {
+                                    x: position.x.min(u16::MAX as u32) as u16,
+                                    y: position.y.min(u16::MAX as u32) as u16,
+                                },
+                                color: [color.red, color.green, color.blue, color.alpha],
+                                expires_at,
+                            });
+                        }
+                    }
+                }
+                NetworkEvent::MapProperties { map_type, flags } => {
+                    *self.client_state.follow_mut(client_state().map_type()) = map_type;
+                    *self.client_state.follow_mut(client_state().map_flags()) = flags;
+                }
+                NetworkEvent::CartInfo {
+                    current_count,
+                    maximum_count,
+                    current_weight,
+                    maximum_weight,
+                } => {
+                    if let Some(player) = self.client_state.try_follow_mut(this_player()) {
+                        player.cart_items = current_count.max(0) as u16;
+                        player.cart_maximum_items = maximum_count;
+                        player.cart_weight = current_weight.max(0) as u32;
+                        player.cart_maximum_weight = maximum_weight.max(0) as u32;
+                    }
+                }
+                NetworkEvent::MapServerAuthFailed { reason } => {
+                    crate::logging::log_warn!("map server rejected the login (ZC_AUTH_FAIL reason {reason})");
+                    self.interface.open_window(ErrorWindow::new(format!(
+                        "The map server rejected the connection (reason {reason}). Please try again."
+                    )));
+                }
+                NetworkEvent::ShowEquipmentWindow { open } => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match (open, self.interface.is_window_with_class_open(WindowClass::Equipment)) {
+                            (true, false) => self.interface.open_window(EquipmentWindow::new(
+                                client_state().inventory().items(),
+                                this_player().manually_asserted(),
+                            )),
+                            (false, true) => self.interface.close_window_with_class(WindowClass::Equipment),
+                            _ => {}
+                        }
+                    }
+                }
+                NetworkEvent::MapCellChanged {
+                    position,
+                    cell_type,
+                    map_name,
+                } => {
+                    // rAthena cell type 0 = walkable, everything else blocks.
+                    // The loaded map is an immutable Arc<Map>, so the override
+                    // is recorded in the state and logged (collision follow-up).
+                    let walkable = cell_type == 0;
+                    let overrides = self.client_state.follow_mut(client_state().map_cell_overrides());
+
+                    match overrides.iter_mut().find(|(tile, _)| *tile == position) {
+                        Some((_, current)) => *current = walkable,
+                        None => overrides.push((position, walkable)),
+                    }
+
+                    crate::logging::log_debug!(
+                        "map cell changed: {} ({}, {}) -> type {}",
+                        map_name,
+                        position.x,
+                        position.y,
+                        cell_type
+                    );
                 }
                 NetworkEvent::MessageString { message_id } => {
                     let text = match self.message_table.as_ref().and_then(|table| table.get(message_id)) {

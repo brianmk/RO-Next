@@ -7,8 +7,8 @@ use ragnarok_packets::handler::{DuplicateHandlerError, PacketCallback, PacketHan
 use ragnarok_packets::*;
 
 use crate::event::{NetworkEventList, NoNetworkEvents};
-use crate::packet_versions::noop_policy::register_ignored_noop;
 use crate::items::ItemQuantity;
+use crate::packet_versions::noop_policy::register_ignored_noop;
 use crate::{
     CharacterServerLoginData, HotkeyState, InventoryItem, InventoryItemDetails, LoginServerLoginData, MessageColor, NetworkEvent,
     NoMetadata, ShopItem, UnifiedCharacterSelectionFailedReason, UnifiedLoginFailedReason,
@@ -1349,9 +1349,7 @@ where
         }),
     })?;
     register_ignored_noop::<_, Packet0b18>(packet_handler)?;
-    packet_handler.register(|packet: MapServerAuthFailedPacket| NetworkEvent::MapServerAuthFailed {
-        reason: packet.reason,
-    })?;
+    packet_handler.register(|packet: MapServerAuthFailedPacket| NetworkEvent::MapServerAuthFailed { reason: packet.reason })?;
     packet_handler.register(|packet: MapServerLoginSuccessPacket| NetworkEvent::UpdateClientTick {
         client_tick: packet.client_tick,
         received_at: Instant::now(),

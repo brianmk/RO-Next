@@ -7,7 +7,9 @@ pub mod inventory;
 pub mod localization;
 pub mod minimap;
 pub mod party;
+pub mod skill_cooldowns;
 pub mod skills;
+pub mod spirit_orbs;
 pub mod stat_buffer;
 pub mod status_effects;
 pub mod theme;
@@ -32,7 +34,7 @@ use korangar_networking::{MessageColor, SellItem, ShopItem};
 use localization::Localization;
 #[cfg(feature = "debug")]
 use ragnarok_formats::map::{EffectSource, LightSource, MapData, SoundSource};
-use ragnarok_packets::{CharacterId, CharacterServerInformation, EntityId, Friend};
+use ragnarok_packets::{CharacterId, CharacterServerInformation, EntityId, Friend, TilePosition};
 #[cfg(feature = "debug")]
 use rust_state::{ManuallyAssertExt, VecIndexExt};
 use rust_state::{Path, PathExt, RustState, Selector};
@@ -64,7 +66,9 @@ use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
 use crate::state::minimap::Minimap;
 use crate::state::party::Party;
+use crate::state::skill_cooldowns::SkillCooldowns;
 use crate::state::skills::SkillTree;
+use crate::state::spirit_orbs::SpiritOrbs;
 use crate::state::theme::WorldTheme;
 #[cfg(feature = "debug")]
 use crate::world::Object;
@@ -155,6 +159,22 @@ pub struct ClientState {
     dialog_window: DialogWindowState,
     /// Internal state of the skill tree window.
     skill_tree_window: SkillTreeWindowState,
+    /// Spirit-sphere counts of visible entities (`ZC_SPIRITS*` 0x01D0/0x01E1).
+    #[hidden_element]
+    spirit_orbs: SpiritOrbs,
+    /// Active skill cooldowns (`ZC_SKILL_POSTDELAY`, 0x043D).
+    #[hidden_element]
+    skill_cooldowns: SkillCooldowns,
+    /// Map type and flags from `ZC_NOTIFY_MAPPROPERTY2` (0x099B).
+    #[hidden_element]
+    map_type: u16,
+    #[hidden_element]
+    map_flags: u32,
+    /// Dynamic map-cell overrides from `ZC_UPDATE_MAPINFO` (0x0192): tile ->
+    /// walkable. The loaded map is shared/immutable, so the override is kept
+    /// here (see the noop report for the collision follow-up).
+    #[hidden_element]
+    map_cell_overrides: Vec<(TilePosition, bool)>,
 
     /// All entities on the map.
     entities: Vec<Entity>,
@@ -347,6 +367,11 @@ impl ClientState {
 
             let chat_window = ChatWindowState::default();
             let minimap = Minimap::default();
+            let spirit_orbs = SpiritOrbs::default();
+            let skill_cooldowns = SkillCooldowns::default();
+            let map_type = 0;
+            let map_flags = 0;
+            let map_cell_overrides = Vec::new();
         });
 
         time_phase!("create character server resources", {
@@ -450,6 +475,11 @@ impl ClientState {
             friend_list_window,
             dialog_window,
             skill_tree_window,
+            spirit_orbs,
+            skill_cooldowns,
+            map_type,
+            map_flags,
+            map_cell_overrides,
             entities: Vec::new(),
             dead_entities: Vec::new(),
             ground_items: Vec::new(),

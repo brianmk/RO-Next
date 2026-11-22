@@ -251,7 +251,9 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
 /// Register a packet that is deliberately only parsed. Panics when the packet
 /// is not in [`IGNORED_NOOPS`], so a noop can never be added without a
 /// documented classification.
-pub fn register_ignored_noop<Callback, Packet>(packet_handler: &mut PacketHandler<NetworkEventList, Callback>) -> Result<(), DuplicateHandlerError>
+pub fn register_ignored_noop<Callback, Packet>(
+    packet_handler: &mut PacketHandler<NetworkEventList, Callback>,
+) -> Result<(), DuplicateHandlerError>
 where
     Callback: PacketCallback,
     Packet: ragnarok_packets::Packet,
@@ -260,7 +262,11 @@ where
         .iter()
         .find(|entry| entry.header == Packet::HEADER.0)
         .unwrap_or_else(|| panic!("noop packet 0x{:04X} is not classified in IGNORED_NOOPS", Packet::HEADER.0));
-    debug_assert!(!entry.reason.is_empty(), "noop packet 0x{:04X} has an empty reason", entry.header);
+    debug_assert!(
+        !entry.reason.is_empty(),
+        "noop packet 0x{:04X} has an empty reason",
+        entry.header
+    );
     debug_assert!(
         !matches!(entry.class, IgnoreClass::OwnedElsewhere(owner) if owner.is_empty()),
         "owned noop packet 0x{:04X} has an empty owner",

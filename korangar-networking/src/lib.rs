@@ -1325,16 +1325,251 @@ mod contract_2019;
 
 #[cfg(test)]
 mod packet_handlers {
+    use std::collections::HashSet;
+
     use ragnarok_bytes::{ByteReader, ByteWriter};
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
-        AccountId, CharacterId, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket, GuildEmblemRequestPacket,
-        LoginFailedPacket2, LoginFailedReason2, PacketExt, RequestEmotionPacket, RequestEntityDetailsSuccessPacket,
-        RequestPlayerDetailsSuccessPacket,
+        AccountId, AttackRange, CharacterId, ClientTick, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket,
+        GuildEmblemRequestPacket, MarkerType, PacketExt, PacketHeader, RequestEmotionPacket, RequestEntityDetailsSuccessPacket,
+        RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
     };
 
     use crate::event::NetworkEventList;
+    use crate::packet_versions::noop_policy::{IGNORED_NOOPS, IgnoreClass, NoopServer, register_ignored_noop};
     use crate::{NetworkEvent, NetworkingSystem, SupportedPacketVersion, UnknownPacketAction, unknown_packet_action};
+
+    #[test]
+    fn every_ignored_noop_is_registered_with_a_reason() {
+        let map_handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+        let character_handler =
+            NetworkingSystem::create_character_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut seen = HashSet::new();
+
+        for entry in IGNORED_NOOPS {
+            assert!(
+                seen.insert(entry.header),
+                "noop 0x{:04X} is classified more than once",
+                entry.header
+            );
+            assert!(!entry.reason.is_empty(), "noop 0x{:04X} has no reason", entry.header);
+
+            if let IgnoreClass::OwnedElsewhere(owner) = entry.class {
+                assert!(!owner.is_empty(), "owned noop 0x{:04X} has no owner", entry.header);
+            }
+
+            let headers = match entry.server {
+                NoopServer::Map => map_handler.registered_headers(),
+                NoopServer::Character => character_handler.registered_headers(),
+            };
+
+            assert!(
+                headers.contains(&PacketHeader(entry.header)),
+                "classified noop 0x{:04X} is not registered for {:?}",
+                entry.header,
+                entry.server
+            );
+        }
+    }
+
+    #[test]
+    fn version_module_registers_no_bare_noops() {
+        let source = include_str!("packet_versions/version_20220406.rs");
+
+        assert_eq!(
+            source.matches("register_noop::<").count(),
+            0,
+            "every parsed-but-unconsumed packet must use register_ignored_noop with a classification"
+        );
+        assert!(
+            source.matches("register_ignored_noop::<").count() >= 30,
+            "expected the classified noop registrations to remain in place"
+        );
+    }
+
+    #[test]
+    fn dead_2022_packets_are_not_registered() {
+        let map_handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+        let headers = map_handler.registered_headers();
+
+        for dead_header in [0x0ADEu16, 0x08E2, 0x07FB, 0x0283] {
+            assert!(
+                !headers.contains(&PacketHeader(dead_header)),
+                "dead 2022 packet 0x{dead_header:04X} is still registered"
+            );
+        }
+
+        let packet_source = include_str!("../../ragnarok-packets/src/lib.rs");
+        for dead_struct in [
+            "CriticalWeightUpdatePacket",
+            "NavigateToMonsterPacket",
+            "UseSkillSuccessPacket",
+            "Packet8302",
+        ] {
+            assert!(
+                !packet_source.contains(&format!("pub struct {dead_struct}")),
+                "dead 2022 struct {dead_struct} still exists"
+            );
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "is not classified")]
+    fn unclassified_noop_is_rejected() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let _ = register_ignored_noop::<_, ragnarok_packets::MapServerLoginSuccessPacket>(&mut handler);
+    }
+
+    #[test]
+    fn implemented_noops_emit_typed_events() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // `ZC_SPIRITS` (0x01D0): header + entity id u32 + amount i16.
+        let mut bytes = vec![0xD0, 0x01];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        bytes.extend_from_slice(&3i16.to_le_bytes());
+        assert_eq!(bytes.len(), 8);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("spirits packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::SpiritOrbs {
+            entity_id: EntityId(0x0102_0304),
+            amount: 3,
+        }]));
+
+        // `ZC_SKILL_POSTDELAY` (0x043D): header + skill id u16 + until u32.
+        let mut bytes = vec![0x3D, 0x04];
+        bytes.extend_from_slice(&34u16.to_le_bytes());
+        bytes.extend_from_slice(&500u32.to_le_bytes());
+        assert_eq!(bytes.len(), 8);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("skill cooldown packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::SkillCooldown {
+            skill_id: SkillId(34),
+            until: ClientTick(500),
+        }]));
+
+        // `ZC_ATTACK_RANGE` (0x013A): header + range u16.
+        let mut bytes = vec![0x3A, 0x01];
+        bytes.extend_from_slice(&7u16.to_le_bytes());
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("attack range packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::AttackRangeChanged {
+            attack_range: AttackRange(7),
+        }]));
+
+        // `ZC_STOPMOVE` (0x0088): header + entity id u32 + x u16 + y u16.
+        let mut bytes = vec![0x88, 0x00];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        bytes.extend_from_slice(&120u16.to_le_bytes());
+        bytes.extend_from_slice(&45u16.to_le_bytes());
+        assert_eq!(bytes.len(), 10);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("stop move packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::EntityStopped {
+            entity_id: EntityId(0x0102_0304),
+            position: TilePosition { x: 120, y: 45 },
+        }]));
+
+        // `ZC_COMPASS` (0x0144): header + npc id u32 + marker type u32 +
+        // position (x u32, y u32) + id u8 + colour RGBA.
+        let mut bytes = vec![0x44, 0x01];
+        bytes.extend_from_slice(&0x0102_0304u32.to_le_bytes());
+        bytes.extend_from_slice(&1u32.to_le_bytes());
+        bytes.extend_from_slice(&120u32.to_le_bytes());
+        bytes.extend_from_slice(&45u32.to_le_bytes());
+        bytes.push(2);
+        bytes.extend_from_slice(&[10, 20, 30, 255]);
+        assert_eq!(bytes.len(), 23);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("marker packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MinimapMarker {
+            npc_id: EntityId(0x0102_0304),
+            marker_type: MarkerType::DisplayUntilLeave,
+            ..
+        }]));
+
+        // `ZC_NOTIFY_MAPPROPERTY2` (0x099B): header + map type u16 + flags u32.
+        let mut bytes = vec![0x9B, 0x09];
+        bytes.extend_from_slice(&3u16.to_le_bytes());
+        bytes.extend_from_slice(&0x0001_0000u32.to_le_bytes());
+        assert_eq!(bytes.len(), 8);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("map property packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MapProperties {
+            map_type: 3,
+            flags: 0x0001_0000,
+        }]));
+
+        // `ZC_NOTIFY_CARTITEM_COUNTINFO` (0x0121).
+        let mut bytes = vec![0x21, 0x01];
+        bytes.extend_from_slice(&5i16.to_le_bytes());
+        bytes.extend_from_slice(&100i16.to_le_bytes());
+        bytes.extend_from_slice(&500i32.to_le_bytes());
+        bytes.extend_from_slice(&8000i32.to_le_bytes());
+        assert_eq!(bytes.len(), 14);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("cart count packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CartInfo {
+            current_count: 5,
+            maximum_count: 100,
+            current_weight: 500,
+            maximum_weight: 8000,
+        }]));
+
+        // `ZC_CONFIG_NOTIFY` (0x02DA): header + flag u8.
+        let bytes = vec![0xDA, 0x02, 1];
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("show equip packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ShowEquipmentWindow {
+            open: true
+        }]));
+
+        // `ZC_AUTH_FAIL` (0x006A): header + reason u8.
+        let bytes = vec![0x6A, 0x00, 1];
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("map auth failure packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MapServerAuthFailed { reason: 1 }]));
+
+        // `ZC_UPDATE_MAPINFO` (0x0192): header + x u16 + y u16 + cell type u16 +
+        // map name[16].
+        let mut bytes = vec![0x92, 0x01];
+        bytes.extend_from_slice(&120u16.to_le_bytes());
+        bytes.extend_from_slice(&45u16.to_le_bytes());
+        bytes.extend_from_slice(&1u16.to_le_bytes());
+        let mut map_name = [0u8; 16];
+        map_name[..8].copy_from_slice(b"prontera");
+        bytes.extend_from_slice(&map_name);
+        assert_eq!(bytes.len(), 24);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("map cell packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MapCellChanged {
+            position: TilePosition { x: 120, y: 45 },
+            cell_type: 1,
+            ..
+        }]));
+    }
 
     #[test]
     fn login_server() {
