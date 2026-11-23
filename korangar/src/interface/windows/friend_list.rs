@@ -5,7 +5,7 @@ use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, ElementBox, StateElement};
 use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
-use ragnarok_packets::Friend;
+use ragnarok_packets::{Friend, MIN_NAME_LENGTH, NAME_LENGTH};
 use rust_state::{ManuallyAssertExt, Path, PathExt, RustState, State, VecIndexExt};
 
 use crate::graphics::Color;
@@ -14,11 +14,6 @@ use crate::interface::windows::WindowClass;
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
-
-// TODO: These constants are duplicated troughout the code base. Unify this
-// somewhere, maybe a `consts.rs` would be a good idea at this point?
-const MINIMUM_NAME_LENGTH: usize = 4;
-const MAXIMUM_NAME_LENGTH: usize = 24;
 
 struct FriendList<A> {
     friend_list_path: A,
@@ -161,7 +156,7 @@ where
             let character_name = state.get(&self.window_state_path.currently_adding()).clone();
 
             // TODO: Give some sort of error if the name is too short.
-            if character_name.len() >= MINIMUM_NAME_LENGTH {
+            if character_name.len() >= MIN_NAME_LENGTH {
                 state.update_value_with(self.window_state_path.currently_adding(), |input| input.clear());
                 queue.queue(InputEvent::AddFriend { character_name });
                 queue.queue(Event::Unfocus);
@@ -177,7 +172,7 @@ where
                 text_box! {
                     ghost_text: client_state().localization().friend_list_text_box_message(),
                     state: self.window_state_path.currently_adding(),
-                    input_handler: DefaultHandler::<_, _, MAXIMUM_NAME_LENGTH>::new(self.window_state_path.currently_adding(), add_action),
+                    input_handler: DefaultHandler::<_, _, NAME_LENGTH>::new(self.window_state_path.currently_adding(), add_action),
                     focus_id: AddFriendTextBox,
                 },
                 FriendList::new(self.friend_list_path),

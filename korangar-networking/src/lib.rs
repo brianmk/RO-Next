@@ -1400,8 +1400,8 @@ mod packet_handlers {
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
         AccountId, AttackRange, CharacterId, ClientTick, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket,
-        GuildEmblemRequestPacket, MarkerType, PacketExt, PacketHeader, RequestEmotionPacket, RequestEntityDetailsSuccessPacket,
-        RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
+        GuildEmblemRequestPacket, MarkerType, NAME_LENGTH, PacketExt, PacketHeader, RequestEmotionPacket,
+        RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
     };
 
     use crate::event::NetworkEventList;
@@ -1779,7 +1779,7 @@ mod packet_handlers {
 
         // `ZC_SOUND` (0x01D3), 2019 layout: header + name[24] + act + term + aid.
         let mut bytes = vec![0xD3, 0x01];
-        let mut name = [0u8; 24];
+        let mut name = [0u8; NAME_LENGTH];
         name[..18].copy_from_slice(b"effect\\ef_blessing");
         bytes.extend_from_slice(&name);
         bytes.push(1);
@@ -2005,8 +2005,8 @@ mod packet_handlers {
         data.extend_from_slice(&sp.to_le_bytes());
         data.extend_from_slice(&range.to_le_bytes());
 
-        let mut name_bytes = [0u8; 24];
-        for (index, byte) in name.as_bytes().iter().take(23).enumerate() {
+        let mut name_bytes = [0u8; NAME_LENGTH];
+        for (index, byte) in name.as_bytes().iter().take(NAME_LENGTH - 1).enumerate() {
             name_bytes[index] = *byte;
         }
         data.extend_from_slice(&name_bytes);
@@ -2320,20 +2320,20 @@ mod packet_handlers {
         data.extend_from_slice(&155u16.to_le_bytes()); // x
         data.extend_from_slice(&180u16.to_le_bytes()); // y
         data.push(0); // online
-        data.extend_from_slice(&fixed_name("feeders", 24));
-        data.extend_from_slice(&fixed_name("MrChamp", 24));
+        data.extend_from_slice(&fixed_name("feeders", NAME_LENGTH));
+        data.extend_from_slice(&fixed_name("MrChamp", NAME_LENGTH));
         data.extend_from_slice(&fixed_name("prontera", 16));
         data.push(1); // share pickup
         data.push(1); // share loot
 
         // 0x0AE5 ZC_GROUP_LIST with one member (54 bytes).
         data.extend_from_slice(&0x0AE5u16.to_le_bytes());
-        let party_list_length = 4u16 + 24 + 54;
+        let party_list_length = 4u16 + NAME_LENGTH as u16 + 54;
         data.extend_from_slice(&party_list_length.to_le_bytes());
-        data.extend_from_slice(&fixed_name("feeders", 24));
+        data.extend_from_slice(&fixed_name("feeders", NAME_LENGTH));
         data.extend_from_slice(&150_009u32.to_le_bytes()); // account id
         data.extend_from_slice(&150_009u32.to_le_bytes()); // char id
-        data.extend_from_slice(&fixed_name("MrChamp", 24));
+        data.extend_from_slice(&fixed_name("MrChamp", NAME_LENGTH));
         data.extend_from_slice(&fixed_name("prontera", 16));
         data.push(1); // role: 1 = normal member
         data.push(0); // online

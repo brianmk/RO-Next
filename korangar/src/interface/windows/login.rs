@@ -3,6 +3,7 @@ use korangar_interface::element::StateElement;
 use korangar_interface::element::id::FocusIdExt;
 use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::window::{CustomWindow, Window};
+use ragnarok_packets::{NAME_LENGTH, PASSWORD_LENGTH};
 use rust_state::{Path, PathExt, RustState, State};
 
 use crate::graphics::{Color, ShadowPadding};
@@ -13,9 +14,6 @@ use crate::settings::{LoginSettings, LoginSettingsPathExt, ServiceSettingsPathEx
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, SelectedServicePath, client_state};
-
-const MAXIMUM_USERNAME_LENGTH: usize = 24;
-const MAXIMUM_PASSWORD_LENGTH: usize = 24;
 
 /// Click handler that toggles a boolean and *immediately* persists the login
 /// settings.
@@ -170,14 +168,14 @@ where
                         text_box! {
                             ghost_text: client_state().localization().username_text(),
                             state: username_path,
-                            input_handler: DefaultHandler::<_, _, MAXIMUM_USERNAME_LENGTH>::new(username_path, username_action),
+                            input_handler: DefaultHandler::<_, _, NAME_LENGTH>::new(username_path, username_action),
                             focus_id: UsernameTextBox,
                             overflow_behavior: OverflowBehavior::Shrink,
                         },
                         text_box! {
                             ghost_text: client_state().localization().password_text(),
                             state: password_path,
-                            input_handler: DefaultHandler::<_, _, MAXIMUM_PASSWORD_LENGTH>::new(password_path, password_action),
+                            input_handler: DefaultHandler::<_, _, PASSWORD_LENGTH>::new(password_path, password_action),
                             focus_id: PasswordTextBox,
                             hidable: true,
                             overflow_behavior: OverflowBehavior::Shrink,

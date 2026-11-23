@@ -2,7 +2,10 @@
 #![cfg_attr(feature = "interface", feature(impl_trait_in_assoc_type))]
 
 pub mod handler;
+pub mod limits;
 pub mod opcode_lengths_2019;
+
+pub use self::limits::{MIN_NAME_LENGTH, NAME_LENGTH, PASSWORD_LENGTH, USER_ID_LENGTH};
 mod position;
 pub mod validation;
 
@@ -172,7 +175,7 @@ pub struct ServerAddress(pub [u8; 4]);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
-pub struct UserId(pub [u8; 24]);
+pub struct UserId(pub [u8; limits::USER_ID_LENGTH]);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
@@ -285,7 +288,7 @@ pub struct LoginServerLoginSuccessPacket {
     pub ip_address: u32,
     /// Deprecated and always 0 on rAthena
     #[new_default]
-    pub name: [u8; 24],
+    pub name: [u8; limits::NAME_LENGTH],
     /// Always 0 on rAthena
     #[new_default]
     pub unknown: u16,
