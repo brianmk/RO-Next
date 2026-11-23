@@ -388,7 +388,39 @@ character selection and a second login on the same account reports "Already onli
 previous session ends; the char server occasionally answers "Rejected from server" on the first
 attempt (a retry works).
 
-## 5b. Coverage audit tool
+## 5b. Skill animations (caster motions)
+
+The client picks the caster pose after a skill use with
+`CSession::GetSkillActionInfo(skillId, effectId, motion, variant, level)` (and
+`GetSkillActionInfo2` for the use path): `motion` is an **ACTORSTATEID**
+(`ST_BEGIN_SKILL = 8` is the default in the first table, `ST_SKILL = 7` in the
+second) and the client calls `source->SetState(motion, 1)`. The function also
+overrides the *effect* id (`effectId`) for many skills.
+
+Facts extracted from the decompilation: `tools/rodecomp_skill_motions.json`
+(123 skills that override the default motion, with the state name; 35 of them
+learnable pre-renewal). The table is an *audit* artifact, not client data: our
+`CasterAction` (`Skill`/`Idle`/`Attack`/`Pickup`/`ReadyFight`/`Action(n)`) is an
+**ACT action index**, while the official value is an actor *state*, and the
+state-to-ACT-animation mapping lives in the renderer. A state can therefore only
+be mapped to a named action where the semantics coincide:
+
+| official state | plausible `CasterAction` |
+| --- | --- |
+| `STAND` | `Idle` |
+| `ATTACK`, `ATTACKWAIT`, `THROW`, `THROW2` | `Attack` |
+| `PICKUP` | `Pickup` |
+| `SKILL` | `Skill` |
+| `READYSHOT` | not `ReadyFight` - the archer ready-shot pose is a different animation |
+| `DANCE`, `SING`, `NINJAREADY`, `GUNREADY`, `A_COUNTER`, `SG_TURN`, `SG_DOWN`, ... | job-specific poses without a named action |
+
+Under that strict mapping only three learnable skills disagree with our table:
+`AC_SHOWER` 47 and `CG_ARROWVULCAN` 394 (official `READYSHOT`, we play `Attack`),
+`AM_BERSERKPITCHER` 446 (official `THROW`, we play `Idle`). They are left
+unchanged on purpose: changing them needs the state-to-animation decision above,
+and the in-client harness now exists to compare the poses before/after.
+
+## 5c. Coverage audit tool
 
 `tools/audit_rodecomp_coverage.py` joins the committed facts
 (`tools/rodecomp_effect_coverage.json`: per-skill official/2019 effect ids and the version-correct
@@ -415,7 +447,7 @@ Current result (457 learnable skills):
 `PR_TURNUNDEAD`/`AS_ENCHANTPOISON`/`AS_SPLASHER` are handled by the version-correct mapping
 described above. `tools/test_rodecomp_coverage.py` keeps the facts and the classifier honest.
 
-## 5c. Skill cast sounds
+## 5d. Skill cast sounds
 
 The same extraction covers the sounds the official client plays: `g_soundMgr->PlayWave(...)`
 calls in the two skill switches (46 learnable skills). They are committed as
@@ -460,6 +492,7 @@ Checks in this repository:
 ./tools/gen_skill_sounds.py --check        # 8 curated + 378 official sounds
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
 python3 tools/test_rodecomp_coverage.py     # 3 coverage audit tests
+python3 tools/test_rodecomp_motions.py      # 3 animation-facts tests
 # in-client verification (Xvfb + live server, test account):
 #   KORANGAR_BENCH=skills KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
 #   KORANGAR_BENCH_SKILLS="34,306,19,451,355" ../target/release/korangar

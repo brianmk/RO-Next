@@ -1,0 +1,674 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d - CSession::GetSkillActionInfo / GetSkillActionInfo2 explicit `motion = N` cases",
+  "note": "The official client calls SetState(motion) after a skill use; motion is an ACTORSTATEID. The default motion is ST_BEGIN_SKILL (8) in GetSkillActionInfo and ST_SKILL (7) in GetSkillActionInfo2, so only skills that override it explicitly are listed here. This is the cast/use pose of the caster, not the attack animation of the skill (that comes from the attack/damage path). Motions without an entry in the ACTORSTATEID enum of the decompilation (46, 49, 50, 51) are kept with a null state name."
+ },
+ "actor_states": {
+  "0": "STAND",
+  "1": "MOVE",
+  "2": "ATTACK",
+  "3": "DEAD",
+  "4": "DAMAGE",
+  "5": "PICKUP",
+  "6": "SIT",
+  "7": "SKILL",
+  "8": "BEGIN_SKILL",
+  "9": "ATTACK2",
+  "10": "SLEEP",
+  "11": "ATTACKWAIT",
+  "12": "THROW",
+  "13": "AUTOCOUNTER",
+  "16": "DANCE",
+  "17": "SING",
+  "18": "READYSHOT",
+  "19": "READYJUMP",
+  "20": "LANDJUMP",
+  "21": "R_STORM",
+  "22": "R_DOWN",
+  "23": "R_TURN",
+  "24": "R_COUNTER",
+  "25": "R_DODGE",
+  "26": "A_COUNTER",
+  "27": "A_JUMPKICK",
+  "28": "THROW2",
+  "30": "A_STORM",
+  "31": "A_DOWN",
+  "32": "A_TURN",
+  "33": "SG_DOWN",
+  "34": "SG_TURN",
+  "35": "NINJASKILL1",
+  "36": "NINJASKILL2",
+  "37": "NINJAREADY",
+  "38": "GUNSKILL1",
+  "39": "GUNSKILL2",
+  "40": "GUNSKILL3",
+  "41": "GUNREADY",
+  "42": "GUNREADY2",
+  "43": "MADOSKILL",
+  "44": "MADOSKILL2",
+  "45": "AB_SPECIAL",
+  "47": "SU_STOOP",
+  "48": "SU_HIDE",
+  "81": "NATURE_PROTECTION",
+  "14": "LEFT",
+  "15": "RIGHT",
+  "29": "FEED"
+ },
+ "skills": {
+  "47": {
+   "name": "AC_SHOWER",
+   "motion": 18,
+   "state": "READYSHOT"
+  },
+  "57": {
+   "name": "KN_BRANDISHSPEAR",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "59": {
+   "name": "KN_SPEARBOOMERANG",
+   "motion": 12,
+   "state": "THROW"
+  },
+  "149": {
+   "name": "TF_SPRINKLESAND",
+   "motion": 11,
+   "state": "ATTACKWAIT"
+  },
+  "151": {
+   "name": "TF_PICKSTONE",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "152": {
+   "name": "TF_THROWSTONE",
+   "motion": 11,
+   "state": "ATTACKWAIT"
+  },
+  "247": {
+   "name": "AM_RESURRECTHOMUN",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "322": {
+   "name": "BA_APPLEIDUN",
+   "motion": 17,
+   "state": "SING"
+  },
+  "364": {
+   "name": "HW_SOULDRAIN",
+   "motion": 1,
+   "state": "MOVE"
+  },
+  "389": {
+   "name": "ST_CHASEWALK",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "394": {
+   "name": "CG_ARROWVULCAN",
+   "motion": 18,
+   "state": "READYSHOT"
+  },
+  "397": {
+   "name": "LK_SPIRALPIERCE",
+   "motion": 11,
+   "state": "ATTACKWAIT"
+  },
+  "419": {
+   "name": "TK_COUNTER",
+   "motion": 26,
+   "state": "A_COUNTER"
+  },
+  "430": {
+   "name": "SG_STAR_WARM",
+   "motion": 34,
+   "state": "SG_TURN"
+  },
+  "433": {
+   "name": "SG_STAR_COMFORT",
+   "motion": 33,
+   "state": "SG_DOWN"
+  },
+  "446": {
+   "name": "AM_BERSERKPITCHER",
+   "motion": 12,
+   "state": "THROW"
+  },
+  "475": {
+   "name": "ST_PRESERVE",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "479": {
+   "name": "CR_FULLPROTECTION",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "488": {
+   "name": "CG_HERMODE",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "490": {
+   "name": "CR_ACIDDEMONSTRATION",
+   "motion": 28,
+   "state": "THROW2"
+  },
+  "493": {
+   "name": "TK_MISSION",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "496": {
+   "name": "AM_TWILIGHT1",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "497": {
+   "name": "AM_TWILIGHT2",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "498": {
+   "name": "AM_TWILIGHT3",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "517": {
+   "name": "GS_GATLINGFEVER",
+   "motion": 41,
+   "state": "GUNREADY"
+  },
+  "521": {
+   "name": "GS_GROUNDDRIFT",
+   "motion": 42,
+   "state": "GUNREADY2"
+  },
+  "536": {
+   "name": "NJ_BAKUENRYU",
+   "motion": 37,
+   "state": "NINJAREADY"
+  },
+  "538": {
+   "name": "NJ_SUITON",
+   "motion": 35,
+   "state": "NINJASKILL1"
+  },
+  "539": {
+   "name": "NJ_HYOUSYOURAKU",
+   "motion": 37,
+   "state": "NINJAREADY"
+  },
+  "542": {
+   "name": "NJ_KAMAITACHI",
+   "motion": 37,
+   "state": "NINJAREADY"
+  },
+  "543": {
+   "name": "NJ_NEN",
+   "motion": 37,
+   "state": "NINJAREADY"
+  },
+  "688": {
+   "name": "GM_SANDMAN",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "689": {
+   "name": "CASH_BLESSING",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "690": {
+   "name": "CASH_INCAGI",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "1004": {
+   "name": "AS_VENOMKNIFE",
+   "motion": 11,
+   "state": "ATTACKWAIT"
+  },
+  "1011": {
+   "name": "DC_WINKCHARM",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "1013": {
+   "name": "BS_GREED",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "1014": {
+   "name": "PR_REDEMPTIO",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "2002": {
+   "name": "RK_SONICWAVE",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2011": {
+   "name": "RK_MILLENNIUMSHIELD",
+   "motion": 11,
+   "state": "ATTACKWAIT"
+  },
+  "2027": {
+   "name": "GC_POISONINGWEAPON",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2029": {
+   "name": "GC_COUNTERSLASH",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2032": {
+   "name": "GC_POISONSMOKE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2055": {
+   "name": "AB_DUPLELIGHT_MELEE",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2204": {
+   "name": "WL_JACKFROST",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2213": {
+   "name": "WL_COMET",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2217": {
+   "name": "WL_TETRAVORTEX",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2229": {
+   "name": "WL_SUMMONSTONE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2246": {
+   "name": "RA_SENSITIVEKEEN",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2254": {
+   "name": "RA_ICEBOUNDTRAP",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "2259": {
+   "name": "NC_FLAMELAUNCHER",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2261": {
+   "name": "NC_ARMSCANNON",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2267": {
+   "name": "NC_SELFDESTRUCTION",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "2269": {
+   "name": "NC_EMERGENCYCOOL",
+   "motion": 25,
+   "state": "R_DODGE"
+  },
+  "2270": {
+   "name": "NC_INFRAREDSCAN",
+   "motion": 44,
+   "state": "MADOSKILL2"
+  },
+  "2272": {
+   "name": "NC_MAGNETICFIELD",
+   "motion": 39,
+   "state": "GUNSKILL2"
+  },
+  "2274": {
+   "name": "NC_STEALTHFIELD",
+   "motion": 43,
+   "state": "MADOSKILL"
+  },
+  "2275": {
+   "name": "NC_REPAIR",
+   "motion": 43,
+   "state": "MADOSKILL"
+  },
+  "2278": {
+   "name": "NC_AXEBOOMERANG",
+   "motion": 12,
+   "state": "THROW"
+  },
+  "2279": {
+   "name": "NC_POWERSWING",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2280": {
+   "name": "NC_AXETORNADO",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "2285": {
+   "name": "SC_REPRODUCE",
+   "motion": 21,
+   "state": "R_STORM"
+  },
+  "2286": {
+   "name": "SC_AUTOSHADOWSPELL",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2287": {
+   "name": "SC_SHADOWFORM",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2288": {
+   "name": "SC_TRIANGLESHOT",
+   "motion": 18,
+   "state": "READYSHOT"
+  },
+  "2298": {
+   "name": "SC_STRIPACCESSARY",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2304": {
+   "name": "SC_FEINTBOMB",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "2313": {
+   "name": "LG_FORCEOFVANGUARD",
+   "motion": 31,
+   "state": "A_DOWN"
+  },
+  "2316": {
+   "name": "LG_EXEEDBREAK",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2321": {
+   "name": "LG_RAYOFGENESIS",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2322": {
+   "name": "LG_PIETY",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2323": {
+   "name": "LG_EARTHDRIVE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2330": {
+   "name": "SR_TIGERCANNON",
+   "motion": 18,
+   "state": "READYSHOT"
+  },
+  "2334": {
+   "name": "SR_CURSEDCIRCLE",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "2336": {
+   "name": "SR_KNUCKLEARROW",
+   "motion": 27,
+   "state": "A_JUMPKICK"
+  },
+  "2343": {
+   "name": "SR_GATEOFHELL",
+   "motion": 24,
+   "state": "R_COUNTER"
+  },
+  "2382": {
+   "name": "MI_ECHOSONG",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2383": {
+   "name": "MI_HARMONIZE",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2413": {
+   "name": "WM_METALICSOUND",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2414": {
+   "name": "WM_REVERBERATION",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2418": {
+   "name": "WM_SEVERE_RAINSTORM",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2419": {
+   "name": "WM_POEMOFNETHERWORLD",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2423": {
+   "name": "WM_SIRCLEOFNATURE",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2429": {
+   "name": "WM_SOUND_OF_DESTRUCTION",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2431": {
+   "name": "WM_LERADS_DEW",
+   "motion": 16,
+   "state": "DANCE"
+  },
+  "2445": {
+   "name": "SO_SPELLFIST",
+   "motion": 39,
+   "state": "GUNSKILL2"
+  },
+  "2454": {
+   "name": "SO_VARETYR_SPEAR",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2478": {
+   "name": "GN_CARTBOOST",
+   "motion": 22,
+   "state": "R_DOWN"
+  },
+  "2482": {
+   "name": "GN_WALLOFTHORN",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2485": {
+   "name": "GN_DEMONIC_FIRE",
+   "motion": 12,
+   "state": "THROW"
+  },
+  "2490": {
+   "name": "GN_HELLS_PLANT",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "2564": {
+   "name": "RL_FALLEN_ANGEL",
+   "motion": 46,
+   "state": null
+  },
+  "2576": {
+   "name": "SJ_FULLMOONKICK",
+   "motion": 30,
+   "state": "A_STORM"
+  },
+  "2580": {
+   "name": "SJ_FLASHKICK",
+   "motion": 51,
+   "state": null
+  },
+  "2581": {
+   "name": "SJ_STAREMPEROR",
+   "motion": 19,
+   "state": "READYJUMP"
+  },
+  "2593": {
+   "name": "SJ_PROMINENCEKICK",
+   "motion": 32,
+   "state": "A_TURN"
+  },
+  "2599": {
+   "name": "SP_SOULFAIRY",
+   "motion": 23,
+   "state": "R_TURN"
+  },
+  "3004": {
+   "name": "KO_JYUMONJIKIRI",
+   "motion": 9,
+   "state": "ATTACK2"
+  },
+  "3008": {
+   "name": "KO_MUCHANAGE",
+   "motion": 36,
+   "state": "NINJASKILL2"
+  },
+  "3009": {
+   "name": "KO_HUUMARANKA",
+   "motion": 36,
+   "state": "NINJASKILL2"
+  },
+  "3023": {
+   "name": "KG_KAGEHUMI",
+   "motion": 36,
+   "state": "NINJASKILL2"
+  },
+  "3029": {
+   "name": "OB_AKAITSUKI",
+   "motion": 37,
+   "state": "NINJAREADY"
+  },
+  "5021": {
+   "name": "SU_SCRATCH",
+   "motion": 49,
+   "state": null
+  },
+  "5023": {
+   "name": "SU_LOPE",
+   "motion": 19,
+   "state": "READYJUMP"
+  },
+  "5043": {
+   "name": "SU_LUNATICCARROTBEAT2",
+   "motion": 50,
+   "state": null
+  },
+  "5065": {
+   "name": "WE_CHEERUP",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "5078": {
+   "name": "WL_READING_SB_READING",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "5330": {
+   "name": "WH_GALESTORM",
+   "motion": 9,
+   "state": "ATTACK2"
+  },
+  "5335": {
+   "name": "WH_FLAMETRAP",
+   "motion": 5,
+   "state": "PICKUP"
+  },
+  "5343": {
+   "name": "BO_ACIDIFIED_ZONE_FIRE",
+   "motion": 12,
+   "state": "THROW"
+  },
+  "5382": {
+   "name": "ABC_CHAIN_REACTION_SHOT_ATK",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "8202": {
+   "name": "MS_MAGNUM",
+   "motion": 2,
+   "state": "ATTACK"
+  },
+  "8220": {
+   "name": "ML_AUTOGUARD",
+   "motion": 0,
+   "state": "STAND"
+  },
+  "8401": {
+   "name": "EL_CIRCLE_OF_FIRE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8406": {
+   "name": "EL_WATER_BARRIER",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8409": {
+   "name": "EL_ZEPHYR",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8410": {
+   "name": "EL_SOLID_SKIN",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8424": {
+   "name": "EL_UPHEAVAL",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8428": {
+   "name": "EL_FIRE_WAVE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8433": {
+   "name": "EL_TIDAL_WEAPON",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8435": {
+   "name": "EL_HURRICANE",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8442": {
+   "name": "EL_STONE_RAIN",
+   "motion": 7,
+   "state": "SKILL"
+  },
+  "8605": {
+   "name": "ABR_INFINITY_BUSTER",
+   "motion": 2,
+   "state": "ATTACK"
+  }
+ }
+}
