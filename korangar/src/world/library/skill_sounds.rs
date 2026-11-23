@@ -272,7 +272,7 @@ mod tests {
             "sound mapping should stay broad, got {}",
             sounds.generated.len()
         );
-        assert_eq!(sounds.curated.len(), 6, "the hand-curated overrides");
+        assert_eq!(sounds.curated.len(), 7, "the hand-curated overrides");
         assert!(!sounds.generic.is_empty());
         assert!(
             sounds.generated.windows(2).all(|pair| pair[0].skill < pair[1].skill),

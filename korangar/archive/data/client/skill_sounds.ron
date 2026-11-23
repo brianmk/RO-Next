@@ -27,6 +27,7 @@
     // Hand-curated overrides of `tools/skill_sounds_custom.ron`.
     // Hand-curated, archive-verified skill cast sound overrides: Hammer Fall, Warp Portal, Increase AGI, Angelus, Blessing and Concentration
     curated: [
+        (skill: 24, files: ["effect\\ef_ruwach.wav"]),
         (skill: 27, files: ["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
         (skill: 29, files: ["effect\\ef_incagility.wav"]),
         (skill: 33, files: ["effect\\ef_angelus.wav"]),
@@ -47,7 +48,6 @@
         (skill: 18, files: ["effect\\ef_firewall.wav", "effect\\ef_firehit.wav"]),
         (skill: 19, files: ["effect\\ef_firehit.wav"]),
         (skill: 21, files: ["effect\\magician_thunderstorm.wav"]),
-        (skill: 24, files: ["effect\\ef_hit2.wav"]),
         (skill: 28, files: ["_heal_effect.wav"]),
         (skill: 30, files: ["effect\\ef_decagility.wav"]),
         (skill: 31, files: ["effect\\ef_aqua.wav"]),

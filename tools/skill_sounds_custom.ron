@@ -46,5 +46,9 @@
         ]),
         // AC_CONCENTRATION
         (skill: 45, files: ["effect\\ac_concentration.wav"]),
+        // AL_RUWACH (Ruwach): official `EF_RUWACH` (EffectTable 33) carries
+        // `wav: effect/ef_ruwach`. The generated row pointed at `ef_hit2.wav`,
+        // which is a generic hit sound.
+        (skill: 24, files: ["effect\\ef_ruwach.wav"]),
     ],
 )
