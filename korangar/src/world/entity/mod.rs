@@ -272,6 +272,8 @@ pub struct Common {
     /// Persistent sprite tint of a status effect (Adrenaline Rush and Fury are
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
+    /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
+    status_alpha: Option<f32>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -565,6 +567,7 @@ impl Common {
             cart_status_active: false,
             cart_kind: 0,
             status_tint: None,
+            status_alpha: None,
             weapon_animation: None,
             active_movement,
             entity_type,
@@ -725,6 +728,10 @@ impl Common {
     /// Sets the persistent status sprite tint (red for Adrenaline Rush/Fury).
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
         self.status_tint = tint;
+    }
+
+    pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
+        self.status_alpha = alpha;
     }
 
     pub fn needs_cart_animation(&self) -> bool {
@@ -1290,7 +1297,7 @@ impl Common {
     }
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {
-        let alpha = self.fade_state.calculate_alpha(client_tick);
+        let alpha = self.fade_state.calculate_alpha(client_tick) * self.status_alpha.unwrap_or(1.0);
         let tint = self.sprite_tint(client_tick);
 
         if let Some(animation_data) = self.animation_data.as_ref() {
@@ -1922,6 +1929,10 @@ impl Entity {
 
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
         self.get_common_mut().set_status_tint(tint);
+    }
+
+    pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
+        self.get_common_mut().set_status_alpha(alpha);
     }
 
     pub fn needs_cart_animation(&self) -> bool {
