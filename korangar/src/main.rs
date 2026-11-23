@@ -59,6 +59,10 @@ struct Arguments {
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_status_effects: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the data-driven status body-visual table and exit.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_status_visuals: Option<Option<std::path::PathBuf>>,
+
     /// Validate the data-driven job/appearance registry and exit.
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_jobs: Option<Option<std::path::PathBuf>>,
@@ -214,6 +218,19 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("status effects: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_status_visuals {
+        match korangar::check_status_visuals(path.as_deref()) {
+            Ok(count) => {
+                println!("status visuals: {count} rows are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("status visuals: invalid data: {error}");
                 std::process::exit(1);
             }
         }
