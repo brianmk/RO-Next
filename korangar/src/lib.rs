@@ -6196,6 +6196,28 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::EntitySnapped { entity_id, position } => {
+                    // Body Relocation / Snap (ZC_SNAP 0x08D2): apply the
+                    // server's new position immediately so the client does not
+                    // keep rendering the character at the old cell.
+                    let Some(map) = &self.map else {
+                        continue;
+                    };
+
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.stop_movement();
+                        entity.set_position(map, position, client_tick);
+
+                        if entity_id == EntityId(self.saved_login_data.map_or(0, |data| data.account_id.0)) {
+                            self.player_camera.set_focus_point(entity.get_position());
+                        }
+                    }
+                }
                 NetworkEvent::MinimapMarker {
                     npc_id,
                     marker_type,

@@ -954,6 +954,18 @@ pub struct HighJumpPacket {
     pub position: TilePosition,
 }
 
+/// Sent by the map server when a skill relocates an entity (Snap/body
+/// relocation, `ZC_SNAP`, 0x08D2): the client applies the new position
+/// immediately instead of waiting for the next stop-move correction.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x08D2)]
+#[packet_size(10)]
+pub struct SnapPacket {
+    pub entity_id: EntityId,
+    pub position: TilePosition,
+}
+
 /// Sent by the map server to the client.
 /// Informs the client that the player is pathing towards a new position.
 /// Provides the initial position and destination of the movement, as well as a

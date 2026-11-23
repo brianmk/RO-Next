@@ -681,6 +681,12 @@ pub enum NetworkEvent {
         entity_id: EntityId,
         position: TilePosition,
     },
+    /// An entity relocated instantly (`ZC_SNAP`, 0x08D2; Monk/Champion Body
+    /// Relocation and similar teleport skills).
+    EntitySnapped {
+        entity_id: EntityId,
+        position: TilePosition,
+    },
     /// A minimap marker was placed/removed (`ZC_COMPASS`, 0x0144).
     MinimapMarker {
         npc_id: EntityId,

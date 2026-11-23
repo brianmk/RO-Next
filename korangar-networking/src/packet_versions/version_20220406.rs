@@ -345,6 +345,10 @@ where
         entity_id: packet.entity_id,
         position: packet.position,
     })?;
+    packet_handler.register(|packet: SnapPacket| NetworkEvent::EntitySnapped {
+        entity_id: packet.entity_id,
+        position: packet.position,
+    })?;
     packet_handler.register(|packet: PlayerMovePacket| {
         let PlayerMovePacket {
             starting_timestamp,
