@@ -492,7 +492,7 @@ impl AsyncLoader {
             // next entity with the same job/sex/weapon does not scan the
             // archives again.
             failed_weapon_candidates.lock().unwrap().insert(cache_key.clone());
-            crate::logging::log_debug!("weapon animation not in the archives, disabling the weapon layer for `{cache_key}`");
+            crate::logging::log_info!("weapon animation not in the archives, disabling the weapon layer for `{cache_key}`");
 
             Err(last_error)
         });

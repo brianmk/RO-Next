@@ -629,9 +629,9 @@
      "attached_entity": true,
      "file": "effect\\ring_white.tga",
      "duration_ms": 900,
-     "height": 1.0,
-     "bottom_radius": 3.0,
-     "top_radius": 16.0,
+     "height": 2.0,
+     "bottom_radius": 6.0,
+     "top_radius": 32.0,
      "count": 2,
      "delay_ms": 0,
      "alpha": 0.5,
@@ -644,9 +644,9 @@
      "attached_entity": true,
      "file": "effect\\ring_white.tga",
      "duration_ms": 900,
-     "height": 1.0,
-     "bottom_radius": 3.0,
-     "top_radius": 16.0,
+     "height": 2.0,
+     "bottom_radius": 6.0,
+     "top_radius": 32.0,
      "count": 2,
      "delay_ms": 200,
      "alpha": 0.5,
@@ -1821,7 +1821,7 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 6.8,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.2,
      "blend": "Additive"
@@ -1831,12 +1831,12 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      11.0,
+      22.0,
       12.0,
       0.0
      ],
@@ -1847,45 +1847,13 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      9.53,
+      19.06,
       20.0,
-      5.5
-     ],
-     "wav": null
-    },
-    {
-     "kind": "Texture",
-     "anchor": "Caster",
-     "attached_entity": true,
-     "file": "effect\\alpha_center.tga",
-     "size": 4.6,
-     "duration_ms": 4167,
-     "alpha": 0.55,
-     "blend": "Additive",
-     "offset": [
-      5.5,
-      28.0,
-      9.53
-     ],
-     "wav": null
-    },
-    {
-     "kind": "Texture",
-     "anchor": "Caster",
-     "attached_entity": true,
-     "file": "effect\\alpha_center.tga",
-     "size": 4.6,
-     "duration_ms": 4167,
-     "alpha": 0.55,
-     "blend": "Additive",
-     "offset": [
-      0.0,
-      12.0,
       11.0
      ],
      "wav": null
@@ -1895,30 +1863,14 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -5.5,
-      20.0,
-      9.53
-     ],
-     "wav": null
-    },
-    {
-     "kind": "Texture",
-     "anchor": "Caster",
-     "attached_entity": true,
-     "file": "effect\\alpha_center.tga",
-     "size": 4.6,
-     "duration_ms": 4167,
-     "alpha": 0.55,
-     "blend": "Additive",
-     "offset": [
-      -9.53,
+      11.0,
       28.0,
-      5.5
+      19.06
      ],
      "wav": null
     },
@@ -1927,12 +1879,60 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      0.0,
+      12.0,
+      22.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
       -11.0,
+      20.0,
+      19.06
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 9.0,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -19.06,
+      28.0,
+      11.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 9.0,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -22.0,
       12.0,
       0.0
      ],
@@ -1943,45 +1943,13 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -9.53,
+      -19.06,
       20.0,
-      -5.5
-     ],
-     "wav": null
-    },
-    {
-     "kind": "Texture",
-     "anchor": "Caster",
-     "attached_entity": true,
-     "file": "effect\\alpha_center.tga",
-     "size": 4.6,
-     "duration_ms": 4167,
-     "alpha": 0.55,
-     "blend": "Additive",
-     "offset": [
-      -5.5,
-      28.0,
-      -9.53
-     ],
-     "wav": null
-    },
-    {
-     "kind": "Texture",
-     "anchor": "Caster",
-     "attached_entity": true,
-     "file": "effect\\alpha_center.tga",
-     "size": 4.6,
-     "duration_ms": 4167,
-     "alpha": 0.55,
-     "blend": "Additive",
-     "offset": [
-      -0.0,
-      12.0,
       -11.0
      ],
      "wav": null
@@ -1991,14 +1959,14 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      5.5,
-      20.0,
-      -9.53
+      -11.0,
+      28.0,
+      -19.06
      ],
      "wav": null
     },
@@ -2007,14 +1975,46 @@
      "anchor": "Caster",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "size": 4.6,
+     "size": 9.0,
      "duration_ms": 4167,
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      9.53,
+      -0.0,
+      12.0,
+      -22.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 9.0,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      11.0,
+      20.0,
+      -19.06
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 9.0,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      19.06,
       28.0,
-      -5.5
+      -11.0
      ],
      "wav": null
     }
