@@ -56,6 +56,9 @@ fn aura_level_from_c_level(c_level: u16) -> usize {
     c_level as usize
 }
 
+/// Classic client `OPTION_CART` bits in the option/effect_state field.
+const OPTION_CART_MASK: u32 = 0x0000_0008 | 0x0000_0080 | 0x0000_0100 | 0x0000_0200 | 0x0000_0400;
+
 /// Classic client `OPTION_FALCON` bit in the option/effect_state field.
 const OPTION_FALCON: u32 = 0x10;
 /// Height above the owner's position at which the falcon is drawn.
@@ -255,6 +258,10 @@ pub struct Common {
     /// Independent animation state of the falcon (perched/flapping loop).
     #[hidden_element]
     falcon_animation_state: AnimationState,
+    /// Merchant cart animation, loaded lazily while the entity has a cart
+    /// option (`effect_state & OPTION_CART_MASK`).
+    #[hidden_element]
+    cart_animation: Option<Arc<AnimationData>>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -547,6 +554,7 @@ impl Common {
             falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick)
                 .with_speed(FALCON_ANIMATION_SPEED)
                 .with_loop_mode(AnimationLoopMode::PingPong),
+            cart_animation: None,
             weapon_animation: None,
             active_movement,
             entity_type,
@@ -644,6 +652,23 @@ impl Common {
 
     pub fn has_falcon_animation(&self) -> bool {
         self.falcon_animation.is_some()
+    }
+
+    /// Whether the entity currently has a merchant cart option set.
+    pub fn has_cart(&self) -> bool {
+        self.effect_state & OPTION_CART_MASK != 0
+    }
+
+    pub fn needs_cart_animation(&self) -> bool {
+        self.has_cart() && self.cart_animation.is_none()
+    }
+
+    pub fn set_cart_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.cart_animation = Some(animation_data);
+    }
+
+    pub fn has_cart_animation(&self) -> bool {
+        self.cart_animation.is_some()
     }
 
     /// Candidate sprite part files of the equipped weapon.
@@ -1213,6 +1238,25 @@ impl Common {
         // animation state/action/frame so the weapon follows idle/walk/attack.
         if let Some(weapon_animation) = self.weapon_animation.as_ref() {
             weapon_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                self.world_position,
+                &self.animation_state,
+                self.direction,
+                alpha,
+                tint,
+                self.scale,
+            );
+        }
+
+        // Merchant pushcart: the official `mc_pushcart` sprite follows the body
+        // animation state so it is visible on merchants with a cart option.
+        if self.has_cart()
+            && let Some(cart_animation) = self.cart_animation.as_ref()
+        {
+            cart_animation.render(
                 instructions,
                 camera,
                 add_to_picker,

@@ -34,6 +34,7 @@
         (skill: 34, files: ["effect\\ef_blessing.wav", "effect\\spirit_handler\\sh_blessing_of_mystical_creatures.wav"]),
         (skill: 45, files: ["effect\\ac_concentration.wav"]),
         (skill: 110, files: ["effect\\black_hammerfall.wav"]),
+        (skill: 114, files: ["effect\\black_maximize_power_circle.wav", "effect\\black_maximize_power_sword.wav", "effect\\black_maximize_power_sword_bic.wav"]),
     ],
     // Official per-skill sounds generated from the effect table.
     sounds: [

@@ -36,6 +36,7 @@ pub fn asset_failure_log_key(id: &LoaderId) -> String {
         LoaderId::AnimationData(_) => "animation-data".to_owned(),
         LoaderId::CharacterPreview(_) => "character-preview".to_owned(),
         LoaderId::FalconAnimationData(_) => "falcon-animation-data".to_owned(),
+        LoaderId::CartAnimationData(_) => "cart-animation-data".to_owned(),
         LoaderId::WeaponAnimationData(_) => "weapon-animation-data".to_owned(),
         LoaderId::ItemSprite(item_id) => format!("item-sprite:{}", item_id.0),
         LoaderId::SkillSprite(skill_id) => format!("skill-sprite:{}", skill_id.0),
@@ -68,7 +69,10 @@ pub fn asset_failure_severity(id: &LoaderId) -> AssetFailureSeverity {
 /// only names the affected feature so the player knows what looks wrong.
 pub fn transient_asset_failure_message(id: &LoaderId, _error: &LoadError) -> String {
     let what = match id {
-        LoaderId::AnimationData(_) | LoaderId::FalconAnimationData(_) | LoaderId::WeaponAnimationData(_) => "Some character animations",
+        LoaderId::AnimationData(_)
+        | LoaderId::FalconAnimationData(_)
+        | LoaderId::CartAnimationData(_)
+        | LoaderId::WeaponAnimationData(_) => "Some character animations",
         LoaderId::CharacterPreview(_) => "The character preview",
         LoaderId::ItemSprite(_) => "Some item icons",
         LoaderId::SkillSprite(_) | LoaderId::SkillActions(_) => "Some skill icons",

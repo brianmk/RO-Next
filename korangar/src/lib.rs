@@ -7966,6 +7966,16 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
                 }
+                (LoaderId::CartAnimationData(entity_id), LoadableResource::CartAnimation(cart_animation)) => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_cart_animation(cart_animation);
+                    }
+                }
                 (LoaderId::WeaponAnimationData(entity_id), LoadableResource::WeaponAnimation(weapon_animation)) => {
                     if let Some(entity) = self
                         .client_state
@@ -8502,6 +8512,9 @@ impl Client {
             if entity.needs_falcon_animation() {
                 missing.push(LoaderId::FalconAnimationData(entity_id));
             }
+            if entity.needs_cart_animation() {
+                missing.push(LoaderId::CartAnimationData(entity_id));
+            }
             if entity.needs_weapon_animation() {
                 missing.push(LoaderId::WeaponAnimationData(entity_id));
             }
@@ -8522,9 +8535,10 @@ impl Client {
     /// layer).
     fn retry_visual_load(&mut self, id: LoaderId, now: Instant) {
         let entity_id = match id {
-            LoaderId::AnimationData(entity_id) | LoaderId::FalconAnimationData(entity_id) | LoaderId::WeaponAnimationData(entity_id) => {
-                entity_id
-            }
+            LoaderId::AnimationData(entity_id)
+            | LoaderId::FalconAnimationData(entity_id)
+            | LoaderId::CartAnimationData(entity_id)
+            | LoaderId::WeaponAnimationData(entity_id) => entity_id,
             _ => {
                 self.asset_retries.forget(&id);
                 return;
@@ -8541,12 +8555,16 @@ impl Client {
                     entity.get_entity_type(),
                     entity.get_entity_part_files(&self.library),
                     entity.has_falcon(),
+                    entity.has_cart(),
                     entity.get_weapon_part_candidates(),
                     entity.has_weapon_animation(),
+                    entity.has_cart_animation(),
                 )
             });
 
-        let Some((entity_type, entity_part_files, has_falcon, weapon_candidates, has_weapon_animation)) = entity_info else {
+        let Some((entity_type, entity_part_files, has_falcon, has_cart, weapon_candidates, has_weapon_animation, has_cart_animation)) =
+            entity_info
+        else {
             self.asset_retries.forget(&id);
             return;
         };
@@ -8578,6 +8596,22 @@ impl Client {
                         self.asset_retries.note_available(&LoaderId::FalconAnimationData(entity_id));
                     }
                     None => self.asset_retries.note_request(LoaderId::FalconAnimationData(entity_id), now),
+                }
+            }
+            LoaderId::CartAnimationData(_) => {
+                if !has_cart || has_cart_animation {
+                    self.asset_retries.note_available(&LoaderId::CartAnimationData(entity_id));
+                    return;
+                }
+
+                match self.async_loader.request_cart_animation_data_load(entity_id) {
+                    Some(cart_animation) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_cart_animation(cart_animation);
+                        }
+                        self.asset_retries.note_available(&LoaderId::CartAnimationData(entity_id));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::CartAnimationData(entity_id), now),
                 }
             }
             LoaderId::WeaponAnimationData(_) => {

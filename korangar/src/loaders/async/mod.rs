@@ -36,6 +36,8 @@ pub enum LoaderId {
     CharacterPreview(usize),
     /// Animation of the hunter falcon that is attached to a player entity.
     FalconAnimationData(EntityId),
+    /// Animation of the merchant cart attached to a player entity.
+    CartAnimationData(EntityId),
     /// Animation of the equipped weapon that is drawn as its own layer on top
     /// of the player body animation.
     WeaponAnimationData(EntityId),
@@ -48,6 +50,7 @@ pub enum LoaderId {
 pub enum LoadableResource {
     AnimationData(Arc<AnimationData>),
     FalconAnimation(Arc<AnimationData>),
+    CartAnimation(Arc<AnimationData>),
     WeaponAnimation(Arc<AnimationData>),
     ItemSprite { texture: Arc<Texture> },
     SkillSprite { sprite: Arc<Sprite> },
@@ -362,6 +365,44 @@ impl AsyncLoader {
                 }
             }
 
+            Err(last_error)
+        });
+
+        None
+    }
+
+    /// Requests the merchant cart animation for `entity_id`.
+    ///
+    /// The classic pushcart sprite is `data\sprite\아이템\mc_pushcart.spr`;
+    /// the cart is drawn with the body animation state so it follows idle,
+    /// walk and attack frames. Cart tiers (`OPTION_CART2..5`) use the
+    /// remodeled sprites when present.
+    #[must_use]
+    pub fn request_cart_animation_data_load(&self, entity_id: EntityId) -> Option<Arc<AnimationData>> {
+        let candidates: Vec<Vec<EntityPartFile>> = vec![
+            vec![EntityPartFile::new("아이템\\mc_pushcart")],
+            vec![EntityPartFile::new("아이템\\mc_changecart")],
+            vec![EntityPartFile::new("아이템\\mc_cartdecorate")],
+        ];
+
+        for parts in &candidates {
+            if let Some(animation_data) = self.animation_loader.get(parts) {
+                return Some(animation_data);
+            }
+        }
+
+        let sprite_loader = self.sprite_loader.clone();
+        let action_loader = self.action_loader.clone();
+        let animation_loader = self.animation_loader.clone();
+
+        self.request_visible_load(LoaderId::CartAnimationData(entity_id), LoadKind::AnimationData, move || {
+            let mut last_error = LoadError::UnsupportedFormat("no cart sprite found in the game archives".to_owned());
+            for parts in &candidates {
+                match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, parts) {
+                    Ok(animation_data) => return Ok(LoadableResource::CartAnimation(animation_data)),
+                    Err(error) => last_error = error,
+                }
+            }
             Err(last_error)
         });
 

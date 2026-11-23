@@ -44,6 +44,15 @@
             "effect\\ef_blessing.wav",
             "effect\\spirit_handler\\sh_blessing_of_mystical_creatures.wav",
         ]),
+        // BS_MAXIMIZE (114): instant self-buff. The official client plays the
+        // `maximize_power_sounds` sequence (`black_maximize_power_circle`,
+        // `_sword`, `_sword_bic`); at least the opening circle sound must play
+        // on completion. It must never be treated as a cast-time pre-sound.
+        (skill: 114, files: [
+            "effect\\black_maximize_power_circle.wav",
+            "effect\\black_maximize_power_sword.wav",
+            "effect\\black_maximize_power_sword_bic.wav",
+        ]),
         // AC_CONCENTRATION
         (skill: 45, files: ["effect\\ac_concentration.wav"]),
         // AL_RUWACH (Ruwach): official `EF_RUWACH` (EffectTable 33) carries
