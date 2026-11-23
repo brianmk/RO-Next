@@ -19,13 +19,17 @@ const CONTEXT_MENU_WIDTH: f32 = 190.0;
 pub struct CharacterContextMenuWindow {
     target_name: String,
     target_account_id: u32,
+    target_level: u16,
+    target_guild: Option<String>,
 }
 
 impl CharacterContextMenuWindow {
-    pub fn new(target_name: String, target_account_id: u32) -> Self {
+    pub fn new(target_name: String, target_account_id: u32, target_level: u16, target_guild: Option<String>) -> Self {
         Self {
             target_name,
             target_account_id,
+            target_level,
+            target_guild,
         }
     }
 }
@@ -42,6 +46,10 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
         let target_account_id = self.target_account_id;
         let whisper_name = target_name.clone();
         let add_friend_name = target_name.clone();
+        let invite_party_name = target_name.clone();
+        let info_name = target_name.clone();
+        let info_level = self.target_level;
+        let info_guild = self.target_guild.clone();
         let whisper_tooltip = template_text(
             |state| client_state().localization().ui().context_menu_whisper_tooltip().follow_safe(state),
             target_name.clone(),
@@ -85,9 +93,12 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_invite_to_party(),
-                    disabled: true,
-                    disabled_tooltip: client_state().localization().ui().party_invite_not_implemented_tooltip(),
-                    event: InputEvent::CloseContextMenu,
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::InviteToParty {
+                            name: invite_party_name.clone(),
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_trade(),
@@ -100,9 +111,14 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_view_character_info(),
-                    disabled: true,
-                    disabled_tooltip: client_state().localization().ui().character_info_not_implemented_tooltip(),
-                    event: InputEvent::CloseContextMenu,
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::ViewCharacterInfo {
+                            name: info_name.clone(),
+                            level: info_level,
+                            guild_name: info_guild.clone(),
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
                 },
             ),
         }

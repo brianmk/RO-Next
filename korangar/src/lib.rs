@@ -7180,6 +7180,9 @@ impl Client {
                     let _ = self.networking_system.cancel_trade();
                     self.close_trade();
                 }
+                InputEvent::ViewCharacterInfo { name, level, guild_name } => {
+                    self.interface.open_window(CharacterInfoWindow::new(name, level, guild_name));
+                }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {
                     // The cards of blocked characters do not register a click handler,
@@ -10049,18 +10052,28 @@ fn open_character_context_menu(
     entity_id: EntityId,
     position: ScreenPosition,
 ) -> bool {
-    let character_name = state
+    let character = state
         .follow(client_state().entities())
         .iter()
         .find(|entity| entity.get_entity_id() == entity_id)
-        .and_then(|entity| entity.get_details())
-        .map(|details| details.split('#').next().unwrap_or_default().to_owned())
-        .filter(|name| !name.is_empty());
+        .and_then(|entity| {
+            entity.get_details().map(|details| {
+                (
+                    details.split('#').next().unwrap_or_default().to_owned(),
+                    entity.get_base_level().unwrap_or(0) as u16,
+                    entity.get_guild_name().map(ToOwned::to_owned),
+                )
+            })
+        })
+        .filter(|(name, ..)| !name.is_empty());
 
-    match character_name {
-        Some(character_name) => {
+    match character {
+        Some((character_name, level, guild_name)) => {
             interface.close_window_with_class(WindowClass::ContextMenu);
-            interface.open_window_at(CharacterContextMenuWindow::new(character_name, entity_id.0), position);
+            interface.open_window_at(
+                CharacterContextMenuWindow::new(character_name, entity_id.0, level, guild_name),
+                position,
+            );
 
             false
         }

@@ -76,6 +76,12 @@ pub enum InputEvent {
     ToggleAudioSettingsWindow,
     /// Open or close the friend list window. Only works while playing.
     ToggleFriendListWindow,
+    /// Open the character information window for another player.
+    ViewCharacterInfo {
+        name: String,
+        level: u16,
+        guild_name: Option<String>,
+    },
     /// Request a trade with another player.
     TradeRequest {
         account_id: u32,

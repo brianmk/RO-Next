@@ -7,6 +7,7 @@ mod buy_or_sell;
 mod cache;
 mod character_creation;
 mod character_deletion;
+mod character_info;
 mod character_overview;
 mod character_selection;
 mod chat;
@@ -64,6 +65,7 @@ pub use self::buy_or_sell::BuyOrSellWindow;
 pub use self::cache::WindowCache;
 pub use self::character_creation::CharacterCreationWindow;
 pub use self::character_deletion::CharacterDeletionWindow;
+pub use self::character_info::CharacterInfoWindow;
 pub use self::character_overview::CharacterOverviewWindow;
 pub use self::character_selection::{CharacterSelectionWindow, character_selection_window_position};
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
@@ -122,6 +124,7 @@ pub enum WindowClass {
     CharacterCreation,
     CharacterDeletion,
     ContextMenu,
+    CharacterInfo,
     CharacterOverview,
     CharacterSelection,
     Dialog,
