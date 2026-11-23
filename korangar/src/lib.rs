@@ -4500,6 +4500,7 @@ impl Client {
                     // A storage window from a previous session must never show up
                     // in the new character's game state.
                     self.close_storage_window();
+                    self.close_trade();
                     // The map server sends the map change packet (and with it the
                     // map data we have to load) right after the login handshake.
                     // If the packet stream is desynchronized that packet would be
@@ -4861,6 +4862,7 @@ impl Client {
                     // The server closes the storage on a map change; close the UI
                     // and drop the transient list immediately so it can't go stale.
                     self.close_storage_window();
+                    self.close_trade();
                     self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
