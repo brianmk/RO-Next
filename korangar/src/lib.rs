@@ -4893,17 +4893,27 @@ impl Client {
                     // packet to play the official skill sound (so it is heard at the
                     // impact, not as a pre-cast sound). Cast-time damage skills are
                     // unchanged.
-                    if let Some(skill_id) = skill_id
-                        && self.skill_sound_gate.claim_damage_hit(source_entity_id, skill_id, client_tick)
-                    {
-                        let source_position = self
-                            .client_state
-                            .follow(client_state().entities())
-                            .iter()
-                            .find(|entity| entity.get_entity_id() == source_entity_id)
-                            .map(|entity| entity.get_position());
-                        self.skill_sounds
-                            .play_skill_sound_for_phase(skill_id, SkillPhase::Hit, Some(source_entity_id), source_position);
+                    if let Some(skill_id) = skill_id {
+                        // Instant skills have a pending cast and claim the hit
+                        // sound here. Cast-time damage skills (e.g. Asura
+                        // Strike) have no completion/no-damage packet, so their
+                        // mapped hit/effect sound has to be claimed from the
+                        // damage packet as well.
+                        let instant_claimed = self.skill_sound_gate.claim_damage_hit(source_entity_id, skill_id, client_tick);
+                        if instant_claimed || self.skill_sound_gate.claim_completion(source_entity_id, skill_id, client_tick) {
+                            let source_position = self
+                                .client_state
+                                .follow(client_state().entities())
+                                .iter()
+                                .find(|entity| entity.get_entity_id() == source_entity_id)
+                                .map(|entity| entity.get_position());
+                            self.skill_sounds.play_skill_sound_for_phase(
+                                skill_id,
+                                SkillPhase::Hit,
+                                Some(source_entity_id),
+                                source_position,
+                            );
+                        }
                     }
 
                     // Skill damage attribution (`ZC_NOTIFY_SKILL`, 0x01DE): play

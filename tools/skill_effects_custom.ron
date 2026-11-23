@@ -110,6 +110,17 @@
             (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, alpha: 0.9, tint: (1.0, 0.88, 0.35), blend: Additive, grow: TopRadius),
             (kind: BodyFlash, tint: (1.0, 0.85, 0.2), hold_ms: 250, fade_ms: 700),
         ]),
+
+        // MO_EXTREMITYFIST (271, Asura Strike): the official hit layer is only
+        // a small lens flash. Add the visible caster body flash and a large
+        // golden impact burst so the hit reads like the classic Asura.
+        (skill: 271, phase: Success, layers: [
+            (kind: BodyFlash, tint: (1.0, 0.35, 0.05), hold_ms: 250, fade_ms: 650),
+            (kind: Texture, anchor: Target, file: "effect\\alpha_center.tga", size: 14.0, size_end: 24.0, duration_ms: 500, alpha: 0.8, blend: Additive),
+        ]),
+        (skill: 271, phase: Hit, layers: [
+            (kind: Texture, anchor: Target, file: "effect\\lens1.tga", size: 10.0, size_end: 16.0, duration_ms: 550, delay_ms: 100, count: 16, alpha: 0.8, blend: Additive, wav: "effect\\mon_아수라 패황권.wav"),
+        ]),
         (skill: 270, phase: Success, layers: [
             (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1500, delay_ms: 100, count: 4, height: 4.0, bottom_radius: 4.0, top_radius: 10.0, alpha: 0.8, tint: (1.0, 0.88, 0.35), blend: Additive, rotation_speed: 4.0, grow: BothRadii),
             (kind: BodyFlash, tint: (1.0, 0.8, 0.15), hold_ms: 350, fade_ms: 900),
