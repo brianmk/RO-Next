@@ -1,5 +1,5 @@
 {
-  "provenance": "rustnarok-client src/skill_motions.rs ATTACK/THROW/THIRD_ATTACK/PICK_UP/KEEP/CAST; only entries missing from the official roBrowser action dump and mappable to our five actions; explicit Action(n) rows from rustnarok STATES",
+  "provenance": "rustnarok-client src/skill_motions.rs ATTACK/THROW/THIRD_ATTACK/PICK_UP/KEEP/CAST; only entries missing from the official roBrowser action dump and mappable to our five actions; explicit Action(n) rows from rustnarok STATES; `overrides` corrects roBrowser rows where the official GetSkillActionInfo state maps to a different ACT action",
   "actions": [
     {
       "skill": 115,
@@ -235,6 +235,26 @@
       "skill": 448,
       "action": "Action(23)",
       "source": "STATES (rustnarok generic action index)"
+    }
+  ],
+  "overrides": [
+    {
+      "skill": 47,
+      "action": "Action(11)",
+      "official_state": "READYSHOT",
+      "source": "SkillActionInfo.cpp:115-118 (AC_SHOWER motion=18=ST_READYSHOT); RenderObject.cpp:3374 (ST_READYSHOT -> flat ACT animation 88 = action 11)"
+    },
+    {
+      "skill": 394,
+      "action": "Action(11)",
+      "official_state": "READYSHOT",
+      "source": "SkillActionInfo.cpp:154-158 (CG_ARROWVULCAN motion=18=ST_READYSHOT); RenderObject.cpp:3374 (ST_READYSHOT -> flat ACT animation 88 = action 11)"
+    },
+    {
+      "skill": 446,
+      "action": "Action(5)",
+      "official_state": "THROW",
+      "source": "SkillActionInfo.cpp:426-429 (AM_BERSERKPITCHER motion=12=ST_THROW); RenderObject.cpp:3386-3395 (ST_THROW -> flat ACT animation 40 = action 5)"
     }
   ]
 }

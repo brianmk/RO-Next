@@ -48,34 +48,49 @@ ACTIONS = ("Attack", "Idle", "Pickup", "Skill", "ReadyFight")
 ACTION_INDEX_PATTERN = re.compile(r"^Action\(\d+\)$")
 
 
+def validate_action(skill_id: int, action: str, kind: str) -> None:
+    if action not in ACTIONS and not ACTION_INDEX_PATTERN.match(action):
+        raise SystemExit(f"skill {skill_id}: unsupported {kind} action {action!r}")
+
+
 def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, str]]:
     payload = json.loads(path.read_text())
-    rows: list[tuple[int, str]] = []
+    actions: dict[int, str] = {}
     for skill_id, entry in payload["actions"].items():
         action = entry["action"]
-        if action not in ACTIONS and not ACTION_INDEX_PATTERN.match(action):
-            raise SystemExit(f"skill {skill_id}: unsupported action {action!r}")
-        rows.append((int(skill_id), action))
+        validate_action(int(skill_id), action, "official")
+        actions[int(skill_id)] = action
 
-    # Curated additions for skills the official roBrowser dump does not cover
-    # (ported from rustnarok-client's per-skill motion tables where the motion
-    # maps onto one of our five actions). They only fill gaps: an existing
-    # official row always wins.
     if extra_path is not None and extra_path.is_file():
         extra = json.loads(extra_path.read_text())
-        known = {skill_id for skill_id, _ in rows}
+
+        # Curated additions for skills the official roBrowser dump does not cover
+        # (ported from rustnarok-client's per-skill motion tables where the motion
+        # maps onto one of our five actions). They only fill gaps: an existing
+        # official row always wins.
         for entry in extra.get("actions", []):
             skill_id = int(entry["skill"])
             action = entry["action"]
-            if action not in ACTIONS and not ACTION_INDEX_PATTERN.match(action):
-                raise SystemExit(f"skill {skill_id}: unsupported extra action {action!r}")
-            if skill_id in known:
-                continue
-            rows.append((skill_id, action))
-            known.add(skill_id)
+            validate_action(skill_id, action, "extra")
+            actions.setdefault(skill_id, action)
 
-    rows.sort()
-    return rows
+        # Curated corrections of the roBrowser action dump. The official client
+        # picks the caster pose from `CSession::GetSkillActionInfo`, whose
+        # `motion` is an ACTORSTATEID, not one of the five roBrowser action
+        # names. `CGameActor::SetState` maps the state to a (flat) ACT animation
+        # index via `ActionBase`/`WeaponActionBase`; this section records the
+        # resulting ACT action index where that mapping disagrees with the
+        # roBrowser row. An override always wins and must target a skill that
+        # some fact table already lists, so a typo cannot add a stray row.
+        for entry in extra.get("overrides", []):
+            skill_id = int(entry["skill"])
+            action = entry["action"]
+            validate_action(skill_id, action, "override")
+            if skill_id not in actions:
+                raise SystemExit(f"skill {skill_id}: override for a skill no fact table lists")
+            actions[skill_id] = action
+
+    return sorted(actions.items())
 
 
 def render(rows: list[tuple[int, str]], provenance: dict) -> str:
@@ -89,6 +104,11 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// Facts extracted from the official client's skill action assignment",
         "// (`tools/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the",
         "// Windows client tables). Only numeric ids and action names are extracted.",
+        "//",
+        "// Rows corrected by the curated `overrides` section of",
+        "// `tools/skill_actions_extra.json`: the official client's",
+        "// `CSession::GetSkillActionInfo` motion is an ACTORSTATEID, and",
+        "// `CGameActor::SetState` maps it to the ACT action index recorded there.",
         "//",
         "// Format: (skill id, action). Actions: Attack, Idle, Pickup, Skill,",
         "// ReadyFight (see `CasterAction` in `korangar/src/world/skill_action.rs`).",

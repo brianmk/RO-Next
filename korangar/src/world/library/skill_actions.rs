@@ -176,6 +176,19 @@ mod tests {
     }
 
     #[test]
+    fn ready_shot_and_throw_use_the_official_act_action() {
+        // The official client's `GetSkillActionInfo` puts the caster into an
+        // actor state (ST_READYSHOT = 18 / ST_THROW = 12); `CGameActor::SetState`
+        // maps that state to the flat ACT animation 88 / 40 through
+        // `WeaponActionBase`, i.e. ACT action 11 / 5 (the classic 8-direction
+        // ACT layout). The roBrowser action dump only knows "Attack"/"Idle" for
+        // these skills, so the data file carries the curated override.
+        assert_eq!(action(47), Some(CasterAction::Action(11)), "AC_SHOWER");
+        assert_eq!(action(394), Some(CasterAction::Action(11)), "CG_ARROWVULCAN");
+        assert_eq!(action(446), Some(CasterAction::Action(5)), "AM_BERSERKPITCHER");
+    }
+
+    #[test]
     fn unknown_skills_fall_back_safely_to_the_casting_gesture() {
         assert_eq!(action(65_500), None);
         assert_eq!(default_caster_action(), CasterAction::Skill);

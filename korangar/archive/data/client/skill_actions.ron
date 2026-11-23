@@ -8,6 +8,11 @@
 // (`tools/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the
 // Windows client tables). Only numeric ids and action names are extracted.
 //
+// Rows corrected by the curated `overrides` section of
+// `tools/skill_actions_extra.json`: the official client's
+// `CSession::GetSkillActionInfo` motion is an ACTORSTATEID, and
+// `CGameActor::SetState` maps it to the ACT action index recorded there.
+//
 // Format: (skill id, action). Actions: Attack, Idle, Pickup, Skill,
 // ReadyFight (see `CasterAction` in `korangar/src/world/skill_action.rs`).
 // Skills that are not listed use `Skill`, the client's default casting
@@ -28,7 +33,7 @@
         (skill: 34, action: Skill),
         (skill: 42, action: Attack),
         (skill: 46, action: Attack),
-        (skill: 47, action: Attack),
+        (skill: 47, action: Action(11)),
         (skill: 52, action: Attack),
         (skill: 56, action: Attack),
         (skill: 57, action: Attack),
@@ -128,7 +133,7 @@
         (skill: 384, action: Idle),
         (skill: 387, action: Idle),
         (skill: 389, action: Idle),
-        (skill: 394, action: Attack),
+        (skill: 394, action: Action(11)),
         (skill: 395, action: Skill),
         (skill: 396, action: Skill),
         (skill: 397, action: Attack),
@@ -157,7 +162,7 @@
         (skill: 433, action: Action(33)),
         (skill: 444, action: Idle),
         (skill: 445, action: Action(23)),
-        (skill: 446, action: Idle),
+        (skill: 446, action: Action(5)),
         (skill: 447, action: Action(23)),
         (skill: 448, action: Action(23)),
         (skill: 475, action: Idle),
