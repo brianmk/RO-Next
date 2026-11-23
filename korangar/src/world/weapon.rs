@@ -752,7 +752,6 @@ pub(crate) fn animation_is_drawable(animation_data: &AnimationData) -> bool {
     animation_data
         .animations
         .iter()
-        .take(8)
         .flat_map(|animation| animation.frames.iter())
         .any(|frame| frame.frame_parts.iter().any(|part| part.sprite_number != usize::MAX))
 }
