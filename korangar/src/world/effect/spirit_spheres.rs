@@ -22,9 +22,9 @@ use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 
 /// Radius of the orbit around the character in world units.
-const ORBIT_RADIUS: f32 = 3.2;
+const ORBIT_RADIUS: f32 = 3.52;
 /// Height of the orbit above the character's feet.
-const ORBIT_HEIGHT: f32 = 11.0;
+const ORBIT_HEIGHT: f32 = 20.0;
 /// Rotation speed of the orbit in radians per second.
 const ORBIT_SPEED: f32 = 0.9;
 /// Angular spacing between the spheres (in radians) when the count changes.
