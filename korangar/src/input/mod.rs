@@ -1,6 +1,8 @@
 mod chat_command;
 mod event;
 mod key;
+mod key_names;
+pub(crate) mod keybinds;
 mod mode;
 
 use std::mem::variant_count;
@@ -15,6 +17,7 @@ use winit::keyboard::KeyCode;
 pub use self::chat_command::translate_slash_command;
 pub use self::event::InputEvent;
 pub use self::key::Key;
+pub use self::keybinds::{ActiveModifiers, ShortcutAction};
 pub use self::mode::{Grabbed, MouseInputMode, MouseModeExt};
 use crate::graphics::{PickerTarget, ScreenPosition, ScreenSize};
 
@@ -268,13 +271,28 @@ impl InputSystem {
         }
     }
 
-    /// Returns whether the given key is currently held down.
-    pub fn key_pressed(&self, key_code: KeyCode) -> bool {
-        self.get_key(key_code).pressed()
-    }
-
     fn get_key(&self, key_code: KeyCode) -> &Key {
         &self.keys[key_code as usize]
+    }
+
+    /// The modifier state used by the data-driven key bindings.
+    fn active_modifiers(&self) -> ActiveModifiers {
+        ActiveModifiers {
+            alt: self.get_key(KeyCode::AltLeft).down(),
+            control: self.get_key(KeyCode::ControlLeft).down(),
+            shift: self.get_key(KeyCode::ShiftLeft).down(),
+        }
+    }
+
+    /// Whether one of the chat-command/confirm keys (data-driven) is pressed.
+    ///
+    /// The login form, the server selection and the chat command input are
+    /// confirmed with these keys; the bindings live in
+    /// `data\client\keybinds.ron` (`chat_command_keys`).
+    pub fn chat_command_key_pressed(&self) -> bool {
+        keybinds::chat_command_keys()
+            .iter()
+            .any(|key_code| self.get_key(*key_code).pressed())
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
@@ -284,106 +302,48 @@ impl InputSystem {
         #[cfg(feature = "debug")] process_mouse: bool,
         #[cfg(feature = "debug")] use_debug_camera: bool,
     ) {
-        let alt_down = self.get_key(KeyCode::AltLeft).down();
-        let control_down = self.get_key(KeyCode::ControlLeft).down();
-        let shift_down = self.get_key(KeyCode::ShiftLeft).down();
+        let modifiers = self.active_modifiers();
 
-        // Escape closes the topmost window, like it closes the last opened
-        // window in the original client. Only when no window is open does it
-        // open the menu (and cancel an active skill target selection).
-        if self.get_key(KeyCode::Escape).pressed() {
-            match korangar_interface::window::has_foreground_windows() {
-                true => events.push(InputEvent::CloseTopWindow),
-                false => events.push(InputEvent::ToggleMenuWindow),
+        // The interface shortcuts are data-driven (`data\client\keybinds.ron`,
+        // see the `keybinds` module). The table is evaluated in file order, so
+        // the emitted event order stays the same as the classic bind table.
+        for keybind in keybinds::shortcuts() {
+            if !keybind.matches(modifiers) || !self.get_key(keybind.key).pressed() {
+                continue;
+            }
+
+            match keybind.action {
+                ShortcutAction::CloseOrMenu => {
+                    // Escape closes the topmost window, like it closes the last
+                    // opened window in the original client. Only when no window
+                    // is open does it open the menu (and cancel an active skill
+                    // target selection).
+                    match korangar_interface::window::has_foreground_windows() {
+                        true => events.push(InputEvent::CloseTopWindow),
+                        false => events.push(InputEvent::ToggleMenuWindow),
+                    }
+                }
+                ShortcutAction::ToggleInventoryWindow => events.push(InputEvent::ToggleInventoryWindow),
+                ShortcutAction::ToggleSkillTreeWindow => events.push(InputEvent::ToggleSkillTreeWindow),
+                ShortcutAction::ToggleStatsWindow => events.push(InputEvent::ToggleStatsWindow),
+                ShortcutAction::ToggleFriendListWindow => events.push(InputEvent::ToggleFriendListWindow),
+                ShortcutAction::ToggleEquipmentWindow => events.push(InputEvent::ToggleEquipmentWindow),
+                ShortcutAction::ToggleChatWindow => events.push(InputEvent::ToggleChatWindow),
+                ShortcutAction::ToggleGameSettingsWindow => events.push(InputEvent::ToggleGameSettingsWindow),
+                ShortcutAction::ToggleInterfaceSettingsWindow => events.push(InputEvent::ToggleInterfaceSettingsWindow),
+                ShortcutAction::ToggleGraphicsSettingsWindow => events.push(InputEvent::ToggleGraphicsSettingsWindow),
+                ShortcutAction::ToggleAudioSettingsWindow => events.push(InputEvent::ToggleAudioSettingsWindow),
+                ShortcutAction::ToggleShowInterface => events.push(InputEvent::ToggleShowInterface),
+                ShortcutAction::ToggleMinimapWindow => events.push(InputEvent::ToggleMinimapWindow),
+                ShortcutAction::CycleMapWindows => events.push(InputEvent::CycleMapWindows),
+                ShortcutAction::CloseTopWindow => events.push(InputEvent::CloseTopWindow),
             }
         }
 
-        if alt_down && self.get_key(KeyCode::KeyE).pressed() {
-            events.push(InputEvent::ToggleInventoryWindow);
-        }
-
-        if alt_down && self.get_key(KeyCode::KeyS).pressed() {
-            events.push(InputEvent::ToggleSkillTreeWindow);
-        }
-
-        if alt_down && self.get_key(KeyCode::KeyA).pressed() {
-            events.push(InputEvent::ToggleStatsWindow);
-        }
-
-        if alt_down && self.get_key(KeyCode::KeyZ).pressed() {
-            events.push(InputEvent::ToggleFriendListWindow);
-        }
-
-        if alt_down && self.get_key(KeyCode::KeyQ).pressed() {
-            events.push(InputEvent::ToggleEquipmentWindow);
-        }
-
-        // Chat window toggle (Alt+C). The character overview used to have a
-        // Chat button; it was replaced by the party button, so keep the chat
-        // window reachable with a hotkey like the other window shortcuts.
-        if alt_down && self.get_key(KeyCode::KeyC).pressed() {
-            events.push(InputEvent::ToggleChatWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyS).pressed() {
-            events.push(InputEvent::ToggleGameSettingsWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyI).pressed() {
-            events.push(InputEvent::ToggleInterfaceSettingsWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyG).pressed() {
-            events.push(InputEvent::ToggleGraphicsSettingsWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyA).pressed() {
-            events.push(InputEvent::ToggleAudioSettingsWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyH).pressed() {
-            events.push(InputEvent::ToggleShowInterface);
-        }
-
-        // Opens/closes the minimap window (Ctrl+M, like the classic client).
-        if control_down && self.get_key(KeyCode::KeyM).pressed() {
-            events.push(InputEvent::ToggleMinimapWindow);
-        }
-
-        // Plain M cycles the map windows: small minimap -> big map -> closed.
-        // It is ignored while a text input (chat, login, ...) has focus, those
-        // keys belong to the text box. Ctrl+M still toggles the small minimap.
-        if !control_down && !alt_down && !shift_down && self.get_key(KeyCode::KeyM).pressed() {
-            events.push(InputEvent::CycleMapWindows);
-        }
-
-        // Plain I opens/closes the inventory window, like the classic client. It
-        // is ignored while a text input (chat, login, ...) has focus, those keys
-        // belong to the text box. Alt+E remains as the alternative shortcut.
-        if !control_down && !alt_down && !shift_down && self.get_key(KeyCode::KeyI).pressed() {
-            events.push(InputEvent::ToggleInventoryWindow);
-        }
-
-        if control_down && self.get_key(KeyCode::KeyQ).pressed() {
-            events.push(InputEvent::CloseTopWindow);
-        }
-
         // The first nine emotions, matching the Alt + 1-9 binds of the
-        // official client.
-        const EMOTION_KEYS: [KeyCode; 9] = [
-            KeyCode::Digit1,
-            KeyCode::Digit2,
-            KeyCode::Digit3,
-            KeyCode::Digit4,
-            KeyCode::Digit5,
-            KeyCode::Digit6,
-            KeyCode::Digit7,
-            KeyCode::Digit8,
-            KeyCode::Digit9,
-        ];
-
-        for (emotion, key_code) in EMOTION_KEYS.into_iter().enumerate() {
-            if alt_down && self.get_key(key_code).pressed() {
+        // official client (the position in the table is the emotion number).
+        for (emotion, key_code) in keybinds::emotion_keys().iter().copied().enumerate() {
+            if modifiers.alt && self.get_key(key_code).pressed() {
                 events.push(InputEvent::SendEmotion { emotion: emotion as u8 });
             }
         }
@@ -391,20 +351,8 @@ impl InputSystem {
         // The hotbar slots are mapped to the function keys, like in the
         // original client. Pressing a function key uses the skill in that
         // slot, which either casts it directly or starts a target selection.
-        const HOTBAR_KEYS: [KeyCode; 10] = [
-            KeyCode::F1,
-            KeyCode::F2,
-            KeyCode::F3,
-            KeyCode::F4,
-            KeyCode::F5,
-            KeyCode::F6,
-            KeyCode::F7,
-            KeyCode::F8,
-            KeyCode::F9,
-            KeyCode::F10,
-        ];
-
-        for (slot, key_code) in HOTBAR_KEYS.into_iter().enumerate() {
+        // The position in the table is the slot.
+        for (slot, key_code) in keybinds::hotbar_keys().iter().copied().enumerate() {
             if self.get_key(key_code).pressed() {
                 events.push(InputEvent::UseSkillInSlot {
                     slot: HotbarSlot(slot as u16),
@@ -420,41 +368,42 @@ impl InputSystem {
 
         // Page through the four hotkey tabs of the 2019 client with F11/F12.
         // The function keys F1-F10 stay the "use this slot" keys.
-        if self.get_key(KeyCode::F11).pressed() {
+        let (tab_previous, tab_next) = keybinds::hotbar_tab_keys();
+        if self.get_key(tab_previous).pressed() {
             events.push(InputEvent::CycleHotbarTab { delta: -1 });
         }
 
-        if self.get_key(KeyCode::F12).pressed() {
+        if self.get_key(tab_next).pressed() {
             events.push(InputEvent::CycleHotbarTab { delta: 1 });
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyM).pressed() && self.get_key(KeyCode::ShiftLeft).down() {
+        if modifiers.control && self.get_key(KeyCode::KeyM).pressed() && modifiers.shift {
             events.push(InputEvent::ToggleMapsWindow);
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyC).pressed() {
+        if modifiers.control && self.get_key(KeyCode::KeyC).pressed() {
             events.push(InputEvent::ToggleClientStateInspectorWindow);
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyR).pressed() {
+        if modifiers.control && self.get_key(KeyCode::KeyR).pressed() {
             events.push(InputEvent::ToggleRenderOptionsWindow);
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyP).pressed() {
+        if modifiers.control && self.get_key(KeyCode::KeyP).pressed() {
             events.push(InputEvent::ToggleProfilerWindow);
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyO).pressed() {
+        if modifiers.control && self.get_key(KeyCode::KeyO).pressed() {
             events.push(InputEvent::ToggleCommandsWindow);
         }
 
         #[cfg(feature = "debug")]
-        if control_down && self.get_key(KeyCode::KeyN).pressed() {
+        if modifiers.control && self.get_key(KeyCode::KeyN).pressed() {
             events.push(InputEvent::TogglePacketInspectorWindow);
         }
 
@@ -501,5 +450,170 @@ impl InputSystem {
         }
 
         self.input_buffer.clear();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+    use std::sync::atomic::AtomicU64;
+
+    use ragnarok_packets::ClientTick;
+    use winit::event::ElementState;
+    use winit::keyboard::KeyCode;
+
+    use super::{InputEvent, InputSystem};
+
+    /// Small helper that drives the input system exactly like the main loop:
+    /// update the key state, advance the delta and run the keyboard handler.
+    struct Harness {
+        input: InputSystem,
+        tick: u32,
+    }
+
+    impl Harness {
+        fn new() -> Self {
+            Self {
+                input: InputSystem::new(Arc::new(AtomicU64::new(0))),
+                tick: 0,
+            }
+        }
+
+        /// Runs one frame with `held` keys down (all of them stay down) and
+        /// `released` keys going up in this frame.
+        fn frame(&mut self, held: &[KeyCode], released: &[KeyCode]) -> Vec<InputEvent> {
+            for key in held {
+                self.input.update_keyboard(*key, ElementState::Pressed);
+            }
+            for key in released {
+                self.input.update_keyboard(*key, ElementState::Released);
+            }
+
+            self.input.update_delta(ClientTick(self.tick));
+            self.tick += 1;
+
+            let mut events = Vec::new();
+
+            #[cfg(feature = "debug")]
+            self.input.handle_keyboard_input(&mut events, false, false);
+            #[cfg(not(feature = "debug"))]
+            self.input.handle_keyboard_input(&mut events);
+
+            events
+        }
+    }
+
+    fn has(events: &[InputEvent], expected: impl Fn(&InputEvent) -> bool) -> bool {
+        events.iter().any(expected)
+    }
+
+    #[test]
+    fn window_shortcuts_are_data_driven() {
+        let mut harness = Harness::new();
+
+        // Alt+E opens the inventory.
+        let events = harness.frame(&[KeyCode::AltLeft, KeyCode::KeyE], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleInventoryWindow)));
+
+        // Plain E does nothing.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::KeyE], &[]);
+        assert!(events.is_empty(), "plain E must not be bound: {events:?}");
+
+        // Ctrl+I opens the interface settings, not the inventory.
+        let events = harness.frame(&[KeyCode::ControlLeft, KeyCode::KeyI], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleInterfaceSettingsWindow)));
+        assert!(!has(&events, |event| matches!(event, InputEvent::ToggleInventoryWindow)));
+
+        // Plain I opens the inventory (exact, no modifier).
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::KeyI], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleInventoryWindow)));
+
+        // Ctrl+M toggles the minimap, plain M cycles the map windows.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::ControlLeft, KeyCode::KeyM], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleMinimapWindow)));
+        assert!(!has(&events, |event| matches!(event, InputEvent::CycleMapWindows)));
+
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::KeyM], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::CycleMapWindows)));
+
+        // The required modifiers are a subset: Ctrl+Alt+E still opens the
+        // inventory (this is the classic client behaviour).
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::ControlLeft, KeyCode::AltLeft, KeyCode::KeyE], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleInventoryWindow)));
+
+        // Escape closes the top window, or opens the menu when none is open
+        // (no window is open in this unit test).
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::Escape], &[]);
+        assert!(has(&events, |event| matches!(
+            event,
+            InputEvent::ToggleMenuWindow | InputEvent::CloseTopWindow
+        )));
+    }
+
+    #[test]
+    fn emotions_hotbar_and_tabs_are_data_driven() {
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::AltLeft, KeyCode::Digit1], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::SendEmotion { emotion: 0 })));
+
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::AltLeft, KeyCode::Digit9], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::SendEmotion { emotion: 8 })));
+
+        // F1 presses slot 0, releasing it stops the skill in that slot.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::F1], &[]);
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 0)
+        ));
+
+        let events = harness.frame(&[KeyCode::F1], &[KeyCode::F1]);
+        let events = events;
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::StopSkill { slot } if slot.0 == 0)
+        ));
+
+        // F11/F12 cycle the hotbar tabs.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::F11], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::CycleHotbarTab { delta: -1 })));
+
+        let events = harness.frame(&[KeyCode::F12], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::CycleHotbarTab { delta: 1 })));
+
+        // The hotbar keys are not modifier-sensitive, like before.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::ControlLeft, KeyCode::F5], &[]);
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 4)
+        ));
+    }
+
+    #[test]
+    fn chat_command_keys_are_data_driven() {
+        let mut harness = Harness::new();
+        let _ = harness.frame(&[KeyCode::Enter], &[]);
+        assert!(harness.input.chat_command_key_pressed());
+
+        // Releasing the key clears the pressed state again.
+        let _ = harness.frame(&[], &[KeyCode::Enter]);
+        assert!(!harness.input.chat_command_key_pressed());
+
+        let mut harness = Harness::new();
+        let _ = harness.frame(&[KeyCode::NumpadEnter], &[]);
+        assert!(harness.input.chat_command_key_pressed());
+
+        let mut harness = Harness::new();
+        let _ = harness.frame(&[KeyCode::KeyE], &[]);
+        assert!(!harness.input.chat_command_key_pressed());
     }
 }

@@ -115,7 +115,7 @@ use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalSize, PhysicalSize, Size};
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
-use winit::keyboard::{KeyCode, PhysicalKey};
+use winit::keyboard::PhysicalKey;
 use winit::window::{Fullscreen, Icon, Window, WindowId};
 
 use crate::graphics::*;
@@ -685,6 +685,39 @@ pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
     }
 }
 
+/// Validates the data-driven key binding table (`data\client\keybinds.ron`)
+/// and returns the number of bindings.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary exposes
+/// it as `korangar --check-keybinds [PATH]`.
+pub fn check_keybinds(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::input::keybinds::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::input::keybinds::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven paper-doll slot table
+/// (`data\client\paper_doll_slots.ron`) and returns the number of equipment
+/// slots.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary exposes
+/// it as `korangar --check-paper-doll [PATH]`.
+pub fn check_paper_doll(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::interface::components::paper_doll_slots::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::interface::components::paper_doll_slots::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
 /// Validates the data-driven skill behaviour and procedural effect data
 /// (`archive/data/client/skills.ron`) and returns the row counts.
 ///
@@ -1174,6 +1207,20 @@ impl Client {
         // compiled fallback.
         time_phase!("load protocol messages", {
             load_protocol_messages(game_file_loader.as_ref());
+        });
+
+        // The data-driven keyboard bindings (window shortcuts, hotbar/emotion
+        // keys, confirm keys); an archive override wins over the compiled
+        // fallback, see `input::keybinds`.
+        time_phase!("load keybinds", {
+            crate::input::keybinds::load(game_file_loader.as_ref());
+        });
+
+        // The data-driven paper-doll slot layout (equipment window); an archive
+        // override wins over the compiled fallback, see
+        // `interface::components::paper_doll_slots`.
+        time_phase!("load paper doll slots", {
+            crate::interface::components::paper_doll_slots::load(game_file_loader.as_ref());
         });
 
         time_phase!("calculate game file hash", {
@@ -6235,8 +6282,9 @@ impl Client {
         let interface_has_focus = self.interface.has_focus();
 
         // Enter submits the login form and confirms the server selection, so the
-        // menus can be used without reaching for the mouse.
-        if self.input_system.key_pressed(KeyCode::Enter) || self.input_system.key_pressed(KeyCode::NumpadEnter) {
+        // menus can be used without reaching for the mouse. The keys are
+        // data-driven (`chat_command_keys` in `data\client\keybinds.ron`).
+        if self.input_system.chat_command_key_pressed() {
             if self.interface.is_window_with_class_open(WindowClass::Login) {
                 let selected_service_path = SelectedServicePath::new(client_state().login_window(), client_state().login_settings());
                 let service_id = *self.client_state.follow(client_state().login_window().selected_service());
@@ -7340,7 +7388,7 @@ impl Client {
                     }
                 }
                 InputEvent::AddFriend { character_name } => {
-                    if character_name.len() > 24 {
+                    if character_name.len() > ragnarok_packets::NAME_LENGTH {
                         #[cfg(feature = "debug")]
                         print_debug!("[{}] friend name {} is too long", "error".red(), character_name.magenta());
                     } else {
@@ -9082,9 +9130,12 @@ impl Client {
 
             // Focus the chat if the interface is not focused, no other element is capturing
             // the keyboard input, enter was pressed, and the chat
-            // window is open.
+            // window is open. Enter arrives as the `\x0d` text character on most
+            // platforms; the data-driven chat command key binding
+            // (`data\client\keybinds.ron`) covers the platforms/backends where the
+            // physical key does not produce a text character.
             if (!interface_has_focus || !interface_frame.input_characters(&self.client_state, &input_report.characters))
-                && input_report.characters.contains(&'\x0d')
+                && (input_report.characters.contains(&'\x0d') || self.input_system.chat_command_key_pressed())
                 && is_chat_open
             {
                 interface_frame.focus_element(ChatTextBox);
@@ -10645,6 +10696,62 @@ mod tests {
     fn job_registry_check_reports_a_missing_file() {
         let path = std::path::Path::new("/nonexistent/korangar/jobs.ron");
         let error = super::check_jobs(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
+    }
+
+    #[test]
+    fn keybind_data_is_valid() {
+        let bindings = super::check_keybinds(None).expect("the committed keybind data has to be valid");
+        // 16 shortcuts + 9 emotion keys + 10 hotbar slots + 2 tab keys +
+        // 2 chat command keys.
+        assert_eq!(bindings, 39);
+        assert_eq!(crate::input::keybinds::shortcuts().len(), 16);
+        assert_eq!(crate::input::keybinds::hotbar_keys().len(), 10);
+    }
+
+    #[test]
+    fn keybind_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-keybinds-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(shortcuts: [)").expect("failed to write the malformed fixture");
+
+        let result = super::check_keybinds(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn keybind_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/keybinds.ron");
+        let error = super::check_keybinds(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
+    }
+
+    #[test]
+    fn paper_doll_data_is_valid() {
+        let slots = super::check_paper_doll(None).expect("the committed paper-doll data has to be valid");
+        assert_eq!(slots, 11, "one slot per classic equipment position");
+    }
+
+    #[test]
+    fn paper_doll_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-paper-doll-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(slots: [)").expect("failed to write the malformed fixture");
+
+        let result = super::check_paper_doll(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn paper_doll_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/paper_doll_slots.ron");
+        let error = super::check_paper_doll(Some(path)).expect_err("a missing file must be rejected");
         assert!(error.contains("failed to read"), "{error}");
     }
 

@@ -284,3 +284,314 @@ fn hardcoded_style_literals_do_not_exceed_the_token_budget() {
          (`client_theme().tokens().typography()...`) instead of adding literals."
     );
 }
+
+// ---------------------------------------------------------------------------
+// Extended localization lint (Phase 5).
+//
+// The checks above only scan `src/interface`. The settings/drop-down labels
+// live next to their enums (`graphics/settings.rs`, `settings/*.rs`,
+// `loaders/font/mod.rs`, ...) and the localization fallbacks (`fn text`) can
+// silently drift from the localization defaults. The checks below scan the
+// whole client source tree.
+// ---------------------------------------------------------------------------
+
+/// Source files that legitimately contain the UI words: the localization
+/// defaults and language files are the *target* of the lint, not a violation.
+fn is_localization_source(file: &str) -> bool {
+    file.starts_with("state/localization/")
+}
+
+/// Root of the client crate sources (`korangar/src`).
+fn client_source_directory() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("src")
+}
+
+/// Every Rust file of the client crate, relative to `korangar/src` with `/`
+/// separators.
+fn client_source_files() -> Vec<(String, PathBuf)> {
+    let root = client_source_directory();
+    rust_files(&root)
+        .into_iter()
+        .map(|path| {
+            let relative = path
+                .strip_prefix(&root)
+                .expect("path is inside the client source directory")
+                .to_string_lossy()
+                .replace('\\', "/");
+            (relative, path)
+        })
+        .collect()
+}
+
+/// Files that contain the forbidden words as *data* instead of as UI labels:
+///
+/// * `input/key_names.rs` maps the winit `KeyCode` names of the keybinding data
+///   (`Delete` is the physical Delete key, not a button label),
+/// * the legacy item-description parser matches the Korean/English field labels
+///   that occur inside item descriptions, it does not render them.
+const NON_UI_LITERAL_FILES: &[&str] = &["input/key_names.rs", "world/library/item_stats_fallback.rs"];
+
+/// The source with `#[cfg(test)]`-gated items blanked out, keeping the line
+/// numbers intact.
+///
+/// Test modules are not user-facing, but production code may follow them (some
+/// files keep helper tests in the middle), so the whole file has to be scanned
+/// with only the test items removed.
+fn production_source(content: &str) -> String {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut output: Vec<String> = lines.iter().map(|line| line.to_string()).collect();
+    let mut index = 0;
+
+    while index < lines.len() {
+        let attribute = lines[index].trim();
+        let is_test_gate =
+            attribute == "#[cfg(test)]" || (attribute.starts_with("#[cfg(") && attribute.trim_end_matches(']').ends_with("test)"));
+
+        if !is_test_gate {
+            index += 1;
+            continue;
+        }
+
+        // Skip the remaining attributes/comments and find the gated item.
+        let mut item = index + 1;
+        while item < lines.len() {
+            let line = lines[item].trim();
+            if line.is_empty() || line.starts_with("//") || line.starts_with("#[") || line.starts_with("#![") {
+                item += 1;
+            } else {
+                break;
+            }
+        }
+
+        if item >= lines.len() {
+            break;
+        }
+
+        // Find the end of the gated item: a top-level closing brace or, for
+        // items without a body, the terminating semicolon.
+        let mut depth = 0i32;
+        let mut opened = false;
+        let mut end = item;
+        'item_end: for (line_index, line) in lines.iter().enumerate().skip(item) {
+            for character in line.chars() {
+                match character {
+                    '{' => {
+                        depth += 1;
+                        opened = true;
+                    }
+                    '}' => depth -= 1,
+                    ';' if !opened => {
+                        end = line_index;
+                        break 'item_end;
+                    }
+                    _ => {}
+                }
+            }
+            if opened && depth == 0 {
+                end = line_index;
+                break;
+            }
+        }
+
+        for line in output.iter_mut().take(end + 1).skip(index) {
+            line.clear();
+        }
+        index = end + 1;
+    }
+
+    output.join("\n")
+}
+
+/// `true` for files that are only compiled with the `debug` feature (existing
+/// allowlist), that are the localization source itself, or that contain the
+/// words as data rather than as UI labels.
+fn is_scan_exempt(file: &str) -> bool {
+    let interface_relative = file.strip_prefix("interface/").unwrap_or(file);
+    is_debug_only(interface_relative) || is_localization_source(file) || NON_UI_LITERAL_FILES.contains(&file)
+}
+
+/// User-facing UI words must not appear as string literals outside the
+/// `src/interface` windows either.
+///
+/// This catches labels that were moved next to their settings enum instead of
+/// into `Localization` (the `fn text` / `fn text_key` pair below catches the
+/// drop-down labels, this scan catches every other literal). The localization
+/// source (`state/localization`) is exempt because it *defines* the literals.
+#[test]
+fn no_hardcoded_ui_words_outside_the_interface() {
+    let mut violations = Vec::new();
+
+    for (file, path) in client_source_files() {
+        if file.starts_with("interface/") || is_scan_exempt(&file) {
+            continue;
+        }
+
+        let content = fs::read_to_string(&path).expect("source file is readable");
+        let production = production_source(&content);
+        for (line_number, line) in code_lines(&production).enumerate() {
+            for word in FORBIDDEN_UI_WORDS {
+                if line.contains(word) {
+                    violations.push(format!("{file}:{}: {word} in `{}`", line_number + 1, line.trim()));
+                }
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "hardcoded user-facing strings found outside the interface, add them to `Localization` instead:\n{}",
+        violations.join("\n")
+    );
+}
+
+/// Extracts the string literals of a source fragment (good enough for the
+/// label literals used by `fn text`: no raw strings, no string continuation).
+fn string_literals(source: &str) -> Vec<String> {
+    let bytes = source.as_bytes();
+    let mut literals = Vec::new();
+    let mut index = 0;
+
+    while index < bytes.len() {
+        if bytes[index] != b'"' {
+            index += 1;
+            continue;
+        }
+
+        let mut literal = String::new();
+        index += 1;
+        while index < bytes.len() {
+            match bytes[index] {
+                b'\\' if index + 1 < bytes.len() => {
+                    index += 2;
+                    continue;
+                }
+                b'"' => {
+                    index += 1;
+                    break;
+                }
+                byte => {
+                    literal.push(byte as char);
+                    index += 1;
+                }
+            }
+        }
+
+        if !literal.is_empty() {
+            literals.push(literal);
+        }
+    }
+
+    literals
+}
+
+/// Finds the `fn text(&self)` body of an `impl` block (index range of the
+/// method including its closing brace) when the block has one.
+fn text_method_body(block: &str) -> Option<String> {
+    let start = block.find("fn text(&self)")?;
+    let body = &block[start..];
+    let mut depth = 0i32;
+    let mut seen_open = false;
+    let mut end = body.len();
+
+    for (index, character) in body.char_indices() {
+        match character {
+            '{' => {
+                depth += 1;
+                seen_open = true;
+            }
+            '}' => {
+                depth -= 1;
+                if seen_open && depth == 0 {
+                    end = index + 1;
+                    break;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    seen_open.then(|| body[..end].to_owned())
+}
+
+/// Split the source into top-level `impl` blocks (rustfmt puts the closing
+/// brace at column 0, nested blocks are indented).
+fn impl_blocks(content: &str) -> Vec<String> {
+    let lines: Vec<&str> = content.lines().collect();
+    let mut blocks = Vec::new();
+    let mut start = None;
+
+    for (index, line) in lines.iter().enumerate() {
+        if start.is_none() && line.starts_with("impl ") {
+            start = Some(index);
+        }
+        if let Some(block_start) = start
+            && *line == "}"
+        {
+            blocks.push(lines[block_start..=index].join("\n"));
+            start = None;
+        }
+    }
+
+    blocks
+}
+
+/// Localization source that every `fn text` fallback literal has to exist in.
+fn localization_source() -> String {
+    let path = client_source_directory().join("state/localization/texts.rs");
+    fs::read_to_string(&path).expect("the localization texts source has to exist")
+}
+
+/// Drop-down options have to be localizable: every `fn text(&self)` that
+/// returns a literal must be paired with a `fn text_key(&self)` in the same
+/// impl, and the fallback literal must exist in the localization defaults so
+/// the untranslated fallback and the translated label cannot drift apart.
+///
+/// Implementations without literals (for example the server `Service` display
+/// name, which is data from `sclientinfo.xml`) are dynamic and stay as they
+/// are; the language selection returns the native language names on purpose.
+#[test]
+fn drop_down_labels_are_localized() {
+    let localization = localization_source();
+    let mut violations = Vec::new();
+
+    for (file, path) in client_source_files() {
+        if is_scan_exempt(&file) {
+            continue;
+        }
+
+        let content = fs::read_to_string(&path).expect("source file is readable");
+        for block in impl_blocks(&production_source(&content)) {
+            let Some(body) = text_method_body(&block) else {
+                continue;
+            };
+
+            let literals = string_literals(&body);
+            if literals.is_empty() {
+                // Dynamic label (data-driven text, no literal).
+                continue;
+            }
+
+            if !block.contains("fn text_key(&self)") {
+                violations.push(format!(
+                    "{file}: `fn text(&self)` returns a hardcoded literal without a `fn text_key(&self)` localization key"
+                ));
+                continue;
+            }
+
+            for literal in literals {
+                if !localization.contains(&format!("\"{literal}\"")) {
+                    violations.push(format!(
+                        "{file}: drop-down fallback literal \"{literal}\" is missing from `state/localization/texts.rs`; add the label to \
+                         `Localization`/`DropdownTexts`"
+                    ));
+                }
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "unlocalized drop-down labels found:\n{}",
+        violations.join("\n")
+    );
+}

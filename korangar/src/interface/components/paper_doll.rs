@@ -21,6 +21,7 @@ use korangar_networking::{InventoryItem, InventoryItemDetails};
 use ragnarok_packets::EquipPosition;
 use rust_state::{Path, PathExt, Selector, State};
 
+use super::paper_doll_slots;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
@@ -31,89 +32,9 @@ use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThem
 use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata};
 
-/// Width of the paper doll canvas.
-const CANVAS_WIDTH: f32 = 220.0;
-/// Height of the paper doll canvas.
-const CANVAS_HEIGHT: f32 = 342.0;
-/// Edge length of a single equipment slot.
-const SLOT_SIZE: f32 = 42.0;
-
-struct SlotDefinition {
-    equip_position: EquipPosition,
-    /// Position of the slot on the paper doll canvas.
-    left: f32,
-    top: f32,
-}
-
-/// All equipment slots of the paper doll, in drawing order.
-const SLOTS: [SlotDefinition; 11] = [
-    SlotDefinition {
-        equip_position: EquipPosition::HEAD_TOP,
-        left: 89.0,
-        top: 4.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::AMMO,
-        left: 166.0,
-        top: 4.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::HEAD_MIDDLE,
-        left: 12.0,
-        top: 52.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::HEAD_LOWER,
-        left: 166.0,
-        top: 52.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::ARMOR,
-        left: 12.0,
-        top: 126.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::GARMENT,
-        left: 166.0,
-        top: 126.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::RIGHT_HAND,
-        left: 12.0,
-        top: 200.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::LEFT_HAND,
-        left: 166.0,
-        top: 200.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::LEFT_ACCESSORY,
-        left: 12.0,
-        top: 274.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::RIGTH_ACCESSORY,
-        left: 166.0,
-        top: 274.0,
-    },
-    SlotDefinition {
-        equip_position: EquipPosition::SHOES,
-        left: 89.0,
-        top: 296.0,
-    },
-];
-
-const SLOT_COUNT: usize = SLOTS.len();
-
-/// Maximum scale of the character sprite on the paper doll canvas.
-///
-/// Most characters reach this scale; characters with very tall headgear (or
-/// big wings) are scaled down just enough that no part is clipped at the top of
-/// the canvas.
-const CHARACTER_MAX_SCALE: f32 = 3.2;
-/// Space kept between the top of the character and the top of the canvas.
-const CHARACTER_TOP_MARGIN: f32 = 6.0;
+/// Number of equipment slots of the paper doll (data-driven, exactly one
+/// slot per classic equipment position).
+const SLOT_COUNT: usize = paper_doll_slots::SLOT_COUNT;
 
 /// Path to the item that is equipped in a certain equipment position.
 #[derive(Clone, Copy)]
@@ -234,9 +155,11 @@ where
 {
     pub fn new(items_path: A, player_path: B) -> Self {
         Self {
-            item_paths: std::array::from_fn(|index| EquipmentSlotPath::new(SLOTS[index].equip_position, items_path)),
+            item_paths: std::array::from_fn(|index| {
+                EquipmentSlotPath::new(paper_doll_slots::table().slots[index].equip_position(), items_path)
+            }),
             handlers: std::array::from_fn(|index| EquipmentSlotHandler {
-                equip_position: SLOTS[index].equip_position,
+                equip_position: paper_doll_slots::table().slots[index].equip_position(),
                 items_path,
             }),
             player_path,
@@ -284,22 +207,23 @@ where
         }
 
         with_single_resolver(resolvers, |resolver| {
-            let area = resolver.with_height(CANVAS_HEIGHT);
+            let table = paper_doll_slots::table();
+            let area = resolver.with_height(table.canvas_height);
 
-            let left = area.left + (area.width - CANVAS_WIDTH).max(0.0) / 2.0;
+            let left = area.left + (area.width - table.canvas_width).max(0.0) / 2.0;
 
             let canvas = Area {
                 left,
                 top: area.top,
-                width: area.width.min(CANVAS_WIDTH),
-                height: CANVAS_HEIGHT,
+                width: area.width.min(table.canvas_width),
+                height: table.canvas_height,
             };
 
             let slots = std::array::from_fn(|index| Area {
-                left: canvas.left + SLOTS[index].left,
-                top: canvas.top + SLOTS[index].top,
-                width: SLOT_SIZE,
-                height: SLOT_SIZE,
+                left: canvas.left + table.slots[index].left,
+                top: canvas.top + table.slots[index].top,
+                width: table.slot_size,
+                height: table.slot_size,
             });
 
             PaperDollLayoutInfo { canvas, slots }
@@ -355,7 +279,7 @@ where
             mode: MouseInputMode::MoveItem { .. },
         });
 
-        for (index, slot) in SLOTS.iter().enumerate() {
+        for (index, slot) in paper_doll_slots::table().slots.iter().enumerate() {
             let area = layout_info.slots[index];
             let item = self.get_item(state, index);
 
@@ -434,7 +358,7 @@ where
                 None => {
                     layout.add_text(
                         area,
-                        paper_doll_texts.slot_label(slot.equip_position),
+                        paper_doll_texts.slot_label(slot.equip_position()),
                         slot_label_font_size,
                         slot_label_color,
                         slot_label_color,
@@ -454,7 +378,7 @@ where
 
                 let tooltip = match &self.tooltips[index] {
                     Some(tooltip) => tooltip.as_ref(),
-                    None => paper_doll_texts.slot_name(slot.equip_position),
+                    None => paper_doll_texts.slot_name(slot.equip_position()),
                 };
 
                 struct PaperDollSlotTooltip;
@@ -471,43 +395,51 @@ where
 /// the character (including hair, headgear and wings). The sprite is anchored
 /// with its feet at [`CHARACTER_FEET_ANCHOR`] of the canvas, so the available
 /// height is the distance from that anchor to the top margin. The scale is
-/// capped at [`CHARACTER_MAX_SCALE`] so normal characters keep the familiar
-/// paper-doll size.
+/// capped at the data-file `character_max_scale` so normal characters keep the
+/// familiar paper-doll size.
 fn character_scale(frame: Option<&crate::world::AnimationFrame>) -> f32 {
+    let table = paper_doll_slots::table();
     let frame_height = frame
         .map(|frame| frame.size.y as f32)
         .filter(|height| *height > 0.0)
         .unwrap_or(96.0);
-    let available_height = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - CHARACTER_TOP_MARGIN;
+    let available_height = table.canvas_height * CHARACTER_FEET_ANCHOR - table.character_top_margin;
 
-    (available_height / frame_height).min(CHARACTER_MAX_SCALE)
+    (available_height / frame_height).min(table.character_max_scale)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CANVAS_HEIGHT, CHARACTER_FEET_ANCHOR, CHARACTER_MAX_SCALE, CHARACTER_TOP_MARGIN, character_scale};
+    use super::{CHARACTER_FEET_ANCHOR, character_scale, paper_doll_slots};
+
+    fn character_scale_for_height(frame_height: f32) -> f32 {
+        let table = paper_doll_slots::table();
+        let available_height = table.canvas_height * CHARACTER_FEET_ANCHOR - table.character_top_margin;
+
+        (available_height / frame_height).min(table.character_max_scale)
+    }
 
     #[test]
     fn normal_characters_use_the_maximum_paper_doll_scale() {
         // Typical player idle frames are around 70-80 pixels tall.
+        let maximum_scale = paper_doll_slots::table().character_max_scale;
         for frame_height in [60.0, 70.0, 80.0] {
-            assert_eq!(character_scale_for_height(frame_height), CHARACTER_MAX_SCALE);
+            assert_eq!(character_scale_for_height(frame_height), maximum_scale);
         }
     }
 
     #[test]
     fn tall_headgear_is_scaled_down_to_stay_inside_the_canvas() {
+        let table = paper_doll_slots::table();
         let tall_frame = 120.0;
         let scale = character_scale_for_height(tall_frame);
-        let top = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - tall_frame * scale;
+        let top = table.canvas_height * CHARACTER_FEET_ANCHOR - tall_frame * scale;
 
-        assert!(scale < CHARACTER_MAX_SCALE);
-        assert!(top >= CHARACTER_TOP_MARGIN - 0.001, "character is clipped at the top: {top}");
-    }
-
-    fn character_scale_for_height(frame_height: f32) -> f32 {
-        let available_height = CANVAS_HEIGHT * CHARACTER_FEET_ANCHOR - CHARACTER_TOP_MARGIN;
-        (available_height / frame_height).min(CHARACTER_MAX_SCALE)
+        assert!(scale < table.character_max_scale);
+        assert!(
+            top >= table.character_top_margin - 0.001,
+            "character is clipped at the top: {top}"
+        );
     }
 
     #[test]

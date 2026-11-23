@@ -14,6 +14,7 @@ use korangar_interface::layout::area::Area;
 use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use korangar_interface::window::{CustomWindow, Window, WindowThemePathExt};
+use ragnarok_packets::NAME_LENGTH;
 use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
@@ -26,8 +27,6 @@ use crate::state::theme::{
     ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, PartyThemePathExt, TypographyTokensPathExt,
 };
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
-
-const MAXIMUM_NAME_LENGTH: usize = 24;
 
 const TITLE_HEIGHT: f32 = 20.0;
 const ROW_HEIGHT: f32 = 26.0;
@@ -382,7 +381,7 @@ impl CustomWindow<ClientState> for PartyWindow {
                 text_box! {
                     ghost_text: client_state().localization().party_name_text(),
                     state: create_input_path,
-                    input_handler: DefaultHandler::<_, _, MAXIMUM_NAME_LENGTH>::new(create_input_path, create_action),
+                    input_handler: DefaultHandler::<_, _, NAME_LENGTH>::new(create_input_path, create_action),
                     focus_id: CreatePartyName,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
@@ -398,7 +397,7 @@ impl CustomWindow<ClientState> for PartyWindow {
                 text_box! {
                     ghost_text: client_state().localization().character_name_text(),
                     state: invite_input_path,
-                    input_handler: DefaultHandler::<_, _, MAXIMUM_NAME_LENGTH>::new(invite_input_path, invite_action),
+                    input_handler: DefaultHandler::<_, _, NAME_LENGTH>::new(invite_input_path, invite_action),
                     focus_id: InvitePartyName,
                     overflow_behavior: OverflowBehavior::Shrink,
                 },

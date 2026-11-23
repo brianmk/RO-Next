@@ -37,6 +37,24 @@ struct Arguments {
     #[arg(long = "check-messages", value_name = "PATH", num_args = 0..=1)]
     check_messages: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the data-driven paper-doll slot table and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\paper_doll_slots.ron`). Exits 0 when valid, 1 with the
+    /// schema errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_paper_doll: Option<Option<std::path::PathBuf>>,
+
+    /// Validate the data-driven key binding table and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\keybinds.ron`). Exits 0 when valid, 1 with the schema
+    /// errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_keybinds: Option<Option<std::path::PathBuf>>,
+
     /// Validate the data-driven status-effect table and exit.
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_status_effects: Option<Option<std::path::PathBuf>>,
@@ -122,6 +140,32 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("messages: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_paper_doll {
+        match korangar::check_paper_doll(path.as_deref()) {
+            Ok(count) => {
+                println!("paper doll: {count} equipment slots are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("paper doll: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_keybinds {
+        match korangar::check_keybinds(path.as_deref()) {
+            Ok(count) => {
+                println!("keybinds: {count} key bindings are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("keybinds: invalid data: {error}");
                 std::process::exit(1);
             }
         }
