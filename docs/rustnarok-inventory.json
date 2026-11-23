@@ -20,7 +20,21 @@
   "effect_ids_missing_heuristic": 1338,
   "motion_rows_covered_after_port": 183,
   "motion_rows_missing_after_port": 246,
-  "learnable_skills_missing_effects": 211
+  "learnable_skills_missing_effects": 211,
+  "our_status_auras": 7,
+  "ported_status_auras_this_batch": [
+   1,
+   31,
+   87,
+   132
+  ],
+  "ported_status_tints_this_batch": [
+   23,
+   86,
+   132,
+   147
+  ],
+  "ported_motion_rows_this_batch": 37
  },
  "effects": [
   {

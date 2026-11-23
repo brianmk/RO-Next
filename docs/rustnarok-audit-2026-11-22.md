@@ -39,7 +39,7 @@ Counts at the audit commit:
 | effect ids with a definition | 1,621 | 388 skill ids with effect rows (437 phases, 608 layers) |
 | effect definition lines | 4,553 | — |
 | skills with an effect mapping | 1,158 | 388 |
-| status visual mappings (`status` lines) | 177 | 4 persistent auras + 3 status tints |
+| status visual mappings (`status` lines) | 177 | 7 persistent auras + 3 status tints |
 | status icons | 313 built-in | 609 status rows, 575 icons |
 | skill-motion table entries | 429 skills | 242 action rows (after this batch) |
 | protocol | 2025-era packets + MCP | 2019/2022-compatible `PACKETVER` |
@@ -97,7 +97,7 @@ for 4th-job status objects.
 
 **RO-Next:** `archive/data/client/status_effects.ron` has 609 statuses,
 519 names, 575 icons, 7 value-label schemas, refresh/stack policies and
-**4 auras** (Assumptio 110/473, Fury 86, Berserk 132). Status packets are
+**7 auras** (Assumptio 110/473, Fury 86, Berserk 132, Energy Coat 31, Steel Body 87, Endure 1). Status packets are
 tracked per entity (`state/status_effects.rs`); body tints are applied from the
 status handler (`korangar/src/lib.rs`, status arm) and rendered through
 `EntityCommon::sprite_tint`.
@@ -144,7 +144,7 @@ skill-unit handling).
 | learnable Pre-Re skills | 457 | 388 skill rows in `skill_effects.ron` | 246 | 211 (most only generic cast effects 12/16) |
 | skill motion table | 429 skills | `skill_actions.ron` 242 | 183 | 246 (mostly 4th-job/special action indices) |
 | status icons | 313 | 609 status rows / 575 icons | 313 built-ins present | 0 rustnarok icons missing; 45 icon-name differences (case/source table), not functional |
-| status visual effects | 177 | 4 auras + 2 tint families | 6 | 171 (need primitives; see B1) |
+| status visual effects | 177 | 7 auras + 3 tint families | 10 | 167 (need primitives; see B1) |
 | skill sounds | rustnarok `wav` rows | 8 curated + 363 official + fallback | broad | generic-cast sounds handled by our gate |
 
 The exact per-entry table is in `docs/rustnarok-inventory.json`:
@@ -162,8 +162,9 @@ Commits on the integration branch:
 - **`6cbd1e77`** — status-driven body tints for Adrenaline Rush 23/147
   `(1.0,0.45,0.45)`, Fury 86 `(1.0,0.75,0.75)`; removed the wrong option-bit
   tint (`0x8` is `OPTION_CART`). Berserk 132 `#FA7878` added in this audit batch.
-- The regenerated `status_effects.ron` / `status_facts.json` (4 auras: Assumptio
-  110/473, Fury 86, Berserk 132) are the data half of the same batch.
+- The regenerated `status_effects.ron` / `status_facts.json` (7 auras: Assumptio
+  110/473, Fury 86, Berserk 132, Energy Coat 31, Steel Body 87, Endure 1) are the
+  data half of the same batch.
 - Existing high-value ports retained intact: white Warp Portal pillar, 5 orbiting
   spirit spheres, Asura Strike impact/body flash, Fury animation/electric
   aura/waves, Leap `0x01FF`, Body Relocation `0x08D2`, cart (base + status
@@ -172,7 +173,7 @@ Commits on the integration branch:
 
 **Verified:** `cargo test -p korangar --lib` 545 passed / 0 failed / 12 ignored;
 `cargo fmt --all` clean; `tools/gen_skill_actions.py --check` 242 entries;
-`tools/gen_status_effects.py --check` 609 statuses / 4 auras;
+`tools/gen_status_effects.py --check` 609 statuses / 7 auras;
 `korangar --check-status-effects` data path covered by the same schema tests.
 
 ### Rejected / deliberately not copied
