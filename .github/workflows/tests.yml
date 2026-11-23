@@ -79,3 +79,13 @@ jobs:
           ./tools/gen_skills.py --check
           ./tools/test_skills_data.py
           ./tools/test_skill_sounds_data.py
+
+      # Phase 6 client configuration data: hand-curated small files (default
+      # map / start camera / quest icon, UI audio paths, debug map warps). The
+      # client `--check-*` entry points validate them without game files; the
+      # `world_audio_data` regression test already ran with the unit tests.
+      - name: Check client configuration data
+        run: |
+          cargo run -p korangar --all-features -- --check-world
+          cargo run -p korangar --all-features -- --check-ui-audio
+          cargo run -p korangar --all-features -- --check-debug-maps

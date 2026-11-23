@@ -5,7 +5,7 @@ use cgmath::{Point3, Vector3};
 #[cfg(feature = "debug")]
 use korangar_debug::logging::Colorize;
 use korangar_interface::application::Clip;
-use ragnarok_packets::{EntityId, QuestColor, QuestEffectPacket};
+use ragnarok_packets::{EntityId, QuestEffectPacket};
 use rand_aes::tls::rand_f32;
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize, Texture};
@@ -349,18 +349,16 @@ impl QuestIcon {
 
         let position = entity_position + icon_offset;
         let effect_id = quest_effect.effect as usize;
-        let texture = texture_loader
-            .get_or_load(
-                &format!("유저인터페이스\\minimap\\quest_{}_{}.bmp", effect_id, 1), /* 1 - 3 */
-                ImageType::Color,
-            )
-            .unwrap();
-        let color = match quest_effect.color {
-            QuestColor::Yellow => Color::rgb_u8(200, 200, 30),
-            QuestColor::Orange => Color::rgb_u8(200, 100, 30),
-            QuestColor::Green => Color::rgb_u8(30, 200, 30),
-            QuestColor::Purple => Color::rgb_u8(200, 30, 200),
+        // Texture template, frame and tints are data-driven
+        // (`data\client\world_config.ron`, see `client_config::world_config`).
+        // A texture the archives do not contain skips the icon instead of
+        // crashing the client, so a broken data override degrades visibly.
+        let texture_path = crate::client_config::quest_icon_texture(effect_id);
+        let Ok(texture) = texture_loader.get_or_load(&texture_path, ImageType::Color) else {
+            crate::logging::log_warn!("quest icon: texture {texture_path:?} could not be loaded, skipping the icon");
+            return None;
         };
+        let color = crate::client_config::quest_icon_color(quest_effect.color);
 
         Some(Self { position, texture, color })
     }

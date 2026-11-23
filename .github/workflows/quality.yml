@@ -230,6 +230,18 @@ jobs:
         if: matrix.features == 'default'
         run: cargo run -p korangar -- --check-skills
 
+      # Phase 6 client configuration data (world/login defaults, UI audio paths
+      # and the debug-only map warp list). Hand-curated, no generator and no
+      # game files, so the committed files are validated with the client's
+      # `--check-*` entry points; `korangar/tests/world_audio_data.rs` guards
+      # the previous values and the localization of the chat feedback.
+      - name: Client configuration data file schema (compiled fallbacks)
+        if: matrix.features == 'default'
+        run: |
+          cargo run -p korangar -- --check-world
+          cargo run -p korangar -- --check-ui-audio
+          cargo run -p korangar -- --check-debug-maps
+
   generated-data:
     name: Generated client data drift
     runs-on: ubuntu-latest

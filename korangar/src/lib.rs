@@ -32,6 +32,7 @@ macro_rules! time_phase {
 }
 
 mod benchmark;
+mod client_config;
 mod graphics;
 mod input;
 mod perf;
@@ -190,25 +191,11 @@ const CLIENT_NAME: &str = "RO-Next";
 /// Duration of the one-shot attack/pickup animation for instant skills, where
 /// the server sends no attack motion (the official client uses a 400 ms hold).
 const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
-const DEFAULT_MAP: &str = "geffen";
-const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
-/// Background music that is played while the client is *not* inside a map:
-/// the login window, the server selection and the character selection.
-///
-/// Classic Ragnarok Online hard-codes `BGM/01.mp3` ("Title") for the login
-/// screen and also uses it as the fallback track for maps without their own
-/// music. The file name resolution (archives, `data/mp3`, case-insensitive
-/// loose files) is shared with the map music. If a future client needs a
-/// separate character selection track, this is the only place to change.
-const UI_BACKGROUND_MUSIC: Option<&str> = Some("bgm\\01.mp3");
-const MAIN_MENU_CLICK_SOUND_EFFECT: &str = "버튼소리.wav";
-/// Sound played when another entity teleports away / logs out (classic client
-/// plays the teleport warp effect together with this effect sound).
-const TELEPORT_VANISH_SOUND_EFFECT: &str = "effect\\ef_teleportation.wav";
 /// Maximum number of teleport-vanish effects spawned within
 /// `TELEPORT_VANISH_WINDOW`. Population-engine shells can vanish in bursts;
 /// this keeps the effect renderer cheap.
 const TELEPORT_VANISH_BURST_LIMIT: usize = 12;
+
 /// Sliding window used for [`TELEPORT_VANISH_BURST_LIMIT`].
 const TELEPORT_VANISH_WINDOW: Duration = Duration::from_millis(700);
 const ITEM_PICKUP_RANGE: AttackRange = AttackRange(1);
@@ -482,35 +469,18 @@ impl PendingExperience {
         self.base == 0 && self.job == 0 && self.quest_base == 0 && self.quest_job == 0
     }
 
-    /// Formats and clears the aggregated amounts. Returns [`None`] when nothing
-    /// was gained.
-    fn take_message(&mut self) -> Option<String> {
+    /// Clears and returns the four aggregated amounts (base, job, quest base,
+    /// quest job), or [`None`] when nothing was gained.
+    ///
+    /// The chat text and its labels are localized by the caller
+    /// (`flush_experience_feedback`), so this only reports the amounts.
+    fn take_gains(&mut self) -> Option<[i64; 4]> {
         if self.is_empty() {
             self.last_packet = None;
             return None;
         }
 
-        let mut parts = Vec::new();
-        let mut push = |amount: i64, label: &str| {
-            if amount != 0 {
-                parts.push(format!(
-                    "{}{} {}",
-                    if amount < 0 { "-" } else { "" },
-                    format_amount(amount.unsigned_abs()),
-                    label
-                ));
-            }
-        };
-
-        push(self.base, "base EXP");
-        push(self.job, "job EXP");
-        push(self.quest_base, "base EXP (quest)");
-        push(self.quest_job, "job EXP (quest)");
-
-        let message = match parts.is_empty() {
-            true => None,
-            false => Some(format!("Gained {}.", parts.join(", "))),
-        };
+        let gains = [self.base, self.job, self.quest_base, self.quest_job];
 
         self.base = 0;
         self.job = 0;
@@ -518,7 +488,7 @@ impl PendingExperience {
         self.quest_job = 0;
         self.last_packet = None;
 
-        message
+        Some(gains)
     }
 }
 
@@ -698,6 +668,55 @@ pub fn check_skills(path: Option<&std::path::Path>) -> Result<crate::world::Skil
             crate::world::validate_skill_data(&content).map_err(|error| format!("{}: {error}", path.display()))
         }
         None => crate::world::validate_compiled_skills().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven world/login configuration
+/// (`archive/data/client/world_config.ron`) and returns its summary.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary
+/// exposes it as `korangar --check-world [PATH]`.
+pub fn check_world_config(path: Option<&std::path::Path>) -> Result<crate::client_config::WorldConfigSummary, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::client_config::validate_world_config(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::client_config::validate_compiled_world_config().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven UI audio paths
+/// (`archive/data/client/ui_audio.ron`) and returns their summary.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary
+/// exposes it as `korangar --check-ui-audio [PATH]`.
+pub fn check_ui_audio(path: Option<&std::path::Path>) -> Result<crate::client_config::UiAudioSummary, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::client_config::validate_ui_audio(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::client_config::validate_compiled_ui_audio().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven debug map warp list
+/// (`archive/data/client/debug_maps.ron`) and returns its number of warps.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary
+/// exposes it as `korangar --check-debug-maps [PATH]`. This is a debug-only
+/// convenience list, not user-facing content.
+pub fn check_debug_maps(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::client_config::validate_debug_maps(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::client_config::validate_compiled_debug_maps().map_err(|error| format!("compiled fallback: {error}")),
     }
 }
 
@@ -904,8 +923,9 @@ pub struct Client {
     /// `RemoveSkillUnit`. Rendered as the flat ground portal of the original
     /// client.
     warp_skill_units: Vec<(EntityId, Point3<f32>, Instant, Instant)>,
-    /// Sound of the entity teleport/logout disappear effect.
-    teleport_vanish_sound_effect: SoundEffectKey,
+    /// Sound of the entity teleport/logout disappear effect (data-driven, see
+    /// `client_config::ui_audio`; `None` disables it).
+    teleport_vanish_sound_effect: Option<SoundEffectKey>,
     /// Spawn times of recently started teleport-vanish effects (burst limiter).
     recent_teleport_vanishes: Vec<Instant>,
     path_finder: PathFinder,
@@ -922,7 +942,8 @@ pub struct Client {
     #[cfg(feature = "debug")]
     tile_texture_set: Arc<TextureSet>,
 
-    main_menu_click_sound_effect: SoundEffectKey,
+    /// Interface/button click sound (data-driven; `None` disables it).
+    main_menu_click_sound_effect: Option<SoundEffectKey>,
 
     #[cfg(feature = "debug")]
     networking_system: NetworkingSystem<PacketHistoryCallback>,
@@ -1176,6 +1197,14 @@ impl Client {
             load_protocol_messages(game_file_loader.as_ref());
         });
 
+        // Client configuration data (default/login map, start-camera focus,
+        // quest-icon colours and UI audio paths). Each file is loaded through
+        // the archive with the compiled fallback, so a server can override it
+        // without a rebuild.
+        time_phase!("load client config", {
+            crate::client_config::load(game_file_loader.as_ref());
+        });
+
         time_phase!("calculate game file hash", {
             let game_file_hash = game_file_loader.calculate_hash();
             #[cfg(feature = "debug")]
@@ -1337,7 +1366,7 @@ impl Client {
             let player_camera = PlayerCamera::new();
             let mut directional_shadow_camera = DirectionalShadowCamera::new();
             let point_shadow_camera = PointShadowCamera::new();
-            start_camera.set_focus_point(START_CAMERA_FOCUS_POINT);
+            start_camera.set_focus_point(crate::client_config::start_camera_focus());
         });
 
         // TODO: Move all of these to the ClientState
@@ -1395,14 +1424,16 @@ impl Client {
             #[cfg(feature = "debug")]
             let tile_texture_set = Arc::new(tile_texture_set);
 
-            let main_menu_click_sound_effect = audio_engine.load(MAIN_MENU_CLICK_SOUND_EFFECT);
-            let teleport_vanish_sound_effect = audio_engine.load(TELEPORT_VANISH_SOUND_EFFECT);
+            // Data-driven UI audio paths (archive override of
+            // `data\client\ui_audio.ron`, see `client_config::ui_audio`).
+            let main_menu_click_sound_effect = crate::client_config::main_menu_click_sound().map(|path| audio_engine.load(path));
+            let teleport_vanish_sound_effect = crate::client_config::teleport_vanish_sound().map(|path| audio_engine.load(path));
         });
 
         time_phase!("load default map", {
             let map = map_loader
                 .load(
-                    DEFAULT_MAP.to_string(),
+                    crate::client_config::default_map().to_string(),
                     &model_loader,
                     texture_loader.clone(),
                     video_loader,
@@ -1412,7 +1443,7 @@ impl Client {
 
             directional_shadow_camera.set_level_bound(map.get_level_bound());
 
-            audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+            audio_engine.play_background_music_track(crate::client_config::background_music());
             map.set_ambient_sound_sources(&audio_engine);
         });
 
@@ -2123,7 +2154,10 @@ impl Client {
                 SessionAction::MapLoadGaveUp { map_name } => {
                     // Do not leave the client on a black screen: recover to the
                     // character selection and show the reason there.
-                    let message = format!("Failed to load the map '{map_name}'. Please try again.");
+                    let message = self.render_localized(client_state().localization().error_map_load_failed(), &[(
+                        "map_name",
+                        map_name.as_str(),
+                    )]);
                     self.session.set_map_load_error(message.clone());
                     self.interface.open_window(ErrorWindow::new(message));
                     self.return_to_character_selection();
@@ -2166,8 +2200,8 @@ impl Client {
                         client_state().login_settings(),
                         client_state().client_info(),
                     ));
-                    self.interface
-                        .open_window(ErrorWindow::new("Your session expired. Please log in again.".to_owned()));
+                    let message = self.render_localized(client_state().localization().error_session_expired(), &[]);
+                    self.interface.open_window(ErrorWindow::new(message));
                 }
             }
         }
@@ -2542,8 +2576,9 @@ impl Client {
         self.effect_holder.add_effect(Box::new(TeleportVanish::new(warp_portal, position)));
         // Spatial playback respects the muted/headless backend of the lean test
         // client (KORANGAR_MUTE_AUDIO never opens an audio device).
-        self.audio_engine
-            .play_spatial_sound_effect(self.teleport_vanish_sound_effect, position, 250.0);
+        if let Some(sound_effect) = self.teleport_vanish_sound_effect {
+            self.audio_engine.play_spatial_sound_effect(sound_effect, position, 250.0);
+        }
         crate::logging::log_debug!(
             "entity: teleport vanish effect at ({:.1}, {:.1}, {:.1}) (sound ef_teleportation.wav)",
             position.x,
@@ -2960,11 +2995,18 @@ impl Client {
 
         self.client_state.follow(client_state().interface_settings()).save();
 
-        self.push_chat_information(format!("Aura style set to \"{}\".", style.style_name()));
+        self.push_localized_chat(client_state().localization().chat_aura_style_set(), &[(
+            "style",
+            style.style_name(),
+        )]);
     }
 
     /// Shows the aggregated experience gain in the chat once the packet burst
     /// is over.
+    ///
+    /// The line and its labels are localization templates
+    /// (`chat_experience_gained` + `chat_experience_*`), rendered with the same
+    /// `{name}` placeholders as the other client feedback.
     fn flush_experience_feedback(&mut self) {
         let Some(last_packet) = self.pending_experience.last_packet else {
             return;
@@ -2974,9 +3016,29 @@ impl Client {
             return;
         }
 
-        if let Some(message) = self.pending_experience.take_message() {
-            self.push_chat_information(message);
+        let Some(gains) = self.pending_experience.take_gains() else {
+            return;
+        };
+
+        let localization = self.client_state.follow(client_state().localization());
+        let labels = localization.experience_labels();
+        let mut parts = Vec::new();
+
+        for (amount, label) in gains.into_iter().zip(labels) {
+            if amount != 0 {
+                parts.push(format!(
+                    "{}{} {}",
+                    if amount < 0 { "-" } else { "" },
+                    format_amount(amount.unsigned_abs()),
+                    label
+                ));
+            }
         }
+
+        let template = self.client_state.follow(client_state().localization().chat_experience_gained());
+        let message = korangar_messages::render_template(template, &[("gains", &parts.join(", "))]);
+
+        self.push_chat_information(message);
     }
 
     /// Pushes an informational message into the chat window.
@@ -2984,6 +3046,44 @@ impl Client {
         self.client_state
             .follow_mut(client_state().chat_messages())
             .push(ChatMessage::new(message, MessageColor::Information));
+    }
+
+    /// Plays the configured interface click sound.
+    ///
+    /// The path lives in `data\client\ui_audio.ron`; if the data file has no
+    /// menu click sound the call is a no-op instead of loading an empty path.
+    fn play_main_menu_click_sound(&self) {
+        if let Some(sound_effect) = self.main_menu_click_sound_effect {
+            self.audio_engine.play_sound_effect(sound_effect);
+        }
+    }
+
+    /// Pushes a localized chat feedback message into the chat window.
+    ///
+    /// `template` is a localization path (for example
+    /// `client_state().localization().chat_skill_passive()`) whose text uses
+    /// the same `{name}` placeholders as the protocol result messages;
+    /// rendering goes through `korangar_messages::render_template`, so the
+    /// client has one placeholder implementation and the result-code table
+    /// stays the only protocol message table.
+    fn push_localized_chat<P>(&mut self, template: P, args: &[(&str, &str)])
+    where
+        P: rust_state::Path<ClientState, String>,
+    {
+        let rendered = self.render_localized(template, args);
+
+        self.push_chat_information(rendered);
+    }
+
+    /// Renders a localization template with named `{...}` placeholders.
+    ///
+    /// Used for the client feedback that goes to the error window; the chat
+    /// feedback goes through [`Self::push_localized_chat`].
+    fn render_localized<P>(&self, template: P, args: &[(&str, &str)]) -> String
+    where
+        P: rust_state::Path<ClientState, String>,
+    {
+        korangar_messages::render_template(self.client_state.follow(template), args)
     }
 
     /// Spawns the classic level-99 aura below player entities whose base level
@@ -3411,7 +3511,7 @@ impl Client {
                     character_servers,
                     login_data,
                 } => {
-                    self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
+                    self.play_main_menu_click_sound();
 
                     // Remove `_m`/`_f` suffix from the username. The suffix is only for *creating*
                     // an account and thus can (and needs to) be removed after the first successful
@@ -3555,7 +3655,8 @@ impl Client {
                             client_state().client_info(),
                         ));
 
-                        self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+                        self.audio_engine
+                            .play_background_music_track(crate::client_config::background_music());
                     }
                 }
                 NetworkEvent::MapServerDisconnected { reason } => {
@@ -4005,7 +4106,7 @@ impl Client {
                 NetworkEvent::CharacterList { characters } => {
                     self.session.clear_character_reconnect();
 
-                    self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
+                    self.play_main_menu_click_sound();
 
                     self.client_state
                         .follow_mut(client_state().character_slots())
@@ -4061,13 +4162,15 @@ impl Client {
                 }
                 NetworkEvent::CharacterSelected { login_data, .. } => {
                     crate::logging::log_debug!("character selection: server accepted the character, connecting to the map server");
-                    self.audio_engine.play_sound_effect(self.main_menu_click_sound_effect);
+                    self.play_main_menu_click_sound();
 
                     let Some(saved_login_data) = self.saved_login_data.as_ref() else {
                         // The character selection cannot be processed without the
                         // login data. Show the error instead of panicking.
-                        self.interface
-                            .open_window(ErrorWindow::new("Character selection failed: missing login data.".to_owned()));
+                        let message = self
+                            .render_localized(client_state().localization().error_character_selection_missing_login_data(), &[
+                            ]);
+                        self.interface.open_window(ErrorWindow::new(message));
                         continue;
                     };
                     let saved_login_data = *saved_login_data;
@@ -4086,9 +4189,8 @@ impl Client {
                         .with_id(login_data.character_id)
                         .cloned()
                     else {
-                        self.interface.open_window(ErrorWindow::new(
-                            "Character selection failed: the server did not send that character slot.".to_owned(),
-                        ));
+                        let message = self.render_localized(client_state().localization().error_character_selection_missing_slot(), &[]);
+                        self.interface.open_window(ErrorWindow::new(message));
                         continue;
                     };
 
@@ -4189,8 +4291,8 @@ impl Client {
                     *self.client_state.follow_mut(client_state().switch_request()) = None;
                 }
                 NetworkEvent::CharacterSlotSwitchFailed => {
-                    self.interface
-                        .open_window(ErrorWindow::new("Failed to switch character slots".to_owned()));
+                    let message = self.render_localized(client_state().localization().error_character_slot_switch_failed(), &[]);
+                    self.interface.open_window(ErrorWindow::new(message));
                 }
                 NetworkEvent::AddEntity { entity_data } => {
                     let dead_sit = entity_data.dead_sit;
@@ -5091,7 +5193,10 @@ impl Client {
                     is_identified,
                 } => {
                     let name = self.library.item_name(item_id, is_identified);
-                    let message = format!("You got {name} ({quantity}).");
+                    let message = korangar_messages::render_template(
+                        self.client_state.follow(client_state().localization().chat_item_obtained()),
+                        &[("name", name.as_ref()), ("quantity", &quantity.to_string())],
+                    );
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(message, MessageColor::Information));
@@ -5354,7 +5459,8 @@ impl Client {
                     // server disconnects and the menu map is loaded again.
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
-                    self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+                    self.audio_engine
+                        .play_background_music_track(crate::client_config::background_music());
                     self.networking_system.disconnect_from_map_server();
                 }
                 NetworkEvent::FriendRequest { requestee } => {
@@ -5457,9 +5563,10 @@ impl Client {
                     if self.client_state.follow(client_state().party()).is_in_party() {
                         // Already in a party; the server will reject the invitation
                         // anyway, but tell the user why nothing happens.
-                        self.push_chat_information(format!(
-                            "Ignoring party invitation from \"{party_name}\": you are already in a party."
-                        ));
+                        self.push_localized_chat(client_state().localization().chat_party_invite_ignored(), &[(
+                            "name",
+                            party_name.as_str(),
+                        )]);
                         continue;
                     }
 
@@ -5868,9 +5975,7 @@ impl Client {
                         self.interface.close_window_with_class(WindowClass::SellCart);
                     }
                     SellItemsResult::Error => {
-                        self.client_state
-                            .follow_mut(client_state().chat_messages())
-                            .push(ChatMessage::new("Failed to sell items".to_owned(), MessageColor::Error));
+                        self.push_localized_chat(client_state().localization().chat_sell_failed(), &[]);
                     }
                 },
                 NetworkEvent::AttackFailed {
@@ -5940,7 +6045,7 @@ impl Client {
                     self.push_chat_information(message);
                 }
                 NetworkEvent::StatUpFailed => {
-                    self.push_chat_information("You cannot raise that stat right now.".to_owned());
+                    self.push_localized_chat(client_state().localization().chat_cannot_raise_stat(), &[]);
                 }
                 NetworkEvent::AmmunitionAction { action } => {
                     self.push_chat_information(format_message(
@@ -5953,7 +6058,10 @@ impl Client {
                     crate::logging::log_debug!("ammunition equipped from inventory index {:?}", inventory_index);
                 }
                 NetworkEvent::UserCount { player_count } => {
-                    self.push_chat_information(format!("{player_count} players are online."));
+                    self.push_localized_chat(client_state().localization().chat_players_online(), &[(
+                        "count",
+                        &player_count.to_string(),
+                    )]);
                 }
                 NetworkEvent::MapServerBan { error_code } => {
                     self.push_chat_information(format_message(MessageDomain::MapServerBan, u16::from(error_code), &[]));
@@ -5961,7 +6069,10 @@ impl Client {
                     self.return_to_character_selection();
                 }
                 NetworkEvent::RefuseEnter { error_code } => {
-                    self.push_chat_information(format!("The map server refused the login (error {error_code})."));
+                    self.push_localized_chat(client_state().localization().chat_map_server_refused_login(), &[(
+                        "error",
+                        &error_code.to_string(),
+                    )]);
                 }
                 NetworkEvent::SpiritOrbs { entity_id, amount } => {
                     self.client_state.follow_mut(client_state().spirit_orbs()).set(entity_id, amount);
@@ -6040,9 +6151,11 @@ impl Client {
                 }
                 NetworkEvent::MapServerAuthFailed { reason } => {
                     crate::logging::log_warn!("map server rejected the login (ZC_AUTH_FAIL reason {reason})");
-                    self.interface.open_window(ErrorWindow::new(format!(
-                        "The map server rejected the connection (reason {reason}). Please try again."
-                    )));
+                    let message = self.render_localized(client_state().localization().error_map_server_auth_failed(), &[(
+                        "reason",
+                        &reason.to_string(),
+                    )]);
+                    self.interface.open_window(ErrorWindow::new(message));
                 }
                 NetworkEvent::ShowEquipmentWindow { open } => {
                     if self.client_state.try_follow(this_entity()).is_some() {
@@ -6163,7 +6276,10 @@ impl Client {
         }
 
         match skill_type {
-            SkillType::Passive => self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0)),
+            SkillType::Passive => self.push_localized_chat(client_state().localization().chat_skill_passive(), &[(
+                "skill",
+                &skill_id.0.to_string(),
+            )]),
             SkillType::SelfCast => self.cast_self_skill(skill_id, level),
             skill_type => self.interface.set_mouse_mode(MouseMode::Custom {
                 mode: MouseInputMode::TargetSkill {
@@ -6878,12 +6994,15 @@ impl Client {
                         match AuraStyle::from_style_name(style_name) {
                             Some(style) => self.set_aura_style(style),
                             None if style_name.is_empty() => {
-                                self.push_chat_information(format!("Usage: /aura <style>. Available styles: {}.", AuraStyle::style_names()))
+                                self.push_localized_chat(client_state().localization().chat_aura_usage(), &[(
+                                    "styles",
+                                    AuraStyle::style_names(),
+                                )])
                             }
-                            None => self.push_chat_information(format!(
-                                "Unknown aura style \"{style_name}\". Available styles: {}.",
-                                AuraStyle::style_names()
-                            )),
+                            None => self.push_localized_chat(client_state().localization().chat_aura_unknown(), &[
+                                ("style", style_name),
+                                ("styles", AuraStyle::style_names()),
+                            ]),
                         }
 
                         continue;
@@ -6911,12 +7030,12 @@ impl Client {
                         let message = message.trim();
 
                         if message.is_empty() {
-                            self.push_chat_information("Usage: /p <message>".to_owned());
+                            self.push_localized_chat(client_state().localization().chat_party_usage(), &[]);
                         } else if self.client_state.follow(client_state().party()).is_in_party() {
                             let player_name = self.client_state.follow(client_state().player_name()).clone();
                             let _ = self.networking_system.send_party_chat_message(&player_name, message);
                         } else {
-                            self.push_chat_information("You are not in a party.".to_owned());
+                            self.push_localized_chat(client_state().localization().not_in_party_text(), &[]);
                         }
 
                         continue;
@@ -7057,7 +7176,10 @@ impl Client {
                     self.client_state.follow_mut(client_state().hotbar()).cycle_tab(delta);
 
                     let tab = self.client_state.follow(client_state().hotbar()).active_tab();
-                    self.push_chat_information(format!("Hotbar page {}/{}.", tab + 1, HOTBAR_TAB_COUNT));
+                    self.push_localized_chat(client_state().localization().chat_hotbar_page(), &[
+                        ("page", &(tab + 1).to_string()),
+                        ("pages", &HOTBAR_TAB_COUNT.to_string()),
+                    ]);
                 }
                 InputEvent::UseSkillInSlot { slot } => {
                     // Item hotkeys use the first matching inventory item, like the
@@ -7074,7 +7196,7 @@ impl Client {
                             Some(inventory_index) => {
                                 let _ = self.networking_system.use_item(inventory_index, item.item_id);
                             }
-                            None => self.push_chat_information("The item of that hotkey is not in your inventory.".to_owned()),
+                            None => self.push_localized_chat(client_state().localization().chat_hotkey_item_missing(), &[]),
                         }
 
                         continue;
@@ -7112,7 +7234,10 @@ impl Client {
                             if let Some(learnable_skill) =
                                 self.client_state.follow(client_state().hotbar()).get_skill_in_slot(slot).as_ref()
                             {
-                                self.push_chat_information(format!("You have not learned skill {}.", learnable_skill.skill_id.0));
+                                self.push_localized_chat(client_state().localization().chat_skill_not_learned(), &[(
+                                    "skill",
+                                    &learnable_skill.skill_id.0.to_string(),
+                                )]);
                             }
                         }
                     }
@@ -7130,7 +7255,10 @@ impl Client {
 
                     match skill {
                         Some((skill_type, level)) => self.use_skill(None, skill_id, skill_type, level, client_tick),
-                        None => self.push_chat_information(format!("You have not learned skill {}.", skill_id.0)),
+                        None => self.push_localized_chat(client_state().localization().chat_skill_not_learned(), &[(
+                            "skill",
+                            &skill_id.0.to_string(),
+                        )]),
                     }
                 }
                 InputEvent::CastSkill {
@@ -7164,7 +7292,10 @@ impl Client {
                     {
                         match skill_type {
                             SkillType::Passive => {
-                                self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0));
+                                self.push_localized_chat(client_state().localization().chat_skill_passive(), &[(
+                                    "skill",
+                                    &skill_id.0.to_string(),
+                                )]);
                             }
                             SkillType::Attack => {
                                 if let PickerTarget::Entity(entity_id) = input_report.mouse_target
@@ -7206,17 +7337,26 @@ impl Client {
                                             });
                                             let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                         } else {
-                                            self.push_chat_information(format!("Skill {}: the target is out of range.", skill_id.0));
+                                            self.push_localized_chat(client_state().localization().chat_skill_target_out_of_range(), &[(
+                                                "skill",
+                                                &skill_id.0.to_string(),
+                                            )]);
                                         }
                                     } else {
-                                        self.push_chat_information(format!("Skill {}: the target is no longer in view.", skill_id.0));
+                                        self.push_localized_chat(client_state().localization().chat_skill_target_gone(), &[(
+                                            "skill",
+                                            &skill_id.0.to_string(),
+                                        )]);
                                     }
                                 } else {
                                     crate::logging::log_debug!(
                                         "cast skill {:?}: no entity target or map, dropping the attack cast",
                                         skill_id
                                     );
-                                    self.push_chat_information(format!("Skill {}: select a target first.", skill_id.0));
+                                    self.push_localized_chat(client_state().localization().chat_skill_no_target(), &[(
+                                        "skill",
+                                        &skill_id.0.to_string(),
+                                    )]);
                                 }
                             }
                             SkillType::Ground | SkillType::Trap => {
@@ -7253,13 +7393,15 @@ impl Client {
                                                 });
                                                 let _ = self.networking_system.cast_ground_skill(skill_id, level, target_position);
                                             } else {
-                                                self.push_chat_information(format!("Skill {}: that cell is out of range.", skill_id.0));
+                                                self.push_localized_chat(client_state().localization().chat_skill_cell_out_of_range(), &[
+                                                    ("skill", &skill_id.0.to_string()),
+                                                ]);
                                             }
                                         } else {
-                                            self.push_chat_information(format!(
-                                                "Skill {}: the player position is not known yet.",
-                                                skill_id.0
-                                            ));
+                                            self.push_localized_chat(client_state().localization().chat_skill_position_unknown(), &[(
+                                                "skill",
+                                                &skill_id.0.to_string(),
+                                            )]);
                                         }
                                     }
                                 } else {
@@ -7267,7 +7409,10 @@ impl Client {
                                         "cast skill {:?}: ground skill without a tile target, dropping the cast",
                                         skill_id
                                     );
-                                    self.push_chat_information(format!("Skill {}: click a cell on the ground to cast it.", skill_id.0));
+                                    self.push_localized_chat(client_state().localization().chat_skill_click_ground(), &[(
+                                        "skill",
+                                        &skill_id.0.to_string(),
+                                    )]);
                                 }
                             }
                             SkillType::SelfCast => self.cast_self_skill(skill_id, level),
@@ -7310,10 +7455,16 @@ impl Client {
                                                 });
                                                 let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                             } else {
-                                                self.push_chat_information(format!("Skill {}: the target is out of range.", skill_id.0));
+                                                self.push_localized_chat(
+                                                    client_state().localization().chat_skill_target_out_of_range(),
+                                                    &[("skill", &skill_id.0.to_string())],
+                                                );
                                             }
                                         } else {
-                                            self.push_chat_information(format!("Skill {}: the target is no longer in view.", skill_id.0));
+                                            self.push_localized_chat(client_state().localization().chat_skill_target_gone(), &[(
+                                                "skill",
+                                                &skill_id.0.to_string(),
+                                            )]);
                                         }
                                     }
                                 } else {
@@ -7724,7 +7875,8 @@ impl Client {
                             let map = self.map.insert(map);
 
                             map.set_ambient_sound_sources(&self.audio_engine);
-                            self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+                            self.audio_engine
+                                .play_background_music_track(crate::client_config::background_music());
                             self.directional_shadow_camera.set_level_bound(map.get_level_bound());
 
                             // The main menu map finished loading. Do not blindly open the
@@ -7765,7 +7917,7 @@ impl Client {
                                 self.interface.open_window(ErrorWindow::new(message));
                             }
 
-                            self.start_camera.set_focus_point(START_CAMERA_FOCUS_POINT);
+                            self.start_camera.set_focus_point(crate::client_config::start_camera_focus());
                         }
                         false => {
                             // Normal map switch: the map entry is complete.
@@ -7982,9 +8134,10 @@ impl Client {
                     crate::logging::log_warn!("map load failed: {map_name}: {error:?}");
                 }
 
-                let message = format!(
-                    "Map data missing: `{map_name}`\nThis map is not in the game archives. Please log out and choose another character."
-                );
+                let message = self.render_localized(client_state().localization().error_map_data_missing(), &[(
+                    "map_name",
+                    map_name.as_str(),
+                )]);
 
                 self.abort_map_entry(message);
             }
@@ -8143,7 +8296,8 @@ impl Client {
         // We are back at the character selection screen; the map
         // music must not continue there, but the menu music has to
         // play instead of silence.
-        self.audio_engine.play_background_music_track(UI_BACKGROUND_MUSIC);
+        self.audio_engine
+            .play_background_music_track(crate::client_config::background_music());
 
         #[cfg(not(feature = "debug"))]
         self.interface.close_all_windows();
@@ -8152,7 +8306,7 @@ impl Client {
         self.interface.close_all_windows_except(DEBUG_WINDOWS);
 
         self.async_loader
-            .request_map_load(DEFAULT_MAP.to_string(), Some(TilePosition::new(0, 0)));
+            .request_map_load(crate::client_config::default_map().to_string(), Some(TilePosition::new(0, 0)));
     }
 
     fn update_main_camera(&mut self, window_size: ScreenSize, delta_time: f64, #[cfg(feature = "debug")] render_options: &RenderOptions) {

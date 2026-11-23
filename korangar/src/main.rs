@@ -55,6 +55,31 @@ struct Arguments {
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_skills: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the data-driven world/login configuration and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\world_config.ron`). Exits 0 when valid, 1 with the schema
+    /// errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_world: Option<Option<std::path::PathBuf>>,
+
+    /// Validate the data-driven UI audio paths and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\ui_audio.ron`).
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_ui_audio: Option<Option<std::path::PathBuf>>,
+
+    /// Validate the data-driven debug map warp list and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\debug_maps.ron`). Debug-only convenience list.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_debug_maps: Option<Option<std::path::PathBuf>>,
+
     /// Validate every job/body/hair/palette/headgear sprite against the game
     /// archives and exit.
     #[arg(long)]
@@ -164,6 +189,51 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("skills: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_world {
+        match korangar::check_world_config(path.as_deref()) {
+            Ok(summary) => {
+                println!(
+                    "world config: default map {:?} and {} quest colours are valid",
+                    summary.default_map, summary.quest_colors
+                );
+                return;
+            }
+            Err(error) => {
+                eprintln!("world config: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_ui_audio {
+        match korangar::check_ui_audio(path.as_deref()) {
+            Ok(summary) => {
+                println!(
+                    "ui audio: menu music {:?}, {} sound effects are valid",
+                    summary.background_music, summary.sound_effects
+                );
+                return;
+            }
+            Err(error) => {
+                eprintln!("ui audio: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_debug_maps {
+        match korangar::check_debug_maps(path.as_deref()) {
+            Ok(count) => {
+                println!("debug maps: {count} warps are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("debug maps: invalid data: {error}");
                 std::process::exit(1);
             }
         }
