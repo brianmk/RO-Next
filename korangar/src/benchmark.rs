@@ -42,14 +42,14 @@ use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use cgmath::Vector3;
-use ragnarok_packets::TilePosition;
+use ragnarok_packets::{ClientTick, SkillId, TilePosition};
 
 use crate::graphics::Color;
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::{ClientInfoPathExt, ImageType};
 use crate::state::{ClientStatePathExt, client_state, status_effect_definition, this_entity};
-use crate::world::{DamageNumber, HealNumber, Miss};
+use crate::world::{DamageNumber, HealNumber, Miss, SkillPhase};
 use crate::{Client, perf};
 
 /// Windows counted for the `windows_mean` metric of a stage.
@@ -68,6 +68,18 @@ const COUNTED_WINDOWS: &[WindowClass] = &[
     WindowClass::SelectServer,
     WindowClass::CharacterSelection,
 ];
+
+/// Skill ids driven by the `skills` scenario: a representative pre-renewal
+/// selection that covers every layer kind (`.str`, `.spr`, texture billboards,
+/// cylinders, flipbooks) and the data added by the rodecomp audit.
+const BENCHMARK_SKILLS: [u16; 47] = [
+    5, 7, 14, 17, 19, 26, 28, 29, 32, 33, 34, 36, 38, 45, 47, 54, 59, 62, 66, 68, 70, 73, 75, 78, 83, 84, 86, 89, 110, 123, 136, 153, 231,
+    263, 306, 317, 325, 329, 355, 361, 400, 402, 451, 465, 476, 513, 540,
+];
+
+/// Persistent status effects injected by the `skills` scenario so the status
+/// auras/fades are rendered next to the skill effects.
+const BENCHMARK_AURA_STATUSES: [u16; 16] = [2, 25, 31, 68, 86, 87, 107, 110, 123, 161, 165, 188, 232, 235, 437, 473];
 
 /// Status effects injected for the `ui_updates` stage so the buff bar has a
 /// known, non-empty work set.
@@ -120,6 +132,7 @@ enum Stage {
     TownIdle,
     TownWalk,
     Effects,
+    SkillSweep,
     UiUpdates,
     MapChange,
     Done,
@@ -214,6 +227,7 @@ pub fn drive(client: &mut Client, client_tick: u64) {
         Stage::TownIdle => stage_town_idle(client, bench, now),
         Stage::TownWalk => stage_town_walk(client, bench, now),
         Stage::Effects => stage_effects(client, bench, now),
+        Stage::SkillSweep => stage_skill_sweep(client, bench, now, client_tick),
         Stage::UiUpdates => stage_ui_updates(client, bench, now, client_tick),
         Stage::MapChange => stage_map_change(client, bench, now),
         Stage::Done => {}
@@ -317,7 +331,15 @@ fn stage_login(client: &mut Client, bench: &mut BenchState, now: Instant) {
 
     if in_game {
         finish_stage(bench, "login");
-        begin_stage_with(bench, now, Stage::TownIdle, "town_idle");
+        let next = match bench.scenario.as_str() {
+            "skills" => Stage::SkillSweep,
+            _ => Stage::TownIdle,
+        };
+        let name = match next {
+            Stage::SkillSweep => "skill_sweep",
+            _ => "town_idle",
+        };
+        begin_stage_with(bench, now, next, name);
         return;
     }
 
@@ -402,6 +424,69 @@ fn stage_town_walk(client: &mut Client, bench: &mut BenchState, now: Instant) {
         });
 
         bench.next_action = now + Duration::from_millis(700);
+    }
+}
+
+/// Drives every representative skill through the real spawn path and injects
+/// the persistent status effects, so a headless run renders (and logs) the
+/// whole skill effect pipeline without needing GM commands on the server.
+fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, client_tick: u64) {
+    if !in_game(client) {
+        bench.failure = Some("lost the map while sweeping skills".to_owned());
+        return;
+    }
+
+    let Some(entity_id) = client.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) else {
+        return;
+    };
+    let Some(position) = player_position(client) else {
+        return;
+    };
+
+    if !bench.buffs_applied {
+        apply_statuses(client, client_tick, &BENCHMARK_AURA_STATUSES);
+        bench.buffs_applied = true;
+        bench.next_action = now + Duration::from_millis(500);
+        return;
+    }
+
+    let index = bench.effects_spawned as usize;
+    if index < BENCHMARK_SKILLS.len() {
+        if now < bench.next_action {
+            return;
+        }
+
+        let skill_id = BENCHMARK_SKILLS[index];
+        let phases = [SkillPhase::Success, SkillPhase::Ground, SkillPhase::Cast, SkillPhase::Hit];
+        let phase = phases
+            .iter()
+            .copied()
+            .find(|phase| !crate::world::skill_effect_layers(SkillId(skill_id), *phase).is_empty());
+
+        if let Some(phase) = phase {
+            client.spawn_skill_effect_phase(
+                SkillId(skill_id),
+                phase,
+                entity_id,
+                Some(entity_id),
+                Some(position),
+                ClientTick(client_tick as u32),
+            );
+            perf::emit(&format!(
+                r#"[bench-skill] {{"skill":{skill_id},"phase":"{phase:?}","index":{index}}}"#
+            ));
+        }
+
+        bench.effects_spawned = bench.effects_spawned.saturating_add(1);
+        bench.next_action = now + Duration::from_millis(450);
+        return;
+    }
+
+    // Let the last effects play out, then end the scenario.
+    if now >= bench.next_action + Duration::from_secs(4) {
+        finish_stage(bench, "skill_sweep");
+        bench.stage = Stage::Done;
+        bench.finished = true;
     }
 }
 
@@ -638,6 +723,32 @@ fn finish_stage(_bench: &mut BenchState, name: &'static str) {
         .collect();
 
     perf::emit(&format!(r#"[bench-load] {{"stage":"{name}","kinds":{{{}}}}}"#, kinds.join(",")));
+}
+
+fn apply_statuses(client: &mut Client, client_tick: u64, statuses: &[u16]) {
+    let Some(own_entity_id) = client.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id().0) else {
+        return;
+    };
+
+    for (index, status_index) in statuses.iter().enumerate() {
+        let definition = status_effect_definition(*status_index);
+        let icon = definition
+            .icon
+            .and_then(|path| client.texture_loader.get_or_load(path, ImageType::Color).ok());
+        let total_milliseconds = 120_000 + index as u32 * 15_000;
+
+        client.client_state.follow_mut(client_state().status_effects()).apply(
+            own_entity_id,
+            *status_index,
+            true,
+            total_milliseconds,
+            total_milliseconds,
+            [0; 3],
+            client_tick,
+            definition.name.to_owned(),
+            icon,
+        );
+    }
 }
 
 fn apply_benchmark_buffs(client: &mut Client, client_tick: u64) {
