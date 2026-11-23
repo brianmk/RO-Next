@@ -246,8 +246,9 @@ result can be re-produced).
 * `scripts/ui-token-budget.sh`: zero-literal handling.
 * `scripts/ui-golden.sh`, `scripts/ui_golden_driver.py`: harness robustness.
 
-Commit: `p0/ui-gates-20261122` (SHA in the hand-off message; the branch head
-is the integration point).
+Commit: `a11007cb802b9297aa8d3062a8b39b940b2c10ec` on
+`p0/ui-gates-20261122` (base `f454127e`); the branch head is the integration
+point.
 
 ## 6. Remaining/follow-up (out of this lane)
 
