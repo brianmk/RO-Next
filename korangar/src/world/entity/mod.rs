@@ -262,6 +262,10 @@ pub struct Common {
     /// option (`effect_state & OPTION_CART_MASK`).
     #[hidden_element]
     cart_animation: Option<Arc<AnimationData>>,
+    /// The server's `EFST_PUSH_CART` status is active. Some 2019 servers do
+    /// not put the cart option into the entity `effect_state`, so the status
+    /// is an independent visibility source for the cart.
+    cart_status_active: bool,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -555,6 +559,7 @@ impl Common {
                 .with_speed(FALCON_ANIMATION_SPEED)
                 .with_loop_mode(AnimationLoopMode::PingPong),
             cart_animation: None,
+            cart_status_active: false,
             weapon_animation: None,
             active_movement,
             entity_type,
@@ -656,7 +661,14 @@ impl Common {
 
     /// Whether the entity currently has a merchant cart option set.
     pub fn has_cart(&self) -> bool {
-        self.effect_state & OPTION_CART_MASK != 0
+        self.effect_state & OPTION_CART_MASK != 0 || self.cart_status_active
+    }
+
+    /// Updates the cart visibility from `EFST_PUSH_CART`. The option bit in
+    /// `effect_state` is authoritative when present; this only adds the status
+    /// as a fallback for servers that don't send the option bit.
+    pub fn set_cart_status(&mut self, active: bool) {
+        self.cart_status_active = active;
     }
 
     pub fn needs_cart_animation(&self) -> bool {
@@ -1829,6 +1841,10 @@ impl Entity {
     /// Whether this entity currently has a merchant cart option set.
     pub fn has_cart(&self) -> bool {
         self.get_common().has_cart()
+    }
+
+    pub fn set_cart_status(&mut self, active: bool) {
+        self.get_common_mut().set_cart_status(active);
     }
 
     pub fn needs_cart_animation(&self) -> bool {

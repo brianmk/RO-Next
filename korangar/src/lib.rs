@@ -4787,6 +4787,18 @@ impl Client {
                         definition.name.to_owned(),
                         icon,
                     );
+
+                    // `EFST_PUSH_CART` (673) keeps the merchant cart visible even
+                    // when the server's entity option bit is missing.
+                    if status_index == 673
+                        && let Some(entity) = self
+                            .client_state
+                            .follow_mut(client_state().entities())
+                            .iter_mut()
+                            .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_cart_status(active);
+                    }
                 }
                 NetworkEvent::ChatMessage { text, color } => {
                     // The server-side aura stylist NPC asks the client to change its
