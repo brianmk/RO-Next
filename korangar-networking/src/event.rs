@@ -679,6 +679,17 @@ pub enum NetworkEvent {
         result: u8,
         target_account_id: AccountId,
     },
+    /// The other player offered an item or zeny (`ZC_ADD_EXCHANGE_ITEM`,
+    /// 0x0A96). `item_id == 0` means zeny.
+    TradeItemOffered {
+        item_id: u32,
+        amount: u32,
+    },
+    /// Local add-item acknowledgement (`ZC_ACK_ADD_EXCHANGE_ITEM`, 0x00EA).
+    TradeAddResult {
+        inventory_index: u16,
+        result: u8,
+    },
     /// The trade was cancelled (`ZC_CANCEL_EXCHANGE_ITEM`, 0x00EE).
     TradeCancelled,
     /// One side locked the trade (`ZC_CONCLUDE_EXCHANGE_ITEM`, 0x00EC).

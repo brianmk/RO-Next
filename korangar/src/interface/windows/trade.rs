@@ -24,6 +24,10 @@ use crate::world::ResourceMetadata;
 
 const MAXIMUM_ITEMS: usize = 12;
 
+struct ZenyFocus;
+
+fn noop_input(_: &State<ClientState>, _: &mut EventQueue<ClientState>) {}
+
 pub struct TradeRequestWindow {
     requester_name: String,
     account_id: u32,
@@ -230,7 +234,35 @@ where
                     }),
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
+                text! {
+                    text: ComputedSelector::new_default(move |state: &ClientState| {
+                        let trade = trade_path.follow_safe(state);
+                        match trade.partner_offer().is_empty() {
+                            true => "Partner has not offered anything yet.".to_string(),
+                            false => format!("Partner offered: {}", trade.partner_offer()),
+                        }
+                    }),
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
                 TradeInventoryList::new(trade_path, inventory_path),
+                split! {
+                    children: (
+                        text! {
+                            text: "Zeny",
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        text_box! {
+                            ghost_text: "0",
+                            state: trade_path.zeny(),
+                            input_handler: DefaultHandler::<_, _, 10>::new(trade_path.zeny(), noop_input),
+                            focus_id: ZenyFocus,
+                        },
+                        button! {
+                            text: "Offer zeny",
+                            event: InputEvent::TradeOfferZeny,
+                        },
+                    ),
+                },
                 split! {
                     gaps: 6.0,
                     children: (

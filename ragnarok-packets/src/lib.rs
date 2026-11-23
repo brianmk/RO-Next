@@ -2426,6 +2426,32 @@ pub struct CancelExchangeItemPacket {}
 #[packet_size(2)]
 pub struct CommitExchangeItemPacket {}
 
+/// `ZC_ADD_EXCHANGE_ITEM` (0x0A96 for PACKETVER 2019): the partner offered an
+/// item or zeny in the current trade. `item_id == 0` means the amount is zeny.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A96)]
+#[packet_size(61)]
+pub struct ExchangeOfferPacket2019 {
+    pub item_id: u32,
+    pub item_type: u8,
+    pub amount: u32,
+    #[new_default]
+    pub identified: u8,
+    #[new_default]
+    pub damaged: u8,
+    #[new_default]
+    pub refine: u8,
+    #[new_default]
+    pub cards: [u32; 4],
+    #[new_default]
+    pub options: [u8; 25],
+    #[new_default]
+    pub location: u32,
+    #[new_default]
+    pub look: u16,
+}
+
 /// 2019 era `ZC_ACK_ADD_EXCHANGE_ITEM` (0x00EA): trade window item ack.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]

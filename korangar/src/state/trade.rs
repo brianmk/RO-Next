@@ -33,6 +33,8 @@ pub struct Trade {
     locked: bool,
     #[hidden_element]
     partner_locked: bool,
+    #[hidden_element]
+    partner_offer: String,
 }
 
 impl Trade {
@@ -43,6 +45,7 @@ impl Trade {
         self.zeny = "0".to_string();
         self.locked = false;
         self.partner_locked = false;
+        self.partner_offer.clear();
     }
 
     pub fn request(&self) -> Option<&TradeRequestInfo> {
@@ -61,6 +64,7 @@ impl Trade {
         self.zeny = "0".to_string();
         self.locked = false;
         self.partner_locked = false;
+        self.partner_offer.clear();
     }
 
     pub fn close(&mut self) {
@@ -110,6 +114,18 @@ impl Trade {
 
     pub fn partner_locked(&self) -> bool {
         self.partner_locked
+    }
+
+    pub fn set_partner_offer(&mut self, offer: String) {
+        self.partner_offer = offer;
+    }
+
+    pub fn partner_offer(&self) -> &str {
+        &self.partner_offer
+    }
+
+    pub fn zeny(&self) -> &str {
+        &self.zeny
     }
 }
 

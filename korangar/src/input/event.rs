@@ -91,6 +91,8 @@ pub enum InputEvent {
         inventory_index: u16,
         amount: u16,
     },
+    /// Offer the zeny amount in the trade window's zeny field.
+    TradeOfferZeny,
     /// Lock the local trade side.
     TradeLock,
     /// Commit the trade.

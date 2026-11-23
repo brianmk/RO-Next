@@ -6428,6 +6428,23 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::TradeItemOffered { item_id, amount } => {
+                    let trade = self.client_state.follow_mut(client_state().trade());
+                    trade.set_partner_offer(if item_id == 0 {
+                        format!("{amount} zeny")
+                    } else {
+                        format!("item #{item_id} x{amount}")
+                    });
+                }
+                NetworkEvent::TradeAddResult { inventory_index, result } => {
+                    if result != 0 {
+                        crate::logging::log_debug!(
+                            "trade: adding inventory index {} failed with result {}",
+                            inventory_index,
+                            result
+                        );
+                    }
+                }
                 NetworkEvent::TradeRequest {
                     requester_name,
                     target_account_id,
@@ -7139,6 +7156,18 @@ impl Client {
                 }
                 InputEvent::TradeAddItem { inventory_index, amount } => {
                     let _ = self.networking_system.add_trade_item(inventory_index, amount as u32);
+                }
+                InputEvent::TradeOfferZeny => {
+                    let amount = self
+                        .client_state
+                        .follow(client_state().trade())
+                        .zeny()
+                        .trim()
+                        .parse::<u32>()
+                        .unwrap_or(0);
+                    if amount > 0 {
+                        let _ = self.networking_system.add_trade_item(0, amount);
+                    }
                 }
                 InputEvent::TradeLock => {
                     let _ = self.networking_system.confirm_trade();

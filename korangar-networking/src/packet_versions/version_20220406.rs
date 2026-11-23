@@ -493,10 +493,6 @@ where
         health_points: packet.health_points,
         maximum_health_points: packet.maximum_health_points,
     })?;
-    register_ignored_noop::<_, ExchangeAddItemPacket2019>(packet_handler)?;
-    register_ignored_noop::<_, ExchangeConcludePacket2019>(packet_handler)?;
-    register_ignored_noop::<_, ExchangeCancelPacket2019>(packet_handler)?;
-    register_ignored_noop::<_, ExchangeExecPacket2019>(packet_handler)?;
     register_ignored_noop::<_, ExchangeUndoPacket2019>(packet_handler)?;
     packet_handler.register(|packet: StorageItemCountInfoPacket2019| NetworkEvent::SetStorageAmount {
         amount: packet.amount,
@@ -585,6 +581,14 @@ where
         requester_name: packet.requester_name,
         target_account_id: packet.target_account_id,
         target_level: packet.target_level,
+    })?;
+    packet_handler.register(|packet: ExchangeOfferPacket2019| NetworkEvent::TradeItemOffered {
+        item_id: packet.item_id,
+        amount: packet.amount,
+    })?;
+    packet_handler.register(|packet: ExchangeAddItemPacket2019| NetworkEvent::TradeAddResult {
+        inventory_index: packet.inventory_index,
+        result: packet.result,
     })?;
     packet_handler.register(|packet: ExchangeAckPacket2019| NetworkEvent::TradeAck {
         result: packet.result,

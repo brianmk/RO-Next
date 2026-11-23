@@ -1914,6 +1914,12 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         source: "map header",
     },
     OpcodeLengthEntry {
+        header: 0x08D2,
+        name: "ZC_SNAP",
+        length: OpcodeLength::Fixed(10),
+        source: "map header",
+    },
+    OpcodeLengthEntry {
         header: 0x08D5,
         name: "HC_ACK_CHANGE_CHARACTER_SLOT",
         length: OpcodeLength::Fixed(8),

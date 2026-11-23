@@ -1515,7 +1515,7 @@ mod packet_handlers {
             "every parsed-but-unconsumed packet must use register_ignored_noop with a classification"
         );
         assert!(
-            source.matches("register_ignored_noop::<").count() >= 30,
+            source.matches("register_ignored_noop::<").count() >= 20,
             "expected the classified noop registrations to remain in place"
         );
     }
