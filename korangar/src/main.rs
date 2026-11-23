@@ -34,22 +34,21 @@ struct Arguments {
     check_skill_effects: Option<Option<std::path::PathBuf>>,
 
     /// Validate the data-driven protocol result-code message table and exit.
-    ///
-    /// Without a path the compiled fallback is validated; with a path that data
-    /// file is validated (for example an archive override of
-    /// `data\client\messages.ron`). Exits 0 when valid, 1 with the schema
-    /// errors otherwise.
     #[arg(long = "check-messages", value_name = "PATH", num_args = 0..=1)]
     check_messages: Option<Option<std::path::PathBuf>>,
 
     /// Validate the data-driven status-effect table and exit.
-    ///
-    /// Without a path the compiled fallback is validated; with a path that data
-    /// file is validated (for example an archive override of
-    /// `data\client\status_effects.ron`). Exits 0 when valid, 1 with the
-    /// schema errors otherwise.
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_status_effects: Option<Option<std::path::PathBuf>>,
+
+    /// Validate the data-driven job/appearance registry and exit.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_jobs: Option<Option<std::path::PathBuf>>,
+
+    /// Validate every job/body/hair/palette/headgear sprite against the game
+    /// archives and exit.
+    #[arg(long)]
+    check_appearance: bool,
 
     /// Increase log verbosity: -v info, -vv debug, -vvv trace.
     ///
@@ -126,6 +125,48 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("status effects: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_jobs {
+        match korangar::check_jobs(path.as_deref()) {
+            Ok(count) => {
+                println!("jobs: {count} job rows are valid");
+                return;
+            }
+            Err(error) => {
+                eprintln!("jobs: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if arguments.check_appearance {
+        match korangar::check_appearance() {
+            Ok(report) => {
+                println!(
+                    "appearance: {} jobs ({} with both sexes), {} embedded palettes, {} hair style entries, {} headgear view ids ({} \
+                     documented missing)",
+                    report.jobs,
+                    report.jobs_with_both_sexes,
+                    report.embedded_palettes,
+                    report.hair_styles,
+                    report.headgear,
+                    report.headgear_without_sprite
+                );
+                if !report.jobs_without_identity.is_empty() {
+                    println!(
+                        "appearance: {} job(s) without a client JobIdentity entry (NPC rendering only, informational): {:?}",
+                        report.jobs_without_identity.len(),
+                        report.jobs_without_identity
+                    );
+                }
+                return;
+            }
+            Err(error) => {
+                eprintln!("appearance: {error}");
                 std::process::exit(1);
             }
         }

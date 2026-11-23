@@ -648,12 +648,6 @@ pub fn check_skill_effects(path: Option<&std::path::Path>) -> Result<usize, Stri
 
 /// Validates the item stats data (`archive/data/client/item_stats.ron`) and
 /// returns the number of item rows.
-///
-/// `path` selects a concrete data file (for example an archive override);
-/// without a path the compiled fallback is validated. This is the
-/// `--check`-able schema entry point: the client binary exposes it as `korangar
-/// --check-items [PATH]`, so CI can validate the committed data file without
-/// starting a window, a network connection or the game archives.
 pub fn check_item_stats(path: Option<&std::path::Path>) -> Result<usize, String> {
     match path {
         Some(path) => {
@@ -666,14 +660,6 @@ pub fn check_item_stats(path: Option<&std::path::Path>) -> Result<usize, String>
 
 /// Validates the data-driven protocol result-code message table and returns the
 /// number of message rows.
-///
-/// `path` selects a concrete data file (for example an archive override);
-/// without a path the compiled fallback
-/// (`korangar/archive/data/client/messages.ron`) is validated. This is the
-/// `--check`-able schema entry point: the client binary exposes it as `korangar
-/// --check-messages [PATH]`, so CI can validate the committed data file (and an
-/// archive override) without starting a window, a network connection or the
-/// game archives.
 pub fn check_messages(path: Option<&std::path::Path>) -> Result<usize, String> {
     match path {
         Some(path) => {
@@ -686,14 +672,6 @@ pub fn check_messages(path: Option<&std::path::Path>) -> Result<usize, String> {
 
 /// Validates the data-driven status-effect table and returns the number of
 /// status entries.
-///
-/// `path` selects a concrete data file (for example an archive override);
-/// without a path the compiled fallback
-/// (`korangar/archive/data/client/status_effects.ron`) is validated. This is
-/// the `--check`-able schema entry point: the client binary exposes it as
-/// `korangar --check-status-effects [PATH]`, so CI can validate the committed
-/// data file without starting a window, a network connection or the game
-/// archives.
 pub fn check_status_effects(path: Option<&std::path::Path>) -> Result<usize, String> {
     match path {
         Some(path) => {
@@ -702,6 +680,32 @@ pub fn check_status_effects(path: Option<&std::path::Path>) -> Result<usize, Str
         }
         None => crate::world::validate_compiled_status_effects().map_err(|error| format!("compiled fallback: {error}")),
     }
+}
+
+/// Validates the data-driven job/appearance registry and returns the number of
+/// job rows.
+pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::jobs::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::jobs::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates every job/body/hair/palette/headgear sprite of the job registry
+/// against the real game archives.
+pub fn check_appearance() -> Result<crate::world::AppearanceAudit, String> {
+    let game_file_loader = GameFileLoader::default();
+    game_file_loader.load_archives_from_settings();
+    let lua_archive_existed = std::path::Path::new("lua_files.7z").exists();
+    game_file_loader.load_patched_lua_files();
+    let report = crate::world::jobs::check_appearance(&game_file_loader);
+    if !lua_archive_existed {
+        game_file_loader.remove_patched_lua_files();
+    }
+    report
 }
 
 pub struct Client {
@@ -10603,6 +10607,34 @@ mod tests {
     #[test]
     fn unknown_jobs_default_to_rooted() {
         assert!(!has_free_cast(JobId(9999), &[learned(278)]));
+    }
+
+    #[test]
+    fn job_registry_data_is_valid() {
+        let rows = super::check_jobs(None).expect("the committed job data has to be valid");
+        assert_eq!(rows, 181, "one row per real rAthena e_job id");
+        assert!(crate::world::jobs::profile(JobId(4252)).is_some());
+        assert!(crate::world::jobs::profile(JobId(65535)).is_none());
+    }
+
+    #[test]
+    fn job_registry_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-jobs-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(jobs: [)").expect("failed to write the malformed fixture");
+
+        let result = super::check_jobs(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn job_registry_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/jobs.ron");
+        let error = super::check_jobs(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
     }
 
     /// Regression test for the logout -> re-select black screen: after logging

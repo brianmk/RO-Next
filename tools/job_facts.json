@@ -1,0 +1,6852 @@
+{
+  "client": {
+    "appearance": {
+      "default_body_palette": 0,
+      "default_head": 1,
+      "default_head_palette": 0,
+      "hair_style_range": [
+        0,
+        12
+      ],
+      "hair_styles": {
+        "female": [
+          2,
+          2,
+          4,
+          7,
+          1,
+          5,
+          3,
+          6,
+          12,
+          10,
+          9,
+          11,
+          8
+        ],
+        "male": [
+          2,
+          2,
+          1,
+          7,
+          5,
+          4,
+          3,
+          6,
+          8,
+          9,
+          10,
+          12,
+          11
+        ]
+      },
+      "head_range": [
+        1,
+        42
+      ]
+    },
+    "body_palettes": {
+      "\ub0a8": [
+        "'\ud0c0\uc870\ub808\uc778\uc838",
+        "'\ud0c0\uc870\ud0c0\uc870\ub808\uc778\uc838",
+        "abyss_chaser",
+        "abyss_chaser_riding",
+        "arch_mage",
+        "arch_mage_riding",
+        "biolo",
+        "biolo_riding",
+        "cardinal",
+        "cardinal_riding",
+        "cart_summoner",
+        "cartsummoner",
+        "dragon_knight",
+        "dragon_knight_chicken",
+        "dragon_knight_riding",
+        "elemetal_master",
+        "elemetal_master_riding",
+        "frog_kagerou",
+        "hanbok",
+        "hyper_novice",
+        "hyper_novice_riding",
+        "imperial_guard",
+        "imperial_guard_chicken",
+        "imperial_guard_riding",
+        "inquisitor",
+        "inquisitor_riding",
+        "kagerou",
+        "meister",
+        "meister_madogear1",
+        "meister_madogear2",
+        "meister_riding",
+        "night_watch",
+        "night_watch_riding",
+        "oktoberfest",
+        "peco_rebellion",
+        "santa",
+        "shadow_cross",
+        "shadow_cross_riding",
+        "shinkiro",
+        "shinkiro_riding",
+        "sky_emperor",
+        "sky_emperor2",
+        "sky_emperor_riding",
+        "soul_ascetic",
+        "soul_ascetic_riding",
+        "summer",
+        "summer2",
+        "summoner",
+        "troubadour",
+        "troubadour_riding",
+        "windhawk",
+        "windhawk_riding",
+        "wolf_windhawk",
+        "\uac74\ub108",
+        "\uac80\uc0ac",
+        "\uac80\uc0ac\ud398\ucf54",
+        "\uacb0\ud63c",
+        "\uad81\uc218",
+        "\uad8c\uc131",
+        "\uad8c\uc131\ud3ec\ub9c1",
+        "\uadf8\ub9ac\ud3f0\uac00\ub4dc",
+        "\uadf8\ub9ac\ud3f0\ub85c\uc584",
+        "\uae30\uc0ac",
+        "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "\ub178\ube44\uc2a4\ud3ec\ub9c1",
+        "\ub2cc\uc790",
+        "\ub3c4\ub451",
+        "\ub450\uaebc\ube44\ub2cc\uc790",
+        "\ub450\uaebc\ube44\uc18c\uc6b8\ub9c1\ucee4",
+        "\ub808\uc778\uc800",
+        "\ub85c\uadf8",
+        "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "\ub85c\ub4dc\ud398\ucf54",
+        "\ub85c\uc584\uac00\ub4dc",
+        "\ub85c\uc584\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\ub8ec\ub098\uc774\ud2b8",
+        "\ub8ec\ub4dc\ub798\uace4",
+        "\ub9ac\ubca8\ub9ac\uc628",
+        "\ub9c8\ubc95\uc0ac",
+        "\ubabd\ud06c",
+        "\ubabd\ud06c\uc54c\ud30c\uce74",
+        "\ubb34\ud76c\ubc14\uc9c0",
+        "\ubbf8\ucf00\ub2c9",
+        "\ubbf8\ucf00\ub2c9_\ub9c8\ub3c4\uae30\uc5b4",
+        "\ubbf8\ucf00\ub2c9_\ub9c8\ub3c4\uc544\uba38",
+        "\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0",
+        "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "\ubc14\ub4dc",
+        "\ubcf5\uc0ac\uc54c\ud30c\uce74",
+        "\uc0ac\uc790\uae30\uc0ac",
+        "\uc0ac\uc790\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8",
+        "\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354",
+        "\uc0ac\uc790\ud314\ub77c\ub518",
+        "\uc0c1\uc778",
+        "\uc0c1\uc778\uba67\ub3fc\uc9c0",
+        "\uc131\uc81c",
+        "\uc131\uc9c1\uc790",
+        "\uc131\ud22c\uc0ac",
+        "\uc131\ud22c\uc0ac2",
+        "\uc138\uc774\uc9c0",
+        "\uc18c\uc11c\ub7ec",
+        "\uc18c\uc6b8\ub9ac\ud37c",
+        "\uc18c\uc6b8\ub9c1\ucee4",
+        "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "\uc288\ub77c",
+        "\uc288\ub77c\uc54c\ud30c\uce74",
+        "\uc288\ud37c\ub178\ube44\uc2a4",
+        "\uc288\ud37c\ub178\ube44\uc2a4\ud3ec\ub9c1",
+        "\uc2a4\ub098\uc774\ud37c",
+        "\uc2a4\ud1a0\ucee4",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "\uc544\ud06c\ube44\uc20d",
+        "\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74",
+        "\uc5b4\uc0c8\uc2e0",
+        "\uc5b4\uc138\uc2e0",
+        "\uc5b4\uc138\uc2e0\ud06c\ub85c\uc2a4",
+        "\uc5ec\uc6b0\ub9c8\ubc95\uc0ac",
+        "\uc5ec\uc6b0\uc138\uc774\uc9c0",
+        "\uc5ec\uc6b0\uc18c\uc11c\ub7ec",
+        "\uc5ec\uc6b0\uc6cc\ub85d",
+        "\uc5ec\uc6b0\uc704\uc800\ub4dc",
+        "\uc5ec\uc6b0\ud504\ub85c\ud398\uc11c",
+        "\uc5ec\uc6b0\ud558\uc774\uc704\uc800\ub4dc",
+        "\uc5f0\uae08\uc220\uc0ac",
+        "\uc5f0\uae08\uc220\uc0ac\uba67\ub3fc\uc9c0",
+        "\uc6b8\ud504\ub808\uc778\uc800",
+        "\uc6cc\ub85d",
+        "\uc6d0\ub354\ub7ec",
+        "\uc704\uc800\ub4dc",
+        "\uc81c\ub124\ub9ad",
+        "\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0",
+        "\uc81c\ucca0\uacf5",
+        "\uc81c\ucca0\uacf5\uba67\ub3fc\uc9c0",
+        "\ucc54\ud53c\uc628",
+        "\ucc54\ud53c\uc628\uc54c\ud30c\uce74",
+        "\ucd08\ubcf4\uc790",
+        "\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "\ucf08\ubca0\ub85c\uc2a4\ub3c4\ub451",
+        "\ucf08\ubca0\ub85c\uc2a4\ub85c\uadf8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "\ucf08\ubca0\ub85c\uc2a4\uc2a4\ud1a0\ucee4",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0\ud06c\ub85c\uc2a4",
+        "\ud06c\ub77c\uc6b4",
+        "\ud06c\ub8e8",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130\uba67\ub3fc\uc9c0",
+        "\ud0c0\uc870\uad81\uc218",
+        "\ud0c0\uc870\ub808\uc778\uc838",
+        "\ud0c0\uc870\ubbfc\uc2a4\ud2b8\ub7f4",
+        "\ud0c0\uc870\ubc14\ub4dc",
+        "\ud0c0\uc870\uc2a4\ub098\uc774\ud37c",
+        "\ud0c0\uc870\uc6d0\ub354\ub7ec",
+        "\ud0c0\uc870\ud06c\ub77c\uc6b4",
+        "\ud0c0\uc870\ud0c0\uc870\ub808\uc778\uc838",
+        "\ud0c0\uc870\ud5cc\ud130",
+        "\ud0dc\uad8c\uc18c\ub144",
+        "\ud0dc\uad8c\uc18c\ub144\ud3ec\ub9c1",
+        "\ud314\ub77c\ub518",
+        "\ud398\ucf54\uac74\ub108",
+        "\ud398\ucf54\uac80\uc0ac",
+        "\ud398\ucf54\uac80\uc0ac\ud398\ucf54",
+        "\ud398\ucf54\ub85c\ub098",
+        "\ud398\ucf54\ud314\ub77c",
+        "\ud398\ucf54\ud314\ub77c\ub518",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\uae30\uc0ac",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ud314\ub77c\ub518",
+        "\ud398\ucf54\ud398\ucf54_\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "\ud398\ucf54\ud398\ucf54_\ud06c\ub8e8",
+        "\ud398\ucf54\ud398\ucf54_\ud398\ucf54\ud314\ub77c\ub518",
+        "\ud504\ub85c\ud398\uc11c",
+        "\ud504\ub9ac\uc2a4\ud2b8",
+        "\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74",
+        "\ud558\uc774\uc5ec\uc6b0\uc704\uc800\ub4dc",
+        "\ud558\uc774\uc704\uc800\ub4dc",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74\uc2a4\ud2b8",
+        "\ud574\ud0dc\uc131\uc81c",
+        "\ud574\ud0dc\uc18c\uc6b8\ub9ac\ud37c",
+        "\ud5cc\ud130",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4\uba67\ub3fc\uc9c0"
+      ],
+      "\uc5ec": [
+        "'\ud0c0\uc870\ub808\uc778\uc838",
+        "'\ud0c0\uc870\ud0c0\uc870\ub808\uc778\uc838",
+        "abyss_chaser",
+        "abyss_chaser_riding",
+        "arch_mage",
+        "arch_mage_riding",
+        "biolo",
+        "biolo_riding",
+        "cardinal",
+        "cardinal_riding",
+        "cart_summoner",
+        "cartsummoner",
+        "dancer_b_riding",
+        "dragon_knight",
+        "dragon_knight_chicken",
+        "dragon_knight_riding",
+        "elemetal_master",
+        "elemetal_master_riding",
+        "frog_oboro",
+        "hanbok",
+        "hyper_novice",
+        "hyper_novice_riding",
+        "imperial_guard",
+        "imperial_guard_chicken",
+        "imperial_guard_riding",
+        "inquisitor",
+        "inquisitor_riding",
+        "meister",
+        "meister_madogear1",
+        "meister_madogear2",
+        "meister_riding",
+        "night_watch",
+        "night_watch_riding",
+        "oboro",
+        "oktoberfest",
+        "peco_rebellion",
+        "santa",
+        "shadow_cross",
+        "shadow_cross_riding",
+        "shiranui",
+        "shiranui_riding",
+        "sky_emperor",
+        "sky_emperor2",
+        "sky_emperor_riding",
+        "soul_ascetic",
+        "soul_ascetic_riding",
+        "summer",
+        "summer2",
+        "summoner",
+        "trouvere",
+        "trouvere_riding",
+        "windhawk",
+        "windhawk_riding",
+        "wolf_windhawk",
+        "\uac74\ub108",
+        "\uac80\uc0ac",
+        "\uac80\uc0ac\ud398\ucf54",
+        "\uacb0\ud63c",
+        "\uad81\uc218",
+        "\uad8c\uc131",
+        "\uad8c\uc131\ud3ec\ub9c1",
+        "\uadf8\ub9ac\ud3f0\uac00\ub4dc",
+        "\uadf8\ub9ac\ud3f0\ub85c\uc584",
+        "\uae30\uc0ac",
+        "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "\ub178\ube44\uc2a4\ud3ec\ub9c1",
+        "\ub2cc\uc790",
+        "\ub304\uc11c",
+        "\ub3c4\ub451",
+        "\ub450\uaebc\ube44\ub2cc\uc790",
+        "\ub450\uaebc\ube44\uc18c\uc6b8\ub9c1\ucee4",
+        "\ub808\uc778\uc800",
+        "\ub85c\uadf8",
+        "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "\ub85c\ub4dc\ud398\ucf54",
+        "\ub85c\uc584\uac00\ub4dc",
+        "\ub85c\uc584\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\ub8ec\ub098\uc774\ud2b8",
+        "\ub8ec\ub4dc\ub798\uace4",
+        "\ub9ac\ubca8\ub9ac\uc628",
+        "\ub9c8\ubc95\uc0ac",
+        "\ubabd\ud06c",
+        "\ubabd\ud06c\uc54c\ud30c\uce74",
+        "\ubb34\ud76c",
+        "\ubb34\ud76c\ubc14\uc9c0",
+        "\ubbf8\ucf00\ub2c9",
+        "\ubbf8\ucf00\ub2c9_\ub9c8\ub3c4\uae30\uc5b4",
+        "\ubbf8\ucf00\ub2c9_\ub9c8\ub3c4\uc544\uba38",
+        "\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0",
+        "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "\ubcf5\uc0ac\uc54c\ud30c\uce74",
+        "\uc0ac\uc790\uae30\uc0ac",
+        "\uc0ac\uc790\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8",
+        "\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354",
+        "\uc0ac\uc790\ud314\ub77c\ub518",
+        "\uc0c1\uc778",
+        "\uc0c1\uc778\uba67\ub3fc\uc9c0",
+        "\uc131\uc81c",
+        "\uc131\uc81c\uc735\ud569",
+        "\uc131\uc9c1\uc790",
+        "\uc131\ud22c\uc0ac",
+        "\uc131\ud22c\uc0ac2",
+        "\uc138\uc774\uc9c0",
+        "\uc18c\uc11c\ub7ec",
+        "\uc18c\uc6b8\ub9ac\ud37c",
+        "\uc18c\uc6b8\ub9c1\ucee4",
+        "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "\uc288\ub77c",
+        "\uc288\ub77c\uc54c\ud30c\uce74",
+        "\uc288\ud37c\ub178\ube44\uc2a4",
+        "\uc288\ud37c\ub178\ube44\uc2a4\ud3ec\ub9c1",
+        "\uc2a4\ub098\uc774\ud37c",
+        "\uc2a4\ud1a0\ucee4",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "\uc544\ud06c\ube44\uc20d",
+        "\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74",
+        "\uc5b4\uc138\uc2e0",
+        "\uc5b4\uc138\uc2e0\ud06c\ub85c\uc2a4",
+        "\uc5ec\uc6b0\ub9c8\ubc95\uc0ac",
+        "\uc5ec\uc6b0\uc138\uc774\uc9c0",
+        "\uc5ec\uc6b0\uc18c\uc11c\ub7ec",
+        "\uc5ec\uc6b0\uc6cc\ub85d",
+        "\uc5ec\uc6b0\uc704\uc800\ub4dc",
+        "\uc5ec\uc6b0\ud504\ub85c\ud398\uc11c",
+        "\uc5ec\uc6b0\ud558\uc774\uc704\uc800\ub4dc",
+        "\uc5f0\uae08\uc220\uc0ac",
+        "\uc5f0\uae08\uc220\uc0ac\uba67\ub3fc\uc9c0",
+        "\uc6b8\ud504\ub808\uc778\uc800",
+        "\uc6cc\ub85d",
+        "\uc6d0\ub354\ub7ec",
+        "\uc704\uc800\ub4dc",
+        "\uc81c\ub124\ub9ad",
+        "\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0",
+        "\uc81c\ucca0\uacf5",
+        "\uc81c\ucca0\uacf5\uba67\ub3fc\uc9c0",
+        "\uc9d1\uc2dc",
+        "\ucc54\ud53c\uc628",
+        "\ucc54\ud53c\uc628\uc54c\ud30c\uce74",
+        "\ucd08\ubcf4\uc790",
+        "\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "\ucf08\ubca0\ub85c\uc2a4\ub3c4\ub451",
+        "\ucf08\ubca0\ub85c\uc2a4\ub85c\uadf8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "\ucf08\ubca0\ub85c\uc2a4\uc2a4\ud1a0\ucee4",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0\ud06c\ub85c\uc2a4",
+        "\ud06c\ub8e8",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130\uba67\ub3fc\uc9c0",
+        "\ud0c0\uc870\uad81\uc218",
+        "\ud0c0\uc870\ub808\uc778\uc838",
+        "\ud0c0\uc870\ubb34\ud76c",
+        "\ud0c0\uc870\ubbfc\uc2a4\ud2b8\ub7f4",
+        "\ud0c0\uc870\uc2a4\ub098\uc774\ud37c",
+        "\ud0c0\uc870\uc6d0\ub354\ub7ec",
+        "\ud0c0\uc870\uc9da\uc2dc",
+        "\ud0c0\uc870\ud06c\ub77c\uc6b4",
+        "\ud0c0\uc870\ud0c0\uc870\ub808\uc778\uc838",
+        "\ud0c0\uc870\ud5cc\ud130",
+        "\ud0dc\uad8c\uc18c\ub144",
+        "\ud0dc\uad8c\uc18c\ub144\ud3ec\ub9c1",
+        "\ud314\ub77c\ub518",
+        "\ud398\ucf54\uac74\ub108",
+        "\ud398\ucf54\uac80\uc0ac",
+        "\ud398\ucf54\uac80\uc0ac\ud398\ucf54",
+        "\ud398\ucf54\ub85c\ub098",
+        "\ud398\ucf54\ud314\ub77c",
+        "\ud398\ucf54\ud314\ub77c\ub518",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\uae30\uc0ac",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ub85c\uc584\uac00\ub4dc",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354",
+        "\ud398\ucf54\ud398\ucf54_\uc0ac\uc790\ud314\ub77c\ub518",
+        "\ud398\ucf54\ud398\ucf54_\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "\ud398\ucf54\ud398\ucf54_\ud06c\ub8e8",
+        "\ud398\ucf54\ud398\ucf54_\ud398\ucf54\ud314\ub77c\ub518",
+        "\ud504\ub85c\ud398\uc11c",
+        "\ud504\ub9ac\uc2a4\ud2b8",
+        "\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74",
+        "\ud558\uc774\uc5ec\uc6b0\uc704\uc800\ub4dc",
+        "\ud558\uc774\uc704\uc800\ub4dc",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74\uc2a4\ud2b8",
+        "\ud574\ud0dc\uc131\uc81c",
+        "\ud574\ud0dc\uc18c\uc6b8\ub9ac\ud37c",
+        "\ud5cc\ud130",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4\uba67\ub3fc\uc9c0"
+      ]
+    },
+    "body_sprites": {
+      "\ub0a8": [
+        "abyss_chaser_riding_\ub0a8",
+        "abyss_chaser_\ub0a8",
+        "arch_mage_riding_\ub0a8",
+        "arch_mage_\ub0a8",
+        "biolo_riding_\ub0a8",
+        "biolo_\ub0a8",
+        "cardinal_riding_\ub0a8",
+        "cardinal_\ub0a8",
+        "costume_1\\arch_mage_riding_\ub0a8_1",
+        "costume_1\\arch_mage_\ub0a8_1",
+        "costume_1\\cardinal_riding_\ub0a8_1",
+        "costume_1\\cardinal_\ub0a8_1",
+        "costume_1\\inquisitor_riding_\ub0a8_1",
+        "costume_1\\inquisitor_\ub0a8_1",
+        "costume_1\\kagerou_\ub0a8_1",
+        "costume_1\\meister_madogear1_\ub0a8",
+        "costume_1\\oboro_\ub0a8_1",
+        "costume_1\\\uac00\ub4dc_\ub0a8_1",
+        "costume_1\\\uacb0\ud63c_\ub0a8_1",
+        "costume_1\\\uadf8\ub9ac\ud3f0\uac00\ub4dc_\ub0a8_1",
+        "costume_1\\\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\ub0a8_1",
+        "costume_1\\\ub808\uc778\uc838_\ub0a8_1",
+        "costume_1\\\ub808\uc778\uc838\ub291\ub300_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7602_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7603_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7604_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7605_\ub0a8_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub760_\ub0a8_1",
+        "costume_1\\\ub9c8\ub3c4\uae30\uc5b4_\ub0a8_1",
+        "costume_1\\\ub9c8\ub3c4\uc544\uba38_\ub0a8_1",
+        "costume_1\\\ubbf8\ucf00\ub2c9_\ub0a8_1",
+        "costume_1\\\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0_\ub0a8_1",
+        "costume_1\\\ubbfc\uc2a4\ud2b8\ub7f4_\ub0a8_1",
+        "costume_1\\\uc0ac\uc790\ub85c\uc584\uac00\ub4dc_\ub0a8_1",
+        "costume_1\\\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8_\ub0a8_1",
+        "costume_1\\\uc0b0\ud0c0_\ub0a8_1",
+        "costume_1\\\uc18c\uc11c\ub7ec_\ub0a8_1",
+        "costume_1\\\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\ub0a8_1",
+        "costume_1\\\uc288\ub77c_\ub0a8_1",
+        "costume_1\\\uc288\ub77c\uc54c\ud30c\uce74_\ub0a8_1",
+        "costume_1\\\uc544\ud06c\ube44\uc20d_\ub0a8_1",
+        "costume_1\\\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74_\ub0a8_1",
+        "costume_1\\\uc5ec\ub9842_\ub0a8_1",
+        "costume_1\\\uc5ec\ub984_\ub0a8_1",
+        "costume_1\\\uc5ec\uc6b0\uc18c\uc11c\ub7ec_\ub0a8_1",
+        "costume_1\\\uc5ec\uc6b0\uc6cc\ub85d_\ub0a8_1",
+        "costume_1\\\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8_\ub0a8_1",
+        "costume_1\\\uc6b4\uc601\uc7902_\ub0a8_1",
+        "costume_1\\\uc6b4\uc601\uc790_\ub0a8_1",
+        "costume_1\\\uc6cc\ub85d_\ub0a8_1",
+        "costume_1\\\uc81c\ub124\ub9ad_\ub0a8_1",
+        "costume_1\\\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0_\ub0a8_1",
+        "costume_1\\\ucd08\ubcf4\uc790_\ub0a8_1",
+        "costume_1\\\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\ub0a8_1",
+        "costume_1\\\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\ub0a8_1",
+        "costume_1\\\ud0c0\uc870\ub808\uc778\uc838_\ub0a8_1",
+        "costume_1\\\ud0c0\uc870\ubbfc\uc2a4\ud2b8\ub7f4_\ub0a8_1",
+        "costume_1\\\ud55c\ubcf5_\ub0a8_1",
+        "costume_2\\\ub9c8\ub3c4\uc544\uba38_\ub0a8_2",
+        "costume_3\\\ub9c8\ub3c4\uc544\uba38_\ub0a8_3",
+        "costume_4\\\ub9c8\ub3c4\uc544\uba38_\ub0a8_4",
+        "dragon_knight_chicken_\ub0a8",
+        "dragon_knight_riding_\ub0a8",
+        "dragon_knight_\ub0a8",
+        "elemetal_master_riding_\ub0a8",
+        "elemetal_master_\ub0a8",
+        "frog_kagerou_\ub0a8",
+        "frog_oboro_\ub0a8",
+        "hyper_novice_riding_\ub0a8",
+        "hyper_novice_\ub0a8",
+        "imperial_guard_chicken_\ub0a8",
+        "imperial_guard_riding_\ub0a8",
+        "imperial_guard_\ub0a8",
+        "inquisitor_riding_\ub0a8",
+        "inquisitor_\ub0a8",
+        "kagerou_\ub0a8",
+        "meister_madogear1_\ub0a8",
+        "meister_madogear2_\ub0a8",
+        "meister_riding_\ub0a8",
+        "meister_\ub0a8",
+        "night_watch_riding_\ub0a8",
+        "night_watch_\ub0a8",
+        "oboro_\ub0a8",
+        "peco_rebellion_\ub0a8",
+        "rebellion_\ub0a8",
+        "rebellion_\ub0a8_\uad8c\ucd1d",
+        "rebellion_\ub0a8_\uad8c\ucd1d\uad11",
+        "rebellion_\ub0a8_\uae30\uad00\ucd1d",
+        "rebellion_\ub0a8_\uae30\uad00\ucd1d\uad11",
+        "shadow_cross_riding_\ub0a8",
+        "shadow_cross_\ub0a8",
+        "shinkiro_riding_\ub0a8",
+        "shinkiro_\ub0a8",
+        "sky_emperor2_\ub0a8",
+        "sky_emperor_riding_\ub0a8",
+        "sky_emperor_\ub0a8",
+        "soul_ascetic_riding_\ub0a8",
+        "soul_ascetic_\ub0a8",
+        "troubadour_riding_\ub0a8",
+        "troubadour_\ub0a8",
+        "windhawk_riding_\ub0a8",
+        "windhawk_\ub0a8",
+        "wolf_windhawk_\ub0a8",
+        "\uac00\ub4dc_\ub0a8",
+        "\uac74\ub108_\ub0a8",
+        "\uac80\uc0ac_\ub0a8",
+        "\uac80\uc6a9\ubcd1",
+        "\uacb0\ud63c_\ub0a8",
+        "\uad6c\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_\ub0a8",
+        "\uad81\uc218_\ub0a8",
+        "\uad8c\uc131_\ub0a8",
+        "\uad8c\uc131\uc735\ud569_\ub0a8",
+        "\uad8c\uc131\ud3ec\ub9c1_\ub0a8",
+        "\uadf8\ub9ac\ud3f0\uac00\ub4dc_\ub0a8",
+        "\uae30\uc0ac_h_\ub0a8",
+        "\uae30\uc0ac_\ub0a8",
+        "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\ub0a8",
+        "\ub178\ube44\uc2a4\ud3ec\ub9c1_\ub0a8",
+        "\ub2cc\uc790_\ub0a8",
+        "\ub3c4\ub451_\ub0a8",
+        "\ub450\uaebc\ube44\ub2cc\uc790_\ub0a8",
+        "\ub450\uaebc\ube44\uc18c\uc6b8\ub9c1\ucee4_\ub0a8",
+        "\ub4dc\ub798\uace4\ub098\uc774\ud2b8_\ub0a8",
+        "\ub808\uc778\uc838_\ub0a8",
+        "\ub808\uc778\uc838\ub291\ub300_\ub0a8",
+        "\ub85c\uadf8_h_\ub0a8",
+        "\ub85c\uadf8_\ub0a8",
+        "\ub85c\ub4dc\ub098\uc774\ud2b8_\ub0a8",
+        "\ub85c\ub4dc\ub098\uc774\ud2b8_\ub0a8''",
+        "\ub85c\ub4dc\ud398\ucf54_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7602_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7603_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7604_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7605_\ub0a8",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub760_\ub0a8",
+        "\ub9ac\ubca8\ub9ac\uc628_\ub0a8",
+        "\ub9c8\ub3c4\uae30\uc5b4_\ub0a8",
+        "\ub9c8\ub3c4\uc544\uba38_\ub0a8",
+        "\ub9c8\ubc95\uc0ac_\ub0a8",
+        "\ubabd\ud06c_h_\ub0a8",
+        "\ubabd\ud06c_\ub0a8",
+        "\ubabd\ud06c\uc54c\ud30c\uce74_\ub0a8",
+        "\ubb34\ud76c\ubc14\uc9c0_\ub0a8",
+        "\ubbf8\ucf00\ub2c9_\ub0a8",
+        "\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0_\ub0a8",
+        "\ubbfc\uc2a4\ud2b8\ub7f4_\ub0a8",
+        "\ubc14\ub4dc_h_\ub0a8",
+        "\ubc14\ub4dc_\ub0a8",
+        "\ubcf5\uc0ac\uc54c\ud30c\uce74_\ub0a8",
+        "\uc0ac\uc790\uae30\uc0ac_\ub0a8",
+        "\uc0ac\uc790\ub85c\ub4dc\ub098\uc774\ud2b8_\ub0a8",
+        "\uc0ac\uc790\ub85c\uc584\uac00\ub4dc_\ub0a8",
+        "\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8_\ub0a8",
+        "\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354_\ub0a8",
+        "\uc0ac\uc790\ud314\ub77c\ub518_\ub0a8",
+        "\uc0b0\ud0c0_\ub0a8",
+        "\uc0c1\uc778_\ub0a8",
+        "\uc0c1\uc778\uba67\ub3fc\uc9c0_\ub0a8",
+        "\uc131\uc81c_\ub0a8",
+        "\uc131\uc81c\uc735\ud569_\ub0a8",
+        "\uc131\uc9c1\uc790_h_\ub0a8",
+        "\uc131\uc9c1\uc790_\ub0a8",
+        "\uc131\ud22c\uc0ac2_\ub0a8",
+        "\uc131\ud22c\uc0ac_\ub0a8",
+        "\uc138\uc774\uc9c0_h_\ub0a8",
+        "\uc138\uc774\uc9c0_\ub0a8",
+        "\uc18c\uc11c\ub7ec_\ub0a8",
+        "\uc18c\uc6b8\ub9ac\ud37c_\ub0a8",
+        "\uc18c\uc6b8\ub9c1\ucee4_\ub0a8",
+        "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\ub0a8",
+        "\uc288\ub77c_\ub0a8",
+        "\uc288\ub77c\uc54c\ud30c\uce74_\ub0a8",
+        "\uc288\ud37c\ub178\ube44\uc2a4_\ub0a8",
+        "\uc288\ud37c\ub178\ube44\uc2a4\ud3ec\ub9c1_\ub0a8",
+        "\uc2a4\ub098\uc774\ud37c_\ub0a8",
+        "\uc2a4\ud1a0\ucee4_\ub0a8",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_h_\ub0a8",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_\ub0a8",
+        "\uc544\ud06c\ube44\uc20d_\ub0a8",
+        "\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74_\ub0a8",
+        "\uc5b4\uc138\uc2e0_h_\ub0a8",
+        "\uc5b4\uc138\uc2e0_\ub0a8",
+        "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4_\ub0a8",
+        "\uc5ec\ub9842_\ub0a8",
+        "\uc5ec\ub984_\ub0a8",
+        "\uc5ec\uc6b0\ub9c8\ubc95\uc0ac_\ub0a8",
+        "\uc5ec\uc6b0\uc138\uc774\uc9c0_\ub0a8",
+        "\uc5ec\uc6b0\uc18c\uc11c\ub7ec_\ub0a8",
+        "\uc5ec\uc6b0\uc6cc\ub85d_\ub0a8",
+        "\uc5ec\uc6b0\uc704\uc800\ub4dc_\ub0a8",
+        "\uc5ec\uc6b0\ud504\ub85c\ud398\uc11c_\ub0a8",
+        "\uc5ec\uc6b0\ud558\uc774\uc704\uc800\ub4dc_\ub0a8",
+        "\uc5f0\uae08\uc220\uc0ac_h_\ub0a8",
+        "\uc5f0\uae08\uc220\uc0ac_\ub0a8",
+        "\uc5f0\uae08\uc220\uc0ac\uba67\ub3fc\uc9c0_\ub0a8",
+        "\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8_\ub0a8",
+        "\uc6b4\uc601\uc7902_\ub0a8",
+        "\uc6b4\uc601\uc790_\ub0a8",
+        "\uc6cc\ub85d_\ub0a8",
+        "\uc704\uc800\ub4dc_h_\ub0a8",
+        "\uc704\uc800\ub4dc_\ub0a8",
+        "\uc778\ud034\uc9c0\ud130_\ub0a8",
+        "\uc81c\ub124\ub9ad_\ub0a8",
+        "\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0_\ub0a8",
+        "\uc81c\ucca0\uacf5_h_\ub0a8",
+        "\uc81c\ucca0\uacf5_\ub0a8",
+        "\uc81c\ucca0\uacf5\uba67\ub3fc\uc9c0_\ub0a8",
+        "\ucc3d\uc6a9\ubcd1",
+        "\ucc54\ud53c\uc628_\ub0a8",
+        "\ucc54\ud53c\uc628\uc54c\ud30c\uce74_\ub0a8",
+        "\ucd08\ubcf4\uc790_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\ub3c4\ub451_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\ub85c\uadf8_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc2a4\ud1a0\ucee4_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0_\ub0a8",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0\ud06c\ub85c\uc2a4_\ub0a8",
+        "\ud06c\ub8e8\uc138\uc774\ub354_h_\ub0a8",
+        "\ud06c\ub8e8\uc138\uc774\ub354_\ub0a8",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130_\ub0a8",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130\uba67\ub3fc\uc9c0_\ub0a8",
+        "\ud074\ub77c\uc6b4_\ub0a8",
+        "\ud0c0\uc870\uad81\uc218_\ub0a8",
+        "\ud0c0\uc870\ub808\uc778\uc838_\ub0a8",
+        "\ud0c0\uc870\ubbfc\uc2a4\ud2b8\ub7f4_\ub0a8",
+        "\ud0c0\uc870\ubc14\ub4dc_\ub0a8",
+        "\ud0c0\uc870\uc2a4\ub098\uc774\ud37c_\ub0a8",
+        "\ud0c0\uc870\ud06c\ub77c\uc6b4_\ub0a8",
+        "\ud0c0\uc870\ud5cc\ud130_\ub0a8",
+        "\ud0dc\uad8c\uc18c\ub144_\ub0a8",
+        "\ud0dc\uad8c\uc18c\ub144\ud3ec\ub9c1_\ub0a8",
+        "\ud131\uc2dc\ub3c4_\ub0a8",
+        "\ud314\ub77c\ub518_\ub0a8",
+        "\ud398\ucf54rebellion_\ub0a8",
+        "\ud398\ucf54\uac74\ub108_\ub0a8",
+        "\ud398\ucf54\uac80\uc0ac_\ub0a8",
+        "\ud398\ucf54\ud314\ub77c\ub518_\ub0a8",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac_h_\ub0a8",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac_\ub0a8",
+        "\ud504\ub85c\ud398\uc11c_\ub0a8",
+        "\ud504\ub9ac\uc2a4\ud2b8_h_\ub0a8",
+        "\ud504\ub9ac\uc2a4\ud2b8_\ub0a8",
+        "\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74_\ub0a8",
+        "\ud558\uc774\uc704\uc800\ub4dc_\ub0a8",
+        "\ud558\uc774\ud504\ub9ac_\ub0a8",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74_\ub0a8",
+        "\ud55c\ubcf5_\ub0a8",
+        "\ud574\ud0dc\uc131\uc81c_\ub0a8",
+        "\ud574\ud0dc\uc18c\uc6b8\ub9ac\ud37c_\ub0a8",
+        "\ud5cc\ud130_h_\ub0a8",
+        "\ud5cc\ud130_\ub0a8",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4_\ub0a8",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4\uba67\ub3fc\uc9c0_\ub0a8"
+      ],
+      "\uc5ec": [
+        "abyss_chaser_riding_\uc5ec",
+        "abyss_chaser_\uc5ec",
+        "arch_mage_riding_\uc5ec",
+        "arch_mage_\uc5ec",
+        "biolo_riding_\uc5ec",
+        "biolo_\uc5ec",
+        "cardinal_riding_\uc5ec",
+        "cardinal_\uc5ec",
+        "costume_1\\arch_mage_riding_\uc5ec_1",
+        "costume_1\\arch_mage_\uc5ec_1",
+        "costume_1\\cardinal_riding_\uc5ec_1",
+        "costume_1\\cardinal_\uc5ec_1",
+        "costume_1\\inquisitor_riding_\uc5ec_1",
+        "costume_1\\inquisitor_\uc5ec_1",
+        "costume_1\\kagerou_\uc5ec_1",
+        "costume_1\\oboro_\uc5ec_1",
+        "costume_1\\\uac00\ub4dc_\uc5ec_1",
+        "costume_1\\\uacb0\ud63c_\uc5ec_1",
+        "costume_1\\\uadf8\ub9ac\ud3f0\uac00\ub4dc_\uc5ec_1",
+        "costume_1\\\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\uc5ec_1",
+        "costume_1\\\ub808\uc778\uc838_\uc5ec_1",
+        "costume_1\\\ub808\uc778\uc838\ub291\ub300_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7602_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7603_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7604_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub7605_\uc5ec_1",
+        "costume_1\\\ub8ec\ub098\uc774\ud2b8\uc058\ub760_\uc5ec_1",
+        "costume_1\\\ub9c8\ub3c4\uae30\uc5b4_\uc5ec_1",
+        "costume_1\\\ub9c8\ub3c4\uc544\uba38_\uc5ec_1",
+        "costume_1\\\ubbf8\ucf00\ub2c9_\uc5ec_1",
+        "costume_1\\\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0_\uc5ec_1",
+        "costume_1\\\uc0ac\uc790\ub85c\uc584\uac00\ub4dc_\uc5ec_1",
+        "costume_1\\\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8_\uc5ec_1",
+        "costume_1\\\uc0b0\ud0c0_\uc5ec_1",
+        "costume_1\\\uc18c\uc11c\ub7ec_\uc5ec_1",
+        "costume_1\\\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\uc5ec_1",
+        "costume_1\\\uc288\ub77c_\uc5ec_1",
+        "costume_1\\\uc288\ub77c\uc54c\ud30c\uce74_\uc5ec_1",
+        "costume_1\\\uc544\ud06c\ube44\uc20d_\uc5ec_1",
+        "costume_1\\\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74_\uc5ec_1",
+        "costume_1\\\uc5ec\ub9842_\uc5ec_1",
+        "costume_1\\\uc5ec\ub984_\uc5ec_1",
+        "costume_1\\\uc5ec\uc6b0\uc18c\uc11c\ub7ec_\uc5ec_1",
+        "costume_1\\\uc5ec\uc6b0\uc6cc\ub85d_\uc5ec_1",
+        "costume_1\\\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8_\uc5ec_1",
+        "costume_1\\\uc6b4\uc601\uc7902_\uc5ec_1",
+        "costume_1\\\uc6b4\uc601\uc790_\uc5ec_1",
+        "costume_1\\\uc6cc\ub85d_\uc5ec_1",
+        "costume_1\\\uc6d0\ub354\ub7ec_\uc5ec_1",
+        "costume_1\\\uc81c\ub124\ub9ad_\uc5ec_1",
+        "costume_1\\\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0_\uc5ec_1",
+        "costume_1\\\ucd08\ubcf4\uc790_\uc5ec_1",
+        "costume_1\\\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\uc5ec_1",
+        "costume_1\\\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\uc5ec_1",
+        "costume_1\\\ud0c0\uc870\ub808\uc778\uc838_\uc5ec_1",
+        "costume_1\\\ud0c0\uc870\uc6d0\ub354\ub7ec_\uc5ec_1",
+        "costume_1\\\ud55c\ubcf5_\uc5ec_1",
+        "costume_2\\\ub9c8\ub3c4\uc544\uba38_\uc5ec_2",
+        "costume_3\\\ub9c8\ub3c4\uc544\uba38_\uc5ec_3",
+        "costume_4\\\ub9c8\ub3c4\uc544\uba38_\uc5ec_4",
+        "dragon_knight_chicken_\uc5ec",
+        "dragon_knight_riding_\uc5ec",
+        "dragon_knight_\uc5ec",
+        "elemetal_master_riding_\uc5ec",
+        "elemetal_master_\uc5ec",
+        "frog_kagerou_\uc5ec",
+        "frog_oboro_\uc5ec",
+        "hyper_novice_riding_\uc5ec",
+        "hyper_novice_\uc5ec",
+        "imperial_guard_chicken_\uc5ec",
+        "imperial_guard_riding_\uc5ec",
+        "imperial_guard_\uc5ec",
+        "inquisitor_riding_\uc5ec",
+        "inquisitor_\uc5ec",
+        "kagerou_\uc5ec",
+        "meister_madogear1_\uc5ec",
+        "meister_madogear2_\uc5ec",
+        "meister_riding_\uc5ec",
+        "meister_\uc5ec",
+        "night_watch_riding_\uc5ec",
+        "night_watch_\uc5ec",
+        "oboro_\uc5ec",
+        "peco_rebellion_\uc5ec",
+        "rebellion_\uc5ec",
+        "rebellion_\uc5ec_\uad8c\ucd1d",
+        "rebellion_\uc5ec_\uad8c\ucd1d\uad11",
+        "rebellion_\uc5ec_\uae30\uad00\ucd1d",
+        "rebellion_\uc5ec_\uae30\uad00\ucd1d\uad11",
+        "shadow_cross_riding_\uc5ec",
+        "shadow_cross_\uc5ec",
+        "shiranui_riding_\uc5ec",
+        "shiranui_\uc5ec",
+        "sky_emperor2_\uc5ec",
+        "sky_emperor_riding_\uc5ec",
+        "sky_emperor_\uc5ec",
+        "soul_ascetic_riding_\uc5ec",
+        "soul_ascetic_\uc5ec",
+        "trouvere_riding_\uc5ec",
+        "trouvere_\uc5ec",
+        "windhawk_riding_\uc5ec",
+        "windhawk_\uc5ec",
+        "wolf_windhawk_\uc5ec",
+        "\uac00\ub4dc_\uc5ec",
+        "\uac74\ub108_\uc5ec",
+        "\uac80\uc0ac_\uc5ec",
+        "\uacb0\ud63c_\uc5ec",
+        "\uad6c\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_\ub0a8",
+        "\uad6c\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_\uc5ec",
+        "\uad81\uc218_\uc5ec",
+        "\uad8c\uc131_\uc5ec",
+        "\uad8c\uc131\uc735\ud569_\uc5ec",
+        "\uad8c\uc131\ud3ec\ub9c1_\uc5ec",
+        "\uadf8\ub9ac\ud3f0\uac00\ub4dc_\uc5ec",
+        "\uae30\uc0ac_h_\uc5ec",
+        "\uae30\uc0ac_\uc5ec",
+        "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\uc5ec",
+        "\ub178\ube44\uc2a4\ud3ec\ub9c1_\uc5ec",
+        "\ub2cc\uc790_\uc5ec",
+        "\ub3c4\ub451_\uc5ec",
+        "\ub450\uaebc\ube44\ub2cc\uc790_\uc5ec",
+        "\ub450\uaebc\ube44\uc18c\uc6b8\ub9c1\ucee4_\uc5ec",
+        "\ub4dc\ub798\uace4\ub098\uc774\ud2b8_\uc5ec",
+        "\ub808\uc778\uc838_\uc5ec",
+        "\ub808\uc778\uc838\ub291\ub300_\uc5ec",
+        "\ub85c\uadf8_h_\uc5ec",
+        "\ub85c\uadf8_\uc5ec",
+        "\ub85c\ub4dc\ub098\uc774\ud2b8_\uc5ec",
+        "\ub85c\ub4dc\ud398\ucf54_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7602_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7603_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7604_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub7605_\uc5ec",
+        "\ub8ec\ub098\uc774\ud2b8\uc058\ub760_\uc5ec",
+        "\ub9ac\ubca8\ub9ac\uc628_\uc5ec",
+        "\ub9c8\ub3c4\uae30\uc5b4_\uc5ec",
+        "\ub9c8\ub3c4\uc544\uba38_\uc5ec",
+        "\ub9c8\ubc95\uc0ac_\uc5ec",
+        "\ubabd\ud06c_h_\uc5ec",
+        "\ubabd\ud06c_\uc5ec",
+        "\ubabd\ud06c\uc54c\ud30c\uce74_\uc5ec",
+        "\ubb34\ud76c_h_\uc5ec",
+        "\ubb34\ud76c_\uc5ec",
+        "\ubb34\ud76c_\uc5ec_\ubc14\uc9c0",
+        "\ubb34\ud76c\ubc14\uc9c0_\uc5ec",
+        "\ubbf8\ucf00\ub2c9_\uc5ec",
+        "\ubbf8\ucf00\ub2c9\uba67\ub3fc\uc9c0_\uc5ec",
+        "\ubcf5\uc0ac\uc54c\ud30c\uce74_\uc5ec",
+        "\uc0ac\uc790\uae30\uc0ac_\uc5ec",
+        "\uc0ac\uc790\ub85c\ub4dc\ub098\uc774\ud2b8_\uc5ec",
+        "\uc0ac\uc790\ub85c\uc584\uac00\ub4dc_\uc5ec",
+        "\uc0ac\uc790\ub8ec\ub098\uc774\ud2b8_\uc5ec",
+        "\uc0ac\uc790\ud06c\ub8e8\uc138\uc774\ub354_\uc5ec",
+        "\uc0ac\uc790\ud314\ub77c\ub518_\uc5ec",
+        "\uc0b0\ud0c0_\uc5ec",
+        "\uc0c1\uc778_\uc5ec",
+        "\uc0c1\uc778\uba67\ub3fc\uc9c0_\uc5ec",
+        "\uc131\uc81c_\uc5ec",
+        "\uc131\uc81c\uc735\ud569_\uc5ec",
+        "\uc131\uc9c1\uc790_h_\uc5ec",
+        "\uc131\uc9c1\uc790_\uc5ec",
+        "\uc131\ud22c\uc0ac2_\uc5ec",
+        "\uc131\ud22c\uc0ac_\uc5ec",
+        "\uc138\uc774\uc9c0_h_\uc5ec",
+        "\uc138\uc774\uc9c0_\uc5ec",
+        "\uc18c\uc11c\ub7ec_\uc5ec",
+        "\uc18c\uc6b8\ub9ac\ud37c_\uc5ec",
+        "\uc18c\uc6b8\ub9c1\ucee4_\uc5ec",
+        "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\uc5ec",
+        "\uc288\ub77c_\uc5ec",
+        "\uc288\ub77c\uc54c\ud30c\uce74_\uc5ec",
+        "\uc288\ud37c\ub178\ube44\uc2a4_\uc5ec",
+        "\uc288\ud37c\ub178\ube44\uc2a4\ud3ec\ub9c1_\uc5ec",
+        "\uc2a4\ub098\uc774\ud37c_\uc5ec",
+        "\uc2a4\ud1a0\ucee4_\uc5ec",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_h_\uc5ec",
+        "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354_\uc5ec",
+        "\uc544\ud06c\ube44\uc20d_\uc5ec",
+        "\uc544\ud06c\ube44\uc20d\uc54c\ud30c\uce74_\uc5ec",
+        "\uc5b4\uc138\uc2e0_h_\uc5ec",
+        "\uc5b4\uc138\uc2e0_\uc5ec",
+        "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4_\uc5ec",
+        "\uc5ec\ub9842_\uc5ec",
+        "\uc5ec\ub984_\uc5ec",
+        "\uc5ec\uc6b0\ub9c8\ubc95\uc0ac_\ub0a8",
+        "\uc5ec\uc6b0\ub9c8\ubc95\uc0ac_\uc5ec",
+        "\uc5ec\uc6b0\uc138\uc774\uc9c0_\uc5ec",
+        "\uc5ec\uc6b0\uc18c\uc11c\ub7ec_\uc5ec",
+        "\uc5ec\uc6b0\uc6cc\ub85d_\uc5ec",
+        "\uc5ec\uc6b0\uc704\uc800\ub4dc_\uc5ec",
+        "\uc5ec\uc6b0\ud504\ub85c\ud398\uc11c_\uc5ec",
+        "\uc5ec\uc6b0\ud558\uc774\uc704\uc800\ub4dc_\uc5ec",
+        "\uc5f0\uae08\uc220\uc0ac_h_\uc5ec",
+        "\uc5f0\uae08\uc220\uc0ac_\uc5ec",
+        "\uc5f0\uae08\uc220\uc0ac\uba67\ub3fc\uc9c0_\uc5ec",
+        "\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8_\uc5ec",
+        "\uc6b4\uc601\uc7902_\uc5ec",
+        "\uc6b4\uc601\uc790_\uc5ec",
+        "\uc6cc\ub85d_\uc5ec",
+        "\uc6d0\ub354\ub7ec_\uc5ec",
+        "\uc6e8\ub529",
+        "\uc704\uc800\ub4dc_h_\uc5ec",
+        "\uc704\uc800\ub4dc_\uc5ec",
+        "\uc81c\ub124\ub9ad_\uc5ec",
+        "\uc81c\ub124\ub9ad\uba67\ub3fc\uc9c0_\uc5ec",
+        "\uc81c\ucca0\uacf5_h_\uc5ec",
+        "\uc81c\ucca0\uacf5_\uc5ec",
+        "\uc81c\ucca0\uacf5\uba67\ub3fc\uc9c0_\uc5ec",
+        "\uc9d1\uc2dc_\uc5ec",
+        "\ucc54\ud53c\uc628_\uc5ec",
+        "\ucc54\ud53c\uc628\uc54c\ud30c\uce74_\uc5ec",
+        "\ucd08\ubcf4\uc790_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\ub3c4\ub451_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\ub85c\uadf8_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\uc2a4\ud1a0\ucee4_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0_\uc5ec",
+        "\ucf08\ubca0\ub85c\uc2a4\uc5b4\uc384\uc2e0\ud06c\ub85c\uc2a4_\uc5ec",
+        "\ud06c\ub8e8\uc138\uc774\ub354_h_\uc5ec",
+        "\ud06c\ub8e8\uc138\uc774\ub354_\uc5ec",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130_\uc5ec",
+        "\ud06c\ub9ac\uc5d0\uc774\ud130\uba67\ub3fc\uc9c0_\uc5ec",
+        "\ud0c0\uc870\uad81\uc218_\uc5ec",
+        "\ud0c0\uc870\ub808\uc778\uc838_\uc5ec",
+        "\ud0c0\uc870\ubb34\ud76c_\uc5ec",
+        "\ud0c0\uc870\ubc14\ub4dc_\ub0a8",
+        "\ud0c0\uc870\uc2a4\ub098\uc774\ud37c_\uc5ec",
+        "\ud0c0\uc870\uc6d0\ub354\ub7ec_\uc5ec",
+        "\ud0c0\uc870\uc9da\uc2dc_\uc5ec",
+        "\ud0c0\uc870\ud5cc\ud130_\uc5ec",
+        "\ud0dc\uad8c\uc18c\ub140\ud3ec\ub9c1_\uc5ec",
+        "\ud0dc\uad8c\uc18c\ub144_\uc5ec",
+        "\ud0dc\uad8c\uc18c\ub144\ud3ec\ub9c1_\uc5ec",
+        "\ud314\ub77c\ub518_\uc5ec",
+        "\ud398\ucf54rebellion_\uc5ec",
+        "\ud398\ucf54\uac74\ub108_\uc5ec",
+        "\ud398\ucf54\uac80\uc0ac_\uc5ec",
+        "\ud398\ucf54\ud314\ub77c\ub518_\uc5ec",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac_h_\uc5ec",
+        "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac_\uc5ec",
+        "\ud504\ub85c\ud398\uc11c_\uc5ec",
+        "\ud504\ub9ac\uc2a4\ud2b8_h_\uc5ec",
+        "\ud504\ub9ac\uc2a4\ud2b8_\uc5ec",
+        "\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74_\uc5ec",
+        "\ud558\uc774\uc704\uc800\ub4dc_\uc5ec",
+        "\ud558\uc774\ud504\ub9ac_\uc5ec",
+        "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8\uc54c\ud30c\uce74_\uc5ec",
+        "\ud55c\ubcf5_\uc5ec",
+        "\ud574\ud0dc\uc131\uc81c_\uc5ec",
+        "\ud574\ud0dc\uc18c\uc6b8\ub9ac\ud37c_\uc5ec",
+        "\ud5cc\ud130_h_\uc5ec",
+        "\ud5cc\ud130_\uc5ec",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4_\uc5ec",
+        "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4\uba67\ub3fc\uc9c0_\uc5ec",
+        "\ud65c\uc6a9\ubcd1"
+      ]
+    },
+    "client_job_sprites": {
+      "0": "\ucd08\ubcf4\uc790",
+      "1": "\uac80\uc0ac",
+      "10": "\uc81c\ucca0\uacf5",
+      "11": "\ud5cc\ud130",
+      "12": "\uc5b4\uc138\uc2e0",
+      "13": "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+      "14": "\ud06c\ub8e8\uc138\uc774\ub354",
+      "15": "\ubabd\ud06c",
+      "16": "\uc138\uc774\uc9c0",
+      "17": "\ub85c\uadf8",
+      "18": "\uc5f0\uae08\uc220\uc0ac",
+      "19": "\ubc14\ub4dc",
+      "2": "\ub9c8\ubc95\uc0ac",
+      "20": "\ubb34\ud76c",
+      "23": "\uc288\ud37c\ub178\ube44\uc2a4",
+      "24": "\uac74\ub108",
+      "25": "\ub2cc\uc790",
+      "3": "\uad81\uc218",
+      "4": "\uc131\uc9c1\uc790",
+      "4001": "\ucd08\ubcf4\uc790",
+      "4002": "\uac80\uc0ac",
+      "4003": "\ub9c8\ubc95\uc0ac",
+      "4004": "\uad81\uc218",
+      "4005": "\uc131\uc9c1\uc790",
+      "4006": "\uc0c1\uc778",
+      "4007": "\ub3c4\ub451",
+      "4008": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+      "4009": "\ud558\uc774\ud504\ub9ac",
+      "4010": "\ud558\uc774\uc704\uc800\ub4dc",
+      "4011": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+      "4012": "\uc2a4\ub098\uc774\ud37c",
+      "4013": "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4",
+      "4014": "\uc5d4\ub300\uc6b4",
+      "4015": "\ud314\ub77c\ub518",
+      "4016": "\ucc54\ud53c\uc628",
+      "4017": "\ud504\ub85c\ud398\uc11c",
+      "4018": "\uc2a4\ud1a0\ucee4",
+      "4019": "\ud06c\ub9ac\uc5d0\uc774\ud130",
+      "4020": "\ud074\ub77c\uc6b4",
+      "4021": "\uc9d1\uc2dc",
+      "4023": "\ucd08\ubcf4\uc790",
+      "4024": "\uac80\uc0ac",
+      "4025": "\ub9c8\ubc95\uc0ac",
+      "4026": "\uad81\uc218",
+      "4027": "\uc131\uc9c1\uc790",
+      "4028": "\uc0c1\uc778",
+      "4029": "\ub3c4\ub451",
+      "4030": "\uae30\uc0ac",
+      "4031": "\uc131\ud22c\uc0ac",
+      "4032": "\uc704\uc800\ub4dc",
+      "4033": "\uc81c\ucca0\uacf5",
+      "4034": "\ud5cc\ud130",
+      "4035": "\uc5b4\uc138\uc2e0",
+      "4037": "\ud06c\ub8e8\uc138\uc774\ub354",
+      "4038": "\ubabd\ud06c",
+      "4039": "\uc138\uc774\uc9c0",
+      "4040": "\ub85c\uadf8",
+      "4041": "\uc5f0\uae08\uc220\uc0ac",
+      "4042": "\ubc14\ub4dc",
+      "4043": "\ubb34\ud76c",
+      "4045": "\uc288\ud37c\ub178\ube44\uc2a4",
+      "4046": "\ud0dc\uad8c\uc18c\ub144",
+      "4047": "\uad8c\uc131",
+      "4049": "\uc18c\uc6b8\ub9c1\ucee4",
+      "4054": "\ub8ec\ub098\uc774\ud2b8",
+      "4055": "\uc6cc\ub85d",
+      "4056": "\ub808\uc778\uc838",
+      "4057": "\uc544\ud06c\ube44\uc20d",
+      "4058": "\ubbf8\ucf00\ub2c9",
+      "4059": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+      "4060": "\ub8ec\ub098\uc774\ud2b8",
+      "4061": "\uc6cc\ub85d",
+      "4062": "\ub808\uc778\uc838",
+      "4063": "\uc544\ud06c\ube44\uc20d",
+      "4064": "\ubbf8\ucf00\ub2c9",
+      "4065": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+      "4066": "\uac00\ub4dc",
+      "4067": "\uc18c\uc11c\ub7ec",
+      "4068": "\ubbfc\uc2a4\ud2b8\ub7f4",
+      "4069": "\uc6d0\ub354\ub7ec",
+      "4070": "\uc288\ub77c",
+      "4071": "\uc81c\ub124\ub9ad",
+      "4072": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+      "4073": "\uac00\ub4dc",
+      "4074": "\uc18c\uc11c\ub7ec",
+      "4075": "\ubbfc\uc2a4\ud2b8\ub7f4",
+      "4076": "\uc6d0\ub354\ub7ec",
+      "4077": "\uc288\ub77c",
+      "4078": "\uc81c\ub124\ub9ad",
+      "4079": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+      "4096": "\ub8ec\ub098\uc774\ud2b8",
+      "4097": "\uc6cc\ub85d",
+      "4098": "\ub808\uc778\uc838",
+      "4099": "\uc544\ud06c\ube44\uc20d",
+      "4100": "\ubbf8\ucf00\ub2c9",
+      "4101": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+      "4102": "\uac00\ub4dc",
+      "4103": "\uc18c\uc11c\ub7ec",
+      "4104": "\ubbfc\uc2a4\ud2b8\ub7f4",
+      "4105": "\uc6d0\ub354\ub7ec",
+      "4106": "\uc288\ub77c",
+      "4107": "\uc81c\ub124\ub9ad",
+      "4108": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+      "4190": "\uc288\ud37c\ub178\ube44\uc2a4",
+      "4191": "\uc288\ud37c\ub178\ube44\uc2a4",
+      "4211": "KAGEROU",
+      "4212": "OBORO",
+      "4215": "REBELLION",
+      "4222": "\ub2cc\uc790",
+      "4223": "KAGEROU",
+      "4224": "OBORO",
+      "4225": "\ud0dc\uad8c\uc18c\ub144",
+      "4226": "\uad8c\uc131",
+      "4227": "\uc18c\uc6b8\ub9c1\ucee4",
+      "4228": "\uac74\ub108",
+      "4229": "REBELLION",
+      "4239": "\uc131\uc81c",
+      "4240": "\uc18c\uc6b8\ub9ac\ud37c",
+      "4241": "\uc131\uc81c",
+      "4242": "\uc18c\uc6b8\ub9ac\ud37c",
+      "4252": "DRAGON_KNIGHT",
+      "4253": "MEISTER",
+      "4254": "SHADOW_CROSS",
+      "4255": "ARCH_MAGE",
+      "4256": "CARDINAL",
+      "4257": "WINDHAWK",
+      "4258": "IMPERIAL_GUARD",
+      "4259": "BIOLO",
+      "4260": "ABYSS_CHASER",
+      "4261": "ELEMETAL_MASTER",
+      "4262": "INQUISITOR",
+      "4263": "TROUBADOUR",
+      "4264": "TROUVERE",
+      "4302": "SKY_EMPEROR",
+      "4303": "SOUL_ASCETIC",
+      "4304": "SHINKIRO",
+      "4305": "SHIRANUI",
+      "4306": "NIGHT_WATCH",
+      "4307": "HYPER_NOVICE",
+      "5": "\uc0c1\uc778",
+      "6": "\ub3c4\ub451",
+      "7": "\uae30\uc0ac",
+      "8": "\uc131\ud22c\uc0ac",
+      "9": "\uc704\uc800\ub4dc"
+    },
+    "head_palettes": {
+      "\ub0a8": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "\uc5ec": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ]
+    },
+    "head_sprites": {
+      "\ub0a8": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ],
+      "\uc5ec": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ]
+    },
+    "headgear": {
+      "missing": [
+        323,
+        342,
+        374,
+        409,
+        410,
+        419,
+        424,
+        425,
+        426,
+        433,
+        434,
+        451,
+        457,
+        474,
+        481,
+        482,
+        498,
+        499,
+        502,
+        516,
+        517,
+        552,
+        580,
+        582,
+        607,
+        611,
+        620,
+        641,
+        647,
+        650,
+        658,
+        668,
+        721,
+        722,
+        764,
+        765,
+        768,
+        769,
+        778,
+        832,
+        860,
+        895,
+        896,
+        901,
+        920,
+        921,
+        945,
+        947,
+        950,
+        951,
+        960,
+        969,
+        971,
+        986,
+        995,
+        997,
+        1000,
+        1001,
+        1004,
+        1024,
+        1026,
+        1027,
+        1028,
+        1043,
+        1059,
+        1070,
+        1079,
+        1088,
+        1090,
+        1096,
+        1105,
+        1106,
+        1107,
+        1108,
+        1109,
+        1114,
+        1130,
+        1131,
+        1135,
+        1136,
+        1150,
+        1151,
+        1152,
+        1153,
+        1154,
+        1159,
+        1161,
+        1163,
+        1164,
+        1165,
+        1166,
+        1167,
+        1168,
+        1174,
+        1177,
+        1178,
+        1179,
+        1180,
+        1182,
+        1183,
+        1187,
+        1188,
+        1203,
+        1210,
+        1225,
+        1226,
+        1236,
+        1242,
+        1243,
+        1244,
+        1249,
+        1252,
+        1260,
+        1261,
+        1262,
+        1263,
+        1264,
+        1270,
+        1288,
+        1291,
+        1299,
+        1305,
+        1306,
+        1307,
+        1319,
+        1321,
+        1322,
+        1323,
+        1327,
+        1328,
+        1336,
+        1350,
+        1357,
+        1364,
+        1365,
+        1375,
+        1377,
+        1380,
+        1407,
+        1408,
+        1410,
+        1411,
+        1412,
+        1413,
+        1414,
+        1419,
+        1432,
+        1433,
+        1438,
+        1439,
+        1441,
+        1446,
+        1449,
+        1464,
+        1467,
+        1468,
+        1476,
+        1484,
+        1489,
+        1490,
+        1491
+      ],
+      "sprites": {
+        "\ub0a8": 1831,
+        "\uc5ec": 1835
+      },
+      "view_ids": 1526,
+      "with_sprite": 1365
+    },
+    "job_identity": {
+      "0": "NOVICE",
+      "1": "SWORDMAN",
+      "10": "BLACKSMITH",
+      "11": "HUNTER",
+      "12": "ASSASSIN",
+      "13": "CHICKEN",
+      "14": "CRUSADER",
+      "15": "MONK",
+      "16": "SAGE",
+      "17": "ROGUE",
+      "18": "ALCHEMIST",
+      "19": "BARD",
+      "2": "MAGICIAN",
+      "20": "DANCER",
+      "21": "CHICKEN2",
+      "22": "MARRIED",
+      "23": "SUPERNOVICE",
+      "24": "GUNSLINGER",
+      "25": "NINJA",
+      "26": "SANTA",
+      "27": "SUMMER",
+      "28": "HANBOK",
+      "29": "OKTOBERFEST",
+      "3": "ARCHER",
+      "30": "SUMMER2",
+      "4": "ACOLYTE",
+      "4001": "NOVICE_H",
+      "4002": "SWORDMAN_H",
+      "4003": "MAGICIAN_H",
+      "4004": "ARCHER_H",
+      "4005": "ACOLYTE_H",
+      "4006": "MERCHANT_H",
+      "4007": "THIEF_H",
+      "4008": "KNIGHT_H",
+      "4009": "PRIEST_H",
+      "4010": "WIZARD_H",
+      "4011": "BLACKSMITH_H",
+      "4012": "HUNTER_H",
+      "4013": "ASSASSIN_H",
+      "4014": "CHICKEN_H",
+      "4015": "CRUSADER_H",
+      "4016": "MONK_H",
+      "4017": "SAGE_H",
+      "4018": "ROGUE_H",
+      "4019": "ALCHEMIST_H",
+      "4020": "BARD_H",
+      "4021": "DANCER_H",
+      "4022": "CHICKEN2_H",
+      "4023": "NOVICE_B",
+      "4024": "SWORDMAN_B",
+      "4025": "MAGICIAN_B",
+      "4026": "ARCHER_B",
+      "4027": "ACOLYTE_B",
+      "4028": "MERCHANT_B",
+      "4029": "THIEF_B",
+      "4030": "KNIGHT_B",
+      "4031": "PRIEST_B",
+      "4032": "WIZARD_B",
+      "4033": "BLACKSMITH_B",
+      "4034": "HUNTER_B",
+      "4035": "ASSASSIN_B",
+      "4036": "CHICKEN_B",
+      "4037": "CRUSADER_B",
+      "4038": "MONK_B",
+      "4039": "SAGE_B",
+      "4040": "ROGUE_B",
+      "4041": "ALCHEMIST_B",
+      "4042": "BARD_B",
+      "4043": "DANCER_B",
+      "4044": "CHICKEN2_B",
+      "4045": "SUPERNOVICE_B",
+      "4046": "TAEKWON",
+      "4047": "STAR",
+      "4048": "STAR2",
+      "4049": "LINKER",
+      "4050": "GANGSI",
+      "4051": "DEATHKNIGHT",
+      "4052": "COLLECTOR",
+      "4054": "RUNE_KNIGHT",
+      "4055": "WARLOCK",
+      "4056": "RANGER",
+      "4057": "ARCHBISHOP",
+      "4058": "MECHANIC",
+      "4059": "GUILLOTINE_CROSS",
+      "4060": "RUNE_KNIGHT_H",
+      "4061": "WARLOCK_H",
+      "4062": "RANGER_H",
+      "4063": "ARCHBISHOP_H",
+      "4064": "MECHANIC_H",
+      "4065": "GUILLOTINE_CROSS_H",
+      "4066": "ROYAL_GUARD",
+      "4067": "SORCERER",
+      "4068": "MINSTREL",
+      "4069": "WANDERER",
+      "4070": "SURA",
+      "4071": "GENETIC",
+      "4072": "SHADOW_CHASER",
+      "4073": "ROYAL_GUARD_H",
+      "4074": "SORCERER_H",
+      "4075": "MINSTREL_H",
+      "4076": "WANDERER_H",
+      "4077": "SURA_H",
+      "4078": "GENETIC_H",
+      "4079": "SHADOW_CHASER_H",
+      "4080": "RUNE_CHICKEN",
+      "4081": "RUNE_CHICKEN_H",
+      "4082": "ROYAL_CHICKEN",
+      "4083": "ROYAL_CHICKEN_H",
+      "4084": "WOLF_RANGER",
+      "4085": "WOLF_RANGER_H",
+      "4086": "MADOGEAR",
+      "4087": "MADOGEAR_H",
+      "4096": "RUNE_KNIGHT_B",
+      "4097": "WARLOCK_B",
+      "4098": "RANGER_B",
+      "4099": "ARCHBISHOP_B",
+      "4100": "MECHANIC_B",
+      "4101": "GUILLOTINE_CROSS_B",
+      "4102": "ROYAL_GUARD_B",
+      "4103": "SORCERER_B",
+      "4104": "MINSTREL_B",
+      "4105": "WANDERER_B",
+      "4106": "SURA_B",
+      "4107": "GENETIC_B",
+      "4108": "SHADOW_CHASER_B",
+      "4109": "RUNE_CHICKEN_B",
+      "4110": "ROYAL_CHICKEN_B",
+      "4111": "WOLF_RANGER_B",
+      "4112": "MADOGEAR_B",
+      "4190": "SUPERNOVICE2",
+      "4191": "SUPERNOVICE2_B",
+      "4211": "KAGEROU",
+      "4212": "OBORO",
+      "4215": "REBELLION",
+      "4220": "DO_SUMMONER_B",
+      "4222": "NINJA_B",
+      "4223": "KAGEROU_B",
+      "4224": "OBORO_B",
+      "4225": "TAEKWON_B",
+      "4226": "STAR_B",
+      "4227": "LINKER_B",
+      "4228": "GUNSLINGER_B",
+      "4229": "REBELLION_B",
+      "4239": "STAR_EMPEROR",
+      "4240": "SOUL_REAPER",
+      "4241": "STAR_EMPEROR_B",
+      "4242": "SOUL_REAPER_B",
+      "4243": "STAR2_EMPEROR",
+      "4244": "STAR2_EMPEROR_B",
+      "5": "MERCHANT",
+      "6": "THIEF",
+      "7": "KNIGHT",
+      "8": "PRIEST",
+      "9": "WIZARD"
+    },
+    "palette_overrides": {
+      "REBELLION": "\ub9ac\ubca8\ub9ac\uc628",
+      "\uac00\ub4dc": "\ub85c\uc584\uac00\ub4dc",
+      "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4": "\uc5b4\uc138\uc2e0\ud06c\ub85c\uc2a4",
+      "\ud558\uc774\ud504\ub9ac": "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8"
+    },
+    "sprite_fallbacks": {
+      "21": "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+      "22": "\uacb0\ud63c",
+      "26": "\uc0b0\ud0c0",
+      "27": "\uc5ec\ub984",
+      "28": "\ud55c\ubcf5",
+      "29": "\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8",
+      "30": "\uc5ec\ub9842",
+      "4014": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+      "4022": "\ud398\ucf54\ud314\ub77c\ub518",
+      "4036": "\uae30\uc0ac",
+      "4044": "\ud06c\ub8e8\uc138\uc774\ub354",
+      "4048": "\uad8c\uc131",
+      "4050": "\ucd08\ubcf4\uc790",
+      "4051": "\ucd08\ubcf4\uc790",
+      "4052": "\ucd08\ubcf4\uc790",
+      "4080": "\ub8ec\ub098\uc774\ud2b8",
+      "4081": "\ub8ec\ub098\uc774\ud2b8",
+      "4082": "\uac00\ub4dc",
+      "4083": "\uac00\ub4dc",
+      "4084": "\ub808\uc778\uc838",
+      "4085": "\ub808\uc778\uc838",
+      "4086": "\ubbf8\ucf00\ub2c9",
+      "4087": "\ubbf8\ucf00\ub2c9",
+      "4109": "\ub8ec\ub098\uc774\ud2b8",
+      "4110": "\uac00\ub4dc",
+      "4111": "\ub808\uc778\uc838",
+      "4112": "\ubbf8\ucf00\ub2c9",
+      "4211": "\ub2cc\uc790",
+      "4212": "\ub2cc\uc790",
+      "4215": "\uac74\ub108",
+      "4218": "\ucd08\ubcf4\uc790",
+      "4220": "\ucd08\ubcf4\uc790",
+      "4223": "\ub2cc\uc790",
+      "4224": "\ub2cc\uc790",
+      "4229": "\uac74\ub108",
+      "4238": "\uad8c\uc131",
+      "4243": "\uc131\uc81c",
+      "4244": "\uc131\uc81c",
+      "4252": "\ub8ec\ub098\uc774\ud2b8",
+      "4253": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+      "4254": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+      "4255": "\uc6cc\ub85d",
+      "4256": "\uc544\ud06c\ube44\uc20d",
+      "4257": "\ub808\uc778\uc838",
+      "4258": "\uac00\ub4dc",
+      "4259": "\uc81c\ub124\ub9ad",
+      "4260": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+      "4261": "\uc18c\uc11c\ub7ec",
+      "4262": "\uc288\ub77c",
+      "4263": "\ubbfc\uc2a4\ud2b8\ub7f4",
+      "4264": "\uc6d0\ub354\ub7ec",
+      "4278": "\ub808\uc778\uc838",
+      "4279": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+      "4280": "\ub8ec\ub098\uc774\ud2b8",
+      "4281": "\uac00\ub4dc",
+      "4302": "\uc131\uc81c",
+      "4303": "\uc18c\uc6b8\ub9ac\ud37c",
+      "4304": "\ub2cc\uc790",
+      "4305": "\ub2cc\uc790",
+      "4306": "\uac74\ub108",
+      "4307": "\uc288\ud37c\ub178\ube44\uc2a4",
+      "4308": "\uc18c\uc6b8\ub9c1\ucee4",
+      "4316": "\uc131\uc81c"
+    },
+    "summary": {
+      "baby": 54,
+      "embedded_palettes": 16,
+      "expanded": 37,
+      "fallback": 1,
+      "fourth": 25,
+      "gender_specific": 37,
+      "head_sprites": {
+        "female": 42,
+        "male": 42
+      },
+      "headgear": {
+        "missing": 161,
+        "view_ids": 1526,
+        "with_sprite": 1365
+      },
+      "jobs": 181,
+      "mapped": 143,
+      "transcendent": 39,
+      "unmapped": 37
+    }
+  },
+  "provenance": {
+    "client": {
+      "archives": [
+        {
+          "files": 149167,
+          "name": "data.grf",
+          "sha256": "6dcae744fb8e5fc1fcafbe8cfb3f5392e9d89b431e56811c3618462d5de2d53a",
+          "size": 3167729595
+        },
+        {
+          "files": 34565,
+          "name": "CondaRO.grf",
+          "sha256": "813c721325d667a6ae0d2b7f9225756d5d91646a685c3380e08688d8bea3d0da",
+          "size": 145362482
+        },
+        {
+          "files": 498263,
+          "name": "palettes.grf",
+          "sha256": "a18d003337c6e7d0333d5bde0832784cc7b60e36d5b72a813a3ce4a9b1b76170",
+          "size": 204600439
+        }
+      ],
+      "job_identity_table": "data\\luafiles514\\lua files\\datainfo\\jobidentity.lub",
+      "npc_identity_table": "data\\luafiles514\\lua files\\datainfo\\npcidentity.lub",
+      "source": "CondaRO client archives (kRO 2019-06-05 data set)"
+    },
+    "client_binary": {
+      "curated_stems": 144,
+      "curated_stems_present": 120,
+      "note": "the CP949 job-name strings of the classic client table; stems of classes newer than this executable are absent from it (verified against the archive probe instead)",
+      "sha256": "0dd76a9011929513e7694e9ecfe38ae92f751dd2d7e089b47e1b2b7fbea488fe"
+    },
+    "client_job_sprite_table": "classic kRO client engine job->player-sprite table (hard-coded in the client executable); curated, every stem verified against the archive probe, missing stems covered by archive-verified fallbacks",
+    "extractor": "tools/extract_job_facts.py",
+    "notes": "rAthena split its job database; the authoritative job id assignment is `enum e_job` in src/common/mmo.hpp and the job trees are db/pre-re/skill_tree.yml + db/re/skill_tree.yml",
+    "server": {
+      "files": {
+        "db/pre-re/skill_tree.yml": {
+          "bytes": 83583,
+          "sha256": "fafe80390ac7c4ad79b4fb258614684250ccc9b72155d9218ea4ee7c063c7f54"
+        },
+        "db/re/skill_tree.yml": {
+          "bytes": 209371,
+          "sha256": "b54fc9cc2e92a63c9ffeb917483ad5ed4d14e9d73d31e79a25a687bc8a31a9d8"
+        },
+        "src/common/mmo.hpp": {
+          "bytes": 29320,
+          "sha256": "cd490eed418738939975b6a51a5591c74772df7bd5f7f5dfd3ab9bc951b9a80b"
+        },
+        "src/map/pc.hpp": {
+          "bytes": 61869,
+          "sha256": "7641408d388b2e72db73fe889896a72d89b9b310ca310a69a80c0f9f59bce126"
+        }
+      },
+      "head": "89c8bfa61a48310d7ebbd18992ad30b7c2631a68",
+      "source": "rAthena CondaRO pre-renewal server tree"
+    }
+  },
+  "server": {
+    "jobs": [
+      {
+        "baby": false,
+        "client_sprite": "\ucd08\ubcf4\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 0,
+        "identity": "NOVICE",
+        "job_key": "Novice",
+        "name": "JOB_NOVICE",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uac80\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 1,
+        "identity": "SWORDMAN",
+        "job_key": "Swordman",
+        "name": "JOB_SWORDMAN",
+        "palette": "\uac80\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac80\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub9c8\ubc95\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 2,
+        "identity": "MAGICIAN",
+        "job_key": "Mage",
+        "name": "JOB_MAGE",
+        "palette": "\ub9c8\ubc95\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub9c8\ubc95\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uad81\uc218",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 3,
+        "identity": "ARCHER",
+        "job_key": "Archer",
+        "name": "JOB_ARCHER",
+        "palette": "\uad81\uc218",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uad81\uc218",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc131\uc9c1\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4,
+        "identity": "ACOLYTE",
+        "job_key": "Acolyte",
+        "name": "JOB_ACOLYTE",
+        "palette": "\uc131\uc9c1\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\uc9c1\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc0c1\uc778",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 5,
+        "identity": "MERCHANT",
+        "job_key": "Merchant",
+        "name": "JOB_MERCHANT",
+        "palette": "\uc0c1\uc778",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc0c1\uc778",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub3c4\ub451",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 6,
+        "identity": "THIEF",
+        "job_key": "Thief",
+        "name": "JOB_THIEF",
+        "palette": "\ub3c4\ub451",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub3c4\ub451",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uae30\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 7,
+        "identity": "KNIGHT",
+        "job_key": "Knight",
+        "name": "JOB_KNIGHT",
+        "palette": "\uae30\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uae30\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc131\ud22c\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 8,
+        "identity": "PRIEST",
+        "job_key": "Priest",
+        "name": "JOB_PRIEST",
+        "palette": "\uc131\ud22c\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\ud22c\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc704\uc800\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 9,
+        "identity": "WIZARD",
+        "job_key": "Wizard",
+        "name": "JOB_WIZARD",
+        "palette": "\uc704\uc800\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc704\uc800\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc81c\ucca0\uacf5",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 10,
+        "identity": "BLACKSMITH",
+        "job_key": "Blacksmith",
+        "name": "JOB_BLACKSMITH",
+        "palette": "\uc81c\ucca0\uacf5",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc81c\ucca0\uacf5",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud5cc\ud130",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 11,
+        "identity": "HUNTER",
+        "job_key": "Hunter",
+        "name": "JOB_HUNTER",
+        "palette": "\ud5cc\ud130",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud5cc\ud130",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc5b4\uc138\uc2e0",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 12,
+        "identity": "ASSASSIN",
+        "job_key": "Assassin",
+        "name": "JOB_ASSASSIN",
+        "palette": "\uc5b4\uc138\uc2e0",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc5b4\uc138\uc2e0",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 13,
+        "identity": "CHICKEN",
+        "job_key": "Knight2",
+        "name": "JOB_KNIGHT2",
+        "palette": "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud398\ucf54\ud398\ucf54_\uae30\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud06c\ub8e8\uc138\uc774\ub354",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 14,
+        "identity": "CRUSADER",
+        "job_key": "Crusader",
+        "name": "JOB_CRUSADER",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ud06c\ub8e8\uc138\uc774\ub354",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubabd\ud06c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 15,
+        "identity": "MONK",
+        "job_key": "Monk",
+        "name": "JOB_MONK",
+        "palette": "\ubabd\ud06c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubabd\ud06c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc138\uc774\uc9c0",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 16,
+        "identity": "SAGE",
+        "job_key": "Sage",
+        "name": "JOB_SAGE",
+        "palette": "\uc138\uc774\uc9c0",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc138\uc774\uc9c0",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub85c\uadf8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 17,
+        "identity": "ROGUE",
+        "job_key": "Rogue",
+        "name": "JOB_ROGUE",
+        "palette": "\ub85c\uadf8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub85c\uadf8",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc5f0\uae08\uc220\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 18,
+        "identity": "ALCHEMIST",
+        "job_key": "Alchemist",
+        "name": "JOB_ALCHEMIST",
+        "palette": "\uc5f0\uae08\uc220\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc5f0\uae08\uc220\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubc14\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 19,
+        "identity": "BARD",
+        "job_key": "Bard",
+        "name": "JOB_BARD",
+        "palette": "\ubc14\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubc14\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubb34\ud76c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 20,
+        "identity": "DANCER",
+        "job_key": "Dancer",
+        "name": "JOB_DANCER",
+        "palette": "\ubb34\ud76c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubb34\ud76c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 21,
+        "identity": "CHICKEN2",
+        "job_key": "Crusader2",
+        "name": "JOB_CRUSADER2",
+        "palette": "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc2e0\ud398\ucf54\ud06c\ub8e8\uc138\uc774\ub354",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 22,
+        "identity": "MARRIED",
+        "job_key": "Wedding",
+        "name": "JOB_WEDDING",
+        "palette": "\uacb0\ud63c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uacb0\ud63c",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 23,
+        "identity": "SUPERNOVICE",
+        "job_key": "Super_Novice",
+        "name": "JOB_SUPER_NOVICE",
+        "palette": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uac74\ub108",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 24,
+        "identity": "GUNSLINGER",
+        "job_key": "Gunslinger",
+        "name": "JOB_GUNSLINGER",
+        "palette": "\uac74\ub108",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac74\ub108",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub2cc\uc790",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 25,
+        "identity": "NINJA",
+        "job_key": "Ninja",
+        "name": "JOB_NINJA",
+        "palette": "\ub2cc\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub2cc\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 26,
+        "identity": "SANTA",
+        "job_key": "Xmas",
+        "name": "JOB_XMAS",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\uc0b0\ud0c0",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 27,
+        "identity": "SUMMER",
+        "job_key": "Summer",
+        "name": "JOB_SUMMER",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\uc5ec\ub984",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 28,
+        "identity": "HANBOK",
+        "job_key": "Hanbok",
+        "name": "JOB_HANBOK",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ud55c\ubcf5",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 29,
+        "identity": "OKTOBERFEST",
+        "job_key": "Oktoberfest",
+        "name": "JOB_OKTOBERFEST",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\uc625\ud1a0\ubc84\ud328\uc2a4\ud2b8",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 30,
+        "identity": "SUMMER2",
+        "job_key": "Summer2",
+        "name": "JOB_SUMMER2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\uc5ec\ub9842",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ucd08\ubcf4\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4001,
+        "identity": "NOVICE_H",
+        "job_key": "Novice_High",
+        "name": "JOB_NOVICE_HIGH",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uac80\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4002,
+        "identity": "SWORDMAN_H",
+        "job_key": "Swordman_High",
+        "name": "JOB_SWORDMAN_HIGH",
+        "palette": "\uac80\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac80\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub9c8\ubc95\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4003,
+        "identity": "MAGICIAN_H",
+        "job_key": "Mage_High",
+        "name": "JOB_MAGE_HIGH",
+        "palette": "\ub9c8\ubc95\uc0ac",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub9c8\ubc95\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uad81\uc218",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4004,
+        "identity": "ARCHER_H",
+        "job_key": "Archer_High",
+        "name": "JOB_ARCHER_HIGH",
+        "palette": "\uad81\uc218",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uad81\uc218",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc131\uc9c1\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4005,
+        "identity": "ACOLYTE_H",
+        "job_key": "Acolyte_High",
+        "name": "JOB_ACOLYTE_HIGH",
+        "palette": "\uc131\uc9c1\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\uc9c1\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc0c1\uc778",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4006,
+        "identity": "MERCHANT_H",
+        "job_key": "Merchant_High",
+        "name": "JOB_MERCHANT_HIGH",
+        "palette": "\uc0c1\uc778",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc0c1\uc778",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub3c4\ub451",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4007,
+        "identity": "THIEF_H",
+        "job_key": "Thief_High",
+        "name": "JOB_THIEF_HIGH",
+        "palette": "\ub3c4\ub451",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub3c4\ub451",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4008,
+        "identity": "KNIGHT_H",
+        "job_key": "Lord_Knight",
+        "name": "JOB_LORD_KNIGHT",
+        "palette": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud558\uc774\ud504\ub9ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4009,
+        "identity": "PRIEST_H",
+        "job_key": "High_Priest",
+        "name": "JOB_HIGH_PRIEST",
+        "palette": "\ud558\uc774\ud504\ub9ac\uc2a4\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud558\uc774\ud504\ub9ac",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud558\uc774\uc704\uc800\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4010,
+        "identity": "WIZARD_H",
+        "job_key": "High_Wizard",
+        "name": "JOB_HIGH_WIZARD",
+        "palette": "\ud558\uc774\uc704\uc800\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud558\uc774\uc704\uc800\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4011,
+        "identity": "BLACKSMITH_H",
+        "job_key": "Whitesmith",
+        "name": "JOB_WHITESMITH",
+        "palette": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc2a4\ub098\uc774\ud37c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4012,
+        "identity": "HUNTER_H",
+        "job_key": "Sniper",
+        "name": "JOB_SNIPER",
+        "palette": "\uc2a4\ub098\uc774\ud37c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc2a4\ub098\uc774\ud37c",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4013,
+        "identity": "ASSASSIN_H",
+        "job_key": "Assassin_Cross",
+        "name": "JOB_ASSASSIN_CROSS",
+        "palette": "\uc5b4\uc138\uc2e0\ud06c\ub85c\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc5b4\uc314\uc2e0\ud06c\ub85c\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc5d4\ub300\uc6b4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4014,
+        "identity": "CHICKEN_H",
+        "job_key": "Lord_Knight2",
+        "name": "JOB_LORD_KNIGHT2",
+        "palette": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub85c\ub4dc\ub098\uc774\ud2b8",
+        "sprite_source": "Fallback",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud314\ub77c\ub518",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4015,
+        "identity": "CRUSADER_H",
+        "job_key": "Paladin",
+        "name": "JOB_PALADIN",
+        "palette": "\ud314\ub77c\ub518",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud314\ub77c\ub518",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ucc54\ud53c\uc628",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4016,
+        "identity": "MONK_H",
+        "job_key": "Champion",
+        "name": "JOB_CHAMPION",
+        "palette": "\ucc54\ud53c\uc628",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucc54\ud53c\uc628",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud504\ub85c\ud398\uc11c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4017,
+        "identity": "SAGE_H",
+        "job_key": "Professor",
+        "name": "JOB_PROFESSOR",
+        "palette": "\ud504\ub85c\ud398\uc11c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud504\ub85c\ud398\uc11c",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc2a4\ud1a0\ucee4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4018,
+        "identity": "ROGUE_H",
+        "job_key": "Stalker",
+        "name": "JOB_STALKER",
+        "palette": "\uc2a4\ud1a0\ucee4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc2a4\ud1a0\ucee4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud06c\ub9ac\uc5d0\uc774\ud130",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4019,
+        "identity": "ALCHEMIST_H",
+        "job_key": "Creator",
+        "name": "JOB_CREATOR",
+        "palette": "\ud06c\ub9ac\uc5d0\uc774\ud130",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud06c\ub9ac\uc5d0\uc774\ud130",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud074\ub77c\uc6b4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4020,
+        "identity": "BARD_H",
+        "job_key": "Clown",
+        "name": "JOB_CLOWN",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ud074\ub77c\uc6b4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc9d1\uc2dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4021,
+        "identity": "DANCER_H",
+        "job_key": "Gypsy",
+        "name": "JOB_GYPSY",
+        "palette": "\uc9d1\uc2dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc9d1\uc2dc",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4022,
+        "identity": "CHICKEN2_H",
+        "job_key": "Paladin2",
+        "name": "JOB_PALADIN2",
+        "palette": "\ud398\ucf54\ud314\ub77c\ub518",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud398\ucf54\ud314\ub77c\ub518",
+        "sprite_source": "Unmapped",
+        "transcendent": true
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ucd08\ubcf4\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4023,
+        "identity": "NOVICE_B",
+        "job_key": "Baby",
+        "name": "JOB_BABY",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uac80\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4024,
+        "identity": "SWORDMAN_B",
+        "job_key": "Baby_Swordman",
+        "name": "JOB_BABY_SWORDMAN",
+        "palette": "\uac80\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uac80\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub9c8\ubc95\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4025,
+        "identity": "MAGICIAN_B",
+        "job_key": "Baby_Mage",
+        "name": "JOB_BABY_MAGE",
+        "palette": "\ub9c8\ubc95\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub9c8\ubc95\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uad81\uc218",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4026,
+        "identity": "ARCHER_B",
+        "job_key": "Baby_Archer",
+        "name": "JOB_BABY_ARCHER",
+        "palette": "\uad81\uc218",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uad81\uc218",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc131\uc9c1\uc790",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4027,
+        "identity": "ACOLYTE_B",
+        "job_key": "Baby_Acolyte",
+        "name": "JOB_BABY_ACOLYTE",
+        "palette": "\uc131\uc9c1\uc790",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc131\uc9c1\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc0c1\uc778",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4028,
+        "identity": "MERCHANT_B",
+        "job_key": "Baby_Merchant",
+        "name": "JOB_BABY_MERCHANT",
+        "palette": "\uc0c1\uc778",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc0c1\uc778",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub3c4\ub451",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4029,
+        "identity": "THIEF_B",
+        "job_key": "Baby_Thief",
+        "name": "JOB_BABY_THIEF",
+        "palette": "\ub3c4\ub451",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub3c4\ub451",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uae30\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4030,
+        "identity": "KNIGHT_B",
+        "job_key": "Baby_Knight",
+        "name": "JOB_BABY_KNIGHT",
+        "palette": "\uae30\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uae30\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc131\ud22c\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4031,
+        "identity": "PRIEST_B",
+        "job_key": "Baby_Priest",
+        "name": "JOB_BABY_PRIEST",
+        "palette": "\uc131\ud22c\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc131\ud22c\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc704\uc800\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4032,
+        "identity": "WIZARD_B",
+        "job_key": "Baby_Wizard",
+        "name": "JOB_BABY_WIZARD",
+        "palette": "\uc704\uc800\ub4dc",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc704\uc800\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc81c\ucca0\uacf5",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4033,
+        "identity": "BLACKSMITH_B",
+        "job_key": "Baby_Blacksmith",
+        "name": "JOB_BABY_BLACKSMITH",
+        "palette": "\uc81c\ucca0\uacf5",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc81c\ucca0\uacf5",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ud5cc\ud130",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4034,
+        "identity": "HUNTER_B",
+        "job_key": "Baby_Hunter",
+        "name": "JOB_BABY_HUNTER",
+        "palette": "\ud5cc\ud130",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ud5cc\ud130",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc5b4\uc138\uc2e0",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4035,
+        "identity": "ASSASSIN_B",
+        "job_key": "Baby_Assassin",
+        "name": "JOB_BABY_ASSASSIN",
+        "palette": "\uc5b4\uc138\uc2e0",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc5b4\uc138\uc2e0",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4036,
+        "identity": "CHICKEN_B",
+        "job_key": "Baby_Knight2",
+        "name": "JOB_BABY_KNIGHT2",
+        "palette": "\uae30\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uae30\uc0ac",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ud06c\ub8e8\uc138\uc774\ub354",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4037,
+        "identity": "CRUSADER_B",
+        "job_key": "Baby_Crusader",
+        "name": "JOB_BABY_CRUSADER",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 0.75,
+        "sprite": "\ud06c\ub8e8\uc138\uc774\ub354",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ubabd\ud06c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4038,
+        "identity": "MONK_B",
+        "job_key": "Baby_Monk",
+        "name": "JOB_BABY_MONK",
+        "palette": "\ubabd\ud06c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubabd\ud06c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc138\uc774\uc9c0",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4039,
+        "identity": "SAGE_B",
+        "job_key": "Baby_Sage",
+        "name": "JOB_BABY_SAGE",
+        "palette": "\uc138\uc774\uc9c0",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc138\uc774\uc9c0",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub85c\uadf8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4040,
+        "identity": "ROGUE_B",
+        "job_key": "Baby_Rogue",
+        "name": "JOB_BABY_ROGUE",
+        "palette": "\ub85c\uadf8",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub85c\uadf8",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc5f0\uae08\uc220\uc0ac",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4041,
+        "identity": "ALCHEMIST_B",
+        "job_key": "Baby_Alchemist",
+        "name": "JOB_BABY_ALCHEMIST",
+        "palette": "\uc5f0\uae08\uc220\uc0ac",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc5f0\uae08\uc220\uc0ac",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ubc14\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4042,
+        "identity": "BARD_B",
+        "job_key": "Baby_Bard",
+        "name": "JOB_BABY_BARD",
+        "palette": "\ubc14\ub4dc",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubc14\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ubb34\ud76c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4043,
+        "identity": "DANCER_B",
+        "job_key": "Baby_Dancer",
+        "name": "JOB_BABY_DANCER",
+        "palette": "\ubb34\ud76c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubb34\ud76c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4044,
+        "identity": "CHICKEN2_B",
+        "job_key": "Baby_Crusader2",
+        "name": "JOB_BABY_CRUSADER2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 0.75,
+        "sprite": "\ud06c\ub8e8\uc138\uc774\ub354",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4045,
+        "identity": "SUPERNOVICE_B",
+        "job_key": "Super_Baby",
+        "name": "JOB_SUPER_BABY",
+        "palette": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ud0dc\uad8c\uc18c\ub144",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4046,
+        "identity": "TAEKWON",
+        "job_key": "Taekwon",
+        "name": "JOB_TAEKWON",
+        "palette": "\ud0dc\uad8c\uc18c\ub144",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud0dc\uad8c\uc18c\ub144",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uad8c\uc131",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4047,
+        "identity": "STAR",
+        "job_key": "Star_Gladiator",
+        "name": "JOB_STAR_GLADIATOR",
+        "palette": "\uad8c\uc131",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uad8c\uc131",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4048,
+        "identity": "STAR2",
+        "job_key": "Star_Gladiator2",
+        "name": "JOB_STAR_GLADIATOR2",
+        "palette": "\uad8c\uc131",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uad8c\uc131",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc18c\uc6b8\ub9c1\ucee4",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4049,
+        "identity": "LINKER",
+        "job_key": "Soul_Linker",
+        "name": "JOB_SOUL_LINKER",
+        "palette": "\uc18c\uc6b8\ub9c1\ucee4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc18c\uc6b8\ub9c1\ucee4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4050,
+        "identity": "GANGSI",
+        "job_key": "Gangsi",
+        "name": "JOB_GANGSI",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4051,
+        "identity": "DEATHKNIGHT",
+        "job_key": "Death_Knight",
+        "name": "JOB_DEATH_KNIGHT",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4052,
+        "identity": "COLLECTOR",
+        "job_key": "Dark_Collector",
+        "name": "JOB_DARK_COLLECTOR",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4054,
+        "identity": "RUNE_KNIGHT",
+        "job_key": "Rune_Knight",
+        "name": "JOB_RUNE_KNIGHT",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc6cc\ub85d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4055,
+        "identity": "WARLOCK",
+        "job_key": "Warlock",
+        "name": "JOB_WARLOCK",
+        "palette": "\uc6cc\ub85d",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc6cc\ub85d",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub808\uc778\uc838",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4056,
+        "identity": "RANGER",
+        "job_key": "Ranger",
+        "name": "JOB_RANGER",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc544\ud06c\ube44\uc20d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4057,
+        "identity": "ARCHBISHOP",
+        "job_key": "Arch_Bishop",
+        "name": "JOB_ARCH_BISHOP",
+        "palette": "\uc544\ud06c\ube44\uc20d",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc544\ud06c\ube44\uc20d",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubbf8\ucf00\ub2c9",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4058,
+        "identity": "MECHANIC",
+        "job_key": "Mechanic",
+        "name": "JOB_MECHANIC",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4059,
+        "identity": "GUILLOTINE_CROSS",
+        "job_key": "Guillotine_Cross",
+        "name": "JOB_GUILLOTINE_CROSS",
+        "palette": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4060,
+        "identity": "RUNE_KNIGHT_H",
+        "job_key": "Rune_Knight_T",
+        "name": "JOB_RUNE_KNIGHT_T",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc6cc\ub85d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4061,
+        "identity": "WARLOCK_H",
+        "job_key": "Warlock_T",
+        "name": "JOB_WARLOCK_T",
+        "palette": "\uc6cc\ub85d",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc6cc\ub85d",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ub808\uc778\uc838",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4062,
+        "identity": "RANGER_H",
+        "job_key": "Ranger_T",
+        "name": "JOB_RANGER_T",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc544\ud06c\ube44\uc20d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4063,
+        "identity": "ARCHBISHOP_H",
+        "job_key": "Arch_Bishop_T",
+        "name": "JOB_ARCH_BISHOP_T",
+        "palette": "\uc544\ud06c\ube44\uc20d",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc544\ud06c\ube44\uc20d",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubbf8\ucf00\ub2c9",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4064,
+        "identity": "MECHANIC_H",
+        "job_key": "Mechanic_T",
+        "name": "JOB_MECHANIC_T",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4065,
+        "identity": "GUILLOTINE_CROSS_H",
+        "job_key": "Guillotine_Cross_T",
+        "name": "JOB_GUILLOTINE_CROSS_T",
+        "palette": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uac00\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4066,
+        "identity": "ROYAL_GUARD",
+        "job_key": "Royal_Guard",
+        "name": "JOB_ROYAL_GUARD",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc18c\uc11c\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4067,
+        "identity": "SORCERER",
+        "job_key": "Sorcerer",
+        "name": "JOB_SORCERER",
+        "palette": "\uc18c\uc11c\ub7ec",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc18c\uc11c\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4068,
+        "identity": "MINSTREL",
+        "job_key": "Minstrel",
+        "name": "JOB_MINSTREL",
+        "palette": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc6d0\ub354\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4069,
+        "identity": "WANDERER",
+        "job_key": "Wanderer",
+        "name": "JOB_WANDERER",
+        "palette": "\uc6d0\ub354\ub7ec",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc6d0\ub354\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc288\ub77c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4070,
+        "identity": "SURA",
+        "job_key": "Sura",
+        "name": "JOB_SURA",
+        "palette": "\uc288\ub77c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc288\ub77c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc81c\ub124\ub9ad",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4071,
+        "identity": "GENETIC",
+        "job_key": "Genetic",
+        "name": "JOB_GENETIC",
+        "palette": "\uc81c\ub124\ub9ad",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc81c\ub124\ub9ad",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4072,
+        "identity": "SHADOW_CHASER",
+        "job_key": "Shadow_Chaser",
+        "name": "JOB_SHADOW_CHASER",
+        "palette": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uac00\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4073,
+        "identity": "ROYAL_GUARD_H",
+        "job_key": "Royal_Guard_T",
+        "name": "JOB_ROYAL_GUARD_T",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc18c\uc11c\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4074,
+        "identity": "SORCERER_H",
+        "job_key": "Sorcerer_T",
+        "name": "JOB_SORCERER_T",
+        "palette": "\uc18c\uc11c\ub7ec",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc18c\uc11c\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4075,
+        "identity": "MINSTREL_H",
+        "job_key": "Minstrel_T",
+        "name": "JOB_MINSTREL_T",
+        "palette": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc6d0\ub354\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4076,
+        "identity": "WANDERER_H",
+        "job_key": "Wanderer_T",
+        "name": "JOB_WANDERER_T",
+        "palette": "\uc6d0\ub354\ub7ec",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc6d0\ub354\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc288\ub77c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4077,
+        "identity": "SURA_H",
+        "job_key": "Sura_T",
+        "name": "JOB_SURA_T",
+        "palette": "\uc288\ub77c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc288\ub77c",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc81c\ub124\ub9ad",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4078,
+        "identity": "GENETIC_H",
+        "job_key": "Genetic_T",
+        "name": "JOB_GENETIC_T",
+        "palette": "\uc81c\ub124\ub9ad",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc81c\ub124\ub9ad",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4079,
+        "identity": "SHADOW_CHASER_H",
+        "job_key": "Shadow_Chaser_T",
+        "name": "JOB_SHADOW_CHASER_T",
+        "palette": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "sprite_source": "Mapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4080,
+        "identity": "RUNE_CHICKEN",
+        "job_key": "Rune_Knight2",
+        "name": "JOB_RUNE_KNIGHT2",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4081,
+        "identity": "RUNE_CHICKEN_H",
+        "job_key": "Rune_Knight_T2",
+        "name": "JOB_RUNE_KNIGHT_T2",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Unmapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4082,
+        "identity": "ROYAL_CHICKEN",
+        "job_key": "Royal_Guard2",
+        "name": "JOB_ROYAL_GUARD2",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4083,
+        "identity": "ROYAL_CHICKEN_H",
+        "job_key": "Royal_Guard_T2",
+        "name": "JOB_ROYAL_GUARD_T2",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Unmapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4084,
+        "identity": "WOLF_RANGER",
+        "job_key": "Ranger2",
+        "name": "JOB_RANGER2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4085,
+        "identity": "WOLF_RANGER_H",
+        "job_key": "Ranger_T2",
+        "name": "JOB_RANGER_T2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Unmapped",
+        "transcendent": true
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4086,
+        "identity": "MADOGEAR",
+        "job_key": "Mechanic2",
+        "name": "JOB_MECHANIC2",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4087,
+        "identity": "MADOGEAR_H",
+        "job_key": "Mechanic_T2",
+        "name": "JOB_MECHANIC_T2",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Unmapped",
+        "transcendent": true
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4096,
+        "identity": "RUNE_KNIGHT_B",
+        "job_key": "Baby_Rune_Knight",
+        "name": "JOB_BABY_RUNE_KNIGHT",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc6cc\ub85d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4097,
+        "identity": "WARLOCK_B",
+        "job_key": "Baby_Warlock",
+        "name": "JOB_BABY_WARLOCK",
+        "palette": "\uc6cc\ub85d",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc6cc\ub85d",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub808\uc778\uc838",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4098,
+        "identity": "RANGER_B",
+        "job_key": "Baby_Ranger",
+        "name": "JOB_BABY_RANGER",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 0.75,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc544\ud06c\ube44\uc20d",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4099,
+        "identity": "ARCHBISHOP_B",
+        "job_key": "Baby_Arch_Bishop",
+        "name": "JOB_BABY_ARCH_BISHOP",
+        "palette": "\uc544\ud06c\ube44\uc20d",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc544\ud06c\ube44\uc20d",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ubbf8\ucf00\ub2c9",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4100,
+        "identity": "MECHANIC_B",
+        "job_key": "Baby_Mechanic",
+        "name": "JOB_BABY_MECHANIC",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4101,
+        "identity": "GUILLOTINE_CROSS_B",
+        "job_key": "Baby_Guillotine_Cross",
+        "name": "JOB_BABY_GUILLOTINE_CROSS",
+        "palette": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uae38\ub85c\ud2f4\ud06c\ub85c\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uac00\ub4dc",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4102,
+        "identity": "ROYAL_GUARD_B",
+        "job_key": "Baby_Royal_Guard",
+        "name": "JOB_BABY_ROYAL_GUARD",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc18c\uc11c\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4103,
+        "identity": "SORCERER_B",
+        "job_key": "Baby_Sorcerer",
+        "name": "JOB_BABY_SORCERER",
+        "palette": "\uc18c\uc11c\ub7ec",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc18c\uc11c\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4104,
+        "identity": "MINSTREL_B",
+        "job_key": "Baby_Minstrel",
+        "name": "JOB_BABY_MINSTREL",
+        "palette": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubbfc\uc2a4\ud2b8\ub7f4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc6d0\ub354\ub7ec",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4105,
+        "identity": "WANDERER_B",
+        "job_key": "Baby_Wanderer",
+        "name": "JOB_BABY_WANDERER",
+        "palette": "\uc6d0\ub354\ub7ec",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc6d0\ub354\ub7ec",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc288\ub77c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4106,
+        "identity": "SURA_B",
+        "job_key": "Baby_Sura",
+        "name": "JOB_BABY_SURA",
+        "palette": "\uc288\ub77c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc288\ub77c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc81c\ub124\ub9ad",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4107,
+        "identity": "GENETIC_B",
+        "job_key": "Baby_Genetic",
+        "name": "JOB_BABY_GENETIC",
+        "palette": "\uc81c\ub124\ub9ad",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc81c\ub124\ub9ad",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4108,
+        "identity": "SHADOW_CHASER_B",
+        "job_key": "Baby_Shadow_Chaser",
+        "name": "JOB_BABY_SHADOW_CHASER",
+        "palette": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc250\ub3c4\uc6b0\uccb4\uc774\uc11c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4109,
+        "identity": "RUNE_CHICKEN_B",
+        "job_key": "Baby_Rune_Knight2",
+        "name": "JOB_BABY_RUNE_KNIGHT2",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4110,
+        "identity": "ROYAL_CHICKEN_B",
+        "job_key": "Baby_Royal_Guard2",
+        "name": "JOB_BABY_ROYAL_GUARD2",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4111,
+        "identity": "WOLF_RANGER_B",
+        "job_key": "Baby_Ranger2",
+        "name": "JOB_BABY_RANGER2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 0.75,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": false,
+        "id": 4112,
+        "identity": "MADOGEAR_B",
+        "job_key": "Baby_Mechanic2",
+        "name": "JOB_BABY_MECHANIC2",
+        "palette": "\ubbf8\ucf00\ub2c9",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ubbf8\ucf00\ub2c9",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4190,
+        "identity": "SUPERNOVICE2",
+        "job_key": "Super_Novice_E",
+        "name": "JOB_SUPER_NOVICE_E",
+        "palette": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4191,
+        "identity": "SUPERNOVICE2_B",
+        "job_key": "Super_Baby_E",
+        "name": "JOB_SUPER_BABY_E",
+        "palette": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc288\ud37c\ub178\ube44\uc2a4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "KAGEROU",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4211,
+        "identity": "KAGEROU",
+        "job_key": "Kagerou",
+        "name": "JOB_KAGEROU",
+        "palette": "KAGEROU",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "KAGEROU",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "OBORO",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4212,
+        "identity": "OBORO",
+        "job_key": "Oboro",
+        "name": "JOB_OBORO",
+        "palette": "OBORO",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "OBORO",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "REBELLION",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4215,
+        "identity": "REBELLION",
+        "job_key": "Rebellion",
+        "name": "JOB_REBELLION",
+        "palette": "\ub9ac\ubca8\ub9ac\uc628",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "REBELLION",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4218,
+        "identity": null,
+        "job_key": "Summoner",
+        "name": "JOB_SUMMONER",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4220,
+        "identity": "DO_SUMMONER_B",
+        "job_key": "Baby_Summoner",
+        "name": "JOB_BABY_SUMMONER",
+        "palette": "\ucd08\ubcf4\uc790",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ucd08\ubcf4\uc790",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ub2cc\uc790",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4222,
+        "identity": "NINJA_B",
+        "job_key": "Baby_Ninja",
+        "name": "JOB_BABY_NINJA",
+        "palette": "\ub2cc\uc790",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ub2cc\uc790",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "KAGEROU",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4223,
+        "identity": "KAGEROU_B",
+        "job_key": "Baby_Kagerou",
+        "name": "JOB_BABY_KAGEROU",
+        "palette": "KAGEROU",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "KAGEROU",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "OBORO",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4224,
+        "identity": "OBORO_B",
+        "job_key": "Baby_Oboro",
+        "name": "JOB_BABY_OBORO",
+        "palette": "OBORO",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "OBORO",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\ud0dc\uad8c\uc18c\ub144",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4225,
+        "identity": "TAEKWON_B",
+        "job_key": "Baby_Taekwon",
+        "name": "JOB_BABY_TAEKWON",
+        "palette": "\ud0dc\uad8c\uc18c\ub144",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\ud0dc\uad8c\uc18c\ub144",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uad8c\uc131",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4226,
+        "identity": "STAR_B",
+        "job_key": "Baby_Star_Gladiator",
+        "name": "JOB_BABY_STAR_GLADIATOR",
+        "palette": "\uad8c\uc131",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uad8c\uc131",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc18c\uc6b8\ub9c1\ucee4",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4227,
+        "identity": "LINKER_B",
+        "job_key": "Baby_Soul_Linker",
+        "name": "JOB_BABY_SOUL_LINKER",
+        "palette": "\uc18c\uc6b8\ub9c1\ucee4",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc18c\uc6b8\ub9c1\ucee4",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uac74\ub108",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4228,
+        "identity": "GUNSLINGER_B",
+        "job_key": "Baby_Gunslinger",
+        "name": "JOB_BABY_GUNSLINGER",
+        "palette": "\uac74\ub108",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uac74\ub108",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "REBELLION",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4229,
+        "identity": "REBELLION_B",
+        "job_key": "Baby_Rebellion",
+        "name": "JOB_BABY_REBELLION",
+        "palette": "\ub9ac\ubca8\ub9ac\uc628",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "REBELLION",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4238,
+        "identity": null,
+        "job_key": "Baby_Star_Gladiator2",
+        "name": "JOB_BABY_STAR_GLADIATOR2",
+        "palette": "\uad8c\uc131",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uad8c\uc131",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc131\uc81c",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4239,
+        "identity": "STAR_EMPEROR",
+        "job_key": "Star_Emperor",
+        "name": "JOB_STAR_EMPEROR",
+        "palette": "\uc131\uc81c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\uc81c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "\uc18c\uc6b8\ub9ac\ud37c",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4240,
+        "identity": "SOUL_REAPER",
+        "job_key": "Soul_Reaper",
+        "name": "JOB_SOUL_REAPER",
+        "palette": "\uc18c\uc6b8\ub9ac\ud37c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc18c\uc6b8\ub9ac\ud37c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc131\uc81c",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4241,
+        "identity": "STAR_EMPEROR_B",
+        "job_key": "Baby_Star_Emperor",
+        "name": "JOB_BABY_STAR_EMPEROR",
+        "palette": "\uc131\uc81c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc131\uc81c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": "\uc18c\uc6b8\ub9ac\ud37c",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4242,
+        "identity": "SOUL_REAPER_B",
+        "job_key": "Baby_Soul_Reaper",
+        "name": "JOB_BABY_SOUL_REAPER",
+        "palette": "\uc18c\uc6b8\ub9ac\ud37c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc18c\uc6b8\ub9ac\ud37c",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4243,
+        "identity": "STAR2_EMPEROR",
+        "job_key": "Star_Emperor2",
+        "name": "JOB_STAR_EMPEROR2",
+        "palette": "\uc131\uc81c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\uc81c",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": true,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": false,
+        "id": 4244,
+        "identity": "STAR2_EMPEROR_B",
+        "job_key": "Baby_Star_Emperor2",
+        "name": "JOB_BABY_STAR_EMPEROR2",
+        "palette": "\uc131\uc81c",
+        "palette_embedded": false,
+        "scale": 0.75,
+        "sprite": "\uc131\uc81c",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "DRAGON_KNIGHT",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4252,
+        "identity": null,
+        "job_key": "Dragon_Knight",
+        "name": "JOB_DRAGON_KNIGHT",
+        "palette": "DRAGON_KNIGHT",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "DRAGON_KNIGHT",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "MEISTER",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4253,
+        "identity": null,
+        "job_key": "Meister",
+        "name": "JOB_MEISTER",
+        "palette": "MEISTER",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "MEISTER",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "SHADOW_CROSS",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4254,
+        "identity": null,
+        "job_key": "Shadow_Cross",
+        "name": "JOB_SHADOW_CROSS",
+        "palette": "SHADOW_CROSS",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "SHADOW_CROSS",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "ARCH_MAGE",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4255,
+        "identity": null,
+        "job_key": "Arch_Mage",
+        "name": "JOB_ARCH_MAGE",
+        "palette": "ARCH_MAGE",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "ARCH_MAGE",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "CARDINAL",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4256,
+        "identity": null,
+        "job_key": "Cardinal",
+        "name": "JOB_CARDINAL",
+        "palette": "CARDINAL",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "CARDINAL",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "WINDHAWK",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4257,
+        "identity": null,
+        "job_key": "Windhawk",
+        "name": "JOB_WINDHAWK",
+        "palette": "WINDHAWK",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "WINDHAWK",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "IMPERIAL_GUARD",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4258,
+        "identity": null,
+        "job_key": "Imperial_Guard",
+        "name": "JOB_IMPERIAL_GUARD",
+        "palette": "IMPERIAL_GUARD",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "IMPERIAL_GUARD",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "BIOLO",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4259,
+        "identity": null,
+        "job_key": "Biolo",
+        "name": "JOB_BIOLO",
+        "palette": "BIOLO",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "BIOLO",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "ABYSS_CHASER",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4260,
+        "identity": null,
+        "job_key": "Abyss_Chaser",
+        "name": "JOB_ABYSS_CHASER",
+        "palette": "ABYSS_CHASER",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "ABYSS_CHASER",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "ELEMETAL_MASTER",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4261,
+        "identity": null,
+        "job_key": "Elemental_Master",
+        "name": "JOB_ELEMENTAL_MASTER",
+        "palette": "ELEMETAL_MASTER",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "ELEMETAL_MASTER",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "INQUISITOR",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4262,
+        "identity": null,
+        "job_key": "Inquisitor",
+        "name": "JOB_INQUISITOR",
+        "palette": "INQUISITOR",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "INQUISITOR",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "TROUBADOUR",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4263,
+        "identity": null,
+        "job_key": "Troubadour",
+        "name": "JOB_TROUBADOUR",
+        "palette": "TROUBADOUR",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "TROUBADOUR",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "TROUVERE",
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4264,
+        "identity": null,
+        "job_key": "Trouvere",
+        "name": "JOB_TROUVERE",
+        "palette": "TROUVERE",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "TROUVERE",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4278,
+        "identity": null,
+        "job_key": "Windhawk2",
+        "name": "JOB_WINDHAWK2",
+        "palette": null,
+        "palette_embedded": true,
+        "scale": 1.0,
+        "sprite": "\ub808\uc778\uc838",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4279,
+        "identity": null,
+        "job_key": "Meister2",
+        "name": "JOB_MEISTER2",
+        "palette": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ud654\uc774\ud2b8\uc2a4\ubbf8\uc2a4",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4280,
+        "identity": null,
+        "job_key": "Dragon_Knight2",
+        "name": "JOB_DRAGON_KNIGHT2",
+        "palette": "\ub8ec\ub098\uc774\ud2b8",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\ub8ec\ub098\uc774\ud2b8",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": false,
+        "fourth": true,
+        "id": 4281,
+        "identity": null,
+        "job_key": "Imperial_Guard2",
+        "name": "JOB_IMPERIAL_GUARD2",
+        "palette": "\ub85c\uc584\uac00\ub4dc",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uac00\ub4dc",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "SKY_EMPEROR",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4302,
+        "identity": null,
+        "job_key": "Sky_Emperor",
+        "name": "JOB_SKY_EMPEROR",
+        "palette": "SKY_EMPEROR",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "SKY_EMPEROR",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "SOUL_ASCETIC",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4303,
+        "identity": null,
+        "job_key": "Soul_Ascetic",
+        "name": "JOB_SOUL_ASCETIC",
+        "palette": "SOUL_ASCETIC",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "SOUL_ASCETIC",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "SHINKIRO",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4304,
+        "identity": null,
+        "job_key": "Shinkiro",
+        "name": "JOB_SHINKIRO",
+        "palette": "SHINKIRO",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "SHINKIRO",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "SHIRANUI",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4305,
+        "identity": null,
+        "job_key": "Shiranui",
+        "name": "JOB_SHIRANUI",
+        "palette": "SHIRANUI",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "SHIRANUI",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "NIGHT_WATCH",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4306,
+        "identity": null,
+        "job_key": "Night_Watch",
+        "name": "JOB_NIGHT_WATCH",
+        "palette": "NIGHT_WATCH",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "NIGHT_WATCH",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": "HYPER_NOVICE",
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4307,
+        "identity": null,
+        "job_key": "Hyper_Novice",
+        "name": "JOB_HYPER_NOVICE",
+        "palette": "HYPER_NOVICE",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "HYPER_NOVICE",
+        "sprite_source": "Mapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4308,
+        "identity": null,
+        "job_key": "Spirit_Handler",
+        "name": "JOB_SPIRIT_HANDLER",
+        "palette": "\uc18c\uc6b8\ub9c1\ucee4",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc18c\uc6b8\ub9c1\ucee4",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      },
+      {
+        "baby": false,
+        "client_sprite": null,
+        "entity_type": "Player",
+        "expanded": true,
+        "fourth": true,
+        "id": 4316,
+        "identity": null,
+        "job_key": "Sky_Emperor2",
+        "name": "JOB_SKY_EMPEROR2",
+        "palette": "\uc131\uc81c",
+        "palette_embedded": false,
+        "scale": 1.0,
+        "sprite": "\uc131\uc81c",
+        "sprite_source": "Unmapped",
+        "transcendent": false
+      }
+    ],
+    "monster_class_ranges": [
+      [
+        1000,
+        3999
+      ],
+      [
+        20000,
+        29999
+      ]
+    ],
+    "npc_class_ranges": [
+      [
+        46,
+        999
+      ],
+      [
+        10000,
+        19999
+      ]
+    ],
+    "player_class_ranges": [
+      [
+        0,
+        44
+      ],
+      [
+        4000,
+        5999
+      ]
+    ],
+    "skill_tree_pre_re": {
+      "Acolyte": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 15
+      },
+      "Acolyte_High": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Alchemist": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 20
+      },
+      "Archer": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 7
+      },
+      "Archer_High": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Assassin": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 12
+      },
+      "Assassin_Cross": {
+        "inherits": [
+          "Assassin",
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 5
+      },
+      "Baby": {
+        "inherits": [],
+        "own_skills": 5
+      },
+      "Baby_Acolyte": {
+        "inherits": [
+          "Acolyte",
+          "Baby"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Alchemist": {
+        "inherits": [
+          "Alchemist",
+          "Baby",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Archer": {
+        "inherits": [
+          "Archer",
+          "Baby"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Assassin": {
+        "inherits": [
+          "Assassin",
+          "Baby",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Bard": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Bard"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Blacksmith": {
+        "inherits": [
+          "Baby",
+          "Blacksmith",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Crusader": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Crusader2": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Dancer": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Dancer"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Hunter": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Hunter"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Knight": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Knight2": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Mage": {
+        "inherits": [
+          "Baby",
+          "Mage"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Merchant": {
+        "inherits": [
+          "Baby",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Monk": {
+        "inherits": [
+          "Acolyte",
+          "Baby",
+          "Monk"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Priest": {
+        "inherits": [
+          "Acolyte",
+          "Baby",
+          "Priest"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Rogue": {
+        "inherits": [
+          "Baby",
+          "Rogue",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Sage": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Sage"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Swordman": {
+        "inherits": [
+          "Baby",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Thief": {
+        "inherits": [
+          "Baby",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Wizard": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Wizard"
+        ],
+        "own_skills": 0
+      },
+      "Bard": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Blacksmith": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 24
+      },
+      "Champion": {
+        "inherits": [
+          "Acolyte",
+          "Monk",
+          "Novice"
+        ],
+        "own_skills": 4
+      },
+      "Clown": {
+        "inherits": [
+          "Archer",
+          "Bard",
+          "Novice"
+        ],
+        "own_skills": 6
+      },
+      "Creator": {
+        "inherits": [
+          "Alchemist",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 4
+      },
+      "Crusader": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 19
+      },
+      "Crusader2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Dancer": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Dark_Collector": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Death_Knight": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Gangsi": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Gunslinger": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 22
+      },
+      "Gypsy": {
+        "inherits": [
+          "Archer",
+          "Dancer",
+          "Novice"
+        ],
+        "own_skills": 6
+      },
+      "High_Priest": {
+        "inherits": [
+          "Acolyte",
+          "Novice",
+          "Priest"
+        ],
+        "own_skills": 5
+      },
+      "High_Wizard": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Wizard"
+        ],
+        "own_skills": 6
+      },
+      "Hunter": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Knight": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 12
+      },
+      "Knight2": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Lord_Knight": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 8
+      },
+      "Lord_Knight2": {
+        "inherits": [
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Mage": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 14
+      },
+      "Mage_High": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Merchant": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 12
+      },
+      "Merchant_High": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Monk": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 17
+      },
+      "Ninja": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 23
+      },
+      "Novice": {
+        "inherits": [],
+        "own_skills": 4
+      },
+      "Novice_High": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 1
+      },
+      "Paladin": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 4
+      },
+      "Paladin2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Paladin",
+          "Swordman"
+        ],
+        "own_skills": 1
+      },
+      "Priest": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Professor": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Sage"
+        ],
+        "own_skills": 8
+      },
+      "Rogue": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 21
+      },
+      "Sage": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Sniper": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice"
+        ],
+        "own_skills": 4
+      },
+      "Soul_Linker": {
+        "inherits": [
+          "Novice",
+          "Taekwon"
+        ],
+        "own_skills": 27
+      },
+      "Stalker": {
+        "inherits": [
+          "Novice",
+          "Rogue",
+          "Thief"
+        ],
+        "own_skills": 4
+      },
+      "Star_Gladiator": {
+        "inherits": [
+          "Novice",
+          "Taekwon"
+        ],
+        "own_skills": 18
+      },
+      "Star_Gladiator2": {
+        "inherits": [
+          "Novice",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Super_Baby": {
+        "inherits": [
+          "Baby"
+        ],
+        "own_skills": 51
+      },
+      "Supernovice": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 51
+      },
+      "Swordman": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 10
+      },
+      "Swordman_High": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Taekwon": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 17
+      },
+      "Thief": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 10
+      },
+      "Thief_High": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Whitesmith": {
+        "inherits": [
+          "Blacksmith",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 5
+      },
+      "Wizard": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 14
+      }
+    },
+    "skill_tree_re": {
+      "Abyss_Chaser": {
+        "inherits": [
+          "Novice",
+          "Rogue",
+          "Shadow_Chaser",
+          "Shadow_Chaser_T",
+          "Stalker",
+          "Thief"
+        ],
+        "own_skills": 16
+      },
+      "Acolyte": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 15
+      },
+      "Acolyte_High": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Alchemist": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 20
+      },
+      "Arch_Bishop": {
+        "inherits": [
+          "Acolyte",
+          "Novice",
+          "Priest"
+        ],
+        "own_skills": 22
+      },
+      "Arch_Bishop_T": {
+        "inherits": [
+          "Acolyte",
+          "Arch_Bishop",
+          "High_Priest",
+          "Novice",
+          "Priest"
+        ],
+        "own_skills": 0
+      },
+      "Arch_Mage": {
+        "inherits": [
+          "High_Wizard",
+          "Mage",
+          "Novice",
+          "Warlock",
+          "Warlock_T",
+          "Wizard"
+        ],
+        "own_skills": 19
+      },
+      "Archer": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 7
+      },
+      "Archer_High": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Assassin": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 12
+      },
+      "Assassin_Cross": {
+        "inherits": [
+          "Assassin",
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 5
+      },
+      "Baby": {
+        "inherits": [],
+        "own_skills": 6
+      },
+      "Baby_Acolyte": {
+        "inherits": [
+          "Acolyte",
+          "Baby"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Alchemist": {
+        "inherits": [
+          "Alchemist",
+          "Baby",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Arch_Bishop": {
+        "inherits": [
+          "Acolyte",
+          "Arch_Bishop",
+          "Baby",
+          "Priest"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Archer": {
+        "inherits": [
+          "Archer",
+          "Baby"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Assassin": {
+        "inherits": [
+          "Assassin",
+          "Baby",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Bard": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Bard"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Blacksmith": {
+        "inherits": [
+          "Baby",
+          "Blacksmith",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Crusader": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Crusader2": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Dancer": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Dancer"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Genetic": {
+        "inherits": [
+          "Alchemist",
+          "Baby",
+          "Genetic",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Guillotine_Cross": {
+        "inherits": [
+          "Assassin",
+          "Baby",
+          "Guillotine_Cross",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Gunslinger": {
+        "inherits": [
+          "Baby",
+          "Gunslinger"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Hunter": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Hunter"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Kagerou": {
+        "inherits": [
+          "Baby",
+          "Kagerou",
+          "Ninja"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Knight": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Knight2": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Mage": {
+        "inherits": [
+          "Baby",
+          "Mage"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Mechanic": {
+        "inherits": [
+          "Baby",
+          "Blacksmith",
+          "Mechanic",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Mechanic2": {
+        "inherits": [
+          "Baby",
+          "Blacksmith",
+          "Mechanic",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Merchant": {
+        "inherits": [
+          "Baby",
+          "Merchant"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Minstrel": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Bard",
+          "Minstrel"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Monk": {
+        "inherits": [
+          "Acolyte",
+          "Baby",
+          "Monk"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Ninja": {
+        "inherits": [
+          "Baby",
+          "Ninja"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Oboro": {
+        "inherits": [
+          "Baby",
+          "Ninja",
+          "Oboro"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Priest": {
+        "inherits": [
+          "Acolyte",
+          "Baby",
+          "Priest"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Ranger": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Hunter",
+          "Ranger"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Ranger2": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Hunter",
+          "Ranger"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Rebellion": {
+        "inherits": [
+          "Baby",
+          "Gunslinger",
+          "Rebellion"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Rogue": {
+        "inherits": [
+          "Baby",
+          "Rogue",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Royal_Guard": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Royal_Guard",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Royal_Guard2": {
+        "inherits": [
+          "Baby",
+          "Crusader",
+          "Royal_Guard",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Rune_Knight": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Rune_Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Rune_Knight2": {
+        "inherits": [
+          "Baby",
+          "Knight",
+          "Rune_Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Sage": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Sage"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Shadow_Chaser": {
+        "inherits": [
+          "Baby",
+          "Rogue",
+          "Shadow_Chaser",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Sorcerer": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Sage",
+          "Sorcerer"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Soul_Linker": {
+        "inherits": [
+          "Baby",
+          "Soul_Linker",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Soul_Reaper": {
+        "inherits": [
+          "Baby",
+          "Soul_Linker",
+          "Soul_Reaper",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Star_Emperor": {
+        "inherits": [
+          "Baby",
+          "Star_Emperor",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Star_Emperor2": {
+        "inherits": [
+          "Baby",
+          "Star_Emperor",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Star_Gladiator": {
+        "inherits": [
+          "Baby",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Star_Gladiator2": {
+        "inherits": [
+          "Baby",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Summoner": {
+        "inherits": [
+          "Summoner"
+        ],
+        "own_skills": 4
+      },
+      "Baby_Sura": {
+        "inherits": [
+          "Acolyte",
+          "Baby",
+          "Monk",
+          "Sura"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Swordman": {
+        "inherits": [
+          "Baby",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Taekwon": {
+        "inherits": [
+          "Baby",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Thief": {
+        "inherits": [
+          "Baby",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Wanderer": {
+        "inherits": [
+          "Archer",
+          "Baby",
+          "Dancer",
+          "Wanderer"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Warlock": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Warlock",
+          "Wizard"
+        ],
+        "own_skills": 0
+      },
+      "Baby_Wizard": {
+        "inherits": [
+          "Baby",
+          "Mage",
+          "Wizard"
+        ],
+        "own_skills": 0
+      },
+      "Bard": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Biolo": {
+        "inherits": [
+          "Alchemist",
+          "Creator",
+          "Genetic",
+          "Genetic_T",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 17
+      },
+      "Blacksmith": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 24
+      },
+      "Cardinal": {
+        "inherits": [
+          "Acolyte",
+          "Arch_Bishop",
+          "Arch_Bishop_T",
+          "High_Priest",
+          "Novice",
+          "Priest"
+        ],
+        "own_skills": 17
+      },
+      "Champion": {
+        "inherits": [
+          "Acolyte",
+          "Monk",
+          "Novice"
+        ],
+        "own_skills": 4
+      },
+      "Clown": {
+        "inherits": [
+          "Archer",
+          "Bard",
+          "Novice"
+        ],
+        "own_skills": 6
+      },
+      "Creator": {
+        "inherits": [
+          "Alchemist",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 3
+      },
+      "Crusader": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 19
+      },
+      "Crusader2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Dancer": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Dark_Collector": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Death_Knight": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Dragon_Knight": {
+        "inherits": [
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Rune_Knight",
+          "Rune_Knight_T",
+          "Swordman"
+        ],
+        "own_skills": 13
+      },
+      "Dragon_Knight2": {
+        "inherits": [
+          "Dragon_Knight",
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Rune_Knight",
+          "Rune_Knight_T",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Elemental_Master": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Professor",
+          "Sage",
+          "Sorcerer",
+          "Sorcerer_T"
+        ],
+        "own_skills": 18
+      },
+      "Gangsi": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Genetic": {
+        "inherits": [
+          "Alchemist",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Genetic_T": {
+        "inherits": [
+          "Alchemist",
+          "Creator",
+          "Genetic",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Guillotine_Cross": {
+        "inherits": [
+          "Assassin",
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 19
+      },
+      "Guillotine_Cross_T": {
+        "inherits": [
+          "Assassin",
+          "Assassin_Cross",
+          "Guillotine_Cross",
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Gunslinger": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 22
+      },
+      "Gypsy": {
+        "inherits": [
+          "Archer",
+          "Dancer",
+          "Novice"
+        ],
+        "own_skills": 6
+      },
+      "High_Priest": {
+        "inherits": [
+          "Acolyte",
+          "Novice",
+          "Priest"
+        ],
+        "own_skills": 5
+      },
+      "High_Wizard": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Wizard"
+        ],
+        "own_skills": 6
+      },
+      "Hunter": {
+        "inherits": [
+          "Archer",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Hyper_Novice": {
+        "inherits": [
+          "Novice",
+          "Super_Novice_E",
+          "Supernovice"
+        ],
+        "own_skills": 15
+      },
+      "Imperial_Guard": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Paladin",
+          "Royal_Guard",
+          "Royal_Guard_T",
+          "Swordman"
+        ],
+        "own_skills": 16
+      },
+      "Imperial_Guard2": {
+        "inherits": [
+          "Crusader",
+          "Imperial_Guard",
+          "Novice",
+          "Paladin",
+          "Royal_Guard",
+          "Royal_Guard_T",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Inquisitor": {
+        "inherits": [
+          "Acolyte",
+          "Champion",
+          "Monk",
+          "Novice",
+          "Sura",
+          "Sura_T"
+        ],
+        "own_skills": 18
+      },
+      "Kagerou": {
+        "inherits": [
+          "Ninja",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Knight": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 12
+      },
+      "Knight2": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Lord_Knight": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 8
+      },
+      "Lord_Knight2": {
+        "inherits": [
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Mage": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 14
+      },
+      "Mage_High": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Mechanic": {
+        "inherits": [
+          "Blacksmith",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 31
+      },
+      "Mechanic2": {
+        "inherits": [
+          "Blacksmith",
+          "Mechanic",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Mechanic_T": {
+        "inherits": [
+          "Blacksmith",
+          "Mechanic",
+          "Merchant",
+          "Novice",
+          "Whitesmith"
+        ],
+        "own_skills": 0
+      },
+      "Mechanic_T2": {
+        "inherits": [
+          "Blacksmith",
+          "Mechanic",
+          "Merchant",
+          "Novice",
+          "Whitesmith"
+        ],
+        "own_skills": 0
+      },
+      "Meister": {
+        "inherits": [
+          "Blacksmith",
+          "Mechanic",
+          "Mechanic_T",
+          "Merchant",
+          "Novice",
+          "Whitesmith"
+        ],
+        "own_skills": 17
+      },
+      "Meister2": {
+        "inherits": [
+          "Blacksmith",
+          "Mechanic",
+          "Mechanic_T",
+          "Meister",
+          "Merchant",
+          "Novice",
+          "Whitesmith"
+        ],
+        "own_skills": 0
+      },
+      "Merchant": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 12
+      },
+      "Merchant_High": {
+        "inherits": [
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Minstrel": {
+        "inherits": [
+          "Archer",
+          "Bard",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Minstrel_T": {
+        "inherits": [
+          "Archer",
+          "Bard",
+          "Clown",
+          "Minstrel",
+          "Novice"
+        ],
+        "own_skills": 0
+      },
+      "Monk": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 17
+      },
+      "Night_Watch": {
+        "inherits": [
+          "Gunslinger",
+          "Novice",
+          "Rebellion"
+        ],
+        "own_skills": 17
+      },
+      "Ninja": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 23
+      },
+      "Novice": {
+        "inherits": [],
+        "own_skills": 4
+      },
+      "Novice_High": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 1
+      },
+      "Oboro": {
+        "inherits": [
+          "Ninja",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Paladin": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 4
+      },
+      "Paladin2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Paladin",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Priest": {
+        "inherits": [
+          "Acolyte",
+          "Novice"
+        ],
+        "own_skills": 19
+      },
+      "Professor": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Sage"
+        ],
+        "own_skills": 8
+      },
+      "Ranger": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice"
+        ],
+        "own_skills": 24
+      },
+      "Ranger2": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice",
+          "Ranger"
+        ],
+        "own_skills": 0
+      },
+      "Ranger_T": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice",
+          "Ranger",
+          "Sniper"
+        ],
+        "own_skills": 0
+      },
+      "Ranger_T2": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice",
+          "Ranger",
+          "Sniper"
+        ],
+        "own_skills": 0
+      },
+      "Rebellion": {
+        "inherits": [
+          "Gunslinger",
+          "Novice"
+        ],
+        "own_skills": 20
+      },
+      "Rogue": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 21
+      },
+      "Royal_Guard": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 21
+      },
+      "Royal_Guard2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Royal_Guard",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Royal_Guard_T": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Paladin",
+          "Royal_Guard",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Royal_Guard_T2": {
+        "inherits": [
+          "Crusader",
+          "Novice",
+          "Paladin",
+          "Royal_Guard",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Rune_Knight": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 13
+      },
+      "Rune_Knight2": {
+        "inherits": [
+          "Knight",
+          "Novice",
+          "Rune_Knight",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Rune_Knight_T": {
+        "inherits": [
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Rune_Knight",
+          "Swordman"
+        ],
+        "own_skills": 1
+      },
+      "Rune_Knight_T2": {
+        "inherits": [
+          "Knight",
+          "Lord_Knight",
+          "Novice",
+          "Rune_Knight",
+          "Rune_Knight_T",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Sage": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Shadow_Chaser": {
+        "inherits": [
+          "Novice",
+          "Rogue",
+          "Thief"
+        ],
+        "own_skills": 23
+      },
+      "Shadow_Chaser_T": {
+        "inherits": [
+          "Novice",
+          "Rogue",
+          "Shadow_Chaser",
+          "Stalker",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Shadow_Cross": {
+        "inherits": [
+          "Assassin",
+          "Assassin_Cross",
+          "Guillotine_Cross",
+          "Guillotine_Cross_T",
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 11
+      },
+      "Shinkiro": {
+        "inherits": [
+          "Kagerou",
+          "Ninja",
+          "Novice"
+        ],
+        "own_skills": 20
+      },
+      "Shiranui": {
+        "inherits": [
+          "Ninja",
+          "Novice",
+          "Oboro"
+        ],
+        "own_skills": 20
+      },
+      "Sky_Emperor": {
+        "inherits": [
+          "Novice",
+          "Star_Emperor",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 16
+      },
+      "Sky_Emperor2": {
+        "inherits": [
+          "Novice",
+          "Sky_Emperor",
+          "Star_Emperor",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Sniper": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice"
+        ],
+        "own_skills": 4
+      },
+      "Sorcerer": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Sage"
+        ],
+        "own_skills": 28
+      },
+      "Sorcerer_T": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Professor",
+          "Sage",
+          "Sorcerer"
+        ],
+        "own_skills": 0
+      },
+      "Soul_Ascetic": {
+        "inherits": [
+          "Novice",
+          "Soul_Linker",
+          "Soul_Reaper",
+          "Taekwon"
+        ],
+        "own_skills": 17
+      },
+      "Soul_Linker": {
+        "inherits": [
+          "Novice",
+          "Taekwon"
+        ],
+        "own_skills": 27
+      },
+      "Soul_Reaper": {
+        "inherits": [
+          "Novice",
+          "Soul_Linker",
+          "Taekwon"
+        ],
+        "own_skills": 17
+      },
+      "Spirit_Handler": {
+        "inherits": [
+          "Summoner"
+        ],
+        "own_skills": 18
+      },
+      "Stalker": {
+        "inherits": [
+          "Novice",
+          "Rogue",
+          "Thief"
+        ],
+        "own_skills": 4
+      },
+      "Star_Emperor": {
+        "inherits": [
+          "Novice",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 20
+      },
+      "Star_Emperor2": {
+        "inherits": [
+          "Novice",
+          "Star_Emperor",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Star_Gladiator": {
+        "inherits": [
+          "Novice",
+          "Taekwon"
+        ],
+        "own_skills": 18
+      },
+      "Star_Gladiator2": {
+        "inherits": [
+          "Novice",
+          "Star_Gladiator",
+          "Taekwon"
+        ],
+        "own_skills": 0
+      },
+      "Summoner": {
+        "inherits": [],
+        "own_skills": 36
+      },
+      "Super_Baby": {
+        "inherits": [
+          "Baby"
+        ],
+        "own_skills": 51
+      },
+      "Super_Baby_E": {
+        "inherits": [
+          "Baby",
+          "Super_Baby",
+          "Super_Novice_E"
+        ],
+        "own_skills": 0
+      },
+      "Super_Novice_E": {
+        "inherits": [
+          "Novice",
+          "Supernovice"
+        ],
+        "own_skills": 49
+      },
+      "Supernovice": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 51
+      },
+      "Sura": {
+        "inherits": [
+          "Acolyte",
+          "Monk",
+          "Novice"
+        ],
+        "own_skills": 24
+      },
+      "Sura_T": {
+        "inherits": [
+          "Acolyte",
+          "Champion",
+          "Monk",
+          "Novice",
+          "Sura"
+        ],
+        "own_skills": 0
+      },
+      "Swordman": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 10
+      },
+      "Swordman_High": {
+        "inherits": [
+          "Novice",
+          "Swordman"
+        ],
+        "own_skills": 0
+      },
+      "Taekwon": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 17
+      },
+      "Thief": {
+        "inherits": [
+          "Novice"
+        ],
+        "own_skills": 10
+      },
+      "Thief_High": {
+        "inherits": [
+          "Novice",
+          "Thief"
+        ],
+        "own_skills": 0
+      },
+      "Troubadour": {
+        "inherits": [
+          "Archer",
+          "Bard",
+          "Clown",
+          "Minstrel",
+          "Minstrel_T",
+          "Novice"
+        ],
+        "own_skills": 16
+      },
+      "Trouvere": {
+        "inherits": [
+          "Archer",
+          "Dancer",
+          "Gypsy",
+          "Novice",
+          "Wanderer",
+          "Wanderer_T"
+        ],
+        "own_skills": 16
+      },
+      "Wanderer": {
+        "inherits": [
+          "Archer",
+          "Dancer",
+          "Novice"
+        ],
+        "own_skills": 25
+      },
+      "Wanderer_T": {
+        "inherits": [
+          "Archer",
+          "Dancer",
+          "Gypsy",
+          "Novice",
+          "Wanderer"
+        ],
+        "own_skills": 0
+      },
+      "Warlock": {
+        "inherits": [
+          "Mage",
+          "Novice",
+          "Wizard"
+        ],
+        "own_skills": 25
+      },
+      "Warlock_T": {
+        "inherits": [
+          "High_Wizard",
+          "Mage",
+          "Novice",
+          "Warlock",
+          "Wizard"
+        ],
+        "own_skills": 0
+      },
+      "Whitesmith": {
+        "inherits": [
+          "Blacksmith",
+          "Merchant",
+          "Novice"
+        ],
+        "own_skills": 5
+      },
+      "Windhawk": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice",
+          "Ranger",
+          "Ranger_T",
+          "Sniper"
+        ],
+        "own_skills": 14
+      },
+      "Windhawk2": {
+        "inherits": [
+          "Archer",
+          "Hunter",
+          "Novice",
+          "Ranger",
+          "Ranger_T",
+          "Sniper",
+          "Windhawk"
+        ],
+        "own_skills": 0
+      },
+      "Wizard": {
+        "inherits": [
+          "Mage",
+          "Novice"
+        ],
+        "own_skills": 14
+      }
+    },
+    "special_entity_job_ids": {
+      "hidden": [
+        111,
+        139
+      ],
+      "warp": [
+        45
+      ]
+    }
+  }
+}
