@@ -225,8 +225,13 @@ are not reproduced yet.
 
 ### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
-`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (88 skills,
-117 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
+`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (106 skills,
+164 layers) from `tools/rodecomp_skill_facts.json`. Skills with no client rows at all render
+every effect either table maps for them (the 2019-era extras and the official ones do not
+conflict because nothing is drawn today); skills with no 2019-era entry use the official ids;
+the `EF_BOTTOM_DISSONANCE`/`EF_BOTTOM_UGLYDANCE` ids for `BA_DISSONANCE`/`DC_UGLYDANCE` are
+curated, and `BD_ADAPTATION` is skipped because its only official mapping (`EF_DANCE2`) does not
+match the skill. `tools/gen_skill_effects.py` merges it after
 the official rows and **appends** to the `(skill, phase)` descriptor (it never removes a layer).
 
 Selection rule: the official C++ switch plays an effect for the skill **and** the effect id is
@@ -235,7 +240,8 @@ the 2026-vs-2019 version risk out of the change.
 
 Two kinds of rows are generated:
 
-* **new descriptors** for skills that had no client row at all (35 skills / 44 layers);
+* **new descriptors** for skills that had no client row at all (55 skills / 96 layers: Soul
+  Linker soul glyphs, Taekwon kicks, Star Gladiator, gunslinger/ninja projectiles, ...);
 * **append rows** (`mode: append`) for skills whose descriptor existed but was missing official
   layers (37 skills / 54 layers). Appended assets are filtered per asset, not per layer, so a
   multi-texture layer contributes the frames the client does not render yet; UI item textures
@@ -320,26 +326,29 @@ documented here instead of being faked with a glow.
    `w_bubble%02d` swirl, and both ids still exist in the decompilation. The remaining drift
    skills are left untouched because the corroboration is missing (e.g. Enchant Poison: the
    official code says `EF_ENCHANTPOISON` (125), the 2019 table says `EF_PATTACK` (20)).
-2. **Skills with rows that still miss official layers**: 13 of the 64 covered skills (the 16
-   bard/dancer songs are no longer counted: their 2019 effect is the dedicated `EF_BOTTOM_*`
-   sprite, which is now rendered - the 2026 `w_bubble%02d` swirl is a client rework, not a gap). The remaining ones are mostly effects whose asset a single primitive cannot
-   express (multi-frame `%02d` sequences such as `w_bubble%02d`, `thunder_ball_a..c`,
-   `불화살1..4`), UI item textures (potion bottle, weapon icons) and a few textures whose
-   primitive has no korangar equivalent. `AL_HEAL` 28 now gets the official `alpha_down` layer;
-   its `pok1` sparkle and the exact cylinder geometry are still approximations, and
-   `MG_FIREBOLT`/`WZ_JUPITEL` now play their full frame sequences, and the thrown-item skills
-   (`AM_ACIDTERROR`, `AM_BERSERKPITCHER`, `NJ_HUUMA`) render the official item textures.
-3. **Animated `.spr` frame sequences** (as opposed to texture flipbooks, which are now
-   supported) still rely on the `.spr`/`.act` player. The bard/dancer songs' effect ids differ
-   between the 2026 client and our 2019 table, so their `w_bubble%02d` layer is not applied yet
-   (the layer kind itself now exists).
-4. **Flag-only auras** (Aura Blade, Kaite, Cloaking/Stealth Field/Shadow Form, Undead Body)
-   need body/weapon render changes, not a texture glow.
+2. **Skills with rows that still miss official layers**: 13 of the 64 covered skills
+   (`PR_TURNUNDEAD` 77, `AS_ENCHANTPOISON` 138, `AS_SPLASHER` 141, `MO_EXPLOSIONSPIRITS` 270,
+   `HW_SOULDRAIN` 364, `TK_COUNTER` 419, `SG_SUN/MOON/STAR_COMFORT` 431-433, `SL_ASSASSIN` 457,
+   `BS_ADRENALINE2` 459, `SL_HUNTER` 460, `SL_STUN` 468). Every one of them is a drift case whose
+   2019 mapping cannot be corroborated (e.g. Enchant Poison: official `EF_ENCHANTPOISON` (125),
+   2019 table `EF_PATTACK` (20)). The 16 bard/dancer songs are no longer a gap: their 2019 effect
+   is the dedicated `EF_BOTTOM_*` sprite, which is now rendered.
+3. **Animated `.spr` frame sequences** still rely on the `.spr`/`.act` player; texture flipbooks
+   (`frames`) are supported. The songs' 2026 `w_bubble%02d` swirl is a client rework and is not
+   applied by design.
+4. **Flag-only status auras** (Aura Blade, Kaite, Magical Power, Cloaking outlines, Undead) need
+   body/weapon render changes, not a texture glow (section 4.4).
 5. **Persistent `EF_MAKEBLUR` afterimages** are approximated by a tinted glow; exact reproduction
    needs an afterimage pass on the weapon sprite.
-6. 37 skills with official effects are still uncovered (no shared effect id or no renderable
-   asset), e.g. `SG_*_WARM` effect ids 418/544/572, `SL_ALCHEMIST` 424/503, `PF_MEMORIZE` 505,
-   `LK_BERSERK` 368 (body tint only).
+6. 21 skills with official effects are still uncovered. All of them fall in one of two groups:
+   * **flag/tint-only effects** with no renderable asset: `LK_BERSERK` 359, `PF_MEMORIZE` 403,
+     `SL_KAITE` 465, `SL_SKE` 471, `PF_DOUBLECASTING` 482, `CG_TAROTCARD` 489, `GS_FLING` 501,
+     `GS_MADNESSCANCEL` 504, `GS_ADJUSTMENT` 505, `GS_GATLINGFEVER` 517, `CR_SHRINK` 1002
+     (these need the sprite-level features of section 4.4, or a status-side tint row);
+   * **uncorroborated drift**: `MO_STEELBODY` 268, `TK_TURNKICK` 417, `TK_HIGHJUMP` 426,
+     `SG_SUN/MOON/STAR_WARM` 428-430, `SG_HATE` 434, `SL_KAUPE` 464, `CG_LONGINGFREEDOM` 487
+     plus `BD_ADAPTATION` 304 (official `EF_DANCE2` does not match the skill, deliberately
+     skipped).
 
 ---
 
@@ -362,11 +371,11 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 482 phases / 699 layers
+./tools/gen_skill_effects.py --check        # 500 phases / 746 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
-korangar --check-skill-effects              # 482 descriptors valid
+korangar --check-skill-effects              # 500 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```

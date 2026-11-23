@@ -919,10 +919,21 @@
    "skill": 266,
    "name": "MO_INVESTIGATE",
    "effect_ids": [
+    264,
     267
    ],
    "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\thunder_center.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
     {
      "kind": "Spr",
      "anchor": "Target",
@@ -1104,6 +1115,38 @@
    ]
   },
   {
+   "skill": 317,
+   "name": "BA_DISSONANCE",
+   "effect_ids": [
+    277
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 3.4,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 319,
    "name": "BA_WHISTLE",
    "effect_ids": [],
@@ -1203,6 +1246,38 @@
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 325,
+   "name": "DC_UGLYDANCE",
+   "effect_ids": [
+    290
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 3.4,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive"
     }
    ]
   },
@@ -1619,6 +1694,26 @@
    ]
   },
   {
+   "skill": 411,
+   "name": "TK_RUN",
+   "effect_ids": [
+    444
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\magic_blue.tga",
+     "size": 3.4,
+     "duration_ms": 1667,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 413,
    "name": "TK_STORMKICK",
    "effect_ids": [
@@ -1649,6 +1744,26 @@
    ]
   },
   {
+   "skill": 415,
+   "name": "TK_DOWNKICK",
+   "effect_ids": [
+    431
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\white02.bmp",
+     "size": 6.8,
+     "duration_ms": 3333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 421,
    "name": "TK_JUMPKICK",
    "effect_ids": [
@@ -1663,6 +1778,88 @@
      "file": "effect\\line3.tga",
      "size": 6.8,
      "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 425,
+   "name": "TK_SEVENWIND",
+   "effect_ids": [
+    461
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\storm2.tga",
+     "size": 6.8,
+     "duration_ms": 1667,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 4.25,
+     "duration_ms": 1667,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 445,
+   "name": "SL_ALCHEMIST",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
      "alpha": 0.2,
      "blend": "Additive"
     }
@@ -1717,6 +1914,526 @@
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 447,
+   "name": "SL_MONK",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 448,
+   "name": "SL_STAR",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 449,
+   "name": "SL_SAGE",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 450,
+   "name": "SL_CRUSADER",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 451,
+   "name": "SL_SUPERNOVICE",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 452,
+   "name": "SL_KNIGHT",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 453,
+   "name": "SL_WIZARD",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 454,
+   "name": "SL_PRIEST",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 455,
+   "name": "SL_BARDDANCER",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 456,
+   "name": "SL_ROGUE",
+   "effect_ids": [
+    503
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\whitelight.tga",
+     "size": 6.8,
+     "duration_ms": 8333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_l.tga",
+      "effect\\soul_u.tga",
+      "effect\\soul_o.tga",
+      "effect\\soul_s.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\soul_k.tga",
+      "effect\\soul_n.tga",
+      "effect\\soul_i.tga",
+      "effect\\soul_l.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 2000,
+     "alpha": 0.2,
+     "blend": "Additive"
     }
    ]
   },
@@ -1828,10 +2545,25 @@
    "skill": 462,
    "name": "SL_KAIZEL",
    "effect_ids": [
+    543,
     590
    ],
    "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\pok1.tga",
+      "effect\\pok3.tga"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 1000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
     {
      "kind": "Texture",
      "anchor": "Target",
@@ -1892,7 +2624,9 @@
    "skill": 469,
    "name": "SL_SMA",
    "effect_ids": [
-    553
+    431,
+    553,
+    554
    ],
    "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
@@ -1900,7 +2634,27 @@
      "kind": "Texture",
      "anchor": "Target",
      "attached_entity": true,
+     "file": "effect\\white02.bmp",
+     "size": 6.8,
+     "duration_ms": 3333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
      "file": "effect\\270바람.tga",
+     "size": 6.8,
+     "duration_ms": 3333,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\freeze_a.bmp",
      "size": 6.8,
      "duration_ms": 3333,
      "alpha": 0.2,
@@ -2175,6 +2929,26 @@
    ]
   },
   {
+   "skill": 514,
+   "name": "GS_PIERCINGSHOT",
+   "effect_ids": [
+    623
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\line3y.tga",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 525,
    "name": "NJ_HUUMA",
    "effect_ids": [
@@ -2266,6 +3040,26 @@
      ],
      "duration_ms": 1667,
      "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 542,
+   "name": "NJ_KAMAITACHI",
+   "effect_ids": [
+    624
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\270바람.tga",
+     "size": 6.8,
+     "duration_ms": 3333,
+     "alpha": 0.2,
+     "blend": "Additive"
     }
    ]
   }
