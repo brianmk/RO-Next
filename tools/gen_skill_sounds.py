@@ -45,6 +45,7 @@ from pathlib import Path
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_FACTS = Path("tools/windows_client_skill_sounds.json")
 DEFAULT_CUSTOM = Path("tools/skill_sounds_custom.ron")
+DEFAULT_RODECOMP = Path("tools/skill_sounds_rodecomp.ron")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sounds.ron")
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
@@ -204,6 +205,40 @@ def load_custom(path: Path) -> tuple[list[tuple[int, list[str]]], list[str], str
     return rows, generic, provenance
 
 
+def load_rodecomp(path: Path) -> tuple[list[tuple[int, list[str]]], str]:
+    """Read the official-client cast sounds extracted from the decompilation."""
+    if not path.is_file():
+        return [], ""
+    ron = load_ron_helpers()
+    document = ron.read_ron(path)
+    if not isinstance(document, dict):
+        raise SystemExit(f"{path}: top level value is not a map")
+    provenance = document.get("provenance")
+    if not isinstance(provenance, str) or not provenance:
+        raise SystemExit(f"{path}: missing provenance")
+
+    rows: list[tuple[int, list[str]]] = []
+    seen: set[int] = set()
+    for row in document.get("sounds") or []:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{path}: sound row is not a map: {row!r}")
+        skill = row.get("skill")
+        if not isinstance(skill, int) or isinstance(skill, bool) or skill <= 0:
+            raise SystemExit(f"{path}: invalid skill id: {skill!r}")
+        if skill in seen:
+            raise SystemExit(f"{path}: duplicate sound for skill {skill}")
+        seen.add(skill)
+        files = row.get("files")
+        if not isinstance(files, list) or not files:
+            raise SystemExit(f"{path}: skill {skill} has no wav files")
+        for entry in files:
+            if not isinstance(entry, str) or not entry.lower().endswith(".wav"):
+                raise SystemExit(f"{path}: skill {skill}: not a .wav path: {entry!r}")
+        rows.append((skill, list(files)))
+    rows.sort(key=lambda row: row[0])
+    return rows, provenance
+
+
 def escape(text: str) -> str:
     return text.replace("\\", "\\\\").replace('"', '\\"')
 
@@ -270,6 +305,7 @@ def main() -> int:
     parser.add_argument("--game-dir", default=DEFAULT_GAME_DIR)
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
     parser.add_argument("--custom", default=str(DEFAULT_CUSTOM), help="hand-curated sound overrides")
+    parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP), help="official-client sounds from the decompilation")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
@@ -291,6 +327,18 @@ def main() -> int:
     rows = build_rows(facts, wavs)
     if not rows:
         raise SystemExit("no official skill sounds resolved against the archives")
+
+    # The decompiled client's own PlayWave calls win over the community dump:
+    # they are what the official client actually plays for the skill.
+    rodecomp_rows, _rodecomp_provenance = load_rodecomp(Path(args.rodecomp))
+    if rodecomp_rows:
+        known = {skill: files for skill, files in rows}
+        for skill, files in rodecomp_rows:
+            resolved = [file for file in files if file.lower() in wavs]
+            if not resolved:
+                raise SystemExit(f"rodecomp sound for skill {skill} does not exist in the archives: {files}")
+            known[skill] = resolved
+        rows = sorted(known.items())
     # The curated rows are emitted in their own section (they win over the
     # per-layer wav and the official table), so keep one row per skill.
     rows = [(skill, files) for skill, files in rows if skill not in curated_skills]

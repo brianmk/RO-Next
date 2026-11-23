@@ -411,6 +411,16 @@ Current result (457 learnable skills):
 `PR_TURNUNDEAD`/`AS_ENCHANTPOISON`/`AS_SPLASHER` are handled by the version-correct mapping
 described above. `tools/test_rodecomp_coverage.py` keeps the facts and the classifier honest.
 
+## 5c. Skill cast sounds
+
+The same extraction covers the sounds the official client plays: `g_soundMgr->PlayWave(...)`
+calls in the two skill switches (46 learnable skills). They are committed as
+`tools/skill_sounds_rodecomp.ron` and merged by `tools/gen_skill_sounds.py` with priority
+`curated > per-layer wav > rodecomp > roBrowser dump > generic`. Where the community dump and the
+official client disagree the official call wins, and 15 skills that had no sound at all now play
+theirs (Taekwon kicks, Soul Linker buffs, Moonlit Water Mill, ...). Every wav is validated
+against the GRF archives by the generator.
+
 ## 6. Reproduction
 
 The extraction tooling lives outside this repository (it needs a rodecomp checkout and the game
@@ -433,6 +443,7 @@ Checks in this repository:
 ./tools/gen_skill_effects.py --check        # 501 phases / 756 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
+./tools/gen_skill_sounds.py --check        # 8 curated + 378 official sounds
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
 python3 tools/test_rodecomp_coverage.py     # 3 coverage audit tests
 korangar --check-skill-effects              # 501 descriptors valid

@@ -1,0 +1,59 @@
+// Skill cast sounds played by the official client (rodecomp).
+//
+// Input of tools/gen_skill_sounds.py. Every path was verified against the
+// CondaRO GRF archives before it was committed; the generator validates them
+// again. These are the sounds the official C++ skill switches play with
+// `g_soundMgr->PlayWave(...)` in CGameMode::ReceiveSkillUse and
+// CSession::PlaySkillEffect, so they supersede the roBrowser effect-table
+// entries (community dump) where both exist.
+(
+    provenance: "rodecomp (matching decompilation of the official client) PlayWave calls in the skill effect switches",
+    sounds: [
+        (skill: 16, files: ["_stonecurse.wav"]),
+        (skill: 268, files: ["effect\\mon_맹룡과강.wav"]),
+        (skill: 270, files: ["effect\\mon_폭기.wav"]),
+        (skill: 271, files: ["effect\\mon_아수라 패황권.wav"]),
+        (skill: 306, files: ["effect\\자장가.wav"]),
+        (skill: 307, files: ["effect\\김서방돈.wav"]),
+        (skill: 308, files: ["effect\\영원의 혼돈.wav"]),
+        (skill: 309, files: ["effect\\전장의.wav"]),
+        (skill: 310, files: ["effect\\니벨룽겐의 반지.wav"]),
+        (skill: 311, files: ["effect\\로키.wav"]),
+        (skill: 312, files: ["effect\\심연속으로.wav"]),
+        (skill: 313, files: ["effect\\불사신.wav"]),
+        (skill: 320, files: ["effect\\석양의 어쌔신.wav"]),
+        (skill: 321, files: ["effect\\브라기의 시.wav"]),
+        (skill: 322, files: ["effect\\이둔의 사과.wav"]),
+        (skill: 327, files: ["effect\\흥얼거림.wav"]),
+        (skill: 328, files: ["effect\\나를잊지말아요.wav"]),
+        (skill: 329, files: ["effect\\행운의.wav"]),
+        (skill: 330, files: ["effect\\당신을 위한 서비스.wav"]),
+        (skill: 355, files: ["effect\\오라 블레이드.wav"]),
+        (skill: 359, files: ["effect\\버서크.wav"]),
+        (skill: 366, files: ["effect\\마법력 증폭.wav"]),
+        (skill: 387, files: ["effect\\EF_IncAgility.wav"]),
+        (skill: 395, files: ["effect\\달빛.wav"]),
+        (skill: 420, files: ["effect\\T_낙법.wav"]),
+        (skill: 425, files: ["effect\\T_바람방출.wav"]),
+        (skill: 434, files: ["effect\\T_등록.wav"]),
+        (skill: 444, files: ["effect\\T_변신.wav"]),
+        (skill: 462, files: ["effect\\priest_resurrection.wav"]),
+        (skill: 463, files: ["effect\\T_보조마법.wav"]),
+        (skill: 464, files: ["effect\\T_치잉.wav"]),
+        (skill: 465, files: ["effect\\T_마법반사.wav"]),
+        (skill: 470, files: ["effect\\T_슈웃.wav"]),
+        (skill: 471, files: ["effect\\T_공격력.wav"]),
+        (skill: 472, files: ["effect\\T_방어형.wav"]),
+        (skill: 482, files: ["effect\\마법력 증폭.wav"]),
+        (skill: 487, files: ["effect\\ac_concentration.wav"]),
+        (skill: 488, files: ["effect\\헤르모드의 지팡이.wav"]),
+        (skill: 489, files: ["effect\\priest_slowpoison.wav"]),
+        (skill: 493, files: ["effect\\T_피링.wav"]),
+        (skill: 500, files: ["effect\\플립.wav"]),
+        (skill: 508, files: ["effect\\크래커.wav"]),
+        (skill: 527, files: ["effect\\다다미뒤집기.wav"]),
+        (skill: 1010, files: ["amon_ra_die01.wav"]),
+        (skill: 1011, files: ["effect\\vallentine.wav"]),
+        (skill: 1013, files: ["effect\\ef_entry.wav"]),
+    ],
+)
