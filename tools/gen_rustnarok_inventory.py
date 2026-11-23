@@ -26,7 +26,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -46,11 +45,6 @@ TABLE_ACTION = {
     "KEEP": "Idle",
 }
 CAST_ACTIONS = {0: "Idle", -1: "Idle", 7: "Skill", 2: "Attack", 12: "Attack"}
-
-
-def git_head() -> str:
-    result = subprocess.run(["git", "rev-parse", "HEAD"], text=True, capture_output=True, check=False)
-    return result.stdout.strip() if result.returncode == 0 else "unknown"
 
 
 def load_json(path: Path) -> dict[str, object]:
@@ -205,7 +199,9 @@ def build_inventory(facts_dir: Path) -> dict[str, object]:
             "rustnarok_repo": effects_facts.get("repository"),
             "rustnarok_head": effects_facts.get("commit"),
             "our_repo": "CondaRO-linux/korangar",
-            "our_head": git_head(),
+            # The inventory must be reproducible from committed inputs alone:
+            # recording the current HEAD would make every commit invalidate it.
+            "our_head": "deterministic (see git log for the containing commit)",
         },
         "summary": summary,
         "effects": effects,

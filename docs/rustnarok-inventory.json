@@ -24601,7 +24601,7 @@
   }
  ],
  "source": {
-  "our_head": "cb33be03dc807645f61e1b9d151768373187de0d",
+  "our_head": "deterministic (see git log for the containing commit)",
   "our_repo": "CondaRO-linux/korangar",
   "rustnarok_head": "76600595363affc96d5995bf4baa790d05a9593c",
   "rustnarok_repo": "https://github.com/kindraywind/rustnarok-client.git"
