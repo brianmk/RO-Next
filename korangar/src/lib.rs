@@ -643,6 +643,18 @@ pub fn check_status_effects(path: Option<&std::path::Path>) -> Result<usize, Str
     }
 }
 
+/// Validates the data-driven status body-visual table and returns the number of
+/// rows.
+pub fn check_status_visuals(path: Option<&std::path::Path>) -> Result<usize, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_status_visual_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_status_visuals().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
 /// Validates the data-driven job/appearance registry and returns the number of
 /// job rows.
 pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
@@ -3546,6 +3558,50 @@ impl Client {
         }
     }
 
+    /// Recomputes the best status body visual of `entity_id` and applies it.
+    ///
+    /// The data-driven table is queried for every active status of the entity;
+    /// the highest-priority `BodyTint` wins, and a `BodyFade` is applied when
+    /// no tint is active. When no visual matches, the previous tint/alpha
+    /// is cleared so ending a status cannot leave a stale colour.
+    fn refresh_entity_status_visual(&mut self, entity_id: ragnarok_packets::EntityId) {
+        use crate::world::StatusVisualKind;
+
+        let statuses = self.client_state.follow(client_state().status_effects());
+        let mut tint = None;
+        let mut alpha = None;
+        let mut tint_priority = i16::MIN;
+
+        for effect in statuses.effects().iter().filter(|effect| effect.entity_id() == entity_id.0) {
+            let Some(visual) = crate::world::status_visual(effect.status_index()) else {
+                continue;
+            };
+            match visual.kind {
+                StatusVisualKind::BodyTint { tint: color, priority, .. } => {
+                    if priority >= tint_priority {
+                        tint = Some(color);
+                        tint_priority = priority;
+                    }
+                }
+                StatusVisualKind::BodyFade { alpha: value, .. } => {
+                    if alpha.is_none() {
+                        alpha = Some(value);
+                    }
+                }
+            }
+        }
+
+        if let Some(entity) = self
+            .client_state
+            .follow_mut(client_state().entities())
+            .iter_mut()
+            .find(|entity| entity.get_entity_id() == entity_id)
+        {
+            entity.set_status_tint(tint);
+            entity.set_status_alpha(alpha);
+        }
+    }
+
     fn handle_network_events(&mut self, client_tick: ClientTick) {
         self.networking_system.get_events(&mut self.network_event_buffer);
 
@@ -4788,29 +4844,20 @@ impl Client {
                         icon,
                     );
 
-                    // Classic status tints: Adrenaline Rush (23) and Full
-                    // Adrenaline Rush (147) tint the character red; Fury (86)
-                    // uses the official (1.0, 0.75, 0.75) red glow. The old
-                    // entity-level check used option bit 0x8, which is actually
-                    // OPTION_CART (merchants), so it tinted cart users red and
-                    // never applied the tint from status changes.
-                    if matches!(status_index, 23 | 86 | 132 | 147) {
-                        if let Some(entity) = self
+                    // Data-driven body visuals (tints/alpha); the table lives in
+                    // `archive/data/client/status_visual_effects.ron`.
+                    self.refresh_entity_status_visual(entity_id);
+
+                    // `EFST_CHANGE_SIZE` / `EFST_CHANGE_SIZE_MONSTER`
+                    // (1420/1421): the server `val1` is the size in percent.
+                    if matches!(status_index, 1420 | 1421)
+                        && let Some(entity) = self
                             .client_state
                             .follow_mut(client_state().entities())
                             .iter_mut()
                             .find(|entity| entity.get_entity_id() == entity_id)
-                        {
-                            let tint = match (active, status_index) {
-                                (false, _) => None,
-                                (true, 23 | 147) => Some(Color::rgb(1.0, 0.45, 0.45)),
-                                (true, 86) => Some(Color::rgb(1.0, 0.75, 0.75)),
-                                // rustnarok-client `prims/walls.rs` Berserk body tint #FA7878.
-                                (true, 132) => Some(Color::rgb(250.0 / 255.0, 120.0 / 255.0, 120.0 / 255.0)),
-                                _ => None,
-                            };
-                            entity.set_status_tint(tint);
-                        }
+                    {
+                        entity.set_status_scale(active, values[0]);
                     }
 
                     // `EFST_PUSH_CART` (673) keeps the merchant cart visible even
@@ -6265,6 +6312,17 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::OpenStore { slots } => {
+                    // `ZC_OPENSTORE` after MC_VENDING: show the shop editor.
+                    // The server keeps the character in the vending state until
+                    // it receives CZ_REQ_OPENSTORE/2, so the editor is modal
+                    // (no X close) and always offers Open/Cancel.
+                    self.client_state.follow_mut(client_state().vending()).open(slots);
+                    self.interface.open_window(crate::interface::windows::VendingWindow::new(
+                        client_state().vending(),
+                        client_state().inventory().items(),
+                    ));
+                }
                 NetworkEvent::MinimapMarker {
                     npc_id,
                     marker_type,
@@ -6863,6 +6921,31 @@ impl Client {
                         dialog.clear_choices();
                         let _ = self.networking_system.select_warp_point(skill_id, String::new());
                     }
+                }
+                InputEvent::VendingOpen => {
+                    let vending = self.client_state.follow(client_state().vending());
+                    let shop_name = vending.shop_name().to_owned();
+                    let items: Vec<ragnarok_packets::StoreItemEntry> = vending
+                        .entries()
+                        .iter()
+                        .map(|entry| ragnarok_packets::StoreItemEntry {
+                            inventory_index: entry.inventory_index,
+                            amount: entry.amount,
+                            price: entry.price,
+                        })
+                        .collect();
+                    if !shop_name.is_empty() && !items.is_empty() {
+                        let _ = self.networking_system.request_open_store(shop_name, items);
+                    } else {
+                        let _ = self.networking_system.cancel_open_store();
+                    }
+                    self.client_state.follow_mut(client_state().vending()).close();
+                    self.interface.close_window_with_class(WindowClass::Vending);
+                }
+                InputEvent::VendingCancel => {
+                    let _ = self.networking_system.cancel_open_store();
+                    self.client_state.follow_mut(client_state().vending()).close();
+                    self.interface.close_window_with_class(WindowClass::Vending);
                 }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {

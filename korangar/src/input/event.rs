@@ -84,6 +84,10 @@ pub enum InputEvent {
     CycleMapWindows,
     /// Close the most recently opened or clicked closable window.
     CloseTopWindow,
+    /// Submit the open vending shop (`CZ_REQ_OPENSTORE`).
+    VendingOpen,
+    /// Cancel the vending shop editor (`CZ_REQ_OPENSTORE2`).
+    VendingCancel,
     /// Toggle if the user interface should be rendered or not.
     ToggleShowInterface,
     /// Select a character to start playing.

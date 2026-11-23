@@ -940,6 +940,53 @@ pub struct EntityStopMovePacket {
     pub position: TilePosition,
 }
 
+/// Sent by the map server after the Vending skill (`MC_VENDING`) when the
+/// player may open the shop creation UI (`ZC_OPENSTORE`, 0x012D).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x012D)]
+#[packet_size(4)]
+pub struct OpenStorePacket {
+    /// Number of item slots the shop may hold (`2 + skill level`).
+    pub slots: u16,
+}
+
+/// One item entry of the shop creation request.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct StoreItemEntry {
+    pub inventory_index: u16,
+    pub amount: u16,
+    pub price: u32,
+}
+
+/// Sent by the client to create a shop (`CZ_REQ_OPENSTORE`, 0x012F).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x012F)]
+#[variable_length]
+pub struct RequestOpenStorePacket {
+    #[length(80)]
+    pub shop_name: String,
+    #[repeating_remaining]
+    pub items: Vec<StoreItemEntry>,
+}
+
+/// Sent by the client to cancel the shop creation UI (`CZ_REQ_OPENSTORE2`,
+/// 0x01B2, result 0). rAthena clears its `prevend`/`workinprogress` state from
+/// this packet, so the character cannot stay frozen after Vending.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01B2)]
+#[variable_length]
+pub struct CancelOpenStorePacket {
+    #[length(80)]
+    pub shop_name: String,
+    pub result: u8,
+    #[repeating_remaining]
+    pub items: Vec<StoreItemEntry>,
+}
+
 /// Sent by the map server for the Taekwon `TK_HIGHJUMP` skill (and other
 /// "blink" moves) before the regular stop-move correction. The client uses it
 /// to place the character at the server position immediately instead of

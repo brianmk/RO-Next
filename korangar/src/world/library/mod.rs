@@ -21,6 +21,7 @@ mod skill_requirements;
 mod skill_sounds;
 mod skill_tree;
 mod status_effects;
+mod status_visuals;
 
 use std::borrow::Cow;
 use std::hash::Hash;
@@ -64,6 +65,10 @@ pub(crate) use self::status_effects::{
     StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, refresh_policy as status_effect_refresh_policy,
     status_aura_spec, status_effect_info, validate as validate_status_effect_data, validate_compiled as validate_compiled_status_effects,
     value_lines as status_effect_value_lines,
+};
+pub(crate) use self::status_visuals::{
+    StatusVisualKind, StatusVisualSpec, status_visual, validate as validate_status_visual_data,
+    validate_compiled as validate_compiled_status_visuals,
 };
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;
@@ -114,6 +119,7 @@ impl Library {
         // The data-driven status-effect presentation table (names, icons,
         // categories, value labels, refresh policy and persistent auras).
         status_effects::load(game_file_loader);
+        status_visuals::load(game_file_loader);
         // The data-driven job/appearance registry (job sprites, palettes, hair
         // styles, job flags) is loaded here so every subsystem sees one table.
         crate::world::jobs::load(game_file_loader);

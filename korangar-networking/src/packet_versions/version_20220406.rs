@@ -337,6 +337,7 @@ where
             starting_timestamp,
         }
     })?;
+    packet_handler.register(|packet: OpenStorePacket| NetworkEvent::OpenStore { slots: packet.slots })?;
     packet_handler.register(|packet: EntityStopMovePacket| NetworkEvent::EntityStopped {
         entity_id: packet.entity_id,
         position: packet.position,

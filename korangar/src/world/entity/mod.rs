@@ -272,6 +272,8 @@ pub struct Common {
     /// Persistent sprite tint of a status effect (Adrenaline Rush and Fury are
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
+    /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
+    status_alpha: Option<f32>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -286,6 +288,9 @@ pub struct Common {
     pub tile_position: TilePosition,
     pub world_position: Point3<f32>,
     pub scale: f32,
+    /// Job/baby base scale, restored when `EFST_CHANGE_SIZE` ends.
+    #[hidden_element]
+    base_scale: f32,
     #[hidden_element]
     details: ResourceState<String>,
     /// Id of the guild the entity is in, `0` if it is not in a guild.
@@ -565,6 +570,7 @@ impl Common {
             cart_status_active: false,
             cart_kind: 0,
             status_tint: None,
+            status_alpha: None,
             weapon_animation: None,
             active_movement,
             entity_type,
@@ -588,6 +594,7 @@ impl Common {
             },
             body_flash: None,
             scale,
+            base_scale: scale,
         }
     }
 
@@ -725,6 +732,10 @@ impl Common {
     /// Sets the persistent status sprite tint (red for Adrenaline Rush/Fury).
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
         self.status_tint = tint;
+    }
+
+    pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
+        self.status_alpha = alpha;
     }
 
     pub fn needs_cart_animation(&self) -> bool {
@@ -1290,7 +1301,7 @@ impl Common {
     }
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {
-        let alpha = self.fade_state.calculate_alpha(client_tick);
+        let alpha = self.fade_state.calculate_alpha(client_tick) * self.status_alpha.unwrap_or(1.0);
         let tint = self.sprite_tint(client_tick);
 
         if let Some(animation_data) = self.animation_data.as_ref() {
@@ -1924,6 +1935,10 @@ impl Entity {
         self.get_common_mut().set_status_tint(tint);
     }
 
+    pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
+        self.get_common_mut().set_status_alpha(alpha);
+    }
+
     pub fn needs_cart_animation(&self) -> bool {
         self.get_common().needs_cart_animation()
     }
@@ -2193,6 +2208,18 @@ impl Entity {
 
     pub fn get_scale(&self) -> f32 {
         self.get_common().scale
+    }
+
+    /// Applies `EFST_CHANGE_SIZE` / `EFST_CHANGE_SIZE_MONSTER` (1420/1421).
+    /// `percent` is the server `val1` (100 = normal); `false` restores the job
+    /// base scale.
+    pub fn set_status_scale(&mut self, active: bool, percent: i32) {
+        let common = self.get_common_mut();
+        common.scale = if active && percent > 0 {
+            common.base_scale * percent as f32 / 100.0
+        } else {
+            common.base_scale
+        };
     }
 
     pub fn set_position(&mut self, map: &Map, position: TilePosition, client_tick: ClientTick) {

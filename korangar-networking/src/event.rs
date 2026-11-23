@@ -668,6 +668,11 @@ pub enum NetworkEvent {
     AttackRangeChanged {
         attack_range: AttackRange,
     },
+    /// The server allows the player to create a vending shop (`ZC_OPENSTORE`,
+    /// 0x012D) after casting `MC_VENDING`; `slots` is the number of item slots.
+    OpenStore {
+        slots: u16,
+    },
     /// An entity stopped moving at a server-corrected position
     /// (`ZC_STOPMOVE`, 0x0088).
     EntityStopped {
