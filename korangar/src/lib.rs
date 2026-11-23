@@ -4788,6 +4788,29 @@ impl Client {
                         icon,
                     );
 
+                    // Classic status tints: Adrenaline Rush (23) and Full
+                    // Adrenaline Rush (147) tint the character red; Fury (86)
+                    // uses the official (1.0, 0.75, 0.75) red glow. The old
+                    // entity-level check used option bit 0x8, which is actually
+                    // OPTION_CART (merchants), so it tinted cart users red and
+                    // never applied the tint from status changes.
+                    if matches!(status_index, 23 | 86 | 147) {
+                        if let Some(entity) = self
+                            .client_state
+                            .follow_mut(client_state().entities())
+                            .iter_mut()
+                            .find(|entity| entity.get_entity_id() == entity_id)
+                        {
+                            let tint = match (active, status_index) {
+                                (false, _) => None,
+                                (true, 23 | 147) => Some(Color::rgb(1.0, 0.45, 0.45)),
+                                (true, 86) => Some(Color::rgb(1.0, 0.75, 0.75)),
+                                _ => None,
+                            };
+                            entity.set_status_tint(tint);
+                        }
+                    }
+
                     // `EFST_PUSH_CART` (673) keeps the merchant cart visible even
                     // when the server's entity option bit is missing.
                     if status_index == 673

@@ -266,6 +266,9 @@ pub struct Common {
     /// not put the cart option into the entity `effect_state`, so the status
     /// is an independent visibility source for the cart.
     cart_status_active: bool,
+    /// Persistent sprite tint of a status effect (Adrenaline Rush and Fury are
+    /// the classic red tints). `None` means no status tint.
+    status_tint: Option<Color>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -428,12 +431,6 @@ pub fn character_preview_part_files(library: &Library, character_information: &C
 /// other clients: hide, cloak, invisible and chase-walk.
 const OPTION_HIDDEN_MASK: u32 = 0x0000_0002 | 0x0000_0004 | 0x0000_0040 | 0x0000_4000;
 
-/// `OPT3_EXPLOSIONSPIRITS` (`0x0000_0008` in the `effectState` field, see
-/// rAthena `status.hpp`): while Fury (`MO_EXPLOSIONSPIRITS`) is active the
-/// official client tints the character red (`(1.0, 0.75, 0.75)` sprite color
-/// multiplier), which is the persistent "Fury glow".
-const OPTION_EXPLOSIONSPIRITS: u32 = 0x0000_0008;
-
 /// A temporary tint of an entity's sprites, used by hard-coded skill effects
 /// (for example the yellow `EF_PORTAL5` flash of Zen).
 #[derive(Debug, Clone, Copy)]
@@ -560,6 +557,7 @@ impl Common {
                 .with_loop_mode(AnimationLoopMode::PingPong),
             cart_animation: None,
             cart_status_active: false,
+            status_tint: None,
             weapon_animation: None,
             active_movement,
             entity_type,
@@ -627,12 +625,7 @@ impl Common {
     /// multiplication, so it works for both palette and RGBA sprites without
     /// touching the animation data.
     fn sprite_tint(&self, client_tick: ClientTick) -> Color {
-        let mut tint = if self.effect_state & OPTION_EXPLOSIONSPIRITS != 0 {
-            // Official client: R = 1.0, G = 0.75, B = 0.75 while Fury is active.
-            Color::rgb(1.0, 0.75, 0.75)
-        } else {
-            Color::WHITE
-        };
+        let mut tint = self.status_tint.unwrap_or(Color::WHITE);
 
         if let Some(flash) = self.body_flash {
             tint = blend_color(tint, flash.color, flash.weight(client_tick));
@@ -669,6 +662,11 @@ impl Common {
     /// as a fallback for servers that don't send the option bit.
     pub fn set_cart_status(&mut self, active: bool) {
         self.cart_status_active = active;
+    }
+
+    /// Sets the persistent status sprite tint (red for Adrenaline Rush/Fury).
+    pub fn set_status_tint(&mut self, tint: Option<Color>) {
+        self.status_tint = tint;
     }
 
     pub fn needs_cart_animation(&self) -> bool {
@@ -1845,6 +1843,10 @@ impl Entity {
 
     pub fn set_cart_status(&mut self, active: bool) {
         self.get_common_mut().set_cart_status(active);
+    }
+
+    pub fn set_status_tint(&mut self, tint: Option<Color>) {
+        self.get_common_mut().set_status_tint(tint);
     }
 
     pub fn needs_cart_animation(&self) -> bool {
