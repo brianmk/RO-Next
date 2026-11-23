@@ -26,7 +26,7 @@
 //
 // 597 client titles, 318 explicit client
 // icons and 313 classic icons were extracted; 609 statuses
-// have presentation data and 2 of them have an aura.
+// have presentation data and 3 of them have an aura.
 (
     provenance: "Status-effect presentation data: official client/server names, icons, categories, value labels and persistent aura specs",
     version: 1,
@@ -628,9 +628,35 @@
         (
             id: 86,
             name: "Critical Explosion",
-            category: Debuff,
+            icon: "폭기.tga",
+            category: Buff,
             refresh: Replace,
             stack: Single,
+            aura: (
+                kind: PersistentGlow,
+                textures: (
+                    ground: "effect\\whitelight.tga",
+                    ring: "effect\\ring_yellow.tga",
+                    body_frames: ["effect\\whitelight.tga"],
+                    body_glow: "effect\\whitelight.tga",
+                ),
+                tint: (
+                    ground: (1.0, 0.55, 0.15),
+                    body: (1.0, 0.45, 0.1),
+                    glow: (1.0, 0.7, 0.25),
+                ),
+                radii: (ground: 9.0, ring: 6.0, body: 22.0, body_glow: 13.0),
+                timing: (
+                    body_frame_rate: 6.0,
+                    ring_rotation_speed: 0.7,
+                    body_rotation_speed: 0.3,
+                    body_camera_offset: 2.0,
+                    pulse_speed: 2.0,
+                    pulse_amount: 0.18,
+                ),
+                alpha: (ground: 0.35, ring: 0.45, body: 0.38, body_glow: 0.35),
+                height: 11.0,
+            ),
         ),
         (
             id: 87,

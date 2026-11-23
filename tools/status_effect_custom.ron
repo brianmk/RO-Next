@@ -63,6 +63,7 @@
     // (no title colour, no `db/pre-re/status.yml` display icon).
     categories: [
         (id: 889, category: Debuff, source: "health-state debuff (Bleeding); the 2019 title table has no entry for EFST_HEALTHSTATE_BLOODING"),
+        (id: 86, category: Buff, source: "EFST_EXPLOSIONSPIRITS (Fury) is a positive self-buff; the 2019 title table has no category/icon"),
     ],
 
     icons: [
@@ -77,6 +78,7 @@
         (id: 901, icon: "weapon_property.tga", source: "deliberate generic icon (old table)"),
         // The classic table has `i_accuracy` without the texture extension.
         (id: 210, icon: "i_accuracy.tga", source: "old table normalised the missing .tga suffix"),
+        (id: 86, icon: "폭기.tga", source: "official EFST_EXPLOSIONSPIRITS status icon (Fury), present in data.grf"),
     ],
 
     value_labels: [
@@ -127,6 +129,34 @@
             pulse_speed: 2.0,
             pulse_amount: 0.18,
             body_height: 13.0,
+        ),
+        (
+            ids: [86],
+            name: "Critical Explosion",
+            kind: PersistentGlow,
+            source: "procedural Fury body glow (EFST_EXPLOSIONSPIRITS); official client tints the character while Fury is active",
+            ground_texture: "effect\\whitelight.tga",
+            ring_texture: "effect\\ring_yellow.tga",
+            body_frames: ["effect\\whitelight.tga"],
+            body_glow_texture: "effect\\whitelight.tga",
+            ground_color: (1.0, 0.55, 0.15),
+            body_color: (1.0, 0.45, 0.1),
+            glow_color: (1.0, 0.7, 0.25),
+            ground_radius: 9.0,
+            ring_radius: 6.0,
+            body_size: 22.0,
+            body_glow_size: 13.0,
+            ground_alpha: 0.35,
+            ring_alpha: 0.45,
+            body_alpha: 0.38,
+            body_glow_alpha: 0.35,
+            body_frame_rate: 6.0,
+            ring_rotation_speed: 0.7,
+            body_rotation_speed: 0.3,
+            body_camera_offset: 2.0,
+            pulse_speed: 2.0,
+            pulse_amount: 0.18,
+            body_height: 11.0,
         ),
     ],
 )

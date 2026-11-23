@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "8cb6c341876a5bc2b529ece21de9759d8323e84135ffdc62a2c246943e10e4ab",
+      "sha256": "1ce94738a69c4570a09bc723af4bb3ff3b3b9be2198c9940fe44f9bb26641302",
       "counts": {
         "names": 10,
-        "icons": 5,
-        "categories": 1,
+        "icons": 6,
+        "categories": 2,
         "value_labels": 7,
-        "auras": 2
+        "auras": 3
       }
     },
     "counts": {
@@ -89,7 +89,7 @@
       "merged_statuses": 609,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 2
+      "auras": 3
     },
     "dropped_icons": [
       {
@@ -30900,10 +30900,10 @@
       "client_efst_id": null,
       "name": "Critical Explosion",
       "name_source": "custom",
-      "icon": null,
-      "icon_source": null,
-      "category": "Debuff",
-      "category_source": "pre-re/status.yml Debuff flag",
+      "icon": "폭기.tga",
+      "icon_source": "custom",
+      "category": "Buff",
+      "category_source": "custom",
       "status_yml": "Explosionspirits",
       "display_pc": false,
       "display_npc": false,
@@ -30923,7 +30923,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": false,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "procedural Fury body glow (EFST_EXPLOSIONSPIRITS); official client tints the character while Fury is active",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            1.0,
+            0.55,
+            0.15
+          ],
+          "body": [
+            1.0,
+            0.45,
+            0.1
+          ],
+          "glow": [
+            1.0,
+            0.7,
+            0.25
+          ]
+        },
+        "radii": {
+          "ground": 9.0,
+          "ring": 6.0,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.7,
+          "body_rotation_speed": 0.3,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.18
+        },
+        "alpha": {
+          "ground": 0.35,
+          "ring": 0.45,
+          "body": 0.38,
+          "body_glow": 0.35
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 87,
