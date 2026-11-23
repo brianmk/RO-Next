@@ -37,6 +37,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_FACTS = Path("tools/windows_client_skill_actions.json")
+DEFAULT_EXTRA = Path("tools/skill_actions_extra.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
@@ -44,7 +45,7 @@ DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
 ACTIONS = ("Attack", "Idle", "Pickup", "Skill", "ReadyFight")
 
 
-def load_facts(path: Path) -> list[tuple[int, str]]:
+def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, str]]:
     payload = json.loads(path.read_text())
     rows: list[tuple[int, str]] = []
     for skill_id, entry in payload["actions"].items():
@@ -52,6 +53,24 @@ def load_facts(path: Path) -> list[tuple[int, str]]:
         if action not in ACTIONS:
             raise SystemExit(f"skill {skill_id}: unsupported action {action!r}")
         rows.append((int(skill_id), action))
+
+    # Curated additions for skills the official roBrowser dump does not cover
+    # (ported from rustnarok-client's per-skill motion tables where the motion
+    # maps onto one of our five actions). They only fill gaps: an existing
+    # official row always wins.
+    if extra_path is not None and extra_path.is_file():
+        extra = json.loads(extra_path.read_text())
+        known = {skill_id for skill_id, _ in rows}
+        for entry in extra.get("actions", []):
+            skill_id = int(entry["skill"])
+            action = entry["action"]
+            if action not in ACTIONS:
+                raise SystemExit(f"skill {skill_id}: unsupported extra action {action!r}")
+            if skill_id in known:
+                continue
+            rows.append((skill_id, action))
+            known.add(skill_id)
+
     rows.sort()
     return rows
 
@@ -91,11 +110,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is out of date")
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
+    parser.add_argument("--extra", default=str(DEFAULT_EXTRA))
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
     payload = json.loads(Path(args.facts).read_text())
-    rows = load_facts(Path(args.facts))
+    rows = load_facts(Path(args.facts), Path(args.extra))
     if not rows:
         raise SystemExit("no skill action facts found")
 

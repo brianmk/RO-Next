@@ -1,0 +1,190 @@
+{
+  "provenance": "rustnarok-client src/skill_motions.rs ATTACK/THROW/THIRD_ATTACK/PICK_UP/KEEP/CAST; only entries missing from the official roBrowser action dump and mappable to our five actions",
+  "actions": [
+    {
+      "skill": 115,
+      "action": "Pickup",
+      "source": "PICK_UP"
+    },
+    {
+      "skill": 249,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 252,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 256,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 257,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 304,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 356,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 367,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 369,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 384,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 387,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 411,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 444,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 446,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 478,
+      "action": "Idle",
+      "source": "KEEP"
+    },
+    {
+      "skill": 484,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 499,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 1001,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 1005,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 1016,
+      "action": "Attack",
+      "source": "ATTACK"
+    },
+    {
+      "skill": 234,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 235,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 236,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 237,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 243,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 244,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 247,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 425,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 475,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 479,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 493,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 496,
+      "action": "Skill",
+      "source": "CAST"
+    },
+    {
+      "skill": 497,
+      "action": "Skill",
+      "source": "CAST"
+    },
+    {
+      "skill": 498,
+      "action": "Skill",
+      "source": "CAST"
+    },
+    {
+      "skill": 1010,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 1014,
+      "action": "Idle",
+      "source": "CAST"
+    },
+    {
+      "skill": 109,
+      "action": "Attack",
+      "source": "ATTACK"
+    }
+  ]
+}

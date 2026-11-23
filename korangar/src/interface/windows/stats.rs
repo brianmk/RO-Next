@@ -1,8 +1,9 @@
 use std::cell::{Cell, UnsafeCell};
 
+use korangar_interface::event::{ClickHandler, EventQueue};
 use korangar_interface::window::{CustomWindow, Window};
 use ragnarok_packets::StatUpType;
-use rust_state::{Path, PathExt, Selector};
+use rust_state::{Path, PathExt, Selector, State};
 
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
@@ -110,6 +111,14 @@ where
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use korangar_interface::prelude::*;
 
+        fn display<A, F>(player_path: A, formatter: F) -> impl Selector<ClientState, String>
+        where
+            A: Path<ClientState, Player> + 'static,
+            F: Fn(&Player) -> String + 'static,
+        {
+            ComputedSelector::new_default(move |state: &ClientState| formatter(player_path.follow_safe(state)))
+        }
+
         fn disabled_cutoff<A, B>(stat_points_path: A, cost_path: B) -> impl Selector<ClientState, bool>
         where
             A: Path<ClientState, u32>,
@@ -119,68 +128,157 @@ where
                 let stat_points = stat_points_path.follow_safe(state);
                 let cost = cost_path.follow_safe(state);
 
-                // The cost is 0 if the the player is at the maximum level.
+                // The cost is 0 if the player is at the maximum level.
                 *cost == 0 || *stat_points < *cost as u32
             })
         }
 
-        macro_rules! stat_row {
-            ($text_name:expr, $name:ident, $bonus_name:ident, $cost_name:ident, $variant_name:ident) => {
+        struct NoopClick;
+        impl ClickHandler<ClientState> for NoopClick {
+            fn handle_click(&self, _: &State<ClientState>, _: &mut EventQueue<ClientState>) {}
+        }
+
+        macro_rules! summary_row {
+            ($label:expr, $value:expr) => {
                 split! {
                     children: (
                         text! {
-                            text: client_state().localization().$text_name(),
+                            text: $label,
+                            color: korangar_interface::theme::theme().text().highlight_color(),
                             overflow_behavior: OverflowBehavior::Shrink,
                         },
-                        split! {
-                            children: (
-                                text! {
-                                    text: PartialEqDisplaySelector::new(self.player_path.$name()),
-                                    horizontal_alignment: HorizontalAlignment::Right { offset: 5.0, border: 5.0 },
-                                    overflow_behavior: OverflowBehavior::Shrink,
-                                },
-                                text! {
-                                    text: StatTextSelector::new(self.player_path.$bonus_name()),
-                                    horizontal_alignment: HorizontalAlignment::Left { offset: 5.0, border: 5.0 },
-                                    overflow_behavior: OverflowBehavior::Shrink,
-                                },
-                            ),
-                        },
-                        button! {
-                            text: CostTextSelector::new(self.player_path.$cost_name()),
-                            disabled: disabled_cutoff(self.player_path.stat_points(), self.player_path.$cost_name()),
-                            event: InputEvent::StatUp { stat_type: StatUpType::$variant_name { amount: 1 } },
+                        text! {
+                            text: $value,
+                            horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                            overflow_behavior: OverflowBehavior::Shrink,
                         },
                     ),
                 }
             };
         }
 
+        macro_rules! stat_row {
+            ($label:expr, $base:ident, $bonus:ident, $cost:ident, $variant:ident) => {
+                split! {
+                    children: (
+                        text! {
+                            text: $label,
+                            color: korangar_interface::theme::theme().text().highlight_color(),
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        text! {
+                            text: PartialEqDisplaySelector::new(self.player_path.$base()),
+                            horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        text! {
+                            text: StatTextSelector::new(self.player_path.$bonus()),
+                            horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        text! {
+                            text: CostTextSelector::new(self.player_path.$cost()),
+                            horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        button! {
+                            text: "+",
+                            disabled: disabled_cutoff(self.player_path.stat_points(), self.player_path.$cost()),
+                            event: InputEvent::StatUp { stat_type: StatUpType::$variant { amount: 1 } },
+                        },
+                    ),
+                }
+            };
+        }
+
+        let left_summary = fragment! {
+            gaps: 2.0,
+            children: (
+                summary_row!("⚔ Atk", display(self.player_path, |player| format!("{} + {}", player.attack, player.bonus_attack))),
+                summary_row!("✦ Matk", display(self.player_path, |player| format!("{} ~ {}", player.magic_attack_min, player.magic_attack_max))),
+                summary_row!("◈ Hit", display(self.player_path, |player| player.hit.to_string())),
+                summary_row!("✹ Crit", display(self.player_path, |player| player.critical.to_string())),
+                summary_row!("➶ Range", display(self.player_path, |player| player.attack_range.0.to_string())),
+            ),
+        };
+
+        let right_summary = fragment! {
+            gaps: 2.0,
+            children: (
+                summary_row!("⛨ Def", display(self.player_path, |player| format!("{} + {}", player.defense, player.bonus_defense))),
+                summary_row!("✧ Mdef", display(self.player_path, |player| format!("{} + {}", player.magic_defense, player.bonus_magic_defense))),
+                summary_row!("➹ Flee", display(self.player_path, |player| format!("{} + {}", player.flee, player.perfect_dodge))),
+                summary_row!("⚡ Aspd", display(self.player_path, |player| player.attack_speed.to_string())),
+                summary_row!("➟ Speed", display(self.player_path, |player| format!("{}%", player.movement_speed() * 100 / 150))),
+            ),
+        };
+
+        let summary = split! {
+            gaps: 14.0,
+            children: (left_summary, right_summary),
+        };
+
+        let header = split! {
+            children: (
+                text! { text: "", overflow_behavior: OverflowBehavior::Shrink },
+                text! {
+                    text: "Base",
+                    horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
+                text! {
+                    text: "Bonus",
+                    horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
+                text! {
+                    text: "Cost",
+                    horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
+                text! { text: "", overflow_behavior: OverflowBehavior::Shrink },
+            ),
+        };
+
         window! {
             title: client_state().localization().stats_window_title(),
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             closable: true,
+            minimum_width: 360.0,
+            maximum_width: 420.0,
             elements: (
+                summary,
+                header,
+                stat_row!("Str", strength, bonus_strength, strength_stat_points_cost, Strength),
+                stat_row!("Agi", agility, bonus_agility, agility_stat_points_cost, Agility),
+                stat_row!("Vit", vitality, bonus_vitality, vitality_stat_points_cost, Vitality),
+                stat_row!("Int", intelligence, bonus_intelligence, intelligence_stat_points_cost, Intelligence),
+                stat_row!("Dex", dexterity, bonus_dexterity, dexterity_stat_points_cost, Dexterity),
+                stat_row!("Luk", luck, bonus_luck, luck_stat_points_cost, Luck),
                 split! {
+                    gaps: 12.0,
                     children: (
-                        text! {
-                            text: client_state().localization().available_stat_points_text(),
-                            overflow_behavior: OverflowBehavior::Shrink,
+                        split! {
+                            children: (
+                                text! {
+                                    text: "Points Status",
+                                    color: korangar_interface::theme::theme().text().highlight_color(),
+                                    overflow_behavior: OverflowBehavior::Shrink,
+                                },
+                                text! {
+                                    text: PartialEqDisplaySelector::new(self.player_path.stat_points()),
+                                    horizontal_alignment: HorizontalAlignment::Right { offset: 4.0, border: 4.0 },
+                                    overflow_behavior: OverflowBehavior::Shrink,
+                                },
+                            ),
                         },
-                        text! {
-                            text: PartialEqDisplaySelector::new(self.player_path.stat_points()),
-                            horizontal_alignment: HorizontalAlignment::Right { offset: 5.0, border: 5.0 },
-                            overflow_behavior: OverflowBehavior::Shrink,
+                        button! {
+                            text: "Details",
+                            event: NoopClick,
                         },
                     ),
                 },
-                stat_row!(strength_text, strength, bonus_strength, strength_stat_points_cost, Strength),
-                stat_row!(agility_text, agility, bonus_agility, agility_stat_points_cost, Agility),
-                stat_row!(vitality_text, vitality, bonus_vitality, vitality_stat_points_cost, Vitality),
-                stat_row!(intelligence_text, intelligence, bonus_intelligence, intelligence_stat_points_cost, Intelligence),
-                stat_row!(dexterity_text, dexterity, bonus_dexterity, dexterity_stat_points_cost, Dexterity),
-                stat_row!(luck_text, luck, bonus_luck, luck_stat_points_cost, Luck),
             ),
         }
     }

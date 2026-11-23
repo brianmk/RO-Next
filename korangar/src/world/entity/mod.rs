@@ -1413,6 +1413,12 @@ pub struct Player {
 }
 
 impl Player {
+    /// Current movement speed (`SP_SPEED` / `ZC_NOTIFY_MOVESPEED`), used by the
+    /// status window's Speed line.
+    pub fn movement_speed(&self) -> usize {
+        self.common.movement_speed
+    }
+
     /// This function creates the player entity free-floating in the
     /// "void". When a new map is loaded on map change, the server sends
     /// the correct position we need to position the player to.

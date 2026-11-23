@@ -4794,7 +4794,7 @@ impl Client {
                     // entity-level check used option bit 0x8, which is actually
                     // OPTION_CART (merchants), so it tinted cart users red and
                     // never applied the tint from status changes.
-                    if matches!(status_index, 23 | 86 | 147) {
+                    if matches!(status_index, 23 | 86 | 132 | 147) {
                         if let Some(entity) = self
                             .client_state
                             .follow_mut(client_state().entities())
@@ -4805,6 +4805,8 @@ impl Client {
                                 (false, _) => None,
                                 (true, 23 | 147) => Some(Color::rgb(1.0, 0.45, 0.45)),
                                 (true, 86) => Some(Color::rgb(1.0, 0.75, 0.75)),
+                                // rustnarok-client `prims/walls.rs` Berserk body tint #FA7878.
+                                (true, 132) => Some(Color::rgb(250.0 / 255.0, 120.0 / 255.0, 120.0 / 255.0)),
                                 _ => None,
                             };
                             entity.set_status_tint(tint);
