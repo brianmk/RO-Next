@@ -21,7 +21,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 500,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -35,7 +35,7 @@
      "attached_entity": true,
      "file": "effect\\대폭발.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 500,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -57,7 +57,7 @@
      "attached_entity": true,
      "file": "effect\\endure.tga",
      "size": 21.25,
-     "duration_ms": 800,
+     "duration_ms": 1333,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -68,7 +68,7 @@
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 1333,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -89,7 +89,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_blue.tga",
-     "duration_ms": 1500,
+     "duration_ms": 2667,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -115,7 +115,7 @@
      "files": [
       "이팩트\\fireball"
      ],
-     "duration_ms": 0,
+     "duration_ms": 1667,
      "phase": "Success"
     }
    ]
@@ -141,9 +141,9 @@
       "effect\\불화살5.tga",
       "effect\\불화살6.tga"
      ],
-     "frame_ms": 80,
+     "frame_ms": 444,
      "size": 11.9,
-     "duration_ms": 480,
+     "duration_ms": 2664,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -155,7 +155,7 @@
      "files": [
       "이팩트\\particle4"
      ],
-     "duration_ms": 0,
+     "duration_ms": 2667,
      "phase": "Success"
     },
     {
@@ -163,7 +163,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 2667,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -188,7 +188,7 @@
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
      "size": 4.25,
-     "duration_ms": 800,
+     "duration_ms": 1667,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -199,7 +199,7 @@
      "attached_entity": true,
      "file": "effect\\pok1.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 1667,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -220,7 +220,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
-     "duration_ms": 1500,
+     "duration_ms": 16650,
      "height": 2.0,
      "bottom_radius": 9.0,
      "top_radius": 9.0,
@@ -234,7 +234,7 @@
      "attached_entity": true,
      "file": "EFFECT\\alpha_center.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 16650,
      "alpha": 0.7843137254901961,
      "blend": "Additive",
      "phase": "Success"
@@ -255,7 +255,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
-     "duration_ms": 1500,
+     "duration_ms": 2500,
      "height": 2.0,
      "bottom_radius": 9.0,
      "top_radius": 9.0,
@@ -286,7 +286,7 @@
      "files": [
       "이팩트\\particle7"
      ],
-     "duration_ms": 0,
+     "duration_ms": 833,
      "phase": "Success"
     }
    ]
@@ -307,7 +307,7 @@
      "files": [
       "이팩트\\particle2"
      ],
-     "duration_ms": 0,
+     "duration_ms": 1667,
      "phase": "Success"
     }
    ]
@@ -327,7 +327,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 4167,
      "height": 15.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -354,7 +354,7 @@
      "files": [
       "이팩트\\창"
      ],
-     "duration_ms": 0,
+     "duration_ms": 4167,
      "phase": "Success"
     }
    ]
@@ -375,7 +375,7 @@
      "files": [
       "이팩트\\particle1"
      ],
-     "duration_ms": 0,
+     "duration_ms": 16650,
      "phase": "Success"
     }
    ]
@@ -396,7 +396,7 @@
      "files": [
       "Shadow"
      ],
-     "duration_ms": 0,
+     "duration_ms": 4167,
      "phase": "Success"
     },
     {
@@ -404,7 +404,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 4167,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -432,9 +432,9 @@
       "effect\\thunder_ball_b.bmp",
       "effect\\thunder_ball_c.bmp"
      ],
-     "frame_ms": 80,
+     "frame_ms": 500,
      "size": 3.8249999999999997,
-     "duration_ms": 240,
+     "duration_ms": 1500,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -457,7 +457,7 @@
      "files": [
       "이팩트\\Waterball"
      ],
-     "duration_ms": 0,
+     "duration_ms": 1667,
      "phase": "Success"
     }
    ]
@@ -477,7 +477,7 @@
      "attached_entity": true,
      "file": "EFFECT\\alpha_center.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 4167,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -489,7 +489,7 @@
      "files": [
       "이팩트\\particle1"
      ],
-     "duration_ms": 0,
+     "duration_ms": 4167,
      "phase": "Success"
     }
    ]
@@ -532,7 +532,7 @@
      "files": [
       "이팩트\\particle1"
      ],
-     "duration_ms": 0,
+     "duration_ms": 1167,
      "phase": "Success"
     }
    ]
@@ -552,7 +552,7 @@
      "anchor": "Target",
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
-     "duration_ms": 1500,
+     "duration_ms": 667,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -596,7 +596,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 16650,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -610,7 +610,7 @@
      "attached_entity": true,
      "file": "effect\\대폭발.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 16650,
      "alpha": 0.9,
      "blend": "Additive",
      "phase": "Success"
@@ -652,7 +652,7 @@
      "attached_entity": true,
      "file": "effect\\lens2.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 5000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -694,7 +694,7 @@
      "attached_entity": true,
      "file": "유저인터페이스\\item\\빈병.bmp",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 5000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -815,7 +815,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_white.tga",
-     "duration_ms": 1500,
+     "duration_ms": 16650,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -828,7 +828,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 16650,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -852,7 +852,7 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "duration_ms": 1500,
+     "duration_ms": 3333,
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -877,7 +877,7 @@
      "attached_entity": true,
      "file": "effect\\pok1.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 1667,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -888,7 +888,7 @@
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
      "size": 7.65,
-     "duration_ms": 800,
+     "duration_ms": 1667,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -931,6 +931,384 @@
       "이팩트\\침투경_"
      ],
      "duration_ms": 267
+    }
+   ]
+  },
+  {
+   "skill": 306,
+   "name": "BD_LULLABY",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\zz.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 307,
+   "name": "BD_RICHMANKIM",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\pocket.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 308,
+   "name": "BD_ETERNALCHAOS",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\twirl.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 309,
+   "name": "BD_DRUMBATTLEFIELD",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "frames": [
+      "effect\\melody_a.bmp",
+      "effect\\melody_b.bmp"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 1000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 310,
+   "name": "BD_RINGNIBELUNGEN",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\twirl.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 311,
+   "name": "BD_ROKISWEIL",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\safeline.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 312,
+   "name": "BD_INTOABYSS",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "frames": [
+      "effect\\레드젬스톤.bmp",
+      "effect\\블루젬스톤.bmp",
+      "effect\\옐로우젬스톤.bmp"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 1500,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 313,
+   "name": "BD_SIEGFRIED",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\twirl.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 319,
+   "name": "BA_WHISTLE",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\melody_b.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 320,
+   "name": "BA_ASSASSINCROSS",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 3.4,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 321,
+   "name": "BA_POEMBRAGI",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "frames": [
+      "effect\\spell_01.bmp",
+      "effect\\spell_02.bmp",
+      "effect\\spell_03.bmp",
+      "effect\\spell_04.bmp",
+      "effect\\spell_05.bmp",
+      "effect\\spell_06.bmp",
+      "effect\\spell_07.bmp",
+      "effect\\spell_08.bmp"
+     ],
+     "frame_ms": 500,
+     "size": 6.8,
+     "duration_ms": 4000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 322,
+   "name": "BA_APPLEIDUN",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\idun_apple.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 327,
+   "name": "DC_HUMMING",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\melody_a.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 328,
+   "name": "DC_DONTFORGETME",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 3.4,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 329,
+   "name": "DC_FORTUNEKISS",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\kiss.bmp",
+     "size": 6.8,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 330,
+   "name": "DC_SERVICEFORYOU",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\cloud11.tga",
+     "size": 3.4,
+     "duration_ms": 30000,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -983,7 +1361,7 @@
      "attached_entity": true,
      "file": "effect\\explosive_1_128.bmp",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 5000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1006,7 +1384,7 @@
      "files": [
       "이팩트\\particle1"
      ],
-     "duration_ms": 0,
+     "duration_ms": 3333,
      "phase": "Success"
     }
    ]
@@ -1047,7 +1425,7 @@
      "files": [
       "이팩트\\particle3"
      ],
-     "duration_ms": 0,
+     "duration_ms": 2000,
      "phase": "Success"
     }
    ]
@@ -1147,7 +1525,7 @@
      "attached_entity": true,
      "file": "effect\\fire_ivy.bmp",
      "size": 8.5,
-     "duration_ms": 800,
+     "duration_ms": 30000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1306,7 +1684,7 @@
      "attached_entity": true,
      "file": "effect\\ac_center2.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 3317,
      "alpha": 0.7058823529411765,
      "blend": "Additive",
      "tint": [
@@ -1321,7 +1699,7 @@
      "anchor": "Target",
      "attached_entity": true,
      "file": "effect\\alpha_down.tga",
-     "duration_ms": 1500,
+     "duration_ms": 3317,
      "height": 20.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
@@ -1335,7 +1713,7 @@
      "attached_entity": false,
      "file": "유저인터페이스\\item\\버서크포션.bmp",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 5000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1551,9 +1929,9 @@
       "effect\\super4.bmp",
       "effect\\super5.bmp"
      ],
-     "frame_ms": 80,
+     "frame_ms": 500,
      "size": 6.8,
-     "duration_ms": 400,
+     "duration_ms": 2500,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1739,7 +2117,7 @@
      "attached_entity": true,
      "file": "effect\\ac_center2.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 1667,
      "alpha": 0.23529411764705882,
      "blend": "Additive",
      "phase": "Success"
@@ -1811,7 +2189,7 @@
      "attached_entity": true,
      "file": "유저인터페이스\\item\\풍마_열화.bmp",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 3333,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1834,7 +2212,7 @@
      "files": [
       "이팩트\\sakura01"
      ],
-     "duration_ms": 0,
+     "duration_ms": 5000,
      "phase": "Success"
     },
     {
@@ -1843,7 +2221,7 @@
      "attached_entity": true,
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
-     "duration_ms": 800,
+     "duration_ms": 5000,
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
@@ -1886,7 +2264,7 @@
      "files": [
       "이팩트\\썬더스톰"
      ],
-     "duration_ms": 0,
+     "duration_ms": 1667,
      "phase": "Success"
     }
    ]

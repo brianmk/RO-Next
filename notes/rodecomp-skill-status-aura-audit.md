@@ -225,8 +225,8 @@ are not reproduced yet.
 
 ### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
-`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (72 skills,
-98 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
+`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (88 skills,
+117 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
 the official rows and **appends** to the `(skill, phase)` descriptor (it never removes a layer).
 
 Selection rule: the official C++ switch plays an effect for the skill **and** the effect id is
@@ -313,10 +313,16 @@ documented here instead of being faked with a glow.
 ## 5. Remaining gaps (deliberately not changed)
 
 1. **Version-sensitive effect ids.** rodecomp is a 2026 client; 71 learnable skills have effect
-   ids that differ from the roBrowser-derived table. The classic example is the bard/dancer songs:
-   rodecomp plays `842..848` (`w_bubble%02d` animated bubbles) while our 2019-era table has
-   `278..294`. Changing those needs the 2019 executable as ground truth, not rodecomp.
-2. **Skills with rows that still miss official layers**: 29 of the 64 covered skills. The remaining ones are mostly effects whose asset a single primitive cannot
+   ids that differ from the roBrowser-derived table. Where the 2019 mapping is corroborated by the
+   effect name it is used, with the implementation taken from the decompiled 2026 client for that
+   old id: this is how the bard/dancer songs are resolved - our client plays the dedicated
+   `EF_BOTTOM_LULLABY`/`RIchmankim`/... (278-294) sprites, not the 2026 `EF_BEGINSPELL_N*`
+   `w_bubble%02d` swirl, and both ids still exist in the decompilation. The remaining drift
+   skills are left untouched because the corroboration is missing (e.g. Enchant Poison: the
+   official code says `EF_ENCHANTPOISON` (125), the 2019 table says `EF_PATTACK` (20)).
+2. **Skills with rows that still miss official layers**: 13 of the 64 covered skills (the 16
+   bard/dancer songs are no longer counted: their 2019 effect is the dedicated `EF_BOTTOM_*`
+   sprite, which is now rendered - the 2026 `w_bubble%02d` swirl is a client rework, not a gap). The remaining ones are mostly effects whose asset a single primitive cannot
    express (multi-frame `%02d` sequences such as `w_bubble%02d`, `thunder_ball_a..c`,
    `불화살1..4`), UI item textures (potion bottle, weapon icons) and a few textures whose
    primitive has no korangar equivalent. `AL_HEAL` 28 now gets the official `alpha_down` layer;
@@ -356,7 +362,7 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 482 phases / 696 layers
+./tools/gen_skill_effects.py --check        # 482 phases / 699 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
