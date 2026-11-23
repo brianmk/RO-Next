@@ -615,6 +615,47 @@
    ]
   },
   {
+   "skill": 130,
+   "name": "HT_DETECTING",
+   "effect_ids": [
+    119
+   ],
+   "evidence": "EF_DETECTING -> TexturedSkillAura(0): expanding aura ring + hunter_detecting.wav (RagEffect.cpp 23953-23954)",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_white.tga",
+     "duration_ms": 900,
+     "height": 1.0,
+     "bottom_radius": 3.0,
+     "top_radius": 16.0,
+     "count": 2,
+     "delay_ms": 0,
+     "alpha": 0.5,
+     "blend": "Additive",
+     "wav": "effect\\hunter_detecting.wav"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_white.tga",
+     "duration_ms": 900,
+     "height": 1.0,
+     "bottom_radius": 3.0,
+     "top_radius": 16.0,
+     "count": 2,
+     "delay_ms": 200,
+     "alpha": 0.5,
+     "blend": "Additive",
+     "wav": null
+    }
+   ]
+  },
+  {
    "skill": 136,
    "name": "AS_SONICBLOW",
    "effect_ids": [
@@ -1773,7 +1814,7 @@
    "effect_ids": [
     386
    ],
-   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id | EF_TRUESIGHT: for phase 0..11 TexturedQuadSpin(effect\\alpha_center.tga, phase, 3) + hunter_detecting.wav (RagEffect.cpp 24286-24293)",
    "layers": [
     {
      "kind": "Texture",
@@ -1784,6 +1825,198 @@
      "duration_ms": 4167,
      "alpha": 0.2,
      "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      11.0,
+      12.0,
+      0.0
+     ],
+     "wav": "effect\\hunter_detecting.wav"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      9.53,
+      20.0,
+      5.5
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      5.5,
+      28.0,
+      9.53
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      0.0,
+      12.0,
+      11.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -5.5,
+      20.0,
+      9.53
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -9.53,
+      28.0,
+      5.5
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -11.0,
+      12.0,
+      0.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -9.53,
+      20.0,
+      -5.5
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -5.5,
+      28.0,
+      -9.53
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      -0.0,
+      12.0,
+      -11.0
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      5.5,
+      20.0,
+      -9.53
+     ],
+     "wav": null
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 4.6,
+     "duration_ms": 4167,
+     "alpha": 0.55,
+     "blend": "Additive",
+     "offset": [
+      9.53,
+      28.0,
+      -5.5
+     ],
+     "wav": null
     }
    ]
   },
@@ -3092,6 +3325,55 @@
    ]
   },
   {
+   "skill": 464,
+   "name": "SL_KAUPE",
+   "effect_ids": [
+    542
+   ],
+   "evidence": "EF_BLUEBODY render.flags |= 0x4000: DrawTintedQuad blue (5,5,255); lifetime 200 frames (EffectTypes.cpp)",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      0.02,
+      0.02,
+      1.0
+     ],
+     "hold_ms": 3333,
+     "fade_ms": 0,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 465,
+   "name": "SL_KAITE",
+   "effect_ids": [
+    419,
+    542
+   ],
+   "evidence": "EF_REFLECTBODY (render.flags 0x200) + EF_BLUEBODY blue tinted overlay (0x4000)",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      0.02,
+      0.02,
+      1.0
+     ],
+     "hold_ms": 3333,
+     "fade_ms": 0,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 467,
    "name": "SL_STIN",
    "effect_ids": [
@@ -3498,6 +3780,54 @@
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Cast"
+    }
+   ]
+  },
+  {
+   "skill": 504,
+   "name": "GS_MADNESSCANCEL",
+   "effect_ids": [
+    625
+   ],
+   "evidence": "EF_MADNESS_BLUE render.flags 0x4000: DrawTintedQuad blue (5,5,255); lifetime 60 frames",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      0.02,
+      0.02,
+      1.0
+     ],
+     "hold_ms": 1000,
+     "fade_ms": 0,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 505,
+   "name": "GS_ADJUSTMENT",
+   "effect_ids": [
+    626
+   ],
+   "evidence": "EF_MADNESS_RED render.flags 0x40000: DrawTintedQuad red (255,5,5); lifetime 60 frames",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      1.0,
+      0.02,
+      0.02
+     ],
+     "hold_ms": 1000,
+     "fade_ms": 0,
+     "blend": "Additive"
     }
    ]
   },

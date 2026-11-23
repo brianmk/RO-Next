@@ -97,7 +97,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
 
     let count = rows.len();
     let _ = ARCHIVE.set((default, rows));
-    crate::logging::log_debug!("skill actions: loaded {count} entries, default action {default:?}");
+    crate::logging::log_info!("skill actions: loaded {count} entries, default action {default:?}");
     count
 }
 

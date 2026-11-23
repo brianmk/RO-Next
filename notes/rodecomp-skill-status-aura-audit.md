@@ -481,6 +481,27 @@ Outlines (Kaite/Soul Link/Undead) remain unimplemented: the forward shader
 multiplies texture by the instance colour, so a flat silhouette needs a shader
 branch.
 
+### 5b-2b. Self-buff effects that looked like "no effect"
+
+Three classic self-buffs rendered nothing perceptible because the data carried
+only a single faint quad. The decompilation says:
+
+* `EF_TRUESIGHT` (SN_SIGHT 380, "Falcon Eyes"/True Sight): `for phase 0..11
+  TexturedQuadSpin(effect\alpha_center.tga, phase, 3)` plus
+  `hunter_detecting.wav` (`RagEffect.cpp 24286-24293`) — twelve spinning quads,
+  not one static sprite. The row now emits 12 additive quads placed on a circle
+  around the caster, three heights, with the sound.
+* `EF_DETECTING` (HT_DETECTING 130): `TexturedSkillAura(0)` +
+  `hunter_detecting.wav` (`RagEffect.cpp 23953-23954`) — an expanding aura ring.
+  The row now emits two expanding `ring_white` cylinders on the ground cell.
+
+`SN_WINDWALK` 383 is still incomplete: the 2019 table and the 2026 enum both
+say effect id 389, but 2026 names it `EF_PORTAL4` (id drift), so the 2019
+whirlwind implementation has to be recovered from the 2019 client before the row
+can be finished. `AL_INCAGI` 29 falls into a large no-op case group in
+`OnProcess`; its body visual comes from a status-side path, so the row keeps its
+textures for now.
+
 ### 5b-3. Flag-only skills: what each official effect actually asks for
 
 `tools/rodecomp_effect_flags.json` extracts, for 107 effect ids, the

@@ -460,6 +460,7 @@ pub struct EntityFlash {
     start_tick: ClientTick,
     hold_ms: u32,
     fade_ms: u32,
+    additive: bool,
 }
 
 impl EntityFlash {
@@ -653,13 +654,23 @@ impl Common {
     /// Starts a short body flash (hard-coded skill effect color flash, for
     /// example the yellow `EF_PORTAL5` flash of Zen). Calling this while a
     /// flash is running restarts it.
-    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, client_tick: ClientTick) {
+    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, additive: bool, client_tick: ClientTick) {
         self.body_flash = Some(EntityFlash {
             color,
             start_tick: client_tick,
             hold_ms,
             fade_ms,
+            additive,
         });
+    }
+
+    /// Whether the body sprites currently render with the additive blend
+    /// (status blend or an additive body flash/overlay).
+    fn body_additive(&self, client_tick: ClientTick) -> bool {
+        self.status_body_additive
+            || self
+                .body_flash
+                .is_some_and(|flash| flash.additive && flash.weight(client_tick) > 0.0)
     }
 
     /// Sprite tint of the entity at `client_tick`.
@@ -1356,7 +1367,7 @@ impl Common {
                 tint,
                 self.scale,
                 self.imf.as_deref(),
-                self.status_body_additive,
+                self.body_additive(client_tick),
             );
         }
 
@@ -2374,8 +2385,8 @@ impl Entity {
 
     /// Starts a short body flash (hard-coded skill effect color flash, for
     /// example the yellow `EF_PORTAL5` flash of Zen).
-    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, client_tick: ClientTick) {
-        self.get_common_mut().start_body_flash(color, hold_ms, fade_ms, client_tick);
+    pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, additive: bool, client_tick: ClientTick) {
+        self.get_common_mut().start_body_flash(color, hold_ms, fade_ms, additive, client_tick);
     }
 
     /// Stop the looping skill-cast animation of this entity.

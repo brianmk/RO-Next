@@ -2812,7 +2812,7 @@ impl Client {
                     .iter_mut()
                     .find(|entity| entity.get_entity_id() == source_entity_id)
                 {
-                    entity.start_body_flash(layer.tint, layer.hold_ms, layer.fade_ms, client_tick);
+                    entity.start_body_flash(layer.tint, layer.hold_ms, layer.fade_ms, layer.additive, client_tick);
                 }
             }
             LayerKind::Str => {

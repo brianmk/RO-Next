@@ -515,13 +515,13 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
         .map(|bytes| String::from_utf8_lossy(&bytes).into_owned());
 
     let Some(content) = from_archive.as_deref() else {
-        crate::logging::log_debug!("skill effects: loaded {} phases from the compiled fallback", compiled().len());
+        crate::logging::log_info!("skill effects: loaded {} phases from the compiled fallback", compiled().len());
         return compiled().len();
     };
 
     let descriptors = match parse(content) {
         Ok(descriptors) => {
-            crate::logging::log_debug!("skill effects: loaded {} phases from the archive", descriptors.len());
+            crate::logging::log_info!("skill effects: loaded {} phases from the archive", descriptors.len());
             descriptors
         }
         Err(error) => {

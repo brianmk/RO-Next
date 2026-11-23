@@ -926,6 +926,14 @@
             ],
         ),
         (
+            skill: 130,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 900, count: 2, height: 1.0, bottom_radius: 3.0, top_radius: 16.0, alpha: 0.5, blend: Additive, wav: "effect\\hunter_detecting.wav"),
+                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 900, delay_ms: 200, count: 2, height: 1.0, bottom_radius: 3.0, top_radius: 16.0, alpha: 0.5, blend: Additive),
+            ],
+        ),
+        (
             skill: 131,
             phase: Success,
             layers: [
@@ -1986,6 +1994,18 @@
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (11.0, 12.0, 0.0), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive, wav: "effect\\hunter_detecting.wav"),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (9.53, 20.0, 5.5), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (5.5, 28.0, 9.53), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 12.0, 11.0), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-5.5, 20.0, 9.53), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-9.53, 28.0, 5.5), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-11.0, 12.0, 0.0), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-9.53, 20.0, -5.5), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-5.5, 28.0, -9.53), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 12.0, -11.0), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (5.5, 20.0, -9.53), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (9.53, 28.0, -5.5), size: 4.6, duration_ms: 4167, alpha: 0.55, blend: Additive),
             ],
         ),
         (
@@ -2401,6 +2421,20 @@
             ],
         ),
         (
+            skill: 464,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.02, 0.02, 1.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 465,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.02, 0.02, 1.0), blend: Additive),
+            ],
+        ),
+        (
             skill: 467,
             phase: Success,
             layers: [
@@ -2569,6 +2603,20 @@
             action: Attack,
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: true, file: "불스아이.str"),
+            ],
+        ),
+        (
+            skill: 504,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.02, 0.02, 1.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 505,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (1.0, 0.02, 0.02), blend: Additive),
             ],
         ),
         (

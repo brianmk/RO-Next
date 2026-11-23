@@ -371,7 +371,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
 
     let Some(content) = from_archive.as_deref() else {
         let count = compiled().visuals.len();
-        crate::logging::log_debug!("status visuals: loaded {count} rows from the compiled fallback");
+        crate::logging::log_info!("status visuals: loaded {count} rows from the compiled fallback");
         return count;
     };
 
@@ -379,7 +379,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
         Ok(table) => {
             let count = table.visuals.len();
             let _ = ARCHIVE.set(table);
-            crate::logging::log_debug!("status visuals: loaded {count} rows from the archive override");
+            crate::logging::log_info!("status visuals: loaded {count} rows from the archive override");
             count
         }
         Err(error) => {
