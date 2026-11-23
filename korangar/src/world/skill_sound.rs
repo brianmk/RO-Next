@@ -77,6 +77,10 @@ pub(crate) struct SkillSoundGate {
     /// Last sound that actually played per entity: (skill id, client tick).
     /// Collapses duplicate completion packets of one cast.
     played: HashMap<EntityId, (SkillId, ClientTick)>,
+    /// Cast-time skills whose official sound is the generic cast/begin-spell
+    /// sound (`ef_beginspell.wav`): the sound starts with the cast and the
+    /// completion packet must not play it again.
+    started: HashMap<EntityId, (SkillId, ClientTick)>,
 }
 
 impl SkillSoundGate {
@@ -90,6 +94,17 @@ impl SkillSoundGate {
         self.pending.insert(entity_id, (skill_id, client_tick));
     }
 
+    /// Claims the cast/begin-spell sound at cast start for a cast-time skill.
+    ///
+    /// Only generic `ef_beginspell.wav` rows are played at cast start; effect
+    /// sounds of cast-time skills still wait for their completion packet.
+    pub(crate) fn claim_cast_start(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
+        self.retain(client_tick);
+        self.pending.remove(&entity_id);
+        self.started.insert(entity_id, (skill_id, client_tick));
+        true
+    }
+
     /// Claims the sound on the completion packet (`ZC_USE_SKILL`,
     /// `ZC_USESKILL_ACK` completion and ground-skill packets).
     ///
@@ -100,6 +115,11 @@ impl SkillSoundGate {
     /// suppressed.
     pub(crate) fn claim_completion(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
         self.retain(client_tick);
+
+        if matches!(self.started.remove(&entity_id), Some((started_skill, _)) if started_skill == skill_id) {
+            // The cast-start sound already played for this cast.
+            return false;
+        }
 
         if self.take_pending(entity_id, skill_id, client_tick) {
             self.played.insert(entity_id, (skill_id, client_tick));
@@ -136,12 +156,14 @@ impl SkillSoundGate {
     pub(crate) fn clear_entity(&mut self, entity_id: EntityId) {
         self.pending.remove(&entity_id);
         self.played.remove(&entity_id);
+        self.started.remove(&entity_id);
     }
 
     /// Forgets all entities, e.g. on a map change.
     pub(crate) fn clear(&mut self) {
         self.pending.clear();
         self.played.clear();
+        self.started.clear();
     }
 
     fn take_pending(&mut self, entity_id: EntityId, skill_id: SkillId, client_tick: ClientTick) -> bool {
@@ -166,6 +188,8 @@ impl SkillSoundGate {
         self.pending
             .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_STATE_RETENTION_MS);
         self.played
+            .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_STATE_RETENTION_MS);
+        self.started
             .retain(|_, (_, tick)| client_tick.0.wrapping_sub(tick.0) < CAST_SOUND_STATE_RETENTION_MS);
     }
 }
@@ -443,6 +467,14 @@ pub(crate) fn skill_sound_candidates_for(skill_id: SkillId, phase: crate::world:
     }
 
     crate::world::skill_sound_files(skill_id).unwrap_or_else(crate::world::generic_cast_sound_files)
+}
+
+/// Whether a skill's official sound is the generic cast/begin-spell sound and
+/// therefore belongs at the **start** of its cast time (Dangerous Soul Collect,
+/// Zen and similar long-cast support skills) instead of at completion.
+pub(crate) fn skill_sound_is_cast_start(skill_id: SkillId) -> bool {
+    let candidates = skill_sound_candidates_for(skill_id, crate::world::SkillPhase::Success);
+    !candidates.is_empty() && candidates.iter().all(|wav| wav.ends_with("ef_beginspell.wav"))
 }
 
 /// Normalizes a `ZC_SOUND` name to the path that the audio engine expects

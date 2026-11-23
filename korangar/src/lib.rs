@@ -3952,6 +3952,24 @@ impl Client {
                     // `SkillNoDamage`/`DamageEffect`.
                     if !has_cast_time {
                         self.skill_sound_gate.remember_instant_cast(source_entity_id, skill_id, client_tick);
+                    } else if crate::world::skill_sound_is_cast_start(skill_id)
+                        && self.skill_sound_gate.claim_cast_start(source_entity_id, skill_id, client_tick)
+                    {
+                        // Dangerous Soul Collect/Zen and similar long casts use
+                        // the generic begin-spell sound: it belongs at the
+                        // start of the cast, not after the cast finished.
+                        let sound_position = self
+                            .client_state
+                            .follow(client_state().entities())
+                            .iter()
+                            .find(|entity| entity.get_entity_id() == source_entity_id)
+                            .map(|entity| entity.get_position());
+                        self.skill_sounds.play_skill_sound_for_phase(
+                            skill_id,
+                            crate::world::SkillPhase::Success,
+                            Some(source_entity_id),
+                            sound_position,
+                        );
                     }
                 }
                 NetworkEvent::SkillNoDamage {
