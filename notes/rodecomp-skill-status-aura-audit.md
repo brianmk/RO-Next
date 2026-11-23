@@ -223,6 +223,18 @@ Statuses whose official visual is a sprite-level flag are handled separately in 
 the colour tints and cloaking fades are real data, the weapon blend/blink and sprite outlines
 are not reproduced yet.
 
+### 4.2a Cast-begin effects (`GetSkillActionInfo`'s `effectId`)
+
+The official client launches one more effect on the caster when a skill starts:
+`CSession::GetSkillActionInfo` sets `effectId` and `LaunchSkillActorEffect`
+plays it at the cast begin. 21 learnable skills have such a begin effect whose
+assets were not in our data (the completion effect was there, the cast ring was
+not), e.g. Concentration (`EF_INCAGIDEX`: `dex_agi_up.bmp` + `ac_center2`),
+Arrow Vulcan (`EF_BEGINSPELL6`: white ring), Twilight Alchemy (`EF_TWILIGHT*`:
+the thrown potion texture). They are now appended as `Cast`-phase layers on the
+caster; the extracted table is `rodecomp_skill_begin_effects.json` in the audit
+workspace and the merged overlay has 125 skills / 196 layers.
+
 ### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
 `tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (109 skills,
@@ -486,7 +498,7 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 501 phases / 756 layers
+./tools/gen_skill_effects.py --check        # 521 phases / 778 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 ./tools/gen_skill_sounds.py --check        # 8 curated + 378 official sounds
@@ -496,7 +508,7 @@ python3 tools/test_rodecomp_motions.py      # 3 animation-facts tests
 # in-client verification (Xvfb + live server, test account):
 #   KORANGAR_BENCH=skills KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
 #   KORANGAR_BENCH_SKILLS="34,306,19,451,355" ../target/release/korangar
-korangar --check-skill-effects              # 501 descriptors valid
+korangar --check-skill-effects              # 521 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```

@@ -1,0 +1,778 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d - CSession::GetSkillActionInfo / GetSkillActionInfo2 explicit `effectId = EF_*` assignments",
+  "note": "The official client launches this effect on the caster when the skill starts (LaunchSkillActorEffect); it is the cast-begin visual, separate from the completion effect. EF_NONE (-1) skills have no begin effect and are kept for completeness."
+ },
+ "skills": {
+  "45": {
+   "name": "AC_CONCENTRATION",
+   "effect": "EF_INCAGIDEX",
+   "effect_id": 43
+  },
+  "47": {
+   "name": "AC_SHOWER",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "57": {
+   "name": "KN_BRANDISHSPEAR",
+   "effect": "EF_BRANDISH2",
+   "effect_id": 144
+  },
+  "59": {
+   "name": "KN_SPEARBOOMERANG",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "151": {
+   "name": "TF_PICKSTONE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "152": {
+   "name": "TF_THROWSTONE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "247": {
+   "name": "AM_RESURRECTHOMUN",
+   "effect": "EF_COUPLECASTING",
+   "effect_id": 342
+  },
+  "322": {
+   "name": "BA_APPLEIDUN",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "335": {
+   "name": "WE_FEMALE",
+   "effect": "EF_HEARTCASTING",
+   "effect_id": 343
+  },
+  "347": {
+   "name": "NPC_UNDEADATTACK",
+   "effect": "EF_DARKCASTING",
+   "effect_id": 454
+  },
+  "364": {
+   "name": "HW_SOULDRAIN",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "389": {
+   "name": "ST_CHASEWALK",
+   "effect": "EF_AUTOSHADOWSPELL_ACTIVE",
+   "effect_id": 1195
+  },
+  "394": {
+   "name": "CG_ARROWVULCAN",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "397": {
+   "name": "LK_SPIRALPIERCE",
+   "effect": "EF_PIERCEBODY",
+   "effect_id": 502
+  },
+  "419": {
+   "name": "TK_COUNTER",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "430": {
+   "name": "SG_STAR_WARM",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "433": {
+   "name": "SG_STAR_COMFORT",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "446": {
+   "name": "AM_BERSERKPITCHER",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "475": {
+   "name": "ST_PRESERVE",
+   "effect": "EF_BEGINSPELL7",
+   "effect_id": 59
+  },
+  "479": {
+   "name": "CR_FULLPROTECTION",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "488": {
+   "name": "CG_HERMODE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "490": {
+   "name": "CR_ACIDDEMONSTRATION",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "493": {
+   "name": "TK_MISSION",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "496": {
+   "name": "AM_TWILIGHT1",
+   "effect": "EF_TWILIGHT1",
+   "effect_id": 573
+  },
+  "497": {
+   "name": "AM_TWILIGHT2",
+   "effect": "EF_TWILIGHT2",
+   "effect_id": 574
+  },
+  "498": {
+   "name": "AM_TWILIGHT3",
+   "effect": "EF_TWILIGHT3",
+   "effect_id": 575
+  },
+  "517": {
+   "name": "GS_GATLINGFEVER",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "521": {
+   "name": "GS_GROUNDDRIFT",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "536": {
+   "name": "NJ_BAKUENRYU",
+   "effect": "EF_BEGINSPELL3",
+   "effect_id": 55
+  },
+  "538": {
+   "name": "NJ_SUITON",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "539": {
+   "name": "NJ_HYOUSYOURAKU",
+   "effect": "EF_BEGINSPELL2",
+   "effect_id": 54
+  },
+  "542": {
+   "name": "NJ_KAMAITACHI",
+   "effect": "EF_BEGINSPELL5",
+   "effect_id": 57
+  },
+  "543": {
+   "name": "NJ_NEN",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "689": {
+   "name": "CASH_BLESSING",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "690": {
+   "name": "CASH_INCAGI",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "712": {
+   "name": "NPC_PULSESTRIKE2",
+   "effect": "EF_BEGINSPELL7",
+   "effect_id": 59
+  },
+  "719": {
+   "name": "NPC_HELLBURNING",
+   "effect": "EF_FIREHIT",
+   "effect_id": 49
+  },
+  "1004": {
+   "name": "AS_VENOMKNIFE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "1008": {
+   "name": "SA_ELEMENTWATER",
+   "effect": "EF_BEGINSPELL2",
+   "effect_id": 54
+  },
+  "1011": {
+   "name": "DC_WINKCHARM",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "1013": {
+   "name": "BS_GREED",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "1014": {
+   "name": "PR_REDEMPTIO",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "1017": {
+   "name": "SA_ELEMENTGROUND",
+   "effect": "EF_BEGINSPELL4",
+   "effect_id": 56
+  },
+  "1018": {
+   "name": "SA_ELEMENTFIRE",
+   "effect": "EF_BEGINSPELL3",
+   "effect_id": 55
+  },
+  "1019": {
+   "name": "SA_ELEMENTWIND",
+   "effect": "EF_BEGINSPELL5",
+   "effect_id": 57
+  },
+  "2002": {
+   "name": "RK_SONICWAVE",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2027": {
+   "name": "GC_POISONINGWEAPON",
+   "effect": "EF_PURPLEBODY",
+   "effect_id": 768
+  },
+  "2029": {
+   "name": "GC_COUNTERSLASH",
+   "effect": "EF_PURPLEBODY",
+   "effect_id": 768
+  },
+  "2032": {
+   "name": "GC_POISONSMOKE",
+   "effect": "EF_POISONWAV",
+   "effect_id": 771
+  },
+  "2052": {
+   "name": "AB_CLEARANCE",
+   "effect": "EF_NEW_HEAL_WHITE",
+   "effect_id": 1560
+  },
+  "2055": {
+   "name": "AB_DUPLELIGHT_MELEE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2204": {
+   "name": "WL_JACKFROST",
+   "effect": "EF_NEW_FROSTMISTY",
+   "effect_id": 1449
+  },
+  "2213": {
+   "name": "WL_COMET",
+   "effect": "EF_NEW_MOON_SLASH",
+   "effect_id": 1418
+  },
+  "2217": {
+   "name": "WL_TETRAVORTEX",
+   "effect": "EF_TETRACASTING",
+   "effect_id": 805
+  },
+  "2246": {
+   "name": "RA_SENSITIVEKEEN",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2259": {
+   "name": "NC_FLAMELAUNCHER",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2261": {
+   "name": "NC_ARMSCANNON",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2265": {
+   "name": "NC_B_SIDESLIDE",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2267": {
+   "name": "NC_SELFDESTRUCTION",
+   "effect": "EF_CASTSPIN2",
+   "effect_id": 775
+  },
+  "2269": {
+   "name": "NC_EMERGENCYCOOL",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2270": {
+   "name": "NC_INFRAREDSCAN",
+   "effect": "EF_RED_HIT",
+   "effect_id": 548
+  },
+  "2272": {
+   "name": "NC_MAGNETICFIELD",
+   "effect": "EF_BEGINSPELL2",
+   "effect_id": 54
+  },
+  "2274": {
+   "name": "NC_STEALTHFIELD",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2275": {
+   "name": "NC_REPAIR",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "2278": {
+   "name": "NC_AXEBOOMERANG",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2279": {
+   "name": "NC_POWERSWING",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2280": {
+   "name": "NC_AXETORNADO",
+   "effect": "EF_CASTSPIN2",
+   "effect_id": 775
+  },
+  "2285": {
+   "name": "SC_REPRODUCE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2286": {
+   "name": "SC_AUTOSHADOWSPELL",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2287": {
+   "name": "SC_SHADOWFORM",
+   "effect": "EF_DARKCASTING2",
+   "effect_id": 826
+  },
+  "2288": {
+   "name": "SC_TRIANGLESHOT",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2298": {
+   "name": "SC_STRIPACCESSARY",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2302": {
+   "name": "SC_MAELSTROM",
+   "effect": "EF_NEW_HEAL_BLUE",
+   "effect_id": 1556
+  },
+  "2304": {
+   "name": "SC_FEINTBOMB",
+   "effect": "EF_CASTSPIN",
+   "effect_id": 501
+  },
+  "2313": {
+   "name": "LG_FORCEOFVANGUARD",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2316": {
+   "name": "LG_EXEEDBREAK",
+   "effect": "EF_PRIMECHARGE",
+   "effect_id": 882
+  },
+  "2321": {
+   "name": "LG_RAYOFGENESIS",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2322": {
+   "name": "LG_PIETY",
+   "effect": "EF_BEGINSPELL_N1",
+   "effect_id": 830
+  },
+  "2323": {
+   "name": "LG_EARTHDRIVE",
+   "effect": "EF_NEW_EARTHDRIVE_CAST",
+   "effect_id": 1709
+  },
+  "2330": {
+   "name": "SR_TIGERCANNON",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2336": {
+   "name": "SR_KNUCKLEARROW",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2343": {
+   "name": "SR_GATEOFHELL",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2382": {
+   "name": "MI_ECHOSONG",
+   "effect": "EF_BEGINSPELL_N7",
+   "effect_id": 844
+  },
+  "2383": {
+   "name": "MI_HARMONIZE",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2413": {
+   "name": "WM_METALICSOUND",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2414": {
+   "name": "WM_REVERBERATION",
+   "effect": "EF_NEW_EPICLESIS_CAST",
+   "effect_id": 1656
+  },
+  "2418": {
+   "name": "WM_SEVERE_RAINSTORM",
+   "effect": "EF_NEW_SEVERERAINSTORM_HIT",
+   "effect_id": 1286
+  },
+  "2419": {
+   "name": "WM_POEMOFNETHERWORLD",
+   "effect": "EF_BEGINSPELL_N3",
+   "effect_id": 840
+  },
+  "2423": {
+   "name": "WM_SIRCLEOFNATURE",
+   "effect": "EF_BEGINSPELL_N4",
+   "effect_id": 841
+  },
+  "2429": {
+   "name": "WM_SOUND_OF_DESTRUCTION",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2431": {
+   "name": "WM_LERADS_DEW",
+   "effect": "EF_BEGINSPELL_N6",
+   "effect_id": 843
+  },
+  "2443": {
+   "name": "SO_FIREWALK",
+   "effect": "EF_BEGINSPELL3",
+   "effect_id": 55
+  },
+  "2444": {
+   "name": "SO_ELECTRICWALK",
+   "effect": "EF_BEGINSPELL5",
+   "effect_id": 57
+  },
+  "2445": {
+   "name": "SO_SPELLFIST",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2446": {
+   "name": "SO_EARTHGRAVE",
+   "effect": "EF_NEW_SANCTUARY",
+   "effect_id": 1664
+  },
+  "2454": {
+   "name": "SO_VARETYR_SPEAR",
+   "effect": "EF_NEW_HEAL_YELLOW",
+   "effect_id": 1565
+  },
+  "2460": {
+   "name": "SO_SUMMON_TERA",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "2478": {
+   "name": "GN_CARTBOOST",
+   "effect": "EF_NEW_SAFETYWALL",
+   "effect_id": 1677
+  },
+  "2482": {
+   "name": "GN_WALLOFTHORN",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2485": {
+   "name": "GN_DEMONIC_FIRE",
+   "effect": "EF_GREENCASTING",
+   "effect_id": 911
+  },
+  "2490": {
+   "name": "GN_HELLS_PLANT",
+   "effect": "EF_GREENCASTING",
+   "effect_id": 911
+  },
+  "2497": {
+   "name": "GN_S_PHARMACY",
+   "effect": "EF_GREENCASTING",
+   "effect_id": 911
+  },
+  "2517": {
+   "name": "SR_HOWLINGOFLION",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2518": {
+   "name": "SR_RIDEINLIGHTNING",
+   "effect": "EF_BEGINSPELL_N2",
+   "effect_id": 831
+  },
+  "2520": {
+   "name": "LG_OVERBRAND_PLUSATK",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2564": {
+   "name": "RL_FALLEN_ANGEL",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2576": {
+   "name": "SJ_FULLMOONKICK",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2580": {
+   "name": "SJ_FLASHKICK",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2581": {
+   "name": "SJ_STAREMPEROR",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "2593": {
+   "name": "SJ_PROMINENCEKICK",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2599": {
+   "name": "SP_SOULFAIRY",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "2608": {
+   "name": "SP_SOULREVOLVE",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "2610": {
+   "name": "SP_SOULEXPLOSION",
+   "effect": "EF_DARKCASTING",
+   "effect_id": 454
+  },
+  "3008": {
+   "name": "KO_MUCHANAGE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5021": {
+   "name": "SU_SCRATCH",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5023": {
+   "name": "SU_LOPE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5043": {
+   "name": "SU_LUNATICCARROTBEAT2",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5065": {
+   "name": "WE_CHEERUP",
+   "effect": "EF_COUPLECASTING",
+   "effect_id": 342
+  },
+  "5072": {
+   "name": "AB_VITUPERATUM",
+   "effect": "EF_BEGINSPELL_N1",
+   "effect_id": 830
+  },
+  "5078": {
+   "name": "WL_READING_SB_READING",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "5238": {
+   "name": "IQ_POWERFUL_FAITH",
+   "effect": "EF_POWERFUL_FAITH_RING",
+   "effect_id": 1986
+  },
+  "5239": {
+   "name": "IQ_FIRM_FAITH",
+   "effect": "EF_FIRM_FAITH_RING",
+   "effect_id": 1998
+  },
+  "5242": {
+   "name": "IQ_SINCERE_FAITH",
+   "effect": "EF_SINCERE_FAITH_RING",
+   "effect_id": 1963
+  },
+  "5244": {
+   "name": "IQ_EXPOSION_BLASTER",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5279": {
+   "name": "CD_PNEUMATICUS_PROCELLA",
+   "effect": "EF_PNEUMATICUS_PROCELLA_RING",
+   "effect_id": 1959
+  },
+  "5284": {
+   "name": "CD_FRAMEN",
+   "effect": "EF_NEW_PRAMEN_RING",
+   "effect_id": 1932
+  },
+  "5294": {
+   "name": "SHC_FATAL_SHADOW_CROW",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5302": {
+   "name": "MT_SUMMON_ABR_BATTLE_WARIOR",
+   "effect": "EF_NEW_BATTLE_W_ENTITY",
+   "effect_id": 1938
+  },
+  "5303": {
+   "name": "MT_SUMMON_ABR_DUAL_CANNON",
+   "effect": "EF_NEW_D_CANNON_ENTITY",
+   "effect_id": 1918
+  },
+  "5304": {
+   "name": "MT_SUMMON_ABR_MOTHER_NET",
+   "effect": "EF_ABR_MOTHER",
+   "effect_id": 1902
+  },
+  "5305": {
+   "name": "MT_SUMMON_ABR_INFINITY",
+   "effect": "EF_ABR_INFINITY_RING",
+   "effect_id": 1910
+  },
+  "5321": {
+   "name": "ABC_ABYSS_SQUARE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5330": {
+   "name": "WH_GALESTORM",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5331": {
+   "name": "WH_DEEPBLINDTRAP",
+   "effect": "EF_NEW_PNEUMA",
+   "effect_id": 1872
+  },
+  "5333": {
+   "name": "WH_SWIFTTRAP",
+   "effect": "EF_NEW_SW_CAST",
+   "effect_id": 1876
+  },
+  "5335": {
+   "name": "WH_FLAMETRAP",
+   "effect": "EF_FLAME_TRAP_RING",
+   "effect_id": 1923
+  },
+  "5343": {
+   "name": "BO_ACIDIFIED_ZONE_FIRE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5381": {
+   "name": "EM_ELEMENTAL_VEIL",
+   "effect": "EF_BEGINSPELL6",
+   "effect_id": 58
+  },
+  "5382": {
+   "name": "ABC_CHAIN_REACTION_SHOT_ATK",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "5385": {
+   "name": "NPC_BO_WOODEN_ATTACK",
+   "effect": "EF_WOODEN_WARRIOR_RING",
+   "effect_id": 2249
+  },
+  "5387": {
+   "name": "NPC_BO_HELL_DUSTY",
+   "effect": "EF_RESEARCH_REPORT_RING",
+   "effect_id": 2240
+  },
+  "5388": {
+   "name": "NPC_BO_FAIRY_DUSTY",
+   "effect": "EF_WOODEN_FAIRY_RING",
+   "effect_id": 2255
+  },
+  "8220": {
+   "name": "ML_AUTOGUARD",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "8222": {
+   "name": "MER_MAGNIFICAT",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "8401": {
+   "name": "EL_CIRCLE_OF_FIRE",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  },
+  "8406": {
+   "name": "EL_WATER_BARRIER",
+   "effect": "EF_BLUECASTING",
+   "effect_id": 441
+  },
+  "8409": {
+   "name": "EL_ZEPHYR",
+   "effect": "EF_GREENCASTING",
+   "effect_id": 911
+  },
+  "8410": {
+   "name": "EL_SOLID_SKIN",
+   "effect": "EF_BEGINSPELL4",
+   "effect_id": 56
+  },
+  "8428": {
+   "name": "EL_FIRE_WAVE",
+   "effect": "EF_BEGINSPELL3",
+   "effect_id": 55
+  },
+  "8433": {
+   "name": "EL_TIDAL_WEAPON",
+   "effect": "EF_BEGINSPELL2",
+   "effect_id": 54
+  },
+  "8435": {
+   "name": "EL_HURRICANE",
+   "effect": "EF_BEGINSPELL5",
+   "effect_id": 57
+  },
+  "8442": {
+   "name": "EL_STONE_RAIN",
+   "effect": "EF_BEGINSPELL4",
+   "effect_id": 56
+  },
+  "8457": {
+   "name": "EM_EL_DEADLY_POISON",
+   "effect": "EF_BEGINSPELL",
+   "effect_id": 12
+  },
+  "8605": {
+   "name": "ABR_INFINITY_BUSTER",
+   "effect": "EF_NONE",
+   "effect_id": -1
+  }
+ }
+}
