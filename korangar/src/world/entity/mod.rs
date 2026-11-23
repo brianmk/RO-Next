@@ -1826,6 +1826,23 @@ impl Entity {
         self.get_common().has_falcon_animation()
     }
 
+    /// Whether this entity currently has a merchant cart option set.
+    pub fn has_cart(&self) -> bool {
+        self.get_common().has_cart()
+    }
+
+    pub fn needs_cart_animation(&self) -> bool {
+        self.get_common().needs_cart_animation()
+    }
+
+    pub fn set_cart_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.get_common_mut().set_cart_animation(animation_data);
+    }
+
+    pub fn has_cart_animation(&self) -> bool {
+        self.get_common().has_cart_animation()
+    }
+
     pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
         self.get_common().get_weapon_part_candidates()
     }
