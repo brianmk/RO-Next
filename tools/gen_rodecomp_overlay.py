@@ -76,6 +76,8 @@ def write_layer(layer: dict) -> str:
         "vertical",
         "file",
         "files",
+        "frames",
+        "frame_ms",
         "primitive",
         "offset",
         "scale",

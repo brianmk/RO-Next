@@ -37,6 +37,8 @@ LAYER_FIELDS = {
     "vertical",
     "file",
     "files",
+    "frames",
+    "frame_ms",
     "primitive",
     "offset",
     "scale",
@@ -105,6 +107,11 @@ class RodecompOverlayTests(unittest.TestCase):
                 self.assertTrue(0.0 <= layer.get("alpha", 1.0) <= 1.0)
                 if "file" in layer:
                     self.assertTrue(layer["file"].lower().endswith((".tga", ".bmp", ".str")), layer["file"])
+                for frame in layer.get("frames", []):
+                    self.assertTrue(frame.lower().endswith((".tga", ".bmp")), frame)
+                if layer.get("frames"):
+                    self.assertTrue(16 <= layer.get("frame_ms", 0) <= 2000, layer.get("frame_ms"))
+                    self.assertNotIn("file", layer)
 
     def test_overlay_only_adds_or_extends_rows(self):
         # The overlay either adds a descriptor for a skill with no rows, or
@@ -114,13 +121,16 @@ class RodecompOverlayTests(unittest.TestCase):
         self.assertEqual(set(facts), {int(entry["skill"]) for entry in self.overlay})
         merged: dict[int, set[str]] = {}
         for row in self.gen.read_effects(MERGED):
+            assets = merged.setdefault(int(row["skill"]), set())
             for layer in row.get("layers") or []:
-                for path in ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []):
-                    merged.setdefault(int(row["skill"]), set()).add(path.replace("/", "\\").lower().rsplit(".", 1)[0])
+                paths = ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []) + list(layer.get("frames") or [])
+                for path in paths:
+                    assets.add(path.replace("/", "\\").lower().rsplit(".", 1)[0])
         for skill, entry in facts.items():
             self.assertIn(skill, merged, f"skill {skill} missing from the merged data")
             for layer in entry["layers"]:
-                for path in ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []):
+                paths = ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []) + list(layer.get("frames") or [])
+                for path in paths:
                     key = path.replace("/", "\\").lower().rsplit(".", 1)[0]
                     self.assertIn(key, merged[skill], f"skill {skill}: overlay asset {path} missing from the merged data")
 

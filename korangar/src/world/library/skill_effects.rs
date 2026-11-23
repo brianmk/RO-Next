@@ -279,6 +279,16 @@ struct LayerFile {
     file: Option<String>,
     #[serde(default)]
     files: Vec<String>,
+    /// Ordered animation frames of a `Texture` layer (a flipbook). When present
+    /// the layer plays `frames` one after another for `frame_ms` each instead
+    /// of drawing `file`. This is the official client's `totalTexture`
+    /// primitive (`PP_3DTEXTURE`/`PP_3DCROSSTEXTURE` with a frame sequence,
+    /// e.g. `thunder_ball_a..f` or `w_bubble%02d`).
+    #[serde(default)]
+    frames: Vec<String>,
+    /// Milliseconds each `frames` entry is shown (default 80).
+    #[serde(default)]
+    frame_ms: u32,
     #[serde(default, deserialize_with = "deserialize_option")]
     primitive: Option<LayerPrimitive>,
     #[serde(default)]
@@ -358,6 +368,10 @@ pub(crate) struct SkillEffectLayer {
     pub file: Option<&'static str>,
     /// Candidate `.spr` stems for `LayerKind::Spr`.
     pub files: &'static [&'static str],
+    /// Ordered animation frames of a `Texture` layer (empty = single texture).
+    pub frames: &'static [&'static str],
+    /// Milliseconds per frame of a sequence layer.
+    pub frame_ms: u32,
     /// Primitive of a `LayerKind::Primitive` layer.
     pub primitive: Option<LayerPrimitive>,
     /// World-space offset from the anchor's feet.
@@ -643,10 +657,31 @@ fn validate_layer(skill: u16, phase: SkillPhase, layer: &LayerFile) -> Result<()
                 return Err(format!("{}: sprite layer has an empty candidate file", context()));
             }
         }
-        LayerKind::Texture | LayerKind::Cylinder => match layer.file.as_deref() {
-            Some(file) if !file.is_empty() => {}
-            _ => return Err(format!("{}: layer has no texture file", context())),
-        },
+        LayerKind::Texture | LayerKind::Cylinder => {
+            if !layer.frames.is_empty() {
+                if layer.kind != LayerKind::Texture {
+                    return Err(format!("{}: only texture layers can have animation frames", context()));
+                }
+                if layer.frames.len() > 64 {
+                    return Err(format!("{}: too many animation frames ({})", context(), layer.frames.len()));
+                }
+                if !(16..=2000).contains(&layer.frame_ms) {
+                    return Err(format!("{}: frame_ms {} is outside 16..=2000", context(), layer.frame_ms));
+                }
+                if layer
+                    .frames
+                    .iter()
+                    .any(|frame| !(frame.to_ascii_lowercase().ends_with(".tga") || frame.to_ascii_lowercase().ends_with(".bmp")))
+                {
+                    return Err(format!("{}: animation frames must be .tga/.bmp textures", context()));
+                }
+            } else {
+                match layer.file.as_deref() {
+                    Some(file) if !file.is_empty() => {}
+                    _ => return Err(format!("{}: layer has no texture file", context())),
+                }
+            }
+        }
         LayerKind::Primitive => match layer.file.as_deref() {
             Some(file) if !file.is_empty() => {}
             _ => return Err(format!("{}: primitive layer has no texture file", context())),
@@ -803,6 +838,13 @@ impl LayerFile {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
         );
+        let frames: &'static [&'static str] = Box::leak(
+            self.frames
+                .into_iter()
+                .map(|frame| Box::leak(frame.into_boxed_str()) as &'static str)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+        );
         let wav = self.wav.map(|wav| Box::leak(wav.into_boxed_str()) as &'static str);
         let tint = self.tint.map_or(Color::WHITE, |(red, green, blue)| Color::rgb(red, green, blue));
         let light = self
@@ -824,6 +866,8 @@ impl LayerFile {
             attached_entity,
             file,
             files,
+            frames,
+            frame_ms: self.frame_ms,
             primitive,
             offset: Vector3::new(self.offset.0, self.offset.1, self.offset.2),
             scale: self.scale,
@@ -861,7 +905,7 @@ mod tests {
 
     use super::{
         FALLBACK, LayerAnchor, LayerGrow, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, SkillEffectDescriptor, SkillPhase,
-        descriptor, skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect,
+        descriptor, parse, skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect,
         validate, validate_compiled,
     };
 
@@ -1127,6 +1171,28 @@ mod tests {
     }
 
     #[test]
+    fn texture_sequences_are_part_of_the_schema() {
+        let content = r#"(
+            provenance: "sequence fixture",
+            effects: [(
+                skill: 100,
+                phase: Success,
+                layers: [(kind: Texture, frames: ["a.tga", "b.tga"], frame_ms: 80, size: 4.0, duration_ms: 160)],
+            )],
+        )"#;
+        let descriptors = parse(content).expect("a frame sequence is valid");
+        let layer = descriptors[0].layers[0];
+        assert_eq!(layer.frames, &["a.tga", "b.tga"]);
+        assert_eq!(layer.frame_ms, 80);
+        assert!(layer.file.is_none());
+
+        let too_short = content.replace("frame_ms: 80", "frame_ms: 1");
+        assert!(parse(&too_short).is_err(), "frame_ms below 16 must be rejected");
+        let bad_frame = content.replace("b.tga", "b.tga?");
+        assert!(parse(&bad_frame).is_err(), "non-texture frames must be rejected");
+    }
+
+    #[test]
     fn cast_circle_tints_are_data_driven() {
         assert_eq!(
             skill_cast_circle_color(SkillId(27)),
@@ -1181,7 +1247,11 @@ mod tests {
                 match layer.kind {
                     LayerKind::Str => assert!(layer.file.is_some_and(|file| file.ends_with(".str"))),
                     LayerKind::Spr => assert!(!layer.files.is_empty()),
-                    LayerKind::Texture | LayerKind::Cylinder => assert!(layer.file.is_some()),
+                    LayerKind::Texture => assert!(
+                        layer.file.is_some() || !layer.frames.is_empty(),
+                        "a texture layer has a file or an animation frame sequence"
+                    ),
+                    LayerKind::Cylinder => assert!(layer.file.is_some()),
                     LayerKind::Primitive => {
                         assert!(layer.primitive.is_some());
                         assert!(layer.file.is_some());

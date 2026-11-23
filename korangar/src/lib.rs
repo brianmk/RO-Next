@@ -2845,6 +2845,28 @@ impl Client {
                     return;
                 };
                 let center = self.texture_layer_center(center, layer, vertical);
+
+                // A `frames` layer is the official client's multi-texture
+                // (totalTexture) component: play it as a flipbook.
+                if !layer.frames.is_empty() {
+                    let Some(sequence) = TextureSequence::spawn(&self.texture_loader, center, layer.frames, layer.frame_ms, &params) else {
+                        return;
+                    };
+
+                    crate::logging::log_debug!(
+                        "skill effect: spawned texture sequence ({} frames, {} ms/frame) for skill {} ({:?}, anchor {:?}, vertical {:?})",
+                        layer.frames.len(),
+                        layer.frame_ms,
+                        skill_id.0,
+                        phase,
+                        layer.anchor,
+                        layer.vertical
+                    );
+
+                    self.add_skill_effect(Box::new(sequence), owner);
+                    return;
+                }
+
                 let Some(flash) = HitFlash::spawn(&self.texture_loader, center, &params) else {
                     return;
                 };

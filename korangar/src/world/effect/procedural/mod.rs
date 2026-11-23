@@ -11,6 +11,8 @@
 //!   impacts, bolt impact flashes, official `EF_HIT`/`2D`/`3D` components),
 //! * [`Projectile`] - one or more textured quads travelling from the caster to
 //!   the target, or a bolt rain falling onto the target cell,
+//! * [`TextureSequence`] - a flipbook billboard for the official client's
+//!   multi-texture (`totalTexture`) effect components,
 //! * [`SkillAura`] - a cylinder/ring/ground field, reusing the existing
 //!   hard-coded aura renderer.
 //!
@@ -31,10 +33,12 @@ use crate::world::library::{LayerGrow, SkillEffectLayer};
 mod ground_aura;
 mod hit_flash;
 mod projectile;
+mod texture_sequence;
 
 pub use self::ground_aura::spawn_ground_aura;
 pub use self::hit_flash::HitFlash;
 pub use self::projectile::{Projectile, ProjectileMode};
+pub use self::texture_sequence::TextureSequence;
 
 /// Borrowed parameters of one procedural primitive layer.
 ///
@@ -81,7 +85,9 @@ impl<'a> PrimitiveParams<'a> {
     /// Builds the primitive parameters of a `Primitive` layer, or `None` when
     /// the data row has no texture.
     pub(crate) fn from_layer(layer: &'a SkillEffectLayer) -> Option<Self> {
-        let texture = layer.file?;
+        // A sequence layer has no single `file`; its first frame provides the
+        // texture identity for the deterministic seed and the size fields.
+        let texture = layer.file.or_else(|| layer.frames.first().copied())?;
 
         Some(Self {
             texture,

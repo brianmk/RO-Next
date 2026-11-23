@@ -321,6 +321,8 @@ LAYER_FIELDS = [
     "vertical",
     "file",
     "files",
+    "frames",
+    "frame_ms",
     "primitive",
     "offset",
     "scale",
@@ -367,6 +369,7 @@ LAYER_DEFAULTS: dict[str, object] = {
     "light_intensity": 0.0,
     "hold_ms": 0,
     "fade_ms": 0,
+    "frame_ms": 0,
 }
 
 
@@ -380,7 +383,7 @@ def write_layer(layer: dict[str, object]) -> str:
             continue
         if field in ("offset", "light", "tint"):
             parts.append(f"{field}: {tuple_of(value)}")
-        elif field == "files":
+        elif field in ("files", "frames"):
             parts.append(f"{field}: {string_list(value)}")
         elif field == "file" or field == "wav":
             parts.append(f'{field}: "{escape(str(value))}"')
@@ -406,6 +409,8 @@ def asset_key(layer: dict[str, object]) -> str:
         return str(layer["file"]).replace("/", "\\").lower()
     if "files" in layer:
         return "|".join(str(item).replace("/", "\\").lower() for item in layer["files"])  # type: ignore[union-attr]
+    if layer.get("frames"):
+        return "|".join(str(item).replace("/", "\\").lower() for item in layer["frames"])  # type: ignore[union-attr]
     return ""
 
 
@@ -692,7 +697,8 @@ def validate_assets(effects: list[dict[str, object]], game_dir: Path) -> list[st
                 candidates = [f"data\\sprite\\{stem}.spr" for stem in layer.get("files", [])]
                 candidates += [f"data\\sprite\\{stem}.act" for stem in layer.get("files", [])]
             elif kind in ("Texture", "Cylinder", "Primitive"):
-                candidates = [f"data\\texture\\{layer.get('file')}"]
+                candidates = [f"data\\texture\\{layer['file']}"] if layer.get("file") else []
+                candidates += [f"data\\texture\\{frame}" for frame in layer.get("frames", [])]
             for candidate in candidates:
                 if candidate.replace("/", "\\").lower() not in available:
                     errors.append(f"skill {skill}: missing asset {candidate}")

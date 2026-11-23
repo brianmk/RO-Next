@@ -249,6 +249,36 @@ Examples: `BS_OVERTHRUST` 113 (`EF_STONECURSE`-ring), `MO_TRIPLEATTACK` 263 (`cl
 
 ---
 
+### 4.3 Multi-frame texture layers (1 → 2 → 6 → 27 frame flipbooks)
+
+The official client has effect components that draw a **sequence** of textures on one primitive
+(`PP_3DTEXTURE`/`PP_3DCROSSTEXTURE` with `totalTexture > 1`): `EF_JUPITEL`'s
+`thunder_ball_a..f`, `EF_FIREARROW`'s `불화살1..6`, the bard/dancer `w_bubble%02d` 27-frame
+bubble, the `super1..5` GUMGANG body loop. The pipeline previously threw those layers away
+because a `Texture` layer could only name one file.
+
+`skill_effects.ron` now supports them:
+
+```ron
+(kind: Texture, frames: ["effect\불화살1.tga", "effect\불화살2.tga", ...], frame_ms: 80, duration_ms: 480)
+```
+
+* schema/loader: `frames` + `frame_ms` (16..=2000 ms, at most 64 frames, `.tga`/`.bmp` only;
+  `file` and `frames` are mutually exclusive) in `skill_effects.rs`;
+* renderer: new `world/effect/procedural/texture_sequence.rs` primitive - a camera-facing
+  flipbook billboard that shows one frame per `frame_ms` and fades the whole sequence in/out;
+* data: the generator expands `%02d` templates with the official `totalTexture` count and turns
+  consecutive frame lists into `frames`, choosing `frame_ms` from the official lifetime;
+* tests: `TextureSequence::frame_index` (advance + hold last frame), schema validation of
+  `frames`/`frame_ms` (range, extension, `file`/`frames` exclusivity), and the overlay test
+  suite checks every frame asset is committed. The flipbook is unit-tested but not yet verified
+  in a live client session (same caveat as the other primitive layers).
+
+Skills that now animate instead of showing nothing/one frame: `MG_FIREBOLT` (6-frame 불화살),
+`HW_NAPALMVULCAN` (lens1/2), `SL_BLACKSMITH`/`SL_SOULLINKER`/`SL_KAIZEL`/`SL_HIGH` (soul
+particles), `SL_SKA` (super body frames), `WZ_JUPITEL`/`NJ_RAIGEKISAI` where the effect id is
+confirmed.
+
 ## 5. Remaining gaps (deliberately not changed)
 
 1. **Version-sensitive effect ids.** rodecomp is a 2026 client; 71 learnable skills have effect
@@ -262,9 +292,10 @@ Examples: `BS_OVERTHRUST` 113 (`EF_STONECURSE`-ring), `MO_TRIPLEATTACK` 263 (`cl
    primitive has no korangar equivalent. `AL_HEAL` 28 now gets the official `alpha_down` layer;
    its `pok1` sparkle and the exact cylinder geometry are still approximations, and
    `MG_FIREBOLT` renders one frame of its 4-frame arrow sequence.
-3. **Animated texture patterns** (`%02d`, e.g. `w_bubble%02d`, `thunder_ball_0001..`) and
-   `.spr` frame sequences cannot be expressed by the aura/layer schema; the songs'
-   reworked bubbles are in that class.
+3. **Animated `.spr` frame sequences** (as opposed to texture flipbooks, which are now
+   supported) still rely on the `.spr`/`.act` player. The bard/dancer songs' effect ids differ
+   between the 2026 client and our 2019 table, so their `w_bubble%02d` layer is not applied yet
+   (the layer kind itself now exists).
 4. **Flag-only auras** (Aura Blade, Kaite, Cloaking/Stealth Field/Shadow Form, Undead Body)
    need body/weapon render changes, not a texture glow.
 5. **Persistent `EF_MAKEBLUR` afterimages** are approximated by a tinted glow; exact reproduction
@@ -299,7 +330,7 @@ Checks in this repository:
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
 korangar --check-skill-effects              # 478 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
-cargo test -p korangar --lib                # 564 passed
+cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```
 
 `cargo test -p korangar --test ui_consistency` still fails on
