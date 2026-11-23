@@ -919,9 +919,9 @@ mod tests {
         // Party/cash Assumptio uses an identical spec row.
         assert_eq!(status_aura_spec(110), status_aura_spec(473));
 
-        // The documented procedural buff glows.
+        // Only Assumptio keeps a persistent glow; the other buffs must not.
         for status_id in [10_u16, 12, 9, 3] {
-            assert!(status_aura_spec(status_id).is_some(), "status {status_id} lost its buff aura");
+            assert!(status_aura_spec(status_id).is_none(), "status {status_id} must not glow");
         }
 
         assert!(status_aura_spec(30_000).is_none());

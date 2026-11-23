@@ -143,9 +143,9 @@ class StatusFactsTests(unittest.TestCase):
             assert aura is not None
             self.assertEqual(aura["kind"], "PersistentGlow")
             self.assertIn("procedural", aura["source"])
-        # The documented procedural buff glows.
+        # Only Assumptio keeps a persistent glow; other buffs must not.
         for status_id in (3, 9, 10, 12):
-            self.assertIn("aura", by_id[status_id], f"status {status_id} lost its buff aura")
+            self.assertNotIn("aura", by_id[status_id], f"status {status_id} must not have a persistent aura")
         for status_id in (0, 875, 30_000):
             self.assertNotIn("aura", by_id.get(status_id, {}))
         # Status 110 and 473 share identical aura data.

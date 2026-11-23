@@ -387,13 +387,15 @@ mod tests {
     }
 
     #[test]
-    fn documented_buff_auras_are_data_driven() {
-        // Blessing (10), Increase Agility (12), Angelus (9) and Improve
-        // Concentration (3) have documented procedural aura rows.
+    fn only_assumptio_has_a_persistent_aura() {
+        // Only Assumptio keeps a visual on the character; Blessing (10),
+        // Increase Agility (12), Angelus (9) and Improve Concentration (3)
+        // must not leave a persistent glow.
         for status_index in [3_u16, 9, 10, 12] {
-            let aura = status_aura_spec(status_index).unwrap_or_else(|| panic!("status {status_index} must have a buff aura"));
-            assert_eq!(aura.kind, StatusAuraKind::PersistentGlow);
-            assert!(!aura.body_frames.is_empty());
+            assert!(
+                status_aura_spec(status_index).is_none(),
+                "status {status_index} must not have a persistent aura"
+            );
         }
 
         // Statuses without a data row (and unknown ids) never spawn a glow.
@@ -432,49 +434,42 @@ mod tests {
         assert!(!spec.ground_texture.is_empty());
         assert!(!spec.ring_texture.is_empty());
         assert!(!spec.body_glow_texture.is_empty());
-        assert!(spec.body_frames.len() >= 2, "body shield is not animated");
+        assert!(!spec.body_frames.is_empty(), "body glow has no texture");
         assert!(spec.body_frames.iter().all(|frame: &&str| !frame.is_empty()));
         assert!(spec.body_frame_rate > 0.0);
         assert!(spec.body_camera_offset > 0.0);
 
-        // The data row is the visual of commit 48a10e20 moved verbatim out of
-        // Rust; these literals are the old `ASSUMPTIO` constant, so any data
-        // edit that changes the accepted Assumptio look fails this test.
+        // Assumptio is the only persistent status glow and it must be white.
         assert_eq!(spec.ground_texture, "effect\\whitelight.tga");
-        assert_eq!(spec.ring_texture, "effect\\efst_waterfield2\\bubble1.bmp");
+        assert_eq!(spec.ring_texture, "effect\\whitelight.tga");
         assert_eq!(spec.body_glow_texture, "effect\\whitelight.tga");
-        assert_eq!(spec.body_frames, &[
-            "effect\\efst_waterfield2\\aurawaterfield1.tga",
-            "effect\\efst_waterfield2\\aurawaterfield2.tga",
-            "effect\\efst_waterfield2\\aurawaterfield3.tga",
-            "effect\\efst_waterfield2\\aurawaterfield4.tga",
-        ]);
+        assert_eq!(spec.body_frames, &["effect\\whitelight.tga"]);
         assert_eq!(
             (spec.ground_color.red, spec.ground_color.green, spec.ground_color.blue),
-            (0.45, 0.8, 1.0)
+            (1.0, 1.0, 1.0)
         );
         assert_eq!(
             (spec.body_color.red, spec.body_color.green, spec.body_color.blue),
-            (0.65, 0.88, 1.0)
+            (1.0, 1.0, 1.0)
         );
         assert_eq!(
             (spec.glow_color.red, spec.glow_color.green, spec.glow_color.blue),
-            (0.8, 0.95, 1.0)
+            (1.0, 1.0, 1.0)
         );
         assert_eq!(spec.ground_radius, 11.0);
         assert_eq!(spec.ring_radius, 7.5);
         assert_eq!(spec.body_size, 26.0);
         assert_eq!(spec.body_glow_size, 15.0);
-        assert_eq!(spec.ground_alpha, 0.42);
-        assert_eq!(spec.ring_alpha, 0.65);
-        assert_eq!(spec.body_alpha, 0.6);
-        assert_eq!(spec.body_glow_alpha, 0.38);
+        assert_eq!(spec.ground_alpha, 0.45);
+        assert_eq!(spec.ring_alpha, 0.5);
+        assert_eq!(spec.body_alpha, 0.55);
+        assert_eq!(spec.body_glow_alpha, 0.45);
         assert_eq!(spec.body_frame_rate, 8.0);
-        assert_eq!(spec.ring_rotation_speed, 0.8);
-        assert_eq!(spec.body_rotation_speed, 0.35);
+        assert_eq!(spec.ring_rotation_speed, 0.5);
+        assert_eq!(spec.body_rotation_speed, 0.25);
         assert_eq!(spec.body_camera_offset, 2.5);
-        assert_eq!(spec.pulse_speed, 2.2);
-        assert_eq!(spec.pulse_amount, 0.22);
+        assert_eq!(spec.pulse_speed, 2.0);
+        assert_eq!(spec.pulse_amount, 0.18);
         assert_eq!(spec.body_height, 13.0);
     }
 
@@ -482,7 +477,7 @@ mod tests {
     fn every_aura_spec_is_renderable() {
         // The renderer only supports `PersistentGlow`; the data loader rejects
         // other kinds, so every spec reachable here must be valid.
-        for status_index in [3_u16, 9, 10, 12, 110, 473] {
+        for status_index in [110_u16, 473] {
             let spec = status_aura_spec(status_index).unwrap_or_else(|| panic!("status {status_index} must have an aura"));
             assert_eq!(spec.kind, StatusAuraKind::PersistentGlow);
             assert!((0.0..=1.0).contains(&spec.ground_alpha));

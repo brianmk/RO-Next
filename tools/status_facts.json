@@ -5,7 +5,7 @@
     "schema": 1,
     "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `korangar/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
     "server": {
-      "tree": "/home/phantom/popeng-hotspots/condaro",
+      "tree": "/home/phantom/popeng-llm-cpp/condaro-llm",
       "files": {
         "src/map/status.hpp": {
           "bytes": 87365,
@@ -25,7 +25,7 @@
       "archives": [
         {
           "name": "archive/",
-          "path": "/home/phantom/korangar-p2-status/korangar/archive"
+          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/korangar/korangar/archive"
         },
         {
           "name": "palettes.grf",
@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "ec7cfba4dd6aff0c3b0e2d7cec295e1983ec9c81e13c1cda25c7228d592e6115",
+      "sha256": "8cb6c341876a5bc2b529ece21de9759d8323e84135ffdc62a2c246943e10e4ab",
       "counts": {
         "names": 10,
         "icons": 5,
         "categories": 1,
         "value_labels": 7,
-        "auras": 6
+        "auras": 2
       }
     },
     "counts": {
@@ -89,7 +89,7 @@
       "merged_statuses": 609,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 6
+      "auras": 2
     },
     "dropped_icons": [
       {
@@ -28809,58 +28809,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural addition, documented: official client has no persistent Concentration glow; shared effect textures",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\lens1.tga",
-          "body_frames": [
-            "effect\\lens2.tga",
-            "effect\\lens1.tga"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            0.5,
-            0.8,
-            1.0
-          ],
-          "body": [
-            0.55,
-            0.85,
-            1.0
-          ],
-          "glow": [
-            0.8,
-            0.95,
-            1.0
-          ]
-        },
-        "radii": {
-          "ground": 8.5,
-          "ring": 5.5,
-          "body": 20.0,
-          "body_glow": 12.0
-        },
-        "timing": {
-          "body_frame_rate": 5.0,
-          "ring_rotation_speed": 0.5,
-          "body_rotation_speed": 0.5,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 2.4,
-          "pulse_amount": 0.16
-        },
-        "alpha": {
-          "ground": 0.28,
-          "ring": 0.4,
-          "body": 0.38,
-          "body_glow": 0.3
-        },
-        "height": 12.0
-      }
+      "stack": "Single"
     },
     {
       "id": 4,
@@ -29047,58 +28996,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural addition, documented: official client has no persistent Angelus glow; shared effect textures",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ring_yellow.tga",
-          "body_frames": [
-            "effect\\lens1.tga",
-            "effect\\lens2.tga"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            1.0,
-            0.92,
-            0.7
-          ],
-          "body": [
-            1.0,
-            0.9,
-            0.6
-          ],
-          "glow": [
-            1.0,
-            0.95,
-            0.8
-          ]
-        },
-        "radii": {
-          "ground": 9.0,
-          "ring": 6.0,
-          "body": 21.0,
-          "body_glow": 12.5
-        },
-        "timing": {
-          "body_frame_rate": 5.0,
-          "ring_rotation_speed": 0.7,
-          "body_rotation_speed": 0.4,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 2.0,
-          "pulse_amount": 0.18
-        },
-        "alpha": {
-          "ground": 0.3,
-          "ring": 0.4,
-          "body": 0.4,
-          "body_glow": 0.3
-        },
-        "height": 12.0
-      }
+      "stack": "Single"
     },
     {
       "id": 10,
@@ -29130,59 +29028,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural addition, documented: official client has no persistent Blessing glow; textures/tint from the official cast effect",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\pok2.tga",
-          "body_frames": [
-            "effect\\efst_c_blessings_of_soul\\nyang_1.bmp",
-            "effect\\efst_c_blessings_of_soul\\nyang_2.bmp",
-            "effect\\efst_c_blessings_of_soul\\nyang_3.bmp"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            0.6,
-            0.85,
-            1.0
-          ],
-          "body": [
-            0.45,
-            0.8,
-            1.0
-          ],
-          "glow": [
-            0.85,
-            0.95,
-            1.0
-          ]
-        },
-        "radii": {
-          "ground": 9.0,
-          "ring": 6.0,
-          "body": 22.0,
-          "body_glow": 13.0
-        },
-        "timing": {
-          "body_frame_rate": 6.0,
-          "ring_rotation_speed": 0.9,
-          "body_rotation_speed": 0.3,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 1.8,
-          "pulse_amount": 0.15
-        },
-        "alpha": {
-          "ground": 0.3,
-          "ring": 0.4,
-          "body": 0.4,
-          "body_glow": 0.3
-        },
-        "height": 12.0
-      }
+      "stack": "Single"
     },
     {
       "id": 11,
@@ -29241,57 +29087,7 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single",
-      "aura": {
-        "kind": "PersistentGlow",
-        "source": "procedural addition, documented: official client has no persistent Increase AGI glow; textures from the official cast effect",
-        "textures": {
-          "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ac_center2.tga",
-          "body_frames": [
-            "effect\\agi_up.bmp"
-          ],
-          "body_glow": "effect\\whitelight.tga"
-        },
-        "tint": {
-          "ground": [
-            0.55,
-            1.0,
-            0.6
-          ],
-          "body": [
-            0.6,
-            1.0,
-            0.65
-          ],
-          "glow": [
-            0.85,
-            1.0,
-            0.85
-          ]
-        },
-        "radii": {
-          "ground": 8.5,
-          "ring": 5.5,
-          "body": 20.0,
-          "body_glow": 12.0
-        },
-        "timing": {
-          "body_frame_rate": 4.0,
-          "ring_rotation_speed": 1.1,
-          "body_rotation_speed": 0.25,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 2.1,
-          "pulse_amount": 0.16
-        },
-        "alpha": {
-          "ground": 0.28,
-          "ring": 0.45,
-          "body": 0.4,
-          "body_glow": 0.3
-        },
-        "height": 12.0
-      }
+      "stack": "Single"
     },
     {
       "id": 13,
@@ -31438,32 +31234,29 @@
       "stack": "Single",
       "aura": {
         "kind": "PersistentGlow",
-        "source": "procedural reproduction of the official EF_ASSUMPTIO shield (commit 48a10e20); textures verified in data.grf",
+        "source": "procedural white glow for Assumptio (EFST_ASSUMPTIO/EFST_ASSUMPTIO2); textures verified in data.grf",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\efst_waterfield2\\bubble1.bmp",
+          "ring": "effect\\whitelight.tga",
           "body_frames": [
-            "effect\\efst_waterfield2\\aurawaterfield1.tga",
-            "effect\\efst_waterfield2\\aurawaterfield2.tga",
-            "effect\\efst_waterfield2\\aurawaterfield3.tga",
-            "effect\\efst_waterfield2\\aurawaterfield4.tga"
+            "effect\\whitelight.tga"
           ],
           "body_glow": "effect\\whitelight.tga"
         },
         "tint": {
           "ground": [
-            0.45,
-            0.8,
+            1.0,
+            1.0,
             1.0
           ],
           "body": [
-            0.65,
-            0.88,
+            1.0,
+            1.0,
             1.0
           ],
           "glow": [
-            0.8,
-            0.95,
+            1.0,
+            1.0,
             1.0
           ]
         },
@@ -31475,17 +31268,17 @@
         },
         "timing": {
           "body_frame_rate": 8.0,
-          "ring_rotation_speed": 0.8,
-          "body_rotation_speed": 0.35,
+          "ring_rotation_speed": 0.5,
+          "body_rotation_speed": 0.25,
           "body_camera_offset": 2.5,
-          "pulse_speed": 2.2,
-          "pulse_amount": 0.22
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.18
         },
         "alpha": {
-          "ground": 0.42,
-          "ring": 0.65,
-          "body": 0.6,
-          "body_glow": 0.38
+          "ground": 0.45,
+          "ring": 0.5,
+          "body": 0.55,
+          "body_glow": 0.45
         },
         "height": 13.0
       }
@@ -37271,32 +37064,29 @@
       "stack": "Single",
       "aura": {
         "kind": "PersistentGlow",
-        "source": "procedural reproduction of the official EF_ASSUMPTIO shield (commit 48a10e20); textures verified in data.grf",
+        "source": "procedural white glow for Assumptio (EFST_ASSUMPTIO/EFST_ASSUMPTIO2); textures verified in data.grf",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\efst_waterfield2\\bubble1.bmp",
+          "ring": "effect\\whitelight.tga",
           "body_frames": [
-            "effect\\efst_waterfield2\\aurawaterfield1.tga",
-            "effect\\efst_waterfield2\\aurawaterfield2.tga",
-            "effect\\efst_waterfield2\\aurawaterfield3.tga",
-            "effect\\efst_waterfield2\\aurawaterfield4.tga"
+            "effect\\whitelight.tga"
           ],
           "body_glow": "effect\\whitelight.tga"
         },
         "tint": {
           "ground": [
-            0.45,
-            0.8,
+            1.0,
+            1.0,
             1.0
           ],
           "body": [
-            0.65,
-            0.88,
+            1.0,
+            1.0,
             1.0
           ],
           "glow": [
-            0.8,
-            0.95,
+            1.0,
+            1.0,
             1.0
           ]
         },
@@ -37308,17 +37098,17 @@
         },
         "timing": {
           "body_frame_rate": 8.0,
-          "ring_rotation_speed": 0.8,
-          "body_rotation_speed": 0.35,
+          "ring_rotation_speed": 0.5,
+          "body_rotation_speed": 0.25,
           "body_camera_offset": 2.5,
-          "pulse_speed": 2.2,
-          "pulse_amount": 0.22
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.18
         },
         "alpha": {
-          "ground": 0.42,
-          "ring": 0.65,
-          "body": 0.6,
-          "body_glow": 0.38
+          "ground": 0.45,
+          "ring": 0.5,
+          "body": 0.55,
+          "body_glow": 0.45
         },
         "height": 13.0
       }
