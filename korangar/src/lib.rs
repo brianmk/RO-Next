@@ -6168,6 +6168,29 @@ impl Client {
                         entity.set_position(map, position, client_tick);
                     }
                 }
+                NetworkEvent::EntityHighJumped { entity_id, position } => {
+                    // Taekwon Leap (`TK_HIGHJUMP`, ZC_HIGHJUMP 0x01FF): the
+                    // server has already moved the character; apply its
+                    // position immediately so the client does not keep the old
+                    // cell and then snap on the following stop-move packet.
+                    let Some(map) = &self.map else {
+                        continue;
+                    };
+
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.stop_movement();
+                        entity.set_position(map, position, client_tick);
+
+                        if entity_id == EntityId(self.saved_login_data.map_or(0, |data| data.account_id.0)) {
+                            self.player_camera.set_focus_point(entity.get_position());
+                        }
+                    }
+                }
                 NetworkEvent::MinimapMarker {
                     npc_id,
                     marker_type,

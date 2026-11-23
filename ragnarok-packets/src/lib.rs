@@ -940,6 +940,20 @@ pub struct EntityStopMovePacket {
     pub position: TilePosition,
 }
 
+/// Sent by the map server for the Taekwon `TK_HIGHJUMP` skill (and other
+/// "blink" moves) before the regular stop-move correction. The client uses it
+/// to place the character at the server position immediately instead of
+/// waiting for the next walk/stop packet, which otherwise looks like a
+/// teleport/desync after Leap (`ZC_HIGHJUMP`, 0x01FF).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01FF)]
+#[packet_size(10)]
+pub struct HighJumpPacket {
+    pub entity_id: EntityId,
+    pub position: TilePosition,
+}
+
 /// Sent by the map server to the client.
 /// Informs the client that the player is pathing towards a new position.
 /// Provides the initial position and destination of the movement, as well as a

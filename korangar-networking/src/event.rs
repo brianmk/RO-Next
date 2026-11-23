@@ -674,6 +674,13 @@ pub enum NetworkEvent {
         entity_id: EntityId,
         position: TilePosition,
     },
+    /// An entity performed a server-side blink/jump (`ZC_HIGHJUMP`, 0x01FF;
+    /// Taekwon Leap / TK_HIGHJUMP). Unlike a walk this is an instant
+    /// position change, so the client applies it immediately.
+    EntityHighJumped {
+        entity_id: EntityId,
+        position: TilePosition,
+    },
     /// A minimap marker was placed/removed (`ZC_COMPASS`, 0x0144).
     MinimapMarker {
         npc_id: EntityId,
