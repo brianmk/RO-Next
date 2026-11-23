@@ -29,6 +29,8 @@ pub(crate) enum DialogElementKind {
     CloseButton,
     /// One option of the current NPC menu.
     Choice,
+    /// The generic menu Cancel button (choice 255 / `-1`).
+    CancelButton,
 }
 
 /// A small wrapper struct that serves two purposes:
@@ -228,8 +230,12 @@ impl DialogWindowState {
     pub fn add_close_button(&mut self) {
         use korangar_interface::prelude::*;
 
-        self.elements
-            .retain(|element| !matches!(element.kind, DialogElementKind::NextButton | DialogElementKind::Choice));
+        self.elements.retain(|element| {
+            !matches!(
+                element.kind,
+                DialogElementKind::NextButton | DialogElementKind::Choice | DialogElementKind::CancelButton
+            )
+        });
 
         let npc_id = self.npc_id;
 
@@ -277,6 +283,20 @@ impl DialogWindowState {
                 DialogElementKind::Choice,
             ))
         });
+
+        // Every NPC menu gets an explicit cancel button: the 2019 server
+        // accepts choice 255 (i8 -1) and ends the menu; without it a menu with
+        // no Back/Close entry (older custom warpers, for example) strands the
+        // player because this client has no X on menu dialogs.
+        self.elements.push(DialogElement::new(
+            button! {
+                text: "Cancel",
+                event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                    queue.queue(InputEvent::ChooseDialogOption { npc_id, option: -1 });
+                },
+            },
+            DialogElementKind::CancelButton,
+        ));
     }
 
     /// Close the current NPC menu without ending the dialog.
@@ -285,7 +305,8 @@ impl DialogWindowState {
     /// an option, before the server answers. The dialog window itself stays
     /// open, so only the choice buttons are removed here.
     pub fn clear_choices(&mut self) {
-        self.elements.retain(|element| element.kind != DialogElementKind::Choice);
+        self.elements
+            .retain(|element| !matches!(element.kind, DialogElementKind::Choice | DialogElementKind::CancelButton));
     }
 
     /// The number of elements of the given kind that are currently stored.
@@ -304,6 +325,12 @@ impl DialogWindowState {
     #[cfg(test)]
     pub fn next_button_count(&self) -> usize {
         self.count_kind(DialogElementKind::NextButton)
+    }
+
+    /// Number of menu Cancel buttons currently displayed.
+    #[cfg(test)]
+    pub fn cancel_button_count(&self) -> usize {
+        self.count_kind(DialogElementKind::CancelButton)
     }
 
     /// Number of "Close"-buttons currently displayed.
@@ -485,6 +512,9 @@ mod tests {
 
         assert_eq!(state.next_button_count(), 0);
         assert_eq!(state.choice_count(), 1);
+        assert_eq!(state.cancel_button_count(), 1, "every menu gets a generic Cancel button");
+        state.clear_choices();
+        assert_eq!(state.cancel_button_count(), 0);
     }
 
     #[test]
