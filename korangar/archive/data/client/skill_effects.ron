@@ -295,7 +295,7 @@
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: true, head: true, file: "cross.str", wav: "effect\\ef_signum.wav"),
                 (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 16650, height: 2.0, bottom_radius: 9.0, top_radius: 9.0, alpha: 0.6667, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 16650, alpha: 0.7843, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 16650, alpha: 0.7843, blend: Additive),
             ],
         ),
         (
@@ -593,6 +593,15 @@
         ),
         (
             skill: 77,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 4167, height: 2.0, bottom_radius: 18.0, top_radius: 18.0, alpha: 0.5098, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.5882, blend: Additive),
+                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_liner.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            ],
+        ),
+        (
+            skill: 77,
             phase: Hit,
             layers: [
                 (kind: Str, anchor: Target, attached_entity: true, file: "holyhit.str"),
@@ -655,7 +664,7 @@
             phase: Success,
             layers: [
                 (kind: Spr, anchor: Auto, attached_entity: false, files: ["이팩트\\sight"], size: 20.0, duration_ms: 800, count: 16, wav: "effect\\wizard_sightrasher.wav"),
-                (kind: Spr, anchor: Caster, attached_entity: true, files: ["Shadow"], duration_ms: 4167),
+                (kind: Spr, anchor: Caster, attached_entity: true, files: ["shadow"], duration_ms: 4167),
                 (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             ],
         ),
@@ -718,7 +727,7 @@
             skill: 86,
             phase: Success,
             layers: [
-                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\Waterball"], duration_ms: 1667),
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\waterball"], duration_ms: 1667),
             ],
         ),
         (
@@ -819,7 +828,7 @@
             skill: 111,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
                 (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 4167),
             ],
         ),
@@ -949,6 +958,7 @@
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\pok1.tga", size: 22.0, size_end: 25.3, duration_ms: 1000, count: 10, spread: 2.0, tint: (1.0, 0.7, 1.0), wav: "effect\\ef_detoxication.wav"),
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle3"], duration_ms: 4167),
             ],
         ),
         (
@@ -984,6 +994,7 @@
             phase: Success,
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: true, file: "venomsplasher.str", wav: "effect\\assasin_venomsplasher.wav"),
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle3"], duration_ms: 4167),
             ],
         ),
         (

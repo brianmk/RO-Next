@@ -232,7 +232,7 @@
      "kind": "Texture",
      "anchor": "Caster",
      "attached_entity": true,
-     "file": "EFFECT\\alpha_center.tga",
+     "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 16650,
      "alpha": 0.7843137254901961,
@@ -381,6 +381,52 @@
    ]
   },
   {
+   "skill": 77,
+   "name": "PR_TURNUNDEAD",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "duration_ms": 4167,
+     "height": 2.0,
+     "bottom_radius": 18.0,
+     "top_radius": 18.0,
+     "alpha": 0.5098039215686274,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 6.8,
+     "duration_ms": 4167,
+     "alpha": 0.5882352941176471,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_liner.tga",
+     "duration_ms": 4167,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
    "skill": 81,
    "name": "WZ_SIGHTRASHER",
    "effect_ids": [
@@ -394,7 +440,7 @@
      "anchor": "Caster",
      "attached_entity": true,
      "files": [
-      "Shadow"
+      "shadow"
      ],
      "duration_ms": 4167,
      "phase": "Success"
@@ -455,7 +501,7 @@
      "anchor": "Target",
      "attached_entity": true,
      "files": [
-      "이팩트\\Waterball"
+      "이팩트\\waterball"
      ],
      "duration_ms": 1667,
      "phase": "Success"
@@ -475,7 +521,7 @@
      "kind": "Texture",
      "anchor": "Caster",
      "attached_entity": true,
-     "file": "EFFECT\\alpha_center.tga",
+     "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 4167,
      "alpha": 0.2,
@@ -558,6 +604,44 @@
      "top_radius": 7.2,
      "alpha": 0.35,
      "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 138,
+   "name": "AS_ENCHANTPOISON",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle3"
+     ],
+     "duration_ms": 4167,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 141,
+   "name": "AS_SPLASHER",
+   "effect_ids": [],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle3"
+     ],
+     "duration_ms": 4167,
      "phase": "Success"
     }
    ]

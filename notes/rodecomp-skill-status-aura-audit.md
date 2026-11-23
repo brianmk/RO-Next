@@ -225,8 +225,9 @@ are not reproduced yet.
 
 ### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
-`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (106 skills,
-164 layers) from `tools/rodecomp_skill_facts.json`. Skills with no client rows at all render
+`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (109 skills,
+169 layers) from `tools/rodecomp_skill_facts.json`. Asset paths are normalised to lower case
+(the official code spells the same directory `EFFECT\` and `effect\`). Skills with no client rows at all render
 every effect either table maps for them (the 2019-era extras and the official ones do not
 conflict because nothing is drawn today); skills with no 2019-era entry use the official ids;
 the `EF_BOTTOM_DISSONANCE`/`EF_BOTTOM_UGLYDANCE` ids for `BA_DISSONANCE`/`DC_UGLYDANCE` are
@@ -326,13 +327,14 @@ documented here instead of being faked with a glow.
    `w_bubble%02d` swirl, and both ids still exist in the decompilation. The remaining drift
    skills are left untouched because the corroboration is missing (e.g. Enchant Poison: the
    official code says `EF_ENCHANTPOISON` (125), the 2019 table says `EF_PATTACK` (20)).
-2. **Skills with rows that still miss official layers**: 13 of the 64 covered skills
-   (`PR_TURNUNDEAD` 77, `AS_ENCHANTPOISON` 138, `AS_SPLASHER` 141, `MO_EXPLOSIONSPIRITS` 270,
-   `HW_SOULDRAIN` 364, `TK_COUNTER` 419, `SG_SUN/MOON/STAR_COMFORT` 431-433, `SL_ASSASSIN` 457,
-   `BS_ADRENALINE2` 459, `SL_HUNTER` 460, `SL_STUN` 468). Every one of them is a drift case whose
-   2019 mapping cannot be corroborated (e.g. Enchant Poison: official `EF_ENCHANTPOISON` (125),
-   2019 table `EF_PATTACK` (20)). The 16 bard/dancer songs are no longer a gap: their 2019 effect
-   is the dedicated `EF_BOTTOM_*` sprite, which is now rendered.
+2. **Skills with rows that still miss official layers**: 10 of the 64 covered skills
+   (`MO_EXPLOSIONSPIRITS` 270, `HW_SOULDRAIN` 364, `TK_COUNTER` 419, `SG_SUN/MOON/STAR_COMFORT`
+   431-433, `SL_ASSASSIN` 457, `BS_ADRENALINE2` 459, `SL_HUNTER` 460, `SL_STUN` 468). These are
+   drift cases whose mapping cannot be corroborated. Three drift skills *were* resolved because
+   the official effect name matches the skill: `PR_TURNUNDEAD` -> `EF_TURNUNDEAD` (82),
+   `AS_ENCHANTPOISON`/`AS_SPLASHER` -> `EF_ENCHANTPOISON` (125, the official switch groups the
+   two). The 16 bard/dancer songs are likewise no longer a gap (their 2019 `EF_BOTTOM_*`
+   sprites are rendered).
 3. **Animated `.spr` frame sequences** still rely on the `.spr`/`.act` player; texture flipbooks
    (`frames`) are supported. The songs' 2026 `w_bubble%02d` swirl is a client rework and is not
    applied by design.
@@ -351,6 +353,36 @@ documented here instead of being faked with a glow.
      skipped).
 
 ---
+
+## 5a. In-client verification of the data (partial)
+
+The accumulated data changes were checked against the real client and the live server with the
+built-in benchmark driver:
+
+```sh
+Xvfb :97 -screen 0 1280x720x24 -nolisten tcp &
+cd korangar/korangar
+env -u WAYLAND_DISPLAY DISPLAY=:97 XDG_RUNTIME_DIR=/run/user/1000 \
+    KORANGAR_MUTE_AUDIO=1 KORANGAR_BENCH=town \
+    KORANGAR_BENCH_USER=verify4 KORANGAR_BENCH_PASS=VerifyBot4 \
+    ../target/release/korangar -vvv
+```
+
+What this run proves:
+
+* the client boots and loads **all** committed data through the real loaders - 500 skill
+  descriptors (`--check-skill-effects` is also wired into `main`), 616 status effects with 20
+  auras, 15 status visuals, the item/skill/message tables - with no schema or asset error and no
+  panic; the only warnings are pre-existing missing weather textures
+  (`j_sakura01.bmp`, `leaf01.bmp`);
+* the renderer comes up (Wayland/Xvfb surface, 1280x720) and the login window renders.
+
+What it does **not** prove: the visual output of the new layers. The login stage stopped with
+`[bench-error] {"stage":"Login","reason":"login flow timed out ..."}` because the server answered
+**"Incorrect password"** for the `verify4` / `VerifyBot4` test account used by the earlier lanes -
+the account or its password has changed on the CondaRO server since. Re-running the sweep needs a
+valid test account (or the account password restored); the map/SQL server itself is reachable
+(login port 6900 accepts connections from this host).
 
 ## 6. Reproduction
 
@@ -371,11 +403,11 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 500 phases / 746 layers
+./tools/gen_skill_effects.py --check        # 501 phases / 751 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
-korangar --check-skill-effects              # 500 descriptors valid
+korangar --check-skill-effects              # 501 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```

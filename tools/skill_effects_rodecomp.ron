@@ -9,7 +9,7 @@
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 106 skills, 164 layers.
+// 109 skills, 169 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
@@ -45,7 +45,7 @@
         // skill 32 AL_CRUCIS: official effect [40] - appended official layers
         (skill: 32, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 16650, height: 2.0, bottom_radius: 9.0, top_radius: 9.0, alpha: 0.6667, blend: Additive),
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 16650, alpha: 0.7843, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 16650, alpha: 0.7843, blend: Additive),
         ]),
         // skill 34 AL_BLESSING: official effect [42] - appended official layers
         (skill: 34, phase: Success, layers: [
@@ -71,9 +71,15 @@
         (skill: 68, phase: Success, layers: [
             (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 16650),
         ]),
+        // skill 77 PR_TURNUNDEAD: official effect [] - appended official layers
+        (skill: 77, phase: Success, layers: [
+            (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 4167, height: 2.0, bottom_radius: 18.0, top_radius: 18.0, alpha: 0.5098, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.5882, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_liner.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
         // skill 81 WZ_SIGHTRASHER: official effect [62] - appended official layers
         (skill: 81, phase: Success, layers: [
-            (kind: Spr, anchor: Caster, attached_entity: true, files: ["Shadow"], duration_ms: 4167),
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["shadow"], duration_ms: 4167),
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
         ]),
         // skill 84 WZ_JUPITEL: official effect [93] - appended official layers
@@ -82,11 +88,11 @@
         ]),
         // skill 86 WZ_WATERBALL: official effect [117] - appended official layers
         (skill: 86, phase: Success, layers: [
-            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\Waterball"], duration_ms: 1667),
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\waterball"], duration_ms: 1667),
         ]),
         // skill 111 BS_ADRENALINE: official effect [98] - appended official layers
         (skill: 111, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
             (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 4167),
         ]),
         // skill 113 BS_OVERTHRUST: official effect [128]
@@ -100,6 +106,14 @@
         // skill 136 AS_SONICBLOW: official effect [121, 143] - appended official layers
         (skill: 136, phase: Success, layers: [
             (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 667, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 138 AS_ENCHANTPOISON: official effect [] - appended official layers
+        (skill: 138, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle3"], duration_ms: 4167),
+        ]),
+        // skill 141 AS_SPLASHER: official effect [] - appended official layers
+        (skill: 141, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle3"], duration_ms: 4167),
         ]),
         // skill 149 TF_SPRINKLESAND: official effect [310]
         (skill: 149, phase: Success, layers: [
