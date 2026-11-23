@@ -113,102 +113,12 @@ impl WarpPortal {
             return;
         }
 
-        let anchor = position;
-        let height = Vector3::new(0.0, self.config.skill_height, 0.0);
-
-        // Two counter-rotating rings form the swirl.
-        for ring in 0..self.config.skill_ring_count as usize {
-            let ring_fade = fade * (1.0 - ring as f32 * 0.35);
-            let radius = self.config.skill_radius * (1.0 - ring as f32 * 0.3);
-            let angle = time * (1.4 + ring as f32 * 0.8) * if ring % 2 == 0 { 1.0 } else { -1.0 };
-            let color = Color::rgba(0.18 * ring_fade, 0.32 * ring_fade, 0.62 * ring_fade, 1.0);
-
-            let corners = [
-                anchor + height + Vector3::new(-radius, 0.0, -radius),
-                anchor + height + Vector3::new(radius, 0.0, -radius),
-                anchor + height + Vector3::new(-radius, 0.0, radius),
-                anchor + height + Vector3::new(radius, 0.0, radius),
-            ];
-            let rotated_corners = rotate_ground_corners(corners, anchor, angle);
-
-            render_world_quad(
-                renderer,
-                camera,
-                anchor,
-                screen_size,
-                self.streak_texture.clone(),
-                color,
-                rotated_corners,
-                [
-                    Vector2::new(0.0, 0.0),
-                    Vector2::new(1.0, 0.0),
-                    Vector2::new(0.0, 1.0),
-                    Vector2::new(1.0, 1.0),
-                ],
-            );
-        }
-
-        // Soft pulsing glow below the swirl.
-        let pulse = 0.55 + 0.45 * (time * 3.0).sin();
-        render_world_quad(
-            renderer,
-            camera,
-            anchor,
-            screen_size,
-            self.gradient_texture.clone(),
-            Color::rgba(0.08 * fade * pulse, 0.16 * fade * pulse, 0.36 * fade * pulse, 1.0),
-            [
-                anchor + height + Vector3::new(-self.config.skill_radius * 1.1, 0.0, -self.config.skill_radius * 1.1),
-                anchor + height + Vector3::new(self.config.skill_radius * 1.1, 0.0, -self.config.skill_radius * 1.1),
-                anchor + height + Vector3::new(-self.config.skill_radius * 1.1, 0.0, self.config.skill_radius * 1.1),
-                anchor + height + Vector3::new(self.config.skill_radius * 1.1, 0.0, self.config.skill_radius * 1.1),
-            ],
-            [
-                Vector2::new(0.0, 1.0),
-                Vector2::new(1.0, 1.0),
-                Vector2::new(0.0, 0.0),
-                Vector2::new(1.0, 0.0),
-            ],
-        );
-
-        // A few sparks rising out of the flat portal.
-        let right_vector = camera.look_up_vector().cross(camera.view_direction()).normalize();
-        let up_vector = camera.view_direction().cross(right_vector).normalize();
-
-        for index in 0..8 {
-            let seed = index as f32 / 8.0;
-            let phase = (time * 0.5 + seed) % 1.0;
-            let angle = seed * TAU * 2.0 + time * 0.4;
-            let radius = 3.0 + 9.0 * (seed * 7.13).fract();
-            let particle_position = anchor + Vector3::new(angle.cos() * radius, phase * 16.0, angle.sin() * radius);
-            let size = 1.1 + 0.8 * (seed * 3.7).fract();
-            let fade_out = (phase * PI).sin() * fade;
-            let horizontal = right_vector * size;
-            let vertical = up_vector * size;
-
-            let corners = [
-                particle_position - horizontal + vertical,
-                particle_position + horizontal + vertical,
-                particle_position - horizontal - vertical,
-                particle_position + horizontal - vertical,
-            ];
-
-            render_world_quad(
-                renderer,
-                camera,
-                anchor,
-                screen_size,
-                self.particle_texture.clone(),
-                Color::rgba(0.35 * fade_out, 0.5 * fade_out, 0.8 * fade_out, 1.0),
-                corners,
-                [
-                    Vector2::new(0.0, 0.0),
-                    Vector2::new(1.0, 0.0),
-                    Vector2::new(0.0, 1.0),
-                    Vector2::new(1.0, 1.0),
-                ],
-            );
-        }
+        // The skill-unit portal uses the same visible animated warp effect as
+        // the map-connection warps (rotating cylinder + ground glow + rising
+        // sparks). The previous flat rings were too low/subtle and could be
+        // occluded by the ground, which made AL_WARP look like it had no
+        // animation at all.
+        self.render(renderer, camera, position, screen_size, time);
     }
 
     #[allow(clippy::too_many_arguments)]
