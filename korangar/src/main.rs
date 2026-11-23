@@ -45,6 +45,16 @@ struct Arguments {
     #[arg(long, value_name = "PATH", num_args = 0..=1)]
     check_jobs: Option<Option<std::path::PathBuf>>,
 
+    /// Validate the generated alias tables (job skill-tree fallbacks, monster
+    /// sprite aliases, skill icon aliases) and exit.
+    ///
+    /// Without a path the compiled fallback is validated; with a path that data
+    /// file is validated (for example an archive override of
+    /// `data\client\aliases.ron`). Exits 0 when valid, 1 with the schema
+    /// errors otherwise.
+    #[arg(long, value_name = "PATH", num_args = 0..=1)]
+    check_aliases: Option<Option<std::path::PathBuf>>,
+
     /// Validate the data-driven skill behaviour and procedural effect data and
     /// exit.
     ///
@@ -148,6 +158,22 @@ fn main() {
             }
             Err(error) => {
                 eprintln!("jobs: invalid data: {error}");
+                std::process::exit(1);
+            }
+        }
+    }
+
+    if let Some(path) = arguments.check_aliases {
+        match korangar::check_aliases(path.as_deref()) {
+            Ok(summary) => {
+                println!(
+                    "aliases: {} job skill-tree fallbacks, {} monster sprite aliases and {} skill icon aliases are valid",
+                    summary.job_skill_tree_fallbacks, summary.monster_sprite_aliases, summary.skill_icon_aliases
+                );
+                return;
+            }
+            Err(error) => {
+                eprintln!("aliases: invalid data: {error}");
                 std::process::exit(1);
             }
         }

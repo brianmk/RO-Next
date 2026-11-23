@@ -98,6 +98,8 @@ jobs:
           python3 tools/gen_skills.py --check
           python3 tools/test_skills_data.py
           python3 tools/test_skill_sounds_data.py
+          python3 tools/gen_aliases.py --check
+          python3 tools/test_gen_aliases.py
 
       - name: Clippy (default features)
         run: cargo clippy --workspace -- -Dwarnings
@@ -230,6 +232,10 @@ jobs:
         if: matrix.features == 'default'
         run: cargo run -p korangar -- --check-skills
 
+      - name: Alias data file schema (compiled fallback)
+        if: matrix.features == 'default'
+        run: cargo run -p korangar -- --check-aliases
+
   generated-data:
     name: Generated client data drift
     runs-on: ubuntu-latest
@@ -258,7 +264,13 @@ jobs:
           python3 tools/test_skills_data.py
           python3 tools/test_skill_sounds_data.py
 
+      - name: Alias data is up to date (offline)
+        run: |
+          python3 tools/gen_aliases.py --check
+          python3 tools/test_gen_aliases.py
+
       - name: Shell check the generators
         run: |
           python3 -m py_compile tools/gen_messages.py tools/extract_message_facts.py
           python3 -m py_compile tools/gen_skills.py tools/gen_skill_sounds.py
+          python3 -m py_compile tools/extract_alias_facts.py tools/gen_aliases.py tools/test_gen_aliases.py

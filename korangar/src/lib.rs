@@ -685,6 +685,25 @@ pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
     }
 }
 
+/// Validates the generated alias tables (`archive/data/client/aliases.ron`) and
+/// returns the row counts.
+///
+/// The tables (job skill-tree fallbacks, monster sprite aliases, skill icon
+/// aliases) are content data extracted from the client archives and the rAthena
+/// server tree; see `tools/extract_alias_facts.py` / `tools/gen_aliases.py` and
+/// the [`crate::world::library`] alias module. Without a path the compiled
+/// fallback is validated; with a path that data file is validated (for example
+/// an archive override of `data\client\aliases.ron`).
+pub fn check_aliases(path: Option<&std::path::Path>) -> Result<crate::world::AliasesSummary, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_alias_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_aliases().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
 /// Validates the data-driven skill behaviour and procedural effect data
 /// (`archive/data/client/skills.ron`) and returns the row counts.
 ///
@@ -10645,6 +10664,40 @@ mod tests {
     fn job_registry_check_reports_a_missing_file() {
         let path = std::path::Path::new("/nonexistent/korangar/jobs.ron");
         let error = super::check_jobs(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
+    }
+
+    #[test]
+    fn alias_data_is_valid() {
+        let summary = super::check_aliases(None).expect("the committed alias data has to be valid");
+        assert_eq!(
+            summary.job_skill_tree_fallbacks, 56,
+            "one fallback per server job with an empty client tree"
+        );
+        assert_eq!(
+            summary.monster_sprite_aliases, 232,
+            "one alias per monster without an exact sprite"
+        );
+        assert_eq!(summary.skill_icon_aliases, 241, "one alias per skill without an exact icon");
+    }
+
+    #[test]
+    fn alias_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-aliases-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(version: 1,").expect("failed to write the malformed fixture");
+
+        let result = super::check_aliases(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn alias_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/aliases.ron");
+        let error = super::check_aliases(Some(path)).expect_err("a missing file must be rejected");
         assert!(error.contains("failed to read"), "{error}");
     }
 
