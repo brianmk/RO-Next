@@ -4,6 +4,7 @@ mod cameras;
 mod cast_bar;
 mod chat_bubble;
 mod effect;
+pub(crate) use self::effect::spirit_sphere_renderer;
 mod entity;
 mod fade_state;
 mod ground_item;

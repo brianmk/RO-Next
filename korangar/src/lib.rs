@@ -969,6 +969,9 @@ pub struct Client {
     /// ticks. Server table values; paces follow-up skill/item actions only.
     aftercast_act_until: Option<ClientTick>,
     warp_portal: Option<WarpPortal>,
+    /// Classic spirit-sphere texture (`effect\thunder_center.bmp`), drawn as
+    /// orbiting blue-white balls around entities with active spirit spheres.
+    spirit_sphere_texture: Option<Arc<Texture>>,
     /// Active warp-portal skill units: (unit entity id, world position, spawn
     /// time, expiry). The expiry is a safety net in case the server's
     /// `ZC_SKILL_DISAPPEAR` is lost; the normal removal goes through
@@ -1401,6 +1404,10 @@ impl Client {
             let warp_portal = WarpPortal::new(&texture_loader, &sprite_loader);
         });
 
+        time_phase!("load spirit sphere assets", {
+            let spirit_sphere_texture = texture_loader.get_or_load("effect\\thunder_center.bmp", ImageType::Color).ok();
+        });
+
         time_phase!("create graphics engine", {
             let graphics_engine = GraphicsEngine::initialize(GraphicsEngineDescriptor {
                 capabilities,
@@ -1650,6 +1657,7 @@ impl Client {
             skill_completion_tracker: SkillCompletionTracker::default(),
             aftercast_act_until: None,
             warp_portal,
+            spirit_sphere_texture,
             warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
             recent_teleport_vanishes: Vec::new(),
@@ -3534,27 +3542,6 @@ impl Client {
         match (is_empty, is_open) {
             (false, false) => self.open_buff_bar_window(),
             (true, true) => self.interface.close_window_with_class(WindowClass::BuffBar),
-            _ => {}
-        }
-    }
-
-    /// Shows the spirit sphere counter while the local player has spheres and
-    /// hides it again when they are consumed ("Critical Explosion"/Fury uses
-    /// all five). The overlay is a background HUD element like the buff bar.
-    fn update_spirit_spheres(&mut self) {
-        let own_spheres = match self.client_state.try_follow(this_entity()) {
-            Some(entity) => {
-                let entity_id = entity.get_entity_id();
-                self.client_state.follow(client_state().spirit_orbs()).get(entity_id)
-            }
-            None => 0,
-        };
-
-        let is_open = self.interface.is_window_with_class_open(WindowClass::SpiritSpheres);
-
-        match (own_spheres <= 0, is_open) {
-            (false, false) => self.interface.open_window(SpiritSphereWindow),
-            (true, true) => self.interface.close_window_with_class(WindowClass::SpiritSpheres),
             _ => {}
         }
     }
@@ -8851,7 +8838,6 @@ impl Client {
 
         self.handle_network_events(client_tick);
         self.update_status_effects(client_tick);
-        self.update_spirit_spheres();
         self.update_asset_load_retries(Instant::now());
 
         let interface_has_focus = self.process_user_events(
@@ -9413,6 +9399,7 @@ impl Client {
                 cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
                 warp_portal: self.warp_portal.as_ref(),
+                spirit_sphere_texture: self.spirit_sphere_texture.as_ref(),
                 warp_skill_units: &self.warp_skill_units,
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
@@ -10190,6 +10177,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     cast_bars: &'a CastBars,
     skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
+    spirit_sphere_texture: Option<&'a Arc<Texture>>,
     /// Active warp-portal skill units, rendered like warp NPCs.
     warp_skill_units: &'a [(EntityId, Point3<f32>, Instant, Instant)],
     effect_renderer: &'a mut EffectRenderer,
@@ -10570,6 +10558,39 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         }
     }
 
+    /// Draws the classic blue-white spirit spheres around entities with an
+    /// active sphere count (Monk/Champion). The data comes from
+    /// `ZC_SPIRITS` (see `state::spirit_orbs`); the same texture and layered
+    /// additive quads as roBrowserLegacy's `SpiritSphere` renderer are used.
+    fn render_spirit_spheres(&mut self) {
+        let Some(texture) = self.spirit_sphere_texture.cloned() else {
+            return;
+        };
+
+        let entities = self.client_state.follow(client_state().entities());
+        let orbs = self.client_state.follow(client_state().spirit_orbs());
+        let time = self.animation_timer_ms / 1000.0;
+
+        for entry in orbs.entries() {
+            if entry.amount <= 0 {
+                continue;
+            }
+            let Some(entity) = entities.iter().find(|entity| entity.get_entity_id() == entry.entity_id) else {
+                continue;
+            };
+            let position = entity.get_position() + Vector3::new(0.0, 0.0, 0.0);
+            crate::world::spirit_sphere_renderer::render(
+                self.effect_renderer,
+                self.current_camera,
+                texture.clone(),
+                position,
+                self.screen_size,
+                entry.amount,
+                time,
+            );
+        }
+    }
+
     #[inline(always)]
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     fn render_world_overlays(&mut self) {
@@ -10595,6 +10616,7 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 
         self.effect_holder.render(self.effect_renderer, self.current_camera);
         self.render_warp_portals();
+        self.render_spirit_spheres();
 
         if let Some(player) = self.client_state.try_follow(this_entity()) {
             #[cfg(feature = "debug")]
