@@ -192,6 +192,17 @@
      "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\pok1.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -398,6 +409,33 @@
      "bottom_radius": 7.2,
      "top_radius": 7.2,
      "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 84,
+   "name": "WZ_JUPITEL",
+   "effect_ids": [
+    93
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "frames": [
+      "effect\\thunder_ball_a.bmp",
+      "effect\\thunder_ball_b.bmp",
+      "effect\\thunder_ball_c.bmp"
+     ],
+     "frame_ms": 80,
+     "size": 3.8249999999999997,
+     "duration_ms": 240,
+     "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
     }
@@ -642,6 +680,48 @@
    ]
   },
   {
+   "skill": 230,
+   "name": "AM_ACIDTERROR",
+   "effect_ids": [
+    298
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\빈병.bmp",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 231,
+   "name": "AM_POTIONPITCHER",
+   "effect_ids": [
+    299
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Ground",
+     "attached_entity": false,
+     "file": "유저인터페이스\\item\\빈포션병.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 234,
    "name": "AM_CP_WEAPON",
    "effect_ids": [
@@ -791,6 +871,17 @@
    "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
    "mode": "append",
    "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\pok1.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    },
     {
      "kind": "Texture",
      "anchor": "Caster",
@@ -1237,6 +1328,17 @@
      "alpha": 0.35294117647058826,
      "blend": "Additive",
      "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Ground",
+     "attached_entity": false,
+     "file": "유저인터페이스\\item\\버서크포션.bmp",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -1639,6 +1741,78 @@
      "size": 6.8,
      "duration_ms": 800,
      "alpha": 0.23529411764705882,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 513,
+   "name": "GS_DISARM",
+   "effect_ids": [
+    627
+   ],
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\골드룩스.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\더개리슨.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\더블샷건.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\더스크.bmp",
+     "size": 6.8,
+     "duration_ms": 5000,
+     "alpha": 0.2,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 525,
+   "name": "NJ_HUUMA",
+   "effect_ids": [
+    615
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "유저인터페이스\\item\\풍마_열화.bmp",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
      "blend": "Additive",
      "phase": "Success"
     }

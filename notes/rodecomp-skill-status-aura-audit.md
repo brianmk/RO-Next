@@ -225,8 +225,8 @@ are not reproduced yet.
 
 ### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
-`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (67 skills,
-87 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
+`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (72 skills,
+98 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
 the official rows and **appends** to the `(skill, phase)` descriptor (it never removes a layer).
 
 Selection rule: the official C++ switch plays an effect for the skill **and** the effect id is
@@ -237,7 +237,10 @@ Two kinds of rows are generated:
 
 * **new descriptors** for skills that had no client row at all (35 skills / 44 layers);
 * **append rows** (`mode: append`) for skills whose descriptor existed but was missing official
-  layers (32 skills / 43 layers). The merge only appends, it never drops a tuned visual, so a
+  layers (37 skills / 54 layers). Appended assets are filtered per asset, not per layer, so a
+  multi-texture layer contributes the frames the client does not render yet; UI item textures
+  that the official client loads with `g_texMgr` (thrown potions, disarm weapons) are included,
+  because they are the effect's real asset. The merge only appends, it never drops a tuned visual, so a
   skill moves closer to the official client without regressing. Examples: the official
   `alpha_down.tga` ground circle of Blessing, Magnum Break's `대폭발` sphere, Cold Bolt's
   `ring_blue`, the `fireball`/`창`/`waterball` projectiles, Grand Cross' ground rings, Aspersio's
@@ -313,13 +316,13 @@ documented here instead of being faked with a glow.
    ids that differ from the roBrowser-derived table. The classic example is the bard/dancer songs:
    rodecomp plays `842..848` (`w_bubble%02d` animated bubbles) while our 2019-era table has
    `278..294`. Changing those needs the 2019 executable as ground truth, not rodecomp.
-2. **Skills with rows that still miss official layers**: 37 of the 64 covered skills (27 are now
-   complete). The remaining ones are mostly effects whose asset a single primitive cannot
+2. **Skills with rows that still miss official layers**: 29 of the 64 covered skills. The remaining ones are mostly effects whose asset a single primitive cannot
    express (multi-frame `%02d` sequences such as `w_bubble%02d`, `thunder_ball_a..c`,
    `불화살1..4`), UI item textures (potion bottle, weapon icons) and a few textures whose
    primitive has no korangar equivalent. `AL_HEAL` 28 now gets the official `alpha_down` layer;
    its `pok1` sparkle and the exact cylinder geometry are still approximations, and
-   `MG_FIREBOLT` renders one frame of its 4-frame arrow sequence.
+   `MG_FIREBOLT`/`WZ_JUPITEL` now play their full frame sequences, and the thrown-item skills
+   (`AM_ACIDTERROR`, `AM_BERSERKPITCHER`, `NJ_HUUMA`) render the official item textures.
 3. **Animated `.spr` frame sequences** (as opposed to texture flipbooks, which are now
    supported) still rely on the `.spr`/`.act` player. The bard/dancer songs' effect ids differ
    between the 2026 client and our 2019 table, so their `w_bubble%02d` layer is not applied yet
@@ -353,11 +356,11 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 478 phases / 685 layers
+./tools/gen_skill_effects.py --check        # 482 phases / 696 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
-korangar --check-skill-effects              # 478 descriptors valid
+korangar --check-skill-effects              # 482 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```

@@ -9,7 +9,7 @@
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 67 skills, 87 layers.
+// 72 skills, 98 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
@@ -40,6 +40,7 @@
         // skill 28 AL_HEAL: official effect [320] - appended official layers
         (skill: 28, phase: Success, layers: [
             (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", size: 4.25, duration_ms: 800, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 32 AL_CRUCIS: official effect [40] - appended official layers
         (skill: 32, phase: Success, layers: [
@@ -74,6 +75,10 @@
         (skill: 81, phase: Success, layers: [
             (kind: Spr, anchor: Caster, attached_entity: true, files: ["Shadow"], duration_ms: 0),
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 84 WZ_JUPITEL: official effect [93] - appended official layers
+        (skill: 84, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\thunder_ball_a.bmp", "effect\\thunder_ball_b.bmp", "effect\\thunder_ball_c.bmp"], frame_ms: 80, size: 3.825, duration_ms: 240, alpha: 0.2, blend: Additive),
         ]),
         // skill 86 WZ_WATERBALL: official effect [117] - appended official layers
         (skill: 86, phase: Success, layers: [
@@ -117,6 +122,14 @@
         (skill: 219, phase: Success, layers: [
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\white01.bmp", size: 6.8, duration_ms: 16650, alpha: 0.2, blend: Additive),
         ]),
+        // skill 230 AM_ACIDTERROR: official effect [298] - appended official layers
+        (skill: 230, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\빈병.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 231 AM_POTIONPITCHER: official effect [299]
+        (skill: 231, phase: Success, layers: [
+            (kind: Texture, anchor: Ground, attached_entity: false, file: "유저인터페이스\\item\\빈포션병.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
         // skill 234 AM_CP_WEAPON: official effect [300]
         (skill: 234, phase: Success, layers: [
             (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
@@ -144,6 +157,7 @@
         ]),
         // skill 262 MO_ABSORBSPIRITS: official effect [253] - appended official layers
         (skill: 262, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_down.tga", size: 7.65, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 263 MO_TRIPLEATTACK: official effect [329]
@@ -224,6 +238,7 @@
         (skill: 446, phase: Success, layers: [
             (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\ac_center2.tga", size: 6.8, duration_ms: 800, alpha: 0.7059, tint: (0.941, 0.0, 0.0), blend: Additive),
             (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1500, height: 20.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.3529, blend: Additive),
+            (kind: Texture, anchor: Ground, attached_entity: false, file: "유저인터페이스\\item\\버서크포션.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 458 SL_BLACKSMITH: official effect [503]
         (skill: 458, phase: Success, layers: [
@@ -287,6 +302,17 @@
         // skill 506 GS_INCREASING: official effect [456] - appended official layers
         (skill: 506, phase: Success, layers: [
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ac_center2.tga", size: 6.8, duration_ms: 800, alpha: 0.2353, blend: Additive),
+        ]),
+        // skill 513 GS_DISARM: official effect [627]
+        (skill: 513, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\골드룩스.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더개리슨.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더블샷건.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더스크.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 525 NJ_HUUMA: official effect [615] - appended official layers
+        (skill: 525, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\풍마_열화.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 534 NJ_KOUENKA: official effect [618] - appended official layers
         (skill: 534, phase: Success, layers: [

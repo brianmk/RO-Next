@@ -244,6 +244,7 @@
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\pok3.tga", size: 7.65, size_end: 8.8, duration_ms: 1300, delay_ms: 400, count: 15, spread: 3.0, alpha: 0.6, blend: Additive),
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\pok3.tga", size: 7.65, size_end: 8.8, duration_ms: 1100, delay_ms: 50, count: 7, spread: 2.0, alpha: 0.6, blend: Additive),
                 (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", size: 4.25, duration_ms: 800, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -684,6 +685,7 @@
             phase: Success,
             layers: [
                 (kind: Primitive, anchor: Travel, attached_entity: false, file: "effect\\thunder_center.bmp", primitive: Projectile, size: 3.15, size_end: 2.2, duration_ms: 200, blend: Additive, wav: "effect\\hunter_shockwavetrap.wav"),
+                (kind: Texture, anchor: Target, attached_entity: true, frames: ["effect\\thunder_ball_a.bmp", "effect\\thunder_ball_b.bmp", "effect\\thunder_ball_c.bmp"], frame_ms: 80, size: 3.825, duration_ms: 240, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -1306,10 +1308,24 @@
         ),
         (
             skill: 230,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\빈병.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+            ],
+        ),
+        (
+            skill: 230,
             phase: Release,
             action: Attack,
             layers: [
                 (kind: Primitive, anchor: Travel, attached_entity: true, file: "유저인터페이스\\item\\염산병.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 300),
+            ],
+        ),
+        (
+            skill: 231,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "유저인터페이스\\item\\빈포션병.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -1430,6 +1446,7 @@
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\pok3.tga", size: 7.65, size_end: 8.8, duration_ms: 1500, delay_ms: 10, count: 4, spread: 2.4, alpha: 0.8, tint: (0.3, 0.3, 1.0), blend: Additive),
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\pok3.tga", size: 7.65, size_end: 8.8, duration_ms: 1300, delay_ms: 400, count: 16, spread: 3.0, alpha: 0.8, tint: (0.3, 0.3, 1.0), blend: Additive),
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\pok3.tga", size: 7.65, size_end: 8.8, duration_ms: 1100, delay_ms: 50, count: 10, spread: 2.0, alpha: 0.8, tint: (0.3, 0.3, 1.0), blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_down.tga", size: 7.65, duration_ms: 800, alpha: 0.2, blend: Additive),
             ],
         ),
@@ -2117,6 +2134,7 @@
                 (kind: Str, anchor: Auto, attached_entity: true, head: true, file: "버서크.str", wav: "effect\\ac_concentration.wav"),
                 (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\ac_center2.tga", size: 6.8, duration_ms: 800, alpha: 0.7059, tint: (0.941, 0.0, 0.0), blend: Additive),
                 (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1500, height: 20.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.3529, blend: Additive),
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "유저인터페이스\\item\\버서크포션.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -2327,6 +2345,16 @@
             ],
         ),
         (
+            skill: 513,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\골드룩스.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더개리슨.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더블샷건.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\더스크.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+            ],
+        ),
+        (
             skill: 515,
             phase: Success,
             action: Attack,
@@ -2381,6 +2409,13 @@
             action: Attack,
             layers: [
                 (kind: Primitive, anchor: Travel, attached_entity: true, file: "유저인터페이스\\item\\쿠나이_독.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 200, wav: "effect\\닌자_던지기.wav"),
+            ],
+        ),
+        (
+            skill: 525,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "유저인터페이스\\item\\풍마_열화.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
             ],
         ),
         (
