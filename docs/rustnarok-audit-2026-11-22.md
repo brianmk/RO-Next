@@ -6,7 +6,7 @@ at commit `76600595363affc96d5995bf4baa790d05a9593c` (shallow clone of `main`).
 **Our client:** `/home/phantom/Games/ragnarok/CondaRO-linux/korangar` (RO-Next),
 integration branch.
 **Machine-readable companion:** [`docs/rustnarok-inventory.json`](rustnarok-inventory.json)
-(1,621 rustnarok effect ids, 429 motion-table skills, 313 status icons, each with its
+(1,751 rustnarok effect ids, 525 motion-table skills, 313 status icons, each with its
 our-side equivalent and covered/missing status).
 **Mode:** source analysis only; no Wine, no user characters, no live server changes.
 **Program scope:** the RO-Next client with the 2019 rAthena Pre-Renewal/Transcendence
@@ -36,17 +36,17 @@ Counts at the audit commit:
 
 | metric | rustnarok | RO-Next |
 | --- | --- | --- |
-| effect ids with a definition | 1,621 | 388 skill ids with effect rows (437 phases, 608 layers) |
+| effect ids with a definition | 1,751 | 388 skill ids with effect rows (437 phases, 608 layers) |
 | effect definition lines | 4,553 | — |
-| skills with an effect mapping | 1,158 | 388 |
+| skills with an effect mapping | 978 | 388 |
 | status visual mappings (`status` lines) | 177 | 7 persistent auras + 3 status tints |
 | status icons | 313 built-in | 609 status rows, 575 icons |
-| skill-motion table entries | 429 skills | 242 action rows (after this batch) |
+| skill-motion table entries | 525 skills | 242 action rows (after this batch) |
 | protocol | 2025-era packets + MCP | 2019/2022-compatible `PACKETVER` |
 
 **Coverage result:** of the **457 learnable Pre-Renewal skills** in our server dump,
-**246 now have an effect row, 223 do not**; rustnarok supplies an effect mapping for
-**211 of those 223**, but most of those are only its generic caster burst (`effect 16`)
+**257 now have an effect row, 200 do not**; rustnarok supplies an effect mapping for
+**200 of those 200**, but most of those are only its generic caster burst (`effect 16`)
 or begin-spell (`12`) primitives and have no distinct asset of their own. The
 distinct-asset gap is much smaller: rustnarok’s own effect table has no separate
 `str/part/ring/spr` definition for those generic-cast skills either.
@@ -140,9 +140,9 @@ skill-unit handling).
 
 | area | rustnarok entries | RO-Next equivalent | covered | missing / notes |
 | --- | ---: | --- | ---: | --- |
-| effect ids with definitions | 1,621 | `skill_effects.ron` rows + primitives | 283 (heuristic: skill/status uses it) | 1,338, overwhelmingly 4th-job/2025-only; 211 learnable pre-re skills have no distinct effect file |
-| learnable Pre-Re skills | 457 | 388 skill rows in `skill_effects.ron` | 246 | 211 (most only generic cast effects 12/16) |
-| skill motion table | 429 skills | `skill_actions.ron` 242 | 183 | 246 (mostly 4th-job/special action indices) |
+| effect ids with definitions | 1,751 | `skill_effects.ron` rows + primitives | 310 (heuristic: skill/status uses it) | 1,441, overwhelmingly 4th-job/2025-only; 200 learnable pre-re skills have no distinct effect file |
+| learnable Pre-Re skills | 457 | 388 skill rows in `skill_effects.ron` | 257 | 200 (most only generic cast effects 12/16) |
+| skill motion table | 525 skills | `skill_actions.ron` 242 | 220 | 305 (mostly 4th-job/special action indices) |
 | status icons | 313 | 609 status rows / 575 icons | 313 built-ins present | 0 rustnarok icons missing; 45 icon-name differences (case/source table), not functional |
 | status visual effects | 177 | 7 auras + 3 tint families | 10 | 167 (need primitives; see B1) |
 | skill sounds | rustnarok `wav` rows | 8 curated + 363 official + fallback | broad | generic-cast sounds handled by our gate |

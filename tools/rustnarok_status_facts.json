@@ -1,0 +1,3544 @@
+{
+ "commit": "76600595363affc96d5995bf4baa790d05a9593c",
+ "files": [
+  "src/status_icons.txt",
+  "src/fx/effects.txt"
+ ],
+ "provenance": "rustnarok-client source facts, extracted from the pinned checkout",
+ "repository": "https://github.com/kindraywind/rustnarok-client.git",
+ "status_count": 450,
+ "statuses": [
+  {
+   "icon": "프로보크.tga",
+   "id": 0,
+   "source_file": "src/status_icons.txt",
+   "source_line": 3,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "인듀어.tga",
+   "id": 1,
+   "source_file": "src/status_icons.txt",
+   "source_line": 4,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "투핸드퀴큰.tga",
+   "id": 2,
+   "source_file": "src/status_icons.txt",
+   "source_line": 5,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": "집중력향상.tga",
+   "id": 3,
+   "source_file": "src/status_icons.txt",
+   "source_line": 6,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "하이딩.tga",
+   "id": 4,
+   "source_file": "src/status_icons.txt",
+   "source_line": 7,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "클로킹.tga",
+   "id": 5,
+   "source_file": "src/status_icons.txt",
+   "source_line": 8,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "인찬트포이즌.tga",
+   "id": 6,
+   "source_file": "src/status_icons.txt",
+   "source_line": 9,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "포이즌리액트.tga",
+   "id": 7,
+   "source_file": "src/status_icons.txt",
+   "source_line": 10,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "콰그마이어.tga",
+   "id": 8,
+   "source_file": "src/status_icons.txt",
+   "source_line": 11,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "안젤루스.tga",
+   "id": 9,
+   "source_file": "src/status_icons.txt",
+   "source_line": 12,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "블레싱.tga",
+   "id": 10,
+   "source_file": "src/status_icons.txt",
+   "source_line": 13,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "시그넘크루시스.tga",
+   "id": 11,
+   "source_file": "src/status_icons.txt",
+   "source_line": 14,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성증가.tga",
+   "id": 12,
+   "source_file": "src/status_icons.txt",
+   "source_line": 15,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성감소.tga",
+   "id": 13,
+   "source_file": "src/status_icons.txt",
+   "source_line": 16,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "슬로우포이즌.tga",
+   "id": 14,
+   "source_file": "src/status_icons.txt",
+   "source_line": 17,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "임포시티오마누스.tga",
+   "id": 15,
+   "source_file": "src/status_icons.txt",
+   "source_line": 18,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "수줍은하루의우울.tga",
+   "id": 16,
+   "source_file": "src/status_icons.txt",
+   "source_line": 19,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "아스페르시오.tga",
+   "id": 17,
+   "source_file": "src/status_icons.txt",
+   "source_line": 20,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "성체강복.tga",
+   "id": 18,
+   "source_file": "src/status_icons.txt",
+   "source_line": 21,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "기리에엘레이손.tga",
+   "id": 19,
+   "source_file": "src/status_icons.txt",
+   "source_line": 22,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "마니피캇.tga",
+   "id": 20,
+   "source_file": "src/status_icons.txt",
+   "source_line": 23,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "글로리아.tga",
+   "id": 21,
+   "source_file": "src/status_icons.txt",
+   "source_line": 24,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "렉스에테르나.tga",
+   "id": 22,
+   "source_file": "src/status_icons.txt",
+   "source_line": 25,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "아드레날린러쉬.tga",
+   "id": 23,
+   "source_file": "src/status_icons.txt",
+   "source_line": 26,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "웨폰퍼펙션.tga",
+   "id": 24,
+   "source_file": "src/status_icons.txt",
+   "source_line": 27,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "오버트러스트.tga",
+   "id": 25,
+   "source_file": "src/status_icons.txt",
+   "source_line": 28,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": "맥시마이즈파워.tga",
+   "id": 26,
+   "source_file": "src/status_icons.txt",
+   "source_line": 29,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "라이딩.tga",
+   "id": 27,
+   "source_file": "src/status_icons.txt",
+   "source_line": 30,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "팔콘.tga",
+   "id": 28,
+   "source_file": "src/status_icons.txt",
+   "source_line": 31,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "죽은척하기.tga",
+   "id": 29,
+   "source_file": "src/status_icons.txt",
+   "source_line": 32,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "고성지르기.tga",
+   "id": 30,
+   "source_file": "src/status_icons.txt",
+   "source_line": 33,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "에너지코트.tga",
+   "id": 31,
+   "source_file": "src/status_icons.txt",
+   "source_line": 34,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": "갑옷파괴.tga",
+   "id": 32,
+   "source_file": "src/status_icons.txt",
+   "source_line": 35,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "무기파괴.tga",
+   "id": 33,
+   "source_file": "src/status_icons.txt",
+   "source_line": 36,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "환각.tga",
+   "id": 34,
+   "source_file": "src/status_icons.txt",
+   "source_line": 37,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "무게50이상.tga",
+   "id": 35,
+   "source_file": "src/status_icons.txt",
+   "source_line": 38,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "무게90이상.tga",
+   "id": 36,
+   "source_file": "src/status_icons.txt",
+   "source_line": 39,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "공속물약.tga",
+   "id": 37,
+   "source_file": "src/status_icons.txt",
+   "source_line": 40,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "공속물약.tga",
+   "id": 38,
+   "source_file": "src/status_icons.txt",
+   "source_line": 41,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "공속물약.tga",
+   "id": 39,
+   "source_file": "src/status_icons.txt",
+   "source_line": 42,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성증가.tga",
+   "id": 41,
+   "source_file": "src/status_icons.txt",
+   "source_line": 43,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성증가.tga",
+   "id": 42,
+   "source_file": "src/status_icons.txt",
+   "source_line": 44,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트립웨폰.tga",
+   "id": 50,
+   "source_file": "src/status_icons.txt",
+   "source_line": 45,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트립쉴드.tga",
+   "id": 51,
+   "source_file": "src/status_icons.txt",
+   "source_line": 46,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트립아머.tga",
+   "id": 52,
+   "source_file": "src/status_icons.txt",
+   "source_line": 47,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트립헬름.tga",
+   "id": 53,
+   "source_file": "src/status_icons.txt",
+   "source_line": 48,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "케미컬프로텍션[웨폰].tga",
+   "id": 54,
+   "source_file": "src/status_icons.txt",
+   "source_line": 49,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "케미컬프로텍션[쉴드].tga",
+   "id": 55,
+   "source_file": "src/status_icons.txt",
+   "source_line": 50,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "케미컬프로텍션[아머].tga",
+   "id": 56,
+   "source_file": "src/status_icons.txt",
+   "source_line": 51,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "케미컬프로텍션[헬름].tga",
+   "id": 57,
+   "source_file": "src/status_icons.txt",
+   "source_line": 52,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "오토가드.tga",
+   "id": 58,
+   "source_file": "src/status_icons.txt",
+   "source_line": 53,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "리플렉트쉴드.tga",
+   "id": 59,
+   "source_file": "src/status_icons.txt",
+   "source_line": 54,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "헌신.tga",
+   "id": 60,
+   "source_file": "src/status_icons.txt",
+   "source_line": 55,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "신의뜻.tga",
+   "id": 61,
+   "source_file": "src/status_icons.txt",
+   "source_line": 56,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "디펜더.tga",
+   "id": 62,
+   "source_file": "src/status_icons.txt",
+   "source_line": 57,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "연마제.tga",
+   "id": 64,
+   "source_file": "src/status_icons.txt",
+   "source_line": 58,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "오토스펠.tga",
+   "id": 65,
+   "source_file": "src/status_icons.txt",
+   "source_line": 59,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스피어퀴큰.tga",
+   "id": 68,
+   "source_file": "src/status_icons.txt",
+   "source_line": 60,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": "바드노래.tga",
+   "id": 69,
+   "source_file": "src/status_icons.txt",
+   "source_line": 61,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 70,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5116,
+   "visual_effect_ids": [
+    865
+   ]
+  },
+  {
+   "icon": null,
+   "id": 71,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5119,
+   "visual_effect_ids": [
+    873
+   ]
+  },
+  {
+   "icon": null,
+   "id": 72,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5121,
+   "visual_effect_ids": [
+    877
+   ]
+  },
+  {
+   "icon": null,
+   "id": 73,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5122,
+   "visual_effect_ids": [
+    861
+   ]
+  },
+  {
+   "icon": null,
+   "id": 74,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5117,
+   "visual_effect_ids": [
+    865
+   ]
+  },
+  {
+   "icon": null,
+   "id": 75,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5123,
+   "visual_effect_ids": [
+    38
+   ]
+  },
+  {
+   "icon": null,
+   "id": 76,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5124,
+   "visual_effect_ids": [
+    871
+   ]
+  },
+  {
+   "icon": null,
+   "id": 77,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5120,
+   "visual_effect_ids": [
+    873
+   ]
+  },
+  {
+   "icon": null,
+   "id": 78,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5126,
+   "visual_effect_ids": [
+    867
+   ]
+  },
+  {
+   "icon": null,
+   "id": 79,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5127,
+   "visual_effect_ids": [
+    864
+   ]
+  },
+  {
+   "icon": null,
+   "id": 80,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5125,
+   "visual_effect_ids": [
+    871
+   ]
+  },
+  {
+   "icon": null,
+   "id": 81,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5129,
+   "visual_effect_ids": [
+    875
+   ]
+  },
+  {
+   "icon": null,
+   "id": 82,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5128,
+   "visual_effect_ids": [
+    864
+   ]
+  },
+  {
+   "icon": null,
+   "id": 83,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5118,
+   "visual_effect_ids": [
+    865
+   ]
+  },
+  {
+   "icon": null,
+   "id": 84,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5130,
+   "visual_effect_ids": [
+    875
+   ]
+  },
+  {
+   "icon": null,
+   "id": 86,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5131,
+   "visual_effect_ids": [
+    166,
+    203
+   ]
+  },
+  {
+   "icon": "steelbody.tga",
+   "id": 87,
+   "source_file": "src/status_icons.txt",
+   "source_line": 62,
+   "visual_effect_ids": [
+    254,
+    1132
+   ]
+  },
+  {
+   "icon": "extremityfist.tga",
+   "id": 88,
+   "source_file": "src/status_icons.txt",
+   "source_line": 63,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "프레임런쳐.tga",
+   "id": 90,
+   "source_file": "src/status_icons.txt",
+   "source_line": 64,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "프로스트웨폰.tga",
+   "id": 91,
+   "source_file": "src/status_icons.txt",
+   "source_line": 65,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "라이트닝로더.tga",
+   "id": 92,
+   "source_file": "src/status_icons.txt",
+   "source_line": 66,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "사이즈믹웨폰.tga",
+   "id": 93,
+   "source_file": "src/status_icons.txt",
+   "source_line": 67,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "bd_undead.tga",
+   "id": 97,
+   "source_file": "src/status_icons.txt",
+   "source_line": 68,
+   "visual_effect_ids": [
+    655,
+    656
+   ]
+  },
+  {
+   "icon": null,
+   "id": 98,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5139,
+   "visual_effect_ids": [
+    455
+   ]
+  },
+  {
+   "icon": null,
+   "id": 103,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5140,
+   "visual_effect_ids": [
+    367,
+    474
+   ]
+  },
+  {
+   "icon": "icon10.tga",
+   "id": 104,
+   "source_file": "src/status_icons.txt",
+   "source_line": 69,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 105,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5142,
+   "visual_effect_ids": [
+    369
+   ]
+  },
+  {
+   "icon": "icon08.tga",
+   "id": 106,
+   "source_file": "src/status_icons.txt",
+   "source_line": 70,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 107,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5143,
+   "visual_effect_ids": [
+    368
+   ]
+  },
+  {
+   "icon": "icon05.tga",
+   "id": 110,
+   "source_file": "src/status_icons.txt",
+   "source_line": 71,
+   "visual_effect_ids": [
+    375
+   ]
+  },
+  {
+   "icon": "i_장판.tga",
+   "id": 112,
+   "source_file": "src/status_icons.txt",
+   "source_line": 72,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 113,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5147,
+   "visual_effect_ids": [
+    382
+   ]
+  },
+  {
+   "icon": "i_치독.tga",
+   "id": 114,
+   "source_file": "src/status_icons.txt",
+   "source_line": 73,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon09.tga",
+   "id": 115,
+   "source_file": "src/status_icons.txt",
+   "source_line": 74,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon06.tga",
+   "id": 116,
+   "source_file": "src/status_icons.txt",
+   "source_line": 75,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon03.tga",
+   "id": 117,
+   "source_file": "src/status_icons.txt",
+   "source_line": 76,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon07.tga",
+   "id": 118,
+   "source_file": "src/status_icons.txt",
+   "source_line": 77,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon04.tga",
+   "id": 120,
+   "source_file": "src/status_icons.txt",
+   "source_line": 78,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon01.tga",
+   "id": 121,
+   "source_file": "src/status_icons.txt",
+   "source_line": 79,
+   "visual_effect_ids": [
+    396
+   ]
+  },
+  {
+   "icon": "icon01.tga",
+   "id": 122,
+   "source_file": "src/status_icons.txt",
+   "source_line": 80,
+   "visual_effect_ids": [
+    396
+   ]
+  },
+  {
+   "icon": null,
+   "id": 123,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5150,
+   "visual_effect_ids": [
+    394
+   ]
+  },
+  {
+   "icon": "출혈상태.tga",
+   "id": 124,
+   "source_file": "src/status_icons.txt",
+   "source_line": 81,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "관절공격.tga",
+   "id": 125,
+   "source_file": "src/status_icons.txt",
+   "source_line": 82,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "엄마아빠사랑해요.tga",
+   "id": 130,
+   "source_file": "src/status_icons.txt",
+   "source_line": 83,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "금강불괴.tga",
+   "id": 132,
+   "source_file": "src/status_icons.txt",
+   "source_line": 84,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_run.tga",
+   "id": 133,
+   "source_file": "src/status_icons.txt",
+   "source_line": 85,
+   "visual_effect_ids": [
+    443
+   ]
+  },
+  {
+   "icon": null,
+   "id": 134,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5152,
+   "visual_effect_ids": [
+    426
+   ]
+  },
+  {
+   "icon": "i_stormkick.tga",
+   "id": 135,
+   "source_file": "src/status_icons.txt",
+   "source_line": 86,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_downkick.tga",
+   "id": 137,
+   "source_file": "src/status_icons.txt",
+   "source_line": 87,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_turnkick.tga",
+   "id": 139,
+   "source_file": "src/status_icons.txt",
+   "source_line": 88,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_counter.tga",
+   "id": 141,
+   "source_file": "src/status_icons.txt",
+   "source_line": 89,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_dodge.tga",
+   "id": 143,
+   "source_file": "src/status_icons.txt",
+   "source_line": 90,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_run.tga",
+   "id": 145,
+   "source_file": "src/status_icons.txt",
+   "source_line": 91,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "캐시갑옷속성부여.tga",
+   "id": 146,
+   "source_file": "src/status_icons.txt",
+   "source_line": 92,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "아드레날린러쉬.tga",
+   "id": 147,
+   "source_file": "src/status_icons.txt",
+   "source_line": 93,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_p_tele.tga",
+   "id": 148,
+   "source_file": "src/status_icons.txt",
+   "source_line": 94,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "plusattackpower.tga",
+   "id": 150,
+   "source_file": "src/status_icons.txt",
+   "source_line": 95,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "plusmagicpower.tga",
+   "id": 151,
+   "source_file": "src/status_icons.txt",
+   "source_line": 96,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 152,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5153,
+   "visual_effect_ids": [
+    164,
+    487
+   ]
+  },
+  {
+   "icon": null,
+   "id": 153,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5155,
+   "visual_effect_ids": [
+    419
+   ]
+  },
+  {
+   "icon": "i_kaizel.tga",
+   "id": 156,
+   "source_file": "src/status_icons.txt",
+   "source_line": 97,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_kaahi.tga",
+   "id": 157,
+   "source_file": "src/status_icons.txt",
+   "source_line": 98,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_kaupe.tga",
+   "id": 158,
+   "source_file": "src/status_icons.txt",
+   "source_line": 99,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 159,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5156,
+   "visual_effect_ids": [
+    546
+   ]
+  },
+  {
+   "icon": "i_onehand.tga",
+   "id": 161,
+   "source_file": "src/status_icons.txt",
+   "source_line": 100,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": null,
+   "id": 165,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5157,
+   "visual_effect_ids": [
+    418,
+    544
+   ]
+  },
+  {
+   "icon": null,
+   "id": 166,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5159,
+   "visual_effect_ids": [
+    418,
+    544
+   ]
+  },
+  {
+   "icon": null,
+   "id": 167,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5161,
+   "visual_effect_ids": [
+    418,
+    544
+   ]
+  },
+  {
+   "icon": "i_suncomfort.tga",
+   "id": 169,
+   "source_file": "src/status_icons.txt",
+   "source_line": 101,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_mooncomfort.tga",
+   "id": 170,
+   "source_file": "src/status_icons.txt",
+   "source_line": 102,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_starcomfort.tga",
+   "id": 171,
+   "source_file": "src/status_icons.txt",
+   "source_line": 103,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_프리저브.tga",
+   "id": 181,
+   "source_file": "src/status_icons.txt",
+   "source_line": 104,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_체이스힘.tga",
+   "id": 182,
+   "source_file": "src/status_icons.txt",
+   "source_line": 105,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_더블캐스팅.tga",
+   "id": 186,
+   "source_file": "src/status_icons.txt",
+   "source_line": 106,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_오버맥스.tga",
+   "id": 188,
+   "source_file": "src/status_icons.txt",
+   "source_line": 107,
+   "visual_effect_ids": [
+    166
+   ]
+  },
+  {
+   "icon": "i_타로카드.tga",
+   "id": 191,
+   "source_file": "src/status_icons.txt",
+   "source_line": 108,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_shrink.tga",
+   "id": 197,
+   "source_file": "src/status_icons.txt",
+   "source_line": 109,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_sightblaster.tga",
+   "id": 198,
+   "source_file": "src/status_icons.txt",
+   "source_line": 110,
+   "visual_effect_ids": [
+    601
+   ]
+  },
+  {
+   "icon": "i_closeconfine.tga",
+   "id": 200,
+   "source_file": "src/status_icons.txt",
+   "source_line": 111,
+   "visual_effect_ids": [
+    604
+   ]
+  },
+  {
+   "icon": "i_closeconfine.tga",
+   "id": 201,
+   "source_file": "src/status_icons.txt",
+   "source_line": 112,
+   "visual_effect_ids": [
+    604
+   ]
+  },
+  {
+   "icon": "i_madness.tga",
+   "id": 203,
+   "source_file": "src/status_icons.txt",
+   "source_line": 113,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_fever.tga",
+   "id": 204,
+   "source_file": "src/status_icons.txt",
+   "source_line": 114,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "글로리아.tga",
+   "id": 205,
+   "source_file": "src/status_icons.txt",
+   "source_line": 115,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_maemi.tga",
+   "id": 206,
+   "source_file": "src/status_icons.txt",
+   "source_line": 116,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_bunsin.tga",
+   "id": 207,
+   "source_file": "src/status_icons.txt",
+   "source_line": 117,
+   "visual_effect_ids": [
+    617
+   ]
+  },
+  {
+   "icon": "i_nen.tga",
+   "id": 208,
+   "source_file": "src/status_icons.txt",
+   "source_line": 118,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_adjustment.tga",
+   "id": 209,
+   "source_file": "src/status_icons.txt",
+   "source_line": 119,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "i_accuracy",
+   "id": 210,
+   "source_file": "src/status_icons.txt",
+   "source_line": 120,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "라이딩.tga",
+   "id": 217,
+   "source_file": "src/status_icons.txt",
+   "source_line": 121,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 232,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5167,
+   "visual_effect_ids": [
+    418,
+    544
+   ]
+  },
+  {
+   "icon": null,
+   "id": 235,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5135,
+   "visual_effect_ids": [
+    254,
+    1132
+   ]
+  },
+  {
+   "icon": "str_gogi.tga",
+   "id": 241,
+   "source_file": "src/status_icons.txt",
+   "source_line": 122,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "agi_gogi.tga",
+   "id": 242,
+   "source_file": "src/status_icons.txt",
+   "source_line": 123,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "vit_gogi.tga",
+   "id": 243,
+   "source_file": "src/status_icons.txt",
+   "source_line": 124,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "dex_gogi.tga",
+   "id": 244,
+   "source_file": "src/status_icons.txt",
+   "source_line": 125,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "int_gogi.tga",
+   "id": 245,
+   "source_file": "src/status_icons.txt",
+   "source_line": 126,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "luk_gogi.tga",
+   "id": 246,
+   "source_file": "src/status_icons.txt",
+   "source_line": 127,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 247,
+   "source_file": "src/status_icons.txt",
+   "source_line": 128,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 248,
+   "source_file": "src/status_icons.txt",
+   "source_line": 129,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 249,
+   "source_file": "src/status_icons.txt",
+   "source_line": 130,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "exp.tga",
+   "id": 250,
+   "source_file": "src/status_icons.txt",
+   "source_line": 131,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "death.tga",
+   "id": 251,
+   "source_file": "src/status_icons.txt",
+   "source_line": 132,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "item.tga",
+   "id": 252,
+   "source_file": "src/status_icons.txt",
+   "source_line": 133,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 263,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5169,
+   "visual_effect_ids": [
+    586
+   ]
+  },
+  {
+   "icon": "str_gogi.tga",
+   "id": 271,
+   "source_file": "src/status_icons.txt",
+   "source_line": 134,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "agi_gogi.tga",
+   "id": 272,
+   "source_file": "src/status_icons.txt",
+   "source_line": 135,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "vit_gogi.tga",
+   "id": 273,
+   "source_file": "src/status_icons.txt",
+   "source_line": 136,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "dex_gogi.tga",
+   "id": 274,
+   "source_file": "src/status_icons.txt",
+   "source_line": 137,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "int_gogi.tga",
+   "id": 275,
+   "source_file": "src/status_icons.txt",
+   "source_line": 138,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "luk_gogi.tga",
+   "id": 276,
+   "source_file": "src/status_icons.txt",
+   "source_line": 139,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 277,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5170,
+   "visual_effect_ids": [
+    456
+   ]
+  },
+  {
+   "icon": null,
+   "id": 278,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5171,
+   "visual_effect_ids": [
+    456
+   ]
+  },
+  {
+   "icon": null,
+   "id": 279,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5172,
+   "visual_effect_ids": [
+    456
+   ]
+  },
+  {
+   "icon": null,
+   "id": 280,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5173,
+   "visual_effect_ids": [
+    456
+   ]
+  },
+  {
+   "icon": null,
+   "id": 281,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5174,
+   "visual_effect_ids": [
+    456
+   ]
+  },
+  {
+   "icon": "slowcast.tga",
+   "id": 282,
+   "source_file": "src/status_icons.txt",
+   "source_line": 140,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "criticalwound.tga",
+   "id": 286,
+   "source_file": "src/status_icons.txt",
+   "source_line": 141,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성증가.tga",
+   "id": 289,
+   "source_file": "src/status_icons.txt",
+   "source_line": 142,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 290,
+   "source_file": "src/status_icons.txt",
+   "source_line": 143,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "마법방어포션.tga",
+   "id": 291,
+   "source_file": "src/status_icons.txt",
+   "source_line": 144,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "중형생명수.tga",
+   "id": 292,
+   "source_file": "src/status_icons.txt",
+   "source_line": 145,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "소형생명수.tga",
+   "id": 293,
+   "source_file": "src/status_icons.txt",
+   "source_line": 146,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "중형생명수.tga",
+   "id": 294,
+   "source_file": "src/status_icons.txt",
+   "source_line": 147,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트라이킹.tga",
+   "id": 295,
+   "source_file": "src/status_icons.txt",
+   "source_line": 148,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "plusmagicpower.tga",
+   "id": 298,
+   "source_file": "src/status_icons.txt",
+   "source_line": 149,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "소형생명수.tga",
+   "id": 301,
+   "source_file": "src/status_icons.txt",
+   "source_line": 150,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "캐시갑옷속성부여.tga",
+   "id": 302,
+   "source_file": "src/status_icons.txt",
+   "source_line": 151,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "npc_hellpower.tga",
+   "id": 304,
+   "source_file": "src/status_icons.txt",
+   "source_line": 152,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "job.tga",
+   "id": 312,
+   "source_file": "src/status_icons.txt",
+   "source_line": 153,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon06.tga",
+   "id": 313,
+   "source_file": "src/status_icons.txt",
+   "source_line": 154,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "death.tga",
+   "id": 314,
+   "source_file": "src/status_icons.txt",
+   "source_line": 155,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_enchant.tga",
+   "id": 316,
+   "source_file": "src/status_icons.txt",
+   "source_line": 156,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_nauthiz.tga",
+   "id": 318,
+   "source_file": "src/status_icons.txt",
+   "source_line": 157,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_turisuss.tga",
+   "id": 319,
+   "source_file": "src/status_icons.txt",
+   "source_line": 158,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_hagalaz.tga",
+   "id": 320,
+   "source_file": "src/status_icons.txt",
+   "source_line": 159,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_isha.tga",
+   "id": 321,
+   "source_file": "src/status_icons.txt",
+   "source_line": 160,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_eisir.tga",
+   "id": 322,
+   "source_file": "src/status_icons.txt",
+   "source_line": 161,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "rk_uruz.tga",
+   "id": 323,
+   "source_file": "src/status_icons.txt",
+   "source_line": 162,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 328,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5175,
+   "visual_effect_ids": [
+    788
+   ]
+  },
+  {
+   "icon": null,
+   "id": 330,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5176,
+   "visual_effect_ids": [
+    755
+   ]
+  },
+  {
+   "icon": "포이즈닝웨폰.tga",
+   "id": 333,
+   "source_file": "src/status_icons.txt",
+   "source_line": 163,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "할루시네이션워크.tga",
+   "id": 334,
+   "source_file": "src/status_icons.txt",
+   "source_line": 164,
+   "visual_effect_ids": [
+    792
+   ]
+  },
+  {
+   "icon": "레노바티오.tga",
+   "id": 336,
+   "source_file": "src/status_icons.txt",
+   "source_line": 165,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "웨폰블로킹.tga",
+   "id": 337,
+   "source_file": "src/status_icons.txt",
+   "source_line": 166,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "포이즈닝웨폰.tga",
+   "id": 341,
+   "source_file": "src/status_icons.txt",
+   "source_line": 167,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "신경마비독.tga",
+   "id": 342,
+   "source_file": "src/status_icons.txt",
+   "source_line": 168,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "감각마비독.tga",
+   "id": 343,
+   "source_file": "src/status_icons.txt",
+   "source_line": 169,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "쇠약독.tga",
+   "id": 344,
+   "source_file": "src/status_icons.txt",
+   "source_line": 170,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "웃음버섯.tga",
+   "id": 345,
+   "source_file": "src/status_icons.txt",
+   "source_line": 171,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "상처오염독.tga",
+   "id": 346,
+   "source_file": "src/status_icons.txt",
+   "source_line": 172,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "열병독.tga",
+   "id": 347,
+   "source_file": "src/status_icons.txt",
+   "source_line": 173,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "망각의재.tga",
+   "id": 348,
+   "source_file": "src/status_icons.txt",
+   "source_line": 174,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "거머리.tga",
+   "id": 349,
+   "source_file": "src/status_icons.txt",
+   "source_line": 175,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 350,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5179,
+   "visual_effect_ids": [
+    833
+   ]
+  },
+  {
+   "icon": "frostmisty.tga",
+   "id": 351,
+   "source_file": "src/status_icons.txt",
+   "source_line": 176,
+   "visual_effect_ids": [
+    789
+   ]
+  },
+  {
+   "icon": "ra_fearbreeze.tga",
+   "id": 352,
+   "source_file": "src/status_icons.txt",
+   "source_line": 177,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "marshofabyss.tga",
+   "id": 354,
+   "source_file": "src/status_icons.txt",
+   "source_line": 178,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "recognizespell.tga",
+   "id": 355,
+   "source_file": "src/status_icons.txt",
+   "source_line": 179,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "wolfmount.tga",
+   "id": 357,
+   "source_file": "src/status_icons.txt",
+   "source_line": 180,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 358,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5181,
+   "visual_effect_ids": [
+    166,
+    752
+   ]
+  },
+  {
+   "icon": null,
+   "id": 360,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5183,
+   "visual_effect_ids": [
+    744
+   ]
+  },
+  {
+   "icon": "엑셀레이션.tga",
+   "id": 361,
+   "source_file": "src/status_icons.txt",
+   "source_line": 181,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "호버링.tga",
+   "id": 362,
+   "source_file": "src/status_icons.txt",
+   "source_line": 182,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "mvpcard_taogunka.tga",
+   "id": 368,
+   "source_file": "src/status_icons.txt",
+   "source_line": 183,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "mvpcard_mistress.tga",
+   "id": 369,
+   "source_file": "src/status_icons.txt",
+   "source_line": 184,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "mvpcard_orchero.tga",
+   "id": 370,
+   "source_file": "src/status_icons.txt",
+   "source_line": 185,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "mvpcard_orclord.tga",
+   "id": 371,
+   "source_file": "src/status_icons.txt",
+   "source_line": 186,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "오버히트.tga",
+   "id": 373,
+   "source_file": "src/status_icons.txt",
+   "source_line": 187,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "셰이프쉬프트.tga",
+   "id": 374,
+   "source_file": "src/status_icons.txt",
+   "source_line": 188,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "인프라레드스캔.tga",
+   "id": 375,
+   "source_file": "src/status_icons.txt",
+   "source_line": 189,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "뉴트럴배리어.tga",
+   "id": 377,
+   "source_file": "src/status_icons.txt",
+   "source_line": 190,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스텔스필드.tga",
+   "id": 379,
+   "source_file": "src/status_icons.txt",
+   "source_line": 191,
+   "visual_effect_ids": [
+    744
+   ]
+  },
+  {
+   "icon": "efst_atk.tga",
+   "id": 381,
+   "source_file": "src/status_icons.txt",
+   "source_line": 192,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_def.tga",
+   "id": 382,
+   "source_file": "src/status_icons.txt",
+   "source_line": 193,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_atk.tga",
+   "id": 383,
+   "source_file": "src/status_icons.txt",
+   "source_line": 194,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_def.tga",
+   "id": 384,
+   "source_file": "src/status_icons.txt",
+   "source_line": 195,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "리프로듀스.tga",
+   "id": 385,
+   "source_file": "src/status_icons.txt",
+   "source_line": 196,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_matk.tga",
+   "id": 386,
+   "source_file": "src/status_icons.txt",
+   "source_line": 197,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_matk.tga",
+   "id": 387,
+   "source_file": "src/status_icons.txt",
+   "source_line": 198,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "str_gogi.tga",
+   "id": 388,
+   "source_file": "src/status_icons.txt",
+   "source_line": 199,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "int_gogi.tga",
+   "id": 389,
+   "source_file": "src/status_icons.txt",
+   "source_line": 200,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "lg_reflectdamage.tga",
+   "id": 390,
+   "source_file": "src/status_icons.txt",
+   "source_line": 201,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "포스오브뱅가드.tga",
+   "id": 391,
+   "source_file": "src/status_icons.txt",
+   "source_line": 202,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "오토쉐도우스펠.tga",
+   "id": 393,
+   "source_file": "src/status_icons.txt",
+   "source_line": 203,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "쉐도우폼.tga",
+   "id": 394,
+   "source_file": "src/status_icons.txt",
+   "source_line": 204,
+   "visual_effect_ids": [
+    809
+   ]
+  },
+  {
+   "icon": "lg_shieldspell_쨔챈.tga",
+   "id": 396,
+   "source_file": "src/status_icons.txt",
+   "source_line": 205,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "lg_shieldspell_쨍쨋.tga",
+   "id": 397,
+   "source_file": "src/status_icons.txt",
+   "source_line": 206,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "lg_shieldspell_쩔짭.tga",
+   "id": 398,
+   "source_file": "src/status_icons.txt",
+   "source_line": 207,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "민첩성감소.tga",
+   "id": 401,
+   "source_file": "src/status_icons.txt",
+   "source_line": 208,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "lg_prestige.tga",
+   "id": 402,
+   "source_file": "src/status_icons.txt",
+   "source_line": 209,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "인비지빌리티.tga",
+   "id": 403,
+   "source_file": "src/status_icons.txt",
+   "source_line": 210,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "데들리인펙트.tga",
+   "id": 404,
+   "source_file": "src/status_icons.txt",
+   "source_line": 211,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "lg_banding.tga",
+   "id": 405,
+   "source_file": "src/status_icons.txt",
+   "source_line": 212,
+   "visual_effect_ids": [
+    909
+   ]
+  },
+  {
+   "icon": "lg_inspiration.tga",
+   "id": 407,
+   "source_file": "src/status_icons.txt",
+   "source_line": 213,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_enervation.tga",
+   "id": 408,
+   "source_file": "src/status_icons.txt",
+   "source_line": 214,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_groomy.tga",
+   "id": 409,
+   "source_file": "src/status_icons.txt",
+   "source_line": 215,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "잠룡승천.tga",
+   "id": 410,
+   "source_file": "src/status_icons.txt",
+   "source_line": 216,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_ignorance.tga",
+   "id": 411,
+   "source_file": "src/status_icons.txt",
+   "source_line": 217,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_laziness.tga",
+   "id": 412,
+   "source_file": "src/status_icons.txt",
+   "source_line": 218,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon02.tga",
+   "id": 413,
+   "source_file": "src/status_icons.txt",
+   "source_line": 219,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "공속물약.tga",
+   "id": 414,
+   "source_file": "src/status_icons.txt",
+   "source_line": 220,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_unlucky.tga",
+   "id": 415,
+   "source_file": "src/status_icons.txt",
+   "source_line": 221,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "masquerade_weakness.tga",
+   "id": 418,
+   "source_file": "src/status_icons.txt",
+   "source_line": 222,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "기리에엘레이손.tga",
+   "id": 419,
+   "source_file": "src/status_icons.txt",
+   "source_line": 223,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트립액세서리.tga",
+   "id": 421,
+   "source_file": "src/status_icons.txt",
+   "source_line": 224,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 422,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5187,
+   "visual_effect_ids": [
+    823
+   ]
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 423,
+   "source_file": "src/status_icons.txt",
+   "source_line": 225,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "점혈구.tga",
+   "id": 425,
+   "source_file": "src/status_icons.txt",
+   "source_line": 226,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "점혈반.tga",
+   "id": 426,
+   "source_file": "src/status_icons.txt",
+   "source_line": 227,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "점혈활.tga",
+   "id": 427,
+   "source_file": "src/status_icons.txt",
+   "source_line": 228,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스윙댄스.tga",
+   "id": 429,
+   "source_file": "src/status_icons.txt",
+   "source_line": 229,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "연인들을위한심포니.tga",
+   "id": 430,
+   "source_file": "src/status_icons.txt",
+   "source_line": 230,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 433,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5188,
+   "visual_effect_ids": [
+    453
+   ]
+  },
+  {
+   "icon": null,
+   "id": 434,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5189,
+   "visual_effect_ids": [
+    879
+   ]
+  },
+  {
+   "icon": "안식의자장가.tga",
+   "id": 435,
+   "source_file": "src/status_icons.txt",
+   "source_line": 231,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "순환하는자연의소리.tga",
+   "id": 436,
+   "source_file": "src/status_icons.txt",
+   "source_line": 232,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "다이아몬드더스트.tga",
+   "id": 437,
+   "source_file": "src/status_icons.txt",
+   "source_line": 233,
+   "visual_effect_ids": [
+    940
+   ]
+  },
+  {
+   "icon": "수줍은하루의우울.tga",
+   "id": 438,
+   "source_file": "src/status_icons.txt",
+   "source_line": 234,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "마나의노래.tga",
+   "id": 439,
+   "source_file": "src/status_icons.txt",
+   "source_line": 235,
+   "visual_effect_ids": [
+    865
+   ]
+  },
+  {
+   "icon": "워그와함께춤을.tga",
+   "id": 441,
+   "source_file": "src/status_icons.txt",
+   "source_line": 236,
+   "visual_effect_ids": [
+    867
+   ]
+  },
+  {
+   "icon": "풍차를향해돌격.tga",
+   "id": 442,
+   "source_file": "src/status_icons.txt",
+   "source_line": 237,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "마스커레이드.tga",
+   "id": 443,
+   "source_file": "src/status_icons.txt",
+   "source_line": 238,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "하모나이즈.tga",
+   "id": 444,
+   "source_file": "src/status_icons.txt",
+   "source_line": 239,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "스트라이킹.tga",
+   "id": 445,
+   "source_file": "src/status_icons.txt",
+   "source_line": 240,
+   "visual_effect_ids": [
+    925
+   ]
+  },
+  {
+   "icon": "워머.tga",
+   "id": 446,
+   "source_file": "src/status_icons.txt",
+   "source_line": 241,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "달빛의세레나데.tga",
+   "id": 447,
+   "source_file": "src/status_icons.txt",
+   "source_line": 242,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "새터데이나이트피버.tga",
+   "id": 448,
+   "source_file": "src/status_icons.txt",
+   "source_line": 243,
+   "visual_effect_ids": [
+    864
+   ]
+  },
+  {
+   "icon": "애널라이즈.tga",
+   "id": 450,
+   "source_file": "src/status_icons.txt",
+   "source_line": 244,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "레라드의이슬.tga",
+   "id": 451,
+   "source_file": "src/status_icons.txt",
+   "source_line": 245,
+   "visual_effect_ids": [
+    871
+   ]
+  },
+  {
+   "icon": "멜로디오브싱크.tga",
+   "id": 452,
+   "source_file": "src/status_icons.txt",
+   "source_line": 246,
+   "visual_effect_ids": [
+    87
+   ]
+  },
+  {
+   "icon": null,
+   "id": 453,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5197,
+   "visual_effect_ids": [
+    799
+   ]
+  },
+  {
+   "icon": "언리미티드허밍보이스.tga",
+   "id": 454,
+   "source_file": "src/status_icons.txt",
+   "source_line": 247,
+   "visual_effect_ids": [
+    865
+   ]
+  },
+  {
+   "icon": "icon07.tga",
+   "id": 461,
+   "source_file": "src/status_icons.txt",
+   "source_line": 248,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "가시나무덫.tga",
+   "id": 463,
+   "source_file": "src/status_icons.txt",
+   "source_line": 249,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 464,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5199,
+   "visual_effect_ids": [
+    368
+   ]
+  },
+  {
+   "icon": "세크라멘트.tga",
+   "id": 472,
+   "source_file": "src/status_icons.txt",
+   "source_line": 250,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "icon05.tga",
+   "id": 473,
+   "source_file": "src/status_icons.txt",
+   "source_line": 251,
+   "visual_effect_ids": [
+    375
+   ]
+  },
+  {
+   "icon": "안티매터리얼.tga",
+   "id": 476,
+   "source_file": "src/status_icons.txt",
+   "source_line": 252,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "str_gogi.tga",
+   "id": 491,
+   "source_file": "src/status_icons.txt",
+   "source_line": 253,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "int_gogi.tga",
+   "id": 492,
+   "source_file": "src/status_icons.txt",
+   "source_line": 254,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "vit_gogi.tga",
+   "id": 493,
+   "source_file": "src/status_icons.txt",
+   "source_line": 255,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "dex_gogi.tga",
+   "id": 494,
+   "source_file": "src/status_icons.txt",
+   "source_line": 256,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "agi_gogi.tga",
+   "id": 495,
+   "source_file": "src/status_icons.txt",
+   "source_line": 257,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "luk_gogi.tga",
+   "id": 496,
+   "source_file": "src/status_icons.txt",
+   "source_line": 258,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "gogi.tga",
+   "id": 573,
+   "source_file": "src/status_icons.txt",
+   "source_line": 259,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "세라4.tga",
+   "id": 577,
+   "source_file": "src/status_icons.txt",
+   "source_line": 260,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "중형생명수.tga",
+   "id": 578,
+   "source_file": "src/status_icons.txt",
+   "source_line": 261,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "에이라1.tga",
+   "id": 579,
+   "source_file": "src/status_icons.txt",
+   "source_line": 262,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "에이라1.tga",
+   "id": 580,
+   "source_file": "src/status_icons.txt",
+   "source_line": 263,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "에이라2.tga",
+   "id": 581,
+   "source_file": "src/status_icons.txt",
+   "source_line": 264,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "all_odins_power.tga",
+   "id": 583,
+   "source_file": "src/status_icons.txt",
+   "source_line": 265,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "efst_atk.tga",
+   "id": 584,
+   "source_file": "src/status_icons.txt",
+   "source_line": 266,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "디이터1.tga",
+   "id": 605,
+   "source_file": "src/status_icons.txt",
+   "source_line": 267,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "디이터2.tga",
+   "id": 606,
+   "source_file": "src/status_icons.txt",
+   "source_line": 268,
+   "visual_effect_ids": [
+    963
+   ]
+  },
+  {
+   "icon": "디이터4.tga",
+   "id": 607,
+   "source_file": "src/status_icons.txt",
+   "source_line": 269,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "디이터5.tga",
+   "id": 608,
+   "source_file": "src/status_icons.txt",
+   "source_line": 270,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "plusmagicpower.tga",
+   "id": 611,
+   "source_file": "src/status_icons.txt",
+   "source_line": 271,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "라이딩.tga",
+   "id": 613,
+   "source_file": "src/status_icons.txt",
+   "source_line": 272,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "item.tga",
+   "id": 618,
+   "source_file": "src/status_icons.txt",
+   "source_line": 273,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "변신.tga",
+   "id": 621,
+   "source_file": "src/status_icons.txt",
+   "source_line": 274,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "앉기.tga",
+   "id": 622,
+   "source_file": "src/status_icons.txt",
+   "source_line": 275,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "job.tga",
+   "id": 636,
+   "source_file": "src/status_icons.txt",
+   "source_line": 276,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 645,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5201,
+   "visual_effect_ids": [
+    998
+   ]
+  },
+  {
+   "icon": "meikyousisui.tga",
+   "id": 646,
+   "source_file": "src/status_icons.txt",
+   "source_line": 277,
+   "visual_effect_ids": [
+    394
+   ]
+  },
+  {
+   "icon": "aspdcash.tga",
+   "id": 647,
+   "source_file": "src/status_icons.txt",
+   "source_line": 278,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "izayoi.tga",
+   "id": 652,
+   "source_file": "src/status_icons.txt",
+   "source_line": 279,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "kg_kagehumi.tga",
+   "id": 654,
+   "source_file": "src/status_icons.txt",
+   "source_line": 280,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "kyomu.tga",
+   "id": 655,
+   "source_file": "src/status_icons.txt",
+   "source_line": 281,
+   "visual_effect_ids": [
+    963
+   ]
+  },
+  {
+   "icon": "kagemusya.tga",
+   "id": 656,
+   "source_file": "src/status_icons.txt",
+   "source_line": 282,
+   "visual_effect_ids": [
+    1004
+   ]
+  },
+  {
+   "icon": "zangetsu.tga",
+   "id": 657,
+   "source_file": "src/status_icons.txt",
+   "source_line": 283,
+   "visual_effect_ids": [
+    1003
+   ]
+  },
+  {
+   "icon": "gensou.tga",
+   "id": 659,
+   "source_file": "src/status_icons.txt",
+   "source_line": 284,
+   "visual_effect_ids": [
+    963,
+    1005
+   ]
+  },
+  {
+   "icon": "akaitsuki.tga",
+   "id": 660,
+   "source_file": "src/status_icons.txt",
+   "source_line": 285,
+   "visual_effect_ids": [
+    544
+   ]
+  },
+  {
+   "icon": "중형생명수.tga",
+   "id": 670,
+   "source_file": "src/status_icons.txt",
+   "source_line": 286,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 674,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5209,
+   "visual_effect_ids": [
+    1012
+   ]
+  },
+  {
+   "icon": "flower_leaf.tga",
+   "id": 675,
+   "source_file": "src/status_icons.txt",
+   "source_line": 287,
+   "visual_effect_ids": [
+    1013
+   ]
+  },
+  {
+   "icon": "all_ray_of_protection.tga",
+   "id": 676,
+   "source_file": "src/status_icons.txt",
+   "source_line": 288,
+   "visual_effect_ids": [
+    1019
+   ]
+  },
+  {
+   "icon": "glastheim_atk.tga",
+   "id": 677,
+   "source_file": "src/status_icons.txt",
+   "source_line": 289,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "glastheim_def.tga",
+   "id": 678,
+   "source_file": "src/status_icons.txt",
+   "source_line": 290,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "glastheim_heal.tga",
+   "id": 679,
+   "source_file": "src/status_icons.txt",
+   "source_line": 291,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "ArrowN.tga",
+   "id": 695,
+   "source_file": "src/status_icons.txt",
+   "source_line": 292,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 713,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5212,
+   "visual_effect_ids": [
+    1037
+   ]
+  },
+  {
+   "icon": "frigg_song.tga",
+   "id": 715,
+   "source_file": "src/status_icons.txt",
+   "source_line": 293,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 716,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5213,
+   "visual_effect_ids": [
+    1057
+   ]
+  },
+  {
+   "icon": null,
+   "id": 717,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5214,
+   "visual_effect_ids": [
+    1048
+   ]
+  },
+  {
+   "icon": null,
+   "id": 718,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5215,
+   "visual_effect_ids": [
+    1034
+   ]
+  },
+  {
+   "icon": null,
+   "id": 719,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5216,
+   "visual_effect_ids": [
+    1035
+   ]
+  },
+  {
+   "icon": "full_throttle.tga",
+   "id": 720,
+   "source_file": "src/status_icons.txt",
+   "source_line": 294,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 728,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5217,
+   "visual_effect_ids": [
+    1036
+   ]
+  },
+  {
+   "icon": "darkcrow.tga",
+   "id": 730,
+   "source_file": "src/status_icons.txt",
+   "source_line": 295,
+   "visual_effect_ids": [
+    1040
+   ]
+  },
+  {
+   "icon": null,
+   "id": 734,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5219,
+   "visual_effect_ids": [
+    1049
+   ]
+  },
+  {
+   "icon": null,
+   "id": 735,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5220,
+   "visual_effect_ids": [
+    404
+   ]
+  },
+  {
+   "icon": null,
+   "id": 736,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5221,
+   "visual_effect_ids": [
+    1055
+   ]
+  },
+  {
+   "icon": null,
+   "id": 737,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5222,
+   "visual_effect_ids": [
+    1054
+   ]
+  },
+  {
+   "icon": null,
+   "id": 754,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5223,
+   "visual_effect_ids": [
+    1076
+   ]
+  },
+  {
+   "icon": null,
+   "id": 755,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5224,
+   "visual_effect_ids": [
+    1061,
+    1075
+   ]
+  },
+  {
+   "icon": null,
+   "id": 756,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5226,
+   "visual_effect_ids": [
+    1139
+   ]
+  },
+  {
+   "icon": null,
+   "id": 757,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5227,
+   "visual_effect_ids": [
+    1074
+   ]
+  },
+  {
+   "icon": null,
+   "id": 760,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5228,
+   "visual_effect_ids": [
+    1136
+   ]
+  },
+  {
+   "icon": null,
+   "id": 779,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5229,
+   "visual_effect_ids": [
+    1079
+   ]
+  },
+  {
+   "icon": null,
+   "id": 822,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5230,
+   "visual_effect_ids": [
+    1083
+   ]
+  },
+  {
+   "icon": null,
+   "id": 823,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5231,
+   "visual_effect_ids": [
+    1084
+   ]
+  },
+  {
+   "icon": null,
+   "id": 825,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5232,
+   "visual_effect_ids": [
+    1085
+   ]
+  },
+  {
+   "icon": null,
+   "id": 826,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5233,
+   "visual_effect_ids": [
+    1086
+   ]
+  },
+  {
+   "icon": null,
+   "id": 849,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5234,
+   "visual_effect_ids": [
+    1087
+   ]
+  },
+  {
+   "icon": null,
+   "id": 857,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5235,
+   "visual_effect_ids": [
+    1089
+   ]
+  },
+  {
+   "icon": null,
+   "id": 859,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5236,
+   "visual_effect_ids": [
+    1090
+   ]
+  },
+  {
+   "icon": null,
+   "id": 863,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5237,
+   "visual_effect_ids": [
+    1092
+   ]
+  },
+  {
+   "icon": null,
+   "id": 864,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5238,
+   "visual_effect_ids": [
+    1091
+   ]
+  },
+  {
+   "icon": null,
+   "id": 869,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5178,
+   "visual_effect_ids": [
+    792
+   ]
+  },
+  {
+   "icon": null,
+   "id": 872,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5239,
+   "visual_effect_ids": [
+    1095
+   ]
+  },
+  {
+   "icon": null,
+   "id": 896,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5240,
+   "visual_effect_ids": [
+    1110
+   ]
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 897,
+   "source_file": "src/status_icons.txt",
+   "source_line": 296,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property_water.tga",
+   "id": 898,
+   "source_file": "src/status_icons.txt",
+   "source_line": 297,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property_ground.tga",
+   "id": 899,
+   "source_file": "src/status_icons.txt",
+   "source_line": 298,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property_fire.tga",
+   "id": 900,
+   "source_file": "src/status_icons.txt",
+   "source_line": 299,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property_wind.tga",
+   "id": 901,
+   "source_file": "src/status_icons.txt",
+   "source_line": 300,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 902,
+   "source_file": "src/status_icons.txt",
+   "source_line": 301,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 903,
+   "source_file": "src/status_icons.txt",
+   "source_line": 302,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 904,
+   "source_file": "src/status_icons.txt",
+   "source_line": 303,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 905,
+   "source_file": "src/status_icons.txt",
+   "source_line": 304,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "weapon_property.tga",
+   "id": 906,
+   "source_file": "src/status_icons.txt",
+   "source_line": 305,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_nothing.tga",
+   "id": 907,
+   "source_file": "src/status_icons.txt",
+   "source_line": 306,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_water.tga",
+   "id": 908,
+   "source_file": "src/status_icons.txt",
+   "source_line": 307,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_ground.tga",
+   "id": 909,
+   "source_file": "src/status_icons.txt",
+   "source_line": 308,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_fire.tga",
+   "id": 910,
+   "source_file": "src/status_icons.txt",
+   "source_line": 309,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_wind.tga",
+   "id": 911,
+   "source_file": "src/status_icons.txt",
+   "source_line": 310,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_poison.tga",
+   "id": 912,
+   "source_file": "src/status_icons.txt",
+   "source_line": 311,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_saint.tga",
+   "id": 913,
+   "source_file": "src/status_icons.txt",
+   "source_line": 312,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_darkness.tga",
+   "id": 914,
+   "source_file": "src/status_icons.txt",
+   "source_line": 313,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_telekinesis.tga",
+   "id": 915,
+   "source_file": "src/status_icons.txt",
+   "source_line": 314,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": "resist_elemental_undead.tga",
+   "id": 916,
+   "source_file": "src/status_icons.txt",
+   "source_line": 315,
+   "visual_effect_ids": []
+  },
+  {
+   "icon": null,
+   "id": 917,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5241,
+   "visual_effect_ids": [
+    1119
+   ]
+  },
+  {
+   "icon": null,
+   "id": 919,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5242,
+   "visual_effect_ids": [
+    1097
+   ]
+  },
+  {
+   "icon": null,
+   "id": 937,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5243,
+   "visual_effect_ids": [
+    1096
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1038,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5244,
+   "visual_effect_ids": [
+    1215
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1039,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5245,
+   "visual_effect_ids": [
+    1217
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1040,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5246,
+   "visual_effect_ids": [
+    1214
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1041,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5247,
+   "visual_effect_ids": [
+    1221
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1043,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5248,
+   "visual_effect_ids": [
+    1216
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1050,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5249,
+   "visual_effect_ids": [
+    1201
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1055,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5250,
+   "visual_effect_ids": [
+    1222
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1121,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5146,
+   "visual_effect_ids": [
+    375
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1125,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5251,
+   "visual_effect_ids": [
+    1362
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1126,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5252,
+   "visual_effect_ids": [
+    1644
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1139,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5253,
+   "visual_effect_ids": [
+    1398
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1141,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5254,
+   "visual_effect_ids": [
+    1420
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1142,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5255,
+   "visual_effect_ids": [
+    396
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1148,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5256,
+   "visual_effect_ids": [
+    1525
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1150,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5257,
+   "visual_effect_ids": [
+    1741
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1152,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5258,
+   "visual_effect_ids": [
+    1800
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1160,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5259,
+   "visual_effect_ids": [
+    2294
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1162,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5260,
+   "visual_effect_ids": [
+    2296
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1165,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5262,
+   "visual_effect_ids": [
+    1610
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1166,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5263,
+   "visual_effect_ids": [
+    1599
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1167,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5264,
+   "visual_effect_ids": [
+    1601
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1176,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5265,
+   "visual_effect_ids": [
+    1726,
+    1727
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1184,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5267,
+   "visual_effect_ids": [
+    1859
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1190,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5268,
+   "visual_effect_ids": [
+    1991
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1196,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5269,
+   "visual_effect_ids": [
+    1913
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1197,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5270,
+   "visual_effect_ids": [
+    1810
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1200,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5271,
+   "visual_effect_ids": [
+    2288
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1201,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5272,
+   "visual_effect_ids": [
+    1852,
+    1853,
+    2300
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1205,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5275,
+   "visual_effect_ids": [
+    164,
+    334
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1207,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5277,
+   "visual_effect_ids": [
+    2244
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1208,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5278,
+   "visual_effect_ids": [
+    2270,
+    2272
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1209,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5280,
+   "visual_effect_ids": [
+    2245
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1210,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5281,
+   "visual_effect_ids": [
+    2268
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1211,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5282,
+   "visual_effect_ids": [
+    2273
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1212,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5283,
+   "visual_effect_ids": [
+    2269
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1214,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5284,
+   "visual_effect_ids": [
+    2274
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1216,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5285,
+   "visual_effect_ids": [
+    2246
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1230,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5286,
+   "visual_effect_ids": [
+    2051,
+    2052,
+    2054
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1231,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5289,
+   "visual_effect_ids": [
+    2078,
+    2079,
+    2081
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1232,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5292,
+   "visual_effect_ids": [
+    1978,
+    1981
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1233,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5294,
+   "visual_effect_ids": [
+    1982,
+    1985
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1234,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5296,
+   "visual_effect_ids": [
+    1975
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1236,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5297,
+   "visual_effect_ids": [
+    1839
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1237,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5298,
+   "visual_effect_ids": [
+    1817,
+    2296
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1245,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5300,
+   "visual_effect_ids": [
+    2126
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1249,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5301,
+   "visual_effect_ids": [
+    2238
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1250,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5302,
+   "visual_effect_ids": [
+    1900
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1258,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5303,
+   "visual_effect_ids": [
+    2060
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1261,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5261,
+   "visual_effect_ids": [
+    2296
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1271,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5304,
+   "visual_effect_ids": [
+    2298
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1301,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5305,
+   "visual_effect_ids": [
+    744
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1318,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5306,
+   "visual_effect_ids": [
+    2277
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1319,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5307,
+   "visual_effect_ids": [
+    2278
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1337,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5308,
+   "visual_effect_ids": [
+    2305
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1338,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5309,
+   "visual_effect_ids": [
+    2306
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1339,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5310,
+   "visual_effect_ids": [
+    2302,
+    2303
+   ]
+  },
+  {
+   "icon": null,
+   "id": 1391,
+   "source_file": "src/fx/effects.txt",
+   "source_line": 5312,
+   "visual_effect_ids": [
+    2348
+   ]
+  }
+ ],
+ "with_icon": 313,
+ "with_visual_effect": 177
+}

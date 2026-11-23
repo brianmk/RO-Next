@@ -1,0 +1,2989 @@
+{
+ "cart": {
+  "baby_job_ranges": [
+   [
+    4023,
+    4045
+   ],
+   [
+    4096,
+    4112
+   ],
+   [
+    4222,
+    4229
+   ]
+  ],
+  "cart_path_rules": {
+   "act": "same stem as the sprite, except the baby default ACT",
+   "baby": "numbered kind>=6 appends 베이비; named carts get _미니; default ACT is 베이비<name>",
+   "default": "손수레",
+   "named": "types 10..13 use named_carts",
+   "numbered": "손수레{n} for kind 2..9 (n = kind - 1)",
+   "sprite_folder": "data\\\\sprite\\\\이팩트\\\\",
+   "super_novice": "슈노손수레 for all super_novice_jobs"
+  },
+  "frames_per_world_unit": 0.92,
+  "named_carts": [
+   "선물상자카트",
+   "포링싣은카트",
+   "포링카트",
+   "마도카트"
+  ],
+  "push_cart_status": 673,
+  "rope_cells": 1,
+  "source_lines": {
+   "cart_path": 41,
+   "constants": 22,
+   "frames": 1768,
+   "rope": 1766
+  },
+  "super_novice_jobs": [
+   23,
+   4045,
+   4190,
+   4191,
+   4307
+  ]
+ },
+ "commit": "76600595363affc96d5995bf4baa790d05a9593c",
+ "files": [
+  "src/actor.rs",
+  "src/job_sprites.txt"
+ ],
+ "job_sprite_count": 320,
+ "job_sprites": [
+  {
+   "body": "초보자",
+   "imf": "초보자",
+   "job": 0,
+   "palette": "초보자",
+   "source_line": 6,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "검사",
+   "imf": "검사",
+   "job": 1,
+   "palette": "검사",
+   "source_line": 7,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "마법사",
+   "imf": "마법사",
+   "job": 2,
+   "palette": "마법사",
+   "source_line": 8,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "궁수",
+   "imf": "궁수",
+   "job": 3,
+   "palette": "궁수",
+   "source_line": 9,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "성직자",
+   "imf": "성직자",
+   "job": 4,
+   "palette": "성직자",
+   "source_line": 10,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "상인",
+   "imf": "상인",
+   "job": 5,
+   "palette": "상인",
+   "source_line": 11,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "도둑",
+   "imf": "도둑",
+   "job": 6,
+   "palette": "도둑",
+   "source_line": 12,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "기사",
+   "imf": "기사",
+   "job": 7,
+   "palette": "기사",
+   "source_line": 13,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "프리스트",
+   "imf": "프리스트",
+   "job": 8,
+   "palette": "프리스트",
+   "source_line": 14,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "위저드",
+   "imf": "위저드",
+   "job": 9,
+   "palette": "위저드",
+   "source_line": 15,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "제철공",
+   "imf": "제철공",
+   "job": 10,
+   "palette": "제철공",
+   "source_line": 16,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "헌터",
+   "imf": "헌터",
+   "job": 11,
+   "palette": "헌터",
+   "source_line": 17,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "어세신",
+   "imf": "어세신",
+   "job": 12,
+   "palette": "어세신",
+   "source_line": 18,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "페코페코_기사",
+   "imf": "페코페코_기사",
+   "job": 13,
+   "palette": "페코페코_기사",
+   "source_line": 19,
+   "weapon_folder": "페코페코_기사",
+   "weapon_prefix": "페코페코_기사"
+  },
+  {
+   "body": "크루세이더",
+   "imf": "크루세이더",
+   "job": 14,
+   "palette": "크루",
+   "source_line": 20,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "몽크",
+   "imf": "몽크",
+   "job": 15,
+   "palette": "몽크",
+   "source_line": 21,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "세이지",
+   "imf": "세이지",
+   "job": 16,
+   "palette": "세이지",
+   "source_line": 22,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "로그",
+   "imf": "로그",
+   "job": 17,
+   "palette": "로그",
+   "source_line": 23,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "연금술사",
+   "imf": "연금술사",
+   "job": 18,
+   "palette": "연금술사",
+   "source_line": 24,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "바드",
+   "imf": "바드",
+   "job": 19,
+   "palette": "바드",
+   "source_line": 25,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "무희",
+   "imf": "무희",
+   "job": 20,
+   "palette": "댄서",
+   "source_line": 26,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "신페코크루세이더",
+   "imf": "신페코크루세이더",
+   "job": 21,
+   "palette": "신페코크루세이더",
+   "source_line": 27,
+   "weapon_folder": "신페코크루세이더",
+   "weapon_prefix": "신페코크루세이더"
+  },
+  {
+   "body": "결혼",
+   "imf": "결혼",
+   "job": 22,
+   "palette": "결혼",
+   "source_line": 28,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "슈퍼노비스",
+   "imf": "초보자",
+   "job": 23,
+   "palette": "슈퍼노비스",
+   "source_line": 29,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "건너",
+   "imf": "건너",
+   "job": 24,
+   "palette": "건너",
+   "source_line": 30,
+   "weapon_folder": "건너",
+   "weapon_prefix": "건너"
+  },
+  {
+   "body": "닌자",
+   "imf": "닌자",
+   "job": 25,
+   "palette": "닌자",
+   "source_line": 31,
+   "weapon_folder": "닌자",
+   "weapon_prefix": "닌자"
+  },
+  {
+   "body": "산타",
+   "imf": "결혼",
+   "job": 26,
+   "palette": "SANTA",
+   "source_line": 32,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "여름",
+   "imf": "결혼",
+   "job": 27,
+   "palette": "SUMMER",
+   "source_line": 33,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "한복",
+   "imf": "결혼",
+   "job": 28,
+   "palette": "HANBOK",
+   "source_line": 34,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "옥토버패스트",
+   "imf": "결혼",
+   "job": 29,
+   "palette": "OKTOBERFEST",
+   "source_line": 35,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "여름2",
+   "imf": "결혼",
+   "job": 30,
+   "palette": "SUMMER2",
+   "source_line": 36,
+   "weapon_folder": "결혼",
+   "weapon_prefix": "결혼"
+  },
+  {
+   "body": "초보자",
+   "imf": "초보자",
+   "job": 4001,
+   "palette": "초보자",
+   "source_line": 37,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "검사",
+   "imf": "검사",
+   "job": 4002,
+   "palette": "검사",
+   "source_line": 38,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "마법사",
+   "imf": "마법사",
+   "job": 4003,
+   "palette": "마법사",
+   "source_line": 39,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "궁수",
+   "imf": "궁수",
+   "job": 4004,
+   "palette": "궁수",
+   "source_line": 40,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "성직자",
+   "imf": "성직자",
+   "job": 4005,
+   "palette": "성직자",
+   "source_line": 41,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "상인",
+   "imf": "상인",
+   "job": 4006,
+   "palette": "상인",
+   "source_line": 42,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "도둑",
+   "imf": "도둑",
+   "job": 4007,
+   "palette": "도둑",
+   "source_line": 43,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "로드나이트",
+   "imf": "기사",
+   "job": 4008,
+   "palette": "로드나이트",
+   "source_line": 44,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "하이프리",
+   "imf": "프리스트",
+   "job": 4009,
+   "palette": "하이프리스트",
+   "source_line": 45,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "하이위저드",
+   "imf": "하이위저드",
+   "job": 4010,
+   "palette": "하이위저드",
+   "source_line": 46,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "화이트스미스",
+   "imf": "제철공",
+   "job": 4011,
+   "palette": "화이트스미스",
+   "source_line": 47,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "스나이퍼",
+   "imf": "헌터",
+   "job": 4012,
+   "palette": "스나이퍼",
+   "source_line": 48,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "어쌔신크로스",
+   "imf": "어세신크로스",
+   "job": 4013,
+   "palette": "어세신크로스",
+   "source_line": 49,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "로드페코",
+   "imf": "페코페코_기사",
+   "job": 4014,
+   "palette": "로드페코",
+   "source_line": 50,
+   "weapon_folder": "페코페코_기사",
+   "weapon_prefix": "페코페코_기사"
+  },
+  {
+   "body": "팔라딘",
+   "imf": "크루세이더",
+   "job": 4015,
+   "palette": "팔라딘",
+   "source_line": 51,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "챔피온",
+   "imf": "몽크",
+   "job": 4016,
+   "palette": "챔피온",
+   "source_line": 52,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "프로페서",
+   "imf": "세이지",
+   "job": 4017,
+   "palette": "프로페서",
+   "source_line": 53,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "스토커",
+   "imf": "로그",
+   "job": 4018,
+   "palette": "스토커",
+   "source_line": 54,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "크리에이터",
+   "imf": "연금술사",
+   "job": 4019,
+   "palette": "크리에이터",
+   "source_line": 55,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "클라운",
+   "imf": "바드",
+   "job": 4020,
+   "palette": "크라운",
+   "source_line": 56,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "집시",
+   "imf": "무희",
+   "job": 4021,
+   "palette": "집시",
+   "source_line": 57,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "페코팔라딘",
+   "imf": "신페코크루세이더",
+   "job": 4022,
+   "palette": "페코팔라딘",
+   "source_line": 58,
+   "weapon_folder": "신페코크루세이더",
+   "weapon_prefix": "신페코크루세이더"
+  },
+  {
+   "body": "초보자",
+   "imf": "초보자",
+   "job": 4023,
+   "palette": "초보자",
+   "source_line": 59,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "검사",
+   "imf": "검사",
+   "job": 4024,
+   "palette": "검사",
+   "source_line": 60,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "마법사",
+   "imf": "마법사",
+   "job": 4025,
+   "palette": "마법사",
+   "source_line": 61,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "궁수",
+   "imf": "궁수",
+   "job": 4026,
+   "palette": "궁수",
+   "source_line": 62,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "성직자",
+   "imf": "성직자",
+   "job": 4027,
+   "palette": "성직자",
+   "source_line": 63,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "상인",
+   "imf": "상인",
+   "job": 4028,
+   "palette": "상인",
+   "source_line": 64,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "도둑",
+   "imf": "도둑",
+   "job": 4029,
+   "palette": "도둑",
+   "source_line": 65,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "기사",
+   "imf": "기사",
+   "job": 4030,
+   "palette": "기사",
+   "source_line": 66,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "프리스트",
+   "imf": "프리스트",
+   "job": 4031,
+   "palette": "프리스트",
+   "source_line": 67,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "위저드",
+   "imf": "위저드",
+   "job": 4032,
+   "palette": "위저드",
+   "source_line": 68,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "제철공",
+   "imf": "제철공",
+   "job": 4033,
+   "palette": "제철공",
+   "source_line": 69,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "헌터",
+   "imf": "헌터",
+   "job": 4034,
+   "palette": "헌터",
+   "source_line": 70,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "어세신",
+   "imf": "어세신",
+   "job": 4035,
+   "palette": "어세신",
+   "source_line": 71,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "페코페코_기사",
+   "imf": "페코페코_기사",
+   "job": 4036,
+   "palette": "페코페코_기사",
+   "source_line": 72,
+   "weapon_folder": "페코페코_기사",
+   "weapon_prefix": "페코페코_기사"
+  },
+  {
+   "body": "크루세이더",
+   "imf": "크루세이더",
+   "job": 4037,
+   "palette": "크루",
+   "source_line": 73,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "몽크",
+   "imf": "몽크",
+   "job": 4038,
+   "palette": "몽크",
+   "source_line": 74,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "세이지",
+   "imf": "세이지",
+   "job": 4039,
+   "palette": "세이지",
+   "source_line": 75,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "로그",
+   "imf": "로그",
+   "job": 4040,
+   "palette": "로그",
+   "source_line": 76,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "연금술사",
+   "imf": "연금술사",
+   "job": 4041,
+   "palette": "연금술사",
+   "source_line": 77,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "바드",
+   "imf": "바드",
+   "job": 4042,
+   "palette": "바드",
+   "source_line": 78,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "무희바지",
+   "imf": "무희",
+   "job": 4043,
+   "palette": "무희바지",
+   "source_line": 79,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "구페코크루세이더",
+   "imf": "신페코크루세이더",
+   "job": 4044,
+   "palette": "페코페코_크루",
+   "source_line": 80,
+   "weapon_folder": "구페코크루세이더",
+   "weapon_prefix": "구페코크루세이더"
+  },
+  {
+   "body": "슈퍼노비스",
+   "imf": "초보자",
+   "job": 4045,
+   "palette": "슈퍼노비스",
+   "source_line": 81,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "태권소년",
+   "imf": "태권소년",
+   "job": 4046,
+   "palette": "태권소년",
+   "source_line": 82,
+   "weapon_folder": "태권소년",
+   "weapon_prefix": "태권소년"
+  },
+  {
+   "body": "권성",
+   "imf": "태권소년",
+   "job": 4047,
+   "palette": "권성",
+   "source_line": 83,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "권성융합",
+   "imf": "태권소년",
+   "job": 4048,
+   "palette": "권성",
+   "source_line": 84,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "소울링커",
+   "imf": "위저드",
+   "job": 4049,
+   "palette": "소울링커",
+   "source_line": 85,
+   "weapon_folder": "소울링커",
+   "weapon_prefix": "소울링커"
+  },
+  {
+   "body": "성직자",
+   "imf": "성직자",
+   "job": 4050,
+   "palette": "성직자",
+   "source_line": 86,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "기사",
+   "imf": "기사",
+   "job": 4051,
+   "palette": "기사",
+   "source_line": 87,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "세이지",
+   "imf": "세이지",
+   "job": 4052,
+   "palette": "위저드",
+   "source_line": 88,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "룬나이트",
+   "imf": "기사",
+   "job": 4054,
+   "palette": "룬나이트",
+   "source_line": 89,
+   "weapon_folder": "룬나이트",
+   "weapon_prefix": "룬나이트"
+  },
+  {
+   "body": "워록",
+   "imf": "워록",
+   "job": 4055,
+   "palette": "워록",
+   "source_line": 90,
+   "weapon_folder": "워록",
+   "weapon_prefix": "워록"
+  },
+  {
+   "body": "레인져",
+   "imf": "헌터",
+   "job": 4056,
+   "palette": "레인저",
+   "source_line": 91,
+   "weapon_folder": "레인져",
+   "weapon_prefix": "레인져"
+  },
+  {
+   "body": "아크비숍",
+   "imf": "프리스트",
+   "job": 4057,
+   "palette": "아크비숍",
+   "source_line": 92,
+   "weapon_folder": "아크비숍",
+   "weapon_prefix": "아크비숍"
+  },
+  {
+   "body": "미케닉",
+   "imf": "마도기어",
+   "job": 4058,
+   "palette": "미케닉",
+   "source_line": 93,
+   "weapon_folder": "미케닉",
+   "weapon_prefix": "미케닉"
+  },
+  {
+   "body": "길로틴크로스",
+   "imf": "어세신크로스",
+   "job": 4059,
+   "palette": "길로틴크로스",
+   "source_line": 94,
+   "weapon_folder": "길로틴크로스",
+   "weapon_prefix": "길로틴크로스"
+  },
+  {
+   "body": "룬나이트",
+   "imf": "기사",
+   "job": 4060,
+   "palette": "룬나이트",
+   "source_line": 95,
+   "weapon_folder": "룬나이트",
+   "weapon_prefix": "룬나이트"
+  },
+  {
+   "body": "워록",
+   "imf": "워록",
+   "job": 4061,
+   "palette": "워록",
+   "source_line": 96,
+   "weapon_folder": "워록",
+   "weapon_prefix": "워록"
+  },
+  {
+   "body": "레인져",
+   "imf": "헌터",
+   "job": 4062,
+   "palette": "레인저",
+   "source_line": 97,
+   "weapon_folder": "레인져",
+   "weapon_prefix": "레인져"
+  },
+  {
+   "body": "아크비숍",
+   "imf": "프리스트",
+   "job": 4063,
+   "palette": "아크비숍",
+   "source_line": 98,
+   "weapon_folder": "아크비숍",
+   "weapon_prefix": "아크비숍"
+  },
+  {
+   "body": "미케닉",
+   "imf": "마도기어",
+   "job": 4064,
+   "palette": "미케닉",
+   "source_line": 99,
+   "weapon_folder": "미케닉",
+   "weapon_prefix": "미케닉"
+  },
+  {
+   "body": "길로틴크로스",
+   "imf": "어세신크로스",
+   "job": 4065,
+   "palette": "길로틴크로스",
+   "source_line": 100,
+   "weapon_folder": "길로틴크로스",
+   "weapon_prefix": "길로틴크로스"
+  },
+  {
+   "body": "가드",
+   "imf": "크루세이더",
+   "job": 4066,
+   "palette": "로얄가드",
+   "source_line": 101,
+   "weapon_folder": "로얄가드",
+   "weapon_prefix": "로얄가드"
+  },
+  {
+   "body": "소서러",
+   "imf": "프로페서",
+   "job": 4067,
+   "palette": "소서러",
+   "source_line": 102,
+   "weapon_folder": "소서러",
+   "weapon_prefix": "소서러"
+  },
+  {
+   "body": "민스트럴",
+   "imf": "바드",
+   "job": 4068,
+   "palette": "민스트럴",
+   "source_line": 103,
+   "weapon_folder": "민스트럴",
+   "weapon_prefix": "민스트럴"
+  },
+  {
+   "body": "원더러",
+   "imf": "무희",
+   "job": 4069,
+   "palette": "원더러",
+   "source_line": 104,
+   "weapon_folder": "원더러",
+   "weapon_prefix": "원더러"
+  },
+  {
+   "body": "슈라",
+   "imf": "몽크",
+   "job": 4070,
+   "palette": "슈라",
+   "source_line": 105,
+   "weapon_folder": "슈라",
+   "weapon_prefix": "슈라"
+  },
+  {
+   "body": "제네릭",
+   "imf": "연금술사",
+   "job": 4071,
+   "palette": "제네릭",
+   "source_line": 106,
+   "weapon_folder": "제네릭",
+   "weapon_prefix": "제네릭"
+  },
+  {
+   "body": "쉐도우체이서",
+   "imf": "로그",
+   "job": 4072,
+   "palette": "쉐도우체이서",
+   "source_line": 107,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "가드",
+   "imf": "가드",
+   "job": 4073,
+   "palette": "로얄가드",
+   "source_line": 108,
+   "weapon_folder": "로얄가드",
+   "weapon_prefix": "로얄가드"
+  },
+  {
+   "body": "소서러",
+   "imf": "프로페서",
+   "job": 4074,
+   "palette": "소서러",
+   "source_line": 109,
+   "weapon_folder": "소서러",
+   "weapon_prefix": "소서러"
+  },
+  {
+   "body": "민스트럴",
+   "imf": "바드",
+   "job": 4075,
+   "palette": "민스트럴",
+   "source_line": 110,
+   "weapon_folder": "민스트럴",
+   "weapon_prefix": "민스트럴"
+  },
+  {
+   "body": "원더러",
+   "imf": "무희",
+   "job": 4076,
+   "palette": "원더러",
+   "source_line": 111,
+   "weapon_folder": "원더러",
+   "weapon_prefix": "원더러"
+  },
+  {
+   "body": "슈라",
+   "imf": "몽크",
+   "job": 4077,
+   "palette": "슈라",
+   "source_line": 112,
+   "weapon_folder": "슈라",
+   "weapon_prefix": "슈라"
+  },
+  {
+   "body": "제네릭",
+   "imf": "연금술사",
+   "job": 4078,
+   "palette": "제네릭",
+   "source_line": 113,
+   "weapon_folder": "제네릭",
+   "weapon_prefix": "제네릭"
+  },
+  {
+   "body": "쉐도우체이서",
+   "imf": "로그",
+   "job": 4079,
+   "palette": "쉐도우체이서",
+   "source_line": 114,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "룬나이트쁘띠",
+   "imf": "페코페코_기사",
+   "job": 4080,
+   "palette": "룬드래곤",
+   "source_line": 115,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠",
+   "imf": "페코페코_기사",
+   "job": 4081,
+   "palette": "룬드래곤",
+   "source_line": 116,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "그리폰가드",
+   "imf": "신페코크루세이더",
+   "job": 4082,
+   "palette": "그리폰가드",
+   "source_line": 117,
+   "weapon_folder": "신페코로얄가드",
+   "weapon_prefix": "신페코로얄가드"
+  },
+  {
+   "body": "그리폰가드",
+   "imf": "신페코크루세이더",
+   "job": 4083,
+   "palette": "그리폰가드",
+   "source_line": 118,
+   "weapon_folder": "신페코로얄가드",
+   "weapon_prefix": "신페코로얄가드"
+  },
+  {
+   "body": "레인져늑대",
+   "imf": "레인져늑대",
+   "job": 4084,
+   "palette": "울프레인저",
+   "source_line": 119,
+   "weapon_folder": "레인져늑대",
+   "weapon_prefix": "레인져늑대"
+  },
+  {
+   "body": "레인져늑대",
+   "imf": "레인져늑대",
+   "job": 4085,
+   "palette": "울프레인저",
+   "source_line": 120,
+   "weapon_folder": "레인져늑대",
+   "weapon_prefix": "레인져늑대"
+  },
+  {
+   "body": "마도기어",
+   "imf": "마도기어",
+   "job": 4086,
+   "palette": "미케닉_마도기어",
+   "source_line": 121,
+   "weapon_folder": "마도기어",
+   "weapon_prefix": "마도기어"
+  },
+  {
+   "body": "마도기어",
+   "imf": "마도기어",
+   "job": 4087,
+   "palette": "미케닉_마도기어",
+   "source_line": 122,
+   "weapon_folder": "마도기어",
+   "weapon_prefix": "마도기어"
+  },
+  {
+   "body": "룬나이트쁘띠2",
+   "imf": "페코페코_기사",
+   "job": 4088,
+   "palette": "룬드래곤",
+   "source_line": 123,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠2",
+   "imf": "페코페코_기사",
+   "job": 4089,
+   "palette": "룬드래곤",
+   "source_line": 124,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠3",
+   "imf": "페코페코_기사",
+   "job": 4090,
+   "palette": "룬드래곤",
+   "source_line": 125,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠3",
+   "imf": "페코페코_기사",
+   "job": 4091,
+   "palette": "룬드래곤",
+   "source_line": 126,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠4",
+   "imf": "페코페코_기사",
+   "job": 4092,
+   "palette": "룬드래곤",
+   "source_line": 127,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠4",
+   "imf": "페코페코_기사",
+   "job": 4093,
+   "palette": "룬드래곤",
+   "source_line": 128,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠5",
+   "imf": "페코페코_기사",
+   "job": 4094,
+   "palette": "룬드래곤",
+   "source_line": 129,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트쁘띠5",
+   "imf": "페코페코_기사",
+   "job": 4095,
+   "palette": "룬드래곤",
+   "source_line": 130,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "룬나이트",
+   "imf": "기사",
+   "job": 4096,
+   "palette": "룬나이트",
+   "source_line": 131,
+   "weapon_folder": "룬나이트",
+   "weapon_prefix": "룬나이트"
+  },
+  {
+   "body": "워록",
+   "imf": "위저드",
+   "job": 4097,
+   "palette": "워록",
+   "source_line": 132,
+   "weapon_folder": "워록",
+   "weapon_prefix": "워록"
+  },
+  {
+   "body": "레인져",
+   "imf": "헌터",
+   "job": 4098,
+   "palette": "레인저",
+   "source_line": 133,
+   "weapon_folder": "레인져",
+   "weapon_prefix": "레인져"
+  },
+  {
+   "body": "아크비숍",
+   "imf": "프리스트",
+   "job": 4099,
+   "palette": "아크비숍",
+   "source_line": 134,
+   "weapon_folder": "아크비숍",
+   "weapon_prefix": "아크비숍"
+  },
+  {
+   "body": "미케닉",
+   "imf": "마도기어",
+   "job": 4100,
+   "palette": "미케닉",
+   "source_line": 135,
+   "weapon_folder": "미케닉",
+   "weapon_prefix": "미케닉"
+  },
+  {
+   "body": "길로틴크로스",
+   "imf": "어세신크로스",
+   "job": 4101,
+   "palette": "길로틴크로스",
+   "source_line": 136,
+   "weapon_folder": "길로틴크로스",
+   "weapon_prefix": "길로틴크로스"
+  },
+  {
+   "body": "가드",
+   "imf": "가드",
+   "job": 4102,
+   "palette": "로얄가드",
+   "source_line": 137,
+   "weapon_folder": "로얄가드",
+   "weapon_prefix": "로얄가드"
+  },
+  {
+   "body": "소서러",
+   "imf": "프로페서",
+   "job": 4103,
+   "palette": "소서러",
+   "source_line": 138,
+   "weapon_folder": "소서러",
+   "weapon_prefix": "소서러"
+  },
+  {
+   "body": "민스트럴",
+   "imf": "바드",
+   "job": 4104,
+   "palette": "민스트럴",
+   "source_line": 139,
+   "weapon_folder": "민스트럴",
+   "weapon_prefix": "민스트럴"
+  },
+  {
+   "body": "원더러",
+   "imf": "무희",
+   "job": 4105,
+   "palette": "원더러",
+   "source_line": 140,
+   "weapon_folder": "원더러",
+   "weapon_prefix": "원더러"
+  },
+  {
+   "body": "슈라",
+   "imf": "몽크",
+   "job": 4106,
+   "palette": "슈라",
+   "source_line": 141,
+   "weapon_folder": "슈라",
+   "weapon_prefix": "슈라"
+  },
+  {
+   "body": "제네릭",
+   "imf": "연금술사",
+   "job": 4107,
+   "palette": "제네릭",
+   "source_line": 142,
+   "weapon_folder": "제네릭",
+   "weapon_prefix": "제네릭"
+  },
+  {
+   "body": "쉐도우체이서",
+   "imf": "로그",
+   "job": 4108,
+   "palette": "쉐도우체이서",
+   "source_line": 143,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "룬나이트쁘띠",
+   "imf": "페코페코_기사",
+   "job": 4109,
+   "palette": "룬드래곤",
+   "source_line": 144,
+   "weapon_folder": "페코페코_룬나이트",
+   "weapon_prefix": "페코페코_룬나이트"
+  },
+  {
+   "body": "그리폰가드",
+   "imf": "신페코크루세이더",
+   "job": 4110,
+   "palette": "그리폰가드",
+   "source_line": 145,
+   "weapon_folder": "신페코로얄가드",
+   "weapon_prefix": "신페코로얄가드"
+  },
+  {
+   "body": "레인져늑대",
+   "imf": "레인져늑대",
+   "job": 4111,
+   "palette": "울프레인저",
+   "source_line": 146,
+   "weapon_folder": "레인져늑대",
+   "weapon_prefix": "레인져늑대"
+  },
+  {
+   "body": "마도기어",
+   "imf": "마도기어",
+   "job": 4112,
+   "palette": "미케닉_마도기어",
+   "source_line": 147,
+   "weapon_folder": "마도기어",
+   "weapon_prefix": "마도기어"
+  },
+  {
+   "body": "두꺼비닌자",
+   "imf": "두꺼비닌자",
+   "job": 4114,
+   "palette": "두꺼비닌자",
+   "source_line": 148,
+   "weapon_folder": "닌자",
+   "weapon_prefix": "닌자"
+  },
+  {
+   "body": "페코건너",
+   "imf": "페코건너",
+   "job": 4115,
+   "palette": "페코건너",
+   "source_line": 149,
+   "weapon_folder": "건너",
+   "weapon_prefix": "건너"
+  },
+  {
+   "body": "페코검사",
+   "imf": "페코페코_기사",
+   "job": 4116,
+   "palette": "페코검사",
+   "source_line": 150,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "두꺼비소울링커",
+   "imf": "두꺼비소울링커",
+   "job": 4117,
+   "palette": "두꺼비소울링커",
+   "source_line": 151,
+   "weapon_folder": "소울링커",
+   "weapon_prefix": "소울링커"
+  },
+  {
+   "body": "화이트스미스멧돼지",
+   "imf": "화이트스미스멧돼지",
+   "job": 4118,
+   "palette": "화이트스미스멧돼지",
+   "source_line": 152,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "상인멧돼지",
+   "imf": "상인멧돼지",
+   "job": 4119,
+   "palette": "상인멧돼지",
+   "source_line": 153,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "제네릭멧돼지",
+   "imf": "제네릭멧돼지",
+   "job": 4120,
+   "palette": "제네릭멧돼지",
+   "source_line": 154,
+   "weapon_folder": "제네릭",
+   "weapon_prefix": "제네릭"
+  },
+  {
+   "body": "크리에이터멧돼지",
+   "imf": "크리에이터멧돼지",
+   "job": 4121,
+   "palette": "크리에이터멧돼지",
+   "source_line": 155,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "타조궁수",
+   "imf": "타조궁수",
+   "job": 4122,
+   "palette": "타조궁수",
+   "source_line": 156,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "권성포링",
+   "imf": "권성포링",
+   "job": 4123,
+   "palette": "권성포링",
+   "source_line": 157,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "노비스포링",
+   "imf": "노비스포링",
+   "job": 4124,
+   "palette": "노비스포링",
+   "source_line": 158,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "몽크알파카",
+   "imf": "몽크알파카",
+   "job": 4125,
+   "palette": "몽크알파카",
+   "source_line": 159,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "복사알파카",
+   "imf": "복사알파카",
+   "job": 4126,
+   "palette": "복사알파카",
+   "source_line": 160,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "슈라알파카",
+   "imf": "슈라알파카",
+   "job": 4127,
+   "palette": "슈라알파카",
+   "source_line": 161,
+   "weapon_folder": "슈라",
+   "weapon_prefix": "슈라"
+  },
+  {
+   "body": "슈퍼노비스포링",
+   "imf": "슈퍼노비스포링",
+   "job": 4128,
+   "palette": "슈퍼노비스포링",
+   "source_line": 162,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "아크비숍알파카",
+   "imf": "아크비숍알파카",
+   "job": 4129,
+   "palette": "아크비숍알파카",
+   "source_line": 163,
+   "weapon_folder": "아크비숍",
+   "weapon_prefix": "아크비숍"
+  },
+  {
+   "body": "여우마법사",
+   "imf": "여우마법사",
+   "job": 4130,
+   "palette": "여우마법사",
+   "source_line": 164,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "여우세이지",
+   "imf": "여우세이지",
+   "job": 4131,
+   "palette": "여우세이지",
+   "source_line": 165,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "여우소서러",
+   "imf": "여우소서러",
+   "job": 4132,
+   "palette": "여우소서러",
+   "source_line": 166,
+   "weapon_folder": "소서러",
+   "weapon_prefix": "소서러"
+  },
+  {
+   "body": "여우워록",
+   "imf": "여우워록",
+   "job": 4133,
+   "palette": "여우워록",
+   "source_line": 167,
+   "weapon_folder": "워록",
+   "weapon_prefix": "워록"
+  },
+  {
+   "body": "여우위저드",
+   "imf": "여우위저드",
+   "job": 4134,
+   "palette": "여우위저드",
+   "source_line": 168,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "여우프로페서",
+   "imf": "여우프로페서",
+   "job": 4135,
+   "palette": "여우프로페서",
+   "source_line": 169,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "여우하이위저드",
+   "imf": "여우하이위저드",
+   "job": 4136,
+   "palette": "여우하이위저드",
+   "source_line": 170,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "연금술사멧돼지",
+   "imf": "연금술사멧돼지",
+   "job": 4137,
+   "palette": "연금술사멧돼지",
+   "source_line": 171,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "제철공멧돼지",
+   "imf": "제철공멧돼지",
+   "job": 4138,
+   "palette": "제철공멧돼지",
+   "source_line": 172,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "챔피온알파카",
+   "imf": "챔피온알파카",
+   "job": 4139,
+   "palette": "챔피온알파카",
+   "source_line": 173,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "켈베로스길로틴크로스",
+   "imf": "켈베로스길로틴크로스",
+   "job": 4140,
+   "palette": "켈베로스길로틴크로스",
+   "source_line": 174,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "켈베로스도둑",
+   "imf": "켈베로스도둑",
+   "job": 4141,
+   "palette": "켈베로스도둑",
+   "source_line": 175,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "켈베로스로그",
+   "imf": "켈베로스로그",
+   "job": 4142,
+   "palette": "켈베로스로그",
+   "source_line": 176,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "켈베로스쉐도우체이서",
+   "imf": "켈베로스쉐도우체이서",
+   "job": 4143,
+   "palette": "켈베로스쉐도우체이서",
+   "source_line": 177,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "켈베로스스토커",
+   "imf": "켈베로스스토커",
+   "job": 4144,
+   "palette": "켈베로스스토커",
+   "source_line": 178,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "켈베로스어쎄신",
+   "imf": "켈베로스어쎄신",
+   "job": 4145,
+   "palette": "켈베로스어쎄신",
+   "source_line": 179,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "켈베로스어쎄신크로스",
+   "imf": "켈베로스어쎄신크로스",
+   "job": 4146,
+   "palette": "켈베로스어쎄신크로스",
+   "source_line": 180,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "타조무희",
+   "imf": "타조무희",
+   "job": 4147,
+   "palette": "타조무희",
+   "source_line": 181,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "타조민스트럴",
+   "imf": "타조민스트럴",
+   "job": 4148,
+   "palette": "타조민스트럴",
+   "source_line": 182,
+   "weapon_folder": "민스트럴",
+   "weapon_prefix": "민스트럴"
+  },
+  {
+   "body": "타조바드",
+   "imf": "타조바드",
+   "job": 4149,
+   "palette": "타조바드",
+   "source_line": 183,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "타조스나이퍼",
+   "imf": "타조스나이퍼",
+   "job": 4150,
+   "palette": "타조스나이퍼",
+   "source_line": 184,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "타조원더러",
+   "imf": "타조원더러",
+   "job": 4151,
+   "palette": "타조원더러",
+   "source_line": 185,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "타조짚시",
+   "imf": "타조짚시",
+   "job": 4152,
+   "palette": "타조짚시",
+   "source_line": 186,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "타조크라운",
+   "imf": "타조크라운",
+   "job": 4153,
+   "palette": "타조크라운",
+   "source_line": 187,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "타조헌터",
+   "imf": "타조헌터",
+   "job": 4154,
+   "palette": "타조헌터",
+   "source_line": 188,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "태권소년포링",
+   "imf": "태권소년포링",
+   "job": 4155,
+   "palette": "태권소년포링",
+   "source_line": 189,
+   "weapon_folder": "태권소년",
+   "weapon_prefix": "태권소년"
+  },
+  {
+   "body": "프리스트알파카",
+   "imf": "프리스트알파카",
+   "job": 4156,
+   "palette": "프리스트알파카",
+   "source_line": 190,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "하이프리스트알파카",
+   "imf": "하이프리스트알파카",
+   "job": 4157,
+   "palette": "하이프리스트알파카",
+   "source_line": 191,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "노비스포링",
+   "imf": "노비스포링",
+   "job": 4158,
+   "palette": "노비스포링",
+   "source_line": 192,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "페코검사",
+   "imf": "페코페코_기사",
+   "job": 4159,
+   "palette": "페코검사",
+   "source_line": 193,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "여우마법사",
+   "imf": "여우마법사",
+   "job": 4160,
+   "palette": "여우마법사",
+   "source_line": 194,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "타조궁수",
+   "imf": "타조궁수",
+   "job": 4161,
+   "palette": "타조궁수",
+   "source_line": 195,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "복사알파카",
+   "imf": "복사알파카",
+   "job": 4162,
+   "palette": "복사알파카",
+   "source_line": 196,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "상인멧돼지",
+   "imf": "상인멧돼지",
+   "job": 4163,
+   "palette": "상인멧돼지",
+   "source_line": 197,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "타조헌터",
+   "imf": "타조헌터",
+   "job": 4164,
+   "palette": "타조헌터",
+   "source_line": 198,
+   "weapon_folder": "헌터",
+   "weapon_prefix": "헌터"
+  },
+  {
+   "body": "켈베로스어쎄신",
+   "imf": "켈베로스어쎄신",
+   "job": 4165,
+   "palette": "켈베로스어쎄신",
+   "source_line": 199,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "몽크알파카",
+   "imf": "몽크알파카",
+   "job": 4166,
+   "palette": "몽크알파카",
+   "source_line": 200,
+   "weapon_folder": "몽크",
+   "weapon_prefix": "몽크"
+  },
+  {
+   "body": "여우세이지",
+   "imf": "여우세이지",
+   "job": 4167,
+   "palette": "여우세이지",
+   "source_line": 201,
+   "weapon_folder": "세이지",
+   "weapon_prefix": "세이지"
+  },
+  {
+   "body": "켈베로스로그",
+   "imf": "켈베로스로그",
+   "job": 4168,
+   "palette": "켈베로스로그",
+   "source_line": 202,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "연금술사멧돼지",
+   "imf": "연금술사멧돼지",
+   "job": 4169,
+   "palette": "연금술사멧돼지",
+   "source_line": 203,
+   "weapon_folder": "연금술사",
+   "weapon_prefix": "연금술사"
+  },
+  {
+   "body": "타조바드",
+   "imf": "타조바드",
+   "job": 4170,
+   "palette": "타조바드",
+   "source_line": 204,
+   "weapon_folder": "바드",
+   "weapon_prefix": "바드"
+  },
+  {
+   "body": "dancer_b_riding",
+   "imf": "타조무희",
+   "job": 4171,
+   "palette": "dancer_b_riding",
+   "source_line": 205,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "슈퍼노비스포링",
+   "imf": "슈퍼노비스포링",
+   "job": 4172,
+   "palette": "슈퍼노비스포링",
+   "source_line": 206,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "여우워록",
+   "imf": "여우워록",
+   "job": 4173,
+   "palette": "여우워록",
+   "source_line": 207,
+   "weapon_folder": "워록",
+   "weapon_prefix": "워록"
+  },
+  {
+   "body": "아크비숍알파카",
+   "imf": "아크비숍알파카",
+   "job": 4174,
+   "palette": "아크비숍알파카",
+   "source_line": 208,
+   "weapon_folder": "아크비숍",
+   "weapon_prefix": "아크비숍"
+  },
+  {
+   "body": "켈베로스길로틴크로스",
+   "imf": "켈베로스길로틴크로스",
+   "job": 4175,
+   "palette": "켈베로스길로틴크로스",
+   "source_line": 209,
+   "weapon_folder": "어세신",
+   "weapon_prefix": "어세신"
+  },
+  {
+   "body": "여우소서러",
+   "imf": "여우소서러",
+   "job": 4176,
+   "palette": "여우소서러",
+   "source_line": 210,
+   "weapon_folder": "소서러",
+   "weapon_prefix": "소서러"
+  },
+  {
+   "body": "타조민스트럴",
+   "imf": "타조민스트럴",
+   "job": 4177,
+   "palette": "타조민스트럴",
+   "source_line": 211,
+   "weapon_folder": "민스트럴",
+   "weapon_prefix": "민스트럴"
+  },
+  {
+   "body": "타조원더러",
+   "imf": "타조원더러",
+   "job": 4178,
+   "palette": "타조원더러",
+   "source_line": 212,
+   "weapon_folder": "무희",
+   "weapon_prefix": "무희"
+  },
+  {
+   "body": "슈라알파카",
+   "imf": "슈라알파카",
+   "job": 4179,
+   "palette": "슈라알파카",
+   "source_line": 213,
+   "weapon_folder": "슈라",
+   "weapon_prefix": "슈라"
+  },
+  {
+   "body": "제네릭멧돼지",
+   "imf": "제네릭멧돼지",
+   "job": 4180,
+   "palette": "제네릭멧돼지",
+   "source_line": 214,
+   "weapon_folder": "제네릭",
+   "weapon_prefix": "제네릭"
+  },
+  {
+   "body": "켈베로스도둑",
+   "imf": "켈베로스도둑",
+   "job": 4181,
+   "palette": "켈베로스도둑",
+   "source_line": 215,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "켈베로스쉐도우체이서",
+   "imf": "켈베로스쉐도우체이서",
+   "job": 4182,
+   "palette": "켈베로스쉐도우체이서",
+   "source_line": 216,
+   "weapon_folder": "로그",
+   "weapon_prefix": "로그"
+  },
+  {
+   "body": "노비스포링",
+   "imf": "노비스포링",
+   "job": 4183,
+   "palette": "노비스포링",
+   "source_line": 217,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "페코검사",
+   "imf": "페코페코_기사",
+   "job": 4184,
+   "palette": "페코검사",
+   "source_line": 218,
+   "weapon_folder": "검사",
+   "weapon_prefix": "검사"
+  },
+  {
+   "body": "여우마법사",
+   "imf": "여우마법사",
+   "job": 4185,
+   "palette": "여우마법사",
+   "source_line": 219,
+   "weapon_folder": "마법사",
+   "weapon_prefix": "마법사"
+  },
+  {
+   "body": "타조궁수",
+   "imf": "타조궁수",
+   "job": 4186,
+   "palette": "타조궁수",
+   "source_line": 220,
+   "weapon_folder": "궁수",
+   "weapon_prefix": "궁수"
+  },
+  {
+   "body": "복사알파카",
+   "imf": "복사알파카",
+   "job": 4187,
+   "palette": "복사알파카",
+   "source_line": 221,
+   "weapon_folder": "성직자",
+   "weapon_prefix": "성직자"
+  },
+  {
+   "body": "상인멧돼지",
+   "imf": "상인멧돼지",
+   "job": 4188,
+   "palette": "상인멧돼지",
+   "source_line": 222,
+   "weapon_folder": "상인",
+   "weapon_prefix": "상인"
+  },
+  {
+   "body": "켈베로스도둑",
+   "imf": "켈베로스도둑",
+   "job": 4189,
+   "palette": "켈베로스도둑",
+   "source_line": 223,
+   "weapon_folder": "도둑",
+   "weapon_prefix": "도둑"
+  },
+  {
+   "body": "슈퍼노비스",
+   "imf": "초보자",
+   "job": 4190,
+   "palette": "슈퍼노비스",
+   "source_line": 224,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "슈퍼노비스",
+   "imf": "초보자",
+   "job": 4191,
+   "palette": "슈퍼노비스",
+   "source_line": 225,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "슈퍼노비스포링",
+   "imf": "슈퍼노비스포링",
+   "job": 4192,
+   "palette": "슈퍼노비스포링",
+   "source_line": 226,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "슈퍼노비스포링",
+   "imf": "슈퍼노비스포링",
+   "job": 4193,
+   "palette": "슈퍼노비스포링",
+   "source_line": 227,
+   "weapon_folder": "초보자",
+   "weapon_prefix": "초보자"
+  },
+  {
+   "body": "프리스트알파카",
+   "imf": "프리스트알파카",
+   "job": 4194,
+   "palette": "프리스트알파카",
+   "source_line": 228,
+   "weapon_folder": "프리스트",
+   "weapon_prefix": "프리스트"
+  },
+  {
+   "body": "여우위저드",
+   "imf": "여우위저드",
+   "job": 4195,
+   "palette": "여우위저드",
+   "source_line": 229,
+   "weapon_folder": "위저드",
+   "weapon_prefix": "위저드"
+  },
+  {
+   "body": "제철공멧돼지",
+   "imf": "제철공멧돼지",
+   "job": 4196,
+   "palette": "제철공멧돼지",
+   "source_line": 230,
+   "weapon_folder": "제철공",
+   "weapon_prefix": "제철공"
+  },
+  {
+   "body": "미케닉멧돼지",
+   "imf": "마도기어",
+   "job": 4197,
+   "palette": "미케닉멧돼지",
+   "source_line": 231,
+   "weapon_folder": "미케닉",
+   "weapon_prefix": "미케닉"
+  },
+  {
+   "body": "타조레인져",
+   "imf": "타조레인져",
+   "job": 4198,
+   "palette": "타조레인져",
+   "source_line": 232,
+   "weapon_folder": "레인져",
+   "weapon_prefix": "레인져"
+  },
+  {
+   "body": "사자기사",
+   "imf": "사자기사",
+   "job": 4199,
+   "palette": "사자기사",
+   "source_line": 233,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "사자로드나이트",
+   "imf": "사자로드나이트",
+   "job": 4200,
+   "palette": "사자로드나이트",
+   "source_line": 234,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "사자로얄가드",
+   "imf": "사자로얄가드",
+   "job": 4201,
+   "palette": "사자로얄가드",
+   "source_line": 235,
+   "weapon_folder": "로얄가드",
+   "weapon_prefix": "로얄가드"
+  },
+  {
+   "body": "사자룬나이트",
+   "imf": "사자룬나이트",
+   "job": 4202,
+   "palette": "사자룬나이트",
+   "source_line": 236,
+   "weapon_folder": "룬나이트",
+   "weapon_prefix": "룬나이트"
+  },
+  {
+   "body": "사자크루세이더",
+   "imf": "사자크루세이더",
+   "job": 4203,
+   "palette": "사자크루세이더",
+   "source_line": 237,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "사자팔라딘",
+   "imf": "사자팔라딘",
+   "job": 4204,
+   "palette": "사자팔라딘",
+   "source_line": 238,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "미케닉멧돼지",
+   "imf": "마도기어",
+   "job": 4205,
+   "palette": "미케닉멧돼지",
+   "source_line": 239,
+   "weapon_folder": "미케닉",
+   "weapon_prefix": "미케닉"
+  },
+  {
+   "body": "타조레인져",
+   "imf": "타조레인져",
+   "job": 4206,
+   "palette": "타조레인져",
+   "source_line": 240,
+   "weapon_folder": "레인져",
+   "weapon_prefix": "레인져"
+  },
+  {
+   "body": "사자기사",
+   "imf": "사자기사",
+   "job": 4207,
+   "palette": "사자기사",
+   "source_line": 241,
+   "weapon_folder": "기사",
+   "weapon_prefix": "기사"
+  },
+  {
+   "body": "사자로얄가드",
+   "imf": "사자로얄가드",
+   "job": 4208,
+   "palette": "사자로얄가드",
+   "source_line": 242,
+   "weapon_folder": "로얄가드",
+   "weapon_prefix": "로얄가드"
+  },
+  {
+   "body": "사자룬나이트",
+   "imf": "사자룬나이트",
+   "job": 4209,
+   "palette": "사자룬나이트",
+   "source_line": 243,
+   "weapon_folder": "룬나이트",
+   "weapon_prefix": "룬나이트"
+  },
+  {
+   "body": "사자크루세이더",
+   "imf": "사자크루세이더",
+   "job": 4210,
+   "palette": "사자크루세이더",
+   "source_line": 244,
+   "weapon_folder": "크루세이더",
+   "weapon_prefix": "크루세이더"
+  },
+  {
+   "body": "kagerou",
+   "imf": "닌자",
+   "job": 4211,
+   "palette": "KAGEROU",
+   "source_line": 245,
+   "weapon_folder": "kagerou",
+   "weapon_prefix": "kagerou"
+  },
+  {
+   "body": "oboro",
+   "imf": "닌자",
+   "job": 4212,
+   "palette": "OBORO",
+   "source_line": 246,
+   "weapon_folder": "oboro",
+   "weapon_prefix": "oboro"
+  },
+  {
+   "body": "frog_kagerou",
+   "imf": "frog_kagerou",
+   "job": 4213,
+   "palette": "frog_kagerou",
+   "source_line": 247,
+   "weapon_folder": "kagerou",
+   "weapon_prefix": "kagerou"
+  },
+  {
+   "body": "frog_oboro",
+   "imf": "frog_oboro",
+   "job": 4214,
+   "palette": "frog_oboro",
+   "source_line": 248,
+   "weapon_folder": "oboro",
+   "weapon_prefix": "oboro"
+  },
+  {
+   "body": "rebellion",
+   "imf": "rebellion",
+   "job": 4215,
+   "palette": "리벨리온",
+   "source_line": 249,
+   "weapon_folder": "rebellion",
+   "weapon_prefix": "rebellion"
+  },
+  {
+   "body": "peco_rebellion",
+   "imf": "peco_rebellion",
+   "job": 4216,
+   "palette": "peco_rebellion",
+   "source_line": 250,
+   "weapon_folder": null,
+   "weapon_prefix": null
+  },
+  {
+   "body": "summoner",
+   "imf": "summoner",
+   "job": 4218,
+   "palette": "묘족",
+   "source_line": 251,
+   "weapon_folder": "summoner",
+   "weapon_prefix": "summoner"
+  },
+  {
+   "body": "cart_summoner",
+   "imf": "cart_summoner",
+   "job": 4219,
+   "palette": "고양이카트",
+   "source_line": 252,
+   "weapon_folder": "summoner",
+   "weapon_prefix": "cart_summoner"
+  },
+  {
+   "body": "summoner",
+   "imf": "summoner",
+   "job": 4220,
+   "palette": "묘족",
+   "source_line": 253,
+   "weapon_folder": "summoner",
+   "weapon_prefix": "summoner"
+  },
+  {
+   "body": "cart_summoner",
+   "imf": "cart_summoner",
+   "job": 4221,
+   "palette": "고양이카트",
+   "source_line": 254,
+   "weapon_folder": "summoner",
+   "weapon_prefix": "cart_summoner"
+  },
+  {
+   "body": "닌자",
+   "imf": "닌자",
+   "job": 4222,
+   "palette": "닌자",
+   "source_line": 255,
+   "weapon_folder": "닌자",
+   "weapon_prefix": "닌자"
+  },
+  {
+   "body": "kagerou",
+   "imf": "닌자",
+   "job": 4223,
+   "palette": "KAGEROU",
+   "source_line": 256,
+   "weapon_folder": "kagerou",
+   "weapon_prefix": "kagerou"
+  },
+  {
+   "body": "oboro",
+   "imf": "닌자",
+   "job": 4224,
+   "palette": "OBORO",
+   "source_line": 257,
+   "weapon_folder": "oboro",
+   "weapon_prefix": "oboro"
+  },
+  {
+   "body": "태권소년",
+   "imf": "태권소년",
+   "job": 4225,
+   "palette": "태권소년",
+   "source_line": 258,
+   "weapon_folder": "태권소년",
+   "weapon_prefix": "태권소년"
+  },
+  {
+   "body": "권성",
+   "imf": "태권소년",
+   "job": 4226,
+   "palette": "권성",
+   "source_line": 259,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "소울링커",
+   "imf": "위저드",
+   "job": 4227,
+   "palette": "소울링커",
+   "source_line": 260,
+   "weapon_folder": "소울링커",
+   "weapon_prefix": "소울링커"
+  },
+  {
+   "body": "건너",
+   "imf": "건너",
+   "job": 4228,
+   "palette": "건너",
+   "source_line": 261,
+   "weapon_folder": "건너",
+   "weapon_prefix": "건너"
+  },
+  {
+   "body": "rebellion",
+   "imf": "rebellion",
+   "job": 4229,
+   "palette": "리벨리온",
+   "source_line": 262,
+   "weapon_folder": "rebellion",
+   "weapon_prefix": "rebellion"
+  },
+  {
+   "body": "두꺼비닌자",
+   "imf": "두꺼비닌자",
+   "job": 4230,
+   "palette": "두꺼비닌자",
+   "source_line": 263,
+   "weapon_folder": "닌자",
+   "weapon_prefix": "닌자"
+  },
+  {
+   "body": "frog_kagerou",
+   "imf": "frog_kagerou",
+   "job": 4231,
+   "palette": "frog_kagerou",
+   "source_line": 264,
+   "weapon_folder": "kagerou",
+   "weapon_prefix": "kagerou"
+  },
+  {
+   "body": "frog_oboro",
+   "imf": "frog_oboro",
+   "job": 4232,
+   "palette": "frog_oboro",
+   "source_line": 265,
+   "weapon_folder": "oboro",
+   "weapon_prefix": "oboro"
+  },
+  {
+   "body": "태권소년포링",
+   "imf": "태권소년포링",
+   "job": 4233,
+   "palette": "태권소년포링",
+   "source_line": 266,
+   "weapon_folder": "태권소년",
+   "weapon_prefix": "태권소년"
+  },
+  {
+   "body": "권성포링",
+   "imf": "권성포링",
+   "job": 4234,
+   "palette": "권성포링",
+   "source_line": 267,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "두꺼비소울링커",
+   "imf": "두꺼비소울링커",
+   "job": 4235,
+   "palette": "두꺼비소울링커",
+   "source_line": 268,
+   "weapon_folder": "소울링커",
+   "weapon_prefix": "소울링커"
+  },
+  {
+   "body": "페코건너",
+   "imf": "페코건너",
+   "job": 4236,
+   "palette": "페코건너",
+   "source_line": 269,
+   "weapon_folder": "건너",
+   "weapon_prefix": "건너"
+  },
+  {
+   "body": "peco_rebellion",
+   "imf": "peco_rebellion",
+   "job": 4237,
+   "palette": "peco_rebellion",
+   "source_line": 270,
+   "weapon_folder": "rebellion",
+   "weapon_prefix": "rebellion"
+  },
+  {
+   "body": "권성융합",
+   "imf": "태권소년",
+   "job": 4238,
+   "palette": "권성",
+   "source_line": 271,
+   "weapon_folder": "권성",
+   "weapon_prefix": "권성"
+  },
+  {
+   "body": "성제",
+   "imf": "태권소년",
+   "job": 4239,
+   "palette": "성제",
+   "source_line": 272,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "소울리퍼",
+   "imf": "위저드",
+   "job": 4240,
+   "palette": "소울리퍼",
+   "source_line": 273,
+   "weapon_folder": "소울리퍼",
+   "weapon_prefix": "소울리퍼"
+  },
+  {
+   "body": "성제",
+   "imf": "태권소년",
+   "job": 4241,
+   "palette": "성제",
+   "source_line": 274,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "소울리퍼",
+   "imf": "위저드",
+   "job": 4242,
+   "palette": "소울리퍼",
+   "source_line": 275,
+   "weapon_folder": "소울리퍼",
+   "weapon_prefix": "소울리퍼"
+  },
+  {
+   "body": "성제융합",
+   "imf": "태권소년",
+   "job": 4243,
+   "palette": "성제",
+   "source_line": 276,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "성제융합",
+   "imf": "태권소년",
+   "job": 4244,
+   "palette": "성제",
+   "source_line": 277,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "해태성제",
+   "imf": "태권소년",
+   "job": 4245,
+   "palette": "해태성제",
+   "source_line": 278,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "해태소울리퍼",
+   "imf": "태권소년",
+   "job": 4246,
+   "palette": "해태소울리퍼",
+   "source_line": 279,
+   "weapon_folder": "소울리퍼",
+   "weapon_prefix": "소울리퍼"
+  },
+  {
+   "body": "해태성제",
+   "imf": "태권소년",
+   "job": 4247,
+   "palette": "해태성제",
+   "source_line": 280,
+   "weapon_folder": "성제",
+   "weapon_prefix": "성제"
+  },
+  {
+   "body": "해태소울리퍼",
+   "imf": "태권소년",
+   "job": 4248,
+   "palette": "해태소울리퍼",
+   "source_line": 281,
+   "weapon_folder": "소울리퍼",
+   "weapon_prefix": "소울리퍼"
+  },
+  {
+   "body": "DRAGON_KNIGHT",
+   "imf": "DRAGON_KNIGHT",
+   "job": 4252,
+   "palette": "DRAGON_KNIGHT",
+   "source_line": 282,
+   "weapon_folder": "DRAGON_KNIGHT",
+   "weapon_prefix": "DRAGON_KNIGHT"
+  },
+  {
+   "body": "MEISTER",
+   "imf": "MEISTER",
+   "job": 4253,
+   "palette": "MEISTER",
+   "source_line": 283,
+   "weapon_folder": "MEISTER",
+   "weapon_prefix": "MEISTER"
+  },
+  {
+   "body": "SHADOW_CROSS",
+   "imf": "SHADOW_CROSS",
+   "job": 4254,
+   "palette": "SHADOW_CROSS",
+   "source_line": 284,
+   "weapon_folder": "SHADOW_CROSS",
+   "weapon_prefix": "SHADOW_CROSS"
+  },
+  {
+   "body": "ARCH_MAGE",
+   "imf": "워록",
+   "job": 4255,
+   "palette": "ARCH_MAGE",
+   "source_line": 285,
+   "weapon_folder": "ARCH_MAGE",
+   "weapon_prefix": "ARCH_MAGE"
+  },
+  {
+   "body": "CARDINAL",
+   "imf": "CARDINAL",
+   "job": 4256,
+   "palette": "CARDINAL",
+   "source_line": 286,
+   "weapon_folder": "CARDINAL",
+   "weapon_prefix": "CARDINAL"
+  },
+  {
+   "body": "WINDHAWK",
+   "imf": "WINDHAWK",
+   "job": 4257,
+   "palette": "WINDHAWK",
+   "source_line": 287,
+   "weapon_folder": "WINDHAWK",
+   "weapon_prefix": "WINDHAWK"
+  },
+  {
+   "body": "IMPERIAL_GUARD",
+   "imf": "IMPERIAL_GUARD",
+   "job": 4258,
+   "palette": "IMPERIAL_GUARD",
+   "source_line": 288,
+   "weapon_folder": "IMPERIAL_GUARD",
+   "weapon_prefix": "IMPERIAL_GUARD"
+  },
+  {
+   "body": "BIOLO",
+   "imf": "BIOLO",
+   "job": 4259,
+   "palette": "BIOLO",
+   "source_line": 289,
+   "weapon_folder": "BIOLO",
+   "weapon_prefix": "BIOLO"
+  },
+  {
+   "body": "ABYSS_CHASER",
+   "imf": "ABYSS_CHASER",
+   "job": 4260,
+   "palette": "ABYSS_CHASER",
+   "source_line": 290,
+   "weapon_folder": "ABYSS_CHASER",
+   "weapon_prefix": "ABYSS_CHASER"
+  },
+  {
+   "body": "ELEMETAL_MASTER",
+   "imf": "프로페서",
+   "job": 4261,
+   "palette": "ELEMETAL_MASTER",
+   "source_line": 291,
+   "weapon_folder": "ELEMETAL_MASTER",
+   "weapon_prefix": "ELEMETAL_MASTER"
+  },
+  {
+   "body": "INQUISITOR",
+   "imf": "INQUISITOR",
+   "job": 4262,
+   "palette": "INQUISITOR",
+   "source_line": 292,
+   "weapon_folder": "INQUISITOR",
+   "weapon_prefix": "INQUISITOR"
+  },
+  {
+   "body": "TROUBADOUR",
+   "imf": "TROUBADOUR",
+   "job": 4263,
+   "palette": "TROUBADOUR",
+   "source_line": 293,
+   "weapon_folder": "TROUBADOUR",
+   "weapon_prefix": "TROUBADOUR"
+  },
+  {
+   "body": "TROUVERE",
+   "imf": "TROUVERE",
+   "job": 4264,
+   "palette": "TROUVERE",
+   "source_line": 294,
+   "weapon_folder": "TROUVERE",
+   "weapon_prefix": "TROUVERE"
+  },
+  {
+   "body": "DRAGON_KNIGHT_RIDING",
+   "imf": "DRAGON_KNIGHT_RIDING",
+   "job": 4265,
+   "palette": "DRAGON_KNIGHT_RIDING",
+   "source_line": 295,
+   "weapon_folder": "DRAGON_KNIGHT_RIDING",
+   "weapon_prefix": "DRAGON_KNIGHT_RIDING"
+  },
+  {
+   "body": "MEISTER_RIDING",
+   "imf": "MEISTER_RIDING",
+   "job": 4266,
+   "palette": "MEISTER_RIDING",
+   "source_line": 296,
+   "weapon_folder": "MEISTER_RIDING",
+   "weapon_prefix": "MEISTER_RIDING"
+  },
+  {
+   "body": "SHADOW_CROSS_RIDING",
+   "imf": "SHADOW_CROSS_RIDING",
+   "job": 4267,
+   "palette": "SHADOW_CROSS_RIDING",
+   "source_line": 297,
+   "weapon_folder": "SHADOW_CROSS",
+   "weapon_prefix": "SHADOW_CROSS_RIDING"
+  },
+  {
+   "body": "ARCH_MAGE_RIDING",
+   "imf": "워록",
+   "job": 4268,
+   "palette": "ARCH_MAGE_RIDING",
+   "source_line": 298,
+   "weapon_folder": "ARCH_MAGE",
+   "weapon_prefix": "ARCH_MAGE_RIDING"
+  },
+  {
+   "body": "CARDINAL_RIDING",
+   "imf": "CARDINAL_RIDING",
+   "job": 4269,
+   "palette": "CARDINAL_RIDING",
+   "source_line": 299,
+   "weapon_folder": "CARDINAL",
+   "weapon_prefix": "CARDINAL_RIDING"
+  },
+  {
+   "body": "WINDHAWK_RIDING",
+   "imf": "WINDHAWK_RIDING",
+   "job": 4270,
+   "palette": "WINDHAWK_RIDING",
+   "source_line": 300,
+   "weapon_folder": "WINDHAWK",
+   "weapon_prefix": "WINDHAWK_RIDING"
+  },
+  {
+   "body": "IMPERIAL_GUARD_RIDING",
+   "imf": "IMPERIAL_GUARD_RIDING",
+   "job": 4271,
+   "palette": "IMPERIAL_GUARD_RIDING",
+   "source_line": 301,
+   "weapon_folder": "IMPERIAL_GUARD_RIDING",
+   "weapon_prefix": "IMPERIAL_GUARD_RIDING"
+  },
+  {
+   "body": "BIOLO_RIDING",
+   "imf": "BIOLO_RIDING",
+   "job": 4272,
+   "palette": "BIOLO_RIDING",
+   "source_line": 302,
+   "weapon_folder": "BIOLO_RIDING",
+   "weapon_prefix": "BIOLO_RIDING"
+  },
+  {
+   "body": "ABYSS_CHASER_RIDING",
+   "imf": "ABYSS_CHASER_RIDING",
+   "job": 4273,
+   "palette": "ABYSS_CHASER_RIDING",
+   "source_line": 303,
+   "weapon_folder": "ABYSS_CHASER",
+   "weapon_prefix": "ABYSS_CHASER_RIDING"
+  },
+  {
+   "body": "ELEMETAL_MASTER_RIDING",
+   "imf": "프로페서",
+   "job": 4274,
+   "palette": "ELEMETAL_MASTER_RIDING",
+   "source_line": 304,
+   "weapon_folder": "ELEMETAL_MASTER",
+   "weapon_prefix": "ELEMETAL_MASTER_RIDING"
+  },
+  {
+   "body": "INQUISITOR_RIDING",
+   "imf": "INQUISITOR_RIDING",
+   "job": 4275,
+   "palette": "INQUISITOR_RIDING",
+   "source_line": 305,
+   "weapon_folder": "INQUISITOR",
+   "weapon_prefix": "INQUISITOR_RIDING"
+  },
+  {
+   "body": "TROUBADOUR_RIDING",
+   "imf": "TROUBADOUR_RIDING",
+   "job": 4276,
+   "palette": "TROUBADOUR_RIDING",
+   "source_line": 306,
+   "weapon_folder": "TROUBADOUR",
+   "weapon_prefix": "TROUBADOUR_RIDING"
+  },
+  {
+   "body": "TROUVERE_RIDING",
+   "imf": "TROUVERE_RIDING",
+   "job": 4277,
+   "palette": "TROUVERE_RIDING",
+   "source_line": 307,
+   "weapon_folder": "TROUVERE",
+   "weapon_prefix": "TROUVERE_RIDING"
+  },
+  {
+   "body": "WOLF_WINDHAWK",
+   "imf": "WOLF_WINDHAWK",
+   "job": 4278,
+   "palette": "WOLF_WINDHAWK",
+   "source_line": 308,
+   "weapon_folder": "WINDHAWK",
+   "weapon_prefix": "WOLF_WINDHAWK"
+  },
+  {
+   "body": "DRAGON_KNIGHT_CHICKEN",
+   "imf": "DRAGON_KNIGHT_CHICKEN",
+   "job": 4280,
+   "palette": "DRAGON_KNIGHT_CHICKEN",
+   "source_line": 309,
+   "weapon_folder": "DRAGON_KNIGHT_CHICKEN",
+   "weapon_prefix": "DRAGON_KNIGHT_CHICKEN"
+  },
+  {
+   "body": "IMPERIAL_GUARD_CHICKEN",
+   "imf": "IMPERIAL_GUARD_CHICKEN",
+   "job": 4281,
+   "palette": "IMPERIAL_GUARD_CHICKEN",
+   "source_line": 310,
+   "weapon_folder": "IMPERIAL_GUARD_CHICKEN",
+   "weapon_prefix": "IMPERIAL_GUARD_CHICKEN"
+  },
+  {
+   "body": "SKY_EMPEROR",
+   "imf": "SKY_EMPEROR",
+   "job": 4302,
+   "palette": "SKY_EMPEROR",
+   "source_line": 311,
+   "weapon_folder": "SKY_EMPEROR",
+   "weapon_prefix": "SKY_EMPEROR"
+  },
+  {
+   "body": "SOUL_ASCETIC",
+   "imf": "SOUL_ASCETIC",
+   "job": 4303,
+   "palette": "SOUL_ASCETIC",
+   "source_line": 312,
+   "weapon_folder": "SOUL_ASCETIC",
+   "weapon_prefix": "SOUL_ASCETIC"
+  },
+  {
+   "body": "SHINKIRO",
+   "imf": "SHINKIRO",
+   "job": 4304,
+   "palette": "SHINKIRO",
+   "source_line": 313,
+   "weapon_folder": "SHINKIRO",
+   "weapon_prefix": "SHINKIRO"
+  },
+  {
+   "body": "SHIRANUI",
+   "imf": "SHIRANUI",
+   "job": 4305,
+   "palette": "SHIRANUI",
+   "source_line": 314,
+   "weapon_folder": "SHIRANUI",
+   "weapon_prefix": "SHIRANUI"
+  },
+  {
+   "body": "NIGHT_WATCH",
+   "imf": "NIGHT_WATCH",
+   "job": 4306,
+   "palette": "NIGHT_WATCH",
+   "source_line": 315,
+   "weapon_folder": "NIGHT_WATCH",
+   "weapon_prefix": "NIGHT_WATCH"
+  },
+  {
+   "body": "HYPER_NOVICE",
+   "imf": "HYPER_NOVICE",
+   "job": 4307,
+   "palette": "HYPER_NOVICE",
+   "source_line": 316,
+   "weapon_folder": "HYPER_NOVICE",
+   "weapon_prefix": "HYPER_NOVICE"
+  },
+  {
+   "body": "SPIRIT_HANDLER",
+   "imf": "SPIRIT_HANDLER",
+   "job": 4308,
+   "palette": "SPIRIT_HANDLER",
+   "source_line": 317,
+   "weapon_folder": "SPIRIT_HANDLER",
+   "weapon_prefix": "SPIRIT_HANDLER"
+  },
+  {
+   "body": "SKY_EMPEROR_RIDING",
+   "imf": "SKY_EMPEROR_RIDING",
+   "job": 4309,
+   "palette": "SKY_EMPEROR_RIDING",
+   "source_line": 318,
+   "weapon_folder": "SKY_EMPEROR",
+   "weapon_prefix": "SKY_EMPEROR_RIDING"
+  },
+  {
+   "body": "SOUL_ASCETIC_RIDING",
+   "imf": "SOUL_ASCETIC_RIDING",
+   "job": 4310,
+   "palette": "SOUL_ASCETIC_RIDING",
+   "source_line": 319,
+   "weapon_folder": "SOUL_ASCETIC",
+   "weapon_prefix": "SOUL_ASCETIC_RIDING"
+  },
+  {
+   "body": "SHINKIRO_RIDING",
+   "imf": "SHINKIRO_RIDING",
+   "job": 4311,
+   "palette": "SHINKIRO_RIDING",
+   "source_line": 320,
+   "weapon_folder": "SHINKIRO",
+   "weapon_prefix": "SHINKIRO_RIDING"
+  },
+  {
+   "body": "SHIRANUI_RIDING",
+   "imf": "SHIRANUI_RIDING",
+   "job": 4312,
+   "palette": "SHIRANUI_RIDING",
+   "source_line": 321,
+   "weapon_folder": "SHIRANUI",
+   "weapon_prefix": "SHIRANUI_RIDING"
+  },
+  {
+   "body": "NIGHT_WATCH_RIDING",
+   "imf": "NIGHT_WATCH_RIDING",
+   "job": 4313,
+   "palette": "NIGHT_WATCH_RIDING",
+   "source_line": 322,
+   "weapon_folder": "NIGHT_WATCH",
+   "weapon_prefix": "NIGHT_WATCH_RIDING"
+  },
+  {
+   "body": "HYPER_NOVICE_RIDING",
+   "imf": "HYPER_NOVICE_RIDING",
+   "job": 4314,
+   "palette": "HYPER_NOVICE_RIDING",
+   "source_line": 323,
+   "weapon_folder": "HYPER_NOVICE",
+   "weapon_prefix": "HYPER_NOVICE_RIDING"
+  },
+  {
+   "body": "SPIRIT_HANDLER_RIDING",
+   "imf": "SPIRIT_HANDLER_RIDING",
+   "job": 4315,
+   "palette": "SPIRIT_HANDLER_RIDING",
+   "source_line": 324,
+   "weapon_folder": "SPIRIT_HANDLER",
+   "weapon_prefix": "SPIRIT_HANDLER_RIDING"
+  },
+  {
+   "body": "SKY_EMPEROR2",
+   "imf": "SKY_EMPEROR2",
+   "job": 4316,
+   "palette": "SKY_EMPEROR2",
+   "source_line": 325,
+   "weapon_folder": "SKY_EMPEROR",
+   "weapon_prefix": "SKY_EMPEROR"
+  }
+ ],
+ "options": {
+  "body_options_bits": {
+   "ALL_RIDING_LOOK": 2147483648,
+   "HANBOK": 134217728,
+   "MADOGEAR": 4194304,
+   "OKTOBERFEST": 268435456,
+   "OPTION_CHASEWALK": 16384,
+   "OPTION_CLOAK": 4,
+   "OPTION_FALCON": 16,
+   "OPTION_HIDE": 2,
+   "OPTION_INVISIBLE": 64,
+   "OPTION_ORCISH": 2048,
+   "OPTION_WUG": 1048576,
+   "OPTION_WUGRIDER": 2097152,
+   "RIDING": 32,
+   "SUMMER": 262144,
+   "UNION": 32768,
+   "WEDDING": 4096,
+   "WOLF_RIDING": 2097152,
+   "XMAS": 65536
+  },
+  "outfit_jobs": {
+   "HANBOK": 28,
+   "OKTOBERFEST": 29,
+   "SUMMER": 27,
+   "WEDDING": 22,
+   "XMAS": 26
+  },
+  "shadow_options": {
+   "OPTION_CHASEWALK": 16384,
+   "OPTION_CLOAK": 4,
+   "OPTION_HIDE": 2,
+   "OPTION_INVISIBLE": 64
+  },
+  "source_lines": {
+   "body_options": 417,
+   "constants": 178,
+   "sprite_job": 435
+  }
+ },
+ "provenance": "rustnarok-client source facts, extracted from the pinned checkout",
+ "repository": "https://github.com/kindraywind/rustnarok-client.git",
+ "size_statuses": {
+  "body_scale_rule": "let baby = matches!( job, 4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4238 | 4241 | 4242 | 4244 | 4247 | 4248 | 4352 | 4354 ); match job { _ if !baby => 1.0, _ if is_doram(job) => 0.8, 4023..=4029 | 4045 | 4191 => 0.75, _ => 0.82, }",
+  "change_size": 1420,
+  "change_size_monster": 1421,
+  "source_lines": {
+   "body_scale": 468,
+   "change_size": 24
+  },
+  "unit": "percent (val1 on ZC_MSG_STATE_CHANGE3)"
+ }
+}

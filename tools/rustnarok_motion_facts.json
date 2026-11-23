@@ -1,0 +1,3819 @@
+{
+ "commit": "76600595363affc96d5995bf4baa790d05a9593c",
+ "files": [
+  "src/skill_motions.rs"
+ ],
+ "provenance": "rustnarok-client source facts, extracted from the pinned checkout",
+ "repository": "https://github.com/kindraywind/rustnarok-client.git",
+ "table_entry_counts": {
+  "ATTACK": 105,
+  "CAST": 292,
+  "KEEP": 73,
+  "PICK_UP": 23,
+  "STATES": 149,
+  "THIRD_ATTACK": 9,
+  "THROW": 18
+ },
+ "tables": {
+  "ATTACK": [
+   {
+    "skill": 5,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 7,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 42,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 46,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 47,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 56,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 57,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 58,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 61,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 62,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 109,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 212,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 214,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 219,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 253,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 266,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 267,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 338,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 366,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 367,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 368,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 370,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 372,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 379,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 382,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 397,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 398,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 399,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 406,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 484,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 499,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 502,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 503,
+    "source_line": 23,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 512,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 513,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 514,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 515,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 518,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 519,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 520,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 661,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 674,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 712,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 728,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 732,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 740,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 1001,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 1005,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 1009,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 1016,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2002,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2004,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2005,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2006,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2017,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2022,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2023,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2029,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2030,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2031,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2036,
+    "source_line": 24,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2037,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2233,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2236,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2259,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2261,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2279,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2280,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2284,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2288,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2298,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2314,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2320,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2324,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2342,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2476,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5245,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5248,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5249,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5250,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5277,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5283,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5287,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5289,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5294,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5295,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5296,
+    "source_line": 25,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5314,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5315,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5316,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5320,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5322,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5344,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5345,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5346,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5348,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 5382,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8202,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8601,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8602,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8603,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8604,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 8605,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 2055,
+    "source_line": 26,
+    "table": "ATTACK"
+   },
+   {
+    "skill": 136,
+    "source_line": 26,
+    "table": "ATTACK"
+   }
+  ],
+  "CAST": [
+   {
+    "skill": 5,
+    "source_line": 193,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 7,
+    "source_line": 194,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 29,
+    "source_line": 195,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 34,
+    "source_line": 196,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 42,
+    "source_line": 197,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 46,
+    "source_line": 198,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 47,
+    "source_line": 199,
+    "table": "CAST",
+    "value": 18
+   },
+   {
+    "skill": 56,
+    "source_line": 200,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 57,
+    "source_line": 201,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 58,
+    "source_line": 202,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 59,
+    "source_line": 203,
+    "table": "CAST",
+    "value": 12
+   },
+   {
+    "skill": 61,
+    "source_line": 204,
+    "table": "CAST",
+    "value": 11
+   },
+   {
+    "skill": 62,
+    "source_line": 205,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 110,
+    "source_line": 206,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 115,
+    "source_line": 207,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 116,
+    "source_line": 208,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 117,
+    "source_line": 209,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 118,
+    "source_line": 210,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 119,
+    "source_line": 211,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 120,
+    "source_line": 212,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 121,
+    "source_line": 213,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 122,
+    "source_line": 214,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 123,
+    "source_line": 215,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 124,
+    "source_line": 216,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 125,
+    "source_line": 217,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 136,
+    "source_line": 218,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 149,
+    "source_line": 219,
+    "table": "CAST",
+    "value": 11
+   },
+   {
+    "skill": 151,
+    "source_line": 220,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 152,
+    "source_line": 221,
+    "table": "CAST",
+    "value": 11
+   },
+   {
+    "skill": 196,
+    "source_line": 222,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 209,
+    "source_line": 223,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 230,
+    "source_line": 224,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 231,
+    "source_line": 225,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 232,
+    "source_line": 226,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 234,
+    "source_line": 227,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 235,
+    "source_line": 228,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 236,
+    "source_line": 229,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 237,
+    "source_line": 230,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 243,
+    "source_line": 231,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 244,
+    "source_line": 232,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 247,
+    "source_line": 233,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 249,
+    "source_line": 234,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 268,
+    "source_line": 235,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 270,
+    "source_line": 236,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 349,
+    "source_line": 237,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 382,
+    "source_line": 238,
+    "table": "CAST",
+    "value": 18
+   },
+   {
+    "skill": 389,
+    "source_line": 239,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 394,
+    "source_line": 240,
+    "table": "CAST",
+    "value": 18
+   },
+   {
+    "skill": 397,
+    "source_line": 241,
+    "table": "CAST",
+    "value": 11
+   },
+   {
+    "skill": 425,
+    "source_line": 242,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 426,
+    "source_line": 243,
+    "table": "CAST",
+    "value": 19
+   },
+   {
+    "skill": 446,
+    "source_line": 244,
+    "table": "CAST",
+    "value": 12
+   },
+   {
+    "skill": 475,
+    "source_line": 245,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 478,
+    "source_line": 246,
+    "table": "CAST",
+    "value": 28
+   },
+   {
+    "skill": 479,
+    "source_line": 247,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 490,
+    "source_line": 248,
+    "table": "CAST",
+    "value": 28
+   },
+   {
+    "skill": 493,
+    "source_line": 249,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 496,
+    "source_line": 250,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 497,
+    "source_line": 251,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 498,
+    "source_line": 252,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 499,
+    "source_line": 253,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 503,
+    "source_line": 254,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 504,
+    "source_line": 255,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 505,
+    "source_line": 256,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 512,
+    "source_line": 257,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 513,
+    "source_line": 258,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 514,
+    "source_line": 259,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 515,
+    "source_line": 260,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 517,
+    "source_line": 261,
+    "table": "CAST",
+    "value": 41
+   },
+   {
+    "skill": 518,
+    "source_line": 262,
+    "table": "CAST",
+    "value": 42
+   },
+   {
+    "skill": 519,
+    "source_line": 263,
+    "table": "CAST",
+    "value": 42
+   },
+   {
+    "skill": 520,
+    "source_line": 264,
+    "table": "CAST",
+    "value": 42
+   },
+   {
+    "skill": 521,
+    "source_line": 265,
+    "table": "CAST",
+    "value": 42
+   },
+   {
+    "skill": 525,
+    "source_line": 266,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 532,
+    "source_line": 267,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 534,
+    "source_line": 268,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 535,
+    "source_line": 269,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 536,
+    "source_line": 270,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 537,
+    "source_line": 271,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 538,
+    "source_line": 272,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 539,
+    "source_line": 273,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 540,
+    "source_line": 274,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 541,
+    "source_line": 275,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 542,
+    "source_line": 276,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 543,
+    "source_line": 277,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 688,
+    "source_line": 278,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 689,
+    "source_line": 279,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 690,
+    "source_line": 280,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 708,
+    "source_line": 281,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 720,
+    "source_line": 282,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 728,
+    "source_line": 283,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 735,
+    "source_line": 284,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 736,
+    "source_line": 285,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 737,
+    "source_line": 286,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 739,
+    "source_line": 287,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 742,
+    "source_line": 288,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 744,
+    "source_line": 289,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 745,
+    "source_line": 290,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 1001,
+    "source_line": 291,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 1004,
+    "source_line": 292,
+    "table": "CAST",
+    "value": 11
+   },
+   {
+    "skill": 1009,
+    "source_line": 293,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 1010,
+    "source_line": 294,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 1011,
+    "source_line": 295,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 1014,
+    "source_line": 296,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 2002,
+    "source_line": 297,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 2022,
+    "source_line": 298,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2055,
+    "source_line": 299,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 2056,
+    "source_line": 300,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2201,
+    "source_line": 301,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2202,
+    "source_line": 302,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2203,
+    "source_line": 303,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2204,
+    "source_line": 304,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2205,
+    "source_line": 305,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2206,
+    "source_line": 306,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2207,
+    "source_line": 307,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2209,
+    "source_line": 308,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2210,
+    "source_line": 309,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2211,
+    "source_line": 310,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2212,
+    "source_line": 311,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2213,
+    "source_line": 312,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2214,
+    "source_line": 313,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2216,
+    "source_line": 314,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2217,
+    "source_line": 315,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2230,
+    "source_line": 316,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2231,
+    "source_line": 317,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2233,
+    "source_line": 318,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2236,
+    "source_line": 319,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2237,
+    "source_line": 320,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2239,
+    "source_line": 321,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 2240,
+    "source_line": 322,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2241,
+    "source_line": 323,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2242,
+    "source_line": 324,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2243,
+    "source_line": 325,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2244,
+    "source_line": 326,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2246,
+    "source_line": 327,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2253,
+    "source_line": 328,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 2254,
+    "source_line": 329,
+    "table": "CAST",
+    "value": 5
+   },
+   {
+    "skill": 2256,
+    "source_line": 330,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2258,
+    "source_line": 331,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2259,
+    "source_line": 332,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 2260,
+    "source_line": 333,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2261,
+    "source_line": 334,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 2262,
+    "source_line": 335,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2267,
+    "source_line": 336,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2268,
+    "source_line": 337,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2270,
+    "source_line": 338,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2271,
+    "source_line": 339,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2272,
+    "source_line": 340,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2273,
+    "source_line": 341,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2274,
+    "source_line": 342,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2275,
+    "source_line": 343,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2280,
+    "source_line": 344,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 2286,
+    "source_line": 345,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2287,
+    "source_line": 346,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2288,
+    "source_line": 347,
+    "table": "CAST",
+    "value": 18
+   },
+   {
+    "skill": 2290,
+    "source_line": 348,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 2292,
+    "source_line": 349,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2293,
+    "source_line": 350,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2294,
+    "source_line": 351,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2295,
+    "source_line": 352,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2296,
+    "source_line": 353,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2297,
+    "source_line": 354,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2298,
+    "source_line": 355,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2304,
+    "source_line": 356,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 2313,
+    "source_line": 357,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2314,
+    "source_line": 358,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2315,
+    "source_line": 359,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2316,
+    "source_line": 360,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2317,
+    "source_line": 361,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2318,
+    "source_line": 362,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2319,
+    "source_line": 363,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2320,
+    "source_line": 364,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2321,
+    "source_line": 365,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2322,
+    "source_line": 366,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2323,
+    "source_line": 367,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2324,
+    "source_line": 368,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2325,
+    "source_line": 369,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2326,
+    "source_line": 370,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2327,
+    "source_line": 371,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2328,
+    "source_line": 372,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2329,
+    "source_line": 373,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2330,
+    "source_line": 374,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2332,
+    "source_line": 375,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2338,
+    "source_line": 376,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2340,
+    "source_line": 377,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2341,
+    "source_line": 378,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2343,
+    "source_line": 379,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2344,
+    "source_line": 380,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2345,
+    "source_line": 381,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2346,
+    "source_line": 382,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2347,
+    "source_line": 383,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2348,
+    "source_line": 384,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2350,
+    "source_line": 385,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2351,
+    "source_line": 386,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2352,
+    "source_line": 387,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2381,
+    "source_line": 388,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2382,
+    "source_line": 389,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2383,
+    "source_line": 390,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2413,
+    "source_line": 391,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2414,
+    "source_line": 392,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2417,
+    "source_line": 393,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2418,
+    "source_line": 394,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2419,
+    "source_line": 395,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2420,
+    "source_line": 396,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2421,
+    "source_line": 397,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2422,
+    "source_line": 398,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2423,
+    "source_line": 399,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2424,
+    "source_line": 400,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2425,
+    "source_line": 401,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2426,
+    "source_line": 402,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2427,
+    "source_line": 403,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2428,
+    "source_line": 404,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2429,
+    "source_line": 405,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2430,
+    "source_line": 406,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2431,
+    "source_line": 407,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2432,
+    "source_line": 408,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2433,
+    "source_line": 409,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2434,
+    "source_line": 410,
+    "table": "CAST",
+    "value": 16
+   },
+   {
+    "skill": 2443,
+    "source_line": 411,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2444,
+    "source_line": 412,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2446,
+    "source_line": 413,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2447,
+    "source_line": 414,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2448,
+    "source_line": 415,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2449,
+    "source_line": 416,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2450,
+    "source_line": 417,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2451,
+    "source_line": 418,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2452,
+    "source_line": 419,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2453,
+    "source_line": 420,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2454,
+    "source_line": 421,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2455,
+    "source_line": 422,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2456,
+    "source_line": 423,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2457,
+    "source_line": 424,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2458,
+    "source_line": 425,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2459,
+    "source_line": 426,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2460,
+    "source_line": 427,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2476,
+    "source_line": 428,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2477,
+    "source_line": 429,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2478,
+    "source_line": 430,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2479,
+    "source_line": 431,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2480,
+    "source_line": 432,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2481,
+    "source_line": 433,
+    "table": "CAST",
+    "value": 12
+   },
+   {
+    "skill": 2482,
+    "source_line": 434,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2483,
+    "source_line": 435,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2485,
+    "source_line": 436,
+    "table": "CAST",
+    "value": 12
+   },
+   {
+    "skill": 2486,
+    "source_line": 437,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2490,
+    "source_line": 438,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 2492,
+    "source_line": 439,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2494,
+    "source_line": 440,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2495,
+    "source_line": 441,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2496,
+    "source_line": 442,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2497,
+    "source_line": 443,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2517,
+    "source_line": 444,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2518,
+    "source_line": 445,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2520,
+    "source_line": 446,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 2581,
+    "source_line": 447,
+    "table": "CAST",
+    "value": 19
+   },
+   {
+    "skill": 3006,
+    "source_line": 448,
+    "table": "CAST",
+    "value": 36
+   },
+   {
+    "skill": 3009,
+    "source_line": 449,
+    "table": "CAST",
+    "value": 36
+   },
+   {
+    "skill": 3011,
+    "source_line": 450,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3013,
+    "source_line": 451,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3014,
+    "source_line": 452,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3015,
+    "source_line": 453,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3016,
+    "source_line": 454,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3017,
+    "source_line": 455,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3018,
+    "source_line": 456,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3021,
+    "source_line": 457,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3026,
+    "source_line": 458,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3027,
+    "source_line": 459,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 3029,
+    "source_line": 460,
+    "table": "CAST",
+    "value": 37
+   },
+   {
+    "skill": 5023,
+    "source_line": 461,
+    "table": "CAST",
+    "value": 19
+   },
+   {
+    "skill": 5026,
+    "source_line": 462,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5027,
+    "source_line": 463,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5032,
+    "source_line": 464,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5033,
+    "source_line": 465,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5035,
+    "source_line": 466,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5036,
+    "source_line": 467,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5038,
+    "source_line": 468,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5040,
+    "source_line": 469,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5043,
+    "source_line": 470,
+    "table": "CAST",
+    "value": 50
+   },
+   {
+    "skill": 5078,
+    "source_line": 471,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 5321,
+    "source_line": 472,
+    "table": "CAST",
+    "value": -1
+   },
+   {
+    "skill": 8202,
+    "source_line": 473,
+    "table": "CAST",
+    "value": 2
+   },
+   {
+    "skill": 8220,
+    "source_line": 474,
+    "table": "CAST",
+    "value": 0
+   },
+   {
+    "skill": 8401,
+    "source_line": 475,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8425,
+    "source_line": 476,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8426,
+    "source_line": 477,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8428,
+    "source_line": 478,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8430,
+    "source_line": 479,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8431,
+    "source_line": 480,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8433,
+    "source_line": 481,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8434,
+    "source_line": 482,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8435,
+    "source_line": 483,
+    "table": "CAST",
+    "value": 7
+   },
+   {
+    "skill": 8442,
+    "source_line": 484,
+    "table": "CAST",
+    "value": 7
+   }
+  ],
+  "KEEP": [
+   {
+    "skill": 29,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 151,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 196,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 209,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 249,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 252,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 256,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 257,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 261,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 268,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 269,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 271,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 272,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 273,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 304,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 349,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 350,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 356,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 369,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 371,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 380,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 384,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 387,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 401,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 411,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 444,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 446,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 478,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 490,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 690,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 730,
+    "source_line": 32,
+    "table": "KEEP"
+   },
+   {
+    "skill": 1015,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2028,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2215,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2218,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2219,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2220,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2221,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2240,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2241,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2242,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2263,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2264,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2265,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2334,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2415,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2416,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2481,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2482,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2484,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2485,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2486,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2490,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2516,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2520,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5219,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5223,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5224,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5226,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5231,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5236,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5243,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 5244,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 263,
+    "source_line": 33,
+    "table": "KEEP"
+   },
+   {
+    "skill": 143,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2317,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2326,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2328,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2329,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 2579,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 8204,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 8219,
+    "source_line": 34,
+    "table": "KEEP"
+   },
+   {
+    "skill": 8220,
+    "source_line": 34,
+    "table": "KEEP"
+   }
+  ],
+  "PICK_UP": [
+   {
+    "skill": 115,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 116,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 117,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 118,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 119,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 120,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 121,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 122,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 123,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 124,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 125,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 688,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 1013,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2238,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2239,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2249,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2250,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2251,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2252,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2253,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2254,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 2267,
+    "source_line": 30,
+    "table": "PICK_UP"
+   },
+   {
+    "skill": 5335,
+    "source_line": 30,
+    "table": "PICK_UP"
+   }
+  ],
+  "STATES": [
+   {
+    "skill": 306,
+    "source_line": 40,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 307,
+    "source_line": 41,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 308,
+    "source_line": 42,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 309,
+    "source_line": 43,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 310,
+    "source_line": 44,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 311,
+    "source_line": 45,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 312,
+    "source_line": 46,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 313,
+    "source_line": 47,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 317,
+    "source_line": 48,
+    "table": "STATES",
+    "value": 17
+   },
+   {
+    "skill": 319,
+    "source_line": 49,
+    "table": "STATES",
+    "value": 17
+   },
+   {
+    "skill": 320,
+    "source_line": 50,
+    "table": "STATES",
+    "value": 17
+   },
+   {
+    "skill": 321,
+    "source_line": 51,
+    "table": "STATES",
+    "value": 17
+   },
+   {
+    "skill": 322,
+    "source_line": 52,
+    "table": "STATES",
+    "value": 17
+   },
+   {
+    "skill": 325,
+    "source_line": 53,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 327,
+    "source_line": 54,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 328,
+    "source_line": 55,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 329,
+    "source_line": 56,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 330,
+    "source_line": 57,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 395,
+    "source_line": 58,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 396,
+    "source_line": 59,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 412,
+    "source_line": 60,
+    "table": "STATES",
+    "value": 21
+   },
+   {
+    "skill": 413,
+    "source_line": 61,
+    "table": "STATES",
+    "value": 30
+   },
+   {
+    "skill": 414,
+    "source_line": 62,
+    "table": "STATES",
+    "value": 22
+   },
+   {
+    "skill": 416,
+    "source_line": 63,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 417,
+    "source_line": 64,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 418,
+    "source_line": 65,
+    "table": "STATES",
+    "value": 24
+   },
+   {
+    "skill": 419,
+    "source_line": 66,
+    "table": "STATES",
+    "value": 26
+   },
+   {
+    "skill": 420,
+    "source_line": 67,
+    "table": "STATES",
+    "value": 25
+   },
+   {
+    "skill": 421,
+    "source_line": 68,
+    "table": "STATES",
+    "value": 27
+   },
+   {
+    "skill": 426,
+    "source_line": 69,
+    "table": "STATES",
+    "value": 20
+   },
+   {
+    "skill": 428,
+    "source_line": 70,
+    "table": "STATES",
+    "value": 34
+   },
+   {
+    "skill": 429,
+    "source_line": 71,
+    "table": "STATES",
+    "value": 34
+   },
+   {
+    "skill": 430,
+    "source_line": 72,
+    "table": "STATES",
+    "value": 34
+   },
+   {
+    "skill": 431,
+    "source_line": 73,
+    "table": "STATES",
+    "value": 33
+   },
+   {
+    "skill": 432,
+    "source_line": 74,
+    "table": "STATES",
+    "value": 33
+   },
+   {
+    "skill": 433,
+    "source_line": 75,
+    "table": "STATES",
+    "value": 33
+   },
+   {
+    "skill": 445,
+    "source_line": 76,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 447,
+    "source_line": 77,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 448,
+    "source_line": 78,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 449,
+    "source_line": 79,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 450,
+    "source_line": 80,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 451,
+    "source_line": 81,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 452,
+    "source_line": 82,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 453,
+    "source_line": 83,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 454,
+    "source_line": 84,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 455,
+    "source_line": 85,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 456,
+    "source_line": 86,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 457,
+    "source_line": 87,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 458,
+    "source_line": 88,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 460,
+    "source_line": 89,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 461,
+    "source_line": 90,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 488,
+    "source_line": 91,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 494,
+    "source_line": 92,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 500,
+    "source_line": 93,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 501,
+    "source_line": 94,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 504,
+    "source_line": 95,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 505,
+    "source_line": 96,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 506,
+    "source_line": 97,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 508,
+    "source_line": 98,
+    "table": "STATES",
+    "value": 40
+   },
+   {
+    "skill": 516,
+    "source_line": 99,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 517,
+    "source_line": 100,
+    "table": "STATES",
+    "value": 38
+   },
+   {
+    "skill": 521,
+    "source_line": 101,
+    "table": "STATES",
+    "value": 40
+   },
+   {
+    "skill": 523,
+    "source_line": 102,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 524,
+    "source_line": 103,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 525,
+    "source_line": 104,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 526,
+    "source_line": 105,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 527,
+    "source_line": 106,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 528,
+    "source_line": 107,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 529,
+    "source_line": 108,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 531,
+    "source_line": 109,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 532,
+    "source_line": 110,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 534,
+    "source_line": 111,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 535,
+    "source_line": 112,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 536,
+    "source_line": 113,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 537,
+    "source_line": 114,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 538,
+    "source_line": 115,
+    "table": "STATES",
+    "value": 35
+   },
+   {
+    "skill": 539,
+    "source_line": 116,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 540,
+    "source_line": 117,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 541,
+    "source_line": 118,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 542,
+    "source_line": 119,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 543,
+    "source_line": 120,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 572,
+    "source_line": 121,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 573,
+    "source_line": 122,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 574,
+    "source_line": 123,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 575,
+    "source_line": 124,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 707,
+    "source_line": 125,
+    "table": "STATES",
+    "value": 11
+   },
+   {
+    "skill": 1011,
+    "source_line": 126,
+    "table": "STATES",
+    "value": 16
+   },
+   {
+    "skill": 2003,
+    "source_line": 127,
+    "table": "STATES",
+    "value": 11
+   },
+   {
+    "skill": 2011,
+    "source_line": 128,
+    "table": "STATES",
+    "value": 11
+   },
+   {
+    "skill": 2015,
+    "source_line": 129,
+    "table": "STATES",
+    "value": 21
+   },
+   {
+    "skill": 2018,
+    "source_line": 130,
+    "table": "STATES",
+    "value": 24
+   },
+   {
+    "skill": 2256,
+    "source_line": 131,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2257,
+    "source_line": 132,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2260,
+    "source_line": 133,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2268,
+    "source_line": 134,
+    "table": "STATES",
+    "value": 43
+   },
+   {
+    "skill": 2269,
+    "source_line": 135,
+    "table": "STATES",
+    "value": 25
+   },
+   {
+    "skill": 2270,
+    "source_line": 136,
+    "table": "STATES",
+    "value": 44
+   },
+   {
+    "skill": 2271,
+    "source_line": 137,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2272,
+    "source_line": 138,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2273,
+    "source_line": 139,
+    "table": "STATES",
+    "value": 43
+   },
+   {
+    "skill": 2274,
+    "source_line": 140,
+    "table": "STATES",
+    "value": 43
+   },
+   {
+    "skill": 2275,
+    "source_line": 141,
+    "table": "STATES",
+    "value": 43
+   },
+   {
+    "skill": 2285,
+    "source_line": 142,
+    "table": "STATES",
+    "value": 21
+   },
+   {
+    "skill": 2311,
+    "source_line": 143,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2323,
+    "source_line": 144,
+    "table": "STATES",
+    "value": 25
+   },
+   {
+    "skill": 2327,
+    "source_line": 145,
+    "table": "STATES",
+    "value": 18
+   },
+   {
+    "skill": 2330,
+    "source_line": 146,
+    "table": "STATES",
+    "value": 18
+   },
+   {
+    "skill": 2333,
+    "source_line": 147,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 2336,
+    "source_line": 148,
+    "table": "STATES",
+    "value": 27
+   },
+   {
+    "skill": 2337,
+    "source_line": 149,
+    "table": "STATES",
+    "value": 30
+   },
+   {
+    "skill": 2340,
+    "source_line": 150,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 2343,
+    "source_line": 151,
+    "table": "STATES",
+    "value": 24
+   },
+   {
+    "skill": 2344,
+    "source_line": 152,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2345,
+    "source_line": 153,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2346,
+    "source_line": 154,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2347,
+    "source_line": 155,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2348,
+    "source_line": 156,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2445,
+    "source_line": 157,
+    "table": "STATES",
+    "value": 39
+   },
+   {
+    "skill": 2478,
+    "source_line": 158,
+    "table": "STATES",
+    "value": 22
+   },
+   {
+    "skill": 2576,
+    "source_line": 159,
+    "table": "STATES",
+    "value": 30
+   },
+   {
+    "skill": 2580,
+    "source_line": 160,
+    "table": "STATES",
+    "value": 51
+   },
+   {
+    "skill": 2581,
+    "source_line": 161,
+    "table": "STATES",
+    "value": 20
+   },
+   {
+    "skill": 2593,
+    "source_line": 162,
+    "table": "STATES",
+    "value": 32
+   },
+   {
+    "skill": 2596,
+    "source_line": 163,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 2597,
+    "source_line": 164,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 2598,
+    "source_line": 165,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 2599,
+    "source_line": 166,
+    "table": "STATES",
+    "value": 23
+   },
+   {
+    "skill": 3004,
+    "source_line": 167,
+    "table": "STATES",
+    "value": 9
+   },
+   {
+    "skill": 3005,
+    "source_line": 168,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3006,
+    "source_line": 169,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3007,
+    "source_line": 170,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3008,
+    "source_line": 171,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3009,
+    "source_line": 172,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3011,
+    "source_line": 173,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3013,
+    "source_line": 174,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3014,
+    "source_line": 175,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3015,
+    "source_line": 176,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3016,
+    "source_line": 177,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3017,
+    "source_line": 178,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3018,
+    "source_line": 179,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3020,
+    "source_line": 180,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3021,
+    "source_line": 181,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3022,
+    "source_line": 182,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3023,
+    "source_line": 183,
+    "table": "STATES",
+    "value": 36
+   },
+   {
+    "skill": 3026,
+    "source_line": 184,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3027,
+    "source_line": 185,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 3029,
+    "source_line": 186,
+    "table": "STATES",
+    "value": 37
+   },
+   {
+    "skill": 5021,
+    "source_line": 187,
+    "table": "STATES",
+    "value": 49
+   },
+   {
+    "skill": 5023,
+    "source_line": 188,
+    "table": "STATES",
+    "value": 20
+   }
+  ],
+  "THIRD_ATTACK": [
+   {
+    "skill": 316,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 324,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 394,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 530,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 2258,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 2307,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 2308,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 2312,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   },
+   {
+    "skill": 5330,
+    "source_line": 29,
+    "table": "THIRD_ATTACK"
+   }
+  ],
+  "THROW": [
+   {
+    "skill": 59,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 149,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 152,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 229,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 230,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 231,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 232,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 250,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 251,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 480,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 1004,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 2278,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 2480,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 2493,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 5340,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 5341,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 5342,
+    "source_line": 28,
+    "table": "THROW"
+   },
+   {
+    "skill": 5343,
+    "source_line": 28,
+    "table": "THROW"
+   }
+  ]
+ }
+}
