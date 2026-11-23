@@ -297,6 +297,10 @@ pub struct EntityInstruction {
     pub mirror: bool,
     pub entity_id: EntityId,
     pub add_to_picker: bool,
+    /// Draw this part with the additive (glow) blend instead of the regular
+    /// WBOIT blend when it falls in the transparent pass. Set by status
+    /// effects (official `render.flags & 1` / `& 2`).
+    pub additive: bool,
     pub texture: Arc<Texture>,
     pub distance: f32,
 }

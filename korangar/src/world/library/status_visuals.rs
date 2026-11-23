@@ -22,6 +22,19 @@ use crate::loaders::GameFileLoader;
 const DATA_PATH: &str = "data\\client\\status_visual_effects.ron";
 const FALLBACK: &str = include_str!("../../../archive/data/client/status_visual_effects.ron");
 
+/// Layer of the actor that an additive status blend applies to.
+///
+/// The official client sets the blend flag per layer
+/// (`CPc::ApplyLayerEffects`): `render.flags & 1` makes the *body* layers
+/// additive and `render.flags & 2` makes the *weapon* layer additive, while
+/// `SetColor` always tints the whole actor. `scope` only selects the layer that
+/// receives the additive blend.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StatusVisualScope {
+    Body,
+    Weapon,
+}
+
 /// Anchor of a looping status effect.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StatusVisualAnchor {
@@ -34,7 +47,8 @@ pub enum StatusVisualAnchor {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum StatusVisualKind {
     /// Multiply the character sprites by this colour while the status is
-    /// active.
+    /// active. `additive` additionally draws the `scope` layer with an
+    /// additive blend (official blend mode 5).
     BodyTint {
         tint: Color,
         /// How long the tint is held before it starts fading; `0` keeps it for
@@ -44,6 +58,11 @@ pub enum StatusVisualKind {
         fade_ms: u32,
         /// Higher priority wins when several tinted statuses overlap.
         priority: i16,
+        /// Draw the `scope` layer additively (a glowing body/weapon blend).
+        additive: bool,
+        /// Layer that receives the additive blend; the tint itself always
+        /// applies to the whole actor, like the official `SetColor`.
+        scope: StatusVisualScope,
     },
     /// Multiply the character alpha while the status is active.
     BodyFade { alpha: f32, fade_in_ms: u32, fade_out_ms: u32 },
@@ -108,6 +127,10 @@ enum StatusVisualKindFile {
         fade_ms: u32,
         #[serde(default)]
         priority: i16,
+        #[serde(default)]
+        additive: bool,
+        #[serde(default)]
+        scope: StatusVisualScopeFile,
     },
     BodyFade {
         alpha: f32,
@@ -142,6 +165,14 @@ enum StatusVisualKindFile {
         #[serde(default = "default_pulse")]
         pulse: f32,
     },
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(deny_unknown_fields, rename_all = "PascalCase")]
+enum StatusVisualScopeFile {
+    #[default]
+    Body,
+    Weapon,
 }
 
 #[derive(Deserialize)]
@@ -195,15 +226,27 @@ fn parse(content: &str) -> Result<StatusVisualTable, String> {
                 hold_ms,
                 fade_ms,
                 priority,
+                additive,
+                scope,
             } => {
                 if hold_ms > 60_000 || fade_ms > 60_000 {
                     return Err(format!("schema error: status {} tint timing is too large", row.id));
+                }
+                if scope == StatusVisualScopeFile::Weapon && !additive {
+                    // A weapon-scope row without the additive flag would be a
+                    // no-op: the tint is actor-wide, only the blend is scoped.
+                    return Err(format!("schema error: status {} has weapon scope without additive", row.id));
                 }
                 StatusVisualKind::BodyTint {
                     tint: Color::rgb_u8(tint.0, tint.1, tint.2),
                     hold_ms,
                     fade_ms,
                     priority,
+                    additive,
+                    scope: match scope {
+                        StatusVisualScopeFile::Body => StatusVisualScope::Body,
+                        StatusVisualScopeFile::Weapon => StatusVisualScope::Weapon,
+                    },
                 }
             }
             StatusVisualKindFile::BodyFade {
@@ -346,6 +389,70 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
     }
 }
 
+/// Resolved sprite state of all active status visuals of one entity.
+///
+/// This is the pure part of `World::refresh_entity_status_visual`: it folds the
+/// active `StatusVisualKind`s into the values that are applied to the entity,
+/// so the selection rules are unit-testable without a client.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct StatusVisualState {
+    /// Winning actor tint (`SetColor`); `None` leaves the sprite unchanged.
+    pub tint: Option<Color>,
+    /// Alpha multiplier of the first active `BodyFade`.
+    pub alpha: Option<f32>,
+    /// `EF_LIGHTBLADE` weapon blink.
+    pub weapon_blink: bool,
+    /// At least one body-scope additive status is active.
+    pub body_additive: bool,
+    /// At least one weapon-scope additive status is active.
+    pub weapon_additive: bool,
+}
+
+/// Folds the active status visuals of one entity into a [`StatusVisualState`].
+///
+/// The highest `priority` tint wins (a later status wins a tie, matching the
+/// previous per-status update order). Additive flags are OR-ed per scope
+/// because the official client ORs the `render.flags` bits of every active
+/// status; the first `BodyFade` wins.
+pub fn resolve_state<'a>(kinds: impl IntoIterator<Item = &'a StatusVisualKind>) -> StatusVisualState {
+    let mut state = StatusVisualState::default();
+    let mut tint_priority = i16::MIN;
+
+    for kind in kinds {
+        match *kind {
+            StatusVisualKind::BodyTint {
+                tint,
+                priority,
+                additive,
+                scope,
+                ..
+            } => {
+                if priority >= tint_priority {
+                    state.tint = Some(tint);
+                    tint_priority = priority;
+                }
+                if additive {
+                    match scope {
+                        StatusVisualScope::Body => state.body_additive = true,
+                        StatusVisualScope::Weapon => state.weapon_additive = true,
+                    }
+                }
+            }
+            StatusVisualKind::BodyFade { alpha, .. } => {
+                if state.alpha.is_none() {
+                    state.alpha = Some(alpha);
+                }
+            }
+            StatusVisualKind::WeaponBlink => state.weapon_blink = true,
+            // Looping/ground visuals are spawned by `update_status_visuals`;
+            // they do not change the sprite layers.
+            StatusVisualKind::LoopingEffect { .. } | StatusVisualKind::GroundRing { .. } => {}
+        }
+    }
+
+    state
+}
+
 /// Status visual of one status id, if the data has one.
 pub fn status_visual(id: u16) -> Option<&'static StatusVisualSpec> {
     let visuals = &table().visuals;
@@ -373,12 +480,12 @@ mod tests {
     #[test]
     fn compiled_status_visuals_are_valid() {
         let count = super::validate_compiled().expect("compiled status visuals");
-        assert_eq!(count, 16, "official body tints/fades/blink plus looping/ground rows");
+        assert_eq!(count, 17, "official body tints/fades/blink/additive plus looping/ground rows");
     }
 
     #[test]
     fn known_classic_tints_are_present() {
-        for id in [2, 8, 23, 26, 86, 105, 107, 113, 132, 147, 360, 379, 394, 448, 453, 464] {
+        for id in [2, 8, 23, 26, 86, 103, 105, 107, 113, 132, 147, 360, 379, 394, 448, 453, 464] {
             assert!(status_visual(id).is_some(), "status {id}");
         }
         assert!(status_visual(9999).is_none());
@@ -432,6 +539,105 @@ mod tests {
             ],
         )"#;
         assert_eq!(validate(content).unwrap(), 1);
+    }
+
+    #[test]
+    fn additive_rows_select_the_body_or_weapon_layer() {
+        use super::{StatusVisualKind, StatusVisualScope};
+
+        // Berserk / Auto Berserk: official `EF_REDBODY` sets `render.flags |= 1`
+        // in addition to the red `SetColor`.
+        for id in [107, 132] {
+            let visual = status_visual(id).expect("additive body tint");
+            assert!(
+                matches!(visual.kind, StatusVisualKind::BodyTint {
+                    additive: true,
+                    scope: StatusVisualScope::Body,
+                    ..
+                }),
+                "status {id}"
+            );
+        }
+
+        // Aura Blade: official `EF_AURABLADE2` sets `render.flags |= 2`, which
+        // makes the weapon layer additive; there is no `SetColor` (white tint).
+        let aura_blade = status_visual(103).expect("Aura Blade weapon blend");
+        assert!(matches!(
+            aura_blade.kind,
+            StatusVisualKind::BodyTint {
+                tint,
+                additive: true,
+                scope: StatusVisualScope::Weapon,
+                ..
+            } if tint == Color::WHITE
+        ));
+
+        let additive = r#"(
+            provenance: "test",
+            version: 1,
+            visuals: [
+                (id: 103, kind: BodyTint(tint: (255, 255, 255), additive: true, scope: Weapon), source: "test"),
+                (id: 107, kind: BodyTint(tint: (255, 100, 100), additive: true, scope: Body), source: "test"),
+            ],
+        )"#;
+        assert_eq!(validate(additive).unwrap(), 2);
+
+        // A weapon-scope row without the additive flag is a no-op and rejected.
+        let inert = r#"(
+            provenance: "test",
+            version: 1,
+            visuals: [
+                (id: 103, kind: BodyTint(tint: (255, 255, 255), scope: Weapon), source: "test"),
+            ],
+        )"#;
+        assert!(validate(inert).is_err());
+    }
+
+    #[test]
+    fn additive_flags_are_or_ed_per_scope() {
+        use super::{StatusVisualKind, StatusVisualScope, resolve_state};
+
+        let body = StatusVisualKind::BodyTint {
+            tint: Color::rgb_u8(255, 100, 100),
+            hold_ms: 0,
+            fade_ms: 0,
+            priority: 30,
+            additive: true,
+            scope: StatusVisualScope::Body,
+        };
+        let weapon = StatusVisualKind::BodyTint {
+            tint: Color::WHITE,
+            hold_ms: 0,
+            fade_ms: 0,
+            priority: 1,
+            additive: true,
+            scope: StatusVisualScope::Weapon,
+        };
+        let plain = StatusVisualKind::BodyTint {
+            tint: Color::rgb_u8(255, 255, 160),
+            hold_ms: 0,
+            fade_ms: 0,
+            priority: 50,
+            additive: false,
+            scope: StatusVisualScope::Body,
+        };
+
+        let state = resolve_state([&body]);
+        assert_eq!(state.tint, Some(Color::rgb_u8(255, 100, 100)));
+        assert!(state.body_additive);
+        assert!(!state.weapon_additive);
+
+        // The higher-priority tint wins; the additive flags are independent of
+        // the tint priority and the weapon tint is actor-wide like SetColor.
+        let state = resolve_state([&body, &weapon, &plain]);
+        assert_eq!(state.tint, Some(Color::rgb_u8(255, 255, 160)));
+        assert!(state.body_additive);
+        assert!(state.weapon_additive);
+
+        let state = resolve_state([&weapon]);
+        assert_eq!(state.tint, Some(Color::WHITE));
+        assert!(!state.body_additive);
+        assert!(state.weapon_additive);
     }
 
     #[test]

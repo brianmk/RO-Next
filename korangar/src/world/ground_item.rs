@@ -97,6 +97,7 @@ impl GroundItem {
                 crate::graphics::Color::WHITE,
                 1.0,
                 None,
+                false,
             );
         }
     }

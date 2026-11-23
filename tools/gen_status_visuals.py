@@ -34,12 +34,16 @@ ROWS: list[dict[str, object]] = [
     {"id": 86, "kind": "tint", "tint": (255, 191, 191), "priority": 20, "source": "official Fury red glow"},
     # Official body tints from the client decompilation (rodecomp): the effect
     # that a status launches calls `SetColor(-1, r, g, b)` on the parent actor.
-    {"id": 132, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_AUTOBERSERK (rodecomp)"},
-    {"id": 107, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_BERSERK (rodecomp)"},
+    {"id": 132, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "additive": True, "scope": "Body", "source": "official EF_REDBODY SetColor(255,100,100) + render.flags |= 1 body blend - EFST_AUTOBERSERK (rodecomp)"},
+    {"id": 107, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "additive": True, "scope": "Body", "source": "official EF_REDBODY SetColor(255,100,100) + render.flags |= 1 body blend - EFST_BERSERK (rodecomp)"},
     {"id": 105, "kind": "tint", "tint": (255, 255, 160), "priority": 30, "source": "official EF_LKCONCENTRATION SetColor(255,255,160) (rodecomp)"},
     {"id": 464, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"},
     {"id": 448, "kind": "tint", "tint": (182, 89, 255), "priority": 30, "source": "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"},
     {"id": 453, "kind": "tint", "tint": (0, 0, 255), "priority": 30, "source": "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"},
+    # Aura Blade: `EF_AURABLADE2` sets `render.flags |= 2`, which draws the
+    # weapon layer with blend mode 5 (additive). It does not call `SetColor`, so
+    # the tint is white (= unchanged) and only the weapon layer is additive.
+    {"id": 103, "kind": "tint", "tint": (255, 255, 255), "priority": 30, "additive": True, "scope": "Weapon", "source": "official EF_AURABLADE2 render.flags |= 2: weapon layer blend 5 (rodecomp)"},
     # Cloaking family: the official client calls `SetColor(50, -1, -1, -1)`
     # (alpha 50/255, colour unchanged) for EFS_CLOAKING2 and
     # `SetColor(50, 0, 0, 0)` for Cloaking Clear.
@@ -64,10 +68,12 @@ HEADER = """// Data-driven per-status body visuals for RO-Next.
 // Check:      `./tools/gen_status_visuals.py --check`
 //
 // Body tints/fades carry the official SetColor values of the client
-// decompilation (rodecomp) where the effect sets one; the looping/ground rows
-// are curated. Assets were checked against the CondaRO archives.
+// decompilation (rodecomp) where the effect sets one; `additive`/`scope` map
+// the official `render.flags` body/weapon blend bits (EF_REDBODY 1,
+// EF_AURABLADE2 2). The looping/ground rows are curated. Assets were checked
+// against the CondaRO archives.
 (
-    provenance: "Status body tints/fades: official SetColor values from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
+    provenance: "Status sprite visuals: official SetColor values and render.flags blend bits from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
     version: 1,
     visuals: [
 """
@@ -94,9 +100,16 @@ def render() -> str:
             priority = int(row["priority"])
             if priority < 0 or priority > 1000:
                 raise SystemExit(f"invalid priority for status {status_id}")
+            additive = bool(row.get("additive", False))
+            scope = str(row.get("scope", "Body"))
+            if scope not in ("Body", "Weapon"):
+                raise SystemExit(f"invalid scope for status {status_id}: {scope}")
+            if scope == "Weapon" and not additive:
+                raise SystemExit(f"weapon scope without additive for status {status_id}")
             lines.append(
                 f"        (id: {status_id}, kind: BodyTint(tint: ({red}, {green}, {blue}), "
-                f'hold_ms: 0, fade_ms: 0, priority: {priority}), source: "{source}"),\n'
+                f"hold_ms: 0, fade_ms: 0, priority: {priority}, additive: {str(additive).lower()}, "
+                f'scope: {scope}), source: "{source}"),\n'
             )
         elif kind == "loop":
             red, green, blue = row["tint"]

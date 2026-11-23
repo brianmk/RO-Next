@@ -61,8 +61,20 @@ pub(crate) struct ForwardEntityDrawer {
     bind_group: BindGroup,
     opaque_pipeline: RenderPipeline,
     transparent_pipeline: RenderPipeline,
+    /// Additive variant of the transparent pipeline, used for the status
+    /// effect body/weapon glow (official blend mode 5).
+    additive_pipeline: RenderPipeline,
     draw_count: usize,
+    /// Number of leading instances that use the regular transparent blend; the
+    /// remaining instances are additive. `prepare` partitions them.
+    additive_start: usize,
     instance_data: Vec<InstanceData>,
+    /// Instance order built by `prepare` (non-additive first, additive last),
+    /// shared by the bindless draw ranges and the texture switching of the
+    /// non-bindless path.
+    order: Vec<u32>,
+    /// Texture of every instance in `order`, for the non-bindless path.
+    ordered_textures: Vec<Arc<Texture>>,
     bump: Bump,
     lookup: HashMap<u64, i32>,
 }
@@ -175,6 +187,7 @@ impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAtt
             &pipeline_layout,
             &color_attachment_formats,
             EntityPassMode::Opaque,
+            false,
         );
 
         let wboit_pipeline = Self::create_pipeline(
@@ -185,6 +198,18 @@ impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAtt
             &pipeline_layout,
             &color_attachment_formats,
             EntityPassMode::Transparent,
+            false,
+        );
+
+        let additive_pipeline = Self::create_pipeline(
+            device,
+            global_context,
+            render_pass_context,
+            &shader_module,
+            &pipeline_layout,
+            &color_attachment_formats,
+            EntityPassMode::Transparent,
+            true,
         );
 
         Self {
@@ -195,8 +220,12 @@ impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAtt
             bind_group,
             opaque_pipeline,
             transparent_pipeline: wboit_pipeline,
+            additive_pipeline,
             draw_count: 0,
+            additive_start: 0,
             instance_data: Vec::default(),
+            order: Vec::default(),
+            ordered_textures: Vec::default(),
             bump: Bump::default(),
             lookup: HashMap::default(),
         }
@@ -207,26 +236,28 @@ impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAtt
             return;
         }
 
-        match draw_data.pass_mode {
-            EntityPassMode::Opaque => pass.set_pipeline(&self.opaque_pipeline),
-            EntityPassMode::Transparent => pass.set_pipeline(&self.transparent_pipeline),
-        }
-
         pass.set_bind_group(2, &self.bind_group, &[]);
 
-        if self.bindless_support {
-            pass.draw(0..6, 0..self.draw_count as u32);
-        } else {
-            let mut current_texture_id = self.solid_pixel_texture.get_id();
-            pass.set_bind_group(3, self.solid_pixel_texture.get_bind_group(), &[]);
-
-            for (index, instruction) in draw_data.entities[0..self.draw_count].iter().enumerate() {
-                if instruction.texture.get_id() != current_texture_id {
-                    current_texture_id = instruction.texture.get_id();
-                    pass.set_bind_group(3, instruction.texture.get_bind_group(), &[]);
+        match draw_data.pass_mode {
+            EntityPassMode::Opaque => {
+                // The opaque pass is unchanged: additive statuses keep their
+                // regular lit body and the glow is added in the transparent
+                // pass, so every instance uses the opaque pipeline here.
+                pass.set_pipeline(&self.opaque_pipeline);
+                self.draw_instances(pass, 0..self.draw_count);
+            }
+            EntityPassMode::Transparent => {
+                // `prepare` put the non-additive instances first and the
+                // additive ones last, so two instanced draws cover both blend
+                // modes in one pass.
+                if self.additive_start > 0 {
+                    pass.set_pipeline(&self.transparent_pipeline);
+                    self.draw_instances(pass, 0..self.additive_start);
                 }
-                let index = index as u32;
-                pass.draw(0..6, index..index + 1);
+                if self.additive_start < self.draw_count {
+                    pass.set_pipeline(&self.additive_pipeline);
+                    self.draw_instances(pass, self.additive_start..self.draw_count);
+                }
             }
         }
     }
@@ -235,19 +266,26 @@ impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAtt
 impl Prepare for ForwardEntityDrawer {
     fn prepare(&mut self, device: &Device, instructions: &RenderInstruction) {
         self.draw_count = instructions.entities.len();
+        self.instance_data.clear();
+        self.ordered_textures.clear();
+        self.order.clear();
 
         if self.draw_count == 0 {
+            self.additive_start = 0;
             return;
         }
 
-        self.instance_data.clear();
+        // Stable partition: non-additive instances first, additive last. The
+        // split index is where the transparent pass switches pipelines.
+        self.additive_start = partition_additive_last(&mut self.order, instructions.entities);
 
         if self.bindless_support {
             self.bump.reset();
             self.lookup.clear();
             let mut texture_views = Vec::with_capacity_in(self.draw_count, &self.bump);
 
-            for instruction in instructions.entities.iter() {
+            for position in 0..self.order.len() {
+                let instruction = &instructions.entities[self.order[position] as usize];
                 let mut texture_index = texture_views.len() as i32;
                 let id = instruction.texture.get_id();
                 let potential_index = self.lookup.get(&id);
@@ -271,7 +309,10 @@ impl Prepare for ForwardEntityDrawer {
                     curvature: instruction.curvature,
                     mirror: instruction.mirror as u32,
                     texture_index,
-                    padding: Default::default(),
+                    // The unused padding carries the additive flag to the GPU;
+                    // the flag is currently consumed on the CPU by the two
+                    // draw ranges, but it stays available for a future shader.
+                    padding: instruction.additive as u32,
                 });
             }
 
@@ -282,7 +323,11 @@ impl Prepare for ForwardEntityDrawer {
             self.instance_data_buffer.reserve(device, self.instance_data.len());
             self.bind_group = Self::create_bind_group_bindless(device, &self.bind_group_layout, &self.instance_data_buffer, &texture_views)
         } else {
-            for instruction in instructions.entities.iter() {
+            self.ordered_textures.reserve(self.draw_count);
+
+            for position in 0..self.order.len() {
+                let instruction = &instructions.entities[self.order[position] as usize];
+
                 self.instance_data.push(InstanceData {
                     world: instruction.world.into(),
                     frame_part_transform: instruction.frame_part_transform.into(),
@@ -295,7 +340,7 @@ impl Prepare for ForwardEntityDrawer {
                     curvature: instruction.curvature,
                     mirror: instruction.mirror as u32,
                     texture_index: 0,
-                    padding: Default::default(),
+                    padding: instruction.additive as u32,
                 });
             }
 
@@ -311,6 +356,36 @@ impl Prepare for ForwardEntityDrawer {
 }
 
 impl ForwardEntityDrawer {
+    /// Draws one contiguous instance range from the reordered instance buffer.
+    ///
+    /// The bindless path needs a single instanced draw; the fallback path has
+    /// one texture per instance and therefore switches the texture bind group
+    /// while iterating. The instance index keeps matching the position in
+    /// `instance_data`, which `prepare` filled in the same order.
+    fn draw_instances(&self, pass: &mut RenderPass<'_>, range: std::ops::Range<usize>) {
+        if range.is_empty() {
+            return;
+        }
+
+        if self.bindless_support {
+            pass.draw(0..6, range.start as u32..range.end as u32);
+            return;
+        }
+
+        let mut current_texture_id = self.solid_pixel_texture.get_id();
+        pass.set_bind_group(3, self.solid_pixel_texture.get_bind_group(), &[]);
+
+        for index in range {
+            let texture = &self.ordered_textures[index];
+            if texture.get_id() != current_texture_id {
+                current_texture_id = texture.get_id();
+                pass.set_bind_group(3, texture.get_bind_group(), &[]);
+            }
+            let instance = index as u32;
+            pass.draw(0..6, instance..instance + 1);
+        }
+    }
+
     fn create_bind_group_bindless(
         device: &Device,
         bind_group_layout: &BindGroupLayout,
@@ -352,32 +427,35 @@ impl ForwardEntityDrawer {
         pipeline_layout: &PipelineLayout,
         color_attachment_formats: &[TextureFormat; 3],
         pass_mode: EntityPassMode,
+        additive: bool,
     ) -> RenderPipeline {
-        let targets = match pass_mode {
-            EntityPassMode::Opaque => [
+        // Additive blend state for RO's blend mode 5 (the official
+        // `EF_REDBODY`/`EF_AURABLADE2` body/weapon glow). The transparent pass
+        // draws additive instances into the forward colour target so the glow
+        // is really added to the lit scene instead of going through the
+        // order-independent WBOIT accumulation. `SrcAlpha / One` scales the
+        // added colour by the sprite alpha, which keeps the soft cut-out edges
+        // from gaining a hard rim; the destination alpha is left untouched.
+        let empty_target = |format| ColorTargetState {
+            format,
+            blend: Some(BlendState {
+                color: BlendComponent::default(),
+                alpha: BlendComponent::default(),
+            }),
+            write_mask: ColorWrites::empty(),
+        };
+
+        let targets = match (pass_mode, additive) {
+            (EntityPassMode::Opaque, _) => [
                 Some(ColorTargetState {
                     format: color_attachment_formats[0],
                     blend: Some(BlendState::PREMULTIPLIED_ALPHA_BLENDING),
                     write_mask: ColorWrites::ALL,
                 }),
-                Some(ColorTargetState {
-                    format: color_attachment_formats[1],
-                    blend: Some(BlendState {
-                        color: BlendComponent::default(),
-                        alpha: BlendComponent::default(),
-                    }),
-                    write_mask: ColorWrites::empty(),
-                }),
-                Some(ColorTargetState {
-                    format: color_attachment_formats[2],
-                    blend: Some(BlendState {
-                        color: BlendComponent::default(),
-                        alpha: BlendComponent::default(),
-                    }),
-                    write_mask: ColorWrites::empty(),
-                }),
+                Some(empty_target(color_attachment_formats[1])),
+                Some(empty_target(color_attachment_formats[2])),
             ],
-            EntityPassMode::Transparent => [
+            (EntityPassMode::Transparent, false) => [
                 Some(ColorTargetState {
                     format: color_attachment_formats[0],
                     blend: Some(BlendState::PREMULTIPLIED_ALPHA_BLENDING),
@@ -412,15 +490,54 @@ impl ForwardEntityDrawer {
                     write_mask: ColorWrites::RED,
                 }),
             ],
+            (EntityPassMode::Transparent, true) => [
+                Some(ColorTargetState {
+                    format: color_attachment_formats[0],
+                    blend: Some(BlendState {
+                        color: BlendComponent {
+                            src_factor: BlendFactor::SrcAlpha,
+                            dst_factor: BlendFactor::One,
+                            operation: BlendOperation::Add,
+                        },
+                        alpha: BlendComponent {
+                            src_factor: BlendFactor::Zero,
+                            dst_factor: BlendFactor::One,
+                            operation: BlendOperation::Add,
+                        },
+                    }),
+                    write_mask: ColorWrites::ALL,
+                }),
+                Some(empty_target(color_attachment_formats[1])),
+                Some(empty_target(color_attachment_formats[2])),
+            ],
+        };
+
+        // The additive pipeline reuses `opaque_main` (`PASS_MODE == 0`): it
+        // keeps the opaque pixels of the sprite, which is the body/weapon
+        // surface that the official blend mode 5 turns into a glow. The
+        // `GreaterEqual` depth test lets it re-cover the pixels the opaque pass
+        // already wrote (same geometry, same depth) while still being occluded
+        // by geometry in front; depth writes stay disabled.
+        let pass_mode_constant = match additive {
+            true => 0,
+            false => pass_mode as u32,
         };
 
         let constants = &[
             // PASS_MODE
-            ("0", f64::from(pass_mode as u32)),
+            ("0", f64::from(pass_mode_constant)),
         ];
 
+        let entry_point = match (pass_mode, additive) {
+            (EntityPassMode::Opaque, _) | (EntityPassMode::Transparent, true) => "opaque_main",
+            (EntityPassMode::Transparent, false) => "transparent_main",
+        };
+
         device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some(&format!("{DRAWER_NAME} {pass_mode:?}")),
+            label: Some(&format!(
+                "{DRAWER_NAME} {pass_mode:?}{}",
+                if additive { " additive" } else { "" }
+            )),
             layout: Some(pipeline_layout),
             vertex: VertexState {
                 module: shader_module,
@@ -433,11 +550,7 @@ impl ForwardEntityDrawer {
             },
             fragment: Some(FragmentState {
                 module: shader_module,
-                entry_point: if pass_mode == EntityPassMode::Opaque {
-                    Some("opaque_main")
-                } else {
-                    Some("transparent_main")
-                },
+                entry_point: Some(entry_point),
                 compilation_options: PipelineCompilationOptions {
                     constants,
                     zero_initialize_workgroup_memory: false,
@@ -456,12 +569,83 @@ impl ForwardEntityDrawer {
             depth_stencil: Some(DepthStencilState {
                 format: render_pass_context.depth_attachment_output_format()[0],
                 depth_write_enabled: Some(pass_mode == EntityPassMode::Opaque),
-                depth_compare: Some(CompareFunction::Greater),
+                depth_compare: Some(match additive {
+                    true => CompareFunction::GreaterEqual,
+                    false => CompareFunction::Greater,
+                }),
                 stencil: StencilState::default(),
                 bias: DepthBiasState::default(),
             }),
             cache: None,
             multiview_mask: None,
         })
+    }
+}
+
+/// Stable partition of instance indices: non-additive first, additive last.
+/// Returns the split index, i.e. the first additive instance. `order` is
+/// rebuilt in place so the per-frame path does not allocate.
+fn partition_additive_last<T>(order: &mut Vec<u32>, items: &[T]) -> usize
+where
+    T: HasAdditive,
+{
+    order.clear();
+    order.extend((0..items.len() as u32).filter(|&index| !items[index as usize].additive()));
+    let split = order.len();
+    order.extend((0..items.len() as u32).filter(|&index| items[index as usize].additive()));
+    split
+}
+
+/// Minimal view of an entity instruction needed by the partition helper, so
+/// the ordering rule is unit-testable without constructing GPU resources.
+trait HasAdditive {
+    fn additive(&self) -> bool;
+}
+
+impl HasAdditive for EntityInstruction {
+    fn additive(&self) -> bool {
+        self.additive
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::partition_additive_last;
+
+    impl super::HasAdditive for bool {
+        fn additive(&self) -> bool {
+            *self
+        }
+    }
+
+    #[test]
+    fn additive_instances_are_partitioned_to_the_end() {
+        // A frame mixes regular body parts with the glowing ones; the relative
+        // order inside each group must be preserved (stable partition).
+        let flags = [false, true, false, false, true, false];
+        let mut order = Vec::new();
+        let split = partition_additive_last(&mut order, &flags);
+
+        assert_eq!(split, 4, "four non-additive instances come first");
+        assert_eq!(order, vec![0, 2, 3, 5, 1, 4]);
+        assert!(order[..split].iter().all(|&index| !flags[index as usize]));
+        assert!(order[split..].iter().all(|&index| flags[index as usize]));
+    }
+
+    #[test]
+    fn all_and_no_additive_instances_are_handled() {
+        let mut order = Vec::new();
+
+        let none = [false, false, false];
+        assert_eq!(partition_additive_last(&mut order, &none), 3);
+        assert_eq!(order, vec![0, 1, 2]);
+
+        let all = [true, true];
+        assert_eq!(partition_additive_last(&mut order, &all), 0);
+        assert_eq!(order, vec![0, 1]);
+
+        let empty: [bool; 0] = [];
+        assert_eq!(partition_additive_last(&mut order, &empty), 0);
+        assert!(order.is_empty());
     }
 }

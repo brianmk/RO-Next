@@ -87,7 +87,10 @@ const BENCHMARK_SKILLS: [u16; 47] = [
 
 /// Persistent status effects injected by the `skills` scenario so the status
 /// auras/fades are rendered next to the skill effects.
-const BENCHMARK_AURA_STATUSES: [u16; 17] = [2, 25, 31, 68, 86, 87, 107, 110, 113, 123, 161, 165, 188, 232, 235, 437, 473];
+/// Includes 103 (Aura Blade, additive weapon layer), 107 (Berserk, additive
+/// body) and 113 (Magical Power, weapon blink) so the status sprite renderer
+/// is exercised by the headless sweep.
+const BENCHMARK_AURA_STATUSES: [u16; 18] = [2, 25, 31, 68, 86, 87, 103, 107, 110, 113, 123, 161, 165, 188, 232, 235, 437, 473];
 
 /// Status effects injected for the `ui_updates` stage so the buff bar has a
 /// known, non-empty work set.
@@ -810,6 +813,12 @@ fn apply_statuses(client: &mut Client, client_tick: u64, statuses: &[u16]) {
             icon,
         );
     }
+
+    // The benchmark injects the statuses directly into the status state (it
+    // bypasses the network handler that normally refreshes the sprite), so
+    // re-resolve the data-driven status visuals here to render the tints,
+    // blink and additive blends during the sweep.
+    client.refresh_entity_status_visual(ragnarok_packets::EntityId(own_entity_id));
 }
 
 fn apply_benchmark_buffs(client: &mut Client, client_tick: u64) {
