@@ -7,7 +7,8 @@
 //! resolves a monster sprite with a fallback chain while the library is loaded:
 //!
 //! 1. exact `몬스터\<identity>` (normal korangar behavior),
-//! 2. the generated, verified alias table (`monster_sprite_alias.rs`),
+//! 2. the generated, verified alias table (`aliases.ron` via
+//!    `library/aliases.rs`),
 //! 3. the same identity in the `npc` sprite folder,
 //! 4. a generic monster sprite that is verified to exist.
 //!
@@ -18,7 +19,7 @@
 use hashbrown::HashMap;
 use ragnarok_packets::JobId;
 
-use super::{JobIdentity, monster_sprite_alias};
+use super::{JobIdentity, aliases};
 use crate::loaders::GameFileLoader;
 
 /// Job id range of monsters, mirroring `EntityType::from_job_id`.
@@ -34,11 +35,12 @@ pub struct MonsterSprites {
 
 impl MonsterSprites {
     pub fn load(game_file_loader: &GameFileLoader, job_identity_table: &HashMap<JobId, JobIdentity>) -> Self {
-        let generic = monster_sprite_alias::GENERIC_MONSTER_SPRITES
+        let generic_candidates = aliases::generic_monster_sprites();
+        let generic = generic_candidates
             .iter()
             .find(|path| sprite_exists(game_file_loader, path))
             .copied()
-            .unwrap_or(monster_sprite_alias::GENERIC_MONSTER_SPRITES[0])
+            .unwrap_or_else(|| generic_candidates.first().copied().unwrap_or("몬스터\\poring"))
             .to_string();
 
         let mut table = HashMap::with_capacity(job_identity_table.len());
@@ -70,7 +72,7 @@ fn resolve(game_file_loader: &GameFileLoader, job_id: JobId, identity: &str, gen
         return exact_path;
     }
 
-    if let Some(alias) = monster_sprite_alias::alias(job_id)
+    if let Some(alias) = aliases::monster_sprite_alias(job_id)
         && sprite_exists(game_file_loader, alias)
     {
         return alias.to_string();
@@ -114,7 +116,7 @@ mod tests {
     use ragnarok_packets::JobId;
 
     use super::super::Library;
-    use super::{monster_sprite_alias, sprite_exists};
+    use super::{aliases, sprite_exists};
     use crate::loaders::GameFileLoader;
 
     /// All mob ids from the rAthena mob db (id, aegis name per line).
@@ -396,14 +398,14 @@ mod tests {
     fn alias_table_entries_exist_in_archives() {
         let game_file_loader = load_game_file_loader();
 
-        for (id, path) in monster_sprite_alias::MONSTER_SPRITE_ALIASES {
+        for (id, path) in aliases::monster_sprite_aliases() {
             assert!(
                 sprite_exists(&game_file_loader, path),
                 "alias {id} points to a missing sprite: {path}"
             );
         }
 
-        for path in monster_sprite_alias::GENERIC_MONSTER_SPRITES {
+        for path in aliases::generic_monster_sprites() {
             assert!(sprite_exists(&game_file_loader, path), "generic sprite does not exist: {path}");
         }
     }

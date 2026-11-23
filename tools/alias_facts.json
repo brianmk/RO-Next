@@ -1,0 +1,4310 @@
+{
+  "jobs": {
+    "skills_tree_fallbacks": [
+      {
+        "fallback_job_id": 7,
+        "fallback_job_name": "JOB_KNIGHT",
+        "job_id": 13,
+        "job_name": "JOB_KNIGHT2",
+        "target_tree_skills": 25
+      },
+      {
+        "fallback_job_id": 14,
+        "fallback_job_name": "JOB_CRUSADER",
+        "job_id": 21,
+        "job_name": "JOB_CRUSADER2",
+        "target_tree_skills": 32
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 22,
+        "job_name": "JOB_WEDDING",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 26,
+        "job_name": "JOB_XMAS",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 27,
+        "job_name": "JOB_SUMMER",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 28,
+        "job_name": "JOB_HANBOK",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 29,
+        "job_name": "JOB_OKTOBERFEST",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 30,
+        "job_name": "JOB_SUMMER2",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 4008,
+        "fallback_job_name": "JOB_LORD_KNIGHT",
+        "job_id": 4014,
+        "job_name": "JOB_LORD_KNIGHT2",
+        "target_tree_skills": 33
+      },
+      {
+        "fallback_job_id": 4015,
+        "fallback_job_name": "JOB_PALADIN",
+        "job_id": 4022,
+        "job_name": "JOB_PALADIN2",
+        "target_tree_skills": 36
+      },
+      {
+        "fallback_job_id": 4030,
+        "fallback_job_name": "JOB_BABY_KNIGHT",
+        "job_id": 4036,
+        "job_name": "JOB_BABY_KNIGHT2",
+        "target_tree_skills": 25
+      },
+      {
+        "fallback_job_id": 4037,
+        "fallback_job_name": "JOB_BABY_CRUSADER",
+        "job_id": 4044,
+        "job_name": "JOB_BABY_CRUSADER2",
+        "target_tree_skills": 32
+      },
+      {
+        "fallback_job_id": 4047,
+        "fallback_job_name": "JOB_STAR_GLADIATOR",
+        "job_id": 4048,
+        "job_name": "JOB_STAR_GLADIATOR2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 4050,
+        "job_name": "JOB_GANGSI",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 4051,
+        "job_name": "JOB_DEATH_KNIGHT",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 0,
+        "fallback_job_name": "JOB_NOVICE",
+        "job_id": 4052,
+        "job_name": "JOB_DARK_COLLECTOR",
+        "target_tree_skills": 3
+      },
+      {
+        "fallback_job_id": 4054,
+        "fallback_job_name": "JOB_RUNE_KNIGHT",
+        "job_id": 4080,
+        "job_name": "JOB_RUNE_KNIGHT2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4054,
+        "fallback_job_name": "JOB_RUNE_KNIGHT",
+        "job_id": 4081,
+        "job_name": "JOB_RUNE_KNIGHT_T2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4066,
+        "fallback_job_name": "JOB_ROYAL_GUARD",
+        "job_id": 4082,
+        "job_name": "JOB_ROYAL_GUARD2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4066,
+        "fallback_job_name": "JOB_ROYAL_GUARD",
+        "job_id": 4083,
+        "job_name": "JOB_ROYAL_GUARD_T2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4056,
+        "fallback_job_name": "JOB_RANGER",
+        "job_id": 4084,
+        "job_name": "JOB_RANGER2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4056,
+        "fallback_job_name": "JOB_RANGER",
+        "job_id": 4085,
+        "job_name": "JOB_RANGER_T2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4058,
+        "fallback_job_name": "JOB_MECHANIC",
+        "job_id": 4086,
+        "job_name": "JOB_MECHANIC2",
+        "target_tree_skills": 69
+      },
+      {
+        "fallback_job_id": 4058,
+        "fallback_job_name": "JOB_MECHANIC",
+        "job_id": 4087,
+        "job_name": "JOB_MECHANIC_T2",
+        "target_tree_skills": 69
+      },
+      {
+        "fallback_job_id": 4096,
+        "fallback_job_name": "JOB_BABY_RUNE_KNIGHT",
+        "job_id": 4109,
+        "job_name": "JOB_BABY_RUNE_KNIGHT2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4097,
+        "fallback_job_name": "JOB_BABY_WARLOCK",
+        "job_id": 4110,
+        "job_name": "JOB_BABY_ROYAL_GUARD2",
+        "target_tree_skills": 56
+      },
+      {
+        "fallback_job_id": 4098,
+        "fallback_job_name": "JOB_BABY_RANGER",
+        "job_id": 4111,
+        "job_name": "JOB_BABY_RANGER2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4099,
+        "fallback_job_name": "JOB_BABY_ARCH_BISHOP",
+        "job_id": 4112,
+        "job_name": "JOB_BABY_MECHANIC2",
+        "target_tree_skills": 59
+      },
+      {
+        "fallback_job_id": 4226,
+        "fallback_job_name": "JOB_BABY_STAR_GLADIATOR",
+        "job_id": 4238,
+        "job_name": "JOB_BABY_STAR_GLADIATOR2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4239,
+        "fallback_job_name": "JOB_STAR_EMPEROR",
+        "job_id": 4243,
+        "job_name": "JOB_STAR_EMPEROR2",
+        "target_tree_skills": 58
+      },
+      {
+        "fallback_job_id": 4226,
+        "fallback_job_name": "JOB_BABY_STAR_GLADIATOR",
+        "job_id": 4244,
+        "job_name": "JOB_BABY_STAR_EMPEROR2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4054,
+        "fallback_job_name": "JOB_RUNE_KNIGHT",
+        "job_id": 4252,
+        "job_name": "JOB_DRAGON_KNIGHT",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4011,
+        "fallback_job_name": "JOB_WHITESMITH",
+        "job_id": 4253,
+        "job_name": "JOB_MEISTER",
+        "target_tree_skills": 43
+      },
+      {
+        "fallback_job_id": 4059,
+        "fallback_job_name": "JOB_GUILLOTINE_CROSS",
+        "job_id": 4254,
+        "job_name": "JOB_SHADOW_CROSS",
+        "target_tree_skills": 44
+      },
+      {
+        "fallback_job_id": 4055,
+        "fallback_job_name": "JOB_WARLOCK",
+        "job_id": 4255,
+        "job_name": "JOB_ARCH_MAGE",
+        "target_tree_skills": 56
+      },
+      {
+        "fallback_job_id": 4057,
+        "fallback_job_name": "JOB_ARCH_BISHOP",
+        "job_id": 4256,
+        "job_name": "JOB_CARDINAL",
+        "target_tree_skills": 59
+      },
+      {
+        "fallback_job_id": 4056,
+        "fallback_job_name": "JOB_RANGER",
+        "job_id": 4257,
+        "job_name": "JOB_WINDHAWK",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4066,
+        "fallback_job_name": "JOB_ROYAL_GUARD",
+        "job_id": 4258,
+        "job_name": "JOB_IMPERIAL_GUARD",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4071,
+        "fallback_job_name": "JOB_GENETIC",
+        "job_id": 4259,
+        "job_name": "JOB_BIOLO",
+        "target_tree_skills": 55
+      },
+      {
+        "fallback_job_id": 4072,
+        "fallback_job_name": "JOB_SHADOW_CHASER",
+        "job_id": 4260,
+        "job_name": "JOB_ABYSS_CHASER",
+        "target_tree_skills": 57
+      },
+      {
+        "fallback_job_id": 4067,
+        "fallback_job_name": "JOB_SORCERER",
+        "job_id": 4261,
+        "job_name": "JOB_ELEMENTAL_MASTER",
+        "target_tree_skills": 70
+      },
+      {
+        "fallback_job_id": 4070,
+        "fallback_job_name": "JOB_SURA",
+        "job_id": 4262,
+        "job_name": "JOB_INQUISITOR",
+        "target_tree_skills": 59
+      },
+      {
+        "fallback_job_id": 4068,
+        "fallback_job_name": "JOB_MINSTREL",
+        "job_id": 4263,
+        "job_name": "JOB_TROUBADOUR",
+        "target_tree_skills": 55
+      },
+      {
+        "fallback_job_id": 4069,
+        "fallback_job_name": "JOB_WANDERER",
+        "job_id": 4264,
+        "job_name": "JOB_TROUVERE",
+        "target_tree_skills": 55
+      },
+      {
+        "fallback_job_id": 4056,
+        "fallback_job_name": "JOB_RANGER",
+        "job_id": 4278,
+        "job_name": "JOB_WINDHAWK2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4011,
+        "fallback_job_name": "JOB_WHITESMITH",
+        "job_id": 4279,
+        "job_name": "JOB_MEISTER2",
+        "target_tree_skills": 43
+      },
+      {
+        "fallback_job_id": 4054,
+        "fallback_job_name": "JOB_RUNE_KNIGHT",
+        "job_id": 4280,
+        "job_name": "JOB_DRAGON_KNIGHT2",
+        "target_tree_skills": 38
+      },
+      {
+        "fallback_job_id": 4066,
+        "fallback_job_name": "JOB_ROYAL_GUARD",
+        "job_id": 4281,
+        "job_name": "JOB_IMPERIAL_GUARD2",
+        "target_tree_skills": 53
+      },
+      {
+        "fallback_job_id": 4239,
+        "fallback_job_name": "JOB_STAR_EMPEROR",
+        "job_id": 4302,
+        "job_name": "JOB_SKY_EMPEROR",
+        "target_tree_skills": 58
+      },
+      {
+        "fallback_job_id": 4240,
+        "fallback_job_name": "JOB_SOUL_REAPER",
+        "job_id": 4303,
+        "job_name": "JOB_SOUL_ASCETIC",
+        "target_tree_skills": 64
+      },
+      {
+        "fallback_job_id": 25,
+        "fallback_job_name": "JOB_NINJA",
+        "job_id": 4304,
+        "job_name": "JOB_SHINKIRO",
+        "target_tree_skills": 26
+      },
+      {
+        "fallback_job_id": 25,
+        "fallback_job_name": "JOB_NINJA",
+        "job_id": 4305,
+        "job_name": "JOB_SHIRANUI",
+        "target_tree_skills": 26
+      },
+      {
+        "fallback_job_id": 24,
+        "fallback_job_name": "JOB_GUNSLINGER",
+        "job_id": 4306,
+        "job_name": "JOB_NIGHT_WATCH",
+        "target_tree_skills": 25
+      },
+      {
+        "fallback_job_id": 23,
+        "fallback_job_name": "JOB_SUPER_NOVICE",
+        "job_id": 4307,
+        "job_name": "JOB_HYPER_NOVICE",
+        "target_tree_skills": 52
+      },
+      {
+        "fallback_job_id": 4049,
+        "fallback_job_name": "JOB_SOUL_LINKER",
+        "job_id": 4308,
+        "job_name": "JOB_SPIRIT_HANDLER",
+        "target_tree_skills": 47
+      },
+      {
+        "fallback_job_id": 4239,
+        "fallback_job_name": "JOB_STAR_EMPEROR",
+        "job_id": 4316,
+        "job_name": "JOB_SKY_EMPEROR2",
+        "target_tree_skills": 58
+      }
+    ],
+    "summary": {
+      "fallbacks": 56
+    }
+  },
+  "monsters": {
+    "generic_sprites": [
+      "\ubaac\uc2a4\ud130\\poring",
+      "\ubaac\uc2a4\ud130\\fabre",
+      "\ubaac\uc2a4\ud130\\lunatic",
+      "\ubaac\uc2a4\ud130\\skeleton",
+      "\ubaac\uc2a4\ud130\\zombie",
+      "\ubaac\uc2a4\ud130\\pecopeco",
+      "\ubaac\uc2a4\ud130\\chocho"
+    ],
+    "sprite_aliases": [
+      {
+        "aegis_name": "ARCHER_SKELETON",
+        "identities": [
+          "archer_skeleton"
+        ],
+        "job_id": 1016,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\skel_archer"
+      },
+      {
+        "aegis_name": "SOLDIER_SKELETON",
+        "identities": [
+          "soldier_skeleton"
+        ],
+        "job_id": 1028,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\skel_soldier"
+      },
+      {
+        "aegis_name": "VERIT",
+        "identities": [
+          "verit"
+        ],
+        "job_id": 1032,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mutant_verit"
+      },
+      {
+        "aegis_name": "PECOPECO_EGG",
+        "identities": [
+          "pecopeco_egg"
+        ],
+        "job_id": 1047,
+        "method": "variant-npc",
+        "sprite_path": "npc\\pecopeco_egg"
+      },
+      {
+        "aegis_name": "THIEF_BUG_",
+        "identities": [
+          "thief_bug_"
+        ],
+        "job_id": 1053,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\thief_bug"
+      },
+      {
+        "aegis_name": "THIEF_BUG__",
+        "identities": [
+          "thief_bug__"
+        ],
+        "job_id": 1054,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\thief_bug"
+      },
+      {
+        "aegis_name": "THIEF_MUSHROOM",
+        "identities": [
+          "thief_mushroom"
+        ],
+        "job_id": 1182,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\red_mushroom"
+      },
+      {
+        "aegis_name": "CHONCHON_",
+        "identities": [
+          "chocho_"
+        ],
+        "job_id": 1183,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\chocho"
+      },
+      {
+        "aegis_name": "FABRE_",
+        "identities": [
+          "fabre_"
+        ],
+        "job_id": 1184,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\fabre"
+      },
+      {
+        "aegis_name": "WHISPER_",
+        "identities": [
+          "whisper_"
+        ],
+        "job_id": 1185,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\whisper"
+      },
+      {
+        "aegis_name": "M_DESERT_WOLF",
+        "identities": [
+          "desert_wolf_2"
+        ],
+        "job_id": 1220,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\desert_wolf"
+      },
+      {
+        "aegis_name": "M_SAVAGE",
+        "identities": [
+          "savage_2"
+        ],
+        "job_id": 1221,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\savage"
+      },
+      {
+        "aegis_name": "META_FABRE",
+        "identities": [
+          "fabre_2"
+        ],
+        "job_id": 1229,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\fabre"
+      },
+      {
+        "aegis_name": "META_PUPA",
+        "identities": [
+          "pupa_2"
+        ],
+        "job_id": 1230,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\pupa"
+      },
+      {
+        "aegis_name": "META_CREAMY",
+        "identities": [
+          "creamy_2"
+        ],
+        "job_id": 1231,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\creamy"
+      },
+      {
+        "aegis_name": "META_PECOPECO_EGG",
+        "identities": [
+          "peco_egg_2"
+        ],
+        "job_id": 1232,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\peco_egg"
+      },
+      {
+        "aegis_name": "PROVOKE_YOYO",
+        "identities": [
+          "yoyo_2"
+        ],
+        "job_id": 1234,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\yoyo"
+      },
+      {
+        "aegis_name": "SMOKING_ORC",
+        "identities": [
+          "ork_warrior_2"
+        ],
+        "job_id": 1235,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ork_warrior"
+      },
+      {
+        "aegis_name": "META_ANT_EGG",
+        "identities": [
+          "ant_egg_2"
+        ],
+        "job_id": 1236,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ant_egg"
+      },
+      {
+        "aegis_name": "META_ANDRE",
+        "identities": [
+          "andre_2"
+        ],
+        "job_id": 1237,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\andre"
+      },
+      {
+        "aegis_name": "META_PIERE",
+        "identities": [
+          "piere_2"
+        ],
+        "job_id": 1238,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\piere"
+      },
+      {
+        "aegis_name": "META_DENIRO",
+        "identities": [
+          "deniro_2"
+        ],
+        "job_id": 1239,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\deniro"
+      },
+      {
+        "aegis_name": "META_PICKY",
+        "identities": [
+          "picky_2"
+        ],
+        "job_id": 1240,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\picky"
+      },
+      {
+        "aegis_name": "META_PICKY_",
+        "identities": [
+          "picky__2"
+        ],
+        "job_id": 1241,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\picky_"
+      },
+      {
+        "aegis_name": "ARCHER_GUARDIAN",
+        "identities": [
+          "archer_guardian"
+        ],
+        "job_id": 1285,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "KNIGHT_GUARDIAN",
+        "identities": [
+          "knight_guardian"
+        ],
+        "job_id": 1286,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "SOLDIER_GUARDIAN",
+        "identities": [
+          "soldier_guardian"
+        ],
+        "job_id": 1287,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "EMPELIUM",
+        "identities": [
+          "empelium"
+        ],
+        "job_id": 1288,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\s_empel_1"
+      },
+      {
+        "aegis_name": "TREASURE_BOX1",
+        "identities": [
+          "treasure_box1"
+        ],
+        "job_id": 1324,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX2",
+        "identities": [
+          "treasure_box2"
+        ],
+        "job_id": 1325,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX3",
+        "identities": [
+          "treasure_box3"
+        ],
+        "job_id": 1326,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX4",
+        "identities": [
+          "treasure_box4"
+        ],
+        "job_id": 1327,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX5",
+        "identities": [
+          "treasure_box5"
+        ],
+        "job_id": 1328,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX6",
+        "identities": [
+          "treasure_box6"
+        ],
+        "job_id": 1329,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX7",
+        "identities": [
+          "treasure_box7"
+        ],
+        "job_id": 1330,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX8",
+        "identities": [
+          "treasure_box8"
+        ],
+        "job_id": 1331,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX9",
+        "identities": [
+          "treasure_box9"
+        ],
+        "job_id": 1332,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX10",
+        "identities": [
+          "treasure_box10"
+        ],
+        "job_id": 1333,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX11",
+        "identities": [
+          "treasure_box11"
+        ],
+        "job_id": 1334,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX12",
+        "identities": [
+          "treasure_box12"
+        ],
+        "job_id": 1335,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX13",
+        "identities": [
+          "treasure_box13"
+        ],
+        "job_id": 1336,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX14",
+        "identities": [
+          "treasure_box14"
+        ],
+        "job_id": 1337,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX15",
+        "identities": [
+          "treasure_box15"
+        ],
+        "job_id": 1338,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX16",
+        "identities": [
+          "treasure_box16"
+        ],
+        "job_id": 1339,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX17",
+        "identities": [
+          "treasure_box17"
+        ],
+        "job_id": 1340,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX18",
+        "identities": [
+          "treasure_box18"
+        ],
+        "job_id": 1341,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX19",
+        "identities": [
+          "treasure_box19"
+        ],
+        "job_id": 1342,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX20",
+        "identities": [
+          "treasure_box20"
+        ],
+        "job_id": 1343,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX21",
+        "identities": [
+          "treasure_box21"
+        ],
+        "job_id": 1344,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX22",
+        "identities": [
+          "treasure_box22"
+        ],
+        "job_id": 1345,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX23",
+        "identities": [
+          "treasure_box23"
+        ],
+        "job_id": 1346,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX24",
+        "identities": [
+          "treasure_box24"
+        ],
+        "job_id": 1347,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX25",
+        "identities": [
+          "treasure_box25"
+        ],
+        "job_id": 1348,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX26",
+        "identities": [
+          "treasure_box26"
+        ],
+        "job_id": 1349,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX27",
+        "identities": [
+          "treasure_box27"
+        ],
+        "job_id": 1350,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX28",
+        "identities": [
+          "treasure_box28"
+        ],
+        "job_id": 1351,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX29",
+        "identities": [
+          "treasure_box29"
+        ],
+        "job_id": 1352,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX30",
+        "identities": [
+          "treasure_box30"
+        ],
+        "job_id": 1353,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX31",
+        "identities": [
+          "treasure_box31"
+        ],
+        "job_id": 1354,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX32",
+        "identities": [
+          "treasure_box32"
+        ],
+        "job_id": 1355,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX33",
+        "identities": [
+          "treasure_box33"
+        ],
+        "job_id": 1356,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX34",
+        "identities": [
+          "treasure_box34"
+        ],
+        "job_id": 1357,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX35",
+        "identities": [
+          "treasure_box35"
+        ],
+        "job_id": 1358,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX36",
+        "identities": [
+          "treasure_box36"
+        ],
+        "job_id": 1359,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX37",
+        "identities": [
+          "treasure_box37"
+        ],
+        "job_id": 1360,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX38",
+        "identities": [
+          "treasure_box38"
+        ],
+        "job_id": 1361,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX39",
+        "identities": [
+          "treasure_box39"
+        ],
+        "job_id": 1362,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX40",
+        "identities": [
+          "treasure_box40"
+        ],
+        "job_id": 1363,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "G_ARCHER_SKELETON",
+        "identities": [
+          "archer_skeleton"
+        ],
+        "job_id": 1420,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\skel_archer"
+      },
+      {
+        "aegis_name": "PORING_V",
+        "identities": [
+          "poring_v"
+        ],
+        "job_id": 1502,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poring"
+      },
+      {
+        "aegis_name": "G_SOLDIER_SKELETON",
+        "identities": [
+          "soldier_skeleton"
+        ],
+        "job_id": 1562,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\skel_soldier"
+      },
+      {
+        "aegis_name": "A_LUNATIC",
+        "identities": [
+          "a_lunatic"
+        ],
+        "job_id": 1591,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\lunatic"
+      },
+      {
+        "aegis_name": "A_MOBSTER",
+        "identities": [
+          "a_mobster"
+        ],
+        "job_id": 1592,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mobster"
+      },
+      {
+        "aegis_name": "A_ANCIENT_MUMMY",
+        "identities": [
+          "a_ancient_mummy"
+        ],
+        "job_id": 1593,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ancient_mummy"
+      },
+      {
+        "aegis_name": "G_THIEF_BUG__",
+        "identities": [
+          "thief_bug__"
+        ],
+        "job_id": 1608,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\thief_bug"
+      },
+      {
+        "aegis_name": "A_MUNAK",
+        "identities": [
+          "a_munak"
+        ],
+        "job_id": 1610,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\munak"
+      },
+      {
+        "aegis_name": "A_BON_GUN",
+        "identities": [
+          "a_bon_gun"
+        ],
+        "job_id": 1611,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bon_gun"
+      },
+      {
+        "aegis_name": "A_HYEGUN",
+        "identities": [
+          "a_hyegun"
+        ],
+        "job_id": 1612,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\hyegun"
+      },
+      {
+        "aegis_name": "CHUNG_E_",
+        "identities": [
+          "chung_e_"
+        ],
+        "job_id": 1631,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\chung_e"
+      },
+      {
+        "aegis_name": "B_SEYREN",
+        "identities": [
+          "b_seyren"
+        ],
+        "job_id": 1646,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\seyren"
+      },
+      {
+        "aegis_name": "B_EREMES",
+        "identities": [
+          "b_eremes"
+        ],
+        "job_id": 1647,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\eremes"
+      },
+      {
+        "aegis_name": "B_HARWORD",
+        "identities": [
+          "b_harword"
+        ],
+        "job_id": 1648,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\harword"
+      },
+      {
+        "aegis_name": "B_MAGALETA",
+        "identities": [
+          "b_magaleta"
+        ],
+        "job_id": 1649,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\magaleta"
+      },
+      {
+        "aegis_name": "B_SHECIL",
+        "identities": [
+          "b_shecil"
+        ],
+        "job_id": 1650,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\shecil"
+      },
+      {
+        "aegis_name": "B_KATRINN",
+        "identities": [
+          "b_katrinn"
+        ],
+        "job_id": 1651,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\katrinn"
+      },
+      {
+        "aegis_name": "B_YGNIZEM",
+        "identities": [
+          "b_ygnizem"
+        ],
+        "job_id": 1658,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ygnizem"
+      },
+      {
+        "aegis_name": "EVENT_JAKK",
+        "identities": [
+          "event_jakk"
+        ],
+        "job_id": 1722,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\jakk"
+      },
+      {
+        "aegis_name": "A_SHECIL",
+        "identities": [
+          "a_shecil"
+        ],
+        "job_id": 1723,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\shecil"
+      },
+      {
+        "aegis_name": "A_POTON_CANON",
+        "identities": [
+          "a_poton_canon"
+        ],
+        "job_id": 1724,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poton_canon"
+      },
+      {
+        "aegis_name": "R_PORING",
+        "identities": [
+          "r_poring"
+        ],
+        "job_id": 1725,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poring"
+      },
+      {
+        "aegis_name": "R_LUNATIC",
+        "identities": [
+          "r_lunatic"
+        ],
+        "job_id": 1726,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\lunatic"
+      },
+      {
+        "aegis_name": "R_SAVAGE_BABE",
+        "identities": [
+          "r_savage_babe"
+        ],
+        "job_id": 1727,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\savage_babe"
+      },
+      {
+        "aegis_name": "R_DESERT_WOLF_B",
+        "identities": [
+          "r_desert_wolf_b"
+        ],
+        "job_id": 1728,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\desert_wolf_b"
+      },
+      {
+        "aegis_name": "R_BAPHOMET_",
+        "identities": [
+          "r_baphomet_"
+        ],
+        "job_id": 1729,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\baphomet_"
+      },
+      {
+        "aegis_name": "R_DEVIRUCHI",
+        "identities": [
+          "r_deviruchi"
+        ],
+        "job_id": 1730,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\deviruchi"
+      },
+      {
+        "aegis_name": "G_TREASURE_BOX",
+        "identities": [
+          "treasure_box"
+        ],
+        "job_id": 1732,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "ATROCE",
+        "identities": [
+          "atroce"
+        ],
+        "job_id": 1785,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\garm"
+      },
+      {
+        "aegis_name": "BLOODY_KNIGHT_",
+        "identities": [
+          "bloody_knight_"
+        ],
+        "job_id": 1795,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bloody_knight"
+      },
+      {
+        "aegis_name": "TREASURE_BOX_",
+        "identities": [
+          "treasure_box_"
+        ],
+        "job_id": 1798,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "G_SEYREN_",
+        "identities": [
+          "b_seyren_"
+        ],
+        "job_id": 1799,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\seyren"
+      },
+      {
+        "aegis_name": "G_EREMES_",
+        "identities": [
+          "b_eremes_"
+        ],
+        "job_id": 1800,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\eremes"
+      },
+      {
+        "aegis_name": "G_HARWORD_",
+        "identities": [
+          "b_harword_"
+        ],
+        "job_id": 1801,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\harword"
+      },
+      {
+        "aegis_name": "G_MAGALETA_",
+        "identities": [
+          "b_magaleta_"
+        ],
+        "job_id": 1802,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\magaleta"
+      },
+      {
+        "aegis_name": "G_SHECIL_",
+        "identities": [
+          "b_shecil_"
+        ],
+        "job_id": 1803,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\shecil"
+      },
+      {
+        "aegis_name": "G_KATRINN_",
+        "identities": [
+          "b_katrinn_"
+        ],
+        "job_id": 1804,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\katrinn"
+      },
+      {
+        "aegis_name": "B_SEYREN_",
+        "identities": [
+          "seyren_"
+        ],
+        "job_id": 1805,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\seyren"
+      },
+      {
+        "aegis_name": "B_EREMES_",
+        "identities": [
+          "eremes_"
+        ],
+        "job_id": 1806,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\eremes"
+      },
+      {
+        "aegis_name": "B_HARWORD_",
+        "identities": [
+          "harword_"
+        ],
+        "job_id": 1807,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\harword"
+      },
+      {
+        "aegis_name": "B_MAGALETA_",
+        "identities": [
+          "magaleta_"
+        ],
+        "job_id": 1808,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\magaleta"
+      },
+      {
+        "aegis_name": "B_SHECIL_",
+        "identities": [
+          "shecil_"
+        ],
+        "job_id": 1809,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\shecil"
+      },
+      {
+        "aegis_name": "B_KATRINN_",
+        "identities": [
+          "katrinn_"
+        ],
+        "job_id": 1810,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\katrinn"
+      },
+      {
+        "aegis_name": "G_SMOKIE_",
+        "identities": [
+          "smokie_"
+        ],
+        "job_id": 1811,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\smokie"
+      },
+      {
+        "aegis_name": "EVENT_LUDE",
+        "identities": [
+          "event_lude"
+        ],
+        "job_id": 1812,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\lude"
+      },
+      {
+        "aegis_name": "EVENT_HYDRO",
+        "identities": [
+          "event_hydro"
+        ],
+        "job_id": 1813,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\hydro"
+      },
+      {
+        "aegis_name": "EVENT_MOON",
+        "identities": [
+          "event_moon"
+        ],
+        "job_id": 1814,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\lunatic"
+      },
+      {
+        "aegis_name": "EVENT_DETALE",
+        "identities": [
+          "event_detale"
+        ],
+        "job_id": 1817,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\detale"
+      },
+      {
+        "aegis_name": "EVENT_ALARM",
+        "identities": [
+          "event_alarm"
+        ],
+        "job_id": 1818,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\alarm"
+      },
+      {
+        "aegis_name": "EVENT_BATHORY",
+        "identities": [
+          "event_bathory"
+        ],
+        "job_id": 1819,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bathory"
+      },
+      {
+        "aegis_name": "EVENT_BIGFOOT",
+        "identities": [
+          "event_bigfoot"
+        ],
+        "job_id": 1820,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bigfoot"
+      },
+      {
+        "aegis_name": "EVENT_DESERT_WOLF",
+        "identities": [
+          "event_desert_wolf"
+        ],
+        "job_id": 1821,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\desert_wolf"
+      },
+      {
+        "aegis_name": "EVENT_DEVIRUCHI",
+        "identities": [
+          "event_deviruchi"
+        ],
+        "job_id": 1822,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\deviruchi"
+      },
+      {
+        "aegis_name": "EVENT_FREEZER",
+        "identities": [
+          "event_freezer"
+        ],
+        "job_id": 1823,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\freezer"
+      },
+      {
+        "aegis_name": "EVENT_GARM_BABY",
+        "identities": [
+          "event_garm_baby"
+        ],
+        "job_id": 1824,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\garm_baby"
+      },
+      {
+        "aegis_name": "EVENT_GOBLINE_XMAS",
+        "identities": [
+          "event_gobline_xmas"
+        ],
+        "job_id": 1825,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\gobline_xmas"
+      },
+      {
+        "aegis_name": "EVENT_MYST",
+        "identities": [
+          "event_myst"
+        ],
+        "job_id": 1826,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\myst"
+      },
+      {
+        "aegis_name": "EVENT_SASQUATCH",
+        "identities": [
+          "event_sasquatch"
+        ],
+        "job_id": 1827,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\sasquatch"
+      },
+      {
+        "aegis_name": "EVENT_GULLINBURSTI",
+        "identities": [
+          "event_gullinbursti"
+        ],
+        "job_id": 1828,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\gullinbursti"
+      },
+      {
+        "aegis_name": "SWORD_GUARDIAN",
+        "identities": [
+          "sword_guardian"
+        ],
+        "job_id": 1829,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "BOW_GUARDIAN",
+        "identities": [
+          "bow_guardian"
+        ],
+        "job_id": 1830,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "G_SNAKE_",
+        "identities": [
+          "snake_"
+        ],
+        "job_id": 1841,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\snake"
+      },
+      {
+        "aegis_name": "G_ANACONDAQ_",
+        "identities": [
+          "anacondaq_"
+        ],
+        "job_id": 1842,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\anacondaq"
+      },
+      {
+        "aegis_name": "G_SIDE_WINDER_",
+        "identities": [
+          "side_winder_"
+        ],
+        "job_id": 1843,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\side_winder"
+      },
+      {
+        "aegis_name": "G_ISIS_",
+        "identities": [
+          "isis_"
+        ],
+        "job_id": 1844,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\isis"
+      },
+      {
+        "aegis_name": "G_TREASURE_BOX_",
+        "identities": [
+          "treasure_box_"
+        ],
+        "job_id": 1845,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "DREAMMETAL",
+        "identities": [
+          "dreammetal"
+        ],
+        "job_id": 1846,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\metaling"
+      },
+      {
+        "aegis_name": "EVENT_PORING",
+        "identities": [
+          "event_poring"
+        ],
+        "job_id": 1847,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poring"
+      },
+      {
+        "aegis_name": "EVENT_BAPHOMET",
+        "identities": [
+          "event_baphomet"
+        ],
+        "job_id": 1848,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\baphomet"
+      },
+      {
+        "aegis_name": "EVENT_OSIRIS",
+        "identities": [
+          "event_osiris"
+        ],
+        "job_id": 1849,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\osiris"
+      },
+      {
+        "aegis_name": "EVENT_ORCHERO",
+        "identities": [
+          "event_orchero"
+        ],
+        "job_id": 1850,
+        "method": "fuzzy:0.86",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ork_hero"
+      },
+      {
+        "aegis_name": "EVENT_MOBSTER",
+        "identities": [
+          "event_mobster"
+        ],
+        "job_id": 1851,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mobster"
+      },
+      {
+        "aegis_name": "E_MUKA",
+        "identities": [
+          "e_muka"
+        ],
+        "job_id": 1854,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\muka"
+      },
+      {
+        "aegis_name": "E_POISONSPORE",
+        "identities": [
+          "e_poisonspore"
+        ],
+        "job_id": 1855,
+        "method": "compact-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poison_spore"
+      },
+      {
+        "aegis_name": "E_MAGNOLIA",
+        "identities": [
+          "e_magnolia"
+        ],
+        "job_id": 1856,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\magnolia"
+      },
+      {
+        "aegis_name": "E_MARIN",
+        "identities": [
+          "e_marin"
+        ],
+        "job_id": 1857,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\marin"
+      },
+      {
+        "aegis_name": "E_PLANKTON",
+        "identities": [
+          "e_plankton"
+        ],
+        "job_id": 1858,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\plankton"
+      },
+      {
+        "aegis_name": "E_MANDRAGORA",
+        "identities": [
+          "e_mandragora"
+        ],
+        "job_id": 1859,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mandragora"
+      },
+      {
+        "aegis_name": "E_COCO",
+        "identities": [
+          "e_coco"
+        ],
+        "job_id": 1860,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\coco"
+      },
+      {
+        "aegis_name": "E_CHOCO",
+        "identities": [
+          "e_choco"
+        ],
+        "job_id": 1861,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\choco"
+      },
+      {
+        "aegis_name": "E_MARTIN",
+        "identities": [
+          "e_martin"
+        ],
+        "job_id": 1862,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\martin"
+      },
+      {
+        "aegis_name": "E_SPRING_RABBIT",
+        "identities": [
+          "e_spring_rabbit"
+        ],
+        "job_id": 1863,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\spring_rabbit"
+      },
+      {
+        "aegis_name": "BEELZEBUB_FLY",
+        "identities": [
+          "beelzebub_fly"
+        ],
+        "job_id": 1872,
+        "method": "fuzzy:0.86",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beelzebub_"
+      },
+      {
+        "aegis_name": "BEELZEBUB",
+        "identities": [
+          "beelzebub"
+        ],
+        "job_id": 1873,
+        "method": "compact-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beelzebub_"
+      },
+      {
+        "aegis_name": "E_LORD_OF_DEATH",
+        "identities": [
+          "e_lord_of_death"
+        ],
+        "job_id": 1876,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\lord_of_death"
+      },
+      {
+        "aegis_name": "CRYSTAL_5",
+        "identities": [
+          "crystal_5"
+        ],
+        "job_id": 1877,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\crystal_1"
+      },
+      {
+        "aegis_name": "E_SHINING_PLANT",
+        "identities": [
+          "e_shining_plant"
+        ],
+        "job_id": 1878,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\shining_plant"
+      },
+      {
+        "aegis_name": "FREEZER_R",
+        "identities": [
+          "freezer_r"
+        ],
+        "job_id": 1887,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\freezer"
+      },
+      {
+        "aegis_name": "GARM_BABY_R",
+        "identities": [
+          "garm_baby_r"
+        ],
+        "job_id": 1888,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\garm_baby"
+      },
+      {
+        "aegis_name": "GARM_R",
+        "identities": [
+          "garm_r"
+        ],
+        "job_id": 1889,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\garm"
+      },
+      {
+        "aegis_name": "GOPINICH_R",
+        "identities": [
+          "gopinich_r"
+        ],
+        "job_id": 1890,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\gopinich"
+      },
+      {
+        "aegis_name": "G_RANDGRIS_",
+        "identities": [
+          "randgris_"
+        ],
+        "job_id": 1891,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\randgris"
+      },
+      {
+        "aegis_name": "EVENT_SEYREN",
+        "identities": [
+          "event_seyren"
+        ],
+        "job_id": 1895,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\seyren"
+      },
+      {
+        "aegis_name": "EVENT_KATRINN",
+        "identities": [
+          "event_katrinn"
+        ],
+        "job_id": 1896,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\katrinn"
+      },
+      {
+        "aegis_name": "EVENT_BAPHOMET_",
+        "identities": [
+          "event_baphomet_"
+        ],
+        "job_id": 1897,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\baphomet_"
+      },
+      {
+        "aegis_name": "EVENT_ZOMBIE",
+        "identities": [
+          "event_zombie"
+        ],
+        "job_id": 1898,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\zombie"
+      },
+      {
+        "aegis_name": "SWORD_GUARDIAN_",
+        "identities": [
+          "sword_guardian_"
+        ],
+        "job_id": 1899,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "E_CONDOR",
+        "identities": [
+          "e_condor"
+        ],
+        "job_id": 1901,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\condor"
+      },
+      {
+        "aegis_name": "E_TREASURE1",
+        "identities": [
+          "e_treasure1"
+        ],
+        "job_id": 1902,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "E_TREASURE2",
+        "identities": [
+          "e_treasure2"
+        ],
+        "job_id": 1903,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "BARRICADE_",
+        "identities": [
+          "barricade_"
+        ],
+        "job_id": 1906,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\barricade"
+      },
+      {
+        "aegis_name": "MOROCC_",
+        "identities": [
+          "morocc_"
+        ],
+        "job_id": 1917,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\morocc"
+      },
+      {
+        "aegis_name": "JAKK_H",
+        "identities": [
+          "jakk_h"
+        ],
+        "job_id": 1926,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\jakk"
+      },
+      {
+        "aegis_name": "WHISPER_H",
+        "identities": [
+          "whisper_h"
+        ],
+        "job_id": 1927,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\whisper"
+      },
+      {
+        "aegis_name": "DEVIRUCHI_H",
+        "identities": [
+          "deviruchi_h"
+        ],
+        "job_id": 1928,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\deviruchi"
+      },
+      {
+        "aegis_name": "CONSTANT_",
+        "identities": [
+          "constant_"
+        ],
+        "job_id": 1937,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\constant"
+      },
+      {
+        "aegis_name": "TREASURE_BOX41",
+        "identities": [
+          "treasure_box41"
+        ],
+        "job_id": 1938,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX42",
+        "identities": [
+          "treasure_box42"
+        ],
+        "job_id": 1939,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX43",
+        "identities": [
+          "treasure_box43"
+        ],
+        "job_id": 1940,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX44",
+        "identities": [
+          "treasure_box44"
+        ],
+        "job_id": 1941,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX45",
+        "identities": [
+          "treasure_box45"
+        ],
+        "job_id": 1942,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX46",
+        "identities": [
+          "treasure_box46"
+        ],
+        "job_id": 1943,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX47",
+        "identities": [
+          "treasure_box47"
+        ],
+        "job_id": 1944,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX48",
+        "identities": [
+          "treasure_box48"
+        ],
+        "job_id": 1945,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "TREASURE_BOX49",
+        "identities": [
+          "treasure_box49"
+        ],
+        "job_id": 1946,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "PIAMETTE_",
+        "identities": [
+          "piamette_"
+        ],
+        "job_id": 1947,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\piamette"
+      },
+      {
+        "aegis_name": "B_S_GUARDIAN",
+        "identities": [
+          "b_s_guardian"
+        ],
+        "job_id": 1949,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "B_B_GUARDIAN",
+        "identities": [
+          "b_b_guardian"
+        ],
+        "job_id": 1950,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\beta_guards"
+      },
+      {
+        "aegis_name": "CRYSTAL_6",
+        "identities": [
+          "crystal_6"
+        ],
+        "job_id": 1951,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\crystal_2"
+      },
+      {
+        "aegis_name": "CRYSTAL_7",
+        "identities": [
+          "crystal_7"
+        ],
+        "job_id": 1952,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\crystal_3"
+      },
+      {
+        "aegis_name": "CRYSTAL_8",
+        "identities": [
+          "crystal_8"
+        ],
+        "job_id": 1953,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\crystal_4"
+      },
+      {
+        "aegis_name": "CRYSTAL_9",
+        "identities": [
+          "crystal_9"
+        ],
+        "job_id": 1954,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\crystal_h"
+      },
+      {
+        "aegis_name": "TREASURE_BOX_I",
+        "identities": [
+          "treasure_box_i"
+        ],
+        "job_id": 1955,
+        "method": "family",
+        "sprite_path": "npc\\4_treasure_box"
+      },
+      {
+        "aegis_name": "G_ENTWEIHEN_R",
+        "identities": [
+          "entweihen_r"
+        ],
+        "job_id": 1958,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\entweihen"
+      },
+      {
+        "aegis_name": "G_ENTWEIHEN_H",
+        "identities": [
+          "entweihen_h"
+        ],
+        "job_id": 1959,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\entweihen"
+      },
+      {
+        "aegis_name": "G_ENTWEIHEN_M",
+        "identities": [
+          "entweihen_m"
+        ],
+        "job_id": 1960,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\entweihen"
+      },
+      {
+        "aegis_name": "G_ENTWEIHEN_S",
+        "identities": [
+          "entweihen_s"
+        ],
+        "job_id": 1961,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\entweihen"
+      },
+      {
+        "aegis_name": "ANTONIO_",
+        "identities": [
+          "antonio_"
+        ],
+        "job_id": 1962,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\antonio"
+      },
+      {
+        "aegis_name": "P_CHUNG_E",
+        "identities": [
+          "p_chung_e"
+        ],
+        "job_id": 1963,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\chung_e"
+      },
+      {
+        "aegis_name": "NIGHTMARE_T",
+        "identities": [
+          "nightmare_t"
+        ],
+        "job_id": 1964,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\nightmare"
+      },
+      {
+        "aegis_name": "M_WILD_ROSE",
+        "identities": [
+          "m_wild_rose"
+        ],
+        "job_id": 1965,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\wild_rose"
+      },
+      {
+        "aegis_name": "M_DOPPELGANGER",
+        "identities": [
+          "m_doppelganger"
+        ],
+        "job_id": 1966,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\doppelganger"
+      },
+      {
+        "aegis_name": "M_YGNIZEM",
+        "identities": [
+          "m_ygnizem"
+        ],
+        "job_id": 1967,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\ygnizem"
+      },
+      {
+        "aegis_name": "E_STROUF",
+        "identities": [
+          "e_strouf"
+        ],
+        "job_id": 1968,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\strouf"
+      },
+      {
+        "aegis_name": "E_MARC",
+        "identities": [
+          "e_marc"
+        ],
+        "job_id": 1969,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\marc"
+      },
+      {
+        "aegis_name": "E_OBEAUNE",
+        "identities": [
+          "e_obeaune"
+        ],
+        "job_id": 1970,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\obeaune"
+      },
+      {
+        "aegis_name": "E_VADON",
+        "identities": [
+          "e_vadon"
+        ],
+        "job_id": 1971,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\vadon"
+      },
+      {
+        "aegis_name": "E_MARINA",
+        "identities": [
+          "e_marina"
+        ],
+        "job_id": 1972,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\marina"
+      },
+      {
+        "aegis_name": "E_PORING",
+        "identities": [
+          "e_poring"
+        ],
+        "job_id": 1973,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\poring"
+      },
+      {
+        "aegis_name": "I_HIGH_ORC",
+        "identities": [
+          "i_high_orc"
+        ],
+        "job_id": 1981,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\high_orc"
+      },
+      {
+        "aegis_name": "I_ORC_ARCHER",
+        "identities": [
+          "i_orc_archer"
+        ],
+        "job_id": 1982,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\orc_archer"
+      },
+      {
+        "aegis_name": "I_ORC_SKELETON",
+        "identities": [
+          "i_orc_skeleton"
+        ],
+        "job_id": 1983,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\orc_skeleton"
+      },
+      {
+        "aegis_name": "I_ORC_LADY",
+        "identities": [
+          "i_orc_lady"
+        ],
+        "job_id": 1984,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\orc_lady"
+      },
+      {
+        "aegis_name": "WOOMAWANG",
+        "identities": [
+          "woomawang"
+        ],
+        "job_id": 2008,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\drake"
+      },
+      {
+        "aegis_name": "WOOMAWANG_",
+        "identities": [
+          "woomawang_"
+        ],
+        "job_id": 2009,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\drake"
+      },
+      {
+        "aegis_name": "DANDELION_",
+        "identities": [
+          "dandelion_"
+        ],
+        "job_id": 2026,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\dandelion"
+      },
+      {
+        "aegis_name": "HIDEN_PRIEST",
+        "identities": [
+          "hiden_priest"
+        ],
+        "job_id": 2030,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\dark_priest"
+      },
+      {
+        "aegis_name": "DANDELION_H",
+        "identities": [
+          "dandelion_h"
+        ],
+        "job_id": 2031,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\dandelion"
+      },
+      {
+        "aegis_name": "SILVERSNIPER",
+        "identities": [
+          "silversniper"
+        ],
+        "job_id": 2042,
+        "method": "id-override",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bon_gun"
+      },
+      {
+        "aegis_name": "MAGICDECOY_FIRE",
+        "identities": [
+          "magicdecoy_fire"
+        ],
+        "job_id": 2043,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mm_magic_seal"
+      },
+      {
+        "aegis_name": "MAGICDECOY_WATER",
+        "identities": [
+          "magicdecoy_water"
+        ],
+        "job_id": 2044,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mm_magic_seal"
+      },
+      {
+        "aegis_name": "MAGICDECOY_EARTH",
+        "identities": [
+          "magicdecoy_earth"
+        ],
+        "job_id": 2045,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mm_magic_seal"
+      },
+      {
+        "aegis_name": "MAGICDECOY_WIND",
+        "identities": [
+          "magicdecoy_wind"
+        ],
+        "job_id": 2046,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\mm_magic_seal"
+      },
+      {
+        "aegis_name": "W_NAGA",
+        "identities": [
+          "w_naga"
+        ],
+        "job_id": 2047,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\naga"
+      },
+      {
+        "aegis_name": "W_BRADIUM_GOLEM",
+        "identities": [
+          "w_bradium_golem"
+        ],
+        "job_id": 2049,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\bradium_golem"
+      },
+      {
+        "aegis_name": "E_CRAMP",
+        "identities": [
+          "e_cramp"
+        ],
+        "job_id": 2057,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\cramp"
+      },
+      {
+        "aegis_name": "S_WIND_GHOST",
+        "identities": [
+          "s_wind_ghost"
+        ],
+        "job_id": 2076,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\wind_ghost"
+      },
+      {
+        "aegis_name": "S_SKOGUL",
+        "identities": [
+          "s_skogul"
+        ],
+        "job_id": 2077,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\skogul"
+      },
+      {
+        "aegis_name": "S_SUCCUBUS",
+        "identities": [
+          "s_succubus"
+        ],
+        "job_id": 2078,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\succubus"
+      },
+      {
+        "aegis_name": "E_HYDRA",
+        "identities": [
+          "e_hydra"
+        ],
+        "job_id": 2081,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\hydra"
+      },
+      {
+        "aegis_name": "S_HORNET",
+        "identities": [
+          "s_hornet"
+        ],
+        "job_id": 2158,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\hornet"
+      },
+      {
+        "aegis_name": "S_GIANT_HORNET",
+        "identities": [
+          "s_giant_hornet"
+        ],
+        "job_id": 2159,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\giant_hornet"
+      },
+      {
+        "aegis_name": "S_LUCIOLA_VESPA",
+        "identities": [
+          "s_luciola_vespa"
+        ],
+        "job_id": 2160,
+        "method": "variant-monster",
+        "sprite_path": "\ubaac\uc2a4\ud130\\luciola_vespa"
+      },
+      {
+        "aegis_name": "KO_KAGE",
+        "identities": [
+          "ko_kage"
+        ],
+        "job_id": 2308,
+        "method": "family",
+        "sprite_path": "\ubaac\uc2a4\ud130\\md_ninja_ghost"
+      }
+    ],
+    "summary": {
+      "aliases": 232,
+      "by_method": {
+        "compact-monster": 2,
+        "family": 82,
+        "fuzzy": 2,
+        "id-override": 7,
+        "variant-monster": 138,
+        "variant-npc": 1
+      },
+      "generic_sprites": 7
+    }
+  },
+  "provenance": {
+    "client": {
+      "archives": [
+        {
+          "files": 149167,
+          "name": "data.grf",
+          "sha256": "6dcae744fb8e5fc1fcafbe8cfb3f5392e9d89b431e56811c3618462d5de2d53a",
+          "size": 3167729595
+        },
+        {
+          "files": 34565,
+          "name": "CondaRO.grf",
+          "sha256": "813c721325d667a6ae0d2b7f9225756d5d91646a685c3380e08688d8bea3d0da",
+          "size": 145362482
+        },
+        {
+          "files": 498263,
+          "name": "palettes.grf",
+          "sha256": "a18d003337c6e7d0333d5bde0832784cc7b60e36d5b72a813a3ce4a9b1b76170",
+          "size": 204600439
+        }
+      ],
+      "source": "CondaRO client archives (kRO 2019-06-05 data set)",
+      "tables": {
+        "job_identity": {
+          "bytes": 104610,
+          "form": "lua-source",
+          "path": "data\\luafiles514\\lua files\\datainfo\\jobidentity.lub",
+          "sha256": "2bd55d3fc2526fdba34075bd67044e22ad4cf41f15abbe3b03e7cf8dcf123348"
+        },
+        "job_inherit_list": {
+          "bytes": 19153,
+          "form": "lua-bytecode",
+          "path": "data\\luafiles514\\lua files\\skillinfoz\\jobinheritlist.lub",
+          "sha256": "d96f145199dc0b3defb7fbc312ba96af974dd05926fa2be1ec11917eb32f6219"
+        },
+        "skill_id": {
+          "bytes": 72958,
+          "form": "lua-bytecode",
+          "path": "data\\luafiles514\\lua files\\skillinfoz\\skillid.lub",
+          "sha256": "eaa5c02459b7398af32742cf227cce4e13e9ec45acb37d7f96c346aeb2e0b188"
+        },
+        "skill_info_list": {
+          "bytes": 284234,
+          "form": "lua-source",
+          "path": "data\\luafiles514\\lua files\\skillinfoz\\skillinfolist.lub",
+          "sha256": "dee5b6fb78dbd5428a638327d9205e080f106390cfdbc71e0fd8b6c8e3df2563"
+        },
+        "skill_tree_view": {
+          "bytes": 32065,
+          "form": "lua-source",
+          "path": "data\\luafiles514\\lua files\\skillinfoz\\skilltreeview.lub",
+          "sha256": "a426b3246c13e16f2a89fca03ced5841338a295f9feb156891311b5bbbe8779f"
+        }
+      }
+    },
+    "curated": {
+      "job_skill_tree_fallbacks": "classic client engine fallback table (the kRO client executable hard-codes these job expansions); every row is re-validated against the client skill-tree tables",
+      "mob_db_supplement": "mob ids [2158, 2159, 2160, 2308] are in the renewal mob db and the client job identity table but no longer in the pre-renewal db; kept for client data-set parity",
+      "monster_families": "documented sprite families for ids without a name variant"
+    },
+    "extractor": "tools/extract_alias_facts.py",
+    "server": {
+      "files": {
+        "db/pre-re/mob_db.yml": {
+          "bytes": 795995,
+          "sha256": "4f045e32eb176c695cb11e94a68013867a437072aef0cee7438313826dc54e12"
+        },
+        "db/pre-re/skill_tree.yml": {
+          "bytes": 83583,
+          "sha256": "fafe80390ac7c4ad79b4fb258614684250ccc9b72155d9218ea4ee7c063c7f54"
+        },
+        "db/re/mob_db.yml": {
+          "bytes": 2252634,
+          "sha256": "724de14f2066c9e8dd4a7fac6d9022b0f9eaa025170ef1ea55fdfbd88fbed294"
+        },
+        "db/re/skill_tree.yml": {
+          "bytes": 209371,
+          "sha256": "b54fc9cc2e92a63c9ffeb917483ad5ed4d14e9d73d31e79a25a687bc8a31a9d8"
+        },
+        "src/common/mmo.hpp": {
+          "bytes": 29320,
+          "sha256": "cd490eed418738939975b6a51a5591c74772df7bd5f7f5dfd3ab9bc951b9a80b"
+        }
+      },
+      "head": "89c8bfa61a48310d7ebbd18992ad30b7c2631a68",
+      "source": "rAthena CondaRO server tree"
+    }
+  },
+  "schema_version": 1,
+  "skills": {
+    "generic_icons": [
+      "\uc544\uc774\ud15c\\nv_basic",
+      "\uc544\uc774\ud15c\\sm_bash",
+      "\uc544\uc774\ud15c\\mg_firebolt"
+    ],
+    "icon_aliases": [
+      {
+        "icon_file_name": "BS_ENCHANTEDSTONE",
+        "icon_path": "\uc544\uc774\ud15c\\rk_enchantblade",
+        "method": "explicit",
+        "skill_id": 96,
+        "skill_name": "BS_ENCHANTEDSTONE"
+      },
+      {
+        "icon_file_name": "BS_WEAPONRESEARCH",
+        "icon_path": "\uc544\uc774\ud15c\\bs_hiltbinding",
+        "method": "explicit",
+        "skill_id": 107,
+        "skill_name": "BS_WEAPONRESEARCH"
+      },
+      {
+        "icon_file_name": "SA_MONOCELL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 291,
+        "skill_name": "SA_MONOCELL"
+      },
+      {
+        "icon_file_name": "SA_CLASSCHANGE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 292,
+        "skill_name": "SA_CLASSCHANGE"
+      },
+      {
+        "icon_file_name": "SA_SUMMONMONSTER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 293,
+        "skill_name": "SA_SUMMONMONSTER"
+      },
+      {
+        "icon_file_name": "SA_REVERSEORCISH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 294,
+        "skill_name": "SA_REVERSEORCISH"
+      },
+      {
+        "icon_file_name": "SA_DEATH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 295,
+        "skill_name": "SA_DEATH"
+      },
+      {
+        "icon_file_name": "SA_FORTUNE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 296,
+        "skill_name": "SA_FORTUNE"
+      },
+      {
+        "icon_file_name": "SA_TAMINGMONSTER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 297,
+        "skill_name": "SA_TAMINGMONSTER"
+      },
+      {
+        "icon_file_name": "SA_QUESTION",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 298,
+        "skill_name": "SA_QUESTION"
+      },
+      {
+        "icon_file_name": "SA_GRAVITY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 299,
+        "skill_name": "SA_GRAVITY"
+      },
+      {
+        "icon_file_name": "SA_LEVELUP",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 300,
+        "skill_name": "SA_LEVELUP"
+      },
+      {
+        "icon_file_name": "SA_INSTANTDEATH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 301,
+        "skill_name": "SA_INSTANTDEATH"
+      },
+      {
+        "icon_file_name": "SA_FULLRECOVERY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 302,
+        "skill_name": "SA_FULLRECOVERY"
+      },
+      {
+        "icon_file_name": "SA_COMA",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sa",
+        "skill_id": 303,
+        "skill_name": "SA_COMA"
+      },
+      {
+        "icon_file_name": "MB_FIGHTING",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 545,
+        "skill_name": "MB_FIGHTING"
+      },
+      {
+        "icon_file_name": "MB_NEUTRAL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 546,
+        "skill_name": "MB_NEUTRAL"
+      },
+      {
+        "icon_file_name": "MB_TAIMING_PUTI",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 547,
+        "skill_name": "MB_TAIMING_PUTI"
+      },
+      {
+        "icon_file_name": "MB_WHITEPOTION",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 548,
+        "skill_name": "MB_WHITEPOTION"
+      },
+      {
+        "icon_file_name": "MB_MENTAL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 549,
+        "skill_name": "MB_MENTAL"
+      },
+      {
+        "icon_file_name": "MB_CARDPITCHER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 550,
+        "skill_name": "MB_CARDPITCHER"
+      },
+      {
+        "icon_file_name": "MB_PETPITCHER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 551,
+        "skill_name": "MB_PETPITCHER"
+      },
+      {
+        "icon_file_name": "MB_BODYSTUDY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 552,
+        "skill_name": "MB_BODYSTUDY"
+      },
+      {
+        "icon_file_name": "MB_BODYALTER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 553,
+        "skill_name": "MB_BODYALTER"
+      },
+      {
+        "icon_file_name": "MB_PETMEMORY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 554,
+        "skill_name": "MB_PETMEMORY"
+      },
+      {
+        "icon_file_name": "MB_M_TELEPORT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 555,
+        "skill_name": "MB_M_TELEPORT"
+      },
+      {
+        "icon_file_name": "MB_B_GAIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 556,
+        "skill_name": "MB_B_GAIN"
+      },
+      {
+        "icon_file_name": "MB_M_GAIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 557,
+        "skill_name": "MB_M_GAIN"
+      },
+      {
+        "icon_file_name": "MB_MISSION",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 558,
+        "skill_name": "MB_MISSION"
+      },
+      {
+        "icon_file_name": "MB_MUNAKKNOWLEDGE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 559,
+        "skill_name": "MB_MUNAKKNOWLEDGE"
+      },
+      {
+        "icon_file_name": "MB_MUNAKBALL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 560,
+        "skill_name": "MB_MUNAKBALL"
+      },
+      {
+        "icon_file_name": "MB_SCROLL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 561,
+        "skill_name": "MB_SCROLL"
+      },
+      {
+        "icon_file_name": "MB_B_GATHERING",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 562,
+        "skill_name": "MB_B_GATHERING"
+      },
+      {
+        "icon_file_name": "MB_M_GATHERING",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 563,
+        "skill_name": "MB_M_GATHERING"
+      },
+      {
+        "icon_file_name": "MB_B_EXCLUDE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 564,
+        "skill_name": "MB_B_EXCLUDE"
+      },
+      {
+        "icon_file_name": "MB_B_DRIFT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 565,
+        "skill_name": "MB_B_DRIFT"
+      },
+      {
+        "icon_file_name": "MB_B_WALLRUSH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 566,
+        "skill_name": "MB_B_WALLRUSH"
+      },
+      {
+        "icon_file_name": "MB_M_WALLRUSH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 567,
+        "skill_name": "MB_M_WALLRUSH"
+      },
+      {
+        "icon_file_name": "MB_B_WALLSHIFT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 568,
+        "skill_name": "MB_B_WALLSHIFT"
+      },
+      {
+        "icon_file_name": "MB_M_WALLCRASH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 569,
+        "skill_name": "MB_M_WALLCRASH"
+      },
+      {
+        "icon_file_name": "MB_M_REINCARNATION",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 570,
+        "skill_name": "MB_M_REINCARNATION"
+      },
+      {
+        "icon_file_name": "MB_B_EQUIP",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:mb",
+        "skill_id": 571,
+        "skill_name": "MB_B_EQUIP"
+      },
+      {
+        "icon_file_name": "SL_DEATHKNIGHT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sl",
+        "skill_id": 572,
+        "skill_name": "SL_DEATHKNIGHT"
+      },
+      {
+        "icon_file_name": "SL_COLLECTOR",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sl",
+        "skill_id": 573,
+        "skill_name": "SL_COLLECTOR"
+      },
+      {
+        "icon_file_name": "SL_NINJA",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sl",
+        "skill_id": 574,
+        "skill_name": "SL_NINJA"
+      },
+      {
+        "icon_file_name": "SL_GUNNER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:sl",
+        "skill_id": 575,
+        "skill_name": "SL_GUNNER"
+      },
+      {
+        "icon_file_name": "AM_TWILIGHT4",
+        "icon_path": "\uc544\uc774\ud15c\\am_twilight3",
+        "method": "explicit",
+        "skill_id": 576,
+        "skill_name": "AM_TWILIGHT4"
+      },
+      {
+        "icon_file_name": "DE_BERSERKAIZER",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 578,
+        "skill_name": "DE_BERSERKAIZER"
+      },
+      {
+        "icon_file_name": "DA_DARKPOWER",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 579,
+        "skill_name": "DA_DARKPOWER"
+      },
+      {
+        "icon_file_name": "DE_PASSIVE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 580,
+        "skill_name": "DE_PASSIVE"
+      },
+      {
+        "icon_file_name": "DE_PATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 581,
+        "skill_name": "DE_PATTACK"
+      },
+      {
+        "icon_file_name": "DE_PSPEED",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 582,
+        "skill_name": "DE_PSPEED"
+      },
+      {
+        "icon_file_name": "DE_PDEFENSE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 583,
+        "skill_name": "DE_PDEFENSE"
+      },
+      {
+        "icon_file_name": "DE_PCRITICAL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 584,
+        "skill_name": "DE_PCRITICAL"
+      },
+      {
+        "icon_file_name": "DE_PHP",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 585,
+        "skill_name": "DE_PHP"
+      },
+      {
+        "icon_file_name": "DE_PSP",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 586,
+        "skill_name": "DE_PSP"
+      },
+      {
+        "icon_file_name": "DE_RESET",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 587,
+        "skill_name": "DE_RESET"
+      },
+      {
+        "icon_file_name": "DE_RANKING",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 588,
+        "skill_name": "DE_RANKING"
+      },
+      {
+        "icon_file_name": "DE_PTRIPLE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 589,
+        "skill_name": "DE_PTRIPLE"
+      },
+      {
+        "icon_file_name": "DE_ENERGY",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 590,
+        "skill_name": "DE_ENERGY"
+      },
+      {
+        "icon_file_name": "DE_NIGHTMARE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 591,
+        "skill_name": "DE_NIGHTMARE"
+      },
+      {
+        "icon_file_name": "DE_SLASH",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 592,
+        "skill_name": "DE_SLASH"
+      },
+      {
+        "icon_file_name": "DE_COIL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 593,
+        "skill_name": "DE_COIL"
+      },
+      {
+        "icon_file_name": "DE_WAVE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 594,
+        "skill_name": "DE_WAVE"
+      },
+      {
+        "icon_file_name": "DE_REBIRTH",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 595,
+        "skill_name": "DE_REBIRTH"
+      },
+      {
+        "icon_file_name": "DE_AURA",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 596,
+        "skill_name": "DE_AURA"
+      },
+      {
+        "icon_file_name": "DE_FREEZER",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 597,
+        "skill_name": "DE_FREEZER"
+      },
+      {
+        "icon_file_name": "DE_CHANGEATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 598,
+        "skill_name": "DE_CHANGEATTACK"
+      },
+      {
+        "icon_file_name": "DE_PUNISH",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 599,
+        "skill_name": "DE_PUNISH"
+      },
+      {
+        "icon_file_name": "DE_POISON",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 600,
+        "skill_name": "DE_POISON"
+      },
+      {
+        "icon_file_name": "DE_INSTANT",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 601,
+        "skill_name": "DE_INSTANT"
+      },
+      {
+        "icon_file_name": "DE_WARNING",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 602,
+        "skill_name": "DE_WARNING"
+      },
+      {
+        "icon_file_name": "DE_RANKEDKNIFE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 603,
+        "skill_name": "DE_RANKEDKNIFE"
+      },
+      {
+        "icon_file_name": "DE_RANKEDGRADIUS",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 604,
+        "skill_name": "DE_RANKEDGRADIUS"
+      },
+      {
+        "icon_file_name": "DE_GAUGE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 605,
+        "skill_name": "DE_GAUGE"
+      },
+      {
+        "icon_file_name": "DE_GTIME",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 606,
+        "skill_name": "DE_GTIME"
+      },
+      {
+        "icon_file_name": "DE_GPAIN",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 607,
+        "skill_name": "DE_GPAIN"
+      },
+      {
+        "icon_file_name": "DE_GSKILL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 608,
+        "skill_name": "DE_GSKILL"
+      },
+      {
+        "icon_file_name": "DE_GKILL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 609,
+        "skill_name": "DE_GKILL"
+      },
+      {
+        "icon_file_name": "DE_ACCEL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 610,
+        "skill_name": "DE_ACCEL"
+      },
+      {
+        "icon_file_name": "DE_BLOCKDOUBLE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 611,
+        "skill_name": "DE_BLOCKDOUBLE"
+      },
+      {
+        "icon_file_name": "DE_BLOCKMELEE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 612,
+        "skill_name": "DE_BLOCKMELEE"
+      },
+      {
+        "icon_file_name": "DE_BLOCKFAR",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 613,
+        "skill_name": "DE_BLOCKFAR"
+      },
+      {
+        "icon_file_name": "DE_FRONTATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 614,
+        "skill_name": "DE_FRONTATTACK"
+      },
+      {
+        "icon_file_name": "DE_DANGERATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 615,
+        "skill_name": "DE_DANGERATTACK"
+      },
+      {
+        "icon_file_name": "DE_TWINATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 616,
+        "skill_name": "DE_TWINATTACK"
+      },
+      {
+        "icon_file_name": "DE_WINDATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 617,
+        "skill_name": "DE_WINDATTACK"
+      },
+      {
+        "icon_file_name": "DE_WATERATTACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:de",
+        "skill_id": 618,
+        "skill_name": "DE_WATERATTACK"
+      },
+      {
+        "icon_file_name": "DA_ENERGY",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 619,
+        "skill_name": "DA_ENERGY"
+      },
+      {
+        "icon_file_name": "DA_CLOUD",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 620,
+        "skill_name": "DA_CLOUD"
+      },
+      {
+        "icon_file_name": "DA_FIRSTSLOT",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 621,
+        "skill_name": "DA_FIRSTSLOT"
+      },
+      {
+        "icon_file_name": "DA_HEADDEF",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 622,
+        "skill_name": "DA_HEADDEF"
+      },
+      {
+        "icon_file_name": "DA_SPACE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 623,
+        "skill_name": "DA_SPACE"
+      },
+      {
+        "icon_file_name": "DA_TRANSFORM",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 624,
+        "skill_name": "DA_TRANSFORM"
+      },
+      {
+        "icon_file_name": "DA_EXPLOSION",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 625,
+        "skill_name": "DA_EXPLOSION"
+      },
+      {
+        "icon_file_name": "DA_REWARD",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 626,
+        "skill_name": "DA_REWARD"
+      },
+      {
+        "icon_file_name": "DA_CRUSH",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 627,
+        "skill_name": "DA_CRUSH"
+      },
+      {
+        "icon_file_name": "DA_ITEMREBUILD",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 628,
+        "skill_name": "DA_ITEMREBUILD"
+      },
+      {
+        "icon_file_name": "DA_ILLUSION",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 629,
+        "skill_name": "DA_ILLUSION"
+      },
+      {
+        "icon_file_name": "DA_NUETRALIZE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 630,
+        "skill_name": "DA_NUETRALIZE"
+      },
+      {
+        "icon_file_name": "DA_RUNNER",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 631,
+        "skill_name": "DA_RUNNER"
+      },
+      {
+        "icon_file_name": "DA_TRANSFER",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 632,
+        "skill_name": "DA_TRANSFER"
+      },
+      {
+        "icon_file_name": "DA_WALL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 633,
+        "skill_name": "DA_WALL"
+      },
+      {
+        "icon_file_name": "DA_REVENGE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 635,
+        "skill_name": "DA_REVENGE"
+      },
+      {
+        "icon_file_name": "DA_EARPLUG",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 636,
+        "skill_name": "DA_EARPLUG"
+      },
+      {
+        "icon_file_name": "DA_CONTRACT",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 637,
+        "skill_name": "DA_CONTRACT"
+      },
+      {
+        "icon_file_name": "DA_BLACK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 638,
+        "skill_name": "DA_BLACK"
+      },
+      {
+        "icon_file_name": "DA_DREAM",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 639,
+        "skill_name": "DA_DREAM"
+      },
+      {
+        "icon_file_name": "DA_MAGICCART",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 640,
+        "skill_name": "DA_MAGICCART"
+      },
+      {
+        "icon_file_name": "DA_COPY",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 641,
+        "skill_name": "DA_COPY"
+      },
+      {
+        "icon_file_name": "DA_CRYSTAL",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 642,
+        "skill_name": "DA_CRYSTAL"
+      },
+      {
+        "icon_file_name": "DA_EXP",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 643,
+        "skill_name": "DA_EXP"
+      },
+      {
+        "icon_file_name": "DA_CARTSWING",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 644,
+        "skill_name": "DA_CARTSWING"
+      },
+      {
+        "icon_file_name": "DA_REBUILD",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 645,
+        "skill_name": "DA_REBUILD"
+      },
+      {
+        "icon_file_name": "DA_JOBCHANGE",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 646,
+        "skill_name": "DA_JOBCHANGE"
+      },
+      {
+        "icon_file_name": "DA_EDARKNESS",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 647,
+        "skill_name": "DA_EDARKNESS"
+      },
+      {
+        "icon_file_name": "DA_EGUARDIAN",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 648,
+        "skill_name": "DA_EGUARDIAN"
+      },
+      {
+        "icon_file_name": "DA_TIMEOUT",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 649,
+        "skill_name": "DA_TIMEOUT"
+      },
+      {
+        "icon_file_name": "ALL_TIMEIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 650,
+        "skill_name": "ALL_TIMEIN"
+      },
+      {
+        "icon_file_name": "DA_ZENYRANK",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 651,
+        "skill_name": "DA_ZENYRANK"
+      },
+      {
+        "icon_file_name": "DA_ACCESSORYMIX",
+        "icon_path": "\uc544\uc774\ud15c\\su_basic_skill",
+        "method": "family:da",
+        "skill_id": 652,
+        "skill_name": "DA_ACCESSORYMIX"
+      },
+      {
+        "icon_file_name": "NPC_EARTHQUAKE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 653,
+        "skill_name": "NPC_EARTHQUAKE"
+      },
+      {
+        "icon_file_name": "NPC_DRAGONFEAR",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 659,
+        "skill_name": "NPC_DRAGONFEAR"
+      },
+      {
+        "icon_file_name": "NPC_PULSESTRIKE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 661,
+        "skill_name": "NPC_PULSESTRIKE"
+      },
+      {
+        "icon_file_name": "NPC_HELLJUDGEMENT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 662,
+        "skill_name": "NPC_HELLJUDGEMENT"
+      },
+      {
+        "icon_file_name": "NPC_WIDESILENCE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 663,
+        "skill_name": "NPC_WIDESILENCE"
+      },
+      {
+        "icon_file_name": "NPC_WIDEFREEZE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 664,
+        "skill_name": "NPC_WIDEFREEZE"
+      },
+      {
+        "icon_file_name": "NPC_WIDEBLEEDING",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 665,
+        "skill_name": "NPC_WIDEBLEEDING"
+      },
+      {
+        "icon_file_name": "NPC_WIDESTONE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 666,
+        "skill_name": "NPC_WIDESTONE"
+      },
+      {
+        "icon_file_name": "NPC_WIDECONFUSE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 667,
+        "skill_name": "NPC_WIDECONFUSE"
+      },
+      {
+        "icon_file_name": "NPC_WIDESLEEP",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 668,
+        "skill_name": "NPC_WIDESLEEP"
+      },
+      {
+        "icon_file_name": "NPC_WIDESIGHT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 669,
+        "skill_name": "NPC_WIDESIGHT"
+      },
+      {
+        "icon_file_name": "NPC_EVILLAND",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 670,
+        "skill_name": "NPC_EVILLAND"
+      },
+      {
+        "icon_file_name": "NPC_MAGICMIRROR",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 671,
+        "skill_name": "NPC_MAGICMIRROR"
+      },
+      {
+        "icon_file_name": "NPC_SLOWCAST",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 672,
+        "skill_name": "NPC_SLOWCAST"
+      },
+      {
+        "icon_file_name": "NPC_CRITICALWOUND",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 673,
+        "skill_name": "NPC_CRITICALWOUND"
+      },
+      {
+        "icon_file_name": "NPC_STONESKIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 675,
+        "skill_name": "NPC_STONESKIN"
+      },
+      {
+        "icon_file_name": "NPC_ANTIMAGIC",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 676,
+        "skill_name": "NPC_ANTIMAGIC"
+      },
+      {
+        "icon_file_name": "NPC_WIDECURSE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 677,
+        "skill_name": "NPC_WIDECURSE"
+      },
+      {
+        "icon_file_name": "NPC_WIDESTUN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 678,
+        "skill_name": "NPC_WIDESTUN"
+      },
+      {
+        "icon_file_name": "NPC_VAMPIRE_GIFT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 679,
+        "skill_name": "NPC_VAMPIRE_GIFT"
+      },
+      {
+        "icon_file_name": "NPC_WIDESOULDRAIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 680,
+        "skill_name": "NPC_WIDESOULDRAIN"
+      },
+      {
+        "icon_file_name": "ALL_INCCARRY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 681,
+        "skill_name": "ALL_INCCARRY"
+      },
+      {
+        "icon_file_name": "NPC_HELLPOWER",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 683,
+        "skill_name": "NPC_HELLPOWER"
+      },
+      {
+        "icon_file_name": "NPC_ALLHEAL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 687,
+        "skill_name": "NPC_ALLHEAL"
+      },
+      {
+        "icon_file_name": "ALL_PARTYFLEE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 693,
+        "skill_name": "ALL_PARTYFLEE"
+      },
+      {
+        "icon_file_name": "ALL_ANGEL_PROTECT",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 694,
+        "skill_name": "ALL_ANGEL_PROTECT"
+      },
+      {
+        "icon_file_name": "ALL_REVERSEORCISH",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 697,
+        "skill_name": "ALL_REVERSEORCISH"
+      },
+      {
+        "icon_file_name": "NPC_WIDEHEALTHFEAR",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 700,
+        "skill_name": "NPC_WIDEHEALTHFEAR"
+      },
+      {
+        "icon_file_name": "NPC_WIDEBODYBURNNING",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 701,
+        "skill_name": "NPC_WIDEBODYBURNNING"
+      },
+      {
+        "icon_file_name": "NPC_WIDEFROSTMISTY",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 702,
+        "skill_name": "NPC_WIDEFROSTMISTY"
+      },
+      {
+        "icon_file_name": "NPC_WIDECOLD",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 703,
+        "skill_name": "NPC_WIDECOLD"
+      },
+      {
+        "icon_file_name": "NPC_WIDE_DEEP_SLEEP",
+        "icon_path": "\uc544\uc774\ud15c\\wm_lullaby_deepsleep",
+        "method": "npc-token-suffix",
+        "skill_id": 704,
+        "skill_name": "NPC_WIDE_DEEP_SLEEP"
+      },
+      {
+        "icon_file_name": "NPC_WIDESIREN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 705,
+        "skill_name": "NPC_WIDESIREN"
+      },
+      {
+        "icon_file_name": "NPC_VENOMFOG",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 706,
+        "skill_name": "NPC_VENOMFOG"
+      },
+      {
+        "icon_file_name": "NPC_MILLENNIUMSHIELD",
+        "icon_path": "\uc544\uc774\ud15c\\rk_millenniumshield",
+        "method": "npc-token-suffix",
+        "skill_id": 707,
+        "skill_name": "NPC_MILLENNIUMSHIELD"
+      },
+      {
+        "icon_file_name": "NPC_COMET",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 708,
+        "skill_name": "NPC_COMET"
+      },
+      {
+        "icon_file_name": "NPC_ICEMINE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 709,
+        "skill_name": "NPC_ICEMINE"
+      },
+      {
+        "icon_file_name": "NPC_FLAMECROSS",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 711,
+        "skill_name": "NPC_FLAMECROSS"
+      },
+      {
+        "icon_file_name": "NPC_PULSESTRIKE2",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 712,
+        "skill_name": "NPC_PULSESTRIKE2"
+      },
+      {
+        "icon_file_name": "NPC_MAXPAIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 716,
+        "skill_name": "NPC_MAXPAIN"
+      },
+      {
+        "icon_file_name": "NPC_JACKFROST",
+        "icon_path": "\uc544\uc774\ud15c\\wl_jackfrost",
+        "method": "npc-token-suffix",
+        "skill_id": 720,
+        "skill_name": "NPC_JACKFROST"
+      },
+      {
+        "icon_file_name": "NPC_WIDEWEB",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 721,
+        "skill_name": "NPC_WIDEWEB"
+      },
+      {
+        "icon_file_name": "NPC_WIDESUCK",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 722,
+        "skill_name": "NPC_WIDESUCK"
+      },
+      {
+        "icon_file_name": "NPC_STORMGUST2",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 723,
+        "skill_name": "NPC_STORMGUST2"
+      },
+      {
+        "icon_file_name": "NPC_FIRESTORM",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 724,
+        "skill_name": "NPC_FIRESTORM"
+      },
+      {
+        "icon_file_name": "NPC_REVERBERATION",
+        "icon_path": "\uc544\uc774\ud15c\\wm_reverberation",
+        "method": "npc-token-suffix",
+        "skill_id": 725,
+        "skill_name": "NPC_REVERBERATION"
+      },
+      {
+        "icon_file_name": "NPC_LEX_AETERNA",
+        "icon_path": "\uc544\uc774\ud15c\\lexaeterna",
+        "method": "npc-token-suffix",
+        "skill_id": 727,
+        "skill_name": "NPC_LEX_AETERNA"
+      },
+      {
+        "icon_file_name": "NPC_SR_CURSEDCIRCLE",
+        "icon_path": "\uc544\uc774\ud15c\\sr_cursedcircle",
+        "method": "npc-token-suffix",
+        "skill_id": 730,
+        "skill_name": "NPC_SR_CURSEDCIRCLE"
+      },
+      {
+        "icon_file_name": "NPC_DRAGONBREATH",
+        "icon_path": "\uc544\uc774\ud15c\\rk_dragonbreath",
+        "method": "npc-token-suffix",
+        "skill_id": 731,
+        "skill_name": "NPC_DRAGONBREATH"
+      },
+      {
+        "icon_file_name": "NPC_FATALMENACE",
+        "icon_path": "\uc544\uc774\ud15c\\sc_fatalmenace",
+        "method": "npc-token-suffix",
+        "skill_id": 732,
+        "skill_name": "NPC_FATALMENACE"
+      },
+      {
+        "icon_file_name": "NPC_MAGMA_ERUPTION",
+        "icon_path": "\uc544\uc774\ud15c\\nc_magma_eruption",
+        "method": "npc-token-suffix",
+        "skill_id": 733,
+        "skill_name": "NPC_MAGMA_ERUPTION"
+      },
+      {
+        "icon_file_name": "NPC_MANDRAGORA",
+        "icon_path": "\uc544\uc774\ud15c\\gn_mandragora",
+        "method": "npc-token-suffix",
+        "skill_id": 735,
+        "skill_name": "NPC_MANDRAGORA"
+      },
+      {
+        "icon_file_name": "NPC_PSYCHIC_WAVE",
+        "icon_path": "\uc544\uc774\ud15c\\so_psychic_wave",
+        "method": "npc-token-suffix",
+        "skill_id": 736,
+        "skill_name": "NPC_PSYCHIC_WAVE"
+      },
+      {
+        "icon_file_name": "NPC_RAYOFGENESIS",
+        "icon_path": "\uc544\uc774\ud15c\\lg_rayofgenesis",
+        "method": "npc-token-suffix",
+        "skill_id": 737,
+        "skill_name": "NPC_RAYOFGENESIS"
+      },
+      {
+        "icon_file_name": "NPC_CLOUD_KILL",
+        "icon_path": "\uc544\uc774\ud15c\\so_cloud_kill",
+        "method": "npc-token-suffix",
+        "skill_id": 739,
+        "skill_name": "NPC_CLOUD_KILL"
+      },
+      {
+        "icon_file_name": "NPC_IGNITIONBREAK",
+        "icon_path": "\uc544\uc774\ud15c\\rk_ignitionbreak",
+        "method": "npc-token-suffix",
+        "skill_id": 740,
+        "skill_name": "NPC_IGNITIONBREAK"
+      },
+      {
+        "icon_file_name": "NPC_HALLUCINATIONWALK",
+        "icon_path": "\uc544\uc774\ud15c\\gc_hallucinationwalk",
+        "method": "npc-token-suffix",
+        "skill_id": 743,
+        "skill_name": "NPC_HALLUCINATIONWALK"
+      },
+      {
+        "icon_file_name": "NPC_ELECTRICWALK",
+        "icon_path": "\uc544\uc774\ud15c\\so_electricwalk",
+        "method": "npc-token-suffix",
+        "skill_id": 744,
+        "skill_name": "NPC_ELECTRICWALK"
+      },
+      {
+        "icon_file_name": "NPC_FIREWALK",
+        "icon_path": "\uc544\uc774\ud15c\\so_firewalk",
+        "method": "npc-token-suffix",
+        "skill_id": 745,
+        "skill_name": "NPC_FIREWALK"
+      },
+      {
+        "icon_file_name": "NPC_EARTHQUAKE_K",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:npc",
+        "skill_id": 750,
+        "skill_name": "NPC_EARTHQUAKE_K"
+      },
+      {
+        "icon_file_name": "AB_DUPLELIGHT_MELEE",
+        "icon_path": "\uc544\uc774\ud15c\\ab_duplelight",
+        "method": "variant",
+        "skill_id": 2055,
+        "skill_name": "AB_DUPLELIGHT_MELEE"
+      },
+      {
+        "icon_file_name": "AB_DUPLELIGHT_MAGIC",
+        "icon_path": "\uc544\uc774\ud15c\\ab_duplelight",
+        "method": "variant",
+        "skill_id": 2056,
+        "skill_name": "AB_DUPLELIGHT_MAGIC"
+      },
+      {
+        "icon_file_name": "ALL_ODINS_RECALL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 2533,
+        "skill_name": "ALL_ODINS_RECALL"
+      },
+      {
+        "icon_file_name": "NPC_ASSASSINCROSS",
+        "icon_path": "\uc544\uc774\ud15c\\ba_assassincross",
+        "method": "npc-token-suffix",
+        "skill_id": 2539,
+        "skill_name": "NPC_ASSASSINCROSS"
+      },
+      {
+        "icon_file_name": "NPC_DISSONANCE",
+        "icon_path": "\uc544\uc774\ud15c\\ba_dissonance",
+        "method": "npc-token-suffix",
+        "skill_id": 2540,
+        "skill_name": "NPC_DISSONANCE"
+      },
+      {
+        "icon_file_name": "NPC_UGLYDANCE",
+        "icon_path": "\uc544\uc774\ud15c\\dc_uglydance",
+        "method": "npc-token-suffix",
+        "skill_id": 2541,
+        "skill_name": "NPC_UGLYDANCE"
+      },
+      {
+        "icon_file_name": "ALL_RAY_OF_PROTECTION",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 2543,
+        "skill_name": "ALL_RAY_OF_PROTECTION"
+      },
+      {
+        "icon_file_name": "GM_ITEM_ATKMAX",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:gm",
+        "skill_id": 2545,
+        "skill_name": "GM_ITEM_ATKMAX"
+      },
+      {
+        "icon_file_name": "GM_ITEM_ATKMIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:gm",
+        "skill_id": 2546,
+        "skill_name": "GM_ITEM_ATKMIN"
+      },
+      {
+        "icon_file_name": "GM_ITEM_MATKMAX",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:gm",
+        "skill_id": 2547,
+        "skill_name": "GM_ITEM_MATKMAX"
+      },
+      {
+        "icon_file_name": "GM_ITEM_MATKMIN",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:gm",
+        "skill_id": 2548,
+        "skill_name": "GM_ITEM_MATKMIN"
+      },
+      {
+        "icon_file_name": "SJ_FALLINGSTAR_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\sj_fallingstar",
+        "method": "variant",
+        "skill_id": 2594,
+        "skill_name": "SJ_FALLINGSTAR_ATK"
+      },
+      {
+        "icon_file_name": "SJ_FALLINGSTAR_ATK2",
+        "icon_path": "\uc544\uc774\ud15c\\sj_fallingstar",
+        "method": "variant",
+        "skill_id": 2595,
+        "skill_name": "SJ_FALLINGSTAR_ATK2"
+      },
+      {
+        "icon_file_name": "ALL_NIFLHEIM_RECALL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 3041,
+        "skill_name": "ALL_NIFLHEIM_RECALL"
+      },
+      {
+        "icon_file_name": "ALL_GLASTHEIM_RECALL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 3043,
+        "skill_name": "ALL_GLASTHEIM_RECALL"
+      },
+      {
+        "icon_file_name": "ALL_THANATOS_RECALL",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:all",
+        "skill_id": 3044,
+        "skill_name": "ALL_THANATOS_RECALL"
+      },
+      {
+        "icon_file_name": "EL_CIRCLE_OF_FIRE",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8401,
+        "skill_name": "EL_CIRCLE_OF_FIRE"
+      },
+      {
+        "icon_file_name": "EL_FIRE_CLOAK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8402,
+        "skill_name": "EL_FIRE_CLOAK"
+      },
+      {
+        "icon_file_name": "EL_FIRE_MANTLE",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8403,
+        "skill_name": "EL_FIRE_MANTLE"
+      },
+      {
+        "icon_file_name": "EL_WATER_SCREEN",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8404,
+        "skill_name": "EL_WATER_SCREEN"
+      },
+      {
+        "icon_file_name": "EL_WATER_DROP",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8405,
+        "skill_name": "EL_WATER_DROP"
+      },
+      {
+        "icon_file_name": "EL_WATER_BARRIER",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8406,
+        "skill_name": "EL_WATER_BARRIER"
+      },
+      {
+        "icon_file_name": "EL_WIND_STEP",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8407,
+        "skill_name": "EL_WIND_STEP"
+      },
+      {
+        "icon_file_name": "EL_WIND_CURTAIN",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8408,
+        "skill_name": "EL_WIND_CURTAIN"
+      },
+      {
+        "icon_file_name": "EL_ZEPHYR",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8409,
+        "skill_name": "EL_ZEPHYR"
+      },
+      {
+        "icon_file_name": "EL_SOLID_SKIN",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8410,
+        "skill_name": "EL_SOLID_SKIN"
+      },
+      {
+        "icon_file_name": "EL_STONE_SHIELD",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8411,
+        "skill_name": "EL_STONE_SHIELD"
+      },
+      {
+        "icon_file_name": "EL_POWER_OF_GAIA",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8412,
+        "skill_name": "EL_POWER_OF_GAIA"
+      },
+      {
+        "icon_file_name": "EL_PYROTECHNIC",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8413,
+        "skill_name": "EL_PYROTECHNIC"
+      },
+      {
+        "icon_file_name": "EL_HEATER",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8414,
+        "skill_name": "EL_HEATER"
+      },
+      {
+        "icon_file_name": "EL_TROPIC",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8415,
+        "skill_name": "EL_TROPIC"
+      },
+      {
+        "icon_file_name": "EL_AQUAPLAY",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8416,
+        "skill_name": "EL_AQUAPLAY"
+      },
+      {
+        "icon_file_name": "EL_COOLER",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8417,
+        "skill_name": "EL_COOLER"
+      },
+      {
+        "icon_file_name": "EL_CHILLY_AIR",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8418,
+        "skill_name": "EL_CHILLY_AIR"
+      },
+      {
+        "icon_file_name": "EL_GUST",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8419,
+        "skill_name": "EL_GUST"
+      },
+      {
+        "icon_file_name": "EL_BLAST",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8420,
+        "skill_name": "EL_BLAST"
+      },
+      {
+        "icon_file_name": "EL_WILD_STORM",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8421,
+        "skill_name": "EL_WILD_STORM"
+      },
+      {
+        "icon_file_name": "EL_PETROLOGY",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8422,
+        "skill_name": "EL_PETROLOGY"
+      },
+      {
+        "icon_file_name": "EL_CURSED_SOIL",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8423,
+        "skill_name": "EL_CURSED_SOIL"
+      },
+      {
+        "icon_file_name": "EL_UPHEAVAL",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8424,
+        "skill_name": "EL_UPHEAVAL"
+      },
+      {
+        "icon_file_name": "EL_FIRE_ARROW",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8425,
+        "skill_name": "EL_FIRE_ARROW"
+      },
+      {
+        "icon_file_name": "EL_FIRE_BOMB",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8426,
+        "skill_name": "EL_FIRE_BOMB"
+      },
+      {
+        "icon_file_name": "EL_FIRE_BOMB_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8427,
+        "skill_name": "EL_FIRE_BOMB_ATK"
+      },
+      {
+        "icon_file_name": "EL_FIRE_WAVE",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8428,
+        "skill_name": "EL_FIRE_WAVE"
+      },
+      {
+        "icon_file_name": "EL_FIRE_WAVE_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_firebolt",
+        "method": "family:el",
+        "skill_id": 8429,
+        "skill_name": "EL_FIRE_WAVE_ATK"
+      },
+      {
+        "icon_file_name": "EL_ICE_NEEDLE",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8430,
+        "skill_name": "EL_ICE_NEEDLE"
+      },
+      {
+        "icon_file_name": "EL_WATER_SCREW",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8431,
+        "skill_name": "EL_WATER_SCREW"
+      },
+      {
+        "icon_file_name": "EL_WATER_SCREW_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8432,
+        "skill_name": "EL_WATER_SCREW_ATK"
+      },
+      {
+        "icon_file_name": "EL_TIDAL_WEAPON",
+        "icon_path": "\uc544\uc774\ud15c\\mg_coldbolt",
+        "method": "family:el",
+        "skill_id": 8433,
+        "skill_name": "EL_TIDAL_WEAPON"
+      },
+      {
+        "icon_file_name": "EL_WIND_SLASH",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8434,
+        "skill_name": "EL_WIND_SLASH"
+      },
+      {
+        "icon_file_name": "EL_HURRICANE",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8435,
+        "skill_name": "EL_HURRICANE"
+      },
+      {
+        "icon_file_name": "EL_HURRICANE_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8436,
+        "skill_name": "EL_HURRICANE_ATK"
+      },
+      {
+        "icon_file_name": "EL_TYPOON_MIS",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8437,
+        "skill_name": "EL_TYPOON_MIS"
+      },
+      {
+        "icon_file_name": "EL_TYPOON_MIS_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\mg_lightningbolt",
+        "method": "family:el",
+        "skill_id": 8438,
+        "skill_name": "EL_TYPOON_MIS_ATK"
+      },
+      {
+        "icon_file_name": "EL_STONE_HAMMER",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8439,
+        "skill_name": "EL_STONE_HAMMER"
+      },
+      {
+        "icon_file_name": "EL_ROCK_CRUSHER",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8440,
+        "skill_name": "EL_ROCK_CRUSHER"
+      },
+      {
+        "icon_file_name": "EL_ROCK_CRUSHER_ATK",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8441,
+        "skill_name": "EL_ROCK_CRUSHER_ATK"
+      },
+      {
+        "icon_file_name": "EL_STONE_RAIN",
+        "icon_path": "\uc544\uc774\ud15c\\wz_earthspike",
+        "method": "family:el",
+        "skill_id": 8442,
+        "skill_name": "EL_STONE_RAIN"
+      },
+      {
+        "icon_file_name": "GD_ITEMEMERGENCYCALL",
+        "icon_path": "\uc544\uc774\ud15c\\gd_emergencycall",
+        "method": "explicit",
+        "skill_id": 10015,
+        "skill_name": "GD_ITEMEMERGENCYCALL"
+      },
+      {
+        "icon_file_name": "GD_GUILD_STORAGE",
+        "icon_path": "\uc544\uc774\ud15c\\nv_basic",
+        "method": "family:gd",
+        "skill_id": 10016,
+        "skill_name": "GD_GUILD_STORAGE"
+      }
+    ],
+    "summary": {
+      "aliases": 241,
+      "by_method": {
+        "explicit": 4,
+        "family": 213,
+        "npc-token-suffix": 20,
+        "variant": 4
+      },
+      "generic_icons": 3
+    }
+  }
+}

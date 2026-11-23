@@ -1,4 +1,5 @@
 mod accessory_name;
+mod aliases;
 mod card_composition;
 mod item_description;
 mod item_display_name;
@@ -11,12 +12,10 @@ pub(crate) mod job_alias;
 mod job_identity;
 mod map_sky_data;
 mod monster_sprite;
-mod monster_sprite_alias;
 mod skill_actions;
 mod skill_delays;
 mod skill_effects;
 mod skill_icon;
-mod skill_icon_alias;
 mod skill_information;
 mod skill_requirements;
 mod skill_sounds;
@@ -33,6 +32,8 @@ use mlua::Lua;
 use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
 
 pub use self::accessory_name::AccessoryName;
+pub use self::aliases::AliasesSummary;
+pub(crate) use self::aliases::{validate as validate_alias_data, validate_compiled as validate_compiled_aliases};
 use self::card_composition::{CardComposition, compose_item_name};
 pub use self::item_description::NO_DESCRIPTION;
 use self::item_description::{ItemDescriptions, sanitize_lines};
@@ -85,6 +86,10 @@ pub struct Library {
 
 impl Library {
     pub fn new(game_file_loader: &GameFileLoader) -> mlua::Result<Self> {
+        // The data-driven alias tables (job skill-tree fallbacks, monster
+        // sprite aliases, skill icon aliases) are needed while the library
+        // tables below are built, so they are loaded first.
+        aliases::load(game_file_loader);
         let job_identity_table = JobIdentity::load(game_file_loader)?;
         // The item info table resolves the stats of every item from the item
         // database data, so the data file has to be loaded first.

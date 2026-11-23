@@ -8,7 +8,8 @@
 //! This module resolves a verified icon path while the library is loaded:
 //!
 //! 1. exact `아이템\<file_name>` sprite (normal korangar behavior),
-//! 2. the generated, verified alias table (`skill_icon_alias.rs`),
+//! 2. the generated, verified alias table (`aliases.ron` via
+//!    `library/aliases.rs`),
 //! 3. a generic skill icon that is verified to exist.
 //!
 //! The resolved paths are cached so the async skill loader does not have to do
@@ -17,7 +18,7 @@
 use hashbrown::HashMap;
 use ragnarok_packets::SkillId;
 
-use super::{SkillListInformation, skill_icon_alias};
+use super::{SkillListInformation, aliases};
 use crate::loaders::GameFileLoader;
 
 pub struct SkillIcons {
@@ -27,11 +28,12 @@ pub struct SkillIcons {
 
 impl SkillIcons {
     pub fn load(game_file_loader: &GameFileLoader, skill_information_table: &HashMap<SkillId, SkillListInformation>) -> Self {
-        let generic = skill_icon_alias::GENERIC_SKILL_ICONS
+        let generic_candidates = aliases::generic_skill_icons();
+        let generic = generic_candidates
             .iter()
             .find(|path| sprite_exists(game_file_loader, path))
             .copied()
-            .unwrap_or(skill_icon_alias::GENERIC_SKILL_ICONS[0])
+            .unwrap_or_else(|| generic_candidates.first().copied().unwrap_or("아이템\\nv_basic"))
             .to_string();
 
         let mut table = HashMap::with_capacity(skill_information_table.len());
@@ -61,7 +63,7 @@ fn resolve(game_file_loader: &GameFileLoader, skill_id: SkillId, file_name: &str
         return exact_path;
     }
 
-    if let Some(alias) = skill_icon_alias::alias(skill_id)
+    if let Some(alias) = aliases::skill_icon_alias(skill_id)
         && sprite_exists(game_file_loader, alias)
     {
         return alias.to_string();
@@ -90,7 +92,7 @@ mod tests {
     use ragnarok_packets::SkillId;
 
     use super::super::Library;
-    use super::{skill_icon_alias, sprite_exists};
+    use super::{aliases, sprite_exists};
     use crate::loaders::GameFileLoader;
 
     /// All skills from the skill info tables (id, skill name, icon file name
@@ -191,7 +193,7 @@ mod tests {
     fn alias_table_entries_exist_in_archives() {
         let game_file_loader = load_game_file_loader();
 
-        for (id, path) in skill_icon_alias::SKILL_ICON_ALIASES {
+        for (id, path) in aliases::skill_icon_aliases() {
             assert!(
                 sprite_exists(&game_file_loader, path),
                 "alias {id} points to a missing icon: {path}"
@@ -204,7 +206,7 @@ mod tests {
             );
         }
 
-        for path in skill_icon_alias::GENERIC_SKILL_ICONS {
+        for path in aliases::generic_skill_icons() {
             assert!(sprite_exists(&game_file_loader, path), "generic icon does not exist: {path}");
         }
     }
