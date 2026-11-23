@@ -11,7 +11,15 @@ The facts come from `tools/extract_skill_sounds.py`
 (`tools/windows_client_skill_sounds.json`). This generator walks the official
 effect layers of every skill in play priority order (success, ground, cast,
 release, hit, caster), resolves the effect table `wav` names against the CondaRO
-GRF archives and writes the first existing candidates:
+GRF archives and writes the first existing candidates.
+
+The hand-curated overrides of `tools/skill_sounds_custom.ron` (classic client
+behaviour that the official effect table does not carry, plus the generic cast
+fallback) are merged into the same file as separate `curated`/`generic`
+sections, so the runtime precedence stays exactly what it was when the table was
+a Rust constant: curated -> per-layer `wav` -> official generated -> generic.
+
+Output:
 
     korangar/archive/data/client/skill_sounds.ron
 
@@ -26,6 +34,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import re
 import struct
@@ -35,7 +44,9 @@ from pathlib import Path
 
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_FACTS = Path("tools/windows_client_skill_sounds.json")
+DEFAULT_CUSTOM = Path("tools/skill_sounds_custom.ron")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sounds.ron")
+SCRIPT_DIR = Path(__file__).resolve().parent
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 WAV_PREFIX = "data\\wav\\"
 GRF_HEADER_SIZE = 46
@@ -141,7 +152,74 @@ def build_rows(facts: dict[int, list[dict]], wavs: dict[str, str]) -> list[tuple
     return rows
 
 
-def render(rows: list[tuple[int, list[str]]], provenance: dict) -> str:
+def load_ron_helpers():
+    """Reuse the minimal RON reader of the skill effect generator."""
+    spec = importlib.util.spec_from_file_location("gen_skill_effects", SCRIPT_DIR / "gen_skill_effects.py")
+    if spec is None or spec.loader is None:
+        raise SystemExit("cannot load tools/gen_skill_effects.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_custom(path: Path) -> tuple[list[tuple[int, list[str]]], list[str], str]:
+    """Read the curated sound overrides and the generic cast fallback."""
+    if not path.is_file():
+        raise SystemExit(f"missing custom skill sound data: {path}")
+    ron = load_ron_helpers()
+    document = ron.read_ron(path)
+    if not isinstance(document, dict):
+        raise SystemExit(f"{path}: top level value is not a map")
+
+    provenance = document.get("provenance")
+    if not isinstance(provenance, str) or not provenance:
+        raise SystemExit(f"{path}: missing provenance")
+
+    def wav_files(value: object, context: str) -> list[str]:
+        if not isinstance(value, list) or not value:
+            raise SystemExit(f"{path}: {context} has no wav files")
+        files = []
+        for entry in value:
+            if not isinstance(entry, str) or not entry.lower().endswith(".wav"):
+                raise SystemExit(f"{path}: {context}: not a .wav path: {entry!r}")
+            files.append(entry)
+        return files
+
+    generic = wav_files(document.get("generic"), "generic")
+    rows: list[tuple[int, list[str]]] = []
+    seen: set[int] = set()
+    for row in document.get("sounds") or []:
+        if not isinstance(row, dict):
+            raise SystemExit(f"{path}: sound row is not a map: {row!r}")
+        skill = row.get("skill")
+        if not isinstance(skill, int) or isinstance(skill, bool) or skill <= 0:
+            raise SystemExit(f"{path}: invalid skill id: {skill!r}")
+        if skill in seen:
+            raise SystemExit(f"{path}: duplicate curated sound for skill {skill}")
+        seen.add(skill)
+        rows.append((skill, wav_files(row.get("files"), f"skill {skill}")))
+    if not rows:
+        raise SystemExit(f"{path}: no curated sounds")
+    rows.sort(key=lambda row: row[0])
+    return rows, generic, provenance
+
+
+def escape(text: str) -> str:
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def ron_string(text: str) -> str:
+    """Quote a wav path for RON (backslashes are doubled)."""
+    return '"' + text.replace(chr(92), chr(92) * 2) + '"'
+
+
+def render(
+    rows: list[tuple[int, list[str]]],
+    provenance: dict,
+    curated: list[tuple[int, list[str]]],
+    generic: list[str],
+    custom_provenance: str,
+) -> str:
     lines = [
         "// Official skill -> cast sound mapping for the client.",
         "//",
@@ -152,20 +230,35 @@ def render(rows: list[tuple[int, list[str]]], provenance: dict) -> str:
         "// Facts extracted from the official client's effect table",
         "// (`tools/windows_client_skill_sounds.json`, roBrowserLegacy RE dump of the",
         "// Windows client tables); every wav is validated against the CondaRO GRFs.",
+        "// The curated section comes from `tools/skill_sounds_custom.ron`.",
         "//",
         "// Format: (skill id, wav files). Paths are relative to `data\\wav\\`; the",
         "// first existing file is played (see `korangar/src/world/skill_sound.rs`).",
-        "// Skills without an entry play the generic cast sound.",
+        "// Play priority: `curated` -> the per-layer `wav` of `skill_effects.ron` ->",
+        "// `sounds` -> `generic`.",
         "//",
         "// The file is loaded at runtime through the normal client file loader, so a",
         "// server can override it without rebuilding the client; the compiled Rust",
-        "// table is only the fallback for missing files.",
+        "// copy is only the fallback for missing files.",
         "(",
         f'    provenance: "{provenance["source"]}",',
-        "    sounds: [",
+        "    // Generic cast fallback for skills without any mapping.",
+        "    generic: [",
     ]
+    for file in generic:
+        lines.append(f"        {ron_string(file)},")
+    lines.append("    ],")
+    lines.append("    // Hand-curated overrides of `tools/skill_sounds_custom.ron`.")
+    lines.append(f"    // {custom_provenance}")
+    lines.append("    curated: [")
+    for skill_id, files in curated:
+        rendered = ", ".join(ron_string(file) for file in files)
+        lines.append(f"        (skill: {skill_id}, files: [{rendered}]),")
+    lines.append("    ],")
+    lines.append("    // Official per-skill sounds generated from the effect table.")
+    lines.append("    sounds: [")
     for skill_id, files in rows:
-        rendered = ", ".join(f'"{file.replace(chr(92), chr(92) * 2)}"' for file in files)
+        rendered = ", ".join(ron_string(file) for file in files)
         lines.append(f"        (skill: {skill_id}, files: [{rendered}]),")
     lines.extend(["    ],", ")", ""])
     return "\n".join(lines)
@@ -176,8 +269,14 @@ def main() -> int:
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is out of date")
     parser.add_argument("--game-dir", default=DEFAULT_GAME_DIR)
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
+    parser.add_argument("--custom", default=str(DEFAULT_CUSTOM), help="hand-curated sound overrides")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
+
+    # The curated overrides do not need game data; validate them first so a bad
+    # custom file fails even when the archives are unavailable.
+    curated, generic, custom_provenance = load_custom(Path(args.custom))
+    curated_skills = {skill for skill, _ in curated}
 
     game_dir = Path(args.game_dir)
     if not game_dir.is_dir():
@@ -192,8 +291,11 @@ def main() -> int:
     rows = build_rows(facts, wavs)
     if not rows:
         raise SystemExit("no official skill sounds resolved against the archives")
+    # The curated rows are emitted in their own section (they win over the
+    # per-layer wav and the official table), so keep one row per skill.
+    rows = [(skill, files) for skill, files in rows if skill not in curated_skills]
 
-    content = render(rows, payload["provenance"])
+    content = render(rows, payload["provenance"], curated, generic, custom_provenance)
     output = Path(args.output)
 
     if args.check:
@@ -201,12 +303,12 @@ def main() -> int:
         if current != content:
             print(f"error: {output} is out of date; run ./tools/gen_skill_sounds.py", file=sys.stderr)
             return 1
-        print(f"{output} is up to date ({len(rows)} skills)")
+        print(f"{output} is up to date ({len(curated)} curated + {len(rows)} official skills)")
         return 0
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content)
-    print(f"{output}: {len(rows)} skills with an official sound")
+    print(f"{output}: {len(curated)} curated + {len(rows)} official skills with a sound")
     return 0
 
 

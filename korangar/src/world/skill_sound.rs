@@ -1,8 +1,11 @@
 //! Playing of map sound effects (`ZC_SOUND`, 0x01D3) and skill sounds.
 //!
 //! The 2019 map server does not send a sound packet for most ambient /
-//! self-buff casts, so this module additionally has a small skill → wav table
-//! that is triggered from the skill cast handlers.
+//! self-buff casts, so this module additionally plays the skill -> wav mapping
+//! of `data\client\skill_sounds.ron` (loaded by
+//! [`crate::world::library::skill_sounds`]) from the skill cast handlers. The
+//! old hand-curated Rust table is gone: the curated rows live in
+//! `tools/skill_sounds_custom.ron` and are merged into that data file.
 //!
 //! ## Sound lanes
 //!
@@ -47,50 +50,6 @@ const MAX_SOUND_LANES: usize = 256;
 /// launcher). Keep in sync with `korangar_audio`'s environment variable.
 const MUTE_AUDIO_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MUTE_AUDIO";
 
-/// Skills that make no sound on this 2019 server, with the sound files that
-/// should be played for them.
-///
-/// Every file was verified to exist in the CondaRO `data.grf` (see the unit
-/// tests); at runtime the first existing candidate is used, so a missing file
-/// is never played. If a skill is not listed here, [GENERIC_CAST_SOUND] is
-/// used.
-pub const SKILL_SOUNDS: &[(u16, &[&str])] = &[
-    // BS_HAMMERFALL (skill id 110; id 5 is SM_BASH, a plain attack skill that
-    // must keep its own hit sound). The official `EffectTable[102]` entry of
-    // `SkillEffect[SK.BS_HAMMERFALL]` carries `wav: effect/black_hammerfall`,
-    // so the sound lives in `data\wav\effect\`. The old entry pointed at a
-    // root-level duplicate (`data\wav\black_hammerfall.wav`), which is not
-    // the path the official client uses.
-    (110, &["effect\\black_hammerfall.wav"]),
-    // AL_WARP: the official Warp Portal sound is the portal-opening effect
-    // (`effect/ef_readyportal`, carried by `EF_READYPORTAL2`/`EF_PORTAL2`, the
-    // skill unit effects `UNT_PRE_WARPPORTAL`/`UNT_WARPPORTAL` are mapped to).
-    // `effect/warp.wav` is the map-warp/teleport-away sound and was wrong for
-    // the cast; `ef_portal` is the entry/warp-away sound as a fallback.
-    (27, &["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
-    // AL_INCAGI
-    (29, &["effect\\ef_incagility.wav"]),
-    // AL_ANGELUS
-    (33, &["effect\\ef_angelus.wav"]),
-    // AL_BLESSING (classic effect sound; spirit handler as a fallback)
-    (34, &[
-        "effect\\ef_blessing.wav",
-        "effect\\spirit_handler\\sh_blessing_of_mystical_creatures.wav",
-    ]),
-    // AC_CONCENTRATION
-    (45, &["effect\\ac_concentration.wav"]),
-];
-
-/// Generic cast sound for skills that are not part of [SKILL_SOUNDS].
-pub const GENERIC_CAST_SOUND: &[&str] = &["effect\\ef_beginspell.wav", "effect\\em_spell_enchanting.wav"];
-
-/// Window after the cast-start packet in which the completion/damage packet of
-/// the same skill use still counts as "this cast" (milliseconds).
-///
-/// Instant skills acknowledge the cast and then send their completion packet
-/// (`ZC_USE_SKILL`) or damage packet a moment later; a delayed damage packet
-/// (attack motion) can arrive a few hundred milliseconds after the
-/// acknowledgement.
 const CAST_SOUND_PENDING_MS: u32 = 2_000;
 /// Window in which a second completion packet is treated as a duplicate of the
 /// sound that already played for this cast (milliseconds).
@@ -283,7 +242,7 @@ impl SkillSoundPlayer {
     /// the per-layer `wav` of the unified skill effect descriptors of
     /// `phase` comes before the generated per-skill table (so the official
     /// effect sound wins for the phase it belongs to; the hand-curated
-    /// [`SKILL_SOUNDS`] entries still override everything).
+    /// `curated` entries of the sound data file still override everything).
     pub fn play_skill_sound_for_phase(
         &self,
         skill_id: SkillId,
@@ -468,12 +427,13 @@ impl SkillSoundPlayer {
 
 /// Returns the wav candidates of `skill_id` for one spawn phase.
 ///
-/// 1. the hand-curated, verified entries of [SKILL_SOUNDS],
+/// 1. the hand-curated, verified `curated` rows of the sound data file,
 /// 2. the `wav` of the unified skill effect descriptor layers of the phase,
-/// 3. the official per-skill sound of `archive/data/client/skill_sounds.ron`,
+/// 3. the official per-skill `sounds` table of
+///    `archive/data/client/skill_sounds.ron`,
 /// 4. the generic cast sound.
 pub(crate) fn skill_sound_candidates_for(skill_id: SkillId, phase: crate::world::SkillPhase) -> &'static [&'static str] {
-    if let Some((_, candidates)) = SKILL_SOUNDS.iter().find(|(id, _)| SkillId(*id) == skill_id) {
+    if let Some(candidates) = crate::world::curated_skill_sound_files(skill_id) {
         return candidates;
     }
 
@@ -482,7 +442,7 @@ pub(crate) fn skill_sound_candidates_for(skill_id: SkillId, phase: crate::world:
         return effect_sounds;
     }
 
-    crate::world::skill_sound_files(skill_id).unwrap_or(GENERIC_CAST_SOUND)
+    crate::world::skill_sound_files(skill_id).unwrap_or_else(crate::world::generic_cast_sound_files)
 }
 
 /// Normalizes a `ZC_SOUND` name to the path that the audio engine expects
@@ -529,8 +489,12 @@ mod tests {
 
     use super::*;
 
-    /// Checks that every sound file in [SKILL_SOUNDS] / [GENERIC_CAST_SOUND]
-    /// exists in the game archives.
+    /// The hand-curated skills of `tools/skill_sounds_custom.ron` (now the
+    /// `curated` section of the sound data file).
+    const CURATED_SKILLS: [u16; 6] = [110, 27, 29, 33, 34, 45];
+
+    /// Checks that every sound file of the curated rows and the generic cast
+    /// fallback exists in the game archives.
     ///
     /// This needs the CondaRO game archives (symlinked into the runtime
     /// directory) and is skipped when they are not available.
@@ -544,7 +508,9 @@ mod tests {
         game_file_loader.load_archives_from_settings();
         let player = SkillSoundPlayer::new_muted_for_tests(Arc::new(game_file_loader));
 
-        for (skill_id, candidates) in SKILL_SOUNDS {
+        for skill_id in CURATED_SKILLS {
+            let candidates = crate::world::curated_skill_sound_files(SkillId(skill_id))
+                .unwrap_or_else(|| panic!("skill {skill_id} has no curated sound mapping"));
             let candidate = candidates
                 .iter()
                 .find(|candidate| player.wav_exists(candidate))
@@ -552,7 +518,7 @@ mod tests {
             println!("skill {skill_id} -> {candidate}");
         }
 
-        for candidate in GENERIC_CAST_SOUND {
+        for candidate in crate::world::generic_cast_sound_files() {
             assert!(player.wav_exists(candidate), "generic cast sound is missing: {candidate}");
         }
     }
@@ -572,9 +538,9 @@ mod tests {
 
         let position = Some(Point3::new(150.0, 5.0, 87.5));
 
-        for (skill_id, _) in SKILL_SOUNDS {
+        for skill_id in CURATED_SKILLS {
             player.play_skill_sound_for_phase(
-                SkillId(*skill_id),
+                SkillId(skill_id),
                 crate::world::SkillPhase::Success,
                 Some(EntityId(42)),
                 position,
@@ -610,7 +576,7 @@ mod tests {
         // Unknown skills fall back to the generic cast sound.
         assert_eq!(
             skill_sound_candidates_for(SkillId(65_500), crate::world::SkillPhase::Success),
-            GENERIC_CAST_SOUND
+            crate::world::generic_cast_sound_files()
         );
     }
 
@@ -647,12 +613,19 @@ mod tests {
     }
 
     #[test]
-    fn required_skills_are_in_the_sound_table() {
+    fn curated_skills_are_in_the_sound_data() {
         // Skill id 5 is `SM_BASH` (plain attack), only 110 is `BS_HAMMERFALL`.
-        for skill_id in [110, 27, 29, 33, 34, 45] {
+        for skill_id in CURATED_SKILLS {
             assert!(
-                SKILL_SOUNDS.iter().any(|(id, _)| *id == skill_id),
-                "skill {skill_id} has no sound mapping"
+                crate::world::curated_skill_sound_files(SkillId(skill_id)).is_some(),
+                "skill {skill_id} has no curated sound mapping"
+            );
+        }
+        // The curated rows are not duplicated into the generated table.
+        for skill_id in CURATED_SKILLS {
+            assert!(
+                crate::world::skill_sound_files(SkillId(skill_id)).is_none(),
+                "skill {skill_id} must not appear in the generated table too"
             );
         }
     }

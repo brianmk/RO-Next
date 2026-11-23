@@ -1,0 +1,109 @@
+// Hand-written skill behaviour and procedural layer data.
+//
+// This is an **input** of `tools/gen_skills.py`; the client never loads it
+// directly. The generator renders the canonical runtime data file
+// `korangar/archive/data/client/skills.ron` from it (and `korangar
+// --check-skills` validates that file, including an archive override).
+//
+// The unified visual pipeline (`skill_effects.ron`) describes what a skill
+// *looks like*; this file describes the skill *behaviour* and the procedural
+// layers that the official effect tables cannot express:
+//
+//   behaviour     channeling         cast through the channeling protocol path
+//                                    (start/stop packets) instead of a single cast
+//                 warp_target        show a provisional warp portal at the target
+//                                    cell while the server waits for ZC_WARPLIST
+//                 move_while_casting the learned skill grants movement while a
+//                                    cast is running (the job also has to carry
+//                                    the `move_while_casting` capability in
+//                                    `jobs.ron`; both flags have to hold)
+//   clouds        procedural Storm Gust cloud layer (official client draws it
+//                 from cloud1..7.tga, no .str/.spr asset exists for it)
+//   cast_circle   ground cast circle textures/geometry (drawn while a cast runs)
+//   warp_portal   map connection warp and flat skill-unit warp portal textures
+//   level_aura    level-99/level-up aura textures (procedural ground/bubble aura)
+//
+// Every field is validated by the Rust loader
+// (`korangar/src/world/skills.rs`, `deny_unknown_fields`); the committed
+// archive file is the single runtime source, compiled in with `include_str!`
+// as the fallback and overridable by a server inside its client archive.
+//
+// Provenance: the behaviour flags preserve the previously hard-coded client
+// behaviour verbatim (Rolling Cutter 2036 channeling, Warp Portal 27
+// provisional portal, Free Cast 278 move-while-casting); the procedural values
+// are the previously hard-coded constants of `storm_cloud.rs`,
+// `cast_circle.rs`, `warp.rs` and `aura.rs` (same values, now data).
+(
+    provenance: "Hand-curated skill behaviour and procedural effect data: Rolling Cutter channeling (2036), Warp Portal provisional portal (27), Free Cast move-while-casting (278), Storm Gust procedural cloud (87/89), cast-circle, warp-portal and level-aura textures/geometry migrated from the hard-coded client constants",
+    behaviours: [
+        // AL_WARP (27): the server asks the caster for the destination
+        // (ZC_WARPLIST) before it creates the portal skill units. The client
+        // shows a provisional blue ground portal at the target cell until the
+        // `AddSkillUnit` packet replaces it.
+        (skill: 27, warp_target: true),
+
+        // SA_FREECAST (278): the Sage/Scholar/Professor passive that allows
+        // movement while casting. The skill flag only grants it on jobs that
+        // carry the `move_while_casting` capability in `jobs.ron`
+        // (Sage 16 / Professor 4017).
+        (skill: 278, move_while_casting: true),
+
+        // Rolling Cutter (2036): a channelling skill. Casting uses the
+        // channeling protocol path (`cast_channeling_skill`) and the skill can
+        // be stopped early (`stop_channeling_skill`).
+        (skill: 2036, channeling: true),
+    ],
+    clouds: [
+        // Storm Gust: the snow field is the official `stormgust.str`; the dark
+        // cloud above the area is the official client's hard-coded 3D effect
+        // made of `cloud1.tga` .. `cloud7.tga`. The client reproduces it
+        // procedurally with `count` slowly swirling camera-facing billboards.
+        (skills: [87, 89], phase: Success, textures: [
+            "effect\\cloud1.tga",
+            "effect\\cloud2.tga",
+            "effect\\cloud3.tga",
+            "effect\\cloud4.tga",
+            "effect\\cloud5.tga",
+            "effect\\cloud6.tga",
+            "effect\\cloud7.tga",
+        ], count: 18, radius: 22.0, base_height: 10.0, height_variation: 8.0, size_min: 16.0, size_variation: 16.0, spin_min: 0.15, spin_variation: 0.35, alpha: 0.55, color: (0.45, 0.48, 0.58), duration_ms: 3000, fade_in_ms: 250, fade_out_ms: 700),
+    ],
+    // Ground cast circle of a cast-time skill: `ring_liner.tga` is the ring,
+    // `alpha_down.tga` the soft glow; the two rings counter-rotate.
+    cast_circle: (
+        ring_texture: "effect\\ring_liner.tga",
+        glow_texture: "effect\\alpha_down.tga",
+        radius: 7.0,
+        height: 0.2,
+        ring_rotation_speed: 1.6,
+        inner_ring_rotation_speed: -2.3,
+        inner_ring_scale: 0.62,
+        glow_scale: 1.15,
+    ),
+    // Map connection warp (`JT_WARPNPC`) and the flat skill-unit warp portal
+    // (AL_WARP). The official client draws both procedurally from these
+    // textures instead of a sprite.
+    warp_portal: (
+        streak_texture: "effect\\ring_blue.tga",
+        gradient_texture: "effect\\alpha_down.tga",
+        particle_sprite: "이팩트\\particle1.spr",
+        skill_radius: 8.0,
+        skill_height: 0.2,
+        skill_ring_count: 2,
+    ),
+    // Level-99 / level-up aura (`aura.rs`): ground rings, glow sprites and the
+    // camera-facing `whitelight.tga` bubbles / `pikapika2.bmp` sparkles.
+    level_aura: (
+        ring_liner_texture: "effect\\ring_liner.tga",
+        ring_blue_texture: "effect\\ring_blue.tga",
+        ring_red_texture: "effect\\ring_red.tga",
+        bubble_texture: "effect\\whitelight.tga",
+        glow_textures: [
+            "effect\\glow01.bmp",
+            "effect\\glow02.bmp",
+            "effect\\glow03.bmp",
+            "effect\\glow04.bmp",
+        ],
+        sparkle_texture: "effect\\pikapika2.bmp",
+    ),
+)

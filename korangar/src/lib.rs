@@ -185,20 +185,11 @@ impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
 }
 
 const CLIENT_NAME: &str = "RO-Next";
-const ROLLING_CUTTER_ID: SkillId = SkillId(2036);
 /// Minimum duration of the skill-cast animation for casts without a usable cast
 /// time, so that they are still visible.
 /// Duration of the one-shot attack/pickup animation for instant skills, where
 /// the server sends no attack motion (the official client uses a 400 ms hold).
 const INSTANT_SKILL_ANIMATION_MS: u32 = 400;
-/// Skill id of the Sage/Scholar/Professor `Free Cast` passive (`SA_FREECAST`),
-/// which allows movement while casting.
-const FREE_CAST_SKILL_ID: SkillId = SkillId(278);
-/// Job ids that can learn `Free Cast`: Sage and its rebirth class (called
-/// Scholar or Professor depending on the game version).
-const FREE_CAST_JOB_IDS: [u16; 2] = [16, 4017];
-/// De-duplication phase of the procedural Storm Gust cloud.
-const STORM_CLOUD_PHASE: u8 = u8::MAX - 1;
 const DEFAULT_MAP: &str = "geffen";
 const START_CAMERA_FOCUS_POINT: Point3<f32> = Point3::new(600.0, 0.0, 240.0);
 /// Background music that is played while the client is *not* inside a map:
@@ -691,6 +682,22 @@ pub fn check_jobs(path: Option<&std::path::Path>) -> Result<usize, String> {
             crate::world::jobs::validate(&content).map_err(|error| format!("{}: {error}", path.display()))
         }
         None => crate::world::jobs::validate_compiled().map_err(|error| format!("compiled fallback: {error}")),
+    }
+}
+
+/// Validates the data-driven skill behaviour and procedural effect data
+/// (`archive/data/client/skills.ron`) and returns the row counts.
+///
+/// `path` selects a concrete data file (for example an archive override);
+/// without a path the compiled fallback is validated. The client binary
+/// exposes it as `korangar --check-skills [PATH]`.
+pub fn check_skills(path: Option<&std::path::Path>) -> Result<crate::world::SkillsSummary, String> {
+    match path {
+        Some(path) => {
+            let content = std::fs::read_to_string(path).map_err(|error| format!("failed to read {}: {error}", path.display()))?;
+            crate::world::validate_skill_data(&content).map_err(|error| format!("{}: {error}", path.display()))
+        }
+        None => crate::world::validate_compiled_skills().map_err(|error| format!("compiled fallback: {error}")),
     }
 }
 
@@ -2548,11 +2555,14 @@ impl Client {
     /// Draws the ground cast circle below an entity for `duration_ms`.
     fn spawn_cast_circle(&mut self, entity_id: EntityId, color: Color, duration_ms: u32) {
         let center = EffectCenter::Entity(entity_id, Point3::new(0.0, 0.0, 0.0));
+        // Textures, radius and ring animation come from `skills.ron`
+        // (`cast_circle` section).
+        let cast_circle = crate::world::skills::cast_circle();
 
         let Some(circle) = CastCircle::new(
             &self.texture_loader,
             center,
-            CAST_CIRCLE_RADIUS,
+            cast_circle.radius,
             color,
             (duration_ms as f32 / 1000.0).max(0.2),
         ) else {
@@ -2626,17 +2636,19 @@ impl Client {
             );
         }
 
-        // Storm Gust's snow is a `.str` file, but the dark storm cloud above the
-        // cell is a hard-coded official client effect (cloud1..7.tga), so it is
-        // reproduced procedurally once per cast.
-        if matches!(skill_id.0, 87 | 89)
-            && let (SkillPhase::Success, Some(world_position)) = (phase, target_position)
+        // Procedural cloud layers the official effect table cannot express
+        // (Storm Gust's dark cloud above the cell, built from cloud1..7.tga):
+        // the skill/phase/texture/timing rows live in `skills.ron` and are
+        // claimed once per cast.
+        if let Some(cloud_spec) = crate::world::skills::cloud(skill_id)
+            && phase == cloud_spec.phase
+            && let Some(world_position) = target_position
             && self
                 .skill_completion_tracker
-                .claim(source_entity_id, skill_id, STORM_CLOUD_PHASE, client_tick)
-            && let Some(cloud) = StormCloud::new(&self.texture_loader, world_position)
+                .claim(source_entity_id, skill_id, crate::world::CLOUD_DEDUP_PHASE, client_tick)
+            && let Some(cloud) = StormCloud::new(&self.texture_loader, world_position, cloud_spec)
         {
-            crate::logging::log_debug!("skill effect: spawned procedural storm cloud for skill {}", skill_id.0);
+            crate::logging::log_debug!("skill effect: spawned procedural cloud for skill {}", skill_id.0);
             self.effect_holder.add_unit(Box::new(cloud), source_entity_id);
         }
     }
@@ -3110,8 +3122,9 @@ impl Client {
         }
 
         // Sage/Scholar/Professor with the `Free Cast` passive can move while
-        // casting. Unknown jobs default to "blocked".
-        if has_free_cast(
+        // casting (skill flag + job capability, both data). Unknown jobs
+        // default to "blocked".
+        if can_move_while_casting(
             player.get_job_id(),
             self.client_state.follow(client_state().skill_tree().skills()),
         ) {
@@ -3733,7 +3746,7 @@ impl Client {
                     // `AddSkillUnit` packet replaces it (same cell) when the warp
                     // opens. This keeps the portal visible even when the warp
                     // destination menu cannot be answered.
-                    if skill_id.0 == 27
+                    if crate::world::skills::has_warp_target(skill_id)
                         && let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position))
                     {
                         let now = Instant::now();
@@ -6151,18 +6164,7 @@ impl Client {
 
         match skill_type {
             SkillType::Passive => self.push_chat_information(format!("Skill {} is a passive skill and cannot be cast.", skill_id.0)),
-            SkillType::SelfCast => {
-                let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
-
-                match skill_id == ROLLING_CUTTER_ID {
-                    true => {
-                        let _ = self.networking_system.cast_channeling_skill(skill_id, level, entity_id);
-                    }
-                    false => {
-                        let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
-                    }
-                }
-            }
+            SkillType::SelfCast => self.cast_self_skill(skill_id, level),
             skill_type => self.interface.set_mouse_mode(MouseMode::Custom {
                 mode: MouseInputMode::TargetSkill {
                     slot,
@@ -6171,6 +6173,21 @@ impl Client {
                     level,
                 },
             }),
+        }
+    }
+
+    /// Casts a self-cast skill at the local player.
+    ///
+    /// Channeling skills (Rolling Cutter 2036; data flag in `skills.ron`) use
+    /// the channeling packet path, every other self cast uses the ordinary
+    /// cast packet. The skill id list is data, not a branch at the call site.
+    fn cast_self_skill(&mut self, skill_id: SkillId, level: SkillLevel) {
+        let entity_id = self.client_state.follow(this_entity().manually_asserted()).get_entity_id();
+
+        if crate::world::skills::channels(skill_id) {
+            let _ = self.networking_system.cast_channeling_skill(skill_id, level, entity_id);
+        } else {
+            let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
         }
     }
 
@@ -7253,22 +7270,7 @@ impl Client {
                                     self.push_chat_information(format!("Skill {}: click a cell on the ground to cast it.", skill_id.0));
                                 }
                             }
-                            SkillType::SelfCast => match skill_id == ROLLING_CUTTER_ID {
-                                true => {
-                                    let _ = self.networking_system.cast_channeling_skill(
-                                        skill_id,
-                                        level,
-                                        self.client_state.follow(this_entity().manually_asserted()).get_entity_id(),
-                                    );
-                                }
-                                false => {
-                                    let _ = self.networking_system.cast_skill(
-                                        skill_id,
-                                        level,
-                                        self.client_state.follow(this_entity().manually_asserted()).get_entity_id(),
-                                    );
-                                }
-                            },
+                            SkillType::SelfCast => self.cast_self_skill(skill_id, level),
                             SkillType::Support => {
                                 if let PickerTarget::Entity(entity_id) = input_report.mouse_target {
                                     if let Some(map) = &self.map {
@@ -7332,7 +7334,7 @@ impl Client {
                 }
                 InputEvent::StopSkill { slot } => {
                     if let Some(skill) = self.client_state.follow(client_state().hotbar()).get_skill_in_slot(slot).as_ref()
-                        && skill.skill_id == ROLLING_CUTTER_ID
+                        && crate::world::skills::channels(skill.skill_id)
                     {
                         let _ = self.networking_system.stop_channeling_skill(skill.skill_id);
                     }
@@ -10530,11 +10532,16 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
 /// Whether the given job may move while casting because of the Sage/Scholar/
 /// Professor `Free Cast` passive.
 ///
-/// The passive only works when the job can learn it (Sage 16 / Professor 4017)
-/// *and* the skill is actually learned; an unknown job or an unknown skill list
-/// therefore defaults to "rooted", which is the safe behaviour.
-fn has_free_cast(job_id: JobId, skills: &[LearnedSkill]) -> bool {
-    FREE_CAST_JOB_IDS.contains(&job_id.0) && skills.iter().any(|skill| skill.skill_id == FREE_CAST_SKILL_ID)
+/// Both sides are data: the learned skill has to carry the
+/// `move_while_casting` behaviour flag (`skills.ron`, Free Cast 278) and the
+/// job has to carry the `move_while_casting` capability (`jobs.ron`, Sage 16 /
+/// Professor 4017). A passive that a job cannot learn therefore never applies,
+/// and an unknown job or skill list defaults to "rooted" (the safe behaviour).
+fn can_move_while_casting(job_id: JobId, skills: &[LearnedSkill]) -> bool {
+    crate::world::jobs::can_move_while_casting(job_id)
+        && skills
+            .iter()
+            .any(|skill| crate::world::skills::grants_move_while_casting(skill.skill_id))
 }
 
 /// Requests the equipped weapon animation layer for `entity` through the
@@ -10572,7 +10579,7 @@ mod tests {
     use ragnarok_bytes::{ByteWriter, ToBytes};
     use ragnarok_packets::{AmmunitionActionType, AttackRange, BuyItemResult, JobId, SkillId, SkillLevel, SkillType};
 
-    use super::{ammunition_action_code, buy_item_result_code, has_free_cast, is_same_map_teleport};
+    use super::{ammunition_action_code, buy_item_result_code, can_move_while_casting, is_same_map_teleport};
     use crate::state::lifecycle::SessionState;
     use crate::state::skills::LearnedSkill;
 
@@ -10589,24 +10596,28 @@ mod tests {
     }
 
     #[test]
-    fn free_cast_requires_the_sage_jobs_and_the_learned_skill() {
-        // Sage with the passive learned.
-        assert!(has_free_cast(JobId(16), &[learned(278)]));
+    fn free_cast_requires_the_data_driven_skill_flag_and_job_capability() {
+        // Sage with the passive learned (skills.ron `move_while_casting` flag
+        // + jobs.ron `move_while_casting` capability).
+        assert!(can_move_while_casting(JobId(16), &[learned(278)]));
         // Professor (rebirth Sage) with the passive learned.
-        assert!(has_free_cast(JobId(4017), &[learned(278)]));
+        assert!(can_move_while_casting(JobId(4017), &[learned(278)]));
 
         // Non-Sage jobs are never allowed, even with the skill in the list.
-        assert!(!has_free_cast(JobId(8), &[learned(278)]));
-        assert!(!has_free_cast(JobId(0), &[learned(278)]));
+        assert!(!can_move_while_casting(JobId(8), &[learned(278)]));
+        assert!(!can_move_while_casting(JobId(0), &[learned(278)]));
 
         // Sage without the passive is rooted.
-        assert!(!has_free_cast(JobId(16), &[]));
-        assert!(!has_free_cast(JobId(16), &[learned(28), learned(34)]));
+        assert!(!can_move_while_casting(JobId(16), &[]));
+        assert!(!can_move_while_casting(JobId(16), &[learned(28), learned(34)]));
     }
 
     #[test]
     fn unknown_jobs_default_to_rooted() {
-        assert!(!has_free_cast(JobId(9999), &[learned(278)]));
+        assert!(!can_move_while_casting(JobId(9999), &[learned(278)]));
+        // The behaviour is a data lookup, not a skill-id branch: an unknown
+        // skill never grants it.
+        assert!(!can_move_while_casting(JobId(16), &[learned(65_500)]));
     }
 
     #[test]
@@ -10634,6 +10645,36 @@ mod tests {
     fn job_registry_check_reports_a_missing_file() {
         let path = std::path::Path::new("/nonexistent/korangar/jobs.ron");
         let error = super::check_jobs(Some(path)).expect_err("a missing file must be rejected");
+        assert!(error.contains("failed to read"), "{error}");
+    }
+
+    #[test]
+    fn skill_behaviour_data_is_valid() {
+        let summary = super::check_skills(None).expect("the committed skill data has to be valid");
+        assert_eq!(summary.behaviours, 3, "Rolling Cutter, Warp Portal and Free Cast");
+        assert_eq!(summary.clouds, 2, "the cloud row covers both Storm Gust ids");
+        assert!(crate::world::skills::channels(SkillId(2036)));
+        assert!(crate::world::skills::has_warp_target(SkillId(27)));
+        assert!(crate::world::skills::grants_move_while_casting(SkillId(278)));
+    }
+
+    #[test]
+    fn skill_behaviour_check_rejects_malformed_data() {
+        let directory = std::env::temp_dir();
+        let path = directory.join(format!("korangar-skills-check-{}.ron", std::process::id()));
+        std::fs::write(&path, "(behaviours: [)").expect("failed to write the malformed fixture");
+
+        let result = super::check_skills(Some(&path));
+        let _ = std::fs::remove_file(&path);
+
+        let error = result.expect_err("malformed data must be rejected");
+        assert!(error.contains("schema error"), "{error}");
+    }
+
+    #[test]
+    fn skill_behaviour_check_reports_a_missing_file() {
+        let path = std::path::Path::new("/nonexistent/korangar/skills.ron");
+        let error = super::check_skills(Some(path)).expect_err("a missing file must be rejected");
         assert!(error.contains("failed to read"), "{error}");
     }
 

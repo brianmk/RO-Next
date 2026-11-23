@@ -56,6 +56,15 @@ SEX_SUFFIX = {"male": "남", "female": "여"}
 #: `JT_HIDDEN_WARP_NPC`); the entity type ranges mirror the classic client
 #: classification (`pcdb_checkid_sub` in rAthena's `pc.hpp` for the player
 #: range).
+#: Job capabilities that are not appearance flags. The skill that grants a
+#: capability is declared in `data\client\skills.ron` (the skill's
+#: `move_while_casting` behaviour flag); a job only gets the capability when its
+#: rAthena skill tree contains that skill. `SA_FREECAST` (278) is the
+#: Sage/Scholar/Professor `Free Cast` passive and is learned by Sage (16) and
+#: its rebirth class Professor (4017) only. This is the client-visible
+#: behaviour of the old hard-coded `FREE_CAST_JOB_IDS = [16, 4017]`, now data.
+MOVE_WHILE_CASTING_JOBS = (16, 4017)
+
 ENTITY_TYPE_RANGES = {
     "player_ranges": [(0, 44), (4000, 5999)],
     "npc_ranges": [(46, 999), (10000, 19999)],
@@ -208,9 +217,18 @@ def build(facts: dict) -> dict:
     if problems:
         raise SystemExit("facts are inconsistent:\n  " + "\n  ".join(problems))
 
+    # Job capabilities are curated (the client cannot derive them from the
+    # appearance data); every referenced id has to be a real job row.
+    capabilities = {"move_while_casting": sorted(set(MOVE_WHILE_CASTING_JOBS))}
+    rows_by_id = {row["id"] for row in rows}
+    for job_id in capabilities["move_while_casting"]:
+        if job_id not in rows_by_id:
+            raise SystemExit(f"error: move_while_casting capability references unknown job {job_id}")
+
     return {
         "provenance": facts["provenance"],
         "jobs": rows,
+        "capabilities": capabilities,
         "appearance": appearance,
         "special": special,
         "entity_type_ranges": ENTITY_TYPE_RANGES,
@@ -312,6 +330,12 @@ def render(data: dict) -> str:
         ranges = ", ".join(ron_range(start, end) for start, end in data["entity_type_ranges"][key])
         add(f"        {key}: [{ranges}],")
     add(f"        default: {data['entity_type_ranges']['default']},")
+    add("    ),")
+    add("    // Job capabilities that are not appearance flags. The granting skill is")
+    add("    // declared in `skills.ron` (`move_while_casting`); the job and the learned")
+    add("    // skill both have to hold for the capability to apply.")
+    add("    capabilities: (")
+    add(f"        move_while_casting: {json.dumps(data['capabilities']['move_while_casting'])},")
     add("    ),")
     add("    // Headgear view ids whose accessory sprite is not part of this data set.")
     add("    // The client creates the headgear part only when the sprite exists, so these")

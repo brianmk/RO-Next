@@ -115,18 +115,9 @@ const BUBBLE_RESET_Y: f32 = -30.0;
 const BUBBLE_ALPHA_OFFSET: f32 = 20.0;
 const BUBBLE_ALPHA_GAIN: f32 = 30.0;
 
-/// Texture names verified to exist in the CondaRO data set.
-const RING_LINER_TEXTURE: &str = "effect\\ring_liner.tga";
-const RING_BLUE_TEXTURE: &str = "effect\\ring_blue.tga";
-const RING_RED_TEXTURE: &str = "effect\\ring_red.tga";
-const BUBBLE_TEXTURE: &str = "effect\\whitelight.tga";
-const GLOW_TEXTURES: [&str; 4] = [
-    "effect\\glow01.bmp",
-    "effect\\glow02.bmp",
-    "effect\\glow03.bmp",
-    "effect\\glow04.bmp",
-];
-const SPARKLE_TEXTURE: &str = "effect\\pikapika2.bmp";
+// The aura textures are data (`archive/data/client/skills.ron`,
+// `level_aura` section); the swirl band / bubble / ground-quad geometry below
+// is the procedural shape of the official aura and stays code.
 
 /// One of the three official swirling aura bands.
 #[derive(Clone, Copy)]
@@ -310,12 +301,13 @@ impl Aura {
             texture
         };
 
-        let ring_liner = load(RING_LINER_TEXTURE);
-        let ring_blue = load(RING_BLUE_TEXTURE);
-        let ring_red = load(RING_RED_TEXTURE);
-        let glows = GLOW_TEXTURES.iter().filter_map(|name| load(name)).collect::<Vec<_>>();
-        let sparkle = load(SPARKLE_TEXTURE);
-        let bubble = load(BUBBLE_TEXTURE);
+        let level_aura = crate::world::skills::level_aura();
+        let ring_liner = load(level_aura.ring_liner_texture);
+        let ring_blue = load(level_aura.ring_blue_texture);
+        let ring_red = load(level_aura.ring_red_texture);
+        let glows = level_aura.glow_textures.iter().filter_map(|name| load(name)).collect::<Vec<_>>();
+        let sparkle = load(level_aura.sparkle_texture);
+        let bubble = load(level_aura.bubble_texture);
 
         if ring_liner.is_none() && ring_blue.is_none() && ring_red.is_none() && glows.is_empty() && sparkle.is_none() && bubble.is_none() {
             return None;

@@ -63,6 +63,12 @@
         monster_ranges: [(start: 1000, end: 3999), (start: 20000, end: 29999)],
         default: Npc,
     ),
+    // Job capabilities that are not appearance flags. The granting skill is
+    // declared in `skills.ron` (`move_while_casting`); the job and the learned
+    // skill both have to hold for the capability to apply.
+    capabilities: (
+        move_while_casting: [16, 4017],
+    ),
     // Headgear view ids whose accessory sprite is not part of this data set.
     // The client creates the headgear part only when the sprite exists, so these
     // are a documented data gap, not a rendering failure.

@@ -11,12 +11,14 @@ mod guild_emblem;
 mod item_details;
 pub(crate) mod jobs;
 mod library;
+pub(crate) mod skills;
 pub(crate) use self::library::{
     LayerAnchor, LayerKind, LayerPlacement, LayerPrimitive, LayerVertical, MAX_LAYERS_PER_PHASE, SkillEffectLayer, SkillPhase,
-    StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, caster_action_for_skill, default_caster_action,
-    skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect, skill_sound_files,
-    status_effect_info, status_effect_refresh_policy, status_effect_value_lines, validate_compiled_skill_effects,
-    validate_compiled_status_effects, validate_skill_effect_data, validate_status_effect_data,
+    StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, caster_action_for_skill, curated_skill_sound_files,
+    default_caster_action, generic_cast_sound_files, skill_action_override, skill_cast_circle_color, skill_effect_layers,
+    skill_effect_sound_files, skill_has_effect, skill_sound_files, status_effect_info, status_effect_refresh_policy,
+    status_effect_value_lines, validate_compiled_skill_effects, validate_compiled_status_effects, validate_skill_effect_data,
+    validate_status_effect_data,
 };
 mod light;
 mod map;
@@ -59,6 +61,8 @@ pub use self::skill_cast_effect::*;
 pub use self::skill_completion::*;
 pub use self::skill_name_text::*;
 pub use self::skill_sound::*;
+pub use self::skills::SkillsSummary;
+pub(crate) use self::skills::{CLOUD_DEDUP_PHASE, validate as validate_skill_data, validate_compiled as validate_compiled_skills};
 pub use self::sound::*;
 pub use self::video::*;
 use crate::graphics::Texture;

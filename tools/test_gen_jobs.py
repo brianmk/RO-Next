@@ -306,6 +306,8 @@ class JobFactsTest(unittest.TestCase):
             "player_ranges: ",
             "npc_ranges: ",
             "monster_ranges: ",
+            "capabilities: (",
+            "move_while_casting: ",
             "jobs: [",
         ):
             self.assertIn(key, self.ron_text, key)
@@ -337,6 +339,16 @@ class JobFactsTest(unittest.TestCase):
         for row in self.ron_jobs:
             self.assertEqual(row["scale"], 0.75 if row["baby"] else 1.0, row["name"])
         self.assertEqual(sum(1 for row in self.ron_jobs if row["baby"]), self.client["summary"]["baby"])
+
+    def test_move_while_casting_capability_is_data(self) -> None:
+        # The Free Cast (SA_FREECAST, 278) capability of Sage (16) and its
+        # rebirth class Professor (4017) is the job half of the old hard-coded
+        # `FREE_CAST_JOB_IDS`; the skill half lives in skills.ron.
+        self.assertEqual(self.data["capabilities"]["move_while_casting"], [16, 4017])
+        self.assertIn("move_while_casting: [16, 4017],", self.ron_text)
+        ids = {job["id"] for job in self.jobs}
+        for job_id in (16, 4017):
+            self.assertIn(job_id, ids, "the capability must reference a real job")
 
     # --- generator CLI ------------------------------------------------------
 

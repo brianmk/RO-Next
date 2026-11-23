@@ -22,19 +22,15 @@ use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 use crate::world::effect::{EffectBase, EffectCenter, render_world_quad};
 
-/// Height of the circle above the ground in world units. Slightly above zero so
-/// that it does not z-fight with the floor.
-const CIRCLE_HEIGHT: f32 = 0.2;
-/// Rotation speed of the outer ring in radians per second.
-const RING_ROTATION_SPEED: f32 = 1.6;
-/// Rotation speed of the inner ring (opposite direction) in radians per second.
-const INNER_RING_ROTATION_SPEED: f32 = -2.3;
-const INNER_RING_SCALE: f32 = 0.62;
-const GLOW_SCALE: f32 = 1.15;
+// The circle height, ring rotation speeds/scales and the ring/glow textures are
+// data (`archive/data/client/skills.ron`, `cast_circle` section); this module
+// only renders them.
 
 pub struct CastCircle {
     ring_texture: Arc<Texture>,
     glow_texture: Arc<Texture>,
+    /// Ring/glow geometry and animation of the data file.
+    config: &'static crate::world::skills::CastCircleSpec,
     center: EffectCenter,
     offset: Vector3<f32>,
     radius: f32,
@@ -54,18 +50,20 @@ impl CastCircle {
         color: Color,
         duration: f32,
     ) -> Option<Self> {
+        let config = crate::world::skills::cast_circle();
         let ring_texture = texture_loader
-            .get_or_load("effect\\ring_liner.tga", crate::loaders::ImageType::Color)
+            .get_or_load(config.ring_texture, crate::loaders::ImageType::Color)
             .ok()?;
         let glow_texture = texture_loader
-            .get_or_load("effect\\alpha_down.tga", crate::loaders::ImageType::Color)
+            .get_or_load(config.glow_texture, crate::loaders::ImageType::Color)
             .ok()?;
 
         Some(Self {
             ring_texture,
             glow_texture,
+            config,
             center,
-            offset: Vector3::new(0.0, CIRCLE_HEIGHT, 0.0),
+            offset: Vector3::new(0.0, config.height, 0.0),
             radius,
             color,
             time: 0.0,
@@ -134,7 +132,7 @@ impl EffectBase for CastCircle {
             screen_size,
             self.glow_texture.clone(),
             Color::rgba(color.red * 0.14, color.green * 0.14, color.blue * 0.14, 1.0),
-            self.corners(anchor, self.radius * GLOW_SCALE, 0.0),
+            self.corners(anchor, self.radius * self.config.glow_scale, 0.0),
             [
                 Vector2::new(0.0, 1.0),
                 Vector2::new(1.0, 1.0),
@@ -150,7 +148,7 @@ impl EffectBase for CastCircle {
             screen_size,
             self.ring_texture.clone(),
             Color::rgba(color.red * 0.55, color.green * 0.55, color.blue * 0.55, 1.0),
-            self.corners(anchor, self.radius, self.time * RING_ROTATION_SPEED),
+            self.corners(anchor, self.radius, self.time * self.config.ring_rotation_speed),
             [
                 Vector2::new(0.0, 0.0),
                 Vector2::new(1.0, 0.0),
@@ -166,7 +164,11 @@ impl EffectBase for CastCircle {
             screen_size,
             self.ring_texture.clone(),
             Color::rgba(color.red * 0.4, color.green * 0.4, color.blue * 0.4, 1.0),
-            self.corners(anchor, self.radius * INNER_RING_SCALE, self.time * INNER_RING_ROTATION_SPEED),
+            self.corners(
+                anchor,
+                self.radius * self.config.inner_ring_scale,
+                self.time * self.config.inner_ring_rotation_speed,
+            ),
             [
                 Vector2::new(0.0, 0.0),
                 Vector2::new(1.0, 0.0),

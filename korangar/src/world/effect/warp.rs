@@ -25,12 +25,10 @@ const PARTICLE_HEIGHT: f32 = 26.0;
 const PARTICLE_MIN_SIZE: f32 = 2.2;
 const PARTICLE_SIZE_VARIATION: f32 = 1.4;
 const MAXIMUM_DISTANCE: f32 = 600.0;
-/// Radius of the flat skill-unit warp portal (AL_WARP) on the ground. The
-/// portal is drawn as a flat swirl like the original client does, not as a
-/// map-connection warp.
-const SKILL_PORTAL_RADIUS: f32 = 8.0;
-const SKILL_PORTAL_HEIGHT: f32 = 0.2;
-const SKILL_PORTAL_RING_COUNT: usize = 2;
+// The textures of both portal styles and the flat skill-unit portal radius /
+// height / ring count are data (`archive/data/client/skills.ron`,
+// `warp_portal` section). The cylinder/glow/particle geometry below is the
+// procedural shape of the map-connection warp and stays code.
 
 /// Textures used by the warp portal effect. They are loaded once when the
 /// client starts, because they are shared between all warps on the map.
@@ -39,21 +37,25 @@ pub struct WarpPortal {
     streak_texture: Arc<Texture>,
     gradient_texture: Arc<Texture>,
     particle_texture: Arc<Texture>,
+    /// Textures and flat skill-unit portal geometry of the data file.
+    config: &'static crate::world::skills::WarpPortalSpec,
 }
 
 impl WarpPortal {
     /// Returns `None` if the game files don't contain the effect textures, in
     /// which case warps simply stay invisible.
     pub fn new(texture_loader: &TextureLoader, sprite_loader: &SpriteLoader) -> Option<Self> {
-        let streak_texture = texture_loader.get_or_load("effect\\ring_blue.tga", ImageType::Color).ok()?;
-        let gradient_texture = texture_loader.get_or_load("effect\\alpha_down.tga", ImageType::Color).ok()?;
-        let particle_sprite = sprite_loader.get_or_load("이팩트\\particle1.spr", None).ok()?;
+        let config = crate::world::skills::warp_portal();
+        let streak_texture = texture_loader.get_or_load(config.streak_texture, ImageType::Color).ok()?;
+        let gradient_texture = texture_loader.get_or_load(config.gradient_texture, ImageType::Color).ok()?;
+        let particle_sprite = sprite_loader.get_or_load(config.particle_sprite, None).ok()?;
         let particle_texture = particle_sprite.textures.first()?.clone();
 
         Some(Self {
             streak_texture,
             gradient_texture,
             particle_texture,
+            config,
         })
     }
 
@@ -112,12 +114,12 @@ impl WarpPortal {
         }
 
         let anchor = position;
-        let height = Vector3::new(0.0, SKILL_PORTAL_HEIGHT, 0.0);
+        let height = Vector3::new(0.0, self.config.skill_height, 0.0);
 
         // Two counter-rotating rings form the swirl.
-        for ring in 0..SKILL_PORTAL_RING_COUNT {
+        for ring in 0..self.config.skill_ring_count as usize {
             let ring_fade = fade * (1.0 - ring as f32 * 0.35);
-            let radius = SKILL_PORTAL_RADIUS * (1.0 - ring as f32 * 0.3);
+            let radius = self.config.skill_radius * (1.0 - ring as f32 * 0.3);
             let angle = time * (1.4 + ring as f32 * 0.8) * if ring % 2 == 0 { 1.0 } else { -1.0 };
             let color = Color::rgba(0.18 * ring_fade, 0.32 * ring_fade, 0.62 * ring_fade, 1.0);
 
@@ -156,10 +158,10 @@ impl WarpPortal {
             self.gradient_texture.clone(),
             Color::rgba(0.08 * fade * pulse, 0.16 * fade * pulse, 0.36 * fade * pulse, 1.0),
             [
-                anchor + height + Vector3::new(-SKILL_PORTAL_RADIUS * 1.1, 0.0, -SKILL_PORTAL_RADIUS * 1.1),
-                anchor + height + Vector3::new(SKILL_PORTAL_RADIUS * 1.1, 0.0, -SKILL_PORTAL_RADIUS * 1.1),
-                anchor + height + Vector3::new(-SKILL_PORTAL_RADIUS * 1.1, 0.0, SKILL_PORTAL_RADIUS * 1.1),
-                anchor + height + Vector3::new(SKILL_PORTAL_RADIUS * 1.1, 0.0, SKILL_PORTAL_RADIUS * 1.1),
+                anchor + height + Vector3::new(-self.config.skill_radius * 1.1, 0.0, -self.config.skill_radius * 1.1),
+                anchor + height + Vector3::new(self.config.skill_radius * 1.1, 0.0, -self.config.skill_radius * 1.1),
+                anchor + height + Vector3::new(-self.config.skill_radius * 1.1, 0.0, self.config.skill_radius * 1.1),
+                anchor + height + Vector3::new(self.config.skill_radius * 1.1, 0.0, self.config.skill_radius * 1.1),
             ],
             [
                 Vector2::new(0.0, 1.0),

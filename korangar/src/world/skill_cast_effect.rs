@@ -7,7 +7,8 @@
 //! * the overhead anchor (above the head) of buff/support effects, which
 //!   follows the entity scale and the sitting height,
 //! * the body anchor (torso) of body-attached layers,
-//! * the shared cast circle radius.
+//! * the shared cast circle radius (the radius itself is data, `skills.ron`
+//!   `cast_circle.radius`).
 //!
 //! The official client's effect table marks these effects with `head: true`;
 //! the data file records that flag per layer and the spawner calls
@@ -32,10 +33,6 @@ const OVERHEAD_CLEARANCE: f32 = 5.0;
 /// such as the AGI Up / Blessing texture glows). Multiplied by the entity
 /// scale.
 const BODY_HEIGHT: f32 = 13.0;
-
-/// Radius of the ground cast circle in world units. The official cast aura is
-/// roughly one tile wide around the caster.
-pub const CAST_CIRCLE_RADIUS: f32 = 7.0;
 
 /// Vertical anchor (above the feet, in world units) of an overhead buff or
 /// completion effect for an entity.
@@ -81,10 +78,7 @@ pub fn body_effect_height_for(is_sitting: bool, scale: f32) -> f32 {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        BODY_HEIGHT, CAST_CIRCLE_RADIUS, HEAD_HEIGHT, OVERHEAD_CLEARANCE, SITTING_HEAD_HEIGHT, body_effect_height_for,
-        overhead_effect_height_for,
-    };
+    use super::{BODY_HEIGHT, HEAD_HEIGHT, OVERHEAD_CLEARANCE, SITTING_HEAD_HEIGHT, body_effect_height_for, overhead_effect_height_for};
 
     #[test]
     fn overhead_effect_height_is_above_the_head_and_scales() {
@@ -115,10 +109,5 @@ mod tests {
         assert!((sitting - BODY_HEIGHT * (SITTING_HEAD_HEIGHT / HEAD_HEIGHT)).abs() < f32::EPSILON);
 
         assert!((body_effect_height_for(false, 2.0) - 2.0 * standing).abs() < f32::EPSILON);
-    }
-
-    #[test]
-    fn cast_circle_radius_stays_the_official_one_tile_size() {
-        assert!((CAST_CIRCLE_RADIUS - 7.0).abs() < f32::EPSILON);
     }
 }

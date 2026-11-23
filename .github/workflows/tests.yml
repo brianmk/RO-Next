@@ -69,3 +69,13 @@ jobs:
         run: |
           ./tools/gen_status_effects.py --check
           ./tools/test_status_effects_data.py
+
+      # Skill behaviour / procedural effect data is hand-curated; the generator
+      # --check and the data tests need no game files. The full skill-sound
+      # generator --check needs the CondaRO GRFs (manual verification); the
+      # offline test below verifies the curated merge.
+      - name: Check generated skill data
+        run: |
+          ./tools/gen_skills.py --check
+          ./tools/test_skills_data.py
+          ./tools/test_skill_sounds_data.py

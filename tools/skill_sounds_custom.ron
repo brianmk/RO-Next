@@ -1,0 +1,50 @@
+// Hand-curated skill -> cast sound overrides.
+//
+// This is an **input** of `tools/gen_skill_sounds.py`; the client never loads
+// it directly. The generator merges these rows (precedence: curated -> the
+// per-layer `wav` of `skill_effects.ron` -> the official generated per-skill
+// table -> generic cast sound) into the runtime file
+// `korangar/archive/data/client/skill_sounds.ron` as the `curated` section and
+// writes the `generic` fallback sounds there too.
+//
+// Why curated: the official effect table does not always carry the sound the
+// classic client actually plays for a cast (and the 2019 map server rarely
+// sends a sound packet). Every file was verified to exist in the CondaRO
+// `data.grf`; at runtime the first existing candidate is played, so a missing
+// file is never played.
+//
+// Format: one `(skill, files)` row per skill; paths are relative to
+// `data\wav\`.
+(
+    provenance: "Hand-curated, archive-verified skill cast sound overrides: Hammer Fall, Warp Portal, Increase AGI, Angelus, Blessing and Concentration",
+    // Fallback for skills without any mapping (classic cast start sounds).
+    generic: ["effect\\ef_beginspell.wav", "effect\\em_spell_enchanting.wav"],
+    sounds: [
+        // BS_HAMMERFALL (skill id 110; id 5 is SM_BASH, a plain attack skill
+        // that must keep its own hit sound). The official `EffectTable[102]`
+        // entry of `SkillEffect[SK.BS_HAMMERFALL]` carries
+        // `wav: effect/black_hammerfall`, so the sound lives in `data\wav\effect\`.
+        // The old entry pointed at a root-level duplicate
+        // (`data\wav\black_hammerfall.wav`), which is not the path the official
+        // client uses.
+        (skill: 110, files: ["effect\\black_hammerfall.wav"]),
+        // AL_WARP: the official Warp Portal sound is the portal-opening effect
+        // (`effect/ef_readyportal`, carried by `EF_READYPORTAL2`/`EF_PORTAL2`,
+        // the skill unit effects `UNT_PRE_WARPPORTAL`/`UNT_WARPPORTAL` are
+        // mapped to). `effect/warp.wav` is the map-warp/teleport-away sound and
+        // was wrong for the cast; `ef_portal` is the entry/warp-away sound as a
+        // fallback.
+        (skill: 27, files: ["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
+        // AL_INCAGI
+        (skill: 29, files: ["effect\\ef_incagility.wav"]),
+        // AL_ANGELUS
+        (skill: 33, files: ["effect\\ef_angelus.wav"]),
+        // AL_BLESSING (classic effect sound; spirit handler as a fallback)
+        (skill: 34, files: [
+            "effect\\ef_blessing.wav",
+            "effect\\spirit_handler\\sh_blessing_of_mystical_creatures.wav",
+        ]),
+        // AC_CONCENTRATION
+        (skill: 45, files: ["effect\\ac_concentration.wav"]),
+    ],
+)

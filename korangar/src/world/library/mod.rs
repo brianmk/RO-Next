@@ -57,7 +57,7 @@ pub(crate) use self::skill_effects::{
     validate as validate_skill_effect_data, validate_compiled as validate_compiled_skill_effects,
 };
 use self::skill_icon::SkillIcons;
-pub(crate) use self::skill_sounds::skill_sound_files;
+pub(crate) use self::skill_sounds::{curated_skill_sound_files, generic_cast_sound_files, skill_sound_files};
 pub use self::skill_tree::SkillTreeLayout;
 pub(crate) use self::status_effects::{
     StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, refresh_policy as status_effect_refresh_policy,
@@ -112,6 +112,9 @@ impl Library {
         // The data-driven job/appearance registry (job sprites, palettes, hair
         // styles, job flags) is loaded here so every subsystem sees one table.
         crate::world::jobs::load(game_file_loader);
+        // The data-driven skill behaviour and procedural effect data (clouds,
+        // channeling, warp target, cast circle, warp portal, level aura).
+        crate::world::skills::load(game_file_loader);
 
         Ok(Self {
             job_identity_table,

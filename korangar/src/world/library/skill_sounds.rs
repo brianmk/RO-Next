@@ -1,10 +1,19 @@
-//! Official skill -> cast sound mapping (`data\client\skill_sounds.ron`).
+//! Skill -> cast sound mapping (`data\client\skill_sounds.ron`).
 //!
 //! The official client plays the `wav` of the effect a skill spawns. The 2019
 //! map server rarely sends a sound packet for casts, so the client has to play
-//! the skill sound itself. This module loads the generated per-skill sound
-//! table from the client archive; a server can override the map without
-//! rebuilding the client, and the compiled fallback embeds the same data file.
+//! the skill sound itself. This module loads the mapping from the client
+//! archive; a server can override the map without rebuilding the client, and
+//! the compiled fallback embeds the same data file.
+//!
+//! The file has three sections that mirror the historical play priority
+//! (curated -> per-layer `wav` of `skill_effects.ron` -> official generated ->
+//! generic); the priority itself is applied in [`crate::world::skill_sound`]:
+//!
+//! * `curated` — hand-written, archive-verified overrides
+//!   (`tools/skill_sounds_custom.ron`, merged by the generator),
+//! * `sounds` — the official per-skill table generated from the effect table,
+//! * `generic` — the fallback cast sound of skills without any mapping.
 //!
 //! Generation: `tools/gen_skill_sounds.py` from the facts extracted by
 //! `tools/extract_skill_sounds.py` (roBrowserLegacy RE dump of the Windows
@@ -25,13 +34,20 @@ const DATA_PATH: &str = "data\\client\\skill_sounds.ron";
 const FALLBACK: &str = include_str!("../../../archive/data/client/skill_sounds.ron");
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SkillSoundFile {
     #[allow(dead_code)]
     provenance: String,
+    #[serde(default)]
+    generic: Vec<String>,
+    #[serde(default)]
+    curated: Vec<SkillSoundEntry>,
+    #[serde(default)]
     sounds: Vec<SkillSoundEntry>,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SkillSoundEntry {
     skill: u16,
     files: Vec<String>,
@@ -58,38 +74,123 @@ impl StoredSound {
     }
 }
 
-/// The compiled fallback mapping, parsed on first use (also used by tests).
-static COMPILED: OnceLock<Vec<StoredSound>> = OnceLock::new();
-/// Mapping loaded from the client archive, if the file exists there.
-static ARCHIVE: OnceLock<Vec<StoredSound>> = OnceLock::new();
+/// The loaded sound mapping (curated overrides, official table, generic
+/// fallback).
+struct SoundRegistry {
+    /// Sorted by skill id.
+    curated: Vec<StoredSound>,
+    /// Sorted by skill id.
+    generated: Vec<StoredSound>,
+    generic: &'static [&'static str],
+}
 
-fn compiled() -> &'static [StoredSound] {
+impl SoundRegistry {
+    fn empty() -> Self {
+        Self {
+            curated: Vec::new(),
+            generated: Vec::new(),
+            generic: &[],
+        }
+    }
+}
+
+/// The compiled fallback mapping, parsed on first use (also used by tests).
+static COMPILED: OnceLock<SoundRegistry> = OnceLock::new();
+/// Mapping loaded from the client archive, if the file exists there.
+static ARCHIVE: OnceLock<SoundRegistry> = OnceLock::new();
+
+fn compiled() -> &'static SoundRegistry {
     COMPILED.get_or_init(|| match parse(FALLBACK) {
-        Ok(sounds) => sounds,
+        Ok(registry) => registry,
         Err(error) => {
             crate::logging::log_warn!("skill sounds: compiled fallback is invalid ({error})");
-            Vec::new()
+            SoundRegistry::empty()
         }
     })
 }
 
-fn mapping() -> &'static [StoredSound] {
-    ARCHIVE.get().map(|sounds| sounds.as_slice()).unwrap_or_else(|| compiled())
+fn registry() -> &'static SoundRegistry {
+    ARCHIVE.get().unwrap_or_else(compiled)
 }
 
-fn parse(content: &str) -> Result<Vec<StoredSound>, String> {
+fn validate_file(value: &str, context: &str) -> Result<(), String> {
+    if value.is_empty() {
+        return Err(format!("{context}: empty wav path"));
+    }
+    if !value.to_ascii_lowercase().ends_with(".wav") {
+        return Err(format!("{context}: '{value}' is not a .wav path"));
+    }
+    if value.to_ascii_lowercase().starts_with("data\\wav\\") {
+        return Err(format!("{context}: '{value}' has to be relative to data\\wav"));
+    }
+    Ok(())
+}
+
+fn build_table(mut entries: Vec<SkillSoundEntry>, section: &str) -> Result<Vec<StoredSound>, String> {
+    entries.sort_by_key(|entry| entry.skill);
+    for pair in entries.windows(2) {
+        if pair[0].skill == pair[1].skill {
+            return Err(format!("{section}: duplicate sound row for skill {}", pair[0].skill));
+        }
+    }
+    for entry in &entries {
+        if entry.skill == 0 {
+            return Err(format!("{section}: a sound row uses skill id 0"));
+        }
+        if entry.files.is_empty() {
+            return Err(format!("{section}: skill {} has no wav candidates", entry.skill));
+        }
+        for file in &entry.files {
+            validate_file(file, &format!("{section}: skill {}", entry.skill))?;
+        }
+    }
+    Ok(entries.into_iter().map(StoredSound::new).collect())
+}
+
+fn parse(content: &str) -> Result<SoundRegistry, String> {
     let file: SkillSoundFile = ron::from_str(content).map_err(|error| error.to_string())?;
-    let mut sounds: Vec<StoredSound> = file.sounds.into_iter().map(StoredSound::new).collect();
-    sounds.sort_by_key(|sound| sound.skill);
-    sounds.dedup_by_key(|sound| sound.skill);
-    Ok(sounds)
+
+    if file.generic.is_empty() {
+        return Err("the data file has no generic cast sound".to_owned());
+    }
+    for file in &file.generic {
+        validate_file(file, "generic")?;
+    }
+    let generic: &'static [&'static str] = Box::leak(
+        file.generic
+            .into_iter()
+            .map(|file| Box::leak(file.into_boxed_str()) as &'static str)
+            .collect::<Vec<_>>()
+            .into_boxed_slice(),
+    );
+
+    if file.curated.is_empty() {
+        return Err("the data file has no curated sounds".to_owned());
+    }
+    let curated = build_table(file.curated, "curated")?;
+    let generated = build_table(file.sounds, "sounds")?;
+    if let Some(overlap) = curated
+        .iter()
+        .find(|curated| generated.binary_search_by_key(&curated.skill, |sound| sound.skill).is_ok())
+    {
+        return Err(format!(
+            "skill {} appears in both the curated and the generated sound table",
+            overlap.skill
+        ));
+    }
+
+    Ok(SoundRegistry {
+        curated,
+        generated,
+        generic,
+    })
 }
 
 /// Loads the sound mapping from the client archive (or the compiled fallback).
 ///
-/// Returns the number of loaded skills. A malformed data file is reported and
-/// the compiled fallback is used instead, so a bad override can never leave the
-/// client without a usable mapping.
+/// Returns the number of loaded skills (curated + generated). A malformed data
+/// file is reported and the compiled fallback is used instead, so a bad
+/// override can never leave the client without a usable mapping.
 pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
     let from_archive = game_file_loader
         .get(DATA_PATH)
@@ -109,26 +210,48 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
                 Ok(sounds) => sounds,
                 Err(fallback_error) => {
                     crate::logging::log_warn!("skill sounds: compiled fallback is invalid too ({fallback_error})");
-                    Vec::new()
+                    SoundRegistry::empty()
                 }
             }
         }
     };
 
-    let count = sounds.len();
+    let count = sounds.curated.len() + sounds.generated.len();
     let _ = ARCHIVE.set(sounds);
     crate::logging::log_debug!("skill sounds: loaded {count} entries");
     count
 }
 
-/// Returns the official wav candidates of `skill_id` in play priority order, or
-/// `None` when the skill has no generated sound mapping.
-pub(crate) fn skill_sound_files(skill_id: SkillId) -> Option<&'static [&'static str]> {
-    let sounds = mapping();
+/// Returns the hand-curated wav candidates of `skill_id` in play priority
+/// order, or `None` when the data file has no curated override for the skill.
+pub(crate) fn curated_skill_sound_files(skill_id: SkillId) -> Option<&'static [&'static str]> {
+    let sounds = &registry().curated;
     sounds
         .binary_search_by_key(&skill_id.0, |sound| sound.skill)
         .ok()
         .map(|index| sounds[index].files)
+}
+
+/// Returns the official generated wav candidates of `skill_id` in play priority
+/// order, or `None` when the skill has no generated sound mapping.
+pub(crate) fn skill_sound_files(skill_id: SkillId) -> Option<&'static [&'static str]> {
+    let sounds = &registry().generated;
+    sounds
+        .binary_search_by_key(&skill_id.0, |sound| sound.skill)
+        .ok()
+        .map(|index| sounds[index].files)
+}
+
+/// The generic cast fallback of skills without any curated/generated mapping.
+pub(crate) fn generic_cast_sound_files() -> &'static [&'static str] {
+    registry().generic
+}
+
+/// Skills that have a hand-curated override (used by the tests and the muted
+/// verification run).
+#[cfg(test)]
+pub(crate) fn curated_skill_ids() -> Vec<u16> {
+    registry().curated.iter().map(|sound| sound.skill).collect()
 }
 
 #[cfg(test)]
@@ -144,10 +267,20 @@ mod tests {
     #[test]
     fn data_file_is_valid_and_broad() {
         let sounds = parse(FALLBACK).expect("valid fallback");
-        assert!(sounds.len() >= 300, "sound mapping should stay broad, got {}", sounds.len());
         assert!(
-            sounds.windows(2).all(|pair| pair[0].skill < pair[1].skill),
+            sounds.generated.len() >= 300,
+            "sound mapping should stay broad, got {}",
+            sounds.generated.len()
+        );
+        assert_eq!(sounds.curated.len(), 6, "the hand-curated overrides");
+        assert!(!sounds.generic.is_empty());
+        assert!(
+            sounds.generated.windows(2).all(|pair| pair[0].skill < pair[1].skill),
             "rows must be sorted and unique"
+        );
+        assert!(
+            sounds.curated.windows(2).all(|pair| pair[0].skill < pair[1].skill),
+            "curated rows must be sorted and unique"
         );
     }
 
@@ -180,10 +313,10 @@ mod tests {
     #[test]
     fn instant_buff_sounds_are_mapped() {
         // Blessing, Increase AGI, Angelus and Concentration are the instant
-        // buffs used for the regression checks; each must have an official wav.
+        // buffs used for the regression checks; each must have a curated wav.
         for skill_id in [34, 29, 33, 45] {
             assert!(
-                files_for(skill_id).is_some_and(|files| !files.is_empty()),
+                super::curated_skill_sound_files(SkillId(skill_id)).is_some_and(|files| !files.is_empty()),
                 "skill {skill_id} has no sound"
             );
         }
@@ -201,25 +334,36 @@ mod tests {
     #[test]
     fn every_candidate_is_a_wav_path() {
         let sounds = parse(FALLBACK).expect("valid fallback");
-        for sound in &sounds {
-            assert!(!sound.files.is_empty(), "skill {} has no candidates", sound.skill);
-            for file in sound.files {
-                assert!(
-                    file.to_ascii_lowercase().ends_with(".wav"),
-                    "skill {}: not a wav: {file}",
-                    sound.skill
-                );
-                assert!(
-                    !file.starts_with("data\\wav\\"),
-                    "skill {}: path must be relative: {file}",
-                    sound.skill
-                );
+        let mut tables = Vec::new();
+        tables.extend(sounds.curated.iter().map(|sound| (sound.skill, sound.files)));
+        tables.extend(sounds.generated.iter().map(|sound| (sound.skill, sound.files)));
+        for (skill, files) in tables {
+            assert!(!files.is_empty(), "skill {skill} has no candidates");
+            for file in files {
+                assert!(file.to_ascii_lowercase().ends_with(".wav"), "skill {skill}: not a wav: {file}");
+                assert!(!file.starts_with("data\\wav\\"), "skill {skill}: path must be relative: {file}");
             }
+        }
+        for file in sounds.generic {
+            assert!(file.to_ascii_lowercase().ends_with(".wav"), "generic: not a wav: {file}");
         }
     }
 
     #[test]
     fn unknown_skills_have_no_generated_sound() {
         assert!(super::skill_sound_files(SkillId(65_500)).is_none());
+        assert!(super::curated_skill_sound_files(SkillId(65_500)).is_none());
+    }
+
+    #[test]
+    fn curated_rows_are_not_duplicated_in_the_generated_table() {
+        let sounds = parse(FALLBACK).expect("valid fallback");
+        for curated in &sounds.curated {
+            assert!(
+                sounds.generated.binary_search_by_key(&curated.skill, |sound| sound.skill).is_err(),
+                "skill {} is in both tables",
+                curated.skill
+            );
+        }
     }
 }

@@ -163,6 +163,15 @@ struct EntityTypesData {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
+struct CapabilitiesData {
+    /// Jobs whose skill tree grants the `Free Cast` move-while-casting
+    /// capability. The granting skill flag lives in `skills.ron`
+    /// (`move_while_casting`); the job and the learned skill both have to hold.
+    move_while_casting: Vec<u16>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct JobRow {
     id: u16,
     name: String,
@@ -190,6 +199,7 @@ struct JobsFile {
     sex_suffix: SexSuffixes,
     appearance: AppearanceData,
     entity_types: EntityTypesData,
+    capabilities: CapabilitiesData,
     headgear: HeadgearData,
     jobs: Vec<JobRow>,
 }
@@ -270,6 +280,7 @@ struct JobRegistry {
     sex_suffix: SexSuffixes,
     appearance: AppearanceData,
     entity_types: EntityTypesData,
+    capabilities: CapabilitiesData,
     headgear_missing: Vec<u16>,
     /// Sorted by `id`.
     jobs: Vec<JobProfile>,
@@ -328,6 +339,9 @@ impl JobRegistry {
                 npc_ranges: Vec::new(),
                 monster_ranges: Vec::new(),
                 default: JobEntityType::Npc,
+            },
+            capabilities: CapabilitiesData {
+                move_while_casting: Vec::new(),
             },
             headgear_missing: Vec::new(),
             jobs: Vec::new(),
@@ -506,11 +520,23 @@ fn build(file: JobsFile) -> Result<JobRegistry, String> {
         }
     }
 
+    // Job capabilities reference real jobs; a sorted/unique list makes the
+    // runtime lookup a binary search and catches typos in an archive override.
+    if file.capabilities.move_while_casting.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err("the move_while_casting job ids are not sorted and unique".to_owned());
+    }
+    for job_id in &file.capabilities.move_while_casting {
+        if !jobs.iter().any(|job| job.id == *job_id) {
+            return Err(format!("the move_while_casting capability references unknown job {job_id}"));
+        }
+    }
+
     Ok(JobRegistry {
         paths: file.paths,
         sex_suffix: file.sex_suffix,
         appearance: file.appearance,
         entity_types: file.entity_types,
+        capabilities: file.capabilities,
         headgear_missing: file.headgear.missing,
         jobs,
     })
@@ -675,6 +701,15 @@ pub(crate) fn scale(job_id: JobId) -> f32 {
 /// Whether a job is a transcendent (rebirth) job.
 pub(crate) fn is_transcendent(job_id: JobId) -> bool {
     registry().job(job_id.0).map(JobProfile::is_transcendent).unwrap_or(false)
+}
+
+/// Whether the job carries the `move_while_casting` capability (`Free Cast`).
+///
+/// The capability is only the job side of the check: the skill that grants it
+/// (`move_while_casting: true` in `skills.ron`, Free Cast 278) also has to be
+/// learned. Unknown jobs default to no capability.
+pub(crate) fn can_move_while_casting(job_id: JobId) -> bool {
+    registry().capabilities.move_while_casting.binary_search(&job_id.0).is_ok()
 }
 
 /// Per-sex hair style lookup table (network style index -> head sprite id).
