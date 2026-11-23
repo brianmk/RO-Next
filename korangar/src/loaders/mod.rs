@@ -10,6 +10,7 @@ mod effect;
 pub mod error;
 mod font;
 mod gamefile;
+mod imf;
 mod map;
 mod minimap_marker;
 mod model;
@@ -30,6 +31,7 @@ pub use self::font::{
     FontLoader, FontSize, GLYPH_PADDING, GlyphInstruction, OverflowBehavior, Scaling, TEXT_SHADOW_RADIUS, take_layout_cache_statistics,
 };
 pub use self::gamefile::*;
+pub(crate) use self::imf::Imf;
 pub use self::map::{GAT_TILE_SIZE, MapLoader};
 pub use self::minimap_marker::{MARKER_DIRECTION_COUNT, generate_direction_markers};
 pub use self::model::*;

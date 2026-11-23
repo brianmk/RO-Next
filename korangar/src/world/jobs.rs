@@ -117,6 +117,8 @@ struct PathTemplates {
     body_palette: String,
     head_palette: String,
     headgear: String,
+    imf: String,
+    weapon: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -179,6 +181,9 @@ struct JobRow {
     sprite: String,
     client_sprite: Option<String>,
     palette: Option<String>,
+    imf: Option<String>,
+    weapon_folder: Option<String>,
+    weapon_prefix: Option<String>,
     source: SpriteSource,
     baby: bool,
     transcendent: bool,
@@ -213,6 +218,9 @@ pub struct JobProfile {
     sprite: String,
     client_sprite: Option<String>,
     palette: Option<String>,
+    imf: Option<String>,
+    weapon_folder: Option<String>,
+    weapon_prefix: Option<String>,
     source: SpriteSource,
     baby: bool,
     transcendent: bool,
@@ -241,6 +249,16 @@ impl JobProfile {
     /// job (the palette embedded in the body sprite is used instead).
     pub fn palette(&self) -> Option<&str> {
         self.palette.as_deref()
+    }
+
+    /// `.imf` stem of the job, if the classic client engine table maps it.
+    pub fn imf(&self) -> Option<&str> {
+        self.imf.as_deref()
+    }
+
+    /// Weapon sprite folder/prefix of the job, if the engine table maps it.
+    pub fn weapon(&self) -> Option<(&str, &str)> {
+        Some((self.weapon_folder.as_deref()?, self.weapon_prefix.as_deref()?))
     }
 
     /// Where the sprite came from.
@@ -316,6 +334,8 @@ impl JobRegistry {
                 body_palette: String::new(),
                 head_palette: String::new(),
                 headgear: String::new(),
+                imf: String::new(),
+                weapon: String::new(),
             },
             sex_suffix: SexSuffixes {
                 male: String::new(),
@@ -390,6 +410,12 @@ fn build(file: JobsFile) -> Result<JobRegistry, String> {
         (&file.paths.head_palette, "{color}", "head_palette"),
         (&file.paths.headgear, "{sex}", "headgear"),
         (&file.paths.headgear, "{name}", "headgear"),
+        (&file.paths.imf, "{imf}", "imf"),
+        (&file.paths.imf, "{sex}", "imf"),
+        (&file.paths.weapon, "{folder}", "weapon"),
+        (&file.paths.weapon, "{prefix}", "weapon"),
+        (&file.paths.weapon, "{sex}", "weapon"),
+        (&file.paths.weapon, "{suffix}", "weapon"),
     ] {
         if !template.contains(placeholder) {
             return Err(format!("path template {name} does not contain {placeholder}"));
@@ -504,6 +530,9 @@ fn build(file: JobsFile) -> Result<JobRegistry, String> {
             sprite: row.sprite,
             client_sprite: row.client_sprite,
             palette: row.palette,
+            imf: row.imf,
+            weapon_folder: row.weapon_folder,
+            weapon_prefix: row.weapon_prefix,
             source: row.source,
             baby: row.baby,
             transcendent: row.transcendent,
@@ -645,6 +674,30 @@ pub(crate) fn head_part_path(head_id: usize, sex: Sex) -> String {
     let sex = sex_suffix_or_default(sex);
     let head_id = head_id.to_string();
     expand_template(&registry().paths.head, &[("{sex}", sex), ("{head}", &head_id)])
+}
+
+/// `.imf` file of a job's body (`data\imf\<imf>_<sex>.imf`), if the classic
+/// client engine table maps the job.
+pub(crate) fn imf_path(job_id: JobId, sex: Sex) -> Option<String> {
+    let job = registry().job(job_id.0)?;
+    let imf = job.imf()?;
+    let sex = sex_suffix_or_default(sex);
+    Some(expand_template(&registry().paths.imf, &[("{imf}", imf), ("{sex}", sex)]))
+}
+
+/// Weapon layer path of a job (`인간족\<folder>\<prefix>_<sex><suffix>`), if
+/// the engine table maps the job. `suffix` is the classic weapon name suffix
+/// (for example `_단검`).
+pub(crate) fn weapon_path(job_id: JobId, sex: Sex, suffix: &str) -> Option<String> {
+    let job = registry().job(job_id.0)?;
+    let (folder, prefix) = job.weapon()?;
+    let sex = sex_suffix_or_default(sex);
+    Some(expand_template(&registry().paths.weapon, &[
+        ("{folder}", folder),
+        ("{prefix}", prefix),
+        ("{sex}", sex),
+        ("{suffix}", suffix),
+    ]))
 }
 
 /// Body palette path of a job, `None` when the data set has no palette file for
@@ -1003,6 +1056,33 @@ mod tests {
 
     fn parse_ok() -> JobRegistry {
         parse(FALLBACK).expect("the compiled job data has to be valid")
+    }
+
+    #[test]
+    fn engine_imf_and_weapon_paths_are_data_driven() {
+        let novice_imf = imf_path(JobId(0), Sex::Male).expect("novice has an imf");
+        assert!(novice_imf.starts_with("data\\imf\\"), "{novice_imf}");
+        assert!(novice_imf.ends_with("_남.imf"), "{novice_imf}");
+
+        let archer_weapon = weapon_path(JobId(3), Sex::Female, "_활").expect("archer has a weapon table row");
+        assert!(archer_weapon.starts_with("인간족\\"), "{archer_weapon}");
+        assert!(archer_weapon.ends_with("_여_활"), "{archer_weapon}");
+
+        assert!(imf_path(JobId(9999), Sex::Male).is_none());
+        assert!(weapon_path(JobId(9999), Sex::Male, "_검").is_none());
+    }
+
+    #[test]
+    fn every_player_job_with_engine_data_has_a_complete_weapon_pair() {
+        let registry = parse_ok();
+        for job in &registry.jobs {
+            match job.weapon() {
+                Some((folder, prefix)) => {
+                    assert!(!folder.is_empty() && !prefix.is_empty(), "job {}", job.id);
+                }
+                None => {}
+            }
+        }
     }
 
     #[test]
