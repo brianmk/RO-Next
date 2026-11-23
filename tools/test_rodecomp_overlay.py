@@ -106,14 +106,23 @@ class RodecompOverlayTests(unittest.TestCase):
                 if "file" in layer:
                     self.assertTrue(layer["file"].lower().endswith((".tga", ".bmp", ".str")), layer["file"])
 
-    def test_overlay_only_extends_skills_without_rows(self):
-        # The overlay is for hard-coded official effects the data pipeline could
-        # not resolve; a skill that already has a descriptor must not be touched.
-        for entry in self.facts["skills"]:
-            skill = int(entry["skill"])
-            self.assertIn(skill, self.merged, f"skill {skill} missing from the merged data")
-        sources = json.loads((REPO / "tools/rodecomp_skill_facts.json").read_text())["skills"]
-        self.assertEqual({int(entry["skill"]) for entry in sources}, {int(entry["skill"]) for entry in self.overlay})
+    def test_overlay_only_adds_or_extends_rows(self):
+        # The overlay either adds a descriptor for a skill with no rows, or
+        # appends the official layers a descriptor was missing. It must never
+        # remove a layer, so every overlay asset has to be in the merged data.
+        facts = {int(entry["skill"]): entry for entry in self.facts["skills"]}
+        self.assertEqual(set(facts), {int(entry["skill"]) for entry in self.overlay})
+        merged: dict[int, set[str]] = {}
+        for row in self.gen.read_effects(MERGED):
+            for layer in row.get("layers") or []:
+                for path in ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []):
+                    merged.setdefault(int(row["skill"]), set()).add(path.replace("/", "\\").lower().rsplit(".", 1)[0])
+        for skill, entry in facts.items():
+            self.assertIn(skill, merged, f"skill {skill} missing from the merged data")
+            for layer in entry["layers"]:
+                for path in ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []):
+                    key = path.replace("/", "\\").lower().rsplit(".", 1)[0]
+                    self.assertIn(key, merged[skill], f"skill {skill}: overlay asset {path} missing from the merged data")
 
     def test_overlay_is_up_to_date(self):
         result = subprocess.run([sys.executable, str(GENERATOR), "--check"], capture_output=True, text=True)

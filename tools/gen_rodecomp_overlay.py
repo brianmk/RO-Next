@@ -121,7 +121,7 @@ def render(facts: dict) -> str:
         "// do not edit by hand. Regenerate with: `./tools/gen_rodecomp_overlay.py`",
         "// Drift check: `./tools/gen_rodecomp_overlay.py --check`",
         "//",
-        "// Each row covers a skill the official client plays from hard-coded C++",
+        "// Rows either add a descriptor for a skill whose effect the official client plays from",
         "// (`CGameMode::ReceiveSkillUse` / `CSession::PlaySkillEffect`), with assets taken",
         "// from the effect implementation (`CRagEffect::*` primitives). Only skills where",
         "// the decompiled code and the 2019-era effect table agree on the effect id are",
@@ -131,12 +131,22 @@ def render(facts: dict) -> str:
         '    provenance: "rodecomp-derived rows for official hard-coded skill effects",',
         "    effects: [",
     ]
+    phase_order = {"Ground": 0, "Cast": 1, "Success": 2, "Release": 3, "Hit": 4, "Caster": 5}
     for entry in skills:
-        lines.append(f"        // skill {entry['skill']} {entry['name']}: official effect {entry['effect_ids']}")
-        lines.append(f"        (skill: {entry['skill']}, phase: Success, layers: [")
+        grouped: dict[str, list[dict]] = {}
         for layer in entry["layers"]:
-            lines.append("            " + write_layer(layer) + ",")
-        lines.append("        ]),")
+            phase = layer.get("phase", "Success")
+            grouped.setdefault(phase, []).append({key: value for key, value in layer.items() if key != "phase"})
+        mode = entry.get("mode", "new")
+        lines.append(
+            f"        // skill {entry['skill']} {entry['name']}: official effect {entry['effect_ids']}"
+            + (" - appended official layers" if mode == "append" else "")
+        )
+        for phase in sorted(grouped, key=lambda name: phase_order.get(name, 99)):
+            lines.append(f"        (skill: {entry['skill']}, phase: {phase}, layers: [")
+            for layer in grouped[phase]:
+                lines.append("            " + write_layer(layer) + ",")
+            lines.append("        ]),")
     lines += ["    ],", ")", ""]
     return "\n".join(lines)
 

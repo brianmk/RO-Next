@@ -4,50 +4,151 @@
 // do not edit by hand. Regenerate with: `./tools/gen_rodecomp_overlay.py`
 // Drift check: `./tools/gen_rodecomp_overlay.py --check`
 //
-// Each row covers a skill the official client plays from hard-coded C++
+// Rows either add a descriptor for a skill whose effect the official client plays from
 // (`CGameMode::ReceiveSkillUse` / `CSession::PlaySkillEffect`), with assets taken
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 35 skills, 44 layers.
+// 67 skills, 87 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
+        // skill 7 SM_MAGNUM: official effect [17] - appended official layers
+        (skill: 7, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\대폭발.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 8 SM_ENDURE: official effect [11] - appended official layers
+        (skill: 8, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\endure.tga", size: 21.25, duration_ms: 800, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_down.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 14 MG_COLDBOLT: official effect [26] - appended official layers
+        (skill: 14, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_blue.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 17 MG_FIREBALL: official effect [24] - appended official layers
+        (skill: 17, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\fireball"], duration_ms: 0),
+        ]),
+        // skill 19 MG_FIREBOLT: official effect [31] - appended official layers
+        (skill: 19, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\불화살1.tga", size: 11.9, duration_ms: 800, alpha: 0.2, blend: Additive),
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle4"], duration_ms: 0),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 28 AL_HEAL: official effect [320] - appended official layers
+        (skill: 28, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", size: 4.25, duration_ms: 800, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 32 AL_CRUCIS: official effect [40] - appended official layers
+        (skill: 32, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1500, height: 2.0, bottom_radius: 9.0, top_radius: 9.0, alpha: 0.6667, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 800, alpha: 0.7843, blend: Additive),
+        ]),
+        // skill 34 AL_BLESSING: official effect [42] - appended official layers
+        (skill: 34, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1500, height: 2.0, bottom_radius: 9.0, top_radius: 9.0, alpha: 0.3922, tint: (0.125, 0.69, 0.91), blend: Additive),
+        ]),
+        // skill 50 TF_STEAL: official effect [18] - appended official layers
+        (skill: 50, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle7"], duration_ms: 0),
+        ]),
+        // skill 53 TF_DETOXIFY: official effect [21] - appended official layers
+        (skill: 53, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle2"], duration_ms: 0),
+        ]),
+        // skill 54 ALL_RESURRECTION: official effect [77, 140] - appended official layers
+        (skill: 54, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 15.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 59 KN_SPEARBOOMERANG: official effect [80, 151] - appended official layers
+        (skill: 59, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\창"], duration_ms: 0),
+        ]),
+        // skill 68 PR_ASPERSIO: official effect [86] - appended official layers
+        (skill: 68, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 0),
+        ]),
+        // skill 81 WZ_SIGHTRASHER: official effect [62] - appended official layers
+        (skill: 81, phase: Success, layers: [
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["Shadow"], duration_ms: 0),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 86 WZ_WATERBALL: official effect [117] - appended official layers
+        (skill: 86, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\Waterball"], duration_ms: 0),
+        ]),
+        // skill 111 BS_ADRENALINE: official effect [98] - appended official layers
+        (skill: 111, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "EFFECT\\alpha_center.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 0),
+        ]),
         // skill 113 BS_OVERTHRUST: official effect [128]
         (skill: 113, phase: Success, layers: [
-            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.5, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 124 HT_REMOVETRAP: official effect [100] - appended official layers
+        (skill: 124, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 0),
+        ]),
+        // skill 136 AS_SONICBLOW: official effect [121, 143] - appended official layers
+        (skill: 136, phase: Success, layers: [
+            (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
         ]),
         // skill 149 TF_SPRINKLESAND: official effect [310]
         (skill: 149, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 153 MC_CARTREVOLUTION: official effect [170] - appended official layers
+        (skill: 153, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.7059, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\대폭발.tga", size: 6.8, duration_ms: 800, alpha: 0.9, blend: Additive),
         ]),
         // skill 212 RG_BACKSTAP: official effect [275]
         (skill: 212, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 214 RG_RAID: official effect [276] - appended official layers
+        (skill: 214, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\lens2.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 219 RG_INTIMIDATE: official effect [227]
         (skill: 219, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\white01.bmp", size: 6.8, duration_ms: 16650, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\white01.bmp", size: 6.8, duration_ms: 16650, alpha: 0.2, blend: Additive),
         ]),
         // skill 234 AM_CP_WEAPON: official effect [300]
         (skill: 234, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
         ]),
         // skill 235 AM_CP_SHIELD: official effect [300]
         (skill: 235, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
         ]),
         // skill 236 AM_CP_ARMOR: official effect [300]
         (skill: 236, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
         ]),
         // skill 237 AM_CP_HELM: official effect [300]
         (skill: 237, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 254 CR_GRANDCROSS: official effect [226] - appended official layers
+        (skill: 254, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 256 CR_PROVIDENCE: official effect [248] - appended official layers
+        (skill: 256, phase: Success, layers: [
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 262 MO_ABSORBSPIRITS: official effect [253] - appended official layers
+        (skill: 262, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_down.tga", size: 7.65, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 263 MO_TRIPLEATTACK: official effect [329]
         (skill: 263, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\cloud11.tga", size: 6.8, duration_ms: 1667, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\cloud11.tga", size: 6.8, duration_ms: 1667, alpha: 0.2, blend: Additive),
         ]),
         // skill 266 MO_INVESTIGATE: official effect [267]
         (skill: 266, phase: Success, layers: [
@@ -55,112 +156,150 @@
         ]),
         // skill 355 LK_AURABLADE: official effect [367]
         (skill: 355, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", size: 22.1, duration_ms: 1000, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", size: 22.1, duration_ms: 1000, alpha: 0.6, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 1000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+        ]),
+        // skill 367 PA_PRESSURE: official effect [365] - appended official layers
+        (skill: 367, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\explosive_1_128.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 373 PF_HPCONVERSION: official effect [383] - appended official layers
+        (skill: 373, phase: Success, layers: [
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\particle1"], duration_ms: 0),
         ]),
         // skill 374 PF_SOULCHANGE: official effect [384]
         (skill: 374, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 378 ASC_EDP: official effect [493] - appended official layers
+        (skill: 378, phase: Success, layers: [
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\particle3"], duration_ms: 0),
         ]),
         // skill 380 SN_SIGHT: official effect [386]
         (skill: 380, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.2, blend: Additive),
         ]),
         // skill 382 SN_SHARPSHOOTING: official effect [388]
         (skill: 382, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 383 SN_WINDWALK: official effect [389]
         (skill: 383, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 394 CG_ARROWVULCAN: official effect [393]
         (skill: 394, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 395 CG_MOONLIT: official effect [394] - appended official layers
+        (skill: 395, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fire_ivy.bmp", size: 8.5, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 396 CG_MARIONETTE: official effect [395]
         (skill: 396, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 30000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 397 LK_SPIRALPIERCE: official effect [339]
         (skill: 397, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\ring_yellow.tga", size: 4.25, duration_ms: 1667, alpha: 0.6, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1667, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
         ]),
         // skill 400 HW_NAPALMVULCAN: official effect [401]
         (skill: 400, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\lens1.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\lens1.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 408 WE_BABY: official effect [408]
         (skill: 408, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\fire_ivy.bmp", size: 8.5, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\fire_ivy.bmp", size: 8.5, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 413 TK_STORMKICK: official effect [435]
         (skill: 413, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\storm2.tga", size: 6.8, duration_ms: 1667, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 1667, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\storm2.tga", size: 6.8, duration_ms: 1667, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 1667, alpha: 0.2, blend: Additive),
         ]),
         // skill 421 TK_JUMPKICK: official effect [439]
         (skill: 421, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\line3.tga", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\line3.tga", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 446 AM_BERSERKPITCHER: official effect [220, 541] - appended official layers
+        (skill: 446, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\ac_center2.tga", size: 6.8, duration_ms: 800, alpha: 0.7059, tint: (0.941, 0.0, 0.0), blend: Additive),
+            (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1500, height: 20.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.3529, blend: Additive),
         ]),
         // skill 458 SL_BLACKSMITH: official effect [503]
         (skill: 458, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
         ]),
         // skill 461 SL_SOULLINKER: official effect [503]
         (skill: 461, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
         ]),
         // skill 462 SL_KAIZEL: official effect [590]
         (skill: 462, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\magic_blue.tga", size: 3.4, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\magic_blue.tga", size: 3.4, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 463 SL_KAAHI: official effect [543]
         (skill: 463, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
         ]),
         // skill 467 SL_STIN: official effect [547]
         (skill: 467, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 469 SL_SMA: official effect [553]
         (skill: 469, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 472 SL_SKA: official effect [254, 261] - appended official layers
+        (skill: 472, phase: Success, layers: [
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\super1.bmp", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 475 ST_PRESERVE: official effect [496]
         (skill: 475, phase: Success, layers: [
-            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\a01.bmp", size: 9.35, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\a01.bmp", size: 9.35, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 476 ST_FULLSTRIP: official effect [495]
         (skill: 476, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shield.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\sword.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shield.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\sword.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
         ]),
         // skill 479 CR_FULLPROTECTION: official effect [300]
         (skill: 479, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
         ]),
         // skill 485 WS_CARTTERMINATION: official effect [518]
         (skill: 485, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
         ]),
         // skill 486 WS_OVERTHRUSTMAX: official effect [128]
         (skill: 486, phase: Success, layers: [
-            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.5, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
         ]),
         // skill 494 SL_HIGH: official effect [503]
         (skill: 494, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 506 GS_INCREASING: official effect [456] - appended official layers
+        (skill: 506, phase: Success, layers: [
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ac_center2.tga", size: 6.8, duration_ms: 800, alpha: 0.2353, blend: Additive),
+        ]),
+        // skill 534 NJ_KOUENKA: official effect [618] - appended official layers
+        (skill: 534, phase: Success, layers: [
+            (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\sakura01"], duration_ms: 0),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 800, alpha: 0.2, blend: Additive),
         ]),
         // skill 540 NJ_HUUJIN: official effect [621]
         (skill: 540, phase: Success, layers: [
-            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 541 NJ_RAIGEKISAI: official effect [622] - appended official layers
+        (skill: 541, phase: Success, layers: [
+            (kind: Spr, anchor: Caster, attached_entity: true, files: ["이팩트\\썬더스톰"], duration_ms: 0),
         ]),
     ],
 )

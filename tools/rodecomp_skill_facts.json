@@ -1,19 +1,460 @@
 {
  "provenance": {
   "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d (matching decompilation of Ragexe 2026-02-19)",
-  "client_tables": "2019 CondaRO client data.grf: data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfolist.lub (SKILL_EFFECT_INFO_LIST), skillid.lub, effectid.lub, skillinfoz\\...",
-  "method": "CGameMode::ReceiveSkillUse / CSession::PlaySkillEffect effect ids, effect implementations from CRagEffect/CEffect, primitives mapped to korangar layer kinds",
-  "note": "Only skills where the decompiled C++ and the roBrowser-derived effect table (the source of the rest of the data) agree on the effect id are included, so the client-version risk is minimal. Effect lifetimes are frames at 60 fps. Effect lifetimes are clamped to the layer schema maximum (30000 ms; persistent loop effects such as EF_LINELINK run for the whole status).",
-  "frame_ms": 16.667
+  "client_tables": "2019 CondaRO client data.grf: skilleffectinfolist.lub (SKILL_EFFECT_INFO_LIST), skillid.lub, effectid.lub",
+  "method": "CGameMode::ReceiveSkillUse / CSession::PlaySkillEffect effect ids; effect implementations from CRagEffect/CEffect; primitives mapped to korangar layer kinds; lifetimes in frames at 60 fps",
+  "frame_ms": 16.667,
+  "note": "Rows marked mode=append only add the official layers the committed descriptor was missing (the existing, tuned layers are kept); other rows are new descriptors for skills that had none. Only skills where the decompiled C++ and the roBrowser-derived effect table agree on the effect id are included. Effect lifetimes are frames at 60 fps, clamped to the layer schema maximum of 30000 ms."
  },
  "skills": [
+  {
+   "skill": 7,
+   "name": "SM_MAGNUM",
+   "effect_ids": [
+    17
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\대폭발.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 8,
+   "name": "SM_ENDURE",
+   "effect_ids": [
+    11
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\endure.tga",
+     "size": 21.25,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 14,
+   "name": "MG_COLDBOLT",
+   "effect_ids": [
+    26
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_blue.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 17,
+   "name": "MG_FIREBALL",
+   "effect_ids": [
+    24
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\fireball"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 19,
+   "name": "MG_FIREBOLT",
+   "effect_ids": [
+    31
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\불화살1.tga",
+     "size": 11.9,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle4"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 28,
+   "name": "AL_HEAL",
+   "effect_ids": [
+    320
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "size": 4.25,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 32,
+   "name": "AL_CRUCIS",
+   "effect_ids": [
+    40
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 9.0,
+     "top_radius": 9.0,
+     "alpha": 0.6666666666666666,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "EFFECT\\alpha_center.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.7843137254901961,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 34,
+   "name": "AL_BLESSING",
+   "effect_ids": [
+    42
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 9.0,
+     "top_radius": 9.0,
+     "alpha": 0.39215686274509803,
+     "tint": [
+      0.125,
+      0.69,
+      0.91
+     ],
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 50,
+   "name": "TF_STEAL",
+   "effect_ids": [
+    18
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle7"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 53,
+   "name": "TF_DETOXIFY",
+   "effect_ids": [
+    21
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle2"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 54,
+   "name": "ALL_RESURRECTION",
+   "effect_ids": [
+    77,
+    140
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 15.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 59,
+   "name": "KN_SPEARBOOMERANG",
+   "effect_ids": [
+    80,
+    151
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\창"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 68,
+   "name": "PR_ASPERSIO",
+   "effect_ids": [
+    86
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle1"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 81,
+   "name": "WZ_SIGHTRASHER",
+   "effect_ids": [
+    62
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "files": [
+      "Shadow"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 86,
+   "name": "WZ_WATERBALL",
+   "effect_ids": [
+    117
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\Waterball"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 111,
+   "name": "BS_ADRENALINE",
+   "effect_ids": [
+    98
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "EFFECT\\alpha_center.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Spr",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle1"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
   {
    "skill": 113,
    "name": "BS_OVERTHRUST",
    "effect_ids": [
     128
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Cylinder",
@@ -24,8 +465,54 @@
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
-     "alpha": 0.5,
+     "alpha": 0.35,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 124,
+   "name": "HT_REMOVETRAP",
+   "effect_ids": [
+    100
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle1"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 136,
+   "name": "AS_SONICBLOW",
+   "effect_ids": [
+    121,
+    143
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -35,7 +522,7 @@
    "effect_ids": [
     310
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -44,8 +531,43 @@
      "file": "effect\\thunder_center.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 153,
+   "name": "MC_CARTREVOLUTION",
+   "effect_ids": [
+    170
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.7058823529411765,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\대폭발.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.9,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -55,7 +577,7 @@
    "effect_ids": [
     275
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -64,8 +586,30 @@
      "file": "effect\\thunder_center.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 214,
+   "name": "RG_RAID",
+   "effect_ids": [
+    276
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\lens2.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -75,7 +619,7 @@
    "effect_ids": [
     227
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -84,7 +628,7 @@
      "file": "effect\\white01.bmp",
      "size": 6.8,
      "duration_ms": 16650,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -95,7 +639,7 @@
    "effect_ids": [
     300
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -104,7 +648,7 @@
      "file": "effect\\shockwave_c.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -115,7 +659,7 @@
    "effect_ids": [
     300
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -124,7 +668,7 @@
      "file": "effect\\shockwave_c.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -135,7 +679,7 @@
    "effect_ids": [
     300
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -144,7 +688,7 @@
      "file": "effect\\shockwave_c.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -155,7 +699,7 @@
    "effect_ids": [
     300
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -164,8 +708,91 @@
      "file": "effect\\shockwave_c.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 254,
+   "name": "CR_GRANDCROSS",
+   "effect_ids": [
+    226
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_white.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 256,
+   "name": "CR_PROVIDENCE",
+   "effect_ids": [
+    248
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\ring_yellow.tga",
+     "duration_ms": 1500,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 262,
+   "name": "MO_ABSORBSPIRITS",
+   "effect_ids": [
+    253
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "size": 7.65,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -175,7 +802,7 @@
    "effect_ids": [
     329
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -184,7 +811,7 @@
      "file": "effect\\cloud11.tga",
      "size": 6.8,
      "duration_ms": 1667,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -195,7 +822,7 @@
    "effect_ids": [
     267
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Spr",
@@ -214,27 +841,74 @@
    "effect_ids": [
     367
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
-     "kind": "Texture",
-     "anchor": "Caster",
+     "kind": "Cylinder",
+     "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_white.tga",
-     "size": 22.1,
      "duration_ms": 1000,
-     "alpha": 0.6,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
      "blend": "Additive"
     },
     {
-     "kind": "Texture",
-     "anchor": "Caster",
+     "kind": "Cylinder",
+     "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "size": 22.1,
      "duration_ms": 1000,
-     "alpha": 0.6,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 367,
+   "name": "PA_PRESSURE",
+   "effect_ids": [
+    365
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\explosive_1_128.bmp",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 373,
+   "name": "PF_HPCONVERSION",
+   "effect_ids": [
+    383
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle1"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
     }
    ]
   },
@@ -244,7 +918,7 @@
    "effect_ids": [
     384
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -253,8 +927,29 @@
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 378,
+   "name": "ASC_EDP",
+   "effect_ids": [
+    493
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\particle3"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
     }
    ]
   },
@@ -264,7 +959,7 @@
    "effect_ids": [
     386
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -273,7 +968,7 @@
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 4167,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -284,7 +979,7 @@
    "effect_ids": [
     388
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -293,7 +988,7 @@
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -304,7 +999,7 @@
    "effect_ids": [
     389
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -313,7 +1008,7 @@
      "file": "effect\\cloud11.tga",
      "size": 4.25,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -324,7 +1019,7 @@
    "effect_ids": [
     393
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -333,8 +1028,30 @@
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 395,
+   "name": "CG_MOONLIT",
+   "effect_ids": [
+    394
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\fire_ivy.bmp",
+     "size": 8.5,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -344,7 +1061,7 @@
    "effect_ids": [
     395
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -353,7 +1070,7 @@
      "file": "effect\\alpha_center.tga",
      "size": 6.8,
      "duration_ms": 30000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -364,16 +1081,18 @@
    "effect_ids": [
     339
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
-     "kind": "Texture",
-     "anchor": "Target",
+     "kind": "Cylinder",
+     "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_yellow.tga",
-     "size": 4.25,
      "duration_ms": 1667,
-     "alpha": 0.6,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
      "blend": "Additive"
     }
    ]
@@ -384,7 +1103,7 @@
    "effect_ids": [
     401
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -393,7 +1112,7 @@
      "file": "effect\\lens1.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -404,7 +1123,7 @@
    "effect_ids": [
     408
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -413,7 +1132,7 @@
      "file": "effect\\fire_ivy.bmp",
      "size": 8.5,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -424,7 +1143,7 @@
    "effect_ids": [
     435
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -433,7 +1152,7 @@
      "file": "effect\\storm2.tga",
      "size": 6.8,
      "duration_ms": 1667,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -443,7 +1162,7 @@
      "file": "effect\\cloud11.tga",
      "size": 4.25,
      "duration_ms": 1667,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -454,7 +1173,7 @@
    "effect_ids": [
     439
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -463,8 +1182,49 @@
      "file": "effect\\line3.tga",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 446,
+   "name": "AM_BERSERKPITCHER",
+   "effect_ids": [
+    220,
+    541
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\ac_center2.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.7058823529411765,
+     "blend": "Additive",
+     "tint": [
+      0.941,
+      0.0,
+      0.0
+     ],
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_down.tga",
+     "duration_ms": 1500,
+     "height": 20.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35294117647058826,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -474,7 +1234,7 @@
    "effect_ids": [
     503
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -483,7 +1243,7 @@
      "file": "effect\\whitelight.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -493,7 +1253,7 @@
      "file": "effect\\soul_l.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -503,7 +1263,7 @@
      "file": "effect\\soul_k.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -514,7 +1274,7 @@
    "effect_ids": [
     503
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -523,7 +1283,7 @@
      "file": "effect\\whitelight.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -533,7 +1293,7 @@
      "file": "effect\\soul_l.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -543,7 +1303,7 @@
      "file": "effect\\soul_k.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -554,7 +1314,7 @@
    "effect_ids": [
     590
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -563,7 +1323,7 @@
      "file": "effect\\magic_blue.tga",
      "size": 3.4,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -574,7 +1334,7 @@
    "effect_ids": [
     543
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -583,7 +1343,7 @@
      "file": "effect\\pok1.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -594,7 +1354,7 @@
    "effect_ids": [
     547
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -603,7 +1363,7 @@
      "file": "effect\\270바람.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -614,7 +1374,7 @@
    "effect_ids": [
     553
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -623,8 +1383,31 @@
      "file": "effect\\270바람.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 472,
+   "name": "SL_SKA",
+   "effect_ids": [
+    254,
+    261
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\super1.bmp",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -634,7 +1417,7 @@
    "effect_ids": [
     496
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -643,7 +1426,7 @@
      "file": "effect\\a01.bmp",
      "size": 9.35,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -654,7 +1437,7 @@
    "effect_ids": [
     495
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -663,7 +1446,7 @@
      "file": "effect\\shield.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -673,7 +1456,7 @@
      "file": "effect\\sword.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -684,7 +1467,7 @@
    "effect_ids": [
     300
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -693,7 +1476,7 @@
      "file": "effect\\shockwave_c.bmp",
      "size": 6.8,
      "duration_ms": 5000,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -704,7 +1487,7 @@
    "effect_ids": [
     518
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -713,7 +1496,7 @@
      "file": "effect\\whitelight.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     }
    ]
@@ -724,7 +1507,7 @@
    "effect_ids": [
     128
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Cylinder",
@@ -735,7 +1518,7 @@
      "height": 2.0,
      "bottom_radius": 7.2,
      "top_radius": 7.2,
-     "alpha": 0.5,
+     "alpha": 0.35,
      "blend": "Additive"
     }
    ]
@@ -746,7 +1529,7 @@
    "effect_ids": [
     503
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -755,7 +1538,7 @@
      "file": "effect\\whitelight.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -765,7 +1548,7 @@
      "file": "effect\\soul_l.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
     },
     {
@@ -775,8 +1558,62 @@
      "file": "effect\\soul_k.tga",
      "size": 6.8,
      "duration_ms": 8333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 506,
+   "name": "GS_INCREASING",
+   "effect_ids": [
+    456
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Texture",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\ac_center2.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.23529411764705882,
+     "blend": "Additive",
+     "phase": "Success"
+    }
+   ]
+  },
+  {
+   "skill": 534,
+   "name": "NJ_KOUENKA",
+   "effect_ids": [
+    618
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\sakura01"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
+    },
+    {
+     "kind": "Texture",
+     "anchor": "Target",
+     "attached_entity": true,
+     "file": "effect\\alpha_center.tga",
+     "size": 6.8,
+     "duration_ms": 800,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Success"
     }
    ]
   },
@@ -786,7 +1623,7 @@
    "effect_ids": [
     621
    ],
-   "evidence": "rodecomp C++ effect switch agrees with the 2019-era SkillEffect table on the effect id; overlay layers are the effect implementation assets",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id",
    "layers": [
     {
      "kind": "Texture",
@@ -795,8 +1632,29 @@
      "file": "effect\\270바람.tga",
      "size": 6.8,
      "duration_ms": 3333,
-     "alpha": 0.6,
+     "alpha": 0.2,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 541,
+   "name": "NJ_RAIGEKISAI",
+   "effect_ids": [
+    622
+   ],
+   "evidence": "official C++ switch + 2019-era table agree on the effect id; appended official layer(s) missing from the existing descriptor",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "files": [
+      "이팩트\\썬더스톰"
+     ],
+     "duration_ms": 0,
+     "phase": "Success"
     }
    ]
   }

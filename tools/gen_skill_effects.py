@@ -522,15 +522,15 @@ def build(custom_path: Path, official_path: Path | None, rodecomp_path: Path | N
             official_keys.add(key)
 
     # 1b. Rows derived from the official client decompilation (rodecomp). They
-    #     cover skills the official client plays from hard-coded C++ (no data
-    #     asset layer existed for the extractors) and therefore supersede any
-    #     other source of the same (skill, phase) pair.
+    #     either add a descriptor for a skill whose effect the official client
+    #     plays from hard-coded C++ (no data asset layer existed for the
+    #     extractors) or append the official layers an existing descriptor was
+    #     missing. The merge only ever adds layers, it never drops a tuned
+    #     visual.
     if rodecomp_path is not None and rodecomp_path.is_file():
         for descriptor in read_effects(rodecomp_path):
             key = (int(descriptor["skill"]), str(descriptor["phase"]))
             entry = entry_for(*key)
-            entry["layers"] = []
-            official_assets.setdefault(key, set()).clear()
             for field in ("cast_circle_color", "action"):
                 if field in descriptor:
                     entry[field] = descriptor[field]

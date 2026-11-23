@@ -222,15 +222,25 @@ Aura rows of statuses whose official visual is a pure render flag (`EF_AURABLADE
 `render.flags |= 2`, `EF_REFLECTBODY` sets `|= 0x200`, and `EF_CLOAKING*` changes the sprite
 transparency) are intentionally **not** approximated with a glow.
 
-### 4.2 New skill-effect rows for hard-coded official effects
+### 4.2 Skill-effect fidelity: new rows **and** appended official layers
 
 `tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (35 skills,
 44 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
 the official rows (a row replaces its `(skill, phase)` descriptor).
 
-Selection rule: the skill had **no** client row, the official C++ switch plays an effect for it,
-**and** the effect id is also in the roBrowserLegacy-derived table our data already uses. That
-double confirmation keeps the 2026-vs-2019 version risk out of the change.
+Selection rule: the official C++ switch plays an effect for the skill **and** the effect id is
+also in the roBrowserLegacy-derived table our data already uses. That double confirmation keeps
+the 2026-vs-2019 version risk out of the change.
+
+Two kinds of rows are generated:
+
+* **new descriptors** for skills that had no client row at all (35 skills / 44 layers);
+* **append rows** (`mode: append`) for skills whose descriptor existed but was missing official
+  layers (32 skills / 43 layers). The merge only appends, it never drops a tuned visual, so a
+  skill moves closer to the official client without regressing. Examples: the official
+  `alpha_down.tga` ground circle of Blessing, Magnum Break's `대폭발` sphere, Cold Bolt's
+  `ring_blue`, the `fireball`/`창`/`waterball` projectiles, Grand Cross' ground rings, Aspersio's
+  `particle1`.
 
 Examples: `BS_OVERTHRUST` 113 (`EF_STONECURSE`-ring), `MO_TRIPLEATTACK` 263 (`cloud11`),
 `LK_AURABLADE` 355 (`ring_white`+`ring_yellow`), `SL_*` linkers (`soul_*` textures),
@@ -245,12 +255,13 @@ Examples: `BS_OVERTHRUST` 113 (`EF_STONECURSE`-ring), `MO_TRIPLEATTACK` 263 (`cl
    ids that differ from the roBrowser-derived table. The classic example is the bard/dancer songs:
    rodecomp plays `842..848` (`w_bubble%02d` animated bubbles) while our 2019-era table has
    `278..294`. Changing those needs the 2019 executable as ground truth, not rodecomp.
-2. **Skills with rows that miss official layers** (127 skills total). The largest offenders:
-   `AL_BLESSING` 34 (missing the `alpha_down.tga` circle, has a non-official `pok2.tga`),
-   `AL_HEAL` 28 (official `alpha_down` + `pok1`, we draw `ring_white`/`pok3` cylinders),
-   `SM_MAGNUM` 7 (`대폭발.tga` sphere), `MG_FIREBALL` 17 (`이팩트\fireball` sprite),
-   `MG_COLDBOLT` 14 (`ring_blue`), `KN_SPEARBOOMERANG` 59 (`이팩트\창`), `WZ_WATERBALL` 86,
-   `PR_ASPERSIO` 68, `TF_STEAL` 50, `TF_DETOXIFY` 53.
+2. **Skills with rows that still miss official layers**: 37 of the 64 covered skills (27 are now
+   complete). The remaining ones are mostly effects whose asset a single primitive cannot
+   express (multi-frame `%02d` sequences such as `w_bubble%02d`, `thunder_ball_a..c`,
+   `불화살1..4`), UI item textures (potion bottle, weapon icons) and a few textures whose
+   primitive has no korangar equivalent. `AL_HEAL` 28 now gets the official `alpha_down` layer;
+   its `pok1` sparkle and the exact cylinder geometry are still approximations, and
+   `MG_FIREBOLT` renders one frame of its 4-frame arrow sequence.
 3. **Animated texture patterns** (`%02d`, e.g. `w_bubble%02d`, `thunder_ball_0001..`) and
    `.spr` frame sequences cannot be expressed by the aura/layer schema; the songs'
    reworked bubbles are in that class.
@@ -282,11 +293,11 @@ GRFs):
 Checks in this repository:
 
 ```sh
-./tools/gen_rodecomp_overlay.py --check     # overlay data up to date
-./tools/gen_skill_effects.py --check        # 472 phases / 651 layers
+./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
+./tools/gen_skill_effects.py --check        # 478 phases / 685 layers
 ./tools/gen_status_effects.py --check       # 18 aura rows / 19 statuses
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
-korangar --check-skill-effects              # 472 descriptors valid
+korangar --check-skill-effects              # 478 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 564 passed
 ```
