@@ -52,6 +52,45 @@ def asset_key(path: str) -> str:
     return value.rsplit(".", 1)[0]
 
 
+# Renderer features our client implements for sprite-flag effects.
+# `Player.cpp` maps the bits: 0x1 body blend, 0x2 weapon blend, 0x4 weapon blink
+# (implemented as StatusVisualKind), SetColor -> BodyTint.
+IMPLEMENTED_BEHAVIORS = {"tint", "body_blend", "weapon_blend", "weapon_blink"}
+
+FLAG_BEHAVIORS = {
+    0x1: "body_blend",
+    0x2: "weapon_blend",
+    0x4: "weapon_blink",
+    0x8: "body_wave",
+    0x10: "pulse_scale",
+    0x40: "landing_effect",
+    0x200: "reflect_body",
+    0x400: "giant_body",
+    0x800: "outline_blue",
+    0x4000: "tint_overlay_blue",
+    0x8000: "run",
+    0x20000: "blur",
+    0x40000: "tint_overlay_red",
+    0x80000: "outline_green",
+    0x100000: "shadow_form",
+}
+
+
+def effect_behaviors(effect_ids: list[int], flags: dict[str, dict]) -> set[str]:
+    behaviors: set[str] = set()
+
+    for effect_id in effect_ids or []:
+        entry = flags.get(str(effect_id))
+        if not entry:
+            continue
+        if entry.get("set_color"):
+            behaviors.add("tint")
+        for bit in entry.get("flags") or []:
+            behaviors.add(FLAG_BEHAVIORS.get(int(bit), f"flag_0x{int(bit):x}"))
+
+    return behaviors
+
+
 def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
     gen = load_skill_effects_module()
     facts = json.loads(FACTS.read_text(encoding="utf-8"))["skills"]
@@ -64,6 +103,8 @@ def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
             paths = ([layer["file"]] if layer.get("file") else []) + list(layer.get("files") or []) + list(layer.get("frames") or [])
             for path in paths:
                 assets.add(asset_key(path))
+
+    flags_facts = json.loads((REPO / "tools" / "rodecomp_effect_flags.json").read_text(encoding="utf-8"))["effects"]
 
     buckets: dict[str, list[dict]] = {name: [] for name in ("complete", "partial", "uncovered", "flag_only", "no_effect")}
     for skill_id, info in sorted(((int(key), value) for key, value in learnable.items())):
@@ -92,6 +133,9 @@ def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
             if used:
                 buckets["uncovered"].append(row)
             elif entry["official_effect_ids"]:
+                behaviors = effect_behaviors(entry["official_effect_ids"], flags_facts)
+                row["behaviors"] = sorted(behaviors)
+                row["needs_renderer_feature"] = sorted(behaviors - IMPLEMENTED_BEHAVIORS)
                 buckets["flag_only"].append(row)
             else:
                 buckets["no_effect"].append(row)
@@ -101,6 +145,8 @@ def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
             buckets["complete"].append(row)
 
     summary = {name: len(rows) for name, rows in buckets.items()}
+    summary["flag_only_covered"] = sum(1 for row in buckets["flag_only"] if not row["needs_renderer_feature"])
+    summary["flag_only_needs_feature"] = sum(1 for row in buckets["flag_only"] if row["needs_renderer_feature"])
     summary["learnable_skills"] = len(learnable)
     return buckets, summary
 
@@ -122,7 +168,10 @@ def main() -> int:
     print(f"  complete    {summary['complete']:4}  every official asset is rendered")
     print(f"  partial     {summary['partial']:4}  has rows, misses {sum(len(row['missing_assets']) for row in buckets['partial'])} official assets")
     print(f"  uncovered   {summary['uncovered']:4}  official effect assets, no rows")
-    print(f"  flag_only   {summary['flag_only']:4}  official effect renders no asset (blend/blink/outline/tint)")
+    print(
+        f"  flag_only   {summary['flag_only']:4}  official effect renders no asset "
+        f"({summary['flag_only_covered']} covered by tint/blend/blink, {summary['flag_only_needs_feature']} need a renderer feature)"
+    )
     print(f"  no_effect   {summary['no_effect']:4}  no official effect (passive/sound-only)")
     print(f"  drift       {drift:4}  skills whose 2026/2019 effect ids are disjoint")
 

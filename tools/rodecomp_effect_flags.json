@@ -1,0 +1,916 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d - RagEffect.cpp case blocks: render.flags assignments (decimal and hex) and SetColor calls",
+  "note": "render.flags bits (Player.cpp/RenderObject.cpp): 1 body blend 5, 2 weapon blend 5, 4 weapon blink, 0x10 pulse scale, 0x40 landing blur?, 0x200 reflect body (Kaite), 0x400 giant body, 0x800 outline blue 0x3737FF (Asura body / flower cast), 0x4000 blue tinted overlay, 0x8000 run, 0x20000 blur, 0x40000 red tinted overlay, 0x80000 outline dark green 0x056405 (undead body), 0x100000 shadow form"
+ },
+ "effects": {
+  "303": {
+   "name": "EF_CHEMICAL2",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 150"
+   ]
+  },
+  "361": {
+   "name": "EF_SOULBREAKER",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 0, 255"
+   ]
+  },
+  "366": {
+   "name": "EF_BASH3D",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 200, 200"
+   ]
+  },
+  "368": {
+   "name": "EF_REDBODY",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 100, 100"
+   ]
+  },
+  "369": {
+   "name": "EF_LKCONCENTRATION",
+   "flags": [],
+   "set_color": [
+    "-1, 255, 255, 160"
+   ]
+  },
+  "375": {
+   "name": "EF_ASSUMPTIO",
+   "flags": [
+    8
+   ],
+   "set_color": []
+  },
+  "376": {
+   "name": "EF_HITLINE2",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 120, 50"
+   ]
+  },
+  "377": {
+   "name": "EF_BASH3D2",
+   "flags": [
+    1
+   ],
+   "set_color": []
+  },
+  "378": {
+   "name": "EF_ENERGYDRAIN2",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 100, 100, 255"
+   ]
+  },
+  "379": {
+   "name": "EF_TRANSBLUEBODY",
+   "flags": [],
+   "set_color": [
+    "-1, 205 - this->state.stateCnt, 205 - this->state.stateCnt, 255"
+   ]
+  },
+  "380": {
+   "name": "EF_MAGICCRASHER",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, std::max(rand("
+   ]
+  },
+  "382": {
+   "name": "EF_LIGHTBLADE",
+   "flags": [
+    4
+   ],
+   "set_color": []
+  },
+  "383": {
+   "name": "EF_ENERGYDRAIN3",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, (125 - this->state.stateCnt"
+   ]
+  },
+  "385": {
+   "name": "EF_LINKLIGHT",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 200, 150, 50"
+   ]
+  },
+  "387": {
+   "name": "EF_FALCONASSAULT",
+   "flags": [
+    1
+   ],
+   "set_color": []
+  },
+  "389": {
+   "name": "EF_PORTAL4",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 220, 250, 220"
+   ]
+  },
+  "392": {
+   "name": "EF_REJECTSWORD",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 100, 100, 100",
+    "-1, 250, 250, 250"
+   ]
+  },
+  "396": {
+   "name": "EF_PINKBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 89, 182"
+   ]
+  },
+  "399": {
+   "name": "EF_BASH3D3",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 200"
+   ]
+  },
+  "400": {
+   "name": "EF_BASH3D4",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 255"
+   ]
+  },
+  "402": {
+   "name": "EF_PORTAL5",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 200"
+   ]
+  },
+  "403": {
+   "name": "EF_MAGICCRASHER2",
+   "flags": [],
+   "set_color": [
+    "-1, std::max(rand("
+   ]
+  },
+  "409": {
+   "name": "EF_SOULBREAKER2",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 0, 255"
+   ]
+  },
+  "413": {
+   "name": "EF_PRESSEDBODY",
+   "flags": [
+    32
+   ],
+   "set_color": []
+  },
+  "414": {
+   "name": "EF_SPINEDBODY",
+   "flags": [
+    64
+   ],
+   "set_color": []
+  },
+  "415": {
+   "name": "EF_KICKEDBODY",
+   "flags": [
+    128
+   ],
+   "set_color": []
+  },
+  "417": {
+   "name": "EF_HITBODY",
+   "flags": [
+    256
+   ],
+   "set_color": []
+  },
+  "419": {
+   "name": "EF_REFLECTBODY",
+   "flags": [
+    512
+   ],
+   "set_color": []
+  },
+  "420": {
+   "name": "EF_BABYBODY",
+   "flags": [
+    16
+   ],
+   "set_color": []
+  },
+  "421": {
+   "name": "EF_BABYBODY2",
+   "flags": [
+    16
+   ],
+   "set_color": []
+  },
+  "422": {
+   "name": "EF_GIANTBODY",
+   "flags": [
+    1024
+   ],
+   "set_color": []
+  },
+  "423": {
+   "name": "EF_GIANTBODY2",
+   "flags": [
+    1024
+   ],
+   "set_color": []
+  },
+  "424": {
+   "name": "EF_ASURABODY",
+   "flags": [
+    2048
+   ],
+   "set_color": []
+  },
+  "427": {
+   "name": "EF_ASURABODY_MONSTER",
+   "flags": [
+    2048
+   ],
+   "set_color": []
+  },
+  "442": {
+   "name": "EF_RUN",
+   "flags": [
+    32768
+   ],
+   "set_color": []
+  },
+  "445": {
+   "name": "EF_JUMPBODY",
+   "flags": [
+    65536
+   ],
+   "set_color": []
+  },
+  "446": {
+   "name": "EF_LANDBODY",
+   "flags": [
+    64,
+    131072
+   ],
+   "set_color": []
+  },
+  "449": {
+   "name": "EF_TAE_READY",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "458": {
+   "name": "EF_QUAKEBODY2",
+   "flags": [
+    8192
+   ],
+   "set_color": []
+  },
+  "466": {
+   "name": "EF_SPINEDBODY2",
+   "flags": [
+    64
+   ],
+   "set_color": []
+  },
+  "474": {
+   "name": "EF_AURABLADE2",
+   "flags": [
+    2
+   ],
+   "set_color": []
+  },
+  "488": {
+   "name": "EF_FLOWERCAST",
+   "flags": [
+    2048
+   ],
+   "set_color": []
+  },
+  "493": {
+   "name": "EF_EDP",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "496": {
+   "name": "EF_GUARD2",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 250",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "500": {
+   "name": "EF_CHEMICALBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "502": {
+   "name": "EF_PIERCEBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 250, 250, 100",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "505": {
+   "name": "EF_MEMORIZE",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 100",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "512": {
+   "name": "EF_CHEMICAL2DASH",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 150"
+   ]
+  },
+  "521": {
+   "name": "EF_DOUBLECASTBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 0, 0",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "538": {
+   "name": "EF_GREENBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 255, 0",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "540": {
+   "name": "EF_BABYBODY_BACK",
+   "flags": [
+    16
+   ],
+   "set_color": []
+  },
+  "542": {
+   "name": "EF_BLUEBODY",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "543": {
+   "name": "EF_HATED",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "599": {
+   "name": "EF_SHRINK",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 100",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "602": {
+   "name": "EF_QUAKEBODY4",
+   "flags": [],
+   "set_color": [
+    "-1, 250, 50, 50",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "625": {
+   "name": "EF_MADNESS_BLUE",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "626": {
+   "name": "EF_MADNESS_RED",
+   "flags": [
+    262144
+   ],
+   "set_color": []
+  },
+  "655": {
+   "name": "EF_UNDEADBODY",
+   "flags": [
+    524288
+   ],
+   "set_color": []
+  },
+  "656": {
+   "name": "EF_UNDEADBODY_DEL",
+   "flags": [
+    524288
+   ],
+   "set_color": []
+  },
+  "667": {
+   "name": "EF_DA_SPACE",
+   "flags": [
+    2
+   ],
+   "set_color": []
+  },
+  "720": {
+   "name": "EF_SOULBREAKER3",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 205, 205, 0"
+   ]
+  },
+  "733": {
+   "name": "EF_SOULBREAKER4",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 155, 155, 255"
+   ]
+  },
+  "750": {
+   "name": "EF_CONCENTRATION2",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 155, 155, 255"
+   ]
+  },
+  "768": {
+   "name": "EF_PURPLEBODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "777": {
+   "name": "EF_AGIUP2",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 155, 155, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "779": {
+   "name": "EF_AGIUP3",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 155, 155, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "782": {
+   "name": "EF_GUARD4",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 0",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "786": {
+   "name": "EF_NC_ANAL",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 250, 250, 250",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "791": {
+   "name": "EF_COLDTHROW",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "799": {
+   "name": "EF_STASIS",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 0, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "805": {
+   "name": "EF_TETRACASTING",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, rand(",
+    "-1, rand("
+   ]
+  },
+  "812": {
+   "name": "EF_BLACKBODY",
+   "flags": [],
+   "set_color": [
+    "-1, value, value, value",
+    "-1, 255, 128, 255"
+   ]
+  },
+  "823": {
+   "name": "EF_MANHOLE",
+   "flags": [
+    1048576
+   ],
+   "set_color": []
+  },
+  "832": {
+   "name": "EF_HEAL_N",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 5, 5, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "835": {
+   "name": "EF_CHEMICAL2DASH2",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 150"
+   ]
+  },
+  "847": {
+   "name": "EF_DANCE1",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 89, 182",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "848": {
+   "name": "EF_DANCE2",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 182, 89, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "864": {
+   "name": "EF_ENERVATION7",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 182, 89, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "886": {
+   "name": "EF_GUMGANG5",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 0, 255"
+   ]
+  },
+  "907": {
+   "name": "EF_RG_COIN7",
+   "flags": [
+    2
+   ],
+   "set_color": []
+  },
+  "928": {
+   "name": "EF_COLDTHROW2",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 0, 255",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "934": {
+   "name": "EF_GUMGANG6",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": []
+  },
+  "936": {
+   "name": "EF_GUMGANG7",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 0, 0"
+   ]
+  },
+  "937": {
+   "name": "EF_GUMGANG8",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 255, 0"
+   ]
+  },
+  "938": {
+   "name": "EF_GUMGANG9",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 80, 40, 0"
+   ]
+  },
+  "943": {
+   "name": "EF_HEAL_N2",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 55, 255, 55",
+    "-1, 255, 255, 255"
+   ]
+  },
+  "963": {
+   "name": "EF_GRAYBODY",
+   "flags": [],
+   "set_color": [
+    "-1, 105, 105, 105"
+   ]
+  },
+  "970": {
+   "name": "EF_TETRA_FIRE",
+   "flags": [],
+   "set_color": [
+    "50, -1, -1, -1",
+    "\n    -1, static_cast<int>(this->render.position.x",
+    "-1, 250, value, value"
+   ]
+  },
+  "1003": {
+   "name": "EF_BLUELIGHTBODY",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "1004": {
+   "name": "EF_KAGEMUSYA",
+   "flags": [],
+   "set_color": [
+    "100, 192, 192, 192"
+   ]
+  },
+  "1037": {
+   "name": "EF_YELLOBODY",
+   "flags": [],
+   "set_color": [
+    "-1, 251, 200, 4"
+   ]
+  },
+  "1065": {
+   "name": "EF_WHITEBODY",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 255, 255"
+   ]
+  },
+  "1072": {
+   "name": "EF_JUMPBODY1",
+   "flags": [
+    65536
+   ],
+   "set_color": []
+  },
+  "1081": {
+   "name": "EF_ESCAPE",
+   "flags": [],
+   "set_color": [
+    "-1, 200, 200, 0"
+   ]
+  },
+  "1082": {
+   "name": "EF_XENO_SLASHER",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 0, 255, 0"
+   ]
+  },
+  "1131": {
+   "name": "EF_SU_SPIRIT_OF_LIFE",
+   "flags": [
+    1
+   ],
+   "set_color": [
+    "-1, 255, 255, 255"
+   ]
+  },
+  "1148": {
+   "name": "EF_RL_R_TRIP",
+   "flags": [],
+   "set_color": [
+    "-1, 220, 150, 0"
+   ]
+  },
+  "1207": {
+   "name": "EF_PEONG_BLACK",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, (125 - this->state.stateCnt"
+   ]
+  },
+  "1208": {
+   "name": "EF_ENERGYDRAIN_BLACK",
+   "flags": [
+    8
+   ],
+   "set_color": [
+    "-1, (125 - this->state.stateCnt"
+   ]
+  },
+  "1209": {
+   "name": "EF_BLINK_BODY",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 155, 155, 255",
+    "-1, 50, 50, 50"
+   ]
+  },
+  "1224": {
+   "name": "EF_SOLAR_EXPLOSION",
+   "flags": [
+    64
+   ],
+   "set_color": []
+  },
+  "1398": {
+   "name": "EF_UNK_1398",
+   "flags": [
+    262144
+   ],
+   "set_color": []
+  },
+  "1420": {
+   "name": "EF_NEW_GRANDCROSS",
+   "flags": [
+    16384
+   ],
+   "set_color": []
+  },
+  "1545": {
+   "name": "EF_NEW_MAGNUM_BREAK",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 0, 0, 255"
+   ]
+  },
+  "2277": {
+   "name": "EF_UNK_2277",
+   "flags": [],
+   "set_color": [
+    "-1, 105, 105, 105"
+   ]
+  },
+  "2278": {
+   "name": "EF_UNK_2278",
+   "flags": [],
+   "set_color": [
+    "-1, 251, 200, 4"
+   ]
+  },
+  "2373": {
+   "name": "EF_VOLCANO_BLACK",
+   "flags": [
+    1,
+    8
+   ],
+   "set_color": [
+    "-1, 255, 0, 0"
+   ]
+  }
+ }
+}

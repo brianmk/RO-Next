@@ -481,6 +481,45 @@ Outlines (Kaite/Soul Link/Undead) remain unimplemented: the forward shader
 multiplies texture by the instance colour, so a flat silhouette needs a shader
 branch.
 
+### 5b-3. Flag-only skills: what each official effect actually asks for
+
+`tools/rodecomp_effect_flags.json` extracts, for 107 effect ids, the
+`render.flags` bits and `SetColor` calls from the decompiled `RagEffect.cpp`
+case blocks, with the bit semantics from `Player.cpp`/`RenderObject.cpp`:
+
+| bit | behaviour |
+| --- | --- |
+| `0x1` | body layers use blend mode 5 (implemented: additive body tint) |
+| `0x2` | weapon layer uses blend mode 5 (implemented: additive weapon tint) |
+| `0x4` | weapon layer blinks (implemented: `WeaponBlink`) |
+| `0x8` | body wave: layers are offset vertically by a sine (`DrawPulseOutline`/`Player.cpp:1085`) |
+| `0x40` | landing squash (`EF_LANDBODY`) |
+| `0x200` | reflect body (Kaite) |
+| `0x400` | giant body |
+| `0x800` | blue outline `0x3737FF` (Asura body, flower cast) |
+| `0x4000` | blue tinted overlay quad (`DrawTintedQuad`) |
+| `0x40000` | red tinted overlay quad |
+| `0x80000` | dark green outline `0x056405` (undead body) |
+| `0x8000`/`0x20000`/`0x100000` | run, blur, shadow form |
+
+The coverage audit now classifies the `flag_only` bucket by that table:
+**4 of the 12 are covered** by the implemented tint/blend/blink visuals
+(`LK_BERSERK`, `PF_MEMORIZE`, `GS_FLING`, `CR_SHRINK`), **8 need a renderer
+feature**:
+
+| skills | needed behaviour |
+| --- | --- |
+| `PF_DOUBLECASTING`, `CG_TAROTCARD` | body wave (`0x8`) + tint |
+| `SL_KAUPE`, `GS_MADNESSCANCEL` | blue tinted overlay (`0x4000`) |
+| `GS_ADJUSTMENT` | red tinted overlay (`0x40000`) |
+| `SL_KAITE` | reflect body (`0x200`) + blue overlay |
+| `SL_SKE` | blue sprite outline (`0x800`) |
+| `TK_HIGHJUMP` | landing squash (`0x40`) + blur (`0x20000`) |
+
+This is the exact remaining renderer surface; each row names the primitive, so
+the next step (body-wave offset, tinted overlay quad, outline pass) does not
+need another decompilation pass.
+
 ## 5c. Coverage audit tool
 
 `tools/audit_rodecomp_coverage.py` joins the committed facts
