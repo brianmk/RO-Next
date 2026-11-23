@@ -937,9 +937,11 @@ mod tests {
             "missing the official texture layer: {blessing:?}"
         );
 
-        // Increment AGI combines the hand-written sparkle with official textures.
+        // Increment AGI is the official effect only (three `ac_center2` bursts
+        // plus the `agi_up.bmp` glow); the old hand-written `blessingsofsoul`
+        // overlay made it look like Fury and must not come back.
         let inc_agi = skil_effect_layers(29, SkillPhase::Success);
-        assert!(inc_agi.iter().any(|layer| layer.kind == LayerKind::Str));
+        assert!(inc_agi.iter().all(|layer| layer.kind != LayerKind::Str));
         assert!(inc_agi.iter().any(|layer| layer.kind == LayerKind::Texture));
     }
 

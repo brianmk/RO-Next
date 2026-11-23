@@ -246,7 +246,6 @@
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\ac_center2.tga", size: 4.0, size_end: 4.6, duration_ms: 1000, delay_ms: 400, count: 3, spread: 3.0, alpha: 0.75),
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\ac_center2.tga", size: 4.0, size_end: 4.6, duration_ms: 1000, count: 10, spread: 3.0),
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\agi_up.bmp", size: 22.0, size_end: 32.0, duration_ms: 1000, wav: "effect\\ef_incagility.wav"),
-                (kind: Str, anchor: Overhead, file: "efst_c_blessings_of_soul\\blessingsofsoul.str", scale: 0.9, light: (255, 230, 160), light_intensity: 35.0),
             ],
         ),
         (
@@ -1348,7 +1347,7 @@
             skill: 270,
             phase: Cast,
             cast_circle_color: (255, 230, 160),
-            action: Skill,
+            action: Idle,
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.9, tint: (1.0, 0.88, 0.35), blend: Additive, wav: "effect\\ef_beginspell.wav"),
                 (kind: BodyFlash, tint: (1.0, 0.85, 0.2), hold_ms: 250, fade_ms: 700),
@@ -1833,7 +1832,7 @@
             skill: 401,
             phase: Cast,
             cast_circle_color: (255, 230, 160),
-            action: Skill,
+            action: Idle,
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.8, tint: (1.0, 0.88, 0.35), blend: Additive, wav: "effect\\ef_beginspell.wav"),
                 (kind: BodyFlash, tint: (1.0, 1.0, 0.0), hold_ms: 200, fade_ms: 600),

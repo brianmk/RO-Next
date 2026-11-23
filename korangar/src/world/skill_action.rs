@@ -91,10 +91,10 @@ mod tests {
         for skill_id in [1, 29, 261] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
         }
-        // Fury and Zen are data-overridden to play the casting gesture so the
-        // user sees the character perform an animation.
+        // Fury and Zen are official "keep pose" skills (rustnarok CAST/KEEP
+        // tables): their cast feedback is the effect, not a casting gesture.
         for skill_id in [270, 401] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
         }
     }
 

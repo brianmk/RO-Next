@@ -57,10 +57,11 @@
         // AL_INCAGI (29): blessing-of-souls sparkles above the head (hand-written
         // layer) plus the official AGI Up texture layers of effect 37, which the
         // old `has_custom_completion` bypass used to drop.
+        // AL_INCAGI (29): the official `EffectTable[37]` layers are the three
+        // `ac_center2` bursts plus the `agi_up.bmp` glow. An old custom overlay
+        // (`blessingsofsoul.str`) made the skill look like Fury; the official
+        // layers are authoritative.
         (skill: 29, phase: Cast, cast_circle_color: (255, 230, 160), layers: []),
-        (skill: 29, phase: Success, layers: [
-            (kind: Str, anchor: Overhead, file: "efst_c_blessings_of_soul\\blessingsofsoul.str", scale: 0.9, light: (255, 230, 160), light_intensity: 35.0),
-        ]),
 
         // AL_ANGELUS (33): the official `angelus.str` is `head: true` in
         // `EffectTable[41]`; the official table must drive the overhead anchor.
@@ -106,7 +107,7 @@
         // MO_EXPLOSIONSPIRITS (270): instant self buff. Official
         // `beginCastEffectId: 12` cone plus the four expanding `EF_GUMGANG2`
         // rings (`effectIdOnCaster: 261`), reproduced procedurally.
-        (skill: 270, phase: Cast, action: Skill, cast_circle_color: (255, 230, 160), layers: [
+        (skill: 270, phase: Cast, cast_circle_color: (255, 230, 160), layers: [
             (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, alpha: 0.9, tint: (1.0, 0.88, 0.35), blend: Additive, grow: TopRadius),
             (kind: BodyFlash, tint: (1.0, 0.85, 0.2), hold_ms: 250, fade_ms: 700),
         ]),
@@ -240,7 +241,7 @@
         // CH_SOULCOLLECT (401): two-second self cast. The yellow `EF_BEGINSPELL`
         // cone grows for the start of the cast and the caster's body flashes
         // yellow (`EF_PORTAL5`).
-        (skill: 401, phase: Cast, action: Skill, cast_circle_color: (255, 230, 160), layers: [
+        (skill: 401, phase: Cast, cast_circle_color: (255, 230, 160), layers: [
             (kind: Cylinder, anchor: Caster, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, alpha: 0.8, tint: (1.0, 0.88, 0.35), blend: Additive, grow: TopRadius),
             (kind: BodyFlash, tint: (1.0, 1.0, 0.0), hold_ms: 200, fade_ms: 600),
         ]),
