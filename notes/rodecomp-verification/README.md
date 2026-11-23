@@ -41,3 +41,35 @@ also exercises.
   server. Use a different test account (or wait) when that happens.
 * The char server sometimes answers "Rejected from server" on the first attempt; retrying
   succeeds.
+
+## Status sprite renderer (additive body/weapon blend)
+
+The additive body/weapon blend of section 4.4 of the audit was verified in the same headless
+scenario after adding statuses 103 (Aura Blade: additive weapon) and 107 (Berserk: additive body)
+to the injected aura list and refreshing the status visuals from the benchmark:
+
+```sh
+env -u WAYLAND_DISPLAY DISPLAY=:96 XDG_RUNTIME_DIR=/run/user/1000 \
+    KORANGAR_MUTE_AUDIO=1 KORANGAR_BENCH=skills \
+    KORANGAR_BENCH_USER=verify2 KORANGAR_BENCH_PASS=verifypass \
+    ../target/release/korangar -v
+```
+
+* `status-sprite-sweep.log` — full 43-skill sweep: `skill_sweep` finished with 785 frames
+  (mean 33.8 ms, p95 38.2 ms), no panic, no missing-asset error (`client exit: 124` is the
+  external `timeout`).
+* `status-sprite-sweep.jpg` — frame at ~38 s: the character still renders with the injected
+  statuses (Berserk/Aura Blade active; the white bloom is the stacked official status auras,
+  Fury/Berserk).
+* `status-sprite-statuses.jpg`, `status-sprite-statuses.log` — isolated run
+  (`KORANGAR_BENCH_SKILLS=1`, so the sweep completes after one skill and the client idles):
+  the character with only the persistent status visuals is still visible (not black/invisible);
+  `status-sprite-crop.jpg` is the enlarged body. The additive blend is `SrcAlpha / One` into the
+  forward colour target, so `EF_REDBODY` reads as a strong red-white glow rather than a mild
+  tint; the official client applies blend mode 5 instead of the normal body layer, while this
+  renderer keeps the lit opaque body (opaque pass unchanged) and adds the glow on top.
+
+The flat-colour sprite outlines (Kaite 153, Soul Link 149, Property Undead 97) are **not**
+implemented: the forward entity shader multiplies the sampled sprite RGB by the instance colour,
+so an offset copy can only be tinted, not flattened into a silhouette. That needs a shader-side
+flat-colour path and was skipped per the task's "no shader edits without visual A/B" rule.

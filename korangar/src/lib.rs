@@ -3694,42 +3694,25 @@ impl Client {
         }
     }
 
-    /// Recomputes the best status body visual of `entity_id` and applies it.
+    /// Recomputes the best status sprite visual of `entity_id` and applies it.
     ///
-    /// The data-driven table is queried for every active status of the entity;
-    /// the highest-priority `BodyTint` wins, and a `BodyFade` is applied when
-    /// no tint is active. When no visual matches, the previous tint/alpha
-    /// is cleared so ending a status cannot leave a stale colour.
+    /// The data-driven table is queried for every active status of the entity:
+    /// the highest-priority `BodyTint` wins (it also carries the additive
+    /// body/weapon scope), the first `BodyFade` is applied, and `WeaponBlink`
+    /// is OR-ed. When no visual matches, the previous state is cleared so
+    /// ending a status cannot leave a stale colour or blend behind.
     fn refresh_entity_status_visual(&mut self, entity_id: ragnarok_packets::EntityId) {
-        use crate::world::StatusVisualKind;
-
-        let statuses = self.client_state.follow(client_state().status_effects());
-        let mut tint = None;
-        let mut alpha = None;
-        let mut weapon_blink = false;
-        let mut tint_priority = i16::MIN;
-
-        for effect in statuses.effects().iter().filter(|effect| effect.entity_id() == entity_id.0) {
-            let Some(visual) = crate::world::status_visual(effect.status_index()) else {
-                continue;
-            };
-            match visual.kind {
-                StatusVisualKind::BodyTint { tint: color, priority, .. } => {
-                    if priority >= tint_priority {
-                        tint = Some(color);
-                        tint_priority = priority;
-                    }
-                }
-                StatusVisualKind::BodyFade { alpha: value, .. } => {
-                    if alpha.is_none() {
-                        alpha = Some(value);
-                    }
-                }
-                StatusVisualKind::WeaponBlink => weapon_blink = true,
-                // Looping/ground visuals are spawned by `update_status_visuals`.
-                StatusVisualKind::LoopingEffect { .. } | StatusVisualKind::GroundRing { .. } => {}
-            }
-        }
+        let state = {
+            let statuses = self.client_state.follow(client_state().status_effects());
+            crate::world::resolve_status_visual_state(
+                statuses
+                    .effects()
+                    .iter()
+                    .filter(|effect| effect.entity_id() == entity_id.0)
+                    .filter_map(|effect| crate::world::status_visual(effect.status_index()))
+                    .map(|visual| &visual.kind),
+            )
+        };
 
         if let Some(entity) = self
             .client_state
@@ -3737,9 +3720,10 @@ impl Client {
             .iter_mut()
             .find(|entity| entity.get_entity_id() == entity_id)
         {
-            entity.set_status_tint(tint);
-            entity.set_status_alpha(alpha);
-            entity.set_weapon_blink(weapon_blink);
+            entity.set_status_tint(state.tint);
+            entity.set_status_alpha(state.alpha);
+            entity.set_weapon_blink(state.weapon_blink);
+            entity.set_status_additive(state.body_additive, state.weapon_additive);
         }
     }
 

@@ -276,6 +276,12 @@ pub struct Common {
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
     status_weapon_blink: bool,
+    /// Draw the body layers with an additive blend (official
+    /// `EF_REDBODY`/`render.flags & 1`).
+    status_body_additive: bool,
+    /// Draw the equipped weapon layer with an additive blend (official
+    /// `EF_AURABLADE2`/`render.flags & 2`).
+    status_weapon_additive: bool,
     /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
     status_alpha: Option<f32>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
@@ -576,6 +582,8 @@ impl Common {
             cart_kind: 0,
             status_tint: None,
             status_weapon_blink: false,
+            status_body_additive: false,
+            status_weapon_additive: false,
             status_alpha: None,
             weapon_animation: None,
             active_movement,
@@ -743,6 +751,14 @@ impl Common {
     /// Blink the equipped weapon layer (official `EF_LIGHTBLADE`).
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.status_weapon_blink = blink;
+    }
+
+    /// Set the additive sprite blend of a status effect: `body` blends the
+    /// body layers (official `render.flags & 1`), `weapon` the equipped weapon
+    /// layer (official `render.flags & 2`). The tint is not affected.
+    pub fn set_status_additive(&mut self, body: bool, weapon: bool) {
+        self.status_body_additive = body;
+        self.status_weapon_additive = weapon;
     }
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
@@ -1340,6 +1356,7 @@ impl Common {
                 tint,
                 self.scale,
                 self.imf.as_deref(),
+                self.status_body_additive,
             );
         }
 
@@ -1360,6 +1377,7 @@ impl Common {
                 tint,
                 self.scale,
                 None,
+                self.status_weapon_additive,
             );
         }
 
@@ -1380,6 +1398,7 @@ impl Common {
                 tint,
                 self.scale,
                 None,
+                false,
             );
         }
 
@@ -1401,6 +1420,7 @@ impl Common {
                 tint,
                 self.scale,
                 None,
+                false,
             );
         }
     }
@@ -1966,6 +1986,11 @@ impl Entity {
 
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.get_common_mut().set_weapon_blink(blink);
+    }
+
+    /// Sets the additive body/weapon sprite blend of the active statuses.
+    pub fn set_status_additive(&mut self, body: bool, weapon: bool) {
+        self.get_common_mut().set_status_additive(body, weapon);
     }
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {

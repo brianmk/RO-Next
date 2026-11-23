@@ -5,21 +5,24 @@
 // Check:      `./tools/gen_status_visuals.py --check`
 //
 // Body tints/fades carry the official SetColor values of the client
-// decompilation (rodecomp) where the effect sets one; the looping/ground rows
-// are curated. Assets were checked against the CondaRO archives.
+// decompilation (rodecomp) where the effect sets one; `additive`/`scope` map
+// the official `render.flags` body/weapon blend bits (EF_REDBODY 1,
+// EF_AURABLADE2 2). The looping/ground rows are curated. Assets were checked
+// against the CondaRO archives.
 (
-    provenance: "Status body tints/fades: official SetColor values from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
+    provenance: "Status sprite visuals: official SetColor values and render.flags blend bits from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
     version: 1,
     visuals: [
-        (id: 23, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10), source: "classic red adrenaline tint"),
-        (id: 147, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10), source: "classic red full-adrenaline tint"),
-        (id: 86, kind: BodyTint(tint: (255, 191, 191), hold_ms: 0, fade_ms: 0, priority: 20), source: "official Fury red glow"),
-        (id: 132, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_AUTOBERSERK (rodecomp)"),
-        (id: 107, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BERSERK (rodecomp)"),
-        (id: 105, kind: BodyTint(tint: (255, 255, 160), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_LKCONCENTRATION SetColor(255,255,160) (rodecomp)"),
-        (id: 464, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"),
-        (id: 448, kind: BodyTint(tint: (182, 89, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"),
-        (id: 453, kind: BodyTint(tint: (0, 0, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"),
+        (id: 23, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10, additive: false, scope: Body), source: "classic red adrenaline tint"),
+        (id: 147, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10, additive: false, scope: Body), source: "classic red full-adrenaline tint"),
+        (id: 86, kind: BodyTint(tint: (255, 191, 191), hold_ms: 0, fade_ms: 0, priority: 20, additive: false, scope: Body), source: "official Fury red glow"),
+        (id: 132, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30, additive: true, scope: Body), source: "official EF_REDBODY SetColor(255,100,100) + render.flags |= 1 body blend - EFST_AUTOBERSERK (rodecomp)"),
+        (id: 107, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30, additive: true, scope: Body), source: "official EF_REDBODY SetColor(255,100,100) + render.flags |= 1 body blend - EFST_BERSERK (rodecomp)"),
+        (id: 105, kind: BodyTint(tint: (255, 255, 160), hold_ms: 0, fade_ms: 0, priority: 30, additive: false, scope: Body), source: "official EF_LKCONCENTRATION SetColor(255,255,160) (rodecomp)"),
+        (id: 464, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30, additive: false, scope: Body), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"),
+        (id: 448, kind: BodyTint(tint: (182, 89, 255), hold_ms: 0, fade_ms: 0, priority: 30, additive: false, scope: Body), source: "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"),
+        (id: 453, kind: BodyTint(tint: (0, 0, 255), hold_ms: 0, fade_ms: 0, priority: 30, additive: false, scope: Body), source: "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"),
+        (id: 103, kind: BodyTint(tint: (255, 255, 255), hold_ms: 0, fade_ms: 0, priority: 30, additive: true, scope: Weapon), source: "official EF_AURABLADE2 render.flags |= 2: weapon layer blend 5 (rodecomp)"),
         (id: 113, kind: WeaponBlink, source: "official EF_LIGHTBLADE render.flags |= 4: weapon layer blinks (rodecomp)"),
         (id: 360, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_CAMOUFLAGE (rodecomp)"),
         (id: 379, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_STEALTHFIELD (rodecomp)"),

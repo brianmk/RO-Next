@@ -634,6 +634,7 @@ impl AnimationData {
         tint: Color,
         scale: f32,
         imf: Option<&Imf>,
+        additive: bool,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
         let head_behind_body = imf.is_some_and(|imf| self.head_behind_body(imf, animation_state, camera, direction));
@@ -686,6 +687,7 @@ impl AnimationData {
                 mirror: frame_part.mirror,
                 entity_id,
                 add_to_picker,
+                additive,
                 texture: texture.clone(),
                 distance,
             });

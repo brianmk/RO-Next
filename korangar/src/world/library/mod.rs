@@ -67,7 +67,8 @@ pub(crate) use self::status_effects::{
     value_lines as status_effect_value_lines,
 };
 pub(crate) use self::status_visuals::{
-    StatusVisualAnchor, StatusVisualKind, StatusVisualSpec, status_visual, validate as validate_status_visual_data,
+    StatusVisualAnchor, StatusVisualKind, StatusVisualScope, StatusVisualSpec, StatusVisualState,
+    resolve_state as resolve_status_visual_state, status_visual, validate as validate_status_visual_data,
     validate_compiled as validate_compiled_status_visuals,
 };
 use crate::loaders::GameFileLoader;
