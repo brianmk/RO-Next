@@ -11377,6 +11377,19 @@ fn request_weapon_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
         candidates.len()
     );
 
+    // A player without any candidate path would silently lose the weapon
+    // layer; report it once per entity so a missing/custom weapon sprite is
+    // visible in the normal log instead of a debug-only line.
+    if candidates.is_empty() && entity.get_entity_type() == crate::world::EntityType::Player {
+        crate::logging::log_warn!(
+            "weapon layer: entity {} has no sprite candidates (weapon view id {}, kind {:?}, subtype {:?})",
+            entity.get_entity_id().0,
+            entity.get_weapon(),
+            profile.kind(),
+            profile.subtype()
+        );
+    }
+
     if candidates.is_empty() || entity.has_weapon_animation() {
         return;
     }
