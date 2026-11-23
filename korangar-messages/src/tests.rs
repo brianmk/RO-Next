@@ -1,7 +1,8 @@
 //! Tests for the data-driven protocol result-code message table.
 
 use super::{
-    FALLBACK, MessageDisplay, MessageDomain, format_message, format_with, parse, placeholder_names, row_count, validate, validate_compiled,
+    FALLBACK, MessageDisplay, MessageDomain, format_message, format_with, parse, placeholder_names, render_template, row_count, validate,
+    validate_compiled,
 };
 
 /// Every result code the client used to handle with a hardcoded `match` arm,
@@ -577,4 +578,30 @@ fn named_placeholders_and_code_are_substituted() {
     assert!(placeholder_names("{broken").is_err());
     assert!(placeholder_names("{}").is_err());
     assert!(placeholder_names("stray }").is_err());
+}
+
+/// The client feedback renderer shares the placeholder syntax with the result
+/// message table but has no result code: the chat feedback templates (which
+/// live in the client localization files, not in this table) use it.
+#[test]
+fn client_feedback_templates_render_named_arguments() {
+    assert_eq!(
+        render_template("Skill {skill}: the target is out of range.", &[("skill", "12")]),
+        "Skill 12: the target is out of range."
+    );
+    assert_eq!(
+        render_template("Hotbar page {page}/{pages}.", &[("page", "1"), ("pages", "3")]),
+        "Hotbar page 1/3."
+    );
+
+    // A missing argument keeps the placeholder visible instead of dropping
+    // text (same documented behaviour as the result messages).
+    assert_eq!(render_template("Skill {skill}.", &[]), "Skill {skill}.");
+
+    // `{code}` is only substituted by the result-code table; the client
+    // feedback renderer has no result code and keeps it visible.
+    assert_eq!(
+        render_template("Page {page}/{pages} ({code}).", &[("page", "1"), ("pages", "3")]),
+        "Page 1/3 ({code})."
+    );
 }

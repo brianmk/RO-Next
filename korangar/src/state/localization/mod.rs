@@ -321,6 +321,150 @@ pub struct Localization {
     /// Labels of the settings drop down options.
     #[serde(default = "default_dropdown_texts")]
     dropdown: DropdownTexts,
+    // ------------------------------------------------------------------
+    // Client chat feedback (client-side validation / status messages).
+    //
+    // These are *not* protocol result codes: the result-code texts live in
+    // `data\client\messages.ron` / `korangar-messages`. The templates below
+    // use the same `{name}` placeholders as the result messages and are
+    // rendered with `korangar_messages::render_template`.
+    // ------------------------------------------------------------------
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_aura_style_set")]
+    chat_aura_style_set: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_party_invite_ignored")]
+    chat_party_invite_ignored: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_cannot_raise_stat")]
+    chat_cannot_raise_stat: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_players_online")]
+    chat_players_online: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_map_server_refused_login")]
+    chat_map_server_refused_login: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_passive")]
+    chat_skill_passive: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_aura_usage")]
+    chat_aura_usage: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_aura_unknown")]
+    chat_aura_unknown: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_party_usage")]
+    chat_party_usage: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_hotbar_page")]
+    chat_hotbar_page: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_hotkey_item_missing")]
+    chat_hotkey_item_missing: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_not_learned")]
+    chat_skill_not_learned: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_target_out_of_range")]
+    chat_skill_target_out_of_range: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_target_gone")]
+    chat_skill_target_gone: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_no_target")]
+    chat_skill_no_target: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_cell_out_of_range")]
+    chat_skill_cell_out_of_range: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_position_unknown")]
+    chat_skill_position_unknown: String,
+    // Chat templates are not interface labels: keep them out of the state
+    // inspector (and out of the derived inspector element tuple).
+    #[hidden_element]
+    #[serde(default = "default_chat_skill_click_ground")]
+    chat_skill_click_ground: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_experience_gained")]
+    chat_experience_gained: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_experience_base")]
+    chat_experience_base: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_experience_job")]
+    chat_experience_job: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_experience_quest_base")]
+    chat_experience_quest_base: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_experience_quest_job")]
+    chat_experience_quest_job: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_item_obtained")]
+    chat_item_obtained: String,
+    #[hidden_element]
+    #[serde(default = "default_chat_sell_failed")]
+    chat_sell_failed: String,
+    // ------------------------------------------------------------------
+    // Error-window feedback (client-side failures that are shown in the
+    // error window instead of the chat).
+    // ------------------------------------------------------------------
+    #[hidden_element]
+    #[serde(default = "default_error_map_load_failed")]
+    error_map_load_failed: String,
+    #[hidden_element]
+    #[serde(default = "default_error_session_expired")]
+    error_session_expired: String,
+    #[hidden_element]
+    #[serde(default = "default_error_character_selection_missing_login_data")]
+    error_character_selection_missing_login_data: String,
+    #[hidden_element]
+    #[serde(default = "default_error_character_selection_missing_slot")]
+    error_character_selection_missing_slot: String,
+    #[hidden_element]
+    #[serde(default = "default_error_character_slot_switch_failed")]
+    error_character_slot_switch_failed: String,
+    #[hidden_element]
+    #[serde(default = "default_error_map_server_auth_failed")]
+    error_map_server_auth_failed: String,
+    #[hidden_element]
+    #[serde(default = "default_error_map_data_missing")]
+    error_map_data_missing: String,
 }
 
 /// Default for language files that were written before the `ui` text group
@@ -561,6 +705,211 @@ fn default_master_volume_text() -> String {
 /// slider existed.
 fn default_sound_effect_volume_text() -> String {
     "Sound effects".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_aura_style_set` field existed.
+fn default_chat_aura_style_set() -> String {
+    "Aura style set to \"{style}\".".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_party_invite_ignored` field existed.
+fn default_chat_party_invite_ignored() -> String {
+    "Ignoring party invitation from \"{name}\": you are already in a party.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_cannot_raise_stat` field existed.
+fn default_chat_cannot_raise_stat() -> String {
+    "You cannot raise that stat right now.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_players_online` field existed.
+fn default_chat_players_online() -> String {
+    "{count} players are online.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_map_server_refused_login` field existed.
+fn default_chat_map_server_refused_login() -> String {
+    "The map server refused the login (error {error}).".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_passive` field existed.
+fn default_chat_skill_passive() -> String {
+    "Skill {skill} is a passive skill and cannot be cast.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_aura_usage` field existed.
+fn default_chat_aura_usage() -> String {
+    "Usage: /aura <style>. Available styles: {styles}.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_aura_unknown` field existed.
+fn default_chat_aura_unknown() -> String {
+    "Unknown aura style \"{style}\". Available styles: {styles}.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_party_usage` field existed.
+fn default_chat_party_usage() -> String {
+    "Usage: /p <message>".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_hotbar_page` field existed.
+fn default_chat_hotbar_page() -> String {
+    "Hotbar page {page}/{pages}.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_hotkey_item_missing` field existed.
+fn default_chat_hotkey_item_missing() -> String {
+    "The item of that hotkey is not in your inventory.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_not_learned` field existed.
+fn default_chat_skill_not_learned() -> String {
+    "You have not learned skill {skill}.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_target_out_of_range` field existed.
+fn default_chat_skill_target_out_of_range() -> String {
+    "Skill {skill}: the target is out of range.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_target_gone` field existed.
+fn default_chat_skill_target_gone() -> String {
+    "Skill {skill}: the target is no longer in view.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_no_target` field existed.
+fn default_chat_skill_no_target() -> String {
+    "Skill {skill}: select a target first.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_cell_out_of_range` field existed.
+fn default_chat_skill_cell_out_of_range() -> String {
+    "Skill {skill}: that cell is out of range.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_position_unknown` field existed.
+fn default_chat_skill_position_unknown() -> String {
+    "Skill {skill}: the player position is not known yet.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_skill_click_ground` field existed.
+fn default_chat_skill_click_ground() -> String {
+    "Skill {skill}: click a cell on the ground to cast it.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_experience_gained` field existed.
+fn default_chat_experience_gained() -> String {
+    "Gained {gains}.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_experience_base` field existed.
+fn default_chat_experience_base() -> String {
+    "base EXP".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_experience_job` field existed.
+fn default_chat_experience_job() -> String {
+    "job EXP".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_experience_quest_base` field existed.
+fn default_chat_experience_quest_base() -> String {
+    "base EXP (quest)".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_experience_quest_job` field existed.
+fn default_chat_experience_quest_job() -> String {
+    "job EXP (quest)".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_item_obtained` field existed.
+fn default_chat_item_obtained() -> String {
+    "You got {name} ({quantity}).".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `chat_sell_failed` field existed.
+fn default_chat_sell_failed() -> String {
+    "Failed to sell items".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_map_load_failed` field existed.
+fn default_error_map_load_failed() -> String {
+    "Failed to load the map '{map_name}'. Please try again.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_session_expired` field existed.
+fn default_error_session_expired() -> String {
+    "Your session expired. Please log in again.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_character_selection_missing_login_data` field existed.
+fn default_error_character_selection_missing_login_data() -> String {
+    "Character selection failed: missing login data.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_character_selection_missing_slot` field existed.
+fn default_error_character_selection_missing_slot() -> String {
+    "Character selection failed: the server did not send that character slot.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_character_slot_switch_failed` field existed.
+fn default_error_character_slot_switch_failed() -> String {
+    "Failed to switch character slots".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_map_server_auth_failed` field existed.
+fn default_error_map_server_auth_failed() -> String {
+    "The map server rejected the connection (reason {reason}). Please try again.".to_owned()
+}
+
+/// Default for language files that were written before the
+/// `error_map_data_missing` field existed.
+fn default_error_map_data_missing() -> String {
+    "Map data missing: `{map_name}`\nThis map is not in the game archives. Please log out and choose another character.".to_owned()
+}
+
+impl Localization {
+    /// Localized labels of the aggregated experience-gain chat line, in the
+    /// order base / job / quest base / quest job.
+    pub(crate) fn experience_labels(&self) -> [&str; 4] {
+        [
+            self.chat_experience_base.as_str(),
+            self.chat_experience_job.as_str(),
+            self.chat_experience_quest_base.as_str(),
+            self.chat_experience_quest_job.as_str(),
+        ]
+    }
 }
 
 /// Path to the whole [`Localization`] of the client state.

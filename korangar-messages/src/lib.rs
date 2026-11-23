@@ -47,6 +47,15 @@
 //! text never has to encode call-site context. Call-site arguments that the
 //! current template needs (member/skill names) are never dropped.
 //!
+//! # Client feedback templates
+//!
+//! The client's own chat feedback strings (client-side validation messages such
+//! as "Skill {skill}: the target is out of range.") are **not** protocol result
+//! codes: their templates live in the client localization files
+//! (`korangar/src/state/localization`). They reuse only the named-placeholder
+//! renderer through [`render_template`], so there is one template
+//! implementation and no duplicate result-code table.
+//!
 //! # Thread safety
 //!
 //! The table is immutable after installation ([`OnceLock`]); rendering only
@@ -594,7 +603,28 @@ fn render_row(row: &MessageRow, code: u16, args: &[(&str, &str)]) -> String {
     render_named(&row.default, code, args)
 }
 
+/// Renders a `` `{name}` `` placeholder template **without** a protocol result
+/// code.
+///
+/// This is the shared renderer for the client feedback strings (chat
+/// notifications like "Skill {skill}: the target is out of range."). Their
+/// templates live in the client localization files, not in this protocol
+/// result-code table; only the placeholder syntax and the missing-argument
+/// behaviour are shared with [`format_message`], so the client has exactly one
+/// renderer and no duplicate message table.
+///
+/// A `{code}` placeholder is kept verbatim (those call sites have no result
+/// code); every other `{name}` is substituted from `args`, and a missing
+/// argument keeps the placeholder visible instead of dropping text.
+pub fn render_template(template: &str, args: &[(&str, &str)]) -> String {
+    render_with_code(template, None, args)
+}
+
 fn render_named(template: &str, code: u16, args: &[(&str, &str)]) -> String {
+    render_with_code(template, Some(code), args)
+}
+
+fn render_with_code(template: &str, code: Option<u16>, args: &[(&str, &str)]) -> String {
     let mut rendered = String::with_capacity(template.len() + 16);
     let mut rest = template;
     loop {
@@ -611,7 +641,16 @@ fn render_named(template: &str, code: u16, args: &[(&str, &str)]) -> String {
         };
         let name = &after[..close];
         if name == "code" {
-            rendered.push_str(&code.to_string());
+            match code {
+                Some(code) => rendered.push_str(&code.to_string()),
+                // Client feedback templates have no result code: keep the
+                // placeholder visible instead of silently dropping it.
+                None => {
+                    rendered.push('{');
+                    rendered.push_str(name);
+                    rendered.push('}');
+                }
+            }
         } else if let Some((_, value)) = args.iter().find(|(key, _)| *key == name) {
             rendered.push_str(value);
         } else {
