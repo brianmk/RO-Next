@@ -423,8 +423,18 @@ against the GRF archives by the generator.
 
 ## 6. Reproduction
 
-The extraction tooling lives outside this repository (it needs a rodecomp checkout and the game
-GRFs):
+The **sound** facts can be regenerated inside the repository from any rodecomp checkout:
+
+```sh
+./tools/extract_rodecomp_sounds.py --rodecomp /path/to/rodecomp          # rewrite the facts
+./tools/extract_rodecomp_sounds.py --rodecomp /path/to/rodecomp --check  # drift guard
+```
+
+It parses `SkillId.h`, the `CGameMode::ReceiveSkillUse` and `CSession::PlaySkillEffect` bodies,
+and reproduces the committed `tools/skill_sounds_rodecomp.ron` byte for byte.
+
+The effect/asset extraction tooling lives outside this repository (it needs a rodecomp checkout
+and the game GRFs):
 
 * `rodecomp` checkout at the pin documented in `tools/rodecomp_skill_facts.json`
   (`provenance.source`);
