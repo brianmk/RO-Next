@@ -266,6 +266,9 @@ pub struct Common {
     /// not put the cart option into the entity `effect_state`, so the status
     /// is an independent visibility source for the cart.
     cart_status_active: bool,
+    /// Cart type from `EFST_PUSH_CART` (673) or the `OPTION_CART*` bits. 1 is
+    /// the basic pushcart; 10..13 are named carts.
+    cart_kind: i32,
     /// Persistent sprite tint of a status effect (Adrenaline Rush and Fury are
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
@@ -330,6 +333,7 @@ fn get_entity_part_files(
     accessory: u16,
     accessory2: u16,
     accessory3: u16,
+    effect_state: u32,
 ) -> Vec<EntityPartFile> {
     let head_id = crate::world::jobs::resolve_head_id(sex, head);
 
@@ -338,7 +342,8 @@ fn get_entity_part_files(
             // The part paths come from the job data (`jobs.ron` path templates)
             // and the registry resolves the verified sprite/palette stems; no
             // job-specific path or stem is hardcoded here.
-            let body = crate::world::jobs::body_part_path(job_id, sex);
+            let appearance_job = crate::world::jobs::appearance_job(job_id, effect_state);
+            let body = crate::world::jobs::body_part_path(appearance_job, sex);
             let head_sprite = crate::world::jobs::head_part_path(head_id, sex);
 
             // Hair and clothes colors are external `.pal` files for players. A
@@ -347,7 +352,7 @@ fn get_entity_part_files(
             // The palette file is paired with the rendered hair sprite, i.e. it
             // uses the same (translated) hair id as the sprite path.
             let mut entity_part_files = vec![
-                EntityPartFile::with_palette(body, crate::world::jobs::body_palette_path(job_id, sex, body_palette)),
+                EntityPartFile::with_palette(body, crate::world::jobs::body_palette_path(appearance_job, sex, body_palette)),
                 EntityPartFile::with_palette(
                     head_sprite,
                     Some(crate::world::jobs::head_palette_path(head_id, sex, head_palette)),
@@ -424,6 +429,7 @@ pub fn character_preview_part_files(library: &Library, character_information: &C
         character_information.accessory as u16,
         character_information.accessory2 as u16,
         character_information.accessory3 as u16,
+        0,
     )
 }
 
@@ -557,6 +563,7 @@ impl Common {
                 .with_loop_mode(AnimationLoopMode::PingPong),
             cart_animation: None,
             cart_status_active: false,
+            cart_kind: 0,
             status_tint: None,
             weapon_animation: None,
             active_movement,
@@ -595,7 +602,24 @@ impl Common {
     pub fn set_effect_state(&mut self, effect_state: u32, client_tick: ClientTick) {
         let was_hidden = option_hides_entity(self.effect_state);
         let hidden = option_hides_entity(effect_state);
+        let old_appearance = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
+        let cart_changed = (self.effect_state ^ effect_state) & OPTION_CART_MASK != 0;
         self.effect_state = effect_state;
+        let new_appearance = crate::world::jobs::appearance_job(self.job_id, effect_state);
+
+        if cart_changed {
+            // The cart type is also encoded in the option bits.
+            self.cart_animation = None;
+        }
+
+        if old_appearance != new_appearance {
+            // Outfits/mounts change the body sprite (and the weapon folder).
+            // Drop the loaded layers so the asset retry loop reloads them with
+            // the new appearance job.
+            self.animation_data = None;
+            self.weapon_animation = None;
+            self.cart_animation = None;
+        }
 
         if hidden != was_hidden {
             self.fade_state = match hidden {
@@ -660,8 +684,42 @@ impl Common {
     /// Updates the cart visibility from `EFST_PUSH_CART`. The option bit in
     /// `effect_state` is authoritative when present; this only adds the status
     /// as a fallback for servers that don't send the option bit.
-    pub fn set_cart_status(&mut self, active: bool) {
+    pub fn set_cart_status(&mut self, active: bool, kind: i32) {
+        if self.cart_kind != kind {
+            // A different cart type needs a different sprite; drop the loaded
+            // animation so the async loader fetches the new one.
+            self.cart_animation = None;
+        }
         self.cart_status_active = active;
+        self.cart_kind = kind.max(0);
+    }
+
+    /// Cart type to use: the status value when present, else the classic option
+    /// bit index.
+    pub fn cart_kind(&self) -> i32 {
+        if self.cart_kind > 0 {
+            return self.cart_kind;
+        }
+        if self.effect_state & 0x0000_0008 != 0 {
+            1
+        } else if self.effect_state & 0x0000_0080 != 0 {
+            2
+        } else if self.effect_state & 0x0000_0100 != 0 {
+            3
+        } else if self.effect_state & 0x0000_0200 != 0 {
+            4
+        } else if self.effect_state & 0x0000_0400 != 0 {
+            5
+        } else {
+            1
+        }
+    }
+
+    /// Ordered candidate sprite/ACT pairs of the current cart type; the first
+    /// archive-verified one is loaded, with the basic pushcart as fallback.
+    pub fn get_cart_part_candidates(&self) -> Vec<EntityPartFile> {
+        let (sprite, act) = crate::world::jobs::cart_paths(self.job_id, self.cart_kind());
+        vec![EntityPartFile::with_action(sprite, act), EntityPartFile::new("아이템\\mc_pushcart")]
     }
 
     /// Sets the persistent status sprite tint (red for Adrenaline Rush/Fury).
@@ -688,7 +746,12 @@ impl Common {
     /// [`crate::world::weapon::part_candidates`]; the entity layer only asks
     /// for the ordered attempts.
     pub fn get_weapon_part_candidates(&self) -> Vec<EntityPartFile> {
-        super::weapon::part_candidates(self.job_id, self.sex, self.weapon)
+        let appearance_job = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
+        if crate::world::jobs::is_outfit_job(appearance_job) {
+            // Wedding/holiday outfits show no weapon layer.
+            return Vec::new();
+        }
+        super::weapon::part_candidates(appearance_job, self.sex, self.weapon)
     }
 
     /// Equipped weapon value: a server `W_*` weapon type or an item view id.
@@ -736,6 +799,7 @@ impl Common {
             self.accessory,
             self.accessory2,
             self.accessory3,
+            self.effect_state,
         )
     }
 
@@ -1685,6 +1749,7 @@ impl Player {
             common.accessory,
             common.accessory2,
             common.accessory3,
+            common.effect_state,
         )
     }
 }
@@ -1847,8 +1912,12 @@ impl Entity {
         self.get_common().has_cart()
     }
 
-    pub fn set_cart_status(&mut self, active: bool) {
-        self.get_common_mut().set_cart_status(active);
+    pub fn set_cart_status(&mut self, active: bool, kind: i32) {
+        self.get_common_mut().set_cart_status(active, kind);
+    }
+
+    pub fn get_cart_part_candidates(&self) -> Vec<EntityPartFile> {
+        self.get_common().get_cart_part_candidates()
     }
 
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
