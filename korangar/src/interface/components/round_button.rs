@@ -81,7 +81,7 @@ where
                     width: circular_size,
                     height: circular_size,
                 },
-                font_size: FontSize((circular_size * 0.62).max(8.0)),
+                font_size: FontSize::dynamic((circular_size * 0.62).max(8.0)),
                 tooltip,
             }
         })

@@ -9,7 +9,7 @@ use crate::interface::components::round_button::RoundButton;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{
     CharacterOverviewThemePathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt,
 };
@@ -251,7 +251,10 @@ where
 {
     korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
         let player = player_path.follow_safe(state);
-        let mut text = format!("Lv {} / Jlv {}", player.base_level, player.job_level);
+        let level_template = client_state().localization().ui().character_level_text().follow_safe(state);
+        let mut text = level_template
+            .replace("{}", &player.base_level.to_string())
+            .replace("{}", &player.job_level.to_string());
 
         // Tell the player how many spirit spheres are active while they have
         // some (Dangerous Soul Collect/Zen fills all five, Critical
@@ -259,7 +262,9 @@ where
         // count in-game.
         let spirit_spheres = state.own_spirit_orbs();
         if spirit_spheres > 0 {
-            text.push_str(&format!("  Spheres {spirit_spheres}"));
+            let spheres_template = client_state().localization().ui().character_spheres_text().follow_safe(state);
+            text.push_str("  ");
+            text.push_str(&spheres_template.replace("{}", &spirit_spheres.to_string()));
         }
 
         text

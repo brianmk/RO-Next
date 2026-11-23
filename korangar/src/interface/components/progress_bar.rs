@@ -183,7 +183,7 @@ where
         layout.add_text(
             label_area,
             label,
-            FontSize(self.style.label_font_size),
+            FontSize::from_style(self.style.label_font_size),
             label_color,
             label_color,
             HorizontalAlignment::Left { offset: 0.0, border: 0.0 },
@@ -203,7 +203,7 @@ where
             layout.add_text(
                 bar_area,
                 value,
-                FontSize(self.style.value_font_size),
+                FontSize::from_style(self.style.value_font_size),
                 *state.get(&client_theme().tokens().color().bar_value_text()),
                 *state.get(&client_theme().tokens().color().bar_value_text()),
                 HorizontalAlignment::Center { offset: 0.0, border: 2.0 },

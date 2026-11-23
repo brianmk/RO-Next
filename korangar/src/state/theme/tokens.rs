@@ -131,6 +131,45 @@ pub struct ColorTokens {
     // --- progress bars -----------------------------------------------
     /// Value text drawn inside a progress bar.
     pub bar_value_text: Color,
+    // --- minimap -----------------------------------------------------
+    /// Background of the minimap canvas (behind the map image).
+    pub minimap_background: Color,
+    /// Fallback player marker on the minimap (used only when the generated
+    /// direction arrow texture is not available).
+    pub minimap_marker_fallback: Color,
+    /// Outline of a minimap marker (player fallback and server markers).
+    pub minimap_marker_outline: Color,
+    // --- HUD overlays ------------------------------------------------
+    /// Empty spirit sphere of the Champion soul link counter.
+    pub spirit_sphere_empty: Color,
+    /// Fill of the party member health bar.
+    pub party_health_fill: Color,
+    /// Secondary text that is drawn on an always-dark overlay surface (minimap
+    /// loading hint, debug overlays); it therefore stays light in every theme.
+    pub overlay_secondary_text: Color,
+    /// Faint white highlight of the debug/analysis overlays.
+    pub overlay_highlight: Color,
+    /// Hot (longest) frame bar of the profiler.
+    pub profiler_bar_hot: Color,
+    /// Muted hint text, e.g. the tip in the skill description window.
+    pub text_hint: Color,
+    /// Ghost text of the chat input line, drawn on the dark input background.
+    pub chat_ghost_text: Color,
+    // --- item info card slots ----------------------------------------
+    /// Background of a card slot in the item info window.
+    pub item_slot_background: Color,
+    /// Border of a card slot in the item info window.
+    pub item_slot_border: Color,
+    /// Inset of a card slot (empty socket or unknown card).
+    pub item_slot_inner: Color,
+    /// Background of a card slot that the item does not have.
+    pub item_slot_unavailable_background: Color,
+    /// Border of a card slot that the item does not have.
+    pub item_slot_unavailable_border: Color,
+    /// Text of a card slot that the item does not have.
+    pub item_slot_unavailable_text: Color,
+    /// Name of a card in the item info window.
+    pub item_slot_card_name: Color,
 }
 
 impl Default for ColorTokens {
@@ -187,6 +226,26 @@ impl Default for ColorTokens {
             chat_error: Color::rgb_u8(255, 255, 255),
             chat_input_focused_background: Color::rgba(0.0, 0.0, 0.0, 0.8),
             bar_value_text: Color::rgba_u8(255, 255, 255, 235),
+            // minimap
+            minimap_background: Color::rgb_u8(22, 24, 28),
+            minimap_marker_fallback: Color::rgb_u8(80, 255, 110),
+            minimap_marker_outline: Color::rgba_u8(0, 0, 0, 200),
+            // HUD overlays
+            spirit_sphere_empty: Color::rgba_u8(24, 34, 46, 190),
+            party_health_fill: Color::rgb_u8(84, 196, 104),
+            overlay_secondary_text: Color::monochrome_u8(200),
+            overlay_highlight: Color::rgba_u8(255, 255, 255, 100),
+            profiler_bar_hot: Color::rgba_u8(255, 80, 0, 150),
+            text_hint: Color::rgb_u8(160, 160, 160),
+            chat_ghost_text: Color::rgba_u8(205, 205, 205, 230),
+            // item info card slots
+            item_slot_background: Color::rgba_u8(28, 28, 34, 140),
+            item_slot_border: Color::rgba_u8(120, 120, 130, 120),
+            item_slot_inner: Color::rgba_u8(0, 0, 0, 70),
+            item_slot_unavailable_background: Color::rgba_u8(86, 86, 92, 70),
+            item_slot_unavailable_border: Color::rgba_u8(120, 120, 126, 60),
+            item_slot_unavailable_text: Color::rgba_u8(160, 160, 166, 90),
+            item_slot_card_name: Color::rgba_u8(235, 235, 240, 220),
         }
     }
 }
@@ -424,6 +483,117 @@ mod tests {
 
         // Accent colors are theme-independent.
         assert_eq!(default.text_accent, classic.text_accent);
+    }
+
+    /// The overlay and data-driven tokens that replaced the hardcoded window
+    /// colors must be identical in both built-in themes: those elements looked
+    /// the same in the default and classic theme before the migration and have
+    /// to keep doing so.
+    #[test]
+    fn migrated_overlay_tokens_are_theme_independent() {
+        let default = ColorTokens::default();
+        let classic = ColorTokens::classic();
+        let tokens = [
+            ("minimap_background", default.minimap_background, classic.minimap_background),
+            (
+                "minimap_marker_fallback",
+                default.minimap_marker_fallback,
+                classic.minimap_marker_fallback,
+            ),
+            (
+                "minimap_marker_outline",
+                default.minimap_marker_outline,
+                classic.minimap_marker_outline,
+            ),
+            ("spirit_sphere_empty", default.spirit_sphere_empty, classic.spirit_sphere_empty),
+            ("party_health_fill", default.party_health_fill, classic.party_health_fill),
+            (
+                "overlay_secondary_text",
+                default.overlay_secondary_text,
+                classic.overlay_secondary_text,
+            ),
+            ("overlay_highlight", default.overlay_highlight, classic.overlay_highlight),
+            ("profiler_bar_hot", default.profiler_bar_hot, classic.profiler_bar_hot),
+            ("text_hint", default.text_hint, classic.text_hint),
+            ("chat_ghost_text", default.chat_ghost_text, classic.chat_ghost_text),
+            (
+                "item_slot_background",
+                default.item_slot_background,
+                classic.item_slot_background,
+            ),
+            ("item_slot_border", default.item_slot_border, classic.item_slot_border),
+            ("item_slot_inner", default.item_slot_inner, classic.item_slot_inner),
+            (
+                "item_slot_unavailable_background",
+                default.item_slot_unavailable_background,
+                classic.item_slot_unavailable_background,
+            ),
+            (
+                "item_slot_unavailable_border",
+                default.item_slot_unavailable_border,
+                classic.item_slot_unavailable_border,
+            ),
+            (
+                "item_slot_unavailable_text",
+                default.item_slot_unavailable_text,
+                classic.item_slot_unavailable_text,
+            ),
+            ("item_slot_card_name", default.item_slot_card_name, classic.item_slot_card_name),
+        ];
+
+        for (name, default_value, classic_value) in tokens {
+            assert_eq!(
+                default_value, classic_value,
+                "{name} changed with the theme, but it used to be theme independent"
+            );
+        }
+    }
+
+    /// The migration from hardcoded literals to tokens must not change the
+    /// appearance: every token keeps the exact value the window used before.
+    #[test]
+    fn migrated_tokens_keep_the_legacy_values() {
+        let tokens = DesignTokens::default();
+        let color = tokens.color;
+
+        // Minimap.
+        assert_eq!(color.minimap_background, crate::graphics::Color::rgb_u8(22, 24, 28));
+        assert_eq!(color.minimap_marker_fallback, crate::graphics::Color::rgb_u8(80, 255, 110));
+        assert_eq!(color.minimap_marker_outline, crate::graphics::Color::rgba_u8(0, 0, 0, 200));
+        // HUD overlays.
+        assert_eq!(color.spirit_sphere_empty, crate::graphics::Color::rgba_u8(24, 34, 46, 190));
+        assert_eq!(color.party_health_fill, crate::graphics::Color::rgb_u8(84, 196, 104));
+        assert_eq!(color.overlay_secondary_text, crate::graphics::Color::monochrome_u8(200));
+        assert_eq!(color.overlay_highlight, crate::graphics::Color::rgba_u8(255, 255, 255, 100));
+        assert_eq!(color.profiler_bar_hot, crate::graphics::Color::rgba_u8(255, 80, 0, 150));
+        assert_eq!(color.text_hint, crate::graphics::Color::rgb_u8(160, 160, 160));
+        assert_eq!(color.chat_ghost_text, crate::graphics::Color::rgba_u8(205, 205, 205, 230));
+        // Item info card slots.
+        assert_eq!(color.item_slot_background, crate::graphics::Color::rgba_u8(28, 28, 34, 140));
+        assert_eq!(color.item_slot_border, crate::graphics::Color::rgba_u8(120, 120, 130, 120));
+        assert_eq!(color.item_slot_inner, crate::graphics::Color::rgba_u8(0, 0, 0, 70));
+        assert_eq!(
+            color.item_slot_unavailable_background,
+            crate::graphics::Color::rgba_u8(86, 86, 92, 70)
+        );
+        assert_eq!(
+            color.item_slot_unavailable_border,
+            crate::graphics::Color::rgba_u8(120, 120, 126, 60)
+        );
+        assert_eq!(
+            color.item_slot_unavailable_text,
+            crate::graphics::Color::rgba_u8(160, 160, 166, 90)
+        );
+        assert_eq!(color.item_slot_card_name, crate::graphics::Color::rgba_u8(235, 235, 240, 220));
+
+        // Typography pixel sizes used by the migrated windows.
+        let typography = tokens.typography;
+        assert_eq!(typography.font_xs.0, 9.0);
+        assert_eq!(typography.font_body.0, 12.0);
+        assert_eq!(typography.font_button.0, 13.0);
+        assert_eq!(typography.font_body_lg.0, 14.0);
+        assert_eq!(typography.font_subtitle.0, 15.0);
+        assert_eq!(typography.font_title.0, 18.0);
     }
 
     /// The typography scale must stay ordered; otherwise a window can end up

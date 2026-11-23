@@ -12,16 +12,29 @@ use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use korangar_interface::window::{CustomWindow, Window};
 use rust_state::State;
 
+use crate::OverflowBehavior;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::interface::windows::profiler::color_lookup::ColorLookup;
-use crate::state::ClientState;
-use crate::state::theme::InterfaceThemeType;
-use crate::{FontSize, OverflowBehavior};
+use crate::loaders::FontSize;
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt};
+use crate::state::{ClientState, client_theme};
 
 /// ZST for the tooltip id.
 struct FrameInspectorTooltip;
 
 const VISIBILITY_THRESHHOLD: f32 = 0.01;
+
+/// Colors and font size of the frame inspector overlay.
+///
+/// The window is part of the debug interface, but its style still comes from
+/// the theme tokens so a debug build renders the same way in every theme.
+#[derive(Clone, Copy)]
+struct OverlayStyle {
+    line_text: Color,
+    accent: Color,
+    highlight: Color,
+    number_font: FontSize,
+}
 
 struct MeasurementDetails {
     duration: String,
@@ -88,13 +101,14 @@ impl FrameInspectorView {
         &'a self,
         layout_info: &'a BaseLayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
+        style: OverlayStyle,
         text: &'static str,
         mut x_position: f32,
         distance: f32,
         alpha: f32,
         render_numbers: bool,
     ) {
-        let color = Color::rgb_u8(200, 200, 200).multiply_alpha(alpha);
+        let color = style.line_text.multiply_alpha(alpha);
 
         while x_position < layout_info.area.width {
             let line_width = 1.5;
@@ -124,9 +138,9 @@ impl FrameInspectorView {
                 layout.add_text(
                     text_area,
                     text,
-                    FontSize(15.0),
+                    style.number_font,
                     Color::WHITE.multiply_alpha(alpha),
-                    Color::rgb_u8(255, 160, 60),
+                    style.accent,
                     HorizontalAlignment::Center { offset: 0.0, border: 3.0 },
                     VerticalAlignment::Center { offset: 0.0 },
                     OverflowBehavior::Shrink,
@@ -143,6 +157,7 @@ impl FrameInspectorView {
         layout_info: &'a BaseLayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
         color_lookup: &mut ColorLookup,
+        style: OverlayStyle,
         measurement: &'a Measurement,
         measurement_details: &'a MeasurementDetails,
         start_time: std::time::Instant,
@@ -185,7 +200,7 @@ impl FrameInspectorView {
             layout.add_rectangle(
                 block_area,
                 CornerDiameter::uniform(4.0),
-                Color::rgba_u8(255, 255, 255, 100),
+                style.highlight,
                 Color::TRANSPARENT,
                 ShadowPadding::uniform(0.0),
             );
@@ -200,9 +215,9 @@ impl FrameInspectorView {
             layout.add_text(
                 block_area,
                 measurement.name,
-                FontSize(15.0),
+                style.number_font,
                 Color::BLACK.multiply_alpha(alpha),
-                Color::rgb_u8(255, 160, 60),
+                style.accent,
                 HorizontalAlignment::Left { offset: 3.0, border: 3.0 },
                 VerticalAlignment::Center { offset: 0.0 },
                 OverflowBehavior::Shrink,
@@ -216,6 +231,7 @@ impl FrameInspectorView {
                 layout_info,
                 layout,
                 color_lookup,
+                style,
                 &self.measurement[*index],
                 &self.measurement_details[*index],
                 start_time,
@@ -244,16 +260,26 @@ impl Element<ClientState> for FrameInspectorView {
 
     fn lay_out<'a>(
         &'a self,
-        _: &'a State<ClientState>,
+        state: &'a State<ClientState>,
         _: ElementStore<'a>,
         layout_info: &'a Self::LayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+        let style = OverlayStyle {
+            line_text: *state.get(&color_tokens.overlay_secondary_text()),
+            accent: *state.get(&color_tokens.text_accent()),
+            highlight: *state.get(&color_tokens.overlay_highlight()),
+            number_font: *state.get(&typography.font_subtitle()),
+        };
+
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(6.0),
-            Color::monochrome_u8(60),
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&color_tokens.state_hover()),
+            *state.get(&color_tokens.border()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -300,7 +326,7 @@ impl Element<ClientState> for FrameInspectorView {
                             numbers_shown |= show_numbers;
                         }
 
-                        self.render_lines(layout_info, layout, $text, offset, distance, visibility, show_numbers);
+                        self.render_lines(layout_info, layout, style, $text, offset, distance, visibility, show_numbers);
                     }
                 };
             }
@@ -318,6 +344,7 @@ impl Element<ClientState> for FrameInspectorView {
                 layout_info,
                 layout,
                 &mut colors,
+                style,
                 root_measurement,
                 &self.measurement_details[0],
                 start_time,

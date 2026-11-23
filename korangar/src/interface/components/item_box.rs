@@ -14,9 +14,9 @@ use rust_state::{Path, State};
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, ItemCardThemePathExt};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, ItemCardThemePathExt, TypographyTokensPathExt};
 use crate::state::{ClientState, client_theme};
 use crate::world::ResourceMetadata;
 
@@ -304,6 +304,11 @@ where
 
             layout.add_texture(texture_area, texture.clone(), Color::WHITE, false);
 
+            let tokens = client_theme().tokens();
+            let typography = tokens.typography();
+            let favorite_font_size = (*state.get(&typography.font_body_lg())).scaled_by(size_scale);
+            let amount_font_size = (*state.get(&typography.font_body())).scaled_by(size_scale);
+
             if item.is_favorite() {
                 let marker_area = Area {
                     left: layout_info.area.left + 2.0 * size_scale,
@@ -315,7 +320,7 @@ where
                 layout.add_text(
                     marker_area,
                     "*",
-                    FontSize(14.0 * size_scale),
+                    favorite_font_size,
                     *state.get(&client_theme().tokens().color().state_favorite()),
                     *state.get(&client_theme().tokens().color().state_favorite()),
                     HorizontalAlignment::Left { offset: 0.0, border: 1.0 },
@@ -343,8 +348,7 @@ where
                 layout.add_text(
                     layout_info.area,
                     amount,
-                    // TODO: Put this in the theme
-                    FontSize(12.0 * size_scale),
+                    amount_font_size,
                     *state.get(&item_card_theme.text_color()),
                     *state.get(&item_card_theme.highlight_color()),
                     // TODO: Put this in the theme

@@ -1,0 +1,36 @@
+# P0 UI gates — before/after golden screenshot comparison
+
+before: f454127e release binary; after: p0/ui-gates-20261122 release binary
+harness: scripts/ui-golden.sh (Xvfb, lavapipe software Vulkan, verify4/VerifyBot4)
+matrix: theme {default, classic} x scaling {0.75, 1.0}, 6 windows each
+
+== classic-0.75
+   OK       login                  changed=0/61710 (0.000000)                    rmse=0.0000
+   OK       select_server          changed=0/14520 (0.000000)                    rmse=0.0000
+   OK       character_select       changed=0/364664 (0.000000)                   rmse=0.0000
+   OK       inventory              changed=0/45570 (0.000000)                    rmse=0.0000
+   OK       equipment              changed=0/72212 (0.000000)                    rmse=0.0000
+   OK       character_overview     changed=0/10384 (0.000000)                    rmse=0.0000
+== classic-1.0
+   OK       login                  changed=0/111384 (0.000000)                   rmse=0.0000
+   OK       select_server          changed=0/27404 (0.000000)                    rmse=0.0000
+   OK       character_select       changed=0/413036 (0.000000)                   rmse=0.0000
+   OK       inventory              changed=0/82344 (0.000000)                    rmse=0.0000
+   OK       equipment              changed=0/129792 (0.000000)                   rmse=0.0000
+   OK       character_overview     changed=0/18840 (0.000000)                    rmse=0.0000
+== default-0.75
+   OK       login                  changed=0/105174 (0.000000)                   rmse=0.0000
+   OK       select_server          changed=0/30264 (0.000000)                    rmse=0.0000
+   OK       character_select       changed=0/403389 (0.000000)                   rmse=0.0000
+   OK       inventory              changed=0/42966 (0.000000)                    rmse=0.0000
+   OK       equipment              changed=0/71066 (0.000000)                    rmse=0.0000
+   OK       character_overview     changed=0/9912 (0.000000)                     rmse=0.0000
+== default-1.0
+   OK       login                  changed=0/188946 (0.000000)                   rmse=0.0000
+   OK       select_server          changed=0/55022 (0.000000)                    rmse=0.0000
+   OK       character_select       changed=0/378340 (0.000000)                   rmse=0.0000
+   OK       inventory              changed=0/77964 (0.000000)                    rmse=0.0000
+   OK       equipment              changed=0/128160 (0.000000)                   rmse=0.0000
+   OK       character_overview     changed=0/18055 (0.000000)                    rmse=0.0000
+
+PASS: 0 screen failure(s)

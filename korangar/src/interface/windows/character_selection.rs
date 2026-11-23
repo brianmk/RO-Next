@@ -251,7 +251,7 @@ mod character_slot_preview {
     use super::character_preview_scale;
     use crate::graphics::{Color, CornerDiameter, ScreenPosition, ScreenSize, ShadowPadding};
     use crate::input::InputEvent;
-    use crate::loaders::{FontSize, OverflowBehavior};
+    use crate::loaders::OverflowBehavior;
     use crate::renderer::LayoutExt;
     use crate::state::character_previews::CharacterPreviews;
     use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
@@ -525,9 +525,9 @@ mod character_slot_preview {
             let body_token = *state.get(&typography.font_body_lg());
             // The fonts scale with the card size so long names and the level
             // line still fit when the window has to shrink on a small screen.
-            let title_font = FontSize((area.height * 0.075).clamp(9.0, title_token.0));
-            let body_font = FontSize((area.height * 0.07).clamp(9.0, body_token.0));
-            let level_font = FontSize((area.height * 0.06).clamp(8.0, body_token.0));
+            let title_font = title_token.clamped_to(area.height * 0.075, 9.0);
+            let body_font = body_token.clamped_to(area.height * 0.07, 9.0);
+            let level_font = body_token.clamped_to(area.height * 0.06, 8.0);
 
             let character_information = state.try_get(&self.character_information);
 
@@ -662,7 +662,7 @@ mod character_slot_preview {
                         };
                         let scale = character_preview_scale(animation_data.as_ref(), preview_area);
                         let tint = match is_blocked {
-                            true => Color::rgba_u8(130, 130, 130, 255),
+                            true => *state.get(&color_tokens.text_disabled()),
                             false => Color::WHITE,
                         };
 
@@ -719,7 +719,7 @@ mod character_slot_preview {
                         layout.add_text(
                             area,
                             self.click_handler.please_wait_display.get_str(please_wait, remaining),
-                            FontSize((area.height * 0.065).clamp(8.0, body_token.0)),
+                            body_token.clamped_to(area.height * 0.065, 8.0),
                             *state.get(&color_tokens.state_warning()),
                             accent_color,
                             HorizontalAlignment::Center {

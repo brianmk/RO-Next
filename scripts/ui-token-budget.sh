@@ -27,8 +27,10 @@ case "${1:-}" in
   *) echo "unknown argument: $1" >&2; exit 2;;
 esac
 
-color_literals=$(grep -rE 'Color::(rgb|rgba|monochrome)_u8' --include='*.rs' "$INTERFACE" | wc -l | tr -d ' ')
-font_literals=$(grep -rE 'FontSize\(' --include='*.rs' "$INTERFACE" | wc -l | tr -d ' ')
+# `grep` exits 1 when it finds no literal at all; that is a valid state for a
+# fully migrated interface, so both counts are allowed to be zero.
+color_literals=$(grep -rE 'Color::(rgb|rgba|monochrome)_u8' --include='*.rs' "$INTERFACE" | wc -l | tr -d ' ' || true)
+font_literals=$(grep -rE 'FontSize\(' --include='*.rs' "$INTERFACE" | wc -l | tr -d ' ' || true)
 
 budget_colors=$(sed -n 's/.*max_color_literals: *\([0-9]*\).*/\1/p' "$BUDGET")
 budget_fonts=$(sed -n 's/.*max_font_size_literals: *\([0-9]*\).*/\1/p' "$BUDGET")

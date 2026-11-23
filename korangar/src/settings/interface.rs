@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::loaders::Scaling;
 use crate::state::inventory::ItemCategory;
-use crate::state::localization::Language;
+use crate::state::localization::{Language, dropdown_keys};
 
 /// This theme name includes a zero byte so that it can not point to an actual
 /// file. This is guaranteed to fail to load which will automatically fall back
@@ -97,6 +97,19 @@ impl DropDownItem<AuraStyle> for AuraStyle {
             AuraStyle::Gold => "Gold",
             AuraStyle::Green => "Green",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            AuraStyle::Auto => dropdown_keys::AURA_AUTO,
+            AuraStyle::Off => dropdown_keys::AURA_OFF,
+            AuraStyle::Cyan => dropdown_keys::AURA_CYAN,
+            AuraStyle::Violet => dropdown_keys::AURA_VIOLET,
+            AuraStyle::Blue => dropdown_keys::AURA_BLUE,
+            AuraStyle::Gold => dropdown_keys::AURA_GOLD,
+            AuraStyle::Green => dropdown_keys::AURA_GREEN,
+        };
+        Some(key)
     }
 
     fn value(&self) -> AuraStyle {

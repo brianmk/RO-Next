@@ -19,10 +19,12 @@ use rust_state::{Path, State};
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
-use crate::loaders::{FontSize, OverflowBehavior};
-use crate::state::localization::LocalizationPathExt;
+use crate::loaders::OverflowBehavior;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::party::{Party, PartyInvitePrompt, PartyPathExt};
-use crate::state::theme::{InterfaceThemePathExt, InterfaceThemeType, PartyThemePathExt};
+use crate::state::theme::{
+    ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, PartyThemePathExt, TypographyTokensPathExt,
+};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_NAME_LENGTH: usize = 24;
@@ -31,9 +33,6 @@ const TITLE_HEIGHT: f32 = 20.0;
 const ROW_HEIGHT: f32 = 26.0;
 const BAR_HEIGHT: f32 = 7.0;
 const ROW_TEXT_HEIGHT: f32 = 15.0;
-const FONT_SIZE: f32 = 14.0;
-
-const HEALTH_BAR_FILL_COLOR: Color = Color::rgb_u8(84, 196, 104);
 
 /// Row of the roster that was laid out by [`PartyRoster::create_layout_info`].
 pub struct RosterRow {
@@ -160,10 +159,15 @@ where
         let offline_member_name_color = *state.get(&party_theme.offline_member_name_color());
         let health_text_color = *state.get(&party_theme.health_text_color());
         let bar_background_color = *state.get(&party_theme.health_bar_background_color());
+        let typography = client_theme().tokens().typography();
+        let color_tokens = client_theme().tokens().color();
+        let row_font_size = *state.get(&typography.font_body_lg());
+        let health_font_size = *state.get(&typography.font_button());
+        let health_fill_color = *state.get(&color_tokens.party_health_fill());
         layout.add_text(
             layout_info.title_area,
             &self.title,
-            FontSize(FONT_SIZE),
+            row_font_size,
             title_color,
             title_color,
             HorizontalAlignment::Left { offset: 2.0, border: 2.0 },
@@ -185,7 +189,7 @@ where
             layout.add_text(
                 row.name_area,
                 line,
-                FontSize(FONT_SIZE),
+                row_font_size,
                 name_color,
                 title_color,
                 HorizontalAlignment::Left { offset: 2.0, border: 2.0 },
@@ -196,7 +200,7 @@ where
             layout.add_text(
                 row.name_area,
                 health_text,
-                FontSize(FONT_SIZE - 1.0),
+                health_font_size,
                 health_text_color,
                 title_color,
                 HorizontalAlignment::Right { offset: 2.0, border: 2.0 },
@@ -204,13 +208,13 @@ where
                 OverflowBehavior::Shrink,
             );
 
-            draw_bar(layout, row.bar_area, fraction, bar_background_color);
+            draw_bar(layout, row.bar_area, fraction, bar_background_color, health_fill_color);
         }
     }
 }
 
 /// Draws the rounded track and fill of a party member HP bar.
-fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f32, background_color: Color) {
+fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f32, background_color: Color, fill_color: Color) {
     if area.width <= 0.0 || area.height <= 0.0 {
         return;
     }
@@ -239,7 +243,7 @@ fn draw_bar(layout: &mut WindowLayout<'_, ClientState>, area: Area, fraction: f3
             height: area.height,
         },
         corner_diameter,
-        HEALTH_BAR_FILL_COLOR,
+        fill_color,
         Color::TRANSPARENT,
         ShadowPadding::uniform(0.0),
     );
@@ -276,8 +280,10 @@ where
         resolvers: &mut dyn Resolvers<ClientState>,
     ) -> Self::LayoutInfo {
         self.text = match state.follow(self.invite_path) {
-            Some(invite) => format!("You are invited to join the party \"{}\".", invite.party_name),
-            None => "You have no open party invitation.".to_owned(),
+            Some(invite) => state
+                .get(&client_state().localization().ui().party_invitation_text())
+                .replace("{}", &invite.party_name),
+            None => state.get(&client_state().localization().ui().party_no_invitation_text()).clone(),
         };
 
         with_single_resolver(resolvers, |resolver| resolver.with_height(34.0))
@@ -291,11 +297,12 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let color = *state.get(&client_theme().window().title_color());
+        let row_font_size = *state.get(&client_theme().tokens().typography().font_body_lg());
 
         layout.add_text(
             *layout_info,
             &self.text,
-            FontSize(FONT_SIZE),
+            row_font_size,
             color,
             color,
             HorizontalAlignment::Left { offset: 2.0, border: 2.0 },
@@ -382,7 +389,7 @@ impl CustomWindow<ClientState> for PartyWindow {
                 button! {
                     text: client_state().localization().create_party_button_text(),
                     disabled: create_disabled,
-                    disabled_tooltip: "Enter a party name first",
+                    disabled_tooltip: client_state().localization().ui().party_enter_name_tooltip(),
                     event: create_action,
                 },
                 text! {
@@ -398,13 +405,13 @@ impl CustomWindow<ClientState> for PartyWindow {
                 button! {
                     text: client_state().localization().invite_button_text(),
                     disabled: invite_disabled,
-                    disabled_tooltip: "You have to be in a party to invite characters",
+                    disabled_tooltip: client_state().localization().ui().party_must_be_in_party_to_invite_tooltip(),
                     event: invite_action,
                 },
                 button! {
                     text: client_state().localization().leave_party_button_text(),
                     disabled: leave_disabled,
-                    disabled_tooltip: "You are not in a party",
+                    disabled_tooltip: client_state().localization().ui().party_not_in_party_tooltip(),
                     event: leave_action,
                 },
             ),

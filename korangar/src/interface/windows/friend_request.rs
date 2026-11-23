@@ -1,9 +1,10 @@
 use korangar_interface::window::{CustomWindow, Window};
 use ragnarok_packets::Friend;
+use rust_state::PathExt;
 
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt, template_text};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
@@ -21,6 +22,11 @@ impl CustomWindow<ClientState> for FriendRequestWindow {
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use korangar_interface::prelude::*;
 
+        let friend_request_text = template_text(
+            |state| client_state().localization().ui().friend_request_text().follow_safe(state),
+            self.friend.name.clone(),
+        );
+
         window! {
             title: client_state().localization().friend_request_window_title(),
             class: Some(WindowClass::FriendRequest),
@@ -28,7 +34,7 @@ impl CustomWindow<ClientState> for FriendRequestWindow {
             closable: true,
             elements: (
                 text! {
-                    text: format!("^000001{}^000000 wants to be friends with you", self.friend.name),
+                    text: friend_request_text,
                 },
                 split! {
                     gaps: theme().window().gaps(),

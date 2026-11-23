@@ -4,7 +4,7 @@ use rust_state::Path;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::settings::{GraphicsSettingsCapabilitiesPathExt, GraphicsSettingsPathExt};
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::{GraphicsSettings, GraphicsSettingsCapabilities};
@@ -39,7 +39,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Resolution",
+                        text: client_state().localization().ui().graphics_resolution_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -49,14 +49,14 @@ where
                 )
             },
             state_button! {
-                text: "Borderless fullscreen",
+                text: client_state().localization().ui().graphics_borderless_fullscreen_label(),
                 state: self.settings_path.fullscreen(),
                 event: Toggle(self.settings_path.fullscreen()),
             },
             split! {
                 children: (
                     text! {
-                        text: "Lighting mode",
+                        text: client_state().localization().ui().graphics_lighting_mode_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -66,21 +66,21 @@ where
                 )
             },
             state_button! {
-                text: "Triple buffering",
+                text: client_state().localization().ui().graphics_triple_buffering_label(),
                 state: self.settings_path.triple_buffering(),
                 event: Toggle(self.settings_path.triple_buffering()),
             },
             state_button! {
-                text: "Enable VSYNC",
+                text: client_state().localization().ui().graphics_vsync_label(),
                 state: self.settings_path.vsync(),
                 event: Toggle(self.settings_path.vsync()),
                 disabled: self.capabilities_path.vsync_setting_disabled(),
-                disabled_tooltip: "This setting is not supported on your system",
+                disabled_tooltip: client_state().localization().ui().setting_unsupported_tooltip(),
             },
             split! {
                 children: (
                     text! {
-                        text: "Max FPS",
+                        text: client_state().localization().ui().graphics_max_fps_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -92,7 +92,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Background FPS",
+                        text: client_state().localization().ui().graphics_background_fps_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -104,7 +104,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Texture filtering",
+                        text: client_state().localization().ui().graphics_texture_filtering_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -116,7 +116,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Multisampling",
+                        text: client_state().localization().ui().graphics_multisampling_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -128,7 +128,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Supersampling",
+                        text: client_state().localization().ui().graphics_supersampling_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -140,7 +140,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Anti-aliasing",
+                        text: client_state().localization().ui().graphics_anti_aliasing_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -152,7 +152,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Shadow method",
+                        text: client_state().localization().ui().graphics_shadow_method_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -164,7 +164,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Shadow detail",
+                        text: client_state().localization().ui().graphics_shadow_detail_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -176,7 +176,7 @@ where
             split! {
                 children: (
                     text! {
-                        text: "Shadow resolution",
+                        text: client_state().localization().ui().graphics_shadow_resolution_label(),
                         overflow_behavior: OverflowBehavior::Shrink,
                     },
                     drop_down! {
@@ -186,12 +186,12 @@ where
                 )
             },
             state_button! {
-                text: "Sample Distribution Shadow Maps",
+                text: client_state().localization().ui().graphics_sdsm_label(),
                 state: self.settings_path.sdsm(),
                 event: Toggle(self.settings_path.sdsm()),
             },
             state_button! {
-                text: "High quality interface",
+                text: client_state().localization().ui().graphics_high_quality_interface_label(),
                 state: self.settings_path.high_quality_interface(),
                 event: Toggle(self.settings_path.high_quality_interface()),
             },

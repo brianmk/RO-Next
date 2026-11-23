@@ -26,6 +26,7 @@ use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::ItemSource;
 use crate::loaders::OverflowBehavior;
 use crate::renderer::{CHARACTER_FEET_ANCHOR, LayoutExt};
+use crate::state::localization::LOCALIZATION_PATH;
 use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt};
 use crate::state::{ClientState, client_theme};
 use crate::world::{Player, ResourceMetadata};
@@ -39,10 +40,6 @@ const SLOT_SIZE: f32 = 42.0;
 
 struct SlotDefinition {
     equip_position: EquipPosition,
-    /// Name shown in the tooltip when the slot is empty.
-    name: &'static str,
-    /// Short label shown in the slot when it is empty.
-    label: &'static str,
     /// Position of the slot on the paper doll canvas.
     left: f32,
     top: f32,
@@ -52,78 +49,56 @@ struct SlotDefinition {
 const SLOTS: [SlotDefinition; 11] = [
     SlotDefinition {
         equip_position: EquipPosition::HEAD_TOP,
-        name: "Head top",
-        label: "TOP",
         left: 89.0,
         top: 4.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::AMMO,
-        name: "Ammo",
-        label: "AMMO",
         left: 166.0,
         top: 4.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::HEAD_MIDDLE,
-        name: "Head middle",
-        label: "MID",
         left: 12.0,
         top: 52.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::HEAD_LOWER,
-        name: "Head lower",
-        label: "LOW",
         left: 166.0,
         top: 52.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::ARMOR,
-        name: "Armor",
-        label: "ARMOR",
         left: 12.0,
         top: 126.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::GARMENT,
-        name: "Garment",
-        label: "GARM",
         left: 166.0,
         top: 126.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::RIGHT_HAND,
-        name: "Right hand (weapon)",
-        label: "WPN",
         left: 12.0,
         top: 200.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::LEFT_HAND,
-        name: "Left hand (shield)",
-        label: "SHLD",
         left: 166.0,
         top: 200.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::LEFT_ACCESSORY,
-        name: "Accessory 1",
-        label: "ACC1",
         left: 12.0,
         top: 274.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::RIGTH_ACCESSORY,
-        name: "Accessory 2",
-        label: "ACC2",
         left: 166.0,
         top: 274.0,
     },
     SlotDefinition {
         equip_position: EquipPosition::SHOES,
-        name: "Shoes",
-        label: "SHOES",
         left: 89.0,
         top: 296.0,
     },
@@ -343,6 +318,8 @@ where
         let tokens = client_theme().tokens();
         let color_tokens = tokens.color();
         let typography = tokens.typography();
+        let localization: &crate::state::localization::Localization = state.get(&LOCALIZATION_PATH);
+        let paper_doll_texts = localization.paper_doll_texts();
 
         let slot_background_color = *state.get(&color_tokens.slot_background());
         let slot_hovered_background_color = *state.get(&color_tokens.slot_hovered_background());
@@ -457,7 +434,7 @@ where
                 None => {
                     layout.add_text(
                         area,
-                        slot.label,
+                        paper_doll_texts.slot_label(slot.equip_position),
                         slot_label_font_size,
                         slot_label_color,
                         slot_label_color,
@@ -477,7 +454,7 @@ where
 
                 let tooltip = match &self.tooltips[index] {
                     Some(tooltip) => tooltip.as_ref(),
-                    None => slot.name,
+                    None => paper_doll_texts.slot_name(slot.equip_position),
                 };
 
                 struct PaperDollSlotTooltip;

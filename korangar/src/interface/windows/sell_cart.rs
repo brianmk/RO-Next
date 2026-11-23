@@ -17,7 +17,7 @@ use crate::InputEvent;
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt, TypographyTokensPathExt};
 use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::ResourceMetadata;
@@ -277,22 +277,22 @@ where
                             gaps: theme().window().gaps(),
                             children: (
                                 button! {
-                                    text: "-1",
+                                    text: client_state().localization().ui().quantity_remove_one(),
                                     disabled: disabled_cutoff(item_path, 1),
                                     event: RemoveAction::new(item_path, self.cart_path, 1),
                                 },
                                 button! {
-                                    text: "-10",
+                                    text: client_state().localization().ui().quantity_remove_ten(),
                                     disabled: disabled_cutoff(item_path, 10),
                                     event: RemoveAction::new(item_path, self.cart_path, 10),
                                 },
                                 button! {
-                                    text: "-100",
+                                    text: client_state().localization().ui().quantity_remove_hundred(),
                                     disabled: disabled_cutoff(item_path, 100),
                                     event: RemoveAction::new(item_path, self.cart_path, 100),
                                 },
                                 button! {
-                                    text: "-All",
+                                    text: client_state().localization().ui().quantity_remove_all(),
                                     event: RemoveAction::new(item_path, self.cart_path, u16::MAX),
                                 },
                             ),

@@ -70,7 +70,17 @@ class X11Input:
                 child_name = child.get_wm_name()
             except Exception:
                 child_name = None
-            if child_name and name in child_name:
+            # Match the window title first (the title carries the client name)
+            # and fall back to the WM_CLASS, which stays `korangar` even when
+            # the display name of the client changes (e.g. "Korangar" ->
+            # "RO-Next"). The golden harness should not silently break when the
+            # window title is renamed.
+            try:
+                wm_class = child.get_wm_class()
+            except Exception:
+                wm_class = None
+            class_matches = wm_class is not None and any(isinstance(entry, str) and "korangar" in entry.lower() for entry in wm_class)
+            if (child_name and name in child_name) or class_matches:
                 return child
             found = X11Input._find_window(child, name)
             if found is not None:
