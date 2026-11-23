@@ -2,7 +2,7 @@
  "provenance": {
   "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d (matching decompilation of Ragexe 2026-02-19)",
   "client_tables": "2019 CondaRO client data.grf: skilleffectinfolist.lub (SKILL_EFFECT_INFO_LIST)",
-  "note": "Per-skill effect ids from the official C++ switches (ReceiveSkillUse + PlaySkillEffect) and from the roBrowserLegacy-derived 2019-era table the client data uses; official_assets are the renderable assets of the official effect implementations. Used by tools/audit_rodecomp_coverage.py. used_effect_ids/used_assets are the version-correct mapping: the 2019-era ids for the bard/dancer songs (the 2026 client reworked them), the official ids otherwise."
+  "note": "Per-skill effect ids from the official C++ switches (ReceiveSkillUse + PlaySkillEffect) and from the roBrowserLegacy-derived 2019-era table the client data uses; official_assets are the renderable assets of the official effect implementations. Used by tools/audit_rodecomp_coverage.py. used_effect_ids/used_assets are the version-correct mapping: the 2019-era ids for the bard/dancer songs (the 2026 client reworked them) and for the drift skills whose 2019 effect name/description matches the skill (MO_STEELBODY -> EF_STEELBODY 254, HW_SOULDRAIN -> EF_ENERGYDRAIN 217 '(Wizard Soul Drain)', SG_*_COMFORT -> EF_BLUECASTING 441 'Comfort skills'); the official ids otherwise."
  },
  "skills": {
   "5": {
@@ -2145,10 +2145,14 @@
     "effect\\ring_yellow"
    ],
    "used_effect_ids": [
-    261
+    254
    ],
    "used_assets": [
-    "effect\\ring_yellow"
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
    ]
   },
   "270": {
@@ -2884,8 +2888,7 @@
     "이팩트\\particle1"
    ],
    "used_effect_ids": [
-    378,
-    379
+    217
    ],
    "used_assets": [
     "이팩트\\particle1"
@@ -3729,12 +3732,9 @@
     "effect\\ring_blue"
    ],
    "used_effect_ids": [
-    488,
-    543
+    441
    ],
    "used_assets": [
-    "effect\\pok1",
-    "effect\\pok3",
     "effect\\ring_blue"
    ]
   },
@@ -3753,12 +3753,9 @@
     "effect\\ring_blue"
    ],
    "used_effect_ids": [
-    488,
-    543
+    441
    ],
    "used_assets": [
-    "effect\\pok1",
-    "effect\\pok3",
     "effect\\ring_blue"
    ]
   },
@@ -3777,12 +3774,9 @@
     "effect\\ring_blue"
    ],
    "used_effect_ids": [
-    488,
-    543
+    441
    ],
    "used_assets": [
-    "effect\\pok1",
-    "effect\\pok3",
     "effect\\ring_blue"
    ]
   },
