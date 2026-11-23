@@ -113,12 +113,37 @@ impl WarpPortal {
             return;
         }
 
-        // The skill-unit portal uses the same visible animated warp effect as
-        // the map-connection warps (rotating cylinder + ground glow + rising
-        // sparks). The previous flat rings were too low/subtle and could be
-        // occluded by the ground, which made AL_WARP look like it had no
-        // animation at all.
-        self.render(renderer, camera, position, screen_size, time);
+        // AL_WARP is the tall white/lavender light pillar of the classic client
+        // (see the reference: bright cylinder with a soft purple ground glow),
+        // not the blue map-connection warp. Use the white alpha gradient as the
+        // main beam, the blue streak as a subtle purple inner swirl, and keep
+        // the rising sparkles.
+        let rotation = time * 0.28;
+        let scroll = (time * 0.9) % 1.0;
+
+        self.render_cylinder(
+            renderer,
+            camera,
+            position,
+            screen_size,
+            self.gradient_texture.clone(),
+            Color::rgba(0.92 * fade, 0.88 * fade, 1.0 * fade, 1.0),
+            rotation,
+            scroll,
+        );
+        self.render_cylinder(
+            renderer,
+            camera,
+            position,
+            screen_size,
+            self.streak_texture.clone(),
+            Color::rgba(0.55 * fade, 0.42 * fade, 0.85 * fade, 1.0),
+            -rotation * 0.7,
+            0.0,
+        );
+
+        self.render_ground_glow(renderer, camera, position, screen_size, time);
+        self.render_particles(renderer, camera, position, screen_size, time);
     }
 
     #[allow(clippy::too_many_arguments)]
