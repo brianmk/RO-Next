@@ -1194,6 +1194,50 @@ where
         }
     }
 
+    /// Requests a trade with another player (`CZ_REQ_EXCHANGE_ITEM`).
+    pub fn request_trade(&mut self, target_account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestExchangeItemPacket { target_account_id }),
+        }
+    }
+
+    /// Answers a trade request (`CZ_ACK_EXCHANGE_ITEM`). `accept` true sends 3.
+    pub fn answer_trade(&mut self, accept: bool) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(AnswerExchangeItemPacket {
+                result: if accept { 3 } else { 4 },
+            }),
+        }
+    }
+
+    /// Offers an item (or zeny with index 0) in the current trade.
+    pub fn add_trade_item(&mut self, inventory_index: u16, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(AddExchangeItemPacket { inventory_index, amount }),
+        }
+    }
+
+    /// Locks the local side of the trade (`CZ_CONCLUDE_EXCHANGE_ITEM`).
+    pub fn confirm_trade(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(ConfirmExchangeItemPacket {}),
+        }
+    }
+
+    /// Cancels the current trade (`CZ_CANCEL_EXCHANGE_ITEM`).
+    pub fn cancel_trade(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CancelExchangeItemPacket {}),
+        }
+    }
+
+    /// Commits the trade (`CZ_EXEC_EXCHANGE_ITEM`).
+    pub fn commit_trade(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CommitExchangeItemPacket {}),
+        }
+    }
+
     /// Creates a vending shop (`CZ_REQ_OPENSTORE`, 0x012F). `items` are
     /// (inventory index, amount, price) entries.
     pub fn request_open_store(&mut self, shop_name: String, items: Vec<StoreItemEntry>) -> Result<(), NotConnectedError> {

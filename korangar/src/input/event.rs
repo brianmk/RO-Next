@@ -76,6 +76,27 @@ pub enum InputEvent {
     ToggleAudioSettingsWindow,
     /// Open or close the friend list window. Only works while playing.
     ToggleFriendListWindow,
+    /// Request a trade with another player.
+    TradeRequest {
+        account_id: u32,
+    },
+    /// Accept a pending trade request.
+    TradeAccept {
+        account_id: u32,
+    },
+    /// Decline a pending trade request.
+    TradeDecline,
+    /// Offer an item in the current trade.
+    TradeAddItem {
+        inventory_index: u16,
+        amount: u16,
+    },
+    /// Lock the local trade side.
+    TradeLock,
+    /// Commit the trade.
+    TradeCommit,
+    /// Cancel the trade.
+    TradeCancel,
     /// Open or close the quest tracker window.
     ToggleQuestWindow,
     /// Open or close the big map window. Only works while playing.

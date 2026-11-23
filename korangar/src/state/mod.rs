@@ -17,6 +17,7 @@ pub mod spirit_orbs;
 pub mod stat_buffer;
 pub mod status_effects;
 pub mod theme;
+pub mod trade;
 pub mod vending;
 
 use std::cell::Cell;
@@ -78,6 +79,7 @@ use crate::state::skill_cooldowns::SkillCooldowns;
 use crate::state::skills::SkillTree;
 use crate::state::spirit_orbs::SpiritOrbs;
 use crate::state::theme::WorldTheme;
+use crate::state::trade::Trade;
 use crate::state::vending::Vending;
 #[cfg(feature = "debug")]
 use crate::world::Object;
@@ -224,6 +226,9 @@ pub struct ClientState {
     hotbar: Hotbar,
     /// Player inventory.
     inventory: Inventory,
+    /// Current player trade.
+    #[hidden_element]
+    trade: Trade,
     /// Active quests shown in the quest tracker.
     #[hidden_element]
     quest_log: QuestLog,
@@ -528,6 +533,7 @@ impl ClientState {
             hotbar,
             inventory,
             quest_log: QuestLog::default(),
+            trade: Trade::default(),
             vending: Vending::default(),
             zeny,
             storage,

@@ -581,8 +581,18 @@ where
         }
     })?;
     packet_handler.register(|_: StorageClosedPacket| NetworkEvent::StorageClosed)?;
-    register_ignored_noop::<_, ExchangeRequestPacket2019>(packet_handler)?;
-    register_ignored_noop::<_, ExchangeAckPacket2019>(packet_handler)?;
+    packet_handler.register(|packet: ExchangeRequestPacket2019| NetworkEvent::TradeRequest {
+        requester_name: packet.requester_name,
+        target_account_id: packet.target_account_id,
+        target_level: packet.target_level,
+    })?;
+    packet_handler.register(|packet: ExchangeAckPacket2019| NetworkEvent::TradeAck {
+        result: packet.result,
+        target_account_id: packet.target_account_id,
+    })?;
+    packet_handler.register(|_: ExchangeCancelPacket2019| NetworkEvent::TradeCancelled)?;
+    packet_handler.register(|packet: ExchangeConcludePacket2019| NetworkEvent::TradeConcluded { who: packet.who })?;
+    packet_handler.register(|packet: ExchangeExecPacket2019| NetworkEvent::TradeExecuted { result: packet.result })?;
     // 2019 era `ZC_ITEM_PICKUP_ACK` (0x0A37). The server uses this packet both for
     // picking items up from the ground and for items that are added to the
     // inventory by a shop purchase, so the item is added to the inventory state

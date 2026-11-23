@@ -18,11 +18,15 @@ const CONTEXT_MENU_WIDTH: f32 = 190.0;
 
 pub struct CharacterContextMenuWindow {
     target_name: String,
+    target_account_id: u32,
 }
 
 impl CharacterContextMenuWindow {
-    pub fn new(target_name: String) -> Self {
-        Self { target_name }
+    pub fn new(target_name: String, target_account_id: u32) -> Self {
+        Self {
+            target_name,
+            target_account_id,
+        }
     }
 }
 
@@ -35,6 +39,7 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
         use korangar_interface::prelude::*;
 
         let target_name = self.target_name;
+        let target_account_id = self.target_account_id;
         let whisper_name = target_name.clone();
         let add_friend_name = target_name.clone();
         let whisper_tooltip = template_text(
@@ -86,9 +91,12 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_trade(),
-                    disabled: true,
-                    disabled_tooltip: client_state().localization().ui().trade_not_implemented_tooltip(),
-                    event: InputEvent::CloseContextMenu,
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::TradeRequest {
+                            account_id: target_account_id,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_view_character_info(),

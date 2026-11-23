@@ -2373,6 +2373,59 @@ pub struct PartyMemberHealthPacket2019 {
     pub maximum_health_points: i32,
 }
 
+/// Sent by the client to request a trade with another player
+/// (`CZ_REQ_EXCHANGE_ITEM`, 0x00E4).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00E4)]
+#[packet_size(6)]
+pub struct RequestExchangeItemPacket {
+    pub target_account_id: AccountId,
+}
+
+/// Sent by the client to accept/reject a trade request
+/// (`CZ_ACK_EXCHANGE_ITEM`, 0x00E6). 3 = accept, 4 = reject.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00E6)]
+#[packet_size(3)]
+pub struct AnswerExchangeItemPacket {
+    pub result: u8,
+}
+
+/// Sent by the client to offer an inventory item or zeny in a trade
+/// (`CZ_ADD_EXCHANGE_ITEM`, 0x00E8). `inventory_index == 0` means zeny.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00E8)]
+#[packet_size(8)]
+pub struct AddExchangeItemPacket {
+    pub inventory_index: u16,
+    pub amount: u32,
+}
+
+/// Sent by the client to lock its side of the trade
+/// (`CZ_CONCLUDE_EXCHANGE_ITEM`, 0x00EB).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00EB)]
+#[packet_size(2)]
+pub struct ConfirmExchangeItemPacket {}
+
+/// Sent by the client to cancel the trade (`CZ_CANCEL_EXCHANGE_ITEM`, 0x00ED).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00ED)]
+#[packet_size(2)]
+pub struct CancelExchangeItemPacket {}
+
+/// Sent by the client to commit the trade (`CZ_EXEC_EXCHANGE_ITEM`, 0x00EF).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00EF)]
+#[packet_size(2)]
+pub struct CommitExchangeItemPacket {}
+
 /// 2019 era `ZC_ACK_ADD_EXCHANGE_ITEM` (0x00EA): trade window item ack.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]

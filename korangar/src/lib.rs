@@ -6426,6 +6426,49 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::TradeRequest {
+                    requester_name,
+                    target_account_id,
+                    ..
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().trade())
+                        .set_request(requester_name.clone(), target_account_id.0);
+                    self.interface
+                        .open_window(TradeRequestWindow::new(requester_name, target_account_id.0));
+                }
+                NetworkEvent::TradeAck { result, .. } => {
+                    if result == 3 {
+                        let partner_name = self
+                            .client_state
+                            .follow(client_state().trade())
+                            .request()
+                            .map(|request| request.name.clone())
+                            .unwrap_or_default();
+                        self.client_state.follow_mut(client_state().trade()).open(partner_name);
+                        self.interface.close_window_with_class(WindowClass::TradeRequest);
+                        self.interface
+                            .open_window(TradeWindow::new(client_state().trade(), client_state().inventory().items()));
+                    } else {
+                        self.client_state.follow_mut(client_state().trade()).clear_request();
+                        self.interface.close_window_with_class(WindowClass::TradeRequest);
+                    }
+                }
+                NetworkEvent::TradeCancelled => {
+                    self.close_trade();
+                }
+                NetworkEvent::TradeConcluded { who } => {
+                    let trade = self.client_state.follow_mut(client_state().trade());
+                    if who == 0 {
+                        trade.set_locked(true);
+                    } else {
+                        trade.set_partner_locked(true);
+                    }
+                }
+                NetworkEvent::TradeExecuted { result } => {
+                    crate::logging::log_debug!("trade executed: result {}", result);
+                    self.close_trade();
+                }
                 NetworkEvent::QuestList { quests } => {
                     self.client_state.follow_mut(client_state().quest_log()).set_list(&quests);
                 }
@@ -7078,6 +7121,33 @@ impl Client {
                     } else {
                         self.interface.open_window(QuestWindow::new(client_state().quest_log()));
                     }
+                }
+                InputEvent::TradeRequest { account_id } => {
+                    let _ = self.networking_system.request_trade(ragnarok_packets::AccountId(account_id));
+                }
+                InputEvent::TradeAccept { account_id } => {
+                    let _ = account_id;
+                    let _ = self.networking_system.answer_trade(true);
+                }
+                InputEvent::TradeDecline => {
+                    let trade = self.client_state.follow_mut(client_state().trade());
+                    trade.clear_request();
+                    self.interface.close_window_with_class(WindowClass::TradeRequest);
+                    let _ = self.networking_system.answer_trade(false);
+                }
+                InputEvent::TradeAddItem { inventory_index, amount } => {
+                    let _ = self.networking_system.add_trade_item(inventory_index, amount as u32);
+                }
+                InputEvent::TradeLock => {
+                    let _ = self.networking_system.confirm_trade();
+                    self.client_state.follow_mut(client_state().trade()).set_locked(true);
+                }
+                InputEvent::TradeCommit => {
+                    let _ = self.networking_system.commit_trade();
+                }
+                InputEvent::TradeCancel => {
+                    let _ = self.networking_system.cancel_trade();
+                    self.close_trade();
                 }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {
@@ -8582,6 +8652,13 @@ impl Client {
     /// Called when the server closes the storage (`ZC_CLOSE_STORE`), when the
     /// player closes it in the UI and defensively on map changes so a stale
     /// window can never show items from a previous storage session.
+    /// Closes the trade windows and drops the transient trade state.
+    fn close_trade(&mut self) {
+        self.interface.close_window_with_class(WindowClass::Trade);
+        self.interface.close_window_with_class(WindowClass::TradeRequest);
+        self.client_state.follow_mut(client_state().trade()).close();
+    }
+
     fn close_storage_window(&mut self) {
         self.interface.close_window_with_class(WindowClass::Storage);
         self.client_state.follow_mut(client_state().storage()).clear();
@@ -9952,7 +10029,7 @@ fn open_character_context_menu(
     match character_name {
         Some(character_name) => {
             interface.close_window_with_class(WindowClass::ContextMenu);
-            interface.open_window_at(CharacterContextMenuWindow::new(character_name), position);
+            interface.open_window_at(CharacterContextMenuWindow::new(character_name, entity_id.0), position);
 
             false
         }

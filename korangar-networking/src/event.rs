@@ -668,6 +668,27 @@ pub enum NetworkEvent {
     AttackRangeChanged {
         attack_range: AttackRange,
     },
+    /// Another player requests a trade (`ZC_REQ_EXCHANGE_ITEM`, 0x01F4).
+    TradeRequest {
+        requester_name: String,
+        target_account_id: AccountId,
+        target_level: u16,
+    },
+    /// Result of a trade request (`ZC_ACK_EXCHANGE_ITEM`, 0x01F5).
+    TradeAck {
+        result: u8,
+        target_account_id: AccountId,
+    },
+    /// The trade was cancelled (`ZC_CANCEL_EXCHANGE_ITEM`, 0x00EE).
+    TradeCancelled,
+    /// One side locked the trade (`ZC_CONCLUDE_EXCHANGE_ITEM`, 0x00EC).
+    TradeConcluded {
+        who: u8,
+    },
+    /// The trade completed (`ZC_EXEC_EXCHANGE_ITEM`, 0x00F0).
+    TradeExecuted {
+        result: u8,
+    },
     /// Complete quest list (`ZC_QUEST_LIST`, 0x09F8).
     QuestList {
         quests: Vec<ragnarok_packets::Quest>,
