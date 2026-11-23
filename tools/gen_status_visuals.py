@@ -43,6 +43,9 @@ ROWS: list[dict[str, object]] = [
     # Cloaking family: the official client calls `SetColor(50, -1, -1, -1)`
     # (alpha 50/255, colour unchanged) for EFS_CLOAKING2 and
     # `SetColor(50, 0, 0, 0)` for Cloaking Clear.
+    # Magical Power: the official client sets `render.flags |= 4` in
+    # EF_LIGHTBLADE, which draws the weapon layer only every other frame.
+    {"id": 113, "kind": "blink", "source": "official EF_LIGHTBLADE render.flags |= 4: weapon layer blinks (rodecomp)"},
     {"id": 360, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_CAMOUFLAGE (rodecomp)"},
     {"id": 379, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_STEALTHFIELD (rodecomp)"},
     {"id": 394, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING3 SetColor(alpha 50/255) - EFST_SHADOWFORM (rodecomp)"},
@@ -103,6 +106,8 @@ def render() -> str:
                 f'anchor: {row["anchor"]}, duration_ms: {row["duration_ms"]}, loop: true, '
                 f'tint: ({red}, {green}, {blue}), scale: {row["scale"]}), source: "{source}"),\n'
             )
+        elif kind == "blink":
+            lines.append(f'        (id: {status_id}, kind: WeaponBlink, source: "{source}"),\n')
         elif kind == "fade":
             alpha = float(row["alpha"])
             if not 0.0 < alpha < 1.0:

@@ -20,6 +20,7 @@
         (id: 464, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"),
         (id: 448, kind: BodyTint(tint: (182, 89, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"),
         (id: 453, kind: BodyTint(tint: (0, 0, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"),
+        (id: 113, kind: WeaponBlink, source: "official EF_LIGHTBLADE render.flags |= 4: weapon layer blinks (rodecomp)"),
         (id: 360, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_CAMOUFLAGE (rodecomp)"),
         (id: 379, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_STEALTHFIELD (rodecomp)"),
         (id: 394, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING3 SetColor(alpha 50/255) - EFST_SHADOWFORM (rodecomp)"),

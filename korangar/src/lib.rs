@@ -3706,6 +3706,7 @@ impl Client {
         let statuses = self.client_state.follow(client_state().status_effects());
         let mut tint = None;
         let mut alpha = None;
+        let mut weapon_blink = false;
         let mut tint_priority = i16::MIN;
 
         for effect in statuses.effects().iter().filter(|effect| effect.entity_id() == entity_id.0) {
@@ -3724,6 +3725,7 @@ impl Client {
                         alpha = Some(value);
                     }
                 }
+                StatusVisualKind::WeaponBlink => weapon_blink = true,
                 // Looping/ground visuals are spawned by `update_status_visuals`.
                 StatusVisualKind::LoopingEffect { .. } | StatusVisualKind::GroundRing { .. } => {}
             }
@@ -3737,6 +3739,7 @@ impl Client {
         {
             entity.set_status_tint(tint);
             entity.set_status_alpha(alpha);
+            entity.set_weapon_blink(weapon_blink);
         }
     }
 

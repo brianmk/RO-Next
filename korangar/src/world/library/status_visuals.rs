@@ -47,6 +47,10 @@ pub enum StatusVisualKind {
     },
     /// Multiply the character alpha while the status is active.
     BodyFade { alpha: f32, fade_in_ms: u32, fade_out_ms: u32 },
+    /// Draw the equipped weapon only every other frame. The official client
+    /// sets `render.flags |= 4` for `EF_LIGHTBLADE` (Magical Power) and skips
+    /// the weapon layer on alternate frames.
+    WeaponBlink,
     /// Looping `.str` effect that follows the entity while the status is
     /// active (`loop` is always on; the field is kept for data compatibility).
     LoopingEffect {
@@ -112,6 +116,7 @@ enum StatusVisualKindFile {
         #[serde(default)]
         fade_out_ms: u32,
     },
+    WeaponBlink,
     LoopingEffect {
         file: String,
         anchor: StatusVisualAnchorFile,
@@ -184,6 +189,7 @@ fn parse(content: &str) -> Result<StatusVisualTable, String> {
         }
 
         let kind = match row.kind {
+            StatusVisualKindFile::WeaponBlink => StatusVisualKind::WeaponBlink,
             StatusVisualKindFile::BodyTint {
                 tint,
                 hold_ms,
@@ -367,12 +373,12 @@ mod tests {
     #[test]
     fn compiled_status_visuals_are_valid() {
         let count = super::validate_compiled().expect("compiled status visuals");
-        assert_eq!(count, 15, "official body tints/fades plus looping/ground rows");
+        assert_eq!(count, 16, "official body tints/fades/blink plus looping/ground rows");
     }
 
     #[test]
     fn known_classic_tints_are_present() {
-        for id in [2, 8, 23, 26, 86, 105, 107, 132, 147, 360, 379, 394, 448, 453, 464] {
+        for id in [2, 8, 23, 26, 86, 105, 107, 113, 132, 147, 360, 379, 394, 448, 453, 464] {
             assert!(status_visual(id).is_some(), "status {id}");
         }
         assert!(status_visual(9999).is_none());
@@ -411,6 +417,21 @@ mod tests {
                 "status {id}"
             );
         }
+    }
+
+    #[test]
+    fn magical_power_blinks_the_weapon() {
+        let visual = status_visual(113).expect("Magical Power weapon blink");
+        assert_eq!(visual.kind, super::StatusVisualKind::WeaponBlink);
+
+        let content = r#"(
+            provenance: "test",
+            version: 1,
+            visuals: [
+                (id: 113, kind: WeaponBlink, source: "test"),
+            ],
+        )"#;
+        assert_eq!(validate(content).unwrap(), 1);
     }
 
     #[test]

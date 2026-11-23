@@ -275,6 +275,7 @@ pub struct Common {
     /// Persistent sprite tint of a status effect (Adrenaline Rush and Fury are
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
+    status_weapon_blink: bool,
     /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
     status_alpha: Option<f32>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
@@ -574,6 +575,7 @@ impl Common {
             cart_status_active: false,
             cart_kind: 0,
             status_tint: None,
+            status_weapon_blink: false,
             status_alpha: None,
             weapon_animation: None,
             active_movement,
@@ -736,6 +738,11 @@ impl Common {
     /// Sets the persistent status sprite tint (red for Adrenaline Rush/Fury).
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
         self.status_tint = tint;
+    }
+
+    /// Blink the equipped weapon layer (official `EF_LIGHTBLADE`).
+    pub fn set_weapon_blink(&mut self, blink: bool) {
+        self.status_weapon_blink = blink;
     }
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
@@ -1338,7 +1345,9 @@ impl Common {
 
         // Equipped weapon: rendered as its own animation layer with the body
         // animation state/action/frame so the weapon follows idle/walk/attack.
-        if let Some(weapon_animation) = self.weapon_animation.as_ref() {
+        // `EF_LIGHTBLADE` (Magical Power) blinks it on alternate frames.
+        let weapon_blink_off = self.status_weapon_blink && client_tick.0 % 2 == 1;
+        if let Some(weapon_animation) = self.weapon_animation.as_ref().filter(|_| !weapon_blink_off) {
             weapon_animation.render(
                 instructions,
                 camera,
@@ -1953,6 +1962,10 @@ impl Entity {
 
     pub fn set_status_tint(&mut self, tint: Option<Color>) {
         self.get_common_mut().set_status_tint(tint);
+    }
+
+    pub fn set_weapon_blink(&mut self, blink: bool) {
+        self.get_common_mut().set_weapon_blink(blink);
     }
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {

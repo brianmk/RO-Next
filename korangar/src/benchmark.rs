@@ -79,7 +79,7 @@ const BENCHMARK_SKILLS: [u16; 47] = [
 
 /// Persistent status effects injected by the `skills` scenario so the status
 /// auras/fades are rendered next to the skill effects.
-const BENCHMARK_AURA_STATUSES: [u16; 16] = [2, 25, 31, 68, 86, 87, 107, 110, 123, 161, 165, 188, 232, 235, 437, 473];
+const BENCHMARK_AURA_STATUSES: [u16; 17] = [2, 25, 31, 68, 86, 87, 107, 110, 113, 123, 161, 165, 188, 232, 235, 437, 473];
 
 /// Status effects injected for the `ui_updates` stage so the buff bar has a
 /// known, non-empty work set.
