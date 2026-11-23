@@ -6265,6 +6265,17 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::OpenStore { slots } => {
+                    // `ZC_OPENSTORE` after MC_VENDING: show the shop editor.
+                    // The server keeps the character in the vending state until
+                    // it receives CZ_REQ_OPENSTORE/2, so the editor is modal
+                    // (no X close) and always offers Open/Cancel.
+                    self.client_state.follow_mut(client_state().vending()).open(slots);
+                    self.interface.open_window(crate::interface::windows::VendingWindow::new(
+                        client_state().vending(),
+                        client_state().inventory().items(),
+                    ));
+                }
                 NetworkEvent::MinimapMarker {
                     npc_id,
                     marker_type,
@@ -6863,6 +6874,31 @@ impl Client {
                         dialog.clear_choices();
                         let _ = self.networking_system.select_warp_point(skill_id, String::new());
                     }
+                }
+                InputEvent::VendingOpen => {
+                    let vending = self.client_state.follow(client_state().vending());
+                    let shop_name = vending.shop_name().to_owned();
+                    let items: Vec<ragnarok_packets::StoreItemEntry> = vending
+                        .entries()
+                        .iter()
+                        .map(|entry| ragnarok_packets::StoreItemEntry {
+                            inventory_index: entry.inventory_index,
+                            amount: entry.amount,
+                            price: entry.price,
+                        })
+                        .collect();
+                    if !shop_name.is_empty() && !items.is_empty() {
+                        let _ = self.networking_system.request_open_store(shop_name, items);
+                    } else {
+                        let _ = self.networking_system.cancel_open_store();
+                    }
+                    self.client_state.follow_mut(client_state().vending()).close();
+                    self.interface.close_window_with_class(WindowClass::Vending);
+                }
+                InputEvent::VendingCancel => {
+                    let _ = self.networking_system.cancel_open_store();
+                    self.client_state.follow_mut(client_state().vending()).close();
+                    self.interface.close_window_with_class(WindowClass::Vending);
                 }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {

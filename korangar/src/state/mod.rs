@@ -16,6 +16,7 @@ pub mod spirit_orbs;
 pub mod stat_buffer;
 pub mod status_effects;
 pub mod theme;
+pub mod vending;
 
 use std::cell::Cell;
 use std::sync::Arc;
@@ -75,6 +76,7 @@ use crate::state::skill_cooldowns::SkillCooldowns;
 use crate::state::skills::SkillTree;
 use crate::state::spirit_orbs::SpiritOrbs;
 use crate::state::theme::WorldTheme;
+use crate::state::vending::Vending;
 #[cfg(feature = "debug")]
 use crate::world::Object;
 use crate::world::{Entity, GroundItem, Player, ResourceMetadata};
@@ -220,6 +222,9 @@ pub struct ClientState {
     hotbar: Hotbar,
     /// Player inventory.
     inventory: Inventory,
+    /// Current vending-shop editor (`MC_VENDING` / `ZC_OPENSTORE`).
+    #[hidden_element]
+    vending: Vending,
     /// Amount of zeny the character has, `None` until the server sent the first
     /// zeny update (the initial zeny is not necessarily part of the login
     /// data).
@@ -517,6 +522,7 @@ impl ClientState {
             player_name,
             hotbar,
             inventory,
+            vending: Vending::default(),
             zeny,
             storage,
             storage_amount,

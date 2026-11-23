@@ -49,6 +49,7 @@ mod stats;
 mod storage;
 #[cfg(feature = "debug")]
 mod theme_inspector;
+mod vending;
 
 use serde::{Deserialize, Serialize};
 
@@ -103,6 +104,7 @@ pub use self::stats::StatsWindow;
 pub use self::storage::StorageWindow;
 #[cfg(feature = "debug")]
 pub use self::theme_inspector::{ThemeInspectorWindow, ThemeInspectorWindowState};
+pub use self::vending::VendingWindow;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WindowClass {
@@ -130,6 +132,7 @@ pub enum WindowClass {
     SkillDescription,
     SpiritSpheres,
     Stats,
+    Vending,
     Storage,
     FriendList,
     FriendRequest,

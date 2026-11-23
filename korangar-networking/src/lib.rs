@@ -1194,6 +1194,25 @@ where
         }
     }
 
+    /// Creates a vending shop (`CZ_REQ_OPENSTORE`, 0x012F). `items` are
+    /// (inventory index, amount, price) entries.
+    pub fn request_open_store(&mut self, shop_name: String, items: Vec<StoreItemEntry>) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestOpenStorePacket { shop_name, items }),
+        }
+    }
+
+    /// Cancels the vending shop creation UI (`CZ_REQ_OPENSTORE2`, 0x01B2).
+    pub fn cancel_open_store(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CancelOpenStorePacket {
+                shop_name: String::new(),
+                result: 0,
+                items: Vec::new(),
+            }),
+        }
+    }
+
     /// Use an item from the inventory (potions, usable items, ...).
     pub fn use_item(&mut self, item_index: InventoryIndex, item_id: ItemId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
