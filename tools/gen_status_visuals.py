@@ -32,7 +32,20 @@ ROWS: list[dict[str, object]] = [
     {"id": 23, "kind": "tint", "tint": (255, 115, 115), "priority": 10, "source": "classic red adrenaline tint"},
     {"id": 147, "kind": "tint", "tint": (255, 115, 115), "priority": 10, "source": "classic red full-adrenaline tint"},
     {"id": 86, "kind": "tint", "tint": (255, 191, 191), "priority": 20, "source": "official Fury red glow"},
-    {"id": 132, "kind": "tint", "tint": (250, 120, 120), "priority": 30, "source": "rustnarok-client prims/walls.rs Berserk #FA7878"},
+    # Official body tints from the client decompilation (rodecomp): the effect
+    # that a status launches calls `SetColor(-1, r, g, b)` on the parent actor.
+    {"id": 132, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_AUTOBERSERK (rodecomp)"},
+    {"id": 107, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_BERSERK (rodecomp)"},
+    {"id": 105, "kind": "tint", "tint": (255, 255, 160), "priority": 30, "source": "official EF_LKCONCENTRATION SetColor(255,255,160) (rodecomp)"},
+    {"id": 464, "kind": "tint", "tint": (255, 100, 100), "priority": 30, "source": "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"},
+    {"id": 448, "kind": "tint", "tint": (182, 89, 255), "priority": 30, "source": "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"},
+    {"id": 453, "kind": "tint", "tint": (0, 0, 255), "priority": 30, "source": "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"},
+    # Cloaking family: the official client calls `SetColor(50, -1, -1, -1)`
+    # (alpha 50/255, colour unchanged) for EFS_CLOAKING2 and
+    # `SetColor(50, 0, 0, 0)` for Cloaking Clear.
+    {"id": 360, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_CAMOUFLAGE (rodecomp)"},
+    {"id": 379, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_STEALTHFIELD (rodecomp)"},
+    {"id": 394, "kind": "fade", "alpha": 0.20, "source": "official EF_CLOAKING3 SetColor(alpha 50/255) - EFST_SHADOWFORM (rodecomp)"},
     # Classic looping/ground visuals (B1 follow-up). Assets were checked in
     # the CondaRO data.grf: effect/maximizepower.str, effect/twohand.str and
     # effect/ring_blue.tga.
@@ -47,10 +60,11 @@ HEADER = """// Data-driven per-status body visuals for RO-Next.
 // Regenerate: `./tools/gen_status_visuals.py`
 // Check:      `./tools/gen_status_visuals.py --check`
 //
-// Classic body tints plus the first looping/ground rows. Assets were checked
-// against the CondaRO archives; 4th-job families remain out of scope.
+// Body tints/fades carry the official SetColor values of the client
+// decompilation (rodecomp) where the effect sets one; the looping/ground rows
+// are curated. Assets were checked against the CondaRO archives.
 (
-    provenance: "RO-Next classic status body tints; colors verified against the previous hardcoded status handler and rustnarok-client prims/walls.rs Berserk #FA7878",
+    provenance: "Status body tints/fades: official SetColor values from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
     version: 1,
     visuals: [
 """
@@ -88,6 +102,13 @@ def render() -> str:
                 f"        (id: {status_id}, kind: LoopingEffect(file: \"{path}\", "
                 f'anchor: {row["anchor"]}, duration_ms: {row["duration_ms"]}, loop: true, '
                 f'tint: ({red}, {green}, {blue}), scale: {row["scale"]}), source: "{source}"),\n'
+            )
+        elif kind == "fade":
+            alpha = float(row["alpha"])
+            if not 0.0 < alpha < 1.0:
+                raise SystemExit(f"invalid alpha for status {status_id}")
+            lines.append(
+                f'        (id: {status_id}, kind: BodyFade(alpha: {alpha:.2f}, fade_in_ms: 0, fade_out_ms: 0), source: "{source}"),\n'
             )
         elif kind == "ring":
             red, green, blue = row["color"]

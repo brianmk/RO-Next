@@ -367,12 +367,12 @@ mod tests {
     #[test]
     fn compiled_status_visuals_are_valid() {
         let count = super::validate_compiled().expect("compiled status visuals");
-        assert_eq!(count, 7, "classic body tints plus looping/ground rows");
+        assert_eq!(count, 15, "official body tints/fades plus looping/ground rows");
     }
 
     #[test]
     fn known_classic_tints_are_present() {
-        for id in [2, 8, 23, 26, 86, 132, 147] {
+        for id in [2, 8, 23, 26, 86, 105, 107, 132, 147, 360, 379, 394, 448, 453, 464] {
             assert!(status_visual(id).is_some(), "status {id}");
         }
         assert!(status_visual(9999).is_none());
@@ -386,11 +386,28 @@ mod tests {
             (23, Color::rgb_u8(255, 115, 115)),
             (147, Color::rgb_u8(255, 115, 115)),
             (86, Color::rgb_u8(255, 191, 191)),
-            (132, Color::rgb_u8(250, 120, 120)),
+            (132, Color::rgb_u8(255, 100, 100)),
+            (107, Color::rgb_u8(255, 100, 100)),
+            (105, Color::rgb_u8(255, 255, 160)),
+            (448, Color::rgb_u8(182, 89, 255)),
+            (453, Color::rgb_u8(0, 0, 255)),
         ] {
             let visual = status_visual(id).expect("classic tint");
             assert!(
                 matches!(visual.kind, StatusVisualKind::BodyTint { tint, .. } if tint == expected),
+                "status {id}"
+            );
+        }
+    }
+
+    #[test]
+    fn official_cloaking_fades_are_present() {
+        use super::StatusVisualKind;
+
+        for id in [360, 379, 394] {
+            let visual = status_visual(id).expect("cloaking fade");
+            assert!(
+                matches!(visual.kind, StatusVisualKind::BodyFade { alpha, .. } if (alpha - 0.20).abs() < f32::EPSILON),
                 "status {id}"
             );
         }

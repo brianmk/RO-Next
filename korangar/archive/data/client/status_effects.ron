@@ -26,7 +26,7 @@
 //
 // 597 client titles, 318 explicit client
 // icons and 313 classic icons were extracted; 616 statuses
-// have presentation data and 19 of them have an aura.
+// have presentation data and 20 of them have an aura.
 (
     provenance: "Status-effect presentation data: official client/server names, icons, categories, value labels and persistent aura specs",
     version: 1,
@@ -2586,6 +2586,31 @@
             category: Debuff,
             refresh: Replace,
             stack: Single,
+            aura: (
+                kind: PersistentGlow,
+                textures: (
+                    ground: "effect\\whitelight.tga",
+                    ring: "effect\\얼음결정체1.tga",
+                    body_frames: ["effect\\얼음결정체1.tga"],
+                    body_glow: "effect\\얼음결정체1.tga",
+                ),
+                tint: (
+                    ground: (0.45, 0.65, 0.85),
+                    body: (0.7, 0.9, 1.0),
+                    glow: (0.8, 0.95, 1.0),
+                ),
+                radii: (ground: 9.0, ring: 6.5, body: 22.0, body_glow: 13.0),
+                timing: (
+                    body_frame_rate: 8.0,
+                    ring_rotation_speed: 0.6,
+                    body_rotation_speed: 0.3,
+                    body_camera_offset: 2.0,
+                    pulse_speed: 2.0,
+                    pulse_amount: 0.15,
+                ),
+                alpha: (ground: 0.3, ring: 0.4, body: 0.45, body_glow: 0.4),
+                height: 11.0,
+            ),
         ),
         (
             id: 438,

@@ -4,16 +4,25 @@
 // Regenerate: `./tools/gen_status_visuals.py`
 // Check:      `./tools/gen_status_visuals.py --check`
 //
-// Classic body tints plus the first looping/ground rows. Assets were checked
-// against the CondaRO archives; 4th-job families remain out of scope.
+// Body tints/fades carry the official SetColor values of the client
+// decompilation (rodecomp) where the effect sets one; the looping/ground rows
+// are curated. Assets were checked against the CondaRO archives.
 (
-    provenance: "RO-Next classic status body tints; colors verified against the previous hardcoded status handler and rustnarok-client prims/walls.rs Berserk #FA7878",
+    provenance: "Status body tints/fades: official SetColor values from the client decompilation (github.com/rodecomp/rodecomp) plus the curated classic rows",
     version: 1,
     visuals: [
         (id: 23, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10), source: "classic red adrenaline tint"),
         (id: 147, kind: BodyTint(tint: (255, 115, 115), hold_ms: 0, fade_ms: 0, priority: 10), source: "classic red full-adrenaline tint"),
         (id: 86, kind: BodyTint(tint: (255, 191, 191), hold_ms: 0, fade_ms: 0, priority: 20), source: "official Fury red glow"),
-        (id: 132, kind: BodyTint(tint: (250, 120, 120), hold_ms: 0, fade_ms: 0, priority: 30), source: "rustnarok-client prims/walls.rs Berserk #FA7878"),
+        (id: 132, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_AUTOBERSERK (rodecomp)"),
+        (id: 107, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BERSERK (rodecomp)"),
+        (id: 105, kind: BodyTint(tint: (255, 255, 160), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_LKCONCENTRATION SetColor(255,255,160) (rodecomp)"),
+        (id: 464, kind: BodyTint(tint: (255, 100, 100), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_REDBODY SetColor(255,100,100) - EFST_BLOOD_SUCKER (rodecomp)"),
+        (id: 448, kind: BodyTint(tint: (182, 89, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_ENERVATION7 SetColor(182,89,255) - EFST_SATURDAY_NIGHT_FEVER (rodecomp)"),
+        (id: 453, kind: BodyTint(tint: (0, 0, 255), hold_ms: 0, fade_ms: 0, priority: 30), source: "official EF_STASIS SetColor(0,0,255) - EFST_BEYOND_OF_WARCRY (rodecomp)"),
+        (id: 360, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_CAMOUFLAGE (rodecomp)"),
+        (id: 379, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING2 SetColor(alpha 50/255) - EFST_STEALTHFIELD (rodecomp)"),
+        (id: 394, kind: BodyFade(alpha: 0.20, fade_in_ms: 0, fade_out_ms: 0), source: "official EF_CLOAKING3 SetColor(alpha 50/255) - EFST_SHADOWFORM (rodecomp)"),
         (id: 26, kind: LoopingEffect(file: "effect\\maximizepower.str", anchor: Body, duration_ms: 1000, loop: true, tint: (255, 200, 90), scale: 0.8), source: "EF_MAXPOWER Maximize Power looping str"),
         (id: 2, kind: LoopingEffect(file: "effect\\twohand.str", anchor: Body, duration_ms: 1000, loop: true, tint: (255, 190, 90), scale: 0.8), source: "EF_TWOHANDQUICKEN Two Hand Quicken looping str"),
         (id: 8, kind: GroundRing(texture: "effect\\ring_blue.tga", radius: 8.0, height: 0.5, duration_ms: 4000, color: (80, 160, 60), pulse: 0.2), source: "Quagmire ground ring"),

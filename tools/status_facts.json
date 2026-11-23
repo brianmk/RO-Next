@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "55363d2e39be7d95a3c90f7bb166f77c6629b76be168cdaba570b1fface51759",
+      "sha256": "813e5370a0928d7bc55f7339dadbaa2e632da6b0a22499184f3278c465b489aa",
       "counts": {
         "names": 11,
         "icons": 6,
         "categories": 2,
         "value_labels": 7,
-        "auras": 19
+        "auras": 20
       }
     },
     "counts": {
@@ -89,7 +89,7 @@
       "merged_statuses": 616,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 19
+      "auras": 20
     },
     "dropped_icons": [
       {
@@ -37533,7 +37533,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official EF_COLDSTATUS TexturedAura(effect\\얼음결정체1.tga) - EFST_COLD (rodecomp)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\얼음결정체1.tga",
+          "body_frames": [
+            "effect\\얼음결정체1.tga"
+          ],
+          "body_glow": "effect\\얼음결정체1.tga"
+        },
+        "tint": {
+          "ground": [
+            0.45,
+            0.65,
+            0.85
+          ],
+          "body": [
+            0.7,
+            0.9,
+            1.0
+          ],
+          "glow": [
+            0.8,
+            0.95,
+            1.0
+          ]
+        },
+        "radii": {
+          "ground": 9.0,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 8.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.3,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 438,
