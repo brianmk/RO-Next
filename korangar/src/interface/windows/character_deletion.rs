@@ -15,7 +15,7 @@ use rust_state::{Path, PathExt, State};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
@@ -73,7 +73,7 @@ where
             maximum_width: 420.0,
             elements: (
                 text! {
-                    text: "Deleting a character is permanent. To confirm, enter the e-mail address of this account.",
+                    text: client_state().localization().ui().character_deletion_warning(),
                 },
                 text_box! {
                     ghost_text: client_state().localization().account_email_text(),
@@ -85,7 +85,7 @@ where
                 button! {
                     text: client_state().localization().delete_character_window_title(),
                     disabled,
-                    disabled_tooltip: "Enter the account e-mail address first",
+                    disabled_tooltip: client_state().localization().ui().account_email_first_tooltip(),
                     event: delete_action,
                 },
             ),

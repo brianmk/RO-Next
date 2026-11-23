@@ -8,6 +8,7 @@ use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
 use crate::graphics::{ScreenSize, dlss_disabled_reason};
+use crate::state::localization::dropdown_keys;
 
 /// A frame rate limit in frames per second.
 ///
@@ -121,6 +122,20 @@ impl DropDownItem<WindowResolution> for WindowResolution {
         }
     }
 
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            WindowResolution::Desktop => dropdown_keys::RESOLUTION_DESKTOP,
+            WindowResolution::R1280x720 => dropdown_keys::RESOLUTION_1280X720,
+            WindowResolution::R1366x768 => dropdown_keys::RESOLUTION_1366X768,
+            WindowResolution::R1600x900 => dropdown_keys::RESOLUTION_1600X900,
+            WindowResolution::R1920x1080 => dropdown_keys::RESOLUTION_1920X1080,
+            WindowResolution::R2560x1440 => dropdown_keys::RESOLUTION_2560X1440,
+            WindowResolution::R3840x2160 => dropdown_keys::RESOLUTION_3840X2160,
+            WindowResolution::Custom(..) => dropdown_keys::RESOLUTION_CUSTOM,
+        };
+        Some(key)
+    }
+
     fn value(&self) -> WindowResolution {
         *self
     }
@@ -182,6 +197,27 @@ impl DropDownItem<FramesPerSecond> for FramesPerSecond {
         }
     }
 
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self.frames_per_second {
+            0 => dropdown_keys::FPS_UNLIMITED,
+            15 => dropdown_keys::FPS_15,
+            24 => dropdown_keys::FPS_24,
+            30 => dropdown_keys::FPS_30,
+            45 => dropdown_keys::FPS_45,
+            60 => dropdown_keys::FPS_60,
+            75 => dropdown_keys::FPS_75,
+            90 => dropdown_keys::FPS_90,
+            120 => dropdown_keys::FPS_120,
+            144 => dropdown_keys::FPS_144,
+            240 => dropdown_keys::FPS_240,
+            // Values that are not offered by the drop down (for example coming
+            // from an environment override) are still valid, but cannot be
+            // displayed as a nicely named entry.
+            _ => dropdown_keys::FPS_CUSTOM,
+        };
+        Some(key)
+    }
+
     fn value(&self) -> FramesPerSecond {
         *self
     }
@@ -228,6 +264,18 @@ impl DropDownItem<TextureSamplerType> for TextureSamplerType {
         }
     }
 
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            TextureSamplerType::Nearest => dropdown_keys::SAMPLER_NEAREST,
+            TextureSamplerType::Linear => dropdown_keys::SAMPLER_LINEAR,
+            TextureSamplerType::Anisotropic(4) => dropdown_keys::SAMPLER_ANISOTROPIC_4,
+            TextureSamplerType::Anisotropic(8) => dropdown_keys::SAMPLER_ANISOTROPIC_8,
+            TextureSamplerType::Anisotropic(16) => dropdown_keys::SAMPLER_ANISOTROPIC_16,
+            TextureSamplerType::Anisotropic(_) => unimplemented!(),
+        };
+        Some(key)
+    }
+
     fn value(&self) -> TextureSamplerType {
         *self
     }
@@ -267,6 +315,15 @@ impl DropDownItem<ShadowResolution> for ShadowResolution {
         }
     }
 
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            Self::Normal => dropdown_keys::SHADOW_RESOLUTION_NORMAL,
+            Self::Ultra => dropdown_keys::SHADOW_RESOLUTION_ULTRA,
+            Self::Insane => dropdown_keys::SHADOW_RESOLUTION_INSANE,
+        };
+        Some(key)
+    }
+
     fn value(&self) -> ShadowResolution {
         *self
     }
@@ -288,6 +345,16 @@ impl DropDownItem<ShadowDetail> for ShadowDetail {
             Self::High => "High",
             Self::Ultra => "Ultra",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            Self::Low => dropdown_keys::SHADOW_DETAIL_LOW,
+            Self::Medium => dropdown_keys::SHADOW_DETAIL_MEDIUM,
+            Self::High => dropdown_keys::SHADOW_DETAIL_HIGH,
+            Self::Ultra => dropdown_keys::SHADOW_DETAIL_ULTRA,
+        };
+        Some(key)
     }
 
     fn value(&self) -> ShadowDetail {
@@ -320,6 +387,15 @@ impl DropDownItem<ShadowMethod> for ShadowMethod {
             Self::SoftPCF => "Soft (PCF)",
             Self::SoftPCSS => "Soft (PCSS)",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            Self::Hard => dropdown_keys::SHADOW_METHOD_HARD,
+            Self::SoftPCF => dropdown_keys::SHADOW_METHOD_SOFT_PCF,
+            Self::SoftPCSS => dropdown_keys::SHADOW_METHOD_SOFT_PCSS,
+        };
+        Some(key)
     }
 
     fn value(&self) -> ShadowMethod {
@@ -355,6 +431,17 @@ impl DropDownItem<Msaa> for Msaa {
             Msaa::X8 => "x8",
             Msaa::X16 => "x16",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            Msaa::Off => dropdown_keys::MSAA_OFF,
+            Msaa::X2 => dropdown_keys::MSAA_X2,
+            Msaa::X4 => dropdown_keys::MSAA_X4,
+            Msaa::X8 => dropdown_keys::MSAA_X8,
+            Msaa::X16 => dropdown_keys::MSAA_X16,
+        };
+        Some(key)
     }
 
     fn value(&self) -> Msaa {
@@ -421,6 +508,16 @@ impl DropDownItem<Ssaa> for Ssaa {
         }
     }
 
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            Ssaa::Off => dropdown_keys::SSAA_OFF,
+            Ssaa::X2 => dropdown_keys::SSAA_X2,
+            Ssaa::X3 => dropdown_keys::SSAA_X3,
+            Ssaa::X4 => dropdown_keys::SSAA_X4,
+        };
+        Some(key)
+    }
+
     fn value(&self) -> Ssaa {
         *self
     }
@@ -471,6 +568,16 @@ impl DropDownItem<ScreenSpaceAntiAliasing> for ScreenSpaceAntiAliasing {
             ScreenSpaceAntiAliasing::Smaa => "SMAA",
             ScreenSpaceAntiAliasing::Dlss => "DLSS",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            ScreenSpaceAntiAliasing::Off => dropdown_keys::ANTI_ALIASING_OFF,
+            ScreenSpaceAntiAliasing::Fxaa => dropdown_keys::ANTI_ALIASING_FXAA,
+            ScreenSpaceAntiAliasing::Smaa => dropdown_keys::ANTI_ALIASING_SMAA,
+            ScreenSpaceAntiAliasing::Dlss => dropdown_keys::ANTI_ALIASING_DLSS,
+        };
+        Some(key)
     }
 
     fn value(&self) -> ScreenSpaceAntiAliasing {

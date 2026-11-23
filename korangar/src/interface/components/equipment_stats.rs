@@ -18,10 +18,11 @@ use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::OverflowBehavior;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{
     CharacterOverviewThemePathExt, ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt,
 };
-use crate::state::{ClientState, client_theme};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::{Player, ResourceMetadata, StatBonuses};
 
 /// Height of the panel. Matches the height of the paper doll so that both
@@ -86,8 +87,8 @@ fn format_bonuses(bonuses: &StatBonuses) -> String {
 }
 
 enum Row {
-    Header(&'static str),
-    Value { label: &'static str, value: String },
+    Header(String),
+    Value { label: String, value: String },
     Gap,
 }
 
@@ -148,17 +149,23 @@ where
 
         let player = state.follow(self.player_path);
 
-        self.rows.push(Row::Header("EQUIPMENT"));
+        self.rows.push(Row::Header(
+            state.get(&client_state().localization().ui().equipment_header()).clone(),
+        ));
         self.rows.push(Row::Value {
-            label: "Weapon attack",
+            label: state
+                .get(&client_state().localization().ui().equipment_weapon_attack_label())
+                .clone(),
             value: number_or_dash(weapon_attack),
         });
         self.rows.push(Row::Value {
-            label: "Armor defense",
+            label: state
+                .get(&client_state().localization().ui().equipment_armor_defense_label())
+                .clone(),
             value: number_or_dash(armor_defense),
         });
         self.rows.push(Row::Value {
-            label: "Refine",
+            label: state.get(&client_state().localization().ui().equipment_refine_label()).clone(),
             value: match refined_items {
                 0 => "—".to_string(),
                 1 => format!("+{refine_levels} (1 item)"),
@@ -166,51 +173,61 @@ where
             },
         });
         self.rows.push(Row::Value {
-            label: "Equipped weight",
+            label: state
+                .get(&client_state().localization().ui().equipment_equipped_weight_label())
+                .clone(),
             value: number_or_dash(equipped_weight),
         });
         self.rows.push(Row::Value {
-            label: "Item bonuses",
+            label: state
+                .get(&client_state().localization().ui().equipment_item_bonuses_label())
+                .clone(),
             value: format_bonuses(&bonuses),
         });
 
         self.rows.push(Row::Gap);
 
-        self.rows.push(Row::Header("CHARACTER"));
+        self.rows.push(Row::Header(
+            state.get(&client_state().localization().ui().character_header()).clone(),
+        ));
         self.rows.push(Row::Value {
-            label: "Attack",
+            label: state.get(&client_state().localization().ui().equipment_attack_label()).clone(),
             value: match player.attack {
                 0 => "—".to_string(),
                 attack => format!("{attack} + {}", player.bonus_attack),
             },
         });
         self.rows.push(Row::Value {
-            label: "Magic attack",
+            label: state
+                .get(&client_state().localization().ui().equipment_magic_attack_label())
+                .clone(),
             value: match player.magic_attack_min + player.magic_attack_max {
                 0 => "—".to_string(),
                 _ => format!("{} ~ {}", player.magic_attack_min, player.magic_attack_max),
             },
         });
         self.rows.push(Row::Value {
-            label: "Defense",
+            label: state.get(&client_state().localization().ui().equipment_defense_label()).clone(),
             value: match player.defense {
                 0 => "—".to_string(),
                 defense => format!("{defense} + {}", player.bonus_defense),
             },
         });
         self.rows.push(Row::Value {
-            label: "Magic defense",
+            label: state
+                .get(&client_state().localization().ui().equipment_magic_defense_label())
+                .clone(),
             value: match player.magic_defense {
                 0 => "—".to_string(),
                 magic_defense => format!("{magic_defense} + {}", player.bonus_magic_defense),
             },
         });
         self.rows.push(Row::Value {
-            label: "Hit",
+            label: state.get(&client_state().localization().ui().equipment_hit_label()).clone(),
             value: value_or_dash(player.hit as usize),
         });
         self.rows.push(Row::Value {
-            label: "Flee",
+            label: state.get(&client_state().localization().ui().equipment_flee_label()).clone(),
             value: match player.flee {
                 0 => "—".to_string(),
                 flee => match player.perfect_dodge {
@@ -220,11 +237,13 @@ where
             },
         });
         self.rows.push(Row::Value {
-            label: "Critical",
+            label: state.get(&client_state().localization().ui().equipment_critical_label()).clone(),
             value: value_or_dash(player.critical as usize),
         });
         self.rows.push(Row::Value {
-            label: "Attack speed",
+            label: state
+                .get(&client_state().localization().ui().equipment_attack_speed_label())
+                .clone(),
             value: match player.attack_speed {
                 // The server sends the attack motion in milliseconds. The
                 // client displays it as `200 - motion / 10`.
@@ -233,7 +252,7 @@ where
             },
         });
         self.rows.push(Row::Value {
-            label: "Weight",
+            label: state.get(&client_state().localization().ui().equipment_weight_label()).clone(),
             value: match player.maximum_weight {
                 0 => value_or_dash(player.weight as usize),
                 maximum_weight => format!("{} / {}", player.weight, maximum_weight),

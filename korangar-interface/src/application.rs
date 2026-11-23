@@ -176,6 +176,19 @@ pub trait Application: Sized + 'static {
 
     fn set_current_theme_type(theme: Self::ThemeType);
 
+    /// Resolve a stable localization key to the text that should be shown for
+    /// it in the current language.
+    ///
+    /// [`DropDownItem::text_key`](crate::components::drop_down::DropDownItem::text_key)
+    /// returns such a key for localizable drop down options. Returning `None`
+    /// (the default) means the application has no localization and the
+    /// untranslated
+    /// [`DropDownItem::text`](crate::components::drop_down::DropDownItem::text)
+    /// fallback is used.
+    fn localized_text<'a>(_state: &'a rust_state::State<Self>, _key: &'static str) -> Option<&'a str> {
+        None
+    }
+
     /// Set whether the window chrome (move grip and resize handles) is shown on
     /// all windows. Used to temporarily allow resizing windows that normally
     /// have a fixed size (e.g. while the interface settings are open).

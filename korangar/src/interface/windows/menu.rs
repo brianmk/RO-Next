@@ -5,6 +5,8 @@ use crate::interface::windows::WindowClass;
 #[cfg(feature = "debug")]
 use crate::state::client_theme;
 use crate::state::localization::LocalizationPathExt;
+#[cfg(feature = "debug")]
+use crate::state::localization::UiTextsPathExt;
 use crate::state::theme::InterfaceThemeType;
 #[cfg(feature = "debug")]
 use crate::state::theme::{DebugButtonThemePathExt, InterfaceThemePathExt};
@@ -45,72 +47,72 @@ impl CustomWindow<ClientState> for MenuWindow {
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Render options",
-                    tooltip: "Special render options (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_render_options(),
+                    tooltip: client_state().localization().ui().menu_render_options_tooltip(),
                     event: InputEvent::ToggleRenderOptionsWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Map inspector",
-                    tooltip: "Inspect the raw map data (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_map_inspector(),
+                    tooltip: client_state().localization().ui().menu_map_inspector_tooltip(),
                     event: InputEvent::OpenMapDataWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Client state inspector",
-                    tooltip: "Inspect and modify the internal client state (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_client_state_inspector(),
+                    tooltip: client_state().localization().ui().menu_client_state_inspector_tooltip(),
                     event: InputEvent::ToggleClientStateInspectorWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Maps",
-                    tooltip: "List of maps used for testing (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_maps(),
+                    tooltip: client_state().localization().ui().menu_maps_tooltip(),
                     event: InputEvent::ToggleMapsWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Commands",
-                    tooltip: "List of commands used for testing (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_commands(),
+                    tooltip: client_state().localization().ui().menu_commands_tooltip(),
                     event: InputEvent::ToggleCommandsWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Theme inspector",
-                    tooltip: "Inspect and edit the theme (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_theme_inspector(),
+                    tooltip: client_state().localization().ui().menu_theme_inspector_tooltip(),
                     event: InputEvent::ToggleThemeInspectorWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Profiler",
-                    tooltip: "Profile the client (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_profiler(),
+                    tooltip: client_state().localization().ui().menu_profiler_tooltip(),
                     event: InputEvent::ToggleProfilerWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Packet inspector",
-                    tooltip: "Inspect all incoming and outgoing packets (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_packet_inspector(),
+                    tooltip: client_state().localization().ui().menu_packet_inspector_tooltip(),
                     event: InputEvent::TogglePacketInspectorWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 #[cfg(feature = "debug")]
                 button! {
-                    text: "Cache statistics",
-                    tooltip: "Shows statistics of the caches used by the client (^000001only available in debug mode^000000)",
+                    text: client_state().localization().ui().menu_cache_statistics(),
+                    tooltip: client_state().localization().ui().menu_cache_statistics_tooltip(),
                     event: InputEvent::ToggleCacheStatisticsWindow,
                     foreground_color: client_theme().debug_button().foreground_color(),
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),

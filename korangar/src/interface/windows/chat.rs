@@ -37,7 +37,7 @@ where
     P: Path<ClientState, ColorTokens> + Copy,
 {
     match message_color {
-        MessageColor::Rgb { red, green, blue } => Color::rgb_u8(red, green, blue),
+        MessageColor::Rgb { red, green, blue } => Color::from_rgb_bytes([red, green, blue]),
         MessageColor::Broadcast => *state.get(&tokens.chat_broadcast()),
         MessageColor::Server => *state.get(&tokens.chat_server()),
         MessageColor::Information => *state.get(&tokens.chat_information()),
@@ -416,8 +416,12 @@ where
         // text box theme colors here would make the text unreadable with the classic
         // theme (which uses black text on light text boxes).
         let text_box_focused_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_focused_foreground_color);
-        let text_box_ghost_foreground_color =
-            korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| Color::rgba_u8(205, 205, 205, 230));
+        let text_box_ghost_foreground_color = {
+            let color_tokens = client_theme().tokens().color();
+            korangar_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+                *color_tokens.chat_ghost_text().follow_safe(state)
+            })
+        };
         // The chat input row (focused or not) is always drawn on a dark
         // background, also in the light classic theme, so the background is a
         // token and not one of the skinned text box colors.

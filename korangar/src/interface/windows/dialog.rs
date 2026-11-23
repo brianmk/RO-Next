@@ -9,7 +9,7 @@ use rust_state::{Path, RustState, State};
 
 use super::WindowClass;
 use crate::input::InputEvent;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
@@ -136,7 +136,7 @@ impl DialogWindowState {
 
         self.elements.push(DialogElement::new(
             text! {
-                text: "Choose a warp destination".to_owned(),
+                text: client_state().localization().ui().dialog_choose_warp_destination(),
             },
             DialogElementKind::Text,
         ));

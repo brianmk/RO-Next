@@ -42,8 +42,6 @@ const BAR_WIDTH: f32 = BAR_PADDING * 2.0 + MAX_PIPS as f32 * PIP_SIZE + (MAX_PIP
 const BAR_HEIGHT: f32 = BAR_PADDING * 2.0 + PIP_SIZE;
 /// Fill color of an active spirit sphere.
 const SPHERE_COLOR: Color = Color::rgb(0.36, 0.72, 1.0);
-/// Color of an empty sphere slot.
-const EMPTY_SPHERE_COLOR: Color = Color::rgba_u8(24, 34, 46, 190);
 
 /// Tooltip id of the sphere counter.
 struct SpiritSphereTooltip;
@@ -138,7 +136,7 @@ impl Element<ClientState> for SpiritSphereElement {
 
             let color = match index < filled {
                 true => SPHERE_COLOR,
-                false => EMPTY_SPHERE_COLOR,
+                false => *state.get(&client_theme().tokens().color().spirit_sphere_empty()),
             };
 
             layout.add_rectangle(

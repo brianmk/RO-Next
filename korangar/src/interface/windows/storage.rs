@@ -22,7 +22,7 @@ use crate::interface::resource::ItemSource;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::state::inventory::InventoryPathExt;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::world::ResourceMetadata;
@@ -75,7 +75,7 @@ impl CustomWindow<ClientState> for StorageWindow {
                         },
                         button! {
                             text: client_state().localization().close_button_text(),
-                            tooltip: "Close the storage window",
+                            tooltip: client_state().localization().ui().storage_close_tooltip(),
                             event: |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                                 queue.queue(InputEvent::CloseStorage);
                             },

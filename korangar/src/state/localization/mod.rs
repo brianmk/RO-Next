@@ -10,11 +10,15 @@ use ron::ser::PrettyConfig;
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "debug")]
-use super::ClientState;
+mod texts;
+
+use rust_state::Path;
+pub use texts::{DropdownTexts, PaperDollTexts, UiTexts, UiTextsPathExt, dropdown_keys, template_text};
+
 #[cfg(feature = "debug")]
 use crate::input::InputEvent;
 use crate::loaders::GameFileLoader;
+use crate::state::ClientState;
 
 /// Supported languages.
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize, RustState, StateElement)]
@@ -304,6 +308,37 @@ pub struct Localization {
     account_email_text: String,
     #[serde(default = "default_not_in_party_text")]
     not_in_party_text: String,
+    /// Static texts of the windows, buttons and tooltips.
+    ///
+    /// Grouped into a nested struct so the language files can add a whole
+    /// group with one serde default and the element tuple of this struct stays
+    /// within the interface limit.
+    #[serde(default = "default_ui_texts")]
+    ui: UiTexts,
+    /// Names and short labels of the paper doll equipment slots.
+    #[serde(default = "default_paper_doll_texts")]
+    paper_doll: PaperDollTexts,
+    /// Labels of the settings drop down options.
+    #[serde(default = "default_dropdown_texts")]
+    dropdown: DropdownTexts,
+}
+
+/// Default for language files that were written before the `ui` text group
+/// existed.
+fn default_ui_texts() -> UiTexts {
+    UiTexts::default()
+}
+
+/// Default for language files that were written before the paper doll text
+/// group existed.
+fn default_paper_doll_texts() -> PaperDollTexts {
+    PaperDollTexts::default()
+}
+
+/// Default for language files that were written before the drop down text
+/// group existed.
+fn default_dropdown_texts() -> DropdownTexts {
+    DropdownTexts::default()
 }
 
 /// Default for language files that were written before the
@@ -528,7 +563,55 @@ fn default_sound_effect_volume_text() -> String {
     "Sound effects".to_owned()
 }
 
+/// Path to the whole [`Localization`] of the client state.
+///
+/// This is a `'static` path value on purpose: [`rust_state::State::get`] ties
+/// the lifetime of the returned reference to the lifetime of the path value,
+/// so borrowing localized strings out of the state needs a path that outlives
+/// the borrow.
+#[derive(Clone, Copy)]
+pub struct LocalizationPath;
+
+impl rust_state::Selector<ClientState, Localization> for LocalizationPath {
+    fn select<'a>(&'a self, state: &'a ClientState) -> Option<&'a Localization> {
+        self.follow(state)
+    }
+}
+
+impl Path<ClientState, Localization> for LocalizationPath {
+    fn follow<'a>(&self, state: &'a ClientState) -> Option<&'a Localization> {
+        Some(&state.localization)
+    }
+
+    fn follow_mut<'a>(&self, state: &'a mut ClientState) -> Option<&'a mut Localization> {
+        Some(&mut state.localization)
+    }
+}
+
+/// Static instance of [`LocalizationPath`].
+pub const LOCALIZATION_PATH: LocalizationPath = LocalizationPath;
+
 impl Localization {
+    /// Resolve the localized text of a drop down option key.
+    ///
+    /// Used by [`korangar_interface::application::Application::localized_text`]
+    /// when the interface renders a drop down whose items carry a
+    /// [`dropdown_keys`] value.
+    pub fn dropdown_text(&self, key: &str) -> Option<&str> {
+        self.dropdown.text(key)
+    }
+
+    /// The static window/button/tooltip texts.
+    #[cfg(test)]
+    pub fn ui_texts(&self) -> &UiTexts {
+        &self.ui
+    }
+
+    /// The paper doll equipment slot texts.
+    pub fn paper_doll_texts(&self) -> &PaperDollTexts {
+        &self.paper_doll
+    }
+
     /// Save the localization to a file based on the provided language.
     // TODO: Currently this will just save to the file system but we might want to
     // save using the `GameFileLoader` instead.
@@ -646,6 +729,61 @@ mod languages {
             "default buy window title is missing"
         );
         assert!(serialized.contains("zeny_text:\"Zeny\""), "default zeny text is missing");
+    }
+
+    /// Remove one nested text group from a language file, for the back-compat
+    /// test of files that were written before the group existed.
+    fn without_group(file_content: &str, group: &str) -> String {
+        let start_marker = format!("{group}: (");
+        let mut lines = file_content.lines();
+        let mut kept = Vec::new();
+        let mut skipping = false;
+        for line in lines.by_ref() {
+            if skipping {
+                if line.trim() == ")," {
+                    skipping = false;
+                }
+                continue;
+            }
+            if line.trim_start().starts_with(&start_marker) {
+                // A group starts with `<group>: (` and ends with `),`.
+                skipping = true;
+                continue;
+            }
+            kept.push(line);
+        }
+        assert!(!skipping, "group {group} is not closed");
+        kept.join("\n")
+    }
+
+    /// Language files written before the grouped UI texts existed must load and
+    /// get the English defaults for the whole group.
+    #[test]
+    fn language_files_without_new_text_groups_still_load() {
+        let english = language_file(Language::English);
+        let old_file = without_group(&without_group(&without_group(&english, "ui"), "paper_doll"), "dropdown");
+        assert!(!old_file.contains("context_menu_whisper:"), "the ui group was not removed");
+        assert!(!old_file.contains("head_top_name:"), "the paper doll group was not removed");
+        assert!(!old_file.contains("resolution_desktop:"), "the dropdown group was not removed");
+
+        let localization: Localization = ron::de::from_str(&old_file).expect("old language file without the text groups must loads");
+        assert_eq!(
+            localization.ui_texts().context_menu_whisper,
+            "Whisper",
+            "the ui text group falls back to the English defaults"
+        );
+        assert_eq!(
+            localization
+                .paper_doll_texts()
+                .slot_label(ragnarok_packets::EquipPosition::HEAD_TOP),
+            "TOP",
+            "the paper doll group falls back to the English defaults"
+        );
+        assert_eq!(
+            localization.dropdown_text("resolution_desktop"),
+            Some("Desktop (maximized)"),
+            "the drop down group falls back to the English defaults"
+        );
     }
 
     #[test]

@@ -16,15 +16,17 @@ use korangar_interface::layout::tooltip::TooltipExt;
 use korangar_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
 use korangar_networking::InventoryItem;
+use rust_state::PathExt;
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding, Texture};
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{
     ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, ItemCardThemePathExt, TypographyTokensPathExt,
 };
-use crate::state::{ClientState, client_theme};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 use crate::world::{CARD_SLOT_COUNT, CardNames, CardSlotState, ItemStats, ResourceMetadata, StatBonuses, random_option_lines};
 
 /// Width of the item info window.
@@ -48,14 +50,6 @@ const CARD_SLOT_GAP: f32 = 4.0;
 const CARD_ICON_SIZE: f32 = 32.0;
 /// Height reserved for the card name below the icon.
 const CARD_NAME_HEIGHT: f32 = 16.0;
-
-const SLOT_BACKGROUND_COLOR: Color = Color::rgba_u8(28, 28, 34, 140);
-const SLOT_BORDER_COLOR: Color = Color::rgba_u8(120, 120, 130, 120);
-const SLOT_INNER_COLOR: Color = Color::rgba_u8(0, 0, 0, 70);
-const SLOT_UNAVAILABLE_BACKGROUND_COLOR: Color = Color::rgba_u8(86, 86, 92, 70);
-const SLOT_UNAVAILABLE_BORDER_COLOR: Color = Color::rgba_u8(120, 120, 126, 60);
-const SLOT_UNAVAILABLE_TEXT_COLOR: Color = Color::rgba_u8(160, 160, 166, 90);
-const CARD_NAME_COLOR: Color = Color::rgba_u8(235, 235, 240, 220);
 
 /// Format the flat item bonuses in a compact way.
 fn format_bonuses(bonuses: &StatBonuses) -> String {
@@ -86,6 +80,17 @@ fn format_bonuses(bonuses: &StatBonuses) -> String {
         true => "—".to_owned(),
         false => parts.join(" "),
     }
+}
+
+/// Selector for the localized "Yes"/"No" text of the identified state.
+fn identified_text(identified: bool) -> impl rust_state::Selector<ClientState, String> {
+    korangar_interface::selector_helpers::ComputedSelector::new_default(move |state: &ClientState| {
+        let text = client_state().localization().ui();
+        match identified {
+            true => text.yes_text().follow_safe(state).clone(),
+            false => text.no_text().follow_safe(state).clone(),
+        }
+    })
 }
 
 /// The large item artwork (collection image) or a placeholder frame.
@@ -191,7 +196,7 @@ impl Element<ClientState> for ItemCardSlots {
 
     fn create_layout_info(
         &mut self,
-        _state: &rust_state::State<ClientState>,
+        state: &rust_state::State<ClientState>,
         _store: ElementStoreMut,
         resolvers: &mut dyn Resolvers<ClientState>,
     ) -> Self::LayoutInfo {
@@ -199,9 +204,17 @@ impl Element<ClientState> for ItemCardSlots {
         // because `lay_out` only gets a shared reference to the element.
         for slot in 0..CARD_SLOT_COUNT {
             self.tooltips[slot] = match self.slot_state(slot) {
-                CardSlotState::Filled => Some(self.card_names[slot].clone().unwrap_or_else(|| "Unknown card".to_owned())),
-                CardSlotState::Empty => Some("Empty card slot".to_owned()),
-                CardSlotState::Unavailable => Some("Unavailable card slot".to_owned()),
+                CardSlotState::Filled => Some(
+                    self.card_names[slot]
+                        .clone()
+                        .unwrap_or_else(|| state.get(&client_state().localization().ui().item_unknown_card_text()).clone()),
+                ),
+                CardSlotState::Empty => Some(state.get(&client_state().localization().ui().item_empty_card_slot_text()).clone()),
+                CardSlotState::Unavailable => Some(
+                    state
+                        .get(&client_state().localization().ui().item_unavailable_card_slot_text())
+                        .clone(),
+                ),
             };
         }
 
@@ -226,18 +239,27 @@ impl Element<ClientState> for ItemCardSlots {
         slots: &'a Self::LayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
-        let typography = client_theme().tokens().typography();
+        let tokens = client_theme().tokens();
+        let typography = tokens.typography();
+        let color_tokens = tokens.color();
         let unknown_card_font_size = *state.get(&typography.font_body_lg());
         let card_name_font_size = *state.get(&typography.font_xs());
         let unavailable_font_size = *state.get(&typography.font_body());
+        let slot_background_color = *state.get(&color_tokens.item_slot_background());
+        let slot_border_color = *state.get(&color_tokens.item_slot_border());
+        let slot_inner_color = *state.get(&color_tokens.item_slot_inner());
+        let slot_unavailable_background_color = *state.get(&color_tokens.item_slot_unavailable_background());
+        let slot_unavailable_border_color = *state.get(&color_tokens.item_slot_unavailable_border());
+        let slot_unavailable_text_color = *state.get(&color_tokens.item_slot_unavailable_text());
+        let card_name_color = *state.get(&color_tokens.item_slot_card_name());
 
         for (slot, area) in slots.iter().enumerate() {
             let slot_state = self.slot_state(slot);
 
             let (background_color, border_color) = match slot_state {
-                CardSlotState::Filled => (SLOT_BACKGROUND_COLOR, SLOT_BORDER_COLOR),
-                CardSlotState::Empty => (SLOT_BACKGROUND_COLOR, SLOT_BORDER_COLOR),
-                CardSlotState::Unavailable => (SLOT_UNAVAILABLE_BACKGROUND_COLOR, SLOT_UNAVAILABLE_BORDER_COLOR),
+                CardSlotState::Filled => (slot_background_color, slot_border_color),
+                CardSlotState::Empty => (slot_background_color, slot_border_color),
+                CardSlotState::Unavailable => (slot_unavailable_background_color, slot_unavailable_border_color),
             };
 
             layout.add_rectangle(
@@ -265,7 +287,10 @@ impl Element<ClientState> for ItemCardSlots {
 
             match slot_state {
                 CardSlotState::Filled => {
-                    let card_name = self.card_names[slot].as_deref().unwrap_or("Unknown card");
+                    // The tooltip was pre-composed in `create_layout_info`; it also
+                    // carries the localized "Unknown card" fallback for slots whose
+                    // card id is not in the item description table.
+                    let card_name = self.tooltips[slot].as_deref().unwrap_or_default();
 
                     match self.card_icons.get(slot).and_then(Option::as_ref) {
                         Some(texture) => layout.add_texture(icon_area, texture.clone(), Color::WHITE, false),
@@ -275,7 +300,7 @@ impl Element<ClientState> for ItemCardSlots {
                             layout.add_rectangle(
                                 icon_area,
                                 CornerDiameter::uniform(4.0),
-                                SLOT_INNER_COLOR,
+                                slot_inner_color,
                                 border_color,
                                 ShadowPadding::uniform(1.0),
                             );
@@ -283,8 +308,8 @@ impl Element<ClientState> for ItemCardSlots {
                                 icon_area,
                                 "?",
                                 unknown_card_font_size,
-                                CARD_NAME_COLOR,
-                                CARD_NAME_COLOR,
+                                card_name_color,
+                                card_name_color,
                                 korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                                 korangar_interface::layout::alignment::VerticalAlignment::Center { offset: 0.0 },
                                 OverflowBehavior::Shrink,
@@ -296,8 +321,8 @@ impl Element<ClientState> for ItemCardSlots {
                         name_area,
                         card_name,
                         card_name_font_size,
-                        CARD_NAME_COLOR,
-                        CARD_NAME_COLOR,
+                        card_name_color,
+                        card_name_color,
                         korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                         korangar_interface::layout::alignment::VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -308,7 +333,7 @@ impl Element<ClientState> for ItemCardSlots {
                     layout.add_rectangle(
                         icon_area,
                         CornerDiameter::uniform(4.0),
-                        SLOT_INNER_COLOR,
+                        slot_inner_color,
                         border_color,
                         ShadowPadding::uniform(1.0),
                     );
@@ -318,8 +343,8 @@ impl Element<ClientState> for ItemCardSlots {
                     layout.add_rectangle(
                         icon_area,
                         CornerDiameter::uniform(4.0),
-                        SLOT_INNER_COLOR,
-                        SLOT_UNAVAILABLE_BORDER_COLOR,
+                        slot_inner_color,
+                        slot_unavailable_border_color,
                         ShadowPadding::uniform(1.0),
                     );
 
@@ -327,8 +352,8 @@ impl Element<ClientState> for ItemCardSlots {
                         icon_area,
                         "—",
                         unavailable_font_size,
-                        SLOT_UNAVAILABLE_TEXT_COLOR,
-                        SLOT_UNAVAILABLE_TEXT_COLOR,
+                        slot_unavailable_text_color,
+                        slot_unavailable_text_color,
                         korangar_interface::layout::alignment::HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                         korangar_interface::layout::alignment::VerticalAlignment::Center { offset: 0.0 },
                         OverflowBehavior::Shrink,
@@ -414,10 +439,7 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
         }
 
         let category = self.category.clone();
-        let identified = match self.identified {
-            true => "Yes".to_owned(),
-            false => "No".to_owned(),
-        };
+        let identified = identified_text(self.identified);
         let weight = self.stats.weight.to_string();
         let attack = self.stats.attack.to_string();
         let defense = self.stats.defense.to_string();
@@ -445,30 +467,30 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                         artwork,
                         fragment! {
                             children: (
-                                row("Category".to_owned(), category),
-                                row("Identified".to_owned(), identified),
-                                row("Weight".to_owned(), weight),
-                                row("Attack".to_owned(), attack),
-                                row("Defense".to_owned(), defense),
-                                row("Required level".to_owned(), required_level),
-                                row("Bonuses".to_owned(), bonuses),
+                                row(client_state().localization().ui().item_category_label(), category),
+                                row(client_state().localization().ui().item_identified_label(), identified),
+                                row(client_state().localization().ui().item_weight_label(), weight),
+                                row(client_state().localization().ui().item_attack_label(), attack),
+                                row(client_state().localization().ui().item_defense_label(), defense),
+                                row(client_state().localization().ui().item_required_level_label(), required_level),
+                                row(client_state().localization().ui().item_bonuses_label(), bonuses),
                             ),
                         },
                     ),
                 },
                 text! {
-                    text: "Card slots",
+                    text: client_state().localization().ui().item_card_slots_label(),
                     height: 18.0,
                     color: client_theme().tokens().color().text_accent(),
                     overflow_behavior: OverflowBehavior::Shrink,
                 },
                 card_slots,
                 either! {
-                    selector: ComputedSelector::new_default(move |_: &ClientState| has_random_options),
+                    selector: ComputedSelector::<_, bool>::new_default(move |_: &ClientState| has_random_options),
                     on_true: fragment! {
                         children: (
                             text! {
-                                text: "Random options",
+                                text: client_state().localization().ui().item_random_options_label(),
                                 height: 18.0,
                                 color: client_theme().tokens().color().text_accent(),
                                 overflow_behavior: OverflowBehavior::Shrink,
@@ -482,7 +504,7 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
                     on_false: EmptyElement,
                 },
                 text! {
-                    text: "Description",
+                    text: client_state().localization().ui().item_description_label(),
                     height: 18.0,
                     color: client_theme().tokens().color().text_accent(),
                     overflow_behavior: OverflowBehavior::Shrink,

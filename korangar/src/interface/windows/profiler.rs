@@ -14,8 +14,8 @@ use rust_state::{Path, RustState, State};
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
-use crate::state::ClientState;
-use crate::state::theme::InterfaceThemeType;
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::{ClientState, client_theme};
 
 // TODO: Move
 pub mod color_lookup {
@@ -156,6 +156,7 @@ where
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
         let visible_thread = *state.get(&self.window_state_path.visible_thread());
+        let color_tokens = client_theme().tokens().color();
 
         let (entries, longest_frame) = korangar_debug::profiling::get_frame_data(visible_thread);
 
@@ -170,8 +171,8 @@ where
         layout.add_rectangle(
             layout_info.area,
             CornerDiameter::uniform(2.0),
-            Color::monochrome_u8(40),
-            Color::rgba_u8(0, 0, 0, 100),
+            *state.get(&color_tokens.surface_raised()),
+            *state.get(&color_tokens.border()),
             ShadowPadding::diagonal(2.0, 5.0),
         );
 
@@ -196,7 +197,7 @@ where
             layout.add_rectangle(
                 bar_area,
                 CornerDiameter::default(),
-                Color::monochrome_u8(80),
+                *state.get(&color_tokens.state_active()),
                 Color::TRANSPARENT,
                 ShadowPadding::uniform(0.0),
             );
@@ -226,7 +227,7 @@ where
                 layout.add_rectangle(
                     bar_area,
                     CornerDiameter::default(),
-                    Color::rgba_u8(255, 80, 0, 150),
+                    *state.get(&color_tokens.profiler_bar_hot()),
                     Color::TRANSPARENT,
                     ShadowPadding::uniform(0.0),
                 );

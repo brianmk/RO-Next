@@ -677,6 +677,11 @@ impl Application for ClientState {
     fn is_background_window_class(window_class: Option<WindowClass>) -> bool {
         window_class.is_some_and(WindowClass::is_background_overlay)
     }
+
+    fn localized_text<'a>(state: &'a rust_state::State<ClientState>, key: &'static str) -> Option<&'a str> {
+        let localization: &crate::state::localization::Localization = state.get(&crate::state::localization::LOCALIZATION_PATH);
+        localization.dropdown_text(key)
+    }
 }
 
 static WINDOW_CHROME_VISIBLE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);

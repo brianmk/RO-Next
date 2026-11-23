@@ -3,13 +3,13 @@
 
 use korangar_interface::window::{CustomWindow, Window};
 use ragnarok_packets::{InventoryIndex, ItemId};
-use rust_state::State;
+use rust_state::{PathExt, State};
 
 use crate::input::InputEvent;
 use crate::interface::resource::ItemSource;
 use crate::interface::windows::WindowClass;
 use crate::state::inventory::ItemUseAction;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, UiTextsPathExt, template_text};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
@@ -37,6 +37,20 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
         let target_name = self.target_name;
         let whisper_name = target_name.clone();
         let add_friend_name = target_name.clone();
+        let whisper_tooltip = template_text(
+            |state| client_state().localization().ui().context_menu_whisper_tooltip().follow_safe(state),
+            target_name.clone(),
+        );
+        let add_friend_tooltip = template_text(
+            |state| {
+                client_state()
+                    .localization()
+                    .ui()
+                    .context_menu_add_friend_tooltip()
+                    .follow_safe(state)
+            },
+            target_name.clone(),
+        );
 
         window! {
             title: target_name.clone(),
@@ -47,16 +61,16 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
             maximum_width: CONTEXT_MENU_WIDTH,
             elements: (
                 button! {
-                    text: "Whisper",
-                    tooltip: format!("Open the chat with a whisper to ^000001{target_name}^000000"),
+                    text: client_state().localization().ui().context_menu_whisper(),
+                    tooltip: whisper_tooltip,
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                         queue.queue(InputEvent::WhisperChat { name: whisper_name.clone() });
                         queue.queue(InputEvent::CloseContextMenu);
                     },
                 },
                 button! {
-                    text: "Add Friend",
-                    tooltip: format!("Send a friend request to ^000001{target_name}^000000"),
+                    text: client_state().localization().ui().context_menu_add_friend(),
+                    tooltip: add_friend_tooltip,
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                         queue.queue(InputEvent::AddFriend {
                             character_name: add_friend_name.clone(),
@@ -65,26 +79,62 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                     },
                 },
                 button! {
-                    text: "Invite to Party",
+                    text: client_state().localization().ui().context_menu_invite_to_party(),
                     disabled: true,
-                    disabled_tooltip: "Not implemented yet: the client cannot send party invitations",
+                    disabled_tooltip: client_state().localization().ui().party_invite_not_implemented_tooltip(),
                     event: InputEvent::CloseContextMenu,
                 },
                 button! {
-                    text: "Trade",
+                    text: client_state().localization().ui().context_menu_trade(),
                     disabled: true,
-                    disabled_tooltip: "Not implemented yet: the client cannot start trades",
+                    disabled_tooltip: client_state().localization().ui().trade_not_implemented_tooltip(),
                     event: InputEvent::CloseContextMenu,
                 },
                 button! {
-                    text: "View Info",
+                    text: client_state().localization().ui().context_menu_view_character_info(),
                     disabled: true,
-                    disabled_tooltip: "Not implemented yet: there is no character info window",
+                    disabled_tooltip: client_state().localization().ui().character_info_not_implemented_tooltip(),
                     event: InputEvent::CloseContextMenu,
                 },
             ),
         }
     }
+}
+
+/// Selector for the use/equip label of the item context menu.
+fn use_equip_label(action: Option<ItemUseAction>) -> impl rust_state::Selector<ClientState, String> {
+    korangar_interface::selector_helpers::ComputedSelector::new_default(move |state: &ClientState| {
+        let text = client_state().localization().ui();
+        match action {
+            Some(ItemUseAction::Use) => text.context_menu_use().follow_safe(state).clone(),
+            Some(ItemUseAction::Equip(_)) => text.context_menu_equip().follow_safe(state).clone(),
+            None => text.context_menu_use_or_equip().follow_safe(state).clone(),
+        }
+    })
+}
+
+/// Selector for the "store one" label of the storage context menu.
+fn storage_single_label(action: Option<ItemStorageAction>) -> impl rust_state::Selector<ClientState, String> {
+    korangar_interface::selector_helpers::ComputedSelector::new_default(move |state: &ClientState| {
+        let text = client_state().localization().ui();
+        match action {
+            Some(ItemStorageAction::Deposit { .. }) => text.context_menu_store_one().follow_safe(state).clone(),
+            Some(ItemStorageAction::Withdraw { .. }) => text.context_menu_take_out_one().follow_safe(state).clone(),
+            None => text.context_menu_store_one().follow_safe(state).clone(),
+        }
+    })
+}
+
+/// Selector for the "store all" label of the storage context menu.
+fn storage_all_label(action: Option<ItemStorageAction>) -> impl rust_state::Selector<ClientState, String> {
+    korangar_interface::selector_helpers::ComputedSelector::new_default(move |state: &ClientState| {
+        let text = client_state().localization().ui();
+        match action {
+            Some(ItemStorageAction::Deposit { .. }) => text.context_menu_store_all().follow_safe(state).clone(),
+            Some(ItemStorageAction::Withdraw { .. }) => text.context_menu_take_out_all().follow_safe(state).clone(),
+            None => text.context_menu_store_all().follow_safe(state).clone(),
+        }
+    })
 }
 
 /// What can be done with an item while a Kafra storage window is open.
@@ -163,11 +213,7 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use korangar_interface::prelude::*;
 
-        let use_equip_label = match self.action {
-            Some(ItemUseAction::Use) => "Use",
-            Some(ItemUseAction::Equip(_)) => "Equip",
-            None => "Use / Equip",
-        };
+        let use_equip_label = use_equip_label(self.action);
 
         let use_equip_event = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
             match self.action {
@@ -193,17 +239,8 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
         let storage_action_single = storage_action;
         let storage_action_all = storage_action;
 
-        let storage_single_label = match storage_action {
-            Some(ItemStorageAction::Deposit { .. }) => "Store 1",
-            Some(ItemStorageAction::Withdraw { .. }) => "Take out 1",
-            None => "Store 1",
-        };
-
-        let storage_all_label = match storage_action {
-            Some(ItemStorageAction::Deposit { .. }) => "Store all",
-            Some(ItemStorageAction::Withdraw { .. }) => "Take out all",
-            None => "Store all",
-        };
+        let storage_single_label = storage_single_label(storage_action);
+        let storage_all_label = storage_all_label(storage_action);
 
         let storage_single_event = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
             if let Some(storage_action) = storage_action_single {
@@ -239,12 +276,12 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                 button! {
                     text: use_equip_label,
                     disabled: self.action.is_none(),
-                    disabled_tooltip: "This item cannot be used or equipped",
+                    disabled_tooltip: client_state().localization().ui().item_not_usable_tooltip(),
                     event: use_equip_event,
                 },
                 button! {
-                    text: "View Info",
-                    tooltip: "Show the item description and stats",
+                    text: client_state().localization().ui().context_menu_item_view_info(),
+                    tooltip: client_state().localization().ui().context_menu_item_view_info_tooltip(),
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                         queue.queue(InputEvent::OpenItemInfo {
                             inventory_index: info_index,
@@ -256,19 +293,19 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                 button! {
                     text: storage_single_label,
                     disabled: self.storage_action.is_none(),
-                    disabled_tooltip: "Talk to a Kafra to use the storage",
+                    disabled_tooltip: client_state().localization().ui().storage_kafra_tooltip(),
                     event: storage_single_event,
                 },
                 button! {
                     text: storage_all_label,
                     disabled: self.storage_action.is_none(),
-                    disabled_tooltip: "Talk to a Kafra to use the storage",
+                    disabled_tooltip: client_state().localization().ui().storage_kafra_tooltip(),
                     event: storage_all_event,
                 },
                 button! {
-                    text: "Drop",
+                    text: client_state().localization().ui().context_menu_drop(),
                     disabled: true,
-                    disabled_tooltip: "Not implemented yet: the client cannot drop items on the ground",
+                    disabled_tooltip: client_state().localization().ui().drop_not_implemented_tooltip(),
                     event: InputEvent::CloseContextMenu,
                 },
             ),

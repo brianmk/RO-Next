@@ -9,10 +9,11 @@ use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
-use crate::loaders::{FontSize, OverflowBehavior};
+use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
 use crate::state::minimap::MinimapPathExt;
-use crate::state::{ClientState, ClientStatePathExt, client_state};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, TypographyTokensPathExt};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 /// Size of the square map view in interface (unscaled) pixels.
 pub const MINIMAP_VIEW_SIZE: f32 = 192.0;
@@ -24,10 +25,6 @@ const FALLBACK_MARKER_SIZE: f32 = 7.0;
 const MARKER_SIZE_DIVISOR: f32 = 13.0;
 /// Size of a server-placed minimap marker in interface pixels.
 const MARKER_SIZE: f32 = 5.0;
-
-const BACKGROUND_COLOR: Color = Color::rgb_u8(22, 24, 28);
-const FALLBACK_MARKER_COLOR: Color = Color::rgb_u8(80, 255, 110);
-const FALLBACK_MARKER_OUTLINE_COLOR: Color = Color::rgba_u8(0, 0, 0, 200);
 
 pub struct MinimapView<Text, Transparent> {
     loading_text: Text,
@@ -66,6 +63,15 @@ where
         let area = *layout_info;
         let transparent_frame = *state.get(&self.transparent_frame);
 
+        let tokens = client_theme().tokens();
+        let color_tokens = tokens.color();
+        let typography = tokens.typography();
+        let background_color = *state.get(&color_tokens.minimap_background());
+        let fallback_marker_color = *state.get(&color_tokens.minimap_marker_fallback());
+        let marker_outline_color = *state.get(&color_tokens.minimap_marker_outline());
+        let overlay_secondary_text = *state.get(&color_tokens.overlay_secondary_text());
+        let loading_font_size = *state.get(&typography.font_button());
+
         // In transparent mode the map fills the whole element and no dark frame
         // is drawn, so only the generated map image is visible.
         let inner = if transparent_frame {
@@ -74,7 +80,7 @@ where
             layout.add_rectangle(
                 area,
                 CornerDiameter::uniform(4.0),
-                BACKGROUND_COLOR,
+                background_color,
                 Color::TRANSPARENT,
                 ShadowPadding::uniform(0.0),
             );
@@ -95,9 +101,9 @@ where
             layout.add_text(
                 inner,
                 text,
-                FontSize(13.0),
-                Color::monochrome_u8(200),
-                Color::monochrome_u8(200),
+                loading_font_size,
+                overlay_secondary_text,
+                overlay_secondary_text,
                 HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
                 VerticalAlignment::Center { offset: 0.0 },
                 OverflowBehavior::Shrink,
@@ -135,7 +141,7 @@ where
                     for marker in markers {
                         let center_x = map_area.left + draw_width * ((marker.position.x as f32 + 0.5) / cells_width);
                         let center_y = map_area.top + draw_height * (1.0 - (marker.position.y as f32 + 0.5) / cells_height);
-                        let color = Color::rgba_u8(marker.color[0], marker.color[1], marker.color[2], marker.color[3]);
+                        let color = Color::from_rgba_bytes(marker.color);
 
                         layout.add_rectangle(
                             Area {
@@ -146,7 +152,7 @@ where
                             },
                             CornerDiameter::uniform(1.0),
                             color,
-                            FALLBACK_MARKER_OUTLINE_COLOR,
+                            marker_outline_color,
                             ShadowPadding::uniform(0.5),
                         );
                     }
@@ -198,8 +204,8 @@ where
                 layout.add_rectangle(
                     marker_area,
                     CornerDiameter::uniform(1.5),
-                    FALLBACK_MARKER_COLOR,
-                    FALLBACK_MARKER_OUTLINE_COLOR,
+                    fallback_marker_color,
+                    marker_outline_color,
                     ShadowPadding::uniform(1.0),
                 );
             }

@@ -18,6 +18,15 @@ use crate::theme::{ThemePathGetter, theme};
 pub trait DropDownItem<T> {
     fn text(&self) -> &str;
 
+    /// Stable localization key of the label, resolved through
+    /// [`Application::localized_text`] when the option is rendered.
+    ///
+    /// The default (`None`) means the label is not localizable and
+    /// [`text`](DropDownItem::text) is shown as-is.
+    fn text_key(&self) -> Option<&'static str> {
+        None
+    }
+
     fn value(&self) -> T;
 
     /// If the item is currently not selectable, returns the reason which is
@@ -41,6 +50,20 @@ impl DropDownItem<String> for String {
 // TODO: Having this here is not very clean. We should instead have
 // show_point_shadow_map wrapped in a new type and implement for that. Ideally,
 // that would be an enum only covering the possible cases.
+/// Text of a drop down option: the localized label when the item has a stable
+/// key and the application can resolve it, otherwise the untranslated
+/// [`DropDownItem::text`] fallback.
+fn option_text<'a, App, Value, Item>(state: &'a State<App>, option: &'a Item) -> &'a str
+where
+    App: Application,
+    Item: DropDownItem<Value>,
+{
+    option
+        .text_key()
+        .and_then(|key| App::localized_text(state, key))
+        .unwrap_or_else(|| option.text())
+}
+
 impl DropDownItem<Option<NonZeroU32>> for Option<NonZeroU32> {
     fn text(&self) -> &str {
         match self {
@@ -112,7 +135,7 @@ where
             let height = *state.get(&self.height);
             let option = &state.get(&self.options)[self.option_index];
 
-            let text = option.text();
+            let text = option_text(state, option);
             let font_size = *state.get(&self.font_size);
             let foreground_color = *state.get(&self.foreground_color);
             let highlight_color = *state.get(&self.highlight_color);
@@ -191,9 +214,11 @@ where
             (false, None) => *state.get(&self.foreground_color),
         };
 
+        let text = option_text(state, option);
+
         layout.add_text(
             layout_info.area,
-            option.text(),
+            text,
             layout_info.font_size,
             foreground_color,
             *state.get(&self.highlight_color),
@@ -537,7 +562,7 @@ where
             if let Some(index) = state.get(&self.options).iter().position(|value| value.value() == *selected)
                 && let Some(selected_option) = state.get(&self.options).get(index)
             {
-                let text = selected_option.text();
+                let text = option_text(state, selected_option);
                 let horizontal_alignment = *state.get(&self.horizontal_alignment);
                 let overflow_behavior = *state.get(&self.overflow_behavior);
 
@@ -636,9 +661,11 @@ where
             return;
         };
 
+        let text = option_text(state, selected_option);
+
         layout.add_text(
             layout_info.area,
-            selected_option.text(),
+            text,
             layout_info.font_size,
             foreground_color,
             *state.get(&self.highlight_color),

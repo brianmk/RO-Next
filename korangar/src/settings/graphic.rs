@@ -10,6 +10,7 @@ use crate::graphics::{
     DEFAULT_BACKGROUND_MAX_FPS, DEFAULT_MAX_FPS, FRAMERATE_PRESETS, FramesPerSecond, Msaa, PresentModeInfo, ScreenSpaceAntiAliasing,
     ShadowDetail, ShadowMethod, ShadowResolution, Ssaa, TextureSamplerType, WindowResolution,
 };
+use crate::state::localization::dropdown_keys;
 
 /// Environment variable that overrides [`GraphicsSettings::max_fps`].
 pub const MAX_FPS_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MAX_FPS";
@@ -290,6 +291,14 @@ impl DropDownItem<LightingMode> for LightingMode {
             LightingMode::Classic => "Classic",
             LightingMode::Enhanced => "Enhanced",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self {
+            LightingMode::Classic => dropdown_keys::LIGHTING_CLASSIC,
+            LightingMode::Enhanced => dropdown_keys::LIGHTING_ENHANCED,
+        };
+        Some(key)
     }
 
     fn value(&self) -> LightingMode {

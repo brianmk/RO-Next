@@ -59,6 +59,19 @@ impl Color {
         Self { red, green, blue, alpha }
     }
 
+    /// Build a color from a data driven RGBA byte array.
+    ///
+    /// Used for colors that come from game data or the network (map markers,
+    /// server supplied chat colors) and therefore cannot be a design token.
+    pub const fn from_rgba_bytes(bytes: [u8; 4]) -> Self {
+        Self::rgba_u8(bytes[0], bytes[1], bytes[2], bytes[3])
+    }
+
+    /// Build a color from a data driven RGB byte array.
+    pub const fn from_rgb_bytes(bytes: [u8; 3]) -> Self {
+        Self::rgb_u8(bytes[0], bytes[1], bytes[2])
+    }
+
     pub fn rgb_hex(hex: &str) -> Self {
         assert_eq!(hex.len(), 6);
 

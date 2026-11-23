@@ -41,6 +41,7 @@
 #     UI_GOLDEN_THEMES        default matrix themes (default: default,classic)
 #     UI_GOLDEN_SCALES        default matrix scalings (default: 0.75,1.0)
 #     UI_GOLDEN_KEEP_CLIENT   keep the client logs, do not delete the run dirs
+#     UI_GOLDEN_WINDOW_NAME   X11 window title substring (default: Korangar)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -53,6 +54,7 @@ RES="${UI_GOLDEN_RES:-1280x720}"
 WORK="${UI_GOLDEN_WORK:-$REPO_ROOT/target/ui-golden}"
 BASELINE="$REPO_ROOT/korangar/test-data/golden"
 THEMES="${UI_GOLDEN_THEMES:-default,classic}"
+WINDOW_NAME="${UI_GOLDEN_WINDOW_NAME:-Korangar}"
 SCALES="${UI_GOLDEN_SCALES:-0.75,1.0}"
 
 UPDATE_BASELINE=0
@@ -261,7 +263,8 @@ run_variant() {
         --theme "$theme" \
         --scale "$scale" \
         --account "$UI_GOLDEN_ACCOUNT" \
-        --password "$UI_GOLDEN_PASSWORD"; then
+        --password "$UI_GOLDEN_PASSWORD" \
+        --window-name "$WINDOW_NAME"; then
       driver_status=0
       break
     fi

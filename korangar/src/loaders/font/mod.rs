@@ -35,6 +35,7 @@ use crate::loaders::font::font_file::{FaceGlyphs, FontFile};
 use crate::loaders::font::layout_key::{LayoutKey, LayoutKeyRef};
 use crate::loaders::rectangle::Rectangle;
 use crate::state::ClientState;
+use crate::state::localization::dropdown_keys;
 
 /// The padding in pixels that every glyph quad needs for the rasterizer to
 /// cover every pixel that the glyph outline touches.
@@ -89,6 +90,32 @@ impl Cacheable for CachedLayout {
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct FontSize(pub f32);
+
+impl FontSize {
+    /// Font size for a value that a style/theme provides at runtime instead of
+    /// the design tokens (e.g. the progress bar style).
+    pub const fn from_style(pixels: f32) -> Self {
+        Self(pixels)
+    }
+
+    /// Font size computed from a dynamic component dimension (e.g. the text of
+    /// a circular button that scales with the button size).
+    pub const fn dynamic(pixels: f32) -> Self {
+        Self(pixels)
+    }
+
+    /// Scale a design-token font size by a dynamic layout factor (e.g. the size
+    /// of an item box slot).
+    pub const fn scaled_by(self, factor: f32) -> Self {
+        Self(self.0 * factor)
+    }
+
+    /// Clamp a dynamically computed pixel size to this token size as the upper
+    /// bound (and to `minimum` as the lower bound).
+    pub fn clamped_to(self, computed: f32, minimum: f32) -> Self {
+        Self(computed.clamp(minimum, self.0))
+    }
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, RustState, StateElement)]
 pub enum OverflowBehavior {
@@ -151,6 +178,32 @@ impl DropDownItem<Scaling> for Scaling {
             2.0 => "200%",
             _ => "Custom",
         }
+    }
+
+    fn text_key(&self) -> Option<&'static str> {
+        let key = match self.0 {
+            0.5 => dropdown_keys::SCALING_50,
+            0.6 => dropdown_keys::SCALING_60,
+            0.7 => dropdown_keys::SCALING_70,
+            0.75 => dropdown_keys::SCALING_75,
+            0.8 => dropdown_keys::SCALING_80,
+            0.9 => dropdown_keys::SCALING_90,
+            1.0 => dropdown_keys::SCALING_100,
+            1.1 => dropdown_keys::SCALING_110,
+            1.2 => dropdown_keys::SCALING_120,
+            1.25 => dropdown_keys::SCALING_125,
+            1.3 => dropdown_keys::SCALING_130,
+            1.4 => dropdown_keys::SCALING_140,
+            1.5 => dropdown_keys::SCALING_150,
+            1.6 => dropdown_keys::SCALING_160,
+            1.7 => dropdown_keys::SCALING_170,
+            1.75 => dropdown_keys::SCALING_175,
+            1.8 => dropdown_keys::SCALING_180,
+            1.9 => dropdown_keys::SCALING_190,
+            2.0 => dropdown_keys::SCALING_200,
+            _ => dropdown_keys::SCALING_CUSTOM,
+        };
+        Some(key)
     }
 
     fn value(&self) -> Scaling {
