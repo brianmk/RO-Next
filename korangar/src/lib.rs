@@ -4508,6 +4508,7 @@ impl Client {
                     self.session.begin_map_entry(Instant::now());
                     self.skill_sounds.clear();
                     self.skill_sound_gate.clear();
+                    self.client_state.follow_mut(client_state().quest_log()).clear();
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -4856,6 +4857,7 @@ impl Client {
                     self.map = None;
                     self.skill_sounds.clear();
                     self.skill_sound_gate.clear();
+                    self.client_state.follow_mut(client_state().quest_log()).clear();
                     // The server closes the storage on a map change; close the UI
                     // and drop the transient list immediately so it can't go stale.
                     self.close_storage_window();
@@ -6424,6 +6426,17 @@ impl Client {
                         }
                     }
                 }
+                NetworkEvent::QuestList { quests } => {
+                    self.client_state.follow_mut(client_state().quest_log()).set_list(&quests);
+                }
+                NetworkEvent::QuestActive { quest_id, active } => {
+                    self.client_state
+                        .follow_mut(client_state().quest_log())
+                        .set_active(quest_id, active);
+                }
+                NetworkEvent::QuestRemoved { quest_id } => {
+                    self.client_state.follow_mut(client_state().quest_log()).remove(quest_id);
+                }
                 NetworkEvent::OpenStore { slots } => {
                     // `ZC_OPENSTORE` after MC_VENDING: show the shop editor.
                     // The server keeps the character in the vending state until
@@ -7058,6 +7071,13 @@ impl Client {
                     let _ = self.networking_system.cancel_open_store();
                     self.client_state.follow_mut(client_state().vending()).close();
                     self.interface.close_window_with_class(WindowClass::Vending);
+                }
+                InputEvent::ToggleQuestWindow => {
+                    if self.interface.is_window_with_class_open(WindowClass::Quest) {
+                        self.interface.close_window_with_class(WindowClass::Quest);
+                    } else {
+                        self.interface.open_window(QuestWindow::new(client_state().quest_log()));
+                    }
                 }
                 InputEvent::ToggleShowInterface => self.show_interface = !self.show_interface,
                 InputEvent::SelectCharacter { slot } => {

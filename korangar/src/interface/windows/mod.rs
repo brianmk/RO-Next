@@ -36,6 +36,7 @@ mod packet_inspector;
 mod party;
 #[cfg(feature = "debug")]
 mod profiler;
+mod quest_log;
 #[cfg(feature = "debug")]
 mod render_options;
 mod respawn;
@@ -91,6 +92,7 @@ pub use self::packet_inspector::PacketInspectorWindow;
 pub use self::party::{PartyInviteWindow, PartyWindow};
 #[cfg(feature = "debug")]
 pub use self::profiler::{ProfilerWindow, ProfilerWindowState};
+pub use self::quest_log::QuestWindow;
 #[cfg(feature = "debug")]
 pub use self::render_options::RenderOptionsWindow;
 pub use self::respawn::RespawnWindow;
@@ -140,6 +142,7 @@ pub enum WindowClass {
     Menu,
     Minimap,
     Party,
+    Quest,
     PartyInvite,
     Respawn,
     SelectServer,

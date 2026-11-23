@@ -10,6 +10,7 @@ pub mod lifecycle;
 pub mod localization;
 pub mod minimap;
 pub mod party;
+pub mod quest_log;
 pub mod skill_cooldowns;
 pub mod skills;
 pub mod spirit_orbs;
@@ -72,6 +73,7 @@ use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
 use crate::state::minimap::Minimap;
 use crate::state::party::Party;
+use crate::state::quest_log::QuestLog;
 use crate::state::skill_cooldowns::SkillCooldowns;
 use crate::state::skills::SkillTree;
 use crate::state::spirit_orbs::SpiritOrbs;
@@ -222,6 +224,9 @@ pub struct ClientState {
     hotbar: Hotbar,
     /// Player inventory.
     inventory: Inventory,
+    /// Active quests shown in the quest tracker.
+    #[hidden_element]
+    quest_log: QuestLog,
     /// Current vending-shop editor (`MC_VENDING` / `ZC_OPENSTORE`).
     #[hidden_element]
     vending: Vending,
@@ -522,6 +527,7 @@ impl ClientState {
             player_name,
             hotbar,
             inventory,
+            quest_log: QuestLog::default(),
             vending: Vending::default(),
             zeny,
             storage,

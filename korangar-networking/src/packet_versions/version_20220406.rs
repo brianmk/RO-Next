@@ -1083,11 +1083,14 @@ where
         remaining_in_milliseconds: packet.remaining_duration,
         values: [packet.value1, packet.value2, packet.value3],
     })?;
-    register_ignored_noop::<_, QuestNotificationPacket1>(packet_handler)?;
+    packet_handler.register(|packet: QuestListPacket| NetworkEvent::QuestList { quests: packet.quests })?;
+    packet_handler.register(|packet: QuestNotificationPacket1| NetworkEvent::QuestActive {
+        quest_id: packet.quest_id,
+        active: packet.active != 0,
+    })?;
+    packet_handler.register(|packet: QuestRemovedPacket| NetworkEvent::QuestRemoved { quest_id: packet.quest_id })?;
     register_ignored_noop::<_, HuntingQuestNotificationPacket>(packet_handler)?;
     register_ignored_noop::<_, HuntingQuestUpdateObjectivePacket>(packet_handler)?;
-    register_ignored_noop::<_, QuestRemovedPacket>(packet_handler)?;
-    register_ignored_noop::<_, QuestListPacket>(packet_handler)?;
     packet_handler.register(|packet: VisualEffectPacket| {
         let VisualEffectPacket { entity_id, effect } = packet;
 

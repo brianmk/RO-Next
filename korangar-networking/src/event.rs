@@ -668,6 +668,19 @@ pub enum NetworkEvent {
     AttackRangeChanged {
         attack_range: AttackRange,
     },
+    /// Complete quest list (`ZC_QUEST_LIST`, 0x09F8).
+    QuestList {
+        quests: Vec<ragnarok_packets::Quest>,
+    },
+    /// A quest was activated or deactivated (`ZC_QUEST_NOTIFY`, 0x09F9).
+    QuestActive {
+        quest_id: u32,
+        active: bool,
+    },
+    /// A quest was removed (`ZC_QUEST_REMOVED`, 0x02B4).
+    QuestRemoved {
+        quest_id: u32,
+    },
     /// The server allows the player to create a vending shop (`ZC_OPENSTORE`,
     /// 0x012D) after casting `MC_VENDING`; `slots` is the number of item slots.
     OpenStore {
