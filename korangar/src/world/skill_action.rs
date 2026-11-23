@@ -84,9 +84,14 @@ mod tests {
 
     #[test]
     fn stance_skills_keep_the_idle_pose() {
-        // Basic Skill, Incagi, Summon Spirit Sphere, Fury, Zen.
-        for skill_id in [1, 29, 261, 270, 401] {
+        // Basic Skill, Incagi, Summon Spirit Sphere.
+        for skill_id in [1, 29, 261] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
+        }
+        // Fury and Zen are data-overridden to play the casting gesture so the
+        // user sees the character perform an animation.
+        for skill_id in [270, 401] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
     }
 

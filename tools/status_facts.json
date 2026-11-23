@@ -70,7 +70,7 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "1ce94738a69c4570a09bc723af4bb3ff3b3b9be2198c9940fe44f9bb26641302",
+      "sha256": "8efa87a28b1500610093bfa544356289b2c3debba8a290f7b4a981d15dfcaf72",
       "counts": {
         "names": 10,
         "icons": 6,
@@ -30929,7 +30929,7 @@
         "source": "procedural Fury body glow (EFST_EXPLOSIONSPIRITS); official client tints the character while Fury is active",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ring_yellow.tga",
+          "ring": "effect\\ring_blue.tga",
           "body_frames": [
             "effect\\whitelight.tga"
           ],
@@ -30937,19 +30937,19 @@
         },
         "tint": {
           "ground": [
-            1.0,
-            0.55,
-            0.15
+            0.45,
+            0.75,
+            1.0
           ],
           "body": [
-            1.0,
-            0.45,
-            0.1
+            0.6,
+            0.85,
+            1.0
           ],
           "glow": [
-            1.0,
-            0.7,
-            0.25
+            0.9,
+            0.97,
+            1.0
           ]
         },
         "radii": {
