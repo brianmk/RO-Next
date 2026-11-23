@@ -25,7 +25,7 @@ use crate::graphics::reduce_vertices;
 #[cfg(feature = "debug")]
 use crate::graphics::{BindlessSupport, DebugRectangleInstruction};
 use crate::graphics::{Color, EntityInstruction, ScreenPosition, ScreenSize};
-use crate::loaders::{EntityPartFile, GameFileLoader};
+use crate::loaders::{EntityPartFile, GameFileLoader, Imf};
 #[cfg(feature = "debug")]
 use crate::loaders::{GAT_TILE_SIZE, split_mesh_by_texture};
 use crate::renderer::GameInterfaceRenderer;
@@ -262,6 +262,9 @@ pub struct Common {
     /// option (`effect_state & OPTION_CART_MASK`).
     #[hidden_element]
     cart_animation: Option<Arc<AnimationData>>,
+    /// Per-job `.imf` head/body draw order, loaded lazily for players.
+    #[hidden_element]
+    imf: Option<Arc<Imf>>,
     /// The server's `EFST_PUSH_CART` status is active. Some 2019 servers do
     /// not put the cart option into the entity `effect_state`, so the status
     /// is an independent visibility source for the cart.
@@ -567,6 +570,7 @@ impl Common {
                 .with_speed(FALCON_ANIMATION_SPEED)
                 .with_loop_mode(AnimationLoopMode::PingPong),
             cart_animation: None,
+            imf: None,
             cart_status_active: false,
             cart_kind: 0,
             status_tint: None,
@@ -740,6 +744,18 @@ impl Common {
 
     pub fn needs_cart_animation(&self) -> bool {
         self.has_cart() && self.cart_animation.is_none()
+    }
+
+    pub fn has_imf(&self) -> bool {
+        self.imf.is_some()
+    }
+
+    pub fn needs_imf(&self) -> bool {
+        self.entity_type == EntityType::Player && self.imf.is_none() && crate::world::jobs::imf_path(self.job_id, self.sex).is_some()
+    }
+
+    pub fn set_imf(&mut self, imf: Arc<Imf>) {
+        self.imf = Some(imf);
     }
 
     pub fn set_cart_animation(&mut self, animation_data: Arc<AnimationData>) {
@@ -1316,6 +1332,7 @@ impl Common {
                 alpha,
                 tint,
                 self.scale,
+                self.imf.as_deref(),
             );
         }
 
@@ -1333,6 +1350,7 @@ impl Common {
                 alpha,
                 tint,
                 self.scale,
+                None,
             );
         }
 
@@ -1352,6 +1370,7 @@ impl Common {
                 alpha,
                 tint,
                 self.scale,
+                None,
             );
         }
 
@@ -1372,6 +1391,7 @@ impl Common {
                 alpha,
                 tint,
                 self.scale,
+                None,
             );
         }
     }
@@ -2001,6 +2021,18 @@ impl Entity {
 
     pub fn get_entity_id(&self) -> EntityId {
         self.get_common().entity_id
+    }
+
+    pub fn get_sex(&self) -> Sex {
+        self.get_common().sex
+    }
+
+    pub fn needs_imf(&self) -> bool {
+        self.get_common().needs_imf()
+    }
+
+    pub fn set_imf(&mut self, imf: Arc<Imf>) {
+        self.get_common_mut().set_imf(imf);
     }
 
     pub fn get_job_id(&self) -> JobId {

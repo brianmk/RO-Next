@@ -11,7 +11,7 @@ use rust_state::RustState;
 #[cfg(feature = "debug")]
 use crate::graphics::DebugRectangleInstruction;
 use crate::graphics::{Color, EntityInstruction};
-use crate::loaders::Sprite;
+use crate::loaders::{Imf, Sprite};
 use crate::world::{ActionEvent, Actions, Camera, EntityType};
 
 pub(crate) const TILE_SIZE: f32 = 10.0;
@@ -560,6 +560,45 @@ impl AnimationData {
         (texture_size, texture_position)
     }
 
+    /// Whether the `.imf` layer order puts the head/headgear parts behind the
+    /// body for the current action/frame.
+    fn head_behind_body(&self, imf: &Imf, animation_state: &AnimationState, camera: &dyn Camera, direction: Direction) -> bool {
+        if self.delays.is_empty() || self.animations.is_empty() {
+            return false;
+        }
+
+        let camera_direction = camera.camera_direction();
+        let direction = (camera_direction + u16::from(direction) as usize) & 7;
+        let action_index = animation_state.action_type.action_base_offset(self.entity_type) * 8 + direction;
+        let animation_index = action_index % self.animations.len();
+        let animation = &self.animations[animation_index];
+        if animation.frames.is_empty() {
+            return false;
+        }
+
+        let delay = self.delays[action_index % self.delays.len()];
+        let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or(delay * 50.0);
+        let factor = if factor > 0.0 { factor } else { 50.0 };
+        let frame_time = match animation_state.duration {
+            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
+            _ => (animation_state.time as f32 / factor) as u32,
+        };
+        let frame_index = match animation_state.is_sitting() {
+            true => 0,
+            false => match animation_state.looping {
+                true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
+                false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+            },
+        };
+        let frame_index = if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
+            0
+        } else {
+            frame_index
+        };
+
+        imf.head_behind_body(action_index, frame_index)
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn render(
         &self,
@@ -573,8 +612,10 @@ impl AnimationData {
         fade_alpha: f32,
         tint: Color,
         scale: f32,
+        imf: Option<&Imf>,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
+        let head_behind_body = imf.is_some_and(|imf| self.head_behind_body(imf, animation_state, camera, direction));
         let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale);
 
         for (index, frame_part) in frame.frame_parts.iter().enumerate() {
@@ -612,7 +653,13 @@ impl AnimationData {
                 texture_size,
                 frame_size,
                 depth_offset,
-                extra_depth_offset: 0.005 * index as f32,
+                extra_depth_offset: if head_behind_body && frame_part.animation_index > 0 {
+                    // Head/headgear layers (animation part index > 0) are
+                    // behind the body when the IMF says so.
+                    -0.01 - 0.005 * index as f32
+                } else {
+                    0.005 * index as f32
+                },
                 curvature,
                 color,
                 mirror: frame_part.mirror,

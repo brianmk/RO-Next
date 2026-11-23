@@ -1366,6 +1366,7 @@ impl Client {
             let async_loader = Arc::new(AsyncLoader::new(
                 action_loader.clone(),
                 animation_loader.clone(),
+                game_file_loader.clone(),
                 map_loader.clone(),
                 model_loader.clone(),
                 sprite_loader.clone(),
@@ -8086,6 +8087,16 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
                 }
+                (LoaderId::ImfData(entity_id, ..), LoadableResource::Imf(imf)) => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_imf(imf);
+                    }
+                }
                 (LoaderId::CartAnimationData(entity_id), LoadableResource::CartAnimation(cart_animation)) => {
                     if let Some(entity) = self
                         .client_state
@@ -8635,6 +8646,13 @@ impl Client {
             if entity.needs_cart_animation() {
                 missing.push(LoaderId::CartAnimationData(entity_id));
             }
+            if entity.needs_imf() {
+                missing.push(LoaderId::ImfData(
+                    entity_id,
+                    entity.get_job_id(),
+                    matches!(entity.get_sex(), ragnarok_packets::Sex::Female),
+                ));
+            }
             if entity.needs_weapon_animation() {
                 missing.push(LoaderId::WeaponAnimationData(entity_id));
             }
@@ -8741,6 +8759,22 @@ impl Client {
                         self.asset_retries.note_available(&LoaderId::CartAnimationData(entity_id));
                     }
                     None => self.asset_retries.note_request(LoaderId::CartAnimationData(entity_id), now),
+                }
+            }
+            LoaderId::ImfData(_, job_id, female) => {
+                let sex = if female {
+                    ragnarok_packets::Sex::Female
+                } else {
+                    ragnarok_packets::Sex::Male
+                };
+                match self.async_loader.request_imf_data_load(entity_id, job_id, sex) {
+                    Some(imf) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_imf(imf);
+                        }
+                        self.asset_retries.note_available(&LoaderId::ImfData(entity_id, job_id, female));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::ImfData(entity_id, job_id, female), now),
                 }
             }
             LoaderId::WeaponAnimationData(_) => {

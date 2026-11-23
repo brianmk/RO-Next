@@ -5,6 +5,7 @@ use std::time::Instant;
 use hashbrown::{HashMap, HashSet};
 #[cfg(feature = "debug")]
 use korangar_debug::profiling::Profiler;
+use korangar_loaders::FileLoader;
 use korangar_networking::{InventoryItem, InventoryItemDetails, NoMetadata, ShopItem};
 use ragnarok_packets::{ClientTick, EntityId, ItemId, JobId, SkillId, TilePosition};
 use rayon::{ThreadPool, ThreadPoolBuilder};
@@ -13,7 +14,8 @@ use crate::graphics::Texture;
 use crate::init_tls_rand;
 use crate::loaders::error::LoadError;
 use crate::loaders::{
-    ActionLoader, AnimationLoader, EntityPartFile, ImageType, MapLoader, ModelLoader, Sprite, SpriteLoader, TextureLoader, VideoLoader,
+    ActionLoader, AnimationLoader, EntityPartFile, GameFileLoader, ImageType, Imf, MapLoader, ModelLoader, Sprite, SpriteLoader,
+    TextureLoader, VideoLoader,
 };
 use crate::perf::{self, LoadKind};
 use crate::state::skills::{LearnableSkill, SkillTabLayout, SkillTreeLayout};
@@ -45,6 +47,8 @@ pub enum LoaderId {
     Map(String),
     SkillSprite(SkillId),
     SkillActions(SkillId),
+    /// Per-job `.imf` head/body draw order of a player entity.
+    ImfData(EntityId, JobId, bool),
 }
 
 pub enum LoadableResource {
@@ -55,6 +59,7 @@ pub enum LoadableResource {
     ItemSprite { texture: Arc<Texture> },
     SkillSprite { sprite: Arc<Sprite> },
     SkillActions { actions: Arc<Actions> },
+    Imf(Arc<Imf>),
     Map { map: Arc<Map>, position: Option<TilePosition> },
 }
 
@@ -90,6 +95,7 @@ struct PendingLoads {
 pub struct AsyncLoader {
     action_loader: Arc<ActionLoader>,
     animation_loader: Arc<AnimationLoader>,
+    game_file_loader: Arc<GameFileLoader>,
     map_loader: Arc<MapLoader>,
     model_loader: Arc<ModelLoader>,
     sprite_loader: Arc<SpriteLoader>,
@@ -119,6 +125,7 @@ impl AsyncLoader {
     pub fn new(
         action_loader: Arc<ActionLoader>,
         animation_loader: Arc<AnimationLoader>,
+        game_file_loader: Arc<GameFileLoader>,
         map_loader: Arc<MapLoader>,
         model_loader: Arc<ModelLoader>,
         sprite_loader: Arc<SpriteLoader>,
@@ -146,6 +153,7 @@ impl AsyncLoader {
             failed_weapon_candidates: Arc::new(Mutex::new(HashSet::new())),
             action_loader,
             animation_loader,
+            game_file_loader,
             map_loader,
             model_loader,
             sprite_loader,
@@ -488,6 +496,24 @@ impl AsyncLoader {
 
             Err(last_error)
         });
+
+        None
+    }
+
+    /// Requests the per-job `.imf` layer-order table.
+    pub fn request_imf_data_load(&self, entity_id: EntityId, job_id: JobId, sex: ragnarok_packets::Sex) -> Option<Arc<Imf>> {
+        let path = crate::world::jobs::imf_path(job_id, sex)?;
+        let game_file_loader = self.game_file_loader.clone();
+
+        self.request_visible_load(
+            LoaderId::ImfData(entity_id, job_id, matches!(sex, ragnarok_packets::Sex::Female)),
+            LoadKind::AnimationData,
+            move || {
+                let bytes = game_file_loader.get(&path).map_err(LoadError::File)?;
+                let imf = Imf::parse(&bytes).map_err(|error| LoadError::UnsupportedFormat(format!("{path}: {error}")))?;
+                Ok(LoadableResource::Imf(Arc::new(imf)))
+            },
+        );
 
         None
     }

@@ -96,6 +96,7 @@ impl GroundItem {
                 self.fade_state.calculate_alpha(client_tick),
                 crate::graphics::Color::WHITE,
                 1.0,
+                None,
             );
         }
     }
