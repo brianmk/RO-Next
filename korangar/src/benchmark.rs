@@ -170,6 +170,11 @@ struct BenchState {
 
     finished: bool,
     failure: Option<String>,
+    /// Skills driven by the `skills` scenario (`KORANGAR_BENCH_SKILLS`
+    /// override).
+    skill_list: Vec<u16>,
+    /// Pause between two skill spawns.
+    skill_delay: Duration,
 }
 
 static STATE: OnceLock<Mutex<Option<BenchState>>> = OnceLock::new();
@@ -278,6 +283,18 @@ fn initial_state(window_size: (usize, usize)) -> BenchState {
         map_samples: Vec::new(),
         finished: false,
         failure: None,
+        skill_list: skill_list(),
+        skill_delay: Duration::from_millis((environment_seconds("KORANGAR_BENCH_SKILL_DELAY", 0.45) * 1000.0) as u64),
+    }
+}
+
+/// Skill ids driven by the `skills` scenario. `KORANGAR_BENCH_SKILLS`
+/// ("34,306,...") overrides the default representative list so a verification
+/// run can target a single effect.
+fn skill_list() -> Vec<u16> {
+    match environment("KORANGAR_BENCH_SKILLS") {
+        Some(value) if !value.trim().is_empty() => value.split(',').filter_map(|entry| entry.trim().parse::<u16>().ok()).collect(),
+        _ => BENCHMARK_SKILLS.to_vec(),
     }
 }
 
@@ -451,12 +468,12 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
     }
 
     let index = bench.effects_spawned as usize;
-    if index < BENCHMARK_SKILLS.len() {
+    if index < bench.skill_list.len() {
         if now < bench.next_action {
             return;
         }
 
-        let skill_id = BENCHMARK_SKILLS[index];
+        let skill_id = bench.skill_list[index];
         let phases = [SkillPhase::Success, SkillPhase::Ground, SkillPhase::Cast, SkillPhase::Hit];
         let phase = phases
             .iter()
@@ -478,7 +495,7 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
         }
 
         bench.effects_spawned = bench.effects_spawned.saturating_add(1);
-        bench.next_action = now + Duration::from_millis(450);
+        bench.next_action = now + bench.skill_delay;
         return;
     }
 

@@ -354,35 +354,39 @@ documented here instead of being faked with a glow.
 
 ---
 
-## 5a. In-client verification of the data (partial)
+## 5a. In-client verification
 
-The accumulated data changes were checked against the real client and the live server with the
-built-in benchmark driver:
+The accumulated data changes were verified in the real client against the live CondaRO server
+with the built-in benchmark driver (headless, Xvfb, muted audio):
 
 ```sh
-Xvfb :97 -screen 0 1280x720x24 -nolisten tcp &
 cd korangar/korangar
 env -u WAYLAND_DISPLAY DISPLAY=:97 XDG_RUNTIME_DIR=/run/user/1000 \
-    KORANGAR_MUTE_AUDIO=1 KORANGAR_BENCH=town \
-    KORANGAR_BENCH_USER=verify4 KORANGAR_BENCH_PASS=VerifyBot4 \
-    ../target/release/korangar -vvv
+    KORANGAR_MUTE_AUDIO=1 KORANGAR_BENCH=skills \
+    KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
+    ../target/release/korangar -v
 ```
 
-What this run proves:
+The `skills` scenario logs in, injects 16 persistent status effects (the auras/fades) and then
+drives 47 representative skills through the real `Client::spawn_skill_effect_phase` entry point,
+450 ms apart, logging `[bench-skill] {"skill":N,"phase":"..."}` per spawn. `KORANGAR_BENCH_SKILLS`
+(e.g. `"34,306,19,451,355"`) and `KORANGAR_BENCH_SKILL_DELAY` target individual effects.
 
-* the client boots and loads **all** committed data through the real loaders - 500 skill
-  descriptors (`--check-skill-effects` is also wired into `main`), 616 status effects with 20
-  auras, 15 status visuals, the item/skill/message tables - with no schema or asset error and no
-  panic; the only warnings are pre-existing missing weather textures
-  (`j_sakura01.bmp`, `leaf01.bmp`);
-* the renderer comes up (Wayland/Xvfb surface, 1280x720) and the login window renders.
+Result of the verification run:
 
-What it does **not** prove: the visual output of the new layers. The login stage stopped with
-`[bench-error] {"stage":"Login","reason":"login flow timed out ..."}` because the server answered
-**"Incorrect password"** for the `verify4` / `VerifyBot4` test account used by the earlier lanes -
-the account or its password has changed on the CondaRO server since. Re-running the sweep needs a
-valid test account (or the account password restored); the map/SQL server itself is reachable
-(login port 6900 accepts connections from this host).
+* 43 of the selected skills spawned layers (the rest are ground/hit phases without a
+  descriptor); `effects_mean 25.8`, `effects_max 35` on screen, no missing-asset warning and no
+  panic;
+* the frames in `notes/rodecomp-verification/` show AL_BLESSING's official angel sprite above the
+  head (the layer the earlier data suppressed) and a `.str` screen effect rendering through the
+  same pipeline; the buff bar shows the injected auras;
+* the client loaded all committed data through the real loaders (500+ descriptors, 616 statuses,
+  20 auras, 15 status visuals, sounds) with only the pre-existing weather-texture warnings.
+
+Known account quirks: `verify6`/`verify4` with `verifypass` reach the map; `verify5` stalls at
+character selection and a second login on the same account reports "Already online" until the
+previous session ends; the char server occasionally answers "Rejected from server" on the first
+attempt (a retry works).
 
 ## 5b. Coverage audit tool
 
@@ -456,6 +460,9 @@ Checks in this repository:
 ./tools/gen_skill_sounds.py --check        # 8 curated + 378 official sounds
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
 python3 tools/test_rodecomp_coverage.py     # 3 coverage audit tests
+# in-client verification (Xvfb + live server, test account):
+#   KORANGAR_BENCH=skills KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
+#   KORANGAR_BENCH_SKILLS="34,306,19,451,355" ../target/release/korangar
 korangar --check-skill-effects              # 501 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
