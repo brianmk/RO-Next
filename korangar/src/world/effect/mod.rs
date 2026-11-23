@@ -26,6 +26,7 @@ mod status_visual;
 mod storm_cloud;
 mod teleport_vanish;
 mod warp;
+mod weather;
 pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::procedural::*;
@@ -37,6 +38,7 @@ pub use self::status_visual::{StatusGroundRing, StatusLoopingEffect};
 pub use self::storm_cloud::StormCloud;
 pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
+pub use self::weather::Weather;
 
 pub trait EffectBase {
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool;

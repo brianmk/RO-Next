@@ -4121,7 +4121,9 @@ pub enum EffectId {
 #[packet_size(10)]
 pub struct DisplaySpecialEffectPacket {
     pub entity_id: EntityId,
-    pub effect_id: EffectId,
+    /// Raw effect id; kept as `u32` so weather effect ids that have no
+    /// `EffectId` enum variant are not rejected by the decoder.
+    pub effect_id: u32,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]

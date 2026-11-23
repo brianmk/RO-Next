@@ -1043,7 +1043,10 @@ where
 
         NetworkEvent::AddChoiceButtons { choices, npc_id }
     })?;
-    register_ignored_noop::<_, DisplaySpecialEffectPacket>(packet_handler)?;
+    packet_handler.register(|packet: DisplaySpecialEffectPacket| NetworkEvent::SpecialEffect {
+        entity_id: packet.entity_id,
+        effect_id: packet.effect_id,
+    })?;
     packet_handler.register(|packet: DisplaySkillCooldownPacket| NetworkEvent::SkillCooldown {
         skill_id: packet.skill_id,
         until: packet.until,

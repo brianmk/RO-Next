@@ -679,6 +679,11 @@ pub enum NetworkEvent {
         result: u8,
         target_account_id: AccountId,
     },
+    /// A raw `ZC_NOTIFY_EFFECT2` (0x01F3) effect id (weather, ...).
+    SpecialEffect {
+        entity_id: EntityId,
+        effect_id: u32,
+    },
     /// The other player offered an item or zeny (`ZC_ADD_EXCHANGE_ITEM`,
     /// 0x0A96). `item_id == 0` means zeny.
     TradeItemOffered {

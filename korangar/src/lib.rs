@@ -986,6 +986,8 @@ pub struct Client {
     /// ticks. Server table values; paces follow-up skill/item actions only.
     aftercast_act_until: Option<ClientTick>,
     warp_portal: Option<WarpPortal>,
+    /// Active map weather (`ZC_NOTIFY_EFFECT2` snow/fog/cloud/...).
+    weather: Option<crate::world::Weather>,
     /// Classic spirit-sphere texture (`effect\thunder_center.bmp`), drawn as
     /// orbiting blue-white balls around entities with active spirit spheres.
     spirit_sphere_texture: Option<Arc<Texture>>,
@@ -1420,6 +1422,7 @@ impl Client {
 
         time_phase!("load warp portal assets", {
             let warp_portal = WarpPortal::new(&texture_loader, &sprite_loader);
+            let weather = crate::world::Weather::new(&texture_loader);
         });
 
         time_phase!("load spirit sphere assets", {
@@ -1677,6 +1680,7 @@ impl Client {
             skill_completion_tracker: SkillCompletionTracker::default(),
             aftercast_act_until: None,
             warp_portal,
+            weather,
             spirit_sphere_texture,
             warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
@@ -4524,6 +4528,9 @@ impl Client {
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
                     self.status_aura_flags.clear();
+                    if let Some(weather) = self.weather.as_mut() {
+                        weather.clear();
+                    }
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
                 }
@@ -4879,6 +4886,9 @@ impl Client {
                     self.effect_holder.clear();
                     self.level_99_aura_entities.clear();
                     self.status_aura_flags.clear();
+                    if let Some(weather) = self.weather.as_mut() {
+                        weather.clear();
+                    }
                     self.chat_bubbles.clear();
                     self.pending_item_drag = None;
                     self.pending_item_drag = None;
@@ -6452,6 +6462,11 @@ impl Client {
                             inventory_index,
                             result
                         );
+                    }
+                }
+                NetworkEvent::SpecialEffect { effect_id, .. } => {
+                    if let Some(weather) = self.weather.as_mut() {
+                        weather.set_effect(effect_id as i32, 0.0);
                     }
                 }
                 NetworkEvent::TradeRequest {
@@ -9898,6 +9913,7 @@ impl Client {
                 cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
                 warp_portal: self.warp_portal.as_ref(),
+                weather: self.weather.as_ref(),
                 spirit_sphere_texture: self.spirit_sphere_texture.as_ref(),
                 warp_skill_units: &self.warp_skill_units,
                 effect_renderer: &mut self.effect_renderer,
@@ -10686,6 +10702,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     cast_bars: &'a CastBars,
     skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
+    weather: Option<&'a crate::world::Weather>,
     spirit_sphere_texture: Option<&'a Arc<Texture>>,
     /// Active warp-portal skill units, rendered like warp NPCs.
     warp_skill_units: &'a [(EntityId, Point3<f32>, Instant, Instant)],
@@ -11124,6 +11141,14 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         );
 
         self.effect_holder.render(self.effect_renderer, self.current_camera);
+        if let Some(weather) = self.weather {
+            weather.render(
+                self.effect_renderer,
+                self.current_camera,
+                self.screen_size,
+                self.animation_timer_ms / 1000.0,
+            );
+        }
         self.render_warp_portals();
         self.render_spirit_spheres();
 

@@ -116,12 +116,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         class: IgnoreClass::OwnedElsewhere("item-descriptions"),
         reason: "ZC_SHOW_IMAGE: server image window, owned by the item-descriptions lane",
     },
-    IgnoredNoop {
-        header: 0x01F3,
-        server: NoopServer::Map,
-        class: IgnoreClass::OwnedElsewhere("appearance/weapon-falcon"),
-        reason: "ZC_NOTIFY_EFFECT2: EF-id world effects, owned by the appearance/weapon-falcon lane",
-    },
     // Trade is a separate feature (two-sided window + state + c2s packets).
     IgnoredNoop {
         header: 0x00EA,
