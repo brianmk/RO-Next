@@ -71,6 +71,7 @@ from pathlib import Path
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effects.ron")
 DEFAULT_CUSTOM = Path("tools/skill_effects_custom.ron")
 DEFAULT_OFFICIAL = Path("tools/skill_effects_official.ron")
+DEFAULT_RODECOMP = Path("tools/skill_effects_rodecomp.ron")
 LEGACY_STR = Path("korangar/archive/data/client/skill_effect_assets.ron")
 LEGACY_SPR = Path("korangar/archive/data/client/skill_sprite_effects.ron")
 LEGACY_PROCEDURAL = Path("korangar/archive/data/client/skill_procedural_effects.ron")
@@ -490,7 +491,7 @@ def group_rows(rows: list[dict[str, object]], translate) -> dict[tuple[int, str]
     return grouped
 
 
-def build(custom_path: Path, official_path: Path | None) -> list[dict[str, object]]:
+def build(custom_path: Path, official_path: Path | None, rodecomp_path: Path | None = None) -> list[dict[str, object]]:
     grouped: dict[tuple[int, str], dict[str, object]] = {}
 
     def entry_for(skill: int, phase: str) -> dict[str, object]:
@@ -511,6 +512,25 @@ def build(custom_path: Path, official_path: Path | None) -> list[dict[str, objec
         for descriptor in read_effects(official_path):
             key = (int(descriptor["skill"]), str(descriptor["phase"]))
             entry = entry_for(*key)
+            for field in ("cast_circle_color", "action"):
+                if field in descriptor:
+                    entry[field] = descriptor[field]
+            for layer in descriptor.get("layers") or []:
+                assert isinstance(layer, dict)
+                add_layer(entry, dict(layer))
+                official_assets.setdefault(key, set()).add(asset_key(dict(layer)))
+            official_keys.add(key)
+
+    # 1b. Rows derived from the official client decompilation (rodecomp). They
+    #     cover skills the official client plays from hard-coded C++ (no data
+    #     asset layer existed for the extractors) and therefore supersede any
+    #     other source of the same (skill, phase) pair.
+    if rodecomp_path is not None and rodecomp_path.is_file():
+        for descriptor in read_effects(rodecomp_path):
+            key = (int(descriptor["skill"]), str(descriptor["phase"]))
+            entry = entry_for(*key)
+            entry["layers"] = []
+            official_assets.setdefault(key, set()).clear()
             for field in ("cast_circle_color", "action"):
                 if field in descriptor:
                     entry[field] = descriptor[field]
@@ -687,6 +707,7 @@ def main() -> int:
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is out of date")
     parser.add_argument("--custom", default=str(DEFAULT_CUSTOM), help="hand-written migrated layers")
     parser.add_argument("--official", default=str(DEFAULT_OFFICIAL), help="complete official layer rows (optional)")
+    parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP), help="rodecomp-derived rows (optional)")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT), help="generated unified data file")
     parser.add_argument("--validate-assets", default=None, metavar="GAME_DIR", help="validate every referenced asset against the GRF archives")
     args = parser.parse_args()
@@ -699,7 +720,11 @@ def main() -> int:
     if not official_path.is_file():
         official_path = None
 
-    effects = build(custom_path, official_path)
+    rodecomp_path = Path(args.rodecomp)
+    if not rodecomp_path.is_file():
+        rodecomp_path = None
+
+    effects = build(custom_path, official_path, rodecomp_path)
     if not effects:
         raise SystemExit("no skill effects could be merged")
 

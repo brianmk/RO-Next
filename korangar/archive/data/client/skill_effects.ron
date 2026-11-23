@@ -786,6 +786,13 @@
             ],
         ),
         (
+            skill: 113,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.5, blend: Additive),
+            ],
+        ),
+        (
             skill: 114,
             phase: Success,
             layers: [
@@ -955,6 +962,13 @@
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_down.tga", duration_ms: 1000, bottom_radius: 0.2, top_radius: 4.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.6, wav: "effect\\ef_bash.wav"),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 1000, count: 10, bottom_radius: 0.02, top_radius: 5.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.6),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 1000, count: 8, bottom_radius: 0.02, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.6),
+            ],
+        ),
+        (
+            skill: 149,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1180,6 +1194,13 @@
             ],
         ),
         (
+            skill: 212,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 214,
             phase: Success,
             action: Attack,
@@ -1216,6 +1237,13 @@
             ],
         ),
         (
+            skill: 219,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\white01.bmp", size: 6.8, duration_ms: 16650, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 229,
             phase: Ground,
             action: Attack,
@@ -1229,6 +1257,34 @@
             action: Attack,
             layers: [
                 (kind: Primitive, anchor: Travel, attached_entity: true, file: "유저인터페이스\\item\\염산병.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 300),
+            ],
+        ),
+        (
+            skill: 234,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 235,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 236,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 237,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1321,10 +1377,24 @@
             ],
         ),
         (
+            skill: 263,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\cloud11.tga", size: 6.8, duration_ms: 1667, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 264,
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, file: "effect\\pok3.tga", size: 14.0, size_end: 18.0, duration_ms: 350, spread: 2.0, height: 8.0, alpha: 0.75, blend: Additive),
+            ],
+        ),
+        (
+            skill: 266,
+            phase: Success,
+            layers: [
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\침투경_"], duration_ms: 267),
             ],
         ),
         (
@@ -1642,6 +1712,14 @@
             ],
         ),
         (
+            skill: 355,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", size: 22.1, duration_ms: 1000, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", size: 22.1, duration_ms: 1000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 356,
             phase: Success,
             layers: [
@@ -1747,6 +1825,13 @@
             ],
         ),
         (
+            skill: 374,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 375,
             phase: Success,
             layers: [
@@ -1769,10 +1854,31 @@
             ],
         ),
         (
+            skill: 380,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 4167, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 381,
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, file: "effect\\pok3.tga", size: 14.0, size_end: 18.0, duration_ms: 350, spread: 2.0, height: 8.0, alpha: 0.75, blend: Additive),
+            ],
+        ),
+        (
+            skill: 382,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 383,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 3333, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1804,10 +1910,31 @@
             ],
         ),
         (
+            skill: 394,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 395,
             phase: Success,
             layers: [
                 (kind: Cylinder, anchor: Target, file: "effect\\ring_yellow.tga", duration_ms: 2000, height: 10.0, bottom_radius: 20.0, top_radius: 20.0, alpha: 0.85),
+            ],
+        ),
+        (
+            skill: 396,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 6.8, duration_ms: 30000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 397,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\ring_yellow.tga", size: 4.25, duration_ms: 1667, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1826,6 +1953,13 @@
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 9.0, grow: TopRadius, alpha: 0.6, wav: "effect\\비트 조인트.wav"),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 14.4, grow: TopRadius, alpha: 0.6),
+            ],
+        ),
+        (
+            skill: 400,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\lens1.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1862,12 +1996,34 @@
             ],
         ),
         (
+            skill: 408,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\fire_ivy.bmp", size: 8.5, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 413,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\storm2.tga", size: 6.8, duration_ms: 1667, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 1667, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 419,
             phase: Success,
             action: Attack,
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: false, file: "new_counter_slash\\new_counter_slash\\new_counter_slash.str"),
                 (kind: Str, anchor: Auto, attached_entity: false, file: "new_counter_slash\\new_counter_slash_bottom\\new_counter_slash_bottom.str"),
+            ],
+        ),
+        (
+            skill: 421,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\line3.tga", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1907,6 +2063,15 @@
             ],
         ),
         (
+            skill: 458,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 459,
             phase: Success,
             layers: [
@@ -1923,10 +2088,47 @@
             ],
         ),
         (
+            skill: 461,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 462,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\magic_blue.tga", size: 3.4, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 463,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\pok1.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 467,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 468,
             phase: Success,
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: false, file: "stun.str", wav: "effect\\_stun.wav"),
+            ],
+        ),
+        (
+            skill: 469,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -1944,6 +2146,28 @@
             ],
         ),
         (
+            skill: 475,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\a01.bmp", size: 9.35, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 476,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shield.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\sword.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 479,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\shockwave_c.bmp", size: 6.8, duration_ms: 5000, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
             skill: 480,
             phase: Release,
             action: Attack,
@@ -1952,10 +2176,33 @@
             ],
         ),
         (
+            skill: 485,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
+            ],
+        ),
+        (
+            skill: 486,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.5, blend: Additive),
+            ],
+        ),
+        (
             skill: 490,
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, file: "effect\\pok3.tga", size: 14.0, size_end: 18.0, duration_ms: 350, spread: 2.0, height: 8.0, alpha: 0.75, tint: (0.6, 1.0, 0.3), blend: Additive),
+            ],
+        ),
+        (
+            skill: 494,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\whitelight.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_l.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\soul_k.tga", size: 6.8, duration_ms: 8333, alpha: 0.6, blend: Additive),
             ],
         ),
         (
@@ -2142,6 +2389,13 @@
             phase: Success,
             layers: [
                 (kind: Str, anchor: Auto, attached_entity: false, file: "icy.str", wav: "effect\\빙정락.wav"),
+            ],
+        ),
+        (
+            skill: 540,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\270바람.tga", size: 6.8, duration_ms: 3333, alpha: 0.6, blend: Additive),
             ],
         ),
         (

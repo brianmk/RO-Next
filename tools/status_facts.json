@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "de941023056ba7f1ce134bfe5ced124d169c3cb45d3639f3eb22df42a3fb8e62",
+      "sha256": "55363d2e39be7d95a3c90f7bb166f77c6629b76be168cdaba570b1fface51759",
       "counts": {
-        "names": 10,
+        "names": 11,
         "icons": 6,
         "categories": 2,
         "value_labels": 7,
-        "auras": 7
+        "auras": 19
       }
     },
     "counts": {
@@ -86,10 +86,10 @@
       "client_state_info": 597,
       "client_icons": 318,
       "robrowser_icons": 313,
-      "merged_statuses": 609,
+      "merged_statuses": 616,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 7
+      "auras": 19
     },
     "dropped_icons": [
       {
@@ -28829,7 +28829,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_TWOHANDQUICKEN -> EF_MAKEBLUR with the EF_TWOHANDQUICKEN colour key (200,200,0): the client tints the weapon afterimage, it has no texture of its own",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.43,
+            0.43,
+            0.0
+          ],
+          "body": [
+            0.78,
+            0.78,
+            0.0
+          ],
+          "glow": [
+            0.86,
+            0.86,
+            0.0
+          ]
+        },
+        "radii": {
+          "ground": 9.5,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 3,
@@ -29511,7 +29561,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_OVERTHRUST -> EF_MAKEBLUR with the EF_OVERTHRUST colour key (250,150,150): afterimage tint, approximated on the white-light texture",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.54,
+            0.33,
+            0.33
+          ],
+          "body": [
+            0.98,
+            0.59,
+            0.59
+          ],
+          "glow": [
+            1.0,
+            0.65,
+            0.65
+          ]
+        },
+        "radii": {
+          "ground": 9.5,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 26,
@@ -29681,10 +29781,10 @@
       "stack": "Single",
       "aura": {
         "kind": "PersistentGlow",
-        "source": "The classic Energy Coat blue body/ground glow; ported as a data aura from rustnarok status visuals",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_ENERGYCOAT -> EF_MAKEBLUR with the EF_ENERGYCOAT colour key (180,180,250)",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ring_blue.tga",
+          "ring": "effect\\ring_yellow.tga",
           "body_frames": [
             "effect\\whitelight.tga"
           ],
@@ -29692,40 +29792,40 @@
         },
         "tint": {
           "ground": [
-            0.55,
-            0.55,
-            0.6
+            0.39,
+            0.39,
+            0.54
           ],
           "body": [
-            0.55,
-            0.8,
-            1.0
+            0.71,
+            0.71,
+            0.98
           ],
           "glow": [
-            0.75,
-            0.9,
+            0.78,
+            0.78,
             1.0
           ]
         },
         "radii": {
-          "ground": 9.0,
-          "ring": 6.0,
+          "ground": 9.5,
+          "ring": 6.5,
           "body": 22.0,
           "body_glow": 13.0
         },
         "timing": {
           "body_frame_rate": 6.0,
-          "ring_rotation_speed": 0.7,
-          "body_rotation_speed": 0.3,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
           "body_camera_offset": 2.0,
           "pulse_speed": 2.0,
-          "pulse_amount": 0.18
+          "pulse_amount": 0.15
         },
         "alpha": {
-          "ground": 0.32,
-          "ring": 0.4,
-          "body": 0.38,
-          "body_glow": 0.32
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
         },
         "height": 11.0
       }
@@ -30515,7 +30615,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_SPEARQUICKEN -> EF_MAKEBLUR with the EF_SPEARQUICKEN colour key (200,200,0)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.43,
+            0.43,
+            0.0
+          ],
+          "body": [
+            0.78,
+            0.78,
+            0.0
+          ],
+          "glow": [
+            0.86,
+            0.86,
+            0.0
+          ]
+        },
+        "radii": {
+          "ground": 9.5,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 69,
@@ -31026,53 +31176,57 @@
       "stack": "Single",
       "aura": {
         "kind": "PersistentGlow",
-        "source": "procedural Fury body glow (EFST_EXPLOSIONSPIRITS); official client tints the character while Fury is active",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_EXPLOSIONSPIRITS -> EF_GUMGANG, whose implementation loops effectsuper1..5.bmp around the body",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ring_blue.tga",
+          "ring": "effect\\ring_yellow.tga",
           "body_frames": [
-            "effect\\whitelight.tga"
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
           ],
-          "body_glow": "effect\\whitelight.tga"
+          "body_glow": "effect\\super1.bmp"
         },
         "tint": {
           "ground": [
-            0.45,
-            0.75,
-            1.0
+            0.55,
+            0.47,
+            0.19
           ],
           "body": [
-            0.6,
+            1.0,
             0.85,
-            1.0
+            0.35
           ],
           "glow": [
-            0.9,
-            0.97,
-            1.0
+            1.0,
+            0.94,
+            0.39
           ]
         },
         "radii": {
-          "ground": 9.0,
-          "ring": 6.0,
-          "body": 22.0,
-          "body_glow": 13.0
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
         },
         "timing": {
-          "body_frame_rate": 6.0,
-          "ring_rotation_speed": 0.7,
-          "body_rotation_speed": 0.3,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 2.0,
-          "pulse_amount": 0.18
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
         },
         "alpha": {
-          "ground": 0.35,
-          "ring": 0.45,
-          "body": 0.38,
-          "body_glow": 0.35
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
         },
-        "height": 11.0
+        "height": 12.0
       }
     },
     {
@@ -31108,53 +31262,57 @@
       "stack": "Single",
       "aura": {
         "kind": "PersistentGlow",
-        "source": "The classic Steel Body white/grey glints; ported as a data aura from rustnarok status visuals",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_STEELBODY -> EF_STEELBODY + EF_SU_STOOP, effectsuper1..5.bmp body loop",
         "textures": {
           "ground": "effect\\whitelight.tga",
-          "ring": "effect\\ring_liner.tga",
+          "ring": "effect\\ring_yellow.tga",
           "body_frames": [
-            "effect\\whitelight.tga"
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
           ],
-          "body_glow": "effect\\whitelight.tga"
+          "body_glow": "effect\\super1.bmp"
         },
         "tint": {
           "ground": [
-            0.85,
-            0.85,
-            0.85
+            0.47,
+            0.49,
+            0.55
           ],
           "body": [
-            0.8,
-            0.83,
-            0.88
+            0.85,
+            0.9,
+            1.0
           ],
           "glow": [
-            0.92,
             0.94,
+            0.99,
             1.0
           ]
         },
         "radii": {
-          "ground": 9.0,
-          "ring": 6.0,
-          "body": 22.0,
-          "body_glow": 13.0
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
         },
         "timing": {
-          "body_frame_rate": 6.0,
-          "ring_rotation_speed": 0.7,
-          "body_rotation_speed": 0.3,
-          "body_camera_offset": 2.0,
-          "pulse_speed": 2.0,
-          "pulse_amount": 0.18
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
         },
         "alpha": {
-          "ground": 0.32,
+          "ground": 0.3,
           "ring": 0.4,
-          "body": 0.38,
-          "body_glow": 0.32
+          "body": 0.45,
+          "body_glow": 0.4
         },
-        "height": 11.0
+        "height": 12.0
       }
     },
     {
@@ -31382,6 +31540,84 @@
       "have_time_limit": true,
       "refresh": "Replace",
       "stack": "Single"
+    },
+    {
+      "id": 107,
+      "efst": "EFST_BERSERK",
+      "sc": "SC_BERSERK",
+      "client_efst_id": null,
+      "name": "Berserk",
+      "name_source": "custom",
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "pre-re/status.yml Debuff flag",
+      "status_yml": "Berserk",
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [
+        "NoSave"
+      ],
+      "calc_flags": [
+        "All"
+      ],
+      "duration_lookup": "LK_BERSERK",
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects: EFST_BERSERK -> EF_REDBODY, a red body tint (no texture). EFST 107 is the status the server sends for Berserk; the existing 132 row is EFST_AUTOBERSERK",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_red.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.55,
+            0.19,
+            0.19
+          ],
+          "body": [
+            0.98,
+            0.47,
+            0.47
+          ],
+          "glow": [
+            1.0,
+            0.45,
+            0.45
+          ]
+        },
+        "radii": {
+          "ground": 10.0,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.4,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.5,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.32,
+          "ring": 0.4,
+          "body": 0.4,
+          "body_glow": 0.35
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 108,
@@ -31764,6 +32000,80 @@
       "have_time_limit": true,
       "refresh": "Replace",
       "stack": "Single"
+    },
+    {
+      "id": 123,
+      "efst": "EFST_MOON",
+      "sc": null,
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "default",
+      "status_yml": null,
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [],
+      "calc_flags": [],
+      "duration_lookup": null,
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_MOON -> EF_SPHEREWIND2 (effectfire_ivy.bmp body glow)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\fire_ivy.bmp"
+          ],
+          "body_glow": "effect\\fire_ivy.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.55,
+            0.3,
+            0.47
+          ],
+          "body": [
+            1.0,
+            0.55,
+            0.85
+          ],
+          "glow": [
+            1.0,
+            0.6,
+            0.94
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
     },
     {
       "id": 124,
@@ -32435,7 +32745,297 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_ONEHANDQUICKEN -> EF_MAKEBLUR with the EF_TWOHANDQUICKEN colour key (200,200,0)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.43,
+            0.43,
+            0.0
+          ],
+          "body": [
+            0.78,
+            0.78,
+            0.0
+          ],
+          "glow": [
+            0.86,
+            0.86,
+            0.0
+          ]
+        },
+        "radii": {
+          "ground": 9.5,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
+    },
+    {
+      "id": 165,
+      "efst": "EFST_SG_SUN_WARM",
+      "sc": "SC_WARM",
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "pre-re/status.yml Debuff flag",
+      "status_yml": "Warm",
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [
+        "NoBanishingBuster",
+        "NoClearance",
+        "NoDispell",
+        "RemoveOnChangeMap",
+        "RemoveOnMapWarp"
+      ],
+      "calc_flags": [],
+      "duration_lookup": "SG_SUN_WARM",
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_SG_SUN_WARM -> EF_DOUBLEGUMGANG + EF_REDLIGHTBODY (effectsuper1..5.bmp body loop)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
+          ],
+          "body_glow": "effect\\super1.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.55,
+            0.44,
+            0.17
+          ],
+          "body": [
+            1.0,
+            0.8,
+            0.3
+          ],
+          "glow": [
+            1.0,
+            0.88,
+            0.33
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
+    },
+    {
+      "id": 166,
+      "efst": "EFST_SG_MOON_WARM",
+      "sc": null,
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "default",
+      "status_yml": null,
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [],
+      "calc_flags": [],
+      "duration_lookup": null,
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_SG_MOON_WARM -> EF_DOUBLEGUMGANG + EF_REDLIGHTBODY (effectsuper1..5.bmp body loop)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
+          ],
+          "body_glow": "effect\\super1.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.39,
+            0.47,
+            0.55
+          ],
+          "body": [
+            0.7,
+            0.85,
+            1.0
+          ],
+          "glow": [
+            0.77,
+            0.94,
+            1.0
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
+    },
+    {
+      "id": 167,
+      "efst": "EFST_SG_STAR_WARM",
+      "sc": null,
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "default",
+      "status_yml": null,
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [],
+      "calc_flags": [],
+      "duration_lookup": null,
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_SG_STAR_WARM -> EF_DOUBLEGUMGANG + EF_REDLIGHTBODY (effectsuper1..5.bmp body loop)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
+          ],
+          "body_glow": "effect\\super1.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.55,
+            0.49,
+            0.33
+          ],
+          "body": [
+            1.0,
+            0.9,
+            0.6
+          ],
+          "glow": [
+            1.0,
+            0.99,
+            0.66
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
     },
     {
       "id": 169,
@@ -32635,7 +33235,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": true,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_OVERTHRUSTMAX -> EF_MAKEBLUR with the EF_OVERTHRUST colour key (250,150,150)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            0.54,
+            0.33,
+            0.33
+          ],
+          "body": [
+            0.98,
+            0.59,
+            0.59
+          ],
+          "glow": [
+            1.0,
+            0.65,
+            0.65
+          ]
+        },
+        "radii": {
+          "ground": 9.5,
+          "ring": 6.5,
+          "body": 22.0,
+          "body_glow": 13.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.6,
+          "body_rotation_speed": 0.25,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.0,
+          "pulse_amount": 0.15
+        },
+        "alpha": {
+          "ground": 0.25,
+          "ring": 0.3,
+          "body": 0.35,
+          "body_glow": 0.4
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 191,
@@ -33055,6 +33705,162 @@
       "have_time_limit": false,
       "refresh": "Replace",
       "stack": "Single"
+    },
+    {
+      "id": 232,
+      "efst": "EFST_DAURA",
+      "sc": null,
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "default",
+      "status_yml": null,
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [],
+      "calc_flags": [],
+      "duration_lookup": null,
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_DAURA -> EF_DOUBLEGUMGANG + EF_REDLIGHTBODY (effectsuper1..5.bmp body loop)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
+          ],
+          "body_glow": "effect\\super1.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.55,
+            0.47,
+            0.19
+          ],
+          "body": [
+            1.0,
+            0.85,
+            0.35
+          ],
+          "glow": [
+            1.0,
+            0.94,
+            0.39
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
+    },
+    {
+      "id": 235,
+      "efst": "EFST_DBARRIER",
+      "sc": null,
+      "client_efst_id": null,
+      "name": null,
+      "name_source": null,
+      "icon": null,
+      "icon_source": null,
+      "category": "Buff",
+      "category_source": "default",
+      "status_yml": null,
+      "display_pc": false,
+      "display_npc": false,
+      "debuff": false,
+      "send_values": [],
+      "status_flags": [],
+      "calc_flags": [],
+      "duration_lookup": null,
+      "min_duration_in_milliseconds": null,
+      "have_time_limit": false,
+      "refresh": "Replace",
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "official client CPlayer::ReapplySkillEffects (rodecomp); official EFST_DBARRIER -> EF_STEELBODY + EF_SU_STOOP (effectsuper1..5.bmp body loop)",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_yellow.tga",
+          "body_frames": [
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp"
+          ],
+          "body_glow": "effect\\super1.bmp"
+        },
+        "tint": {
+          "ground": [
+            0.47,
+            0.49,
+            0.55
+          ],
+          "body": [
+            0.85,
+            0.9,
+            1.0
+          ],
+          "glow": [
+            0.94,
+            0.99,
+            1.0
+          ]
+        },
+        "radii": {
+          "ground": 10.5,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 10.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.6,
+          "body_camera_offset": 2.2,
+          "pulse_speed": 2.4,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.3,
+          "ring": 0.4,
+          "body": 0.45,
+          "body_glow": 0.4
+        },
+        "height": 12.0
+      }
     },
     {
       "id": 241,

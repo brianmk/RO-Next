@@ -1,0 +1,298 @@
+# How the official client generates skill effects, status effects and auras
+
+Audit of the Ragnarok Online client against our korangar data, plus the fixes applied.
+
+* **Ground truth 1:** [`rodecomp`](https://github.com/rodecomp/rodecomp) — a matching decompilation of
+  Ragexe 2026-02-19 (x86, MSVC v142): the client's own C++ for every skill, effect and status.
+* **Ground truth 2:** our own 2019 client's data files in `data.grf`
+  (`data\luafiles514\lua files\skilleffectinfo\skilleffectinfolist.lub`, `skillid.lub`,
+  `effectid.lub`, `skillinfoz\...`), i.e. the exact tables the CondaRO client reads.
+* **Target:** `korangar/archive/data/client/skill_effects.ron` and
+  `korangar/archive/data/client/status_effects.ron` (through their generators).
+
+The audit answers one question: **for each skill, which visual effects does the official client
+spawn, where, when, and what does each effect draw?**
+
+---
+
+## 1. The client has three separate sources for skill visuals
+
+| # | source | data | scope |
+| --- | --- | --- | --- |
+| 1 | `CGameMode::ReceiveSkillUse` (skill-use packet) | C++ `case <SKILL>:` switch | 547 skills / 446 case bodies |
+| 2 | `CSession::PlaySkillEffect` (target/damage path) | C++ `case <SKILL>:` switch | 217 skills (bolts, arrows, Grimtooth, ...) |
+| 3 | `LaunchLuaSkillEffect` / `PlaySkillGroundEffect` | Lua `SKILL_EFFECT_INFO_LIST` | 66 skills (2015+ jobs: Rebellion, Star Emperor, Soul Reaper, Ninja, Kagerou/Oboro, Doram) |
+
+For the pre-renewal skill set the CondaRO server uses, sources 1 and 2 are what matters: the 2019
+Lua table in our own client lists only those 66 newer skills, and every classic skill is
+hard-coded in the executable.
+
+The lookup order differs per path: the damage path asks the Lua target table first and then the
+C++ `PlaySkillEffect` switch; the skill-use path runs the C++ switch and its `default:` label
+falls back to `LaunchLuaSkillEffect`.
+
+### 1.1 `ReceiveSkillUse` (skill use)
+
+1. Resolve `source` / `target` from the packet aids; the caster faces the target when they differ.
+2. Set the caster pose (`SetAction` / `SetFrameSequence`, or `GetMonsterSkillInfo` for monsters).
+3. Switch on `skillId`; each case spawns:
+   * `source->LaunchEffect(EF_X, {0,0,0}, 0.0f)` — effect attached to the **caster**;
+   * `target->LaunchEffect(EF_X, ...)` — effect attached to the **target**;
+   * `g_effectMgr->Spawn(aid, EF_X, x, y, z, ...)` — effect at a **ground cell** (an all-zero
+     position means "the actor's position");
+   * `g_soundMgr->PlayWave(...)`, `MM_QUAKE`, `AM_DELETE_EFFECT` (the "delete then relaunch"
+     pattern used by every Quicken/Overthrust buff).
+4. Skills not listed fall through to `LaunchLuaSkillEffect` (source 3).
+
+Statement counts (2026 client):
+
+| statement | count |
+| --- | ---: |
+| `LaunchEffect` (caster/target) | 333 |
+| `g_effectMgr->Spawn` (ground) | 232 |
+| `PlayWave` | 164 |
+| deletes | 28 |
+| `MM_QUAKE` | 10 |
+| pose/frame actions | 24 |
+
+Examples with exact code locations:
+
+```cpp
+case AL_BLESSING:  target->LaunchEffect(EF_BLESSING, ...);            // GameModePackets.cpp:19786
+case HP_ASSUMPTIO: target->LaunchEffect(EF_ASSUMPTIO, ...);           // + EF_ASSUMPTIO2
+case KN_TWOHANDQUICKEN:
+  source->SendMsg(nullptr, AM_DELETE_EFFECT, EF_TWOHANDQUICKEN, ...); // relaunch cleanly
+  source->LaunchEffect(EF_TWOHANDQUICKEN, ...);
+```
+
+### 1.2 `PlaySkillEffect` (target / projectile effects)
+
+235 `LaunchEffect`, 70 ground `Spawn`, 57 sounds. Characteristic shape: an effect is launched on
+the **caster** and then moved to the target with
+`effect->SendMsg(nullptr, AM_SETPOS, 0, &target->render.position, ...)`. In the extracted facts
+each effect therefore carries a final `plays_on` anchor (174 target / 68 source of 242).
+
+### 1.3 The 2019 Lua table (exact, from our own client)
+
+`data\luafiles514\lua files\skilleffectinfo\skilleffectinfolist.lub` — 66 skills, read through
+`skillinfo_f.lub` accessors. The `CondaRO.grf` copy contains the same 66 skills (the two files
+differ only in compression).
+
+| Lua field | anchor |
+| --- | --- |
+| `effectID` / `effectNum` / `waveFileName` | caster (`onTarget = true` moves it to the target) |
+| `targetEffectID` / `targetEffectNum` / `targetWaveFileName` | target |
+| `groundEffectID` / `groundEffectNum` | cast cell |
+| `toTargetEffectID` / `toTargetEffectNum` | travelling projectile |
+| `beginEffectID` / `beginMotionType` | cast begin (effect + pose) |
+| `LaunchZC_USE_SKILL` | triggered on `ZC_USE_SKILL` instead of `ZC_NOTIFY_SKILL` |
+
+Extracted facts: `tools/rodecomp_skill_facts.json` covers the C++ side; the Lua table is a
+separate fact used to confirm which effect ids the 2019 client actually plays.
+
+### 1.4 Ground scope decal
+
+`CGroundScope::SkillScopeType(skillId)` maps a ground-targeted skill to a cell radius
+(3/5/7/9/11/18/19; three special cases). The decal is `effect\magic_target.tga` except
+`GC_POISONSMOKE`, `WL_COMET` and `CD_COMPETENTIA`.
+
+---
+
+## 2. What an effect actually draws
+
+`CRagEffect::Init` stores the effect id, sets the **lifetime in frames** from
+`EffectLifetime(id)` (`EffectTypes.cpp`, ~2459 entries, e.g. `EF_BLESSING = 150`,
+`EF_SIGNUM = 999`) and selects the **`.str` screen effect** for ids that have one
+(226 ids, e.g. `EF_PROVOKE → Provoke.str`, `EF_HAMMERFALL → CrashEarth.str`, including the
+`_min` alternates).
+
+The visual logic is a per-effect method (`CRagEffect::Blessing`, `CHealEffect`, ...) that runs
+every frame and emits **primitives** through `LaunchEffectPrim(PP_*, pos)`:
+
+| primitive | meaning |
+| --- | --- |
+| `PP_2DTEXTURE` (0), `PP_2DQUAD` (2), `PP_2DFLASH` (3) | screen-space textures |
+| `PP_3DPARTICLE` (5) | 3D particle sprite (`.spr`/`.act`) |
+| `PP_3DCIRCLE` (12) | ground circle |
+| `PP_3DCYLINDER` (13) | cylinder |
+| `PP_3DCROSSTEXTURE` (16) | camera-facing billboard |
+| ... | 60+ primitive types (`EffectPrimId.h`) |
+
+Example — the *complete* official visual of AL_BLESSING (`CRagEffect::Blessing`, 150 frames):
+
+```
+sound  effect\EF_Blessing.wav
+once   PP_3DCIRCLE  texture effect\alpha_down.tga, radius 10, latitude 90,
+                    rgb (32,176,232), alpha 0 -> 100 over 30 frames, fade last 30
+%3<10  PP_3DPARTICLE sprite 이팩트\축복.spr/.act, offset {0,-25,0}   (head anchor)
+%4     PP_3DPARTICLE sprite 이팩트\particle6.spr/.act, random spin, speed/accel, alpha 0 -> max
+```
+
+Our data played `축복`, `particle6`, a `pok2.tga` flash that the official effect does not
+contain, and a hand-written `angel_fluttering.str` — and was missing the `alpha_down.tga` ground
+circle. This is the class of error the audit fixes.
+
+---
+
+## 3. Status effects and auras
+
+The server's status list (`ZC_MSG_STATE_CHANGE`) is stored in `g_activeSkillEffects`. The full
+visual state is rebuilt by `CPlayer::ReapplySkillEffects` (called on map entry/respawn, on the
+local player's actor-state rebuild, and on `ZC_NOTIFY_MAPPROPERTY2`); a single change is applied
+incrementally through `AM_STATUS_CHANGE`.
+
+`ReapplySkillEffects` is a switch over **144** statuses; **111** of them spawn a persistent
+effect (61 `LaunchEffect` on the player, 50 ground/other `Spawn`). Classic ones:
+
+| status | effect | kind |
+| --- | --- | --- |
+| Two-Hand Quicken (2) | `EF_MAKEBLUR` + colour key | weapon afterimage |
+| Overthrust (25) / Overthrust Max (188) | `EF_MAKEBLUR` | afterimage |
+| Energy Coat (31) | `EF_MAKEBLUR` | afterimage |
+| Spear Quicken (68) | `EF_MAKEBLUR` | afterimage |
+| One-Hand Quicken (161) | `EF_MAKEBLUR` | afterimage |
+| Critical Explosion (86) | `EF_GUMGANG` | `super1..5.bmp` body loop |
+| Steel Body (87) | `EF_STEELBODY` + `EF_SU_STOOP` | body loop |
+| Aura Blade (103) | `EF_AURABLADE2` | render flag only |
+| LK Concentration (105) | `EF_LKCONCENTRATION` | |
+| Berserk (107) | `EF_REDBODY` | body tint |
+| Assumptio (110, 473) | `EF_ASSUMPTIO` | render flag; visual is `EF_ASSUMPTIO2` |
+| Magic Power (113) | `EF_LIGHTBLADE` | |
+| Moon (123) | `EF_SPHEREWIND2` | `fire_ivy.bmp` |
+| Soul Link (149) | `EF_ASURABODY` | |
+| Kaite (153) | `EF_REFLECTBODY` | render flag only |
+| SG Sun/Moon/Star Warm (165–167) | `EF_DOUBLEGUMGANG` + `EF_REDLIGHTBODY` | body loop |
+| Daura (232), D Barrier (235) | same pairs | body loop |
+| Hallucination Walk (334), Striking (445) | `EF_MAKEHALLU`/`2` | afterimage |
+
+The weapon-blur colour is not data: `SETCOUNT_EFFECT_COLOR` carries an *effect id* that
+`CRagEffect::SendMsg` maps to an RGB tint used for the afterimage:
+
+| key | RGB |
+| --- | --- |
+| `EF_TWOHANDQUICKEN` | (200, 200, 0) |
+| `EF_OVERTHRUST` | (250, 150, 150) |
+| `EF_SPEARQUICKEN` | (200, 200, 0) |
+| `EF_ENERGYCOAT` | (180, 180, 250) |
+| `EF_FASTMOVE`, `EF_MAKEHALLU`, `EF_MAKEHALLU2`, `EF_MAKEFEINT` | (250, 250, 250) |
+
+Two sentinels encode special cases for `EF_OVERTHRUST` and `EF_TWOHANDQUICKEN`, and
+`EFST_NJ_BUNSINJYUTSU` passes a key with no mapping (no tint).
+
+The **max-level aura** is a separate path (`CGameActor::UpdateMaxLevelAura`): 99/150 blue
+(100,100,255), 160 yellow (255,255,100), 185 pink (255,155,155), 4th tier orange (255,155,0).
+
+---
+
+## 4. What was fixed
+
+### 4.1 New official status auras (`tools/status_effect_custom.ron` → `status_effects.ron`)
+
+The client data had **7** auras (5 of them procedural). The official table has **61** statuses
+with a persistent effect; for the pre-renewal server **15** of them are now real data (14 textured,
+plus the Berserk body tint):
+
+| status | before | now |
+| --- | --- | --- |
+| Two-Hand Quicken (2) | none | `EF_MAKEBLUR` tint (200,200,0) |
+| Overthrust (25) | none | `EF_MAKEBLUR` tint (250,150,150) |
+| Energy Coat (31) | white/blue procedural | official `EF_ENERGYCOAT` tint (180,180,250) |
+| Spear Quicken (68) | none | `EF_MAKEBLUR` tint (200,200,0) |
+| Critical Explosion (86) | white/blue procedural | official `EF_GUMGANG` `super1..5.bmp` loop |
+| Steel Body (87) | white/grey procedural | official `EF_STEELBODY` `super1..5.bmp` loop |
+| Moon (123) | none | `EF_SPHEREWIND2` `fire_ivy.bmp` |
+| One-Hand Quicken (161) | none | `EF_MAKEBLUR` tint (200,200,0) |
+| Sun/Moon/Star Warm (165–167) | none | `EF_DOUBLEGUMGANG` `super1..5.bmp` loop |
+| Overthrust Max (188) | none | `EF_MAKEBLUR` tint (250,150,150) |
+| Daura (232) | none | `EF_DOUBLEGUMGANG` `super1..5.bmp` loop |
+| D Barrier (235) | none | `EF_STEELBODY` `super1..5.bmp` loop |
+| Berserk (**107**) | none | `EF_REDBODY` red body glow |
+
+Two data bugs were found and fixed on the way:
+
+* the Berserk aura was attached to status **132**, which is `EFST_AUTOBERSERK`, not
+  `EFST_BERSERK` (**107**) — the row for 107 did not exist and the status also had no name in the
+  client table (a name override was added);
+* `EFST_ENDURE` (1) has **no** persistent effect in the official client: its aura stays, but it is
+  marked as procedural in this report, not official.
+
+The `EF_MAKEBLUR` family has no texture of its own (the official client tints the weapon
+afterimage), so those rows reproduce the **official tint** on the generic white-light texture.
+Aura rows of statuses whose official visual is a pure render flag (`EF_AURABLADE2` sets
+`render.flags |= 2`, `EF_REFLECTBODY` sets `|= 0x200`, and `EF_CLOAKING*` changes the sprite
+transparency) are intentionally **not** approximated with a glow.
+
+### 4.2 New skill-effect rows for hard-coded official effects
+
+`tools/gen_rodecomp_overlay.py` generates `tools/skill_effects_rodecomp.ron` (35 skills,
+44 layers) from `tools/rodecomp_skill_facts.json`. `tools/gen_skill_effects.py` merges it after
+the official rows (a row replaces its `(skill, phase)` descriptor).
+
+Selection rule: the skill had **no** client row, the official C++ switch plays an effect for it,
+**and** the effect id is also in the roBrowserLegacy-derived table our data already uses. That
+double confirmation keeps the 2026-vs-2019 version risk out of the change.
+
+Examples: `BS_OVERTHRUST` 113 (`EF_STONECURSE`-ring), `MO_TRIPLEATTACK` 263 (`cloud11`),
+`LK_AURABLADE` 355 (`ring_white`+`ring_yellow`), `SL_*` linkers (`soul_*` textures),
+`ST_FULLSTRIP` 476 (`shield`+`sword`), `GS_DISARM` 513 (weapon items), `CG_MARIONETTE` 396,
+`TK_STORMKICK` 413.
+
+---
+
+## 5. Remaining gaps (deliberately not changed)
+
+1. **Version-sensitive effect ids.** rodecomp is a 2026 client; 71 learnable skills have effect
+   ids that differ from the roBrowser-derived table. The classic example is the bard/dancer songs:
+   rodecomp plays `842..848` (`w_bubble%02d` animated bubbles) while our 2019-era table has
+   `278..294`. Changing those needs the 2019 executable as ground truth, not rodecomp.
+2. **Skills with rows that miss official layers** (127 skills total). The largest offenders:
+   `AL_BLESSING` 34 (missing the `alpha_down.tga` circle, has a non-official `pok2.tga`),
+   `AL_HEAL` 28 (official `alpha_down` + `pok1`, we draw `ring_white`/`pok3` cylinders),
+   `SM_MAGNUM` 7 (`대폭발.tga` sphere), `MG_FIREBALL` 17 (`이팩트\fireball` sprite),
+   `MG_COLDBOLT` 14 (`ring_blue`), `KN_SPEARBOOMERANG` 59 (`이팩트\창`), `WZ_WATERBALL` 86,
+   `PR_ASPERSIO` 68, `TF_STEAL` 50, `TF_DETOXIFY` 53.
+3. **Animated texture patterns** (`%02d`, e.g. `w_bubble%02d`, `thunder_ball_0001..`) and
+   `.spr` frame sequences cannot be expressed by the aura/layer schema; the songs'
+   reworked bubbles are in that class.
+4. **Flag-only auras** (Aura Blade, Kaite, Cloaking/Stealth Field/Shadow Form, Undead Body)
+   need body/weapon render changes, not a texture glow.
+5. **Persistent `EF_MAKEBLUR` afterimages** are approximated by a tinted glow; exact reproduction
+   needs an afterimage pass on the weapon sprite.
+6. 37 skills with official effects are still uncovered (no shared effect id or no renderable
+   asset), e.g. `SG_*_WARM` effect ids 418/544/572, `SL_ALCHEMIST` 424/503, `PF_MEMORIZE` 505,
+   `LK_BERSERK` 368 (body tint only).
+
+---
+
+## 6. Reproduction
+
+The extraction tooling lives outside this repository (it needs a rodecomp checkout and the game
+GRFs):
+
+* `rodecomp` checkout at the pin documented in `tools/rodecomp_skill_facts.json`
+  (`provenance.source`);
+* `skill_spawns.json` / `skill_spawns_play_skill.json` — per-skill effect statements from
+  `ReceiveSkillUse` and `PlaySkillEffect` (anchor, sound, guards);
+* `effect_defs.json` — 2481 effect ids: implementation, lifetime, `.str` resource, primitives,
+  textures, sprites, colours;
+* `status_auras.json` — 144 `ReapplySkillEffects` statuses, MAKEBLUR colour keys, level aura;
+* `lua_skill_effect_info.json` — the 2019 client's own 66-skill Lua table, extracted from
+  `data.grf` (32-bit Lua 5.1 is needed to load the `.lub` bytecode).
+
+Checks in this repository:
+
+```sh
+./tools/gen_rodecomp_overlay.py --check     # overlay data up to date
+./tools/gen_skill_effects.py --check        # 472 phases / 651 layers
+./tools/gen_status_effects.py --check       # 18 aura rows / 19 statuses
+python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
+korangar --check-skill-effects              # 472 descriptors valid
+korangar --check-status-effects             # 616 statuses valid
+cargo test -p korangar --lib                # 564 passed
+```
+
+`cargo test -p korangar --test ui_consistency` still fails on
+`no_hardcoded_button_words_in_user_facing_windows` and
+`no_hardcoded_window_titles_in_user_facing_windows`. Both scan `src/interface`
+only (untouched here) - pre-existing failures from the interface lanes in the
+integration branch, not caused by this data change.
