@@ -384,6 +384,33 @@ the account or its password has changed on the CondaRO server since. Re-running 
 valid test account (or the account password restored); the map/SQL server itself is reachable
 (login port 6900 accepts connections from this host).
 
+## 5b. Coverage audit tool
+
+`tools/audit_rodecomp_coverage.py` joins the committed facts
+(`tools/rodecomp_effect_coverage.json`: per-skill official/2019 effect ids and the version-correct
+assets) with the learnable-skill snapshot and the committed data file, and classifies every
+learnable pre-renewal skill:
+
+```sh
+./tools/audit_rodecomp_coverage.py              # summary
+./tools/audit_rodecomp_coverage.py --list-gaps  # every partial/uncovered/flag-only skill
+./tools/audit_rodecomp_coverage.py --json       # machine readable
+```
+
+Current result (457 learnable skills):
+
+| bucket | skills | meaning |
+| --- | ---: | --- |
+| complete | 265 | every version-correct official asset is rendered |
+| partial | 11 | has rows, misses one or more official assets |
+| uncovered | 8 | official effect assets, no rows |
+| flag_only | 13 | official effect renders no asset (blend/blink/outline/tint) |
+| no_effect | 160 | no official effect (passive or sound-only) |
+
+33 skills are flagged `drift` (the 2026 and 2019 effect id sets are disjoint); the songs and
+`PR_TURNUNDEAD`/`AS_ENCHANTPOISON`/`AS_SPLASHER` are handled by the version-correct mapping
+described above. `tools/test_rodecomp_coverage.py` keeps the facts and the classifier honest.
+
 ## 6. Reproduction
 
 The extraction tooling lives outside this repository (it needs a rodecomp checkout and the game
@@ -403,10 +430,11 @@ Checks in this repository:
 
 ```sh
 ./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 501 phases / 751 layers
+./tools/gen_skill_effects.py --check        # 501 phases / 756 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 python3 tools/test_rodecomp_overlay.py      # 6 overlay invariant tests
+python3 tools/test_rodecomp_coverage.py     # 3 coverage audit tests
 korangar --check-skill-effects              # 501 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)

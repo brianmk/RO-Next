@@ -1219,6 +1219,18 @@
      "blend": "Additive"
     },
     {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\magic_violet.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive"
+    },
+    {
      "kind": "Texture",
      "anchor": "Caster",
      "attached_entity": true,
@@ -1262,6 +1274,19 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\magic_violet.tga",
      "duration_ms": 30000,
      "height": 2.0,
      "bottom_radius": 7.2,
@@ -1354,6 +1379,18 @@
      "blend": "Additive"
     },
     {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\magic_violet.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive"
+    },
+    {
      "kind": "Texture",
      "anchor": "Caster",
      "attached_entity": true,
@@ -1397,6 +1434,19 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\magic_violet.tga",
      "duration_ms": 30000,
      "height": 2.0,
      "bottom_radius": 7.2,
@@ -1450,6 +1500,19 @@
      "anchor": "Ground",
      "attached_entity": true,
      "file": "effect\\ring_red.tga",
+     "duration_ms": 30000,
+     "height": 2.0,
+     "bottom_radius": 7.2,
+     "top_radius": 7.2,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "phase": "Success"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Ground",
+     "attached_entity": true,
+     "file": "effect\\magic_violet.tga",
      "duration_ms": 30000,
      "height": 2.0,
      "bottom_radius": 7.2,

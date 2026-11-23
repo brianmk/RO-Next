@@ -1,0 +1,5581 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d (matching decompilation of Ragexe 2026-02-19)",
+  "client_tables": "2019 CondaRO client data.grf: skilleffectinfolist.lub (SKILL_EFFECT_INFO_LIST)",
+  "note": "Per-skill effect ids from the official C++ switches (ReceiveSkillUse + PlaySkillEffect) and from the roBrowserLegacy-derived 2019-era table the client data uses; official_assets are the renderable assets of the official effect implementations. Used by tools/audit_rodecomp_coverage.py. used_effect_ids/used_assets are the version-correct mapping: the 2019-era ids for the bard/dancer songs (the 2026 client reworked them), the official ids otherwise."
+ },
+ "skills": {
+  "5": {
+   "name": "SM_BASH",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    1
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "6": {
+   "name": "SM_PROVOKE",
+   "official_effect_ids": [
+    67
+   ],
+   "client_effect_ids_2019": [
+    67
+   ],
+   "official_assets": [
+    "provoke"
+   ],
+   "used_effect_ids": [
+    67
+   ],
+   "used_assets": [
+    "provoke"
+   ]
+  },
+  "7": {
+   "name": "SM_MAGNUM",
+   "official_effect_ids": [
+    17
+   ],
+   "client_effect_ids_2019": [
+    17,
+    49
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "effect\\대폭발"
+   ],
+   "used_effect_ids": [
+    17
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "effect\\대폭발"
+   ]
+  },
+  "8": {
+   "name": "SM_ENDURE",
+   "official_effect_ids": [
+    11
+   ],
+   "client_effect_ids_2019": [
+    11
+   ],
+   "official_assets": [
+    "effect\\alpha_down",
+    "effect\\endure"
+   ],
+   "used_effect_ids": [
+    11
+   ],
+   "used_assets": [
+    "effect\\alpha_down",
+    "effect\\endure"
+   ]
+  },
+  "10": {
+   "name": "MG_SIGHT",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    22
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "11": {
+   "name": "MG_NAPALMBEAT",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    1
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "13": {
+   "name": "MG_SOULSTRIKE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    1,
+    15
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "14": {
+   "name": "MG_COLDBOLT",
+   "official_effect_ids": [
+    26
+   ],
+   "client_effect_ids_2019": [
+    26,
+    51
+   ],
+   "official_assets": [
+    "effect\\icearrow",
+    "effect\\ring_blue"
+   ],
+   "used_effect_ids": [
+    26
+   ],
+   "used_assets": [
+    "effect\\icearrow",
+    "effect\\ring_blue"
+   ]
+  },
+  "15": {
+   "name": "MG_FROSTDIVER",
+   "official_effect_ids": [
+    27
+   ],
+   "client_effect_ids_2019": [
+    27,
+    28,
+    51
+   ],
+   "official_assets": [
+    "effect\\ice"
+   ],
+   "used_effect_ids": [
+    27
+   ],
+   "used_assets": [
+    "effect\\ice"
+   ]
+  },
+  "16": {
+   "name": "MG_STONECURSE",
+   "official_effect_ids": [
+    23
+   ],
+   "client_effect_ids_2019": [
+    23
+   ],
+   "official_assets": [
+    "stonecurse"
+   ],
+   "used_effect_ids": [
+    23
+   ],
+   "used_assets": [
+    "stonecurse"
+   ]
+  },
+  "17": {
+   "name": "MG_FIREBALL",
+   "official_effect_ids": [
+    24
+   ],
+   "client_effect_ids_2019": [
+    1,
+    24,
+    49
+   ],
+   "official_assets": [
+    "이팩트\\fireball"
+   ],
+   "used_effect_ids": [
+    24
+   ],
+   "used_assets": [
+    "이팩트\\fireball"
+   ]
+  },
+  "18": {
+   "name": "MG_FIREWALL",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    25,
+    49
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "19": {
+   "name": "MG_FIREBOLT",
+   "official_effect_ids": [
+    31
+   ],
+   "client_effect_ids_2019": [
+    31,
+    49
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "effect\\불화살1",
+    "effect\\불화살2",
+    "effect\\불화살3",
+    "effect\\불화살4",
+    "effect\\불화살5",
+    "effect\\불화살6",
+    "이팩트\\particle4"
+   ],
+   "used_effect_ids": [
+    31
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "effect\\불화살1",
+    "effect\\불화살2",
+    "effect\\불화살3",
+    "effect\\불화살4",
+    "effect\\불화살5",
+    "effect\\불화살6",
+    "이팩트\\particle4"
+   ]
+  },
+  "20": {
+   "name": "MG_LIGHTNINGBOLT",
+   "official_effect_ids": [
+    29
+   ],
+   "client_effect_ids_2019": [
+    29,
+    52
+   ],
+   "official_assets": [
+    "lightning"
+   ],
+   "used_effect_ids": [
+    29
+   ],
+   "used_assets": [
+    "lightning"
+   ]
+  },
+  "21": {
+   "name": "MG_THUNDERSTORM",
+   "official_effect_ids": [
+    30
+   ],
+   "client_effect_ids_2019": [
+    0,
+    30
+   ],
+   "official_assets": [
+    "thunderstorm"
+   ],
+   "used_effect_ids": [
+    30
+   ],
+   "used_assets": [
+    "thunderstorm"
+   ]
+  },
+  "24": {
+   "name": "AL_RUWACH",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    1
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "25": {
+   "name": "AL_PNEUMA",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    141
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "28": {
+   "name": "AL_HEAL",
+   "official_effect_ids": [
+    320
+   ],
+   "client_effect_ids_2019": [
+    312,
+    320
+   ],
+   "official_assets": [
+    "effect\\alpha_down",
+    "effect\\pok1",
+    "effect\\pok3"
+   ],
+   "used_effect_ids": [
+    320
+   ],
+   "used_assets": [
+    "effect\\alpha_down",
+    "effect\\pok1",
+    "effect\\pok3"
+   ]
+  },
+  "29": {
+   "name": "AL_INCAGI",
+   "official_effect_ids": [
+    37
+   ],
+   "client_effect_ids_2019": [
+    37
+   ],
+   "official_assets": [
+    "effect\\ac_center2",
+    "effect\\agi_up"
+   ],
+   "used_effect_ids": [
+    37
+   ],
+   "used_assets": [
+    "effect\\ac_center2",
+    "effect\\agi_up"
+   ]
+  },
+  "30": {
+   "name": "AL_DECAGI",
+   "official_effect_ids": [
+    38
+   ],
+   "client_effect_ids_2019": [
+    38
+   ],
+   "official_assets": [
+    "effect\\ac_center2",
+    "effect\\slow"
+   ],
+   "used_effect_ids": [
+    38
+   ],
+   "used_assets": [
+    "effect\\ac_center2",
+    "effect\\slow"
+   ]
+  },
+  "31": {
+   "name": "AL_HOLYWATER",
+   "official_effect_ids": [
+    39
+   ],
+   "client_effect_ids_2019": [
+    39
+   ],
+   "official_assets": [
+    "이팩트\\성수뜨기"
+   ],
+   "used_effect_ids": [
+    39
+   ],
+   "used_assets": [
+    "이팩트\\성수뜨기"
+   ]
+  },
+  "32": {
+   "name": "AL_CRUCIS",
+   "official_effect_ids": [
+    40
+   ],
+   "client_effect_ids_2019": [
+    40
+   ],
+   "official_assets": [
+    "cross",
+    "effect\\alpha_center",
+    "effect\\alpha_down"
+   ],
+   "used_effect_ids": [
+    40
+   ],
+   "used_assets": [
+    "cross",
+    "effect\\alpha_center",
+    "effect\\alpha_down"
+   ]
+  },
+  "33": {
+   "name": "AL_ANGELUS",
+   "official_effect_ids": [
+    41
+   ],
+   "client_effect_ids_2019": [
+    41
+   ],
+   "official_assets": [
+    "angelus"
+   ],
+   "used_effect_ids": [
+    41
+   ],
+   "used_assets": [
+    "angelus"
+   ]
+  },
+  "34": {
+   "name": "AL_BLESSING",
+   "official_effect_ids": [
+    42
+   ],
+   "client_effect_ids_2019": [
+    42
+   ],
+   "official_assets": [
+    "effect\\alpha_down",
+    "이팩트\\particle6",
+    "이팩트\\축복"
+   ],
+   "used_effect_ids": [
+    42
+   ],
+   "used_assets": [
+    "effect\\alpha_down",
+    "이팩트\\particle6",
+    "이팩트\\축복"
+   ]
+  },
+  "35": {
+   "name": "AL_CURE",
+   "official_effect_ids": [
+    66
+   ],
+   "client_effect_ids_2019": [
+    66
+   ],
+   "official_assets": [
+    "cure"
+   ],
+   "used_effect_ids": [
+    66
+   ],
+   "used_assets": [
+    "cure"
+   ]
+  },
+  "42": {
+   "name": "MC_MAMMONITE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    10
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "45": {
+   "name": "AC_CONCENTRATION",
+   "official_effect_ids": [
+    153
+   ],
+   "client_effect_ids_2019": [
+    153
+   ],
+   "official_assets": [
+    "concentration"
+   ],
+   "used_effect_ids": [
+    153
+   ],
+   "used_assets": [
+    "concentration"
+   ]
+  },
+  "46": {
+   "name": "AC_DOUBLE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    1,
+    16
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "47": {
+   "name": "AC_SHOWER",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    1
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "50": {
+   "name": "TF_STEAL",
+   "official_effect_ids": [
+    18
+   ],
+   "client_effect_ids_2019": [
+    18
+   ],
+   "official_assets": [
+    "이팩트\\particle7"
+   ],
+   "used_effect_ids": [
+    18
+   ],
+   "used_assets": [
+    "이팩트\\particle7"
+   ]
+  },
+  "52": {
+   "name": "TF_POISON",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    20
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "53": {
+   "name": "TF_DETOXIFY",
+   "official_effect_ids": [
+    21
+   ],
+   "client_effect_ids_2019": [
+    21
+   ],
+   "official_assets": [
+    "이팩트\\particle2"
+   ],
+   "used_effect_ids": [
+    21
+   ],
+   "used_assets": [
+    "이팩트\\particle2"
+   ]
+  },
+  "54": {
+   "name": "ALL_RESURRECTION",
+   "official_effect_ids": [
+    77,
+    140
+   ],
+   "client_effect_ids_2019": [
+    77,
+    140
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "resurrection"
+   ],
+   "used_effect_ids": [
+    77,
+    140
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "resurrection"
+   ]
+  },
+  "56": {
+   "name": "KN_PIERCE",
+   "official_effect_ids": [
+    148
+   ],
+   "client_effect_ids_2019": [
+    147,
+    148
+   ],
+   "official_assets": [
+    "pierce"
+   ],
+   "used_effect_ids": [
+    148
+   ],
+   "used_assets": [
+    "pierce"
+   ]
+  },
+  "57": {
+   "name": "KN_BRANDISHSPEAR",
+   "official_effect_ids": [
+    70
+   ],
+   "client_effect_ids_2019": [
+    70,
+    144
+   ],
+   "official_assets": [
+    "brandish"
+   ],
+   "used_effect_ids": [
+    70
+   ],
+   "used_assets": [
+    "brandish"
+   ]
+  },
+  "58": {
+   "name": "KN_SPEARSTAB",
+   "official_effect_ids": [
+    150
+   ],
+   "client_effect_ids_2019": [
+    150
+   ],
+   "official_assets": [
+    "spearstab"
+   ],
+   "used_effect_ids": [
+    150
+   ],
+   "used_assets": [
+    "spearstab"
+   ]
+  },
+  "59": {
+   "name": "KN_SPEARBOOMERANG",
+   "official_effect_ids": [
+    80,
+    151
+   ],
+   "client_effect_ids_2019": [
+    80,
+    151
+   ],
+   "official_assets": [
+    "spearboomerang",
+    "이팩트\\창"
+   ],
+   "used_effect_ids": [
+    80,
+    151
+   ],
+   "used_assets": [
+    "spearboomerang",
+    "이팩트\\창"
+   ]
+  },
+  "60": {
+   "name": "KN_TWOHANDQUICKEN",
+   "official_effect_ids": [
+    130
+   ],
+   "client_effect_ids_2019": [
+    130
+   ],
+   "official_assets": [
+    "twohand"
+   ],
+   "used_effect_ids": [
+    130
+   ],
+   "used_assets": [
+    "twohand"
+   ]
+  },
+  "61": {
+   "name": "KN_AUTOCOUNTER",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    131
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "62": {
+   "name": "KN_BOWLINGBASH",
+   "official_effect_ids": [
+    149
+   ],
+   "client_effect_ids_2019": [
+    1,
+    149
+   ],
+   "official_assets": [
+    "bowling"
+   ],
+   "used_effect_ids": [
+    149
+   ],
+   "used_assets": [
+    "bowling"
+   ]
+  },
+  "66": {
+   "name": "PR_IMPOSITIO",
+   "official_effect_ids": [
+    84
+   ],
+   "client_effect_ids_2019": [
+    84
+   ],
+   "official_assets": [
+    "impositio"
+   ],
+   "used_effect_ids": [
+    84
+   ],
+   "used_assets": [
+    "impositio"
+   ]
+  },
+  "67": {
+   "name": "PR_SUFFRAGIUM",
+   "official_effect_ids": [
+    88
+   ],
+   "client_effect_ids_2019": [
+    88
+   ],
+   "official_assets": [
+    "suffragium"
+   ],
+   "used_effect_ids": [
+    88
+   ],
+   "used_assets": [
+    "suffragium"
+   ]
+  },
+  "68": {
+   "name": "PR_ASPERSIO",
+   "official_effect_ids": [
+    86
+   ],
+   "client_effect_ids_2019": [
+    86
+   ],
+   "official_assets": [
+    "aspersio",
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    86
+   ],
+   "used_assets": [
+    "aspersio",
+    "이팩트\\particle1"
+   ]
+  },
+  "69": {
+   "name": "PR_BENEDICTIO",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    91
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "70": {
+   "name": "PR_SANCTUARY",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    83,
+    319
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "71": {
+   "name": "PR_SLOWPOISON",
+   "official_effect_ids": [
+    136
+   ],
+   "client_effect_ids_2019": [
+    136
+   ],
+   "official_assets": [
+    "slowp"
+   ],
+   "used_effect_ids": [
+    136
+   ],
+   "used_assets": [
+    "slowp"
+   ]
+  },
+  "72": {
+   "name": "PR_STRECOVERY",
+   "official_effect_ids": [
+    78
+   ],
+   "client_effect_ids_2019": [
+    78
+   ],
+   "official_assets": [
+    "recovery"
+   ],
+   "used_effect_ids": [
+    78
+   ],
+   "used_assets": [
+    "recovery"
+   ]
+  },
+  "73": {
+   "name": "PR_KYRIE",
+   "official_effect_ids": [
+    112
+   ],
+   "client_effect_ids_2019": [
+    112
+   ],
+   "official_assets": [
+    "kyrie"
+   ],
+   "used_effect_ids": [
+    112
+   ],
+   "used_assets": [
+    "kyrie"
+   ]
+  },
+  "74": {
+   "name": "PR_MAGNIFICAT",
+   "official_effect_ids": [
+    76
+   ],
+   "client_effect_ids_2019": [
+    76
+   ],
+   "official_assets": [
+    "magnificat"
+   ],
+   "used_effect_ids": [
+    76
+   ],
+   "used_assets": [
+    "magnificat"
+   ]
+  },
+  "75": {
+   "name": "PR_GLORIA",
+   "official_effect_ids": [
+    75
+   ],
+   "client_effect_ids_2019": [
+    75
+   ],
+   "official_assets": [
+    "gloria"
+   ],
+   "used_effect_ids": [
+    75
+   ],
+   "used_assets": [
+    "gloria"
+   ]
+  },
+  "76": {
+   "name": "PR_LEXDIVINA",
+   "official_effect_ids": [
+    87
+   ],
+   "client_effect_ids_2019": [
+    87
+   ],
+   "official_assets": [
+    "lexdivina"
+   ],
+   "used_effect_ids": [
+    87
+   ],
+   "used_assets": [
+    "lexdivina"
+   ]
+  },
+  "77": {
+   "name": "PR_TURNUNDEAD",
+   "official_effect_ids": [
+    82
+   ],
+   "client_effect_ids_2019": [
+    152
+   ],
+   "official_assets": [
+    "effect\\alpha_center",
+    "effect\\alpha_down",
+    "effect\\ring_liner"
+   ],
+   "used_effect_ids": [
+    82
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "effect\\alpha_down",
+    "effect\\ring_liner"
+   ]
+  },
+  "78": {
+   "name": "PR_LEXAETERNA",
+   "official_effect_ids": [
+    85
+   ],
+   "client_effect_ids_2019": [
+    85
+   ],
+   "official_assets": [
+    "lexaeterna"
+   ],
+   "used_effect_ids": [
+    85
+   ],
+   "used_assets": [
+    "lexaeterna"
+   ]
+  },
+  "79": {
+   "name": "PR_MAGNUS",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    113,
+    152,
+    318
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "80": {
+   "name": "WZ_FIREPILLAR",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    96,
+    97,
+    138
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "81": {
+   "name": "WZ_SIGHTRASHER",
+   "official_effect_ids": [
+    62
+   ],
+   "client_effect_ids_2019": [
+    49,
+    62
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "shadow",
+    "이팩트\\sight"
+   ],
+   "used_effect_ids": [
+    62
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "shadow",
+    "이팩트\\sight"
+   ]
+  },
+  "83": {
+   "name": "WZ_METEOR",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    49,
+    92
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "84": {
+   "name": "WZ_JUPITEL",
+   "official_effect_ids": [
+    93
+   ],
+   "client_effect_ids_2019": [
+    93,
+    94
+   ],
+   "official_assets": [
+    "effect\\thunder_ball_a",
+    "effect\\thunder_ball_b",
+    "effect\\thunder_ball_c",
+    "effect\\thunder_ball_d",
+    "effect\\thunder_ball_e",
+    "effect\\thunder_ball_f",
+    "effect\\thunder_center"
+   ],
+   "used_effect_ids": [
+    93
+   ],
+   "used_assets": [
+    "effect\\thunder_ball_a",
+    "effect\\thunder_ball_b",
+    "effect\\thunder_ball_c",
+    "effect\\thunder_ball_d",
+    "effect\\thunder_ball_e",
+    "effect\\thunder_ball_f",
+    "effect\\thunder_center"
+   ]
+  },
+  "85": {
+   "name": "WZ_VERMILION",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    52,
+    90
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "86": {
+   "name": "WZ_WATERBALL",
+   "official_effect_ids": [
+    117
+   ],
+   "client_effect_ids_2019": [
+    116,
+    117
+   ],
+   "official_assets": [
+    "이팩트\\waterball"
+   ],
+   "used_effect_ids": [
+    117
+   ],
+   "used_assets": [
+    "이팩트\\waterball"
+   ]
+  },
+  "87": {
+   "name": "WZ_ICEWALL",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    74
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "88": {
+   "name": "WZ_FROSTNOVA",
+   "official_effect_ids": [
+    28
+   ],
+   "client_effect_ids_2019": [
+    28,
+    51
+   ],
+   "official_assets": [
+    "effect\\ice"
+   ],
+   "used_effect_ids": [
+    28
+   ],
+   "used_assets": [
+    "effect\\ice"
+   ]
+  },
+  "89": {
+   "name": "WZ_STORMGUST",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    51,
+    89
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "90": {
+   "name": "WZ_EARTHSPIKE",
+   "official_effect_ids": [
+    79
+   ],
+   "client_effect_ids_2019": [
+    79,
+    147
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    79
+   ],
+   "used_assets": []
+  },
+  "91": {
+   "name": "WZ_HEAVENDRIVE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    142,
+    147
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "92": {
+   "name": "WZ_QUAGMIRE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    95
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "108": {
+   "name": "BS_REPAIRWEAPON",
+   "official_effect_ids": [
+    101
+   ],
+   "client_effect_ids_2019": [
+    101
+   ],
+   "official_assets": [
+    "repairweapon"
+   ],
+   "used_effect_ids": [
+    101
+   ],
+   "used_assets": [
+    "repairweapon"
+   ]
+  },
+  "110": {
+   "name": "BS_HAMMERFALL",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    102
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "111": {
+   "name": "BS_ADRENALINE",
+   "official_effect_ids": [
+    98
+   ],
+   "client_effect_ids_2019": [
+    98
+   ],
+   "official_assets": [
+    "effect\\alpha_center",
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    98
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "이팩트\\particle1"
+   ]
+  },
+  "112": {
+   "name": "BS_WEAPONPERFECT",
+   "official_effect_ids": [
+    103
+   ],
+   "client_effect_ids_2019": [
+    103
+   ],
+   "official_assets": [
+    "weaponperfection"
+   ],
+   "used_effect_ids": [
+    103
+   ],
+   "used_assets": [
+    "weaponperfection"
+   ]
+  },
+  "113": {
+   "name": "BS_OVERTHRUST",
+   "official_effect_ids": [
+    128
+   ],
+   "client_effect_ids_2019": [
+    128
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    128
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "114": {
+   "name": "BS_MAXIMIZE",
+   "official_effect_ids": [
+    104
+   ],
+   "client_effect_ids_2019": [
+    104
+   ],
+   "official_assets": [
+    "maximizepower"
+   ],
+   "used_effect_ids": [
+    104
+   ],
+   "used_assets": [
+    "maximizepower"
+   ]
+  },
+  "115": {
+   "name": "HT_SKIDTRAP",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    69
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "118": {
+   "name": "HT_SHOCKWAVE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    145,
+    146
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "119": {
+   "name": "HT_SANDMAN",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    139
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "120": {
+   "name": "HT_FLASHER",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    99
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "121": {
+   "name": "HT_FREEZINGTRAP",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    108
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "122": {
+   "name": "HT_BLASTMINE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    106
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "123": {
+   "name": "HT_CLAYMORETRAP",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    107
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "124": {
+   "name": "HT_REMOVETRAP",
+   "official_effect_ids": [
+    100
+   ],
+   "client_effect_ids_2019": [
+    100
+   ],
+   "official_assets": [
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    100
+   ],
+   "used_assets": [
+    "이팩트\\particle1"
+   ]
+  },
+  "129": {
+   "name": "HT_BLITZBEAT",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    115
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "130": {
+   "name": "HT_DETECTING",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    119
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "131": {
+   "name": "HT_SPRINGTRAP",
+   "official_effect_ids": [
+    111
+   ],
+   "client_effect_ids_2019": [
+    111
+   ],
+   "official_assets": [
+    "spring"
+   ],
+   "used_effect_ids": [
+    111
+   ],
+   "used_assets": [
+    "spring"
+   ]
+  },
+  "135": {
+   "name": "AS_CLOAKING",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    120
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "136": {
+   "name": "AS_SONICBLOW",
+   "official_effect_ids": [
+    121,
+    143
+   ],
+   "client_effect_ids_2019": [
+    121,
+    122,
+    143
+   ],
+   "official_assets": [
+    "effect\\alpha_center",
+    "sonicblow"
+   ],
+   "used_effect_ids": [
+    121,
+    143
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "sonicblow"
+   ]
+  },
+  "137": {
+   "name": "AS_GRIMTOOTH",
+   "official_effect_ids": [
+    123
+   ],
+   "client_effect_ids_2019": [
+    123,
+    132
+   ],
+   "official_assets": [
+    "effect\\stone"
+   ],
+   "used_effect_ids": [
+    123
+   ],
+   "used_assets": [
+    "effect\\stone"
+   ]
+  },
+  "138": {
+   "name": "AS_ENCHANTPOISON",
+   "official_effect_ids": [
+    125
+   ],
+   "client_effect_ids_2019": [
+    20
+   ],
+   "official_assets": [
+    "이팩트\\particle3"
+   ],
+   "used_effect_ids": [
+    125
+   ],
+   "used_assets": [
+    "이팩트\\particle3"
+   ]
+  },
+  "139": {
+   "name": "AS_POISONREACT",
+   "official_effect_ids": [
+    126
+   ],
+   "client_effect_ids_2019": [
+    126,
+    127
+   ],
+   "official_assets": [
+    "poisonreact_1st"
+   ],
+   "used_effect_ids": [
+    126
+   ],
+   "used_assets": [
+    "poisonreact_1st"
+   ]
+  },
+  "140": {
+   "name": "AS_VENOMDUST",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    124,
+    171
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "141": {
+   "name": "AS_SPLASHER",
+   "official_effect_ids": [
+    125
+   ],
+   "client_effect_ids_2019": [
+    129
+   ],
+   "official_assets": [
+    "이팩트\\particle3"
+   ],
+   "used_effect_ids": [
+    125
+   ],
+   "used_assets": [
+    "이팩트\\particle3"
+   ]
+  },
+  "142": {
+   "name": "NV_FIRSTAID",
+   "official_effect_ids": [
+    309
+   ],
+   "client_effect_ids_2019": [
+    309
+   ],
+   "official_assets": [
+    "effect\\pikapika2"
+   ],
+   "used_effect_ids": [
+    309
+   ],
+   "used_assets": [
+    "effect\\pikapika2"
+   ]
+  },
+  "148": {
+   "name": "AC_CHARGEARROW",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    0,
+    16
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "149": {
+   "name": "TF_SPRINKLESAND",
+   "official_effect_ids": [
+    310
+   ],
+   "client_effect_ids_2019": [
+    310
+   ],
+   "official_assets": [
+    "effect\\thunder_center"
+   ],
+   "used_effect_ids": [
+    310
+   ],
+   "used_assets": [
+    "effect\\thunder_center"
+   ]
+  },
+  "152": {
+   "name": "TF_THROWSTONE",
+   "official_effect_ids": [
+    308
+   ],
+   "client_effect_ids_2019": [
+    308
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\돌"
+   ],
+   "used_effect_ids": [
+    308
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\돌"
+   ]
+  },
+  "153": {
+   "name": "MC_CARTREVOLUTION",
+   "official_effect_ids": [
+    170
+   ],
+   "client_effect_ids_2019": [
+    170
+   ],
+   "official_assets": [
+    "cartrevolution",
+    "effect\\ring_yellow",
+    "effect\\대폭발"
+   ],
+   "used_effect_ids": [
+    170
+   ],
+   "used_assets": [
+    "cartrevolution",
+    "effect\\ring_yellow",
+    "effect\\대폭발"
+   ]
+  },
+  "155": {
+   "name": "MC_LOUD",
+   "official_effect_ids": [
+    311
+   ],
+   "client_effect_ids_2019": [
+    311
+   ],
+   "official_assets": [
+    "loud"
+   ],
+   "used_effect_ids": [
+    311
+   ],
+   "used_assets": [
+    "loud"
+   ]
+  },
+  "156": {
+   "name": "AL_HOLYLIGHT",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    152
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "157": {
+   "name": "MG_ENERGYCOAT",
+   "official_effect_ids": [
+    169
+   ],
+   "client_effect_ids_2019": [
+    169
+   ],
+   "official_assets": [
+    "energycoat"
+   ],
+   "used_effect_ids": [
+    169
+   ],
+   "used_assets": [
+    "energycoat"
+   ]
+  },
+  "211": {
+   "name": "RG_STEALCOIN",
+   "official_effect_ids": [
+    268,
+    274
+   ],
+   "client_effect_ids_2019": [
+    268,
+    274
+   ],
+   "official_assets": [
+    "effect\\coin_a",
+    "steal_coin"
+   ],
+   "used_effect_ids": [
+    268,
+    274
+   ],
+   "used_assets": [
+    "effect\\coin_a",
+    "steal_coin"
+   ]
+  },
+  "212": {
+   "name": "RG_BACKSTAP",
+   "official_effect_ids": [
+    275
+   ],
+   "client_effect_ids_2019": [
+    275
+   ],
+   "official_assets": [
+    "effect\\thunder_center"
+   ],
+   "used_effect_ids": [
+    275
+   ],
+   "used_assets": [
+    "effect\\thunder_center"
+   ]
+  },
+  "214": {
+   "name": "RG_RAID",
+   "official_effect_ids": [
+    276
+   ],
+   "client_effect_ids_2019": [
+    276
+   ],
+   "official_assets": [
+    "effect\\lens2"
+   ],
+   "used_effect_ids": [
+    276
+   ],
+   "used_assets": [
+    "effect\\lens2"
+   ]
+  },
+  "215": {
+   "name": "RG_STRIPWEAPON",
+   "official_effect_ids": [
+    269
+   ],
+   "client_effect_ids_2019": [
+    269
+   ],
+   "official_assets": [
+    "strip_weapon"
+   ],
+   "used_effect_ids": [
+    269
+   ],
+   "used_assets": [
+    "strip_weapon"
+   ]
+  },
+  "216": {
+   "name": "RG_STRIPSHIELD",
+   "official_effect_ids": [
+    270
+   ],
+   "client_effect_ids_2019": [
+    270
+   ],
+   "official_assets": [
+    "strip_shield"
+   ],
+   "used_effect_ids": [
+    270
+   ],
+   "used_assets": [
+    "strip_shield"
+   ]
+  },
+  "217": {
+   "name": "RG_STRIPARMOR",
+   "official_effect_ids": [
+    271
+   ],
+   "client_effect_ids_2019": [
+    271
+   ],
+   "official_assets": [
+    "strip_armor"
+   ],
+   "used_effect_ids": [
+    271
+   ],
+   "used_assets": [
+    "strip_armor"
+   ]
+  },
+  "218": {
+   "name": "RG_STRIPHELM",
+   "official_effect_ids": [
+    272
+   ],
+   "client_effect_ids_2019": [
+    272
+   ],
+   "official_assets": [
+    "strip_helm"
+   ],
+   "used_effect_ids": [
+    272
+   ],
+   "used_assets": [
+    "strip_helm"
+   ]
+  },
+  "219": {
+   "name": "RG_INTIMIDATE",
+   "official_effect_ids": [
+    227
+   ],
+   "client_effect_ids_2019": [
+    227
+   ],
+   "official_assets": [
+    "effect\\white01"
+   ],
+   "used_effect_ids": [
+    227
+   ],
+   "used_assets": [
+    "effect\\white01"
+   ]
+  },
+  "229": {
+   "name": "AM_DEMONSTRATION",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    302
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "230": {
+   "name": "AM_ACIDTERROR",
+   "official_effect_ids": [
+    298
+   ],
+   "client_effect_ids_2019": [
+    298
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\빈병"
+   ],
+   "used_effect_ids": [
+    298
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\빈병"
+   ]
+  },
+  "231": {
+   "name": "AM_POTIONPITCHER",
+   "official_effect_ids": [
+    299
+   ],
+   "client_effect_ids_2019": [
+    299
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\빈포션병"
+   ],
+   "used_effect_ids": [
+    299
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\빈포션병"
+   ]
+  },
+  "234": {
+   "name": "AM_CP_WEAPON",
+   "official_effect_ids": [
+    300
+   ],
+   "client_effect_ids_2019": [
+    300
+   ],
+   "official_assets": [
+    "effect\\shockwave_c"
+   ],
+   "used_effect_ids": [
+    300
+   ],
+   "used_assets": [
+    "effect\\shockwave_c"
+   ]
+  },
+  "235": {
+   "name": "AM_CP_SHIELD",
+   "official_effect_ids": [
+    300
+   ],
+   "client_effect_ids_2019": [
+    300
+   ],
+   "official_assets": [
+    "effect\\shockwave_c"
+   ],
+   "used_effect_ids": [
+    300
+   ],
+   "used_assets": [
+    "effect\\shockwave_c"
+   ]
+  },
+  "236": {
+   "name": "AM_CP_ARMOR",
+   "official_effect_ids": [
+    300
+   ],
+   "client_effect_ids_2019": [
+    300
+   ],
+   "official_assets": [
+    "effect\\shockwave_c"
+   ],
+   "used_effect_ids": [
+    300
+   ],
+   "used_assets": [
+    "effect\\shockwave_c"
+   ]
+  },
+  "237": {
+   "name": "AM_CP_HELM",
+   "official_effect_ids": [
+    300
+   ],
+   "client_effect_ids_2019": [
+    300
+   ],
+   "official_assets": [
+    "effect\\shockwave_c"
+   ],
+   "used_effect_ids": [
+    300
+   ],
+   "used_assets": [
+    "effect\\shockwave_c"
+   ]
+  },
+  "249": {
+   "name": "CR_AUTOGUARD",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    336
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "250": {
+   "name": "CR_SHIELDCHARGE",
+   "official_effect_ids": [
+    246
+   ],
+   "client_effect_ids_2019": [
+    246
+   ],
+   "official_assets": [
+    "shield_charge"
+   ],
+   "used_effect_ids": [
+    246
+   ],
+   "used_assets": [
+    "shield_charge"
+   ]
+  },
+  "251": {
+   "name": "CR_SHIELDBOOMERANG",
+   "official_effect_ids": [
+    249
+   ],
+   "client_effect_ids_2019": [
+    249
+   ],
+   "official_assets": [
+    "effect\\shield_boomerang"
+   ],
+   "used_effect_ids": [
+    249
+   ],
+   "used_assets": [
+    "effect\\shield_boomerang"
+   ]
+  },
+  "252": {
+   "name": "CR_REFLECTSHIELD",
+   "official_effect_ids": [
+    252
+   ],
+   "client_effect_ids_2019": [
+    252
+   ],
+   "official_assets": [
+    "effect\\ring_yellow"
+   ],
+   "used_effect_ids": [
+    252
+   ],
+   "used_assets": [
+    "effect\\ring_yellow"
+   ]
+  },
+  "253": {
+   "name": "CR_HOLYCROSS",
+   "official_effect_ids": [
+    245
+   ],
+   "client_effect_ids_2019": [
+    245
+   ],
+   "official_assets": [
+    "holy_cross"
+   ],
+   "used_effect_ids": [
+    245
+   ],
+   "used_assets": [
+    "holy_cross"
+   ]
+  },
+  "254": {
+   "name": "CR_GRANDCROSS",
+   "official_effect_ids": [
+    226
+   ],
+   "client_effect_ids_2019": [
+    226
+   ],
+   "official_assets": [
+    "effect\\ring_white",
+    "effect\\ring_yellow"
+   ],
+   "used_effect_ids": [
+    226
+   ],
+   "used_assets": [
+    "effect\\ring_white",
+    "effect\\ring_yellow"
+   ]
+  },
+  "255": {
+   "name": "CR_DEVOTION",
+   "official_effect_ids": [
+    251
+   ],
+   "client_effect_ids_2019": [
+    251
+   ],
+   "official_assets": [
+    "devotion"
+   ],
+   "used_effect_ids": [
+    251
+   ],
+   "used_assets": [
+    "devotion"
+   ]
+  },
+  "256": {
+   "name": "CR_PROVIDENCE",
+   "official_effect_ids": [
+    248
+   ],
+   "client_effect_ids_2019": [
+    248
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "providence"
+   ],
+   "used_effect_ids": [
+    248
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "providence"
+   ]
+  },
+  "257": {
+   "name": "CR_DEFENDER",
+   "official_effect_ids": [
+    222
+   ],
+   "client_effect_ids_2019": [
+    222
+   ],
+   "official_assets": [
+    "effect\\ring_black"
+   ],
+   "used_effect_ids": [
+    222
+   ],
+   "used_assets": [
+    "effect\\ring_black"
+   ]
+  },
+  "258": {
+   "name": "CR_SPEARQUICKEN",
+   "official_effect_ids": [
+    250
+   ],
+   "client_effect_ids_2019": [
+    250
+   ],
+   "official_assets": [
+    "twohand"
+   ],
+   "used_effect_ids": [
+    250
+   ],
+   "used_assets": [
+    "twohand"
+   ]
+  },
+  "262": {
+   "name": "MO_ABSORBSPIRITS",
+   "official_effect_ids": [
+    253
+   ],
+   "client_effect_ids_2019": [
+    253
+   ],
+   "official_assets": [
+    "effect\\alpha_down",
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ],
+   "used_effect_ids": [
+    253
+   ],
+   "used_assets": [
+    "effect\\alpha_down",
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ]
+  },
+  "263": {
+   "name": "MO_TRIPLEATTACK",
+   "official_effect_ids": [
+    329
+   ],
+   "client_effect_ids_2019": [
+    329
+   ],
+   "official_assets": [
+    "effect\\cloud11"
+   ],
+   "used_effect_ids": [
+    329
+   ],
+   "used_assets": [
+    "effect\\cloud11"
+   ]
+  },
+  "264": {
+   "name": "MO_BODYRELOCATION",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    166
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "266": {
+   "name": "MO_INVESTIGATE",
+   "official_effect_ids": [
+    264,
+    267
+   ],
+   "client_effect_ids_2019": [
+    267
+   ],
+   "official_assets": [
+    "effect\\thunder_center",
+    "이팩트\\침투경_"
+   ],
+   "used_effect_ids": [
+    264,
+    267
+   ],
+   "used_assets": [
+    "effect\\thunder_center",
+    "이팩트\\침투경_"
+   ]
+  },
+  "267": {
+   "name": "MO_FINGEROFFENSIVE",
+   "official_effect_ids": [
+    265
+   ],
+   "client_effect_ids_2019": [
+    1,
+    265
+   ],
+   "official_assets": [
+    "effect\\blue_ivy"
+   ],
+   "used_effect_ids": [
+    265
+   ],
+   "used_assets": [
+    "effect\\blue_ivy"
+   ]
+  },
+  "268": {
+   "name": "MO_STEELBODY",
+   "official_effect_ids": [
+    261
+   ],
+   "client_effect_ids_2019": [
+    254
+   ],
+   "official_assets": [
+    "effect\\ring_yellow"
+   ],
+   "used_effect_ids": [
+    261
+   ],
+   "used_assets": [
+    "effect\\ring_yellow"
+   ]
+  },
+  "270": {
+   "name": "MO_EXPLOSIONSPIRITS",
+   "official_effect_ids": [
+    203,
+    261
+   ],
+   "client_effect_ids_2019": [
+    12,
+    261
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ],
+   "used_effect_ids": [
+    203,
+    261
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ]
+  },
+  "271": {
+   "name": "MO_EXTREMITYFIST",
+   "official_effect_ids": [
+    266
+   ],
+   "client_effect_ids_2019": [
+    12,
+    266
+   ],
+   "official_assets": [
+    "effect\\lens1"
+   ],
+   "used_effect_ids": [
+    266
+   ],
+   "used_assets": [
+    "effect\\lens1"
+   ]
+  },
+  "272": {
+   "name": "MO_CHAINCOMBO",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    262,
+    263,
+    273
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "273": {
+   "name": "MO_COMBOFINISH",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    330
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "276": {
+   "name": "SA_MAGICROD",
+   "official_effect_ids": [
+    244
+   ],
+   "client_effect_ids_2019": [
+    244
+   ],
+   "official_assets": [
+    "매직로드"
+   ],
+   "used_effect_ids": [
+    244
+   ],
+   "used_assets": [
+    "매직로드"
+   ]
+  },
+  "277": {
+   "name": "SA_SPELLBREAKER",
+   "official_effect_ids": [
+    234
+   ],
+   "client_effect_ids_2019": [
+    234
+   ],
+   "official_assets": [
+    "spell"
+   ],
+   "used_effect_ids": [
+    234
+   ],
+   "used_assets": [
+    "spell"
+   ]
+  },
+  "280": {
+   "name": "SA_FLAMELAUNCHER",
+   "official_effect_ids": [
+    255
+   ],
+   "client_effect_ids_2019": [
+    255
+   ],
+   "official_assets": [
+    "enc_fire"
+   ],
+   "used_effect_ids": [
+    255
+   ],
+   "used_assets": [
+    "enc_fire"
+   ]
+  },
+  "281": {
+   "name": "SA_FROSTWEAPON",
+   "official_effect_ids": [
+    256
+   ],
+   "client_effect_ids_2019": [
+    256
+   ],
+   "official_assets": [
+    "enc_ice"
+   ],
+   "used_effect_ids": [
+    256
+   ],
+   "used_assets": [
+    "enc_ice"
+   ]
+  },
+  "282": {
+   "name": "SA_LIGHTNINGLOADER",
+   "official_effect_ids": [
+    257
+   ],
+   "client_effect_ids_2019": [
+    257
+   ],
+   "official_assets": [
+    "enc_wind"
+   ],
+   "used_effect_ids": [
+    257
+   ],
+   "used_assets": [
+    "enc_wind"
+   ]
+  },
+  "283": {
+   "name": "SA_SEISMICWEAPON",
+   "official_effect_ids": [
+    258
+   ],
+   "client_effect_ids_2019": [
+    258
+   ],
+   "official_assets": [
+    "enc_earth"
+   ],
+   "used_effect_ids": [
+    258
+   ],
+   "used_assets": [
+    "enc_earth"
+   ]
+  },
+  "285": {
+   "name": "SA_VOLCANO",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    225,
+    239
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "286": {
+   "name": "SA_DELUGE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    236,
+    240
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "287": {
+   "name": "SA_VIOLENTGALE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    237,
+    241
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "288": {
+   "name": "SA_LANDPROTECTOR",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    238,
+    242
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "289": {
+   "name": "SA_DISPELL",
+   "official_effect_ids": [
+    235
+   ],
+   "client_effect_ids_2019": [
+    235
+   ],
+   "official_assets": [
+    "디스펠"
+   ],
+   "used_effect_ids": [
+    235
+   ],
+   "used_assets": [
+    "디스펠"
+   ]
+  },
+  "304": {
+   "name": "BD_ADAPTATION",
+   "official_effect_ids": [
+    848
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\ac_center2"
+   ],
+   "used_effect_ids": [
+    848
+   ],
+   "used_assets": [
+    "effect\\ac_center2"
+   ]
+  },
+  "306": {
+   "name": "BD_LULLABY",
+   "official_effect_ids": [
+    845
+   ],
+   "client_effect_ids_2019": [
+    278
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    278
+   ],
+   "used_assets": [
+    "effect\\zz.bmp"
+   ]
+  },
+  "307": {
+   "name": "BD_RICHMANKIM",
+   "official_effect_ids": [
+    842
+   ],
+   "client_effect_ids_2019": [
+    279
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    279
+   ],
+   "used_assets": [
+    "effect\\pocket.bmp"
+   ]
+  },
+  "308": {
+   "name": "BD_ETERNALCHAOS",
+   "official_effect_ids": [
+    844
+   ],
+   "client_effect_ids_2019": [
+    280
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    280
+   ],
+   "used_assets": [
+    "effect\\twirl.bmp"
+   ]
+  },
+  "309": {
+   "name": "BD_DRUMBATTLEFIELD",
+   "official_effect_ids": [
+    842
+   ],
+   "client_effect_ids_2019": [
+    281
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    281
+   ],
+   "used_assets": [
+    "effect\\melody_a.bmp",
+    "effect\\melody_b.bmp"
+   ]
+  },
+  "310": {
+   "name": "BD_RINGNIBELUNGEN",
+   "official_effect_ids": [
+    842
+   ],
+   "client_effect_ids_2019": [
+    282
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    282
+   ],
+   "used_assets": [
+    "effect\\twirl.bmp"
+   ]
+  },
+  "311": {
+   "name": "BD_ROKISWEIL",
+   "official_effect_ids": [
+    845
+   ],
+   "client_effect_ids_2019": [
+    283
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    283
+   ],
+   "used_assets": [
+    "effect\\safeline.bmp"
+   ]
+  },
+  "312": {
+   "name": "BD_INTOABYSS",
+   "official_effect_ids": [
+    842
+   ],
+   "client_effect_ids_2019": [
+    284
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    284
+   ],
+   "used_assets": [
+    "effect\\레드젬스톤.bmp",
+    "effect\\블루젬스톤.bmp",
+    "effect\\옐로우젬스톤.bmp"
+   ]
+  },
+  "313": {
+   "name": "BD_SIEGFRIED",
+   "official_effect_ids": [
+    842
+   ],
+   "client_effect_ids_2019": [
+    285
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    285
+   ],
+   "used_assets": [
+    "effect\\twirl.bmp"
+   ]
+  },
+  "317": {
+   "name": "BA_DISSONANCE",
+   "official_effect_ids": [
+    843
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    277
+   ],
+   "used_assets": [
+    "effect\\cloud11.tga",
+    "effect\\magic_violet.tga",
+    "effect\\ring_red.tga"
+   ]
+  },
+  "318": {
+   "name": "BA_FROSTJOKER",
+   "official_effect_ids": [
+    295
+   ],
+   "client_effect_ids_2019": [
+    295
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    295
+   ],
+   "used_assets": []
+  },
+  "319": {
+   "name": "BA_WHISTLE",
+   "official_effect_ids": [
+    844
+   ],
+   "client_effect_ids_2019": [
+    286
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    286
+   ],
+   "used_assets": [
+    "effect\\melody_b.bmp"
+   ]
+  },
+  "320": {
+   "name": "BA_ASSASSINCROSS",
+   "official_effect_ids": [
+    840
+   ],
+   "client_effect_ids_2019": [
+    287
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    287
+   ],
+   "used_assets": [
+    "effect\\cloud11.tga",
+    "effect\\magic_violet.tga",
+    "effect\\ring_red.tga"
+   ]
+  },
+  "321": {
+   "name": "BA_POEMBRAGI",
+   "official_effect_ids": [
+    843
+   ],
+   "client_effect_ids_2019": [
+    288
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    288
+   ],
+   "used_assets": [
+    "effect\\spell_01.bmp",
+    "effect\\spell_02.bmp",
+    "effect\\spell_03.bmp",
+    "effect\\spell_04.bmp",
+    "effect\\spell_05.bmp",
+    "effect\\spell_06.bmp",
+    "effect\\spell_07.bmp",
+    "effect\\spell_08.bmp"
+   ]
+  },
+  "322": {
+   "name": "BA_APPLEIDUN",
+   "official_effect_ids": [
+    841
+   ],
+   "client_effect_ids_2019": [
+    289
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    289
+   ],
+   "used_assets": [
+    "effect\\idun_apple.bmp"
+   ]
+  },
+  "325": {
+   "name": "DC_UGLYDANCE",
+   "official_effect_ids": [
+    843
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    290
+   ],
+   "used_assets": [
+    "effect\\cloud11.tga",
+    "effect\\magic_violet.tga",
+    "effect\\ring_red.tga"
+   ]
+  },
+  "326": {
+   "name": "DC_SCREAM",
+   "official_effect_ids": [
+    296
+   ],
+   "client_effect_ids_2019": [
+    296
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    296
+   ],
+   "used_assets": []
+  },
+  "327": {
+   "name": "DC_HUMMING",
+   "official_effect_ids": [
+    844
+   ],
+   "client_effect_ids_2019": [
+    291
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    291
+   ],
+   "used_assets": [
+    "effect\\melody_a.bmp"
+   ]
+  },
+  "328": {
+   "name": "DC_DONTFORGETME",
+   "official_effect_ids": [
+    844
+   ],
+   "client_effect_ids_2019": [
+    292
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    292
+   ],
+   "used_assets": [
+    "effect\\cloud11.tga",
+    "effect\\magic_violet.tga",
+    "effect\\ring_red.tga"
+   ]
+  },
+  "329": {
+   "name": "DC_FORTUNEKISS",
+   "official_effect_ids": [
+    840
+   ],
+   "client_effect_ids_2019": [
+    293
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    293
+   ],
+   "used_assets": [
+    "effect\\kiss.bmp"
+   ]
+  },
+  "330": {
+   "name": "DC_SERVICEFORYOU",
+   "official_effect_ids": [
+    840
+   ],
+   "client_effect_ids_2019": [
+    294
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    294
+   ],
+   "used_assets": [
+    "effect\\cloud11.tga",
+    "effect\\magic_violet.tga",
+    "effect\\ring_red.tga"
+   ]
+  },
+  "355": {
+   "name": "LK_AURABLADE",
+   "official_effect_ids": [
+    367,
+    474
+   ],
+   "client_effect_ids_2019": [
+    367
+   ],
+   "official_assets": [
+    "effect\\ring_white",
+    "effect\\ring_yellow"
+   ],
+   "used_effect_ids": [
+    367,
+    474
+   ],
+   "used_assets": [
+    "effect\\ring_white",
+    "effect\\ring_yellow"
+   ]
+  },
+  "356": {
+   "name": "LK_PARRYING",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    336
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "357": {
+   "name": "LK_CONCENTRATION",
+   "official_effect_ids": [
+    369
+   ],
+   "client_effect_ids_2019": [
+    369
+   ],
+   "official_assets": [
+    "twohand"
+   ],
+   "used_effect_ids": [
+    369
+   ],
+   "used_assets": [
+    "twohand"
+   ]
+  },
+  "359": {
+   "name": "LK_BERSERK",
+   "official_effect_ids": [
+    368
+   ],
+   "client_effect_ids_2019": [
+    368
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    368
+   ],
+   "used_assets": []
+  },
+  "361": {
+   "name": "HP_ASSUMPTIO",
+   "official_effect_ids": [
+    375,
+    440
+   ],
+   "client_effect_ids_2019": [
+    440
+   ],
+   "official_assets": [
+    "asum"
+   ],
+   "used_effect_ids": [
+    375,
+    440
+   ],
+   "used_assets": [
+    "asum"
+   ]
+  },
+  "362": {
+   "name": "HP_BASILICA",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    374
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "364": {
+   "name": "HW_SOULDRAIN",
+   "official_effect_ids": [
+    378,
+    379
+   ],
+   "client_effect_ids_2019": [
+    217
+   ],
+   "official_assets": [
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    378,
+    379
+   ],
+   "used_assets": [
+    "이팩트\\particle1"
+   ]
+  },
+  "365": {
+   "name": "HW_MAGICCRASHER",
+   "official_effect_ids": [
+    380
+   ],
+   "client_effect_ids_2019": [
+    380
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    380
+   ],
+   "used_assets": []
+  },
+  "366": {
+   "name": "HW_MAGICPOWER",
+   "official_effect_ids": [
+    382
+   ],
+   "client_effect_ids_2019": [
+    16
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    382
+   ],
+   "used_assets": []
+  },
+  "367": {
+   "name": "PA_PRESSURE",
+   "official_effect_ids": [
+    365
+   ],
+   "client_effect_ids_2019": [
+    365
+   ],
+   "official_assets": [
+    "effect\\cross_old",
+    "effect\\explosive_1_128"
+   ],
+   "used_effect_ids": [
+    365
+   ],
+   "used_assets": [
+    "effect\\cross_old",
+    "effect\\explosive_1_128"
+   ]
+  },
+  "368": {
+   "name": "PA_SACRIFICE",
+   "official_effect_ids": [
+    366
+   ],
+   "client_effect_ids_2019": [
+    366
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    366
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "369": {
+   "name": "PA_GOSPEL",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    370
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "370": {
+   "name": "CH_PALMSTRIKE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    376
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "371": {
+   "name": "CH_TIGERFIST",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    263,
+    377
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "372": {
+   "name": "CH_CHAINCRUSH",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    512
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "373": {
+   "name": "PF_HPCONVERSION",
+   "official_effect_ids": [
+    383
+   ],
+   "client_effect_ids_2019": [
+    378,
+    379,
+    383
+   ],
+   "official_assets": [
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    383
+   ],
+   "used_assets": [
+    "이팩트\\particle1"
+   ]
+  },
+  "374": {
+   "name": "PF_SOULCHANGE",
+   "official_effect_ids": [
+    384,
+    385,
+    407
+   ],
+   "client_effect_ids_2019": [
+    384,
+    385
+   ],
+   "official_assets": [
+    "effect\\alpha_center",
+    "사람효과"
+   ],
+   "used_effect_ids": [
+    384,
+    385,
+    407
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "사람효과"
+   ]
+  },
+  "375": {
+   "name": "PF_SOULBURN",
+   "official_effect_ids": [
+    380,
+    406
+   ],
+   "client_effect_ids_2019": [
+    406
+   ],
+   "official_assets": [
+    "소울번"
+   ],
+   "used_effect_ids": [
+    380,
+    406
+   ],
+   "used_assets": [
+    "소울번"
+   ]
+  },
+  "378": {
+   "name": "ASC_EDP",
+   "official_effect_ids": [
+    493
+   ],
+   "client_effect_ids_2019": [
+    493
+   ],
+   "official_assets": [
+    "이팩트\\particle3"
+   ],
+   "used_effect_ids": [
+    493
+   ],
+   "used_assets": [
+    "이팩트\\particle3"
+   ]
+  },
+  "379": {
+   "name": "ASC_BREAKER",
+   "official_effect_ids": [
+    361
+   ],
+   "client_effect_ids_2019": [
+    361
+   ],
+   "official_assets": [
+    "effect\\purpleslash"
+   ],
+   "used_effect_ids": [
+    361
+   ],
+   "used_assets": [
+    "effect\\purpleslash"
+   ]
+  },
+  "380": {
+   "name": "SN_SIGHT",
+   "official_effect_ids": [
+    386
+   ],
+   "client_effect_ids_2019": [
+    386
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    386
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "381": {
+   "name": "SN_FALCONASSAULT",
+   "official_effect_ids": [
+    387
+   ],
+   "client_effect_ids_2019": [
+    387
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    387
+   ],
+   "used_assets": []
+  },
+  "382": {
+   "name": "SN_SHARPSHOOTING",
+   "official_effect_ids": [
+    388
+   ],
+   "client_effect_ids_2019": [
+    388
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    388
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "383": {
+   "name": "SN_WINDWALK",
+   "official_effect_ids": [
+    389
+   ],
+   "client_effect_ids_2019": [
+    389
+   ],
+   "official_assets": [
+    "effect\\cloud11"
+   ],
+   "used_effect_ids": [
+    389
+   ],
+   "used_assets": [
+    "effect\\cloud11"
+   ]
+  },
+  "384": {
+   "name": "WS_MELTDOWN",
+   "official_effect_ids": [
+    390
+   ],
+   "client_effect_ids_2019": [
+    390
+   ],
+   "official_assets": [
+    "melt"
+   ],
+   "used_effect_ids": [
+    390
+   ],
+   "used_assets": [
+    "melt"
+   ]
+  },
+  "387": {
+   "name": "WS_CARTBOOST",
+   "official_effect_ids": [
+    391
+   ],
+   "client_effect_ids_2019": [
+    391
+   ],
+   "official_assets": [
+    "cart"
+   ],
+   "used_effect_ids": [
+    391
+   ],
+   "used_assets": [
+    "cart"
+   ]
+  },
+  "389": {
+   "name": "ST_CHASEWALK",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    501
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "390": {
+   "name": "ST_REJECTSWORD",
+   "official_effect_ids": [
+    392
+   ],
+   "client_effect_ids_2019": [
+    392
+   ],
+   "official_assets": [
+    "sword"
+   ],
+   "used_effect_ids": [
+    392
+   ],
+   "used_assets": [
+    "sword"
+   ]
+  },
+  "394": {
+   "name": "CG_ARROWVULCAN",
+   "official_effect_ids": [
+    393
+   ],
+   "client_effect_ids_2019": [
+    393
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    393
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "395": {
+   "name": "CG_MOONLIT",
+   "official_effect_ids": [
+    394
+   ],
+   "client_effect_ids_2019": [
+    394
+   ],
+   "official_assets": [
+    "effect\\fire_ivy"
+   ],
+   "used_effect_ids": [
+    394
+   ],
+   "used_assets": [
+    "effect\\fire_ivy"
+   ]
+  },
+  "396": {
+   "name": "CG_MARIONETTE",
+   "official_effect_ids": [
+    395,
+    396
+   ],
+   "client_effect_ids_2019": [
+    395,
+    396
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    395,
+    396
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "397": {
+   "name": "LK_SPIRALPIERCE",
+   "official_effect_ids": [
+    339
+   ],
+   "client_effect_ids_2019": [
+    339
+   ],
+   "official_assets": [
+    "effect\\ring_yellow"
+   ],
+   "used_effect_ids": [
+    339
+   ],
+   "used_assets": [
+    "effect\\ring_yellow"
+   ]
+  },
+  "398": {
+   "name": "LK_HEADCRUSH",
+   "official_effect_ids": [
+    399
+   ],
+   "client_effect_ids_2019": [
+    399
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    399
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "399": {
+   "name": "LK_JOINTBEAT",
+   "official_effect_ids": [
+    400
+   ],
+   "client_effect_ids_2019": [
+    400
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    400
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "400": {
+   "name": "HW_NAPALMVULCAN",
+   "official_effect_ids": [
+    401
+   ],
+   "client_effect_ids_2019": [
+    401
+   ],
+   "official_assets": [
+    "effect\\lens1",
+    "effect\\lens2"
+   ],
+   "used_effect_ids": [
+    401
+   ],
+   "used_assets": [
+    "effect\\lens1",
+    "effect\\lens2"
+   ]
+  },
+  "401": {
+   "name": "CH_SOULCOLLECT",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    12,
+    402
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "402": {
+   "name": "PF_MINDBREAKER",
+   "official_effect_ids": [
+    403
+   ],
+   "client_effect_ids_2019": [
+    403
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    403
+   ],
+   "used_assets": []
+  },
+  "403": {
+   "name": "PF_MEMORIZE",
+   "official_effect_ids": [
+    505
+   ],
+   "client_effect_ids_2019": [
+    505
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    505
+   ],
+   "used_assets": []
+  },
+  "405": {
+   "name": "PF_SPIDERWEB",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    404
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "406": {
+   "name": "ASC_METEORASSAULT",
+   "official_effect_ids": [
+    409
+   ],
+   "client_effect_ids_2019": [
+    409
+   ],
+   "official_assets": [
+    "effect\\purpleslash"
+   ],
+   "used_effect_ids": [
+    409
+   ],
+   "used_assets": [
+    "effect\\purpleslash"
+   ]
+  },
+  "408": {
+   "name": "WE_BABY",
+   "official_effect_ids": [
+    408
+   ],
+   "client_effect_ids_2019": [
+    408
+   ],
+   "official_assets": [
+    "effect\\fire_ivy"
+   ],
+   "used_effect_ids": [
+    408
+   ],
+   "used_assets": [
+    "effect\\fire_ivy"
+   ]
+  },
+  "411": {
+   "name": "TK_RUN",
+   "official_effect_ids": [
+    442,
+    444
+   ],
+   "client_effect_ids_2019": [
+    442,
+    443
+   ],
+   "official_assets": [
+    "effect\\magic_blue"
+   ],
+   "used_effect_ids": [
+    442,
+    444
+   ],
+   "used_assets": [
+    "effect\\magic_blue"
+   ]
+  },
+  "413": {
+   "name": "TK_STORMKICK",
+   "official_effect_ids": [
+    435
+   ],
+   "client_effect_ids_2019": [
+    435
+   ],
+   "official_assets": [
+    "effect\\cloud11",
+    "effect\\storm2"
+   ],
+   "used_effect_ids": [
+    435
+   ],
+   "used_assets": [
+    "effect\\cloud11",
+    "effect\\storm2"
+   ]
+  },
+  "415": {
+   "name": "TK_DOWNKICK",
+   "official_effect_ids": [
+    413,
+    431
+   ],
+   "client_effect_ids_2019": [
+    413
+   ],
+   "official_assets": [
+    "effect\\white02"
+   ],
+   "used_effect_ids": [
+    413,
+    431
+   ],
+   "used_assets": [
+    "effect\\white02"
+   ]
+  },
+  "417": {
+   "name": "TK_TURNKICK",
+   "official_effect_ids": [
+    429,
+    466
+   ],
+   "client_effect_ids_2019": [
+    414
+   ],
+   "official_assets": [
+    "effect\\white02"
+   ],
+   "used_effect_ids": [
+    429,
+    466
+   ],
+   "used_assets": [
+    "effect\\white02"
+   ]
+  },
+  "419": {
+   "name": "TK_COUNTER",
+   "official_effect_ids": [
+    415,
+    430
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\white02"
+   ],
+   "used_effect_ids": [
+    415,
+    430
+   ],
+   "used_assets": [
+    "effect\\white02"
+   ]
+  },
+  "421": {
+   "name": "TK_JUMPKICK",
+   "official_effect_ids": [
+    439,
+    457,
+    458
+   ],
+   "client_effect_ids_2019": [
+    439,
+    457
+   ],
+   "official_assets": [
+    "effect\\line3"
+   ],
+   "used_effect_ids": [
+    439,
+    457,
+    458
+   ],
+   "used_assets": [
+    "effect\\line3"
+   ]
+  },
+  "425": {
+   "name": "TK_SEVENWIND",
+   "official_effect_ids": [
+    461
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\cloud11",
+    "effect\\storm2"
+   ],
+   "used_effect_ids": [
+    461
+   ],
+   "used_assets": [
+    "effect\\cloud11",
+    "effect\\storm2"
+   ]
+  },
+  "426": {
+   "name": "TK_HIGHJUMP",
+   "official_effect_ids": [
+    446
+   ],
+   "client_effect_ids_2019": [
+    411,
+    445
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    446
+   ],
+   "used_assets": []
+  },
+  "427": {
+   "name": "SG_FEEL",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    432
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "428": {
+   "name": "SG_SUN_WARM",
+   "official_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "client_effect_ids_2019": [
+    488
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ],
+   "used_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ]
+  },
+  "429": {
+   "name": "SG_MOON_WARM",
+   "official_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "client_effect_ids_2019": [
+    488
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ],
+   "used_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ]
+  },
+  "430": {
+   "name": "SG_STAR_WARM",
+   "official_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "client_effect_ids_2019": [
+    488
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ],
+   "used_effect_ids": [
+    418,
+    544,
+    572
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ]
+  },
+  "431": {
+   "name": "SG_SUN_COMFORT",
+   "official_effect_ids": [
+    488,
+    543
+   ],
+   "client_effect_ids_2019": [
+    441
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ],
+   "used_effect_ids": [
+    488,
+    543
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ]
+  },
+  "432": {
+   "name": "SG_MOON_COMFORT",
+   "official_effect_ids": [
+    488,
+    543
+   ],
+   "client_effect_ids_2019": [
+    441
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ],
+   "used_effect_ids": [
+    488,
+    543
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ]
+  },
+  "433": {
+   "name": "SG_STAR_COMFORT",
+   "official_effect_ids": [
+    488,
+    543
+   ],
+   "client_effect_ids_2019": [
+    441
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ],
+   "used_effect_ids": [
+    488,
+    543
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3",
+    "effect\\ring_blue"
+   ]
+  },
+  "434": {
+   "name": "SG_HATE",
+   "official_effect_ids": [
+    543
+   ],
+   "client_effect_ids_2019": [
+    487
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3"
+   ],
+   "used_effect_ids": [
+    543
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3"
+   ]
+  },
+  "444": {
+   "name": "SG_FUSION",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    433
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "445": {
+   "name": "SL_ALCHEMIST",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "446": {
+   "name": "AM_BERSERKPITCHER",
+   "official_effect_ids": [
+    220,
+    541
+   ],
+   "client_effect_ids_2019": [
+    220,
+    541
+   ],
+   "official_assets": [
+    "effect\\ac_center2",
+    "effect\\alpha_down",
+    "버서크",
+    "유저인터페이스\\item\\버서크포션"
+   ],
+   "used_effect_ids": [
+    220,
+    541
+   ],
+   "used_assets": [
+    "effect\\ac_center2",
+    "effect\\alpha_down",
+    "버서크",
+    "유저인터페이스\\item\\버서크포션"
+   ]
+  },
+  "447": {
+   "name": "SL_MONK",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "448": {
+   "name": "SL_STAR",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "449": {
+   "name": "SL_SAGE",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "450": {
+   "name": "SL_CRUSADER",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "451": {
+   "name": "SL_SUPERNOVICE",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "452": {
+   "name": "SL_KNIGHT",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "453": {
+   "name": "SL_WIZARD",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "454": {
+   "name": "SL_PRIEST",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "455": {
+   "name": "SL_BARDDANCER",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "456": {
+   "name": "SL_ROGUE",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "457": {
+   "name": "SL_ASSASIN",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "458": {
+   "name": "SL_BLACKSMITH",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [
+    424,
+    503
+   ],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "459": {
+   "name": "BS_ADRENALINE2",
+   "official_effect_ids": [
+    98
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\alpha_center",
+    "이팩트\\particle1"
+   ],
+   "used_effect_ids": [
+    98
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "이팩트\\particle1"
+   ]
+  },
+  "460": {
+   "name": "SL_HUNTER",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "461": {
+   "name": "SL_SOULLINKER",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [
+    424,
+    503
+   ],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "462": {
+   "name": "SL_KAIZEL",
+   "official_effect_ids": [
+    543,
+    590
+   ],
+   "client_effect_ids_2019": [
+    590
+   ],
+   "official_assets": [
+    "effect\\magic_blue",
+    "effect\\pok1",
+    "effect\\pok3"
+   ],
+   "used_effect_ids": [
+    543,
+    590
+   ],
+   "used_assets": [
+    "effect\\magic_blue",
+    "effect\\pok1",
+    "effect\\pok3"
+   ]
+  },
+  "463": {
+   "name": "SL_KAAHI",
+   "official_effect_ids": [
+    543
+   ],
+   "client_effect_ids_2019": [
+    543
+   ],
+   "official_assets": [
+    "effect\\pok1",
+    "effect\\pok3"
+   ],
+   "used_effect_ids": [
+    543
+   ],
+   "used_assets": [
+    "effect\\pok1",
+    "effect\\pok3"
+   ]
+  },
+  "464": {
+   "name": "SL_KAUPE",
+   "official_effect_ids": [
+    542
+   ],
+   "client_effect_ids_2019": [
+    546
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    542
+   ],
+   "used_assets": []
+  },
+  "465": {
+   "name": "SL_KAITE",
+   "official_effect_ids": [
+    419,
+    542
+   ],
+   "client_effect_ids_2019": [
+    419
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    419,
+    542
+   ],
+   "used_assets": []
+  },
+  "467": {
+   "name": "SL_STIN",
+   "official_effect_ids": [
+    547,
+    550
+   ],
+   "client_effect_ids_2019": [
+    547
+   ],
+   "official_assets": [
+    "effect\\270바람"
+   ],
+   "used_effect_ids": [
+    547,
+    550
+   ],
+   "used_assets": [
+    "effect\\270바람"
+   ]
+  },
+  "468": {
+   "name": "SL_STUN",
+   "official_effect_ids": [
+    429,
+    555
+   ],
+   "client_effect_ids_2019": [
+    555
+   ],
+   "official_assets": [
+    "effect\\white02"
+   ],
+   "used_effect_ids": [
+    429,
+    555
+   ],
+   "used_assets": [
+    "effect\\white02"
+   ]
+  },
+  "469": {
+   "name": "SL_SMA",
+   "official_effect_ids": [
+    425,
+    431,
+    553,
+    554
+   ],
+   "client_effect_ids_2019": [
+    425,
+    553
+   ],
+   "official_assets": [
+    "effect\\270바람",
+    "effect\\freeze_a",
+    "effect\\white02"
+   ],
+   "used_effect_ids": [
+    425,
+    431,
+    553,
+    554
+   ],
+   "used_assets": [
+    "effect\\270바람",
+    "effect\\freeze_a",
+    "effect\\white02"
+   ]
+  },
+  "470": {
+   "name": "SL_SWOO",
+   "official_effect_ids": [
+    420,
+    589
+   ],
+   "client_effect_ids_2019": [
+    420,
+    589
+   ],
+   "official_assets": [
+    "이팩트\\m_ef07"
+   ],
+   "used_effect_ids": [
+    420,
+    589
+   ],
+   "used_assets": [
+    "이팩트\\m_ef07"
+   ]
+  },
+  "471": {
+   "name": "SL_SKE",
+   "official_effect_ids": [
+    427
+   ],
+   "client_effect_ids_2019": [
+    427
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    427
+   ],
+   "used_assets": []
+  },
+  "472": {
+   "name": "SL_SKA",
+   "official_effect_ids": [
+    254,
+    261,
+    1132
+   ],
+   "client_effect_ids_2019": [
+    254,
+    261
+   ],
+   "official_assets": [
+    "effect\\ring_yellow",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ],
+   "used_effect_ids": [
+    254,
+    261,
+    1132
+   ],
+   "used_assets": [
+    "effect\\ring_yellow",
+    "effect\\super1",
+    "effect\\super2",
+    "effect\\super3",
+    "effect\\super4",
+    "effect\\super5"
+   ]
+  },
+  "475": {
+   "name": "ST_PRESERVE",
+   "official_effect_ids": [
+    496
+   ],
+   "client_effect_ids_2019": [
+    496
+   ],
+   "official_assets": [
+    "effect\\a01"
+   ],
+   "used_effect_ids": [
+    496
+   ],
+   "used_assets": [
+    "effect\\a01"
+   ]
+  },
+  "476": {
+   "name": "ST_FULLSTRIP",
+   "official_effect_ids": [
+    495
+   ],
+   "client_effect_ids_2019": [
+    495
+   ],
+   "official_assets": [
+    "effect\\shield",
+    "effect\\sword"
+   ],
+   "used_effect_ids": [
+    495
+   ],
+   "used_assets": [
+    "effect\\shield",
+    "effect\\sword"
+   ]
+  },
+  "479": {
+   "name": "CR_FULLPROTECTION",
+   "official_effect_ids": [
+    300,
+    500
+   ],
+   "client_effect_ids_2019": [
+    300,
+    500
+   ],
+   "official_assets": [
+    "effect\\shockwave_c"
+   ],
+   "used_effect_ids": [
+    300,
+    500
+   ],
+   "used_assets": [
+    "effect\\shockwave_c"
+   ]
+  },
+  "480": {
+   "name": "PA_SHIELDCHAIN",
+   "official_effect_ids": [
+    520
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\shield_boomerang"
+   ],
+   "used_effect_ids": [
+    520
+   ],
+   "used_assets": [
+    "effect\\shield_boomerang"
+   ]
+  },
+  "482": {
+   "name": "PF_DOUBLECASTING",
+   "official_effect_ids": [
+    521
+   ],
+   "client_effect_ids_2019": [
+    521
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    521
+   ],
+   "used_assets": []
+  },
+  "483": {
+   "name": "HW_GANBANTEIN",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    223,
+    224
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "485": {
+   "name": "WS_CARTTERMINATION",
+   "official_effect_ids": [
+    518
+   ],
+   "client_effect_ids_2019": [
+    518
+   ],
+   "official_assets": [
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    518
+   ],
+   "used_assets": [
+    "effect\\whitelight"
+   ]
+  },
+  "486": {
+   "name": "WS_OVERTHRUSTMAX",
+   "official_effect_ids": [
+    128
+   ],
+   "client_effect_ids_2019": [
+    128
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    128
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "487": {
+   "name": "CG_LONGINGFREEDOM",
+   "official_effect_ids": [
+    843
+   ],
+   "client_effect_ids_2019": [
+    500
+   ],
+   "official_assets": [
+    "effect\\w_bubble%02d"
+   ],
+   "used_effect_ids": [
+    843
+   ],
+   "used_assets": [
+    "effect\\w_bubble%02d"
+   ]
+  },
+  "488": {
+   "name": "CG_HERMODE",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    517
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "489": {
+   "name": "CG_TAROTCARD",
+   "official_effect_ids": [
+    500
+   ],
+   "client_effect_ids_2019": [
+    500
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    500
+   ],
+   "used_assets": []
+  },
+  "490": {
+   "name": "CR_ACIDDEMONSTRATION",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    537
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "494": {
+   "name": "SL_HIGH",
+   "official_effect_ids": [
+    424,
+    503
+   ],
+   "client_effect_ids_2019": [
+    424,
+    503
+   ],
+   "official_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ],
+   "used_effect_ids": [
+    424,
+    503
+   ],
+   "used_assets": [
+    "effect\\soul_i",
+    "effect\\soul_k",
+    "effect\\soul_l",
+    "effect\\soul_n",
+    "effect\\soul_o",
+    "effect\\soul_s",
+    "effect\\soul_u",
+    "effect\\whitelight"
+   ]
+  },
+  "495": {
+   "name": "KN_ONEHAND",
+   "official_effect_ids": [
+    130
+   ],
+   "client_effect_ids_2019": [
+    130
+   ],
+   "official_assets": [
+    "twohand"
+   ],
+   "used_effect_ids": [
+    130
+   ],
+   "used_assets": [
+    "twohand"
+   ]
+  },
+  "496": {
+   "name": "AM_TWILIGHT1",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    497
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "497": {
+   "name": "AM_TWILIGHT2",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    498
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "498": {
+   "name": "AM_TWILIGHT3",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    499
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "501": {
+   "name": "GS_FLING",
+   "official_effect_ids": [
+    548
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [],
+   "used_effect_ids": [
+    548
+   ],
+   "used_assets": []
+  },
+  "502": {
+   "name": "GS_TRIPLEACTION",
+   "official_effect_ids": [
+    648
+   ],
+   "client_effect_ids_2019": [
+    648
+   ],
+   "official_assets": [
+    "이팩트\\트리플액션"
+   ],
+   "used_effect_ids": [
+    648
+   ],
+   "used_assets": [
+    "이팩트\\트리플액션"
+   ]
+  },
+  "503": {
+   "name": "GS_BULLSEYE",
+   "official_effect_ids": [
+    649
+   ],
+   "client_effect_ids_2019": [
+    649
+   ],
+   "official_assets": [
+    "불스아이"
+   ],
+   "used_effect_ids": [
+    649
+   ],
+   "used_assets": [
+    "불스아이"
+   ]
+  },
+  "504": {
+   "name": "GS_MADNESSCANCEL",
+   "official_effect_ids": [
+    625
+   ],
+   "client_effect_ids_2019": [
+    625
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    625
+   ],
+   "used_assets": []
+  },
+  "505": {
+   "name": "GS_ADJUSTMENT",
+   "official_effect_ids": [
+    626
+   ],
+   "client_effect_ids_2019": [
+    626
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    626
+   ],
+   "used_assets": []
+  },
+  "506": {
+   "name": "GS_INCREASING",
+   "official_effect_ids": [
+    456
+   ],
+   "client_effect_ids_2019": [
+    456
+   ],
+   "official_assets": [
+    "effect\\ac_center2"
+   ],
+   "used_effect_ids": [
+    456
+   ],
+   "used_assets": [
+    "effect\\ac_center2"
+   ]
+  },
+  "507": {
+   "name": "GS_MAGICALBULLET",
+   "official_effect_ids": [
+    644
+   ],
+   "client_effect_ids_2019": [
+    644
+   ],
+   "official_assets": [
+    "이팩트\\매지컬불릿"
+   ],
+   "used_effect_ids": [
+    644
+   ],
+   "used_assets": [
+    "이팩트\\매지컬불릿"
+   ]
+  },
+  "512": {
+   "name": "GS_TRACKING",
+   "official_effect_ids": [
+    647
+   ],
+   "client_effect_ids_2019": [
+    646,
+    647
+   ],
+   "official_assets": [
+    "이팩트\\트래킹"
+   ],
+   "used_effect_ids": [
+    647
+   ],
+   "used_assets": [
+    "이팩트\\트래킹"
+   ]
+  },
+  "513": {
+   "name": "GS_DISARM",
+   "official_effect_ids": [
+    627
+   ],
+   "client_effect_ids_2019": [
+    627
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\골드룩스",
+    "유저인터페이스\\item\\더개리슨",
+    "유저인터페이스\\item\\더블샷건",
+    "유저인터페이스\\item\\더스크"
+   ],
+   "used_effect_ids": [
+    627
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\골드룩스",
+    "유저인터페이스\\item\\더개리슨",
+    "유저인터페이스\\item\\더블샷건",
+    "유저인터페이스\\item\\더스크"
+   ]
+  },
+  "514": {
+   "name": "GS_PIERCINGSHOT",
+   "official_effect_ids": [
+    623
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\line3y"
+   ],
+   "used_effect_ids": [
+    623
+   ],
+   "used_assets": [
+    "effect\\line3y"
+   ]
+  },
+  "515": {
+   "name": "GS_RAPIDSHOWER",
+   "official_effect_ids": [
+    643
+   ],
+   "client_effect_ids_2019": [
+    643
+   ],
+   "official_assets": [
+    "이팩트\\래피드샤워"
+   ],
+   "used_effect_ids": [
+    643
+   ],
+   "used_assets": [
+    "이팩트\\래피드샤워"
+   ]
+  },
+  "516": {
+   "name": "GS_DESPERADO",
+   "official_effect_ids": [
+    637
+   ],
+   "client_effect_ids_2019": [
+    637
+   ],
+   "official_assets": [
+    "이팩트\\데스페라도"
+   ],
+   "used_effect_ids": [
+    637
+   ],
+   "used_assets": [
+    "이팩트\\데스페라도"
+   ]
+  },
+  "517": {
+   "name": "GS_GATLINGFEVER",
+   "official_effect_ids": [
+    626
+   ],
+   "client_effect_ids_2019": [
+    626
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    626
+   ],
+   "used_assets": []
+  },
+  "518": {
+   "name": "GS_DUST",
+   "official_effect_ids": [
+    628
+   ],
+   "client_effect_ids_2019": [
+    628
+   ],
+   "official_assets": [
+    "effect\\alpha_center"
+   ],
+   "used_effect_ids": [
+    628
+   ],
+   "used_assets": [
+    "effect\\alpha_center"
+   ]
+  },
+  "519": {
+   "name": "GS_FULLBUSTER",
+   "official_effect_ids": [
+    584
+   ],
+   "client_effect_ids_2019": [
+    584
+   ],
+   "official_assets": [
+    "이팩트\\m_ef02"
+   ],
+   "used_effect_ids": [
+    584
+   ],
+   "used_assets": [
+    "이팩트\\m_ef02"
+   ]
+  },
+  "520": {
+   "name": "GS_SPREADATTACK",
+   "official_effect_ids": [
+    645
+   ],
+   "client_effect_ids_2019": [
+    645
+   ],
+   "official_assets": [
+    "이팩트\\스프레드"
+   ],
+   "used_effect_ids": [
+    645
+   ],
+   "used_assets": [
+    "이팩트\\스프레드"
+   ]
+  },
+  "523": {
+   "name": "NJ_SYURIKEN",
+   "official_effect_ids": [
+    613
+   ],
+   "client_effect_ids_2019": [
+    613
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\수리검"
+   ],
+   "used_effect_ids": [
+    613
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\수리검"
+   ]
+  },
+  "524": {
+   "name": "NJ_KUNAI",
+   "official_effect_ids": [
+    614
+   ],
+   "client_effect_ids_2019": [
+    614
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\쿠나이_독"
+   ],
+   "used_effect_ids": [
+    614
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\쿠나이_독"
+   ]
+  },
+  "525": {
+   "name": "NJ_HUUMA",
+   "official_effect_ids": [
+    615
+   ],
+   "client_effect_ids_2019": [
+    615
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\풍마_열화"
+   ],
+   "used_effect_ids": [
+    615
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\풍마_열화"
+   ]
+  },
+  "526": {
+   "name": "NJ_ZENYNAGE",
+   "official_effect_ids": [
+    616
+   ],
+   "client_effect_ids_2019": [
+    616
+   ],
+   "official_assets": [
+    "effect\\coin_a"
+   ],
+   "used_effect_ids": [
+    616
+   ],
+   "used_assets": [
+    "effect\\coin_a"
+   ]
+  },
+  "527": {
+   "name": "NJ_TATAMIGAESHI",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    631
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "528": {
+   "name": "NJ_KASUMIKIRI",
+   "official_effect_ids": [
+    632
+   ],
+   "client_effect_ids_2019": [
+    632
+   ],
+   "official_assets": [
+    "이팩트\\안개베기"
+   ],
+   "used_effect_ids": [
+    632
+   ],
+   "used_assets": [
+    "이팩트\\안개베기"
+   ]
+  },
+  "530": {
+   "name": "NJ_KIRIKAGE",
+   "official_effect_ids": [
+    630
+   ],
+   "client_effect_ids_2019": [
+    630
+   ],
+   "official_assets": [
+    "이팩트\\그림자베기"
+   ],
+   "used_effect_ids": [
+    630
+   ],
+   "used_assets": [
+    "이팩트\\그림자베기"
+   ]
+  },
+  "532": {
+   "name": "NJ_BUNSINJYUTSU",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    617
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "534": {
+   "name": "NJ_KOUENKA",
+   "official_effect_ids": [
+    618
+   ],
+   "client_effect_ids_2019": [
+    618
+   ],
+   "official_assets": [
+    "effect\\alpha_center",
+    "이팩트\\sakura01"
+   ],
+   "used_effect_ids": [
+    618
+   ],
+   "used_assets": [
+    "effect\\alpha_center",
+    "이팩트\\sakura01"
+   ]
+  },
+  "535": {
+   "name": "NJ_KAENSIN",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    634
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "536": {
+   "name": "NJ_BAKUENRYU",
+   "official_effect_ids": [
+    635
+   ],
+   "client_effect_ids_2019": [
+    635
+   ],
+   "official_assets": [
+    "fire dragon"
+   ],
+   "used_effect_ids": [
+    635
+   ],
+   "used_assets": [
+    "fire dragon"
+   ]
+  },
+  "537": {
+   "name": "NJ_HYOUSENSOU",
+   "official_effect_ids": [
+    619
+   ],
+   "client_effect_ids_2019": [
+    619
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    619
+   ],
+   "used_assets": []
+  },
+  "538": {
+   "name": "NJ_SUITON",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    620
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "539": {
+   "name": "NJ_HYOUSYOURAKU",
+   "official_effect_ids": [
+    636
+   ],
+   "client_effect_ids_2019": [
+    636
+   ],
+   "official_assets": [
+    "icy"
+   ],
+   "used_effect_ids": [
+    636
+   ],
+   "used_assets": [
+    "icy"
+   ]
+  },
+  "540": {
+   "name": "NJ_HUUJIN",
+   "official_effect_ids": [
+    621
+   ],
+   "client_effect_ids_2019": [
+    621
+   ],
+   "official_assets": [
+    "effect\\270바람"
+   ],
+   "used_effect_ids": [
+    621
+   ],
+   "used_assets": [
+    "effect\\270바람"
+   ]
+  },
+  "541": {
+   "name": "NJ_RAIGEKISAI",
+   "official_effect_ids": [
+    622
+   ],
+   "client_effect_ids_2019": [
+    622
+   ],
+   "official_assets": [
+    "이팩트\\썬더스톰"
+   ],
+   "used_effect_ids": [
+    622
+   ],
+   "used_assets": [
+    "이팩트\\썬더스톰"
+   ]
+  },
+  "542": {
+   "name": "NJ_KAMAITACHI",
+   "official_effect_ids": [
+    624
+   ],
+   "client_effect_ids_2019": [],
+   "official_assets": [
+    "effect\\270바람"
+   ],
+   "used_effect_ids": [
+    624
+   ],
+   "used_assets": [
+    "effect\\270바람"
+   ]
+  },
+  "544": {
+   "name": "NJ_ISSEN",
+   "official_effect_ids": [
+    633
+   ],
+   "client_effect_ids_2019": [
+    633
+   ],
+   "official_assets": [
+    "이팩트\\일섬"
+   ],
+   "used_effect_ids": [
+    633
+   ],
+   "used_assets": [
+    "이팩트\\일섬"
+   ]
+  },
+  "1002": {
+   "name": "CR_SHRINK",
+   "official_effect_ids": [
+    599
+   ],
+   "client_effect_ids_2019": [
+    599
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    599
+   ],
+   "used_assets": []
+  },
+  "1004": {
+   "name": "AS_VENOMKNIFE",
+   "official_effect_ids": [
+    600
+   ],
+   "client_effect_ids_2019": [
+    600
+   ],
+   "official_assets": [
+    "유저인터페이스\\item\\베넘나이프"
+   ],
+   "used_effect_ids": [
+    600
+   ],
+   "used_assets": [
+    "유저인터페이스\\item\\베넘나이프"
+   ]
+  },
+  "1005": {
+   "name": "RG_CLOSECONFINE",
+   "official_effect_ids": [
+    602
+   ],
+   "client_effect_ids_2019": [
+    602,
+    604
+   ],
+   "official_assets": [],
+   "used_effect_ids": [
+    602
+   ],
+   "used_assets": []
+  },
+  "1006": {
+   "name": "WZ_SIGHTBLASTER",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    601
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "1008": {
+   "name": "SA_ELEMENTWATER",
+   "official_effect_ids": [
+    256
+   ],
+   "client_effect_ids_2019": [
+    256
+   ],
+   "official_assets": [
+    "enc_ice"
+   ],
+   "used_effect_ids": [
+    256
+   ],
+   "used_assets": [
+    "enc_ice"
+   ]
+  },
+  "1009": {
+   "name": "HT_PHANTASMIC",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    1
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "1010": {
+   "name": "BA_PANGVOICE",
+   "official_effect_ids": [
+    606
+   ],
+   "client_effect_ids_2019": [
+    606
+   ],
+   "official_assets": [
+    "이팩트\\fvoice"
+   ],
+   "used_effect_ids": [
+    606
+   ],
+   "used_assets": [
+    "이팩트\\fvoice"
+   ]
+  },
+  "1011": {
+   "name": "DC_WINKCHARM",
+   "official_effect_ids": [
+    607
+   ],
+   "client_effect_ids_2019": [
+    607
+   ],
+   "official_assets": [
+    "이팩트\\wink"
+   ],
+   "used_effect_ids": [
+    607
+   ],
+   "used_assets": [
+    "이팩트\\wink"
+   ]
+  },
+  "1016": {
+   "name": "MO_BALKYOUNG",
+   "official_effect_ids": [],
+   "client_effect_ids_2019": [
+    514
+   ],
+   "official_assets": [],
+   "used_effect_ids": [],
+   "used_assets": []
+  },
+  "1017": {
+   "name": "SA_ELEMENTGROUND",
+   "official_effect_ids": [
+    258
+   ],
+   "client_effect_ids_2019": [
+    258
+   ],
+   "official_assets": [
+    "enc_earth"
+   ],
+   "used_effect_ids": [
+    258
+   ],
+   "used_assets": [
+    "enc_earth"
+   ]
+  },
+  "1018": {
+   "name": "SA_ELEMENTFIRE",
+   "official_effect_ids": [
+    255
+   ],
+   "client_effect_ids_2019": [
+    255
+   ],
+   "official_assets": [
+    "enc_fire"
+   ],
+   "used_effect_ids": [
+    255
+   ],
+   "used_assets": [
+    "enc_fire"
+   ]
+  },
+  "1019": {
+   "name": "SA_ELEMENTWIND",
+   "official_effect_ids": [
+    257
+   ],
+   "client_effect_ids_2019": [
+    257
+   ],
+   "official_assets": [
+    "enc_wind"
+   ],
+   "used_effect_ids": [
+    257
+   ],
+   "used_assets": [
+    "enc_wind"
+   ]
+  }
+ }
+}

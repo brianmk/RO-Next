@@ -9,7 +9,7 @@
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 109 skills, 169 layers.
+// 109 skills, 174 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
@@ -218,6 +218,7 @@
         // skill 317 BA_DISSONANCE: official effect [277]
         (skill: 317, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_red.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\magic_violet.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 3.4, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 319 BA_WHISTLE: official effect [] - appended official layers
@@ -227,6 +228,7 @@
         // skill 320 BA_ASSASSINCROSS: official effect [] - appended official layers
         (skill: 320, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_red.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\magic_violet.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 3.4, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 321 BA_POEMBRAGI: official effect [] - appended official layers
@@ -240,6 +242,7 @@
         // skill 325 DC_UGLYDANCE: official effect [290]
         (skill: 325, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_red.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\magic_violet.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 3.4, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 327 DC_HUMMING: official effect [] - appended official layers
@@ -249,6 +252,7 @@
         // skill 328 DC_DONTFORGETME: official effect [] - appended official layers
         (skill: 328, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_red.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\magic_violet.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 3.4, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 329 DC_FORTUNEKISS: official effect [] - appended official layers
@@ -258,6 +262,7 @@
         // skill 330 DC_SERVICEFORYOU: official effect [] - appended official layers
         (skill: 330, phase: Success, layers: [
             (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_red.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\magic_violet.tga", duration_ms: 30000, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 3.4, duration_ms: 30000, alpha: 0.2, blend: Additive),
         ]),
         // skill 355 LK_AURABLADE: official effect [367]
