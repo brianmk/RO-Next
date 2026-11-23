@@ -34,6 +34,10 @@
 //!   `KORANGAR_BENCH_EFFECTS_SECONDS`, `KORANGAR_BENCH_UI_SECONDS` - stage
 //!   durations (defaults 8, 12, 6, 8).
 //! * `KORANGAR_BENCH_OUT` - append the raw benchmark lines to this file.
+//! * `KORANGAR_BENCH_CASTER_POSE` - also play each swept skill's caster pose
+//!   (the `skills` stage otherwise only exercises the effect pipeline).
+//! * `KORANGAR_BENCH_SKIP_AURAS` - do not inject the persistent status auras
+//!   (useful when capturing the caster body pose).
 //!
 //! The driver never runs unless `KORANGAR_BENCH` is set, so normal clients are
 //! not affected.
@@ -42,7 +46,7 @@ use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
 use cgmath::Vector3;
-use ragnarok_packets::{ClientTick, SkillId, TilePosition};
+use ragnarok_packets::{ClientTick, EntityId, SkillId, TilePosition};
 
 use crate::graphics::Color;
 use crate::input::InputEvent;
@@ -68,6 +72,10 @@ const COUNTED_WINDOWS: &[WindowClass] = &[
     WindowClass::SelectServer,
     WindowClass::CharacterSelection,
 ];
+
+/// Duration used for the named `Skill`/`Attack` poses of the opt-in caster-pose
+/// mode; explicit `Action(n)` rows play the native ACT duration.
+const BENCH_SKILL_ACTION_MS: u32 = 400;
 
 /// Skill ids driven by the `skills` scenario: a representative pre-renewal
 /// selection that covers every layer kind (`.str`, `.spr`, texture billboards,
@@ -161,6 +169,9 @@ struct BenchState {
     effects_spawned: u32,
     buffs_applied: bool,
     windows_opened: bool,
+    /// Skip the injected status auras (`KORANGAR_BENCH_SKIP_AURAS`), so the
+    /// caster body pose is not hidden under the aura layers.
+    skip_auras: bool,
 
     /// Currently loading benchmark map (name + request time) and the samples.
     pending_map: Option<(String, Instant)>,
@@ -175,6 +186,9 @@ struct BenchState {
     skill_list: Vec<u16>,
     /// Pause between two skill spawns.
     skill_delay: Duration,
+    /// Also play the caster pose of every swept skill
+    /// (`KORANGAR_BENCH_CASTER_POSE`).
+    caster_pose: bool,
 }
 
 static STATE: OnceLock<Mutex<Option<BenchState>>> = OnceLock::new();
@@ -277,6 +291,7 @@ fn initial_state(window_size: (usize, usize)) -> BenchState {
         effects_spawned: 0,
         buffs_applied: false,
         windows_opened: false,
+        skip_auras: environment("KORANGAR_BENCH_SKIP_AURAS").is_some_and(|value| value != "0"),
         pending_map: None,
         map_pointer_before: 0,
         map_change_next: 0,
@@ -285,6 +300,7 @@ fn initial_state(window_size: (usize, usize)) -> BenchState {
         failure: None,
         skill_list: skill_list(),
         skill_delay: Duration::from_millis((environment_seconds("KORANGAR_BENCH_SKILL_DELAY", 0.45) * 1000.0) as u64),
+        caster_pose: environment("KORANGAR_BENCH_CASTER_POSE").is_some_and(|value| value != "0"),
     }
 }
 
@@ -461,7 +477,9 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
     };
 
     if !bench.buffs_applied {
-        apply_statuses(client, client_tick, &BENCHMARK_AURA_STATUSES);
+        if !bench.skip_auras {
+            apply_statuses(client, client_tick, &BENCHMARK_AURA_STATUSES);
+        }
         bench.buffs_applied = true;
         bench.next_action = now + Duration::from_millis(500);
         return;
@@ -474,6 +492,9 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
         }
 
         let skill_id = bench.skill_list[index];
+        if bench.caster_pose {
+            apply_bench_caster_pose(client, entity_id, skill_id, ClientTick(client_tick as u32));
+        }
         let phases = [SkillPhase::Success, SkillPhase::Ground, SkillPhase::Cast, SkillPhase::Hit];
         let phase = phases
             .iter()
@@ -504,6 +525,29 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
         finish_stage(bench, "skill_sweep");
         bench.stage = Stage::Done;
         bench.finished = true;
+    }
+}
+
+/// Plays a swept skill's caster pose through the same entity methods as the
+/// real network handlers (see the `SkillCast` arm in `lib.rs`). Opt-in via
+/// `KORANGAR_BENCH_CASTER_POSE=1`, so normal effect sweeps are unchanged.
+fn apply_bench_caster_pose(client: &mut Client, entity_id: EntityId, skill_id: u16, client_tick: ClientTick) {
+    let Some(entity) = client
+        .client_state
+        .follow_mut(client_state().entities())
+        .iter_mut()
+        .find(|entity| entity.get_entity_id() == entity_id)
+    else {
+        return;
+    };
+
+    match crate::world::caster_action(SkillId(skill_id)) {
+        crate::world::CasterAction::Idle => entity.set_idle(client_tick),
+        crate::world::CasterAction::Skill => entity.set_skill_cast(BENCH_SKILL_ACTION_MS, false, client_tick),
+        crate::world::CasterAction::Attack => entity.set_attack(BENCH_SKILL_ACTION_MS, false, client_tick),
+        crate::world::CasterAction::Pickup => entity.set_pickup(client_tick),
+        crate::world::CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+        crate::world::CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
     }
 }
 
