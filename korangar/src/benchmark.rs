@@ -92,6 +92,15 @@ const BENCHMARK_SKILLS: [u16; 47] = [
 /// is exercised by the headless sweep.
 const BENCHMARK_AURA_STATUSES: [u16; 18] = [2, 25, 31, 68, 86, 87, 103, 107, 110, 113, 123, 161, 165, 188, 232, 235, 437, 473];
 
+/// Status effects injected by the `skills` scenario: the defaults, or the
+/// comma separated `KORANGAR_BENCH_AURAS` override (to isolate one status).
+fn aura_list() -> Vec<u16> {
+    match environment("KORANGAR_BENCH_AURAS") {
+        Some(value) if !value.trim().is_empty() => value.split(',').filter_map(|entry| entry.trim().parse::<u16>().ok()).collect(),
+        _ => BENCHMARK_AURA_STATUSES.to_vec(),
+    }
+}
+
 /// Status effects injected for the `ui_updates` stage so the buff bar has a
 /// known, non-empty work set.
 const BENCHMARK_BUFFS: [u16; 10] = [0, 1, 2, 3, 9, 10, 12, 15, 241, 242];
@@ -481,7 +490,7 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
 
     if !bench.buffs_applied {
         if !bench.skip_auras {
-            apply_statuses(client, client_tick, &BENCHMARK_AURA_STATUSES);
+            apply_statuses(client, client_tick, &aura_list());
         }
         bench.buffs_applied = true;
         bench.next_action = now + Duration::from_millis(500);

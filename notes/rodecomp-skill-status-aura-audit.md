@@ -463,6 +463,24 @@ RenderObject.cpp:1509-1511), while korangar's `Action(11)` plays the whole actio
 The ACT *offset* matches; the static hold would need a per-skill frame sequence in
 the client's animation data.
 
+### 5b-2. Additive status blend verification
+
+The additive body/weapon blend (status 107/132 body, 103 weapon) was verified in
+isolation with the new `KORANGAR_BENCH_AURAS` benchmark override (it accepts a
+comma separated status list instead of the full 18-aura set):
+
+* Berserk 107 renders the body as a red silhouette (`EF_REDBODY` +
+  `SetColor(255,100,100)`, `render.flags |= 1`), which is the official look;
+* Aura Blade 103 keeps the normal body colour and adds a subtle white weapon
+  glow (`render.flags |= 2`).
+
+Frames: `notes/rodecomp-verification/status-berserk-additive.jpg`,
+`status-aurablade-additive.jpg`. Injecting all auras at once stacks the additive
+rows into a bright bloom, so the default benchmark set is a stress case.
+Outlines (Kaite/Soul Link/Undead) remain unimplemented: the forward shader
+multiplies texture by the instance colour, so a flat silhouette needs a shader
+branch.
+
 ## 5c. Coverage audit tool
 
 `tools/audit_rodecomp_coverage.py` joins the committed facts

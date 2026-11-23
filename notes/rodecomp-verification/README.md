@@ -60,6 +60,20 @@ current `quick-xml` clientinfo parser rejects ("duplicate field `filename`"), an
 (100.40.203.12) is stale. Mounting a small folder that contains a copy of the patched `client/game/data/sclientinfo.xml`
 (live 100.40.206.179, no `<loading>` block) as the highest-priority archive works around both. The local `client/` configuration is gitignored.
 
+### Additive status blend (Berserk / Aura Blade)
+
+`KORANGAR_BENCH_AURAS` isolates a single status (comma separated ids; the full
+set is injected by default). Isolated frames, verify2:
+
+| file | status | what it shows |
+| --- | --- | --- |
+| `status-berserk-additive.jpg` | 107 Berserk | the body renders as a red silhouette (`EF_REDBODY` + `SetColor(255,100,100)`, `render.flags |= 1` body blend), matching the official red-body blend. |
+| `status-aurablade-additive.jpg` | 103 Aura Blade | the weapon/body keeps its normal colour with a subtle white additive glow (`EF_AURABLADE2`, `render.flags |= 2` weapon blend). |
+
+With all 18 benchmark auras injected at once the stacked additive rows read as a
+bright bloom; the isolated frames show each row on its own is correct, so the
+default set is a stress case, not a fidelity problem.
+
 ## Account notes
 
 * `verify6` / `verifypass` and `verify4` / `verifypass` both reach the map.
