@@ -339,10 +339,11 @@ documented here instead of being faked with a glow.
    `w_bubble%02d` swirl, and both ids still exist in the decompilation. The remaining drift
    skills are left untouched because the corroboration is missing (e.g. Enchant Poison: the
    official code says `EF_ENCHANTPOISON` (125), the 2019 table says `EF_PATTACK` (20)).
-2. **Skills with rows that still miss official layers**: 10 of the 64 covered skills
+2. **Skills with rows that still miss official layers**: none. The last ten
    (`MO_EXPLOSIONSPIRITS` 270, `HW_SOULDRAIN` 364, `TK_COUNTER` 419, `SG_SUN/MOON/STAR_COMFORT`
-   431-433, `SL_ASSASSIN` 457, `BS_ADRENALINE2` 459, `SL_HUNTER` 460, `SL_STUN` 468). These are
-   drift cases whose mapping cannot be corroborated. Three drift skills *were* resolved because
+   431-433, `SL_ASSASSIN` 457, `BS_ADRENALINE2` 459, `SL_HUNTER` 460, `SL_STUN` 468) were
+   corroborated against our own 2019 client and are resolved in
+   `notes/rodecomp-skill-drift-resolution.md`. Three drift skills *were* resolved earlier because
    the official effect name matches the skill: `PR_TURNUNDEAD` -> `EF_TURNUNDEAD` (82),
    `AS_ENCHANTPOISON`/`AS_SPLASHER` -> `EF_ENCHANTPOISON` (125, the official switch groups the
    two). The 16 bard/dancer songs are likewise no longer a gap (their 2019 `EF_BOTTOM_*`
@@ -359,10 +360,10 @@ documented here instead of being faked with a glow.
      `SL_KAITE` 465, `SL_SKE` 471, `PF_DOUBLECASTING` 482, `CG_TAROTCARD` 489, `GS_FLING` 501,
      `GS_MADNESSCANCEL` 504, `GS_ADJUSTMENT` 505, `GS_GATLINGFEVER` 517, `CR_SHRINK` 1002
      (these need the sprite-level features of section 4.4, or a status-side tint row);
-   * **uncorroborated drift**: `MO_STEELBODY` 268, `TK_TURNKICK` 417, `TK_HIGHJUMP` 426,
-     `SG_SUN/MOON/STAR_WARM` 428-430, `SG_HATE` 434, `SL_KAUPE` 464, `CG_LONGINGFREEDOM` 487
-     plus `BD_ADAPTATION` 304 (official `EF_DANCE2` does not match the skill, deliberately
-     skipped).
+   * **uncorroborated drift**: `SG_SUN/MOON/STAR_WARM` 428-430, `CG_LONGINGFREEDOM` 487 and
+     `BD_ADAPTATION` 304 (official `EF_DANCE2` does not match the skill); `MO_STEELBODY` 268,
+     `TK_TURNKICK` 417, `SG_HATE` 434, `TK_HIGHJUMP` 426 and `SL_KAUPE` 464 are resolved or
+     sprite-level flags - see `notes/rodecomp-skill-drift-resolution.md`.
 
 ---
 
@@ -449,15 +450,17 @@ Current result (457 learnable skills):
 
 | bucket | skills | meaning |
 | --- | ---: | --- |
-| complete | 265 | every version-correct official asset is rendered |
-| partial | 11 | has rows, misses one or more official assets |
-| uncovered | 8 | official effect assets, no rows |
-| flag_only | 13 | official effect renders no asset (blend/blink/outline/tint) |
-| no_effect | 160 | no official effect (passive or sound-only) |
+| complete | 283 | every version-correct official asset is rendered |
+| partial | 0 | has rows, misses one or more official assets |
+| uncovered | 5 | official effect assets, no rows |
+| flag_only | 12 | official effect renders no asset (blend/blink/outline/tint) |
+| no_effect | 157 | no official effect (passive or sound-only) |
 
-33 skills are flagged `drift` (the 2026 and 2019 effect id sets are disjoint); the songs and
-`PR_TURNUNDEAD`/`AS_ENCHANTPOISON`/`AS_SPLASHER` are handled by the version-correct mapping
-described above. `tools/test_rodecomp_coverage.py` keeps the facts and the classifier honest.
+33 skills are flagged `drift` (the raw 2026 and 2019 effect id sets are disjoint); the songs,
+`PR_TURNUNDEAD`/`AS_ENCHANTPOISON`/`AS_SPLASHER` and the further drift skills corroborated in
+`notes/rodecomp-skill-drift-resolution.md` are handled by the version-correct mapping described
+above. The 5 remaining uncovered skills are the unresolved drift cases listed in that note.
+`tools/test_rodecomp_coverage.py` keeps the facts and the classifier honest.
 
 ## 5d. Skill cast sounds
 
@@ -497,8 +500,8 @@ and the game GRFs):
 Checks in this repository:
 
 ```sh
-./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (67 skills)
-./tools/gen_skill_effects.py --check        # 521 phases / 778 layers
+./tools/gen_rodecomp_overlay.py --check     # overlay data up to date (135 skills)
+./tools/gen_skill_effects.py --check        # 524 phases / 793 layers
 ./tools/gen_status_effects.py --check       # 19 aura rows / 20 statuses
 ./tools/gen_status_visuals.py --check      # 15 body tint/fade/loop rows
 ./tools/gen_skill_sounds.py --check        # 8 curated + 378 official sounds
@@ -508,7 +511,7 @@ python3 tools/test_rodecomp_motions.py      # 3 animation-facts tests
 # in-client verification (Xvfb + live server, test account):
 #   KORANGAR_BENCH=skills KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
 #   KORANGAR_BENCH_SKILLS="34,306,19,451,355" ../target/release/korangar
-korangar --check-skill-effects              # 521 descriptors valid
+korangar --check-skill-effects              # 524 descriptors valid
 korangar --check-status-effects             # 616 statuses valid
 cargo test -p korangar --lib                # 567 passed (incl. the flipbook tests)
 ```
