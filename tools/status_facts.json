@@ -70,13 +70,13 @@
     },
     "custom": {
       "file": "tools/status_effect_custom.ron",
-      "sha256": "8efa87a28b1500610093bfa544356289b2c3debba8a290f7b4a981d15dfcaf72",
+      "sha256": "40adbf02dcfde786b86e903b9f552ed44cfb6fd6d9894ea1c757e7c7f138252e",
       "counts": {
         "names": 10,
         "icons": 6,
         "categories": 2,
         "value_labels": 7,
-        "auras": 3
+        "auras": 4
       }
     },
     "counts": {
@@ -89,7 +89,7 @@
       "merged_statuses": 609,
       "dropped_icons": 16,
       "values": 7,
-      "auras": 3
+      "auras": 4
     },
     "dropped_icons": [
       {
@@ -31731,7 +31731,57 @@
       "min_duration_in_milliseconds": null,
       "have_time_limit": false,
       "refresh": "Replace",
-      "stack": "Single"
+      "stack": "Single",
+      "aura": {
+        "kind": "PersistentGlow",
+        "source": "rustnarok-client prims/walls.rs Berserk: #FA7878 body tint plus cylinder/streaks; ported as a red persistent body glow",
+        "textures": {
+          "ground": "effect\\whitelight.tga",
+          "ring": "effect\\ring_red.tga",
+          "body_frames": [
+            "effect\\whitelight.tga"
+          ],
+          "body_glow": "effect\\whitelight.tga"
+        },
+        "tint": {
+          "ground": [
+            1.0,
+            0.35,
+            0.35
+          ],
+          "body": [
+            0.98,
+            0.47,
+            0.47
+          ],
+          "glow": [
+            1.0,
+            0.45,
+            0.45
+          ]
+        },
+        "radii": {
+          "ground": 10.0,
+          "ring": 7.0,
+          "body": 24.0,
+          "body_glow": 14.0
+        },
+        "timing": {
+          "body_frame_rate": 6.0,
+          "ring_rotation_speed": 0.8,
+          "body_rotation_speed": 0.4,
+          "body_camera_offset": 2.0,
+          "pulse_speed": 2.5,
+          "pulse_amount": 0.2
+        },
+        "alpha": {
+          "ground": 0.32,
+          "ring": 0.4,
+          "body": 0.4,
+          "body_glow": 0.35
+        },
+        "height": 11.0
+      }
     },
     {
       "id": 133,
