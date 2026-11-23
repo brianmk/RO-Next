@@ -4848,6 +4848,18 @@ impl Client {
                     // `archive/data/client/status_visual_effects.ron`.
                     self.refresh_entity_status_visual(entity_id);
 
+                    // `EFST_CHANGE_SIZE` / `EFST_CHANGE_SIZE_MONSTER`
+                    // (1420/1421): the server `val1` is the size in percent.
+                    if matches!(status_index, 1420 | 1421)
+                        && let Some(entity) = self
+                            .client_state
+                            .follow_mut(client_state().entities())
+                            .iter_mut()
+                            .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_status_scale(active, values[0]);
+                    }
+
                     // `EFST_PUSH_CART` (673) keeps the merchant cart visible even
                     // when the server's entity option bit is missing.
                     if status_index == 673

@@ -288,6 +288,9 @@ pub struct Common {
     pub tile_position: TilePosition,
     pub world_position: Point3<f32>,
     pub scale: f32,
+    /// Job/baby base scale, restored when `EFST_CHANGE_SIZE` ends.
+    #[hidden_element]
+    base_scale: f32,
     #[hidden_element]
     details: ResourceState<String>,
     /// Id of the guild the entity is in, `0` if it is not in a guild.
@@ -591,6 +594,7 @@ impl Common {
             },
             body_flash: None,
             scale,
+            base_scale: scale,
         }
     }
 
@@ -2204,6 +2208,18 @@ impl Entity {
 
     pub fn get_scale(&self) -> f32 {
         self.get_common().scale
+    }
+
+    /// Applies `EFST_CHANGE_SIZE` / `EFST_CHANGE_SIZE_MONSTER` (1420/1421).
+    /// `percent` is the server `val1` (100 = normal); `false` restores the job
+    /// base scale.
+    pub fn set_status_scale(&mut self, active: bool, percent: i32) {
+        let common = self.get_common_mut();
+        common.scale = if active && percent > 0 {
+            common.base_scale * percent as f32 / 100.0
+        } else {
+            common.base_scale
+        };
     }
 
     pub fn set_position(&mut self, map: &Map, position: TilePosition, client_tick: ClientTick) {
