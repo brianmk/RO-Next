@@ -27,11 +27,18 @@ OUTPUT = REPO / "korangar" / "archive" / "data" / "client" / "status_visual_effe
 
 #: The first verified B1 batch: id, tint RGB, priority, source. All are classic
 #: 2019 body tints; ground rings/looping effects are a later milestone.
-ROWS: list[tuple[int, tuple[int, int, int], int, str]] = [
-    (23, (255, 115, 115), 10, "classic red adrenaline tint"),
-    (147, (255, 115, 115), 10, "classic red full-adrenaline tint"),
-    (86, (255, 191, 191), 20, "official Fury red glow"),
-    (132, (250, 120, 120), 30, "rustnarok-client prims/walls.rs Berserk #FA7878"),
+ROWS: list[dict[str, object]] = [
+    # Classic body tints.
+    {"id": 23, "kind": "tint", "tint": (255, 115, 115), "priority": 10, "source": "classic red adrenaline tint"},
+    {"id": 147, "kind": "tint", "tint": (255, 115, 115), "priority": 10, "source": "classic red full-adrenaline tint"},
+    {"id": 86, "kind": "tint", "tint": (255, 191, 191), "priority": 20, "source": "official Fury red glow"},
+    {"id": 132, "kind": "tint", "tint": (250, 120, 120), "priority": 30, "source": "rustnarok-client prims/walls.rs Berserk #FA7878"},
+    # Classic looping/ground visuals (B1 follow-up). Assets were checked in
+    # the CondaRO data.grf: effect/maximizepower.str, effect/twohand.str and
+    # effect/ring_blue.tga.
+    {"id": 26, "kind": "loop", "file": "effect\\maximizepower.str", "anchor": "Body", "duration_ms": 1000, "tint": (255, 200, 90), "scale": 0.8, "source": "EF_MAXPOWER Maximize Power looping str"},
+    {"id": 2, "kind": "loop", "file": "effect\\twohand.str", "anchor": "Body", "duration_ms": 1000, "tint": (255, 190, 90), "scale": 0.8, "source": "EF_TWOHANDQUICKEN Two Hand Quicken looping str"},
+    {"id": 8, "kind": "ring", "texture": "effect\\ring_blue.tga", "radius": 8.0, "height": 0.5, "duration_ms": 4000, "color": (80, 160, 60), "pulse": 0.2, "source": "Quagmire ground ring"},
 ]
 
 HEADER = """// Data-driven per-status body visuals for RO-Next.
@@ -40,9 +47,8 @@ HEADER = """// Data-driven per-status body visuals for RO-Next.
 // Regenerate: `./tools/gen_status_visuals.py`
 // Check:      `./tools/gen_status_visuals.py --check`
 //
-// This first batch covers the classic body tints ported from the existing
-// client behaviour and rustnarok-client's status visual tables. Ground rings,
-// looping STR/part effects and other families are the next B1 milestone.
+// Classic body tints plus the first looping/ground rows. Assets were checked
+// against the CondaRO archives; 4th-job families remain out of scope.
 (
     provenance: "RO-Next classic status body tints; colors verified against the previous hardcoded status handler and rustnarok-client prims/walls.rs Berserk #FA7878",
     version: 1,
@@ -55,20 +61,44 @@ def render() -> str:
         raise SystemExit(f"missing facts file: {FACTS}")
     facts = json.loads(FACTS.read_text())
     known = {int(row["id"]) for row in facts.get("statuses", [])}
-    missing = [row[0] for row in ROWS if row[0] not in known]
+    missing = [int(row["id"]) for row in ROWS if int(row["id"]) not in known]
     if missing:
         raise SystemExit(f"status ids not present in rustnarok facts: {missing}")
 
     lines = [HEADER]
-    for status_id, (red, green, blue), priority, source in ROWS:
-        if not all(0 <= channel <= 255 for channel in (red, green, blue)):
-            raise SystemExit(f"invalid tint for status {status_id}")
-        if priority < 0 or priority > 1000:
-            raise SystemExit(f"invalid priority for status {status_id}")
-        lines.append(
-            f"        (id: {status_id}, kind: BodyTint(tint: ({red}, {green}, {blue}), "
-            f'hold_ms: 0, fade_ms: 0, priority: {priority}), source: "{source}"),\n'
-        )
+    for row in ROWS:
+        status_id = int(row["id"])
+        source = str(row["source"])
+        kind = str(row["kind"])
+        if kind == "tint":
+            red, green, blue = row["tint"]
+            if not all(0 <= channel <= 255 for channel in (red, green, blue)):
+                raise SystemExit(f"invalid tint for status {status_id}")
+            priority = int(row["priority"])
+            if priority < 0 or priority > 1000:
+                raise SystemExit(f"invalid priority for status {status_id}")
+            lines.append(
+                f"        (id: {status_id}, kind: BodyTint(tint: ({red}, {green}, {blue}), "
+                f'hold_ms: 0, fade_ms: 0, priority: {priority}), source: "{source}"),\n'
+            )
+        elif kind == "loop":
+            red, green, blue = row["tint"]
+            path = str(row["file"]).replace("\\", "\\\\")
+            lines.append(
+                f"        (id: {status_id}, kind: LoopingEffect(file: \"{path}\", "
+                f'anchor: {row["anchor"]}, duration_ms: {row["duration_ms"]}, loop: true, '
+                f'tint: ({red}, {green}, {blue}), scale: {row["scale"]}), source: "{source}"),\n'
+            )
+        elif kind == "ring":
+            red, green, blue = row["color"]
+            path = str(row["texture"]).replace("\\", "\\\\")
+            lines.append(
+                f"        (id: {status_id}, kind: GroundRing(texture: \"{path}\", "
+                f'radius: {row["radius"]}, height: {row["height"]}, duration_ms: {row["duration_ms"]}, '
+                f'color: ({red}, {green}, {blue}), pulse: {row["pulse"]}), source: "{source}"),\n'
+            )
+        else:
+            raise SystemExit(f"unknown row kind {kind}")
     lines.append("    ],\n)\n")
     return "".join(lines)
 

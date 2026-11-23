@@ -899,6 +899,11 @@ pub struct Client {
     /// Frame counter of the status aura reconciliation (used to detect entries
     /// whose status is no longer active without allocating a set per frame).
     status_aura_frame: u64,
+    /// Active looping/ground status visuals, keyed by (entity, status). The
+    /// value is the shared "still active" flag and the last reconciliation
+    /// frame, exactly like `status_aura_flags`.
+    status_visual_flags: HashMap<(ragnarok_packets::EntityId, u16), (std::sync::Arc<std::sync::atomic::AtomicBool>, u64)>,
+    status_visual_frame: u64,
 
     /// Skill sounds that were already played at the start of an *instant* skill
     /// Decides when a skill sound plays: instant casts wait for their
@@ -1657,6 +1662,8 @@ impl Client {
             skill_sound_gate: SkillSoundGate::default(),
             status_aura_flags: HashMap::new(),
             status_aura_frame: 0,
+            status_visual_flags: HashMap::new(),
+            status_visual_frame: 0,
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
@@ -3532,6 +3539,108 @@ impl Client {
         });
     }
 
+    /// Reconciles the looping/ground status visuals with the active statuses.
+    fn update_status_visuals(&mut self) {
+        use crate::world::StatusVisualKind;
+
+        self.status_visual_frame = self.status_visual_frame.wrapping_add(1);
+        let frame = self.status_visual_frame;
+
+        let statuses = self.client_state.follow(client_state().status_effects());
+        let entities = self.client_state.follow(client_state().entities());
+
+        for status in statuses.effects() {
+            let status_index = status.status_index();
+            let Some(visual) = crate::world::status_visual(status_index) else {
+                continue;
+            };
+            if !matches!(
+                visual.kind,
+                StatusVisualKind::LoopingEffect { .. } | StatusVisualKind::GroundRing { .. }
+            ) {
+                continue;
+            }
+            let Some(entity) = entities.iter().find(|entity| entity.get_entity_id().0 == status.entity_id()) else {
+                continue;
+            };
+            if entity.is_dead() || entity.is_fading() {
+                continue;
+            }
+            let entity_id = entity.get_entity_id();
+            let key = (entity_id, status_index);
+            if let Some((_, last_seen)) = self.status_visual_flags.get_mut(&key) {
+                *last_seen = frame;
+                continue;
+            }
+
+            let active = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+            let spawned = match visual.kind {
+                StatusVisualKind::LoopingEffect { file, anchor, scale, .. } => {
+                    let Ok(effect) = self.effect_loader.get_or_load(file, &self.texture_loader) else {
+                        crate::logging::log_warn!("status visual: failed to load looping effect '{}'", file);
+                        self.status_visual_flags
+                            .insert(key, (std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)), frame));
+                        continue;
+                    };
+                    let offset = match anchor {
+                        crate::world::StatusVisualAnchor::Body => cgmath::Vector3::new(0.0, 0.0, 0.0),
+                        crate::world::StatusVisualAnchor::Overhead => cgmath::Vector3::new(0.0, 20.0, 0.0),
+                        crate::world::StatusVisualAnchor::Ground => cgmath::Vector3::new(0.0, 1.0, 0.0),
+                    };
+                    let frame_timer = effect.new_frame_timer();
+                    let inner = crate::world::EffectWithLight::new(
+                        effect,
+                        frame_timer,
+                        crate::world::EffectCenter::Entity(entity_id, cgmath::Point3::new(0.0, 0.0, 0.0)),
+                        offset,
+                        scale,
+                        crate::world::PointLightId::new(entity_id.0.wrapping_add(status_index as u32).wrapping_add(0x5000_0000)),
+                        cgmath::Vector3::new(0.0, 20.0, 0.0),
+                        crate::graphics::Color::WHITE,
+                        0.0,
+                        true,
+                    );
+                    self.effect_holder.add_unit(
+                        Box::new(crate::world::StatusLoopingEffect::new(inner, active.clone())),
+                        entity_id,
+                    )
+                }
+                StatusVisualKind::GroundRing {
+                    texture,
+                    radius,
+                    height,
+                    color,
+                    pulse,
+                    ..
+                } => crate::world::StatusGroundRing::new(
+                    &self.texture_loader,
+                    entity_id,
+                    texture,
+                    active.clone(),
+                    radius,
+                    height,
+                    color,
+                    pulse,
+                )
+                .map(|ring| self.effect_holder.add_unit(Box::new(ring), entity_id))
+                .unwrap_or(false),
+                _ => false,
+            };
+
+            if spawned {
+                self.status_visual_flags.insert(key, (active, frame));
+            }
+        }
+
+        self.status_visual_flags.retain(|_, (active, last_seen)| {
+            if *last_seen == frame {
+                return true;
+            }
+            active.store(false, std::sync::atomic::Ordering::Relaxed);
+            false
+        });
+    }
+
     /// Updates the local status effect timers and shows/hides the buff bar.
     fn update_status_effects(&mut self, client_tick: ClientTick) {
         self.client_state.follow_mut(client_state().minimap()).prune_markers(client_tick.0);
@@ -3589,6 +3698,8 @@ impl Client {
                         alpha = Some(value);
                     }
                 }
+                // Looping/ground visuals are spawned by `update_status_visuals`.
+                StatusVisualKind::LoopingEffect { .. } | StatusVisualKind::GroundRing { .. } => {}
             }
         }
 
@@ -9203,6 +9314,7 @@ impl Client {
 
         self.update_level_99_auras();
         self.update_status_auras();
+        self.update_status_visuals();
 
         self.process_buffered_action();
 
