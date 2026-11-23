@@ -437,10 +437,11 @@ impl AsyncLoader {
             return None;
         }
 
-        if let Some(animation_data) = weapon_part_candidates
-            .iter()
-            .find_map(|parts| self.animation_loader.get(std::slice::from_ref(parts)))
-        {
+        if let Some(animation_data) = weapon_part_candidates.iter().find_map(|parts| {
+            self.animation_loader
+                .get(std::slice::from_ref(parts))
+                .filter(|animation_data| crate::world::weapon::animation_is_drawable(animation_data))
+        }) {
             return Some(animation_data);
         }
 
@@ -460,7 +461,18 @@ impl AsyncLoader {
 
                 match animation_loader.load(&sprite_loader, &action_loader, EntityType::Player, parts) {
                     Ok(animation_data) => {
-                        return Ok(LoadableResource::WeaponAnimation(animation_data));
+                        // A trimmed data set can contain numeric per-job weapon
+                        // ACTs whose clips are all hidden placeholders (notably
+                        // bows: `궁수_남_1701` exists but draws nothing). Keep
+                        // trying the later classic-variant candidates instead of
+                        // dropping the whole weapon layer.
+                        if crate::world::weapon::animation_is_drawable(&animation_data) {
+                            return Ok(LoadableResource::WeaponAnimation(animation_data));
+                        }
+                        crate::logging::log_debug!(
+                            "weapon candidate {:?} has no drawable frames, trying the next candidate",
+                            part.path
+                        );
                     }
                     Err(error) => last_error = error,
                 }
