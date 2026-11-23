@@ -1,5 +1,5 @@
 {
-  "provenance": "rustnarok-client src/skill_motions.rs ATTACK/THROW/THIRD_ATTACK/PICK_UP/KEEP/CAST; only entries missing from the official roBrowser action dump and mappable to our five actions",
+  "provenance": "rustnarok-client src/skill_motions.rs ATTACK/THROW/THIRD_ATTACK/PICK_UP/KEEP/CAST; only entries missing from the official roBrowser action dump and mappable to our five actions; explicit Action(n) rows from rustnarok STATES",
   "actions": [
     {
       "skill": 115,
@@ -185,6 +185,56 @@
       "skill": 109,
       "action": "Attack",
       "source": "ATTACK"
+    },
+    {
+      "skill": 311,
+      "action": "Action(16)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 428,
+      "action": "Action(34)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 429,
+      "action": "Action(34)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 430,
+      "action": "Action(34)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 431,
+      "action": "Action(33)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 432,
+      "action": "Action(33)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 433,
+      "action": "Action(33)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 445,
+      "action": "Action(23)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 447,
+      "action": "Action(23)",
+      "source": "STATES (rustnarok generic action index)"
+    },
+    {
+      "skill": 448,
+      "action": "Action(23)",
+      "source": "STATES (rustnarok generic action index)"
     }
   ]
 }

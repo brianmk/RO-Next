@@ -4052,6 +4052,9 @@ impl Client {
                             // Pickup-style skills play the pickup animation.
                             CasterAction::Pickup => entity.set_pickup(client_tick),
                             CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+                            CasterAction::Action(action_index) => {
+                                entity.set_custom_skill_action(action_index as usize, cast_animation_time, has_cast_time, client_tick)
+                            }
                         }
 
                         // Targeted casts face their target, self-casts keep the current
@@ -4213,6 +4216,9 @@ impl Client {
                                 CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                                 CasterAction::Pickup => entity.set_pickup(client_tick),
                                 CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+                                CasterAction::Action(action_index) => {
+                                    entity.set_custom_skill_action(action_index as usize, 0, false, client_tick)
+                                }
                             }
                         }
 
@@ -4297,6 +4303,9 @@ impl Client {
                             CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                             CasterAction::Pickup => entity.set_pickup(client_tick),
                             CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+                            CasterAction::Action(action_index) => {
+                                entity.set_custom_skill_action(action_index as usize, 0, false, client_tick)
+                            }
                         }
                     }
 

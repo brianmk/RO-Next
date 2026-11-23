@@ -49,6 +49,9 @@ pub enum CasterAction {
     Pickup,
     /// Play the combat-ready stance (official `READYFIGHT`, `SM_ENDURE`).
     ReadyFight,
+    /// Play an explicit ACT action index. Used for rustnarok's generic motion
+    /// table entries whose action is not one of the named actions.
+    Action(u8),
 }
 
 /// Returns the caster body animation of a skill.
@@ -93,6 +96,12 @@ mod tests {
         for skill_id in [270, 401] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
+    }
+
+    #[test]
+    fn explicit_action_indices_are_representable() {
+        let action = CasterAction::Action(33);
+        assert_ne!(action, CasterAction::Skill);
     }
 
     #[test]

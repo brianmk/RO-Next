@@ -36,6 +36,9 @@ enum AnimationActionType {
     Skill,
     Special,
     Walk,
+    /// Explicit ACT action index (rustnarok's generic motion table: dance,
+    /// song, kick, throw, gunslinger, Madogear, Doram actions, ...).
+    Custom(usize),
 }
 
 impl AnimationActionType {
@@ -55,6 +58,7 @@ impl AnimationActionType {
                 AnimationActionType::Attack2 => 10,
                 AnimationActionType::Attack3 => 11,
                 AnimationActionType::Skill => 12,
+                AnimationActionType::Custom(index) => *index,
                 _ => 0,
             },
             EntityType::Npc | EntityType::Monster => match self {
@@ -63,6 +67,7 @@ impl AnimationActionType {
                 AnimationActionType::Attack1 => 2,
                 AnimationActionType::Hurt => 3,
                 AnimationActionType::Die => 4,
+                AnimationActionType::Custom(index) => *index,
                 _ => 0,
             },
             EntityType::Warp => 0,
@@ -218,6 +223,22 @@ impl AnimationState {
         self.start_time = client_tick;
         // A non-looping cast has no artificial duration: the ACT file defines how
         // long the full animation takes, which is what the original client shows.
+        self.duration = match looping {
+            true => Some(cast_time.max(1)),
+            false => None,
+        };
+        self.factor = None;
+        self.looping = looping;
+    }
+
+    /// Play an explicit ACT action index (`CasterAction::Action`).
+    ///
+    /// Used for the rustnarok generic motion table (dance/song/kick/shot/...)
+    /// whose action index cannot be expressed by one of the named actions.
+    pub fn custom(&mut self, entity_type: EntityType, action_index: usize, cast_time: u32, looping: bool, client_tick: ClientTick) {
+        self.action_type = AnimationActionType::Custom(action_index);
+        self.action_base_offset = self.action_type.action_base_offset(entity_type);
+        self.start_time = client_tick;
         self.duration = match looping {
             true => Some(cast_time.max(1)),
             false => None,

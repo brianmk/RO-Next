@@ -22,7 +22,8 @@ Actions understood by the client (`world::CasterAction`):
 * `Idle`       - keep the idle pose (stance/buff skills and "prevent default"),
 * `Pickup`     - play the pickup animation (trap/gather skills),
 * `Skill`      - play the casting gesture (default for unlisted skills),
-* `ReadyFight` - play the combat-ready stance (official `SM_ENDURE`).
+* `ReadyFight` - play the combat-ready stance (official `SM_ENDURE`),
+* `Action(n)`  - play ACT action index `n` (rustnarok generic motion table).
 
 Usage:
     ./tools/gen_skill_actions.py            # regenerate the data file
@@ -33,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -43,6 +45,7 @@ DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
 #: Client action categories (must match `CasterAction` in
 #: `korangar/src/world/skill_action.rs`).
 ACTIONS = ("Attack", "Idle", "Pickup", "Skill", "ReadyFight")
+ACTION_INDEX_PATTERN = re.compile(r"^Action\(\d+\)$")
 
 
 def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, str]]:
@@ -50,7 +53,7 @@ def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, st
     rows: list[tuple[int, str]] = []
     for skill_id, entry in payload["actions"].items():
         action = entry["action"]
-        if action not in ACTIONS:
+        if action not in ACTIONS and not ACTION_INDEX_PATTERN.match(action):
             raise SystemExit(f"skill {skill_id}: unsupported action {action!r}")
         rows.append((int(skill_id), action))
 
@@ -64,7 +67,7 @@ def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, st
         for entry in extra.get("actions", []):
             skill_id = int(entry["skill"])
             action = entry["action"]
-            if action not in ACTIONS:
+            if action not in ACTIONS and not ACTION_INDEX_PATTERN.match(action):
                 raise SystemExit(f"skill {skill_id}: unsupported extra action {action!r}")
             if skill_id in known:
                 continue

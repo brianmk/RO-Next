@@ -2326,6 +2326,14 @@ impl Entity {
             .skill(entity_type, cast_time, looping, client_tick);
     }
 
+    /// Plays an explicit ACT action index (`CasterAction::Action`).
+    pub fn set_custom_skill_action(&mut self, action_index: usize, cast_time: u32, looping: bool, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut()
+            .animation_state
+            .custom(entity_type, action_index, cast_time, looping, client_tick);
+    }
+
     /// Starts a short body flash (hard-coded skill effect color flash, for
     /// example the yellow `EF_PORTAL5` flash of Zen).
     pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, client_tick: ClientTick) {
