@@ -33,6 +33,33 @@ The sweep logs one `[bench-skill] {"skill":N,"phase":"..."}` line per spawn. A f
 The buff bar on the right shows the 16 injected persistent statuses (auras/fades) that the run
 also exercises.
 
+## Caster pose capture (READYSHOT / THROW)
+
+The effect sweep does not set the caster body pose by default, and the injected status auras hide
+it. Both can be enabled/suppressed for a pose run:
+
+```sh
+env ... KORANGAR_BENCH=skills KORANGAR_BENCH_USER=verify6 KORANGAR_BENCH_PASS=verifypass \
+    KORANGAR_BENCH_SKILLS="47,394,446" KORANGAR_BENCH_SKILL_DELAY=3.0 \
+    KORANGAR_BENCH_CASTER_POSE=1 KORANGAR_BENCH_SKIP_AURAS=1 \
+    ../target/release/korangar -v
+```
+
+`KORANGAR_BENCH_CASTER_POSE=1` applies the skill's `CasterAction` through the same entity methods
+as the network handlers; `KORANGAR_BENCH_SKIP_AURAS=1` skips `BENCHMARK_AURA_STATUSES`.
+
+`caster-actions-readyshot-throw.jpg` (frame captures ~the first pose cycle of each skill) shows the
+corrected rows: `AC_SHOWER` (47) and `CG_ARROWVULCAN` (394) play `Action(11)` (official
+`ST_READYSHOT` -> flat ACT animation 88 -> ACT action 11) and `AM_BERSERKPITCHER` (446) plays
+`Action(5)` (official `ST_THROW` -> flat ACT animation 40 -> ACT action 5). The benchmark character
+is a Novice, so the readyshot action is the Novice's action-11 strike pose, not an archer aiming
+stance; the point is that the caster leaves idle and plays the official action index.
+
+Environment note: `CondaRO.grf`'s `data\sclientinfo.xml` contains a `<loading>` block that the
+current `quick-xml` clientinfo parser rejects ("duplicate field `filename`"), and its address
+(100.40.203.12) is stale. Mounting a small folder that contains a copy of the patched `client/game/data/sclientinfo.xml`
+(live 100.40.206.179, no `<loading>` block) as the highest-priority archive works around both. The local `client/` configuration is gitignored.
+
 ## Account notes
 
 * `verify6` / `verifypass` and `verify4` / `verifypass` both reach the map.

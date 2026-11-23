@@ -415,23 +415,40 @@ Facts extracted from the decompilation: `tools/rodecomp_skill_motions.json`
 learnable pre-renewal). The table is an *audit* artifact, not client data: our
 `CasterAction` (`Skill`/`Idle`/`Attack`/`Pickup`/`ReadyFight`/`Action(n)`) is an
 **ACT action index**, while the official value is an actor *state*, and the
-state-to-ACT-animation mapping lives in the renderer. A state can therefore only
-be mapped to a named action where the semantics coincide:
+state-to-ACT-animation mapping lives in the renderer. The mapping is explicit in
+the decompilation: `CGameActor::SetState` (RenderObject.cpp:1389-1394) resolves
+`action = ActionBase(state)` for monster transforms and `WeaponActionBase(state)`
+otherwise, and `CPc::SetState` forwards every state it does not handle itself -
+including `ST_THROW` and `ST_READYSHOT` - to it (Player.cpp:4586-4588).
+`WeaponActionBase` returns the **flat ACT animation index** (the renderer adds the
+8-direction offset: RenderObject.cpp:160-161 `previousAnimation = animation +
+Get8Dir(angle)`, and a player body ACT has 104 animations = 13 actions x 8
+directions). `ST_SKILL` is handled one level up by `CPc::SetState` through
+`JobActionBase` (Player.cpp:1671-1740), which returns 32/80/96 depending on the job:
 
-| official state | plausible `CasterAction` |
-| --- | --- |
-| `STAND` | `Idle` |
-| `ATTACK`, `ATTACKWAIT`, `THROW`, `THROW2` | `Attack` |
-| `PICKUP` | `Pickup` |
-| `SKILL` | `Skill` |
-| `READYSHOT` | not `ReadyFight` - the archer ready-shot pose is a different animation |
-| `DANCE`, `SING`, `NINJAREADY`, `GUNREADY`, `A_COUNTER`, `SG_TURN`, `SG_DOWN`, ... | job-specific poses without a named action |
+| official state | `WeaponActionBase` | ACT action (`Action(n)`) |
+| --- | ---: | --- |
+| `ST_THROW` (12) | 40 (RenderObject.cpp:3386-3395) | 5 (`Attack1`) |
+| `ST_READYSHOT` (18) | 88 (RenderObject.cpp:3374-3384) | 11 (`Attack3`, the slot the official client uses for the ready-shot hold) |
+| `ST_STAND`, `ST_MOVE`, `ST_PICKUP`, `ST_ATTACK`, `ST_ATTACK2` | 0, 8, 24, 80, 88 | 0, 1, 3, 10, 11 |
 
-Under that strict mapping only three learnable skills disagree with our table:
-`AC_SHOWER` 47 and `CG_ARROWVULCAN` 394 (official `READYSHOT`, we play `Attack`),
-`AM_BERSERKPITCHER` 446 (official `THROW`, we play `Idle`). They are left
-unchanged on purpose: changing them needs the state-to-animation decision above,
-and the in-client harness now exists to compare the poses before/after.
+`Action(n)` is therefore the right representation for these states; the roBrowser
+action names (`Attack`/`Idle`) were the only reason for the earlier mismatch.
+Three learnable skills were corrected through the curated `overrides` section of
+`tools/skill_actions_extra.json` (applied last by
+`tools/gen_skill_actions.py`):
+
+| skill | official state | old row | new row |
+| --- | --- | --- | --- |
+| `AC_SHOWER` 47 | `READYSHOT` (SkillActionInfo.cpp:115-118) | `Attack` | `Action(11)` |
+| `CG_ARROWVULCAN` 394 | `READYSHOT` (SkillActionInfo.cpp:154-158) | `Attack` | `Action(11)` |
+| `AM_BERSERKPITCHER` 446 | `THROW` (SkillActionInfo.cpp:426-429) | `Idle` | `Action(5)` |
+
+One renderer nuance remains: for `ST_READYSHOT` the official client holds frame 0
+of animation 88 for 3000 ms (`SetFrameSequence(action, 0, 0, ..., 3000, 0)`,
+RenderObject.cpp:1509-1511), while korangar's `Action(11)` plays the whole action.
+The ACT *offset* matches; the static hold would need a per-skill frame sequence in
+the client's animation data.
 
 ## 5c. Coverage audit tool
 
