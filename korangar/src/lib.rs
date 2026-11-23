@@ -4822,7 +4822,7 @@ impl Client {
                             .iter_mut()
                             .find(|entity| entity.get_entity_id() == entity_id)
                     {
-                        entity.set_cart_status(active);
+                        entity.set_cart_status(active, values[0]);
                     }
                 }
                 NetworkEvent::ChatMessage { text, color } => {
@@ -8594,13 +8594,22 @@ impl Client {
                     entity.has_falcon(),
                     entity.has_cart(),
                     entity.get_weapon_part_candidates(),
+                    entity.get_cart_part_candidates(),
                     entity.has_weapon_animation(),
                     entity.has_cart_animation(),
                 )
             });
 
-        let Some((entity_type, entity_part_files, has_falcon, has_cart, weapon_candidates, has_weapon_animation, has_cart_animation)) =
-            entity_info
+        let Some((
+            entity_type,
+            entity_part_files,
+            has_falcon,
+            has_cart,
+            weapon_candidates,
+            cart_candidates,
+            has_weapon_animation,
+            has_cart_animation,
+        )) = entity_info
         else {
             self.asset_retries.forget(&id);
             return;
@@ -8641,7 +8650,7 @@ impl Client {
                     return;
                 }
 
-                match self.async_loader.request_cart_animation_data_load(entity_id) {
+                match self.async_loader.request_cart_animation_data_load(entity_id, cart_candidates) {
                     Some(cart_animation) => {
                         if let Some(entity) = self.find_entity_mut(entity_id) {
                             entity.set_cart_animation(cart_animation);

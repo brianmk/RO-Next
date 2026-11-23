@@ -629,6 +629,114 @@ pub fn headgear_missing() -> &'static [u16] {
     &registry().headgear_missing
 }
 
+/// Classic body-changing option bits (rAthena `enum e_option`, extracted from
+/// rustnarok `src/actor.rs`).
+const OPTION_WEDDING: u32 = 0x0000_1000;
+const OPTION_UNION: u32 = 0x0000_8000;
+const OPTION_XMAS: u32 = 0x0001_0000;
+const OPTION_SUMMER: u32 = 0x0004_0000;
+const OPTION_HANBOK: u32 = 0x0800_0000;
+const OPTION_OKTOBERFEST: u32 = 0x1000_0000;
+const OPTION_RIDING: u32 = 0x0000_0020;
+
+/// Mount option bit -> `(from_job, mounted_job)` body swaps (classic
+/// Pre-Renewal subset of rustnarok `actor.rs::sprite_job`).
+const MOUNT_SWAPS: &[(u32, &[(u16, u16)])] = &[(OPTION_RIDING, &[
+    (7, 13),
+    (14, 21),
+    (4008, 4014),
+    (4015, 4022),
+    (4030, 4036),
+    (4037, 4044),
+    (4066, 4082),
+    (4073, 4083),
+    (4102, 4110),
+])];
+
+/// Outfit body ids (wedding, Xmas, summer, hanbok, Oktoberfest), which also
+/// hide the weapon layer.
+const OUTFIT_JOBS: &[(u32, u16)] = &[
+    (OPTION_WEDDING, 22),
+    (OPTION_XMAS, 26),
+    (OPTION_SUMMER, 27),
+    (OPTION_HANBOK, 28),
+    (OPTION_OKTOBERFEST, 29),
+];
+
+/// The job whose body a player is drawn with under the given option bits.
+///
+/// This is the classic `sprite_job` rule from rustnarok `actor.rs`: outfits
+/// first (not in a union), then the mount body, else the job's own body.
+pub(crate) fn appearance_job(job_id: JobId, effect_state: u32) -> JobId {
+    if effect_state & OPTION_WEDDING != 0 {
+        return JobId(22);
+    }
+
+    if effect_state & OPTION_UNION == 0
+        && let Some((_, outfit)) = OUTFIT_JOBS.iter().find(|(bit, _)| effect_state & bit != 0)
+    {
+        return JobId(*outfit);
+    }
+
+    for (bit, pairs) in MOUNT_SWAPS {
+        if effect_state & bit == 0 {
+            continue;
+        }
+        if let Some((_, mounted)) = pairs.iter().find(|(from, _)| *from == job_id.0) {
+            return JobId(*mounted);
+        }
+    }
+
+    job_id
+}
+
+/// Whether an appearance job id is one of the outfit bodies, which show no
+/// weapon or shield.
+pub(crate) fn is_outfit_job(job_id: JobId) -> bool {
+    matches!(job_id.0, 22 | 26..=30)
+}
+
+/// Pushcart sprite/ACT stem for a cart type, as a `(sprite, act)` pair relative
+/// to `data\\sprite\\` (rustnarok `actor.rs::cart_path`).
+///
+/// `kind` is the `EFST_PUSH_CART` value (or the classic `OPTION_CART*` bit
+/// index). The caller still probes the archives and falls back to
+/// `mc_pushcart` when a type is not part of this data set.
+pub(crate) fn cart_paths(job_id: JobId, kind: i32) -> (String, String) {
+    const SUPER_NOVICE_JOBS: &[u16] = &[23, 4045, 4190, 4191, 4307];
+    const NAMED_CARTS: &[&str] = &["선물상자카트", "포링싣은카트", "포링카트", "마도카트"];
+
+    let baby = matches!(
+        job_id.0,
+        4023..=4045 | 4096..=4112 | 4158..=4182 | 4191 | 4193..=4196 | 4205..=4210 | 4220 | 4222..=4229 | 4238 | 4241 | 4242 | 4244
+    );
+    let super_novice = SUPER_NOVICE_JOBS.contains(&job_id.0);
+    let named = usize::try_from(kind - 10)
+        .ok()
+        .and_then(|index| NAMED_CARTS.get(index))
+        .filter(|_| !super_novice);
+
+    let name = if super_novice {
+        "슈노손수레".to_string()
+    } else if let Some(name) = named {
+        name.to_string()
+    } else if kind > 1 {
+        format!("손수레{}", kind - 1)
+    } else {
+        "손수레".to_string()
+    };
+
+    let numbered = name.strip_prefix("손수레").and_then(|number| number.parse::<i32>().ok());
+    let (sprite, act) = match numbered {
+        Some(5..) if baby => (format!("{name}베이비"), format!("{name}베이비")),
+        _ if baby && named.is_some() => (format!("{name}_미니"), format!("{name}_미니")),
+        _ if baby => (name.clone(), format!("베이비{name}")),
+        _ => (name.clone(), name),
+    };
+
+    (format!("이팩트\\{sprite}"), format!("이팩트\\{act}"))
+}
+
 /// Sex suffix used by the sprite/palette file names.
 pub(crate) fn sex_suffix(sex: Sex) -> Option<&'static str> {
     let suffixes = &registry().sex_suffix;
@@ -1335,5 +1443,54 @@ mod tests {
             assert!(profile(id).is_some(), "job fixture id {id:?} has no registry row");
             assert_eq!(EntityType::from(id), EntityType::Player, "job {id:?}");
         }
+    }
+    #[test]
+    fn appearance_job_applies_outfits_and_mounts() {
+        // Normal jobs keep their body.
+        assert_eq!(appearance_job(JobId(1), 0), JobId(1));
+        // Knight -> Peco (classic riding pair 7 -> 13).
+        assert_eq!(appearance_job(JobId(7), OPTION_RIDING), JobId(13));
+        // Wedding / Xmas / summer / hanbok / Oktoberfest outfits.
+        assert_eq!(appearance_job(JobId(7), OPTION_WEDDING), JobId(22));
+        assert_eq!(appearance_job(JobId(7), OPTION_XMAS), JobId(26));
+        assert_eq!(appearance_job(JobId(7), OPTION_SUMMER), JobId(27));
+        assert_eq!(appearance_job(JobId(7), OPTION_HANBOK), JobId(28));
+        assert_eq!(appearance_job(JobId(7), OPTION_OKTOBERFEST), JobId(29));
+        // A union outfit is ignored (union overrides holiday outfits).
+        assert_eq!(appearance_job(JobId(7), OPTION_UNION | OPTION_XMAS), JobId(7));
+        // Unmounted jobs stay unchanged by a riding bit.
+        assert_eq!(appearance_job(JobId(1), OPTION_RIDING), JobId(1));
+        assert!(is_outfit_job(JobId(22)) && !is_outfit_job(JobId(7)));
+    }
+
+    #[test]
+    fn cart_paths_follow_the_classic_cart_rules() {
+        assert_eq!(
+            cart_paths(JobId(7), 1),
+            (r"이팩트\손수레".to_owned(), r"이팩트\손수레".to_owned())
+        );
+        assert_eq!(
+            cart_paths(JobId(7), 2),
+            (r"이팩트\손수레1".to_owned(), r"이팩트\손수레1".to_owned())
+        );
+        assert_eq!(
+            cart_paths(JobId(7), 10),
+            (r"이팩트\선물상자카트".to_owned(), r"이팩트\선물상자카트".to_owned())
+        );
+        // Super Novice uses its own cart regardless of type.
+        assert_eq!(
+            cart_paths(JobId(23), 3),
+            (r"이팩트\슈노손수레".to_owned(), r"이팩트\슈노손수레".to_owned())
+        );
+        // A baby's default cart uses the baby ACT with the grown-up sprite.
+        assert_eq!(
+            cart_paths(JobId(4023), 1),
+            (r"이팩트\손수레".to_owned(), r"이팩트\베이비손수레".to_owned())
+        );
+        // Numbered baby carts from type 6 have their own sprite/ACT.
+        assert_eq!(
+            cart_paths(JobId(4023), 6),
+            (r"이팩트\손수레5베이비".to_owned(), r"이팩트\손수레5베이비".to_owned())
+        );
     }
 }

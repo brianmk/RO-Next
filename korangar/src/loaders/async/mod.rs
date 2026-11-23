@@ -378,15 +378,17 @@ impl AsyncLoader {
     /// walk and attack frames. Cart tiers (`OPTION_CART2..5`) use the
     /// remodeled sprites when present.
     #[must_use]
-    pub fn request_cart_animation_data_load(&self, entity_id: EntityId) -> Option<Arc<AnimationData>> {
-        let candidates: Vec<Vec<EntityPartFile>> = vec![
-            vec![EntityPartFile::new("아이템\\mc_pushcart")],
-            vec![EntityPartFile::new("아이템\\mc_changecart")],
-            vec![EntityPartFile::new("아이템\\mc_cartdecorate")],
-        ];
+    pub fn request_cart_animation_data_load(
+        &self,
+        entity_id: EntityId,
+        cart_part_candidates: Vec<EntityPartFile>,
+    ) -> Option<Arc<AnimationData>> {
+        if cart_part_candidates.is_empty() {
+            return None;
+        }
 
-        for parts in &candidates {
-            if let Some(animation_data) = self.animation_loader.get(parts) {
+        for parts in &cart_part_candidates {
+            if let Some(animation_data) = self.animation_loader.get(std::slice::from_ref(parts)) {
                 return Some(animation_data);
             }
         }
@@ -397,8 +399,8 @@ impl AsyncLoader {
 
         self.request_visible_load(LoaderId::CartAnimationData(entity_id), LoadKind::AnimationData, move || {
             let mut last_error = LoadError::UnsupportedFormat("no cart sprite found in the game archives".to_owned());
-            for parts in &candidates {
-                match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, parts) {
+            for parts in &cart_part_candidates {
+                match animation_loader.load(&sprite_loader, &action_loader, EntityType::Npc, std::slice::from_ref(parts)) {
                     Ok(animation_data) => return Ok(LoadableResource::CartAnimation(animation_data)),
                     Err(error) => last_error = error,
                 }
