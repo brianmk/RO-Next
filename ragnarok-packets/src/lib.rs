@@ -9502,7 +9502,7 @@ pub struct PincodeSetNewPacket {
 }
 
 #[cfg(test)]
-mod content_packet_tests {
+mod content_window_packet_tests {
     use ragnarok_bytes::{ByteReader, ByteWriter};
 
     use super::*;
