@@ -14,6 +14,7 @@ use crate::graphics::ScreenPosition;
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::loaders::ServiceId;
 use crate::state::ClientState;
+use crate::state::chat_markup::ChatMarkupLink;
 use crate::state::skills::LearnableSkill;
 #[cfg(feature = "debug")]
 use crate::world::MarkerIdentifier;
@@ -528,6 +529,20 @@ pub enum InputEvent {
     #[cfg(feature = "debug")]
     InspectFrame {
         measurement: FrameMeasurement,
+    },
+    /// Open the dedicated whisper conversation window with a partner.
+    OpenWhisper {
+        /// Name of the other character.
+        partner: String,
+    },
+    /// Send a reply in the whisper conversation window.
+    SendWhisper {
+        partner: String,
+        text: String,
+    },
+    /// A clickable markup run of a chat/dialog text was clicked.
+    ChatMarkupClicked {
+        link: ChatMarkupLink,
     },
 }
 

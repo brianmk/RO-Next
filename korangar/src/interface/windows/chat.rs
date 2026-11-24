@@ -1,4 +1,5 @@
 use korangar_interface::application::{Application, Size};
+use korangar_interface::components::drop_down::DropDownItem;
 use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, StateElement};
@@ -13,14 +14,17 @@ use rust_state::{Path, PathExt, RustState, Selector, State};
 use super::WindowClass;
 use crate::graphics::{Color, ShadowPadding};
 use crate::input::InputEvent;
+use crate::interface::markup::{MarkupClickHandler, MarkupLayout, layout_markup, render_markup};
 use crate::loaders::OverflowBehavior;
 use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
+use crate::state::chat_markup::{ChatMarkupLink, ChatMarkupRun, parse_chat_markup};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::{
     ChatTheme, ColorTokens, ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, SpacingTokensPathExt,
     TypographyTokensPathExt,
 };
-use crate::state::{ChatMessage, ClientState, ClientStatePathExt, client_state, client_theme};
+use crate::state::whisper::WhisperConversationsPathExt;
+use crate::state::{ChatChannel, ChatMessage, ClientState, ClientStatePathExt, client_state, client_theme};
 
 const MAXIMUM_CHAT_MESSAGE_LENGTH: usize = 80;
 
@@ -45,29 +49,81 @@ where
     }
 }
 
+/// Messages of one channel tab, in the order they were received.
+///
+/// This is the single routing point of the chat window: the state keeps one
+/// list of [`ChatMessage`]s and every message carries its channel, so a tab is
+/// a filtered view instead of an independently maintained log.
+pub fn messages_for_channel<'a>(messages: &'a [ChatMessage], channel: ChatChannel) -> impl Iterator<Item = &'a ChatMessage> + 'a {
+    messages.iter().filter(move |message| message.channel == channel)
+}
+
 /// ZST for getting the focus id of the chat text box. This is only needed to
 /// focus the chat when pressing enter.
 pub struct ChatTextBox;
 
-struct ChatLayoutInfo {
-    area: Area,
-    // TODO: Don't allocate this every frame.
-    message_heights: Vec<f32>,
+/// Layout of one message. Plain messages keep the original text layout path;
+/// only messages with interactive runs use the markup layout.
+enum ChatMessageLayout {
+    Plain { height: f32 },
+    Markup(MarkupLayout),
 }
 
-struct ChatElement<A> {
-    chat_messages_path: A,
-}
-
-impl<A> ChatElement<A> {
-    fn new(chat_messages_path: A) -> Self {
-        Self { chat_messages_path }
+impl ChatMessageLayout {
+    fn height(&self) -> f32 {
+        match self {
+            ChatMessageLayout::Plain { height } => *height,
+            ChatMessageLayout::Markup(layout) => layout.height,
+        }
     }
 }
 
-impl<A> Element<ClientState> for ChatElement<A>
+struct ChatLayoutInfo {
+    area: Area,
+    // TODO: Don't allocate this every frame.
+    messages: Vec<ChatMessageLayout>,
+}
+
+struct ChatElement<A, B> {
+    chat_messages_path: A,
+    active_channel_path: B,
+    click_handler: MarkupClickHandler,
+}
+
+impl<A, B> ChatElement<A, B> {
+    fn new(chat_messages_path: A, active_channel_path: B) -> Self {
+        Self {
+            chat_messages_path,
+            active_channel_path,
+            click_handler: MarkupClickHandler::new(),
+        }
+    }
+}
+
+/// Prepare the runs of a message for the layout.
+///
+/// Whisper messages get a whisper link on their plain runs (if they do not
+/// already contain an item/URL link), so clicking anywhere in a whisper line
+/// opens the conversation.
+fn markup_runs_for_message(chat_message: &ChatMessage) -> Vec<ChatMarkupRun> {
+    let runs = parse_chat_markup(&chat_message.text);
+
+    match &chat_message.whisper_partner {
+        Some(partner) => runs
+            .into_iter()
+            .map(|run| ChatMarkupRun {
+                text: run.text,
+                link: run.link.or_else(|| Some(ChatMarkupLink::Whisper { partner: partner.clone() })),
+            })
+            .collect(),
+        None => runs,
+    }
+}
+
+impl<A, B> Element<ClientState> for ChatElement<A, B>
 where
     A: Path<ClientState, Vec<ChatMessage>>,
+    B: Path<ClientState, ChatChannel>,
 {
     type LayoutInfo = ChatLayoutInfo;
 
@@ -78,6 +134,7 @@ where
         resolvers: &mut dyn Resolvers<ClientState>,
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
+            let active_channel = *state.get(&self.active_channel_path);
             let chat_messages = state.get(&self.chat_messages_path);
             let tokens = client_theme().tokens();
             let color_tokens = tokens.color();
@@ -91,35 +148,54 @@ where
                 offset: *state.get(&spacing.lg()),
                 border: *state.get(&spacing.text_border()),
             };
+            let text_width = resolver.push_available_area().width;
+            let markup_width = text_width
+                - match message_alignment {
+                    HorizontalAlignment::Left { offset, border } => offset + border,
+                    HorizontalAlignment::Center { offset, border } | HorizontalAlignment::Right { offset, border } => offset + border,
+                };
 
             let mut total_height = 0.0;
-            let message_heights = chat_messages
-                .iter()
+            let messages = messages_for_channel(chat_messages, active_channel)
                 .map(|chat_message| {
                     let color = message_color(state, color_tokens, chat_message.color);
 
-                    let (size, _) = resolver.get_text_dimensions(
-                        &chat_message.text,
-                        color,
-                        highlight_color,
-                        message_font_size,
-                        message_alignment,
-                        OverflowBehavior::LineBreak,
-                    );
+                    let layout = if chat_message.whisper_partner.is_some() || crate::state::chat_markup::has_markup(&chat_message.text) {
+                        let runs = markup_runs_for_message(chat_message);
+                        let layout = layout_markup(
+                            resolver.get_text_layouter(),
+                            &runs,
+                            markup_width,
+                            message_font_size,
+                            color,
+                            highlight_color,
+                        );
+                        ChatMessageLayout::Markup(layout)
+                    } else {
+                        let (size, _) = resolver.get_text_dimensions(
+                            &chat_message.text,
+                            color,
+                            highlight_color,
+                            message_font_size,
+                            message_alignment,
+                            OverflowBehavior::LineBreak,
+                        );
+                        ChatMessageLayout::Plain { height: size.height() }
+                    };
 
                     if total_height != 0.0 {
                         total_height += message_spacing;
                     }
 
-                    total_height += size.height();
+                    total_height += layout.height();
 
-                    size.height()
+                    layout
                 })
                 .collect();
 
             let area = resolver.with_height(total_height);
 
-            Self::LayoutInfo { area, message_heights }
+            Self::LayoutInfo { area, messages }
         })
     }
 
@@ -130,6 +206,7 @@ where
         layout_info: &'a Self::LayoutInfo,
         layout: &mut WindowLayout<'a, ClientState>,
     ) {
+        let active_channel = *state.get(&self.active_channel_path);
         let chat_messages = state.get(&self.chat_messages_path);
         let tokens = client_theme().tokens();
         let color_tokens = tokens.color();
@@ -139,16 +216,20 @@ where
         let message_spacing = *state.get(&spacing.chat_message_gap());
         let message_font_size = *state.get(&typography.font_body_lg());
         let highlight_color = *state.get(&color_tokens.text_overlay_accent());
+        let link_color = *state.get(&color_tokens.text_overlay_accent());
         let message_alignment = HorizontalAlignment::Left {
             offset: *state.get(&spacing.lg()),
             border: *state.get(&spacing.text_border()),
         };
+        let message_offset = match message_alignment {
+            HorizontalAlignment::Left { offset, border } => offset + border,
+            HorizontalAlignment::Center { offset, border } | HorizontalAlignment::Right { offset, border } => offset + border,
+        };
 
         let mut offset = 0.0;
-        chat_messages
-            .iter()
-            .zip(layout_info.message_heights.iter())
-            .for_each(|(chat_message, message_height)| {
+        messages_for_channel(chat_messages, active_channel)
+            .zip(layout_info.messages.iter())
+            .for_each(|(chat_message, message_layout)| {
                 let color = message_color(state, color_tokens, chat_message.color);
 
                 if offset != 0.0 {
@@ -159,21 +240,38 @@ where
                     left: layout_info.area.left,
                     top: layout_info.area.top + offset,
                     width: layout_info.area.width,
-                    height: *message_height,
+                    height: message_layout.height(),
                 };
 
-                layout.add_text(
-                    text_area,
-                    &chat_message.text,
-                    message_font_size,
-                    color,
-                    highlight_color,
-                    message_alignment,
-                    VerticalAlignment::Center { offset: 0.0 },
-                    OverflowBehavior::LineBreak,
-                );
+                match message_layout {
+                    ChatMessageLayout::Plain { .. } => {
+                        layout.add_text(
+                            text_area,
+                            &chat_message.text,
+                            message_font_size,
+                            color,
+                            highlight_color,
+                            message_alignment,
+                            VerticalAlignment::Center { offset: 0.0 },
+                            OverflowBehavior::LineBreak,
+                        );
+                    }
+                    ChatMessageLayout::Markup(markup_layout) => {
+                        render_markup(
+                            markup_layout,
+                            text_area,
+                            message_offset,
+                            layout,
+                            message_font_size,
+                            color,
+                            highlight_color,
+                            link_color,
+                            &self.click_handler,
+                        );
+                    }
+                }
 
-                offset += message_height;
+                offset += message_layout.height();
             });
     }
 }
@@ -310,9 +408,35 @@ where
 }
 
 /// Internal state of the chat window.
-#[derive(Default, RustState, StateElement)]
+#[derive(RustState, StateElement)]
 pub struct ChatWindowState {
     current_text: String,
+    /// Channel tab whose log is shown.
+    active_channel: ChatChannel,
+    /// Channel non-slash messages are sent to.
+    send_channel: ChatChannel,
+    /// Whether the server supports guild chat (`CZ_GUILD_CHAT`, 0x017E).
+    ///
+    /// rAthena has guild chat since well before PACKETVER 20190605, so the tab
+    /// is enabled; the flag exists so a future/older server can grey it out
+    /// without restructuring the tabs.
+    guild_chat_available: bool,
+    /// Options of the "send to channel" drop down. A stored list keeps the
+    /// drop down on a plain path selector (computed selectors are not `Clone`
+    /// and the component macro requires a cloneable selector).
+    send_channel_options: Vec<ChatChannel>,
+}
+
+impl Default for ChatWindowState {
+    fn default() -> Self {
+        Self {
+            current_text: String::new(),
+            active_channel: ChatChannel::Public,
+            send_channel: ChatChannel::Public,
+            guild_chat_available: true,
+            send_channel_options: ChatChannel::OPTIONS.to_vec(),
+        }
+    }
 }
 
 impl ChatWindowState {
@@ -320,6 +444,44 @@ impl ChatWindowState {
     /// The cursor is placed at the end of the text by the text box.
     pub fn set_current_text(&mut self, text: String) {
         self.current_text = text;
+    }
+
+    pub fn active_channel(&self) -> ChatChannel {
+        self.active_channel
+    }
+
+    pub fn send_channel(&self) -> ChatChannel {
+        self.send_channel
+    }
+
+    pub fn guild_chat_available(&self) -> bool {
+        self.guild_chat_available
+    }
+
+    pub fn set_active_channel(&mut self, channel: ChatChannel) {
+        self.active_channel = channel;
+    }
+
+    pub fn set_send_channel(&mut self, channel: ChatChannel) {
+        self.send_channel = channel;
+    }
+
+    pub fn set_guild_chat_available(&mut self, available: bool) {
+        self.guild_chat_available = available;
+    }
+}
+
+impl DropDownItem<ChatChannel> for ChatChannel {
+    fn text(&self) -> &str {
+        self.label()
+    }
+
+    fn value(&self) -> ChatChannel {
+        *self
+    }
+
+    fn disabled(&self) -> Option<&'static str> {
+        None
     }
 }
 
@@ -397,6 +559,8 @@ where
         use korangar_interface::prelude::*;
 
         let current_text_path = self.chat_window_state.current_text();
+        let active_channel_path = self.chat_window_state.active_channel();
+        let send_channel_path = self.chat_window_state.send_channel();
         let transparent_chat_path = self.interface_settings_path.transparent_chat();
         let chat_theme_path = client_theme().chat();
 
@@ -412,9 +576,9 @@ where
         // so the input stays readable everywhere, including the
         // transparent-chat variant.
         let text_box_foreground_color = korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| Color::WHITE);
-        // The focused chat input is drawn on a dark background; using the skinned
-        // text box theme colors here would make the text unreadable with the classic
-        // theme (which uses black text on light text boxes).
+        // The focused chat input is drawn on a dark background; using the
+        // skinned text box theme colors here would make the text unreadable with the
+        // classic theme (which uses black text on light text boxes).
         let text_box_focused_foreground_color = chat_color_constant(chat_theme_path, |chat| chat.text_box_focused_foreground_color);
         let text_box_ghost_foreground_color = {
             let color_tokens = client_theme().tokens().color();
@@ -434,14 +598,44 @@ where
         };
 
         let send_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
-            let text = state.get(&current_text_path);
+            let text = state.get(&current_text_path).clone();
 
-            if !text.is_empty() {
-                // Clear the text box.
-                state.update_value_with(current_text_path, |current_text| current_text.clear());
-                queue.queue(InputEvent::SendMessage { text: text.clone() });
-                queue.queue(Event::Unfocus);
+            if text.is_empty() {
+                return;
             }
+
+            // Clear the text box.
+            state.update_value_with(current_text_path, |current_text| current_text.clear());
+
+            // Channel selector: prefix the plain message with the slash
+            // command of the selected channel. An explicit slash command in the
+            // text always wins and is never prefixed.
+            if text.starts_with('/') {
+                queue.queue(InputEvent::SendMessage { text });
+                queue.queue(Event::Unfocus);
+                return;
+            }
+
+            let send_channel = *state.get(&send_channel_path);
+            let whisper_partner_path = crate::state::client_state().whisper().active_partner();
+            let text = match send_channel {
+                ChatChannel::Public => text,
+                ChatChannel::Party => format!("/p {text}"),
+                ChatChannel::Guild => format!("/g {text}"),
+                ChatChannel::Whisper => {
+                    let partner = state.get(&whisper_partner_path).clone();
+
+                    match partner.is_empty() {
+                        // No conversation open yet: fall back to public chat
+                        // instead of sending a malformed whisper command.
+                        true => text,
+                        false => format!("/w {partner} {text}"),
+                    }
+                }
+            };
+
+            queue.queue(InputEvent::SendMessage { text });
+            queue.queue(Event::Unfocus);
         };
 
         window! {
@@ -475,6 +669,29 @@ where
                     shadow_color: Color::TRANSPARENT,
                     shadow_padding: ShadowPadding::uniform(0.0),
                 },
+                split! {
+                    gaps: theme().window().gaps(),
+                    children: (
+                        channel_tab(self.chat_window_state, ChatChannel::Public, "Public"),
+                        channel_tab(self.chat_window_state, ChatChannel::Party, "Party"),
+                        channel_tab(self.chat_window_state, ChatChannel::Whisper, "Whisper"),
+                        channel_tab(self.chat_window_state, ChatChannel::Guild, "Guild"),
+                    ),
+                },
+                split! {
+                    gaps: theme().window().gaps(),
+                    children: (
+                        text! {
+                            text: "Send to",
+                            height: 18.0,
+                            overflow_behavior: OverflowBehavior::Shrink,
+                        },
+                        drop_down! {
+                            selected: send_channel_path,
+                            options: self.chat_window_state.send_channel_options(),
+                        },
+                    ),
+                },
                 ChatMessagesWithInput::new(
                     korangar_interface::theme::theme().text_box().height(),
                     korangar_interface::prelude::ComputedSelector::new_default(|_: &ClientState| CHAT_WINDOW_GAPS),
@@ -486,7 +703,7 @@ where
                             // has to consume the available height and scroll beyond
                             // it instead of stretching the window with the content.
                             fit_content_height: false,
-                            children: ChatElement::new(self.chat_messages_path),
+                            children: ChatElement::new(self.chat_messages_path, active_channel_path),
                         },
                         text_box! {
                             ghost_text: client_state().localization().chat_text_box_message(),
@@ -518,5 +735,97 @@ where
                 ),
             ),
         }
+    }
+}
+
+/// One tab button of the chat window.
+///
+/// The active tab is disabled (like the inventory tabs), the guild tab is
+/// additionally disabled when the server has no guild chat support.
+fn channel_tab<A>(chat_window_state: A, channel: ChatChannel, label: &'static str) -> impl Element<ClientState>
+where
+    A: Path<ClientState, ChatWindowState> + 'static,
+{
+    use korangar_interface::prelude::*;
+
+    button! {
+        text: label,
+        disabled: korangar_interface::prelude::ComputedSelector::<_, bool>::new_default(move |state: &ClientState| {
+            let active = *chat_window_state.active_channel().follow_safe(state) == channel;
+            let available = channel != ChatChannel::Guild || *chat_window_state.guild_chat_available().follow_safe(state);
+            active || !available
+        }),
+        event: move |state: &State<ClientState>, _queue: &mut EventQueue<ClientState>| {
+            state.update_value(chat_window_state.active_channel(), channel);
+            state.update_value(chat_window_state.send_channel(), channel);
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use korangar_networking::MessageColor;
+
+    use super::messages_for_channel;
+    use crate::interface::windows::ChatWindowState;
+    use crate::state::{ChatChannel, ChatMessage};
+
+    fn message(text: &str, channel: ChatChannel) -> ChatMessage {
+        ChatMessage::new_channel(text.to_owned(), MessageColor::Information, channel)
+    }
+
+    #[test]
+    fn messages_are_routed_to_their_channel_tab() {
+        let messages = vec![
+            message("public", ChatChannel::Public),
+            message("party", ChatChannel::Party),
+            ChatMessage::whisper("whisper".to_owned(), MessageColor::Information, "Alice"),
+            message("guild", ChatChannel::Guild),
+        ];
+
+        let public: Vec<_> = messages_for_channel(&messages, ChatChannel::Public)
+            .map(|message| message.text.as_str())
+            .collect();
+        let party: Vec<_> = messages_for_channel(&messages, ChatChannel::Party)
+            .map(|message| message.text.as_str())
+            .collect();
+        let whisper: Vec<_> = messages_for_channel(&messages, ChatChannel::Whisper)
+            .map(|message| message.text.as_str())
+            .collect();
+        let guild: Vec<_> = messages_for_channel(&messages, ChatChannel::Guild)
+            .map(|message| message.text.as_str())
+            .collect();
+
+        assert_eq!(public, ["public"]);
+        assert_eq!(party, ["party"]);
+        assert_eq!(whisper, ["whisper"]);
+        assert_eq!(guild, ["guild"]);
+    }
+
+    #[test]
+    fn whisper_messages_keep_their_partner_for_the_click_target() {
+        let message = ChatMessage::whisper("hello".to_owned(), MessageColor::Information, "Alice");
+
+        assert_eq!(message.channel, ChatChannel::Whisper);
+        assert_eq!(message.whisper_partner.as_deref(), Some("Alice"));
+        assert_eq!(ChatMessage::new("x".to_owned(), MessageColor::Server).whisper_partner, None);
+    }
+
+    #[test]
+    fn the_default_chat_state_shows_and_sends_public_chat() {
+        let state = ChatWindowState::default();
+
+        assert_eq!(state.active_channel(), ChatChannel::Public);
+        assert_eq!(state.send_channel(), ChatChannel::Public);
+        assert!(state.guild_chat_available());
+    }
+
+    #[test]
+    fn switching_tabs_does_not_change_the_send_channel_by_itself() {
+        let mut state = ChatWindowState::default();
+        state.set_active_channel(ChatChannel::Party);
+
+        assert_eq!(state.active_channel(), ChatChannel::Party);
+        assert_eq!(state.send_channel(), ChatChannel::Public);
     }
 }

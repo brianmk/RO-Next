@@ -5674,6 +5674,35 @@ pub struct RemoveSkillPacket {
     pub skill_id: SkillId,
 }
 
+/// Guild chat message sent by the client (`CZ_GUILD_CHAT`, 0x017E).
+///
+/// rAthena validates the message with `clif_process_message`, exactly like the
+/// public and party chat, so the payload has to start with
+/// `<character name> : ` and the trailing `NUL` is not counted in the declared
+/// packet length.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017E)]
+#[variable_length]
+#[allow_packet_size_mismatch]
+pub struct GuildChatRequestPacket {
+    #[length_remaining_off_by_one]
+    pub message: String,
+}
+
+/// Guild chat message sent by the server (`ZC_GUILD_CHAT`, 0x017F).
+///
+/// The payload is the full `<name> : <message>` line like the party chat
+/// packet; the packet length includes the trailing `NUL`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017F)]
+#[variable_length]
+pub struct GuildChatReceivedPacket {
+    #[length_remaining]
+    pub message: String,
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_bytes::ByteWriter;

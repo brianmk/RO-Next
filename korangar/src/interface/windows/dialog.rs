@@ -1,7 +1,7 @@
 use std::cell::UnsafeCell;
 
 use korangar_interface::components::text_box::DefaultHandler;
-use korangar_interface::element::store::ElementStoreMut;
+use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, ElementBox, ErasedElement, StateElement};
 use korangar_interface::layout::{Resolvers, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
@@ -10,9 +10,11 @@ use rust_state::{Path, RustState, State};
 
 use super::WindowClass;
 use crate::input::InputEvent;
+use crate::interface::markup::{MarkupClickHandler, MarkupLayout, layout_markup, render_markup};
+use crate::state::chat_markup::{has_markup, parse_chat_markup};
 use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
-use crate::state::theme::InterfaceThemeType;
-use crate::state::{ClientState, ClientStatePathExt, client_state};
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 /// The kind of a single dialog element.
 ///
@@ -65,6 +67,91 @@ impl DialogElement {
             element: UnsafeCell::new(ErasedElement::new(element)),
             kind,
         }
+    }
+}
+
+/// A dialog text line that contains interactive markup (item/NAVI/URL links).
+///
+/// Lines without markup keep using the normal `text!` component, so plain NPC
+/// text is rendered exactly like before.
+struct MarkupTextElement {
+    text: String,
+    click_handler: MarkupClickHandler,
+}
+
+struct MarkupTextLayout {
+    area: korangar_interface::layout::area::Area,
+    layout: MarkupLayout,
+}
+
+impl MarkupTextElement {
+    fn new(text: String) -> Self {
+        Self {
+            text,
+            click_handler: MarkupClickHandler::new(),
+        }
+    }
+}
+
+impl Element<ClientState> for MarkupTextElement {
+    type LayoutInfo = MarkupTextLayout;
+
+    fn create_layout_info(
+        &mut self,
+        state: &State<ClientState>,
+        _: ElementStoreMut,
+        resolvers: &mut dyn Resolvers<ClientState>,
+    ) -> Self::LayoutInfo {
+        with_single_resolver(resolvers, |resolver| {
+            let runs = parse_chat_markup(&self.text);
+            let tokens = client_theme().tokens();
+            let typography = tokens.typography();
+            let color_tokens = tokens.color();
+            let font_size = *state.get(&typography.font_body());
+            let color = *state.get(&color_tokens.text_primary());
+            let highlight_color = *state.get(&color_tokens.text_accent());
+            let available_width = resolver.push_available_area().width;
+
+            let layout = layout_markup(
+                resolver.get_text_layouter(),
+                &runs,
+                available_width,
+                font_size,
+                color,
+                highlight_color,
+            );
+            let area = resolver.with_height(layout.height);
+
+            MarkupTextLayout { area, layout }
+        })
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        state: &'a State<ClientState>,
+        _: ElementStore<'a>,
+        layout_info: &'a Self::LayoutInfo,
+        layout: &mut korangar_interface::layout::WindowLayout<'a, ClientState>,
+    ) {
+        let tokens = client_theme().tokens();
+        let typography = tokens.typography();
+        let color_tokens = tokens.color();
+        let font_size = *state.get(&typography.font_body());
+        let color = *state.get(&color_tokens.text_primary());
+        let highlight_color = *state.get(&color_tokens.text_accent());
+        let link_color = *state.get(&color_tokens.text_accent());
+
+        render_markup(
+            &layout_info.layout,
+            layout_info.area,
+            0.0,
+            layout,
+            font_size,
+            color,
+            highlight_color,
+            link_color,
+            &self.click_handler,
+        );
     }
 }
 
@@ -247,12 +334,19 @@ impl DialogWindowState {
             self.clear_next = false;
         }
 
-        self.elements.push(DialogElement::new(
-            text! {
-                text: sanitize_dialog_text(&text),
-            },
-            DialogElementKind::Text,
-        ));
+        let text = sanitize_dialog_text(&text);
+
+        if has_markup(&text) {
+            self.elements
+                .push(DialogElement::new(MarkupTextElement::new(text), DialogElementKind::Text));
+        } else {
+            self.elements.push(DialogElement::new(
+                text! {
+                    text: text,
+                },
+                DialogElementKind::Text,
+            ));
+        }
     }
 
     /// Add add next button to the dialog.
