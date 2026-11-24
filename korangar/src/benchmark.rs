@@ -521,6 +521,7 @@ fn stage_skill_sweep(client: &mut Client, bench: &mut BenchState, now: Instant, 
                 Some(entity_id),
                 Some(position),
                 ClientTick(client_tick as u32),
+                1000.0,
             );
             perf::emit(&format!(
                 r#"[bench-skill] {{"skill":{skill_id},"phase":"{phase:?}","index":{index}}}"#

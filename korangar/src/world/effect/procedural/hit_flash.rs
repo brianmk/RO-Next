@@ -26,9 +26,12 @@ const FADE_OUT: f32 = 0.35;
 pub struct HitFlash {
     texture: Arc<Texture>,
     center: EffectCenter,
-    /// Extra world offset (above the feet `height` included) for entity-attached
-    /// layers; `EffectCenter::follow_entity` only refreshes the entity position,
-    /// so the offset has to be kept here or it would be lost every frame.
+    /// Seconds to wait before the first frame (data-file `delay_ms`).
+    delay: f32,
+    /// Extra world offset (above the feet `height` included) for
+    /// entity-attached layers; `EffectCenter::follow_entity` only refreshes
+    /// the entity position, so the offset has to be kept here or it would
+    /// be lost every frame.
     offset: Vector3<f32>,
     height: f32,
     count: u16,
@@ -51,6 +54,7 @@ impl HitFlash {
         texture_loader: &TextureLoader,
         center: EffectCenter,
         offset: Vector3<f32>,
+        delay_ms: u32,
         spec: &PrimitiveParams<'_>,
     ) -> Option<Self> {
         let texture = texture_loader.get_or_load(spec.texture, ImageType::Color).ok()?;
@@ -59,6 +63,7 @@ impl HitFlash {
             texture,
             center,
             offset,
+            delay: delay_ms as f32 / 1000.0,
             height: spec.height,
             count: spec.count.clamp(1, 8),
             duration: (spec.duration_ms.max(50) as f32) / 1000.0,
@@ -76,7 +81,7 @@ impl HitFlash {
 
     /// Current fade weight of the burst (0..1).
     fn fade(&self) -> f32 {
-        fade_weight(self.time, self.duration)
+        fade_weight(self.time - self.delay, self.duration)
     }
 }
 
@@ -96,7 +101,7 @@ impl EffectBase for HitFlash {
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool {
         self.center.follow_entity(entities);
         self.time += delta_time;
-        !self.gets_deleted && self.time < self.duration
+        !self.gets_deleted && self.time < self.delay + self.duration
     }
 
     fn mark_for_deletion(&mut self) {
@@ -110,12 +115,16 @@ impl EffectBase for HitFlash {
             return;
         }
 
+        if self.time < self.delay {
+            return;
+        }
+
         let fade = self.fade();
         if fade <= 0.001 {
             return;
         }
 
-        let progress = (self.time / self.duration).clamp(0.0, 1.0);
+        let progress = ((self.time - self.delay) / self.duration).clamp(0.0, 1.0);
         let size = self.size + (self.size_end - self.size) * progress;
         let alpha = self.alpha * fade;
         let color = Color::rgba(self.color.red, self.color.green, self.color.blue, alpha);

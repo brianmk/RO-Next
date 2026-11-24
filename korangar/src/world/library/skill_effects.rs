@@ -311,6 +311,11 @@ struct LayerFile {
     duration_ms: u32,
     #[serde(default)]
     delay_ms: u32,
+    /// Fraction of the actual cast time at which this layer spawns (0..1).
+    /// Used by effects whose parts are spread over the cast (Asura glyphs);
+    /// instant casts (no cast time) skip such layers.
+    #[serde(default, deserialize_with = "deserialize_option")]
+    cast_at: Option<f32>,
     #[serde(default = "default_count")]
     count: u16,
     #[serde(default)]
@@ -401,6 +406,8 @@ pub(crate) struct SkillEffectLayer {
     pub duration_ms: u32,
     /// Duplicate delay / primitive stagger in milliseconds.
     pub delay_ms: u32,
+    /// Fraction of the actual cast time at which the layer spawns (0..1).
+    pub cast_at: Option<f32>,
     /// Number of duplicates/burst quads.
     pub count: u16,
     /// Random world offset radius of a burst.
@@ -907,6 +914,7 @@ impl LayerFile {
             size_end: self.size_end,
             duration_ms: self.duration_ms,
             delay_ms: self.delay_ms,
+            cast_at: self.cast_at,
             count: self.count,
             spread: self.spread,
             height: self.height,

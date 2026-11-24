@@ -2797,6 +2797,7 @@ impl Client {
         target_entity_id: Option<EntityId>,
         target_position: Option<Point3<f32>>,
         client_tick: ClientTick,
+        cast_time_ms: f32,
     ) {
         let layers = crate::world::skill_effect_layers(skill_id, phase);
 
@@ -2834,6 +2835,7 @@ impl Client {
                 target_position,
                 source_position,
                 client_tick,
+                cast_time_ms,
             );
         }
 
@@ -2867,7 +2869,17 @@ impl Client {
         target_position: Option<Point3<f32>>,
         source_position: Option<Point3<f32>>,
         client_tick: ClientTick,
+        cast_time_ms: f32,
     ) {
+        // Data-file layers can be tied to the *actual* cast time (`cast_at`),
+        // so the parts stay spread over the cast even when DEX shortens it;
+        // instant casts skip them (official behaviour).
+        let delay_ms = match layer.cast_at {
+            Some(fraction) if cast_time_ms >= 300.0 => layer.delay_ms + (cast_time_ms * fraction).round() as u32,
+            Some(_) => return,
+            None => layer.delay_ms,
+        };
+
         let Some((center, vertical, owner)) = self.skill_layer_center(layer, source_entity_id, target_entity_id, target_position) else {
             return;
         };
@@ -2965,7 +2977,7 @@ impl Client {
                     return;
                 }
 
-                let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, &params) else {
+                let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, delay_ms, &params) else {
                     return;
                 };
 
@@ -3090,7 +3102,7 @@ impl Client {
                     }
                     Some(LayerPrimitive::HitFlash) | None => {
                         let (center, offset) = self.texture_layer_center_with_offset(center, layer, vertical);
-                        let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, &params) else {
+                        let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, delay_ms, &params) else {
                             return;
                         };
 
@@ -3191,8 +3203,9 @@ impl Client {
     /// anchor for the texture/cylinder primitives (they take a center point
     /// directly).
     /// Like [`Self::texture_layer_center`], but keeps the offset separate for
-    /// procedural primitives: `EffectCenter::follow_entity` refreshes the entity
-    /// position every frame and would otherwise drop the data-file offset.
+    /// procedural primitives: `EffectCenter::follow_entity` refreshes the
+    /// entity position every frame and would otherwise drop the data-file
+    /// offset.
     fn texture_layer_center_with_offset(
         &self,
         center: EffectCenter,
@@ -4472,7 +4485,15 @@ impl Client {
                     // Official cast-start effects of the unified descriptor table: the
                     // cast-time body flash, the `EF_BEGINSPELL` cone and every other
                     // layer of the `Cast` phase (per-cast de-duplicated).
-                    self.spawn_skill_effect_phase(skill_id, SkillPhase::Cast, source_entity_id, None, None, client_tick);
+                    self.spawn_skill_effect_phase(
+                        skill_id,
+                        SkillPhase::Cast,
+                        source_entity_id,
+                        None,
+                        None,
+                        client_tick,
+                        cast_time as f32,
+                    );
 
                     // Asura Strike shakes the screen for the local caster (the
                     // original client draws no full-screen lettering: the kanji
@@ -4633,6 +4654,7 @@ impl Client {
                             (destination_entity_id != EntityId(0)).then_some(destination_entity_id),
                             destination_position,
                             client_tick,
+                            0.0,
                         );
 
                         // Instant/self-buff casts (0x09CB) have no sound packet on
@@ -4715,7 +4737,7 @@ impl Client {
                     // known (the official client plays e.g. Storm Gust's effect there);
                     // hand-written completions are ordinary `Success` layers now.
                     for phase in [SkillPhase::Ground, SkillPhase::Success] {
-                        self.spawn_skill_effect_phase(skill_id, phase, entity_id, None, world_position, client_tick);
+                        self.spawn_skill_effect_phase(skill_id, phase, entity_id, None, world_position, client_tick, 0.0);
                     }
 
                     // Ground skills complete on this packet: play the mapped sound
@@ -5947,6 +5969,7 @@ impl Client {
                                 Some(destination_entity_id),
                                 target_world_position,
                                 client_tick,
+                                0.0,
                             );
                         }
                     }
