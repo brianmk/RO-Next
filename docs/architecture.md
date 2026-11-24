@@ -81,17 +81,20 @@ src/
 
 | file | lines | contents |
 | --- | --- | --- |
-| `network/mod.rs` | 279 | `handle_network_events`: routing only |
-| `network/{session,character,world,skills,inventory,commerce,social,ui}.rs` | 5.6k | one handler per `NetworkEvent` (224 handlers) |
-| `user_events.rs` | 467 | `process_user_events`: routing only (the debug camera arms stay inline, they take `delta_time`) |
-| `input_*.rs` | 2.6k | one handler per `InputEvent` (158 handlers in 13 files) |
-| `effects.rs` | 647 | skill effect phases/layers, auras, projectiles, cast circles |
-| `render.rs` | 713 | `MapRenderContext` + per-frame overlays (names, lights, shadows) |
-| `frame.rs` | 360 | focus, pacing, fps/perf logging, scaling, lifecycle tick |
+| `frame.rs` | 2,067 | everything per-frame: focus/pacing/fps logging, the winit `ApplicationHandler`, simulation (`update_entities`, camera, attack checks, buffered actions), overlay renderers, `update_and_render` |
+| `mod.rs` | 1,000 | the `Client` struct and fields, constants, event-loop/tls/shutdown helpers, `PendingExperience`, message tables, frame profiler |
+| `lifecycle.rs` | 917 | construction: `init`, `run`, client-state/settings updates |
+| `gameplay.rs` | 767 | casting, aftercast timers, status/aura updates, skill-tree/experience bookkeeping |
+| `render.rs` | 713 | `MapRenderContext` + per-frame overlay renderers |
+| `effects.rs` | 711 | skill effect phases/layers, auras, projectiles, cast circles |
+| `loaders.rs` | 451 | loader bookkeeping, transient-failure retries, character-selection previews |
+| `windows.rs` | ~390 | open/close trade, storage, bank, cart, item-service, refining, vending; character-selection re-entry |
 | `items.rs` | 360 | item menus, info windows, artwork, cutin/book loading |
-| `hud.rs` | 203 | opening/toggling/repositioning HUD windows |
-| `navigation.rs` | 188 | map-name normalisation, walkable tile search, routes |
-| `chat.rs` | 75 | chat/notification push helpers, localized templates |
+| `network/mod.rs` | 281 | `handle_network_events`: routing only |
+| `network/{session,character,world,skills,inventory,commerce,social,ui}.rs` | 5.9k | 224 handlers |
+| `user_events.rs` | 471 | `process_user_events`: routing only (debug camera arms stay inline: they take `delta_time`) |
+| `input_*.rs` | 3.3k | 158 handlers in 13 files |
+| `hud.rs`, `navigation.rs`, `chat.rs` | 480 | window toggles, nav routes, chat push helpers |
 
 Handler convention: a handler takes the whole event and destructures it inside
 (`let NetworkEvent::X { .. } = event else { unreachable!() }`), so the dispatcher
@@ -99,14 +102,17 @@ never repeats field types and handlers are unit-testable without a `Client`
 event buffer. `continue` in a moved arm body became `return` (same semantics:
 skip the rest of this event).
 
-Data lives in `ro-next/archive/` (shipped next to the binary): `data/client/*.ron`
-runtime tables, `data/languages/`, sprites and fonts. Every table is generated
-from the game archives — see [`tools/README.md`](../tools/README.md) for the
-extract → `tools/data/` → generate pipeline and the per-table inputs.
+## Other split modules
+
+| module | layout |
+| --- | --- |
+| `ragnarok-packets` | `lib.rs` (1,362: traits, handler/limits, opcode registry, tests) re-exports `primitives`, `login`, `character`, `entity`, `map`, `inventory`, `skill`, `social`, `commerce`, `mail`, `ui`, `misc` |
+| `ro-next-networking` | `lib.rs` (2,001) + `packet_versions/version_20220406.rs` (412) whose 219 registrations live in `version_20220406/registration/{session,world,inventory,skills,social,commerce,ui,misc}.rs`; unit tests in `src/tests/packet_handlers.rs` |
+| `world/entity` | `mod.rs` (340, value types) + `common.rs` (1,562) + `actor.rs` (797) + `player.rs` (364) + `npc.rs` (115) |
 
 ## Tests
 
-* 720 unit tests inline in `ro-next` (`#[cfg(test)]` next to the code), 82 in
+* 719 unit tests inline in `ro-next` (`#[cfg(test)]` next to the code), 82 in
   `ro-next-networking`.
 * Integration tests in `ro-next/tests/`: message tables, skill behaviour, world
   audio data, UI consistency (each one re-reads the committed data file).
@@ -130,29 +136,22 @@ here and duplicated `quality.yml`, so they were removed (the Nix job moved into
 
 ## Structural debt
 
-Ranked by cost; the first two are the reason a small feature still touches a
-14k-line file.
+Ranked by cost after the module splits.
 
-### 1. The dispatchers still have no per-arm tests
+### 1. The handlers have no per-arm tests yet
 
-`lib.rs` went from 14.9k to 5.8k lines: the two dispatchers are now routing-only
-(279 + 467 lines) with 382 per-variant handlers in `src/client/`. The handlers
-are plain `impl Client` methods that take the event, so a follow-up can unit
-test the pure ones without a client instance.
+The 382 per-variant handlers are plain `impl Client` methods that receive their
+event, so the pure ones can be tested without a client instance. None are yet.
 
-### 2. Handler families are keyword-grouped
+### 2. Files that are still large
 
-The family assignment (`session`, `character`, `world`, `skills`, `inventory`,
-`commerce`, `social`, `ui`) is a keyword rule over the variant name. A few
-handlers sit in a family that is only approximately right (e.g. mail under
-`ui`, achievements under `world`); moving one is a pure cut-and-paste between
-two files.
-
-
-
-Because the arm bodies are inline, only the whole-event path is testable.
-Extracting each arm into `fn handle_<thing>(&mut self, ...)` makes the handlers
-unit-testable without a client instance (pass the extracted data).
+| file | lines | note |
+| --- | --- | --- |
+| `ragnarok-packets/src/opcode_lengths_2019.rs` | 3,209 | generated table, leave it |
+| `client/frame.rs` | 2,067 | the frame pipeline is cohesive; splitting it by phase (simulation / rendering / presentation) is the next candidate |
+| `graphics/mod.rs` / `graphics/engine.rs` | 1,901 / 1,809 | four impls each, largest function 531 |
+| `world/library/skill_effects.rs`, `world/jobs.rs` | 1,607 / 1,600 | data loaders + validation, cohesive |
+| `ro-next-audio/src/lib.rs` | 1,572 | one engine |
 
 ### 3. `ro-next-loaders` is a 25-line crate
 
