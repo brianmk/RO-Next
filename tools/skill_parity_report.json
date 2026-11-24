@@ -9,7 +9,9 @@
   "official_wavs": [
    "effect\\EF_DecAgility.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\ac_center2.tga"
+  ],
   "our_wavs": [
    "effect\\ef_decagility.wav"
   ],
@@ -17,7 +19,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 754,
@@ -27,13 +29,16 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "effect\\guardk.tga",
+   "effect\\guardk2.tga"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 755,
@@ -44,13 +49,18 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "effect\\peong1.tga",
+   "effect\\peong2.tga",
+   "effect\\peong3.tga",
+   "effect\\whitelight.tga"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2552,
@@ -60,13 +70,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "rl_richs_coin_a\\reachs.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2554,
@@ -78,7 +90,9 @@
   "official_wavs": [
    "effect\\RL_BANISHING_BUSTER.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_banishing_buster\\vanishing1.str"
+  ],
   "our_wavs": [
    "effect\\rl_banishing_buster.wav"
   ],
@@ -86,7 +100,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2555,
@@ -96,7 +110,10 @@
   "official_wavs": [
    "effect\\RL_B_TRAP.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\rl_richs_coin_b\\light.bmp",
+   "effect\\rl_richs_coin_b\\rcoin1.bmp"
+  ],
   "our_wavs": [
    "effect\\rl_b_trap.wav"
   ],
@@ -104,7 +121,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2556,
@@ -141,7 +158,9 @@
   "official_wavs": [
    "effect\\RL_S_STORM.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_storm\\s_storm.str"
+  ],
   "our_wavs": [
    "effect\\rl_s_storm.wav"
   ],
@@ -149,7 +168,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2558,
@@ -159,13 +178,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "rl_e_chain\\eternal.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2560,
@@ -175,7 +196,10 @@
   "official_wavs": [
    "effect\\RL_C_MARKER.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_c_maker\\cm.str",
+   "rl_c_maker\\deffender.str"
+  ],
   "our_wavs": [
    "effect\\rl_c_marker.wav"
   ],
@@ -183,7 +207,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2561,
@@ -218,13 +242,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "rl_h_mine\\mine.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2564,
@@ -234,13 +260,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "rl_fallen_angel\\penne.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2566,
@@ -252,7 +280,9 @@
   "official_wavs": [
    "effect\\RL_D_TAIL.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_d_tail\\dtdt.str"
+  ],
   "our_wavs": [
    "effect\\rl_d_tail.wav"
   ],
@@ -260,7 +290,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2567,
@@ -270,7 +300,9 @@
   "official_wavs": [
    "effect\\RL_FIRE_RAIN.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_fire_rain\\fire_rain.str"
+  ],
   "our_wavs": [
    "effect\\rl_fire_rain.wav"
   ],
@@ -278,7 +310,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2568,
@@ -288,13 +320,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "rl_heat_barrel\\htb.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2569,
@@ -304,7 +338,9 @@
   "official_wavs": [
    "effect\\RL_AM_BLAST.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_anti_material\\anti.str"
+  ],
   "our_wavs": [
    "effect\\rl_am_blast.wav"
   ],
@@ -312,7 +348,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2570,
@@ -324,7 +360,9 @@
   "official_wavs": [
    "effect\\RL_SLUGSHOT.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "rl_slugshot\\slug.str"
+  ],
   "our_wavs": [
    "effect\\rl_slugshot.wav"
   ],
@@ -332,7 +370,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2574,
@@ -344,7 +382,10 @@
   "official_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\thunder_center.bmp",
+   "effect\\white02.bmp"
+  ],
   "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
@@ -352,7 +393,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2576,
@@ -388,7 +429,10 @@
   "official_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\thunder_center.bmp",
+   "effect\\white02.bmp"
+  ],
   "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
@@ -396,7 +440,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2579,
@@ -406,13 +450,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "newmoon_kick\\newmoon_kick.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2582,
@@ -422,13 +468,16 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "effect\\star_emperor\\boom.tga",
+   "effect\\star_emperor\\ring_white.tga"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2586,
@@ -460,13 +509,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "sj_document\\sj_document.str"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2590,
@@ -478,7 +529,10 @@
   "official_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\thunder_center.bmp",
+   "effect\\white02.bmp"
+  ],
   "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
@@ -486,7 +540,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2592,
@@ -498,7 +552,9 @@
   "official_wavs": [
    "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "solar_burst\\solar_burst.str"
+  ],
   "our_wavs": [
    "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
   ],
@@ -506,7 +562,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2594,
@@ -518,7 +574,9 @@
   "official_wavs": [
    "effect\\wizard_sightrasher.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "falling_star\\falling_star.str"
+  ],
   "our_wavs": [
    "effect\\wizard_sightrasher.wav"
   ],
@@ -526,7 +584,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2600,
@@ -574,13 +632,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "effect\\270\ubc14\ub78c.tga"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2606,
@@ -600,7 +660,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2607,
@@ -638,7 +698,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2610,
@@ -673,7 +733,9 @@
   "official_wavs": [
    "effect\\cru_holy cross.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "jyumonjikiri.str"
+  ],
   "our_wavs": [
    "effect\\cru_holy cross.wav"
   ],
@@ -681,7 +743,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3005,
@@ -693,7 +755,9 @@
   "official_wavs": [
    "effect\\T_\uc804\uae30.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "setsudan.str"
+  ],
   "our_wavs": [
    "effect\\t_\uc804\uae30.wav"
   ],
@@ -701,7 +765,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3006,
@@ -715,7 +779,10 @@
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
    "effect\\\ud3ed\uc5fc\ub8e1.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4\\item\\\ucfe0\ub098\uc774_\ub3c5.bmp",
+   "\uc774\ud329\ud2b8\\m_ef03"
+  ],
   "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
    "effect\\\ud3ed\uc5fc\ub8e1.wav"
@@ -724,7 +791,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3007,
@@ -737,7 +804,10 @@
   "official_wavs": [
    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\cloud11.tga",
+   "\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4\\item\\\ucfe0\ub098\uc774_\ub3c5.bmp"
+  ],
   "our_wavs": [
    "effect\\t_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
@@ -745,7 +815,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3008,
@@ -758,7 +828,10 @@
   "official_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\coin_a.bmp",
+   "effect\\white02.bmp"
+  ],
   "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
@@ -766,7 +839,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3009,
@@ -780,7 +853,11 @@
   "official_wavs": [
    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "effect\\cloud11.tga",
+   "\uc720\uc800\uc778\ud130\ud398\uc774\uc2a4\\item\\\ucfe0\ub098\uc774_\ub3c5.bmp",
+   "\uc774\ud329\ud2b8\\sakura01"
+  ],
   "our_wavs": [
    "effect\\t_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
@@ -788,7 +865,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3011,
@@ -955,7 +1032,9 @@
   "official_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "\uc220\uc2dd\ud574\ubc29.str"
+  ],
   "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
@@ -963,7 +1042,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3020,
@@ -1011,7 +1090,9 @@
   "official_wavs": [
    "effect\\ab_renovatio.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "ez_cure.str"
+  ],
   "our_wavs": [
    "effect\\ab_renovatio.wav"
   ],
@@ -1019,7 +1100,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3023,
@@ -1029,13 +1110,15 @@
   ],
   "official_assets": [],
   "official_wavs": [],
-  "our_files": [],
+  "our_files": [
+   "effect\\squarerange.tga"
+  ],
   "our_wavs": [],
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3024,
@@ -1047,7 +1130,9 @@
   "official_wavs": [
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "\ud5c8\ubb34\uc758\uadf8\ub9bc\uc790.str"
+  ],
   "our_wavs": [
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
@@ -1055,7 +1140,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3025,
@@ -1117,7 +1202,9 @@
   "official_wavs": [
    "effect\\sign_up.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "\ud750\ub9b0\ub2ec\ube5b\ud658\uc0c12.str"
+  ],
   "our_wavs": [
    "effect\\sign_up.wav"
   ],
@@ -1125,7 +1212,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": "Skill",
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3029,
@@ -1269,7 +1356,9 @@
   "official_wavs": [
    "effect\\su_grooming.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "su_grooming\\su_grooming.str"
+  ],
   "our_wavs": [
    "effect\\su_grooming.wav"
   ],
@@ -1277,7 +1366,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 5051,
@@ -1289,7 +1378,9 @@
   "official_wavs": [
    "effect\\su_shrimpparty.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "su_freshshrimp\\su_freshshrimp.str"
+  ],
   "our_wavs": [
    "effect\\su_shrimpparty.wav"
   ],
@@ -1297,7 +1388,7 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 5053,
@@ -1309,7 +1400,9 @@
   "official_wavs": [
    "effect\\su_chattering.wav"
   ],
-  "our_files": [],
+  "our_files": [
+   "su_chattering\\su_chattering.str"
+  ],
   "our_wavs": [
    "effect\\su_chattering.wav"
   ],
@@ -1317,6 +1410,6 @@
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  }
 ]

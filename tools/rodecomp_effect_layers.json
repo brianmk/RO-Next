@@ -1,0 +1,1109 @@
+{
+  "provenance": {
+    "source": "CondaRO.exe (Ragexe) decompilation `github.com/rodecomp/rodecomp` @ bb34313a3bb2e0ee12cb2516634b6d920a39838d",
+    "task": "skill-effect parity gap: 43 skills of the 2019 GRF SKILL_EFFECT_INFO_LIST have official effect ids but no layer facts because their visuals are hard-coded in the client (never present in the effect table / roBrowserLegacy dump).",
+    "method": "For every gap effect id: EffectTypes.h maps the id to EF_*; the effect implementation (the `case EF_*` switch of CRagEffect::OnProcess/OnProcess2/OnProcess3 and the helper it calls, or the dedicated CEffect subclass registered in EffectLists::RegisterAllocators) gives the files, colours, duplicate counts and blend; EffectTypes.cpp BuildLifetimes gives the frame lifetime (60 fps -> ms) where it is a plausible value, otherwise the class `effectLifetime` is used.",
+    "line_numbers": "`source` of every entry names the file and line of the switch case and of the helper/method that sets each asset. All paths below are relative to the read-only decompilation checkout `Source/Contents/Effects/`.",
+    "schema": "Same layer facts schema as `tools/windows_client_effect_layers.json` (`type` STR/SPR/3D, `file`, `duplicate`, `duration`, `alphaMax`, `red`/`green`/`blue`, `blendMode`), so `tools/gen_rodecomp_effect_layers.py` converts them with the exact same rules as the official-table lane (`tools/gen_skill_effect_layers.build_layer`): world units x2 for offsets/radii, size*0.85 for billboards, size*0.09 for projectiles, data\\texture\\ / data\\sprite\\ / data\\texture\\effect\\ roots.",
+    "assets": "Every file name was validated against the CondaRO.grf / data.grf / palettes.grf archives. The shared GRF name reader (tools/gen_skill_effect_layers.read_grf_names) decodes the name table as UTF-8, falls back to EUC-KR (the encoding the client loader uses; the Korean names here are CP949-compatible) and finally latin-1; the Korean texture/sprite names resolved through that path. tools/gen_rodecomp_effect_layers.py re-validates every emitted asset on each run.",
+    "scope": "`scope.skills` is the exact 43-skill list of `tools/skill_parity_report.json` rows with has_descriptor=false.",
+    "note": "Sizes are effect-table units (the generator applies the official conversion); durations are milliseconds. Only assets that really ship in the GRFs are used; effects without a file layer are listed in `skipped_effect_ids` and skills without a fixed visual in `skipped_skills` instead of inventing something."
+  },
+  "scope": {
+    "source": "tools/skill_parity_report.json rows with has_descriptor=false (43 skills, 43 effect ids)",
+    "skills": [
+      751,
+      754,
+      755,
+      2552,
+      2554,
+      2555,
+      2557,
+      2558,
+      2560,
+      2562,
+      2564,
+      2566,
+      2567,
+      2568,
+      2569,
+      2570,
+      2574,
+      2577,
+      2579,
+      2582,
+      2588,
+      2590,
+      2592,
+      2594,
+      2602,
+      2603,
+      2606,
+      2609,
+      3004,
+      3005,
+      3006,
+      3007,
+      3008,
+      3009,
+      3019,
+      3020,
+      3022,
+      3023,
+      3024,
+      3027,
+      5050,
+      5051,
+      5053
+    ]
+  },
+  "effects": {
+    "330": {
+      "name": "EF_HITLINE",
+      "source": "RagEffect.cpp:10218 (case EF_HITLINE in CRagEffect::OnProcess2) -> CRagEffect::WhiteSparks at RagEffect.cpp:10837, texture white02.bmp at 10851 (PP_HITLINE primitive 70, 4 spark slots)",
+      "file": "RagEffect.cpp",
+      "lines": [
+        10218,
+        10837,
+        10851
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\white02.bmp",
+          "size": 6.0,
+          "duplicate": 4,
+          "duration": 3333,
+          "alphaMax": 0.78,
+          "blendMode": 2
+        }
+      ]
+    },
+    "547": {
+      "name": "EF_STIN",
+      "source": "RagEffect.cpp:21810 (case EF_STIN in CRagEffect::OnProcess3) calls TexturedSlashFan with effect\\270바람.tga at 21815; helper at RagEffect.cpp:3980 (PP_STINB 119, 4 fan slots)",
+      "file": "RagEffect.cpp",
+      "lines": [
+        21810,
+        21815,
+        3980
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\270바람.tga",
+          "size": 8.0,
+          "duplicate": 4,
+          "duration": 3333,
+          "blendMode": 2
+        }
+      ]
+    },
+    "864": {
+      "name": "EF_ENERVATION7",
+      "source": "RagEffect.cpp:20081 (case EF_ENERVATION7 in CRagEffect::OnProcess3) -> CRagEffect::RisingSparkles RagEffect.cpp:7078 (texture at 7117) + TintedRisingSparkles 7977 (texture at 8020)",
+      "file": "RagEffect.cpp",
+      "lines": [
+        20081,
+        7078,
+        7117,
+        7977,
+        8020
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\ac_center2.tga",
+          "size": 6.0,
+          "duplicate": 16,
+          "duration": 1667,
+          "alphaMax": 0.78,
+          "blendMode": 2,
+          "red": 0.6,
+          "green": 0.6,
+          "blue": 1.0
+        }
+      ]
+    },
+    "981": {
+      "name": "EF_THROW_HAPPOKUNAI",
+      "source": "EffectLists.cpp:1485 RegisterAllocator(EF_THROW_HAPPOKUNAI) -> CThrowItemEffect; ThrowEffects.cpp:105 Open, projectileCount 8 at 107-108, shared 981/983 texture block at 213-216 (쿠나이_독.bmp)",
+      "file": "ThrowEffects.cpp",
+      "lines": [
+        1485,
+        105,
+        107,
+        213,
+        216
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "유저인터페이스\\item\\쿠나이_독.bmp",
+          "toSrc": true,
+          "size": 33.0,
+          "duplicate": 8,
+          "duration": 3333,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.784,
+          "blue": 1.0
+        }
+      ]
+    },
+    "982": {
+      "name": "EF_THROW_MULTIPLE_COIN",
+      "source": "EffectLists.cpp:1488 RegisterAllocator(EF_THROW_MULTIPLE_COIN) -> CThrowItemEffect; ThrowEffects.cpp:105 Open, projectileCount 10 at 110-111, texture coin_a.bmp at 235-238",
+      "file": "ThrowEffects.cpp",
+      "lines": [
+        1488,
+        105,
+        110,
+        235,
+        238
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\coin_a.bmp",
+          "toSrc": true,
+          "size": 28.0,
+          "duplicate": 10,
+          "duration": 3333,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.784,
+          "blue": 0.0
+        }
+      ]
+    },
+    "983": {
+      "name": "EF_THROW_BAKURETSU",
+      "source": "EffectLists.cpp:1482 RegisterAllocator(EF_THROW_BAKURETSU) -> CThrowItemEffect; ThrowEffects.cpp:209-211 sets 쿠나이_화 and then falls through into the shared 981 block at 213-216, which overwrites the texture with 쿠나이_독.bmp",
+      "file": "ThrowEffects.cpp",
+      "lines": [
+        1482,
+        209,
+        210,
+        211,
+        213,
+        216
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "유저인터페이스\\item\\쿠나이_독.bmp",
+          "toSrc": true,
+          "size": 33.0,
+          "duplicate": 4,
+          "duration": 3333,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.784,
+          "blue": 1.0
+        }
+      ]
+    },
+    "984": {
+      "name": "EF_ROTATE_HUUMARANKA",
+      "source": "EffectLists.cpp:1491 RegisterAllocator(EF_ROTATE_HUUMARANKA) -> CRotateItemEffect; RotateItemEffect.cpp:37 Open, texture 쿠나이_독.bmp at 49, 4 orbiting particles",
+      "file": "RotateItemEffect.cpp",
+      "lines": [
+        1491,
+        37,
+        49
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "유저인터페이스\\item\\쿠나이_독.bmp",
+          "size": 2.5,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.784,
+          "blue": 1.0
+        }
+      ]
+    },
+    "986": {
+      "name": "EF_ROTATE_LINE_GRAY",
+      "source": "EffectLists.cpp:1494 RegisterAllocator(EF_ROTATE_LINE_GRAY) -> CRotateLineEffect; RotateLineEffect.cpp:50 Open, texture cloud11.tga at 66, gray colour in SetParticleStyle 36-38",
+      "file": "RotateLineEffect.cpp",
+      "lines": [
+        1494,
+        36,
+        50,
+        66
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\cloud11.tga",
+          "size": 7.0,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 0.196,
+          "blendMode": 2,
+          "red": 0.196,
+          "green": 0.196,
+          "blue": 0.196
+        }
+      ]
+    },
+    "990": {
+      "name": "EF_GROUND_EXPLOSION",
+      "source": "EffectLists.cpp:1518 RegisterAllocator(EF_GROUND_EXPLOSION) -> CSpriteEffect; SpriteEffect.cpp:65 SetupParticle, case at 76, sprite/act at 77-78, effectLifetime 100 frames at 73",
+      "file": "SpriteEffect.cpp",
+      "lines": [
+        1518,
+        65,
+        73,
+        76,
+        77
+      ],
+      "layers": [
+        {
+          "type": "SPR",
+          "file": "이팩트\\m_ef03",
+          "duration": 1667
+        }
+      ]
+    },
+    "991": {
+      "name": "EF_KG_KAGEHUMI",
+      "source": "EffectLists.cpp:1521 RegisterAllocator(EF_KG_KAGEHUMI) -> CSquareRangeEffect; SquareRangeEffect.cpp:50 Open, texture SquareRange.tga at 60, size 7.0 at 41, colour 92,92,92 at 35, effectLifetime 300 frames at 34",
+      "file": "SquareRangeEffect.cpp",
+      "lines": [
+        1521,
+        34,
+        35,
+        41,
+        50,
+        60
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\SquareRange.tga",
+          "size": 17.5,
+          "duration": 5000,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 0.361,
+          "green": 0.361,
+          "blue": 0.361
+        }
+      ]
+    },
+    "996": {
+      "name": "EF_KO_JYUMONJIKIRI",
+      "source": "EffectLists.cpp:1524 RegisterAllocator(EF_KO_JYUMONJIKIRI) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1783 InitParticle, case at 1812, Open jyumonjikiri.str at 1813",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1524,
+        1783,
+        1812,
+        1813
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "jyumonjikiri.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "997": {
+      "name": "EF_KO_SETSUDAN",
+      "source": "EffectLists.cpp:1527 RegisterAllocator(EF_KO_SETSUDAN) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1815-1816 (setsudan.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1527,
+        1815,
+        1816
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "setsudan.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "999": {
+      "name": "EF_KO_IZAYOI",
+      "source": "EffectLists.cpp:1533 RegisterAllocator(EF_KO_IZAYOI) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1821-1822 (ez_cure.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1533,
+        1821,
+        1822
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "ez_cure.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1000": {
+      "name": "EF_ROTATE_LINE_BLUE",
+      "source": "EffectLists.cpp:1497 RegisterAllocator(EF_ROTATE_LINE_BLUE) -> CRotateLineEffect; RotateLineEffect.cpp:50 Open, texture cloud11.tga at 66, blue colour and +3 scale at 39-41",
+      "file": "RotateLineEffect.cpp",
+      "lines": [
+        1497,
+        39,
+        40,
+        50,
+        66
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\cloud11.tga",
+          "size": 10.0,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 0.196,
+          "blendMode": 2,
+          "red": 0.392,
+          "green": 0.392,
+          "blue": 1.0
+        }
+      ]
+    },
+    "1001": {
+      "name": "EF_KG_KYOMU",
+      "source": "EffectLists.cpp:1554 RegisterAllocator(EF_KG_KYOMU) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1845-1846 (허무의그림자.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1554,
+        1845,
+        1846
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "허무의그림자.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1002": {
+      "name": "EF_KO_HUUMARANKA",
+      "source": "EffectLists.cpp:1539 RegisterAllocator(EF_KO_HUUMARANKA) -> CScatterEffect; ScatterEffect.cpp:33 InitializeParticle (case id 1002), sprite/act at 36-37, 50 particles in Open 53",
+      "file": "ScatterEffect.cpp",
+      "lines": [
+        1539,
+        33,
+        36,
+        37,
+        53
+      ],
+      "layers": [
+        {
+          "type": "SPR",
+          "file": "이팩트\\sakura01",
+          "duplicate": 16,
+          "duration": 5000
+        }
+      ]
+    },
+    "1008": {
+      "name": "EF_KAIHOU1",
+      "source": "EffectLists.cpp:1545 RegisterAllocator(EF_KAIHOU1) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1824-1825 (술식해방.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1545,
+        1824,
+        1825
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "술식해방.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1011": {
+      "name": "EF_GENSOU",
+      "source": "EffectLists.cpp:1557 RegisterAllocator(EF_GENSOU) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1848-1849 (흐린달빛환상2.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1557,
+        1848,
+        1849
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "흐린달빛환상2.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1066": {
+      "name": "EF_BANISHING_BUSTER",
+      "source": "EffectLists.cpp:1614 RegisterAllocator(EF_BANISHING_BUSTER) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1881-1882 (RL_BANISHING_BUSTER\\vanishing1.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1614,
+        1881,
+        1882
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_BANISHING_BUSTER\\vanishing1.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1067": {
+      "name": "EF_SLUGSHOT",
+      "source": "EffectLists.cpp:1617 RegisterAllocator(EF_SLUGSHOT) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1884-1885 (RL_SLUGSHOT\\slug.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1617,
+        1884,
+        1885
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_SLUGSHOT\\slug.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1068": {
+      "name": "EF_D_TAIL",
+      "source": "EffectLists.cpp:1620 RegisterAllocator(EF_D_TAIL) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1887-1888 (RL_d_tail\\dtdt.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1620,
+        1887,
+        1888
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_d_tail\\dtdt.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1078": {
+      "name": "EF_S_STORM",
+      "source": "EffectLists.cpp:1650 RegisterAllocator(EF_S_STORM) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1905-1906 (RL_STORM\\S_STORM.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1650,
+        1905,
+        1906
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_STORM\\S_STORM.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1098": {
+      "name": "EF_FRESHSHRIMP",
+      "source": "EffectLists.cpp:1695 RegisterAllocator(EF_FRESHSHRIMP) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1938-1939 (su_freshshrimp\\su_freshshrimp.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1695,
+        1938,
+        1939
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "su_freshshrimp\\su_freshshrimp.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1123": {
+      "name": "EF_SU_GROOMING",
+      "source": "EffectLists.cpp:1793 RegisterAllocator(EF_SU_GROOMING) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1971-1972 (su_grooming\\su_grooming.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1793,
+        1971,
+        1972
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "su_grooming\\su_grooming.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1124": {
+      "name": "EF_SU_CHATTERING",
+      "source": "EffectLists.cpp:1796 RegisterAllocator(EF_SU_CHATTERING) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:1974-1975 (su_chattering\\su_chattering.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1796,
+        1974,
+        1975
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "su_chattering\\su_chattering.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1134": {
+      "name": "EF_RICHS_COIN_A",
+      "source": "EffectLists.cpp:1823 RegisterAllocator(EF_RICHS_COIN_A) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2000-2001 (RL_richs_coin_A\\reachs.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1823,
+        2000,
+        2001
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_richs_coin_A\\reachs.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1137": {
+      "name": "EF_E_CHAIN",
+      "source": "EffectLists.cpp:1829 RegisterAllocator(EF_E_CHAIN) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2006-2007 (RL_e_chain\\eternal.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1829,
+        2006,
+        2007
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_e_chain\\eternal.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1138": {
+      "name": "EF_HEAT_BARREL",
+      "source": "EffectLists.cpp:1832 RegisterAllocator(EF_HEAT_BARREL) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2009-2010 (RL_heat_barrel\\htb.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1832,
+        2009,
+        2010
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_heat_barrel\\htb.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1139": {
+      "name": "EF_H_MINE",
+      "source": "EffectLists.cpp:1835 RegisterAllocator(EF_H_MINE) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2012-2013 (RL_h_mine\\mine.str, loop flag in Open at 5659)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1835,
+        2012,
+        2013,
+        5659
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_h_mine\\mine.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1140": {
+      "name": "EF_FALLEN_ANGEL",
+      "source": "EffectLists.cpp:1838 RegisterAllocator(EF_FALLEN_ANGEL) -> CFallenAngelEffect; MonsterSkillEffects.cpp:1018 Open, STR RL_fallen_angel\\Penne.str at 1022",
+      "file": "MonsterSkillEffects.cpp",
+      "lines": [
+        1838,
+        1018,
+        1022
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "RL_fallen_angel\\Penne.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1149": {
+      "name": "EF_IMMUNE_PROPERTY",
+      "source": "RagEffect.cpp:22219 (case EF_IMMUNE_PROPERTY in CRagEffect::OnProcess3) -> CRagEffect::KyrieGuard RagEffect.cpp:4502, textures guardK/guardK2 at 4516-4517 (PP_GUARD 61, size 11.0 at 4518)",
+      "file": "RagEffect.cpp",
+      "lines": [
+        22219,
+        4502,
+        4516,
+        4517,
+        4518
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\guardK.tga",
+          "size": 11.0,
+          "duration": 3000,
+          "alphaMax": 1.0,
+          "blendMode": 2
+        },
+        {
+          "type": "3D",
+          "file": "effect\\guardK2.tga",
+          "size": 11.0,
+          "duration": 3000,
+          "alphaMax": 1.0,
+          "blendMode": 2
+        }
+      ]
+    },
+    "1150": {
+      "name": "EF_MOVE_COORDINATE",
+      "source": "RagEffect.cpp:22222 (case EF_MOVE_COORDINATE in CRagEffect::OnProcess3) -> CRagEffect::WhiteLightTrail RagEffect.cpp:13451 (whitelight.tga load at 13467) + CRagEffect::TexturedScatterArc 5552 (peong1/2/3.tga at case body 22228-22231)",
+      "file": "RagEffect.cpp",
+      "lines": [
+        22222,
+        22224,
+        22228,
+        13451,
+        13467,
+        5552
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\whitelight.tga",
+          "size": 4.0,
+          "duplicate": 16,
+          "duration": 5000,
+          "blendMode": 2
+        },
+        {
+          "type": "3D",
+          "file": "effect\\peong1.tga",
+          "size": 5.0,
+          "duplicate": 4,
+          "duration": 5000,
+          "blendMode": 2
+        },
+        {
+          "type": "3D",
+          "file": "effect\\peong2.tga",
+          "size": 5.0,
+          "duplicate": 4,
+          "duration": 5000,
+          "blendMode": 2
+        },
+        {
+          "type": "3D",
+          "file": "effect\\peong3.tga",
+          "size": 5.0,
+          "duplicate": 4,
+          "duration": 5000,
+          "blendMode": 2
+        }
+      ]
+    },
+    "1197": {
+      "name": "EF_LIGHTSPHERE_SUN",
+      "source": "EffectLists.cpp:1901 RegisterAllocator(EF_LIGHTSPHERE_SUN) -> CLightSphereEffect; LightSphereEffect.cpp:169 CreateSphereParticles (thunder_center.bmp at 173, colour 0xFF7C80 at 185) + :30 CreateRayParticles (white02.bmp at 33, sun colours at 64-65)",
+      "file": "LightSphereEffect.cpp",
+      "lines": [
+        1901,
+        30,
+        33,
+        169,
+        173,
+        185
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\thunder_center.bmp",
+          "size": 3.5,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.486,
+          "blue": 0.502
+        },
+        {
+          "type": "3D",
+          "file": "effect\\white02.bmp",
+          "size": 1.0,
+          "duplicate": 16,
+          "duration": 2000,
+          "alphaMax": 0.157,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 0.486,
+          "blue": 0.502
+        }
+      ]
+    },
+    "1198": {
+      "name": "EF_LIGHTSPHERE_MOON",
+      "source": "EffectLists.cpp:1904 RegisterAllocator(EF_LIGHTSPHERE_MOON) -> CLightSphereEffect; LightSphereEffect.cpp:169 CreateSphereParticles (thunder_center.bmp at 173, colour 0xFFFF37 at 188) + :30 CreateRayParticles (white02.bmp at 33, moon colours at 74-81)",
+      "file": "LightSphereEffect.cpp",
+      "lines": [
+        1904,
+        30,
+        33,
+        169,
+        173,
+        188
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\thunder_center.bmp",
+          "size": 3.5,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 1.0,
+          "blue": 0.216
+        },
+        {
+          "type": "3D",
+          "file": "effect\\white02.bmp",
+          "size": 1.0,
+          "duplicate": 16,
+          "duration": 2000,
+          "alphaMax": 0.157,
+          "blendMode": 2,
+          "red": 1.0,
+          "green": 1.0,
+          "blue": 0.216
+        }
+      ]
+    },
+    "1199": {
+      "name": "EF_LIGHTSPHERE_STAR",
+      "source": "EffectLists.cpp:1907 RegisterAllocator(EF_LIGHTSPHERE_STAR) -> CLightSphereEffect; LightSphereEffect.cpp:169 CreateSphereParticles (thunder_center.bmp at 173, colour 0x3BCCFF at 191) + :30 CreateRayParticles (white02.bmp at 33, star colours at 84-91)",
+      "file": "LightSphereEffect.cpp",
+      "lines": [
+        1907,
+        30,
+        33,
+        169,
+        173,
+        191
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\thunder_center.bmp",
+          "size": 3.5,
+          "duplicate": 4,
+          "duration": 2000,
+          "alphaMax": 1.0,
+          "blendMode": 2,
+          "red": 0.231,
+          "green": 0.8,
+          "blue": 1.0
+        },
+        {
+          "type": "3D",
+          "file": "effect\\white02.bmp",
+          "size": 1.0,
+          "duplicate": 16,
+          "duration": 2000,
+          "alphaMax": 0.157,
+          "blendMode": 2,
+          "red": 0.231,
+          "green": 0.8,
+          "blue": 1.0
+        }
+      ]
+    },
+    "1202": {
+      "name": "EF_NOVAEXPLOSING",
+      "source": "EffectLists.cpp:1916 RegisterAllocator(EF_NOVAEXPLOSING) -> CStarEmperorEffect; StarEmperorEffect.cpp:114 Open (effectLifetime 30 frames at 115), :47 BuildSphere (boom.tga at 56), :32 BuildRings (ring_white.tga at 39)",
+      "file": "StarEmperorEffect.cpp",
+      "lines": [
+        1916,
+        32,
+        39,
+        47,
+        56,
+        114,
+        115
+      ],
+      "layers": [
+        {
+          "type": "3D",
+          "file": "effect\\star_emperor\\boom.tga",
+          "size": 8.0,
+          "duplicate": 16,
+          "duration": 500,
+          "blendMode": 2
+        },
+        {
+          "type": "3D",
+          "file": "effect\\star_emperor\\ring_white.tga",
+          "size": 8.0,
+          "duplicate": 10,
+          "duration": 500,
+          "blendMode": 2
+        }
+      ]
+    },
+    "1218": {
+      "name": "EF_SOLARBURST",
+      "source": "EffectLists.cpp:1946 RegisterAllocator(EF_SOLARBURST) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2036-2037 (solar_burst\\solar_burst.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1946,
+        2036,
+        2037
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "solar_burst\\solar_burst.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1219": {
+      "name": "EF_SJ_DOCUMENT",
+      "source": "EffectLists.cpp:1949 RegisterAllocator(EF_SJ_DOCUMENT) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2039-2040 (sj_document\\sj_document.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1949,
+        2039,
+        2040
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "sj_document\\sj_document.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1220": {
+      "name": "EF_FALLING_STAR",
+      "source": "EffectLists.cpp:1952 RegisterAllocator(EF_FALLING_STAR) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2042-2043 (falling_star\\falling_star.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1952,
+        2042,
+        2043
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "falling_star\\falling_star.str",
+          "duration": 1000
+        }
+      ]
+    },
+    "1229": {
+      "name": "EF_NEWMOON_KICK",
+      "source": "EffectLists.cpp:1973 RegisterAllocator(EF_NEWMOON_KICK) -> CEZ2STRScreenEffect; EZ2STREffect.cpp:2051-2052 (newmoon_kick\\newmoon_kick.str)",
+      "file": "EZ2STREffect.cpp",
+      "lines": [
+        1973,
+        2051,
+        2052
+      ],
+      "layers": [
+        {
+          "type": "STR",
+          "file": "newmoon_kick\\newmoon_kick.str",
+          "duration": 1000
+        }
+      ]
+    }
+  },
+  "skills": {
+    "2555": {
+      "name": "RL_B_TRAP",
+      "source": "GameModePackets.cpp:4964 spawns EF_RL_B_TRAP (1135) for the trap unit; MonsterSkillEffects.cpp:2878 CRichsCoinEffect, textures rcoin1.bmp at 2892 and light.bmp at 2905",
+      "rows": [
+        {
+          "phase": "Ground",
+          "hint": "Ground",
+          "layers": [
+            {
+              "type": "3D",
+              "file": "effect\\rl_richs_coin_b\\rcoin1.bmp",
+              "size": 5.0,
+              "duplicate": 5,
+              "duration": 30000,
+              "blendMode": 2
+            },
+            {
+              "type": "3D",
+              "file": "effect\\rl_richs_coin_b\\light.bmp",
+              "size": 1.5,
+              "duration": 30000,
+              "alphaMax": 0.275,
+              "blendMode": 2
+            }
+          ]
+        }
+      ]
+    },
+    "2560": {
+      "name": "RL_C_MARKER",
+      "source": "GameObject.cpp:3559-3570 EFST_C_MARKER spawns EF_C_MAKER (1070, RL_C_MAKER\\deffender.str at EZ2STREffect.cpp:1893-1894) and EF_C_MAKER_1 (1084, RL_C_MAKER\\cm.str at 1896-1897)",
+      "rows": [
+        {
+          "phase": "Success",
+          "hint": "Target",
+          "layers": [
+            {
+              "type": "STR",
+              "file": "RL_C_MAKER\\deffender.str",
+              "duration": 1000
+            },
+            {
+              "type": "STR",
+              "file": "RL_C_MAKER\\cm.str",
+              "duration": 1000
+            }
+          ]
+        }
+      ]
+    },
+    "2567": {
+      "name": "RL_FIRE_RAIN",
+      "source": "MsgEffect.cpp:1280 spawns EF_FIRE_RAIN (1073) for the skill unit; EZ2STREffect.cpp:1878-1879 RL_FIRE_RAIN\\fire_rain.str",
+      "rows": [
+        {
+          "phase": "Ground",
+          "hint": "Ground",
+          "layers": [
+            {
+              "type": "STR",
+              "file": "RL_FIRE_RAIN\\fire_rain.str",
+              "duration": 1000
+            }
+          ]
+        }
+      ]
+    },
+    "2569": {
+      "name": "RL_AM_BLAST",
+      "source": "GameObject.cpp:3570 EFST_ANTI_M_BLAST spawns EF_RL_ANTI_MATERIAL_BLAST (1136); EZ2STREffect.cpp:2003-2004 RL_anti_material\\anti.str",
+      "rows": [
+        {
+          "phase": "Success",
+          "hint": "Target",
+          "layers": [
+            {
+              "type": "STR",
+              "file": "RL_anti_material\\anti.str",
+              "duration": 1000
+            }
+          ]
+        }
+      ]
+    },
+    "2606": {
+      "name": "2606",
+      "source": "RagEffect.cpp:22272 (case EF_BLINK_BODY in CRagEffect::OnProcess3) flashes the caster body colour 155,155,255 / 50,50,50 for 61 frames; the layer schema expresses that as a BodyFlash tint",
+      "rows": [
+        {
+          "phase": "Success",
+          "hint": "Target",
+          "layers": [
+            {
+              "kind": "BodyFlash",
+              "anchor": "Target",
+              "tint": [
+                0.608,
+                0.608,
+                1.0
+              ],
+              "hold_ms": 500,
+              "fade_ms": 517
+            }
+          ]
+        }
+      ]
+    },
+    "2609": {
+      "name": "2609",
+      "source": "RagEffect.cpp:22272 (case EF_BLINK_BODY in CRagEffect::OnProcess3) flashes the caster body colour 155,155,255 / 50,50,50 for 61 frames; the layer schema expresses that as a BodyFlash tint",
+      "rows": [
+        {
+          "phase": "Success",
+          "hint": "Caster",
+          "layers": [
+            {
+              "kind": "BodyFlash",
+              "anchor": "Caster",
+              "tint": [
+                0.608,
+                0.608,
+                1.0
+              ],
+              "hold_ms": 500,
+              "fade_ms": 517
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "skipped_effect_ids": {
+    "989": {
+      "name": "EF_KAIHOU",
+      "reason": "CThrowItemEffect picks effect\\WaterOrb.bmp / StoneOrb.bmp / FireOrb.bmp / LightningOrb.bmp from the caster's runtime charm type (ThrowEffects.cpp:249-262). There is no fixed asset for the effect id, so the caster row falls back to the fixed target shikigami explosion (1008) instead of inventing one orb."
+    },
+    "1204": {
+      "name": "EF_SMA_BLACK",
+      "reason": "RagEffect.cpp:22237 -> CRagEffect::SMA RagEffect.cpp:2621 creates PP_SMA primitive 120 with totalTexture 0 (hard-coded geometry, no file layer). Nothing the texture/sprite/str schema can express."
+    },
+    "1209": {
+      "name": "EF_BLINK_BODY",
+      "reason": "RagEffect.cpp:22272 only toggles the caster's body render tint (SetColor 155,155,255 / 50,50,50); there is no file layer. The skills that only reference it (2606, 2609) get a BodyFlash tint row instead (see `skills`)."
+    }
+  },
+  "skipped_skills": {
+    "2602": {
+      "name": "SMA_BLACK",
+      "reason": "the only effect id of the skill, 1204, draws the textureless PP_SMA primitive (RagEffect.cpp:22237 -> SMA 2621 -> RenderSMA3); there is no file layer."
+    },
+    "3020": {
+      "name": "KO_ZENKAI",
+      "reason": "the 2019 GRF table carries no effect id. The client plays a server-selected element: CellRangeEffect.cpp:39-49 uses effect\\water-%d.bmp / stone-%d.bmp / fire-%d.bmp / lightning-%d.bmp for EF_KO_ZENKAI_WATER/LAND/FIRE/WIND. There is no fixed asset, and spawning all four rune circles would be wrong, so the skill stays without a descriptor."
+    }
+  }
+}

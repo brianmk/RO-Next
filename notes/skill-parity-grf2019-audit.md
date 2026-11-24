@@ -38,6 +38,12 @@ begin motion) with `skill_effects.ron` / `skill_sounds.ron` /
 | missing official effect asset | 19 | **0** (templates like `windhit%d` handled) |
 | caster action missing/mismatch | 19 | **0** (`beginMotionType` merged into `skill_actions.ron`) |
 
+Follow-up 2026-11-24 (`feat/gap-skillfx`): the 43 effect ids whose visuals live
+only in `CondaRO.exe` were extracted from the decompilation
+(`tools/gen_rodecomp_effect_layers.py`), so `no client descriptor` is now
+**2** - 2602 (textureless `PP_SMA` primitive) and 3020 (server-selected
+elemental rune circle). See `notes/rodecomp-hardcoded-skill-effects.md`.
+
 Mismatches were fixed by feeding the GRF facts into the existing generators:
 
 * `tools/extract_grf2019_skill_facts.py` → `tools/grf2019_skill_facts.json`
@@ -85,9 +91,10 @@ the client data against both GRFs (611 assets): **0 unresolved**.
 
 ## Remaining gaps
 
-43 effect ids (981-1011, 1066-1078, 1133-1150, 1197-1231, 4th-job / expanded
-classes plus a few NPC skills) have no layer definitions in any extracted
-table; their visuals live only in `CondaRO.exe`. Those skills currently get
-their official **sound** and **action** but no effect rows. Extracting the remaining effect implementations
-from the decompilation (`CRagEffect` switches) is the next step if those jobs
-are ever enabled on the server.
+The 43 hard-coded effect ids (981-1011, 1066-1078, 1133-1150, 1197-1231,
+4th-job / expanded classes plus a few NPC skills) were extracted from the
+decompilation in the `feat/gap-skillfx` follow-up. Two skills still have no
+descriptor: **2602** (its only effect, 1204, draws the textureless `PP_SMA`
+primitive) and **3020 KO_ZENKAI** (the 2019 table has no effect id; the client
+renders a server-selected elemental rune circle). Both reasons and the full
+per-id mapping are in `notes/rodecomp-hardcoded-skill-effects.md`.

@@ -11,12 +11,17 @@ reads the GRF archives), so a server can override it inside its own
 file is embedded with `include_str!` as the compiled fallback, so the archive
 override and the compiled table can never drift apart.
 
-The file is the merge of three sources:
+The file is the merge of these sources:
 
 1. `tools/skill_effects_official.ron` (optional, `--official`) - the complete
    official `EffectTable` layer lists (one entry per skill/phase, ordered
    layers). This is the "full official rows" generator deliverable; when it
    contains a skill/phase pair it supersedes the legacy rows for that pair.
+1b. `tools/skill_effects_rodecomp_hardcoded.ron` (optional,
+   `--rodecomp-hardcoded`) - rows extracted from the client decompilation for
+   the effects the 2019 table gives an id but no data layers (their visuals are
+   hard-coded C++; see `tools/gen_rodecomp_effect_layers.py`). The merge only
+   adds layers whose asset is not already present for that skill/phase.
 2. `tools/skill_effects_custom.ron` - the hand-written (older client) visuals
    migrated out of `skill_cast_effect.rs` (Blessing angel, Angelus, Inc AGI,
    Concentration, Hammer Fall, Warp/Heal cast tints, Zen/Fury auras, body
@@ -71,6 +76,7 @@ from pathlib import Path
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effects.ron")
 DEFAULT_CUSTOM = Path("tools/skill_effects_custom.ron")
 DEFAULT_OFFICIAL = Path("tools/skill_effects_official.ron")
+DEFAULT_RODECOMP_HARDCODED = Path("tools/skill_effects_rodecomp_hardcoded.ron")
 DEFAULT_RODECOMP = Path("tools/skill_effects_rodecomp.ron")
 DEFAULT_OVERRIDES = Path("tools/skill_effects_overrides.ron")
 LEGACY_STR = Path("korangar/archive/data/client/skill_effect_assets.ron")
@@ -512,6 +518,7 @@ def build(
     official_path: Path | None,
     rodecomp_path: Path | None = None,
     overrides_path: Path | None = None,
+    rodecomp_hardcoded_path: Path | None = None,
 ) -> list[dict[str, object]]:
     grouped: dict[tuple[int, str], dict[str, object]] = {}
 
@@ -540,6 +547,30 @@ def build(
                 assert isinstance(layer, dict)
                 add_layer(entry, dict(layer))
                 official_assets.setdefault(key, set()).add(asset_key(dict(layer)))
+            official_keys.add(key)
+
+    # 1a2. Hard-coded (C++) skill effects from the same decompilation, mapped
+    #      through their effect id. These skills had an official effect id but
+    #      no effect-table layer facts at all. Only layers whose asset is not
+    #      already present for the (skill, phase) pair are added, so a skill
+    #      that gains its descriptor elsewhere never loses a tuned layer.
+    if rodecomp_hardcoded_path is not None and rodecomp_hardcoded_path.is_file():
+        for descriptor in read_effects(rodecomp_hardcoded_path):
+            key = (int(descriptor["skill"]), str(descriptor["phase"]))
+            entry = entry_for(*key)
+            for field in ("cast_circle_color", "action"):
+                if field in descriptor and field not in entry:
+                    entry[field] = descriptor[field]
+            present = {asset_key(dict(layer)) for layer in entry["layers"]}
+            for layer in descriptor.get("layers") or []:
+                assert isinstance(layer, dict)
+                asset = asset_key(dict(layer))
+                if asset and asset in present:
+                    continue
+                add_layer(entry, dict(layer))
+                official_assets.setdefault(key, set()).add(asset)
+                if asset:
+                    present.add(asset)
             official_keys.add(key)
 
     # 1b. Rows derived from the official client decompilation (rodecomp). They
@@ -679,8 +710,9 @@ def render(effects: list[dict[str, object]]) -> str:
         "//   the character's head); `attached_entity` makes a layer follow its entity.",
         "// The loader is `korangar/src/world/library/skill_effects.rs`.",
         "//",
-        "// Sources: official EffectTable layer rows (multi-layer), the migrated",
-        "// hand-written visuals (tools/skill_effects_custom.ron) and the legacy",
+        "// Sources: official EffectTable layer rows (multi-layer), the hard-coded C++",
+        "// effect rows of the client decompilation (tools/skill_effects_rodecomp_hardcoded.ron),",
+        "// the hand-written visuals (tools/skill_effects_custom.ron) and the legacy",
         "// per-kind tables (skill_effect_assets/sprite/procedural .ron).",
         "(",
         '    provenance: "Unified skill effect descriptors: official effect-table layers + migrated hand-written visuals",',
@@ -758,6 +790,11 @@ def main() -> int:
     parser.add_argument("--custom", default=str(DEFAULT_CUSTOM), help="hand-written migrated layers")
     parser.add_argument("--official", default=str(DEFAULT_OFFICIAL), help="complete official layer rows (optional)")
     parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP), help="rodecomp-derived rows (optional)")
+    parser.add_argument(
+        "--rodecomp-hardcoded",
+        default=str(DEFAULT_RODECOMP_HARDCODED),
+        help="hard-coded C++ effect rows for the 2019 effect-id gap (optional)",
+    )
     parser.add_argument("--overrides", default=str(DEFAULT_OVERRIDES), help="hand-written phase overrides")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT), help="generated unified data file")
     parser.add_argument("--validate-assets", default=None, metavar="GAME_DIR", help="validate every referenced asset against the GRF archives")
@@ -775,11 +812,15 @@ def main() -> int:
     if not rodecomp_path.is_file():
         rodecomp_path = None
 
+    rodecomp_hardcoded_path = Path(args.rodecomp_hardcoded)
+    if not rodecomp_hardcoded_path.is_file():
+        rodecomp_hardcoded_path = None
+
     overrides_path = Path(args.overrides)
     if not overrides_path.is_file():
         overrides_path = None
 
-    effects = build(custom_path, official_path, rodecomp_path, overrides_path)
+    effects = build(custom_path, official_path, rodecomp_path, overrides_path, rodecomp_hardcoded_path)
     if not effects:
         raise SystemExit("no skill effects could be merged")
 
