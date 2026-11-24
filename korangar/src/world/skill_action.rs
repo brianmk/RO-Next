@@ -96,6 +96,22 @@ mod tests {
     }
 
     #[test]
+    fn champion_attack_skills_play_the_attack_animation() {
+        // Raging Trifecta Blow, Occult Impaction, Throw Spirit Sphere, Raging
+        // Quadruple Blow, Raging Thrust, Raging Palm Strike, Glacier Fist and
+        // Chain Crush Combo are physical attacks; they must not all fall back to
+        // the generic cast gesture (in-game report: every Champion skill looked
+        // identical).
+        for skill_id in [263, 266, 267, 272, 273, 370, 371, 372] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
+        }
+        // Fury and Mental Strength stay idle poses.
+        for skill_id in [268, 270] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
+        }
+    }
+
+    #[test]
     fn stance_skills_keep_the_idle_pose() {
         // Blessing and Fury: the official `GetSkillActionInfo` sets motion 0
         // (ST_STAND), so the caster keeps the idle pose.

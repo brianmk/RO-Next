@@ -1427,10 +1427,10 @@
   },
   {
    "skill": 263,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (MO_TRIPLEATTACK): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 264,
@@ -1448,17 +1448,17 @@
   },
   {
    "skill": 266,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (MO_INVESTIGATE): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 267,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (MO_FINGEROFFENSIVE): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 268,
@@ -1490,17 +1490,17 @@
   },
   {
    "skill": 272,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (MO_CHAINCOMBO): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 273,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (MO_COMBOFINISH): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 274,
@@ -1903,24 +1903,24 @@
   },
   {
    "skill": 370,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (CH_PALMSTRIKE): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 371,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (CH_TIGERFIST): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 372,
-   "action": "Skill",
+   "action": "Attack",
    "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+   "source": "physical attack skill (CH_CHAINCRUSH): the caster must play the attack swing, not the generic cast gesture (in-game report: every champion skill looked identical)"
   },
   {
    "skill": 373,

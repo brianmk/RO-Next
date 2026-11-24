@@ -770,7 +770,9 @@
                     body: (1.0, 0.85, 0.35),
                     glow: (1.0, 0.94, 0.39),
                 ),
-                radii: (ground: 10.5, ring: 7.0, body: 24.0, body_glow: 14.0),
+                // 30 % smaller than the raw effect-table radii (in-game report: the Fury
+                // aura was too large compared with the official client).
+                radii: (ground: 7.35, ring: 4.9, body: 16.8, body_glow: 9.8),
                 timing: (
                     body_frame_rate: 10.0,
                     ring_rotation_speed: 0.8,
@@ -780,7 +782,8 @@
                     pulse_amount: 0.2,
                 ),
                 alpha: (ground: 0.3, ring: 0.4, body: 0.45, body_glow: 0.4),
-                height: 12.0,
+                // 30 % smaller as well so the scaled aura keeps its proportions.
+                height: 8.4,
             ),
         ),
         (
