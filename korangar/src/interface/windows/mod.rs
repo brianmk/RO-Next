@@ -5,6 +5,7 @@ mod buy;
 mod buy_cart;
 mod buy_or_sell;
 mod cache;
+mod cart;
 mod character_creation;
 mod character_deletion;
 mod character_info;
@@ -53,6 +54,7 @@ mod storage;
 mod theme_inspector;
 mod trade;
 mod vending;
+mod vending_browse;
 
 use serde::{Deserialize, Serialize};
 
@@ -63,6 +65,7 @@ pub use self::buy::BuyWindow;
 pub use self::buy_cart::BuyCartWindow;
 pub use self::buy_or_sell::BuyOrSellWindow;
 pub use self::cache::WindowCache;
+pub use self::cart::CartWindow;
 pub use self::character_creation::CharacterCreationWindow;
 pub use self::character_deletion::CharacterDeletionWindow;
 pub use self::character_info::CharacterInfoWindow;
@@ -111,6 +114,7 @@ pub use self::storage::StorageWindow;
 pub use self::theme_inspector::{ThemeInspectorWindow, ThemeInspectorWindowState};
 pub use self::trade::{TradeRequestWindow, TradeWindow};
 pub use self::vending::VendingWindow;
+pub use self::vending_browse::VendingBrowseWindow;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WindowClass {
@@ -142,6 +146,8 @@ pub enum WindowClass {
     Trade,
     TradeRequest,
     Vending,
+    VendingBrowse,
+    Cart,
     Storage,
     FriendList,
     FriendRequest,

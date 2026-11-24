@@ -529,6 +529,27 @@ pub enum InputEvent {
     InspectFrame {
         measurement: FrameMeasurement,
     },
+    /// Open the merchant pushcart window. The contents are filled by the server
+    /// through the shared inventory list family (`inventory_type` 1).
+    OpenCartWindow,
+    /// Browse another player's vending shop. Sends `CZ_REQ_BUY_FROMMC`
+    /// (0x0130); the server answers with the shop list (0x0800).
+    BrowseVendingShop {
+        /// Account id of the shop owner (the entity id of the player).
+        owner_account_id: u32,
+        /// Shop title from `ZC_STORE_ENTRY`, used as window title.
+        shop_name: String,
+    },
+    /// Buy one unit from the open vending shop
+    /// (`CZ_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0134).
+    BuyVendingItem {
+        /// Seller cart slot from the shop list (`slot + 2` wire encoding).
+        cart_index: InventoryIndex,
+        amount: u16,
+        /// Listed price, used only to give immediate feedback when the player
+        /// does not have enough zeny.
+        price: u32,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {

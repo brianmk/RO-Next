@@ -6,10 +6,10 @@ Tracking the gaps from `rodecomp-game-gap-audit.md`. Order = player impact.
 | --- | --- | --- | --- |
 | 1 | Item drop (`CZ_ITEM_THROW`) | **done** | `a8acbc16` |
 | 2 | NPC text/number input (`ZC_OPEN_EDITDLG(STR)`) | **done** | `91b00672` |
-| 3 | Cart inventory (load/unload pushcart) | in progress (gap-items) | — |
-| 4 | Buy from another player's vending shop | in progress (gap-items) | — |
-| 5 | Guild system (window, members, positions, notice, storage, emblem draw) | in progress (gap-guild) | — |
-| 6 | Rodex / mail | in progress (gap-mail) | — |
+| 3 | Cart inventory (load/unload pushcart) | **done** | `5fa9dd91` |
+| 4 | Buy from another player's vending shop | **done** | `5fa9dd91` |
+| 5 | Guild system (window, members, positions, notice, storage, emblem draw) | todo | — |
+| 6 | Rodex / mail | todo | — |
 | 7 | Costume / shadow-gear slots | todo | — |
 | 8 | Shield and robe rendering | todo | — |
 | 9 | Skill cooldown display (`ZC_SKILL_POSTDELAY`) | in progress (gap-uiqol) | — |

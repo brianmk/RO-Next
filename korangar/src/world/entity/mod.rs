@@ -329,6 +329,11 @@ pub struct Common {
     /// allocation per entity per frame in crowded towns.
     #[hidden_element]
     guild_label: Option<String>,
+    /// Title of an open vending shop of this player (`ZC_STORE_ENTRY`, 0x0131,
+    /// `clif.cpp:7558`). `None` when the player is not vending. Used by the
+    /// character context menu to offer browsing the shop.
+    #[hidden_element]
+    vending_shop_name: Option<String>,
     #[hidden_element]
     animation_state: AnimationState,
     stopped_moving: bool,
@@ -666,6 +671,7 @@ impl Common {
             guild_id,
             guild_name,
             guild_label,
+            vending_shop_name: None,
             animation_state,
             stopped_moving: false,
             sound_state: SoundState::default(),
@@ -2439,6 +2445,18 @@ impl Entity {
     /// name means the player is not in a guild (anymore) and removes the label.
     pub fn set_guild_name(&mut self, guild_name: Option<String>) {
         self.get_common_mut().set_guild_name(guild_name);
+    }
+
+    /// Title of the player's open vending shop, `None` when the player is not
+    /// vending (or the shop entry was removed).
+    pub fn get_vending_shop_name(&self) -> Option<&str> {
+        self.get_common().vending_shop_name.as_deref()
+    }
+
+    /// Updates the vending shop title from `ZC_STORE_ENTRY` /
+    /// `ZC_DISAPPEAR_ENTRY`.
+    pub fn set_vending_shop_name(&mut self, shop_name: Option<String>) {
+        self.get_common_mut().vending_shop_name = shop_name;
     }
 
     pub fn get_tile_position(&self) -> TilePosition {

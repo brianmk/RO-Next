@@ -126,6 +126,19 @@ impl Inventory {
         self.items.remove(position);
     }
 
+    /// Like [`Self::remove_item`], but silently ignores an unknown index.
+    ///
+    /// The cart list can arrive later than a cart delete packet (for example
+    /// after a reconnect), and a malformed server packet must not take the
+    /// client down.
+    pub fn remove_item_if_present(&mut self, index: InventoryIndex, remove_amount: u16) {
+        if !self.items.iter().any(|item| item.index == index) {
+            return;
+        }
+
+        self.remove_item(index, remove_amount);
+    }
+
     /// Updates the amount of a stackable item, e.g. after using one of the
     /// items. Removes the item if the new amount is zero.
     pub fn update_amount(&mut self, index: InventoryIndex, amount: u16) {

@@ -212,6 +212,9 @@ where
     const INVENTORY_TYPE_INVENTORY: u8 = 0;
     /// Inventory type byte of the Kafra storage list.
     const INVENTORY_TYPE_STORAGE: u8 = 2;
+    /// Inventory type byte of the merchant pushcart list (`INVTYPE_CART` in
+    /// rAthena `clif_cartlist`, `clif.cpp:3226`).
+    const INVENTORY_TYPE_CART: u8 = 1;
 
     // This is a bit of a workaround for the way that the inventory is
     // sent. There is a single packet to start the inventory list,
@@ -225,6 +228,8 @@ where
     // by the inventory type byte (0 = inventory, 2 = storage).
     let storage_items: Rc<RefCell<Option<Vec<InventoryItem<NoMetadata>>>>> = Rc::new(RefCell::new(None));
     let storage_name: Rc<RefCell<String>> = Rc::new(RefCell::new(String::new()));
+    // The pushcart uses the same family with `inventory_type` 1.
+    let cart_items: Rc<RefCell<Option<Vec<InventoryItem<NoMetadata>>>>> = Rc::new(RefCell::new(None));
 
     packet_handler.register(|_: MapServerPingPacket| NoNetworkEvents)?;
     packet_handler.register(|packet: SoundPacket| NetworkEvent::PlaySound {
@@ -714,6 +719,7 @@ where
         let inventory_items = inventory_items.clone();
         let storage_items = storage_items.clone();
         let storage_name = storage_name.clone();
+        let cart_items = cart_items.clone();
 
         move |packet: InventoyStartPacket| {
             match packet.inventory_type {
@@ -722,7 +728,8 @@ where
                     *storage_items.borrow_mut() = Some(Vec::new());
                     *storage_name.borrow_mut() = packet.inventory_name.clone();
                 }
-                // Cart and guild storage lists are not displayed yet. Their packets
+                INVENTORY_TYPE_CART => *cart_items.borrow_mut() = Some(Vec::new()),
+                // Guild storage lists are not displayed yet. Their packets
                 // still have to be consumed so the stream stays in sync.
                 _ => {}
             }
@@ -733,6 +740,7 @@ where
     packet_handler.register({
         let inventory_items = inventory_items.clone();
         let storage_items = storage_items.clone();
+        let cart_items = cart_items.clone();
 
         move |packet: RegularItemListPacket| {
             let is_storage = packet.inventory_type == INVENTORY_TYPE_STORAGE;
@@ -740,6 +748,7 @@ where
             let target = match packet.inventory_type {
                 INVENTORY_TYPE_INVENTORY => inventory_items.clone(),
                 INVENTORY_TYPE_STORAGE => storage_items.clone(),
+                INVENTORY_TYPE_CART => cart_items.clone(),
                 _ => return NoNetworkEvents,
             };
 
@@ -846,6 +855,7 @@ where
     packet_handler.register({
         let inventory_items = inventory_items.clone();
         let storage_items = storage_items.clone();
+        let cart_items = cart_items.clone();
 
         move |packet: EquippableItemListPacket2019| {
             let is_storage = packet.inventory_type == INVENTORY_TYPE_STORAGE;
@@ -853,6 +863,7 @@ where
             let target = match packet.inventory_type {
                 INVENTORY_TYPE_INVENTORY => inventory_items.clone(),
                 INVENTORY_TYPE_STORAGE => storage_items.clone(),
+                INVENTORY_TYPE_CART => cart_items.clone(),
                 _ => return NoNetworkEvents,
             };
 
@@ -896,6 +907,7 @@ where
         let inventory_items = inventory_items.clone();
         let storage_items = storage_items.clone();
         let storage_name = storage_name.clone();
+        let cart_items = cart_items.clone();
 
         move |packet: InventoyEndPacket| -> NetworkEventList {
             match packet.inventory_type {
@@ -907,6 +919,10 @@ where
                     let items = storage_items.borrow_mut().take().unwrap_or_default();
                     let name = storage_name.borrow().clone();
                     NetworkEvent::SetStorage { items, name }.into()
+                }
+                INVENTORY_TYPE_CART => {
+                    let items = cart_items.borrow_mut().take().unwrap_or_default();
+                    NetworkEvent::SetCart { items }.into()
                 }
                 _ => NetworkEventList::default(),
             }
@@ -1741,6 +1757,77 @@ where
         }
     })?;
     packet_handler.register(|packet: RemoveSkillPacket| NetworkEvent::RemoveSkill { skill_id: packet.skill_id })?;
+
+    // Pushcart item updates (`ZC_ADD_ITEM_TO_CART` 0x0A0B,
+    // `clif_cart_additem` at `clif.cpp:7273`). The full list arrives through the
+    // shared inventory family handled above; these packets keep it in sync
+    // between two full refreshes.
+    packet_handler.register(|packet: CartItemAddedPacket2019| {
+        let amount = u16::try_from(packet.amount).unwrap_or(u16::MAX);
+        let flags = match packet.identified != 0 {
+            true => RegularItemFlags::IDENTIFIED,
+            false => RegularItemFlags::empty(),
+        };
+
+        NetworkEvent::CartItemAdded {
+            item: InventoryItem {
+                metadata: NoMetadata,
+                index: packet.cart_index,
+                item_id: packet.item_id,
+                item_type: packet.item_type,
+                slot: packet.card,
+                hire_expiration_date: 0,
+                details: InventoryItemDetails::Regular {
+                    amount,
+                    equipped_position: EquipPosition::empty(),
+                    flags,
+                },
+            },
+        }
+    })?;
+    packet_handler.register(|packet: CartDeleteItemPacket2019| NetworkEvent::CartItemRemoved {
+        cart_index: packet.cart_index,
+        amount: packet.amount,
+    })?;
+    packet_handler.register(|packet: CartAddItemAckPacket2019| NetworkEvent::CartAddItemFailed { result: packet.result })?;
+    packet_handler.register(|_: CartOffPacket| NetworkEvent::CartClosed)?;
+
+    // Vending shops of other players: the server announces the shop title
+    // (`ZC_STORE_ENTRY` 0x0131, `clif.cpp:7558`) and answers a browse request
+    // (0x0130) with the item list (`ZC_PC_PURCHASE_ITEMLIST_FROMMC` 0x0800,
+    // `clif.cpp:7592`).
+    packet_handler.register(|packet: StoreEntryPacket2019| NetworkEvent::StoreEntry {
+        owner_account_id: packet.owner_account_id,
+        shop_name: packet.store_name.trim().to_owned(),
+    })?;
+    packet_handler.register(|packet: StoreEntryRemovedPacket2019| NetworkEvent::StoreEntryRemoved {
+        owner_account_id: packet.owner_account_id,
+    })?;
+    packet_handler.register(|packet: VendingItemListPacket2019| {
+        let items = packet
+            .items
+            .into_iter()
+            .map(|entry| crate::items::VendingShopItem {
+                item: ShopItem {
+                    metadata: NoMetadata,
+                    item_id: entry.item_id,
+                    item_type: entry.item_type,
+                    price: Price(entry.price),
+                    quantity: ItemQuantity::Fixed(entry.amount.into()),
+                    weight: 0,
+                    location: entry.location,
+                },
+                cart_index: entry.cart_index,
+            })
+            .collect();
+
+        NetworkEvent::VendingShopList {
+            owner_account_id: packet.owner_account_id,
+            shop_id: packet.shop_id,
+            items,
+        }
+    })?;
+    packet_handler.register(|packet: VendingPurchaseResultPacket2019| NetworkEvent::VendingPurchaseResult { result: packet.result })?;
 
     Ok(())
 }

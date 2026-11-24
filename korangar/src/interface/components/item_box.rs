@@ -53,6 +53,9 @@ pub enum ItemBoxContextMenu {
     Inventory,
     /// Open the storage item context menu (take out, view info).
     Storage,
+    /// Show the info window of a cart item; cart items are moved by dragging
+    /// and double clicking, so there is no separate context menu.
+    Cart,
 }
 
 struct ItemContextMenuHandler<P> {
@@ -74,6 +77,10 @@ where
                 inventory_index: item.index,
             }),
             ItemBoxContextMenu::Storage => queue.queue(InputEvent::OpenStorageItemMenu { storage_index: item.index }),
+            ItemBoxContextMenu::Cart => queue.queue(InputEvent::OpenItemInfo {
+                inventory_index: item.index,
+                source: ItemSource::Cart,
+            }),
             ItemBoxContextMenu::None => {}
         }
     }

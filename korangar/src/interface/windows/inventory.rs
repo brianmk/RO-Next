@@ -6,6 +6,7 @@ use korangar_networking::InventoryItem;
 use rust_state::{Path, PathExt, State, VecIndexExt};
 
 use crate::ItemSource;
+use crate::input::InputEvent;
 use crate::interface::components::item_box::{ItemBox, ItemBoxContextMenu};
 use crate::interface::components::zeny::ZenyDisplay;
 use crate::interface::windows::WindowClass;
@@ -101,6 +102,13 @@ where
                             overflow_behavior: OverflowBehavior::Shrink,
                         },
                         ZenyDisplay::new(client_state().zeny()),
+                        button! {
+                            text: client_state().localization().cart_window_title(),
+                            height: 18.0,
+                            event: |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                                queue.queue(InputEvent::OpenCartWindow);
+                            },
+                        },
                     ),
                 },
             ),

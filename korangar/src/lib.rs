@@ -75,15 +75,15 @@ use korangar_interface::layout::MouseButton;
 use korangar_interface::{Interface, MouseMode, take_layout_profile};
 use korangar_messages::{MessageDomain, format_message};
 use korangar_networking::{
-    DisconnectReason, HotkeyState, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem, SellItem,
-    SupportedPacketVersion,
+    DisconnectReason, HotkeyState, ItemQuantity, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem,
+    SellItem, SupportedPacketVersion,
 };
 #[cfg(feature = "debug")]
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
-    AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason, EntityId,
-    ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult, SkillId,
-    SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason,
+    EntityId, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult,
+    SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -102,6 +102,7 @@ use state::lifecycle::{
 use state::localization::Localization;
 use state::skills::SkillTreePathExt;
 use state::theme::{CursorThemePathExt, IndicatorThemePathExt, InterfaceThemePathExt, WorldThemePathExt};
+use state::vending::VendingShopItem;
 use state::{ChatMessage, ClientState, ClientStatePathExt, client_state, status_effect_definition, this_entity, this_player};
 #[cfg(feature = "debug")]
 use wgpu::Device;
@@ -4552,6 +4553,8 @@ impl Client {
                     // A storage window from a previous session must never show up
                     // in the new character's game state.
                     self.close_storage_window();
+                    self.close_cart_window();
+                    self.close_vending_browse();
                     self.close_trade();
                     // The map server sends the map change packet (and with it the
                     // map data we have to load) right after the login handshake.
@@ -4917,6 +4920,8 @@ impl Client {
                     // The server closes the storage on a map change; close the UI
                     // and drop the transient list immediately so it can't go stale.
                     self.close_storage_window();
+                    self.close_cart_window();
+                    self.close_vending_browse();
                     self.close_trade();
                     self.minimap_last_tile = None;
                     self.client_state.follow_mut(client_state().minimap()).clear();
@@ -5522,6 +5527,113 @@ impl Client {
                 }
                 NetworkEvent::StorageClosed => {
                     self.close_storage_window();
+                }
+                NetworkEvent::SetCart { items } => {
+                    // The cart list arrives on map entry and whenever the cart is
+                    // (re)opened. It is kept in state so the cart window can be
+                    // opened later without a dedicated request packet.
+                    self.client_state.follow_mut(client_state().cart()).fill(&self.async_loader, items);
+                }
+                NetworkEvent::CartItemAdded { item } => {
+                    self.client_state
+                        .follow_mut(client_state().cart())
+                        .add_item(&self.async_loader, item);
+                }
+                NetworkEvent::CartItemRemoved { cart_index, amount } => {
+                    self.client_state
+                        .follow_mut(client_state().cart())
+                        .remove_item_if_present(cart_index, u16::try_from(amount).unwrap_or(u16::MAX));
+                }
+                NetworkEvent::CartClosed => {
+                    self.close_cart_window();
+                }
+                NetworkEvent::CartAddItemFailed { result } => {
+                    let message = match result {
+                        0 => "The cart is too heavy to hold this item.",
+                        _ => "The cart is full.",
+                    };
+                    self.push_chat_warning(message.to_owned());
+                }
+                NetworkEvent::StoreEntry {
+                    owner_account_id,
+                    shop_name,
+                } => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id().0 == owner_account_id.0)
+                    {
+                        entity.set_vending_shop_name(Some(shop_name));
+                    }
+                }
+                NetworkEvent::StoreEntryRemoved { owner_account_id } => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id().0 == owner_account_id.0)
+                    {
+                        entity.set_vending_shop_name(None);
+                    }
+                }
+                NetworkEvent::VendingShopList {
+                    owner_account_id,
+                    shop_id,
+                    items,
+                } => {
+                    let shop_name = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id().0 == owner_account_id.0)
+                        .and_then(|entity| entity.get_vending_shop_name())
+                        .map(ToOwned::to_owned)
+                        .or_else(|| {
+                            let pending = self
+                                .client_state
+                                .follow(client_state().vending_browse())
+                                .pending_shop_name()
+                                .to_owned();
+                            (!pending.is_empty()).then_some(pending)
+                        })
+                        .unwrap_or_else(|| "Vending shop".to_owned());
+
+                    let items = items
+                        .into_iter()
+                        .map(|entry| {
+                            let stock = match entry.item.quantity {
+                                ItemQuantity::Fixed(stock) => u16::try_from(stock).unwrap_or(u16::MAX),
+                                ItemQuantity::Infinite => u16::MAX,
+                            };
+                            let item = self.async_loader.request_shop_item_metadata_load(entry.item);
+
+                            VendingShopItem::new(
+                                item.item_id.0,
+                                item.metadata.name.clone(),
+                                item.price.0,
+                                stock,
+                                entry.cart_index,
+                            )
+                        })
+                        .collect();
+
+                    self.client_state
+                        .follow_mut(client_state().vending_browse())
+                        .open(owner_account_id.0, shop_id, shop_name, items);
+
+                    if !self.interface.is_window_with_class_open(WindowClass::VendingBrowse) {
+                        self.interface
+                            .open_window(VendingBrowseWindow::new(client_state().vending_browse()));
+                    }
+                }
+                NetworkEvent::VendingPurchaseResult { result } => {
+                    // The 2019 server only sends this ack for failures, but some
+                    // servers also send result 0 (success); do not report that as an
+                    // error.
+                    if result != 0 {
+                        self.push_chat_warning(vending_purchase_result_message(result).to_owned());
+                    }
                 }
                 NetworkEvent::IventoryItemAdded { item } => {
                     self.client_state
@@ -7179,6 +7291,45 @@ impl Client {
                         let _ = self.networking_system.select_warp_point(skill_id, String::new());
                     }
                 }
+                InputEvent::OpenCartWindow => {
+                    if !self.interface.is_window_with_class_open(WindowClass::Cart) {
+                        self.interface.open_window(CartWindow);
+                    }
+                }
+                InputEvent::BrowseVendingShop {
+                    owner_account_id,
+                    shop_name,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().vending_browse())
+                        .set_pending_shop_name(shop_name);
+                    let _ = self.networking_system.request_vending_list(AccountId(owner_account_id));
+                }
+                InputEvent::BuyVendingItem { cart_index, amount, price } => {
+                    let owner_account_id = self.client_state.follow(client_state().vending_browse()).owner_account_id();
+
+                    if let Some(zeny) = *self.client_state.follow(client_state().zeny())
+                        && zeny < u64::from(price)
+                    {
+                        self.push_chat_warning("You do not have enough zeny.".to_owned());
+                        continue;
+                    }
+
+                    let _ = self
+                        .networking_system
+                        .purchase_from_vending(AccountId(owner_account_id), vec![(cart_index, amount)]);
+
+                    // rAthena resets its "which shop was opened" state after every
+                    // purchase request (`clif_parse_PurchaseReq`), so the next row
+                    // would fail with "store incorrect". Request the (updated) list
+                    // again to keep the window usable and its stock in sync. The
+                    // server does not send a success ack; the bought item arrives
+                    // through the regular inventory packets.
+                    self.client_state
+                        .follow_mut(client_state().vending_browse())
+                        .reduce_stock(cart_index, amount);
+                    let _ = self.networking_system.request_vending_list(AccountId(owner_account_id));
+                }
                 InputEvent::VendingOpen => {
                     let vending = self.client_state.follow(client_state().vending());
                     let shop_name = vending.shop_name().to_owned();
@@ -7397,7 +7548,25 @@ impl Client {
                             ItemSource::Storage => {
                                 let _ = self.networking_system.storage_withdraw(item.index.0, item_amount(&item).max(1));
                             }
+                            ItemSource::Cart => {
+                                let _ = self.networking_system.move_item_from_cart(item.index, item_amount(&item).max(1));
+                            }
                             ItemSource::Equipment { .. } => {}
+                        }
+                        continue;
+                    }
+
+                    // While the cart window is open, double clicking moves a stack
+                    // between the inventory and the pushcart.
+                    if self.interface.is_window_with_class_open(WindowClass::Cart) {
+                        match source {
+                            ItemSource::Inventory => {
+                                let _ = self.networking_system.move_item_to_cart(item.index, item_amount(&item).max(1));
+                            }
+                            ItemSource::Cart => {
+                                let _ = self.networking_system.move_item_from_cart(item.index, item_amount(&item).max(1));
+                            }
+                            _ => {}
                         }
                         continue;
                     }
@@ -7692,6 +7861,22 @@ impl Client {
                     (ItemSource::Storage, ItemSource::Inventory) => {
                         let amount = item_amount(&item).max(1);
                         let _ = self.networking_system.storage_withdraw(item.index.0, amount);
+                    }
+                    (ItemSource::Inventory, ItemSource::Cart) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.move_item_to_cart(item.index, amount);
+                    }
+                    (ItemSource::Cart, ItemSource::Inventory) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.move_item_from_cart(item.index, amount);
+                    }
+                    (ItemSource::Storage, ItemSource::Cart) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.move_storage_item_to_cart(item.index.0, amount);
+                    }
+                    (ItemSource::Cart, ItemSource::Storage) => {
+                        let amount = item_amount(&item).max(1);
+                        let _ = self.networking_system.move_cart_item_to_storage(item.index, amount);
                     }
                     _ => {}
                 },
@@ -8790,6 +8975,22 @@ impl Client {
         *self.client_state.follow_mut(client_state().storage_amount()) = 0;
         *self.client_state.follow_mut(client_state().storage_maximum_amount()) = 0;
         *self.client_state.follow_mut(client_state().storage_name()) = String::new();
+    }
+
+    /// Close the cart window and drop the transient cart list.
+    ///
+    /// rAthena sends `ZC_CARTOFF` when the cart is removed, and a map change
+    /// invalidates the old list as well.
+    fn close_cart_window(&mut self) {
+        self.interface.close_window_with_class(WindowClass::Cart);
+        self.client_state.follow_mut(client_state().cart()).clear();
+    }
+
+    /// Close the vending browse window and drop the shop list of the player's
+    /// shop.
+    fn close_vending_browse(&mut self) {
+        self.interface.close_window_with_class(WindowClass::VendingBrowse);
+        self.client_state.follow_mut(client_state().vending_browse()).close();
     }
 
     /// Aborts the current map entry after its map data could not be loaded and
@@ -10154,16 +10355,17 @@ fn open_character_context_menu(
                     details.split('#').next().unwrap_or_default().to_owned(),
                     entity.get_base_level().unwrap_or(0) as u16,
                     entity.get_guild_name().map(ToOwned::to_owned),
+                    entity.get_vending_shop_name().map(ToOwned::to_owned),
                 )
             })
         })
         .filter(|(name, ..)| !name.is_empty());
 
     match character {
-        Some((character_name, level, guild_name)) => {
+        Some((character_name, level, guild_name, vending_shop_name)) => {
             interface.close_window_with_class(WindowClass::ContextMenu);
             interface.open_window_at(
-                CharacterContextMenuWindow::new(character_name, entity_id.0, level, guild_name),
+                CharacterContextMenuWindow::new(character_name, entity_id.0, level, guild_name, vending_shop_name),
                 position,
             );
 
@@ -10241,6 +10443,21 @@ fn open_storage_item_menu(
 
 /// The amount of an [InventoryItem]: the stack size for regular items, one for
 /// equipment and other non-stackable items.
+/// Human readable reason for a failed vending purchase
+/// (`ZC_PC_PURCHASE_RESULT_FROMMC`, 0x0135). The result codes come from
+/// rAthena `e_pc_purchase_result_frommc` (`clif.hpp:818`).
+fn vending_purchase_result_message(result: u8) -> &'static str {
+    match result {
+        1 => "You do not have enough zeny for this purchase.",
+        2 => "You are over your weight limit.",
+        4 => "The item is out of stock.",
+        5 => "You cannot buy from a vending shop while trading.",
+        6 => "The shop information changed. Please open the shop again.",
+        7 => "The shop has no sales information for this item.",
+        _ => "The purchase from the vending shop failed.",
+    }
+}
+
 fn item_amount(item: &korangar_networking::InventoryItem<ResourceMetadata>) -> u32 {
     match &item.details {
         korangar_networking::InventoryItemDetails::Regular { amount, .. } => (*amount).into(),
@@ -10266,6 +10483,7 @@ fn open_item_info_window(
     let items = match source {
         // Equipped items are part of the inventory item list as well.
         ItemSource::Inventory | ItemSource::Equipment { .. } => state.follow(client_state().inventory().items()),
+        ItemSource::Cart => state.follow(client_state().cart().items()),
         ItemSource::Storage => state.follow(client_state().storage().items()),
     };
 

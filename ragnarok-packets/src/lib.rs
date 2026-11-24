@@ -5674,6 +5674,227 @@ pub struct RemoveSkillPacket {
     pub skill_id: SkillId,
 }
 
+/// `CZ_MOVE_ITEM_FROM_BODY_TO_CART` (0x0126 for PACKETVER 20190605): move an
+/// item from the inventory into the merchant pushcart. The inventory index uses
+/// the usual `+2` wire encoding of [InventoryIndex].
+///
+/// Layout: rAthena `packets_struct.hpp` `PACKET_CZ_MOVE_ITEM_FROM_BODY_TO_CART`
+/// (header, index, amount), parsed at `clif.cpp:12544`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0126)]
+pub struct MoveItemToCartPacket {
+    pub inventory_index: InventoryIndex,
+    pub amount: u32,
+}
+
+/// `CZ_MOVE_ITEM_FROM_CART_TO_BODY` (0x0127 for PACKETVER 20190605): move an
+/// item out of the cart back into the inventory. The cart slot is encoded like
+/// an inventory index (`slot + 2`).
+///
+/// Layout: rAthena `packets_struct.hpp` `PACKET_CZ_MOVE_ITEM_FROM_CART_TO_BODY`
+/// (header, index, amount), parsed at `clif.cpp:12558`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0127)]
+pub struct MoveItemFromCartPacket {
+    pub cart_index: InventoryIndex,
+    pub amount: u32,
+}
+
+/// `CZ_MOVE_ITEM_FROM_STORE_TO_CART` (0x0128 for PACKETVER 20190605): move an
+/// item out of the open Kafra storage into the cart. The server decodes the
+/// index as `client_index - 1` (`clif.cpp:13654`), i.e. the storage slot has to
+/// be sent as `slot + 1`.
+///
+/// Layout: rAthena `packets_struct.hpp`
+/// `PACKET_CZ_MOVE_ITEM_FROM_STORE_TO_CART` (header, index, amount).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0128)]
+pub struct MoveItemFromStorageToCartPacket {
+    /// Storage slot encoded as `slot + 1`.
+    pub storage_index: u16,
+    pub amount: u32,
+}
+
+/// `CZ_MOVE_ITEM_FROM_CART_TO_STORE` (0x0129 for PACKETVER 20190605): move an
+/// item from the cart into the open Kafra storage. The cart slot is encoded
+/// like an inventory index (`slot + 2`), see `clif.cpp:13627`.
+///
+/// Layout: rAthena `packets_struct.hpp`
+/// `PACKET_CZ_MOVE_ITEM_FROM_CART_TO_STORE` (header, index, amount).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0129)]
+pub struct MoveItemFromCartToStoragePacket {
+    pub cart_index: InventoryIndex,
+    pub amount: u32,
+}
+
+/// 2019 `ZC_ADD_ITEM_TO_CART` (0x0A0B): an item was added to the cart, e.g.
+/// after a deposit or when the cart list is refreshed. The cart slot uses the
+/// usual inventory index encoding (`slot + 2`).
+///
+/// The 2019 layout has the refinement byte *before* the card slots and then the
+/// five random options (`clif.cpp:7273`, 57 bytes total).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A0B)]
+#[packet_size(57)]
+pub struct CartItemAddedPacket2019 {
+    pub cart_index: InventoryIndex,
+    pub amount: i32,
+    pub item_id: ItemId,
+    pub item_type: u8,
+    pub identified: u8,
+    pub damaged: u8,
+    pub refinement_level: u8,
+    pub card: [u32; 4],
+    pub option_data: [ItemOptions; 5],
+}
+
+/// 2019 `ZC_DELETE_ITEM_FROM_CART` (0x0125): an item (or part of a stack) was
+/// removed from the cart. The cart slot uses the `slot + 2` encoding
+/// (`clif.cpp:7530`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0125)]
+#[packet_size(8)]
+pub struct CartDeleteItemPacket2019 {
+    pub cart_index: InventoryIndex,
+    pub amount: u32,
+}
+
+/// 2019 `ZC_ACK_ADDITEM_TO_CART` (0x012C): moving an item into the cart failed
+/// (0 = weight, 1 = item count), see `clif.cpp:7313`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x012C)]
+#[packet_size(3)]
+pub struct CartAddItemAckPacket2019 {
+    pub result: u8,
+}
+
+/// 2019 `ZC_CARTOFF` (0x012B): the cart was removed; the client has to drop the
+/// cart list and close the cart window (`clif.cpp:3284`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x012B)]
+#[packet_size(2)]
+pub struct CartOffPacket {}
+
+/// `CZ_REQ_BUY_FROMMC` (0x0130): ask the map server for another player's
+/// vending shop list. `clif_parse_VendingListReq` (`clif.cpp:14128`) reads the
+/// account id and answers with `ZC_PC_PURCHASE_ITEMLIST_FROMMC` (0x0800).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0130)]
+#[packet_size(6)]
+pub struct RequestVendingListPacket {
+    pub owner_account_id: AccountId,
+}
+
+/// 2019 `ZC_STORE_ENTRY` (0x0131): a vending shop entered the player's view.
+/// Sent by `clif_showvendingboard` (`clif.cpp:7558`) with the owner account id
+/// and the 80 byte shop title.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0131)]
+#[packet_size(86)]
+pub struct StoreEntryPacket2019 {
+    pub owner_account_id: AccountId,
+    #[length(80)]
+    pub store_name: String,
+}
+
+/// 2019 `ZC_DISAPPEAR_ENTRY` (0x0132): the vending shop of the player left the
+/// view or was closed (`clif_closevendingboard`, `clif.cpp:7576`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0132)]
+#[packet_size(6)]
+pub struct StoreEntryRemovedPacket2019 {
+    pub owner_account_id: AccountId,
+}
+
+/// One row of `ZC_PC_PURCHASE_ITEMLIST_FROMMC` (0x0800) for PACKETVER
+/// 20190605.
+///
+/// Layout from rAthena `packets_struct.hpp`
+/// `PACKET_ZC_PC_PURCHASE_ITEMLIST_FROMMC_sub` (the `PACKETVER >= 20100105`
+/// variant) as written by `clif_vendinglist` (`clif.cpp:7592`): 63 bytes per
+/// row. `cart_index` is the seller's cart slot in the usual `slot + 2`
+/// encoding, which is exactly what the purchase request has to echo back.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct VendingItemInformation2019 {
+    pub price: u32,
+    pub amount: u16,
+    pub cart_index: InventoryIndex,
+    pub item_type: u8,
+    pub item_id: ItemId,
+    pub identified: u8,
+    pub damaged: u8,
+    pub refinement_level: u8,
+    pub card: [u32; 4],
+    pub option_data: [ItemOptions; 5],
+    pub location: u32,
+    pub view_sprite: u16,
+}
+
+/// 2019 `ZC_PC_PURCHASE_ITEMLIST_FROMMC` (0x0800): the item list of another
+/// player's vending shop. rAthena sends `AID`, the shop's `vender_id` and one
+/// [VendingItemInformation2019] per row (`clif.cpp:7592`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0800)]
+#[variable_length]
+pub struct VendingItemListPacket2019 {
+    pub owner_account_id: AccountId,
+    pub shop_id: u32,
+    #[repeating_remaining]
+    pub items: Vec<VendingItemInformation2019>,
+}
+
+/// One `{ <amount>.W <index>.W }` entry of a
+/// `CZ_PC_PURCHASE_ITEMLIST_FROMMC` (0x0134) request.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct PurchaseFromShopEntry {
+    pub amount: u16,
+    pub cart_index: InventoryIndex,
+}
+
+/// `CZ_PC_PURCHASE_ITEMLIST_FROMMC` (0x0134): buy items from another player's
+/// vending shop. The server reads `{ amount, index }` rows and matches the cart
+/// slot index against the shop it last sent (`clif.cpp:14138`,
+/// `vending.cpp:129`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0134)]
+#[variable_length]
+pub struct PurchaseFromShopPacket {
+    pub owner_account_id: AccountId,
+    #[repeating_remaining]
+    pub items: Vec<PurchaseFromShopEntry>,
+}
+
+/// 2019 `ZC_PC_PURCHASE_RESULT_FROMMC` (0x0135): the vending purchase failed
+/// (the server does not send a success ack; the item arrives through the
+/// regular inventory packets). Result codes: 1 not enough zeny, 2 overweight,
+/// 4 out of stock, 5 trading, 6 stale shop, 7 no sales info
+/// (`clif.cpp:7642`, `clif.hpp:818`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0135)]
+#[packet_size(7)]
+pub struct VendingPurchaseResultPacket2019 {
+    pub cart_index: InventoryIndex,
+    pub amount: u16,
+    pub result: u8,
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_bytes::ByteWriter;

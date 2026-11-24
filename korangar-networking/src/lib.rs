@@ -31,7 +31,7 @@ use tokio::task::JoinHandle;
 pub use self::entity::EntityData;
 pub use self::event::{DisconnectReason, NetworkEvent, PartyMemberDetails};
 pub use self::hotkey::HotkeyState;
-pub use self::items::{InventoryItem, InventoryItemDetails, ItemQuantity, NoMetadata, SellItem, ShopItem};
+pub use self::items::{InventoryItem, InventoryItemDetails, ItemQuantity, NoMetadata, SellItem, ShopItem, VendingShopItem};
 pub use self::message::MessageColor;
 pub use self::packet_versions::SupportedPacketVersion;
 pub use self::server::{
@@ -1159,6 +1159,69 @@ where
     pub fn close_storage(&mut self) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(CloseStoragePacket {}),
+        }
+    }
+
+    /// Move items from the inventory into the merchant pushcart
+    /// (`CZ_MOVE_ITEM_FROM_BODY_TO_CART`, 0x0126, `clif.cpp:12544`).
+    pub fn move_item_to_cart(&mut self, inventory_index: InventoryIndex, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MoveItemToCartPacket { inventory_index, amount }),
+        }
+    }
+
+    /// Move items from the pushcart back into the inventory
+    /// (`CZ_MOVE_ITEM_FROM_CART_TO_BODY`, 0x0127, `clif.cpp:12558`).
+    pub fn move_item_from_cart(&mut self, cart_index: InventoryIndex, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MoveItemFromCartPacket { cart_index, amount }),
+        }
+    }
+
+    /// Move items from the open Kafra storage into the pushcart
+    /// (`CZ_MOVE_ITEM_FROM_STORE_TO_CART`, 0x0128, `clif.cpp:13654`). The
+    /// server expects the storage slot encoded as `slot + 1`.
+    pub fn move_storage_item_to_cart(&mut self, storage_index: u16, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MoveItemFromStorageToCartPacket {
+                storage_index: storage_index.saturating_add(1),
+                amount,
+            }),
+        }
+    }
+
+    /// Move items from the pushcart into the open Kafra storage
+    /// (`CZ_MOVE_ITEM_FROM_CART_TO_STORE`, 0x0129, `clif.cpp:13627`).
+    pub fn move_cart_item_to_storage(&mut self, cart_index: InventoryIndex, amount: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MoveItemFromCartToStoragePacket { cart_index, amount }),
+        }
+    }
+
+    /// Ask the map server for another player's vending shop list
+    /// (`CZ_REQ_BUY_FROMMC`, 0x0130, `clif.cpp:14128`). The server answers with
+    /// `ZC_PC_PURCHASE_ITEMLIST_FROMMC` (0x0800).
+    pub fn request_vending_list(&mut self, owner_account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestVendingListPacket { owner_account_id }),
+        }
+    }
+
+    /// Buy `(cart index, amount)` rows from another player's vending shop
+    /// (`CZ_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0134, `clif.cpp:14138`). The cart
+    /// index is the value the server sent in the shop list.
+    pub fn purchase_from_vending(
+        &mut self,
+        owner_account_id: AccountId,
+        items: Vec<(InventoryIndex, u16)>,
+    ) -> Result<(), NotConnectedError> {
+        let items = items
+            .into_iter()
+            .map(|(cart_index, amount)| PurchaseFromShopEntry { amount, cart_index })
+            .collect();
+
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PurchaseFromShopPacket { owner_account_id, items }),
         }
     }
 
@@ -2773,12 +2836,25 @@ mod packet_handlers {
     }
 
     #[test]
-    fn cart_and_guild_storage_lists_are_ignored_without_desync() {
+    fn cart_lists_are_routed_and_guild_storage_is_ignored() {
+        // Cart list (type 1): uses the normal `slot + 2` index encoding.
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
 
         feed(&mut handler, &list_start(1, ""));
         feed(&mut handler, &list_packet(0x0B09, 1, &regular_item_entry(2)));
         let events = feed(&mut handler, &list_end(1));
+
+        assert!(
+            matches!(events.0.as_slice(), [NetworkEvent::SetCart { items }] if items.len() == 1 && items[0].index == ragnarok_packets::InventoryIndex(0))
+        );
+
+        // Guild storage (type 3) is still not displayed; packets have to be
+        // consumed so the stream stays in sync.
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        feed(&mut handler, &list_start(3, "Guild"));
+        feed(&mut handler, &list_packet(0x0B09, 3, &regular_item_entry(1)));
+        let events = feed(&mut handler, &list_end(3));
 
         assert!(events.0.is_empty());
     }
@@ -2917,5 +2993,148 @@ mod packet_handlers {
             entity_id: EntityId(0x1234_5678),
             emotion: 3,
         }]));
+    }
+
+    #[test]
+    fn cart_add_and_delete_packets_update_the_cart_list() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0A0B ZC_ADD_ITEM_TO_CART (2019 layout, 57 bytes). Raw index 4 is
+        // cart slot 2 (`slot + 2` encoding).
+        let mut added = Vec::new();
+        added.extend_from_slice(&0x0A0Bu16.to_le_bytes());
+        added.extend_from_slice(&4u16.to_le_bytes()); // cart slot 2 (+2)
+        added.extend_from_slice(&5i32.to_le_bytes()); // amount
+        added.extend_from_slice(&501u32.to_le_bytes()); // item id
+        added.extend_from_slice(&[0, 1, 0, 0]); // type, identified, damaged, refine
+        added.extend_from_slice(&[0u8; 16]); // cards
+        added.extend_from_slice(&[0u8; 25]); // options
+        assert_eq!(added.len(), 57);
+
+        let events = feed(&mut handler, &added);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CartItemAdded { item }]
+            if item.index == ragnarok_packets::InventoryIndex(2) && item.item_id == ragnarok_packets::ItemId(501)));
+
+        // 0x0125 ZC_DELETE_ITEM_FROM_CART.
+        let mut deleted = Vec::new();
+        deleted.extend_from_slice(&0x0125u16.to_le_bytes());
+        deleted.extend_from_slice(&4u16.to_le_bytes()); // cart slot 2 (+2)
+        deleted.extend_from_slice(&2u32.to_le_bytes()); // amount
+        assert_eq!(deleted.len(), 8);
+
+        let events = feed(&mut handler, &deleted);
+        assert!(
+            matches!(events.0.as_slice(), [NetworkEvent::CartItemRemoved { cart_index, amount }]
+            if *cart_index == ragnarok_packets::InventoryIndex(2) && *amount == 2)
+        );
+    }
+
+    #[test]
+    fn vending_shop_list_packet_carries_stock_price_and_cart_slot() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0800 ZC_PC_PURCHASE_ITEMLIST_FROMMC: AID, vender id and one 63
+        // byte row (clif.cpp:7592).
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x0800u16.to_le_bytes());
+        bytes.extend_from_slice(&75u16.to_le_bytes()); // length, patched below
+        bytes.extend_from_slice(&42u32.to_le_bytes()); // owner account id
+        bytes.extend_from_slice(&7u32.to_le_bytes()); // vender id
+        bytes.extend_from_slice(&100u32.to_le_bytes()); // price
+        bytes.extend_from_slice(&3u16.to_le_bytes()); // stock
+        bytes.extend_from_slice(&4u16.to_le_bytes()); // cart slot 2 (+2)
+        bytes.push(0); // item type
+        bytes.extend_from_slice(&501u32.to_le_bytes()); // item id
+        bytes.extend_from_slice(&[1, 0, 0]); // identified, damaged, refine
+        bytes.extend_from_slice(&[0u8; 16]); // cards
+        bytes.extend_from_slice(&[0u8; 25]); // options
+        bytes.extend_from_slice(&0u32.to_le_bytes()); // location
+        bytes.extend_from_slice(&0u16.to_le_bytes()); // view sprite
+        assert_eq!(bytes.len(), 75);
+        bytes[2..4].copy_from_slice(&75u16.to_le_bytes());
+
+        let events = feed(&mut handler, &bytes);
+        let [
+            NetworkEvent::VendingShopList {
+                owner_account_id,
+                shop_id,
+                items,
+            },
+        ] = events.0.as_slice()
+        else {
+            panic!("expected VendingShopList, got {:?}", events.0);
+        };
+        assert_eq!(owner_account_id.0, 42);
+        assert_eq!(*shop_id, 7);
+        assert_eq!(items.len(), 1);
+        assert_eq!(items[0].cart_index, ragnarok_packets::InventoryIndex(2));
+        assert_eq!(items[0].item.price.0, 100);
+        assert_eq!(items[0].item.quantity, crate::items::ItemQuantity::Fixed(3));
+
+        // 0x0135 ZC_PC_PURCHASE_RESULT_FROMMC.
+        let mut result = Vec::new();
+        result.extend_from_slice(&0x0135u16.to_le_bytes());
+        result.extend_from_slice(&4u16.to_le_bytes());
+        result.extend_from_slice(&1u16.to_le_bytes());
+        result.push(1); // not enough zeny
+        let events = feed(&mut handler, &result);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::VendingPurchaseResult {
+            result: 1
+        }]));
+    }
+
+    #[test]
+    fn cart_and_vending_request_packets_use_the_2019_layout() {
+        use ragnarok_packets::{
+            MoveItemFromCartPacket, MoveItemFromStorageToCartPacket, MoveItemToCartPacket, PacketExt, PurchaseFromShopEntry,
+            PurchaseFromShopPacket, RequestVendingListPacket,
+        };
+
+        fn encode(packet: impl PacketExt) -> Vec<u8> {
+            let mut writer = ByteWriter::new();
+            packet.packet_to_bytes(&mut writer).unwrap();
+            writer.into_inner()
+        }
+
+        let bytes = encode(MoveItemToCartPacket {
+            inventory_index: ragnarok_packets::InventoryIndex(0),
+            amount: 5,
+        });
+        assert_eq!(bytes.len(), 8);
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0126);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 2);
+
+        let bytes = encode(MoveItemFromCartPacket {
+            cart_index: ragnarok_packets::InventoryIndex(1),
+            amount: 5,
+        });
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0127);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 3);
+
+        let bytes = encode(MoveItemFromStorageToCartPacket {
+            storage_index: 4,
+            amount: 5,
+        });
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0128);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 4);
+
+        let bytes = encode(RequestVendingListPacket {
+            owner_account_id: ragnarok_packets::AccountId(42),
+        });
+        assert_eq!(bytes, vec![0x30, 0x01, 42, 0, 0, 0]);
+
+        let bytes = encode(PurchaseFromShopPacket {
+            owner_account_id: ragnarok_packets::AccountId(42),
+            items: vec![PurchaseFromShopEntry {
+                amount: 1,
+                cart_index: ragnarok_packets::InventoryIndex(2),
+            }],
+        });
+        assert_eq!(bytes.len(), 12);
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0134);
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 12);
+        assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 42);
+        assert_eq!(u16::from_le_bytes([bytes[8], bytes[9]]), 1);
+        assert_eq!(u16::from_le_bytes([bytes[10], bytes[11]]), 4);
     }
 }
