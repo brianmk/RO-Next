@@ -4,7 +4,7 @@
 // it directly. The generator merges these rows (precedence: curated -> the
 // per-layer `wav` of `skill_effects.ron` -> the official generated per-skill
 // table -> generic cast sound) into the runtime file
-// `korangar/archive/data/client/skill_sounds.ron` as the `curated` section and
+// `ro-next/archive/data/client/skill_sounds.ron` as the `curated` section and
 // writes the `generic` fallback sounds there too.
 //
 // Why curated: the official effect table does not always carry the sound the

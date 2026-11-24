@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generated_by": "tools/extract_message_facts.py",
-  "provenance": "rAthena packet documentation + msgstringtable.txt of the CondaRO client; current client default texts from korangar@f454127e",
+  "provenance": "rAthena packet documentation + msgstringtable.txt of the CondaRO client; current client default texts from ro-next@f454127e",
   "sources": {
     "rathena": {
       "repository": "https://github.com/rathena/rathena",
@@ -29,8 +29,8 @@
     "client_defaults": {
       "revision": "f454127e992af85e555ee759b9afb2a9ca649103",
       "files": [
-        "korangar/src/lib.rs",
-        "korangar-networking/src/packet_versions/version_20220406.rs"
+        "ro-next/src/lib.rs",
+        "ro-next-networking/src/packet_versions/version_20220406.rs"
       ]
     }
   },

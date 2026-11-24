@@ -9,13 +9,13 @@ referenced file against the shipped CondaRO data.
 
 The mapping is shipped as a **data file** in the client archive:
 
-    korangar/archive/data/client/skill_sprite_effects.ron
+    ro-next/archive/data/client/skill_sprite_effects.ron
 
 so it is loaded through the regular `GameFileLoader` (the same loader that
 reads the GRFs) and can be overridden by a server without rebuilding the
 client. The generated Rust fallback embeds the same file with `include_str!`,
 so both stay in sync automatically. Format: see
-`korangar/src/world/library/skill_sprite_effects.rs`.
+`ro-next/src/world/library/skill_sprite_effects.rs`.
 
 Sources (facts only, no GPL code):
 
@@ -61,7 +61,7 @@ DEFAULT_EFFECTS = Path("tools/data/windows_client_skill_effects.json")
 DEFAULT_SPRITE_EFFECTS = Path("tools/data/windows_client_sprite_effects.json")
 DEFAULT_WHITELIST = Path("tools/data/windows_client_spr_whitelist.txt")
 DEFAULT_NAME_MATCHES = Path("tools/data/windows_client_skill_sprite_name_matches.json")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sprite_effects.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_sprite_effects.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 SPRITE_ROOT = "data\\sprite\\"
 EFFECT_ROOT = "이팩트"
@@ -408,7 +408,7 @@ def render(rows: list[dict]) -> str:
         "// removed. `duration_ms: 0` uses the native ACT frame timing, a positive",
         "// value stretches the animation to that duration.",
         "// Phases: Ground, Cast, Success, Release, Hit, Caster (see the loader in",
-        "// `korangar/src/world/library/skill_sprite_effects.rs`).",
+        "// `ro-next/src/world/library/skill_sprite_effects.rs`).",
         "(",
         '    provenance: "Windows client SPR effect table (roBrowserLegacy RE dump) + name-matched official sprite whitelist, validated against the CondaRO GRFs",',
         "    effects: [",

@@ -18,7 +18,7 @@ What it checks, per pre-re skill and per representative job:
 
 The tool is read-only. It reads
 
-* the committed client mapping tables (`korangar/archive/data/client/*.ron`),
+* the committed client mapping tables (`ro-next/archive/data/client/*.ron`),
 * the extracted official facts (`tools/windows_client_*.json`),
 * the rAthena pre-re skill database + skill tree (default: the local checkout),
 * the CondaRO GRF archives (to validate wav/effect assets).
@@ -46,10 +46,10 @@ DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_EFFECTS = REPO / "tools/data/windows_client_skill_effects.json"
 DEFAULT_ACTIONS = REPO / "tools/data/windows_client_skill_actions.json"
 DEFAULT_SOUNDS = REPO / "tools/data/windows_client_skill_sounds.json"
-DEFAULT_STR_MAPPING = REPO / "korangar/archive/data/client/skill_effect_assets.ron"
-DEFAULT_PROC_MAPPING = REPO / "korangar/archive/data/client/skill_procedural_effects.ron"
-DEFAULT_ACTION_MAPPING = REPO / "korangar/archive/data/client/skill_actions.ron"
-DEFAULT_SOUND_MAPPING = REPO / "korangar/archive/data/client/skill_sounds.ron"
+DEFAULT_STR_MAPPING = REPO / "ro-next/archive/data/client/skill_effect_assets.ron"
+DEFAULT_PROC_MAPPING = REPO / "ro-next/archive/data/client/skill_procedural_effects.ron"
+DEFAULT_ACTION_MAPPING = REPO / "ro-next/archive/data/client/skill_actions.ron"
+DEFAULT_SOUND_MAPPING = REPO / "ro-next/archive/data/client/skill_sounds.ron"
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 GRF_HEADER_SIZE = 46
 
@@ -285,7 +285,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--rathena-dir", default=DEFAULT_RATHENA_DIR)
     parser.add_argument("--game-dir", default=DEFAULT_GAME_DIR)
-    parser.add_argument("--output-dir", default="/tmp/korangar-skill-animation-audit")
+    parser.add_argument("--output-dir", default="/tmp/ro-next-skill-animation-audit")
     args = parser.parse_args()
 
     rathena_dir = Path(args.rathena_dir)

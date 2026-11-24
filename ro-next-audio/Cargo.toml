@@ -1,0 +1,32 @@
+[package]
+name = "ro-next-audio"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[dependencies]
+bytemuck = { workspace = true, features = ["derive"] }
+cgmath = { workspace = true }
+ro-next-debug = { workspace = true, optional = true }
+ro-next-collision = { workspace = true }
+ro-next-container = { workspace = true }
+ro-next-loaders = { workspace = true }
+rayon = { workspace = true }
+resampler = { workspace = true }
+rtrb = { workspace = true }
+symphonia = { workspace = true, default-features = false, features = ["mp3", "pcm", "wav"] }
+send_wrapper = { workspace = true, optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.cpal]
+workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.cpal]
+workspace = true
+features = ["wasm-bindgen"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.send_wrapper]
+workspace = true
+
+[features]
+debug = ["ro-next-debug"]
+flac = ["symphonia/flac"]

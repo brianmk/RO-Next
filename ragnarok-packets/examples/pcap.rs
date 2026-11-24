@@ -1,8 +1,8 @@
 use std::any::TypeId;
 
 use etherparse::{SlicedPacket, TransportSlice};
-use korangar_debug::logging::symbols::ARROW;
-use korangar_debug::logging::{Colorize, Colorized};
+use ro_next_debug::logging::symbols::ARROW;
+use ro_next_debug::logging::{Colorize, Colorized};
 use ragnarok_bytes::{ByteReader, ConversionError};
 use ragnarok_packets::handler::{HandlerResult, PacketCallback, PacketHandler};
 use ragnarok_packets::*;

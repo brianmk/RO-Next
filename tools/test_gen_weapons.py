@@ -8,8 +8,8 @@ Read-only checks over the committed artefacts of the weapon centralization:
   ``enum e_ammo_type`` values),
 * ``tools/data/weapon_client_assets.json`` — the client-archive facts (which
   per-job weapon sprite families and projectile sprites exist),
-* ``korangar/archive/data/client/weapons.ron`` — the generated data file
-  consumed by ``korangar/src/world/weapon.rs``,
+* ``ro-next/archive/data/client/weapons.ron`` — the generated data file
+  consumed by ``ro-next/src/world/weapon.rs``,
 * ``tools/gen_weapons.py`` — the generator + ``--check`` drift guard.
 
 The tests assert that the facts are complete, that the generated file is up to
@@ -32,7 +32,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 ITEMS = REPO / "tools/data/rathena_pre_re_weapon_items.json"
 ASSETS = REPO / "tools/data/weapon_client_assets.json"
-RON = REPO / "korangar/archive/data/client/weapons.ron"
+RON = REPO / "ro-next/archive/data/client/weapons.ron"
 GENERATOR = REPO / "tools/gen_weapons.py"
 
 

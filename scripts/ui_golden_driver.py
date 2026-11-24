@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Drive a running Korangar client through the golden-screenshot scenarios.
+"""Drive a running RO-Next client through the golden-screenshot scenarios.
 
 The driver is started by ``scripts/ui-golden.sh`` after the client has been
 launched. It talks to the client only through the X11 server (XTEST input) and
 through the window-rectangle dump that the client writes when
-``KORANGAR_UI_RECTS_DUMP`` is set, so it does not need any in-client hooks
+``RO_NEXT_UI_RECTS_DUMP`` is set, so it does not need any in-client hooks
 beyond that dump.
 
 For every requested variant it
@@ -49,7 +49,7 @@ except ImportError:  # pragma: no cover - clear error instead of a traceback
 
 
 class X11Input:
-    def __init__(self, display_name: str, window_name: str = "Korangar") -> None:
+    def __init__(self, display_name: str, window_name: str = "RO-Next") -> None:
         self.display = display.Display(display_name)
         self.root = self.display.screen().root
         self.window = self._find_window(self.root, window_name)
@@ -71,15 +71,15 @@ class X11Input:
             except Exception:
                 child_name = None
             # Match the window title first (the title carries the client name)
-            # and fall back to the WM_CLASS, which stays `korangar` even when
-            # the display name of the client changes (e.g. "Korangar" ->
+            # and fall back to the WM_CLASS, which stays `ro-next` even when
+            # the display name of the client changes (e.g. "RO-Next" ->
             # "RO-Next"). The golden harness should not silently break when the
             # window title is renamed.
             try:
                 wm_class = child.get_wm_class()
             except Exception:
                 wm_class = None
-            class_matches = wm_class is not None and any(isinstance(entry, str) and "korangar" in entry.lower() for entry in wm_class)
+            class_matches = wm_class is not None and any(isinstance(entry, str) and "ro-next" in entry.lower() for entry in wm_class)
             if (child_name and name in child_name) or class_matches:
                 return child
             found = X11Input._find_window(child, name)
@@ -549,7 +549,7 @@ def main() -> int:
     parser.add_argument("--map-timeout", type=float, default=120.0, help="seconds to wait for the map load")
     parser.add_argument("--map-settle", type=float, default=6.0, help="seconds to let the map settle after loading")
     parser.add_argument("--animation-interval", type=float, default=0.6, help="delay between the two animation frames")
-    parser.add_argument("--window-name", default="Korangar", help="X11 window title substring")
+    parser.add_argument("--window-name", default="RO-Next", help="X11 window title substring")
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)

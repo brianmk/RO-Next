@@ -8,9 +8,9 @@
 // `efstids.lub` and this server enum agree). Remove it once the data file is
 // the accepted source of truth.
 //
-// Snapshot of `korangar/src/state/status_effect_names.rs`,
-// `korangar/src/state/status_effect_icons.rs` and the `EXTRA_NAMES` table of
-// `korangar/src/state/status_effects.rs` at integration HEAD f454127e
+// Snapshot of `ro-next/src/state/status_effect_names.rs`,
+// `ro-next/src/state/status_effect_icons.rs` and the `EXTRA_NAMES` table of
+// `ro-next/src/state/status_effects.rs` at integration HEAD f454127e
 // (`feat/p2-status-effects-data` parent commit).
 (
     provenance: "Frozen snapshot of status_effect_names.rs (509 names), status_effect_icons.rs (355 icons) and EXTRA_NAMES (10 names) at f454127e; test-only transition parity oracle.",

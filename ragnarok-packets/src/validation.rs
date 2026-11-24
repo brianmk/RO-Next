@@ -13,7 +13,7 @@
 //!
 //! The check is **log-only** by default so a layout drift can never break a
 //! running client. Tests enable [`ValidationMode::Enforce`] (or set the
-//! `KORANGAR_PACKET_STRICT` environment variable to `1`) to turn a mismatch
+//! `RO_NEXT_PACKET_STRICT` environment variable to `1`) to turn a mismatch
 //! into a parse error instead.
 //!
 //! Packets whose layout is deliberately not self-consistent (for example
@@ -40,7 +40,7 @@ pub enum ValidationMode {
     /// Return a [`ConversionError`] from `payload_from_bytes` on a mismatch.
     ///
     /// Used by the contract tests and can be enabled at runtime with
-    /// `KORANGAR_PACKET_STRICT=1`.
+    /// `RO_NEXT_PACKET_STRICT=1`.
     Enforce,
 }
 
@@ -101,14 +101,14 @@ pub struct SizeMismatch {
 /// Function pointer used to report mismatches to the application.
 ///
 /// The app can install a reporter that routes the message through its own
-/// logging facade (see `korangar/src/main.rs`).
+/// logging facade (see `ro-next/src/main.rs`).
 pub type MismatchReporter = fn(&SizeMismatch);
 
 fn env_enforce() -> bool {
     static ENFORCE: OnceLock<bool> = OnceLock::new();
 
     *ENFORCE.get_or_init(|| {
-        std::env::var("KORANGAR_PACKET_STRICT")
+        std::env::var("RO_NEXT_PACKET_STRICT")
             .map(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
             .unwrap_or(false)
     })
@@ -143,7 +143,7 @@ pub fn mode() -> ValidationMode {
 /// Set the validation mode for the current thread.
 ///
 /// This is primarily intended for tests. A process-wide strict mode for the
-/// whole application can be enabled with `KORANGAR_PACKET_STRICT=1`; release
+/// whole application can be enabled with `RO_NEXT_PACKET_STRICT=1`; release
 /// builds otherwise keep the default [`ValidationMode::LogOnly`] so a layout
 /// drift can never break a running client.
 pub fn set_mode(mode: ValidationMode) {

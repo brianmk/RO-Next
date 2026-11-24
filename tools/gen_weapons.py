@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the client's data-driven weapon registry.
 
-Writes ``korangar/archive/data/client/weapons.ron``, the single source of
+Writes ``ro-next/archive/data/client/weapons.ron``, the single source of
 truth for weapon handling in RO-Next:
 
 * which **weapon kind** (sprite family, attack range, ammo/projectile kind,
@@ -42,7 +42,7 @@ from pathlib import Path
 
 DEFAULT_ITEMS = Path("tools/data/rathena_pre_re_weapon_items.json")
 DEFAULT_ASSETS = Path("tools/data/weapon_client_assets.json")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/weapons.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/weapons.ron")
 
 #: Weapon kinds and the classic client weapon sprite family names observed in
 #: the CondaRO archives (verified by ``--assets``).

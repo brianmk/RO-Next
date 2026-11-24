@@ -2,8 +2,8 @@
 # Ratchet for hardcoded style literals in the interface.
 #
 # Counts direct Color constructors and FontSize literals in
-# korangar/src/interface and compares them with the committed budget in
-# korangar/test-data/ui-token-budget.ron. The budget may only go down; a
+# ro-next/src/interface and compares them with the committed budget in
+# ro-next/test-data/ui-token-budget.ron. The budget may only go down; a
 # failure means a new hardcoded value was added instead of using a design token
 # (`client_theme().tokens()...`).
 #
@@ -15,8 +15,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-INTERFACE="$REPO_ROOT/korangar/src/interface"
-BUDGET="$REPO_ROOT/korangar/test-data/ui-token-budget.ron"
+INTERFACE="$REPO_ROOT/ro-next/src/interface"
+BUDGET="$REPO_ROOT/ro-next/test-data/ui-token-budget.ron"
 
 MODE="check"
 case "${1:-}" in
@@ -62,6 +62,6 @@ status=0
 [ "$color_literals" -le "$budget_colors" ] || { echo "error: color literal budget exceeded ($color_literals > $budget_colors)" >&2; status=1; }
 [ "$font_literals" -le "$budget_fonts" ] || { echo "error: FontSize budget exceeded ($font_literals > $budget_fonts)" >&2; status=1; }
 if [ "$status" -ne 0 ]; then
-  echo "hint: use the design tokens in korangar/src/state/theme/tokens.rs instead of hardcoded values" >&2
+  echo "hint: use the design tokens in ro-next/src/state/theme/tokens.rs instead of hardcoded values" >&2
 fi
 exit "$status"

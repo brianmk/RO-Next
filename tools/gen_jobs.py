@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the data-driven job/appearance registry of the client.
 
-Writes ``korangar/archive/data/client/jobs.ron``, the single source of truth for
+Writes ``ro-next/archive/data/client/jobs.ron``, the single source of truth for
 player job appearance in RO-Next:
 
 * job id -> verified player body sprite stem and body palette stem,
@@ -40,7 +40,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_FACTS = Path("tools/data/job_facts.json")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/jobs.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/jobs.ron")
 #: Rustnarok-engine `job_sprites.txt` facts (body/imf/palette/weapon names).
 DEFAULT_ACTOR_FACTS = Path("tools/data/rustnarok_actor_facts.json")
 

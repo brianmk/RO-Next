@@ -1,7 +1,7 @@
 # Workspace-wide Clippy configuration.
 #
 # The restriction lints `unwrap_used`, `expect_used` and `panic` are denied in
-# the two network-facing library crates (`korangar-networking` and
+# the two network-facing library crates (`ro-next-networking` and
 # `ragnarok-packets`), see their `Cargo.toml`. Allowing them inside test code
 # keeps `#[test]` bodies simple: a failing test is supposed to fail loudly.
 allow-unwrap-in-tests = true

@@ -3,7 +3,7 @@
   "provenance": {
     "generated_by": "tools/extract_status_facts.py",
     "schema": 1,
-    "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `korangar/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
+    "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `ro-next/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
     "server": {
       "tree": "/home/phantom/popeng-llm-cpp/condaro-llm",
       "files": {
@@ -25,7 +25,7 @@
       "archives": [
         {
           "name": "archive/",
-          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/korangar/korangar/archive"
+          "path": "/home/phantom/Games/ragnarok/CondaRO-linux/ro-next/ro-next/archive"
         },
         {
           "name": "palettes.grf",

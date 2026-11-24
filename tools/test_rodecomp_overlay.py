@@ -25,10 +25,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 FACTS = REPO / "tools/data/rodecomp_skill_facts.json"
 OVERLAY = REPO / "tools/data/skill_effects_rodecomp.ron"
-MERGED = REPO / "korangar/archive/data/client/skill_effects.ron"
+MERGED = REPO / "ro-next/archive/data/client/skill_effects.ron"
 GENERATOR = REPO / "tools/gen_rodecomp_overlay.py"
 
-#: Fields of `LayerFile` in `korangar/src/world/library/skill_effects.rs`.
+#: Fields of `LayerFile` in `ro-next/src/world/library/skill_effects.rs`.
 LAYER_FIELDS = {
     "kind",
     "anchor",

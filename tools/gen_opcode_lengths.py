@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the 2019 opcode -> wire length registry for korangar.
+"""Generate the 2019 opcode -> wire length registry for ro-next.
 
 The registry (`ragnarok-packets/src/opcode_lengths_2019.rs`) is the committed
 source of truth for how many bytes every server-to-client opcode of the
@@ -171,7 +171,7 @@ def probe_sizes(args: argparse.Namespace, struct_sources: dict[str, dict[str, st
         source.append("  return 0; }")
         source_text = "\n".join(source)
 
-        compile_command = f"g++ {CXX_FLAGS} -o /tmp/korangar_opcode_probe -x c++ - && /tmp/korangar_opcode_probe"
+        compile_command = f"g++ {CXX_FLAGS} -o /tmp/ro_next_opcode_probe -x c++ - && /tmp/ro_next_opcode_probe"
 
         if args.local:
             result = subprocess.run(

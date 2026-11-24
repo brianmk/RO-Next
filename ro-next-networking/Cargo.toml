@@ -1,0 +1,31 @@
+[package]
+name = "ro-next-networking"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ro-next-interface = { workspace = true, optional = true }
+ro-next-messages = { workspace = true }
+ragnarok-bytes = { workspace = true }
+ragnarok-packets = { workspace = true }
+rust-state = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["rt", "io-util", "net", "macros", "sync", "time"] }
+
+[dev-dependencies]
+ro-next-debug = { workspace = true }
+reqwest = { workspace = true, features = ["json"] }
+serde = { workspace = true, features = ["derive"] }
+clap = { workspace = true, features = ["derive"] }
+
+[features]
+debug = []
+interface = ["ro-next-interface", "rust-state"]
+
+[lints.clippy]
+# P0-6 hardening: no panics on data the server (or the game files) can send us.
+# Production paths must return a `Result` or fall back to a logged default;
+# genuine start-up invariants document their exception with
+# `#[expect(clippy::..., reason = "...")]` at the call site.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"

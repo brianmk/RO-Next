@@ -2,7 +2,7 @@
 #
 # Extracted from the shipped `client/game/CondaRO.exe` (2019-06-05 kRO build) by
 # scanning the binary for printable ASCII + EUC-KR byte pairs; see
-# `notes/korangar-windows-client-sprite-resolution.md` for the method. This file
+# `notes/ro-next-windows-client-sprite-resolution.md` for the method. This file
 # contains only the file names; it is the `.spr` counterpart of
 # `tools/windows_client_effect_whitelist.txt` (the 401 `.str` paths).
 #

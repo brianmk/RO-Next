@@ -1384,7 +1384,7 @@ def build_json(rows: list[dict], stats: dict, coverage: dict, payload: dict) -> 
                 "dropped": "assets not shipped in the CondaRO GRFs are dropped and listed in statistics.dropped",
             },
             "inputs": {name: sha256(Path(path)) for name, path in sorted(payload["inputs"].items())},
-            "unified_loader": "korangar/src/world/library/skill_effects.rs (pipeline lane)",
+            "unified_loader": "ro-next/src/world/library/skill_effects.rs (pipeline lane)",
         },
         "effects": rows,
         "statistics": {
@@ -1411,7 +1411,7 @@ def render_report(rows: list[dict], stats: dict, coverage: dict) -> str:
         "",
         "- fragment consumed by the unified pipeline: `tools/data/skill_effects_official.ron`",
         "- machine-readable facts + full gap list: `tools/data/skill_effects_official.json`",
-        "- facade: `korangar/src/world/library/skill_effects.rs` (pipeline lane)",
+        "- facade: `ro-next/src/world/library/skill_effects.rs` (pipeline lane)",
         "",
         "## Headline",
         "",

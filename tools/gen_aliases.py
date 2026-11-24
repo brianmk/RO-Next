@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render `korangar/archive/data/client/aliases.ron` from `tools/data/alias_facts.json`.
+"""Render `ro-next/archive/data/client/aliases.ron` from `tools/data/alias_facts.json`.
 
 The client data file carries the three generated alias tables that used to be
 hand-maintained Rust arrays:
@@ -32,7 +32,7 @@ from pathlib import Path
 TOOLS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOLS_DIR.parent
 FACTS_PATH = TOOLS_DIR / "data" / "alias_facts.json"
-OUTPUT_PATH = REPO_ROOT / "korangar" / "archive" / "data" / "client" / "aliases.ron"
+OUTPUT_PATH = REPO_ROOT / "ro-next" / "archive" / "data" / "client" / "aliases.ron"
 
 MONSTER_FOLDERS = ("몬스터\\", "npc\\")
 ICON_FOLDER = "아이템\\"
@@ -239,7 +239,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is not up to date")
     parser.add_argument("--facts", default=str(FACTS_PATH), help="alias facts JSON to render (default: tools/data/alias_facts.json)")
-    parser.add_argument("--output", default=str(OUTPUT_PATH), help="data file to write (default: korangar/archive/data/client/aliases.ron)")
+    parser.add_argument("--output", default=str(OUTPUT_PATH), help="data file to write (default: ro-next/archive/data/client/aliases.ron)")
     args = parser.parse_args()
 
     try:

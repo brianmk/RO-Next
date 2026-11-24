@@ -28,11 +28,11 @@ tools/data/skill_effects_rodecomp_hardcoded.ron 41 skills / 41 phases / 60 layer
 tools/gen_skill_effects.py --rodecomp-hardcoded   merge (additive, asset-deduplicated)
         |
         v
-korangar/archive/data/client/skill_effects.ron
+ro-next/archive/data/client/skill_effects.ron
 ```
 
 The fragment is read with the same reader as the official fragment, so its rows
-are validated by the Rust loader (`korangar/src/world/library/skill_effects.rs`)
+are validated by the Rust loader (`ro-next/src/world/library/skill_effects.rs`)
 exactly like the official ones.
 
 ## Conversion rules

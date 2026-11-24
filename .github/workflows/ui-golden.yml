@@ -73,7 +73,7 @@ jobs:
       - name: Build the client
         run: |
           export PATH="$PWD/tools/bin:$PATH"
-          cargo build --release -p korangar
+          cargo build --release -p ro-next
 
       - name: Validate the harness scripts
         run: |

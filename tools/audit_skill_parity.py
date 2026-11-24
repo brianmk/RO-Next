@@ -8,9 +8,9 @@ Input:
     `skill|skillid|FIELD|value` / `FIELD[n]|value`)
 
 Compared against:
-  korangar/archive/data/client/skill_effects.ron  (skill -> phase -> layers)
-  korangar/archive/data/client/skill_sounds.ron   (skill -> wave files)
-  korangar/archive/data/client/skill_actions.ron  (skill -> caster action)
+  ro-next/archive/data/client/skill_effects.ron  (skill -> phase -> layers)
+  ro-next/archive/data/client/skill_sounds.ron   (skill -> wave files)
+  ro-next/archive/data/client/skill_actions.ron  (skill -> caster action)
   tools/data/windows_client_effect_layers.json         (effect id -> layer assets)
 
 Output: a mismatch report on stdout and `tools/data/skill_parity_report.json`.
@@ -24,9 +24,9 @@ from collections import defaultdict
 from pathlib import Path
 
 TABLES = Path("/tmp/official_skill_tables.txt")
-EFFECTS = Path("korangar/archive/data/client/skill_effects.ron")
-SOUNDS = Path("korangar/archive/data/client/skill_sounds.ron")
-ACTIONS = Path("korangar/archive/data/client/skill_actions.ron")
+EFFECTS = Path("ro-next/archive/data/client/skill_effects.ron")
+SOUNDS = Path("ro-next/archive/data/client/skill_sounds.ron")
+ACTIONS = Path("ro-next/archive/data/client/skill_actions.ron")
 LAYERS = Path("tools/data/windows_client_effect_layers.json")
 REPORT = Path("tools/data/skill_parity_report.json")
 

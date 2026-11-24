@@ -7,8 +7,8 @@ edition = "2024"
 bitflags = { workspace = true }
 cgmath = { workspace = true }
 rust-state = { workspace = true, optional = true }
-korangar-interface = { workspace = true, optional = true }
+ro-next-interface = { workspace = true, optional = true }
 ragnarok-bytes = { workspace = true, features = ["derive", "cgmath"] }
 
 [features]
-interface = ["korangar-interface", "rust-state"]
+interface = ["ro-next-interface", "rust-state"]

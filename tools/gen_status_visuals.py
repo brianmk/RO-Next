@@ -7,7 +7,7 @@ Inputs:
   * the curated classic rows below (colours verified against the previous
     hardcoded status handler and rustnarok-client's status tables).
 
-Output: korangar/archive/data/client/status_visual_effects.ron
+Output: ro-next/archive/data/client/status_visual_effects.ron
 
 Usage:
     ./tools/gen_status_visuals.py
@@ -23,7 +23,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 FACTS = REPO / "tools" / "data" / "rustnarok_status_facts.json"
-OUTPUT = REPO / "korangar" / "archive" / "data" / "client" / "status_visual_effects.ron"
+OUTPUT = REPO / "ro-next" / "archive" / "data" / "client" / "status_visual_effects.ron"
 
 #: The first verified B1 batch: id, tint RGB, priority, source. All are classic
 #: 2019 body tints; ground rings/looping effects are a later milestone.

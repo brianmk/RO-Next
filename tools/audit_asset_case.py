@@ -2,7 +2,7 @@
 """Case-sensitivity audit of every asset path referenced by the client data.
 
 The official Windows client is case-insensitive; Linux (and the folder archive)
-are not. GRF lookups in korangar lower-case the path, but the loose `archive/`
+are not. GRF lookups in ro-next lower-case the path, but the loose `archive/`
 folder is resolved on disk, so a referenced file with the wrong case would fail
 there even though it works from a GRF.
 
@@ -23,11 +23,11 @@ sys.path.insert(0, "tools")
 from extract_weapon_client_assets import GrfFileTable  # noqa: E402
 
 GAME = Path("/home/phantom/Games/ragnarok/CondaRO-linux/client/game")
-ARCHIVE = Path("korangar/archive")
+ARCHIVE = Path("ro-next/archive")
 GRFS = ["data.grf", "CondaRO.grf"]
 RON_FILES = [
-    "korangar/archive/data/client/skill_effects.ron",
-    "korangar/archive/data/client/skill_sounds.ron",
+    "ro-next/archive/data/client/skill_effects.ron",
+    "ro-next/archive/data/client/skill_sounds.ron",
 ]
 
 ASSET_KEYS = ("file", "files", "frames", "wav")

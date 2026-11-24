@@ -2,7 +2,7 @@
 //
 // This is an **input** of `tools/gen_skills.py`; the client never loads it
 // directly. The generator renders the canonical runtime data file
-// `korangar/archive/data/client/skills.ron` from it (and `korangar
+// `ro-next/archive/data/client/skills.ron` from it (and `ro-next
 // --check-skills` validates that file, including an archive override).
 //
 // The unified visual pipeline (`skill_effects.ron`) describes what a skill
@@ -24,7 +24,7 @@
 //   level_aura    level-99/level-up aura textures (procedural ground/bubble aura)
 //
 // Every field is validated by the Rust loader
-// (`korangar/src/world/skills.rs`, `deny_unknown_fields`); the committed
+// (`ro-next/src/world/skills.rs`, `deny_unknown_fields`); the committed
 // archive file is the single runtime source, compiled in with `include_str!`
 // as the fallback and overridable by a server inside its client archive.
 //

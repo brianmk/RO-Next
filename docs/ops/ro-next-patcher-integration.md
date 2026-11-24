@@ -22,8 +22,8 @@ with `cargo xwin --target x86_64-pc-windows-msvc`.
 Publish procedure used:
 
 ```bash
-rsync -a korangar/archive/data/client/ rathena:.../ro-next-files/archive/data/client/
-scp target/x86_64-pc-windows-msvc/release/korangar.exe rathena:.../ro-next-files/RO-Next.exe
+rsync -a ro-next/archive/data/client/ rathena:.../ro-next-files/archive/data/client/
+scp target/x86_64-pc-windows-msvc/release/ro-next.exe rathena:.../ro-next-files/RO-Next.exe
 ssh rathena 'echo 0.2.29 > .../ro-next-files/ro-next.version'
 ssh rathena '/home/phantom/ragnarok-web/scripts/publish-content-release.sh --client ro_next --reason "..."'
 ```

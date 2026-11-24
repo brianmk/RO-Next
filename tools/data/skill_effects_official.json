@@ -43,9 +43,9 @@
    "windows_client_skill_actions.json": "8fb26d5c3c90fd439e26c7efc228e303353fc585423c9e2fbf814c72cfab2ef6",
    "windows_client_skill_effects.json": "a2256cfd2def3c574faa963e4ffb7be39c69504552a8e80784ff36cedfe610ca",
    "windows_client_skill_sounds.json": "2594fbf6585f5d7e5af4ae895cc51eb15316c68df96ec40af5b64ccd28c025a3",
-   "windows_client_spr_whitelist.txt": "1f663d18b8aac577c64b37e841bc0ca27e7fc6c0da967b988db59e7d48346ece"
+   "windows_client_spr_whitelist.txt": "a1d82abcc7b855798f3987c28356f50eb18ffafcee8c9ea1b554cb8ca2d6429b"
   },
-  "unified_loader": "korangar/src/world/library/skill_effects.rs (pipeline lane)"
+  "unified_loader": "ro-next/src/world/library/skill_effects.rs (pipeline lane)"
  },
  "effects": [
   {

@@ -5,7 +5,7 @@ The audit facts live in `tools/data/rodecomp_effect_coverage.json` (per skill: t
 official C++ effect ids, the 2019-era ids the client data uses, and the
 renderable assets of the official effect implementations). This tool joins them
 with the learnable-skill snapshot and the committed
-`korangar/archive/data/client/skill_effects.ron` and classifies every learnable
+`ro-next/archive/data/client/skill_effects.ron` and classifies every learnable
 skill:
 
 * `complete`     - every official asset is rendered by a data layer,
@@ -34,7 +34,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 FACTS = REPO / "tools" / "data" / "rodecomp_effect_coverage.json"
 LEARNABLE = REPO / "tools" / "data" / "rathena_pre_re_learnable_skills.json"
-MERGED = REPO / "korangar" / "archive" / "data" / "client" / "skill_effects.ron"
+MERGED = REPO / "ro-next" / "archive" / "data" / "client" / "skill_effects.ron"
 
 
 def load_skill_effects_module():

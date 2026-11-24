@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["korangar", "ragnarok-*", "korangar-*"]
+members = ["ro-next", "ragnarok-*", "ro-next-*"]
 
 [workspace.dependencies]
 arrayvec = "0.7"
@@ -23,15 +23,15 @@ flate2 = { version = "1", default-features = false }
 hashbrown = "0.17"
 heck = "0.5"
 image = { version = "0.25", default-features = false }
-korangar-audio = { path = "korangar-audio" }
-korangar-collision = { path = "korangar-collision" }
-korangar-container = { path = "korangar-container" }
-korangar-debug = { path = "korangar-debug" }
-korangar-interface = { path = "korangar-interface" }
-korangar-loaders = { path = "korangar-loaders" }
-korangar-messages = { path = "korangar-messages" }
-korangar-networking = { path = "korangar-networking" }
-korangar-video = { path = "korangar-video" }
+ro-next-audio = { path = "ro-next-audio" }
+ro-next-collision = { path = "ro-next-collision" }
+ro-next-container = { path = "ro-next-container" }
+ro-next-debug = { path = "ro-next-debug" }
+ro-next-interface = { path = "ro-next-interface" }
+ro-next-loaders = { path = "ro-next-loaders" }
+ro-next-messages = { path = "ro-next-messages" }
+ro-next-networking = { path = "ro-next-networking" }
+ro-next-video = { path = "ro-next-video" }
 libc = "0.2"
 lunify = "1"
 mlua = "0.11"
@@ -84,34 +84,34 @@ debug-assertions = false
 opt-level = 3
 debug-assertions = false
 
-[profile.dev.package.korangar]
+[profile.dev.package.ro-next]
 opt-level = 0
 
-[profile.dev.package.korangar-audio]
+[profile.dev.package.ro-next-audio]
 opt-level = 3
 
-[profile.dev.package.korangar-collision]
+[profile.dev.package.ro-next-collision]
 opt-level = 3
 
-[profile.dev.package.korangar-container]
+[profile.dev.package.ro-next-container]
 opt-level = 3
 
-[profile.dev.package.korangar-debug]
+[profile.dev.package.ro-next-debug]
 opt-level = 3
 
-[profile.dev.package.korangar-interface]
+[profile.dev.package.ro-next-interface]
 opt-level = 3
 
-[profile.dev.package.korangar-messages]
+[profile.dev.package.ro-next-messages]
 opt-level = 3
 
-[profile.dev.package.korangar-networking]
+[profile.dev.package.ro-next-networking]
 opt-level = 3
 
-[profile.dev.package.korangar-loaders]
+[profile.dev.package.ro-next-loaders]
 opt-level = 3
 
-[profile.dev.package.korangar-video]
+[profile.dev.package.ro-next-video]
 opt-level = 3
 
 [profile.dev.package.ragnarok-bytes]

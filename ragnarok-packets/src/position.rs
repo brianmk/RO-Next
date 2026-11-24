@@ -3,7 +3,7 @@ use ragnarok_bytes::{ByteConvertable, ByteReader, ByteWriter, ConversionResult, 
 use crate::TilePosition;
 
 #[derive(Debug, Copy, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum Direction {
     North = 0,
     NorthEast = 1,
@@ -61,7 +61,7 @@ impl TryFrom<[isize; 2]> for Direction {
 }
 
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct WorldPosition {
     pub x: u16,
     pub y: u16,
@@ -121,7 +121,7 @@ impl ToBytes for WorldPosition {
 }
 
 #[derive(Debug, Clone, Copy)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct WorldPosition2 {
     pub x1: u16,
     pub y1: u16,

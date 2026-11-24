@@ -12,7 +12,7 @@
 #
 #     PATH="$PWD/../tools/bin:$PATH" cargo clippy --workspace --all-features -- -Dwarnings
 #
-# from the `korangar` checkout (see wiki/Running.md).
+# from the `ro-next` checkout (see wiki/Running.md).
 
 on:
   push:
@@ -161,13 +161,13 @@ jobs:
         run: cargo test -p ragnarok-packets --test contract_2019
 
       - name: Contract harness for every registered server packet
-        run: cargo test -p korangar-networking --lib contract_2019
+        run: cargo test -p ro-next-networking --lib contract_2019
 
       - name: Packet crate unit tests
         run: cargo test -p ragnarok-packets
 
       - name: Networking crate unit tests
-        run: cargo test -p korangar-networking
+        run: cargo test -p ro-next-networking
 
   tests:
     name: Tests (${{ matrix.features }})
@@ -216,36 +216,36 @@ jobs:
       - name: Verify slangc installation
         run: which slangc && slangc -version
 
-      - name: Tests for korangar, korangar-networking and ragnarok-packets (default features)
+      - name: Tests for ro-next, ro-next-networking and ragnarok-packets (default features)
         if: matrix.features == 'default'
-        run: cargo test -p korangar -p korangar-messages -p korangar-networking -p ragnarok-packets
+        run: cargo test -p ro-next -p ro-next-messages -p ro-next-networking -p ragnarok-packets
 
-      - name: Tests for korangar, korangar-networking and ragnarok-packets (all features)
+      - name: Tests for ro-next, ro-next-networking and ragnarok-packets (all features)
         if: matrix.features == 'all-features'
-        run: cargo test -p korangar -p korangar-messages -p korangar-networking -p ragnarok-packets --all-features
+        run: cargo test -p ro-next -p ro-next-messages -p ro-next-networking -p ragnarok-packets --all-features
 
       - name: Item stats data file schema (compiled fallback)
         if: matrix.features == 'default'
-        run: cargo run -p korangar -- --check-items
+        run: cargo run -p ro-next -- --check-items
 
       - name: Skill behaviour data file schema (compiled fallback)
         if: matrix.features == 'default'
-        run: cargo run -p korangar -- --check-skills
+        run: cargo run -p ro-next -- --check-skills
 
       - name: Alias data file schema (compiled fallback)
         if: matrix.features == 'default'
-        run: cargo run -p korangar -- --check-aliases
+        run: cargo run -p ro-next -- --check-aliases
       # Phase 6 client configuration data (world/login defaults, UI audio paths
       # and the debug-only map warp list). Hand-curated, no generator and no
       # game files, so the committed files are validated with the client's
-      # `--check-*` entry points; `korangar/tests/world_audio_data.rs` guards
+      # `--check-*` entry points; `ro-next/tests/world_audio_data.rs` guards
       # the previous values and the localization of the chat feedback.
       - name: Client configuration data file schema (compiled fallbacks)
         if: matrix.features == 'default'
         run: |
-          cargo run -p korangar -- --check-world
-          cargo run -p korangar -- --check-ui-audio
-          cargo run -p korangar -- --check-debug-maps
+          cargo run -p ro-next -- --check-world
+          cargo run -p ro-next -- --check-ui-audio
+          cargo run -p ro-next -- --check-debug-maps
 
   generated-data:
     name: Generated client data drift
@@ -267,8 +267,8 @@ jobs:
         run: python3 tools/gen_messages.py --check
 
       # The Rust-side schema/rendering/coverage tests run in the `tests` job
-      # (`cargo test -p korangar-messages ...`) and validate the same data file
-      # with `korangar --check-messages` (see `korangar/tests/message_tables.rs`).
+      # (`cargo test -p ro-next-messages ...`) and validate the same data file
+      # with `ro-next --check-messages` (see `ro-next/tests/message_tables.rs`).
       - name: Skill behaviour data is up to date (offline)
         run: |
           python3 tools/gen_skills.py --check

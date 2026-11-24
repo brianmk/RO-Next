@@ -16,7 +16,7 @@ This script reads the CondaRO pre-renewal server tree:
 
 The output (``tools/data/rathena_pre_re_item_facts.json``) is the input of
 ``tools/gen_item_stats.py``, which writes the client data file
-``korangar/archive/data/client/item_stats.ron``. Keeping the facts as a
+``ro-next/archive/data/client/item_stats.ron``. Keeping the facts as a
 committed JSON file means the generator (and its ``--check`` drift guard) runs
 offline and reproducibly; only this extractor needs access to the server tree.
 

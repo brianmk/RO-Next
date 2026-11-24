@@ -3,7 +3,7 @@
 
 The official client plays the `wav` of the effect that a skill spawns (the
 effect table entry carries the sound next to its visual layers). The 2019 map
-server rarely sends a sound packet for casts, so korangar has to play the skill
+server rarely sends a sound packet for casts, so ro-next has to play the skill
 sound itself. The name-matched `.str` mapping is not enough: many skills have
 no effect *file* at all (their visual is a hard-coded primitive or a sprite
 animation), but they still have an official sound.
@@ -14,7 +14,7 @@ reimplementation roBrowserLegacy (GPL-3.0); none of the GPL source is copied.
 
 The extracted JSON (`tools/data/windows_client_skill_sounds.json`) is the input of
 `gen_skill_sounds.py`, which validates every wav against the CondaRO GRF
-archives and writes `korangar/archive/data/client/skill_sounds.ron`.
+archives and writes `ro-next/archive/data/client/skill_sounds.ron`.
 
 Usage (needs network access to raw.githubusercontent.com):
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Headless golden-screenshot matrix for the Korangar interface.
+# Headless golden-screenshot matrix for the RO-Next interface.
 #
 # Captures a fixed set of windows (login, server selection, character
 # selection, inventory, equipment, character overview) for every combination of
@@ -13,7 +13,7 @@
 #   * drives login/character selection/window opening through XTEST input
 #     (scripts/ui_golden_driver.py) - no server-side test hooks are used,
 #   * captures only the window rectangles that the client dumps through
-#     KORANGAR_UI_RECTS_DUMP, so the animated 3D world is never compared,
+#     RO_NEXT_UI_RECTS_DUMP, so the animated 3D world is never compared,
 #   * compares the crops against the committed baseline matrix with a tolerant
 #     metric and animation masks (scripts/ui_golden_compare.py).
 #
@@ -33,7 +33,7 @@
 #
 # Environment:
 #     UI_GOLDEN_ACCOUNT / UI_GOLDEN_PASSWORD / UI_GOLDEN_CREDENTIALS_FILE
-#     UI_GOLDEN_BIN           client binary (default: target/release/korangar)
+#     UI_GOLDEN_BIN           client binary (default: target/release/ro-next)
 #     UI_GOLDEN_DISPLAY       X11 display (default: :121)
 #     UI_GOLDEN_RES           Xvfb resolution (default: 1280x720)
 #     UI_GOLDEN_WORK          output directory (default: target/ui-golden)
@@ -41,20 +41,20 @@
 #     UI_GOLDEN_THEMES        default matrix themes (default: default,classic)
 #     UI_GOLDEN_SCALES        default matrix scalings (default: 0.75,1.0)
 #     UI_GOLDEN_KEEP_CLIENT   keep the client logs, do not delete the run dirs
-#     UI_GOLDEN_WINDOW_NAME   X11 window title substring (default: Korangar)
+#     UI_GOLDEN_WINDOW_NAME   X11 window title substring (default: RO-Next)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_DIR="$REPO_ROOT/korangar"
+APP_DIR="$REPO_ROOT/ro-next"
 
-BIN="${UI_GOLDEN_BIN:-$REPO_ROOT/target/release/korangar}"
+BIN="${UI_GOLDEN_BIN:-$REPO_ROOT/target/release/ro-next}"
 DISPLAY_NUM="${UI_GOLDEN_DISPLAY:-:121}"
 RES="${UI_GOLDEN_RES:-1280x720}"
 WORK="${UI_GOLDEN_WORK:-$REPO_ROOT/target/ui-golden}"
-BASELINE="$REPO_ROOT/korangar/test-data/golden"
+BASELINE="$REPO_ROOT/ro-next/test-data/golden"
 THEMES="${UI_GOLDEN_THEMES:-default,classic}"
-WINDOW_NAME="${UI_GOLDEN_WINDOW_NAME:-Korangar}"
+WINDOW_NAME="${UI_GOLDEN_WINDOW_NAME:-RO-Next}"
 SCALES="${UI_GOLDEN_SCALES:-0.75,1.0}"
 
 UPDATE_BASELINE=0
@@ -213,11 +213,11 @@ start_client() {
   (
     cd "$APP_DIR"
     exec env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET \
-      DISPLAY=":$DISPLAY_NUM" WINIT_UNIX_BACKEND=x11 KORANGAR_X11=1 \
+      DISPLAY=":$DISPLAY_NUM" WINIT_UNIX_BACKEND=x11 RO_NEXT_X11=1 \
       ALSA_CONFIG_PATH="$WORK/asound-null.conf" \
-      KORANGAR_MUTE_AUDIO=1 KORANGAR_MAX_FPS=30 KORANGAR_BACKGROUND_MAX_FPS=30 \
-      KORANGAR_FORCE_UNFOCUSED=1 KORANGAR_LOG_LEVEL=3 \
-      KORANGAR_UI_RECTS_DUMP="$rects" \
+      RO_NEXT_MUTE_AUDIO=1 RO_NEXT_MAX_FPS=30 RO_NEXT_BACKGROUND_MAX_FPS=30 \
+      RO_NEXT_FORCE_UNFOCUSED=1 RO_NEXT_LOG_LEVEL=3 \
+      RO_NEXT_UI_RECTS_DUMP="$rects" \
       "${VULKAN_ENV[@]}" \
       nice -n 19 "$BIN"
   ) >"$log" 2>&1 &

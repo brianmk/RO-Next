@@ -1,0 +1,492 @@
+mod minimap;
+mod vertices;
+mod water_plane;
+
+use std::num::{NonZeroU32, NonZeroUsize};
+use std::sync::{Arc, Mutex};
+
+use bytemuck::Pod;
+use cgmath::Vector3;
+use hashbrown::HashMap;
+use ro_next_audio::AudioEngine;
+use ro_next_collision::{AABB, KDTree, Sphere};
+#[cfg(feature = "debug")]
+use ro_next_container::CacheStatistics;
+use ro_next_container::{SimpleCache, SimpleSlab};
+#[cfg(feature = "debug")]
+use ro_next_debug::logging::{Colorize, Timer, print_debug};
+use ro_next_loaders::FileLoader;
+use ragnarok_bytes::{ByteReader, FromBytes};
+use ragnarok_formats::map::{GatData, GroundData, MapData, MapResources};
+use ragnarok_formats::version::MapFormatMetadata;
+use wgpu::{BufferUsages, Device, Queue};
+
+use self::minimap::generate_minimap;
+use self::vertices::{generate_tile_vertices, ground_vertices};
+use self::water_plane::generate_water_plane;
+use super::error::LoadError;
+use crate::graphics::{BindlessSupport, Buffer, ModelVertex, TextureSet};
+use crate::loaders::{GameFileLoader, ModelLoader, TextureLoader, TextureSetBuilder, VideoLoader, split_mesh_by_texture};
+use crate::world::{Library, LightSourceKey, Lighting, MapSky, MapSkyData, Model, SubMesh, Video};
+use crate::{EffectSourceExt, LightSourceExt, Map, Object, ObjectKey, SoundSourceExt};
+
+pub const GROUND_TILE_SIZE: f32 = 10.0;
+pub const GAT_TILE_SIZE: f32 = 5.0;
+
+const MAX_CACHE_COUNT: u32 = 8;
+const MAX_CACHE_SIZE: usize = usize::MAX;
+
+fn warn_on_trailing_bytes(mut byte_reader: ByteReader, file_name: &str) {
+    if !byte_reader.is_empty() {
+        crate::logging::warn_once(
+            module_path!(),
+            file_name,
+            format_args!(
+                "malformed map resource `{file_name}`: {} unread bytes after parsing; the map loads with the parsed part",
+                byte_reader.remaining_bytes().len()
+            ),
+        );
+    }
+}
+
+pub struct MapLoader {
+    device: Device,
+    queue: Queue,
+    game_file_loader: Arc<GameFileLoader>,
+    audio_engine: Arc<AudioEngine<GameFileLoader>>,
+    bindless_support: BindlessSupport,
+    cache: Mutex<SimpleCache<String, Arc<Map>>>,
+}
+
+impl MapLoader {
+    pub fn new(
+        device: Device,
+        queue: Queue,
+        game_file_loader: Arc<GameFileLoader>,
+        audio_engine: Arc<AudioEngine<GameFileLoader>>,
+        bindless_support: BindlessSupport,
+    ) -> Self {
+        Self {
+            device,
+            queue,
+            game_file_loader,
+            audio_engine,
+            bindless_support,
+            cache: Mutex::new(SimpleCache::new(
+                NonZeroU32::new(MAX_CACHE_COUNT).unwrap(),
+                NonZeroUsize::new(MAX_CACHE_SIZE).unwrap(),
+            )),
+        }
+    }
+
+    #[cfg(feature = "debug")]
+    pub fn cache_statistics(&self) -> CacheStatistics {
+        self.cache.lock().unwrap().statistics()
+    }
+
+    fn build_buffer_and_textures(
+        &self,
+        resource_file: &str,
+        texture_set_builder: TextureSetBuilder,
+        model_vertices: Vec<ModelVertex>,
+        model_indices: Vec<u32>,
+    ) -> BufferAndTextures {
+        let vertex_buffer = Arc::new(create_vertex_buffer(
+            &self.device,
+            &self.queue,
+            resource_file,
+            "map vertices",
+            &model_vertices,
+        ));
+        let index_buffer = Arc::new(create_index_buffer(
+            &self.device,
+            &self.queue,
+            resource_file,
+            "map indices",
+            &model_indices,
+        ));
+        let (texture_set, videos) = texture_set_builder.build();
+        let texture_set = Arc::new(texture_set);
+        let videos = Mutex::new(videos);
+
+        BufferAndTextures {
+            vertex_buffer,
+            index_buffer,
+            texture_set,
+            videos,
+        }
+    }
+
+    pub fn load(
+        &self,
+        resource_file: String,
+        model_loader: &ModelLoader,
+        texture_loader: Arc<TextureLoader>,
+        video_loader: Arc<VideoLoader>,
+        library: &Library,
+    ) -> Result<Arc<Map>, LoadError> {
+        #[cfg(feature = "debug")]
+        let timer = Timer::new_dynamic(format!("load map from {}", &resource_file));
+
+        let mut texture_set_builder = TextureSetBuilder::new(texture_loader.clone(), video_loader, resource_file.clone());
+
+        let map_file_name = format!("data\\{}.rsw", &resource_file);
+        let mut map_data: MapData = parse_generic_data(&map_file_name, &self.game_file_loader)?;
+
+        // `mapskydata.lub` carries the sky colour/fog of the map. Maps that
+        // are not in the table (or a data set without the lua file) use the
+        // default entry, i.e. no sky and no fog, and render exactly as before.
+        let map_sky_data = library.get::<MapSkyData>(&resource_file);
+
+        let ground_file = format!("data\\{}", map_data.ground_file);
+        let ground_data: GroundData = parse_generic_data(&ground_file, &self.game_file_loader)?;
+
+        let gat_file = format!("data\\{}", map_data.gat_file);
+        let mut gat_data: GatData = parse_generic_data(&gat_file, &self.game_file_loader)?;
+
+        // The client archives have no per-map minimap images, so build one from
+        // the ground and walkability data that was just loaded. This runs on the
+        // map loader thread, never on the render thread.
+        let minimap = generate_minimap(&resource_file, &ground_data, &gat_data, &texture_loader);
+
+        #[cfg(feature = "debug")]
+        let map_data_clone = map_data.clone();
+
+        #[cfg(feature = "debug")]
+        let (tile_vertices, mut tile_indices, tile_picker_vertices, tile_picker_indices) = generate_tile_vertices(&mut gat_data);
+
+        #[cfg(not(feature = "debug"))]
+        let (_, _, tile_picker_vertices, tile_picker_indices) = generate_tile_vertices(&mut gat_data);
+
+        let (mut model_vertices, mut model_indices, ground_textures) = ground_vertices(&ground_data, &mut texture_set_builder);
+
+        // TODO: NHA Support reading water planes from GND files (version >= 2.6).
+        let water_plane = generate_water_plane(
+            &self.device,
+            &self.queue,
+            &resource_file,
+            &texture_loader,
+            &ground_data,
+            map_data.water_settings.as_ref(),
+        );
+
+        let sub_meshes = match self.bindless_support {
+            BindlessSupport::Full | BindlessSupport::Limited => {
+                vec![SubMesh {
+                    index_offset: 0,
+                    index_count: model_indices.len() as u32,
+                    base_vertex: 0,
+                    texture_index: 0,
+                    transparent: false,
+                }]
+            }
+            BindlessSupport::None => {
+                let ground_texture_transparencies = ground_textures
+                    .iter()
+                    .map(|textures| (textures.index, textures.is_transparent))
+                    .collect();
+                split_mesh_by_texture(
+                    &model_vertices,
+                    &mut model_indices,
+                    None,
+                    None,
+                    Some(&ground_texture_transparencies),
+                )
+            }
+        };
+
+        #[cfg(feature = "debug")]
+        let tile_submeshes = match self.bindless_support {
+            BindlessSupport::Full | BindlessSupport::Limited => {
+                vec![SubMesh {
+                    index_offset: 0,
+                    index_count: tile_indices.len() as u32,
+                    base_vertex: 0,
+                    texture_index: 0,
+                    transparent: true,
+                }]
+            }
+            BindlessSupport::None => split_mesh_by_texture(&tile_vertices, &mut tile_indices, None, None, None),
+        };
+
+        #[cfg(feature = "debug")]
+        let tile_vertex_buffer = Arc::new(create_vertex_buffer(
+            &self.device,
+            &self.queue,
+            &resource_file,
+            "tile vertex",
+            &tile_vertices,
+        ));
+
+        #[cfg(feature = "debug")]
+        let tile_index_buffer = Arc::new(create_index_buffer(
+            &self.device,
+            &self.queue,
+            &resource_file,
+            "tile index ",
+            &tile_indices,
+        ));
+
+        let tile_picker_vertex_buffer = (!tile_picker_vertices.is_empty()).then(|| {
+            create_vertex_buffer(
+                &self.device,
+                &self.queue,
+                &resource_file,
+                "tile picker vertex",
+                &tile_picker_vertices,
+            )
+        });
+
+        let tile_picker_index_buffer = (!tile_picker_indices.is_empty()).then(|| {
+            create_index_buffer(
+                &self.device,
+                &self.queue,
+                &resource_file,
+                "tile picker index",
+                &tile_picker_indices,
+            )
+        });
+
+        apply_map_offset(&ground_data, &mut map_data.resources);
+
+        let mut model_cache = HashMap::<(String, bool), Arc<Model>>::new();
+        let mut objects = SimpleSlab::with_capacity(map_data.resources.objects.len() as u32);
+
+        let object_bounding_boxes: Vec<(ObjectKey, AABB)> = map_data
+            .resources
+            .objects
+            .iter()
+            .map(|object_data| {
+                let array: [f32; 3] = object_data.transform.scale.into();
+                let reverse_order = array.into_iter().fold(1.0, |a, b| a * b).is_sign_negative();
+
+                let model = model_cache
+                    .entry((object_data.model_name.clone(), reverse_order))
+                    .or_insert_with(|| {
+                        Arc::new(
+                            model_loader
+                                .load(
+                                    &mut texture_set_builder,
+                                    &mut model_vertices,
+                                    &mut model_indices,
+                                    object_data.model_name.as_str(),
+                                    reverse_order,
+                                )
+                                .expect("can't find model"),
+                        )
+                    })
+                    .clone();
+
+                let object = Object::new(
+                    object_data.name.to_owned(),
+                    object_data.model_name.to_owned(),
+                    model,
+                    object_data.transform,
+                );
+                let bounding_box = object.calculate_object_aabb();
+                let key = objects.insert(object).expect("objects slab is full");
+
+                (key, bounding_box)
+            })
+            .collect();
+        let object_kdtree = KDTree::from_objects(&object_bounding_boxes);
+
+        let BufferAndTextures {
+            vertex_buffer,
+            index_buffer,
+            texture_set,
+            videos,
+        } = self.build_buffer_and_textures(&resource_file, texture_set_builder, model_vertices, model_indices);
+
+        let lighting = Lighting::new(map_data.light_settings);
+
+        // Sky/fog distances are derived from the map size because neither the
+        // RSW nor the GND file carries them.
+        let map_extent = Vector3::new(
+            ground_data.width as f32 * GROUND_TILE_SIZE,
+            0.0,
+            ground_data.height as f32 * GROUND_TILE_SIZE,
+        );
+        let sky = MapSky::from_map_sky_data(map_sky_data, map_extent, lighting.ambient_light_color());
+        crate::logging::log_debug!(
+            "map sky {}: background {:?}, fog {:?}, stars {}, clouds {}",
+            resource_file,
+            sky.background_color(),
+            sky.fog(),
+            sky.has_stars(),
+            sky.has_clouds()
+        );
+
+        let mut light_sources = SimpleSlab::with_capacity(map_data.resources.light_sources.len() as u32);
+        let light_source_spheres: Vec<(LightSourceKey, Sphere)> = map_data
+            .resources
+            .light_sources
+            .drain(..)
+            .map(|light_source| {
+                let sphere = Sphere::new(light_source.position, light_source.range);
+                let key = light_sources.insert(light_source).expect("light sources slab is full");
+                (key, sphere)
+            })
+            .collect();
+        let light_sources_kdtree = KDTree::from_objects(&light_source_spheres);
+        let background_music_track_name = self.audio_engine.get_track_for_map(&map_file_name);
+
+        let mut map = Map::new(
+            gat_data.map_width as u16,
+            gat_data.map_height as u16,
+            object_kdtree.root_boundary(),
+            lighting,
+            sky,
+            water_plane,
+            gat_data.tiles,
+            sub_meshes,
+            vertex_buffer,
+            index_buffer,
+            texture_set,
+            objects,
+            light_sources,
+            map_data.resources.sound_sources,
+            #[cfg(feature = "debug")]
+            map_data.resources.effect_sources,
+            tile_picker_vertex_buffer.unwrap(),
+            tile_picker_index_buffer.unwrap(),
+            #[cfg(feature = "debug")]
+            tile_vertex_buffer,
+            #[cfg(feature = "debug")]
+            tile_index_buffer,
+            #[cfg(feature = "debug")]
+            tile_submeshes,
+            object_kdtree,
+            light_sources_kdtree,
+            background_music_track_name,
+            videos,
+            #[cfg(feature = "debug")]
+            map_data_clone,
+        );
+
+        if let Some(minimap) = minimap {
+            map.set_minimap(minimap);
+        }
+
+        let map = Arc::new(map);
+
+        let _result = self.cache.lock().as_mut().unwrap().insert(resource_file.clone(), map.clone());
+
+        #[cfg(feature = "debug")]
+        if let Err(error) = _result {
+            print_debug!(
+                "[{}] map could not be added to cache. Path: '{}': {:?}",
+                "error".red(),
+                &resource_file,
+                error
+            );
+        }
+
+        #[cfg(feature = "debug")]
+        timer.stop();
+
+        Ok(map)
+    }
+
+    pub fn get(&self, resource_file: &str) -> Option<Arc<Map>> {
+        let mut lock = self.cache.lock().unwrap();
+        lock.get(resource_file).cloned()
+    }
+}
+
+struct BufferAndTextures {
+    vertex_buffer: Arc<Buffer<ModelVertex>>,
+    index_buffer: Arc<Buffer<u32>>,
+    texture_set: Arc<TextureSet>,
+    videos: Mutex<Vec<Video>>,
+}
+
+/// We shift the map resources, so that the world coordinate system's origin has
+/// the same origin as the tile grids.
+fn apply_map_offset(ground_data: &GroundData, resources: &mut MapResources) {
+    let offset = Vector3::new(
+        (ground_data.width as f32 * GROUND_TILE_SIZE) / 2.0,
+        0.0,
+        (ground_data.height as f32 * GROUND_TILE_SIZE) / 2.0,
+    );
+
+    resources.objects.iter_mut().for_each(|object| object.transform.position += offset);
+    resources
+        .sound_sources
+        .iter_mut()
+        .for_each(|sound_source| sound_source.offset(offset));
+    resources
+        .light_sources
+        .iter_mut()
+        .for_each(|light_source| light_source.offset(offset));
+    resources
+        .effect_sources
+        .iter_mut()
+        .for_each(|effect_source| effect_source.offset(offset));
+}
+
+fn parse_generic_data<Data: FromBytes>(resource_file: &str, game_file_loader: &GameFileLoader) -> Result<Data, LoadError> {
+    let bytes = game_file_loader.get(resource_file).map_err(LoadError::File)?;
+    let mut byte_reader: ByteReader = ByteReader::with_default_metadata::<MapFormatMetadata>(&bytes);
+
+    let data = Data::from_bytes(&mut byte_reader).map_err(LoadError::Conversion)?;
+
+    // Malformed map resources must be visible in release builds too; the map
+    // still loads with the successfully parsed part.
+    warn_on_trailing_bytes(byte_reader, resource_file);
+
+    Ok(data)
+}
+
+fn create_vertex_buffer<T: Pod>(device: &Device, queue: &Queue, resource: &str, label: &str, vertices: &[T]) -> Buffer<T> {
+    Buffer::with_data(
+        device,
+        queue,
+        format!("{resource} {label}"),
+        BufferUsages::COPY_DST | BufferUsages::VERTEX,
+        vertices,
+    )
+}
+
+fn create_index_buffer(device: &Device, queue: &Queue, resource: &str, label: &str, indices: &[u32]) -> Buffer<u32> {
+    Buffer::with_data(
+        device,
+        queue,
+        format!("{resource} {label}"),
+        BufferUsages::COPY_DST | BufferUsages::INDEX,
+        indices,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use ro_next_loaders::FileLoader;
+    use ragnarok_bytes::{ByteReader, FromBytes};
+    use ragnarok_formats::map::GroundData;
+    use ragnarok_formats::version::MapFormatMetadata;
+
+    use crate::loaders::GameFileLoader;
+
+    /// The CondaRO GND files are version 1.7 and carry the lightmap pixels.
+    /// This is an archive-backed smoke test; it is ignored in the normal test
+    /// run because the game archives are not part of the repository.
+    #[test]
+    #[ignore = "requires the CondaRO game archives in the client directory"]
+    fn gnd_lightmap_data_is_parsed() {
+        let loader = GameFileLoader::default();
+        loader.load_archives_from_settings();
+
+        let bytes = loader.get("data\\prontera.gnd").expect("prontera.gnd must be in the archives");
+        let mut byte_reader: ByteReader = ByteReader::with_default_metadata::<MapFormatMetadata>(&bytes);
+        let ground_data = GroundData::from_bytes(&mut byte_reader).expect("prontera.gnd must parse");
+
+        assert!(ground_data.light_map_count > 0);
+        assert_eq!(ground_data.light_map_width, 8);
+        assert_eq!(ground_data.light_map_height, 8);
+
+        let data = ground_data.light_map_data.expect("GND 1.7+ must carry lightmap data");
+        let expected = ground_data.light_map_count as usize * 8 * 8 * 4;
+        assert_eq!(data.len(), expected, "one 256-byte lightmap per entry");
+        assert!(data.iter().any(|value| *value != 0), "the lightmaps are not all black");
+    }
+}

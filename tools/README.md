@@ -1,7 +1,7 @@
 # Data pipeline tools
 
 Generators and extractors behind the runtime tables in
-`korangar/archive/data/client/`. Each table is produced from a committed facts
+`ro-next/archive/data/client/`. Each table is produced from a committed facts
 file, so regenerating and checking it never needs the game archives or the
 server tree.
 
@@ -10,7 +10,7 @@ server tree.
 ```
 tools/
   extract_*.py      read rAthena / the GRF Lua tables / the decompiled client -> tools/data/*.json
-  gen_*.py          tools/data/*.json -> korangar/archive/data/client/*.ron (or a .rs table)
+  gen_*.py          tools/data/*.json -> ro-next/archive/data/client/*.ron (or a .rs table)
   audit_*.py        compare the runtime tables with the official sources
   test_*.py         unittest suites for the generators and the emitted tables
   data/             committed facts, curated overlays and intermediate fragments
@@ -42,7 +42,7 @@ as in CI). `tools/bin/` holds the local `slangc` shader compiler, not data.
 | `status_effects.ron` | `gen_status_effects.py` | `status_facts.json` (← `extract_status_facts.py` + `status_effect_custom.ron`), `status_info_robrowser.json` |
 | `status_visual_effects.ron` | `gen_status_visuals.py` | `rustnarok_status_facts.json`, `status_facts.json` |
 | `ragnarok-packets/src/opcode_lengths_2019.rs` | `gen_opcode_lengths.py` | `opcode_supplement_20190605.json`, rAthena packet docs |
-| `korangar/src/world/library/skill_delays.rs` | `gen_skill_delays.py` | rAthena `db/pre-re/skill_db.yml` |
+| `ro-next/src/world/library/skill_delays.rs` | `gen_skill_delays.py` | rAthena `db/pre-re/skill_db.yml` |
 
 The `extract_*` half reads things outside this tree (rAthena via
 `--server-root`/`--ssh`, the CondaRO GRFs, the decompiled client); see each

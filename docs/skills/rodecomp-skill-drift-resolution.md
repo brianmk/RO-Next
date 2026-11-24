@@ -49,7 +49,7 @@ The songs (306-313, 319-322, 327-330) and `PR_TURNUNDEAD` / `AS_ENCHANTPOISON` /
 * `tools/data/rodecomp_skill_facts.json` - 11 new/updated rows (268, 270, 364, 374,
   417, 419, 434, 457, 459, 460, 468); each row carries its evidence string.
 * `tools/data/skill_effects_rodecomp.ron` - regenerated (135 skills / 212 layers).
-* `korangar/archive/data/client/skill_effects.ron` - regenerated (524 phases /
+* `ro-next/archive/data/client/skill_effects.ron` - regenerated (524 phases /
   793 layers). Only layers are added or replaced by the official implementation;
   the 364 row's legacy `pok3` projectile approximation is superseded by the
   effect's real asset (`이팩트\particle1`), matching how existing overlay rows

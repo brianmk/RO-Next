@@ -1,16 +1,16 @@
 # Rust
 target/
 
-# Korangar
-korangar/archive/data/font/*
-korangar/client/
-korangar/cache/
-korangar/data.grf
-korangar/rdata.grf
-korangar/lua_files/
-korangar/lua_files.grf
-korangar/[Bb][Gg][Mm]/
-korangar/*.7z
+# RO-Next
+ro-next/archive/data/font/*
+ro-next/client/
+ro-next/cache/
+ro-next/data.grf
+ro-next/rdata.grf
+ro-next/lua_files/
+ro-next/lua_files.grf
+ro-next/[Bb][Gg][Mm]/
+ro-next/*.7z
 
 # Nix & direnv
 .direnv/

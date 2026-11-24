@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Repeatable headless performance baseline for the korangar client.
+# Repeatable headless performance baseline for the ro-next client.
 #
 # Runs the client on a muted Xvfb display with a fixed lean profile and a
 # scripted scenario (login -> crowded town idle -> walking -> effect/damage
@@ -12,7 +12,7 @@
 #
 # Options:
 #   --repo <dir>        client repository root (default: two levels above this script)
-#   --binary <path>     client binary (default: <repo>/target/release/korangar)
+#   --binary <path>     client binary (default: <repo>/target/release/ro-next)
 #   --out <file>        output JSON (default: scripts/perf/baseline.json)
 #   --scenario <name>   benchmark scenario (default: full)
 #   --runs <n>          number of runs, per-stage median is written (default: 2)
@@ -22,11 +22,11 @@
 #   --no-build          do not build the client first
 #   --keep-logs         keep per-run logs (they are otherwise deleted)
 #
-# Credentials are taken from PERF_USER/PERF_PASS; KORANGAR_BENCH_USER/PASS are
+# Credentials are taken from PERF_USER/PERF_PASS; RO_NEXT_BENCH_USER/PASS are
 # used as a fallback. No credentials are stored in this repository.
 #
 # The scenario stage names are: login, town_idle, town_walk, effects,
-# ui_updates, map_change (see korangar/src/benchmark.rs). Map load samples are
+# ui_updates, map_change (see ro-next/src/benchmark.rs). Map load samples are
 # reported separately under "maps".
 set -euo pipefail
 
@@ -43,8 +43,8 @@ TIMEOUT=240
 BUILD=1
 KEEP_LOGS=0
 
-PERF_USER="${PERF_USER:-${KORANGAR_BENCH_USER:-}}"
-PERF_PASS="${PERF_PASS:-${KORANGAR_BENCH_PASS:-}}"
+PERF_USER="${PERF_USER:-${RO_NEXT_BENCH_USER:-}}"
+PERF_PASS="${PERF_PASS:-${RO_NEXT_BENCH_PASS:-}}"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -70,7 +70,7 @@ if [ -z "$PERF_USER" ] || [ -z "$PERF_PASS" ]; then
 fi
 
 if [ -z "$BINARY" ]; then
-    BINARY="$REPO_ROOT/target/release/korangar"
+    BINARY="$REPO_ROOT/target/release/ro-next"
 fi
 
 if [ "$BUILD" = "1" ]; then
@@ -83,9 +83,9 @@ if [ ! -x "$BINARY" ]; then
     exit 2
 fi
 
-RUNTIME_DIR="$REPO_ROOT/korangar"
+RUNTIME_DIR="$REPO_ROOT/ro-next"
 if [ ! -d "$RUNTIME_DIR" ]; then
-    echo "error: expected the client crate at $RUNTIME_DIR (run from the korangar repository)" >&2
+    echo "error: expected the client crate at $RUNTIME_DIR (run from the ro-next repository)" >&2
     exit 2
 fi
 
@@ -112,7 +112,7 @@ STARTED_XVFB=0
 XVFB_PID=""
 if ! xdpyinfo -display "$DISPLAY_NUM" >/dev/null 2>&1; then
     echo "perf: starting Xvfb $DISPLAY_NUM at ${RES}x24"
-    Xvfb "$DISPLAY_NUM" -screen 0 "${RES}x24" -nolisten tcp >/tmp/korangar-perf-xvfb${DISPLAY_NUM#:}.log 2>&1 &
+    Xvfb "$DISPLAY_NUM" -screen 0 "${RES}x24" -nolisten tcp >/tmp/ro-next-perf-xvfb${DISPLAY_NUM#:}.log 2>&1 &
     XVFB_PID=$!
     STARTED_XVFB=1
     for _ in $(seq 1 50); do
@@ -128,13 +128,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
-cat > /tmp/korangar-perf-asound.conf <<'EOF'
+cat > /tmp/ro-next-perf-asound.conf <<'EOF'
 pcm.!default { type null }
 ctl.!default { type null }
 EOF
 
-mkdir -p /tmp/korangar-perf
-WORK_DIR="$(mktemp -d /tmp/korangar-perf/run.XXXXXX)"
+mkdir -p /tmp/ro-next-perf
+WORK_DIR="$(mktemp -d /tmp/ro-next-perf/run.XXXXXX)"
 
 RES_WIDTH="${RES%x*}"
 RES_HEIGHT="${RES#*x}"
@@ -155,19 +155,19 @@ while [ "$run_index" -lt "$RUNS" ]; do
         env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET \
             DISPLAY="$DISPLAY_NUM" \
             WINIT_UNIX_BACKEND=x11 \
-            KORANGAR_X11=1 \
-            ALSA_CONFIG_PATH=/tmp/korangar-perf-asound.conf \
-            KORANGAR_MUTE_AUDIO=1 \
-            KORANGAR_RESOLUTION="$RES" \
-            KORANGAR_UI_SCALE=0.75 \
-            KORANGAR_MAX_FPS=30 \
-            KORANGAR_BACKGROUND_MAX_FPS=30 \
-            KORANGAR_FORCE_UNFOCUSED=1 \
-            KORANGAR_PERF_LOG=1 \
-            KORANGAR_BENCH="$SCENARIO" \
-            KORANGAR_BENCH_USER="$PERF_USER" \
-            KORANGAR_BENCH_PASS="$PERF_PASS" \
-            KORANGAR_BENCH_OUT="$RAW" \
+            RO_NEXT_X11=1 \
+            ALSA_CONFIG_PATH=/tmp/ro-next-perf-asound.conf \
+            RO_NEXT_MUTE_AUDIO=1 \
+            RO_NEXT_RESOLUTION="$RES" \
+            RO_NEXT_UI_SCALE=0.75 \
+            RO_NEXT_MAX_FPS=30 \
+            RO_NEXT_BACKGROUND_MAX_FPS=30 \
+            RO_NEXT_FORCE_UNFOCUSED=1 \
+            RO_NEXT_PERF_LOG=1 \
+            RO_NEXT_BENCH="$SCENARIO" \
+            RO_NEXT_BENCH_USER="$PERF_USER" \
+            RO_NEXT_BENCH_PASS="$PERF_PASS" \
+            RO_NEXT_BENCH_OUT="$RAW" \
             timeout --signal=TERM --kill-after=15 "$TIMEOUT" "$BINARY" >"$LOG" 2>&1
         status=$?
         # A clean benchmark run exits through the client's shutdown path with

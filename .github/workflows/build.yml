@@ -60,10 +60,10 @@ jobs:
       - name: Add problem matchers
         run: echo "::add-matcher::.github/workflows/build-matchers.json"
 
-      - name: Build Korangar (release)
+      - name: Build RO-Next (release)
         run: cargo build
 
-      - name: Build Korangar (debug)
+      - name: Build RO-Next (debug)
         run: cargo build --features "debug"
 
       - name: Generate ragnarok-packets.json (for bindgen)

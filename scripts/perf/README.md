@@ -1,6 +1,6 @@
 # Performance benchmark, budgets and regression gate
 
-Repeatable headless measurement of the korangar client frame cost, allocation
+Repeatable headless measurement of the ro-next client frame cost, allocation
 churn and async-loader latency, plus the documented runtime budgets that keep
 crowded towns (population-engine shells, effect bursts) bounded.
 
@@ -12,8 +12,8 @@ read the numbers, how to update the baseline and how to run the regression gate.
 ## 1. What is measured
 
 `scripts/perf/perf-baseline.sh` starts the **release** client on a muted Xvfb
-display with a fixed lean profile and the `KORANGAR_BENCH` scenario driver
-(`korangar/src/benchmark.rs`). The driver logs in with a test account and runs
+display with a fixed lean profile and the `RO_NEXT_BENCH` scenario driver
+(`ro-next/src/benchmark.rs`). The driver logs in with a test account and runs
 these stages in order:
 
 | Stage | Content |
@@ -36,7 +36,7 @@ For every stage the harness prints one `[bench-stage] {...}` JSON line with:
 | `interface_ms` | window layout + input + interface instruction generation |
 | `world_ms` | map/entity/shadow/effect/overlay instruction generation |
 | `gpu_ms` | `render_next_frame` submission |
-| `allocs_per_frame`, `deallocs_per_frame`, `alloc_kib_per_frame` | heap allocations counted by the wrapper allocator in `korangar/src/perf.rs` (enabled only in perf/benchmark mode) |
+| `allocs_per_frame`, `deallocs_per_frame`, `alloc_kib_per_frame` | heap allocations counted by the wrapper allocator in `ro-next/src/perf.rs` (enabled only in perf/benchmark mode) |
 | `effects_mean`, `particles_mean`, `entities_mean`, `windows_mean` | average object counts |
 | `effects_rendered_mean`, `effects_culled_mean`, `particles_rendered_mean`, `particles_culled_mean` | rendered vs. distance-culled objects per frame (budget/knob verification) |
 | `effects_max`, `particles_max`, `entities_max`, `windows_max` | peaks; `effects_max` staying at the cap proves the budget is active |
@@ -54,9 +54,9 @@ Additionally:
 * `[bench-end] {"ok":true,...}` when the scenario completed; missing means the
   run failed (the script fails the run in that case).
 * `[budget] effects=... effects_dropped=... particles=... particles_dropped=...`
-  every 2 s in `KORANGAR_PERF_LOG` mode: live budget telemetry.
+  every 2 s in `RO_NEXT_PERF_LOG` mode: live budget telemetry.
 * `[perf]`/`[perf-phase]`/`[loader]` lines every 2 s (the pre-existing
-  `KORANGAR_PERF_LOG` interval logging, extended with the loader/budget lines).
+  `RO_NEXT_PERF_LOG` interval logging, extended with the loader/budget lines).
 
 The script repeats runs (default 2) and writes **per-stage medians** to JSON
 together with the git SHA, binary SHA-256, host load average and the fixed
@@ -64,7 +64,7 @@ profile parameters.
 
 ### Fixed benchmark profile
 
-Committed under `scripts/perf/profile/` and copied into `<repo>/korangar/client`
+Committed under `scripts/perf/profile/` and copied into `<repo>/ro-next/client`
 before every run (the previous files are backed up once as `*.perf-backup`):
 
 * 1024x600 window, 30 fps cap (also for background/unfocused), vsync off,
@@ -72,21 +72,21 @@ before every run (the previous files are backed up once as `*.perf-backup`):
 * no MSAA/SSAA/FXAA, hardest shadows/lowest shadow detail, classic lighting,
   no high-quality interface
 * UI scale 0.75, English, default (unskinned) interface/menu themes
-* audio muted (`KORANGAR_MUTE_AUDIO=1` + null ALSA default), forced-unfocused
+* audio muted (`RO_NEXT_MUTE_AUDIO=1` + null ALSA default), forced-unfocused
   window handling so Xvfb renders continuously
 
 Everything is set through the committed profile plus the documented
-environment overrides (`KORANGAR_RESOLUTION`, `KORANGAR_UI_SCALE`,
-`KORANGAR_MAX_FPS`, `KORANGAR_BACKGROUND_MAX_FPS`, `KORANGAR_MUTE_AUDIO`).
+environment overrides (`RO_NEXT_RESOLUTION`, `RO_NEXT_UI_SCALE`,
+`RO_NEXT_MAX_FPS`, `RO_NEXT_BACKGROUND_MAX_FPS`, `RO_NEXT_MUTE_AUDIO`).
 
 ---
 
 ## 2. Prerequisites
 
 * Linux with X11 tooling: `Xvfb`, `xdpyinfo`.
-* Game data available in the client crate directory: `korangar/data.grf`,
-  `korangar/CondaRO.grf`, `korangar/palettes.grf` (symlinks to the client data
-  are fine) and a `korangar/client/` directory (created by the first client
+* Game data available in the client crate directory: `ro-next/data.grf`,
+  `ro-next/CondaRO.grf`, `ro-next/palettes.grf` (symlinks to the client data
+  are fine) and a `ro-next/client/` directory (created by the first client
   start).
 * A test account on the development server. Credentials are **never** stored in
   this repository; pass them through the environment:
@@ -96,7 +96,7 @@ environment overrides (`KORANGAR_RESOLUTION`, `KORANGAR_UI_SCALE`,
   export PERF_PASS=...   # test account password
   ```
 
-  The scenario selects character slot 0 (`KORANGAR_BENCH_SLOT` to change).
+  The scenario selects character slot 0 (`RO_NEXT_BENCH_SLOT` to change).
   Use a dedicated test character that can be left anywhere in Prontera; the
   population-engine shells make the town representative.
 
@@ -108,7 +108,7 @@ PERF_USER=... PERF_PASS=... scripts/perf/perf-baseline.sh
 
 # same, without building, with a specific binary, more runs, verbose logs kept
 PERF_USER=... PERF_PASS=... scripts/perf/perf-baseline.sh \
-    --no-build --binary target/release/korangar --runs 3 --keep-logs
+    --no-build --binary target/release/ro-next --runs 3 --keep-logs
 ```
 
 Useful options (full list: `--help`): `--out <file>`, `--scenario <name>`,
@@ -145,7 +145,7 @@ PERF_USER=... PERF_PASS=... scripts/perf/perf-gate.sh
 PERF_USER=... PERF_PASS=... scripts/perf/perf-gate.sh --enforce
 
 # compare an already measured run
-scripts/perf/perf-gate.sh --current /tmp/korangar-perf.json
+scripts/perf/perf-gate.sh --current /tmp/ro-next-perf.json
 
 # re-measure and replace the committed baseline (commit the JSON afterwards)
 PERF_USER=... PERF_PASS=... scripts/perf/perf-gate.sh --update
@@ -208,13 +208,13 @@ or the culling (unbounded - not recommended for crowded towns).
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `KORANGAR_MAX_EFFECTS` | `200` | maximum simultaneously alive world effects (`.str` effects, auras, cast circles, warp/teleport effects); new effects are dropped and counted in `[budget]` |
-| `KORANGAR_MAX_EFFECTS_PER_ENTITY` | `24` | maximum effects attached to one entity, so one player/shell cannot use the whole global budget |
-| `KORANGAR_EFFECT_CULL_DISTANCE` | `1800` | world units (1 map cell = 5 units) beyond which effects are not rendered and their point lights are not registered |
-| `KORANGAR_MAX_PARTICLES` | `300` | maximum simultaneously alive particles (damage/heal/miss numbers, emotes); the oldest particle is recycled |
-| `KORANGAR_PARTICLE_CULL_DISTANCE` | `2200` | world units beyond which particles are not rendered |
+| `RO_NEXT_MAX_EFFECTS` | `200` | maximum simultaneously alive world effects (`.str` effects, auras, cast circles, warp/teleport effects); new effects are dropped and counted in `[budget]` |
+| `RO_NEXT_MAX_EFFECTS_PER_ENTITY` | `24` | maximum effects attached to one entity, so one player/shell cannot use the whole global budget |
+| `RO_NEXT_EFFECT_CULL_DISTANCE` | `1800` | world units (1 map cell = 5 units) beyond which effects are not rendered and their point lights are not registered |
+| `RO_NEXT_MAX_PARTICLES` | `300` | maximum simultaneously alive particles (damage/heal/miss numbers, emotes); the oldest particle is recycled |
+| `RO_NEXT_PARTICLE_CULL_DISTANCE` | `2200` | world units beyond which particles are not rendered |
 
-Telemetry: `[budget]` in `KORANGAR_PERF_LOG` mode, and
+Telemetry: `[budget]` in `RO_NEXT_PERF_LOG` mode, and
 `effects_max`/`effects_culled_mean`/`particles_max`/`particles_culled_mean` in
 the benchmark stage lines.
 
@@ -232,7 +232,7 @@ the benchmark stage lines.
 ## 7. Troubleshooting
 
 * **`.bench` file only has `[bench-start]`** - the client never reached the
-  login window; check the game data symlinks and `korangar/client/`.
+  login window; check the game data symlinks and `ro-next/client/`.
 * **login stage takes a long time** - the test account is still marked online
   from a previous hard-killed run, or the account is shared with another worker.
   Wait for the server session timeout or use another test account.

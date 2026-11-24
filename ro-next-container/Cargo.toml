@@ -1,0 +1,12 @@
+[package]
+name = "ro-next-container"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hashbrown = { workspace = true }
+rust-state = { workspace = true, optional = true }
+ro-next-interface = { workspace = true, optional = true }
+
+[features]
+interface = ["ro-next-interface", "rust-state"]

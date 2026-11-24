@@ -10,7 +10,7 @@ stance/buff skills keep the idle pose, trap skills use the pickup animation,
 data file that the client loads at runtime through the regular
 `GameFileLoader`:
 
-    korangar/archive/data/client/skill_actions.ron
+    ro-next/archive/data/client/skill_actions.ron
 
 The file is embedded with `include_str!` as the compiled fallback, so the data
 file and the client cannot drift apart. A server can override the mapping
@@ -59,10 +59,10 @@ GRF2019_MOTION_ACTION = {
     36: "Skill",      # ST_NINJASKILL2 -> block 96 (skill)
     37: "Skill",      # ST_NINJAREADY -> block 96 (skill)
 }
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
-#: `korangar/src/world/skill_action.rs`).
+#: `ro-next/src/world/skill_action.rs`).
 ACTIONS = ("Attack", "Idle", "Pickup", "Skill", "ReadyFight")
 ACTION_INDEX_PATTERN = re.compile(r"^Action\(\d+\)$")
 
@@ -143,7 +143,7 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// `CGameActor::SetState` maps it to the ACT action index recorded there.",
         "//",
         "// Format: (skill id, action). Actions: Attack, Idle, Pickup, Skill,",
-        "// ReadyFight (see `CasterAction` in `korangar/src/world/skill_action.rs`).",
+        "// ReadyFight (see `CasterAction` in `ro-next/src/world/skill_action.rs`).",
         "// Skills that are not listed use `Skill`, the client's default casting",
         "// gesture.",
         "//",

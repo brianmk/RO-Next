@@ -10,7 +10,7 @@ held pose) into a plain JSON file; none of the GPL source is copied.
 
 The extracted JSON (`tools/data/windows_client_skill_actions.json`) is the input of
 `gen_skill_actions.py`, which writes the client data file
-`korangar/archive/data/client/skill_actions.ron`.
+`ro-next/archive/data/client/skill_actions.ron`.
 
 Usage (needs network access to raw.githubusercontent.com):
 
@@ -36,7 +36,7 @@ FILES = {
     "skill_action": f"{BASE_URL}/Skills/SkillAction.js",
 }
 
-#: Official action name -> client action category used by korangar.
+#: Official action name -> client action category used by ro-next.
 ACTION_CATEGORIES = {
     "ATTACK": "Attack",
     "ATTACK1": "Attack",
@@ -46,7 +46,7 @@ ACTION_CATEGORIES = {
     "PICKUP": "Pickup",
     "SKILL": "Skill",
     "READYFIGHT": "ReadyFight",
-    # `ACTION` is the client's generic "use/operate" pose; the closest korangar
+    # `ACTION` is the client's generic "use/operate" pose; the closest ro-next
     # action is the casting gesture.
     "ACTION": "Skill",
 }

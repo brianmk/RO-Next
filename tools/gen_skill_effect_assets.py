@@ -3,7 +3,7 @@
 
 The mapping is shipped as a **data file** in the client archive:
 
-    korangar/archive/data/client/skill_effect_assets.ron
+    ro-next/archive/data/client/skill_effect_assets.ron
 
 so it is loaded through the regular `GameFileLoader` (the same loader that reads
 the GRFs) and can be overridden by a server without rebuilding the client. The
@@ -30,7 +30,7 @@ dropped, so the client falls back to the generic element cast circle for those
 skills.
 
 File format (RON, see `SkillEffectAssetFile` in
-`korangar/src/world/library/skill_effect_assets.rs`):
+`ro-next/src/world/library/skill_effect_assets.rs`):
 
     (
         provenance: "...",
@@ -74,7 +74,7 @@ from pathlib import Path
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_EFFECTS = Path("tools/data/windows_client_skill_effects.json")
 DEFAULT_WHITELIST = Path("tools/data/windows_client_effect_whitelist.txt")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effect_assets.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_effect_assets.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 EFFECT_PREFIX = "data\\texture\\effect\\"
 GRF_HEADER_SIZE = 46
@@ -384,7 +384,7 @@ def render(rows: list[tuple[int, str, str, bool, str]]) -> str:
         "// Variants: Ground, Cast, Success, Release, Hit, Caster",
         "// Anchors:  Caster, Target, Travel (target cell, caster fallback), Auto",
         "//           (target cell when the packet knows one, caster otherwise);",
-        "//           see the loader in `korangar/src/world/library/skill_effect_assets.rs`.",
+        "//           see the loader in `ro-next/src/world/library/skill_effect_assets.rs`.",
         "// `overhead` marks buff/support completion effects that are anchored above",
         "// the entity's head (21 units standing / 12 sitting, plus clearance, scaled",
         "// by the entity scale) instead of at the feet; ground/target effects keep",

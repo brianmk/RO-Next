@@ -8,8 +8,8 @@ Read-only checks over the committed artefacts of the item stats remediation:
   parser (conditional/string/percentage handling),
 * ``tools/gen_item_stats.py`` — the data file generator and ``--check`` drift
   guard,
-* ``korangar/archive/data/client/item_stats.ron`` — the generated data file,
-* ``korangar/src/world/library/item_stats.rs`` / ``item_stats_fallback.rs`` —
+* ``ro-next/archive/data/client/item_stats.ron`` — the generated data file,
+* ``ro-next/src/world/library/item_stats.rs`` / ``item_stats_fallback.rs`` —
   the data-first loader and the clearly separated last-resort description
   parser (the only place that may contain the Korean item description
   grammar).
@@ -32,9 +32,9 @@ REPO = Path(__file__).resolve().parent.parent
 FACTS = REPO / "tools/data/rathena_pre_re_item_facts.json"
 EXTRACTOR = REPO / "tools/extract_item_facts.py"
 GENERATOR = REPO / "tools/gen_item_stats.py"
-RON = REPO / "korangar/archive/data/client/item_stats.ron"
-ITEM_STATS_RS = REPO / "korangar/src/world/library/item_stats.rs"
-ITEM_STATS_FALLBACK_RS = REPO / "korangar/src/world/library/item_stats_fallback.rs"
+RON = REPO / "ro-next/archive/data/client/item_stats.ron"
+ITEM_STATS_RS = REPO / "ro-next/src/world/library/item_stats.rs"
+ITEM_STATS_FALLBACK_RS = REPO / "ro-next/src/world/library/item_stats_fallback.rs"
 
 HANGUL = re.compile(r"[\uac00-\ud7af\u1100-\u11ff\u3130-\u318f]")
 

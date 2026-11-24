@@ -1,0 +1,44 @@
+// Data-driven world / login-screen configuration for RO-Next.
+//
+// Loaded through the normal game file loader (`data\client\world_config.ron`),
+// so a server can override it inside its own archive without rebuilding the
+// client; the same file is embedded with `include_str!` as the compiled
+// fallback (`ro-next/src/client_config/world_config.rs`).
+//
+// Facts (hand-curated from the current client defaults, no game data was
+// extracted for this file):
+//   * `default_map` / `start_camera_focus` were
+//     `DEFAULT_MAP = "geffen"` and
+//     `START_CAMERA_FOCUS_POINT = Point3::new(600.0, 0.0, 240.0)` in
+//     `ro-next/src/lib.rs`: the map the client loads for the login-screen
+//     background and where the start camera looks at.
+//   * `quest_icon.texture` was the hard-coded
+//     `유저인터페이스\minimap\quest_{effect}_{frame}.bmp` format string in
+//     `ro-next/src/world/particles/mod.rs`; the official client ships frames
+//     1..3 and the effect uses `{frame}` = 1.
+//   * `quest_icon.colors` were the four `Color::rgb_u8` values of the
+//     `QuestColor` match in the same file.
+//
+// Validation is strict (`deny_unknown_fields`, non-empty map, finite camera
+// values, exactly one colour row per `QuestColor`); a malformed archive override
+// is logged and the compiled fallback is used.
+// `ro-next --check-world [PATH]` validates this file without starting a window.
+(
+    provenance: "hand-curated client defaults: lib.rs DEFAULT_MAP/START_CAMERA_FOCUS_POINT, world/particles/mod.rs quest icon path/colours; no game data extraction",
+    version: 1,
+    default_map: "geffen",
+    start_camera_focus: (600.0, 0.0, 240.0),
+    quest_icon: (
+        // `{effect}` is the quest effect id from the server packet, `{frame}`
+        // is the animation frame below. Keep the extension so the texture
+        // loader can pick the decoder (.bmp/.tga).
+        texture: "유저인터페이스\\minimap\\quest_{effect}_{frame}.bmp",
+        frame: 1,
+        colors: [
+            (color: Yellow, rgb: (200, 200, 30)),
+            (color: Orange, rgb: (200, 100, 30)),
+            (color: Green, rgb: (30, 200, 30)),
+            (color: Purple, rgb: (200, 30, 200)),
+        ],
+    ),
+)

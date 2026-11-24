@@ -3,7 +3,7 @@
 //! These are **wire contract** values, not UI preferences: they have to match
 //! the fixed-length fields of the Ragnarok Online packet layouts (rAthena
 //! `common/pc.hpp` / `char.hpp`). They used to be duplicated as magic numbers
-//! in the interface windows, `korangar/src/lib.rs` and the networking layer;
+//! in the interface windows, `ro-next/src/lib.rs` and the networking layer;
 //! this module is the single documented home.
 //!
 //! | constant | value | wire shape |

@@ -3,7 +3,7 @@
 
 The official client plays the `wav` of the effect a skill spawns. The 2019 map
 server rarely sends the sound itself, so the client plays a mapped sound on the
-skill cast/completion path (`korangar/src/world/skill_sound.rs`). Before this
+skill cast/completion path (`ro-next/src/world/skill_sound.rs`). Before this
 table every skill except a hand-curated handful used one generic
 `ef_beginspell.wav`.
 
@@ -21,7 +21,7 @@ a Rust constant: curated -> per-layer `wav` -> official generated -> generic.
 
 Output:
 
-    korangar/archive/data/client/skill_sounds.ron
+    ro-next/archive/data/client/skill_sounds.ron
 
 The file is embedded with `include_str!` as the compiled fallback and can be
 overridden by a server without rebuilding the client.
@@ -47,7 +47,7 @@ DEFAULT_FACTS = Path("tools/data/windows_client_skill_sounds.json")
 DEFAULT_CUSTOM = Path("tools/data/skill_sounds_custom.ron")
 DEFAULT_RODECOMP = Path("tools/data/skill_sounds_rodecomp.ron")
 DEFAULT_GRF2019 = Path("tools/data/grf2019_skill_facts.json")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sounds.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_sounds.ron")
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 WAV_PREFIX = "data\\wav\\"
@@ -269,7 +269,7 @@ def render(
         "// The curated section comes from `tools/data/skill_sounds_custom.ron`.",
         "//",
         "// Format: (skill id, wav files). Paths are relative to `data\\wav\\`; the",
-        "// first existing file is played (see `korangar/src/world/skill_sound.rs`).",
+        "// first existing file is played (see `ro-next/src/world/skill_sound.rs`).",
         "// Play priority: `curated` -> the per-layer `wav` of `skill_effects.ron` ->",
         "// `sounds` -> `generic`.",
         "//",

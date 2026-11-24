@@ -2,8 +2,8 @@
 """Extract the facts for the data-driven protocol result-code message table.
 
 The client used to map protocol result codes to English sentences with
-`match` arms in Rust (`korangar/src/lib.rs` for the map-server packets and
-`korangar-networking/src/packet_versions/version_20220406.rs` for the login
+`match` arms in Rust (`ro-next/src/lib.rs` for the map-server packets and
+`ro-next-networking/src/packet_versions/version_20220406.rs` for the login
 packets). This extractor produces the committed fact file that replaces them:
 
     tools/data/message_facts.json
@@ -23,11 +23,11 @@ hardcoded in Rust):
   turned into the official text. Edition note: the extracted CondaRO table has
   one stray leading line that does not end with the classic `#` terminator
   (a Node.js warning), which shifts every id by one; the loader drops such
-  leading lines before indexing, exactly like `korangar/src/msgstringtable.rs`.
+  leading lines before indexing, exactly like `ro-next/src/msgstringtable.rs`.
 
 The **current client default texts are not in the server sources**, so this
 script embeds them, together with their source location at the integration
-revision (`korangar/src/lib.rs:<lines>`, `.../version_20220406.rs:<lines>`).
+revision (`ro-next/src/lib.rs:<lines>`, `.../version_20220406.rs:<lines>`).
 They are the behaviour-preservation baseline: P0 renders these strings byte for
 byte, the official texts are committed next to them for the later localization
 pass.
@@ -868,7 +868,7 @@ def build_payload(rathena_dir: Path, msgstringtable: Path) -> dict:
         "generated_by": "tools/extract_message_facts.py",
         "provenance": (
             "rAthena packet documentation + msgstringtable.txt of the CondaRO client; "
-            "current client default texts from korangar@f454127e"
+            "current client default texts from ro-next@f454127e"
         ),
         "sources": {
             "rathena": {
@@ -897,8 +897,8 @@ def build_payload(rathena_dir: Path, msgstringtable: Path) -> dict:
             "client_defaults": {
                 "revision": CLIENT_COMMIT,
                 "files": [
-                    "korangar/src/lib.rs",
-                    "korangar-networking/src/packet_versions/version_20220406.rs",
+                    "ro-next/src/lib.rs",
+                    "ro-next-networking/src/packet_versions/version_20220406.rs",
                 ],
             },
         },

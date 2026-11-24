@@ -7,7 +7,7 @@ code base: a 146-arm ``job id -> Korean player sprite stem`` match, four
 palette-stem overrides, two 13-entry hair-style lookup arrays and hard-coded
 part path templates, plus several job-id ranges (entity type, transcendent,
 baby scale). This script produces the two committed fact sources that
-``tools/gen_jobs.py`` turns into ``korangar/archive/data/client/jobs.ron``:
+``tools/gen_jobs.py`` turns into ``ro-next/archive/data/client/jobs.ron``:
 
 * the **server facts**: every job id of the rAthena tree that CondaRO runs
   (``enum e_job`` in ``src/common/mmo.hpp``; this rAthena revision split the old
@@ -92,7 +92,7 @@ CLIENT_BINARY = Path("/home/phantom/Games/ragnarok/CondaRO-linux/client/game/Con
 JOB_IDENTITY_PATH = "data\\luafiles514\\lua files\\datainfo\\jobidentity.lub"
 NPC_IDENTITY_PATH = "data\\luafiles514\\lua files\\datainfo\\npcidentity.lub"
 
-#: Headgear view id -> resource name tables, at the paths korangar's
+#: Headgear view id -> resource name tables, at the paths ro-next's
 #: `AccessoryName` table loads them from (32-bit Lua 5.1 bytecode). The probe
 #: needs the same table the client uses so a missing headgear sprite is
 #: reported for the right view id.
@@ -667,7 +667,7 @@ def decode_lua_name(raw: bytes) -> str:
 
 
 def clean_identity_name(key: str) -> str:
-    """Mirror korangar's `JobIdentity` cleaning of the `JT_*` table keys."""
+    """Mirror ro-next's `JobIdentity` cleaning of the `JT_*` table keys."""
     if key.startswith("JT_G_"):
         return key[5:]
     if key.startswith(("JT_C1_", "JT_C2_", "JT_C3_", "JT_C4_", "JT_C5_")):

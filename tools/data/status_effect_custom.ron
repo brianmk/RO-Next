@@ -2,7 +2,7 @@
 //
 // Read by `tools/extract_status_facts.py` and merged into
 // `tools/status_facts.json`; the client data file
-// `korangar/archive/data/client/status_effects.ron` is generated from that
+// `ro-next/archive/data/client/status_effects.ron` is generated from that
 // facts document by `tools/gen_status_effects.py`. Nothing in this file is
 // loaded by the client at runtime, so a wrong row can never break a packet
 // path - the generator/extractor validate it first.

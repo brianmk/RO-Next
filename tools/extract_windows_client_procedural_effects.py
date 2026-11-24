@@ -15,7 +15,7 @@ component uses). None of the GPL source is copied into this repository.
 
 The extracted JSON (`tools/data/windows_client_procedural_effects.json`) is the input
 of `gen_skill_procedural_effects.py`, which turns it into the client data file
-`korangar/archive/data/client/skill_procedural_effects.ron`.
+`ro-next/archive/data/client/skill_procedural_effects.ron`.
 
 The skill *symbol -> numeric id* mapping is read from the committed audit table
 `tools/data/skill_procedural_components.csv` (so `SkillConst.js` is not needed).

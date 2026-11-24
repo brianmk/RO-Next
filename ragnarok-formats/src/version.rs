@@ -139,7 +139,7 @@ impl Display for InternalVersion {
 /// This was added to the map data at some point to conditionally enable some
 /// fields.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct BuildVersion(pub u32);
 
 impl BuildVersion {

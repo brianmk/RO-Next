@@ -2,7 +2,7 @@
 """Extract the facts behind the data-driven status-effect subsystem.
 
 The client no longer keeps hand-written status name/icon/element/aura tables in
-Rust: `korangar/archive/data/client/status_effects.ron` is generated from the
+Rust: `ro-next/archive/data/client/status_effects.ron` is generated from the
 committed facts file produced by this script (see `tools/gen_status_effects.py`
 for the second half of the pipeline).
 
@@ -78,7 +78,7 @@ DEFAULT_CUSTOM = REPO / "tools/data/status_effect_custom.ron"
 DEFAULT_ROBROWSER = REPO / "tools/data/status_info_robrowser.json"
 DEFAULT_SERVER_ROOT = Path(os.environ.get("RATHENA_ROOT", "/home/phantom/rathena"))
 DEFAULT_GAME_DIR = REPO.parent / "client" / "game"
-DEFAULT_ARCHIVE_DIR = REPO / "korangar" / "archive"
+DEFAULT_ARCHIVE_DIR = REPO / "ro-next" / "archive"
 FACTS_SCHEMA = 1
 
 #: Status index of the server enum, the source of truth for packet ids.
@@ -103,7 +103,7 @@ STATUS_ICON_DIRECTORY = r"data\texture\effect"
 # Read-only GRF reader.
 #
 # Ported from the client implementation
-# (`korangar/src/loaders/archive/native/{mod.rs,mixcrypt.rs}`) and the read-only
+# (`ro-next/src/loaders/archive/native/{mod.rs,mixcrypt.rs}`) and the read-only
 # reader of `tools/text_encoding_audit.py`, so this extractor has no dependency
 # outside the repository. Only file *reads* happen here.
 # ---------------------------------------------------------------------------
@@ -1251,7 +1251,7 @@ def extract_status_facts(
     provenance = {
         "generated_by": "tools/extract_status_facts.py",
         "schema": FACTS_SCHEMA,
-        "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `korangar/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
+        "description": "Status-effect facts merged from the rAthena server sources, the official 2019 client Lua tables, the reverse-engineered classic status table and the curated overlay. The client data file `ro-next/archive/data/client/status_effects.ron` is generated from this document by `tools/gen_status_effects.py`.",
         "server": {
             "tree": str(server_root),
             "files": {

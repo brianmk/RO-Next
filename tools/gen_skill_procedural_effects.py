@@ -7,7 +7,7 @@ auras, projectile simulations). This generator turns the extracted facts about
 those primitives (`tools/data/windows_client_procedural_effects.json`) into a data
 file that the client loads at runtime through the regular `GameFileLoader`:
 
-    korangar/archive/data/client/skill_procedural_effects.ron
+    ro-next/archive/data/client/skill_procedural_effects.ron
 
 The file is embedded with `include_str!` as the compiled fallback, so the data
 file and the client cannot drift apart.
@@ -39,7 +39,7 @@ Provenance / regeneration:
     ./tools/gen_skill_procedural_effects.py --report             # coverage summary
 
 Only facts from the roBrowserLegacy RE dump are used (never its GPL code); the
-file format is documented in `korangar/src/world/library/skill_procedural_effects.rs`.
+file format is documented in `ro-next/src/world/library/skill_procedural_effects.rs`.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ from pathlib import Path
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_FACTS = Path("tools/data/windows_client_procedural_effects.json")
 DEFAULT_COMPONENTS = Path("tools/data/skill_procedural_components.csv")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_procedural_effects.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_procedural_effects.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 TEXTURE_ROOT = "data\\texture\\"
 EFFECT_PREFIX = TEXTURE_ROOT + "effect\\"

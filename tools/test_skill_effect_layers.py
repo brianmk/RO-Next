@@ -34,7 +34,7 @@ OFFICIAL_JSON = REPO / "tools/data/skill_effects_official.json"
 LEARNABLE = REPO / "tools/data/rathena_pre_re_learnable_skills.json"
 GENERATOR = REPO / "tools/gen_skill_effect_layers.py"
 
-#: Fields of `LayerFile` in `korangar/src/world/library/skill_effects.rs`
+#: Fields of `LayerFile` in `ro-next/src/world/library/skill_effects.rs`
 #: (pipeline lane). Unknown keys are not allowed in the committed fragment.
 LAYER_FIELDS = {
     "kind",

@@ -86,6 +86,6 @@ jobs:
       # `world_audio_data` regression test already ran with the unit tests.
       - name: Check client configuration data
         run: |
-          cargo run -p korangar --all-features -- --check-world
-          cargo run -p korangar --all-features -- --check-ui-audio
-          cargo run -p korangar --all-features -- --check-debug-maps
+          cargo run -p ro-next --all-features -- --check-world
+          cargo run -p ro-next --all-features -- --check-ui-audio
+          cargo run -p ro-next --all-features -- --check-debug-maps

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Extract the client-archive weapon asset facts for the weapon data file.
 
-The weapon data file (``korangar/archive/data/client/weapons.ron``) is generated
+The weapon data file (``ro-next/archive/data/client/weapons.ron``) is generated
 from two fact sources:
 
 1. the server item database (``tools/extract_weapon_items.py``) and
@@ -108,7 +108,7 @@ class GrfFileTable:
 
     Only the file *names* are needed; the data offset/decryption logic is not
     implemented. The layout is documented in
-    ``korangar/src/loaders/archive/native/mod.rs``.
+    ``ro-next/src/loaders/archive/native/mod.rs``.
     """
 
     def __init__(self, path: Path):

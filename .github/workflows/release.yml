@@ -12,7 +12,7 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
-  BINARY_NAME: korangar
+  BINARY_NAME: ro-next
   SLANG_VERSION: v2026.1.1
 
 jobs:
@@ -112,7 +112,7 @@ jobs:
       - name: Validate Cargo.toml version matches tag
         run: |
           EXPECTED_VERSION=$(echo "${{ env.VERSION }}" | sed 's/-.*$//')
-          CARGO_VERSION=$(grep '^version = ' korangar/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
+          CARGO_VERSION=$(grep '^version = ' ro-next/Cargo.toml | sed 's/version = "\(.*\)"/\1/')
           if [ "$CARGO_VERSION" != "$EXPECTED_VERSION" ]; then
             echo "Error: Cargo.toml version ($CARGO_VERSION) does not match tag version ($EXPECTED_VERSION)"
             exit 1
@@ -120,8 +120,8 @@ jobs:
 
       - name: Patch Cargo.toml with release version
         run: |
-          echo "Patching korangar/Cargo.toml with version ${{ env.VERSION }}"
-          ${{ matrix.sed-command }} "s#^version = .*#version = \"${{ env.VERSION }}\"#" korangar/Cargo.toml
+          echo "Patching ro-next/Cargo.toml with version ${{ env.VERSION }}"
+          ${{ matrix.sed-command }} "s#^version = .*#version = \"${{ env.VERSION }}\"#" ro-next/Cargo.toml
 
       - name: Build binary
         run: cargo build --release --features "unicode,debug"
@@ -131,7 +131,7 @@ jobs:
           mkdir -p archives
           mkdir -p staging
           cp "target/release/${{ env.BINARY_NAME }}" staging/
-          cp -r korangar/archive staging/
+          cp -r ro-next/archive staging/
 
 
       - name: Generate artifact name

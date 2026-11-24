@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate the per-skill delay table used by the client.
 
-The committed table (`korangar/src/world/library/skill_delays.rs`) is generated
+The committed table (`ro-next/src/world/library/skill_delays.rs`) is generated
 from the **real** rAthena `db/pre-re/skill_db.yml` of the CondaRO server at the
 pinned packet version (20190605). It carries the timing values of every skill:
 cast time, fixed cast time, after-cast act delay, after-cast walk delay and
@@ -31,7 +31,7 @@ from pathlib import Path
 DEFAULT_SSH = "rathena"
 DEFAULT_SERVER_ROOT = "/home/phantom/rathena"
 SKILL_DB = "db/pre-re/skill_db.yml"
-DEFAULT_OUTPUT = Path("korangar/src/world/library/skill_delays.rs")
+DEFAULT_OUTPUT = Path("ro-next/src/world/library/skill_delays.rs")
 PACKETVER = 20190605
 
 # rAthena yml keys -> generated Rust field name.

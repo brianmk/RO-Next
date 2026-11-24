@@ -6,13 +6,13 @@ arms in Rust. This generator turns the extracted facts
 (`tools/data/message_facts.json`, produced by `tools/extract_message_facts.py`) into
 the runtime data file:
 
-    korangar/archive/data/client/messages.ron
+    ro-next/archive/data/client/messages.ron
 
 The file is loaded at runtime through the normal client file loader, so a
 server can override it without rebuilding the client; the same file is embedded
 with `include_str!` as the compiled fallback, so the archive override and the
 compiled table can never drift apart. The Rust schema lives in
-`korangar-messages/src/lib.rs`; `korangar --check-messages` validates it.
+`ro-next-messages/src/lib.rs`; `ro-next --check-messages` validates it.
 
 Format: one domain per protocol result-code family, one row per result code:
 
@@ -73,10 +73,10 @@ import sys
 from pathlib import Path
 
 DEFAULT_FACTS = Path("tools/data/message_facts.json")
-DEFAULT_OUTPUT = Path("korangar/archive/data/client/messages.ron")
+DEFAULT_OUTPUT = Path("ro-next/archive/data/client/messages.ron")
 
 #: Rust enum variant of every domain, in the order the client expects the
-#: domains in `messages.ron` (`MessageDomain::ALL` in `korangar-messages`).
+#: domains in `messages.ron` (`MessageDomain::ALL` in `ro-next-messages`).
 DOMAIN_VARIANTS = [
     "PartyMemberRemoved",
     "PartyInviteReply",
@@ -226,11 +226,11 @@ def render(payload: dict) -> str:
         "// do not edit by hand.",
         "// Regenerate with: `./tools/gen_messages.py`",
         "// Drift check:      `./tools/gen_messages.py --check`",
-        "// Schema check:     `korangar --check-messages`",
+        "// Schema check:     `ro-next --check-messages`",
         "//",
         "// The table replaces the per-code English `match` arms that used to live in",
-        "// `korangar/src/lib.rs` (party/buy/skill-fail/ammo/ban) and",
-        "// `korangar-networking/src/packet_versions/version_20220406.rs` (login).",
+        "// `ro-next/src/lib.rs` (party/buy/skill-fail/ammo/ban) and",
+        "// `ro-next-networking/src/packet_versions/version_20220406.rs` (login).",
         "// Protocol opcodes and result enums are untouched.",
         "//",
         "// Facts extracted from the rAthena packet documentation",
@@ -240,8 +240,8 @@ def render(payload: dict) -> str:
         f"// {messages['path']}, {messages['entries']} entries); the skill-fail cause -> msg id",
         "// mapping is the official client behaviour from roBrowserLegacy.",
         "// Current default texts are copied from the pre-table client",
-        f"// (korangar @ {client['revision'][:12]}: korangar/src/lib.rs,",
-        "// korangar-networking/src/packet_versions/version_20220406.rs) and are rendered",
+        f"// (ro-next @ {client['revision'][:12]}: ro-next/src/lib.rs,",
+        "// ro-next-networking/src/packet_versions/version_20220406.rs) and are rendered",
         "// byte for byte (`display: Current`); `official`/`msg_id` are the official",
         "// entries for the later localization pass (`display: Official`), reviewed row",
         "// by row. `default` uses `{argument}` placeholders, `{code}` is the result code;",

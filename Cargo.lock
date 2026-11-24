@@ -1888,169 +1888,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
-name = "korangar"
-version = "0.1.1"
-dependencies = [
- "arrayvec",
- "blake3",
- "block_compression",
- "bumpalo",
- "bytemuck",
- "cgmath",
- "chrono",
- "clap",
- "cosmic-text",
- "ctrlc",
- "ddsfile",
- "encoding_rs",
- "fast-srgb8",
- "flate2",
- "hashbrown 0.17.0",
- "image",
- "korangar-audio",
- "korangar-collision",
- "korangar-components",
- "korangar-container",
- "korangar-debug",
- "korangar-interface",
- "korangar-loaders",
- "korangar-messages",
- "korangar-networking",
- "korangar-video",
- "libc",
- "lunify",
- "mlua",
- "num",
- "option-ext",
- "pollster",
- "quick-xml",
- "ragnarok-bytes",
- "ragnarok-formats",
- "ragnarok-packets",
- "rand_aes",
- "rayon",
- "ron",
- "rust-state",
- "serde",
- "sevenz-rust2",
- "smallvec",
- "sys-locale",
- "ttf-parser",
- "walkdir",
- "wgpu",
- "winit",
-]
-
-[[package]]
-name = "korangar-audio"
-version = "0.1.0"
-dependencies = [
- "bytemuck",
- "cgmath",
- "cpal",
- "korangar-collision",
- "korangar-container",
- "korangar-debug",
- "korangar-loaders",
- "rayon",
- "resampler",
- "rtrb",
- "send_wrapper",
- "symphonia",
-]
-
-[[package]]
-name = "korangar-collision"
-version = "0.1.0"
-dependencies = [
- "cgmath",
- "hashbrown 0.17.0",
- "korangar-container",
- "korangar-interface",
- "rust-state",
-]
-
-[[package]]
-name = "korangar-components"
-version = "0.1.0"
-dependencies = [
- "korangar-interface",
- "proc-macro2",
- "syn",
-]
-
-[[package]]
-name = "korangar-container"
-version = "0.1.0"
-dependencies = [
- "hashbrown 0.17.0",
- "korangar-interface",
- "rust-state",
-]
-
-[[package]]
-name = "korangar-debug"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "debug-macros",
-]
-
-[[package]]
-name = "korangar-interface"
-version = "0.1.0"
-dependencies = [
- "bitflags 2.11.1",
- "cgmath",
- "interface-component-macros",
- "interface-components",
- "interface-macros",
- "korangar-debug",
- "num",
- "option-ext",
- "rust-state",
- "serde",
-]
-
-[[package]]
-name = "korangar-loaders"
-version = "0.1.0"
-
-[[package]]
-name = "korangar-messages"
-version = "0.1.0"
-dependencies = [
- "ron",
- "serde",
-]
-
-[[package]]
-name = "korangar-networking"
-version = "0.1.0"
-dependencies = [
- "clap",
- "korangar-debug",
- "korangar-interface",
- "korangar-messages",
- "ragnarok-bytes",
- "ragnarok-packets",
- "reqwest",
- "rust-state",
- "serde",
- "tokio",
-]
-
-[[package]]
-name = "korangar-video"
-version = "0.1.0"
-dependencies = [
- "bitflags 2.11.1",
- "bytemuck",
- "libc",
- "rav1d",
-]
-
-[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3215,8 +3052,8 @@ version = "0.1.0"
 dependencies = [
  "bitflags 2.11.1",
  "cgmath",
- "korangar-interface",
  "ragnarok-bytes",
+ "ro-next-interface",
  "rust-state",
 ]
 
@@ -3235,11 +3072,11 @@ version = "0.1.0"
 dependencies = [
  "bitflags 2.11.1",
  "etherparse",
- "korangar-debug",
- "korangar-interface",
  "pcap",
  "ragnarok-bytes",
  "ragnarok-macros",
+ "ro-next-debug",
+ "ro-next-interface",
  "rust-state",
 ]
 
@@ -3544,6 +3381,169 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "ro-next"
+version = "0.1.1"
+dependencies = [
+ "arrayvec",
+ "blake3",
+ "block_compression",
+ "bumpalo",
+ "bytemuck",
+ "cgmath",
+ "chrono",
+ "clap",
+ "cosmic-text",
+ "ctrlc",
+ "ddsfile",
+ "encoding_rs",
+ "fast-srgb8",
+ "flate2",
+ "hashbrown 0.17.0",
+ "image",
+ "libc",
+ "lunify",
+ "mlua",
+ "num",
+ "option-ext",
+ "pollster",
+ "quick-xml",
+ "ragnarok-bytes",
+ "ragnarok-formats",
+ "ragnarok-packets",
+ "rand_aes",
+ "rayon",
+ "ro-next-audio",
+ "ro-next-collision",
+ "ro-next-components",
+ "ro-next-container",
+ "ro-next-debug",
+ "ro-next-interface",
+ "ro-next-loaders",
+ "ro-next-messages",
+ "ro-next-networking",
+ "ro-next-video",
+ "ron",
+ "rust-state",
+ "serde",
+ "sevenz-rust2",
+ "smallvec",
+ "sys-locale",
+ "ttf-parser",
+ "walkdir",
+ "wgpu",
+ "winit",
+]
+
+[[package]]
+name = "ro-next-audio"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "cgmath",
+ "cpal",
+ "rayon",
+ "resampler",
+ "ro-next-collision",
+ "ro-next-container",
+ "ro-next-debug",
+ "ro-next-loaders",
+ "rtrb",
+ "send_wrapper",
+ "symphonia",
+]
+
+[[package]]
+name = "ro-next-collision"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "hashbrown 0.17.0",
+ "ro-next-container",
+ "ro-next-interface",
+ "rust-state",
+]
+
+[[package]]
+name = "ro-next-components"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "ro-next-interface",
+ "syn",
+]
+
+[[package]]
+name = "ro-next-container"
+version = "0.1.0"
+dependencies = [
+ "hashbrown 0.17.0",
+ "ro-next-interface",
+ "rust-state",
+]
+
+[[package]]
+name = "ro-next-debug"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "debug-macros",
+]
+
+[[package]]
+name = "ro-next-interface"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.11.1",
+ "cgmath",
+ "interface-component-macros",
+ "interface-components",
+ "interface-macros",
+ "num",
+ "option-ext",
+ "ro-next-debug",
+ "rust-state",
+ "serde",
+]
+
+[[package]]
+name = "ro-next-loaders"
+version = "0.1.0"
+
+[[package]]
+name = "ro-next-messages"
+version = "0.1.0"
+dependencies = [
+ "ron",
+ "serde",
+]
+
+[[package]]
+name = "ro-next-networking"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ragnarok-bytes",
+ "ragnarok-packets",
+ "reqwest",
+ "ro-next-debug",
+ "ro-next-interface",
+ "ro-next-messages",
+ "rust-state",
+ "serde",
+ "tokio",
+]
+
+[[package]]
+name = "ro-next-video"
+version = "0.1.0"
+dependencies = [
+ "bitflags 2.11.1",
+ "bytemuck",
+ "libc",
+ "rav1d",
 ]
 
 [[package]]

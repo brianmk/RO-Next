@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Compare a fresh korangar performance run against the committed baseline.
+# Compare a fresh ro-next performance run against the committed baseline.
 #
 # Optional and non-blocking by default: it prints PASS/WARN lines and only
 # returns a non-zero exit status when PERF_GATE_ENFORCE=1. This is the intended
@@ -54,8 +54,8 @@ TOLERANCE_WORLD="${PERF_GATE_TOLERANCE_WORLD:-0.25}"
 TOLERANCE_ALLOC="${PERF_GATE_TOLERANCE_ALLOC:-0.30}"
 MIN_FRAMES="${PERF_GATE_MIN_FRAMES:-60}"
 
-USER_NAME="${PERF_USER:-${KORANGAR_BENCH_USER:-}}"
-PASSWORD="${PERF_PASS:-${KORANGAR_BENCH_PASS:-}}"
+USER_NAME="${PERF_USER:-${RO_NEXT_BENCH_USER:-}}"
+PASSWORD="${PERF_PASS:-${RO_NEXT_BENCH_PASS:-}}"
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -83,7 +83,7 @@ if [ -z "$CURRENT" ]; then
         exit 2
     fi
 
-    CURRENT="$(mktemp /tmp/korangar-perf-gate.XXXXXX.json)"
+    CURRENT="$(mktemp /tmp/ro-next-perf-gate.XXXXXX.json)"
     RUN_ARGS=(--out "$CURRENT" --runs "$RUNS")
     [ -n "$BINARY" ] && RUN_ARGS+=(--binary "$BINARY" --no-build)
 

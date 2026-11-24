@@ -2,10 +2,10 @@
 """Invariant tests for the merged skill-sound data file.
 
 The curated skill sounds used to be a Rust constant (`SKILL_SOUNDS` in
-`korangar/src/world/skill_sound.rs`). They now live in
+`ro-next/src/world/skill_sound.rs`). They now live in
 ``tools/data/skill_sounds_custom.ron`` and are merged by
 ``tools/gen_skill_sounds.py`` into the ``curated``/``generic`` sections of
-``korangar/archive/data/client/skill_sounds.ron`` (together with the official
+``ro-next/archive/data/client/skill_sounds.ron`` (together with the official
 per-skill ``sounds`` table).
 
 These tests are the offline CI guard for that merge: the full generator
@@ -27,7 +27,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 CUSTOM = REPO / "tools/data/skill_sounds_custom.ron"
-RON = REPO / "korangar/archive/data/client/skill_sounds.ron"
+RON = REPO / "ro-next/archive/data/client/skill_sounds.ron"
 GENERATOR = REPO / "tools/gen_skill_sounds.py"
 EFFECT_GENERATOR = REPO / "tools/gen_skill_effects.py"
 

@@ -165,11 +165,11 @@ pub fn derive_packet_struct(
             }
 
             #[cfg(feature = "packet-to-state-element")]
-            fn to_element<App: korangar_interface::application::Application>(
+            fn to_element<App: ro_next_interface::application::Application>(
                 self_path: impl rust_state::Path<App, Self>,
                 name: String,
-            ) -> Box<dyn korangar_interface::element::Element<App, LayoutInfo = ()>> {
-                korangar_interface::element::ErasedElement::new(<Self as korangar_interface::element::StateElement<App>>::to_element(self_path, name))
+            ) -> Box<dyn ro_next_interface::element::Element<App, LayoutInfo = ()>> {
+                ro_next_interface::element::ErasedElement::new(<Self as ro_next_interface::element::StateElement<App>>::to_element(self_path, name))
             }
         }
     }

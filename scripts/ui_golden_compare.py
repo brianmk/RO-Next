@@ -11,10 +11,10 @@ pixels are ignored by the comparison later.
 Usage:
 
     # create/update the baseline matrix from a capture run
-    scripts/ui_golden_compare.py --update --baseline korangar/test-data/golden --current target/ui-golden/current
+    scripts/ui_golden_compare.py --update --baseline ro-next/test-data/golden --current target/ui-golden/current
 
     # compare a new capture run against the baseline matrix
-    scripts/ui_golden_compare.py --baseline korangar/test-data/golden --current target/ui-golden/current
+    scripts/ui_golden_compare.py --baseline ro-next/test-data/golden --current target/ui-golden/current
 """
 
 from __future__ import annotations
@@ -202,7 +202,7 @@ def update_baseline(baseline_directory: Path, current_directory: Path, capture: 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--baseline", required=True, type=Path, help="baseline directory (korangar/test-data/golden)")
+    parser.add_argument("--baseline", required=True, type=Path, help="baseline directory (ro-next/test-data/golden)")
     parser.add_argument("--current", required=True, type=Path, help="directory of the capture run")
     parser.add_argument("--update", action="store_true", help="write the capture run as the new baseline")
     parser.add_argument("--pixel-threshold", type=int, default=24, help="per-channel difference that counts as changed (0-255)")

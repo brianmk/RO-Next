@@ -9,7 +9,7 @@ Read-only checks over the committed artefacts of this lane:
 * `tools/data/status_effect_custom.ron` - the curated overlay,
 * `tools/data/status_effect_legacy_tables.ron` - the frozen snapshot of the
   hand-generated tables this lane replaced (transition parity oracle),
-* `korangar/archive/data/client/status_effects.ron` - the generated client
+* `ro-next/archive/data/client/status_effects.ron` - the generated client
   data file (drift-checked by `tools/gen_status_effects.py --check`).
 
 Run from the repository root:
@@ -36,7 +36,7 @@ CUSTOM = REPO / "tools/data/status_effect_custom.ron"
 LEGACY = REPO / "tools/data/status_effect_legacy_tables.ron"
 ROBROWSER = REPO / "tools/data/status_info_robrowser.json"
 GENERATOR = REPO / "tools/gen_status_effects.py"
-DATA = REPO / "korangar/archive/data/client/status_effects.ron"
+DATA = REPO / "ro-next/archive/data/client/status_effects.ron"
 
 #: Old name ids whose label came from the old generator's off-by-one server
 #: enum parse (`XXX_EFST_WORLDSTORE_ACTIVE` skipped). The client `efstids.lub`

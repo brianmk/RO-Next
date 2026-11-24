@@ -1,11 +1,11 @@
 // Hand-written skill visuals, migrated from the old `skill_visuals()` table in
-// `korangar/src/world/skill_cast_effect.rs`.
+// `ro-next/src/world/skill_cast_effect.rs`.
 //
 // This is an **input** of `tools/gen_skill_effects.py`; the client never loads
 // it directly. The generator merges these rows with the official rows generated
 // from the legacy effect tables (and, when `--official` is given, with the full
 // official multi-layer rows from `tools/skill_effects_official.ron`) into the
-// single runtime data file `korangar/archive/data/client/skill_effects.ron`.
+// single runtime data file `ro-next/archive/data/client/skill_effects.ron`.
 //
 // Schema: one entry per (skill, phase). `phase` is one of
 // `Ground`, `Cast`, `Success`, `Release`, `Hit`, `Caster`. Every layer of a

@@ -5,8 +5,8 @@ Read-only checks over the committed artefacts of the P1 appearance migration:
 
 * ``tools/data/job_facts.json`` — the extracted facts (rAthena ``enum e_job``/skill
   trees, the client archive appearance probe, the verified sprite fallbacks),
-* ``korangar/archive/data/client/jobs.ron`` — the generated data file consumed
-  by ``korangar/src/world/jobs.rs``,
+* ``ro-next/archive/data/client/jobs.ron`` — the generated data file consumed
+  by ``ro-next/src/world/jobs.rs``,
 * ``tools/gen_jobs.py`` — the generator + ``--check`` drift guard.
 
 The tests assert that the facts are complete, that every job resolves to a
@@ -31,7 +31,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 FACTS = REPO / "tools/data/job_facts.json"
-RON = REPO / "korangar/archive/data/client/jobs.ron"
+RON = REPO / "ro-next/archive/data/client/jobs.ron"
 ACTOR_FACTS = REPO / "tools/data/rustnarok_actor_facts.json"
 GENERATOR = REPO / "tools/gen_jobs.py"
 

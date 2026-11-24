@@ -1,0 +1,14 @@
+[package]
+name = "ro-next-collision"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cgmath = { workspace = true }
+hashbrown = { workspace = true }
+ro-next-container = { workspace = true }
+ro-next-interface = { workspace = true, optional = true }
+rust-state = { workspace = true, optional = true }
+
+[features]
+interface = ["rust-state", "ro-next-interface"]

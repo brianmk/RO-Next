@@ -16,7 +16,7 @@ sends the weapon fields to the client):
 
 The output (``tools/data/rathena_pre_re_weapon_items.json``) is the input of
 ``tools/gen_weapons.py``, which writes the client data file
-``korangar/archive/data/client/weapons.ron``. Keeping the facts as a committed
+``ro-next/archive/data/client/weapons.ron``. Keeping the facts as a committed
 JSON file means the generator (and its ``--check`` drift guard) runs offline and
 reproducibly; only this extractor needs access to the server tree.
 

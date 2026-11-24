@@ -21,7 +21,7 @@ use ragnarok_macros::{CharacterServer, ClientPacket, LoginServer, MapServer, Pac
 
 pub use self::position::{Direction, WorldPosition, WorldPosition2};
 
-// To make proc macros work in korangar_interface.
+// To make proc macros work in ro_next_interface.
 extern crate self as ragnarok_packets;
 
 /// The header of a Ragnarok Online packet. It is always two bytes long.
@@ -61,13 +61,13 @@ pub trait Packet: std::fmt::Debug + Send + Clone + 'static {
     /// header, use [`PacketExt::packet_to_bytes`].
     fn payload_to_bytes(&self, byte_writer: &mut ByteWriter) -> ConversionResult<usize>;
 
-    // Implementation detail of Korangar. Can be used to convert a packet to an
+    // Implementation detail of RO-Next. Can be used to convert a packet to an
     // UI element in the packet inspector.
     #[cfg(feature = "packet-to-state-element")]
-    fn to_element<App: korangar_interface::application::Application>(
+    fn to_element<App: ro_next_interface::application::Application>(
         self_path: impl rust_state::Path<App, Self>,
         name: String,
-    ) -> Box<dyn korangar_interface::element::Element<App, LayoutInfo = ()>>;
+    ) -> Box<dyn ro_next_interface::element::Element<App, LayoutInfo = ()>>;
 }
 
 /// Extension trait for reading and writing packets with the header.
@@ -118,67 +118,67 @@ pub trait CharacterServerPacket: Packet {}
 pub trait MapServerPacket: Packet {}
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ClientTick(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct AccountId(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct CharacterId(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct PartyId(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct EntityId(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct SkillId(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct SkillLevel(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct HotbarTab(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct HotbarSlot(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ShopId(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Price(pub u32);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct AttackRange(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct JobId(pub u16);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ServerAddress(pub [u8; 4]);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct UserId(pub [u8; limits::USER_ID_LENGTH]);
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct AuthToken(pub [u8; 17]);
 
 impl From<ServerAddress> for Ipv4Addr {
@@ -188,21 +188,21 @@ impl From<ServerAddress> for Ipv4Addr {
 }
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct TilePosition {
     pub x: u16,
     pub y: u16,
 }
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct LargeTilePosition {
     pub x: u32,
     pub y: u32,
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ColorBGRA {
     pub blue: u8,
     pub green: u8,
@@ -211,7 +211,7 @@ pub struct ColorBGRA {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ColorRGBA {
     pub red: u8,
     pub green: u8,
@@ -221,7 +221,7 @@ pub struct ColorRGBA {
 
 /// Item index is always actual index + 2.
 #[derive(Clone, Copy, Debug, FixedByteSize, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct InventoryIndex(pub u16);
 
 impl FromBytes for InventoryIndex {
@@ -241,11 +241,11 @@ impl ToBytes for InventoryIndex {
 }
 
 #[derive(Clone, Copy, Debug, ByteConvertable, FixedByteSize, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ItemId(pub u32);
 
 #[derive(Copy, Debug, Clone, ByteConvertable, FixedByteSize, PartialEq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum Sex {
     Female,
     Male,
@@ -257,7 +257,7 @@ pub enum Sex {
 /// The very first packet sent when logging in, it is sent after the user has
 /// entered email and password.
 #[derive(Debug, Clone, Packet, ClientPacket, LoginServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0064)]
 pub struct LoginServerLoginPacket {
     /// Unused
@@ -276,7 +276,7 @@ pub struct LoginServerLoginPacket {
 /// succeeding. After receiving this packet, the client will connect to one of
 /// the character servers provided by this packet.
 #[derive(Debug, Clone, Packet, ServerPacket, LoginServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AC4)]
 #[variable_length]
 pub struct LoginServerLoginSuccessPacket {
@@ -302,7 +302,7 @@ pub struct LoginServerLoginSuccessPacket {
 /// succeeding. Provides basic information about the number of available
 /// character slots.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x082D)]
 pub struct CharacterServerLoginSuccessPacket {
     /// Always 29 on rAthena
@@ -317,7 +317,7 @@ pub struct CharacterServerLoginSuccessPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006B)]
 #[variable_length]
 pub struct CharacterListPacket {
@@ -335,7 +335,7 @@ pub struct CharacterListPacket {
 /// clients, `PACKETVER < 20201007`). Each row is a `CHARACTER_INFO` of 155
 /// bytes (32-bit HP/SP), unlike the 2022 layout in [CharacterInformation].
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x099D)]
 #[variable_length]
 pub struct CharacterInfoPerPagePacket {
@@ -344,7 +344,7 @@ pub struct CharacterInfoPerPagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A0)]
 #[packet_size(6)]
 pub struct CharacterSlotPagePacket {
@@ -352,7 +352,7 @@ pub struct CharacterSlotPagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x020D)]
 #[variable_length]
 pub struct CharacterBanListPacket {
@@ -361,7 +361,7 @@ pub struct CharacterBanListPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct CharacterBanInformation {
     pub character_id: CharacterId,
     #[length(20)]
@@ -369,7 +369,7 @@ pub struct CharacterBanInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08B9)]
 #[packet_size(12)]
 pub struct LoginPincodePacket {
@@ -379,7 +379,7 @@ pub struct LoginPincodePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B18)]
 #[packet_size(4)]
 pub struct Packet0b18 {
@@ -389,7 +389,7 @@ pub struct Packet0b18 {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum ConnectionRefusedReason {
     #[numeric_value(1)]
@@ -408,7 +408,7 @@ pub enum ConnectionRefusedReason {
 /// registered for this opcode; parsing the 3-byte 2019 packet with it made the
 /// stream lose sync during the map handshake.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006A)]
 #[packet_size(3)]
 pub struct MapServerAuthFailedPacket {
@@ -416,7 +416,7 @@ pub struct MapServerAuthFailedPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006A)]
 pub struct ConnectionRefusedPacket {
     pub reason: ConnectionRefusedReason,
@@ -428,7 +428,7 @@ pub struct ConnectionRefusedPacket {
 /// the player's block id (`sd->id`, which equals the account id). The client
 /// already knows that id, so the packet only needs to be parsed for framing.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0283)]
 #[packet_size(6)]
 pub struct MapServerAuthOkPacket {
@@ -438,7 +438,7 @@ pub struct MapServerAuthOkPacket {
 /// `ZC_NOTIFY_CRITICALWEIGHT` (0x0ADE): weight percentage at which the client
 /// displays the weight in red (rAthena `natural_heal_weight_rate`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ADE)]
 #[packet_size(6)]
 pub struct CriticalWeightUpdatePacket {
@@ -446,7 +446,7 @@ pub struct CriticalWeightUpdatePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02EB)]
 #[packet_size(13)]
 pub struct MapServerLoginSuccessPacket {
@@ -459,7 +459,7 @@ pub struct MapServerLoginSuccessPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum LoginFailedReason {
     #[numeric_value(1)]
     ServerClosed,
@@ -470,7 +470,7 @@ pub enum LoginFailedReason {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, LoginServer, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0081)]
 #[packet_size(3)]
 pub struct LoginFailedPacket {
@@ -478,7 +478,7 @@ pub struct LoginFailedPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0840)]
 #[variable_length]
 pub struct MapServerUnavailablePacket {
@@ -487,7 +487,7 @@ pub struct MapServerUnavailablePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum LoginFailedReason2 {
     UnregisteredId,
@@ -521,7 +521,7 @@ pub enum LoginFailedReason2 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, LoginServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x083E)]
 #[packet_size(26)]
 pub struct LoginFailedPacket2 {
@@ -531,7 +531,7 @@ pub struct LoginFailedPacket2 {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum CharacterSelectionFailedReason {
     RejectedFromServer,
 }
@@ -539,7 +539,7 @@ pub enum CharacterSelectionFailedReason {
 /// Sent by the character server as a response to [SelectCharacterPacket]
 /// failing. Provides a reason for the character selection failing.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006C)]
 #[packet_size(3)]
 pub struct CharacterSelectionFailedPacket {
@@ -550,7 +550,7 @@ pub struct CharacterSelectionFailedPacket {
 /// succeeding. Provides a map server to connect to, along with the id of our
 /// selected character.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AC5)]
 #[packet_size(156)]
 pub struct CharacterSelectionSuccessPacket {
@@ -565,7 +565,7 @@ pub struct CharacterSelectionSuccessPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum CharacterCreationFailedReason {
     CharacterNameAlreadyUsed,
     NotOldEnough,
@@ -578,7 +578,7 @@ pub enum CharacterCreationFailedReason {
 /// Sent by the character server as a response to [CreateCharacterPacket]
 /// failing. Provides a reason for the character creation failing.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006E)]
 #[packet_size(3)]
 pub struct CharacterCreationFailedPacket {
@@ -588,7 +588,7 @@ pub struct CharacterCreationFailedPacket {
 /// Sent by the client to the login server every 60 seconds to keep the
 /// connection alive.
 #[derive(Debug, Clone, Packet, ClientPacket, LoginServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0200)]
 #[ping]
 pub struct LoginServerKeepalivePacket {
@@ -597,7 +597,7 @@ pub struct LoginServerKeepalivePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct CharacterServerInformation {
     pub server_ip: ServerAddress,
     pub server_port: u16,
@@ -614,7 +614,7 @@ pub struct CharacterServerInformation {
 /// into the login server.
 /// Attempts to log into the character server using the provided information.
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0065)]
 pub struct CharacterServerLoginPacket {
     pub account_id: AccountId,
@@ -629,7 +629,7 @@ pub struct CharacterServerLoginPacket {
 /// character. Attempts to log into the map server using the provided
 /// information.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0436)]
 pub struct MapServerLoginPacket {
     pub account_id: AccountId,
@@ -648,7 +648,7 @@ pub struct MapServerLoginPacket {
 /// carries the entity id: the client has to stop the looping cast animation and
 /// clear its cast bar.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01B9)]
 #[packet_size(6)]
 pub struct SkillCastCancelPacket {
@@ -659,7 +659,7 @@ pub struct SkillCastCancelPacket {
 /// Attempts to create a new character in an empty slot using the provided
 /// information.
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A39)]
 pub struct CreateCharacterPacket {
     #[length(24)]
@@ -674,7 +674,7 @@ pub struct CreateCharacterPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct CharacterInformation {
     pub character_id: CharacterId,
     pub experience: i64,
@@ -739,7 +739,7 @@ impl rust_state::VecItem for CharacterInformation {
 /// from [CharacterInformation] in the HP/SP field widths (32/32/16/16 instead
 /// of four 64-bit values), making one row 155 bytes instead of 175.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct CharacterInformation2019 {
     pub character_id: CharacterId,
     pub experience: i64,
@@ -853,7 +853,7 @@ impl rust_state::VecItem for CharacterInformation2019 {
 /// succeeding on 2019-era servers (`PACKETVER < 20201007`): the fixed-size
 /// 0x006D packet carrying one legacy 155-byte CHARACTER_INFO row.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006D)]
 #[packet_size(157)]
 pub struct CreateCharacterSuccessPacket2019 {
@@ -864,7 +864,7 @@ pub struct CreateCharacterSuccessPacket2019 {
 /// succeeding. Provides all character information of the newly created
 /// character.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B6F)]
 pub struct CreateCharacterSuccessPacket {
     pub character_information: CharacterInformation,
@@ -873,14 +873,14 @@ pub struct CreateCharacterSuccessPacket {
 /// Sent by the client to the character server.
 /// Requests a list of every character associated with the account.
 #[derive(Debug, Clone, Default, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A1)]
 pub struct RequestCharacterListPacket {}
 
 /// Sent by the character server as a response to [RequestCharacterListPacket]
 /// succeeding. Provides the requested list of character information.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B72)]
 #[variable_length]
 pub struct RequestCharacterListSuccessPacket {
@@ -890,7 +890,7 @@ pub struct RequestCharacterListSuccessPacket {
 
 /// Sent by the map server to the client.
 #[derive(Debug, Clone, Default, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B1D)]
 #[packet_size(2)]
 #[ping]
@@ -899,7 +899,7 @@ pub struct MapServerPingPacket {}
 /// Sent by the client to the map server when the player wants to move.
 /// Attempts to path the player towards the provided position.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0881)]
 pub struct RequestPlayerMovePacket {
     pub position: WorldPosition,
@@ -909,7 +909,7 @@ pub struct RequestPlayerMovePacket {
 /// Attempts to warp the player to a specific position on a specific map using
 /// the provided information.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0140)]
 pub struct RequestWarpToMapPacket {
     #[length(16)]
@@ -922,7 +922,7 @@ pub struct RequestWarpToMapPacket {
 /// Provides the initial position and destination of the movement, as well as a
 /// timestamp of when it started (for synchronization).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0086)]
 pub struct EntityMovePacket {
     pub entity_id: EntityId,
@@ -932,7 +932,7 @@ pub struct EntityMovePacket {
 
 // TODO: Handle this to improve the combat system.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0088)]
 #[packet_size(10)]
 pub struct EntityStopMovePacket {
@@ -943,7 +943,7 @@ pub struct EntityStopMovePacket {
 /// Sent by the map server after the Vending skill (`MC_VENDING`) when the
 /// player may open the shop creation UI (`ZC_OPENSTORE`, 0x012D).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x012D)]
 #[packet_size(4)]
 pub struct OpenStorePacket {
@@ -953,7 +953,7 @@ pub struct OpenStorePacket {
 
 /// One item entry of the shop creation request.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct StoreItemEntry {
     pub inventory_index: u16,
     pub amount: u16,
@@ -962,7 +962,7 @@ pub struct StoreItemEntry {
 
 /// Sent by the client to create a shop (`CZ_REQ_OPENSTORE`, 0x012F).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x012F)]
 #[variable_length]
 pub struct RequestOpenStorePacket {
@@ -976,7 +976,7 @@ pub struct RequestOpenStorePacket {
 /// 0x01B2, result 0). rAthena clears its `prevend`/`workinprogress` state from
 /// this packet, so the character cannot stay frozen after Vending.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01B2)]
 #[variable_length]
 pub struct CancelOpenStorePacket {
@@ -993,7 +993,7 @@ pub struct CancelOpenStorePacket {
 /// waiting for the next walk/stop packet, which otherwise looks like a
 /// teleport/desync after Leap (`ZC_HIGHJUMP`, 0x01FF).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01FF)]
 #[packet_size(10)]
 pub struct HighJumpPacket {
@@ -1005,7 +1005,7 @@ pub struct HighJumpPacket {
 /// relocation, `ZC_SNAP`, 0x08D2): the client applies the new position
 /// immediately instead of waiting for the next stop-move correction.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08D2)]
 #[packet_size(10)]
 pub struct SnapPacket {
@@ -1018,7 +1018,7 @@ pub struct SnapPacket {
 /// Provides the initial position and destination of the movement, as well as a
 /// timestamp of when it started (for synchronization).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0087)]
 #[packet_size(12)]
 pub struct PlayerMovePacket {
@@ -1031,7 +1031,7 @@ pub struct PlayerMovePacket {
 /// Attempts to delete a character from the user account using the provided
 /// information.
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01FB)]
 pub struct DeleteCharacterPacket {
     pub character_id: CharacterId,
@@ -1045,7 +1045,7 @@ pub struct DeleteCharacterPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum CharacterDeletionFailedReason {
     NotAllowed,
     CharacterNotFound,
@@ -1055,7 +1055,7 @@ pub enum CharacterDeletionFailedReason {
 /// Sent by the character server as a response to [DeleteCharacterPacket]
 /// failing. Provides a reason for the character deletion failing.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0070)]
 #[packet_size(3)]
 pub struct CharacterDeletionFailedPacket {
@@ -1065,7 +1065,7 @@ pub struct CharacterDeletionFailedPacket {
 /// Sent by the character server as a response to [DeleteCharacterPacket]
 /// succeeding.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x006F)]
 #[packet_size(2)]
 pub struct CharacterDeletionSuccessPacket {}
@@ -1073,7 +1073,7 @@ pub struct CharacterDeletionSuccessPacket {}
 /// Sent by the client to the character server when the user selects a
 /// character. Attempts to select the character in the specified slot.
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0066)]
 pub struct SelectCharacterPacket {
     pub selected_slot: u8,
@@ -1082,7 +1082,7 @@ pub struct SelectCharacterPacket {
 /// Sent by the map server to the client when there is a new chat message from
 /// the server. Provides the message to be displayed in the chat window.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x008E)]
 #[variable_length]
 pub struct ServerMessagePacket {
@@ -1091,7 +1091,7 @@ pub struct ServerMessagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0291)]
 #[packet_size(4)]
 pub struct MessageTablePacket {
@@ -1102,7 +1102,7 @@ pub struct MessageTablePacket {
 /// Attempts to fetch additional information about the entity, such as the
 /// display name.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0368)]
 pub struct RequestDetailsPacket {
     pub entity_id: EntityId,
@@ -1111,7 +1111,7 @@ pub struct RequestDetailsPacket {
 /// Sent by the map server to the client as a response to
 /// [RequestDetailsPacket]. Provides additional information about the player.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A30)]
 #[packet_size(106)]
 pub struct RequestPlayerDetailsSuccessPacket {
@@ -1130,7 +1130,7 @@ pub struct RequestPlayerDetailsSuccessPacket {
 /// Sent by the map server to the client as a response to
 /// [RequestDetailsPacket]. Provides additional information about the entity.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ADF)]
 #[packet_size(58)]
 pub struct RequestEntityDetailsSuccessPacket {
@@ -1144,7 +1144,7 @@ pub struct RequestEntityDetailsSuccessPacket {
 
 /// Sent by the client to request the guild emblem image of a guild.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0151)]
 pub struct GuildEmblemRequestPacket {
     pub guild_id: u32,
@@ -1156,7 +1156,7 @@ pub struct GuildEmblemRequestPacket {
 /// server stores in the `guild` table). It can be empty when the guild has no
 /// emblem.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0152)]
 #[variable_length]
 pub struct GuildEmblemImagePacket {
@@ -1167,7 +1167,7 @@ pub struct GuildEmblemImagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09E7)]
 #[packet_size(3)]
 pub struct NewMailStatusPacket {
@@ -1175,7 +1175,7 @@ pub struct NewMailStatusPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct AchievementData {
     pub acheivement_id: u32,
     pub is_completed: u8,
@@ -1185,7 +1185,7 @@ pub struct AchievementData {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A24)]
 #[packet_size(66)]
 pub struct AchievementUpdatePacket {
@@ -1197,7 +1197,7 @@ pub struct AchievementUpdatePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A23)]
 #[variable_length]
 pub struct AchievementListPacket {
@@ -1212,7 +1212,7 @@ pub struct AchievementListPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01D7)]
 #[packet_size(15)]
 pub struct SpriteChangePacket {
@@ -1223,7 +1223,7 @@ pub struct SpriteChangePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum SpriteChangeType {
     Base,
     Hair,
@@ -1242,7 +1242,7 @@ pub enum SpriteChangeType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B08)]
 #[variable_length]
 pub struct InventoyStartPacket {
@@ -1252,7 +1252,7 @@ pub struct InventoyStartPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B0B)]
 #[packet_size(4)]
 pub struct InventoyEndPacket {
@@ -1266,7 +1266,7 @@ pub struct InventoyEndPacket {
 /// The 2019 layout has the refinement level *before* the card slots (the 2022
 /// layouts moved it and added a grade byte); 57 bytes total.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A0A)]
 #[packet_size(57)]
 pub struct StorageItemAddedPacket2019 {
@@ -1284,7 +1284,7 @@ pub struct StorageItemAddedPacket2019 {
 /// 2019 era `ZC_CLOSE_STORE` (0x00F8): the storage (or cart) window was closed
 /// by the server, e.g. because the player walked away from the Kafra.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F8)]
 #[packet_size(2)]
 pub struct StorageClosedPacket {}
@@ -1297,7 +1297,7 @@ pub struct StorageClosedPacket {}
 /// global chat message handler on the 2019 server, so sending 0x00F3 gets the
 /// sender kicked with "malformed packet (no username data)".
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07EC)]
 pub struct StorageDepositPacket {
     pub inventory_index: InventoryIndex,
@@ -1309,7 +1309,7 @@ pub struct StorageDepositPacket {
 /// as `server slot + 1`, so callers have to add one to the slot from the
 /// storage list.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0861)]
 pub struct StorageWithdrawPacket {
     pub storage_index: u16,
@@ -1320,12 +1320,12 @@ pub struct StorageWithdrawPacket {
 /// window. The 0x00F7 opcode that older clients used for this is mapped to the
 /// trade item removal handler on the 2019 server.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0193)]
 pub struct CloseStoragePacket {}
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ItemOptions {
     pub index: u16,
     pub value: u16,
@@ -1340,7 +1340,7 @@ bitflags::bitflags! {
     /// it->favorite ? 1 : 0`), which is what the official client displays as
     /// the item's star.
     #[derive(Debug, Clone)]
-    #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+    #[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
     pub struct RegularItemFlags: u8 {
         const IDENTIFIED = 0b01;
         const FAVORITE = 0b10;
@@ -1370,7 +1370,7 @@ impl ToBytes for RegularItemFlags {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct RegularItemInformation {
     pub index: InventoryIndex,
     pub item_id: ItemId,
@@ -1383,7 +1383,7 @@ pub struct RegularItemInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B09)]
 #[variable_length]
 pub struct RegularItemListPacket {
@@ -1398,7 +1398,7 @@ bitflags::bitflags! {
     /// The 2019 server sends the *favorite* mark in the third flag bit
     /// (`clif.cpp`: `Flag.PlaceETCTab = it->favorite ? 1 : 0`).
     #[derive(Debug, Clone)]
-    #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+    #[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
     pub struct EquippableItemFlags: u8 {
         const IDENTIFIED = 0b001;
         const IS_BROKEN = 0b010;
@@ -1437,7 +1437,7 @@ impl ToBytes for EquippableItemFlags {
 /// slots and there is no enchantment/grade byte at the end, which makes one row
 /// 67 bytes instead of 68.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct EquippableItemInformation2019 {
     pub index: InventoryIndex,
     pub item_id: ItemId,
@@ -1476,7 +1476,7 @@ impl From<EquippableItemInformation2019> for EquippableItemInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B0A)]
 #[variable_length]
 pub struct EquippableItemListPacket2019 {
@@ -1486,7 +1486,7 @@ pub struct EquippableItemListPacket2019 {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct EquippableItemInformation {
     pub index: InventoryIndex,
     pub item_id: ItemId,
@@ -1505,7 +1505,7 @@ pub struct EquippableItemInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B39)]
 #[variable_length]
 pub struct EquippableItemListPacket {
@@ -1515,14 +1515,14 @@ pub struct EquippableItemListPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct EquippableSwitchItemInformation {
     pub index: InventoryIndex,
     pub position: u32,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A9B)]
 #[variable_length]
 pub struct EquippableSwitchItemListPacket {
@@ -1531,7 +1531,7 @@ pub struct EquippableSwitchItemListPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x099B)]
 #[packet_size(8)]
 pub struct MapTypePacket {
@@ -1543,7 +1543,7 @@ pub struct MapTypePacket {
 /// ??. Provides the message to be displayed in the chat window, as well as
 /// information on how the message should be displayed.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01C3)]
 #[variable_length]
 pub struct Broadcast2MessagePacket {
@@ -1559,7 +1559,7 @@ pub struct Broadcast2MessagePacket {
 /// Sent by the map server to the client when when someone uses the @broadcast
 /// command. Provides the message to be displayed in the chat window.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x009A)]
 #[variable_length]
 pub struct BroadcastMessagePacket {
@@ -1571,7 +1571,7 @@ pub struct BroadcastMessagePacket {
 /// chat. Provides the source player and message to be displayed in the chat
 /// window and the speach bubble.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x008D)]
 #[variable_length]
 pub struct OverheadMessagePacket {
@@ -1584,7 +1584,7 @@ pub struct OverheadMessagePacket {
 /// an entity. Provides the message to be displayed in the chat window, the
 /// color of the message, and the id of the entity it originated from.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C1)]
 #[variable_length]
 pub struct EntityMessagePacket {
@@ -1595,7 +1595,7 @@ pub struct EntityMessagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C0)]
 #[packet_size(7)]
 pub struct DisplayEmotionPacket {
@@ -1605,7 +1605,7 @@ pub struct DisplayEmotionPacket {
 
 /// Sent by the client to show an emotion (`CZ_REQ_EMOTION`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00BF)]
 pub struct RequestEmotionPacket {
     pub emotion: u8,
@@ -1854,7 +1854,7 @@ impl std::fmt::Display for StatType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B0)]
 #[packet_size(8)]
 pub struct UpdateStatPacket {
@@ -1863,7 +1863,7 @@ pub struct UpdateStatPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0196)]
 #[packet_size(9)]
 pub struct StatusChangeSequencePacket {
@@ -1874,7 +1874,7 @@ pub struct StatusChangeSequencePacket {
 
 /// Sent by the character server to the client when loading onto a new map.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00BD)]
 #[packet_size(44)]
 pub struct InitialStatsPacket {
@@ -1910,7 +1910,7 @@ pub struct InitialStatsPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0141)]
 #[packet_size(14)]
 pub struct UpdateStatPacket1 {
@@ -1919,7 +1919,7 @@ pub struct UpdateStatPacket1 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ACB)]
 #[packet_size(12)]
 pub struct UpdateStatPacket2 {
@@ -1928,7 +1928,7 @@ pub struct UpdateStatPacket2 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00BE)]
 #[packet_size(5)]
 pub struct UpdateStatPacket3 {
@@ -1937,7 +1937,7 @@ pub struct UpdateStatPacket3 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x013A)]
 #[packet_size(4)]
 pub struct UpdateAttackRangePacket {
@@ -1945,7 +1945,7 @@ pub struct UpdateAttackRangePacket {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum StatUpType {
     Strength { amount: u8 },
     Agility { amount: u8 },
@@ -1996,7 +1996,7 @@ impl ToBytes for StatUpType {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00BB)]
 pub struct RequestStatUpPacket {
     pub stat_type: StatUpType,
@@ -2005,14 +2005,14 @@ pub struct RequestStatUpPacket {
 /// rAthena seems to always return [`Success`](RequestStatUpResult::Success),
 /// even if the request fails.
 #[derive(Debug, Clone, ByteConvertable, PartialEq, Eq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum RequestStatUpResult {
     Failure,
     Success,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00BC)]
 #[packet_size(6)]
 pub struct RequestStatUpResponsePacket {
@@ -2022,7 +2022,7 @@ pub struct RequestStatUpResponsePacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08D4)]
 pub struct SwitchCharacterSlotPacket {
     // TODO: Type this more strongly.
@@ -2036,7 +2036,7 @@ pub struct SwitchCharacterSlotPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum Action {
     Attack,
     PickUpItem,
@@ -2050,7 +2050,7 @@ pub enum Action {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0437)]
 pub struct RequestActionPacket {
     pub npc_id: EntityId,
@@ -2058,14 +2058,14 @@ pub struct RequestActionPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0362)]
 pub struct ItemPickupRequestPacket {
     pub entity_id: EntityId,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F3)]
 #[variable_length]
 // The trailing `NUL` of the message is not part of the declared length of the
@@ -2082,7 +2082,7 @@ pub struct GlobalMessagePacket {
 /// Packet layout for PACKETVER >= 20080910:
 /// `0439 <index>.W <item id>.L`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0439)]
 pub struct UseItemPacket {
     pub inventory_index: InventoryIndex,
@@ -2094,7 +2094,7 @@ pub struct UseItemPacket {
 /// Packet layout for PACKETVER 20190605: `0142 <npc id>.L` (rAthena
 /// `clif.cpp:2637`). Answered with [`InputEditDialogPacket`].
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0142)]
 pub struct OpenEditDialogPacket {
     pub npc_id: EntityId,
@@ -2105,7 +2105,7 @@ pub struct OpenEditDialogPacket {
 /// Packet layout for PACKETVER 20190605: `01d4 <npc id>.L` (rAthena
 /// `clif.cpp:2665`). Answered with [`InputEditDialogStrPacket`].
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01D4)]
 pub struct OpenEditDialogStrPacket {
     pub npc_id: EntityId,
@@ -2116,7 +2116,7 @@ pub struct OpenEditDialogStrPacket {
 /// Packet layout for PACKETVER 20190605: `0143 <npc id>.L <value>.L`
 /// (rAthena `clif.cpp:13314`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0143)]
 pub struct InputEditDialogPacket {
     pub npc_id: EntityId,
@@ -2128,7 +2128,7 @@ pub struct InputEditDialogPacket {
 /// Packet layout for PACKETVER 20190605: `01d5 <len>.W <npc id>.L <string>.?B`
 /// (rAthena `clif.cpp:13333`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01D5)]
 #[variable_length]
 #[allow_packet_size_mismatch]
@@ -2143,7 +2143,7 @@ pub struct InputEditDialogStrPacket {
 /// Packet layout for PACKETVER 20190605 (rAthena `clif.cpp:11994`):
 /// `00a2 <index>.W <amount>.W`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00A2)]
 pub struct DropItemPacket {
     pub inventory_index: InventoryIndex,
@@ -2155,7 +2155,7 @@ pub struct DropItemPacket {
 /// Packet layout for PACKETVER >= 20181121:
 /// `01c8 <index>.W <item id>.L <account id>.L <amount>.W <result>.B`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01C8)]
 #[packet_size(15)]
 pub struct UseItemAckPacket {
@@ -2168,7 +2168,7 @@ pub struct UseItemAckPacket {
 
 /// Whisper a message to another character (CZ_WHISPER).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0096)]
 #[variable_length]
 pub struct WhisperPacket {
@@ -2182,7 +2182,7 @@ pub struct WhisperPacket {
 
 /// Result of a whisper that the client sent (ZC_ACK_WHISPER).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09DF)]
 #[packet_size(7)]
 pub struct WhisperAckPacket {
@@ -2192,7 +2192,7 @@ pub struct WhisperAckPacket {
 
 /// A whispered message that another character sent to the player (ZC_WHISPER).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09DE)]
 #[variable_length]
 pub struct WhisperReceivedPacket {
@@ -2209,7 +2209,7 @@ pub struct WhisperReceivedPacket {
 }
 
 #[derive(Debug, Clone, Copy, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u8)]
 pub enum WhisperResult {
     #[numeric_value(0)]
@@ -2223,7 +2223,7 @@ pub enum WhisperResult {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0139)]
 #[packet_size(16)]
 pub struct RequestPlayerAttackFailedPacket {
@@ -2234,7 +2234,7 @@ pub struct RequestPlayerAttackFailedPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0977)]
 #[packet_size(14)]
 pub struct UpdateEntityHealthPointsPacket {
@@ -2244,7 +2244,7 @@ pub struct UpdateEntityHealthPointsPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum DamageType {
     Damage,
     PickUpItem,
@@ -2263,7 +2263,7 @@ pub enum DamageType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x008A)]
 pub struct DamagePacket1 {
     pub source_entity_id: EntityId,
@@ -2280,7 +2280,7 @@ pub struct DamagePacket1 {
 
 // FIX: This one is the attack animation one
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08C8)]
 #[packet_size(34)]
 pub struct DamagePacket3 {
@@ -2298,7 +2298,7 @@ pub struct DamagePacket3 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x007F)]
 #[packet_size(6)]
 #[ping]
@@ -2307,7 +2307,7 @@ pub struct ServerTickPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0360)]
 #[ping]
 pub struct RequestServerTickPacket {
@@ -2315,7 +2315,7 @@ pub struct RequestServerTickPacket {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum SwitchCharacterSlotResponseStatus {
     Success,
@@ -2323,7 +2323,7 @@ pub enum SwitchCharacterSlotResponseStatus {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B70)]
 pub struct SwitchCharacterSlotResponsePacket {
     #[new_default]
@@ -2340,7 +2340,7 @@ pub struct SwitchCharacterSlotResponsePacket {
 /// (see rAthena `chclif_changechar_slot`). Without this registration the client
 /// kept waiting for the slot change to finish forever.
 #[derive(Debug, Clone, Packet, ServerPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08D5)]
 #[packet_size(8)]
 pub struct SwitchCharacterSlotResponsePacket2019 {
@@ -2359,7 +2359,7 @@ pub struct SwitchCharacterSlotResponsePacket2019 {
 /// be parsed so that it does not desynchronize the packet stream (it used to
 /// drop every packet after it in the same TCP read).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x009C)]
 #[packet_size(9)]
 pub struct ChangeDirectionPacket2019 {
@@ -2371,7 +2371,7 @@ pub struct ChangeDirectionPacket2019 {
 /// 2019 era `ZC_NOTIFY_ACTORINIT` (0x0B1B): sent by the map server once the
 /// client has finished loading the map. It only consists of the packet header.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B1B)]
 #[packet_size(2)]
 pub struct NotifyActorInitPacket {}
@@ -2380,7 +2380,7 @@ pub struct NotifyActorInitPacket {}
 /// already active when the entity enters the view, also sent for every active
 /// status effect on map load.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0984)]
 #[packet_size(28)]
 pub struct EnterStatusEffectPacket2019 {
@@ -2395,7 +2395,7 @@ pub struct EnterStatusEffectPacket2019 {
 
 /// 2019 era `ZC_NOTIFY_CARTITEM_COUNTINFO` (0x0121): cart item/weight counts.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0121)]
 #[packet_size(14)]
 pub struct CartItemCountInfoPacket2019 {
@@ -2407,7 +2407,7 @@ pub struct CartItemCountInfoPacket2019 {
 
 /// 2019 era `ZC_USER_COUNT` (0x00C2): answer to `/who`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C2)]
 #[packet_size(6)]
 pub struct UserCountPacket2019 {
@@ -2416,7 +2416,7 @@ pub struct UserCountPacket2019 {
 
 /// 2019 era `ZC_REFUSE_ENTER` (0x0074): the map server refused the map login.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0074)]
 #[packet_size(3)]
 pub struct RefuseEnterPacket2019 {
@@ -2425,7 +2425,7 @@ pub struct RefuseEnterPacket2019 {
 
 /// 2019 era `ZC_NOTIFY_HP_TO_GROUPM` (0x080E): party member health update.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x080E)]
 #[packet_size(14)]
 pub struct PartyMemberHealthPacket2019 {
@@ -2437,7 +2437,7 @@ pub struct PartyMemberHealthPacket2019 {
 /// Sent by the client to request a trade with another player
 /// (`CZ_REQ_EXCHANGE_ITEM`, 0x00E4).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00E4)]
 #[packet_size(6)]
 pub struct RequestExchangeItemPacket {
@@ -2447,7 +2447,7 @@ pub struct RequestExchangeItemPacket {
 /// Sent by the client to accept/reject a trade request
 /// (`CZ_ACK_EXCHANGE_ITEM`, 0x00E6). 3 = accept, 4 = reject.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00E6)]
 #[packet_size(3)]
 pub struct AnswerExchangeItemPacket {
@@ -2457,7 +2457,7 @@ pub struct AnswerExchangeItemPacket {
 /// Sent by the client to offer an inventory item or zeny in a trade
 /// (`CZ_ADD_EXCHANGE_ITEM`, 0x00E8). `inventory_index == 0` means zeny.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00E8)]
 #[packet_size(8)]
 pub struct AddExchangeItemPacket {
@@ -2468,21 +2468,21 @@ pub struct AddExchangeItemPacket {
 /// Sent by the client to lock its side of the trade
 /// (`CZ_CONCLUDE_EXCHANGE_ITEM`, 0x00EB).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00EB)]
 #[packet_size(2)]
 pub struct ConfirmExchangeItemPacket {}
 
 /// Sent by the client to cancel the trade (`CZ_CANCEL_EXCHANGE_ITEM`, 0x00ED).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00ED)]
 #[packet_size(2)]
 pub struct CancelExchangeItemPacket {}
 
 /// Sent by the client to commit the trade (`CZ_EXEC_EXCHANGE_ITEM`, 0x00EF).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00EF)]
 #[packet_size(2)]
 pub struct CommitExchangeItemPacket {}
@@ -2490,7 +2490,7 @@ pub struct CommitExchangeItemPacket {}
 /// `ZC_ADD_EXCHANGE_ITEM` (0x0A96 for PACKETVER 2019): the partner offered an
 /// item or zeny in the current trade. `item_id == 0` means the amount is zeny.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A96)]
 #[packet_size(61)]
 pub struct ExchangeOfferPacket2019 {
@@ -2515,7 +2515,7 @@ pub struct ExchangeOfferPacket2019 {
 
 /// 2019 era `ZC_ACK_ADD_EXCHANGE_ITEM` (0x00EA): trade window item ack.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00EA)]
 #[packet_size(5)]
 pub struct ExchangeAddItemPacket2019 {
@@ -2525,7 +2525,7 @@ pub struct ExchangeAddItemPacket2019 {
 
 /// 2019 era `ZC_CONCLUDE_EXCHANGE_ITEM` (0x00EC): trade was accepted by a side.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00EC)]
 #[packet_size(3)]
 pub struct ExchangeConcludePacket2019 {
@@ -2534,14 +2534,14 @@ pub struct ExchangeConcludePacket2019 {
 
 /// 2019 era `ZC_CANCEL_EXCHANGE_ITEM` (0x00EE): trade window was closed.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00EE)]
 #[packet_size(2)]
 pub struct ExchangeCancelPacket2019 {}
 
 /// 2019 era `ZC_EXEC_EXCHANGE_ITEM` (0x00F0): trade was executed.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F0)]
 #[packet_size(3)]
 pub struct ExchangeExecPacket2019 {
@@ -2550,14 +2550,14 @@ pub struct ExchangeExecPacket2019 {
 
 /// 2019 era `ZC_EXCHANGEITEM_UNDO` (0x00F1): the last trade item was undone.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F1)]
 #[packet_size(2)]
 pub struct ExchangeUndoPacket2019 {}
 
 /// 2019 era `ZC_NOTIFY_STOREITEM_COUNTINFO` (0x00F2): storage item count.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F2)]
 #[packet_size(6)]
 pub struct StorageItemCountInfoPacket2019 {
@@ -2568,7 +2568,7 @@ pub struct StorageItemCountInfoPacket2019 {
 /// 2019 era `ZC_DELETE_ITEM_FROM_STORE` (0x00F6): an item was removed from
 /// storage.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F6)]
 #[packet_size(8)]
 pub struct StorageDeleteItemPacket2019 {
@@ -2578,7 +2578,7 @@ pub struct StorageDeleteItemPacket2019 {
 
 /// 2019 era `ZC_REQ_EXCHANGE_ITEM` (0x01F4): another player requests a trade.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01F4)]
 #[packet_size(32)]
 pub struct ExchangeRequestPacket2019 {
@@ -2590,7 +2590,7 @@ pub struct ExchangeRequestPacket2019 {
 
 /// 2019 era `ZC_ACK_EXCHANGE_ITEM` (0x01F5): answer to a trade request.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01F5)]
 #[packet_size(9)]
 pub struct ExchangeAckPacket2019 {
@@ -2604,7 +2604,7 @@ pub struct ExchangeAckPacket2019 {
 /// The client does not show the pickup message yet, but every pickup sends this
 /// 69 byte packet and an unknown packet used to drop the rest of the TCP read.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A37)]
 #[packet_size(69)]
 pub struct ItemPickupAckPacket2019 {
@@ -2636,7 +2636,7 @@ pub struct ItemPickupAckPacket2019 {
 /// Layout: `0147 <skill id>.W <type>.L <level>.W <sp cost>.W <range>.W
 /// <skill name>.24B <upgradable>.B`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0147)]
 pub struct AutoRunSkillPacket {
     pub skill_id: SkillId,
@@ -2651,7 +2651,7 @@ pub struct AutoRunSkillPacket {
 
 /// 2019 era `ZC_SPIRITS` (0x01D0): monk spirit sphere count.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01D0)]
 #[packet_size(8)]
 pub struct SpiritsPacket2019 {
@@ -2661,7 +2661,7 @@ pub struct SpiritsPacket2019 {
 
 /// 2019 era `ZC_SPIRITS2` (0x01E1): monk spirit sphere count (variant).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01E1)]
 #[packet_size(8)]
 pub struct Spirits2Packet2019 {
@@ -2670,7 +2670,7 @@ pub struct Spirits2Packet2019 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0091)]
 #[packet_size(22)]
 pub struct ChangeMapPacket {
@@ -2680,7 +2680,7 @@ pub struct ChangeMapPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, PartialEq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum DisappearanceReason {
     OutOfSight,
     Died,
@@ -2690,7 +2690,7 @@ pub enum DisappearanceReason {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0080)]
 #[packet_size(7)]
 pub struct EntityDisAppearPacket {
@@ -2699,7 +2699,7 @@ pub struct EntityDisAppearPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09FD)]
 #[variable_length]
 pub struct MovingEntityAppearPacket {
@@ -2742,7 +2742,7 @@ pub struct MovingEntityAppearPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0148)]
 #[packet_size(8)]
 pub struct ResurrectionPacket {
@@ -2753,7 +2753,7 @@ pub struct ResurrectionPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09FE)]
 #[variable_length]
 pub struct EntityAppearPacket {
@@ -2795,7 +2795,7 @@ pub struct EntityAppearPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09FF)]
 #[variable_length]
 pub struct EntityAppear2Packet {
@@ -2838,7 +2838,7 @@ pub struct EntityAppear2Packet {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum SkillType {
     #[numeric_value(0)]
@@ -2856,7 +2856,7 @@ pub enum SkillType {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct SkillInformation {
     pub skill_id: SkillId,
     pub skill_type: SkillType,
@@ -2870,7 +2870,7 @@ pub struct SkillInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x010F)]
 #[variable_length]
 pub struct UpdateSkillTreePacket {
@@ -2881,7 +2881,7 @@ pub struct UpdateSkillTreePacket {
 /// Sent by the server when the level/SP cost/range of a known skill changes
 /// (`ZC_SKILLINFO_UPDATE2`, 0x07E1 on this packet version).
 #[derive(Debug, Clone, Packet, ServerPacket)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07E1)]
 #[packet_size(15)]
 pub struct SkillInfoUpdatePacket {
@@ -2901,7 +2901,7 @@ pub struct SkillInfoUpdatePacket {
 /// `i32` type flags, level, SP cost, range, name[24], upgradable flag), which
 /// matches [`SkillInformation`].
 #[derive(Debug, Clone, Packet, ServerPacket)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0111)]
 #[packet_size(39)]
 pub struct AddSkillPacket {
@@ -2909,14 +2909,14 @@ pub struct AddSkillPacket {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum HotkeyType {
     Item,
     Skill,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct HotkeyData {
     pub hotkey_type: HotkeyType,
     pub item_or_skill_id: u32,
@@ -2932,7 +2932,7 @@ impl HotkeyData {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B20)]
 #[packet_size(271)]
 pub struct UpdateHotkeysPacket {
@@ -2942,7 +2942,7 @@ pub struct UpdateHotkeysPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02BA)]
 pub struct SetHotkeyData1Packet {
     pub slot: HotbarSlot,
@@ -2950,7 +2950,7 @@ pub struct SetHotkeyData1Packet {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B21)]
 pub struct SetHotkeyData2Packet {
     pub tab: HotbarTab,
@@ -2959,7 +2959,7 @@ pub struct SetHotkeyData2Packet {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C9)]
 #[packet_size(3)]
 pub struct UpdatePartyInvitationStatePacket {
@@ -2967,7 +2967,7 @@ pub struct UpdatePartyInvitationStatePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02DA)]
 #[packet_size(3)]
 pub struct UpdateShowEquipPacket {
@@ -2975,7 +2975,7 @@ pub struct UpdateShowEquipPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02D9)]
 #[packet_size(10)]
 pub struct UpdateConfigurationPacket {
@@ -2984,7 +2984,7 @@ pub struct UpdateConfigurationPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum MarkerType {
     DisplayFor15Seconds,
@@ -2993,7 +2993,7 @@ pub enum MarkerType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0144)]
 #[packet_size(23)]
 pub struct MarkMinimapPositionPacket {
@@ -3005,7 +3005,7 @@ pub struct MarkMinimapPositionPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B5)]
 #[packet_size(6)]
 pub struct NextButtonPacket {
@@ -3013,7 +3013,7 @@ pub struct NextButtonPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B6)]
 #[packet_size(6)]
 pub struct CloseButtonPacket {
@@ -3021,7 +3021,7 @@ pub struct CloseButtonPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B7)]
 #[variable_length]
 pub struct DialogMenuPacket {
@@ -3031,7 +3031,7 @@ pub struct DialogMenuPacket {
 }
 
 #[derive(Debug, Clone, Copy, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum EffectId {
     Hit1,
@@ -4177,7 +4177,7 @@ pub enum EffectId {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01F3)]
 #[packet_size(10)]
 pub struct DisplaySpecialEffectPacket {
@@ -4188,7 +4188,7 @@ pub struct DisplaySpecialEffectPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x043D)]
 #[packet_size(8)]
 pub struct DisplaySkillCooldownPacket {
@@ -4197,7 +4197,7 @@ pub struct DisplaySkillCooldownPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01DE)]
 #[packet_size(33)]
 pub struct DisplaySkillEffectAndDamagePacket {
@@ -4214,7 +4214,7 @@ pub struct DisplaySkillEffectAndDamagePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum HealType {
     #[numeric_value(5)]
@@ -4224,7 +4224,7 @@ pub enum HealType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A27)]
 #[packet_size(8)]
 pub struct DisplayPlayerHealEffect {
@@ -4233,7 +4233,7 @@ pub struct DisplayPlayerHealEffect {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09CB)]
 #[packet_size(17)]
 pub struct DisplaySkillEffectNoDamagePacket {
@@ -4246,7 +4246,7 @@ pub struct DisplaySkillEffectNoDamagePacket {
 
 /// One entry of the Warp Portal destination list (`ZC_WARPLIST`, 0x0ABE).
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct WarpPointEntry {
     /// Map name, padded with NUL bytes to `MAP_NAME_LENGTH_EXT` (16) bytes.
     #[length(16)]
@@ -4258,7 +4258,7 @@ pub struct WarpPointEntry {
 ///
 /// The client answers with [`SelectWarpPointPacket`].
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ABE)]
 #[variable_length]
 pub struct WarpPointListPacket {
@@ -4270,7 +4270,7 @@ pub struct WarpPointListPacket {
 /// Sent by the client to the map server to answer a Warp Portal destination
 /// list. `map_name` is the destination map from [`WarpPointListPacket`].
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x011B)]
 #[packet_size(20)]
 pub struct SelectWarpPointPacket {
@@ -4280,7 +4280,7 @@ pub struct SelectWarpPointPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0983)]
 #[packet_size(29)]
 pub struct StatusChangePacket {
@@ -4293,7 +4293,7 @@ pub struct StatusChangePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ObjectiveDetails1 {
     pub hunt_identification: u32,
     pub objective_type: u32,
@@ -4306,7 +4306,7 @@ pub struct ObjectiveDetails1 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F9)]
 pub struct QuestNotificationPacket1 {
     pub quest_id: u32,
@@ -4320,7 +4320,7 @@ pub struct QuestNotificationPacket1 {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct HuntingObjective {
     pub quest_id: u32,
     pub mob_id: u32,
@@ -4329,7 +4329,7 @@ pub struct HuntingObjective {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08FE)]
 #[variable_length]
 pub struct HuntingQuestNotificationPacket {
@@ -4338,7 +4338,7 @@ pub struct HuntingQuestNotificationPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09FA)]
 #[variable_length]
 pub struct HuntingQuestUpdateObjectivePacket {
@@ -4348,7 +4348,7 @@ pub struct HuntingQuestUpdateObjectivePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02B4)]
 #[packet_size(6)]
 pub struct QuestRemovedPacket {
@@ -4356,7 +4356,7 @@ pub struct QuestRemovedPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct QuestDetails {
     pub hunt_identification: u32,
     pub objective_type: u32,
@@ -4370,7 +4370,7 @@ pub struct QuestDetails {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Quest {
     pub quest_id: u32,
     pub active: u8,
@@ -4383,7 +4383,7 @@ pub struct Quest {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F8)]
 #[variable_length]
 pub struct QuestListPacket {
@@ -4394,7 +4394,7 @@ pub struct QuestListPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum VisualEffect {
     BaseLevelUp,
@@ -4410,7 +4410,7 @@ pub enum VisualEffect {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x019B)]
 #[packet_size(10)]
 pub struct VisualEffectPacket {
@@ -4419,7 +4419,7 @@ pub struct VisualEffectPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum ExperienceType {
     #[numeric_value(1)]
@@ -4428,7 +4428,7 @@ pub enum ExperienceType {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum ExperienceSource {
     Regular,
@@ -4436,7 +4436,7 @@ pub enum ExperienceSource {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ACC)]
 #[packet_size(18)]
 pub struct DisplayGainedExperiencePacket {
@@ -4447,7 +4447,7 @@ pub struct DisplayGainedExperiencePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum ImageLocation {
     BottomLeft,
     BottomMiddle,
@@ -4459,7 +4459,7 @@ pub enum ImageLocation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01B3)]
 #[packet_size(67)]
 pub struct DisplayImagePacket {
@@ -4469,7 +4469,7 @@ pub struct DisplayImagePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0229)]
 #[packet_size(15)]
 pub struct StateChangePacket {
@@ -4481,7 +4481,7 @@ pub struct StateChangePacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x009D)]
 #[packet_size(19)]
 pub struct GroundItemAppearPacket {
@@ -4495,7 +4495,7 @@ pub struct GroundItemAppearPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x009E)]
 pub struct GroundItemAppear2Packet {
     pub entity_id: EntityId,
@@ -4508,7 +4508,7 @@ pub struct GroundItemAppear2Packet {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x084B)]
 pub struct GroundItemAppear3Packet {
     pub entity_id: EntityId,
@@ -4522,7 +4522,7 @@ pub struct GroundItemAppear3Packet {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ADD)]
 #[packet_size(24)]
 pub struct GroundItemAppear4Packet {
@@ -4539,7 +4539,7 @@ pub struct GroundItemAppear4Packet {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00A1)]
 #[packet_size(6)]
 pub struct ItemDisappearPacket {
@@ -4547,7 +4547,7 @@ pub struct ItemDisappearPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, PartialEq, Eq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum ItemPickupResult {
     Success,
     Invalid,
@@ -4560,7 +4560,7 @@ pub enum ItemPickupResult {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B41)]
 pub struct ItemPickupPacket {
     pub index: InventoryIndex,
@@ -4582,7 +4582,7 @@ pub struct ItemPickupPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum RemoveItemReason {
     Normal,
@@ -4596,7 +4596,7 @@ pub enum RemoveItemReason {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07FA)]
 #[packet_size(8)]
 pub struct RemoveItemFromInventoryPacket {
@@ -4607,7 +4607,7 @@ pub struct RemoveItemFromInventoryPacket {
 
 // TODO: improve names
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum QuestEffect {
     Quest,
@@ -4626,7 +4626,7 @@ pub enum QuestEffect {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum QuestColor {
     Yellow,
@@ -4636,7 +4636,7 @@ pub enum QuestColor {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0446)]
 #[packet_size(14)]
 pub struct QuestEffectPacket {
@@ -4647,7 +4647,7 @@ pub struct QuestEffectPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B4)]
 #[variable_length]
 pub struct NpcDialogPacket {
@@ -4657,12 +4657,12 @@ pub struct NpcDialogPacket {
 }
 
 #[derive(Debug, Clone, Default, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x007D)]
 pub struct MapLoadedPacket {}
 
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0187)]
 #[ping]
 pub struct CharacterServerKeepalivePacket {
@@ -4672,7 +4672,7 @@ pub struct CharacterServerKeepalivePacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0090)]
 pub struct StartDialogPacket {
     pub npc_id: EntityId,
@@ -4681,21 +4681,21 @@ pub struct StartDialogPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B9)]
 pub struct NextDialogPacket {
     pub npc_id: EntityId,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0146)]
 pub struct CloseDialogPacket {
     pub npc_id: EntityId,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B8)]
 pub struct ChooseDialogOptionPacket {
     pub npc_id: EntityId,
@@ -4704,7 +4704,7 @@ pub struct ChooseDialogOptionPacket {
 
 bitflags::bitflags! {
     #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    #[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+    #[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
     pub struct EquipPosition: u32 {
         const NONE = 0;
         const HEAD_LOWER = 1;
@@ -4758,7 +4758,7 @@ impl ToBytes for EquipPosition {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0998)]
 pub struct RequestEquipItemPacket {
     pub inventory_index: InventoryIndex,
@@ -4766,7 +4766,7 @@ pub struct RequestEquipItemPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum RequestEquipItemStatus {
     #[numeric_value(0)]
     Success,
@@ -4780,7 +4780,7 @@ pub enum RequestEquipItemStatus {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0999)]
 #[packet_size(11)]
 pub struct RequestEquipItemStatusPacket {
@@ -4791,7 +4791,7 @@ pub struct RequestEquipItemStatusPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x013C)]
 #[packet_size(4)]
 pub struct EquipAmmunitionPacket {
@@ -4799,7 +4799,7 @@ pub struct EquipAmmunitionPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 // rAthena sends this as an uint16 (`PACKET_ZC_ACTION_FAILURE`: int16 packetType + uint16 type),
 // so the enum must be serialized as u16 as well. With the default u8 the packet was 3 bytes
 // instead of 4 and parsing it left a stray byte in the packet stream.
@@ -4812,7 +4812,7 @@ pub enum AmmunitionActionType {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x013B)]
 #[packet_size(4)]
 pub struct AmmunitionActionPacket {
@@ -4820,21 +4820,21 @@ pub struct AmmunitionActionPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00AB)]
 pub struct RequestUnequipItemPacket {
     pub inventory_index: InventoryIndex,
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum RequestUnequipItemStatus {
     Success,
     Failed,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x099A)]
 #[packet_size(9)]
 pub struct RequestUnequipItemStatusPacket {
@@ -4844,14 +4844,14 @@ pub struct RequestUnequipItemStatusPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum RestartType {
     Respawn,
     Disconnect,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B1)]
 #[packet_size(8)]
 pub struct ParameterChangePacket {
@@ -4860,7 +4860,7 @@ pub struct ParameterChangePacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B2)]
 pub struct RestartPacket {
     pub restart_type: RestartType,
@@ -4869,14 +4869,14 @@ pub struct RestartPacket {
 // TODO: check that this can be only 1 and 0, if not ByteConvertable
 // should be implemented manually
 #[derive(Debug, Clone, ByteConvertable, PartialEq, Eq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum RestartResponseStatus {
     Nothing,
     Ok,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00B3)]
 #[packet_size(3)]
 pub struct RestartResponsePacket {
@@ -4886,7 +4886,7 @@ pub struct RestartResponsePacket {
 // TODO: check that this can be only 1 and 0, if not Named, ByteConvertable
 // should be implemented manually
 #[derive(Debug, Clone, ByteConvertable, PartialEq, Eq)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum DisconnectResponseStatus {
     Ok,
@@ -4894,7 +4894,7 @@ pub enum DisconnectResponseStatus {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x018B)]
 #[packet_size(4)]
 pub struct DisconnectResponsePacket {
@@ -4908,7 +4908,7 @@ pub struct DisconnectResponsePacket {
 /// and tell the character server (and through it the login server) that the
 /// account is offline, so it can log in again immediately.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x018A)]
 pub struct RequestDisconnectPacket {
     /// Disconnect type. The server ignores the value, official clients send 0.
@@ -4916,7 +4916,7 @@ pub struct RequestDisconnectPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0438)]
 pub struct UseSkillAtIdPacket {
     pub skill_level: SkillLevel,
@@ -4933,7 +4933,7 @@ pub struct UseSkillAtIdPacket {
 /// two in the opposite order, which the server read as skill=level/level=id and
 /// silently ignored.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x089B)]
 pub struct UseSkillAtTargetPacket2019 {
     pub skill_level: SkillLevel,
@@ -4942,7 +4942,7 @@ pub struct UseSkillAtTargetPacket2019 {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AF4)]
 pub struct UseSkillOnGroundPacket {
     pub skill_level: SkillLevel,
@@ -4953,7 +4953,7 @@ pub struct UseSkillOnGroundPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B10)]
 pub struct StartUseSkillPacket {
     pub skill_id: SkillId,
@@ -4962,7 +4962,7 @@ pub struct StartUseSkillPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B11)]
 pub struct EndUseSkillPacket {
     pub skill_id: SkillId,
@@ -4975,7 +4975,7 @@ pub struct EndUseSkillPacket {
 /// additional trailing `attackMT` field (29 bytes in total). It is parsed and
 /// turned into the typed `NetworkEvent::SkillCast` by the client.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B1A)]
 #[packet_size(29)]
 pub struct UseSkillAckPacket2019 {
@@ -4990,7 +4990,7 @@ pub struct UseSkillAckPacket2019 {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0110)]
 #[packet_size(14)]
 pub struct ToUseSkillSuccessPacket {
@@ -5002,7 +5002,7 @@ pub struct ToUseSkillSuccessPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum UnitId {
     #[numeric_value(0x7E)]
@@ -5197,7 +5197,7 @@ pub enum UnitId {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09CA)]
 #[packet_size(23)]
 pub struct NotifySkillUnitPacket {
@@ -5212,7 +5212,7 @@ pub struct NotifySkillUnitPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0117)]
 #[packet_size(18)]
 pub struct NotifyGroundSkillPacket {
@@ -5230,7 +5230,7 @@ pub struct NotifyGroundSkillPacket {
 /// marker), `term` (minimum interval between two plays in milliseconds) and the
 /// account id of the entity that produced the sound.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01D3)]
 #[packet_size(35)]
 pub struct SoundPacket {
@@ -5246,7 +5246,7 @@ pub struct SoundPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0120)]
 #[packet_size(6)]
 pub struct SkillUnitDisappearPacket {
@@ -5254,7 +5254,7 @@ pub struct SkillUnitDisappearPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Friend {
     pub account_id: AccountId,
     pub character_id: CharacterId,
@@ -5267,7 +5267,7 @@ pub struct Friend {
 // `CZ_CHANGE_DIRECTION`), so sending 0x0202 to a modern server corrupts the
 // packet stream.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x086F)]
 pub struct AddFriendPacket {
     #[length(24)]
@@ -5275,7 +5275,7 @@ pub struct AddFriendPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0203)]
 pub struct RemoveFriendPacket {
     pub account_id: AccountId,
@@ -5283,7 +5283,7 @@ pub struct RemoveFriendPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x020A)]
 #[packet_size(10)]
 pub struct NotifyFriendRemovedPacket {
@@ -5292,7 +5292,7 @@ pub struct NotifyFriendRemovedPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0201)]
 #[variable_length]
 pub struct FriendListPacket {
@@ -5308,7 +5308,7 @@ pub struct FriendListPacket {
 /// such a packet with the 2022-era [Friend] entry would read past the end of
 /// the packet and desynchronize the whole map server stream.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Friend2019 {
     pub account_id: AccountId,
     pub character_id: CharacterId,
@@ -5323,7 +5323,7 @@ pub struct Friend2019 {
 /// left the client on a black screen. Friend names are delivered later by the
 /// `ZC_FRIENDS_STATE` (0x0206) packet.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0201)]
 #[variable_length]
 pub struct FriendListPacket2019 {
@@ -5332,14 +5332,14 @@ pub struct FriendListPacket2019 {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum OnlineState {
     Online,
     Offline,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0206)]
 #[packet_size(35)]
 pub struct FriendOnlineStatusPacket {
@@ -5351,7 +5351,7 @@ pub struct FriendOnlineStatusPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0207)]
 #[packet_size(34)]
 pub struct FriendRequestPacket {
@@ -5359,7 +5359,7 @@ pub struct FriendRequestPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum FriendRequestResponse {
     Reject,
@@ -5367,7 +5367,7 @@ pub enum FriendRequestResponse {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0208)]
 pub struct FriendRequestResponsePacket {
     pub account_id: AccountId,
@@ -5376,7 +5376,7 @@ pub struct FriendRequestResponsePacket {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u16)]
 pub enum FriendRequestResult {
     Accepted,
@@ -5386,7 +5386,7 @@ pub enum FriendRequestResult {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0209)]
 #[packet_size(36)]
 pub struct FriendRequestResultPacket {
@@ -5395,7 +5395,7 @@ pub struct FriendRequestResultPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C6)]
 #[packet_size(30)]
 pub struct PartyInvitePacket {
@@ -5405,14 +5405,14 @@ pub struct PartyInvitePacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ReputationEntry {
     pub reputation_type: u64,
     pub points: i64,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B8D)]
 #[variable_length]
 pub struct ReputationPacket {
@@ -5422,21 +5422,21 @@ pub struct ReputationPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Aliance {
     #[length(24)]
     pub name: String,
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct Antagonist {
     #[length(24)]
     pub name: String,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x098A)]
 #[variable_length]
 pub struct ClanInfoPacket {
@@ -5458,7 +5458,7 @@ pub struct ClanInfoPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0988)]
 #[packet_size(6)]
 pub struct ClanOnlineCountPacket {
@@ -5467,7 +5467,7 @@ pub struct ClanOnlineCountPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0192)]
 #[packet_size(24)]
 pub struct ChangeMapCellPacket {
@@ -5478,7 +5478,7 @@ pub struct ChangeMapCellPacket {
 }
 
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct MarketItemInformation {
     pub name_id: u32,
     pub item_type: u8,
@@ -5489,7 +5489,7 @@ pub struct MarketItemInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0B7A)]
 #[variable_length]
 pub struct OpenMarketPacket {
@@ -5503,7 +5503,7 @@ pub struct OpenMarketPacket {
 /// CondaRO server: `{ price u32, discount price u32, item type u8, item id u32
 /// }`.
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ShopItemInformation {
     pub price: Price,
     pub discount_price: Price,
@@ -5513,7 +5513,7 @@ pub struct ShopItemInformation {
 
 /// Item list of an NPC shop (ZC_PC_PURCHASE_ITEMLIST, 2019 layout).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C6)]
 #[variable_length]
 pub struct ShopItemListPacket {
@@ -5522,7 +5522,7 @@ pub struct ShopItemListPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C4)]
 #[packet_size(6)]
 pub struct BuyOrSellPacket {
@@ -5530,14 +5530,14 @@ pub struct BuyOrSellPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum BuyOrSellOption {
     Buy,
     Sell,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C5)]
 pub struct SelectBuyOrSellPacket {
     pub shop_id: ShopId,
@@ -5545,7 +5545,7 @@ pub struct SelectBuyOrSellPacket {
 }
 
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum BuyItemResult {
     #[numeric_value(0)]
     Successful,
@@ -5570,14 +5570,14 @@ pub enum BuyItemResult {
 }
 
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct BuyItemInformation {
     pub amount: u16,
     pub item_id: ItemId,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C8)]
 #[variable_length]
 pub struct BuyItemsPacket {
@@ -5587,7 +5587,7 @@ pub struct BuyItemsPacket {
 
 /// Result of a purchase at an NPC shop (ZC_PC_PURCHASE_RESULT, 2019 layout).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00CA)]
 #[packet_size(3)]
 pub struct BuyItemsResultPacket {
@@ -5595,12 +5595,12 @@ pub struct BuyItemsResultPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09D4)]
 pub struct CloseShopPacket {}
 
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct SellItemInformation {
     pub inventory_index: InventoryIndex,
     pub price: Price,
@@ -5608,7 +5608,7 @@ pub struct SellItemInformation {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C7)]
 #[variable_length]
 pub struct SellListPacket {
@@ -5617,14 +5617,14 @@ pub struct SellListPacket {
 }
 
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct SoldItemInformation {
     pub inventory_index: InventoryIndex,
     pub amount: u16,
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00C9)]
 #[variable_length]
 pub struct SellItemsPacket {
@@ -5633,14 +5633,14 @@ pub struct SellItemsPacket {
 }
 
 #[derive(Debug, Clone, Copy, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub enum SellItemsResult {
     Success,
     Error,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00CB)]
 #[packet_size(3)]
 pub struct SellItemsResultPacket {
@@ -5648,14 +5648,14 @@ pub struct SellItemsResultPacket {
 }
 
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0112)]
 pub struct LevelUpSkillPacket {
     pub skill_id: SkillId,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x010E)]
 #[packet_size(11)]
 pub struct UpdateSkillPacket {
@@ -5668,7 +5668,7 @@ pub struct UpdateSkillPacket {
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0441)]
 #[packet_size(4)]
 pub struct RemoveSkillPacket {
@@ -5682,7 +5682,7 @@ pub struct RemoveSkillPacket {
 /// Layout: rAthena `packets_struct.hpp` `PACKET_CZ_MOVE_ITEM_FROM_BODY_TO_CART`
 /// (header, index, amount), parsed at `clif.cpp:12544`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0126)]
 pub struct MoveItemToCartPacket {
     pub inventory_index: InventoryIndex,
@@ -5696,7 +5696,7 @@ pub struct MoveItemToCartPacket {
 /// Layout: rAthena `packets_struct.hpp` `PACKET_CZ_MOVE_ITEM_FROM_CART_TO_BODY`
 /// (header, index, amount), parsed at `clif.cpp:12558`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0127)]
 pub struct MoveItemFromCartPacket {
     pub cart_index: InventoryIndex,
@@ -5711,7 +5711,7 @@ pub struct MoveItemFromCartPacket {
 /// Layout: rAthena `packets_struct.hpp`
 /// `PACKET_CZ_MOVE_ITEM_FROM_STORE_TO_CART` (header, index, amount).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0128)]
 pub struct MoveItemFromStorageToCartPacket {
     /// Storage slot encoded as `slot + 1`.
@@ -5726,7 +5726,7 @@ pub struct MoveItemFromStorageToCartPacket {
 /// Layout: rAthena `packets_struct.hpp`
 /// `PACKET_CZ_MOVE_ITEM_FROM_CART_TO_STORE` (header, index, amount).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0129)]
 pub struct MoveItemFromCartToStoragePacket {
     pub cart_index: InventoryIndex,
@@ -5740,7 +5740,7 @@ pub struct MoveItemFromCartToStoragePacket {
 /// The 2019 layout has the refinement byte *before* the card slots and then the
 /// five random options (`clif.cpp:7273`, 57 bytes total).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A0B)]
 #[packet_size(57)]
 pub struct CartItemAddedPacket2019 {
@@ -5759,7 +5759,7 @@ pub struct CartItemAddedPacket2019 {
 /// removed from the cart. The cart slot uses the `slot + 2` encoding
 /// (`clif.cpp:7530`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0125)]
 #[packet_size(8)]
 pub struct CartDeleteItemPacket2019 {
@@ -5770,7 +5770,7 @@ pub struct CartDeleteItemPacket2019 {
 /// 2019 `ZC_ACK_ADDITEM_TO_CART` (0x012C): moving an item into the cart failed
 /// (0 = weight, 1 = item count), see `clif.cpp:7313`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x012C)]
 #[packet_size(3)]
 pub struct CartAddItemAckPacket2019 {
@@ -5780,7 +5780,7 @@ pub struct CartAddItemAckPacket2019 {
 /// 2019 `ZC_CARTOFF` (0x012B): the cart was removed; the client has to drop the
 /// cart list and close the cart window (`clif.cpp:3284`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x012B)]
 #[packet_size(2)]
 pub struct CartOffPacket {}
@@ -5789,7 +5789,7 @@ pub struct CartOffPacket {}
 /// vending shop list. `clif_parse_VendingListReq` (`clif.cpp:14128`) reads the
 /// account id and answers with `ZC_PC_PURCHASE_ITEMLIST_FROMMC` (0x0800).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0130)]
 #[packet_size(6)]
 pub struct RequestVendingListPacket {
@@ -5800,7 +5800,7 @@ pub struct RequestVendingListPacket {
 /// Sent by `clif_showvendingboard` (`clif.cpp:7558`) with the owner account id
 /// and the 80 byte shop title.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0131)]
 #[packet_size(86)]
 pub struct StoreEntryPacket2019 {
@@ -5812,7 +5812,7 @@ pub struct StoreEntryPacket2019 {
 /// 2019 `ZC_DISAPPEAR_ENTRY` (0x0132): the vending shop of the player left the
 /// view or was closed (`clif_closevendingboard`, `clif.cpp:7576`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0132)]
 #[packet_size(6)]
 pub struct StoreEntryRemovedPacket2019 {
@@ -5828,7 +5828,7 @@ pub struct StoreEntryRemovedPacket2019 {
 /// row. `cart_index` is the seller's cart slot in the usual `slot + 2`
 /// encoding, which is exactly what the purchase request has to echo back.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct VendingItemInformation2019 {
     pub price: u32,
     pub amount: u16,
@@ -5848,7 +5848,7 @@ pub struct VendingItemInformation2019 {
 /// player's vending shop. rAthena sends `AID`, the shop's `vender_id` and one
 /// [VendingItemInformation2019] per row (`clif.cpp:7592`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0800)]
 #[variable_length]
 pub struct VendingItemListPacket2019 {
@@ -5861,7 +5861,7 @@ pub struct VendingItemListPacket2019 {
 /// One `{ <amount>.W <index>.W }` entry of a
 /// `CZ_PC_PURCHASE_ITEMLIST_FROMMC` (0x0134) request.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct PurchaseFromShopEntry {
     pub amount: u16,
     pub cart_index: InventoryIndex,
@@ -5872,7 +5872,7 @@ pub struct PurchaseFromShopEntry {
 /// slot index against the shop it last sent (`clif.cpp:14138`,
 /// `vending.cpp:129`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0134)]
 #[variable_length]
 pub struct PurchaseFromShopPacket {
@@ -5887,7 +5887,7 @@ pub struct PurchaseFromShopPacket {
 /// 4 out of stock, 5 trading, 6 stale shop, 7 no sales info
 /// (`clif.cpp:7642`, `clif.hpp:818`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0135)]
 #[packet_size(7)]
 pub struct VendingPurchaseResultPacket2019 {
@@ -5903,7 +5903,7 @@ pub struct VendingPurchaseResultPacket2019 {
 /// `<character name> : ` and the trailing `NUL` is not counted in the declared
 /// packet length.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017E)]
 #[variable_length]
 #[allow_packet_size_mismatch]
@@ -5917,7 +5917,7 @@ pub struct GuildChatRequestPacket {
 /// The payload is the full `<name> : <message>` line like the party chat
 /// packet; the packet length includes the trailing `NUL`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017F)]
 #[variable_length]
 pub struct GuildChatReceivedPacket {
@@ -6324,7 +6324,7 @@ mod sound_packet_tests {
 /// * `2` = already in a party
 /// * `3` = cannot create a party on this map
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00FA)]
 #[packet_size(3)]
 pub struct PartyCreationResultPacket {
@@ -6337,7 +6337,7 @@ pub struct PartyCreationResultPacket {
 /// `e_party_invite_reply` values (0 = already in a party, 1 = rejected,
 /// 2 = accepted, 3 = party full, ...).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C5)]
 #[packet_size(30)]
 pub struct PartyInviteReplyPacket2019 {
@@ -6349,7 +6349,7 @@ pub struct PartyInviteReplyPacket2019 {
 /// `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4, 2019 layout): a party member joined or
 /// changed map. 89 bytes.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AE4)]
 #[packet_size(89)]
 pub struct AddPartyMemberPacket2019 {
@@ -6375,7 +6375,7 @@ pub struct AddPartyMemberPacket2019 {
 
 /// One entry of a `ZC_GROUP_LIST` (0x0AE5) party roster: 54 bytes.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct PartyListMember {
     pub account_id: AccountId,
     pub character_id: CharacterId,
@@ -6397,7 +6397,7 @@ pub struct PartyListMember {
 /// { account id }.{L} { char id }.{L} { name }.{24B} { map name }.{16B}
 /// { role }.{B} { offline }.{B} { job }.{W} { base level }.{W}` repeated.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AE5)]
 #[variable_length]
 pub struct PartyListPacket2019 {
@@ -6409,7 +6409,7 @@ pub struct PartyListPacket2019 {
 
 /// `ZC_DELETE_MEMBER_FROM_GROUP` (0x0105): a member left or was expelled.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0105)]
 #[packet_size(31)]
 pub struct RemovePartyMemberPacket2019 {
@@ -6422,7 +6422,7 @@ pub struct RemovePartyMemberPacket2019 {
 
 /// `ZC_NOTIFY_POSITION_TO_GROUPM` (0x0107): party member position on the map.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0107)]
 #[packet_size(10)]
 pub struct PartyMemberPositionPacket2019 {
@@ -6432,7 +6432,7 @@ pub struct PartyMemberPositionPacket2019 {
 
 /// `ZC_NOTIFY_CHAT_PARTY` (0x0109): party chat message.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0109)]
 #[variable_length]
 pub struct PartyChatMessagePacket2019 {
@@ -6443,7 +6443,7 @@ pub struct PartyChatMessagePacket2019 {
 
 /// `ZC_NOTIFY_MEMBERINFO_TO_GROUPM` (0x0ABD): party member job and base level.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0ABD)]
 #[packet_size(10)]
 pub struct PartyMemberJobLevelPacket2019 {
@@ -6454,7 +6454,7 @@ pub struct PartyMemberJobLevelPacket2019 {
 
 /// `ZC_GROUP_ISALIVE` (0x0AB2): party member death state.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AB2)]
 #[packet_size(7)]
 pub struct PartyMemberAlivePacket2019 {
@@ -6468,7 +6468,7 @@ pub struct PartyMemberAlivePacket2019 {
 /// but the packet is registered so that a party booking broadcast cannot
 /// desynchronize the packet stream.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AE7)]
 #[packet_size(38)]
 pub struct PartyBookingJoinRequestPacket2019 {
@@ -6483,7 +6483,7 @@ pub struct PartyBookingJoinRequestPacket2019 {
 ///
 /// Registered for framing safety only, see [PartyBookingJoinRequestPacket2019].
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AFA)]
 #[packet_size(58)]
 pub struct PartyBookingJoinResultPacket2019 {
@@ -6497,7 +6497,7 @@ pub struct PartyBookingJoinResultPacket2019 {
 
 /// `CZ_MAKE_GROUP` (0x00F9): create a party with the given name.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00F9)]
 pub struct CreatePartyPacket {
     #[length(24)]
@@ -6506,7 +6506,7 @@ pub struct CreatePartyPacket {
 
 /// `CZ_PARTY_JOIN_REQ` (0x02C4): invite a character by name.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C4)]
 pub struct PartyInviteRequestPacket2019 {
     #[length(24)]
@@ -6515,7 +6515,7 @@ pub struct PartyInviteRequestPacket2019 {
 
 /// `CZ_PARTY_JOIN_REQ_ACK` (0x02C7): accept (1) or reject (0) a party invite.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02C7)]
 pub struct PartyInviteReplyRequestPacket2019 {
     pub party_id: PartyId,
@@ -6524,13 +6524,13 @@ pub struct PartyInviteReplyRequestPacket2019 {
 
 /// `CZ_REQ_LEAVE_GROUP` (0x0100): leave the current party.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0100)]
 pub struct LeavePartyPacket {}
 
 /// `CZ_REQ_EXPEL_GROUP_MEMBER` (0x0103): expel a party member (leader only).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0103)]
 pub struct ExpelPartyMemberPacket {
     pub account_id: AccountId,
@@ -6543,7 +6543,7 @@ pub struct ExpelPartyMemberPacket {
 /// The server expects the same `<name> : <message>` format (NUL terminated) as
 /// the regular global chat.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0108)]
 #[variable_length]
 // See [`GlobalMessagePacket`]: client-to-server packet whose trailing `NUL`
@@ -6564,7 +6564,7 @@ pub struct PartyChatRequestPacket {
 /// party characters. Layout: `{ header }.{W} { exp option }.{L}
 /// { item pickup }.{B} { item share }.{B}` (8 bytes).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07D8)]
 #[packet_size(8)]
 pub struct PartyOptionPacket2019 {
@@ -6583,7 +6583,7 @@ pub struct PartyOptionPacket2019 {
 /// Unregistered this is a 3-byte unknown packet: the stream resync then reads
 /// the error code as a length and discards the rest of the TCP read.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0081)]
 #[packet_size(3)]
 pub struct NotifyBanPacket {
@@ -6616,7 +6616,7 @@ pub struct NotifyBanPacket {
 /// { sender }.{24B} { scheduled deletion }.{L} { title length }.{W}
 /// { title }.{?B}` for PACKETVER >= 20170419.
 #[derive(Debug, Clone, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct MailListEntry2019 {
     /// Mailbox tab (`mail_inbox_type`): 0 = normal, 1 = account, 2 = returned.
     pub open_type: u8,
@@ -6643,7 +6643,7 @@ pub struct MailListEntry2019 {
 /// length title, so the rows are parsed until the declared packet end instead
 /// of using `#[repeating_remaining]` (which requires fixed size entries).
 #[derive(Debug, Clone, Default)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct MailListEntries2019 {
     pub mails: Vec<MailListEntry2019>,
 }
@@ -6674,7 +6674,7 @@ impl ToBytes for MailListEntries2019 {
 /// { length }.{W} { unknown = 1 }.{B}` followed by one [MailListEntry2019] per
 /// mail. rAthena sends the whole inbox, not a page, at this packet version.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AC2)]
 #[variable_length]
 pub struct MailboxListPacket2019 {
@@ -6693,7 +6693,7 @@ pub struct MailboxListPacket2019 {
 /// { refine }.{B} { cards }.{16B} { location }.{L} { item type }.{B}
 /// { view sprite }.{W} { bind on equip }.{W} { options }.{5*5B}`.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct MailAttachmentItem2019 {
     pub amount: u16,
     pub item_id: u32,
@@ -6711,7 +6711,7 @@ pub struct MailAttachmentItem2019 {
 /// The repeated attachment block of [`MailReadPacket2019`], parsed until the
 /// declared packet end (the server appends exactly `item count` 59 byte rows).
 #[derive(Debug, Clone, Default)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct MailAttachmentItems2019 {
     pub items: Vec<MailAttachmentItem2019>,
 }
@@ -6741,7 +6741,7 @@ impl ToBytes for MailAttachmentItems2019 {
 /// { item count }.{B} { body }.{?B} { items }*item count`. `text length`
 /// includes the terminating NUL.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09EB)]
 #[variable_length]
 pub struct MailReadPacket2019 {
@@ -6765,7 +6765,7 @@ pub struct MailReadPacket2019 {
 /// `clif_mail_getattachment`). The server separately sends the normal zeny
 /// status-update packet, so the client only has to report failures.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F2)]
 #[packet_size(12)]
 pub struct MailZenyClaimResultPacket {
@@ -6780,7 +6780,7 @@ pub struct MailZenyClaimResultPacket {
 /// claimed items themselves arrive as normal `ZC_ITEM_PICKUP_ACK` (0x0A37)
 /// packets, which the client already handles.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F4)]
 #[packet_size(12)]
 pub struct MailItemClaimResultPacket {
@@ -6794,7 +6794,7 @@ pub struct MailItemClaimResultPacket {
 /// rAthena only sends this packet on success (`clif_mail_delete`); failures are
 /// only reported in the server log.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F6)]
 #[packet_size(11)]
 pub struct MailDeleteAckPacket {
@@ -6806,7 +6806,7 @@ pub struct MailDeleteAckPacket {
 /// mailbox (atcommand `@mail`, script command `openmail`; clif.cpp
 /// clif_Mail_window).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0260)]
 #[packet_size(6)]
 pub struct MailboxWindowPacket {
@@ -6819,7 +6819,7 @@ pub struct MailboxWindowPacket {
 /// The 2019 client sends the three upper mail ids of the normal/returned/
 /// account tabs; all zero requests the first page of the normal inbox.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AC0)]
 pub struct MailboxOpenRequestPacket {
     pub mail_id: u64,
@@ -6828,7 +6828,7 @@ pub struct MailboxOpenRequestPacket {
 
 /// `CZ_REQ_REFRESH_MAIL_LIST2` (0x0AC1): force a mailbox refresh.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AC1)]
 pub struct MailboxRefreshRequestPacket {
     pub mail_id: u64,
@@ -6837,7 +6837,7 @@ pub struct MailboxRefreshRequestPacket {
 
 /// `CZ_REQ_READ_MAIL` (0x09EA): request the body of one mail.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09EA)]
 pub struct MailReadRequestPacket {
     pub open_type: u8,
@@ -6846,7 +6846,7 @@ pub struct MailReadRequestPacket {
 
 /// `CZ_REQ_ZENY_FROM_MAIL` (0x09F1): claim the zeny attachment.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F1)]
 pub struct MailClaimZenyRequestPacket {
     pub mail_id: u64,
@@ -6855,7 +6855,7 @@ pub struct MailClaimZenyRequestPacket {
 
 /// `CZ_REQ_ITEM_FROM_MAIL` (0x09F3): claim the item attachments.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F3)]
 pub struct MailClaimItemRequestPacket {
     pub mail_id: u64,
@@ -6864,7 +6864,7 @@ pub struct MailClaimItemRequestPacket {
 
 /// `CZ_REQ_DELETE_MAIL` (0x09F5): delete a mail without attachments.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F5)]
 pub struct MailDeleteRequestPacket {
     pub open_type: u8,
@@ -6903,7 +6903,7 @@ pub struct MailDeleteRequestPacket {
 /// position id and last login time. The 2016+ layout has **no name field**;
 /// the client requests it separately by character id.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildMemberInfo {
     pub account_id: AccountId,
     pub character_id: CharacterId,
@@ -6924,7 +6924,7 @@ pub struct GuildMemberInfo {
 /// `clif_guild_memberlist` (clif.cpp:8813) writes one
 /// [`GuildMemberInfo`] per member into this variable-length packet.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA5)]
 #[variable_length]
 pub struct GuildMemberManagerInfoPacket {
@@ -6940,7 +6940,7 @@ pub struct GuildMemberManagerInfoPacket {
 /// `0x01` member manager, `0x02` positions, `0x04` skills, `0x10` expulsion
 /// list, `0x40` all-guild list).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x014E)]
 #[packet_size(6)]
 pub struct GuildMenuInterfacePacket {
@@ -6956,7 +6956,7 @@ pub struct GuildMenuInterfacePacket {
 /// resolved from the member list row whose character id equals
 /// [`Self::master_character_id`] (position 0).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A84)]
 #[packet_size(94)]
 pub struct GuildInfoPacket {
@@ -6986,7 +6986,7 @@ pub struct GuildInfoPacket {
 
 /// One position name of `ZC_POSITION_ID_NAME_INFO` (0x0166).
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildPositionNameEntry {
     pub position_id: u32,
     #[length(24)]
@@ -7000,7 +7000,7 @@ pub struct GuildPositionNameEntry {
 /// clif.cpp:8863). Modeled as variable length because the packet carries its
 /// own length field and the 2022 client reads a different struct there.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0166)]
 #[variable_length]
 pub struct GuildPositionNameInfoPacket {
@@ -7016,7 +7016,7 @@ pub const MAX_GUILD_POSITIONS: usize = 20;
 /// `mode` uses `enum e_guild_permission` (`src/common/mmo.hpp:885`):
 /// `0x001` invite, `0x010` expel, `0x100` storage.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildPositionInfoEntry {
     pub position_id: u32,
     pub mode: u32,
@@ -7027,7 +7027,7 @@ pub struct GuildPositionInfoEntry {
 /// `ZC_POSITION_INFO` (0x0160): the permission/pay-rate row of every position
 /// (`clif_guild_positioninfolist`, clif.cpp:8890).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0160)]
 #[variable_length]
 pub struct GuildPositionInfoPacket {
@@ -7037,7 +7037,7 @@ pub struct GuildPositionInfoPacket {
 
 /// One entry of `ZC_ACK_CHANGE_GUILD_POSITIONINFO` (0x0174), 40 bytes.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildPositionChangedEntry {
     pub position_id: u32,
     pub mode: u32,
@@ -7050,7 +7050,7 @@ pub struct GuildPositionChangedEntry {
 /// `ZC_ACK_CHANGE_GUILD_POSITIONINFO` (0x0174): a position was renamed or its
 /// rights changed (`clif_guild_positionchanged`, clif.cpp:8925).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0174)]
 #[variable_length]
 pub struct GuildPositionChangedPacket {
@@ -7060,7 +7060,7 @@ pub struct GuildPositionChangedPacket {
 
 /// One entry of `ZC_ACK_REQ_CHANGE_MEMBERS` (0x0156), 12 bytes.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildMemberPositionChangedEntry {
     pub account_id: AccountId,
     pub character_id: CharacterId,
@@ -7070,7 +7070,7 @@ pub struct GuildMemberPositionChangedEntry {
 /// `ZC_ACK_REQ_CHANGE_MEMBERS` (0x0156): a member was moved to another
 /// position (`clif_guild_memberpositionchanged`, clif.cpp:8956).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0156)]
 #[variable_length]
 pub struct GuildMemberPositionChangedPacket {
@@ -7080,7 +7080,7 @@ pub struct GuildMemberPositionChangedPacket {
 
 /// One ally/opponent row of `ZC_MYGUILD_BASIC_INFO` (0x014C), 32 bytes.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct GuildAllianceInfo {
     /// `0` = ally, `1` = antagonist (`guild_alliance.opposition`,
     /// `src/common/mmo.hpp:787`).
@@ -7093,7 +7093,7 @@ pub struct GuildAllianceInfo {
 /// `ZC_MYGUILD_BASIC_INFO` (0x014C): the alliance and opposition list
 /// (`clif_guild_allianceinfo`, clif.cpp:8772).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x014C)]
 #[variable_length]
 pub struct GuildAllianceInfoPacket {
@@ -7104,7 +7104,7 @@ pub struct GuildAllianceInfoPacket {
 /// `ZC_GUILD_NOTICE` (0x016F), 182 bytes: `subject[60]` + `notice[120]`
 /// (`clif_guild_notice`, clif.cpp:9070).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x016F)]
 #[packet_size(182)]
 pub struct GuildNoticePacket {
@@ -7120,7 +7120,7 @@ pub struct GuildNoticePacket {
 /// (clif.cpp:7007). `flag` is 3 when the character server returned a name and
 /// 2 when the char id is unknown.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AF7)]
 #[packet_size(32)]
 pub struct GuildMemberNamePacket {
@@ -7133,7 +7133,7 @@ pub struct GuildMemberNamePacket {
 /// `CZ_REQ_GUILD_MENUINTERFACE` (0x014D), 2 bytes: request the guild window tab
 /// and master mask (`clif_parse_GuildCheckMaster`, clif.cpp:14235).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x014D)]
 pub struct GuildMenuInterfaceRequestPacket {}
 
@@ -7143,7 +7143,7 @@ pub struct GuildMenuInterfaceRequestPacket {}
 /// `0` basic info + alliance list, `1` member list + position names,
 /// `2` position names + position rights, `3` skills, `4` expulsion list.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x014F)]
 pub struct GuildMenuRequestPacket {
     pub menu: u32,
@@ -7155,7 +7155,7 @@ pub struct GuildMenuRequestPacket {
 /// `clif_packetdb.hpp:1636`; 0x0369 from the old table is
 /// `CZ_ACTION_REQUEST` at this PACKETVER and must not be used.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x094C)]
 pub struct GuildMemberNameRequestPacket {
     pub character_id: CharacterId,
@@ -7164,7 +7164,7 @@ pub struct GuildMemberNameRequestPacket {
 /// `CZ_REQ_JOIN_GUILD2` (0x0916): invite a character by name
 /// (`clif_parse_GuildInvite2`, clif.cpp:14483).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0916)]
 pub struct GuildInviteRequestPacket {
     #[length(24)]
@@ -7176,7 +7176,7 @@ pub struct GuildInviteRequestPacket {
 /// `clif_parse_GuildLeave` (clif.cpp:14516) requires the guild id, the own
 /// account/character id and a 40-byte message.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0159)]
 #[packet_size(54)]
 pub struct GuildLeaveRequestPacket {
@@ -7192,7 +7192,7 @@ pub struct GuildLeaveRequestPacket {
 /// `clif_parse_GuildExpulsion` (clif.cpp:14529). The message is the reason the
 /// server stores in the expulsion list.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x015B)]
 #[packet_size(54)]
 pub struct GuildExpelRequestPacket {
@@ -7209,7 +7209,7 @@ pub struct GuildExpelRequestPacket {
 /// `parseable_packet(0x016e,186,clif_parse_GuildChangeNotice,2,6,66)`, i.e.
 /// guild id at offset 2, subject at offset 6 and notice at offset 66.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x016E)]
 #[packet_size(186)]
 pub struct GuildNoticeChangeRequestPacket {
@@ -7253,7 +7253,7 @@ pub struct GuildNoticeChangeRequestPacket {
 /// `clif_PartyBookingInsertNotify`, clif.cpp:14068): index, character name,
 /// expire time, level, map index and six job ids.
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct PartyBookingEntry2019 {
     pub index: u32,
     #[length(24)]
@@ -7270,7 +7270,7 @@ pub struct PartyBookingEntry2019 {
 /// advertisement. `0` = success, `1` = failure, `2` = already registered
 /// (clif.cpp:13970).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0803)]
 #[packet_size(4)]
 pub struct PartyBookingRegisterResultPacket2019 {
@@ -7282,7 +7282,7 @@ pub struct PartyBookingRegisterResultPacket2019 {
 /// `more_results` is `1` when the server stopped at
 /// `MAX_PARTY_BOOKING_RESULTS` and more rows are available (clif.cpp:14000).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0805)]
 #[variable_length]
 pub struct PartyBookingSearchResultPacket2019 {
@@ -7295,7 +7295,7 @@ pub struct PartyBookingSearchResultPacket2019 {
 /// advertisement. `0`/`1` = success, `2` = failure, `3` = nothing registered
 /// (clif.cpp:14040).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0807)]
 #[packet_size(4)]
 pub struct PartyBookingDeleteResultPacket2019 {
@@ -7305,7 +7305,7 @@ pub struct PartyBookingDeleteResultPacket2019 {
 /// `ZC_PARTY_BOOKING_NOTIFY_INSERT` (0x0809): a new advertisement was added
 /// to the board.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0809)]
 #[packet_size(50)]
 pub struct PartyBookingInsertNotifyPacket2019 {
@@ -7315,7 +7315,7 @@ pub struct PartyBookingInsertNotifyPacket2019 {
 /// `ZC_PARTY_BOOKING_NOTIFY_UPDATE` (0x080A): the desired jobs of an
 /// advertisement changed.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x080A)]
 #[packet_size(18)]
 pub struct PartyBookingUpdateNotifyPacket2019 {
@@ -7325,7 +7325,7 @@ pub struct PartyBookingUpdateNotifyPacket2019 {
 
 /// `ZC_PARTY_BOOKING_NOTIFY_DELETE` (0x080B): an advertisement was removed.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x080B)]
 #[packet_size(6)]
 pub struct PartyBookingDeleteNotifyPacket2019 {
@@ -7338,7 +7338,7 @@ pub struct PartyBookingDeleteNotifyPacket2019 {
 /// `level` is the party level shown in the search, `map_id` the map index
 /// (`0` = any map) and `jobs` the six desired job ids (`u16::MAX` = any job).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0802)]
 #[packet_size(18)]
 pub struct PartyBookingRegisterRequestPacket2019 {
@@ -7353,7 +7353,7 @@ pub struct PartyBookingRegisterRequestPacket2019 {
 /// `result_count` is the maximum number of rows the client wants
 /// (`MAX_PARTY_BOOKING_RESULTS` server side).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0804)]
 #[packet_size(14)]
 pub struct PartyBookingSearchRequestPacket2019 {
@@ -7370,14 +7370,14 @@ pub struct PartyBookingSearchRequestPacket2019 {
 /// (`parseable_packet(0x0806,2,...)`, clif_packetdb.hpp:1316), i.e. header
 /// only.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0806)]
 pub struct PartyBookingDeleteRequestPacket2019 {}
 
 /// `CZ_PARTY_BOOKING_REQ_UPDATE` (0x0808): change the desired jobs of the own
 /// advertisement.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0808)]
 #[packet_size(14)]
 pub struct PartyBookingUpdateRequestPacket2019 {
@@ -7388,7 +7388,7 @@ pub struct PartyBookingUpdateRequestPacket2019 {
 /// booking advertisement. Only parsed by servers with
 /// `PACKETVER >= 20191204` (clif_packetdb.hpp:1981).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AE6)]
 #[packet_size(10)]
 pub struct PartyBookingJoinRequestPacket {
@@ -7399,7 +7399,7 @@ pub struct PartyBookingJoinRequestPacket {
 /// `CZ_PARTY_REQ_ACK_MASTER_TO_JOIN` (0x0AF8): accept (`1`) or reject (`0`) a
 /// booking join request, sent by the party leader.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AF8)]
 #[packet_size(11)]
 pub struct PartyBookingJoinReplyPacket {
@@ -7412,7 +7412,7 @@ pub struct PartyBookingJoinReplyPacket {
 /// rules. `clif_parse_PartyChangeOption` (clif.cpp:13893) reads the EXP flag
 /// as `L`, the item pickup and item share flags as bytes.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07D7)]
 #[packet_size(8)]
 pub struct PartyOptionRequestPacket2019 {
@@ -7429,7 +7429,7 @@ pub struct PartyOptionRequestPacket2019 {
 /// `clif_parse_PartyChangeLeader` (clif.cpp:13938) reads the account id at
 /// offset 2.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07DA)]
 #[packet_size(6)]
 pub struct ChangePartyLeaderPacket {
@@ -7459,7 +7459,7 @@ pub struct ChangePartyLeaderPacket {
 
 /// `ZC_PROPERTY_PET` (0x01A2): pet base data of the local player's pet.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01A2)]
 #[packet_size(37)]
 pub struct PetPropertyPacket2019 {
@@ -7483,7 +7483,7 @@ pub struct PetPropertyPacket2019 {
 /// `state_type`: `0` = pre-init, `1` = intimacy, `2` = hunger, `3` =
 /// accessory, `4` = performance, `5` = hairstyle (clif.cpp:8230).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01A4)]
 #[packet_size(11)]
 pub struct PetStateChangePacket2019 {
@@ -7497,7 +7497,7 @@ pub struct PetStateChangePacket2019 {
 /// The layout is `PACKET_ZC_PROPERTY_HOMUN2` at PACKETVER 20190605
 /// (`src/map/packets_struct.hpp:2823`, `packet(0x09F7,77)`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09F7)]
 #[packet_size(77)]
 pub struct HomunculusPropertyPacket2019 {
@@ -7533,7 +7533,7 @@ pub struct HomunculusPropertyPacket2019 {
 /// `parameter` is the rAthena `_sp` id: `1` = base EXP, `5` = HP, `7` = SP
 /// (`src/map/map.hpp:514`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x07DB)]
 #[packet_size(8)]
 pub struct HomunculusParameterChangePacket2019 {
@@ -7546,7 +7546,7 @@ pub struct HomunculusParameterChangePacket2019 {
 /// rAthena writes this by hand in `clif_mercenary_info` (clif.cpp:18234) and
 /// registers it as 80 bytes (`packet(0x029b,80)`, clif_packetdb.hpp:944).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x029B)]
 #[packet_size(80)]
 pub struct MercenaryInfoPacket2019 {
@@ -7578,7 +7578,7 @@ pub struct MercenaryInfoPacket2019 {
 /// ids are the rAthena `_sp` values (`SP_HP` 5, `SP_MAXHP` 6, `SP_SP` 7,
 /// `SP_MERCKILLS` 189, `SP_MERCFAITH` 190).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x02A2)]
 #[packet_size(8)]
 pub struct MercenaryParameterChangePacket2019 {
@@ -7874,7 +7874,7 @@ mod guild_packet_tests {
 /// character left the guild. The 2016+ layout replaces the 24-byte name with
 /// the character id (`PACKET_ZC_ACK_LEAVE_GUILD2`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A83)]
 #[packet_size(46)]
 pub struct GuildLeaveNoticePacket {
@@ -7888,7 +7888,7 @@ pub struct GuildLeaveNoticePacket {
 /// `clif_guild_expulsion` (clif.cpp:9143); unlike the leave packet the reason
 /// comes first (`PACKET_ZC_ACK_BAN_GUILD3`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A82)]
 #[packet_size(46)]
 pub struct GuildBanNoticePacket {
@@ -7904,7 +7904,7 @@ pub struct GuildBanNoticePacket {
 /// `1` = target offline, `3` = guild full. There is no success ack; the
 /// invitation itself is `ZC_REQ_JOIN_GUILD` (0x016A) to the target.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0169)]
 #[packet_size(3)]
 pub struct GuildInviteResultPacket {
@@ -7926,7 +7926,7 @@ pub struct GuildInviteResultPacket {
 /// script command sends (`src/map/script.cpp:27070`). Opening the bank still
 /// needs the `CZ_REQ_OPEN_BANKING` request below.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AE2)]
 #[packet_size(7)]
 pub struct OpenUserInterfacePacket {
@@ -7938,7 +7938,7 @@ pub struct OpenUserInterfacePacket {
 /// `ZC_ACK_OPEN_BANKING` (0x09B7), 4 bytes: the server accepted the banking
 /// session (`clif_bank_open`, `src/map/clif.cpp:7327`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09B7)]
 #[packet_size(4)]
 pub struct BankOpenAckPacket {
@@ -7949,7 +7949,7 @@ pub struct BankOpenAckPacket {
 /// `ZC_ACK_CLOSE_BANKING` (0x09B9), 4 bytes (`clif_bank_close`,
 /// `src/map/clif.cpp:7369`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09B9)]
 #[packet_size(4)]
 pub struct BankCloseAckPacket {
@@ -7960,7 +7960,7 @@ pub struct BankCloseAckPacket {
 /// `ZC_BANKING_CHECK` (0x09A6), 12 bytes: the current bank vault and a reason
 /// code (`clif_Bank_Check`, `src/map/clif.cpp:7405`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A6)]
 #[packet_size(12)]
 pub struct BankBalancePacket {
@@ -7974,7 +7974,7 @@ pub struct BankBalancePacket {
 /// `src/map/clif.cpp:7446`). `reason` uses `enum e_BANKING_DEPOSIT_ACK`
 /// (`src/map/clif.hpp:93`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A8)]
 #[packet_size(16)]
 pub struct BankDepositAckPacket {
@@ -7989,7 +7989,7 @@ pub struct BankDepositAckPacket {
 /// `src/map/clif.cpp:7490`). `reason` uses `enum e_BANKING_WITHDRAW_ACK`
 /// (`src/map/clif.hpp:100`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09AA)]
 #[packet_size(16)]
 pub struct BankWithdrawAckPacket {
@@ -8004,7 +8004,7 @@ pub struct BankWithdrawAckPacket {
 /// only answers when `AID` equals the sender's account id
 /// (`clif_parse_BankOpen`, `src/map/clif.cpp:7342`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09B6)]
 #[packet_size(6)]
 pub struct BankOpenRequestPacket {
@@ -8014,7 +8014,7 @@ pub struct BankOpenRequestPacket {
 /// `CZ_REQ_CLOSE_BANKING` (0x09B8), 6 bytes
 /// (`clif_parse_BankClose`, `src/map/clif.cpp:7383`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09B8)]
 #[packet_size(6)]
 pub struct BankCloseRequestPacket {
@@ -8024,7 +8024,7 @@ pub struct BankCloseRequestPacket {
 /// `CZ_REQ_BANKING_CHECK` (0x09AB), 6 bytes: request `ZC_BANKING_CHECK`
 /// (`clif_parse_BankCheck`, `src/map/clif.cpp:7419`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09AB)]
 #[packet_size(6)]
 pub struct BankCheckRequestPacket {
@@ -8034,7 +8034,7 @@ pub struct BankCheckRequestPacket {
 /// `CZ_REQ_BANKING_DEPOSIT` (0x09A7), 10 bytes (`clif_parse_BankDeposit`,
 /// `src/map/clif.cpp:7462`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A7)]
 #[packet_size(10)]
 pub struct BankDepositRequestPacket {
@@ -8046,7 +8046,7 @@ pub struct BankDepositRequestPacket {
 /// `CZ_REQ_BANKING_WITHDRAW` (0x09A9), 10 bytes (`clif_parse_BankWithdraw`,
 /// `src/map/clif.cpp:7505`).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x09A9)]
 #[packet_size(10)]
 pub struct BankWithdrawRequestPacket {
@@ -8139,7 +8139,7 @@ mod bank_packet_tests {
 /// (`clif_parse_AchievementCheckReward`, `clif.cpp:21846-21855`):
 /// `0a25 <achievement id>.L`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A25)]
 #[packet_size(6)]
 pub struct AchievementRewardRequestPacket {
@@ -8156,7 +8156,7 @@ pub struct AchievementRewardRequestPacket {
 /// granted; `0` means the claim was rejected (not completed / already
 /// rewarded / inter-server failure).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A26)]
 #[packet_size(7)]
 pub struct AchievementRewardAckPacket {
@@ -8173,7 +8173,7 @@ pub struct AchievementRewardAckPacket {
 /// <shadow>.B <ghost>.B <undead>.B` (29 bytes). The class is the monster
 /// view/job id, the elemental values are percentage resistances.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x018C)]
 #[packet_size(29)]
 pub struct MonsterInfoPacket {
@@ -8541,7 +8541,7 @@ mod mail_packet_tests {
 /// (`client_index(i)` = server slot + 2, `clif.cpp:7233`), so the index is an
 /// [`InventoryIndex`].
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct WeaponRefineListEntry {
     pub index: InventoryIndex,
     pub item_id: ItemId,
@@ -8561,7 +8561,7 @@ pub struct WeaponRefineListEntry {
 /// `WS_WEAPONREFINE`, and it only accepts [`WeaponRefineRequestPacket`] while
 /// that menu skill is pending (`clif_parse_WeaponRefine`, `clif.cpp:13255`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0221)]
 #[variable_length]
 pub struct WeaponRefineListPacket {
@@ -8578,7 +8578,7 @@ pub struct WeaponRefineListPacket {
 /// (the weapon lost its refine level), `2` = the refine level is already at the
 /// skill limit, `3` = the required material is missing.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0223)]
 #[packet_size(10)]
 pub struct WeaponRefineResultPacket {
@@ -8598,7 +8598,7 @@ pub struct WeaponRefineResultPacket {
 /// destroyed), `2` downgrade (the item lost refine levels) and `3` failure
 /// (protected by Blacksmith Blessings, nothing changed).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0188)]
 #[packet_size(8)]
 pub struct ItemRefiningResultPacket {
@@ -8619,7 +8619,7 @@ pub struct ItemRefiningResultPacket {
 /// convert with `InventoryIndex(raw)`; do not use [`InventoryIndex`] which
 /// shifts by two on the wire.
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct RepairItemListEntry {
     /// Raw 0-based inventory slot of the damaged item.
     pub index: u16,
@@ -8634,7 +8634,7 @@ pub struct RepairItemListEntry {
 /// }.W` followed by one [`RepairItemListEntry`] (23 bytes) per item. The list
 /// is only sent after the player used `BS_REPAIRWEAPON`.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01FC)]
 #[variable_length]
 pub struct RepairItemListPacket {
@@ -8650,7 +8650,7 @@ pub struct RepairItemListPacket {
 /// (`client_index(idx)`, `clif.cpp:7186`), so it is an [`InventoryIndex`].
 /// `result` is `0` = success, `1` = failure (the item was not repaired).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01FE)]
 #[packet_size(5)]
 pub struct RepairItemResultPacket {
@@ -8668,7 +8668,7 @@ pub struct RepairItemResultPacket {
 /// [`IdentifyItemRequestPacket`], which rAthena only accepts while that menu
 /// skill is pending (`clif.cpp:13385`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0177)]
 #[variable_length]
 pub struct IdentifyItemListPacket {
@@ -8682,7 +8682,7 @@ pub struct IdentifyItemListPacket {
 /// `{ header }.W { index }.W { result }.B`. `index` is the `slot + 2` client
 /// index (`clif.cpp:7134`); `result` is `0` = success, `1` = failure.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0179)]
 #[packet_size(5)]
 pub struct IdentifyItemResultPacket {
@@ -8699,7 +8699,7 @@ pub struct IdentifyItemResultPacket {
 /// written is the inventory index of the equipment. The list is sent as the
 /// answer to [`CardCompositionListRequestPacket`].
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017B)]
 #[variable_length]
 pub struct CardCompositionListPacket {
@@ -8714,7 +8714,7 @@ pub struct CardCompositionListPacket {
 /// are `slot + 2` client indexes (`clif.cpp:7088`); `result` is `0` = success,
 /// `1` = failure.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017D)]
 #[packet_size(7)]
 pub struct CardCompositionResultPacket {
@@ -8733,7 +8733,7 @@ pub struct CardCompositionResultPacket {
 /// `ZC_ACK_ITEMCOMPOSITION` ack plus the normal item list refresh. It is parsed
 /// so a future server that uses it cannot desynchronize the packet stream.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A3F)]
 #[packet_size(11)]
 pub struct UpdateCardSlotPacket {
@@ -8752,7 +8752,7 @@ pub struct UpdateCardSlotPacket {
 /// *client* index (server slot + 2) as a 32 bit number. It is kept as a raw
 /// `u32` because [`InventoryIndex`] serializes as a 16 bit value.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0222)]
 #[packet_size(6)]
 pub struct WeaponRefineRequestPacket {
@@ -8780,7 +8780,7 @@ impl WeaponRefineRequestPacket {
 /// `item.index` (`clif.cpp:13242`); the remaining fields are informational and
 /// may be zero.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x01FD)]
 #[packet_size(25)]
 pub struct RepairItemRequestPacket {
@@ -8798,7 +8798,7 @@ pub struct RepairItemRequestPacket {
 /// { client index }.W`; the server converts with `server_index()`
 /// (`clif.cpp:13468`), so [`InventoryIndex`] serializes the right value.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017A)]
 #[packet_size(4)]
 pub struct CardCompositionListRequestPacket {
@@ -8811,7 +8811,7 @@ pub struct CardCompositionListRequestPacket {
 /// { card index }.W { equip index }.W`; both are client indexes converted with
 /// `server_index()` (`clif.cpp:13490`), so [`InventoryIndex`] is correct.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x017C)]
 #[packet_size(6)]
 pub struct CardCompositionRequestPacket {
@@ -8832,7 +8832,7 @@ pub struct CardCompositionRequestPacket {
 /// (item id 611, `itemdb.hpp:57`) or Novice Magnifier (12325, `itemdb.hpp:106`)
 /// from the inventory and answers with [`IdentifyItemResultPacket`].
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0A35)]
 #[packet_size(4)]
 pub struct OneClickIdentifyRequestPacket {
@@ -8847,7 +8847,7 @@ pub struct OneClickIdentifyRequestPacket {
 /// (`clif.cpp:13390`). The request is only accepted while the server has
 /// `MC_IDENTIFY` pending, i.e. after it sent [`IdentifyItemListPacket`].
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0178)]
 #[packet_size(4)]
 pub struct IdentifyItemRequestPacket {
@@ -8869,7 +8869,7 @@ pub struct IdentifyItemRequestPacket {
 ///
 /// Layout (`clif_refineui_open`, `clif.cpp:22475`): `{ header }.W` only.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA0)]
 #[packet_size(2)]
 pub struct OpenRefiningUiPacket {}
@@ -8880,7 +8880,7 @@ pub struct OpenRefiningUiPacket {}
 /// (`packets_struct.hpp:4165`): `{ item id }.L { chance }.b { zeny }.L` = 9
 /// bytes at PACKETVER 20190605.
 #[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct RefiningMaterialEntry {
     pub item_id: ItemId,
     /// Success chance in percent (`cost->chance / 100`, 0-100).
@@ -8898,7 +8898,7 @@ pub struct RefiningMaterialEntry {
 /// material. The item index is the `slot + 2` client index
 /// (`p->itemIndex = client_index( index )`).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA2)]
 #[variable_length]
 pub struct RefiningMaterialListPacket {
@@ -8917,7 +8917,7 @@ pub struct RefiningMaterialListPacket {
 /// { client index }.W`; the server converts with `server_index()`. The server
 /// answers with [`RefiningMaterialListPacket`].
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA1)]
 #[packet_size(4)]
 pub struct RefiningSelectItemRequestPacket {
@@ -8932,7 +8932,7 @@ pub struct RefiningSelectItemRequestPacket {
 /// id is a plain item id (`p->itemId` is compared with `cost->nameid`), the
 /// blessing byte is `0`/`1`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA3)]
 #[packet_size(9)]
 pub struct RefiningRequestPacket {
@@ -8945,7 +8945,7 @@ pub struct RefiningRequestPacket {
 ///
 /// Layout (`clif_parse_refineui_close`, `clif.cpp:22493`): `{ header }.W`.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0AA4)]
 #[packet_size(2)]
 pub struct CloseRefiningUiRequestPacket {}
@@ -9273,7 +9273,7 @@ mod item_service_packet_tests {
 /// book is **not** part of the packet: the client reads it from its own
 /// `data\book\<book id>.txt` file, so only the id and the page are on the wire.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x0294)]
 #[packet_size(10)]
 pub struct ReadBookPacket {
@@ -9286,7 +9286,7 @@ pub struct ReadBookPacket {
 /// `clif_createchat` (clif.cpp:4475-4485). `flag`:
 /// `0` = created, `1` = limit exceeded, `2` = same room already exists.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00D6)]
 #[packet_size(3)]
 pub struct CreateChatRoomResultPacket {
@@ -9299,7 +9299,7 @@ pub struct CreateChatRoomResultPacket {
 /// surrounding players, including its owner, id, limit, current user count,
 /// status and title.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00D7)]
 #[variable_length]
 pub struct ChatRoomNewEntryPacket {
@@ -9316,7 +9316,7 @@ pub struct ChatRoomNewEntryPacket {
 ///
 /// `clif_clearchat` (clif.cpp:4560-4570).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00D8)]
 #[packet_size(6)]
 pub struct DestroyChatRoomPacket {
@@ -9330,7 +9330,7 @@ pub struct DestroyChatRoomPacket {
 /// `4` = not enough zeny, `5` = level too low, `6` = level too high,
 /// `7` = unsuitable job class.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DA)]
 #[packet_size(3)]
 pub struct RefuseEnterChatRoomPacket {
@@ -9339,7 +9339,7 @@ pub struct RefuseEnterChatRoomPacket {
 
 /// One member row of [`EnterChatRoomPacket`] (24 byte name + 4 byte role).
 #[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 pub struct ChatRoomMember {
     /// `0` = owner (gets the room menu), `1` = normal member.
     pub role: u32,
@@ -9352,7 +9352,7 @@ pub struct ChatRoomMember {
 /// `clif_joinchatok` (clif.cpp:4593-4631). The title is not part of this
 /// packet; the client keeps the title from the `ZC_ROOM_NEWENTRY` it joined.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DB)]
 #[variable_length]
 pub struct EnterChatRoomPacket {
@@ -9365,7 +9365,7 @@ pub struct EnterChatRoomPacket {
 ///
 /// `clif_addchat` (clif.cpp:4634-4645).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DC)]
 #[packet_size(28)]
 pub struct ChatRoomMemberNewEntryPacket {
@@ -9378,7 +9378,7 @@ pub struct ChatRoomMemberNewEntryPacket {
 ///
 /// `clif_chat_leave` (clif.cpp:4663-4674).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DD)]
 #[packet_size(29)]
 pub struct ChatRoomMemberExitPacket {
@@ -9391,7 +9391,7 @@ pub struct ChatRoomMemberExitPacket {
 /// `ZC_CHANGE_CHATROOM` (0x00DF), variable length: room title/limit/status
 /// changed. `clif_changechatstatus` (clif.cpp:4534-4557).
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DF)]
 #[variable_length]
 pub struct ChangeChatRoomPacket {
@@ -9409,7 +9409,7 @@ pub struct ChangeChatRoomPacket {
 /// `clif_chat_role` (clif.cpp:4648-4660). `flag` is `0` for the new owner and
 /// `1` for a normal member.
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00E1)]
 #[packet_size(30)]
 pub struct ChatRoomRoleChangePacket {
@@ -9423,7 +9423,7 @@ pub struct ChatRoomRoleChangePacket {
 /// `clif_parse_CreateChatRoom` (clif.cpp:12320-12363). The password is a fixed
 /// 8 byte C string, the title fills the rest of the packet.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00D5)]
 #[variable_length]
 pub struct CreateChatRoomPacket {
@@ -9439,7 +9439,7 @@ pub struct CreateChatRoomPacket {
 ///
 /// `clif_parse_ChatAddMember` (clif.cpp:12367-12376).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00D9)]
 #[packet_size(14)]
 pub struct EnterChatRoomRequestPacket {
@@ -9452,7 +9452,7 @@ pub struct EnterChatRoomRequestPacket {
 ///
 /// `clif_parse_ChatRoomStatusChange` (clif.cpp:12380-12405).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00DE)]
 #[variable_length]
 pub struct ChangeChatRoomRequestPacket {
@@ -9468,7 +9468,7 @@ pub struct ChangeChatRoomRequestPacket {
 ///
 /// `clif_parse_ChatLeave` (clif.cpp:12426-12431) has no payload.
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x00E3)]
 #[packet_size(2)]
 pub struct ExitChatRoomPacket {}
@@ -9479,9 +9479,9 @@ pub struct ExitChatRoomPacket {}
 /// `chclif_parse_pincode_check` (char_clif.cpp:189-213) reads the account id at
 /// offset 2 and four PIN bytes at offset 6. The bytes are obfuscated with the
 /// seed of the `HC_ACK_PINCODE` packet, see
-/// `korangar::pincode::encrypt_pincode`.
+/// `ro_next::pincode::encrypt_pincode`.
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08B8)]
 #[packet_size(10)]
 pub struct PincodeCheckPacket {
@@ -9493,7 +9493,7 @@ pub struct PincodeCheckPacket {
 ///
 /// `chclif_parse_pincode_setnew` (char_clif.cpp:330-363).
 #[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
-#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[header(0x08BA)]
 #[packet_size(10)]
 pub struct PincodeSetNewPacket {

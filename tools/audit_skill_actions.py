@@ -6,7 +6,7 @@ Sources:
                                            (CSession::GetSkillActionInfo/2)
   tools/data/rodecomp_skill_frame_sequences.json explicit ACT block per skill
                                            (CRenderObject::SetFrameSequence)
-  korangar/archive/data/client/skill_actions.ron
+  ro-next/archive/data/client/skill_actions.ron
 
 Every skill listed in the decompilation facts must exist in the data file, and
 its action must match the official motion mapping
@@ -24,7 +24,7 @@ from pathlib import Path
 
 FACTS = Path("tools/data/skill_actions_rodecomp.json")
 SEQUENCES = Path("tools/data/rodecomp_skill_frame_sequences.json")
-DATA = Path("korangar/archive/data/client/skill_actions.ron")
+DATA = Path("ro-next/archive/data/client/skill_actions.ron")
 
 MOTION_ACTION = {
     0: "Idle",

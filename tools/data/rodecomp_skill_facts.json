@@ -2,7 +2,7 @@
  "provenance": {
   "source": "github.com/rodecomp/rodecomp @ bb34313a3bb2e0ee12cb2516634b6d920a39838d (matching decompilation of Ragexe 2026-02-19)",
   "client_tables": "2019 CondaRO client data.grf: skilleffectinfolist.lub (SKILL_EFFECT_INFO_LIST), skillid.lub, effectid.lub",
-  "method": "CGameMode::ReceiveSkillUse / CSession::PlaySkillEffect effect ids; effect implementations from CRagEffect/CEffect; primitives mapped to korangar layer kinds; lifetimes in frames at 60 fps",
+  "method": "CGameMode::ReceiveSkillUse / CSession::PlaySkillEffect effect ids; effect implementations from CRagEffect/CEffect; primitives mapped to ro-next layer kinds; lifetimes in frames at 60 fps",
   "frame_ms": 16.667,
   "note": "Rows marked mode=append only add the official layers the committed descriptor was missing (the existing, tuned layers are kept); other rows are new descriptors for skills that had none. Only skills where the decompiled C++ and the roBrowser-derived effect table agree on the effect id are included. Effect lifetimes are frames at 60 fps, clamped to the layer schema maximum of 30000 ms."
  },

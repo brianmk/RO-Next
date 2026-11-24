@@ -5,22 +5,22 @@ edition = "2024"
 
 [dependencies]
 bitflags = { workspace = true }
-korangar-interface = { workspace = true, optional = true }
+ro-next-interface = { workspace = true, optional = true }
 rust-state = { workspace = true, optional = true }
 ragnarok-bytes = { workspace = true, features = ["derive"] }
 ragnarok-macros = { workspace = true }
 
 [dev-dependencies]
 etherparse = { workspace = true }
-korangar-debug = { workspace = true }
+ro-next-debug = { workspace = true }
 pcap = { workspace = true }
 
 [features]
 debug = []
 derive = []
-interface = ["korangar-interface", "rust-state"]
+interface = ["ro-next-interface", "rust-state"]
 packet-to-state-element = ["interface"]
-unicode = ["korangar-debug/unicode"]
+unicode = ["ro-next-debug/unicode"]
 
 [lints.clippy]
 # P0-6 hardening: no panics on data the server (or the game files) can send us.

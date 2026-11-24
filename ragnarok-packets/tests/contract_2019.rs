@@ -3,7 +3,7 @@
 //! These tests do not need the networking crate: they feed the exact rAthena
 //! `PACKETVER 20190605` byte layouts into the packet structs and check that the
 //! struct consumes the whole packet. The companion harness in
-//! `korangar-networking/src/contract_2019.rs` runs the same check for every
+//! `ro-next-networking/src/contract_2019.rs` runs the same check for every
 //! registered server packet handler.
 //!
 //! Regenerate the opcode registry with `./tools/gen_opcode_lengths.py`.
@@ -256,7 +256,7 @@ fn party_member_2019() {
 }
 
 /// The registry must provide a length for every registered server opcode; this
-/// is checked against the handler registration in korangar-networking.
+/// is checked against the handler registration in ro-next-networking.
 #[test]
 fn registry_lookup_is_cheap_and_deterministic() {
     let header = PacketHeader(0x0A37);

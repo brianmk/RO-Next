@@ -1,6 +1,6 @@
 # Documentation
 
-Reference documentation for RO-Next (korangar) and its data pipeline. Everything
+Reference documentation for RO-Next (ro-next) and its data pipeline. Everything
 here describes the **current** state of the client; per-lane work reports and
 superseded audits live in git history only.
 
@@ -40,5 +40,5 @@ Evidence screenshots for the status-aura work: [`skills/evidence/`](skills/evide
 ## Related
 
 * [`tools/README.md`](../tools/README.md) — the generators/extractors behind the
-  `korangar/archive/data/client/*.ron` tables.
+  `ro-next/archive/data/client/*.ron` tables.
 * [`wiki/Running.md`](../wiki/Running.md) — building and running the client.

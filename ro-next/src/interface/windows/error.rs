@@ -1,0 +1,36 @@
+use ro_next_interface::window::{CustomWindow, Window};
+
+use crate::state::localization::LocalizationPathExt;
+use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
+
+pub struct ErrorWindow {
+    message: String,
+}
+
+impl ErrorWindow {
+    pub fn new(message: String) -> Self {
+        Self { message }
+    }
+}
+
+impl CustomWindow<ClientState> for ErrorWindow {
+    fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
+        use ro_next_interface::prelude::*;
+
+        window! {
+            title: client_state().localization().error_window_title(),
+            theme: InterfaceThemeType::Menu,
+            closable: true,
+            elements: (
+                text! {
+                    text: self.message,
+                    // Error text is a theme token instead of a hardcoded red, so the
+                    // light classic theme gets a dark red that is readable on its light
+                    // window background.
+                    color: client_theme().tokens().color().state_danger()
+                },
+            ),
+        }
+    }
+}

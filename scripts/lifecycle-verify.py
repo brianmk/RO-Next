@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Drive a running Korangar client through the P1-3 lifecycle scenario.
+"""Drive a running RO-Next client through the P1-3 lifecycle scenario.
 
 The scenario exercises the session/entity lifecycle state machines end to end
 against the live 2019 test server:
@@ -12,7 +12,7 @@ against the live 2019 test server:
 5. a clean logout (SIGTERM)         -> `Shutdown -> Disconnected`
 
 The script only talks to the client through X11 (XTEST input) and through the
-window-rectangle dump that the client writes when `KORANGAR_UI_RECTS_DUMP` is
+window-rectangle dump that the client writes when `RO_NEXT_UI_RECTS_DUMP` is
 set, exactly like `ui_golden_driver.py`. After the run it greps the client log
 for lifecycle transitions and for forbidden watchdog/give-up messages and
 prints a PASS/FAIL summary.
@@ -22,9 +22,9 @@ pre-fills them), so the script never contains an account name or password.
 
 Usage:
     scripts/lifecycle-verify.py --display :99 \
-        --rects-file /tmp/korangar-lifecycle-rects.txt \
-        --log /tmp/korangar-lifecycle.log \
-        --evidence /tmp/korangar-lifecycle-evidence
+        --rects-file /tmp/ro-next-lifecycle-rects.txt \
+        --log /tmp/ro-next-lifecycle.log \
+        --evidence /tmp/ro-next-lifecycle-evidence
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ except ImportError:  # pragma: no cover - clear error instead of a traceback
 
 
 class X11Input:
-    def __init__(self, display_name: str, window_name: str = "Korangar") -> None:
+    def __init__(self, display_name: str, window_name: str = "RO-Next") -> None:
         self.display = display.Display(display_name)
         self.root = self.display.screen().root
         self.window = self._find_window(self.root, window_name)
@@ -516,11 +516,11 @@ class Scenario:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--display", required=True, help="X11 display, e.g. :99")
-    parser.add_argument("--rects-file", required=True, type=Path, help="KORANGAR_UI_RECTS_DUMP file of the client")
+    parser.add_argument("--rects-file", required=True, type=Path, help="RO_NEXT_UI_RECTS_DUMP file of the client")
     parser.add_argument("--log", required=True, type=Path, help="client stderr log file")
     parser.add_argument("--evidence", required=True, type=Path, help="directory for the screenshots")
     parser.add_argument("--pid", type=int, default=None, help="client pid (used for the clean-logout SIGTERM)")
-    parser.add_argument("--window-name", default="Korangar")
+    parser.add_argument("--window-name", default="RO-Next")
     parser.add_argument("--window-timeout", type=float, default=180.0)
     parser.add_argument("--timeout", type=float, default=90.0)
     parser.add_argument("--login-timeout", type=float, default=40.0)
