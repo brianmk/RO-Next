@@ -20,8 +20,9 @@
 //   the character's head); `attached_entity` makes a layer follow its entity.
 // The loader is `korangar/src/world/library/skill_effects.rs`.
 //
-// Sources: official EffectTable layer rows (multi-layer), the migrated
-// hand-written visuals (tools/skill_effects_custom.ron) and the legacy
+// Sources: official EffectTable layer rows (multi-layer), the hard-coded C++
+// effect rows of the client decompilation (tools/skill_effects_rodecomp_hardcoded.ron),
+// the hand-written visuals (tools/skill_effects_custom.ron) and the legacy
 // per-kind tables (skill_effect_assets/sprite/procedural .ron).
 (
     provenance: "Unified skill effect descriptors: official effect-table layers + migrated hand-written visuals",
@@ -3039,6 +3040,31 @@
             ],
         ),
         (
+            skill: 751,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\ac_center2.tga", size: 5.1, size_end: 5.86, duration_ms: 1667, count: 16, alpha: 0.78, tint: (0.6, 0.6, 1.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 754,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\guardk.tga", size: 9.35, size_end: 10.75, duration_ms: 3000, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\guardk2.tga", size: 9.35, size_end: 10.75, duration_ms: 3000, blend: Additive),
+            ],
+        ),
+        (
+            skill: 755,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\whitelight.tga", size: 4.0, size_end: 4.6, duration_ms: 5000, count: 16, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\peong1.tga", size: 4.25, size_end: 4.89, duration_ms: 5000, count: 4, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\peong2.tga", size: 4.25, size_end: 4.89, duration_ms: 5000, count: 4, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\peong3.tga", size: 4.25, size_end: 4.89, duration_ms: 5000, count: 4, blend: Additive),
+            ],
+        ),
+        (
             skill: 1004,
             phase: Release,
             action: Attack,
@@ -3466,10 +3492,54 @@
             ],
         ),
         (
+            skill: 2552,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "rl_richs_coin_a\\reachs.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2554,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_banishing_buster\\vanishing1.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2555,
+            phase: Ground,
+            layers: [
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "effect\\rl_richs_coin_b\\rcoin1.bmp", size: 4.25, size_end: 4.89, duration_ms: 30000, count: 5, blend: Additive),
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "effect\\rl_richs_coin_b\\light.bmp", size: 4.0, size_end: 4.6, duration_ms: 30000, alpha: 0.275, blend: Additive),
+            ],
+        ),
+        (
             skill: 2556,
             phase: Success,
             layers: [
                 (kind: Str, anchor: Caster, attached_entity: true, file: "concentration.str", wav: "effect\\ac_concentration.wav"),
+            ],
+        ),
+        (
+            skill: 2557,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_storm\\s_storm.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2558,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "rl_e_chain\\eternal.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2560,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_c_maker\\deffender.str", duration_ms: 1000),
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_c_maker\\cm.str", duration_ms: 1000),
             ],
         ),
         (
@@ -3480,11 +3550,91 @@
             ],
         ),
         (
+            skill: 2562,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_h_mine\\mine.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2564,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "rl_fallen_angel\\penne.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2566,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_d_tail\\dtdt.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2567,
+            phase: Ground,
+            layers: [
+                (kind: Str, anchor: Ground, attached_entity: false, file: "rl_fire_rain\\fire_rain.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2568,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "rl_heat_barrel\\htb.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2569,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_anti_material\\anti.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2570,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "rl_slugshot\\slug.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2574,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\thunder_center.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 4, tint: (1.0, 1.0, 0.216), blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\white02.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 16, alpha: 0.157, tint: (1.0, 1.0, 0.216), blend: Additive),
+            ],
+        ),
+        (
             skill: 2576,
             phase: Success,
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 9.0, grow: TopRadius, alpha: 0.6, wav: "effect\\헤드 크러쉬.wav"),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 14.4, grow: TopRadius, alpha: 0.6),
+            ],
+        ),
+        (
+            skill: 2577,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\thunder_center.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 4, tint: (0.231, 0.8, 1.0), blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\white02.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 16, alpha: 0.157, tint: (0.231, 0.8, 1.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 2579,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "newmoon_kick\\newmoon_kick.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2582,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\star_emperor\\boom.tga", size: 6.8, size_end: 7.82, duration_ms: 500, count: 16, blend: Additive),
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\star_emperor\\ring_white.tga", size: 6.8, size_end: 7.82, duration_ms: 500, count: 10, blend: Additive),
             ],
         ),
         (
@@ -3499,6 +3649,35 @@
             phase: Success,
             layers: [
                 (kind: Spr, anchor: Caster, files: ["이팩트\\book_of_creatingstar\\book_of_creatingstar"], offset: (0.0, 24.0, 0.0)),
+            ],
+        ),
+        (
+            skill: 2588,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "sj_document\\sj_document.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2590,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\thunder_center.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 4, tint: (1.0, 0.486, 0.502), blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\white02.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 16, alpha: 0.157, tint: (1.0, 0.486, 0.502), blend: Additive),
+            ],
+        ),
+        (
+            skill: 2592,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "solar_burst\\solar_burst.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 2594,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "falling_star\\falling_star.str", duration_ms: 1000),
             ],
         ),
         (
@@ -3530,6 +3709,20 @@
             ],
         ),
         (
+            skill: 2603,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\270바람.tga", size: 6.8, size_end: 7.82, duration_ms: 3333, count: 4, blend: Additive),
+            ],
+        ),
+        (
+            skill: 2606,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Target, tint: (0.608, 0.608, 1.0), hold_ms: 500, fade_ms: 517),
+            ],
+        ),
+        (
             skill: 2607,
             phase: Success,
             layers: [
@@ -3537,10 +3730,64 @@
             ],
         ),
         (
+            skill: 2609,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, tint: (0.608, 0.608, 1.0), hold_ms: 500, fade_ms: 517),
+            ],
+        ),
+        (
             skill: 2610,
             phase: Success,
             layers: [
                 (kind: Spr, anchor: Target, files: ["이팩트\\soul_explosion\\soul_explosion"], offset: (0.0, 16.0, 0.0)),
+            ],
+        ),
+        (
+            skill: 3004,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "jyumonjikiri.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 3005,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "setsudan.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 3006,
+            phase: Success,
+            layers: [
+                (kind: Spr, anchor: Target, attached_entity: false, files: ["이팩트\\m_ef03"], duration_ms: 1667),
+                (kind: Primitive, anchor: Travel, attached_entity: false, file: "유저인터페이스\\item\\쿠나이_독.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 3333, count: 4, tint: (1.0, 0.784, 1.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 3007,
+            phase: Success,
+            layers: [
+                (kind: Primitive, anchor: Travel, attached_entity: false, file: "유저인터페이스\\item\\쿠나이_독.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 3333, count: 8, tint: (1.0, 0.784, 1.0), blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\cloud11.tga", size: 5.95, size_end: 6.84, duration_ms: 2000, count: 4, alpha: 0.196, tint: (0.196, 0.196, 0.196), blend: Additive),
+            ],
+        ),
+        (
+            skill: 3008,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\white02.bmp", size: 5.1, size_end: 5.86, duration_ms: 3333, count: 4, alpha: 0.78, blend: Additive),
+                (kind: Primitive, anchor: Travel, attached_entity: false, file: "effect\\coin_a.bmp", primitive: Projectile, size: 3.0, size_end: 2.1, duration_ms: 3333, count: 10, tint: (1.0, 0.784, 0.0), blend: Additive),
+            ],
+        ),
+        (
+            skill: 3009,
+            phase: Ground,
+            layers: [
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "유저인터페이스\\item\\쿠나이_독.bmp", size: 4.0, size_end: 4.6, duration_ms: 2000, count: 4, tint: (1.0, 0.784, 1.0), blend: Additive),
+                (kind: Texture, anchor: Ground, attached_entity: false, file: "effect\\cloud11.tga", size: 8.5, size_end: 9.77, duration_ms: 2000, count: 4, alpha: 0.196, tint: (0.392, 0.392, 1.0), blend: Additive),
+                (kind: Spr, anchor: Ground, attached_entity: false, files: ["이팩트\\sakura01"], duration_ms: 5000),
             ],
         ),
         (
@@ -3603,12 +3850,40 @@
             ],
         ),
         (
+            skill: 3019,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "술식해방.str", duration_ms: 1000),
+            ],
+        ),
+        (
             skill: 3021,
             phase: Cast,
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (1.0, 0.4, 0.4), blend: Additive),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3022,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: false, file: "ez_cure.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 3023,
+            phase: Success,
+            layers: [
+                (kind: Texture, anchor: Caster, attached_entity: false, file: "effect\\squarerange.tga", size: 14.88, size_end: 17.11, duration_ms: 5000, tint: (0.361, 0.361, 0.361), blend: Additive),
+            ],
+        ),
+        (
+            skill: 3024,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "허무의그림자.str", duration_ms: 1000),
             ],
         ),
         (
@@ -3623,6 +3898,13 @@
             phase: Cast,
             layers: [
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3027,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "흐린달빛환상2.str", duration_ms: 1000),
             ],
         ),
         (
@@ -3776,6 +4058,27 @@
             phase: Success,
             layers: [
                 (kind: Spr, anchor: Caster, files: ["이팩트\\su_tunaparty\\su_tunaparty"], offset: (0.0, 20.0, 0.0)),
+            ],
+        ),
+        (
+            skill: 5050,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "su_grooming\\su_grooming.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 5051,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "su_freshshrimp\\su_freshshrimp.str", duration_ms: 1000),
+            ],
+        ),
+        (
+            skill: 5053,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: false, file: "su_chattering\\su_chattering.str", duration_ms: 1000),
             ],
         ),
         (
