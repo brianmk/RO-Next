@@ -538,8 +538,9 @@ except two:
   outline needs a dedicated pass: the sprite shader multiplies the texture by
   the instance colour, so a flat silhouette requires a new fragment branch and
   a depth-tested draw after the opaque depth is written.
-* `TK_HIGHJUMP` 426 (landing squash `0x40` + blur `0x20000`) is still only the
-  jump effect; both flags are screen-space post effects.
+* `TK_HIGHJUMP` 426 now gets the landing squash (`0x40`, `BodySquash` for
+  450 ms with a small dust flash); the `0x20000` blur is a screen-space post
+  effect and remains unimplemented.
 
 ## 5b-3. Flag-only skills: what each official effect actually asks for
 

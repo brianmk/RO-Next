@@ -561,6 +561,7 @@ impl AnimationData {
         frame: &AnimationFrame,
         entity_position: Point3<f32>,
         scale: f32,
+        y_scale: f32,
     ) -> Matrix4<f32> {
         // Offset the image to below the ground by frame.offset.y.
         // Add 0.5 to change from center of pixel to the lower border of pixel
@@ -569,7 +570,7 @@ impl AnimationData {
         // Add 1.0 in z-coordinate, because the entity is at point with z = 1.0.
         // The operation is performed beforehand to correctly rotate the billboard.
         let origin = Point3::new(0.0, origin_y, 0.0) * SPRITE_SCALE / TILE_SIZE + Vector3::unit_z();
-        let size = Vector2::new(frame.size.x as f32, frame.size.y as f32) * (SPRITE_SCALE / TILE_SIZE) * scale;
+        let size = Vector2::new(frame.size.x as f32 * scale, frame.size.y as f32 * scale * y_scale) * (SPRITE_SCALE / TILE_SIZE);
         camera.billboard_matrix(entity_position, origin, size)
     }
 
@@ -637,10 +638,11 @@ impl AnimationData {
         additive: bool,
         flat: bool,
         depth_boost: f32,
+        y_scale: f32,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
         let head_behind_body = imf.is_some_and(|imf| self.head_behind_body(imf, animation_state, camera, direction));
-        let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale);
+        let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale, y_scale);
 
         for (index, frame_part) in frame.frame_parts.iter().enumerate() {
             // Frames without usable sprites are merged into a placeholder frame
@@ -711,7 +713,7 @@ impl AnimationData {
         scale: f32,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
-        let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale);
+        let world_matrix = self.calculate_world_matrix(camera, frame, entity_position, scale, 1.0);
         instructions.push(DebugRectangleInstruction {
             world: world_matrix,
             color: color_external,

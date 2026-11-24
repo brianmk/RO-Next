@@ -280,6 +280,8 @@ pub struct Common {
     body_wave: Option<BodyWave>,
     #[hidden_element]
     body_outline: Option<BodyOutline>,
+    #[hidden_element]
+    body_squash: Option<BodySquash>,
     /// Draw the body layers with an additive blend (official
     /// `EF_REDBODY`/`render.flags & 1`).
     status_body_additive: bool,
@@ -485,6 +487,28 @@ impl EntityFlash {
     }
 }
 
+/// Horizontal squash of the body (official landing flag 0x40).
+#[derive(Debug, Clone, Copy)]
+pub struct BodySquash {
+    start_tick: ClientTick,
+    duration_ms: u32,
+    amount: f32,
+}
+
+impl BodySquash {
+    /// Vertical scale factor at `client_tick` (1.0 when inactive).
+    fn y_scale(&self, client_tick: ClientTick) -> f32 {
+        let elapsed = client_tick.0.saturating_sub(self.start_tick.0);
+
+        if elapsed >= self.duration_ms {
+            return 1.0;
+        }
+
+        let weight = 1.0 - elapsed as f32 / self.duration_ms as f32;
+        1.0 - self.amount * weight
+    }
+}
+
 /// Flat silhouette copies of the body (official sprite outline).
 #[derive(Debug, Clone, Copy)]
 pub struct BodyOutline {
@@ -626,6 +650,7 @@ impl Common {
             status_weapon_blink: false,
             body_wave: None,
             body_outline: None,
+            body_squash: None,
             status_body_additive: false,
             status_weapon_additive: false,
             status_alpha: None,
@@ -704,6 +729,20 @@ impl Common {
             hold_ms,
             fade_ms,
             additive,
+        });
+    }
+
+    /// Vertical scale of the body sprites (official landing squash).
+    fn body_squash_y(&self, client_tick: ClientTick) -> f32 {
+        self.body_squash.map(|squash| squash.y_scale(client_tick)).unwrap_or(1.0)
+    }
+
+    /// Start a body squash (official landing flag 0x40).
+    pub fn start_body_squash(&mut self, duration_ms: u32, amount: f32, client_tick: ClientTick) {
+        self.body_squash = Some(BodySquash {
+            start_tick: client_tick,
+            duration_ms,
+            amount,
         });
     }
 
@@ -1448,6 +1487,7 @@ impl Common {
                     false,
                     true,
                     -0.02 - step as f32 * 0.005,
+                    1.0,
                 );
             }
         }
@@ -1468,6 +1508,7 @@ impl Common {
                 self.body_additive(client_tick),
                 false,
                 0.0,
+                self.body_squash_y(client_tick),
             );
         }
 
@@ -1491,6 +1532,7 @@ impl Common {
                 self.status_weapon_additive,
                 false,
                 0.0,
+                1.0,
             );
         }
 
@@ -1514,6 +1556,7 @@ impl Common {
                 false,
                 false,
                 0.0,
+                1.0,
             );
         }
 
@@ -1538,6 +1581,7 @@ impl Common {
                 false,
                 false,
                 0.0,
+                1.0,
             );
         }
     }
@@ -2111,6 +2155,10 @@ impl Entity {
 
     pub fn start_body_outline(&mut self, color: Color, duration_ms: u32, client_tick: ClientTick) {
         self.get_common_mut().start_body_outline(color, duration_ms, client_tick);
+    }
+
+    pub fn start_body_squash(&mut self, duration_ms: u32, amount: f32, client_tick: ClientTick) {
+        self.get_common_mut().start_body_squash(duration_ms, amount, client_tick);
     }
 
     /// Sets the additive body/weapon sprite blend of the active statuses.

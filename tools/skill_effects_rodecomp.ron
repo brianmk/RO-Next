@@ -9,7 +9,7 @@
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 143 skills, 245 layers.
+// 144 skills, 247 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
@@ -398,6 +398,11 @@
         (skill: 425, phase: Success, layers: [
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\storm2.tga", size: 6.8, duration_ms: 1667, alpha: 0.2, blend: Additive),
             (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 1667, alpha: 0.2, blend: Additive),
+        ]),
+        // skill 426 TK_HIGHJUMP: official effect [446] - appended official layers
+        (skill: 426, phase: Success, layers: [
+            (kind: BodySquash, anchor: Caster, attached_entity: true, duration_ms: 450),
+            (kind: BodyFlash, anchor: Caster, attached_entity: true, hold_ms: 150, fade_ms: 300, tint: (0.9, 0.85, 0.7), blend: Additive),
         ]),
         // skill 434 SG_HATE: official effect [543]
         (skill: 434, phase: Success, layers: [

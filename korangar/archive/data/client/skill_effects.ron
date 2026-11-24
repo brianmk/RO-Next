@@ -2220,6 +2220,14 @@
             ],
         ),
         (
+            skill: 426,
+            phase: Success,
+            layers: [
+                (kind: BodySquash, anchor: Caster, attached_entity: true, duration_ms: 450),
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.9, 0.85, 0.7), blend: Additive, hold_ms: 150, fade_ms: 300),
+            ],
+        ),
+        (
             skill: 431,
             phase: Success,
             layers: [

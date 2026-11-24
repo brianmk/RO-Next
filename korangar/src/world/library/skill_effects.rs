@@ -142,6 +142,8 @@ pub(crate) enum LayerKind {
     /// Flat-colour silhouette copies of the body behind the sprite (official
     /// `render.flags` 0x800/0x80000 outline).
     BodyOutline,
+    /// Short landing squash of the body (official `render.flags` bit 0x40).
+    BodySquash,
 }
 
 /// Where a layer of a skill spawns.
@@ -716,6 +718,11 @@ fn validate_layer(skill: u16, phase: SkillPhase, layer: &LayerFile) -> Result<()
                 return Err(format!("{}: body outline duration is out of range", context()));
             }
         }
+        LayerKind::BodySquash => {
+            if layer.duration_ms == 0 || layer.duration_ms > 10_000 || !(0.0..=0.9).contains(&layer.amplitude) {
+                return Err(format!("{}: body squash is out of range", context()));
+            }
+        }
     }
 
     if let Some(wav) = layer.wav.as_deref()
@@ -1282,7 +1289,7 @@ mod tests {
                         assert!(layer.primitive.is_some());
                         assert!(layer.file.is_some());
                     }
-                    LayerKind::BodyFlash | LayerKind::BodyWave | LayerKind::BodyOutline => {}
+                    LayerKind::BodyFlash | LayerKind::BodyWave | LayerKind::BodyOutline | LayerKind::BodySquash => {}
                 }
             }
         }
