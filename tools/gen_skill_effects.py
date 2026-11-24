@@ -403,6 +403,16 @@ def write_layer(layer: dict[str, object]) -> str:
 # ---------------------------------------------------------------------------
 
 
+#: Layers the official (2026) decompilation proves are not part of the effect.
+#: Keyed by (skill, phase, asset); the value is the evidence.
+DROPPED_LAYERS: dict[tuple[int, str, str], str] = {
+    (29, "Success", "effect\\agi_up.bmp"): (
+        "EF_INCAGILITY only spawns ac_center2 primitives + EF_IncAgility.wav "
+        "(RagEffect.cpp 16534); the agi_up billboard is a roBrowser-era approximation"
+    ),
+}
+
+
 def asset_key(layer: dict[str, object]) -> str:
     """Identity used to fold duplicate layers (custom vs official vs legacy)."""
     if "file" in layer and layer["file"]:
@@ -596,6 +606,16 @@ def build(custom_path: Path, official_path: Path | None, rodecomp_path: Path | N
                 if asset_key(layer) in suppressed:
                     continue
                 add_layer(entry, layer)
+
+    # Curated removals: layers the official client provably does not draw.
+    for (skill, phase, asset), reason in DROPPED_LAYERS.items():
+        entry = grouped.get((skill, phase))
+        if entry is None:
+            continue
+        layers = [layer for layer in entry["layers"] if asset_key(layer) != asset]
+        if len(layers) != len(entry["layers"]):
+            print(f"dropped {asset!r} from skill {skill} {phase}: {reason}")
+        entry["layers"] = layers
 
     # Stable order, empty phases with neither layers nor a tint/action dropped.
     result = []

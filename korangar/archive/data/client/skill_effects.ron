@@ -271,7 +271,6 @@
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\ac_center2.tga", size: 4.0, size_end: 4.6, duration_ms: 1000, count: 7, spread: 3.0),
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\ac_center2.tga", size: 4.0, size_end: 4.6, duration_ms: 1000, delay_ms: 400, count: 3, spread: 3.0, alpha: 0.75),
                 (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\ac_center2.tga", size: 4.0, size_end: 4.6, duration_ms: 1000, count: 10, spread: 3.0),
-                (kind: Texture, anchor: Auto, attached_entity: true, file: "effect\\agi_up.bmp", size: 22.0, size_end: 32.0, duration_ms: 1000, wav: "effect\\ef_incagility.wav"),
             ],
         ),
         (
