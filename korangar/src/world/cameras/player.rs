@@ -24,6 +24,12 @@ pub struct PlayerCamera {
     view_matrix: Matrix4<f32>,
     projection_matrix: Matrix4<f32>,
     view_projection_matrix: Matrix4<f32>,
+    /// Elapsed time of the active screen shake in seconds.
+    shake_time: f32,
+    /// Total duration of the active screen shake in seconds (`0` = inactive).
+    shake_duration: f32,
+    /// Peak offset of the active screen shake in world units.
+    shake_intensity: f32,
 }
 
 impl PlayerCamera {
@@ -37,6 +43,9 @@ impl PlayerCamera {
             view_matrix: Matrix4::zero(),
             projection_matrix: Matrix4::zero(),
             view_projection_matrix: Matrix4::zero(),
+            shake_time: 0.0,
+            shake_duration: 0.0,
+            shake_intensity: 0.0,
         }
     }
 
@@ -50,6 +59,14 @@ impl PlayerCamera {
         self.focus_point.x.set_desired(position.x);
         self.focus_point.y.set_desired(position.y);
         self.focus_point.z.set_desired(position.z);
+    }
+
+    /// Starts a decaying screen shake (used by screen-shaking skills such as
+    /// Asura Strike).
+    pub fn shake(&mut self, duration: f32, intensity: f32) {
+        self.shake_time = 0.0;
+        self.shake_duration = duration.max(0.0);
+        self.shake_intensity = intensity.max(0.0);
     }
 
     pub fn soft_zoom(&mut self, zoom_factor: f32) {
@@ -90,6 +107,17 @@ impl PlayerCamera {
 
         self.camera_position = self.focus_point() + rotated_offset;
         self.view_direction = -rotated_offset.normalize();
+
+        // Advance the screen shake and stop it when the duration is over.
+        if self.shake_duration > 0.0 {
+            self.shake_time += delta_time as f32;
+
+            if self.shake_time >= self.shake_duration {
+                self.shake_time = 0.0;
+                self.shake_duration = 0.0;
+                self.shake_intensity = 0.0;
+            }
+        }
     }
 }
 
@@ -104,7 +132,25 @@ impl Camera for PlayerCamera {
 
     fn generate_view_projection(&mut self, window_size: ScreenSize) {
         let aspect_ratio = window_size.width / window_size.height;
-        self.view_matrix = Matrix4::look_to_lh(self.camera_position, self.view_direction, LOOK_UP);
+
+        // Screen shake: a decaying high-frequency offset of the eye position.
+        // Deterministic sine triplets keep it allocation free.
+        let camera_position = match self.shake_duration > 0.0 {
+            true => {
+                let envelope = (1.0 - self.shake_time / self.shake_duration).clamp(0.0, 1.0);
+                let time = self.shake_time;
+                let offset = Vector3::new(
+                    (time * 97.0).sin() * 0.35,
+                    (time * 143.0).sin() * 0.55,
+                    (time * 61.0).cos() * 0.35,
+                );
+
+                self.camera_position + offset * self.shake_intensity * envelope
+            }
+            false => self.camera_position,
+        };
+
+        self.view_matrix = Matrix4::look_to_lh(camera_position, self.view_direction, LOOK_UP);
         self.projection_matrix = perspective_reverse_lh(VERTICAL_FOV, aspect_ratio);
         self.view_projection_matrix = self.projection_matrix * self.view_matrix;
     }
