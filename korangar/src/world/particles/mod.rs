@@ -159,6 +159,26 @@ impl Particle for DamageNumber {
             true => BASE_DAMAGE_TEXT_PIXELS * CRITICAL_DAMAGE_SCALE,
             false => BASE_DAMAGE_TEXT_PIXELS,
         };
+        // Official sprite digits when the HD damage font is installed, text
+        // rendering as the fallback for data sets without it.
+        if let Some(font) = crate::world::damage_font::damage_font() {
+            let height = damage_text_pixels(
+                base_pixels,
+                self.magnitude_scale,
+                camera.distance_to(self.position),
+                window_size.height,
+            );
+            let screen_clip = ScreenClip {
+                left: 0.0,
+                top: 0.0,
+                right: window_size.width,
+                bottom: window_size.height,
+            };
+
+            font.render(renderer, &self.damage_amount, final_position, height, color, screen_clip);
+            return;
+        }
+
         let font_size = damage_text_font_size(renderer, camera, self.position, window_size, base_pixels, self.magnitude_scale);
 
         renderer.render_damage_text(&self.damage_amount, final_position, color, font_size);

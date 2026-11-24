@@ -1510,6 +1510,10 @@ impl Client {
         time_phase!("create resources", {
             let input_event_buffer = Vec::new();
 
+            // The official sprite damage font (loose folder in the client
+            // archive). Without it the damage numbers fall back to text.
+            crate::world::damage_font::install(crate::world::damage_font::DamageFont::load(&sprite_loader, &action_loader));
+
             let particle_holder = ParticleHolder::default();
             let point_light_manager = PointLightManager::new();
             let effect_holder = EffectHolder::default();
