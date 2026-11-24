@@ -787,6 +787,22 @@ pub(crate) fn player_sprite_stem(job_id: JobId) -> &'static str {
     }
 }
 
+/// Weapon sprite folder/prefix of a job (`인간족\<folder>\<prefix>_<sex>`).
+///
+/// The classic engine table maps the weapon layer separately from the body
+/// sprite: 3rd jobs inherit their weapon sprites from the transcendent job
+/// (Champion `챔피온` body but `몽크` weapon sprites). Jobs without a weapon
+/// entry fall back to their body sprite stem.
+pub(crate) fn weapon_sprite(job_id: JobId) -> (&'static str, &'static str) {
+    match registry().job(job_id.0).and_then(|job| job.weapon()) {
+        Some((folder, prefix)) => (folder, prefix),
+        None => {
+            let stem = player_sprite_stem(job_id);
+            (stem, stem)
+        }
+    }
+}
+
 /// Body part path (`인간족\몸통\<sex>\<sprite>_<sex>`).
 pub(crate) fn body_part_path(job_id: JobId, sex: Sex) -> String {
     let sex = sex_suffix_or_default(sex);

@@ -139,7 +139,7 @@ FALLBACKS = {
 
 #: Sprite naming templates. Placeholders: {job_stem}, {sex}, {variant}.
 PATHS = {
-    "per_job": "인간족\\{job_stem}\\{job_stem}_{sex}_{variant}",
+    "per_job": "인간족\\{folder}\\{prefix}_{sex}_{variant}",
     "classic_weapon": "인간족\\무기\\{variant}_{sex}",
 }
 

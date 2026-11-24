@@ -149,7 +149,8 @@ enum CandidateStep {
     ClassicVariant,
 }
 
-/// Sprite path templates (`{job_stem}`, `{sex}` and `{variant}` placeholders).
+/// Sprite path templates (`{folder}`, `{prefix}`, `{sex}` and `{variant}`
+/// placeholders).
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct PathTemplates {
@@ -678,7 +679,7 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<Entit
         }
     };
 
-    let job_stem = jobs::player_sprite_stem(job_id);
+    let (weapon_folder, weapon_prefix) = jobs::weapon_sprite(job_id);
     let sex_suffix = match sex {
         Sex::Female => registry.sex_suffix.female.as_str(),
         _ => registry.sex_suffix.male.as_str(),
@@ -689,7 +690,7 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<Entit
     let mut seen = HashSet::new();
 
     let mut push = |template: &str, variant: &str| {
-        let path = expand_template(template, job_stem, sex_suffix, variant);
+        let path = expand_template(template, weapon_folder, weapon_prefix, sex_suffix, variant);
         if seen.insert(path.clone()) {
             candidates.push(EntityPartFile::new(path));
         }
@@ -716,9 +717,10 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, weapon: u32) -> Vec<Entit
 }
 
 /// Expands a candidate path template with the per-entity values.
-fn expand_template(template: &str, job_stem: &str, sex_suffix: &str, variant: &str) -> String {
+fn expand_template(template: &str, folder: &str, prefix: &str, sex_suffix: &str, variant: &str) -> String {
     template
-        .replace("{job_stem}", job_stem)
+        .replace("{folder}", folder)
+        .replace("{prefix}", prefix)
         .replace("{sex}", sex_suffix)
         .replace("{variant}", variant)
 }
@@ -774,6 +776,23 @@ mod tests {
 
     fn variants_of(weapon: u32) -> Vec<&'static str> {
         profile(weapon).sprite_variants().iter().map(String::as_str).collect()
+    }
+
+    /// 3rd jobs have their own body sprite but inherit the weapon sprites of
+    /// their transcendent job (Champion `챔피온` -> `몽크`). Building the
+    /// candidate paths from the body stem made every Champion weapon
+    /// invisible, because `인간족\챔피온\...` does not exist in the archives.
+    #[test]
+    fn champion_uses_the_monk_weapon_sprites() {
+        let candidates = paths(JobId(4016), Sex::Male, 12);
+        assert!(
+            candidates.iter().any(|path| path.contains("인간족\\몽크\\몽크_남_너클")),
+            "Champion knuckle candidates must use the monk weapon folder: {candidates:?}"
+        );
+        assert!(
+            !candidates.iter().any(|path| path.contains("챔피온")),
+            "Champion has no weapon sprite folder: {candidates:?}"
+        );
     }
 
     #[test]
