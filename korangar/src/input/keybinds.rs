@@ -12,8 +12,11 @@
 //!   and the "no modifier" matching used by the plain `I`/`M` keys,
 //! * the emotion keys (`Alt` + key, position = emotion number),
 //! * the hotbar slot keys (position = slot),
-//! * the hotbar tab cycle keys,
 //! * the keys that confirm a focused text input (chat command / login form).
+//!
+//! The player can remap the interface shortcuts in the key binding section of
+//! the interface settings window. Those overrides are stored in
+//! `client/keybind_settings.ron` and are applied on top of the data table.
 //!
 //! Debug-only camera and debug-window keys stay in the `debug` feature code:
 //! they are developer shortcuts, not user-facing bindings.
@@ -23,7 +26,7 @@
 //! controls. [`validate`] (exposed as `korangar --check-keybinds [PATH]`) is
 //! the schema/drift guard.
 
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 
 use korangar_loaders::FileLoader;
 use serde::Deserialize;
@@ -31,6 +34,7 @@ use winit::keyboard::KeyCode;
 
 use super::key_names::key_code_from_name;
 use crate::loaders::GameFileLoader;
+use crate::settings::{KeybindOverride, KeybindSettings};
 
 /// Data file path inside the client archive (`data\client\...`).
 const DATA_PATH: &str = "data\\client\\keybinds.ron";
@@ -39,9 +43,8 @@ const FALLBACK: &str = include_str!("../../archive/data/client/keybinds.ron");
 
 /// Maximum number of emotion keys (`Alt` + `1`..`9` in the classic client).
 const MAX_EMOTION_KEYS: usize = 9;
-/// Number of hotbar slots per tab (`HotbarSlot` is a `u16`, the 2019 client
-/// uses 4 tabs x 10 slots).
-const MAX_HOTBAR_KEYS: usize = 10;
+/// Number of hotbar slot keys (F1-F9; the first visible hotbar row).
+const MAX_HOTBAR_KEYS: usize = 9;
 
 /// A modifier that a [`Keybind`] requires.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
@@ -91,7 +94,90 @@ pub enum ShortcutAction {
     ToggleMinimapWindow,
     CycleMapWindows,
     CloseTopWindow,
+    /// Hide or show the hotbar HUD element (F12).
+    ToggleHotbarWindow,
+    /// Switch the visible hotbar between the two server bars.
+    SwitchHotbarBar,
+    /// Rotate the visible rows of the active hotbar bar (Ctrl+F12).
+    RotateHotbarRows,
 }
+
+impl ShortcutAction {
+    /// Stable data-file name of the action.
+    pub fn name(self) -> &'static str {
+        match self {
+            ShortcutAction::CloseOrMenu => "CloseOrMenu",
+            ShortcutAction::ToggleInventoryWindow => "ToggleInventoryWindow",
+            ShortcutAction::ToggleSkillTreeWindow => "ToggleSkillTreeWindow",
+            ShortcutAction::ToggleStatsWindow => "ToggleStatsWindow",
+            ShortcutAction::ToggleFriendListWindow => "ToggleFriendListWindow",
+            ShortcutAction::ToggleEquipmentWindow => "ToggleEquipmentWindow",
+            ShortcutAction::ToggleChatWindow => "ToggleChatWindow",
+            ShortcutAction::ToggleGameSettingsWindow => "ToggleGameSettingsWindow",
+            ShortcutAction::ToggleInterfaceSettingsWindow => "ToggleInterfaceSettingsWindow",
+            ShortcutAction::ToggleGraphicsSettingsWindow => "ToggleGraphicsSettingsWindow",
+            ShortcutAction::ToggleAudioSettingsWindow => "ToggleAudioSettingsWindow",
+            ShortcutAction::ToggleShowInterface => "ToggleShowInterface",
+            ShortcutAction::ToggleMinimapWindow => "ToggleMinimapWindow",
+            ShortcutAction::CycleMapWindows => "CycleMapWindows",
+            ShortcutAction::CloseTopWindow => "CloseTopWindow",
+            ShortcutAction::ToggleHotbarWindow => "ToggleHotbarWindow",
+            ShortcutAction::SwitchHotbarBar => "SwitchHotbarBar",
+            ShortcutAction::RotateHotbarRows => "RotateHotbarRows",
+        }
+    }
+
+    /// Parses a data-file name.
+    pub fn from_name(name: &str) -> Option<Self> {
+        ALL_SHORTCUT_ACTIONS.iter().copied().find(|action| action.name() == name)
+    }
+
+    /// Human readable label of the action for the key binding editor.
+    pub fn label(self) -> &'static str {
+        match self {
+            ShortcutAction::CloseOrMenu => "Close window / menu",
+            ShortcutAction::ToggleInventoryWindow => "Inventory",
+            ShortcutAction::ToggleSkillTreeWindow => "Skill tree",
+            ShortcutAction::ToggleStatsWindow => "Stats",
+            ShortcutAction::ToggleFriendListWindow => "Friend list",
+            ShortcutAction::ToggleEquipmentWindow => "Equipment",
+            ShortcutAction::ToggleChatWindow => "Chat window",
+            ShortcutAction::ToggleGameSettingsWindow => "Game settings",
+            ShortcutAction::ToggleInterfaceSettingsWindow => "Interface settings",
+            ShortcutAction::ToggleGraphicsSettingsWindow => "Graphics settings",
+            ShortcutAction::ToggleAudioSettingsWindow => "Audio settings",
+            ShortcutAction::ToggleShowInterface => "Show/hide interface",
+            ShortcutAction::ToggleMinimapWindow => "Minimap",
+            ShortcutAction::CycleMapWindows => "Cycle map windows",
+            ShortcutAction::CloseTopWindow => "Close top window",
+            ShortcutAction::ToggleHotbarWindow => "Hide/show hotbar",
+            ShortcutAction::SwitchHotbarBar => "Switch hotbar bar",
+            ShortcutAction::RotateHotbarRows => "Rotate hotbar rows",
+        }
+    }
+}
+
+/// All shortcut actions in the order shown by the key binding editor.
+pub const ALL_SHORTCUT_ACTIONS: [ShortcutAction; 18] = [
+    ShortcutAction::CloseOrMenu,
+    ShortcutAction::ToggleInventoryWindow,
+    ShortcutAction::ToggleSkillTreeWindow,
+    ShortcutAction::ToggleStatsWindow,
+    ShortcutAction::ToggleFriendListWindow,
+    ShortcutAction::ToggleEquipmentWindow,
+    ShortcutAction::ToggleChatWindow,
+    ShortcutAction::ToggleGameSettingsWindow,
+    ShortcutAction::ToggleInterfaceSettingsWindow,
+    ShortcutAction::ToggleGraphicsSettingsWindow,
+    ShortcutAction::ToggleAudioSettingsWindow,
+    ShortcutAction::ToggleShowInterface,
+    ShortcutAction::ToggleMinimapWindow,
+    ShortcutAction::CycleMapWindows,
+    ShortcutAction::CloseTopWindow,
+    ShortcutAction::ToggleHotbarWindow,
+    ShortcutAction::SwitchHotbarBar,
+    ShortcutAction::RotateHotbarRows,
+];
 
 /// A physical key as written in the data file (the winit [`KeyCode`] name).
 ///
@@ -140,8 +226,6 @@ struct KeybindFile {
     shortcuts: Vec<ShortcutFile>,
     emotion_keys: Vec<BindKey>,
     hotbar_keys: Vec<BindKey>,
-    hotbar_tab_previous: BindKey,
-    hotbar_tab_next: BindKey,
     chat_command_keys: Vec<BindKey>,
 }
 
@@ -155,6 +239,24 @@ pub struct Keybind {
 }
 
 impl Keybind {
+    /// Human readable combination, e.g. `Ctrl+F12` or `Alt+E`.
+    pub fn label(&self) -> String {
+        let mut text = String::new();
+
+        if self.modifiers.contains(&Modifier::Control) {
+            text.push_str("Ctrl+");
+        }
+        if self.modifiers.contains(&Modifier::Alt) {
+            text.push_str("Alt+");
+        }
+        if self.modifiers.contains(&Modifier::Shift) {
+            text.push_str("Shift+");
+        }
+
+        text.push_str(&key_label(self.key));
+        text
+    }
+
     /// Whether the required modifiers are held (and, for exact bindings, no
     /// other modifier is held).
     pub fn matches(&self, active: ActiveModifiers) -> bool {
@@ -168,14 +270,132 @@ impl Keybind {
     }
 }
 
+/// A player override of one interface shortcut.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyOverride {
+    pub action: ShortcutAction,
+    pub key: KeyCode,
+    pub alt: bool,
+    pub control: bool,
+    pub shift: bool,
+}
+
+static OVERRIDES: Mutex<Vec<KeyOverride>> = Mutex::new(Vec::new());
+
+/// Replaces the player shortcut overrides.
+pub(crate) fn set_overrides(overrides: Vec<KeyOverride>) {
+    *OVERRIDES.lock().unwrap() = overrides;
+}
+
+fn override_for(action: ShortcutAction) -> Option<KeyOverride> {
+    OVERRIDES.lock().unwrap().iter().copied().find(|entry| entry.action == action)
+}
+
+/// The effective binding of a shortcut (data default or player override).
+pub fn effective(shortcut: &Keybind) -> Keybind {
+    match override_for(shortcut.action) {
+        Some(over) => Keybind {
+            action: shortcut.action,
+            key: over.key,
+            modifiers: [
+                over.alt.then_some(Modifier::Alt),
+                over.control.then_some(Modifier::Control),
+                over.shift.then_some(Modifier::Shift),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
+            // An overridden key must not fire while extra modifiers are held,
+            // so a rebind to a plain letter never shadows the Alt shortcuts.
+            exact_modifiers: true,
+        },
+        None => shortcut.clone(),
+    }
+}
+
+/// Stores (or replaces) the player override of one shortcut.
+pub(crate) fn store_override(action: ShortcutAction, key: KeyCode, alt: bool, control: bool, shift: bool) -> KeyOverride {
+    let over = KeyOverride {
+        action,
+        key,
+        alt,
+        control,
+        shift,
+    };
+
+    let mut overrides = OVERRIDES.lock().unwrap();
+    overrides.retain(|entry| entry.action != action);
+    overrides.push(over);
+
+    over
+}
+
+/// All player overrides, for persistence.
+pub(crate) fn overrides() -> Vec<KeyOverride> {
+    OVERRIDES.lock().unwrap().clone()
+}
+
+/// Clears all player overrides.
+pub(crate) fn clear_overrides() {
+    OVERRIDES.lock().unwrap().clear();
+}
+
+/// Loads the persisted player overrides (called once at startup).
+pub(crate) fn load_user_bindings() {
+    let settings = KeybindSettings::new();
+
+    let overrides = settings
+        .overrides
+        .into_iter()
+        .filter_map(|entry| {
+            let action = ShortcutAction::from_name(&entry.action)?;
+            let key = key_code_from_name(&entry.key)?;
+
+            Some(KeyOverride {
+                action,
+                key,
+                alt: entry.alt,
+                control: entry.control,
+                shift: entry.shift,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    crate::logging::log_debug!("keybinds: loaded {} player overrides", overrides.len());
+    set_overrides(overrides);
+}
+
+/// Persists the current player overrides.
+pub(crate) fn save_user_bindings() {
+    let overrides = overrides()
+        .into_iter()
+        .map(|over| KeybindOverride {
+            action: over.action.name().to_owned(),
+            key: format!("{:?}", over.key),
+            alt: over.alt,
+            control: over.control,
+            shift: over.shift,
+        })
+        .collect();
+
+    KeybindSettings { overrides }.save();
+}
+
+/// Label of the effective binding of an action.
+pub fn binding_label(action: ShortcutAction) -> String {
+    shortcuts()
+        .iter()
+        .find(|shortcut| shortcut.action == action)
+        .map(|shortcut| effective(shortcut).label())
+        .unwrap_or_else(|| "—".to_owned())
+}
+
 /// The validated runtime key binding table.
 #[derive(Debug)]
 pub struct Keybinds {
     shortcuts: Vec<Keybind>,
     emotion_keys: Vec<KeyCode>,
     hotbar_keys: Vec<KeyCode>,
-    hotbar_tab_previous: KeyCode,
-    hotbar_tab_next: KeyCode,
     chat_command_keys: Vec<KeyCode>,
 }
 
@@ -194,8 +414,6 @@ impl Keybinds {
                 .collect(),
             emotion_keys: file.emotion_keys.into_iter().map(|key| key.0).collect(),
             hotbar_keys: file.hotbar_keys.into_iter().map(|key| key.0).collect(),
-            hotbar_tab_previous: file.hotbar_tab_previous.0,
-            hotbar_tab_next: file.hotbar_tab_next.0,
             chat_command_keys: file.chat_command_keys.into_iter().map(|key| key.0).collect(),
         }
     }
@@ -203,7 +421,7 @@ impl Keybinds {
     /// Number of key bindings in the table (used by the `--check-keybinds`
     /// output).
     fn count(&self) -> usize {
-        self.shortcuts.len() + self.emotion_keys.len() + self.hotbar_keys.len() + 2 + self.chat_command_keys.len()
+        self.shortcuts.len() + self.emotion_keys.len() + self.hotbar_keys.len() + self.chat_command_keys.len()
     }
 
     /// Rejects data that parses but cannot work: duplicate combinations,
@@ -257,10 +475,6 @@ impl Keybinds {
         }
         check_unique("hotbar_keys", &self.hotbar_keys)?;
 
-        if self.hotbar_tab_previous == self.hotbar_tab_next {
-            return Err("`hotbar_tab_previous` and `hotbar_tab_next` must be different keys".to_owned());
-        }
-
         if self.chat_command_keys.is_empty() {
             return Err("`chat_command_keys` must not be empty".to_owned());
         }
@@ -268,6 +482,23 @@ impl Keybinds {
 
         Ok(())
     }
+}
+
+/// Human readable name of a physical key.
+pub fn key_label(key: KeyCode) -> String {
+    let debug = format!("{key:?}");
+
+    for prefix in ["Key", "Digit", "Numpad"] {
+        if let Some(rest) = debug.strip_prefix(prefix) {
+            return match prefix {
+                "Key" => rest.to_owned(),
+                "Digit" => rest.to_owned(),
+                _ => format!("Num {rest}"),
+            };
+        }
+    }
+
+    debug
 }
 
 fn check_unique(label: &str, keys: &[KeyCode]) -> Result<(), String> {
@@ -310,11 +541,6 @@ pub fn emotion_keys() -> &'static [KeyCode] {
 /// The hotbar slot keys; the index is the slot.
 pub fn hotbar_keys() -> &'static [KeyCode] {
     &table().hotbar_keys
-}
-
-/// The previous/next hotbar tab keys (`F11`/`F12` by default).
-pub fn hotbar_tab_keys() -> (KeyCode, KeyCode) {
-    (table().hotbar_tab_previous, table().hotbar_tab_next)
 }
 
 /// The keys that confirm a focused text input (chat command / login form).
@@ -367,8 +593,8 @@ mod tests {
     use winit::keyboard::KeyCode;
 
     use super::{
-        ActiveModifiers, Modifier, ShortcutAction, chat_command_keys, compiled, emotion_keys, hotbar_keys, hotbar_tab_keys, parse,
-        shortcuts, validate, validate_compiled,
+        ActiveModifiers, Modifier, ShortcutAction, chat_command_keys, compiled, emotion_keys, hotbar_keys, parse, shortcuts, validate,
+        validate_compiled,
     };
 
     fn no_modifiers() -> ActiveModifiers {
@@ -401,11 +627,12 @@ mod tests {
         let count = validate_compiled().expect("the committed keybind data has to be valid");
         assert_eq!(
             count,
-            shortcuts().len() + emotion_keys().len() + hotbar_keys().len() + 2 + chat_command_keys().len()
+            shortcuts().len() + emotion_keys().len() + hotbar_keys().len() + chat_command_keys().len()
         );
-        // Defaults: 16 shortcuts, 9 emotions, 10 hotbar slots, 2 tab keys and
-        // the 2 Enter keys that confirm a focused text input.
-        assert_eq!(count, 16 + 9 + 10 + 2 + 2);
+        // Defaults: 19 shortcut entries (the inventory has an Alt and a plain
+        // binding), 9 emotions, 9 hotbar slots and the 2 Enter keys that
+        // confirm a focused text input.
+        assert_eq!(count, 19 + 9 + 9 + 2);
     }
 
     #[test]
@@ -453,6 +680,9 @@ mod tests {
         assert_shortcut(ShortcutAction::ToggleShowInterface, KeyCode::KeyH, &[Modifier::Control], false);
         assert_shortcut(ShortcutAction::ToggleMinimapWindow, KeyCode::KeyM, &[Modifier::Control], false);
         assert_shortcut(ShortcutAction::CloseTopWindow, KeyCode::KeyQ, &[Modifier::Control], false);
+        assert_shortcut(ShortcutAction::ToggleHotbarWindow, KeyCode::F12, &[], true);
+        assert_shortcut(ShortcutAction::SwitchHotbarBar, KeyCode::F11, &[], true);
+        assert_shortcut(ShortcutAction::RotateHotbarRows, KeyCode::F12, &[Modifier::Control], false);
 
         // The plain keys are exact: they must not fire while a modifier is held.
         let plain_maps = shortcuts()
@@ -488,9 +718,7 @@ mod tests {
             KeyCode::F7,
             KeyCode::F8,
             KeyCode::F9,
-            KeyCode::F10,
         ]);
-        assert_eq!(hotbar_tab_keys(), (KeyCode::F11, KeyCode::F12));
         assert_eq!(chat_command_keys(), &[KeyCode::Enter, KeyCode::NumpadEnter]);
     }
 
@@ -535,10 +763,6 @@ mod tests {
         assert!(
             validate(&compiled_data().replace("action: CloseOrMenu", "action: NotAnAction")).is_err(),
             "unknown actions must be rejected"
-        );
-        assert!(
-            validate(&compiled_data().replace("hotbar_tab_next: \"F12\"", "hotbar_tab_next: \"F11\"")).is_err(),
-            "duplicate tab keys must be rejected"
         );
         assert!(
             validate(&compiled_data().replace("hotbar_keys: [\"F1\",", "hotbar_keys: [\"F1\", \"F1\",")).is_err(),

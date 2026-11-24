@@ -15,7 +15,43 @@
 
 /// Names of slash commands that the client handles itself and therefore must
 /// not be forwarded to the server as atcommands.
-const CLIENT_SIDE_COMMANDS: [&str; 3] = ["nc", "w", "whisper"];
+const CLIENT_SIDE_COMMANDS: [&str; 4] = ["nc", "w", "whisper", "bm"];
+
+/// Requested battle-mode state of a `/bm` command.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BattleModeCommand {
+    /// Set battle mode on (`/bm on`, `/bm 1`).
+    On,
+    /// Set battle mode off (`/bm off`, `/bm 0`).
+    Off,
+    /// Toggle the current value (`/bm`).
+    Toggle,
+}
+
+/// Parses the client-side `/bm` (battle mode) command.
+///
+/// `None` means the text is not a battle-mode command and has to be handled
+/// like normal chat. `/bm` alone toggles; `/bm on`/`off` (also `1`/`0`,
+/// `true`/`false`) sets an explicit state. An unknown argument is not a valid
+/// battle-mode command, so it falls through to the regular slash-command
+/// translation instead of silently toggling.
+pub fn parse_battle_mode_command(text: &str) -> Option<BattleModeCommand> {
+    let mut parts = text.trim_start().split_whitespace();
+    let command = parts.next()?;
+
+    if !command.eq_ignore_ascii_case("/bm") {
+        return None;
+    }
+
+    match parts.next() {
+        None => Some(BattleModeCommand::Toggle),
+        Some(argument) if argument.eq_ignore_ascii_case("on") || matches!(argument, "1" | "true" | "enable") => Some(BattleModeCommand::On),
+        Some(argument) if argument.eq_ignore_ascii_case("off") || matches!(argument, "0" | "false" | "disable") => {
+            Some(BattleModeCommand::Off)
+        }
+        Some(_) => None,
+    }
+}
 
 /// Translates a leading slash command into its rAthena atcommand form.
 ///
@@ -51,7 +87,33 @@ pub fn translate_slash_command(text: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::translate_slash_command;
+    use super::{BattleModeCommand, parse_battle_mode_command, translate_slash_command};
+
+    #[test]
+    fn battle_mode_command_toggles_and_sets_the_state() {
+        assert_eq!(parse_battle_mode_command("/bm"), Some(BattleModeCommand::Toggle));
+        assert_eq!(parse_battle_mode_command("  /BM  "), Some(BattleModeCommand::Toggle));
+        assert_eq!(parse_battle_mode_command("/bm on"), Some(BattleModeCommand::On));
+        assert_eq!(parse_battle_mode_command("/bm 1"), Some(BattleModeCommand::On));
+        assert_eq!(parse_battle_mode_command("/bm off"), Some(BattleModeCommand::Off));
+        assert_eq!(parse_battle_mode_command("/bm 0"), Some(BattleModeCommand::Off));
+        assert_eq!(parse_battle_mode_command("/bm disable"), Some(BattleModeCommand::Off));
+    }
+
+    #[test]
+    fn non_battle_mode_text_is_ignored() {
+        assert_eq!(parse_battle_mode_command("hello"), None);
+        assert_eq!(parse_battle_mode_command("/bmm"), None);
+        assert_eq!(parse_battle_mode_command("/b m"), None);
+        assert_eq!(parse_battle_mode_command(""), None);
+        // Unknown arguments stay normal chat commands.
+        assert_eq!(parse_battle_mode_command("/bm maybe"), None);
+    }
+
+    #[test]
+    fn battle_mode_is_not_translated_to_an_atcommand() {
+        assert_eq!(translate_slash_command("/bm"), None);
+    }
 
     #[test]
     fn translates_slash_commands_to_atcommands() {

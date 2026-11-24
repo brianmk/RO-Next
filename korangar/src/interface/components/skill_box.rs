@@ -2,9 +2,11 @@ use korangar_interface::MouseMode;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{BaseLayoutInfo, Element};
 use korangar_interface::event::{ClickHandler, DropHandler, Event, EventQueue};
+use korangar_interface::layout::area::Area;
 use korangar_interface::layout::tooltip::TooltipExt;
 use korangar_interface::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
-use ragnarok_packets::SkillLevel;
+use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
+use ragnarok_packets::{SkillId, SkillLevel};
 use rust_state::{Path, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
@@ -12,11 +14,12 @@ use crate::input::{InputEvent, MouseInputMode};
 use crate::interface::resource::SkillSource;
 use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
+use crate::settings::GameSettingsPathExt;
 use crate::state::skills::{LearnableSkill, LearnedSkill};
 use crate::state::theme::{
     ColorTokensPathExt, DesignTokensPathExt, GlobalThemePathExt, InterfaceThemePathExt, SkillTreeThemePathExt, TypographyTokensPathExt,
 };
-use crate::state::{ClientState, client_theme};
+use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
 
 /// Default size of a skill slot in interface pixels.
 ///
@@ -102,6 +105,77 @@ where
                 skill: skill.clone(),
             });
         }
+    }
+}
+
+/// Draws the cooldown sweep and the remaining seconds on a skill slot.
+///
+/// The sweep is a translucent dark curtain that shrinks from the top as the
+/// cooldown runs out; the number is the remaining time rounded up. Both the
+/// hotbar and the skill tree use this helper so the display cannot drift apart.
+/// Static strings for the remaining cooldown seconds.
+///
+/// `WindowLayout::add_text` borrows the text for the whole layout lifetime, so
+/// the display text has to be a `&'static str`. A fixed table (one short
+/// string per second, capped at 999) avoids allocating or leaking per frame.
+fn cooldown_text(seconds: u32) -> &'static str {
+    static TEXTS: std::sync::OnceLock<[&'static str; 1000]> = std::sync::OnceLock::new();
+
+    let texts = TEXTS.get_or_init(|| std::array::from_fn(|second| Box::leak(second.to_string().into_boxed_str()) as &'static str));
+
+    texts[(seconds.min(999)) as usize]
+}
+
+pub fn draw_cooldown_overlay(
+    state: &State<ClientState>,
+    layout: &mut WindowLayout<ClientState>,
+    area: Area,
+    skill_id: SkillId,
+    size_scale: f32,
+) {
+    let cooldowns_path = client_state().skill_cooldowns();
+    let cooldowns = state.get(&cooldowns_path);
+
+    let Some(remaining) = cooldowns.remaining(skill_id) else {
+        return;
+    };
+
+    let sweep_height = area.height * remaining.fraction;
+
+    if sweep_height > 0.5 {
+        let sweep_area = Area {
+            left: area.left,
+            top: area.top,
+            width: area.width,
+            height: sweep_height,
+        };
+
+        layout.add_rectangle(
+            sweep_area,
+            CornerDiameter::uniform(6.0 * size_scale),
+            Color::rgba(0.0, 0.0, 0.0, 0.55),
+            Color::TRANSPARENT,
+            ShadowPadding::uniform(0.0),
+        );
+    }
+
+    if *state.get(&client_state().game_settings().show_cooldown_numbers()) {
+        let typography = client_theme().tokens().typography();
+        let font_size = <crate::loaders::FontSize as korangar_interface::application::FontSize>::scaled(
+            state.get(&typography.font_subtitle()),
+            size_scale,
+        );
+
+        layout.add_text(
+            area,
+            cooldown_text(remaining.seconds),
+            font_size,
+            *state.get(&client_theme().tokens().color().text_overlay()),
+            *state.get(&client_theme().tokens().color().text_overlay_accent()),
+            HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
+            VerticalAlignment::Center { offset: 0.0 },
+            OverflowBehavior::Shrink,
+        );
     }
 }
 
@@ -266,6 +340,8 @@ where
                     sprite_scale,
                 );
             }
+
+            draw_cooldown_overlay(state, layout, layout_info.area, learnable_skill.skill_id, size_scale);
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);

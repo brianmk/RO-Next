@@ -3,7 +3,7 @@ use rust_state::Path;
 
 use crate::interface::windows::WindowClass;
 use crate::settings::{GameSettings, GameSettingsPathExt};
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, QolTextsPathExt};
 use crate::state::theme::InterfaceThemeType;
 use crate::state::{ClientState, ClientStatePathExt, client_state};
 
@@ -40,6 +40,16 @@ where
                     text: client_state().localization().auto_attack_button_text(),
                     state: self.game_settings_path.auto_attack(),
                     event: Toggle(self.game_settings_path.auto_attack()),
+                },
+                state_button! {
+                    text: client_state().localization().qol().battle_mode_button_text(),
+                    state: self.game_settings_path.battle_mode(),
+                    event: Toggle(self.game_settings_path.battle_mode()),
+                },
+                state_button! {
+                    text: client_state().localization().qol().cooldown_numbers_button_text(),
+                    state: self.game_settings_path.show_cooldown_numbers(),
+                    event: Toggle(self.game_settings_path.show_cooldown_numbers()),
                 },
             ),
         }

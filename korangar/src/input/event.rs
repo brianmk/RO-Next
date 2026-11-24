@@ -9,8 +9,10 @@ use ragnarok_packets::{
     ItemId, PartyId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
 };
 use rust_state::State;
+use winit::keyboard::KeyCode;
 
 use crate::graphics::ScreenPosition;
+use crate::input::ShortcutAction;
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::loaders::ServiceId;
 use crate::state::ClientState;
@@ -529,6 +531,43 @@ pub enum InputEvent {
     InspectFrame {
         measurement: FrameMeasurement,
     },
+    /// Hide or show the hotbar HUD element (F12).
+    ToggleHotbarWindow,
+    /// Switch the visible hotbar between the two server bars.
+    SwitchHotbarBar,
+    /// Rotate the visible rows of the active hotbar bar (Ctrl+F12).
+    RotateHotbarRows {
+        /// +1 for the next row, -1 for the previous one.
+        delta: i32,
+    },
+    /// Start capturing a new key for a key binding.
+    BeginRebind {
+        /// Action whose binding is replaced.
+        action: ShortcutAction,
+    },
+    /// A key was captured for a pending key rebind.
+    RebindKey {
+        /// Action whose binding is replaced.
+        action: ShortcutAction,
+        /// Physical key that was pressed.
+        key: KeyCode,
+        /// Alt modifier state at capture time.
+        alt: bool,
+        /// Control modifier state at capture time.
+        control: bool,
+        /// Shift modifier state at capture time.
+        shift: bool,
+    },
+    /// Forget all player key binding overrides and restore the data defaults.
+    ResetKeybinds,
+    /// Turn the battle-mode keyboard routing on or off (`/bm`). `None` toggles
+    /// the current value.
+    ToggleBattleMode {
+        /// New state, or `None` to toggle.
+        enabled: Option<bool>,
+    },
+    /// Stop waiting for a key in the key binding editor.
+    CancelRebind,
 }
 
 impl From<InputEvent> for Event<ClientState> {

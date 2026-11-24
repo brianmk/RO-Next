@@ -6,6 +6,7 @@ pub mod character_slots;
 pub mod friend_names;
 pub mod hotbar;
 pub mod inventory;
+pub mod key_rebind;
 pub mod lifecycle;
 pub mod localization;
 pub mod minimap;
@@ -72,6 +73,7 @@ use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
+use crate::state::key_rebind::KeyRebindState;
 use crate::state::minimap::Minimap;
 use crate::state::party::Party;
 use crate::state::quest_log::QuestLog;
@@ -174,6 +176,9 @@ pub struct ClientState {
     /// Active skill cooldowns (`ZC_SKILL_POSTDELAY`, 0x043D).
     #[hidden_element]
     skill_cooldowns: SkillCooldowns,
+    /// Pending key capture of the key binding editor.
+    #[hidden_element]
+    key_rebind: KeyRebindState,
     /// Map type and flags from `ZC_NOTIFY_MAPPROPERTY2` (0x099B).
     #[hidden_element]
     map_type: u16,
@@ -405,6 +410,7 @@ impl ClientState {
             let minimap = Minimap::default();
             let spirit_orbs = SpiritOrbs::default();
             let skill_cooldowns = SkillCooldowns::default();
+            let key_rebind = KeyRebindState::default();
             let map_type = 0;
             let map_flags = 0;
             let map_cell_overrides = Vec::new();
@@ -514,6 +520,7 @@ impl ClientState {
             skill_tree_window,
             spirit_orbs,
             skill_cooldowns,
+            key_rebind,
             map_type,
             map_flags,
             map_cell_overrides,

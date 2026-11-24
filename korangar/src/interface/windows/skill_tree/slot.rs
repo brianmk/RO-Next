@@ -13,6 +13,7 @@ use rust_state::{Path, State};
 use super::{SkillTreeWindowState, SkillTreeWindowStatePathExt};
 use crate::graphics::{Color, ScreenPosition, ShadowPadding};
 use crate::input::{InputEvent, MouseInputMode};
+use crate::interface::components::skill_box::draw_cooldown_overlay;
 use crate::interface::resource::SkillSource;
 use crate::loaders::OverflowBehavior;
 use crate::renderer::LayoutExt;
@@ -584,6 +585,8 @@ where
 
                 layout.add_sprite(sprite_area, actions, sprite, &skill.animation_state, color, sprite_scale);
             }
+
+            draw_cooldown_overlay(state, layout, sprite_area, skill.skill_id, 1.0);
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.click_handler);

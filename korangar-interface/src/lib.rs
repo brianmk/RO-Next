@@ -514,6 +514,11 @@ where
         });
     }
 
+    /// Clear the keyboard focus of the currently focused element.
+    pub fn unfocus(&mut self) {
+        self.event_queue.queue(Event::Unfocus);
+    }
+
     pub fn is_window_with_class_open(&self, window_class: App::WindowClass) -> bool {
         self.windows
             .iter()
