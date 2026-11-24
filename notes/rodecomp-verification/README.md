@@ -74,6 +74,17 @@ With all 18 benchmark auras injected at once the stacked additive rows read as a
 bright bloom; the isolated frames show each row on its own is correct, so the
 default set is a stress case, not a fidelity problem.
 
+### Weapon layer (Novice dagger)
+
+The weapon layer used to be disabled for every character because
+`animation_is_drawable` inspected only the first eight ACT actions, which are
+placeholder clips in the per-job weapon ACTs. After scanning every action the
+Novice's `초보자_남_단검` candidate loads and the dagger is drawn:
+`weapon-novice-dagger.png` (crop) and the log excerpt next to it show the entity
+no longer logging "disabling the weapon layer" for that path. Per-class ACTs
+that still fail (Sniper bow, Paladin sword, ...) are listed by the info-level
+`weapon animation not in the archives` line.
+
 ## Account notes
 
 * `verify6` / `verifypass` and `verify4` / `verifypass` both reach the map.

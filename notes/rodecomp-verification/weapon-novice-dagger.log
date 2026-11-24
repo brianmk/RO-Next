@@ -1,0 +1,4 @@
+[00:07:01.844 DEBUG korangar] weapon layer: entity 20000077 kind Dagger (Dagger) range 1 ammo None -> 2 candidate(s)
+[00:07:04.760 DEBUG korangar] weapon layer: entity 20000077 kind Dagger (Dagger) range 1 ammo None -> 4 candidate(s)
+[00:07:04.769 INFO  korangar::loaders::r#async] weapon animation not in the archives, disabling the weapon layer for `인간족\스나이퍼\스나이퍼_여_1704`
+[00:07:04.769 INFO  korangar::loaders::r#async] weapon animation not in the archives, disabling the weapon layer for `인간족\팔라딘\팔라딘_남_1104`
