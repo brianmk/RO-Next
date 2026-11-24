@@ -3921,6 +3921,25 @@ mod packet_handlers {
     /// A successful use-item ack (`ZC_USE_ITEM_ACK` 0x01C8) must update the
     /// amount *and* emit `ItemUsed`, which drives the official use-item
     /// animation. A failed use only reports the error.
+    /// `ZC_LONGPAR_CHANGE` (0x00B1) variable 20 is zeny; it must reach the
+    /// client as `StatType::Zeny` so the inventory row updates.
+    #[test]
+    fn zeny_longpar_change_emits_the_zeny_stat() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut packet = Vec::new();
+        packet.extend_from_slice(&0x00B1u16.to_le_bytes());
+        packet.extend_from_slice(&20u16.to_le_bytes());
+        packet.extend_from_slice(&12_345u32.to_le_bytes());
+        assert_eq!(packet.len(), 8);
+
+        let events = feed(&mut handler, &packet);
+        assert!(events.0.iter().any(|event| matches!(
+            event,
+            NetworkEvent::UpdateStat { stat_type: ragnarok_packets::StatType::Zeny(12_345) }
+        )), "{:?}", events.0);
+    }
+
     #[test]
     fn use_item_ack_emits_the_use_item_animation_event() {
         let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();

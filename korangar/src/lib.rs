@@ -6169,6 +6169,7 @@ impl Client {
                     // The zeny amount is displayed by the inventory window, so keep it in
                     // the client state as well (the player stats do not contain it).
                     if let StatType::Zeny(value) = stat_type {
+                        crate::logging::log_debug!("zeny update: {}", value);
                         *self.client_state.follow_mut(client_state().zeny()) = Some(u64::from(value));
                     }
 

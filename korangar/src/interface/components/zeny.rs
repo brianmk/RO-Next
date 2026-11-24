@@ -30,9 +30,11 @@ pub fn format_zeny(value: u64) -> String {
 
 /// Element that shows the amount of zeny the character has.
 ///
-/// The zeny value is optional: the server does not necessarily send an initial
-/// zeny update on login, so until the first `ZC_LONGPAR_CHANGE` (zeny) arrives
-/// the element shows a dash instead of a wrong `0 z`.
+/// The rAthena 2019 server never sends the *initial* zeny after login: it only
+/// pushes `ZC_LONGPAR_CHANGE` when the value changes (`clif_updatestatus` is
+/// called from `pc_getzeny`/`pc_payzeny`, not from `clif_parse_LoadEndAck`).
+/// The official client initializes its zeny to `0` for that reason, so the
+/// element does the same instead of showing a placeholder forever.
 pub struct ZenyDisplay<A> {
     zeny_path: A,
     text: String,
@@ -61,10 +63,9 @@ where
     ) -> Self::LayoutInfo {
         let zeny = *state.follow(self.zeny_path);
 
-        self.text = match zeny {
-            Some(zeny) => format_zeny(zeny),
-            None => state.get(&client_state().localization().ui().zeny_unknown_text()).clone(),
-        };
+        // `None` means "the server has not sent a zeny update yet"; the
+        // official client starts at 0 until the first `ZC_LONGPAR_CHANGE`.
+        self.text = format_zeny(zeny.unwrap_or(0));
 
         with_single_resolver(resolvers, |resolver| resolver.with_height(18.0))
     }
