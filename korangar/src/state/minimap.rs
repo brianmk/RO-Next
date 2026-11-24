@@ -157,4 +157,12 @@ impl Minimap {
     pub fn set_marker_textures(&mut self, marker_textures: Vec<Arc<Texture>>) {
         self.marker_textures = marker_textures;
     }
+
+    /// Name of the currently displayed map (without the file extension).
+    ///
+    /// Used by `<NAVI>` links to decide whether the destination is on the
+    /// current map and a marker can be placed right away.
+    pub fn map_name(&self) -> &str {
+        &self.map_name
+    }
 }

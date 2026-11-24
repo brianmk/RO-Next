@@ -3,6 +3,7 @@ pub mod cache_statistics;
 pub mod character_previews;
 pub mod character_selection_cooldown;
 pub mod character_slots;
+pub mod chat_markup;
 pub mod friend_names;
 pub mod guild;
 pub mod hotbar;
@@ -12,6 +13,7 @@ pub mod lifecycle;
 pub mod localization;
 pub mod mail;
 pub mod minimap;
+pub mod notifications;
 pub mod party;
 pub mod quest_log;
 pub mod skill_cooldowns;
@@ -22,6 +24,7 @@ pub mod status_effects;
 pub mod theme;
 pub mod trade;
 pub mod vending;
+pub mod whisper;
 
 use std::cell::Cell;
 use std::sync::Arc;
@@ -79,6 +82,7 @@ use crate::state::inventory::Inventory;
 use crate::state::key_rebind::KeyRebindState;
 use crate::state::mail::Mailbox;
 use crate::state::minimap::Minimap;
+use crate::state::notifications::NotificationHud;
 use crate::state::party::Party;
 use crate::state::quest_log::QuestLog;
 use crate::state::skill_cooldowns::SkillCooldowns;
@@ -87,10 +91,41 @@ use crate::state::spirit_orbs::SpiritOrbs;
 use crate::state::theme::WorldTheme;
 use crate::state::trade::Trade;
 use crate::state::vending::{Vending, VendingBrowse};
+use crate::state::whisper::WhisperConversations;
 #[cfg(feature = "debug")]
 use crate::world::Object;
 use crate::world::{Entity, GroundItem, Player, ResourceMetadata};
 use crate::{AudioSettings, GraphicsSettings};
+
+/// The channel a chat message belongs to, used by the chat window tabs.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash, RustState, StateElement)]
+pub enum ChatChannel {
+    /// Normal ("public") chat, server messages and broadcasts.
+    #[default]
+    Public,
+    /// Party chat (`ZC_NOTIFY_CHAT_PARTY`, 0x0109).
+    Party,
+    /// Whisper conversation (`ZC_WHISPER`, 0x09DE).
+    Whisper,
+    /// Guild chat (`ZC_GUILD_CHAT`, 0x017F).
+    Guild,
+}
+
+impl ChatChannel {
+    pub const OPTIONS: [ChatChannel; 4] = [ChatChannel::Public, ChatChannel::Party, ChatChannel::Whisper, ChatChannel::Guild];
+
+    /// Short tab label. Chat channels are server concepts without a
+    /// localization entry; the labels are kept in English like the packet
+    /// names.
+    pub fn label(self) -> &'static str {
+        match self {
+            ChatChannel::Public => "Public",
+            ChatChannel::Party => "Party",
+            ChatChannel::Whisper => "Whisper",
+            ChatChannel::Guild => "Guild",
+        }
+    }
+}
 
 /// A message in the in-game chat.
 ///
@@ -102,11 +137,41 @@ pub struct ChatMessage {
     pub text: String,
     /// Color of the message.
     pub color: MessageColor,
+    /// Channel tab the message is shown in.
+    pub channel: ChatChannel,
+    /// For whisper messages: the name of the conversation partner. Clicking
+    /// such a message opens the whisper window (none for all other channels).
+    pub whisper_partner: Option<String>,
 }
 
 impl ChatMessage {
     pub fn new(text: String, color: MessageColor) -> Self {
-        Self { text, color }
+        Self {
+            text,
+            color,
+            channel: ChatChannel::Public,
+            whisper_partner: None,
+        }
+    }
+
+    /// Message that is shown in a specific channel tab.
+    pub fn new_channel(text: String, color: MessageColor, channel: ChatChannel) -> Self {
+        Self {
+            text,
+            color,
+            channel,
+            whisper_partner: None,
+        }
+    }
+
+    /// Whisper message; clicking it opens the conversation with `partner`.
+    pub fn whisper(text: String, color: MessageColor, partner: impl Into<String>) -> Self {
+        Self {
+            text,
+            color,
+            channel: ChatChannel::Whisper,
+            whisper_partner: Some(partner.into()),
+        }
     }
 }
 
@@ -203,6 +268,12 @@ pub struct ClientState {
 
     /// List of all received chat messages.
     chat_messages: Vec<ChatMessage>,
+    /// Whisper conversations (bounded history per partner).
+    #[hidden_element]
+    whisper: WhisperConversations,
+    /// Transient notification HUD entries (broadcast/pickup/level-up/quest).
+    #[hidden_element]
+    notifications: NotificationHud,
     /// Active status effects (buffs/debuffs) of the player shown in the buff
     /// bar.
     status_effects: StatusEffects,
@@ -424,6 +495,8 @@ impl ClientState {
                 env!("CARGO_PKG_VERSION")
             );
             let chat_messages = vec![ChatMessage::new(welcome_string, MessageColor::Server)];
+            let whisper = WhisperConversations::default();
+            let notifications = NotificationHud::default();
 
             let chat_window = ChatWindowState::default();
             let minimap = Minimap::default();
@@ -553,6 +626,8 @@ impl ClientState {
             dead_entities: Vec::new(),
             ground_items: Vec::new(),
             chat_messages,
+            whisper,
+            notifications,
             status_effects: StatusEffects::default(),
             party,
             guild,

@@ -2244,6 +2244,19 @@ impl Entity {
         self.get_common().sex
     }
 
+    /// rAthena `opt1` (`bodyState`): stone/freeze/stun/sleep/burning/...
+    ///
+    /// The head mark overlay renders a status icon above the entity for this
+    /// value; the server sends updates through `ZC_STATE_CHANGE` (0x0229).
+    pub fn get_body_state(&self) -> u16 {
+        self.get_common().body_state
+    }
+
+    /// rAthena `opt2` (`healthState`): poison/curse/silence/confusion/blind/...
+    pub fn get_health_state(&self) -> u16 {
+        self.get_common().health_state
+    }
+
     pub fn needs_imf(&self) -> bool {
         self.get_common().needs_imf()
     }

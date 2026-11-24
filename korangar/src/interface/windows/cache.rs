@@ -61,6 +61,27 @@ impl WindowCache {
             )
         });
 
+        // Whisper conversations open in the middle of the screen (the official
+        // client also places them freely; the user can drag them afterwards).
+        self.entries.entry(WindowClass::Whisper).or_insert_with(|| {
+            WindowState::new(
+                Anchor::new(AnchorPoint::Center, ScreenPosition { left: 0.0, top: 0.0 }),
+                ScreenSize {
+                    width: 360.0,
+                    height: 320.0,
+                },
+            )
+        });
+
+        // The notification overlay is positioned by the client on every screen
+        // resize, but a default entry keeps the cache complete.
+        self.entries.entry(WindowClass::NotificationHud).or_insert_with(|| {
+            WindowState::new(
+                Anchor::new(AnchorPoint::TopCenter, ScreenPosition { left: 0.0, top: 12.0 }),
+                ScreenSize { width: 520.0, height: 0.0 },
+            )
+        });
+
         // The minimap belongs in the top right corner, like in the original client.
         self.entries.entry(WindowClass::Minimap).or_insert_with(|| {
             WindowState::new(

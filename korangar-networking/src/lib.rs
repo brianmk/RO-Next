@@ -1602,6 +1602,18 @@ where
         }
     }
 
+    /// Send a guild chat message (`CZ_GUILD_CHAT`, 0x017E).
+    ///
+    /// The server validates the `<name> : <message>` format exactly like public
+    /// and party chat (see `clif_process_message` in the rAthena source).
+    pub fn send_guild_chat_message(&mut self, player_name: &str, text: &str) -> Result<(), NotConnectedError> {
+        let message = format!("{} : {}", player_name, text);
+
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildChatRequestPacket { message }),
+        }
+    }
+
     pub fn set_hotkey_data(&mut self, tab: HotbarTab, index: HotbarSlot, hotkey_data: HotkeyData) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(SetHotkeyData2Packet::new(tab, index, hotkey_data)),
@@ -3172,11 +3184,35 @@ mod packet_handlers {
         assert_eq!(bytes.len(), 69);
 
         let events = feed(&mut handler, &bytes);
-        // The 2019 pickup ack adds the item to the inventory; the "you got"
-        // chat message is produced by the client from the same event elsewhere.
+        // The 2019 pickup ack adds the item to the inventory and reports the
+        // pickup for the notification HUD; the chat line is produced by the
+        // client from the same events elsewhere.
         assert!(matches!(events.0.as_slice(), [
             NetworkEvent::IventoryItemAdded { item },
-        ] if item.index == ragnarok_packets::InventoryIndex(2)));
+            NetworkEvent::ItemPickedUp { item_id, amount },
+        ] if item.index == ragnarok_packets::InventoryIndex(2)
+            && *item_id == ragnarok_packets::ItemId(501)
+            && *amount == 7));
+    }
+
+    #[test]
+    fn guild_chat_packet_produces_a_guild_chat_event() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x017F ZC_GUILD_CHAT: header, length, `<name> : <message>` and the
+        // trailing NUL (which the declared length includes).
+        let message = "Alice : hello guild";
+        let length = 4 + message.len() + 1;
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x017Fu16.to_le_bytes());
+        bytes.extend_from_slice(&(length as u16).to_le_bytes());
+        bytes.extend_from_slice(message.as_bytes());
+        bytes.push(0);
+
+        let events = feed(&mut handler, &bytes);
+        assert!(matches!(events.0.as_slice(), [
+            NetworkEvent::GuildChat { message },
+        ] if message == "Alice : hello guild"));
     }
 
     #[test]

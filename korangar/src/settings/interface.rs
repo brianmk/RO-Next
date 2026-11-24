@@ -261,6 +261,15 @@ pub struct InterfaceSettings {
     /// old settings files load unchanged.
     #[serde(default)]
     pub level_99_aura_style: AuraStyle,
+    /// Show the transient notification HUD overlay (server broadcasts, item
+    /// pickup toasts, level-up and quest banners). Defaults to enabled so old
+    /// settings files keep the HUD.
+    #[serde(default = "default_show_notification_hud")]
+    pub show_notification_hud: bool,
+}
+
+fn default_show_notification_hud() -> bool {
+    true
 }
 
 fn default_show_character_names() -> bool {
@@ -320,6 +329,7 @@ impl Default for InterfaceSettings {
             character_overview_compact: false,
             inventory_tab: ItemCategory::Consumables,
             level_99_aura_style: AuraStyle::Auto,
+            show_notification_hud: true,
         }
     }
 }

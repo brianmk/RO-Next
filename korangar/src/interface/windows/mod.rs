@@ -34,6 +34,7 @@ mod login;
 mod maps;
 mod menu;
 mod minimap;
+mod notification_hud;
 #[cfg(feature = "debug")]
 mod packet_inspector;
 mod party;
@@ -57,6 +58,7 @@ mod theme_inspector;
 mod trade;
 mod vending;
 mod vending_browse;
+mod whisper;
 
 use serde::{Deserialize, Serialize};
 
@@ -97,6 +99,7 @@ pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 pub use self::maps::MapsWindow;
 pub use self::menu::MenuWindow;
 pub use self::minimap::MinimapWindow;
+pub use self::notification_hud::{NOTIFICATION_HUD_WIDTH, NotificationHudWindow};
 #[cfg(feature = "debug")]
 pub use self::packet_inspector::PacketInspectorWindow;
 pub use self::party::{PartyInviteWindow, PartyWindow};
@@ -120,6 +123,7 @@ pub use self::theme_inspector::{ThemeInspectorWindow, ThemeInspectorWindowState}
 pub use self::trade::{TradeRequestWindow, TradeWindow};
 pub use self::vending::VendingWindow;
 pub use self::vending_browse::VendingBrowseWindow;
+pub use self::whisper::WhisperWindow;
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum WindowClass {
@@ -154,6 +158,7 @@ pub enum WindowClass {
     VendingBrowse,
     Cart,
     Storage,
+    Whisper,
     FriendList,
     FriendRequest,
     Login,
@@ -164,6 +169,7 @@ pub enum WindowClass {
     Guild,
     Quest,
     PartyInvite,
+    NotificationHud,
     Respawn,
     SelectServer,
     Sell,
@@ -195,7 +201,13 @@ impl WindowClass {
     pub fn is_background_overlay(self) -> bool {
         matches!(
             self,
-            Self::Chat | Self::Hotbar | Self::Minimap | Self::CharacterOverview | Self::BuffBar | Self::SpiritSpheres
+            Self::Chat
+                | Self::Hotbar
+                | Self::Minimap
+                | Self::CharacterOverview
+                | Self::BuffBar
+                | Self::SpiritSpheres
+                | Self::NotificationHud
         )
     }
 }

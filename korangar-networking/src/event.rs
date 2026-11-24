@@ -933,6 +933,40 @@ pub enum NetworkEvent {
     GuildInviteResult {
         result: u8,
     },
+    /// Another player whispered the local player (`ZC_WHISPER`, 0x09DE).
+    ///
+    /// The client keeps a per-partner conversation history and a whisper chat
+    /// tab from this, so the raw text is not prefixed like a chat message.
+    WhisperReceived {
+        sender_name: String,
+        message: String,
+        is_admin: bool,
+    },
+    /// Guild chat message (`ZC_GUILD_CHAT`, 0x017F).
+    GuildChat {
+        message: String,
+    },
+    /// The local player picked up an item (`ZC_ITEM_PICKUP_ACK`, 0x0A37).
+    ///
+    /// The item is already added to the inventory by the same packet; this
+    /// event only carries the data for the pickup toast.
+    ItemPickedUp {
+        item_id: ItemId,
+        amount: u16,
+    },
+    /// A quest was started or updated (`ZC_QUEST_NOTIFY`, 0x09F9) and the HUD
+    /// should show a banner for it.
+    QuestBanner {
+        quest_id: u32,
+        active: bool,
+        /// Names of the hunt objectives, if the packet contained any.
+        objective_names: Vec<String>,
+    },
+    /// A server-wide broadcast message (`ZC_BROADCAST`, 0x009A or
+    /// `ZC_BROADCAST2`, 0x01C3).
+    ServerAnnouncement {
+        text: String,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

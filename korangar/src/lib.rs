@@ -82,9 +82,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
-    DisappearanceReason,
-    EntityId, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult,
-    SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    DisappearanceReason, EntityId, EquipPosition, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex,
+    ItemId, JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -104,7 +103,7 @@ use state::localization::Localization;
 use state::skills::SkillTreePathExt;
 use state::theme::{CursorThemePathExt, IndicatorThemePathExt, InterfaceThemePathExt, WorldThemePathExt};
 use state::vending::VendingShopItem;
-use state::{ChatMessage, ClientState, ClientStatePathExt, client_state, status_effect_definition, this_entity, this_player};
+use state::{ChatChannel, ChatMessage, ClientState, ClientStatePathExt, client_state, status_effect_definition, this_entity, this_player};
 #[cfg(feature = "debug")]
 use wgpu::Device;
 use wgpu::util::initialize_adapter_from_env_or_default;
@@ -139,9 +138,11 @@ use crate::settings::{
     ServiceSettingsPathExt, WORLD_THEMES_PATH, parse_aura_style_marker,
 };
 use crate::state::character_slots::{MAX_CHARACTER_SLOTS, visible_character_slots};
+use crate::state::chat_markup::ChatMarkupLink;
 use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
 use crate::state::localization::{LocalizationPathExt, QolTextsPathExt};
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
+use crate::state::notifications::NotificationKind;
 use crate::state::party::PartyPathExt;
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
 use crate::state::stat_buffer::PendingStatUpdates;
@@ -975,6 +976,8 @@ pub struct Client {
     point_light_manager: PointLightManager,
     effect_holder: EffectHolder,
     chat_bubbles: ChatBubbles,
+    /// Official status icon textures drawn above entity heads (`opt1`/`opt2`).
+    head_marks: HeadMarks,
     /// Pending item drag: (press time, press position). A drag only starts
     /// after a short hold or a few pixels of movement, so a plain click
     /// does not pick items up.
@@ -1596,6 +1599,9 @@ impl Client {
             crate::client_state().client_info(),
         ));
 
+        // Official status icon textures for the head mark overlay (opt1/opt2).
+        let head_marks = HeadMarks::new(&texture_loader);
+
         Some(Self {
             game_file_loader,
             action_loader,
@@ -1678,6 +1684,7 @@ impl Client {
             point_light_manager,
             effect_holder,
             chat_bubbles: ChatBubbles::default(),
+            head_marks,
             pending_item_drag: None,
             skill_name_texts: SkillNameTexts::default(),
             cast_bars: CastBars::default(),
@@ -2418,6 +2425,30 @@ impl Client {
         self.interface.open_window_at_auto_size(BuffBarWindow, position);
     }
 
+    /// Open (or re-open) the transparent notification overlay at the top
+    /// center of the screen.
+    fn open_notification_hud_window(&mut self) {
+        let enabled = *self
+            .client_state
+            .follow(client_state().interface_settings().show_notification_hud());
+
+        if !enabled || self.client_state.try_follow(this_entity()).is_none() {
+            self.interface.close_window_with_class(WindowClass::NotificationHud);
+            return;
+        }
+
+        let window_size = *self.client_state.follow(client_state().window_size());
+        let scaling = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
+        let width = NOTIFICATION_HUD_WIDTH * scaling;
+        let position = ScreenPosition {
+            left: ((window_size.width - width) / 2.0).max(0.0),
+            top: 12.0 * scaling,
+        };
+
+        self.interface.close_window_with_class(WindowClass::NotificationHud);
+        self.interface.open_window_at_auto_size(NotificationHudWindow, position);
+    }
+
     /// Reposition the HUD overlay windows after the window size or the
     /// interface scale changed.
     fn reposition_hud_windows(&mut self) {
@@ -2425,6 +2456,7 @@ impl Client {
 
         if in_game {
             self.open_hotbar_window();
+            self.open_notification_hud_window();
         }
 
         if self.interface.is_window_with_class_open(WindowClass::BuffBar) {
@@ -3206,6 +3238,76 @@ impl Client {
             .push(ChatMessage::new(message, MessageColor::Information));
     }
 
+    /// Open (or focus) the whisper conversation window with `partner`.
+    fn open_whisper_window(&mut self, partner: &str) {
+        self.client_state.follow_mut(client_state().whisper()).open(partner);
+
+        if !self.interface.is_window_with_class_open(WindowClass::Whisper) {
+            self.interface.open_window(WhisperWindow::new(client_state().whisper()));
+        }
+    }
+
+    /// Handle a `<NAVI>` click: place a marker on the minimap when the
+    /// destination is on the current map, otherwise report the position.
+    ///
+    /// The 2019 server has no client-side navigation packet, so moving there
+    /// is up to the player; the client only shows where it is (the official
+    /// client is a paid add-on feature).
+    fn navigate_to_map_position(&mut self, map_name: &str, x: u16, y: u16) {
+        let target = map_name.trim().trim_end_matches(".gat").to_ascii_lowercase();
+        let current = self.current_map_name.as_deref().map(str::to_ascii_lowercase);
+        let is_current_map = current.as_deref() == Some(target.as_str());
+
+        if is_current_map {
+            self.client_state
+                .follow_mut(client_state().minimap())
+                .add_marker(crate::state::minimap::MinimapMarker {
+                    // Synthetic id; server markers use the NPC entity id and are
+                    // managed separately.
+                    entity_id: EntityId(u32::MAX - 1),
+                    position: TilePosition { x, y },
+                    color: [255, 200, 60, 255],
+                    expires_at: None,
+                });
+
+            if !self.interface.is_window_with_class_open(WindowClass::Minimap) {
+                self.interface.open_window(MinimapWindow);
+                self.map_window_cycle = MapWindowCycle::Minimap;
+            }
+
+            self.push_chat_information(format!("Navigation: {map_name} ({x}, {y})"));
+        } else {
+            self.push_chat_information(format!(
+                "Navigation: {map_name} ({x}, {y}) is not on the current map. Use a warp NPC or @go to get there."
+            ));
+        }
+    }
+
+    /// Push a message into a specific chat tab.
+    fn push_chat_message(&mut self, message: ChatMessage) {
+        self.client_state.follow_mut(client_state().chat_messages()).push(message);
+    }
+
+    /// Show a transient notification in the top HUD overlay.
+    ///
+    /// The overlay is optional through the interface settings; when it is
+    /// disabled the notification is dropped (the chat line / other effect of
+    /// the same packet is unaffected).
+    fn push_notification(&mut self, kind: NotificationKind, text: String, client_tick: ClientTick) {
+        let enabled = *self
+            .client_state
+            .follow(client_state().interface_settings().show_notification_hud());
+
+        if !enabled {
+            return;
+        }
+
+        self.client_state
+            .follow_mut(client_state().notifications())
+            .push(kind, text, client_tick.0);
+        self.open_notification_hud_window();
+    }
+
     /// Plays the configured interface click sound.
     ///
     /// The path lives in `data\client\ui_audio.ron`; if the data file has no
@@ -3707,6 +3809,9 @@ impl Client {
 
     /// Updates the local status effect timers and shows/hides the buff bar.
     fn update_status_effects(&mut self, client_tick: ClientTick) {
+        self.client_state
+            .follow_mut(client_state().notifications())
+            .retain_alive(client_tick.0);
         self.client_state.follow_mut(client_state().minimap()).prune_markers(client_tick.0);
         self.client_state.follow_mut(client_state().skill_cooldowns()).prune(client_tick);
 
@@ -4557,6 +4662,7 @@ impl Client {
                         client_state().interface_settings(),
                     ));
                     self.open_hotbar_window();
+                    self.open_notification_hud_window();
 
                     // Put the dialog system in a well-defined state.
                     self.client_state.follow_mut(client_state().dialog_window()).end();
@@ -5084,12 +5190,86 @@ impl Client {
                         continue;
                     }
 
+                    // Server announcements are a separate `ServerAnnouncement`
+                    // event (broadcast packets); a `Broadcast` color alone is
+                    // also used for normal player chat, so it must not open the
+                    // announce box.
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(text, color));
                 }
                 NetworkEvent::OverheadChatMessage { entity_id, text, color } => {
                     self.chat_bubbles.push(entity_id, text, color, client_tick);
+                }
+                NetworkEvent::WhisperReceived {
+                    sender_name,
+                    message,
+                    is_admin,
+                } => {
+                    // A whisper belongs to its own conversation and to the
+                    // whisper chat tab, never to the public tab.
+                    self.client_state
+                        .follow_mut(client_state().whisper())
+                        .push_incoming(&sender_name, message.clone());
+
+                    let prefix = match is_admin {
+                        true => "[Whisper][GM]",
+                        false => "[Whisper]",
+                    };
+
+                    self.push_chat_message(ChatMessage::whisper(
+                        format!("{prefix} {sender_name} : {message}"),
+                        MessageColor::Information,
+                        sender_name,
+                    ));
+                }
+                NetworkEvent::GuildChat { message } => {
+                    // `ZC_GUILD_CHAT` carries the full `<name> : <message>`
+                    // line (the same format party chat uses).
+                    let message = message.trim_end_matches('\0').trim();
+
+                    if !message.is_empty() {
+                        self.push_chat_message(ChatMessage::new_channel(
+                            format!("[Guild] {message}"),
+                            MessageColor::Rgb {
+                                red: 150,
+                                green: 210,
+                                blue: 255,
+                            },
+                            ChatChannel::Guild,
+                        ));
+                    }
+                }
+                NetworkEvent::ItemPickedUp { item_id, amount } => {
+                    let name = self.library.composed_item_name(item_id, true, 0, &[0; 4]);
+                    let name = match name.trim().is_empty() {
+                        true => format!("Item #{}", item_id.0),
+                        false => name,
+                    };
+                    let text = match amount > 1 {
+                        true => format!("Picked up {name} x{amount}"),
+                        false => format!("Picked up {name}"),
+                    };
+
+                    self.push_notification(NotificationKind::Pickup, text, client_tick);
+                }
+                NetworkEvent::QuestBanner {
+                    quest_id,
+                    active,
+                    objective_names,
+                } => {
+                    if active {
+                        let text = match objective_names.first() {
+                            Some(objective) => format!("Quest started: {objective}"),
+                            None => format!("Quest started (Quest #{quest_id})"),
+                        };
+
+                        self.push_notification(NotificationKind::Quest, text, client_tick);
+                    }
+                }
+                NetworkEvent::ServerAnnouncement { text } => {
+                    let text = text.replace(['\r', '\n'], " ");
+                    self.push_notification(NotificationKind::Announce, text, client_tick);
                 }
                 NetworkEvent::UpdateEntityDetails {
                     entity_id,
@@ -5553,11 +5733,40 @@ impl Client {
                         *self.client_state.follow_mut(client_state().zeny()) = Some(u64::from(value));
                     }
 
+                    // rAthena 2019 has no dedicated level-up packet; the client
+                    // derives the level-up indicator from the base/job level
+                    // stat update. Only an increase is a level up (a respawn or
+                    // map change re-sends the same level).
+                    let level_up = match &stat_type {
+                        StatType::BaseLevel(level) => self
+                            .client_state
+                            .try_follow(this_player())
+                            .and_then(|player| (*level as usize > player.base_level).then_some((true, *level as u16))),
+                        StatType::JobLevel(level) => self
+                            .client_state
+                            .try_follow(this_player())
+                            .and_then(|player| (*level as usize > player.job_level).then_some((false, *level as u16))),
+                        _ => None,
+                    };
+
                     match self.client_state.try_follow_mut(this_player()) {
                         Some(player) => player.update_stat(stat_type),
                         // The initial stat burst can arrive before the local player entity
                         // was created; buffer it instead of dropping it.
                         None => self.pending_stat_updates.push(stat_type),
+                    }
+
+                    if let Some((base, level)) = level_up {
+                        self.push_notification(
+                            NotificationKind::LevelUp,
+                            {
+                                match base {
+                                    true => format!("Base level up! Lv {level}"),
+                                    false => format!("Job level up! Lv {level}"),
+                                }
+                            },
+                            client_tick,
+                        );
                     }
                 }
                 NetworkEvent::OpenEditDialog { npc_id, string_input } => {
@@ -6238,13 +6447,14 @@ impl Client {
                         .unwrap_or(&message)
                         .trim_end_matches('\0');
 
-                    self.client_state.follow_mut(client_state().chat_messages()).push(ChatMessage::new(
+                    self.push_chat_message(ChatMessage::new_channel(
                         format!("[Party] {name}: {message}"),
                         MessageColor::Rgb {
                             red: 120,
                             green: 230,
                             blue: 140,
                         },
+                        ChatChannel::Party,
                     ));
                 }
                 NetworkEvent::PartyConfig { allow_invites } => {
@@ -7951,6 +8161,49 @@ impl Client {
                 InputEvent::CloseItemInfo => {
                     self.interface.close_window_with_class(WindowClass::ItemInfo);
                 }
+                InputEvent::ChatMarkupClicked { link } => match link {
+                    ChatMarkupLink::Item { item_id, identified } => {
+                        // Chat item links are not inventory items: synthesize a
+                        // minimal identified stack so the normal item info
+                        // window (artwork, stats, description, cards) can show
+                        // it instead of doing nothing.
+                        let item = korangar_networking::InventoryItem {
+                            metadata: korangar_networking::NoMetadata,
+                            index: InventoryIndex(0),
+                            item_id,
+                            item_type: 0,
+                            slot: [0; 4],
+                            hire_expiration_date: 0,
+                            details: korangar_networking::InventoryItemDetails::Regular {
+                                amount: 1,
+                                equipped_position: EquipPosition::empty(),
+                                flags: match identified {
+                                    true => ragnarok_packets::RegularItemFlags::IDENTIFIED,
+                                    false => ragnarok_packets::RegularItemFlags::empty(),
+                                },
+                            },
+                        };
+                        let item = self.async_loader.request_inventory_item_metadata_load(item);
+
+                        open_item_info_window_for_item(
+                            &self.client_state,
+                            &mut self.interface,
+                            &item,
+                            None,
+                            &self.library,
+                            &self.texture_loader,
+                        );
+                    }
+                    ChatMarkupLink::Navi { map_name, x, y } => {
+                        self.navigate_to_map_position(&map_name, x, y);
+                    }
+                    ChatMarkupLink::Url { url } => {
+                        open_system_url(&url);
+                    }
+                    ChatMarkupLink::Whisper { partner } => {
+                        self.open_whisper_window(&partner);
+                    }
+                },
                 InputEvent::UseInventoryItem { inventory_index, item_id } => {
                     let _ = self.networking_system.use_item(inventory_index, item_id);
                 }
@@ -7973,6 +8226,26 @@ impl Client {
                         .follow_mut(client_state().chat_window())
                         .set_current_text(format!("/w {name} "));
                     self.interface.focus_element(ChatTextBox);
+                }
+                InputEvent::OpenWhisper { partner } => {
+                    self.open_whisper_window(&partner);
+                    self.interface.invalidate_layouts();
+                }
+                InputEvent::SendWhisper { partner, text } => {
+                    if text.is_empty() || partner.is_empty() {
+                        continue;
+                    }
+
+                    let _ = self.networking_system.send_whisper(&partner, &text);
+                    self.client_state
+                        .follow_mut(client_state().whisper())
+                        .push_outgoing(&partner, text.clone());
+                    self.push_chat_message(ChatMessage::whisper(
+                        format!("[Whisper] You : {text}"),
+                        MessageColor::Information,
+                        partner,
+                    ));
+                    self.interface.invalidate_layouts();
                 }
                 InputEvent::PlayerInteract { entity_id } => {
                     let entity = self
@@ -8100,11 +8373,26 @@ impl Client {
                     // whisper packet for this instead of a global chat message.
                     if let Some(whisper) = text.strip_prefix("/w ").or_else(|| text.strip_prefix("/whisper ")) {
                         let mut parts = whisper.splitn(2, ' ');
-                        let target_name = parts.next().unwrap_or_default();
+                        let target_name = parts.next().unwrap_or_default().trim();
                         let message = parts.next().unwrap_or_default().trim_start();
 
-                        if !target_name.is_empty() && !message.is_empty() {
-                            let _ = self.networking_system.send_whisper(target_name, message);
+                        if !target_name.is_empty() {
+                            // Open the dedicated conversation window and record
+                            // the outgoing line locally: the server does not echo
+                            // whispers back to the sender.
+                            self.open_whisper_window(target_name);
+
+                            if !message.is_empty() {
+                                let _ = self.networking_system.send_whisper(target_name, message);
+                                self.client_state
+                                    .follow_mut(client_state().whisper())
+                                    .push_outgoing(target_name, message);
+                                self.push_chat_message(ChatMessage::whisper(
+                                    format!("[Whisper] You : {message}"),
+                                    MessageColor::Information,
+                                    target_name,
+                                ));
+                            }
                         }
 
                         continue;
@@ -8123,6 +8411,26 @@ impl Client {
                             let _ = self.networking_system.send_party_chat_message(&player_name, message);
                         } else {
                             self.push_localized_chat(client_state().localization().not_in_party_text(), &[]);
+                        }
+
+                        continue;
+                    }
+
+                    // Guild chat: "/g <message>" or "/guild <message>". The
+                    // server sends the message to every guild member on the
+                    // map, including the sender, so no local echo is added.
+                    if let Some(message) = text.strip_prefix("/g ").or_else(|| text.strip_prefix("/guild ")) {
+                        let message = message.trim();
+
+                        if message.is_empty() {
+                            self.push_chat_message(ChatMessage::new_channel(
+                                "Usage: /g <message>".to_owned(),
+                                MessageColor::Information,
+                                ChatChannel::Guild,
+                            ));
+                        } else {
+                            let player_name = self.client_state.follow(client_state().player_name()).clone();
+                            let _ = self.networking_system.send_guild_chat_message(&player_name, message);
                         }
 
                         continue;
@@ -10570,6 +10878,7 @@ impl Client {
                 particle_holder: &mut self.particle_holder,
                 effect_holder: &mut self.effect_holder,
                 chat_bubbles: &self.chat_bubbles,
+                head_marks: &self.head_marks,
                 cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
                 warp_portal: self.warp_portal.as_ref(),
@@ -10857,6 +11166,31 @@ fn item_amount(item: &korangar_networking::InventoryItem<ResourceMetadata>) -> u
     }
 }
 
+/// Open a `<URL>` chat/dialog link with the system browser.
+///
+/// There is no browser crate in the dependency tree, so this uses the platform
+/// opener. Only `http(s)` URLs are accepted and the URL is passed as a single
+/// argument (no shell), so a malicious chat line cannot inject a command.
+fn open_system_url(url: &str) {
+    if !(url.starts_with("http://") || url.starts_with("https://")) {
+        crate::logging::log_warn!("url: refusing to open non-http(s) link '{}'", url);
+        return;
+    }
+
+    let result = if cfg!(target_os = "windows") {
+        std::process::Command::new("cmd").args(["/C", "start", "", url]).spawn()
+    } else if cfg!(target_os = "macos") {
+        std::process::Command::new("open").arg(url).spawn()
+    } else {
+        std::process::Command::new("xdg-open").arg(url).spawn()
+    };
+
+    match result {
+        Ok(_) => crate::logging::log_info!("url: opened '{}' in the system browser", url),
+        Err(error) => crate::logging::log_warn!("url: failed to open '{}': {:?}", url, error),
+    }
+}
+
 /// Open the info window of the inventory or Kafra storage item with the given
 /// index.
 ///
@@ -10883,12 +11217,6 @@ fn open_item_info_window(
         return;
     };
 
-    let category = item_category(item);
-    let category_label = item_category_label(state, category);
-
-    let artwork = load_item_artwork(library, texture_loader, item);
-    let card_icons = load_item_card_icons(library, texture_loader, item);
-
     // The comparison pane shows the item currently equipped in the same slot.
     let equipped = match source {
         ItemSource::Inventory | ItemSource::Equipment { .. } => {
@@ -10900,6 +11228,25 @@ fn open_item_info_window(
             equipped_item_in_slot(state.follow(client_state().inventory().items()), item)
         }
     };
+
+    open_item_info_window_for_item(state, interface, item, equipped, library, texture_loader);
+}
+
+/// Open the item info window for an item that is not necessarily part of the
+/// inventory (for example a `<ITEM>` link in chat).
+fn open_item_info_window_for_item(
+    state: &State<ClientState>,
+    interface: &mut Interface<'static, ClientState>,
+    item: &korangar_networking::InventoryItem<ResourceMetadata>,
+    equipped: Option<&korangar_networking::InventoryItem<ResourceMetadata>>,
+    library: &Library,
+    texture_loader: &TextureLoader,
+) {
+    let category = item_category(item);
+    let category_label = item_category_label(state, category);
+
+    let artwork = load_item_artwork(library, texture_loader, item);
+    let card_icons = load_item_card_icons(library, texture_loader, item);
 
     interface.close_window_with_class(WindowClass::ItemInfo);
     interface.open_window(ItemInfoWindow::new(item, category_label, artwork, card_icons, equipped));
@@ -11388,6 +11735,7 @@ struct MapRenderContext<'a, 'm: 'a> {
     particle_holder: &'a mut ParticleHolder,
     effect_holder: &'a mut EffectHolder,
     chat_bubbles: &'a ChatBubbles,
+    head_marks: &'a HeadMarks,
     cast_bars: &'a CastBars,
     skill_name_texts: &'a SkillNameTexts,
     warp_portal: Option<&'a WarpPortal>,
@@ -11881,6 +12229,19 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                     self.render_entity_name(entity);
                 }
             }
+        }
+
+        // Status icons above entity heads (`opt1`/`opt2`). Drawn after the name
+        // labels and below the chat bubbles, so a speaking frozen character
+        // still shows the freeze icon.
+        if self.currently_playing {
+            self.head_marks.render(
+                self.middle_interface_renderer,
+                self.current_camera,
+                self.client_state.follow(client_state().entities()),
+                self.screen_size,
+                self.scaling,
+            );
         }
 
         // Overhead chat bubbles ("subtitles") above speaking player characters.

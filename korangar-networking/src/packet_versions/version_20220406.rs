@@ -238,9 +238,16 @@ where
         term: packet.term,
         account_id: packet.account_id,
     })?;
-    packet_handler.register(|packet: BroadcastMessagePacket| NetworkEvent::ChatMessage {
-        text: packet.message,
-        color: MessageColor::Broadcast,
+    // Broadcasts are both a chat line and the top announce box of the
+    // notification HUD, so the handler emits both events.
+    packet_handler.register(|packet: BroadcastMessagePacket| {
+        vec![
+            NetworkEvent::ChatMessage {
+                text: packet.message.clone(),
+                color: MessageColor::Broadcast,
+            },
+            NetworkEvent::ServerAnnouncement { text: packet.message },
+        ]
     })?;
     packet_handler.register(|packet: Broadcast2MessagePacket| {
         // Drop the alpha channel because it might be 0.
@@ -249,10 +256,13 @@ where
             green: packet.font_color.green,
             blue: packet.font_color.blue,
         };
-        NetworkEvent::ChatMessage {
-            text: packet.message,
-            color,
-        }
+        vec![
+            NetworkEvent::ChatMessage {
+                text: packet.message.clone(),
+                color,
+            },
+            NetworkEvent::ServerAnnouncement { text: packet.message },
+        ]
     })?;
     // rAthena sends the boolean `ok` flag directly in `result` (1 = the item was
     // used, 0 = using it failed) together with the remaining amount.
@@ -266,9 +276,10 @@ where
             amount: packet.amount.max(0) as u16,
         }),
     })?;
-    packet_handler.register(|packet: WhisperReceivedPacket| NetworkEvent::ChatMessage {
-        text: format!("[Whisper] {} : {}", packet.sender_name, packet.message),
-        color: MessageColor::Information,
+    packet_handler.register(|packet: WhisperReceivedPacket| NetworkEvent::WhisperReceived {
+        sender_name: packet.sender_name,
+        message: packet.message.trim_end_matches('\0').to_owned(),
+        is_admin: packet.is_admin != 0,
     })?;
     packet_handler.register(|packet: WhisperAckPacket| {
         let text = match packet.result {
@@ -609,7 +620,7 @@ where
     // items).
     packet_handler.register(|packet: ItemPickupAckPacket2019| {
         if packet.result != 0 {
-            return None;
+            return Vec::new();
         }
 
         let ItemPickupAckPacket2019 {
@@ -670,7 +681,9 @@ where
             details,
         };
 
-        Some(NetworkEvent::IventoryItemAdded { item })
+        let picked_up = NetworkEvent::ItemPickedUp { item_id, amount };
+
+        vec![NetworkEvent::IventoryItemAdded { item }, picked_up]
     })?;
     packet_handler.register(|packet: SpiritsPacket2019| NetworkEvent::SpiritOrbs {
         entity_id: packet.entity_id,
@@ -1116,9 +1129,28 @@ where
         values: [packet.value1, packet.value2, packet.value3],
     })?;
     packet_handler.register(|packet: QuestListPacket| NetworkEvent::QuestList { quests: packet.quests })?;
-    packet_handler.register(|packet: QuestNotificationPacket1| NetworkEvent::QuestActive {
-        quest_id: packet.quest_id,
-        active: packet.active != 0,
+    // The same packet drives the quest log and the quest HUD banner. The
+    // objective names give the banner a readable text even though the packet
+    // does not carry the quest title.
+    packet_handler.register(|packet: QuestNotificationPacket1| {
+        let objective_names = packet
+            .objective_details
+            .iter()
+            .map(|objective| objective.mob_name.trim_end_matches('\0').trim().to_owned())
+            .filter(|name| !name.is_empty())
+            .collect::<Vec<_>>();
+
+        vec![
+            NetworkEvent::QuestActive {
+                quest_id: packet.quest_id,
+                active: packet.active != 0,
+            },
+            NetworkEvent::QuestBanner {
+                quest_id: packet.quest_id,
+                active: packet.active != 0,
+                objective_names,
+            },
+        ]
     })?;
     packet_handler.register(|packet: QuestRemovedPacket| NetworkEvent::QuestRemoved { quest_id: packet.quest_id })?;
     register_ignored_noop::<_, HuntingQuestNotificationPacket>(packet_handler)?;
@@ -1756,6 +1788,12 @@ where
         }
     })?;
     packet_handler.register(|packet: RemoveSkillPacket| NetworkEvent::RemoveSkill { skill_id: packet.skill_id })?;
+    // `ZC_GUILD_CHAT` (0x017F): guild chat message. rAthena sends it to every
+    // connected guild member, including the sender (GUILD_NOBG only skips
+    // battleground members), so no local echo is added.
+    packet_handler.register(|packet: GuildChatReceivedPacket| NetworkEvent::GuildChat {
+        message: packet.message.trim_end_matches('\0').to_owned(),
+    })?;
 
     // Pushcart item updates (`ZC_ADD_ITEM_TO_CART` 0x0A0B,
     // `clif_cart_additem` at `clif.cpp:7273`). The full list arrives through the
