@@ -3930,6 +3930,7 @@ impl Client {
                     // Status effects belong to the map session as well.
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
+                    self.client_state.follow_mut(client_state().mail()).clear();
 
                     if self.session.state() == SessionState::Shutdown {
                         // We are quitting; the clean logout is done, don't go back to
@@ -5805,6 +5806,7 @@ impl Client {
                     // server disconnects and the menu map is loaded again.
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
+                    self.client_state.follow_mut(client_state().mail()).clear();
                     self.audio_engine
                         .play_background_music_track(crate::client_config::background_music());
                     self.networking_system.disconnect_from_map_server();
@@ -5813,6 +5815,49 @@ impl Client {
                     crate::state::friend_names::remember(requestee.character_id.0, &requestee.name);
                     self.interface.open_window(FriendRequestWindow::new(requestee));
                 }
+                // --- Rodex mail (2019) -----------------------------------------
+                NetworkEvent::MailList { mails } => {
+                    self.client_state.follow_mut(client_state().mail()).apply_list(mails);
+                }
+                NetworkEvent::MailRead {
+                    mail_id,
+                    open_type: _,
+                    body,
+                    zeny,
+                    items,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().mail())
+                        .apply_read(mail_id, body, zeny, items);
+                }
+                NetworkEvent::MailAttachmentClaimed { mail_id, zeny, result } => {
+                    let mailbox = self.client_state.follow_mut(client_state().mail());
+                    mailbox.apply_claimed(mail_id, zeny, result);
+                    let status = mailbox.status.clone();
+                    self.push_chat_information(status);
+                }
+                NetworkEvent::MailDeleted { mail_id } => {
+                    let mailbox = self.client_state.follow_mut(client_state().mail());
+                    mailbox.apply_deleted(mail_id);
+                    let status = mailbox.status.clone();
+                    self.push_chat_information(status);
+                }
+                NetworkEvent::MailUnreadStatus { unread } => {
+                    self.client_state
+                        .follow_mut(client_state().mail())
+                        .set_unread_mail_available(unread);
+                }
+                NetworkEvent::MailboxWindow { open } => match open {
+                    true => {
+                        if !self.interface.is_window_with_class_open(WindowClass::Mail) {
+                            self.interface.open_window(MailboxWindow::new(client_state().mail()));
+                        }
+                        // `ZC_MAIL_WINDOWS` only opens the window; the inbox
+                        // has to be requested explicitly.
+                        let _ = self.networking_system.open_mailbox();
+                    }
+                    false => self.interface.close_window_with_class(WindowClass::Mail),
+                },
                 // --- Party events (2019) -------------------------------------------
                 NetworkEvent::PartyOption {
                     experience_option,
@@ -7094,6 +7139,33 @@ impl Client {
                             )),
                         }
                     }
+                }
+                InputEvent::OpenMailboxWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Mail) {
+                            true => self.interface.close_window_with_class(WindowClass::Mail),
+                            false => {
+                                self.interface.open_window(MailboxWindow::new(client_state().mail()));
+                                // The mailbox list is only sent on request.
+                                let _ = self.networking_system.open_mailbox();
+                            }
+                        }
+                    }
+                }
+                InputEvent::RefreshMailbox => {
+                    let _ = self.networking_system.refresh_mailbox();
+                }
+                InputEvent::ReadMail { mail_id, open_type } => {
+                    let _ = self.networking_system.read_mail(mail_id, open_type);
+                }
+                InputEvent::ClaimMailZeny { mail_id, open_type } => {
+                    let _ = self.networking_system.claim_mail_zeny(mail_id, open_type);
+                }
+                InputEvent::ClaimMailItems { mail_id, open_type } => {
+                    let _ = self.networking_system.claim_mail_items(mail_id, open_type);
+                }
+                InputEvent::DeleteMail { mail_id, open_type } => {
+                    let _ = self.networking_system.delete_mail(mail_id, open_type);
                 }
                 InputEvent::TogglePartyWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {

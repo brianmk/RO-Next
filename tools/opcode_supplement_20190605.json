@@ -362,6 +362,48 @@
       "kind": "variable",
       "base_size": 5,
       "source": "src/map/clif.cpp clif_inventoryList (inventorylistequipType=0xb0a at PACKETVER 20190605): 2 header + 2 len + 1 invType + 67 byte EQUIPITEM_INFO rows"
+    },
+    {
+      "opcode": "0x0260",
+      "name": "ZC_MAIL_WINDOWS",
+      "kind": "fixed",
+      "size": 6,
+      "source": "src/map/clif.cpp clif_Mail_window: WFIFOW(0)=0x260, WFIFOL(2)=flag (0 = open, 1 = close)"
+    },
+    {
+      "opcode": "0x08d2",
+      "name": "ZC_SNAP",
+      "kind": "fixed",
+      "size": 10,
+      "source": "src/map/clif.cpp clif_snap: hand-written WBUFW(0)/WBUFL(2)/WBUFW(6)/WBUFW(8) = 0x8d2 <id>.L <x>.W <y>.W"
+    },
+    {
+      "opcode": "0x09f2",
+      "name": "ZC_ACK_ZENY_FROM_MAIL",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_ACK_ZENY_FROM_MAIL",
+      "source": "src/map/packets_struct.hpp PACKET_ZC_ACK_ZENY_FROM_MAIL (mail id, opentype, result); sent as rodexgetzeny by clif_Mail_getattachment"
+    },
+    {
+      "opcode": "0x09f4",
+      "name": "ZC_ACK_ITEM_FROM_MAIL",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_ACK_ITEM_FROM_MAIL",
+      "source": "src/map/packets_struct.hpp PACKET_ZC_ACK_ITEM_FROM_MAIL (mail id, opentype, result); sent as rodexgetitem by clif_Mail_getattachment"
+    },
+    {
+      "opcode": "0x09f6",
+      "name": "ZC_ACK_DELETE_MAIL",
+      "kind": "fixed",
+      "struct": "PACKET_ZC_ACK_DELETE_MAIL",
+      "source": "src/map/packets_struct.hpp PACKET_ZC_ACK_DELETE_MAIL (opentype, mail id); only sent on success by clif_mail_delete"
+    },
+    {
+      "opcode": "0x0ac2",
+      "name": "ZC_ACK_MAIL_LIST3",
+      "kind": "variable",
+      "base_size": 5,
+      "source": "src/map/clif.cpp clif_Mail_refreshinbox (PACKETVER >= 20170419 uses cmd 0xac2): 2 header + 2 length + 1 unknown = 5, then one 41 byte maillistinfo row with a variable, NUL terminated title each"
     }
   ]
 }

@@ -1500,6 +1500,12 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         source: "map header",
     },
     OpcodeLengthEntry {
+        header: 0x0260,
+        name: "ZC_MAIL_WINDOWS",
+        length: OpcodeLength::Fixed(6),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
         header: 0x0277,
         name: "CA_LOGIN_PCBANG",
         length: OpcodeLength::Fixed(84),
@@ -1917,7 +1923,7 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         header: 0x08D2,
         name: "ZC_SNAP",
         length: OpcodeLength::Fixed(10),
-        source: "map header",
+        source: "supplement",
     },
     OpcodeLengthEntry {
         header: 0x08D5,
@@ -2266,6 +2272,24 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         name: "ZC_ACK_READ_RODEX",
         length: OpcodeLength::Variable { base_size: 24 },
         source: "map header",
+    },
+    OpcodeLengthEntry {
+        header: 0x09F2,
+        name: "ZC_ACK_ZENY_FROM_MAIL",
+        length: OpcodeLength::Fixed(12),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x09F4,
+        name: "ZC_ACK_ITEM_FROM_MAIL",
+        length: OpcodeLength::Fixed(12),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x09F6,
+        name: "ZC_ACK_DELETE_MAIL",
+        length: OpcodeLength::Fixed(11),
+        source: "supplement",
     },
     OpcodeLengthEntry {
         header: 0x09F7,
@@ -2698,6 +2722,12 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         name: "ZC_WARPLIST",
         length: OpcodeLength::Variable { base_size: 6 },
         source: "map header",
+    },
+    OpcodeLengthEntry {
+        header: 0x0AC2,
+        name: "ZC_ACK_MAIL_LIST3",
+        length: OpcodeLength::Variable { base_size: 5 },
+        source: "supplement",
     },
     OpcodeLengthEntry {
         header: 0x0AC4,

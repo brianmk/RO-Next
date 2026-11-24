@@ -678,7 +678,6 @@ where
     packet_handler.register(|packet: UpdateAttackRangePacket| NetworkEvent::AttackRangeChanged {
         attack_range: packet.attack_range,
     })?;
-    register_ignored_noop::<_, NewMailStatusPacket>(packet_handler)?;
     register_ignored_noop::<_, AchievementUpdatePacket>(packet_handler)?;
     register_ignored_noop::<_, AchievementListPacket>(packet_handler)?;
     packet_handler.register(|packet: SpriteChangePacket| match packet.sprite_type {
@@ -1741,6 +1740,39 @@ where
         }
     })?;
     packet_handler.register(|packet: RemoveSkillPacket| NetworkEvent::RemoveSkill { skill_id: packet.skill_id })?;
+
+    // --- Rodex mail (2019) ------------------------------------------------
+    packet_handler.register(|packet: MailboxListPacket2019| NetworkEvent::MailList {
+        mails: packet.entries.mails,
+    })?;
+    packet_handler.register(|packet: MailReadPacket2019| NetworkEvent::MailRead {
+        mail_id: packet.mail_id,
+        open_type: packet.open_type,
+        body: packet.body,
+        zeny: packet.zeny,
+        items: packet.items.items,
+    })?;
+    packet_handler.register(|packet: MailZenyClaimResultPacket| NetworkEvent::MailAttachmentClaimed {
+        mail_id: packet.mail_id,
+        zeny: true,
+        result: packet.result,
+    })?;
+    packet_handler.register(|packet: MailItemClaimResultPacket| NetworkEvent::MailAttachmentClaimed {
+        mail_id: packet.mail_id,
+        zeny: false,
+        result: packet.result,
+    })?;
+    // `ZC_ACK_DELETE_MAIL` is only sent when the server actually deleted the
+    // mail; failures are only logged server side.
+    packet_handler.register(|packet: MailDeleteAckPacket| NetworkEvent::MailDeleted { mail_id: packet.mail_id })?;
+    packet_handler.register(|packet: MailboxWindowPacket| NetworkEvent::MailboxWindow {
+        open: packet.window_type == 0,
+    })?;
+    // `ZC_NOTIFY_UNREADMAIL` (0x09E7) was a noop before the mailbox existed; it
+    // only carries the "there is unread mail" flag.
+    packet_handler.register(|packet: NewMailStatusPacket| NetworkEvent::MailUnreadStatus {
+        unread: packet.new_available != 0,
+    })?;
 
     Ok(())
 }

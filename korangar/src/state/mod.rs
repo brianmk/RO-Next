@@ -8,6 +8,7 @@ pub mod hotbar;
 pub mod inventory;
 pub mod lifecycle;
 pub mod localization;
+pub mod mail;
 pub mod minimap;
 pub mod party;
 pub mod quest_log;
@@ -72,6 +73,7 @@ use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
+use crate::state::mail::Mailbox;
 use crate::state::minimap::Minimap;
 use crate::state::party::Party;
 use crate::state::quest_log::QuestLog;
@@ -232,6 +234,10 @@ pub struct ClientState {
     /// Active quests shown in the quest tracker.
     #[hidden_element]
     quest_log: QuestLog,
+    /// Rodex mailbox (`ZC_ACK_MAIL_LIST3` 0x0AC2 and the rest of the 2019 mail
+    /// family).
+    #[hidden_element]
+    mail: Mailbox,
     /// Current vending-shop editor (`MC_VENDING` / `ZC_OPENSTORE`).
     #[hidden_element]
     vending: Vending,
@@ -533,6 +539,7 @@ impl ClientState {
             hotbar,
             inventory,
             quest_log: QuestLog::default(),
+            mail: Mailbox::default(),
             trade: Trade::default(),
             vending: Vending::default(),
             zeny,

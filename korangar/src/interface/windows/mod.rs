@@ -41,6 +41,7 @@ mod quest_log;
 #[cfg(feature = "debug")]
 mod render_options;
 mod respawn;
+mod rodex;
 mod sell;
 mod sell_cart;
 mod server_selection;
@@ -99,6 +100,7 @@ pub use self::quest_log::QuestWindow;
 #[cfg(feature = "debug")]
 pub use self::render_options::RenderOptionsWindow;
 pub use self::respawn::RespawnWindow;
+pub use self::rodex::MailboxWindow;
 pub use self::sell::SellWindow;
 pub use self::sell_cart::SellCartWindow;
 pub use self::server_selection::ServerSelectionWindow;
@@ -146,6 +148,7 @@ pub enum WindowClass {
     FriendList,
     FriendRequest,
     Login,
+    Mail,
     Menu,
     Minimap,
     Party,

@@ -789,6 +789,41 @@ pub enum NetworkEvent {
         cell_type: u16,
         map_name: String,
     },
+    /// The complete Rodex inbox (`ZC_ACK_MAIL_LIST3`, 0x0AC2).
+    MailList {
+        mails: Vec<ragnarok_packets::MailListEntry2019>,
+    },
+    /// The body and attachments of an opened mail (`ZC_ACK_READ_RODEX`,
+    /// 0x09EB).
+    MailRead {
+        mail_id: u64,
+        open_type: u8,
+        body: String,
+        zeny: u64,
+        items: Vec<ragnarok_packets::MailAttachmentItem2019>,
+    },
+    /// Unread-mail indicator (`ZC_NOTIFY_UNREADMAIL`, 0x09E7).
+    MailUnreadStatus {
+        unread: bool,
+    },
+    /// Result of claiming an attachment (`ZC_ACK_ZENY_FROM_MAIL`, 0x09F2, or
+    /// `ZC_ACK_ITEM_FROM_MAIL`, 0x09F4). Claimed items/zeny arrive through the
+    /// regular inventory/zeny update packets.
+    MailAttachmentClaimed {
+        mail_id: u64,
+        zeny: bool,
+        result: u8,
+    },
+    /// A mail was deleted (`ZC_ACK_DELETE_MAIL`, 0x09F6; only sent on
+    /// success).
+    MailDeleted {
+        mail_id: u64,
+    },
+    /// The server asked the client to open/close the mailbox
+    /// (`ZC_MAIL_WINDOWS`, 0x0260; `@mail` / script `openmail`).
+    MailboxWindow {
+        open: bool,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).
