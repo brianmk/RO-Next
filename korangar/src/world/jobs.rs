@@ -160,6 +160,20 @@ struct EntityTypesData {
     player_ranges: Vec<IdRange>,
     npc_ranges: Vec<IdRange>,
     monster_ranges: Vec<IdRange>,
+    /// Homunculus job ids. The entity-appear object type (`0x8`) is the
+    /// authoritative marker, this range is the job-id fallback.
+    #[serde(default)]
+    homunculus_ranges: Vec<IdRange>,
+    /// Mercenary job ids (`JT_MER_ARCHER01`..`JT_MER_MONSTER`). Mercenaries
+    /// usually reuse monster class ids; this range covers the dedicated client
+    /// job ids, the object type (`0x9`) covers the rest.
+    #[serde(default)]
+    mercenary_ranges: Vec<IdRange>,
+    /// Pet job ids. Pets reuse the monster class ids of their monster, so this
+    /// list is normally empty; the entity-appear object type (`0x7`) is the
+    /// marker that tells a pet from a wild monster.
+    #[serde(default)]
+    pet_ranges: Vec<IdRange>,
     default: JobEntityType,
 }
 
@@ -358,6 +372,9 @@ impl JobRegistry {
                 player_ranges: Vec::new(),
                 npc_ranges: Vec::new(),
                 monster_ranges: Vec::new(),
+                homunculus_ranges: Vec::new(),
+                mercenary_ranges: Vec::new(),
+                pet_ranges: Vec::new(),
                 default: JobEntityType::Npc,
             },
             capabilities: CapabilitiesData {
@@ -898,6 +915,47 @@ pub(crate) fn default_head_palette() -> u16 {
     registry().appearance.default_head_palette
 }
 
+/// Sprite path (relative to `data\\sprite\\`, without extension) of a
+/// homunculus job id.
+///
+/// The file stems come from the client job table (`jobidentity.lub`:
+/// `JT_MER_LIF` 6001 -> `lif`, `JT_MER_LIF2` 6005 -> `lif2`,
+/// `JT_MER_LIF_H` 6009 -> `lif_h`, `JT_MER_LIF_H2` 6013 -> `lif_h2`, ... and
+/// `JT_MER_EIRA` 6048 -> `mer_eira`) and were verified against the CondaRO
+/// archives (`data\\sprite\\homun\\*.spr/.act`). Unknown homunculus ids fall
+/// back to the base Lif sprite instead of the black `missing.spr` placeholder.
+pub(crate) fn homunculus_sprite_path(job_id: JobId) -> String {
+    let stem = match job_id.0 {
+        6001 => "lif",
+        6002 => "amistr",
+        6003 => "filir",
+        6004 => "vanilmirth",
+        6005 => "lif2",
+        6006 => "amistr2",
+        6007 => "filir2",
+        6008 => "vanilmirth2",
+        6009 => "lif_h",
+        6010 => "amistr_h",
+        6011 => "filir_h",
+        6012 => "vanilmirth_h",
+        6013 => "lif_h2",
+        6014 => "amistr_h2",
+        6015 => "filir_h2",
+        6016 => "vanilmirth_h2",
+        6048 => "mer_eira",
+        6049 => "mer_bayeri",
+        6050 => "mer_sera",
+        6051 => "mer_dieter",
+        6052 => "mer_eleanor",
+        job_id => {
+            crate::world::library::job_alias::warn_once("no homunculus sprite, using Lif", JobId(job_id));
+            "lif"
+        }
+    };
+
+    format!("homun\\{stem}")
+}
+
 /// Classic entity classification of a job id.
 ///
 /// Known job ids come from the data file; warp/hidden NPC ids and the client
@@ -924,6 +982,15 @@ pub(crate) fn entity_type(job_id: JobId) -> EntityType {
     }
     if entity_types.monster_ranges.iter().any(|range| range.contains(job_id.0)) {
         return EntityType::Monster;
+    }
+    if entity_types.homunculus_ranges.iter().any(|range| range.contains(job_id.0)) {
+        return EntityType::Homunculus;
+    }
+    if entity_types.mercenary_ranges.iter().any(|range| range.contains(job_id.0)) {
+        return EntityType::Mercenary;
+    }
+    if entity_types.pet_ranges.iter().any(|range| range.contains(job_id.0)) {
+        return EntityType::Pet;
     }
 
     crate::world::library::job_alias::warn_once("no entity type, using the default", job_id);
@@ -1305,7 +1372,26 @@ mod tests {
         assert_eq!(EntityType::from(JobId(1002)), EntityType::Monster);
         assert_eq!(EntityType::from(JobId(20000)), EntityType::Monster);
         assert_eq!(EntityType::from(JobId(10000)), EntityType::Npc);
+        assert_eq!(EntityType::from(JobId(6001)), EntityType::Homunculus, "JT_MER_LIF");
+        assert_eq!(EntityType::from(JobId(6016)), EntityType::Homunculus, "JT_MER_VANILMIRTH_H2");
+        assert_eq!(EntityType::from(JobId(6048)), EntityType::Homunculus, "JT_MER_EIRA");
+        assert_eq!(EntityType::from(JobId(6017)), EntityType::Mercenary, "JT_MER_ARCHER01");
+        assert_eq!(EntityType::from(JobId(6047)), EntityType::Mercenary, "JT_MER_MONSTER");
         assert_eq!(EntityType::from(JobId(65535)), EntityType::Npc, "default classification");
+    }
+
+    #[test]
+    fn homunculus_sprites_match_the_client_job_table() {
+        assert_eq!(homunculus_sprite_path(JobId(6001)), "homun\\lif");
+        assert_eq!(homunculus_sprite_path(JobId(6005)), "homun\\lif2");
+        assert_eq!(homunculus_sprite_path(JobId(6009)), "homun\\lif_h");
+        assert_eq!(homunculus_sprite_path(JobId(6013)), "homun\\lif_h2");
+        assert_eq!(homunculus_sprite_path(JobId(6048)), "homun\\mer_eira");
+        assert_eq!(homunculus_sprite_path(JobId(6049)), "homun\\mer_bayeri");
+        assert_eq!(homunculus_sprite_path(JobId(6050)), "homun\\mer_sera");
+        assert_eq!(homunculus_sprite_path(JobId(6051)), "homun\\mer_dieter");
+        assert_eq!(homunculus_sprite_path(JobId(6052)), "homun\\mer_eleanor");
+        assert_eq!(homunculus_sprite_path(JobId(9999)), "homun\\lif", "documented fallback");
     }
 
     #[test]

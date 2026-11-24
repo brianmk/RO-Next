@@ -113,19 +113,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         class: IgnoreClass::Duplicate,
         reason: "ZC_EXCHANGEITEM_UNDO: the trade window clears the lock locally on cancel, so the echo is redundant",
     },
-    // Party booking / LFG is not used by CondaRO's party flow.
-    IgnoredNoop {
-        header: 0x0AE7,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_PARTY_REQ_MASTER_TO_JOIN: LFG party-booking UI not implemented (normal party flow is)",
-    },
-    IgnoredNoop {
-        header: 0x0AFA,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_PARTY_JOIN_REQ_ACK_FROM_MASTER: LFG party-booking UI not implemented",
-    },
     // Systems CondaRO does not run / has no UI for.
     IgnoredNoop {
         header: 0x098A,

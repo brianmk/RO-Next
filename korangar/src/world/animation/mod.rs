@@ -61,7 +61,9 @@ impl AnimationActionType {
                 AnimationActionType::Custom(index) => *index,
                 _ => 0,
             },
-            EntityType::Npc | EntityType::Monster => match self {
+            // Pets, homunculi and mercenaries use the non-player ACT layout
+            // (idle 0, walk 1, attack 2, hurt 3, die 4).
+            EntityType::Npc | EntityType::Monster | EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary => match self {
                 AnimationActionType::Idle => 0,
                 AnimationActionType::Walk => 1,
                 AnimationActionType::Attack1 => 2,

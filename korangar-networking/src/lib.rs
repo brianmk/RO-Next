@@ -1746,6 +1746,104 @@ where
         }
     }
 
+    /// Register (or refresh) a party-booking advertisement
+    /// (`CZ_PARTY_BOOKING_REQ_REGISTER`, 0x0802).
+    ///
+    /// `jobs` are the six desired job ids; `u16::MAX` means "any job". The
+    /// server answers with `ZC_PARTY_BOOKING_ACK_REGISTER` (0x0803).
+    pub fn register_party_booking(&mut self, level: u16, map_id: u16, jobs: [u16; 6]) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingRegisterRequestPacket2019 { level, map_id, jobs }),
+        }
+    }
+
+    /// Search the party-booking board (`CZ_PARTY_BOOKING_REQ_SEARCH`, 0x0804).
+    ///
+    /// `job` is `-1` for any job, `last_index` pages through the result list
+    /// and `result_count` is the maximum number of rows requested.
+    pub fn search_party_booking(
+        &mut self,
+        level: u16,
+        map_id: u16,
+        job: i16,
+        last_index: u32,
+        result_count: u16,
+    ) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingSearchRequestPacket2019 {
+                level,
+                map_id,
+                job,
+                last_index,
+                result_count,
+            }),
+        }
+    }
+
+    /// Delete the own party-booking advertisement
+    /// (`CZ_PARTY_BOOKING_REQ_DELETE`, 0x0806).
+    pub fn delete_party_booking(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingDeleteRequestPacket2019 {}),
+        }
+    }
+
+    /// Change the desired jobs of the own advertisement
+    /// (`CZ_PARTY_BOOKING_REQ_UPDATE`, 0x0808).
+    pub fn update_party_booking(&mut self, jobs: [u16; 6]) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingUpdateRequestPacket2019 { jobs }),
+        }
+    }
+
+    /// Ask a party leader to join through the booking board
+    /// (`CZ_PARTY_REQ_MASTER_TO_JOIN`, 0x0AE6).
+    ///
+    /// The server only parses this packet with `PACKETVER >= 20191204`; the
+    /// caller has to gate the action (the CondaRO 20190605 server does not
+    /// support it).
+    pub fn request_party_booking_join(&mut self, character_id: CharacterId, account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingJoinRequestPacket { character_id, account_id }),
+        }
+    }
+
+    /// Accept or reject a booking join request as the party leader
+    /// (`CZ_PARTY_REQ_ACK_MASTER_TO_JOIN`, 0x0AF8).
+    pub fn reply_party_booking_join(
+        &mut self,
+        character_id: CharacterId,
+        account_id: AccountId,
+        accept: bool,
+    ) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyBookingJoinReplyPacket {
+                character_id,
+                account_id,
+                accept: accept as u8,
+            }),
+        }
+    }
+
+    /// Change the party EXP sharing and item rules
+    /// (`CZ_GROUPINFO_CHANGE_V2`, 0x07D7).
+    pub fn change_party_option(&mut self, experience_option: u32, item_pickup: bool, item_share: bool) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(PartyOptionRequestPacket2019 {
+                experience_option,
+                item_pickup: item_pickup as u8,
+                item_share: item_share as u8,
+            }),
+        }
+    }
+
+    /// Transfer party leadership (`CZ_CHANGE_GROUP_MASTER`, 0x07DA).
+    pub fn change_party_leader(&mut self, account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(ChangePartyLeaderPacket { account_id }),
+        }
+    }
+
     /// Open the Rodex mailbox and request the inbox (`CZ_REQ_OPEN_MAILBOX2`,
     /// 0x0AC0). All upper mail ids are zero: the first page of the normal tab.
     pub fn open_mailbox(&mut self) -> Result<(), NotConnectedError> {
@@ -3195,6 +3293,49 @@ mod packet_handlers {
                 "0x{header:04X} must be registered"
             );
         }
+    }
+
+    #[test]
+    fn booking_clan_and_companion_packets_are_registered_and_parsed() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        for header in [
+            0x0803u16, 0x0805, 0x0807, 0x0809, 0x080A, 0x080B, 0x0AE7, 0x0AFA, 0x098A, 0x0988, 0x01A2, 0x01A4, 0x09F7, 0x07DB, 0x029B,
+            0x02A2,
+        ] {
+            assert!(
+                handler.is_registered(ragnarok_packets::PacketHeader(header)),
+                "0x{header:04X} must be registered"
+            );
+        }
+
+        let register_result = feed(&mut handler, &[0x03, 0x08, 0x00, 0x00]);
+        assert!(matches!(register_result.0.as_slice(), [
+            NetworkEvent::PartyBookingRegisterResult { result: 0 }
+        ]));
+
+        let online_count = feed(&mut handler, &[0x88, 0x09, 0x03, 0x00, 0x14, 0x00]);
+        assert!(matches!(online_count.0.as_slice(), [NetworkEvent::ClanOnlineCount {
+            online_members: 3,
+            maximum_members: 20
+        }]));
+
+        let mut pet = vec![0xA2, 0x01];
+        pet.extend_from_slice(b"Poring\0");
+        pet.resize(2 + 24, 0);
+        pet.push(0); // renamed
+        pet.extend_from_slice(&10u16.to_le_bytes()); // level
+        pet.extend_from_slice(&80u16.to_le_bytes()); // hunger
+        pet.extend_from_slice(&500u16.to_le_bytes()); // intimacy
+        pet.extend_from_slice(&0u16.to_le_bytes()); // accessory
+        pet.extend_from_slice(&1002u16.to_le_bytes()); // job
+        assert_eq!(pet.len(), 37);
+
+        let pet = feed(&mut handler, &pet);
+        assert!(matches!(
+            pet.0.as_slice(),
+            [NetworkEvent::PetProperty { property }] if property.name == "Poring" && property.level == 10 && property.job_id.0 == 1002
+        ));
     }
 
     #[test]

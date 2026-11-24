@@ -245,6 +245,8 @@ fn entity_name_color(entity_type: EntityType) -> Color {
         EntityType::Player => Color::WHITE,
         EntityType::Npc => Color::rgb_u8(0x5B, 0xA8, 0xFF),
         EntityType::Monster => Color::rgb_u8(0xFF, 0x7A, 0x7A),
+        // Companions use the classic light green/cyan-ish pet names.
+        EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary => Color::rgb_u8(0x9A, 0xE8, 0x9A),
         EntityType::Warp | EntityType::Hidden => Color::WHITE,
     }
 }
@@ -4244,6 +4246,10 @@ impl Client {
                     self.client_state.follow_mut(client_state().mail()).clear();
                     // The guild window data is only valid for this map session.
                     self.client_state.follow_mut(client_state().guild()).reset();
+                    // Party-booking results, clan info and companion sheets are
+                    // map-session data too.
+                    self.client_state.follow_mut(client_state().party_booking()).clear();
+                    self.client_state.follow_mut(client_state().companion()).clear();
 
                     if self.session.state() == SessionState::Shutdown {
                         // We are quitting; the clean logout is done, don't go back to
@@ -6013,7 +6019,10 @@ impl Client {
                             entity.rotate_towards(item_position);
                         }
 
-                        if matches!(entity.get_entity_type(), EntityType::Player | EntityType::Hidden) {
+                        if matches!(
+                            entity.get_entity_type(),
+                            EntityType::Player | EntityType::Hidden | EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary
+                        ) {
                             entity.set_pickup(client_tick);
                         }
                     }
@@ -7249,6 +7258,115 @@ impl Client {
                 }
                 NetworkEvent::PartyConfig { allow_invites } => {
                     self.client_state.follow_mut(client_state().party()).allow_invites = allow_invites;
+                }
+                // --- Party booking / LFG (2019) ------------------------------------
+                NetworkEvent::PartyBookingRegisterResult { result } => {
+                    let status = {
+                        let booking = self.client_state.follow_mut(client_state().party_booking());
+                        booking.apply_register_result(result);
+                        booking.status_message.clone()
+                    };
+                    self.push_chat_information(status);
+                }
+                NetworkEvent::PartyBookingSearchResult { more_results, entries } => {
+                    self.client_state
+                        .follow_mut(client_state().party_booking())
+                        .apply_search(more_results, entries);
+                }
+                NetworkEvent::PartyBookingDeleteResult { result } => {
+                    let status = {
+                        let booking = self.client_state.follow_mut(client_state().party_booking());
+                        booking.apply_delete_result(result);
+                        booking.status_message.clone()
+                    };
+                    self.push_chat_information(status);
+                }
+                NetworkEvent::PartyBookingInserted { entry } => {
+                    self.client_state.follow_mut(client_state().party_booking()).apply_inserted(entry);
+                }
+                NetworkEvent::PartyBookingUpdated { index, jobs } => {
+                    self.client_state
+                        .follow_mut(client_state().party_booking())
+                        .apply_updated(index, jobs);
+                }
+                NetworkEvent::PartyBookingDeleted { index } => {
+                    self.client_state.follow_mut(client_state().party_booking()).apply_deleted(index);
+                }
+                NetworkEvent::PartyBookingJoinRequest {
+                    character_id,
+                    account_id,
+                    name,
+                    position,
+                } => {
+                    let message = {
+                        let booking = self.client_state.follow_mut(client_state().party_booking());
+                        booking.apply_join_request(character_id, account_id, name, position);
+                        booking.join_requests.last().map(|request| request.name.clone())
+                    };
+
+                    if let Some(name) = message {
+                        self.push_chat_information(format!("{name} requested to join your party through the party search."));
+                    }
+
+                    self.open_party_window();
+                }
+                NetworkEvent::PartyBookingJoinResult {
+                    player_name,
+                    party_name,
+                    account_id,
+                    refused,
+                } => {
+                    let message = {
+                        let booking = self.client_state.follow_mut(client_state().party_booking());
+                        booking.apply_join_result(player_name, party_name, account_id, refused);
+                        booking.status_message.clone()
+                    };
+                    self.push_chat_information(message);
+                }
+                // --- Clan (2019) ---------------------------------------------------
+                NetworkEvent::ClanInfo { info } => {
+                    self.client_state.follow_mut(client_state().clan()).apply_info(info);
+                }
+                NetworkEvent::ClanOnlineCount {
+                    online_members,
+                    maximum_members,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().clan())
+                        .apply_online_count(online_members, maximum_members);
+                }
+                // --- Pet / homunculus / mercenary ---------------------------------
+                NetworkEvent::PetProperty { property } => {
+                    self.client_state
+                        .follow_mut(client_state().companion())
+                        .apply_pet_property(property);
+                }
+                NetworkEvent::PetStateChanged {
+                    entity_id: _,
+                    state_type,
+                    value,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().companion())
+                        .apply_pet_state_change(state_type, value);
+                }
+                NetworkEvent::HomunculusProperty { property } => {
+                    self.client_state
+                        .follow_mut(client_state().companion())
+                        .apply_homunculus_property(property);
+                }
+                NetworkEvent::HomunculusParameterChanged { parameter, value } => {
+                    self.client_state
+                        .follow_mut(client_state().companion())
+                        .apply_homunculus_parameter_change(parameter, value);
+                }
+                NetworkEvent::MercenaryInfo { info } => {
+                    self.client_state.follow_mut(client_state().companion()).apply_mercenary_info(info);
+                }
+                NetworkEvent::MercenaryParameterChanged { parameter, value } => {
+                    self.client_state
+                        .follow_mut(client_state().companion())
+                        .apply_mercenary_parameter_change(parameter, value);
                 }
                 NetworkEvent::FriendRemoved { account_id, character_id } => {
                     let friend_list = self.client_state.follow_mut(client_state().friend_list());
@@ -8573,6 +8691,158 @@ impl Client {
 
                     self.client_state.follow_mut(client_state().party()).clear();
                     self.interface.close_window_with_class(WindowClass::Party);
+                }
+                InputEvent::ToggleClanWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Clan) {
+                            true => self.interface.close_window_with_class(WindowClass::Clan),
+                            false => self.interface.open_window(ClanWindow),
+                        }
+                    }
+                }
+                InputEvent::SetPartyBookingVisible { visible } => {
+                    {
+                        let booking = self.client_state.follow_mut(client_state().party_booking());
+                        booking.visible = visible;
+
+                        if visible && booking.results.is_empty() {
+                            booking.status_message = "Searching the party board...".to_owned();
+                        }
+                    }
+
+                    // Opening the section runs an initial unfiltered search so the
+                    // board is visible without an extra click. A server without
+                    // party booking simply never answers.
+                    if visible && self.client_state.follow(client_state().party_booking()).results.is_empty() {
+                        let booking = self.client_state.follow(client_state().party_booking());
+                        let level = booking.search_level();
+                        let map_id = booking.search_map_id();
+                        let job = booking.search_job();
+                        let result_count = crate::state::party_booking::MAXIMUM_SEARCH_RESULTS;
+                        let _ = self.networking_system.search_party_booking(level, map_id, job, 0, result_count);
+                    }
+                }
+                InputEvent::RegisterPartyBooking => {
+                    let booking = self.client_state.follow(client_state().party_booking());
+                    let level = booking.register_level();
+                    let map_id = booking.register_map_id();
+                    let jobs = booking.parse_register_jobs();
+                    let _ = self.networking_system.register_party_booking(level, map_id, jobs);
+                }
+                InputEvent::SearchPartyBooking { next_page } => {
+                    let booking = self.client_state.follow(client_state().party_booking());
+                    let level = booking.search_level();
+                    let map_id = booking.search_map_id();
+                    let job = booking.search_job();
+                    let last_index = match next_page {
+                        true => booking.last_index,
+                        false => 0,
+                    };
+                    let result_count = crate::state::party_booking::MAXIMUM_SEARCH_RESULTS;
+                    let _ = self
+                        .networking_system
+                        .search_party_booking(level, map_id, job, last_index, result_count);
+                }
+                InputEvent::DeletePartyBooking => {
+                    let _ = self.networking_system.delete_party_booking();
+                }
+                InputEvent::UpdatePartyBooking => {
+                    let jobs = self.client_state.follow(client_state().party_booking()).parse_register_jobs();
+                    let _ = self.networking_system.update_party_booking(jobs);
+                }
+                InputEvent::JoinPartyBooking { index } => {
+                    let booking = self.client_state.follow(client_state().party_booking());
+
+                    if !booking.join_requests_enabled {
+                        self.push_chat_information(
+                            "The booking join request is disabled: the CondaRO 20190605 server does not parse 0x0AE6. Enable it only on a \
+                             server with PACKETVER >= 20191204."
+                                .to_owned(),
+                        );
+                        continue;
+                    }
+
+                    let Some(entry) = booking.result(index) else {
+                        continue;
+                    };
+                    let leader_name = entry.character_name.clone();
+
+                    // The 2019 search result has no account/character id. The
+                    // join request can only be sent while the leader is a visible
+                    // player entity (their appear packet carries both ids).
+                    let leader = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| {
+                            entity.get_entity_type() == EntityType::Player
+                                && entity
+                                    .get_details()
+                                    .is_some_and(|details| details.split('#').next() == Some(leader_name.as_str()))
+                        })
+                        .map(|entity| (entity.get_character_id(), ragnarok_packets::AccountId(entity.get_entity_id().0)));
+
+                    match leader {
+                        Some((character_id, account_id)) => {
+                            let _ = self.networking_system.request_party_booking_join(character_id, account_id);
+                        }
+                        None => self.push_chat_information(format!(
+                            "{leader_name} is not visible on this map; the 2019 booking search has no character id, so the join request \
+                             cannot be sent."
+                        )),
+                    }
+                }
+                InputEvent::ReplyPartyBookingJoin {
+                    character_id,
+                    account_id,
+                    accept,
+                } => {
+                    let _ = self.networking_system.reply_party_booking_join(character_id, account_id, accept);
+                    self.client_state
+                        .follow_mut(client_state().party_booking())
+                        .remove_join_request(character_id);
+                }
+                InputEvent::ChangePartyOption {
+                    experience_option,
+                    item_pickup,
+                    item_share,
+                } => {
+                    let _ = self
+                        .networking_system
+                        .change_party_option(experience_option, item_pickup, item_share);
+
+                    let party = self.client_state.follow_mut(client_state().party());
+                    party.experience_option = experience_option;
+                    party.item_pickup = item_pickup;
+                    party.item_share = item_share;
+                }
+                InputEvent::ChangePartyLeader { name } => {
+                    let account_id = self.client_state.follow(client_state().party()).member_account_id(&name);
+
+                    match account_id {
+                        Some(account_id) => {
+                            let _ = self.networking_system.change_party_leader(account_id);
+                        }
+                        None => self.push_chat_information(format!("No party member named {name}.")),
+                    }
+                }
+                InputEvent::OpenCompanionInfo { entity_id } => {
+                    let kind = self
+                        .client_state
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                        .and_then(|entity| match entity.get_entity_type() {
+                            EntityType::Pet => Some(CompanionKind::Pet),
+                            EntityType::Homunculus => Some(CompanionKind::Homunculus),
+                            EntityType::Mercenary => Some(CompanionKind::Mercenary),
+                            _ => None,
+                        });
+
+                    if let Some(kind) = kind {
+                        self.interface.close_window_with_class(WindowClass::CompanionInfo);
+                        self.interface.open_window(CompanionInfoWindow::new(entity_id, kind));
+                    }
                 }
                 InputEvent::ToggleGuildWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {
@@ -12208,7 +12478,12 @@ impl Client {
                         .follow(client_state().entities())
                         .iter()
                         .find(|entity| entity.get_entity_id() == entity_id)
-                        .is_some_and(|entity| entity.get_entity_type() == EntityType::Player);
+                        .is_some_and(|entity| {
+                            matches!(
+                                entity.get_entity_type(),
+                                EntityType::Player | EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary
+                            )
+                        });
                     let is_own_character = self
                         .client_state
                         .try_follow(this_entity())
@@ -12546,16 +12821,29 @@ fn open_character_context_menu(
                     entity.get_base_level().unwrap_or(0) as u16,
                     entity.get_guild_name().map(ToOwned::to_owned),
                     entity.get_vending_shop_name().map(ToOwned::to_owned),
+                    match entity.get_entity_type() {
+                        EntityType::Pet => Some(CompanionKind::Pet),
+                        EntityType::Homunculus => Some(CompanionKind::Homunculus),
+                        EntityType::Mercenary => Some(CompanionKind::Mercenary),
+                        _ => None,
+                    },
                 )
             })
         })
         .filter(|(name, ..)| !name.is_empty());
 
     match character {
-        Some((character_name, level, guild_name, vending_shop_name)) => {
+        Some((character_name, level, guild_name, vending_shop_name, companion_kind)) => {
             interface.close_window_with_class(WindowClass::ContextMenu);
             interface.open_window_at(
-                CharacterContextMenuWindow::new(character_name, entity_id.0, level, guild_name, vending_shop_name),
+                CharacterContextMenuWindow::new(
+                    character_name,
+                    entity_id.0,
+                    level,
+                    guild_name,
+                    vending_shop_name,
+                    companion_kind,
+                ),
                 position,
             );
 
@@ -13803,7 +14091,10 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
             for entity in self.client_state.follow(client_state().entities()) {
                 // Players and NPCs have permanent name labels in the original client.
                 // Monsters and other entities only show their name while hovered.
-                if matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc) {
+                if matches!(
+                    entity.get_entity_type(),
+                    EntityType::Player | EntityType::Npc | EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary
+                ) {
                     self.render_entity_name(entity);
                 }
             }
@@ -13926,7 +14217,10 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                         // Render the name below the character instead of at the
                         // mouse cursor. If names are always shown, player names are
                         // already rendered above, so avoid drawing them twice.
-                        let has_permanent_label = matches!(entity.get_entity_type(), EntityType::Player | EntityType::Npc);
+                        let has_permanent_label = matches!(
+                            entity.get_entity_type(),
+                            EntityType::Player | EntityType::Npc | EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary
+                        );
 
                         if !has_permanent_label || !show_character_names {
                             self.render_entity_name(entity);

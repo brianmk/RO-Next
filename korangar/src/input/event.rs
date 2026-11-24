@@ -781,6 +781,54 @@ pub enum InputEvent {
         /// Mob/job id of the monster.
         job_id: JobId,
     },
+    /// Open or close the clan window. Only works while playing.
+    ToggleClanWindow,
+    /// Switch the party window between the roster and the party-booking board.
+    SetPartyBookingVisible {
+        visible: bool,
+    },
+    /// Register the own party on the 2019 booking board
+    /// (`CZ_PARTY_BOOKING_REQ_REGISTER`, 0x0802).
+    RegisterPartyBooking,
+    /// Search the booking board (`CZ_PARTY_BOOKING_REQ_SEARCH`, 0x0804).
+    SearchPartyBooking {
+        /// Continue after the last row of the current page.
+        next_page: bool,
+    },
+    /// Delete the own booking advertisement
+    /// (`CZ_PARTY_BOOKING_REQ_DELETE`, 0x0806).
+    DeletePartyBooking,
+    /// Update the desired jobs of the own advertisement
+    /// (`CZ_PARTY_BOOKING_REQ_UPDATE`, 0x0808).
+    UpdatePartyBooking,
+    /// Request to join the party of one search result
+    /// (`CZ_PARTY_REQ_MASTER_TO_JOIN`, 0x0AE6).
+    JoinPartyBooking {
+        index: u32,
+    },
+    /// Accept or reject an incoming booking join request
+    /// (`CZ_PARTY_REQ_ACK_MASTER_TO_JOIN`, 0x0AF8).
+    ReplyPartyBookingJoin {
+        character_id: CharacterId,
+        account_id: AccountId,
+        accept: bool,
+    },
+    /// Change the party EXP sharing / item rules
+    /// (`CZ_GROUPINFO_CHANGE_V2`, 0x07D7).
+    ChangePartyOption {
+        experience_option: u32,
+        item_pickup: bool,
+        item_share: bool,
+    },
+    /// Transfer party leadership to a member by name
+    /// (`CZ_CHANGE_GROUP_MASTER`, 0x07DA).
+    ChangePartyLeader {
+        name: String,
+    },
+    /// Open the pet/homunculus/mercenary information window of an entity.
+    OpenCompanionInfo {
+        entity_id: EntityId,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {

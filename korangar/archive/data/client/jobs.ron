@@ -67,6 +67,17 @@
         player_ranges: [(start: 0, end: 44), (start: 4000, end: 5999)],
         npc_ranges: [(start: 46, end: 999), (start: 10000, end: 19999)],
         monster_ranges: [(start: 1000, end: 3999), (start: 20000, end: 29999)],
+        // Homunculus client job ids (JT_MER_LIF..JT_MER_VANILMIRTH_H2 and the
+        // Homunculus S ids). The entity-appear object type 0x8 is the
+        // authoritative marker; these ranges are the job-id fallback.
+        homunculus_ranges: [(start: 6001, end: 6016), (start: 6048, end: 6052)],
+        // Dedicated mercenary client job ids (JT_MER_ARCHER01..JT_MER_MONSTER).
+        // Summoned mercenaries usually reuse monster class ids and are
+        // identified by the appear object type 0x9 instead.
+        mercenary_ranges: [(start: 6017, end: 6047)],
+        // Pets reuse the monster class id of their monster and are identified
+        // by the appear object type 0x7, so this list is normally empty.
+        pet_ranges: [],
         default: Npc,
     ),
     // Job capabilities that are not appearance flags. The granting skill is

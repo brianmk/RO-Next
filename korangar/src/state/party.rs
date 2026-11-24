@@ -154,6 +154,8 @@ pub struct Party {
     pub create_name_input: String,
     /// Text input of the "invite to party" field.
     pub invite_name_input: String,
+    /// Text input of the "change leader" field.
+    pub leader_name_input: String,
     /// Pending invitation, shown in the invitation window.
     pub invite: Option<PartyInvitePrompt>,
 }
@@ -162,6 +164,21 @@ impl Party {
     /// Whether the local player is currently in a party.
     pub fn is_in_party(&self) -> bool {
         self.party_id.is_some() || !self.members.is_empty()
+    }
+
+    /// Whether the member with `name` is the party leader.
+    pub fn is_leader(&self, name: &str) -> bool {
+        self.members
+            .iter()
+            .any(|member| member.leader && member.name.eq_ignore_ascii_case(name))
+    }
+
+    /// Account id of the party member with `name`.
+    pub fn member_account_id(&self, name: &str) -> Option<AccountId> {
+        self.members
+            .iter()
+            .find(|member| member.name.eq_ignore_ascii_case(name))
+            .map(|member| member.account_id)
     }
 
     /// One roster line per member without padding (used by tests and the chat).
@@ -232,6 +249,7 @@ impl Party {
         self.item_pickup = false;
         self.item_share = false;
         self.invite = None;
+        self.leader_name_input.clear();
     }
 
     pub fn find_member(&self, account_id: AccountId) -> Option<&PartyMember> {
