@@ -16,20 +16,33 @@ use crate::state::{ClientState, ClientStatePathExt, client_state};
 /// Width of the context menu window.
 const CONTEXT_MENU_WIDTH: f32 = 190.0;
 
+/// Context menu entry that browses another player's vending shop.
+const BROWSE_VENDING_SHOP_TEXT: &str = "Browse shop";
+
 pub struct CharacterContextMenuWindow {
     target_name: String,
     target_account_id: u32,
     target_level: u16,
     target_guild: Option<String>,
+    /// Title of the target's open vending shop (`ZC_STORE_ENTRY`); `None` while
+    /// the player is not vending.
+    vending_shop_name: Option<String>,
 }
 
 impl CharacterContextMenuWindow {
-    pub fn new(target_name: String, target_account_id: u32, target_level: u16, target_guild: Option<String>) -> Self {
+    pub fn new(
+        target_name: String,
+        target_account_id: u32,
+        target_level: u16,
+        target_guild: Option<String>,
+        vending_shop_name: Option<String>,
+    ) -> Self {
         Self {
             target_name,
             target_account_id,
             target_level,
             target_guild,
+            vending_shop_name,
         }
     }
 }
@@ -50,6 +63,20 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
         let info_name = target_name.clone();
         let info_level = self.target_level;
         let info_guild = self.target_guild.clone();
+        let vending_shop_name = self.vending_shop_name.clone();
+        let shop_name = vending_shop_name.clone().unwrap_or_default();
+        let browsing_disabled = vending_shop_name.is_none();
+        let browse_shop_button = button! {
+            text: BROWSE_VENDING_SHOP_TEXT,
+            disabled: ComputedSelector::new_default(move |_: &ClientState| browsing_disabled),
+            event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                queue.queue(InputEvent::BrowseVendingShop {
+                    owner_account_id: target_account_id,
+                    shop_name: shop_name.clone(),
+                });
+                queue.queue(InputEvent::CloseContextMenu);
+            },
+        };
         let whisper_tooltip = template_text(
             |state| client_state().localization().ui().context_menu_whisper_tooltip().follow_safe(state),
             target_name.clone(),
@@ -109,6 +136,7 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                         queue.queue(InputEvent::CloseContextMenu);
                     },
                 },
+                browse_shop_button,
                 button! {
                     text: client_state().localization().ui().context_menu_view_character_info(),
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {

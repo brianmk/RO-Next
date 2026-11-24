@@ -3,7 +3,7 @@ use std::time::Instant;
 use ragnarok_packets::*;
 
 use crate::hotkey::HotkeyState;
-use crate::items::ShopItem;
+use crate::items::{ShopItem, VendingShopItem};
 use crate::{
     CharacterServerLoginData, EntityData, InventoryItem, LoginServerLoginData, MessageColor, NoMetadata,
     UnifiedCharacterSelectionFailedReason, UnifiedLoginFailedReason,
@@ -788,6 +788,55 @@ pub enum NetworkEvent {
         position: TilePosition,
         cell_type: u16,
         map_name: String,
+    },
+    /// Full merchant pushcart list. rAthena sends the cart through the shared
+    /// inventory list family (`ZC_INVENTORY_START`/`_LIST`/`_END` with
+    /// `inventory_type` 1), see `clif_cartlist` in `clif.cpp:3226`.
+    SetCart {
+        items: Vec<InventoryItem<NoMetadata>>,
+    },
+    /// An item was added to the cart (`ZC_ADD_ITEM_TO_CART`, 0x0A0B,
+    /// `clif.cpp:7273`).
+    CartItemAdded {
+        item: InventoryItem<NoMetadata>,
+    },
+    /// An item (or part of a stack) was removed from the cart
+    /// (`ZC_DELETE_ITEM_FROM_CART`, 0x0125, `clif.cpp:7530`).
+    CartItemRemoved {
+        cart_index: InventoryIndex,
+        amount: u32,
+    },
+    /// The server removed the cart (`ZC_CARTOFF`, 0x012B, `clif.cpp:3284`).
+    CartClosed,
+    /// Moving an item into the cart failed (`ZC_ACK_ADDITEM_TO_CART`,
+    /// 0x012C, `clif.cpp:7313`): 0 = weight limit, 1 = item count limit.
+    CartAddItemFailed {
+        result: u8,
+    },
+    /// A vending shop entered the client's view (`ZC_STORE_ENTRY`, 0x0131,
+    /// `clif.cpp:7558`).
+    StoreEntry {
+        owner_account_id: AccountId,
+        shop_name: String,
+    },
+    /// A vending shop left the client's view (`ZC_DISAPPEAR_ENTRY`, 0x0132,
+    /// `clif.cpp:7576`).
+    StoreEntryRemoved {
+        owner_account_id: AccountId,
+    },
+    /// The item list of another player's vending shop
+    /// (`ZC_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0800 for PACKETVER 20190605,
+    /// `clif.cpp:7592`).
+    VendingShopList {
+        owner_account_id: AccountId,
+        shop_id: u32,
+        items: Vec<VendingShopItem<NoMetadata>>,
+    },
+    /// A vending purchase failed (`ZC_PC_PURCHASE_RESULT_FROMMC`, 0x0135,
+    /// `clif.cpp:7642`). Result codes are documented on
+    /// [`VendingPurchaseResultPacket2019`].
+    VendingPurchaseResult {
+        result: u8,
     },
 }
 

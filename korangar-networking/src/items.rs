@@ -99,3 +99,14 @@ pub struct SellItem<Meta> {
     pub price: Price,
     pub overcharge_price: Price,
 }
+
+/// One row of another player's vending shop
+/// (`ZC_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0800 for PACKETVER 20190605).
+///
+/// The cart slot index is the seller's cart slot, only used to reference the
+/// row in the purchase request (`CZ_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0134).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VendingShopItem<Meta> {
+    pub item: ShopItem<Meta>,
+    pub cart_index: InventoryIndex,
+}

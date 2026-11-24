@@ -80,7 +80,7 @@ use crate::state::skills::SkillTree;
 use crate::state::spirit_orbs::SpiritOrbs;
 use crate::state::theme::WorldTheme;
 use crate::state::trade::Trade;
-use crate::state::vending::Vending;
+use crate::state::vending::{Vending, VendingBrowse};
 #[cfg(feature = "debug")]
 use crate::world::Object;
 use crate::world::{Entity, GroundItem, Player, ResourceMetadata};
@@ -235,6 +235,14 @@ pub struct ClientState {
     /// Current vending-shop editor (`MC_VENDING` / `ZC_OPENSTORE`).
     #[hidden_element]
     vending: Vending,
+    /// The vending shop of another player that is shown in the browse window
+    /// (`ZC_PC_PURCHASE_ITEMLIST_FROMMC`, 0x0800).
+    #[hidden_element]
+    vending_browse: VendingBrowse,
+    /// Items in the merchant pushcart. rAthena sends the list through the
+    /// shared inventory list family with `inventory_type` 1
+    /// (`clif_cartlist`, `clif.cpp:3226`).
+    cart: Inventory,
     /// Amount of zeny the character has, `None` until the server sent the first
     /// zeny update (the initial zeny is not necessarily part of the login
     /// data).
@@ -446,6 +454,8 @@ impl ClientState {
             let hotbar = Hotbar::default();
             let inventory = Inventory::default();
             let zeny = None;
+            let cart = Inventory::default();
+            let vending_browse = VendingBrowse::default();
             let storage = Inventory::default();
             let storage_amount = 0;
             let storage_maximum_amount = 0;
@@ -535,6 +545,8 @@ impl ClientState {
             quest_log: QuestLog::default(),
             trade: Trade::default(),
             vending: Vending::default(),
+            vending_browse,
+            cart,
             zeny,
             storage,
             storage_amount,
