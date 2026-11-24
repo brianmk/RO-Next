@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use cgmath::{Point3, Vector3};
+use korangar_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use korangar_debug::logging::Colorize;
 use korangar_interface::application::Clip;
@@ -9,10 +10,13 @@ use ragnarok_packets::{EntityId, QuestEffectPacket};
 use rand_aes::tls::rand_f32;
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize, Texture};
-use crate::loaders::{FontSize, ImageType, Scaling, Sprite, TextureLoader};
+use crate::loaders::{FontSize, GameFileLoader, ImageType, Scaling, Sprite, TextureLoader};
 use crate::renderer::{GameInterfaceRenderer, SpriteRenderer};
 use crate::world::{Actions, Camera};
 use crate::{Entity, Map};
+
+/// Hearing range of the arrow impact sound in world units.
+const ARROW_HIT_SOUND_RANGE: f32 = 250.0;
 
 /// On-screen height of a damage/heal number in pixels before magnitude and
 /// distance scaling. The original client renders damage numbers much larger
@@ -89,6 +93,15 @@ fn damage_text_font_size(
 
 pub trait Particle {
     fn update(&mut self, delta_time: f32) -> bool;
+
+    /// Sound played at the particle's impact position when the particle ends.
+    ///
+    /// The default is silence; flying projectiles override it so the arrow hit
+    /// sound is played exactly when the arrow lands instead of when it is
+    /// spawned.
+    fn impact_sound(&self) -> Option<(SoundEffectKey, Point3<f32>)> {
+        None
+    }
 
     fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize);
 
@@ -458,6 +471,10 @@ pub struct ParticleHolder {
     /// Particles rendered / culled by distance in the last frame.
     rendered_in_last_frame: std::cell::Cell<u32>,
     culled_in_last_frame: std::cell::Cell<u32>,
+    /// Audio engine used for particle impact sounds (arrow hits).
+    audio_engine: Option<Arc<AudioEngine<GameFileLoader>>>,
+    /// Pre-loaded `_hit_arrow.wav` key, played when an arrow projectile lands.
+    arrow_hit_sound: Option<SoundEffectKey>,
 }
 
 impl Default for ParticleHolder {
@@ -470,6 +487,8 @@ impl Default for ParticleHolder {
             dropped_particles: 0,
             rendered_in_last_frame: std::cell::Cell::new(0),
             culled_in_last_frame: std::cell::Cell::new(0),
+            audio_engine: None,
+            arrow_hit_sound: None,
         }
     }
 }
@@ -488,6 +507,18 @@ impl ParticleHolder {
     /// Number of particles evicted by the budget since startup.
     pub fn dropped_particles(&self) -> u64 {
         self.dropped_particles
+    }
+
+    /// Enables impact sounds and pre-loads the arrow hit sound.
+    pub fn install_audio(&mut self, audio_engine: Arc<AudioEngine<GameFileLoader>>) {
+        self.arrow_hit_sound = Some(audio_engine.load("data\\wav\\_hit_arrow.wav"));
+        self.audio_engine = Some(audio_engine);
+    }
+
+    /// Key of the classic `_hit_arrow.wav` arrow impact sound, if audio is
+    /// installed.
+    pub fn arrow_hit_sound(&self) -> Option<SoundEffectKey> {
+        self.arrow_hit_sound
     }
 
     pub fn spawn_particle(&mut self, particle: Box<dyn Particle + Send + Sync>) {
@@ -522,7 +553,25 @@ impl ParticleHolder {
 
     #[cfg_attr(feature = "debug", korangar_debug::profile("update particles"))]
     pub fn update(&mut self, delta_time: f32) {
-        self.particles.retain_mut(|particle| particle.update(delta_time));
+        // Particles that end this frame report their impact sound, which is
+        // played after the update so no engine call happens inside the loop.
+        let mut impact_sounds: Vec<(SoundEffectKey, Point3<f32>)> = Vec::new();
+
+        self.particles.retain_mut(|particle| {
+            let alive = particle.update(delta_time);
+
+            if !alive && let Some(sound) = particle.impact_sound() {
+                impact_sounds.push(sound);
+            }
+
+            alive
+        });
+
+        if let Some(audio_engine) = self.audio_engine.as_ref() {
+            for (sound, position) in impact_sounds {
+                audio_engine.play_spatial_sound_effect(sound, position, ARROW_HIT_SOUND_RANGE);
+            }
+        }
     }
 
     #[cfg_attr(feature = "debug", korangar_debug::profile("render particles"))]
@@ -654,6 +703,8 @@ pub struct ArrowProjectile {
     /// Flight time from caster to target in seconds (from the weapon data
     /// file).
     flight_seconds: f32,
+    /// `_hit_arrow.wav` key played at the impact position when the arrow lands.
+    impact_sound: Option<SoundEffectKey>,
 }
 
 /// Linear flight position between caster and target for a normalized progress.
@@ -668,7 +719,13 @@ impl ArrowProjectile {
     /// Creates a projectile that flies from `start` to `end` in
     /// `flight_seconds` (the value comes from the weapon data file, so the
     /// flight time can be tuned without a rebuild).
-    pub fn new(assets: Arc<ArrowAssets>, start: Point3<f32>, end: Point3<f32>, flight_seconds: f32) -> Self {
+    pub fn new(
+        assets: Arc<ArrowAssets>,
+        start: Point3<f32>,
+        end: Point3<f32>,
+        flight_seconds: f32,
+        impact_sound: Option<SoundEffectKey>,
+    ) -> Self {
         let start = start + Vector3::new(0.0, Self::START_HEIGHT, 0.0);
         let end = end + Vector3::new(0.0, Self::TARGET_HEIGHT, 0.0);
 
@@ -687,6 +744,7 @@ impl ArrowProjectile {
             // A zero/negative flight time would divide by zero; keep a sane
             // minimum.
             flight_seconds: flight_seconds.max(0.01),
+            impact_sound,
         }
     }
 }
@@ -694,6 +752,10 @@ impl ArrowProjectile {
 impl Particle for ArrowProjectile {
     fn culling_position(&self) -> Point3<f32> {
         self.position
+    }
+
+    fn impact_sound(&self) -> Option<(SoundEffectKey, Point3<f32>)> {
+        self.impact_sound.map(|sound| (sound, self.end))
     }
 
     fn update(&mut self, delta_time: f32) -> bool {

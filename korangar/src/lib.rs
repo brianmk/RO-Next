@@ -1514,7 +1514,10 @@ impl Client {
             // archive). Without it the damage numbers fall back to text.
             crate::world::damage_font::install(crate::world::damage_font::DamageFont::load(&sprite_loader, &action_loader));
 
-            let particle_holder = ParticleHolder::default();
+            let mut particle_holder = ParticleHolder::default();
+            // Arrow impact sounds are played from the particle update, so the
+            // holder needs the audio engine (`_hit_arrow.wav`).
+            particle_holder.install_audio(audio_engine.clone());
             let point_light_manager = PointLightManager::new();
             let effect_holder = EffectHolder::default();
             let path_finder = PathFinder::default();
@@ -5996,6 +5999,7 @@ impl Client {
                                     attacker_position,
                                     target_world_position,
                                     projectile.flight_seconds(),
+                                    self.particle_holder.arrow_hit_sound(),
                                 )));
                             }
                         }
