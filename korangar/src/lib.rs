@@ -5994,13 +5994,20 @@ impl Client {
                                     attacker_position,
                                     target_world_position
                                 );
-                                self.particle_holder.spawn_particle(Box::new(ArrowProjectile::new(
-                                    projectile_assets,
-                                    attacker_position,
-                                    target_world_position,
-                                    projectile.flight_seconds(),
-                                    self.particle_holder.arrow_hit_sound(),
-                                )));
+                                // The arrow is a world-space quad rotated along
+                                // its flight vector (the item sprite has no
+                                // per-direction frames); the effect also plays
+                                // the impact sound when it lands.
+                                if let Some(texture) = projectile_assets.sprite.textures.first().cloned() {
+                                    self.effect_holder.add_effect(Box::new(ArrowEffect::new(
+                                        texture,
+                                        attacker_position,
+                                        target_world_position,
+                                        projectile.flight_seconds(),
+                                        self.particle_holder.arrow_hit_sound(),
+                                        Some(self.audio_engine.clone()),
+                                    )));
+                                }
                             }
                         }
                     }

@@ -15,6 +15,7 @@ use crate::renderer::MarkerRenderer;
 use crate::world::MarkerIdentifier;
 use crate::world::{Camera, PointLightId, PointLightManager};
 
+mod arrow_effect;
 mod aura;
 mod cast_circle;
 mod procedural;
@@ -27,6 +28,7 @@ mod storm_cloud;
 mod teleport_vanish;
 mod warp;
 mod weather;
+pub(crate) use self::arrow_effect::ArrowEffect;
 pub use self::aura::*;
 pub use self::cast_circle::*;
 pub use self::procedural::*;
