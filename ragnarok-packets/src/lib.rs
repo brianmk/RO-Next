@@ -8022,3 +8022,735 @@ mod mail_packet_tests {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// Item service packets: weapon refine, item repair, identify and card
+// composition (PACKETVER 20190605).
+//
+// Every opcode and layout below was verified against the CondaRO rAthena tree
+// (`/home/phantom/popeng-llm-cpp/condaro-llm`, PACKETVER 20190605); the cited
+// `clif.cpp` / `packets_struct.hpp` / `clif_packetdb.hpp` lines are relative to
+// that tree. At PACKETVER >= 20181121 every item id and every `EQUIPSLOTINFO`
+// card is 32 bit, which is why the entries below carry `ItemId` (u32) and
+// `[u32; 4]` instead of 16 bit values.
+// ---------------------------------------------------------------------------
+
+/// One row of `ZC_NOTIFY_WEAPONITEMLIST` (0x0221).
+///
+/// rAthena's `PACKET_ZC_NOTIFY_WEAPONITEMLIST_sub` (`packets_struct.hpp:3332`,
+/// only the `int16 index, uint32 itemId, uint8 refine, EQUIPSLOTINFO slot`
+/// fields are used). `clif_item_refine_list` writes the *client* index
+/// (`client_index(i)` = server slot + 2, `clif.cpp:7233`), so the index is an
+/// [`InventoryIndex`].
+#[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct WeaponRefineListEntry {
+    pub index: InventoryIndex,
+    pub item_id: ItemId,
+    /// Current refine level of the weapon (`item.refine`), `0` = not refined.
+    pub refine: u8,
+    /// Card slots of the weapon; unused by the refine window, kept so the
+    /// packet size (23 bytes per row) is right.
+    pub card: [u32; 4],
+}
+
+/// List of weapons that the merchant can refine (`ZC_NOTIFY_WEAPONITEMLIST`,
+/// 0x0221).
+///
+/// Layout (`clif_item_refine_list`, `clif.cpp:7209`): `{ header }.W { length
+/// }.W` followed by one [`WeaponRefineListEntry`] per weapon. The server only
+/// sends this list after the player used the Blacksmith skill
+/// `WS_WEAPONREFINE`, and it only accepts [`WeaponRefineRequestPacket`] while
+/// that menu skill is pending (`clif_parse_WeaponRefine`, `clif.cpp:13255`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0221)]
+#[variable_length]
+pub struct WeaponRefineListPacket {
+    #[repeating_remaining]
+    pub entries: Vec<WeaponRefineListEntry>,
+}
+
+/// Result of a weapon refine attempt (`ZC_ACK_WEAPONREFINE`, 0x0223).
+///
+/// Layout (`clif_upgrademessage`, `clif.cpp:6937`; struct
+/// `packets_struct.hpp:2728`): `{ header }.W { result }.L { item id }.L`.
+/// Result codes (rAthena `e_ack_itemrefining` usage,
+/// `skill.cpp:20703`/`20710`/`20751`/`20780`): `0` = success, `1` = failure
+/// (the weapon lost its refine level), `2` = the refine level is already at the
+/// skill limit, `3` = the required material is missing.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0223)]
+#[packet_size(10)]
+pub struct WeaponRefineResultPacket {
+    pub result: i32,
+    pub item_id: ItemId,
+}
+
+/// Refine level update of a successful/failed refine (`ZC_ACK_ITEMREFINING`,
+/// 0x0188).
+///
+/// Layout (`clif_refine`, `clif.cpp:6919`; struct `packets.hpp:964`):
+/// `{ header }.W { result }.W { index }.W { refine }.W`. The skill refine
+/// additionally re-sends the inventory list (`skill.cpp:20753`); the NPC refine
+/// UI does not, so this packet is the authoritative refine level for it
+/// (`clif.cpp:22727`-`22750`). `result` is `e_ack_itemrefining`
+/// (`clif.hpp:767`): `0` success, `1` failure (the item broke and was
+/// destroyed), `2` downgrade (the item lost refine levels) and `3` failure
+/// (protected by Blacksmith Blessings, nothing changed).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0188)]
+#[packet_size(8)]
+pub struct ItemRefiningResultPacket {
+    pub result: u16,
+    pub index: InventoryIndex,
+    pub refine: u16,
+}
+
+/// One row of `ZC_REPAIRITEMLIST` (0x01FC).
+///
+/// rAthena's `REPAIRITEM_INFO1` (`packets_struct.hpp:2925`):
+/// `{ index }.W { item id }.L { refine }.B { card[4] }.L`.
+///
+/// **The index is the raw server slot, not the `slot + 2` client index**:
+/// `clif_item_repair_list` writes the loop variable `i` unchanged
+/// (`clif.cpp:7153`) and `clif_parse_RepairItem` passes the value back to
+/// `skill_repairweapon` unchanged (`clif.cpp:13242`). Use [`u16`] here and
+/// convert with `InventoryIndex(raw)`; do not use [`InventoryIndex`] which
+/// shifts by two on the wire.
+#[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct RepairItemListEntry {
+    /// Raw 0-based inventory slot of the damaged item.
+    pub index: u16,
+    pub item_id: ItemId,
+    pub refine: u8,
+    pub card: [u32; 4],
+}
+
+/// List of damaged items that can be repaired (`ZC_REPAIRITEMLIST`, 0x01FC).
+///
+/// Layout (`clif_item_repair_list`, `clif.cpp:7143`): `{ header }.W { length
+/// }.W` followed by one [`RepairItemListEntry`] (23 bytes) per item. The list
+/// is only sent after the player used `BS_REPAIRWEAPON`.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01FC)]
+#[variable_length]
+pub struct RepairItemListPacket {
+    #[repeating_remaining]
+    pub entries: Vec<RepairItemListEntry>,
+}
+
+/// Result of an item repair request (`ZC_ACK_ITEMREPAIR`, 0x01FE).
+///
+/// Layout (`clif_item_repaireffect`, `clif.cpp:7182`; struct
+/// `packets.hpp:1134`): `{ header }.W { index }.W { result }.B`. Unlike the
+/// repair list index, this index *is* the `slot + 2` client index
+/// (`client_index(idx)`, `clif.cpp:7186`), so it is an [`InventoryIndex`].
+/// `result` is `0` = success, `1` = failure (the item was not repaired).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01FE)]
+#[packet_size(5)]
+pub struct RepairItemResultPacket {
+    pub index: InventoryIndex,
+    pub result: u8,
+}
+
+/// List of unidentified items (`ZC_ITEMIDENTIFY_LIST`, 0x0177).
+///
+/// Layout (`clif_item_identify_list`, `clif.cpp:7098`): `{ header }.W { length
+/// }.W` followed by one `{ client index }.W` per unidentified item
+/// (`client_index(i)`, `clif.cpp:7111`). The list is sent by the merchant Item
+/// Appraisal skill `MC_IDENTIFY` (`skills/merchant/itemappraisal.cpp:17`),
+/// which consumes a Magnifier as its reagent; the answer is
+/// [`IdentifyItemRequestPacket`], which rAthena only accepts while that menu
+/// skill is pending (`clif.cpp:13385`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0177)]
+#[variable_length]
+pub struct IdentifyItemListPacket {
+    #[repeating_remaining]
+    pub indexes: Vec<InventoryIndex>,
+}
+
+/// Result of an identify request (`ZC_ACK_ITEMIDENTIFY`, 0x0179).
+///
+/// Layout (`clif_item_identified`, `clif.cpp:7130`; struct `packets.hpp:1127`):
+/// `{ header }.W { index }.W { result }.B`. `index` is the `slot + 2` client
+/// index (`clif.cpp:7134`); `result` is `0` = success, `1` = failure.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0179)]
+#[packet_size(5)]
+pub struct IdentifyItemResultPacket {
+    pub index: InventoryIndex,
+    pub result: u8,
+}
+
+/// List of equipment a card can be inserted into (`ZC_ITEMCOMPOSITION_LIST`,
+/// 0x017B).
+///
+/// Layout (`clif_use_card`, `clif.cpp:7023`): `{ header }.W { length }.W`
+/// followed by one `{ client index }.W` per eligible item (`i + 2`,
+/// `clif.cpp:7068`). Despite the rAthena comment saying "name id", the value
+/// written is the inventory index of the equipment. The list is sent as the
+/// answer to [`CardCompositionListRequestPacket`].
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017B)]
+#[variable_length]
+pub struct CardCompositionListPacket {
+    #[repeating_remaining]
+    pub indexes: Vec<InventoryIndex>,
+}
+
+/// Result of a card insertion (`ZC_ACK_ITEMCOMPOSITION`, 0x017D).
+///
+/// Layout (`clif_insert_card`, `clif.cpp:7084`; struct `packets.hpp:1119`):
+/// `{ header }.W { equip index }.W { card index }.W { result }.B`. Both indexes
+/// are `slot + 2` client indexes (`clif.cpp:7088`); `result` is `0` = success,
+/// `1` = failure.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017D)]
+#[packet_size(7)]
+pub struct CardCompositionResultPacket {
+    pub equip_index: InventoryIndex,
+    pub card_index: InventoryIndex,
+    pub result: u8,
+}
+
+/// Card slot update (`ZC_UPDATE_CARDSLOT`, 0x0A3F).
+///
+/// Layout (`PACKET_ZC_UPDATE_CARDSLOT`, `packets_struct.hpp:3775`):
+/// `{ header }.W { wear state }.w { card slot }.w { item id }.L { equip flag
+/// }.b` (11 bytes at PACKETVER 20190605). rAthena 20190605 defines this struct
+/// in `packets_struct.hpp` but **never sends it** (`grep -n UPDATE_CARDSLOT
+/// src/map/clif.cpp` has no match); card changes arrive through the
+/// `ZC_ACK_ITEMCOMPOSITION` ack plus the normal item list refresh. It is parsed
+/// so a future server that uses it cannot desynchronize the packet stream.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A3F)]
+#[packet_size(11)]
+pub struct UpdateCardSlotPacket {
+    pub wear_state: i16,
+    pub card_slot: i16,
+    pub item_id: ItemId,
+    pub equip_flag: i8,
+}
+
+/// Request to refine the selected weapon (`CZ_REQ_WEAPONREFINE`, 0x0222).
+///
+/// Layout (`clif_parse_WeaponRefine`, `clif.cpp:13247`; registered as a
+/// 6 byte parseable packet in `clif_packetdb.hpp:472`):
+/// `{ header }.W { client index }.L`. rAthena reads a 32 bit value at offset 2
+/// and calls `server_index()` on it (`clif.cpp:13262`), so the field is the
+/// *client* index (server slot + 2) as a 32 bit number. It is kept as a raw
+/// `u32` because [`InventoryIndex`] serializes as a 16 bit value.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0222)]
+#[packet_size(6)]
+pub struct WeaponRefineRequestPacket {
+    /// Wire value: inventory slot + 2 (see [`WeaponRefineRequestPacket::new`]).
+    pub client_index: u32,
+}
+
+impl WeaponRefineRequestPacket {
+    /// Create the request for the given inventory index. The +2 encoding is
+    /// what rAthena's `server_index()` expects (`clif.cpp:13262`).
+    pub fn for_inventory_index(inventory_index: InventoryIndex) -> Self {
+        Self {
+            client_index: u32::from(inventory_index.0) + 2,
+        }
+    }
+}
+
+/// Request to repair a damaged item (`CZ_REQ_ITEMREPAIR1`, 0x01FD).
+///
+/// Layout (`PACKET_CZ_REQ_ITEMREPAIR1`, `packets_struct.hpp:2944`;
+/// `clif_parse_RepairItem`, `clif.cpp:13222`): `{ header }.W { index }.W
+/// { item id }.L { refine }.B { card[4] }.L` = 25 bytes at PACKETVER 20190605
+/// (the opcode registry also lists 25). The index is the raw 0-based server
+/// slot, matching [`RepairItemListEntry::index`]. rAthena only reads
+/// `item.index` (`clif.cpp:13242`); the remaining fields are informational and
+/// may be zero.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01FD)]
+#[packet_size(25)]
+pub struct RepairItemRequestPacket {
+    /// Raw 0-based inventory slot of the damaged item.
+    pub index: u16,
+    pub item_id: ItemId,
+    pub refine: u8,
+    pub card: [u32; 4],
+}
+
+/// Request the list of equipment a card can be inserted into
+/// (`CZ_REQ_ITEMCOMPOSITION_LIST`, 0x017A).
+///
+/// Layout (`clif_parse_UseCard`, `clif.cpp:13460`): `{ header }.W
+/// { client index }.W`; the server converts with `server_index()`
+/// (`clif.cpp:13468`), so [`InventoryIndex`] serializes the right value.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017A)]
+#[packet_size(4)]
+pub struct CardCompositionListRequestPacket {
+    pub index: InventoryIndex,
+}
+
+/// Insert a card into a piece of equipment (`CZ_REQ_ITEMCOMPOSITION`, 0x017C).
+///
+/// Layout (`clif_parse_InsertCard`, `clif.cpp:13478`): `{ header }.W
+/// { card index }.W { equip index }.W`; both are client indexes converted with
+/// `server_index()` (`clif.cpp:13490`), so [`InventoryIndex`] is correct.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x017C)]
+#[packet_size(6)]
+pub struct CardCompositionRequestPacket {
+    pub card_index: InventoryIndex,
+    pub equip_index: InventoryIndex,
+}
+
+/// Identify an item with one click, consuming a Magnifier
+/// (`CZ_REQ_ONECLICK_ITEMIDENTIFY`, 0x0A35).
+///
+/// Layout (`clif_parse_Oneclick_Itemidentify`, `clif.cpp:21385`; registered as
+/// a 4 byte parseable packet in `clif_packetdb.hpp:1765`): `{ header }.W
+/// { client index }.W`. rAthena subtracts two from the wire value
+/// (`clif.cpp:21389`), so [`InventoryIndex`] serializes the right value. This
+/// opcode is client-to-server only and therefore not part of the
+/// server-to-client opcode registry. Unlike [`IdentifyItemRequestPacket`] it
+/// does not require a pending menu skill: the server consumes a Magnifier
+/// (item id 611, `itemdb.hpp:57`) or Novice Magnifier (12325, `itemdb.hpp:106`)
+/// from the inventory and answers with [`IdentifyItemResultPacket`].
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A35)]
+#[packet_size(4)]
+pub struct OneClickIdentifyRequestPacket {
+    pub index: InventoryIndex,
+}
+
+/// Answer to the identify item selection dialog
+/// (`CZ_REQ_ITEMIDENTIFY`, 0x0178).
+///
+/// Layout (`clif_parse_ItemIdentify`, `clif.cpp:13381`): `{ header }.W
+/// { client index }.W`; the server converts with `server_index()`
+/// (`clif.cpp:13390`). The request is only accepted while the server has
+/// `MC_IDENTIFY` pending, i.e. after it sent [`IdentifyItemListPacket`].
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0178)]
+#[packet_size(4)]
+pub struct IdentifyItemRequestPacket {
+    pub index: InventoryIndex,
+}
+
+// ---------------------------------------------------------------------------
+// Refine UI packets (`UIRefiningWnd` in the official client).
+//
+// Since 2016 rAthena has a second, NPC/atcommand driven refine flow that is
+// enabled with `feature.refineui` (conf/battle/feature.conf:85, "on" on
+// CondaRO). The refine NPCs call the `refineui` script command
+// (npc/merchants/refine.txt:532), which opens this UI. The opcodes below are
+// client-to-server/server-to-client pairs of that flow, all guarded by
+// `PACKETVER >= 20161012` in rAthena and therefore present at 20190605.
+// ---------------------------------------------------------------------------
+
+/// Opens the refine UI (`ZC_OPEN_REFINING_UI`, 0x0AA0).
+///
+/// Layout (`clif_refineui_open`, `clif.cpp:22475`): `{ header }.W` only.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA0)]
+#[packet_size(2)]
+pub struct OpenRefiningUiPacket {}
+
+/// One selectable material of the refine UI (`ZC_REFINING_MATERIAL_LIST` row).
+///
+/// rAthena's `PACKET_ZC_REFINING_MATERIAL_LIST_SUB`
+/// (`packets_struct.hpp:4165`): `{ item id }.L { chance }.b { zeny }.L` = 9
+/// bytes at PACKETVER 20190605.
+#[derive(Debug, Clone, FixedByteSize, ByteConvertable)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct RefiningMaterialEntry {
+    pub item_id: ItemId,
+    /// Success chance in percent (`cost->chance / 100`, 0-100).
+    pub chance: i8,
+    /// Zeny cost of the refine attempt.
+    pub zeny: i32,
+}
+
+/// Materials and success chances for one selected item
+/// (`ZC_REFINING_MATERIAL_LIST`, 0x0AA2).
+///
+/// Layout (`clif_refineui_info`, `clif.cpp:22504`; struct
+/// `packets_struct.hpp:4175`): `{ header }.W { length }.W { item index }.W
+/// { blacksmith blessing }.b` followed by one [`RefiningMaterialEntry`] per
+/// material. The item index is the `slot + 2` client index
+/// (`p->itemIndex = client_index( index )`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA2)]
+#[variable_length]
+pub struct RefiningMaterialListPacket {
+    pub item_index: InventoryIndex,
+    /// Number of Blacksmith Blessings required for the selected refine level,
+    /// `0` when the item cannot use them.
+    pub blacksmith_blessing: i8,
+    #[repeating_remaining]
+    pub materials: Vec<RefiningMaterialEntry>,
+}
+
+/// Select the item to refine in the refine UI (`CZ_REFINING_SELECT_ITEM`,
+/// 0x0AA1).
+///
+/// Layout (`clif_parse_refineui_add`, `clif.cpp:22574`): `{ header }.W
+/// { client index }.W`; the server converts with `server_index()`. The server
+/// answers with [`RefiningMaterialListPacket`].
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA1)]
+#[packet_size(4)]
+pub struct RefiningSelectItemRequestPacket {
+    pub index: InventoryIndex,
+}
+
+/// Attempt a refine in the refine UI (`CZ_REQ_REFINING`, 0x0AA3).
+///
+/// Layout (`clif_parse_refineui_refine`, `clif.cpp:22599`; struct
+/// `packets_struct.hpp:4186`): `{ header }.W { client index }.W
+/// { material item id }.L { blacksmith blessing }.b` = 9 bytes. The material
+/// id is a plain item id (`p->itemId` is compared with `cost->nameid`), the
+/// blessing byte is `0`/`1`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA3)]
+#[packet_size(9)]
+pub struct RefiningRequestPacket {
+    pub index: InventoryIndex,
+    pub material_item_id: ItemId,
+    pub blacksmith_blessing: i8,
+}
+
+/// Close the refine UI (`CZ_CLOSE_REFINING_UI`, 0x0AA4).
+///
+/// Layout (`clif_parse_refineui_close`, `clif.cpp:22493`): `{ header }.W`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA4)]
+#[packet_size(2)]
+pub struct CloseRefiningUiRequestPacket {}
+
+#[cfg(test)]
+mod item_service_packet_tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter};
+
+    use crate::{
+        CardCompositionListPacket, CardCompositionListRequestPacket, CardCompositionRequestPacket, CardCompositionResultPacket,
+        CloseRefiningUiRequestPacket, IdentifyItemListPacket, IdentifyItemRequestPacket, IdentifyItemResultPacket, InventoryIndex, ItemId,
+        ItemRefiningResultPacket, OneClickIdentifyRequestPacket, OpenRefiningUiPacket, PacketExt, RefiningMaterialListPacket,
+        RefiningRequestPacket, RefiningSelectItemRequestPacket, RepairItemListPacket, RepairItemRequestPacket, RepairItemResultPacket,
+        UpdateCardSlotPacket, WeaponRefineListPacket, WeaponRefineRequestPacket, WeaponRefineResultPacket,
+    };
+
+    fn bytes<T: PacketExt>(packet: &T) -> Vec<u8> {
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        writer.into_inner()
+    }
+
+    /// `ZC_NOTIFY_WEAPONITEMLIST` rows are 23 bytes at PACKETVER 20190605:
+    /// `{ index }.W { item id }.L { refine }.B { card[4] }.L`
+    /// (`clif_item_refine_list`, `clif.cpp:7209`).
+    #[test]
+    fn weapon_refine_list_2019_layout() {
+        let mut payload = Vec::new();
+        payload.push(0x21);
+        payload.push(0x02);
+        payload.extend_from_slice(&(4u16 + 23).to_le_bytes());
+        payload.extend_from_slice(&(7u16 + 2).to_le_bytes());
+        payload.extend_from_slice(&1500u32.to_le_bytes());
+        payload.push(4);
+        payload.extend_from_slice(&[0u8; 16]);
+
+        let mut reader = ByteReader::without_metadata(&payload);
+        let packet = WeaponRefineListPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(reader.get_offset(), payload.len());
+        assert_eq!(packet.entries.len(), 1);
+        assert_eq!(packet.entries[0].index, InventoryIndex(7));
+        assert_eq!(packet.entries[0].item_id, ItemId(1500));
+        assert_eq!(packet.entries[0].refine, 4);
+        assert_eq!(packet.entries[0].card, [0; 4]);
+    }
+
+    /// `ZC_ACK_WEAPONREFINE`: `{ result }.L { item id }.L`, 10 bytes
+    /// (`clif_upgrademessage`, `clif.cpp:6937`).
+    #[test]
+    fn weapon_refine_result_2019_layout() {
+        let packet = WeaponRefineResultPacket {
+            result: 0,
+            item_id: ItemId(1500),
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 10);
+        assert_eq!(&bytes[..2], &[0x23, 0x02]);
+        assert_eq!(&bytes[2..6], &0i32.to_le_bytes());
+        assert_eq!(&bytes[6..10], &1500u32.to_le_bytes());
+    }
+
+    /// `ZC_ACK_ITEMREFINING`: `{ result }.W { index }.W { refine }.W`, 8 bytes.
+    #[test]
+    fn item_refining_result_2019_layout() {
+        let packet = ItemRefiningResultPacket {
+            result: 0,
+            index: InventoryIndex(3),
+            refine: 5,
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 8);
+        assert_eq!(&bytes[..2], &[0x88, 0x01]);
+        assert_eq!(&bytes[2..4], &0u16.to_le_bytes());
+        assert_eq!(&bytes[4..6], &(3u16 + 2).to_le_bytes());
+        assert_eq!(&bytes[6..8], &5u16.to_le_bytes());
+    }
+
+    /// `ZC_REPAIRITEMLIST`: the row index is the raw server slot (no +2),
+    /// `clif_item_repair_list` writes `i` directly (`clif.cpp:7153`).
+    #[test]
+    fn repair_item_list_2019_layout() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&0x01FCu16.to_le_bytes());
+        payload.extend_from_slice(&(4u16 + 23).to_le_bytes());
+        payload.extend_from_slice(&9u16.to_le_bytes());
+        payload.extend_from_slice(&1500u32.to_le_bytes());
+        payload.push(6);
+        payload.extend_from_slice(&[0u8; 16]);
+
+        let mut reader = ByteReader::without_metadata(&payload);
+        let packet = RepairItemListPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(reader.get_offset(), payload.len());
+        assert_eq!(packet.entries[0].index, 9, "raw server slot, no +2 encoding");
+        assert_eq!(packet.entries[0].item_id, ItemId(1500));
+        assert_eq!(packet.entries[0].refine, 6);
+    }
+
+    /// `CZ_REQ_ITEMREPAIR1` is 25 bytes and the index is the raw server slot
+    /// (`PACKET_CZ_REQ_ITEMREPAIR1`, `packets_struct.hpp:2944`).
+    #[test]
+    fn repair_item_request_2019_layout() {
+        let packet = RepairItemRequestPacket {
+            index: 9,
+            item_id: ItemId(1500),
+            refine: 6,
+            card: [0; 4],
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 25);
+        assert_eq!(&bytes[..2], &[0xFD, 0x01]);
+        assert_eq!(&bytes[2..4], &9u16.to_le_bytes(), "raw server slot");
+        assert_eq!(&bytes[4..8], &1500u32.to_le_bytes());
+        assert_eq!(bytes[8], 6);
+    }
+
+    /// `ZC_ACK_ITEMREPAIR`: `{ index }.W { result }.B` with the +2 client
+    /// index (`clif.cpp:7186`).
+    #[test]
+    fn repair_item_result_2019_layout() {
+        let packet = RepairItemResultPacket {
+            index: InventoryIndex(9),
+            result: 0,
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 5);
+        assert_eq!(&bytes[..2], &[0xFE, 0x01]);
+        assert_eq!(&bytes[2..4], &(9u16 + 2).to_le_bytes());
+        assert_eq!(bytes[4], 0);
+    }
+
+    /// `ZC_ITEMIDENTIFY_LIST` is `{ index }.W` rows of +2 client indexes
+    /// (`clif.cpp:7111`).
+    #[test]
+    fn identify_item_list_2019_layout() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&0x0177u16.to_le_bytes());
+        payload.extend_from_slice(&(4u16 + 4).to_le_bytes());
+        payload.extend_from_slice(&(2u16 + 2).to_le_bytes());
+        payload.extend_from_slice(&(5u16 + 2).to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&payload);
+        let packet = IdentifyItemListPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(reader.get_offset(), payload.len());
+        assert_eq!(packet.indexes, vec![InventoryIndex(2), InventoryIndex(5)]);
+    }
+
+    /// `CZ_REQ_ITEMIDENTIFY` (0x0178) and `CZ_REQ_ONECLICK_ITEMIDENTIFY`
+    /// (0x0A35) are both 4 bytes with a +2 client index.
+    #[test]
+    fn identify_request_2019_layout() {
+        let identify = bytes(&IdentifyItemRequestPacket { index: InventoryIndex(5) });
+        assert_eq!(identify.len(), 4);
+        assert_eq!(&identify[..2], &[0x78, 0x01]);
+        assert_eq!(&identify[2..4], &(5u16 + 2).to_le_bytes());
+
+        let one_click = bytes(&OneClickIdentifyRequestPacket { index: InventoryIndex(5) });
+        assert_eq!(one_click.len(), 4);
+        assert_eq!(&one_click[..2], &[0x35, 0x0A]);
+        assert_eq!(&one_click[2..4], &(5u16 + 2).to_le_bytes());
+    }
+
+    /// `ZC_ACK_ITEMIDENTIFY`: `{ index }.W { result }.B`, 5 bytes.
+    #[test]
+    fn identify_item_result_2019_layout() {
+        let packet = IdentifyItemResultPacket {
+            index: InventoryIndex(5),
+            result: 0,
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 5);
+        assert_eq!(&bytes[..2], &[0x79, 0x01]);
+        assert_eq!(&bytes[2..4], &(5u16 + 2).to_le_bytes());
+        assert_eq!(bytes[4], 0);
+    }
+
+    /// `ZC_ITEMCOMPOSITION_LIST` rows are +2 client indexes (`clif.cpp:7068`).
+    #[test]
+    fn card_composition_list_2019_layout() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&0x017Bu16.to_le_bytes());
+        payload.extend_from_slice(&(4u16 + 2).to_le_bytes());
+        payload.extend_from_slice(&(11u16 + 2).to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&payload);
+        let packet = CardCompositionListPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(reader.get_offset(), payload.len());
+        assert_eq!(packet.indexes, vec![InventoryIndex(11)]);
+    }
+
+    /// The card composition requests use the +2 client index encoding
+    /// (`clif.cpp:13468`/`13490`).
+    #[test]
+    fn card_composition_request_2019_layout() {
+        let list = bytes(&CardCompositionListRequestPacket { index: InventoryIndex(11) });
+        assert_eq!(list.len(), 4);
+        assert_eq!(&list[..2], &[0x7A, 0x01]);
+        assert_eq!(&list[2..4], &(11u16 + 2).to_le_bytes());
+
+        let insert = bytes(&CardCompositionRequestPacket {
+            card_index: InventoryIndex(4),
+            equip_index: InventoryIndex(11),
+        });
+        assert_eq!(insert.len(), 6);
+        assert_eq!(&insert[..2], &[0x7C, 0x01]);
+        assert_eq!(&insert[2..4], &(4u16 + 2).to_le_bytes());
+        assert_eq!(&insert[4..6], &(11u16 + 2).to_le_bytes());
+    }
+
+    /// `ZC_ACK_ITEMCOMPOSITION`: `{ equip }.W { card }.W { result }.B`, 7
+    /// bytes.
+    #[test]
+    fn card_composition_result_2019_layout() {
+        let packet = CardCompositionResultPacket {
+            equip_index: InventoryIndex(11),
+            card_index: InventoryIndex(4),
+            result: 0,
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 7);
+        assert_eq!(&bytes[..2], &[0x7D, 0x01]);
+        assert_eq!(&bytes[2..4], &(11u16 + 2).to_le_bytes());
+        assert_eq!(&bytes[4..6], &(4u16 + 2).to_le_bytes());
+        assert_eq!(bytes[6], 0);
+    }
+
+    /// `CZ_REQ_WEAPONREFINE` is 6 bytes: a 32 bit +2 client index follows the
+    /// header (`clif_packetdb.hpp:472`, `clif.cpp:13262`).
+    #[test]
+    fn weapon_refine_request_2019_layout() {
+        let packet = WeaponRefineRequestPacket::for_inventory_index(InventoryIndex(7));
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 6);
+        assert_eq!(&bytes[..2], &[0x22, 0x02]);
+        assert_eq!(&bytes[2..6], &(9u32).to_le_bytes());
+    }
+
+    /// `ZC_REFINING_MATERIAL_LIST` (0x0AA2): `{ item index }.W
+    /// { blessing }.b` followed by 9 byte material rows (`clif.cpp:22504`).
+    #[test]
+    fn refining_material_list_2019_layout() {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&0x0AA2u16.to_le_bytes());
+        payload.extend_from_slice(&(7u16 + 9).to_le_bytes());
+        payload.extend_from_slice(&(4u16 + 2).to_le_bytes()); // client index
+        payload.push(2); // blacksmith blessings
+        payload.extend_from_slice(&984u32.to_le_bytes()); // material item id
+        payload.push(75); // chance
+        payload.extend_from_slice(&5000i32.to_le_bytes()); // zeny
+
+        let mut reader = ByteReader::without_metadata(&payload);
+        let packet = RefiningMaterialListPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(reader.get_offset(), payload.len());
+        assert_eq!(packet.item_index, InventoryIndex(4));
+        assert_eq!(packet.blacksmith_blessing, 2);
+        assert_eq!(packet.materials.len(), 1);
+        assert_eq!(packet.materials[0].item_id, ItemId(984));
+        assert_eq!(packet.materials[0].chance, 75);
+        assert_eq!(packet.materials[0].zeny, 5000);
+    }
+
+    /// The refine UI requests: 0x0AA0/0x0AA4 are 2 bytes, 0x0AA1 4 bytes and
+    /// 0x0AA3 9 bytes (`clif.cpp:22475`-`22599`).
+    #[test]
+    fn refining_ui_requests_2019_layout() {
+        assert_eq!(bytes(&OpenRefiningUiPacket {}), vec![0xA0, 0x0A]);
+        assert_eq!(bytes(&CloseRefiningUiRequestPacket {}), vec![0xA4, 0x0A]);
+
+        let select = bytes(&RefiningSelectItemRequestPacket { index: InventoryIndex(4) });
+        assert_eq!(select.len(), 4);
+        assert_eq!(&select[..2], &[0xA1, 0x0A]);
+        assert_eq!(&select[2..4], &(4u16 + 2).to_le_bytes());
+
+        let refine = bytes(&RefiningRequestPacket {
+            index: InventoryIndex(4),
+            material_item_id: ItemId(984),
+            blacksmith_blessing: 0,
+        });
+        assert_eq!(refine.len(), 9);
+        assert_eq!(&refine[..2], &[0xA3, 0x0A]);
+        assert_eq!(&refine[2..4], &(4u16 + 2).to_le_bytes());
+        assert_eq!(&refine[4..8], &984u32.to_le_bytes());
+        assert_eq!(refine[8], 0);
+    }
+
+    /// `ZC_UPDATE_CARDSLOT` is 11 bytes at PACKETVER 20190605.
+    #[test]
+    fn update_card_slot_2019_layout() {
+        let packet = UpdateCardSlotPacket {
+            wear_state: 1,
+            card_slot: 2,
+            item_id: ItemId(4001),
+            equip_flag: 0,
+        };
+        let bytes = bytes(&packet);
+        assert_eq!(bytes.len(), 11);
+        assert_eq!(&bytes[..2], &[0x3F, 0x0A]);
+        assert_eq!(&bytes[2..4], &1i16.to_le_bytes());
+        assert_eq!(&bytes[4..6], &2i16.to_le_bytes());
+        assert_eq!(&bytes[6..10], &4001u32.to_le_bytes());
+    }
+}

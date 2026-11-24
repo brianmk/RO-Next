@@ -996,6 +996,89 @@ pub enum NetworkEvent {
     },
     /// The banking session was closed (`ZC_ACK_CLOSE_BANKING`, 0x09B9).
     BankClosed,
+    /// The server offers the weapons that can be refined
+    /// (`ZC_NOTIFY_WEAPONITEMLIST`, 0x0221).
+    ///
+    /// rAthena only sends this after the player used the Blacksmith skill
+    /// `WS_WEAPONREFINE`, and it only accepts the refine request
+    /// (`CZ_REQ_WEAPONREFINE`, 0x0222) while that menu skill is pending
+    /// (`clif_parse_WeaponRefine`, `clif.cpp:13255`).
+    WeaponRefineList {
+        entries: Vec<WeaponRefineListEntry>,
+    },
+    /// Result of a weapon refine attempt (`ZC_ACK_WEAPONREFINE`, 0x0223).
+    ///
+    /// `result` codes (`clif_upgrademessage`, `clif.cpp:6930`-`6936`, sent at
+    /// `skill.cpp:20703`/`20710`/`20751`/`20780`): `0` = success, `1` = the
+    /// refine failed, `2` = the refine level is already at the skill limit,
+    /// `3` = the required refine material is missing.
+    WeaponRefineResult {
+        result: i32,
+        item_id: ItemId,
+    },
+    /// New refine level of an item after a refine attempt
+    /// (`ZC_ACK_ITEMREFINING`, 0x0188).
+    ItemRefiningResult {
+        index: InventoryIndex,
+        refine: u16,
+        result: u16,
+    },
+    /// The server offers the damaged items that can be repaired
+    /// (`ZC_REPAIRITEMLIST`, 0x01FC). The row indexes are raw server slots.
+    RepairItemList {
+        entries: Vec<RepairItemListEntry>,
+    },
+    /// Result of a repair request (`ZC_ACK_ITEMREPAIR`, 0x01FE).
+    RepairItemResult {
+        index: InventoryIndex,
+        success: bool,
+    },
+    /// The server offers the items that can be identified
+    /// (`ZC_ITEMIDENTIFY_LIST`, 0x0177), sent by the merchant Item Appraisal
+    /// skill `MC_IDENTIFY` (`skills/merchant/itemappraisal.cpp:17`).
+    IdentifyItemList {
+        indexes: Vec<InventoryIndex>,
+    },
+    /// Result of an identify request (`ZC_ACK_ITEMIDENTIFY`, 0x0179).
+    IdentifyItemResult {
+        index: InventoryIndex,
+        success: bool,
+    },
+    /// The server offers the equipment a card can be inserted into
+    /// (`ZC_ITEMCOMPOSITION_LIST`, 0x017B).
+    CardCompositionList {
+        indexes: Vec<InventoryIndex>,
+    },
+    /// Result of a card insertion (`ZC_ACK_ITEMCOMPOSITION`, 0x017D).
+    CardCompositionResult {
+        equip_index: InventoryIndex,
+        card_index: InventoryIndex,
+        success: bool,
+    },
+    /// Card slot update (`ZC_UPDATE_CARDSLOT`, 0x0A3F).
+    ///
+    /// rAthena 20190605 defines the packet but never sends it; card inserts are
+    /// reported through `CardCompositionResult` (0x017D) plus the item list
+    /// refresh. The event is emitted anyway so a server that uses the packet
+    /// keeps the card slots in sync.
+    CardSlotUpdated {
+        wear_state: i16,
+        card_slot: i16,
+        item_id: ItemId,
+        equip_flag: i8,
+    },
+    /// The server opened the NPC/atcommand refine UI
+    /// (`ZC_OPEN_REFINING_UI`, 0x0AA0), e.g. from the `refineui` script
+    /// command of the refine NPCs (`npc/merchants/refine.txt`).
+    RefiningUiOpened,
+    /// Materials and success chances for the item selected in the refine UI
+    /// (`ZC_REFINING_MATERIAL_LIST`, 0x0AA2). The server re-sends this list
+    /// after every refine attempt.
+    RefiningMaterialList {
+        item_index: InventoryIndex,
+        blacksmith_blessing: i8,
+        materials: Vec<RefiningMaterialEntry>,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

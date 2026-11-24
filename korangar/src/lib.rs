@@ -82,8 +82,9 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
-    DisappearanceReason, EntityId, EquipPosition, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId,
-    JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    DisappearanceReason, EntityId, EquipPosition, EquippableItemFlags, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType,
+    InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId,
+    WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -140,7 +141,8 @@ use crate::settings::{
 };
 use crate::state::character_slots::{MAX_CHARACTER_SLOTS, visible_character_slots};
 use crate::state::chat_markup::ChatMarkupLink;
-use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
+use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_type, item_use_action};
+use crate::state::item_service::{ItemServiceEntry, ItemServiceKind, ItemServicePathExt, RefiningMaterial, RefiningUiPathExt};
 use crate::state::localization::{LocalizationPathExt, QolTextsPathExt};
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::notifications::NotificationKind;
@@ -5841,6 +5843,333 @@ impl Client {
                         .follow_mut(client_state().inventory())
                         .fill(&self.async_loader, items);
                 }
+                // --- Item service: refine / repair / identify / card insert ----
+                // rAthena pushes the selectable list after the matching skill
+                // (or Magnifier) was used; the window answers it with the
+                // matching CZ request. The opcode/layout references live on the
+                // packet structs in `ragnarok-packets`.
+                NetworkEvent::WeaponRefineList { entries } => {
+                    let entries = entries
+                        .into_iter()
+                        .map(|entry| {
+                            let name = self.library.item_name(entry.item_id, true).into_owned();
+                            ItemServiceEntry::new(entry.index, entry.item_id, name, entry.refine)
+                        })
+                        .collect();
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .show(ItemServiceKind::WeaponRefine, entries);
+                    self.open_item_service_window(ItemServiceKind::WeaponRefine);
+                }
+                NetworkEvent::WeaponRefineResult { result, item_id } => {
+                    let name = self.library.item_name(item_id, true).into_owned();
+                    let message = match result {
+                        0 => format!("Your {name} was successfully refined."),
+                        1 => format!("The refine of your {name} failed and it lost its refine level."),
+                        2 => format!("Your {name} cannot be refined further until you raise the Weapon Refine skill level."),
+                        3 => format!("You lack the material required to refine your {name}."),
+                        _ => format!("The refine attempt for your {name} failed."),
+                    };
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .set_status(message.clone());
+
+                    match result {
+                        0 => self.push_chat_information(message),
+                        _ => self.push_chat_warning(message),
+                    }
+                }
+                NetworkEvent::ItemRefiningResult { index, refine, result } => {
+                    // rAthena also re-sends the inventory list after a refine
+                    // (`skill.cpp:20753`); this keeps the refine level and the
+                    // composed item name current even before the list arrives.
+                    let refinement_level = u8::try_from(refine).unwrap_or(u8::MAX);
+                    self.client_state
+                        .follow_mut(client_state().inventory())
+                        .update_refinement(&self.async_loader, index, refinement_level);
+
+                    if *self.client_state.follow(client_state().item_service().kind()) == Some(ItemServiceKind::WeaponRefine)
+                        && let Some(entry) = self
+                            .client_state
+                            .follow_mut(client_state().item_service())
+                            .entries
+                            .iter_mut()
+                            .find(|entry| entry.index == index)
+                    {
+                        entry.refine = refinement_level;
+                    }
+
+                    // `ZC_ACK_ITEMREFINING` is the only result packet of the NPC
+                    // refine UI (`clif.cpp:22720`-`22750`); show it there.
+                    if *self.client_state.follow(client_state().item_service().refining().open()) {
+                        let message = match result {
+                            0 => "The refine succeeded.".to_owned(),
+                            1 => "The refine failed and the item broke.".to_owned(),
+                            2 => "The refine failed and the item lost refine levels.".to_owned(),
+                            _ => "The refine failed.".to_owned(),
+                        };
+
+                        // A break destroys the item (`pc_delitem`), so go back to
+                        // the item picker; every other result is followed by a
+                        // fresh material list (0x0AA2) that replaces the current
+                        // view. `start` resets the status line, hence the order.
+                        let candidates = match result {
+                            1 => Some(self.refinable_inventory_items()),
+                            _ => None,
+                        };
+
+                        {
+                            let refining = self.client_state.follow_mut(client_state().item_service().refining());
+
+                            if let Some(candidates) = candidates {
+                                refining.start(candidates);
+                            }
+
+                            refining.set_status(message.clone());
+                        }
+
+                        match result {
+                            0 => self.push_chat_information(message),
+                            _ => self.push_chat_warning(message),
+                        }
+
+                        if result == 1 {
+                            self.open_refining_window(RefiningMode::SelectItem);
+                        }
+                    }
+
+                    crate::logging::log_debug!("item service: refine result {} for item {}", result, index.0);
+                }
+                NetworkEvent::RepairItemList { entries } => {
+                    let entries = entries
+                        .into_iter()
+                        .map(|entry| {
+                            let name = self.library.item_name(entry.item_id, true).into_owned();
+                            // The repair list sends raw 0-based server slots, not the
+                            // `slot + 2` client index (`clif.cpp:7153`).
+                            ItemServiceEntry::new(InventoryIndex(entry.index), entry.item_id, name, entry.refine)
+                        })
+                        .collect();
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .show(ItemServiceKind::ItemRepair, entries);
+                    self.open_item_service_window(ItemServiceKind::ItemRepair);
+                }
+                NetworkEvent::RepairItemResult { index, success } => {
+                    self.client_state.follow_mut(client_state().inventory()).set_broken(index, !success);
+
+                    let message = match success {
+                        true => "The item was repaired.".to_owned(),
+                        false => "The item could not be repaired.".to_owned(),
+                    };
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .set_status(message.clone());
+
+                    match success {
+                        true => self.push_chat_information(message),
+                        false => self.push_chat_warning(message),
+                    }
+                }
+                NetworkEvent::IdentifyItemList { indexes } => {
+                    let entries = indexes
+                        .into_iter()
+                        .filter_map(|index| self.inventory_service_entry(index))
+                        .collect();
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .show(ItemServiceKind::ItemIdentify, entries);
+                    self.open_item_service_window(ItemServiceKind::ItemIdentify);
+                }
+                NetworkEvent::IdentifyItemResult { index, success } => {
+                    // rAthena only sends the ack; the item itself is not part of
+                    // the packet, so the client flips the identified flag and
+                    // re-resolves the name/description (both depend on it).
+                    self.client_state
+                        .follow_mut(client_state().inventory())
+                        .set_identified(&self.async_loader, index, success);
+
+                    let message = match success {
+                        true => "The item was identified.".to_owned(),
+                        false => "The item could not be identified.".to_owned(),
+                    };
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .set_status(message.clone());
+
+                    match success {
+                        true => self.push_chat_information(message),
+                        false => self.push_chat_warning(message),
+                    }
+                }
+                NetworkEvent::CardCompositionList { indexes } => {
+                    let entries: Vec<ItemServiceEntry> = indexes
+                        .into_iter()
+                        .filter_map(|index| self.inventory_service_entry(index))
+                        .collect();
+
+                    let card = self.client_state.follow(client_state().item_service().card()).clone();
+
+                    match card {
+                        Some(card) => self
+                            .client_state
+                            .follow_mut(client_state().item_service())
+                            .show_card_list(card, entries),
+                        None => self
+                            .client_state
+                            .follow_mut(client_state().item_service())
+                            .show(ItemServiceKind::CardComposition, entries),
+                    }
+
+                    self.open_item_service_window(ItemServiceKind::CardComposition);
+                }
+                NetworkEvent::CardCompositionResult {
+                    equip_index,
+                    card_index,
+                    success,
+                } => {
+                    if success {
+                        // `pc_insert_card` does not re-send the equipment; it only
+                        // deletes the card from the inventory (`pc.cpp:6238`). The
+                        // card id is taken from the selected card (falling back to
+                        // the inventory if the delete packet already arrived).
+                        let card_item_id = self
+                            .client_state
+                            .follow(client_state().item_service().card())
+                            .as_ref()
+                            .filter(|card| card.index == card_index)
+                            .map(|card| card.item_id)
+                            .or_else(|| {
+                                self.client_state
+                                    .follow(client_state().inventory().items())
+                                    .iter()
+                                    .find(|item| item.index == card_index)
+                                    .map(|item| item.item_id)
+                            });
+
+                        if let Some(card_item_id) = card_item_id {
+                            self.client_state.follow_mut(client_state().inventory()).insert_card(
+                                &self.async_loader,
+                                equip_index,
+                                card_item_id,
+                            );
+                        }
+
+                        // The card is removed from the inventory by the
+                        // server's own `pc_delitem`
+                        // delete packet, which rAthena sends *before*
+                        // the ack (`pc.cpp:6238` then `6247`). Removing it here
+                        // as well would delete one card
+                        // too many when the player owns
+                        // a stack of the same card.
+                    }
+
+                    let message = match success {
+                        true => "The card was inserted.".to_owned(),
+                        false => "The card could not be inserted.".to_owned(),
+                    };
+
+                    self.client_state
+                        .follow_mut(client_state().item_service())
+                        .set_status(message.clone());
+
+                    match success {
+                        true => self.push_chat_information(message),
+                        false => self.push_chat_warning(message),
+                    }
+                }
+                NetworkEvent::CardSlotUpdated {
+                    wear_state,
+                    card_slot,
+                    item_id,
+                    equip_flag,
+                } => {
+                    // rAthena 20190605 defines ZC_UPDATE_CARDSLOT but never sends
+                    // it (`grep -n UPDATE_CARDSLOT src/map/clif.cpp` has no
+                    // match); the normal card insert path updates the slot from
+                    // the ack above. Apply it defensively for servers that do
+                    // send it: `wear_state` is the equipment position, `card_slot`
+                    // the slot index and `item_id` the inserted card.
+                    crate::logging::log_debug!(
+                        "item service: ZC_UPDATE_CARDSLOT wear={} slot={} item={} flag={}",
+                        wear_state,
+                        card_slot,
+                        item_id.0,
+                        equip_flag
+                    );
+
+                    let equipment_position = EquipPosition::from_bits_truncate(u32::from(wear_state as u16));
+                    if (0..4).contains(&card_slot) && !equipment_position.is_empty() {
+                        let index = self
+                            .client_state
+                            .follow(client_state().inventory().items())
+                            .iter()
+                            .find(|item| {
+                                matches!(
+                                    &item.details,
+                                    korangar_networking::InventoryItemDetails::Equippable { equipped_position, .. }
+                                        if equipped_position.intersects(equipment_position)
+                                )
+                            })
+                            .map(|item| item.index);
+
+                        if let Some(index) = index {
+                            self.client_state.follow_mut(client_state().inventory()).set_card_slot(
+                                &self.async_loader,
+                                index,
+                                card_slot as usize,
+                                item_id,
+                            );
+                        }
+                    }
+                }
+                NetworkEvent::RefiningUiOpened => {
+                    // The server opened the NPC refine UI; it does not send a
+                    // candidate list, so offer the player's own refinable
+                    // equipment and ask for the materials after the pick.
+                    let candidates = self.refinable_inventory_items();
+                    self.client_state
+                        .follow_mut(client_state().item_service().refining())
+                        .start(candidates);
+                    self.open_refining_window(RefiningMode::SelectItem);
+                }
+                NetworkEvent::RefiningMaterialList {
+                    item_index,
+                    blacksmith_blessing,
+                    materials,
+                } => {
+                    let item = self
+                        .inventory_service_entry(item_index)
+                        // Another player's item is not in our inventory; the
+                        // server list still carries its item id? It does not, so
+                        // fall back to the index for the display and let the
+                        // server validate the request.
+                        .unwrap_or_else(|| ItemServiceEntry::new(item_index, ItemId(0), format!("Item #{}", item_index.0), 0));
+
+                    let materials = materials
+                        .into_iter()
+                        .map(|material| {
+                            let name = self.library.item_name(material.item_id, true).into_owned();
+                            RefiningMaterial {
+                                item_id: material.item_id,
+                                name,
+                                chance: u8::try_from(material.chance).unwrap_or(0),
+                                zeny: material.zeny,
+                            }
+                        })
+                        .collect();
+
+                    self.client_state
+                        .follow_mut(client_state().item_service().refining())
+                        .show_materials(item, u8::try_from(blacksmith_blessing).unwrap_or(0), materials);
+                    self.open_refining_window(RefiningMode::SelectMaterial);
+                }
                 NetworkEvent::SetStorage { items, name } => {
                     self.client_state
                         .follow_mut(client_state().storage())
@@ -8303,6 +8632,135 @@ impl Client {
                 InputEvent::UseInventoryItem { inventory_index, item_id } => {
                     let _ = self.networking_system.use_item(inventory_index, item_id);
                 }
+                InputEvent::RefineWeapon { inventory_index } => {
+                    // rAthena drops the request unless the `WS_WEAPONREFINE`
+                    // menu skill is pending (`clif_parse_WeaponRefine`,
+                    // `clif.cpp:13255`), i.e. unless the server sent the refine
+                    // list. Explain that instead of sending a request that is
+                    // silently ignored.
+                    if *self.client_state.follow(client_state().item_service().kind()) != Some(ItemServiceKind::WeaponRefine) {
+                        self.push_chat_warning("Use the Blacksmith Weapon Refine skill to start refining a weapon.".to_owned());
+                    } else if let Err(error) = self.networking_system.refine_weapon(inventory_index) {
+                        crate::logging::log_warn!("item service: could not send refine request: {error:?}");
+                    }
+                }
+                InputEvent::RepairItem { inventory_index } => {
+                    // The repair request is only valid while the
+                    // `BS_REPAIRWEAPON` menu skill is pending (`clif.cpp:13231`).
+                    if *self.client_state.follow(client_state().item_service().kind()) != Some(ItemServiceKind::ItemRepair) {
+                        self.push_chat_warning("Use the Repair Weapon skill to repair damaged items.".to_owned());
+                        continue;
+                    }
+
+                    // The item id/refine come from the repair list: when the
+                    // player repairs another player's equipment the slot refers
+                    // to *that* player's inventory, so a lookup in the local
+                    // inventory would fail (or find an unrelated item). rAthena
+                    // only reads the index from the request (`clif.cpp:13242`),
+                    // so the other fields are informational and the card slots
+                    // can stay zero.
+                    let (item_id, refine) = {
+                        let service = self.client_state.follow(client_state().item_service());
+                        let from_list = service
+                            .entries
+                            .iter()
+                            .find(|entry| entry.index == inventory_index)
+                            .map(|entry| (entry.item_id, entry.refine));
+
+                        from_list.unwrap_or_else(|| {
+                            let inventory = self.client_state.follow(client_state().inventory().items());
+                            let from_inventory = inventory.iter().find(|item| item.index == inventory_index).map(|item| {
+                                let refine = match &item.details {
+                                    korangar_networking::InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
+                                    korangar_networking::InventoryItemDetails::Regular { .. } => 0,
+                                };
+                                (item.item_id, refine)
+                            });
+
+                            from_inventory.unwrap_or((ItemId(0), 0))
+                        })
+                    };
+
+                    if let Err(error) = self.networking_system.repair_item(inventory_index, item_id, refine, [0; 4]) {
+                        crate::logging::log_warn!("item service: could not send repair request: {error:?}");
+                    }
+                }
+                InputEvent::IdentifyItem { inventory_index } => {
+                    // Answer to the identify list that a Magnifier produced.
+                    if let Err(error) = self.networking_system.identify_item(inventory_index) {
+                        crate::logging::log_warn!("item service: could not send identify request: {error:?}");
+                    }
+                }
+                InputEvent::OneClickIdentify { inventory_index } => {
+                    // The one-click identify consumes a Magnifier (or Novice
+                    // Magnifier); rAthena silently ignores the request when the
+                    // player has none (`clif.cpp:21397`), so check first and tell
+                    // the player instead of doing nothing.
+                    const MAGNIFIER_ITEM_ID: ItemId = ItemId(611);
+                    const NOVICE_MAGNIFIER_ITEM_ID: ItemId = ItemId(12_325);
+
+                    let has_magnifier = self
+                        .client_state
+                        .follow(client_state().inventory().items())
+                        .iter()
+                        .any(|item| item.item_id == MAGNIFIER_ITEM_ID || item.item_id == NOVICE_MAGNIFIER_ITEM_ID);
+
+                    match has_magnifier {
+                        true => {
+                            if let Err(error) = self.networking_system.one_click_identify(inventory_index) {
+                                crate::logging::log_warn!("item service: could not send one-click identify: {error:?}");
+                            }
+                        }
+                        false => self.push_chat_warning("You need a Magnifier to identify items.".to_owned()),
+                    }
+                }
+                InputEvent::RequestCardComposition { card_index } => {
+                    // Remember the card: the answer list only contains the
+                    // equipment indexes, so the insert request later needs the
+                    // card data from here.
+                    if let Some(card) = self.inventory_service_entry(card_index) {
+                        *self.client_state.follow_mut(client_state().item_service().card()) = Some(card);
+                    }
+
+                    if let Err(error) = self.networking_system.request_card_composition_list(card_index) {
+                        crate::logging::log_warn!("item service: could not request card composition list: {error:?}");
+                    }
+                }
+                InputEvent::InsertCard { card_index, equip_index } => {
+                    if let Err(error) = self.networking_system.insert_card(card_index, equip_index) {
+                        crate::logging::log_warn!("item service: could not send card insert: {error:?}");
+                    }
+                }
+                InputEvent::CloseItemService => self.close_item_service_window(),
+                InputEvent::SelectRefiningItem { inventory_index } => {
+                    // The server answers with `ZC_REFINING_MATERIAL_LIST`, which
+                    // opens the material step of the window.
+                    if let Err(error) = self.networking_system.select_refining_item(inventory_index) {
+                        crate::logging::log_warn!("item service: could not select refining item: {error:?}");
+                    }
+                }
+                InputEvent::RefineWithMaterial {
+                    material_item_id,
+                    blacksmith_blessing,
+                } => {
+                    let item_index = self
+                        .client_state
+                        .follow(client_state().item_service().refining().item())
+                        .as_ref()
+                        .map(|item| item.index);
+
+                    if let Some(item_index) = item_index
+                        && let Err(error) = self
+                            .networking_system
+                            .request_refining(item_index, material_item_id, blacksmith_blessing)
+                    {
+                        crate::logging::log_warn!("item service: could not send refine attempt: {error:?}");
+                    }
+                }
+                InputEvent::CloseRefiningUi => {
+                    let _ = self.networking_system.close_refining_ui();
+                    self.close_refining_window();
+                }
                 InputEvent::EquipInventoryItem {
                     inventory_index,
                     equip_position,
@@ -9814,6 +10272,83 @@ impl Client {
         self.client_state.follow_mut(client_state().cart()).clear();
     }
 
+    /// Open the shared item service window for the given service.
+    ///
+    /// The window is opened whenever the server sends a service list; opening
+    /// it again for a different service replaces the previous window because
+    /// all four services share one window class.
+    fn open_item_service_window(&mut self, kind: ItemServiceKind) {
+        self.interface.close_window_with_class(WindowClass::ItemService);
+        self.interface.open_window(ItemServiceWindow::new(kind));
+    }
+
+    /// Close the item service window and drop its list.
+    fn close_item_service_window(&mut self) {
+        self.interface.close_window_with_class(WindowClass::ItemService);
+        self.client_state.follow_mut(client_state().item_service()).clear();
+    }
+
+    /// Open the NPC refine UI window in the given step.
+    fn open_refining_window(&mut self, mode: RefiningMode) {
+        self.interface.close_window_with_class(WindowClass::Refining);
+        self.interface.open_window(RefiningWindow::new(mode));
+    }
+
+    /// Close the NPC refine UI and drop its state.
+    fn close_refining_window(&mut self) {
+        self.interface.close_window_with_class(WindowClass::Refining);
+        self.client_state.follow_mut(client_state().item_service().refining()).clear();
+    }
+
+    /// Equipment that the NPC refine UI offers for selection.
+    ///
+    /// rAthena's `clif_refineui_info` requires the item to be identified and
+    /// undamaged (`clif.cpp:22520`); the refine database decides whether the
+    /// item is refinable at all, so the client only filters by the data it has
+    /// (weapons/armor, undamaged, identified, unequipped and below the
+    /// pre-renewal refine maximum of 10, `status.hpp:36`).
+    fn refinable_inventory_items(&self) -> Vec<ItemServiceEntry> {
+        self.client_state
+            .follow(client_state().inventory().items())
+            .iter()
+            .filter(|item| {
+                if !item.is_identified() || item.is_equipped() {
+                    return false;
+                }
+
+                if item.item_type != item_type::WEAPON && item.item_type != item_type::ARMOR {
+                    return false;
+                }
+
+                match &item.details {
+                    korangar_networking::InventoryItemDetails::Equippable {
+                        refinement_level, flags, ..
+                    } => *refinement_level < 10 && !flags.contains(EquippableItemFlags::IS_BROKEN),
+                    korangar_networking::InventoryItemDetails::Regular { .. } => false,
+                }
+            })
+            .map(|item| {
+                let refine = match &item.details {
+                    korangar_networking::InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
+                    korangar_networking::InventoryItemDetails::Regular { .. } => 0,
+                };
+                ItemServiceEntry::new(item.index, item.item_id, item.metadata.name.clone(), refine)
+            })
+            .collect()
+    }
+
+    /// Resolve a service row for one of the player's own inventory items.
+    fn inventory_service_entry(&self, index: InventoryIndex) -> Option<ItemServiceEntry> {
+        let inventory = self.client_state.follow(client_state().inventory().items());
+        let item = inventory.iter().find(|item| item.index == index)?;
+        let refine = match &item.details {
+            korangar_networking::InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
+            korangar_networking::InventoryItemDetails::Regular { .. } => 0,
+        };
+
+        Some(ItemServiceEntry::new(index, item.item_id, item.metadata.name.clone(), refine))
+    }
+
     /// Close the vending browse window and drop the shop list of the player's
     /// shop.
     fn close_vending_browse(&mut self) {
@@ -10472,6 +11007,44 @@ impl Client {
             self.shop_open = false;
             self.client_state.follow_mut(client_state().buy_cart()).clear();
             self.client_state.follow_mut(client_state().sell_cart()).clear();
+        }
+
+        // The item service windows are answered with a request packet. Closing
+        // one with its X button does not answer it, and the identify list in
+        // particular leaves `WIP_DISABLE_ALL` on the server, which blocks item
+        // and skill use until the request or the official "cancel" value
+        // arrives. Send the matching cancel request once the window is gone.
+        if !self.interface.is_window_with_class_open(WindowClass::ItemService) {
+            let kind = *self.client_state.follow(client_state().item_service().kind());
+
+            if let Some(kind) = kind {
+                match kind {
+                    ItemServiceKind::ItemIdentify => {
+                        let _ = self.networking_system.cancel_identify_item();
+                    }
+                    ItemServiceKind::WeaponRefine => {
+                        let _ = self.networking_system.cancel_weapon_refine();
+                    }
+                    ItemServiceKind::ItemRepair => {
+                        let _ = self.networking_system.cancel_repair_item();
+                    }
+                    ItemServiceKind::CardComposition => {}
+                }
+
+                self.client_state.follow_mut(client_state().item_service()).clear();
+            }
+        }
+
+        // The NPC refine UI is opened by a server packet, but closing the window
+        // with its X button does not tell the server. rAthena keeps
+        // `state.refineui_open` set and would then refuse to open the UI again
+        // (`clif.cpp:22485`/`22495`), so send the close packet once the window
+        // is gone.
+        if *self.client_state.follow(client_state().item_service().refining().open())
+            && !self.interface.is_window_with_class_open(WindowClass::Refining)
+        {
+            let _ = self.networking_system.close_refining_ui();
+            self.client_state.follow_mut(client_state().item_service().refining()).clear();
         }
 
         // Some debug windows, such as the packet history or cache statistics, require
@@ -11239,9 +11812,30 @@ fn open_inventory_item_menu(
         false => None,
     };
 
+    // Item service entries: identify needs an unidentified item, refine an
+    // identified unequipped weapon below the maximum refine level, repair a
+    // damaged (broken) item and card insertion a card. rAthena still validates
+    // all of them server side, and refine/repair additionally require their
+    // menu skill to be pending.
+    let identified = item.is_identified();
+    let refinement_level = match &item.details {
+        korangar_networking::InventoryItemDetails::Equippable { refinement_level, .. } => *refinement_level,
+        korangar_networking::InventoryItemDetails::Regular { .. } => 0,
+    };
+    let broken = matches!(
+        &item.details,
+        korangar_networking::InventoryItemDetails::Equippable { flags, .. } if flags.contains(EquippableItemFlags::IS_BROKEN)
+    );
+    let identify = !identified;
+    let refine = item.item_type == item_type::WEAPON && identified && !item.is_equipped() && refinement_level < 10;
+    let repair = broken;
+    let insert_card = item.item_type == item_type::CARD;
+
     interface.close_window_with_class(WindowClass::ContextMenu);
     interface.open_window_at(
-        ItemContextMenuWindow::new(inventory_index, item.item_id, action).with_storage_action(storage_action),
+        ItemContextMenuWindow::new(inventory_index, item.item_id, action)
+            .with_storage_action(storage_action)
+            .with_service_actions(identify, refine, repair, insert_card),
         position,
     );
 }

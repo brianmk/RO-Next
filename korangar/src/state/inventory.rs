@@ -4,7 +4,7 @@ use korangar_interface::element::StateElement;
 pub use korangar_networking::item_type;
 use korangar_networking::item_type::ItemTypeCategory;
 use korangar_networking::{InventoryItem, InventoryItemDetails, NoMetadata};
-use ragnarok_packets::{EquipPosition, InventoryIndex, ItemId};
+use ragnarok_packets::{EquipPosition, EquippableItemFlags, InventoryIndex, ItemId, RegularItemFlags};
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
@@ -165,6 +165,120 @@ impl Inventory {
         };
 
         *equipped_position = new_equipped_position;
+    }
+
+    /// Mark an item as identified (or unidentified) after an identify ack
+    /// (`ZC_ACK_ITEMIDENTIFY`, 0x0179).
+    ///
+    /// The identified flag lives in the item details; the metadata is resolved
+    /// again because both the displayed name and the description of an item
+    /// change with the flag.
+    pub fn set_identified(&mut self, async_loader: &AsyncLoader, index: InventoryIndex, identified: bool) {
+        let Some(item) = self.items.iter_mut().find(|item| item.index == index) else {
+            return;
+        };
+
+        match &mut item.details {
+            InventoryItemDetails::Regular { flags, .. } => flags.set(RegularItemFlags::IDENTIFIED, identified),
+            InventoryItemDetails::Equippable { flags, .. } => flags.set(EquippableItemFlags::IDENTIFIED, identified),
+        }
+
+        self.refresh_metadata(async_loader, index);
+    }
+
+    /// Set or clear the "damaged" flag of an equippable item after a repair
+    /// ack (`ZC_ACK_ITEMREPAIR`, 0x01FE). Regular items cannot be damaged.
+    pub fn set_broken(&mut self, index: InventoryIndex, broken: bool) {
+        let Some(item) = self.items.iter_mut().find(|item| item.index == index) else {
+            return;
+        };
+
+        if let InventoryItemDetails::Equippable { flags, .. } = &mut item.details {
+            flags.set(EquippableItemFlags::IS_BROKEN, broken);
+        }
+    }
+
+    /// Update the refine level of an item (`ZC_ACK_ITEMREFINING`, 0x0188).
+    ///
+    /// The composed display name contains the refine level (`+N`), so the
+    /// metadata is resolved again. Items that are not equippable have no refine
+    /// level and are ignored.
+    pub fn update_refinement(&mut self, async_loader: &AsyncLoader, index: InventoryIndex, refinement_level: u8) {
+        let Some(item) = self.items.iter_mut().find(|item| item.index == index) else {
+            return;
+        };
+
+        let InventoryItemDetails::Equippable {
+            refinement_level: current_level,
+            ..
+        } = &mut item.details
+        else {
+            return;
+        };
+
+        if *current_level == refinement_level {
+            return;
+        }
+
+        *current_level = refinement_level;
+        self.refresh_metadata(async_loader, index);
+    }
+
+    /// Put a card into the first free card slot of an item, like rAthena's
+    /// `pc_insert_card` (`pc.cpp:6231`). Returns the filled slot.
+    ///
+    /// rAthena does not re-send the equipment after `ZC_ACK_ITEMCOMPOSITION`
+    /// (0x017D) - it only deletes the card from the inventory - so the client
+    /// has to update the slot from the card that it knows was inserted.
+    pub fn insert_card(&mut self, async_loader: &AsyncLoader, index: InventoryIndex, card_item_id: ItemId) -> Option<usize> {
+        let item = self.items.iter_mut().find(|item| item.index == index)?;
+        let card_slot = item.slot.iter().position(|card| *card == 0)?;
+
+        item.slot[card_slot] = card_item_id.0;
+        self.refresh_metadata(async_loader, index);
+
+        Some(card_slot)
+    }
+
+    /// Overwrite one card slot of an item (`ZC_UPDATE_CARDSLOT`, 0x0A3F).
+    ///
+    /// rAthena 20190605 never sends that packet (card inserts are reported
+    /// through `ZC_ACK_ITEMCOMPOSITION`), so this is only used by the defensive
+    /// handler for servers that do. Returns whether the slot was written.
+    pub fn set_card_slot(&mut self, async_loader: &AsyncLoader, index: InventoryIndex, card_slot: usize, card_item_id: ItemId) -> bool {
+        if card_slot >= 4 {
+            return false;
+        }
+
+        let Some(item) = self.items.iter_mut().find(|item| item.index == index) else {
+            return false;
+        };
+
+        item.slot[card_slot] = card_item_id.0;
+        self.refresh_metadata(async_loader, index);
+
+        true
+    }
+
+    /// Resolve the metadata (name, description, cards, texture) of one item
+    /// again after its server-side state changed.
+    fn refresh_metadata(&mut self, async_loader: &AsyncLoader, index: InventoryIndex) {
+        let Some(position) = self.items.iter().position(|item| item.index == index) else {
+            return;
+        };
+
+        let item = &self.items[position];
+        let without_metadata = InventoryItem {
+            metadata: NoMetadata,
+            index: item.index,
+            item_id: item.item_id,
+            item_type: item.item_type,
+            slot: item.slot,
+            hire_expiration_date: item.hire_expiration_date,
+            details: item.details.clone(),
+        };
+
+        self.items[position] = async_loader.request_inventory_item_metadata_load(without_metadata);
     }
 }
 

@@ -30,6 +30,7 @@ mod hotbar;
 mod interface_settings;
 mod inventory;
 mod item_info;
+mod item_service;
 mod login;
 #[cfg(feature = "debug")]
 mod maps;
@@ -42,6 +43,7 @@ mod party;
 #[cfg(feature = "debug")]
 mod profiler;
 mod quest_log;
+mod refining;
 #[cfg(feature = "debug")]
 mod render_options;
 mod respawn;
@@ -96,6 +98,7 @@ pub use self::interface_settings::InterfaceSettingsWindow;
 pub use self::inventory::InventoryWindow;
 pub use self::item_info::ItemInfoWindow;
 pub(crate) use self::item_info::equipped_item_in_slot;
+pub use self::item_service::ItemServiceWindow;
 pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 #[cfg(feature = "debug")]
 pub use self::maps::MapsWindow;
@@ -108,6 +111,7 @@ pub use self::party::{PartyInviteWindow, PartyWindow};
 #[cfg(feature = "debug")]
 pub use self::profiler::{ProfilerWindow, ProfilerWindowState};
 pub use self::quest_log::QuestWindow;
+pub use self::refining::{RefiningMode, RefiningWindow};
 #[cfg(feature = "debug")]
 pub use self::render_options::RenderOptionsWindow;
 pub use self::respawn::RespawnWindow;
@@ -176,6 +180,8 @@ pub enum WindowClass {
     SelectServer,
     Sell,
     SellCart,
+    ItemService,
+    Refining,
     #[cfg(feature = "debug")]
     Maps,
     #[cfg(feature = "debug")]

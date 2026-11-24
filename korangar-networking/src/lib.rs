@@ -1428,6 +1428,148 @@ where
         }
     }
 
+    /// Select the weapon to refine (`CZ_REQ_WEAPONREFINE`, 0x0222).
+    ///
+    /// Only accepted by rAthena while the `WS_WEAPONREFINE` menu skill is
+    /// pending, i.e. after the server sent `ZC_NOTIFY_WEAPONITEMLIST`
+    /// (`clif_parse_WeaponRefine`, `clif.cpp:13255`). The request itself
+    /// carries a 32 bit client index, which is why the packet constructor
+    /// does the +2 encoding.
+    pub fn refine_weapon(&mut self, item_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(WeaponRefineRequestPacket::for_inventory_index(item_index)),
+        }
+    }
+
+    /// Repair a damaged item (`CZ_REQ_ITEMREPAIR1`, 0x01FD).
+    ///
+    /// The index is the raw 0-based inventory slot, exactly like the values of
+    /// `ZC_REPAIRITEMLIST` (rAthena writes/reads them without the +2 client
+    /// index encoding, `clif.cpp:7153`/`13242`). rAthena only reads the index
+    /// from the request; `item_id`/`refine`/`card` are informational.
+    pub fn repair_item(
+        &mut self,
+        inventory_index: InventoryIndex,
+        item_id: ItemId,
+        refine: u8,
+        card: [u32; 4],
+    ) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RepairItemRequestPacket {
+                index: inventory_index.0,
+                item_id,
+                refine,
+                card,
+            }),
+        }
+    }
+
+    /// Answer the identify item selection dialog (`CZ_REQ_ITEMIDENTIFY`,
+    /// 0x0178). Only accepted while the server has the `MC_IDENTIFY` menu skill
+    /// pending (`clif.cpp:13385`).
+    pub fn identify_item(&mut self, item_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(IdentifyItemRequestPacket { index: item_index }),
+        }
+    }
+
+    /// Identify an item with one click (`CZ_REQ_ONECLICK_ITEMIDENTIFY`,
+    /// 0x0A35), consuming a Magnifier from the inventory. Unlike
+    /// [`Self::identify_item`] this needs no pending menu skill
+    /// (`clif_parse_Oneclick_Itemidentify`, `clif.cpp:21385`).
+    pub fn one_click_identify(&mut self, item_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(OneClickIdentifyRequestPacket { index: item_index }),
+        }
+    }
+
+    /// Request the equipment list a card can be inserted into
+    /// (`CZ_REQ_ITEMCOMPOSITION_LIST`, 0x017A).
+    pub fn request_card_composition_list(&mut self, card_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CardCompositionListRequestPacket { index: card_index }),
+        }
+    }
+
+    /// Insert the selected card into the selected equipment
+    /// (`CZ_REQ_ITEMCOMPOSITION`, 0x017C).
+    pub fn insert_card(&mut self, card_index: InventoryIndex, equip_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CardCompositionRequestPacket { card_index, equip_index }),
+        }
+    }
+
+    /// Select the item to refine in the refine UI (`CZ_REFINING_SELECT_ITEM`,
+    /// 0x0AA1). The server answers with `ZC_REFINING_MATERIAL_LIST` (0x0AA2).
+    pub fn select_refining_item(&mut self, item_index: InventoryIndex) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RefiningSelectItemRequestPacket { index: item_index }),
+        }
+    }
+
+    /// Attempt a refine in the refine UI (`CZ_REQ_REFINING`, 0x0AA3).
+    pub fn request_refining(
+        &mut self,
+        item_index: InventoryIndex,
+        material_item_id: ItemId,
+        blacksmith_blessing: bool,
+    ) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RefiningRequestPacket {
+                index: item_index,
+                material_item_id,
+                blacksmith_blessing: i8::from(blacksmith_blessing),
+            }),
+        }
+    }
+
+    /// Close the refine UI (`CZ_CLOSE_REFINING_UI`, 0x0AA4).
+    pub fn close_refining_ui(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CloseRefiningUiRequestPacket {}),
+        }
+    }
+
+    /// Cancel the identify list (`CZ_REQ_ITEMIDENTIFY`, 0x0178, index `-1`).
+    ///
+    /// rAthena sets `WIP_DISABLE_ALL` while the identify list is open, which
+    /// blocks item and skill use; only the identify request or the official
+    /// cancel value clears it (`clif.cpp:13394`-`13400`). The cancel value on
+    /// the wire is `0xFFFF` (`InventoryIndex(0xFFFD)` + 2).
+    pub fn cancel_identify_item(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(IdentifyItemRequestPacket {
+                index: InventoryIndex(u16::MAX - 2),
+            }),
+        }
+    }
+
+    /// Cancel the weapon refine list (`CZ_REQ_WEAPONREFINE`, 0x0222, index
+    /// `0xFFFF`). rAthena's `skill_weaponrefine` ignores out-of-range indexes
+    /// and then clears the menu skill (`clif.cpp:13262`).
+    pub fn cancel_weapon_refine(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(WeaponRefineRequestPacket {
+                client_index: u32::from(u16::MAX),
+            }),
+        }
+    }
+
+    /// Cancel the repair item list (`CZ_REQ_ITEMREPAIR1`, 0x01FD, index
+    /// `0xFFFF`). `skill_repairweapon` treats `0xFFFF` as "cancel clicked"
+    /// (`skill.cpp:20604`) and the parser clears the menu skill afterwards
+    /// (`clif.cpp:13243`).
+    pub fn cancel_repair_item(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(RepairItemRequestPacket {
+                index: u16::MAX,
+                item_id: ItemId(0),
+                refine: 0,
+                card: [0; 4],
+            }),
+        }
+    }
+
     pub fn cast_skill(&mut self, skill_id: SkillId, skill_level: SkillLevel, entity_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => {
@@ -1714,8 +1856,9 @@ mod packet_handlers {
     use ragnarok_packets::{
         AccountId, AttackRange, CharacterId, ClientTick, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket,
         GuildEmblemRequestPacket, GuildInviteRequestPacket, GuildLeaveRequestPacket, GuildMemberNameRequestPacket,
-        GuildMenuInterfaceRequestPacket, GuildMenuRequestPacket, GuildNoticeChangeRequestPacket, MarkerType, NAME_LENGTH, PacketExt,
-        PacketHeader, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
+        GuildMenuInterfaceRequestPacket, GuildMenuRequestPacket, GuildNoticeChangeRequestPacket, InventoryIndex, ItemId, MarkerType,
+        NAME_LENGTH, PacketExt, PacketHeader, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket,
+        SkillId, TilePosition,
     };
 
     use crate::event::NetworkEventList;
@@ -3575,6 +3718,144 @@ mod packet_handlers {
             reason: 0,
             money: 500,
             zeny: 1_000,
+        }]));
+    }
+
+    /// The item service packets (refine, repair, identify, card composition)
+    /// are registered and turn into the typed events the client consumes.
+    #[test]
+    fn item_service_packets_emit_typed_events() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0221 ZC_NOTIFY_WEAPONITEMLIST: length + one 23 byte row.
+        let mut refine_list = Vec::new();
+        refine_list.extend_from_slice(&0x0221u16.to_le_bytes());
+        refine_list.extend_from_slice(&(4u16 + 23).to_le_bytes());
+        refine_list.extend_from_slice(&(7u16 + 2).to_le_bytes()); // client index
+        refine_list.extend_from_slice(&1500u32.to_le_bytes()); // item id
+        refine_list.push(4); // refine
+        refine_list.extend_from_slice(&[0u8; 16]); // cards
+        assert_eq!(refine_list.len(), 27);
+        let events = feed(&mut handler, &refine_list);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::WeaponRefineList { entries }]
+            if entries.len() == 1
+                && entries[0].index == InventoryIndex(7)
+                && entries[0].item_id == ItemId(1500)
+                && entries[0].refine == 4));
+
+        // 0x0223 ZC_ACK_WEAPONREFINE: result + item id.
+        let mut refine_result = Vec::new();
+        refine_result.extend_from_slice(&0x0223u16.to_le_bytes());
+        refine_result.extend_from_slice(&0i32.to_le_bytes());
+        refine_result.extend_from_slice(&1500u32.to_le_bytes());
+        let events = feed(&mut handler, &refine_result);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::WeaponRefineResult {
+            result: 0,
+            item_id: ItemId(1500),
+        }]));
+
+        // 0x01FC ZC_REPAIRITEMLIST: the row index is a raw server slot.
+        let mut repair_list = Vec::new();
+        repair_list.extend_from_slice(&0x01FCu16.to_le_bytes());
+        repair_list.extend_from_slice(&(4u16 + 23).to_le_bytes());
+        repair_list.extend_from_slice(&9u16.to_le_bytes()); // raw server slot
+        repair_list.extend_from_slice(&1500u32.to_le_bytes());
+        repair_list.push(6);
+        repair_list.extend_from_slice(&[0u8; 16]);
+        let events = feed(&mut handler, &repair_list);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::RepairItemList { entries }]
+            if entries.len() == 1 && entries[0].index == 9 && entries[0].refine == 6));
+
+        // 0x01FE ZC_ACK_ITEMREPAIR: client index + result.
+        let mut repair_result = Vec::new();
+        repair_result.extend_from_slice(&0x01FEu16.to_le_bytes());
+        repair_result.extend_from_slice(&(9u16 + 2).to_le_bytes());
+        repair_result.push(0);
+        let events = feed(&mut handler, &repair_result);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::RepairItemResult {
+            index: InventoryIndex(9),
+            success: true,
+        }]));
+
+        // 0x0177 ZC_ITEMIDENTIFY_LIST: length + client indexes.
+        let mut identify_list = Vec::new();
+        identify_list.extend_from_slice(&0x0177u16.to_le_bytes());
+        identify_list.extend_from_slice(&(4u16 + 4).to_le_bytes());
+        identify_list.extend_from_slice(&(2u16 + 2).to_le_bytes());
+        identify_list.extend_from_slice(&(5u16 + 2).to_le_bytes());
+        let events = feed(&mut handler, &identify_list);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::IdentifyItemList { indexes }]
+            if *indexes == vec![InventoryIndex(2), InventoryIndex(5)]));
+
+        // 0x0179 ZC_ACK_ITEMIDENTIFY: client index + result.
+        let mut identify_result = Vec::new();
+        identify_result.extend_from_slice(&0x0179u16.to_le_bytes());
+        identify_result.extend_from_slice(&(5u16 + 2).to_le_bytes());
+        identify_result.push(0);
+        let events = feed(&mut handler, &identify_result);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::IdentifyItemResult {
+            index: InventoryIndex(5),
+            success: true,
+        }]));
+
+        // 0x017B ZC_ITEMCOMPOSITION_LIST: length + client indexes.
+        let mut composition_list = Vec::new();
+        composition_list.extend_from_slice(&0x017Bu16.to_le_bytes());
+        composition_list.extend_from_slice(&(4u16 + 2).to_le_bytes());
+        composition_list.extend_from_slice(&(11u16 + 2).to_le_bytes());
+        let events = feed(&mut handler, &composition_list);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CardCompositionList { indexes }]
+            if *indexes == vec![InventoryIndex(11)]));
+
+        // 0x017D ZC_ACK_ITEMCOMPOSITION: equip index + card index + result.
+        let mut composition_result = Vec::new();
+        composition_result.extend_from_slice(&0x017Du16.to_le_bytes());
+        composition_result.extend_from_slice(&(11u16 + 2).to_le_bytes());
+        composition_result.extend_from_slice(&(4u16 + 2).to_le_bytes());
+        composition_result.push(0);
+        let events = feed(&mut handler, &composition_result);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CardCompositionResult {
+            equip_index: InventoryIndex(11),
+            card_index: InventoryIndex(4),
+            success: true,
+        }]));
+
+        // 0x0AA0 ZC_OPEN_REFINING_UI opens the NPC refine UI.
+        let events = feed(&mut handler, &[0xA0, 0x0A]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::RefiningUiOpened]));
+
+        // 0x0AA2 ZC_REFINING_MATERIAL_LIST: client index + blessing + rows.
+        let mut refining_list = Vec::new();
+        refining_list.extend_from_slice(&0x0AA2u16.to_le_bytes());
+        refining_list.extend_from_slice(&(7u16 + 9).to_le_bytes());
+        refining_list.extend_from_slice(&(4u16 + 2).to_le_bytes());
+        refining_list.push(2);
+        refining_list.extend_from_slice(&984u32.to_le_bytes());
+        refining_list.push(75);
+        refining_list.extend_from_slice(&5000i32.to_le_bytes());
+        assert_eq!(refining_list.len(), 16);
+        let events = feed(&mut handler, &refining_list);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::RefiningMaterialList {
+            item_index: InventoryIndex(4),
+            blacksmith_blessing: 2,
+            materials,
+        }] if materials.len() == 1 && materials[0].item_id == ItemId(984) && materials[0].chance == 75));
+
+        // 0x0A3F ZC_UPDATE_CARDSLOT is parsed (never sent by rAthena 20190605,
+        // but it exists in the 2019 registry and must not desync the stream).
+        let mut card_slot = Vec::new();
+        card_slot.extend_from_slice(&0x0A3Fu16.to_le_bytes());
+        card_slot.extend_from_slice(&1i16.to_le_bytes());
+        card_slot.extend_from_slice(&2i16.to_le_bytes());
+        card_slot.extend_from_slice(&4001u32.to_le_bytes());
+        card_slot.push(0);
+        assert_eq!(card_slot.len(), 11);
+        let events = feed(&mut handler, &card_slot);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::CardSlotUpdated {
+            wear_state: 1,
+            card_slot: 2,
+            item_id: ItemId(4001),
+            equip_flag: 0,
         }]));
     }
 }

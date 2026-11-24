@@ -230,6 +230,18 @@ pub struct ItemContextMenuWindow {
     /// Where the item is located; decides which state the "View Info" action
     /// reads.
     source: ItemSource,
+    /// Whether the "Identify" action is offered (unidentified inventory item,
+    /// `CZ_REQ_ONECLICK_ITEMIDENTIFY` 0x0A35).
+    identify: bool,
+    /// Whether the "Refine" action is offered (identified, unequipped weapon,
+    /// `CZ_REQ_WEAPONREFINE` 0x0222).
+    refine: bool,
+    /// Whether the "Repair" action is offered (damaged equipment,
+    /// `CZ_REQ_ITEMREPAIR1` 0x01FD).
+    repair: bool,
+    /// Whether the "Insert card" action is offered (card item,
+    /// `CZ_REQ_ITEMCOMPOSITION_LIST` 0x017A).
+    insert_card: bool,
 }
 
 impl ItemContextMenuWindow {
@@ -240,7 +252,20 @@ impl ItemContextMenuWindow {
             action,
             storage_action: None,
             source: ItemSource::Inventory,
+            identify: false,
+            refine: false,
+            repair: false,
+            insert_card: false,
         }
+    }
+
+    /// Enable the item-service entries that apply to the item.
+    pub fn with_service_actions(mut self, identify: bool, refine: bool, repair: bool, insert_card: bool) -> Self {
+        self.identify = identify;
+        self.refine = refine;
+        self.repair = repair;
+        self.insert_card = insert_card;
+        self
     }
 
     /// Select the state that the "View Info" action reads the item from.
@@ -316,6 +341,14 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
 
         let info_index = self.inventory_index;
         let info_source = self.source;
+        let identify_index = self.inventory_index;
+        let refine_index = self.inventory_index;
+        let repair_index = self.inventory_index;
+        let card_index = self.inventory_index;
+        let identify = self.identify;
+        let refine = self.refine;
+        let repair = self.repair;
+        let insert_card = self.insert_card;
 
         window! {
             title: client_state().localization().item_info_window_title(),
@@ -330,6 +363,54 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                     disabled: self.action.is_none(),
                     disabled_tooltip: client_state().localization().ui().item_not_usable_tooltip(),
                     event: use_equip_event,
+                },
+                button! {
+                    text: "Identify",
+                    tooltip: "Identify this item with a Magnifier",
+                    disabled: !identify,
+                    disabled_tooltip: "This item is already identified",
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::OneClickIdentify {
+                            inventory_index: identify_index,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
+                },
+                button! {
+                    text: "Refine weapon",
+                    tooltip: "Refine this weapon (requires the Blacksmith refine skill)",
+                    disabled: !refine,
+                    disabled_tooltip: "Only identified, unequipped weapons can be refined",
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::RefineWeapon {
+                            inventory_index: refine_index,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
+                },
+                button! {
+                    text: "Repair item",
+                    tooltip: "Repair this damaged item (requires the Repair Weapon skill)",
+                    disabled: !repair,
+                    disabled_tooltip: "This item is not damaged",
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::RepairItem {
+                            inventory_index: repair_index,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
+                },
+                button! {
+                    text: "Insert card",
+                    tooltip: "Insert this card into a piece of equipment",
+                    disabled: !insert_card,
+                    disabled_tooltip: "Only card items can be inserted",
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::RequestCardComposition {
+                            card_index,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_item_view_info(),
