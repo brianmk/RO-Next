@@ -10,6 +10,7 @@ pub(crate) mod effects;
 pub(crate) mod frame;
 pub(crate) mod hud;
 pub(crate) mod items;
+pub(crate) mod loaders;
 pub(crate) use self::items::*;
 pub(crate) mod navigation;
 pub(crate) mod network;
