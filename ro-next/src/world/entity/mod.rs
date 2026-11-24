@@ -43,13 +43,13 @@ use crate::world::{MarkerIdentifier, SubMesh};
 #[cfg(feature = "debug")]
 use crate::{Buffer, ModelVertex};
 
-mod common;
 mod actor;
+mod common;
 mod npc;
 mod player;
 
-pub use self::common::*;
 pub use self::actor::*;
+pub use self::common::*;
 pub use self::npc::*;
 pub use self::player::*;
 
