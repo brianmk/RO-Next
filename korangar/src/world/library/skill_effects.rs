@@ -1007,11 +1007,11 @@ mod tests {
         }
     }
 
-    /// For every skill-related Lua file, lists the global tables it defines and
-    /// checks whether any of them has an entry for Asura Strike (271).
+    /// Dumps the globals of the remaining `luafiles514` tables (data info,
+    /// sprite data, external settings) to find any animation/effect data.
     #[test]
     #[ignore]
-    fn probe_skill_table_globals() {
+    fn probe_luafiles514_tables() {
         use korangar_loaders::FileLoader;
         use mlua::Lua;
 
@@ -1022,17 +1022,20 @@ mod tests {
         let prerequisites = [
             "data\\luafiles514\\lua files\\skillinfoz\\jobinheritlist.lub",
             "data\\luafiles514\\lua files\\skillinfoz\\skillid.lub",
-            "data\\luafiles514\\lua files\\skilleffectinfo\\actorstate.lub",
-            "data\\luafiles514\\lua files\\skilleffectinfo\\effectid.lub",
+            "data\\luafiles514\\lua files\\datainfo\\jobname.lub",
+            "data\\luafiles514\\lua files\\datainfo\\accessoryid.lub",
+            "data\\luafiles514\\lua files\\datainfo\\accname.lub",
         ];
         let candidates = [
-            "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfolist.lub",
+            "data\\luafiles514\\lua files\\datainfo\\weapontable.lub",
+            "data\\luafiles514\\lua files\\datainfo\\pcjobnamegender.lub",
+            "data\\luafiles514\\lua files\\datainfo\\shadowtable.lub",
+            "data\\luafiles514\\lua files\\datainfo\\spriterobeid.lub",
+            "data\\luafiles514\\lua files\\spreditinfo\\spreditinfo_f.lub",
             "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfo_f.lub",
-            "data\\luafiles514\\lua files\\skillinfoz\\skillinfolist.lub",
-            "data\\luafiles514\\lua files\\skillinfoz\\skillinfo_f.lub",
-            "data\\luafiles514\\lua files\\exmacro\\skill_exmacro.lub",
-            "data\\luafiles514\\lua files\\newskillinfo\\skillid.lub",
-            "data\\luafiles514\\lua files\\hateffectinfo\\hateffectinfo.lub",
+            "data\\luafiles514\\lua files\\newskillinfo\\skillinfo_f.lub",
+            "data\\luafiles514\\lua files\\emotion\\emotionlist.lub",
+            "data\\luafiles514\\lua files\\service_korea\\externalsettings_kr.lub",
         ];
 
         let mut out = String::new();
@@ -1066,30 +1069,23 @@ mod tests {
             }
 
             for pair in lua.globals().pairs::<mlua::Value, mlua::Value>() {
-                let Ok((mlua::Value::String(name), value)) = pair else { continue };
+                let Ok((mlua::Value::String(name), mlua::Value::Table(table))) = pair else {
+                    continue;
+                };
                 let name = name.to_string_lossy().to_string();
-                if before.contains(&name) || !matches!(value, mlua::Value::Table(_)) {
+                if before.contains(&name) {
                     continue;
                 }
-                let mlua::Value::Table(table) = value else { continue };
-                let has_asura = table
-                    .get::<mlua::Value>(271u32)
-                    .map(|v| !matches!(v, mlua::Value::Nil))
-                    .unwrap_or(false);
-                out.push_str(&format!("  new global {name} (271: {has_asura})\n"));
-                let mut count = 0;
-                for pair in table.clone().pairs::<mlua::Value, mlua::Value>() {
-                    let Ok((key, _)) = pair else { continue };
-                    if count < 4 {
-                        out.push_str(&format!("     key {:?}\n", key));
-                    }
-                    count += 1;
+                let mut sample = String::new();
+                for pair in table.clone().pairs::<mlua::Value, mlua::Value>().take(6) {
+                    let Ok((key, value)) = pair else { continue };
+                    sample.push_str(&format!("{key:?}={value:?}; "));
                 }
-                out.push_str(&format!("     keys: {count}\n"));
+                out.push_str(&format!("  new table {name} len={:?} sample: {sample}\n", table.len().ok()));
             }
         }
 
-        std::fs::write("/tmp/skill_table_globals.txt", &out).unwrap();
+        std::fs::write("/tmp/luafiles514_probe.txt", &out).unwrap();
         println!("wrote {} bytes", out.len());
     }
 
