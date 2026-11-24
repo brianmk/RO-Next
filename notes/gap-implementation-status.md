@@ -36,19 +36,23 @@ Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 | 29 | Dynamic cell updates | **done** | `af61c058` |
 | 30 | NPC image + book (notice/tip, transport: no 2019 packet) | **done** | `8f738c12` |
 | 31 | Chat rooms, emotes picker | **done** | `8f738c12` |
-| 32 | Bink movies | **documented gap** (needs a Bink decoder; IVF side-cars work) | `8f738c12` |
+| 32 | Bink movies | **done** (startup cache transcodes `.bik` to AV1 `.ivf` with FFmpeg; placeholder only without FFmpeg) | `8f738c12` |
 | 33 | Replay | recording exists; playback is an official-client feature but optional tooling, not prioritized (user decision) | `8f738c12` |
 | 34 | Pincode prompt (page-slot list / server config unassigned) | **done** | `8f738c12` |
 
 ## Skill data parity (2019 GRF tables)
 
-`notes/skill-parity-grf2019-audit.md`: every skill covered by the client's own
-`SKILL_EFFECT_INFO_LIST` was audited against the GRF tables; sounds and caster
-animations now match for all of them (415 skills with a sound, 549 action
-entries), and effect rows exist for every skill whose effect ids have extracted
-layer data. The remaining effect-id gap (4th-job/expanded classes 981..1231)
-has no layer definitions outside `CondaRO.exe` and is documented there.
+`notes/skill-parity-grf2019-audit.md` and
+`notes/rodecomp-hardcoded-skill-effects.md`: every skill covered by the client's
+own `SKILL_EFFECT_INFO_LIST` was audited against the GRF tables. Sounds and
+caster animations now match for all of them (415 skills with a sound, 549 action
+entries); effect rows exist for 64 of 66 — the 43 hard-coded-C++ effect ids were
+extracted from the decompilation (`tools/rodecomp_effect_layers.json`,
+`tools/gen_rodecomp_effect_layers.py`, 41 new descriptors). The two remaining
+skills (2602 `SP_SOULCOLLECT`'s textureless `PP_SMA` slash, 3020 `KO_ZENKAI`'s
+server-selected rune circle) cannot be expressed as static layers and are
+documented.
 
 ## Known remaining work
-- Bink video decoding (only pre-transcoded `.ivf` side-cars play).
-- In-game visual verification of batch 2 features (build + unit tests only).
+- In-game visual verification of batch 2 features (build + unit tests only; the
+  user is testing on the live server).
