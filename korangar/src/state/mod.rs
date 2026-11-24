@@ -8,6 +8,7 @@ pub mod friend_names;
 pub mod guild;
 pub mod hotbar;
 pub mod inventory;
+pub mod item_service;
 pub mod key_rebind;
 pub mod lifecycle;
 pub mod localization;
@@ -55,6 +56,7 @@ use theme::{InterfaceTheme, InterfaceThemePathExt, InterfaceThemeType};
 
 #[cfg(feature = "debug")]
 use self::cache_statistics::CacheStatistics;
+use self::item_service::ItemService;
 pub use self::status_effects::{StatusEffects, status_effect_definition};
 #[cfg(feature = "debug")]
 use crate::PacketHistory;
@@ -309,6 +311,11 @@ pub struct ClientState {
     hotbar: Hotbar,
     /// Player inventory.
     inventory: Inventory,
+    /// State of the shared refine/repair/identify/card-insert window
+    /// (`ZC_NOTIFY_WEAPONITEMLIST`, `ZC_REPAIRITEMLIST`,
+    /// `ZC_ITEMIDENTIFY_LIST`, `ZC_ITEMCOMPOSITION_LIST`).
+    #[hidden_element]
+    item_service: ItemService,
     /// Current player trade.
     #[hidden_element]
     trade: Trade,
@@ -640,6 +647,7 @@ impl ClientState {
             player_name,
             hotbar,
             inventory,
+            item_service: ItemService::default(),
             quest_log: QuestLog::default(),
             mail: Mailbox::default(),
             trade: Trade::default(),

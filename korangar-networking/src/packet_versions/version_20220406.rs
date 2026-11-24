@@ -1935,6 +1935,49 @@ where
         expelled: true,
     })?;
     packet_handler.register(|packet: GuildInviteResultPacket| NetworkEvent::GuildInviteResult { result: packet.result })?;
+    // --- Item service: weapon refine, repair, identify, card composition -----
+    // The opcode/layout comments live on the packet structs in
+    // `ragnarok-packets`; every header below was verified against the CondaRO
+    // rAthena tree at PACKETVER 20190605.
+    packet_handler.register(|packet: WeaponRefineListPacket| NetworkEvent::WeaponRefineList { entries: packet.entries })?;
+    packet_handler.register(|packet: WeaponRefineResultPacket| NetworkEvent::WeaponRefineResult {
+        result: packet.result,
+        item_id: packet.item_id,
+    })?;
+    packet_handler.register(|packet: ItemRefiningResultPacket| NetworkEvent::ItemRefiningResult {
+        index: packet.index,
+        refine: packet.refine,
+        result: packet.result,
+    })?;
+    packet_handler.register(|packet: RepairItemListPacket| NetworkEvent::RepairItemList { entries: packet.entries })?;
+    packet_handler.register(|packet: RepairItemResultPacket| NetworkEvent::RepairItemResult {
+        index: packet.index,
+        success: packet.result == 0,
+    })?;
+    packet_handler.register(|packet: IdentifyItemListPacket| NetworkEvent::IdentifyItemList { indexes: packet.indexes })?;
+    packet_handler.register(|packet: IdentifyItemResultPacket| NetworkEvent::IdentifyItemResult {
+        index: packet.index,
+        success: packet.result == 0,
+    })?;
+    packet_handler.register(|packet: CardCompositionListPacket| NetworkEvent::CardCompositionList { indexes: packet.indexes })?;
+    packet_handler.register(|packet: CardCompositionResultPacket| NetworkEvent::CardCompositionResult {
+        equip_index: packet.equip_index,
+        card_index: packet.card_index,
+        success: packet.result == 0,
+    })?;
+    packet_handler.register(|packet: UpdateCardSlotPacket| NetworkEvent::CardSlotUpdated {
+        wear_state: packet.wear_state,
+        card_slot: packet.card_slot,
+        item_id: packet.item_id,
+        equip_flag: packet.equip_flag,
+    })?;
+    // --- Refine UI (`feature.refineui`, NPC/atcommand driven) ----------------
+    packet_handler.register(|_packet: OpenRefiningUiPacket| NetworkEvent::RefiningUiOpened)?;
+    packet_handler.register(|packet: RefiningMaterialListPacket| NetworkEvent::RefiningMaterialList {
+        item_index: packet.item_index,
+        blacksmith_blessing: packet.blacksmith_blessing,
+        materials: packet.materials,
+    })?;
 
     Ok(())
 }

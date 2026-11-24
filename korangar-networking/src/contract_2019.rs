@@ -129,6 +129,16 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
          PACKET_ZC_ACK_LEAVE_GUILD2 (char id + reason[40]) is written by hand in clif.cpp:9124 and the generated registry only covers \
          packets.hpp headers",
     ),
+    (
+        0x0177,
+        "not derivable: ZC_ITEMIDENTIFY_LIST is written by hand with WFIFOW (clif.cpp:7098, `{ client index }.W` rows); rAthena has no \
+         header struct the generated registry could size",
+    ),
+    (
+        0x017B,
+        "not derivable: ZC_ITEMCOMPOSITION_LIST is written by hand with WFIFOW (clif.cpp:7023, `{ client index }.W` rows); rAthena has no \
+         header struct the generated registry could size",
+    ),
 ];
 
 /// Full packet payloads for opcodes whose all-zero / all-one synthetic payload

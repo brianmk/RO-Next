@@ -646,6 +646,66 @@ pub enum InputEvent {
     ChatMarkupClicked {
         link: ChatMarkupLink,
     },
+    /// Refine the selected weapon (`CZ_REQ_WEAPONREFINE`, 0x0222).
+    ///
+    /// rAthena only accepts this while the Blacksmith `WS_WEAPONREFINE` menu
+    /// skill is pending, i.e. after it sent the refine list.
+    RefineWeapon {
+        /// Inventory index of the weapon.
+        inventory_index: InventoryIndex,
+    },
+    /// Repair the selected damaged item (`CZ_REQ_ITEMREPAIR1`, 0x01FD).
+    ///
+    /// rAthena only accepts this while the `BS_REPAIRWEAPON` menu skill is
+    /// pending, i.e. after it sent the repair list.
+    RepairItem {
+        /// Inventory index of the damaged item.
+        inventory_index: InventoryIndex,
+    },
+    /// Answer the identify selection dialog (`CZ_REQ_ITEMIDENTIFY`, 0x0178).
+    IdentifyItem {
+        /// Inventory index of the unidentified item.
+        inventory_index: InventoryIndex,
+    },
+    /// Identify an unidentified item directly with a Magnifier
+    /// (`CZ_REQ_ONECLICK_ITEMIDENTIFY`, 0x0A35). This is the context-menu path
+    /// and does not require a pending menu skill.
+    OneClickIdentify {
+        /// Inventory index of the unidentified item.
+        inventory_index: InventoryIndex,
+    },
+    /// Ask the server which equipment the selected card fits into
+    /// (`CZ_REQ_ITEMCOMPOSITION_LIST`, 0x017A).
+    RequestCardComposition {
+        /// Inventory index of the card.
+        card_index: InventoryIndex,
+    },
+    /// Insert the selected card into the selected equipment
+    /// (`CZ_REQ_ITEMCOMPOSITION`, 0x017C).
+    InsertCard {
+        /// Inventory index of the card.
+        card_index: InventoryIndex,
+        /// Inventory index of the equipment.
+        equip_index: InventoryIndex,
+    },
+    /// Close the shared refine/repair/identify/card window.
+    CloseItemService,
+    /// Select the item to refine in the refine UI (`CZ_REFINING_SELECT_ITEM`,
+    /// 0x0AA1).
+    SelectRefiningItem {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+    },
+    /// Attempt a refine in the refine UI (`CZ_REQ_REFINING`, 0x0AA3). The item
+    /// is the one that the server sent the material list for.
+    RefineWithMaterial {
+        /// Material item id from the material list.
+        material_item_id: ItemId,
+        /// Whether to use Blacksmith Blessings (only when offered).
+        blacksmith_blessing: bool,
+    },
+    /// Close the refine UI (`CZ_CLOSE_REFINING_UI`, 0x0AA4).
+    CloseRefiningUi,
 }
 
 impl From<InputEvent> for Event<ClientState> {
