@@ -35,8 +35,8 @@ Done in this batch (5 parallel agents + lead): 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 
 | 27 | Notification HUD (announce/pickup/level-up/quest banner) | **done** | `507562f4` |
 | 28 | Sky, lightmaps, scene fog | in progress (gap-render) | — |
 | 29 | Map cell updates / map properties | in progress (gap-render) | — |
-| 30 | NPC image / book / notice / transport windows | in progress (gap-content2) | — |
-| 31 | Chat rooms, emotes picker | in progress (gap-content2) | — |
-| 32 | Bink movies | in progress (gap-content2, tooling note) | — |
-| 33 | Replay | in progress (gap-content2, recording only) | — |
-| 34 | Pincode / page-slot list / server config | in progress (gap-content2) | — |
+| 30 | NPC image / book window (notice/tip: no 2019 packet) | **done** | `8f738c12` |
+| 31 | Chat rooms, emotes picker | **done** | `8f738c12` |
+| 32 | Bink movies | documented gap (needs decoder) | `8f738c12` |
+| 33 | Replay | recording only (playback todo) | `8f738c12` |
+| 34 | Pincode prompt (page-slot/config todo) | **done** | `8f738c12` |
