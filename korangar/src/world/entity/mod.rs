@@ -276,6 +276,8 @@ pub struct Common {
     /// the classic red tints). `None` means no status tint.
     status_tint: Option<Color>,
     status_weapon_blink: bool,
+    #[hidden_element]
+    body_wave: Option<BodyWave>,
     /// Draw the body layers with an additive blend (official
     /// `EF_REDBODY`/`render.flags & 1`).
     status_body_additive: bool,
@@ -481,6 +483,29 @@ impl EntityFlash {
     }
 }
 
+/// Vertical sine wave of the body sprites (official `render.flags` bit 0x8).
+#[derive(Debug, Clone, Copy)]
+pub struct BodyWave {
+    start_tick: ClientTick,
+    duration_ms: u32,
+    amplitude: f32,
+}
+
+impl BodyWave {
+    /// Vertical offset of the body at `client_tick` (`0.0` when the wave is
+    /// over). One full sine period per 500 ms, like the official wave phase.
+    fn offset(&self, client_tick: ClientTick) -> f32 {
+        let elapsed = client_tick.0.saturating_sub(self.start_tick.0);
+
+        if elapsed >= self.duration_ms {
+            return 0.0;
+        }
+
+        let phase = elapsed as f32 * std::f32::consts::TAU / 500.0;
+        phase.sin() * self.amplitude
+    }
+}
+
 /// Blends `base` towards `target` by `weight`.
 fn blend_color(base: Color, target: Color, weight: f32) -> Color {
     let weight = weight.clamp(0.0, 1.0);
@@ -583,6 +608,7 @@ impl Common {
             cart_kind: 0,
             status_tint: None,
             status_weapon_blink: false,
+            body_wave: None,
             status_body_additive: false,
             status_weapon_additive: false,
             status_alpha: None,
@@ -762,6 +788,15 @@ impl Common {
     /// Blink the equipped weapon layer (official `EF_LIGHTBLADE`).
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.status_weapon_blink = blink;
+    }
+
+    /// Start the vertical body wave (official `render.flags` bit 0x8).
+    pub fn start_body_wave(&mut self, duration_ms: u32, amplitude: f32, client_tick: ClientTick) {
+        self.body_wave = Some(BodyWave {
+            start_tick: client_tick,
+            duration_ms,
+            amplitude,
+        });
     }
 
     /// Set the additive sprite blend of a status effect: `body` blends the
@@ -1354,13 +1389,16 @@ impl Common {
         let alpha = self.fade_state.calculate_alpha(client_tick) * self.status_alpha.unwrap_or(1.0);
         let tint = self.sprite_tint(client_tick);
 
+        let body_wave = self.body_wave.map(|wave| wave.offset(client_tick)).unwrap_or(0.0);
+        let body_position = self.world_position + cgmath::Vector3::new(0.0, body_wave, 0.0);
+
         if let Some(animation_data) = self.animation_data.as_ref() {
             animation_data.render(
                 instructions,
                 camera,
                 add_to_picker,
                 self.entity_id,
-                self.world_position,
+                body_position,
                 &self.animation_state,
                 self.direction,
                 alpha,
@@ -1999,6 +2037,10 @@ impl Entity {
         self.get_common_mut().set_weapon_blink(blink);
     }
 
+    pub fn start_body_wave(&mut self, duration_ms: u32, amplitude: f32, client_tick: ClientTick) {
+        self.get_common_mut().start_body_wave(duration_ms, amplitude, client_tick);
+    }
+
     /// Sets the additive body/weapon sprite blend of the active statuses.
     pub fn set_status_additive(&mut self, body: bool, weapon: bool) {
         self.get_common_mut().set_status_additive(body, weapon);
@@ -2386,7 +2428,8 @@ impl Entity {
     /// Starts a short body flash (hard-coded skill effect color flash, for
     /// example the yellow `EF_PORTAL5` flash of Zen).
     pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, additive: bool, client_tick: ClientTick) {
-        self.get_common_mut().start_body_flash(color, hold_ms, fade_ms, additive, client_tick);
+        self.get_common_mut()
+            .start_body_flash(color, hold_ms, fade_ms, additive, client_tick);
     }
 
     /// Stop the looping skill-cast animation of this entity.

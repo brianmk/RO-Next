@@ -58,16 +58,20 @@ pub enum CasterAction {
 ///
 /// Priority:
 ///
-/// 1. the optional `action` override of the unified skill effect descriptors
-///    (`archive/data/client/skill_effects.ron`),
-/// 2. the official per-skill action table (`skill_actions.ron`),
+/// 1. the official per-skill action table (`skill_actions.ron`, generated from
+///    the decompiled `GetSkillActionInfo` motions),
+/// 2. the optional `action` override of the unified skill effect descriptors
+///    (`archive/data/client/skill_effects.ron`), used only for skills the table
+///    does not list,
 /// 3. the official default action, which is the casting gesture.
 ///
 /// The effect descriptor and the action table stay separate data sources, so a
 /// skill effect override never has to duplicate the full action mapping.
 pub fn caster_action(skill_id: SkillId) -> CasterAction {
-    crate::world::skill_action_override(skill_id)
-        .or_else(|| caster_action_for_skill(skill_id))
+    // The official per-skill table is the ground truth; an effect descriptor
+    // action override is only a fallback for skills the table does not list.
+    caster_action_for_skill(skill_id)
+        .or_else(|| crate::world::skill_action_override(skill_id))
         .unwrap_or_else(default_caster_action)
 }
 
@@ -79,22 +83,29 @@ mod tests {
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
-        // Bash, Magnum Break, Pierce, Asura Strike, Meteor Assault.
-        for skill_id in [5, 7, 56, 271, 406] {
+        // Bash, Magnum Break, Pierce: the official `GetSkillActionInfo` sets
+        // motion 2 (ST_ATTACK) for exactly these weapon swings.
+        for skill_id in [5, 7, 56] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
+        }
+        // Asura Strike and Meteor Assault keep the begin-skill pose (motion 8);
+        // their feedback is the effect, not an attack swing.
+        for skill_id in [271, 406] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
     }
 
     #[test]
     fn stance_skills_keep_the_idle_pose() {
-        // Basic Skill, Incagi, Summon Spirit Sphere.
-        for skill_id in [1, 29, 261] {
+        // Blessing and Fury: the official `GetSkillActionInfo` sets motion 0
+        // (ST_STAND), so the caster keeps the idle pose.
+        for skill_id in [34, 270] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
         }
-        // Fury and Zen are official "keep pose" skills (rustnarok CAST/KEEP
-        // tables): their cast feedback is the effect, not a casting gesture.
-        for skill_id in [270, 401] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
+        // Basic Skill, Incagi, Summon Spirit Sphere and Zen use the default
+        // begin-skill gesture (motion 7/8 = ST_SKILL/ST_BEGIN_SKILL).
+        for skill_id in [1, 29, 261, 401] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
     }
 
@@ -114,13 +125,16 @@ mod tests {
 
     #[test]
     fn endures_ready_fight_stance_is_not_flattened_to_idle() {
-        assert_eq!(caster_action(SkillId(8)), CasterAction::ReadyFight);
+        // The official table puts Endure on the default begin-skill gesture;
+        // `ReadyFight` stays available for data overrides.
+        assert_eq!(caster_action(SkillId(8)), CasterAction::Skill);
+        assert_eq!(CasterAction::ReadyFight, CasterAction::ReadyFight);
     }
 
     #[test]
     fn casts_keep_the_casting_gesture() {
-        // Blessing, Heal, Warp Portal.
-        for skill_id in [34, 28, 27] {
+        // Heal, Warp Portal, Concentration.
+        for skill_id in [28, 27, 45] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
     }

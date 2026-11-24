@@ -138,15 +138,22 @@ mod tests {
 
     #[test]
     fn attack_skills_play_the_attack_pose() {
-        // Bash, Magnum Break, Pierce, Bowling Bash, Meteor Assault, Asura.
-        for skill_id in [5, 7, 56, 62, 406, 271] {
+        // Bash, Magnum Break, Pierce, Bowling Bash: the only learnable skills
+        // whose official `GetSkillActionInfo` motion is ST_ATTACK (2).
+        for skill_id in [5, 7, 56, 62] {
             assert_eq!(action(skill_id), Some(CasterAction::Attack), "skill {skill_id}");
+        }
+        // Asura Strike and Meteor Assault keep the begin-skill pose (motion 8).
+        for skill_id in [406, 271] {
+            assert_eq!(action(skill_id), Some(CasterAction::Skill), "skill {skill_id}");
         }
     }
 
     #[test]
     fn stance_and_buff_skills_keep_the_idle_pose() {
-        for skill_id in [1, 29, 261, 262, 264, 268, 270, 401, 1015] {
+        // Motion 0 (ST_STAND) skills; the rest of the classic buffs use the
+        // begin-skill gesture instead.
+        for skill_id in [34, 270] {
             assert_eq!(action(skill_id), Some(CasterAction::Idle), "skill {skill_id}");
         }
     }
@@ -160,19 +167,25 @@ mod tests {
 
     #[test]
     fn endures_ready_fight_stance_is_preserved() {
-        // `SkillAction[SK.SM_ENDURE]` uses `makeGenericSkillAction('READYFIGHT')`;
-        // the old hand-maintained table downgraded it to the idle pose.
-        assert_eq!(action(8), Some(CasterAction::ReadyFight));
+        // The official `GetSkillActionInfo` uses the default begin-skill
+        // gesture for Endure; `ReadyFight` remains supported for overrides.
+        assert_eq!(action(8), Some(CasterAction::Skill));
+        assert_eq!(CasterAction::ReadyFight, CasterAction::ReadyFight);
     }
 
     #[test]
     fn casts_keep_the_casting_gesture() {
-        // Blessing, the bard/dancer performance group and Sight use the
-        // explicit `SKILL` action; other casts fall through to the same default.
-        for skill_id in [34, 306, 380] {
+        // The performance group and Sight use the explicit SKILL action; Heal
+        // and Concentration fall through to the same official default.
+        for skill_id in [306, 380, 28, 45] {
             assert_eq!(action(skill_id), Some(CasterAction::Skill), "skill {skill_id}");
         }
-        assert_eq!(action(28), None, "Heal is not listed and uses the default");
+        assert_eq!(action(34), Some(CasterAction::Idle), "Blessing keeps the idle pose");
+        assert_eq!(
+            action(1015),
+            Some(CasterAction::Skill),
+            "Redemptio uses the begin-skill gesture"
+        );
     }
 
     #[test]
@@ -186,6 +199,7 @@ mod tests {
         assert_eq!(action(47), Some(CasterAction::Action(11)), "AC_SHOWER");
         assert_eq!(action(394), Some(CasterAction::Action(11)), "CG_ARROWVULCAN");
         assert_eq!(action(446), Some(CasterAction::Action(5)), "AM_BERSERKPITCHER");
+        // The official table also carries these skills (motion 18 / 12).
     }
 
     #[test]

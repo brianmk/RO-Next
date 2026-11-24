@@ -136,6 +136,9 @@ pub(crate) enum LayerKind {
     Primitive,
     /// Short tint of the caster sprite.
     BodyFlash,
+    /// Vertical sine wave of the caster's body layers (official `render.flags`
+    /// bit 0x8: the body wobbles while the effect runs).
+    BodyWave,
 }
 
 /// Where a layer of a skill spawns.
@@ -335,10 +338,17 @@ struct LayerFile {
     hold_ms: u32,
     #[serde(default)]
     fade_ms: u32,
+    /// Amplitude (world units) of a `BodyWave` layer.
+    #[serde(default = "default_amplitude")]
+    amplitude: f32,
 }
 
 fn default_scale() -> f32 {
     1.0
+}
+
+fn default_amplitude() -> f32 {
+    0.25
 }
 
 fn default_count() -> u16 {
@@ -416,6 +426,8 @@ pub(crate) struct SkillEffectLayer {
     pub hold_ms: u32,
     /// Fade time of a body flash in milliseconds.
     pub fade_ms: u32,
+    /// Amplitude of a body wave in world units.
+    pub amplitude: f32,
 }
 
 /// One loaded `(skill, phase)` descriptor: the ordered layers of the phase.
@@ -691,6 +703,11 @@ fn validate_layer(skill: u16, phase: SkillPhase, layer: &LayerFile) -> Result<()
                 return Err(format!("{}: body flash timings are out of range", context()));
             }
         }
+        LayerKind::BodyWave => {
+            if !(0.0..=2.0).contains(&layer.amplitude) || layer.duration_ms > 10_000 {
+                return Err(format!("{}: body wave is out of range", context()));
+            }
+        }
     }
 
     if let Some(wav) = layer.wav.as_deref()
@@ -893,6 +910,7 @@ impl LayerFile {
             },
             hold_ms: self.hold_ms,
             fade_ms: self.fade_ms,
+            amplitude: self.amplitude,
         }
     }
 }
@@ -1256,7 +1274,7 @@ mod tests {
                         assert!(layer.primitive.is_some());
                         assert!(layer.file.is_some());
                     }
-                    LayerKind::BodyFlash => {}
+                    LayerKind::BodyFlash | LayerKind::BodyWave => {}
                 }
             }
         }

@@ -2815,6 +2815,16 @@ impl Client {
                     entity.start_body_flash(layer.tint, layer.hold_ms, layer.fade_ms, layer.additive, client_tick);
                 }
             }
+            LayerKind::BodyWave => {
+                if let Some(entity) = self
+                    .client_state
+                    .follow_mut(client_state().entities())
+                    .iter_mut()
+                    .find(|entity| entity.get_entity_id() == source_entity_id)
+                {
+                    entity.start_body_wave(layer.duration_ms, layer.amplitude, client_tick);
+                }
+            }
             LayerKind::Str => {
                 let Some(effect_path) = layer.file else {
                     return;

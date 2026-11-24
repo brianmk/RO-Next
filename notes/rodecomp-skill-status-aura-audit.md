@@ -481,7 +481,29 @@ Outlines (Kaite/Soul Link/Undead) remain unimplemented: the forward shader
 multiplies texture by the instance colour, so a flat silhouette needs a shader
 branch.
 
-### 5b-2b. Self-buff effects that looked like "no effect"
+#### 5b-1b. Caster actions now come from the decompiled motions
+
+`skill_actions.ron` is now generated primarily from
+`tools/skill_actions_rodecomp.json` (the 2026 client's
+`CSession::GetSkillActionInfo` motion for every learnable skill, default
+`ST_BEGIN_SKILL`), and only falls back to the roBrowser dump for skills without
+an official row. The old dump played the attack animation for ~125 skills; the
+official client plays the begin-skill gesture for most skills and an attack
+for exactly 20 learnable ones. Current table: 401 Skill, 67 Attack, 38 Idle,
+21 Pickup (`ReadyFight` is kept for overrides but no longer emitted).
+`caster_action()` now prefers the official table over a descriptor `action`
+override; tests updated to the official expectations (Bash/Magnum/Pierce/Bowling
+attack, Blessing/Fury idle, Asura/Meteor Assault begin-skill, throw skills
+`Action(5)`).
+
+### 5b-1c. Body wave (render.flags 0x8)
+
+`LayerKind::BodyWave` offsets the body sprite vertically with a sine while the
+effect lasts (one period per 500 ms, amplitude in world units). Added for
+PF_DOUBLECASTING (482) and CG_TAROTCARD (489), whose official effects set
+flags 1|8 plus a body colour.
+
+## 5b-2b. Self-buff effects that looked like "no effect"
 
 Three classic self-buffs rendered nothing perceptible because the data carried
 only a single faint quad. The decompilation says:
@@ -491,6 +513,9 @@ only a single faint quad. The decompilation says:
   `hunter_detecting.wav` (`RagEffect.cpp 24286-24293`) — twelve spinning quads,
   not one static sprite. The row now emits 12 additive quads placed on a circle
   around the caster, three heights, with the sound.
+* Wind Walk (383): the official effect is `Cloud11Burst(0)`; its heights (5/7/9/11)
+  are **pixels**, so the data now places the four quads 0.2-0.4 world units
+  around the body instead of 5-11 units above it.
 * `EF_DETECTING` (HT_DETECTING 130): `TexturedSkillAura(0)` +
   `hunter_detecting.wav` (`RagEffect.cpp 23953-23954`) — an expanding aura ring.
   The row now emits two expanding `ring_white` cylinders on the ground cell.

@@ -1993,18 +1993,18 @@
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", size: 9.0, duration_ms: 4167, alpha: 0.2, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (22.0, 12.0, 0.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive, wav: "effect\\hunter_detecting.wav"),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (19.06, 20.0, 11.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (11.0, 28.0, 19.06), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 12.0, 22.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-11.0, 20.0, 19.06), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-19.06, 28.0, 11.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-22.0, 12.0, 0.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-19.06, 20.0, -11.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-11.0, 28.0, -19.06), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 12.0, -22.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (11.0, 20.0, -19.06), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (19.06, 28.0, -11.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.7, 0.35, 0.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive, wav: "effect\\hunter_detecting.wav"),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.606, 0.6, 0.35), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.35, 0.85, 0.606), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 0.35, 0.7), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-0.35, 0.6, 0.606), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-0.606, 0.85, 0.35), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-0.7, 0.35, 0.0), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-0.606, 0.6, -0.35), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (-0.35, 0.85, -0.606), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.0, 0.35, -0.7), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.35, 0.6, -0.606), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", offset: (0.606, 0.85, -0.35), size: 9.0, duration_ms: 4167, alpha: 0.55, blend: Additive),
             ],
         ),
         (
@@ -2026,11 +2026,11 @@
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 3333, alpha: 0.2, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (3.0, 5.0, 0.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive, wav: "effect\\윈드워크.wav"),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 7.0, 3.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (-3.0, 9.0, 0.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 11.0, -3.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
-                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.86, 0.98, 0.86), blend: Additive, hold_ms: 333),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.3, 0.2, 0.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive, wav: "effect\\윈드워크.wav"),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 0.27, 0.3), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (-0.3, 0.34, 0.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 0.41, -0.3), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.86, 0.98, 0.86), blend: Additive, hold_ms: 500),
             ],
         ),
         (
@@ -2522,6 +2522,14 @@
             ],
         ),
         (
+            skill: 482,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (1.0, 0.0, 0.0), blend: Additive, hold_ms: 1000),
+                (kind: BodyWave, anchor: Caster, attached_entity: true, duration_ms: 1000),
+            ],
+        ),
+        (
             skill: 485,
             phase: Success,
             layers: [
@@ -2533,6 +2541,14 @@
             phase: Success,
             layers: [
                 (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 4167, height: 2.0, bottom_radius: 7.2, top_radius: 7.2, alpha: 0.35, blend: Additive),
+            ],
+        ),
+        (
+            skill: 489,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.0, 0.0, 1.0), blend: Additive, hold_ms: 1000),
+                (kind: BodyWave, anchor: Caster, attached_entity: true, duration_ms: 1000),
             ],
         ),
         (

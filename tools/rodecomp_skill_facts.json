@@ -1836,8 +1836,8 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      22.0,
-      12.0,
+      0.7,
+      0.35,
       0.0
      ],
      "wav": "effect\\hunter_detecting.wav"
@@ -1852,9 +1852,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      19.06,
-      20.0,
-      11.0
+      0.606,
+      0.6,
+      0.35
      ],
      "wav": null
     },
@@ -1868,9 +1868,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      11.0,
-      28.0,
-      19.06
+      0.35,
+      0.85,
+      0.606
      ],
      "wav": null
     },
@@ -1885,8 +1885,8 @@
      "blend": "Additive",
      "offset": [
       0.0,
-      12.0,
-      22.0
+      0.35,
+      0.7
      ],
      "wav": null
     },
@@ -1900,9 +1900,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -11.0,
-      20.0,
-      19.06
+      -0.35,
+      0.6,
+      0.606
      ],
      "wav": null
     },
@@ -1916,9 +1916,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -19.06,
-      28.0,
-      11.0
+      -0.606,
+      0.85,
+      0.35
      ],
      "wav": null
     },
@@ -1932,8 +1932,8 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -22.0,
-      12.0,
+      -0.7,
+      0.35,
       0.0
      ],
      "wav": null
@@ -1948,9 +1948,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -19.06,
-      20.0,
-      -11.0
+      -0.606,
+      0.6,
+      -0.35
      ],
      "wav": null
     },
@@ -1964,9 +1964,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      -11.0,
-      28.0,
-      -19.06
+      -0.35,
+      0.85,
+      -0.606
      ],
      "wav": null
     },
@@ -1981,8 +1981,8 @@
      "blend": "Additive",
      "offset": [
       -0.0,
-      12.0,
-      -22.0
+      0.35,
+      -0.7
      ],
      "wav": null
     },
@@ -1996,9 +1996,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      11.0,
-      20.0,
-      -19.06
+      0.35,
+      0.6,
+      -0.606
      ],
      "wav": null
     },
@@ -2012,9 +2012,9 @@
      "alpha": 0.55,
      "blend": "Additive",
      "offset": [
-      19.06,
-      28.0,
-      -11.0
+      0.606,
+      0.85,
+      -0.35
      ],
      "wav": null
     }
@@ -2068,8 +2068,8 @@
      "alpha": 0.5,
      "blend": "Additive",
      "offset": [
-      3.0,
-      5.0,
+      0.3,
+      0.2,
       0.0
      ],
      "wav": "effect\\윈드워크.wav"
@@ -2085,8 +2085,8 @@
      "blend": "Additive",
      "offset": [
       0.0,
-      7.0,
-      3.0
+      0.27,
+      0.3
      ],
      "wav": null
     },
@@ -2100,8 +2100,8 @@
      "alpha": 0.5,
      "blend": "Additive",
      "offset": [
-      -3.0,
-      9.0,
+      -0.3,
+      0.34,
       0.0
      ],
      "wav": null
@@ -2117,8 +2117,8 @@
      "blend": "Additive",
      "offset": [
       -0.0,
-      11.0,
-      -3.0
+      0.41,
+      -0.3
      ],
      "wav": null
     },
@@ -2131,7 +2131,7 @@
       0.98,
       0.86
      ],
-     "hold_ms": 333,
+     "hold_ms": 500,
      "fade_ms": 0,
      "blend": "Additive"
     }
@@ -3658,6 +3658,37 @@
    ]
   },
   {
+   "skill": 482,
+   "name": "PF_DOUBLECASTING",
+   "effect_ids": [
+    521
+   ],
+   "evidence": "EF_DOUBLECASTBODY: render.flags |= 1|8 (body blend + wave) and SetColor(255,0,0) while the effect runs (RagEffect.cpp effect case)",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      1.0,
+      0.0,
+      0.0
+     ],
+     "hold_ms": 1000,
+     "fade_ms": 0,
+     "blend": "Additive"
+    },
+    {
+     "kind": "BodyWave",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "duration_ms": 1000,
+     "amplitude": 0.15
+    }
+   ]
+  },
+  {
    "skill": 485,
    "name": "WS_CARTTERMINATION",
    "effect_ids": [
@@ -3696,6 +3727,37 @@
      "top_radius": 7.2,
      "alpha": 0.35,
      "blend": "Additive"
+    }
+   ]
+  },
+  {
+   "skill": 489,
+   "name": "CG_TAROTCARD",
+   "effect_ids": [
+    500
+   ],
+   "evidence": "EF_CHEMICALBODY: render.flags |= 1|8 (body blend + wave) and SetColor(0,0,255) while the effect runs (RagEffect.cpp effect case)",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      0.0,
+      0.0,
+      1.0
+     ],
+     "hold_ms": 1000,
+     "fade_ms": 0,
+     "blend": "Additive"
+    },
+    {
+     "kind": "BodyWave",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "duration_ms": 1000,
+     "amplitude": 0.15
     }
    ]
   },

@@ -1,0 +1,3207 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp @ bb34313a - CSession::GetSkillActionInfo motions mapped to CasterAction; motion is an ACTORSTATEID, default ST_BEGIN_SKILL=8",
+  "note": "Generated table: every learnable skill gets the official caster action; the roBrowser dump is overridden where they disagree."
+ },
+ "overrides": [
+  {
+   "skill": 1,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 2,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 3,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 4,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 5,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 6,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 7,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 8,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 9,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 10,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 11,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 12,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 13,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 14,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 15,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 16,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 17,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 18,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 19,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 20,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 21,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 22,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 23,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 24,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 25,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 26,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 27,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 28,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 29,
+   "action": "Skill",
+   "motion": 7,
+   "state": null,
+   "source": "GetSkillActionInfo motion=7 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 30,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 31,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 32,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 33,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 34,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 35,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 36,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 37,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 38,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 39,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 40,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 41,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 42,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 43,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 44,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 45,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 46,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 47,
+   "action": "Action(11)",
+   "motion": 18,
+   "state": null,
+   "source": "GetSkillActionInfo motion=18 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 48,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 49,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 50,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 51,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 52,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 53,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 54,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 55,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 56,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 57,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 58,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 59,
+   "action": "Action(5)",
+   "motion": 12,
+   "state": null,
+   "source": "GetSkillActionInfo motion=12 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 60,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 61,
+   "action": "Attack",
+   "motion": 11,
+   "state": null,
+   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 62,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 63,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 64,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 65,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 66,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 67,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 68,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 69,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 70,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 71,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 72,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 73,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 74,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 75,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 76,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 77,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 78,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 79,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 80,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 81,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 83,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 84,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 85,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 86,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 87,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 88,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 89,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 90,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 91,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 92,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 93,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 94,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 95,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 96,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 97,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 98,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 99,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 100,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 101,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 102,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 103,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 104,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 105,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 106,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 107,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 108,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 109,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 110,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 111,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 112,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 113,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 114,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 115,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 116,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 117,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 118,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 119,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 120,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 121,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 122,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 123,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 124,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 125,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 126,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 127,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 128,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 129,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 130,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 131,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 132,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 133,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 134,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 135,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 136,
+   "action": "Skill",
+   "motion": 7,
+   "state": null,
+   "source": "GetSkillActionInfo motion=7 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 137,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 138,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 139,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 140,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 141,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 142,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 143,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 144,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 145,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 146,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 147,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 148,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 149,
+   "action": "Attack",
+   "motion": 11,
+   "state": null,
+   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 150,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 151,
+   "action": "Pickup",
+   "motion": 5,
+   "state": null,
+   "source": "GetSkillActionInfo motion=5 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 152,
+   "action": "Attack",
+   "motion": 11,
+   "state": null,
+   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 153,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 154,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 155,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 156,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 157,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 210,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 211,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 212,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 213,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 214,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 215,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 216,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 217,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 218,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 219,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 220,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 221,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 222,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 223,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 224,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 225,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 226,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 227,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 228,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 229,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 230,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 231,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 232,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 233,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 234,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 235,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 236,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 237,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 238,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 243,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 244,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 247,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 248,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 249,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 250,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 251,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 252,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 253,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 254,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 255,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 256,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 257,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 258,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 259,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 260,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 261,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 262,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 263,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 264,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 265,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 266,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 267,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 268,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 269,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 270,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 271,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 272,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 273,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 274,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 275,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 276,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 277,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 278,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 279,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 280,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 281,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 282,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 283,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 284,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 285,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 286,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 287,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 288,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 289,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 290,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 304,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 305,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 306,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 307,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 308,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 309,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 310,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 311,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 312,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 313,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 315,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 316,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 317,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 318,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 319,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 320,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 321,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 322,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 323,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 324,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 325,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 326,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 327,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 328,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 329,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 330,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 355,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 356,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 357,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 358,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 359,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 361,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 362,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 363,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 364,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 365,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 366,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 367,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 368,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 369,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 370,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 371,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 372,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 373,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 374,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 375,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 376,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 378,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 379,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 380,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 381,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 382,
+   "action": "Action(11)",
+   "motion": 18,
+   "state": null,
+   "source": "GetSkillActionInfo motion=18 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 383,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 384,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 387,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 389,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 390,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 394,
+   "action": "Action(11)",
+   "motion": 18,
+   "state": null,
+   "source": "GetSkillActionInfo motion=18 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 395,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 396,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 397,
+   "action": "Attack",
+   "motion": 11,
+   "state": null,
+   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 398,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 399,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 400,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 401,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 402,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 403,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 404,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 405,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 406,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 407,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 408,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 409,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 410,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 411,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 412,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 413,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 414,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 415,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 416,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 417,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 418,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 419,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 420,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 421,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 422,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 423,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 424,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 425,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 426,
+   "action": "Skill",
+   "motion": 19,
+   "state": null,
+   "source": "GetSkillActionInfo motion=19 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 427,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 428,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 429,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 430,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 431,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 432,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 433,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 434,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 435,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 436,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 437,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 438,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 439,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 440,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 441,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 442,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 443,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 444,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 445,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 446,
+   "action": "Action(5)",
+   "motion": 12,
+   "state": null,
+   "source": "GetSkillActionInfo motion=12 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 447,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 448,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 449,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 450,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 451,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 452,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 453,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 454,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 455,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 456,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 457,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 458,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 459,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 460,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 461,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 462,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 463,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 464,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 465,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 466,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 467,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 468,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 469,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 470,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 471,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 472,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 475,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 476,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 477,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 478,
+   "action": "Action(5)",
+   "motion": 28,
+   "state": null,
+   "source": "GetSkillActionInfo motion=28 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 479,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 480,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 481,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 482,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 483,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 484,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 485,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 486,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 487,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 488,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 489,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 490,
+   "action": "Action(5)",
+   "motion": 28,
+   "state": null,
+   "source": "GetSkillActionInfo motion=28 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 491,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 493,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 494,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 495,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 496,
+   "action": "Skill",
+   "motion": 7,
+   "state": null,
+   "source": "GetSkillActionInfo motion=7 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 497,
+   "action": "Skill",
+   "motion": 7,
+   "state": null,
+   "source": "GetSkillActionInfo motion=7 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 498,
+   "action": "Skill",
+   "motion": 7,
+   "state": null,
+   "source": "GetSkillActionInfo motion=7 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 499,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 500,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 501,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 502,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 503,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 504,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 505,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 506,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 507,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 508,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 509,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 510,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 511,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 512,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 513,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 514,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 515,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 516,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 517,
+   "action": "Skill",
+   "motion": 41,
+   "state": null,
+   "source": "GetSkillActionInfo motion=41 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 518,
+   "action": "Skill",
+   "motion": 42,
+   "state": null,
+   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 519,
+   "action": "Skill",
+   "motion": 42,
+   "state": null,
+   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 520,
+   "action": "Skill",
+   "motion": 42,
+   "state": null,
+   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 521,
+   "action": "Skill",
+   "motion": 42,
+   "state": null,
+   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 522,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 523,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 524,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 525,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 526,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 527,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 528,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 529,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 530,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 531,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 532,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 533,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 534,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 535,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 536,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 537,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 538,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 539,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 540,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 541,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 542,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 543,
+   "action": "Skill",
+   "motion": 37,
+   "state": null,
+   "source": "GetSkillActionInfo motion=37 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 544,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1001,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1002,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1003,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1004,
+   "action": "Attack",
+   "motion": 11,
+   "state": null,
+   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1005,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1006,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1007,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1008,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1009,
+   "action": "Attack",
+   "motion": 2,
+   "state": null,
+   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1010,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1011,
+   "action": "Skill",
+   "motion": 16,
+   "state": null,
+   "source": "GetSkillActionInfo motion=16 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1012,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1013,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1014,
+   "action": "Idle",
+   "motion": 0,
+   "state": null,
+   "source": "GetSkillActionInfo motion=0 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1015,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1016,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1017,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1018,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 1019,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 2535,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  },
+  {
+   "skill": 2544,
+   "action": "Skill",
+   "motion": 8,
+   "state": null,
+   "source": "GetSkillActionInfo motion=8 (default 8 = ST_BEGIN_SKILL)"
+  }
+ ]
+}

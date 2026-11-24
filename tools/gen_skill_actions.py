@@ -40,6 +40,7 @@ from pathlib import Path
 
 DEFAULT_FACTS = Path("tools/windows_client_skill_actions.json")
 DEFAULT_EXTRA = Path("tools/skill_actions_extra.json")
+DEFAULT_RODECOMP = Path("tools/skill_actions_rodecomp.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
@@ -53,7 +54,7 @@ def validate_action(skill_id: int, action: str, kind: str) -> None:
         raise SystemExit(f"skill {skill_id}: unsupported {kind} action {action!r}")
 
 
-def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, str]]:
+def load_facts(path: Path, extra_path: Path | None = None, rodecomp_path: Path | None = None) -> list[tuple[int, str]]:
     payload = json.loads(path.read_text())
     actions: dict[int, str] = {}
     for skill_id, entry in payload["actions"].items():
@@ -88,6 +89,32 @@ def load_facts(path: Path, extra_path: Path | None = None) -> list[tuple[int, st
             validate_action(skill_id, action, "override")
             if skill_id not in actions:
                 raise SystemExit(f"skill {skill_id}: override for a skill no fact table lists")
+            actions[skill_id] = action
+
+    # Official decompilation table (highest priority): the 2026 client's
+    # `CSession::GetSkillActionInfo` motion for every learnable skill, mapped to
+    # the ACT action our entity layer plays. This supersedes the roBrowser dump
+    # wherever the two disagree (the dump plays the attack animation for ~125
+    # skills; the official client plays the cast gesture for most of them).
+    if rodecomp_path is not None and rodecomp_path.is_file():
+        rodecomp = json.loads(rodecomp_path.read_text())
+        for entry in rodecomp.get("overrides", []):
+            skill_id = int(entry["skill"])
+            action = entry["action"]
+            validate_action(skill_id, action, "rodecomp")
+            actions[skill_id] = action
+
+    # Official decompilation table (highest priority): the 2026 client's
+    # `CSession::GetSkillActionInfo` motion for every learnable skill, mapped to
+    # the ACT action the entity layer plays. It supersedes the roBrowser dump
+    # where they disagree (the dump uses the attack animation for ~125 skills;
+    # the official client plays the cast gesture for most of them).
+    if rodecomp_path is not None and rodecomp_path.is_file():
+        rodecomp = json.loads(rodecomp_path.read_text())
+        for entry in rodecomp.get("overrides", []):
+            skill_id = int(entry["skill"])
+            action = entry["action"]
+            validate_action(skill_id, action, "rodecomp")
             actions[skill_id] = action
 
     return sorted(actions.items())
@@ -134,11 +161,12 @@ def main() -> int:
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is out of date")
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
     parser.add_argument("--extra", default=str(DEFAULT_EXTRA))
+    parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP))
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
     payload = json.loads(Path(args.facts).read_text())
-    rows = load_facts(Path(args.facts), Path(args.extra))
+    rows = load_facts(Path(args.facts), Path(args.extra), Path(args.rodecomp))
     if not rows:
         raise SystemExit("no skill action facts found")
 
