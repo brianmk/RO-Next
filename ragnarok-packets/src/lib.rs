@@ -7802,3 +7802,396 @@ mod mail_packet_tests {
         }
     }
 }
+
+// ===========================================================================
+// NPC image / book, chat room and pincode packets (PACKETVER 20190605)
+//
+// The 2019 layouts below are taken from rAthena:
+//
+// * `ZC_SHOW_IMAGE2` 0x01B3 — `clif_cutin` (clif.cpp:2719-2730),
+// * `ZC_READ_BOOK` 0x0294 — `clif_readbook` (clif.cpp:18354-18361),
+// * chat room family 0x00D5..0x00E3 — `clif.cpp:4469-4680` and
+//   `clif_packetdb.hpp:85-92`,
+// * `HC_ACK_PINCODE` 0x08B9 (already declared as [`LoginPincodePacket`]) and
+//   the client answers 0x08B8/0x08BA — `char_clif.cpp:146-213`.
+// ===========================================================================
+
+/// `ZC_READ_BOOK` (0x0294), 10 bytes: `<book id>.L <page>.L`.
+///
+/// rAthena writes the packet by hand in `clif_readbook`
+/// (clif.cpp:18354-18361) because it has no `PACKET_*` struct. The text of the
+/// book is **not** part of the packet: the client reads it from its own
+/// `data\book\<book id>.txt` file, so only the id and the page are on the wire.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0294)]
+#[packet_size(10)]
+pub struct ReadBookPacket {
+    pub book_id: u32,
+    pub page: u32,
+}
+
+/// `ZC_ACK_CREATE_CHATROOM` (0x00D6), 3 bytes.
+///
+/// `clif_createchat` (clif.cpp:4475-4485). `flag`:
+/// `0` = created, `1` = limit exceeded, `2` = same room already exists.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00D6)]
+#[packet_size(3)]
+pub struct CreateChatRoomResultPacket {
+    pub flag: u8,
+}
+
+/// `ZC_ROOM_NEWENTRY` (0x00D7), variable length.
+///
+/// `clif_dispchat` (clif.cpp:4513-4532) announces a chat room to the
+/// surrounding players, including its owner, id, limit, current user count,
+/// status and title.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00D7)]
+#[variable_length]
+pub struct ChatRoomNewEntryPacket {
+    pub owner_id: AccountId,
+    pub chat_id: u32,
+    pub limit: u16,
+    pub users: u16,
+    pub room_type: u8,
+    #[length_remaining]
+    pub title: String,
+}
+
+/// `ZC_DESTROY_ROOM` (0x00D8), 6 bytes: the chat room closed.
+///
+/// `clif_clearchat` (clif.cpp:4560-4570).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00D8)]
+#[packet_size(6)]
+pub struct DestroyChatRoomPacket {
+    pub chat_id: u32,
+}
+
+/// `ZC_REFUSE_ENTER_ROOM` (0x00DA), 3 bytes.
+///
+/// `clif_joinchatfail` (clif.cpp:4579-4590). `result`:
+/// `0` = full, `1` = wrong password, `2` = kicked, `3` = success,
+/// `4` = not enough zeny, `5` = level too low, `6` = level too high,
+/// `7` = unsuitable job class.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DA)]
+#[packet_size(3)]
+pub struct RefuseEnterChatRoomPacket {
+    pub result: u8,
+}
+
+/// One member row of [`EnterChatRoomPacket`] (24 byte name + 4 byte role).
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct ChatRoomMember {
+    /// `0` = owner (gets the room menu), `1` = normal member.
+    pub role: u32,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_ENTER_ROOM` (0x00DB), variable length.
+///
+/// `clif_joinchatok` (clif.cpp:4593-4631). The title is not part of this
+/// packet; the client keeps the title from the `ZC_ROOM_NEWENTRY` it joined.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DB)]
+#[variable_length]
+pub struct EnterChatRoomPacket {
+    pub chat_id: u32,
+    #[repeating_remaining]
+    pub members: Vec<ChatRoomMember>,
+}
+
+/// `ZC_MEMBER_NEWENTRY` (0x00DC), 28 bytes: a member joined.
+///
+/// `clif_addchat` (clif.cpp:4634-4645).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DC)]
+#[packet_size(28)]
+pub struct ChatRoomMemberNewEntryPacket {
+    pub count: u16,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_MEMBER_EXIT` (0x00DD), 29 bytes: a member left or was kicked.
+///
+/// `clif_chat_leave` (clif.cpp:4663-4674).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DD)]
+#[packet_size(29)]
+pub struct ChatRoomMemberExitPacket {
+    pub count: u16,
+    #[length(24)]
+    pub name: String,
+    pub kicked: u8,
+}
+
+/// `ZC_CHANGE_CHATROOM` (0x00DF), variable length: room title/limit/status
+/// changed. `clif_changechatstatus` (clif.cpp:4534-4557).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DF)]
+#[variable_length]
+pub struct ChangeChatRoomPacket {
+    pub owner_id: AccountId,
+    pub chat_id: u32,
+    pub limit: u16,
+    pub users: u16,
+    pub flag: u8,
+    #[length_remaining]
+    pub title: String,
+}
+
+/// `ZC_ROLE_CHANGE` (0x00E1), 30 bytes: the room owner changed.
+///
+/// `clif_chat_role` (clif.cpp:4648-4660). `flag` is `0` for the new owner and
+/// `1` for a normal member.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00E1)]
+#[packet_size(30)]
+pub struct ChatRoomRoleChangePacket {
+    pub flag: u32,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `CZ_CREATE_CHATROOM` (0x00D5), variable length.
+///
+/// `clif_parse_CreateChatRoom` (clif.cpp:12320-12363). The password is a fixed
+/// 8 byte C string, the title fills the rest of the packet.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00D5)]
+#[variable_length]
+pub struct CreateChatRoomPacket {
+    pub limit: u16,
+    pub room_type: u8,
+    #[length(8)]
+    pub password: String,
+    #[length_remaining]
+    pub title: String,
+}
+
+/// `CZ_REQ_ENTER_ROOM` (0x00D9), 14 bytes: join a chat room.
+///
+/// `clif_parse_ChatAddMember` (clif.cpp:12367-12376).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00D9)]
+#[packet_size(14)]
+pub struct EnterChatRoomRequestPacket {
+    pub chat_id: u32,
+    #[length(8)]
+    pub password: String,
+}
+
+/// `CZ_CHANGE_CHATROOM` (0x00DE), variable length: change title/limit/status.
+///
+/// `clif_parse_ChatRoomStatusChange` (clif.cpp:12380-12405).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00DE)]
+#[variable_length]
+pub struct ChangeChatRoomRequestPacket {
+    pub limit: u16,
+    pub room_type: u8,
+    #[length(8)]
+    pub password: String,
+    #[length_remaining]
+    pub title: String,
+}
+
+/// `CZ_EXIT_ROOM` (0x00E3), 2 bytes: leave the current chat room.
+///
+/// `clif_parse_ChatLeave` (clif.cpp:12426-12431) has no payload.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00E3)]
+#[packet_size(2)]
+pub struct ExitChatRoomPacket {}
+
+/// `CZ_PINCODE_CHECK` (0x08B8), 10 bytes: answer to `HC_ACK_PINCODE` when the
+/// account already has a PIN.
+///
+/// `chclif_parse_pincode_check` (char_clif.cpp:189-213) reads the account id at
+/// offset 2 and four PIN bytes at offset 6. The bytes are obfuscated with the
+/// seed of the `HC_ACK_PINCODE` packet, see
+/// `korangar::pincode::encrypt_pincode`.
+#[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x08B8)]
+#[packet_size(10)]
+pub struct PincodeCheckPacket {
+    pub account_id: AccountId,
+    pub pin: [u8; 4],
+}
+
+/// `CZ_PINCODE_SET_NEW` (0x08BA), 10 bytes: set the first PIN of the account.
+///
+/// `chclif_parse_pincode_setnew` (char_clif.cpp:330-363).
+#[derive(Debug, Clone, Packet, ClientPacket, CharacterServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x08BA)]
+#[packet_size(10)]
+pub struct PincodeSetNewPacket {
+    pub account_id: AccountId,
+    pub pin: [u8; 4],
+}
+
+#[cfg(test)]
+mod content_packet_tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter};
+
+    use super::*;
+
+    trait PacketToBytesVec {
+        fn packet_to_bytes_vec(&self) -> Vec<u8>;
+    }
+
+    impl<T: PacketExt> PacketToBytesVec for T {
+        fn packet_to_bytes_vec(&self) -> Vec<u8> {
+            let mut writer = ByteWriter::new();
+            self.packet_to_bytes(&mut writer).unwrap();
+            writer.into_inner()
+        }
+    }
+
+    #[test]
+    fn read_book_is_the_hand_written_ten_byte_layout() {
+        let bytes = ReadBookPacket { book_id: 11017, page: 2 }.packet_to_bytes_vec();
+
+        assert_eq!(bytes.len(), 10);
+        assert_eq!(&bytes[..2], &[0x94, 0x02]);
+        assert_eq!(u32::from_le_bytes(bytes[2..6].try_into().unwrap()), 11017);
+        assert_eq!(u32::from_le_bytes(bytes[6..10].try_into().unwrap()), 2);
+    }
+
+    #[test]
+    fn create_chat_room_matches_the_2019_wire_layout() {
+        let bytes = CreateChatRoomPacket {
+            limit: 20,
+            room_type: 1,
+            password: String::new(),
+            title: "Trade".to_owned(),
+        }
+        .packet_to_bytes_vec();
+
+        // 2 header + 2 size + 2 limit + 1 type + 8 password + 5 title + the
+        // trailing NUL of the variable title. rAthena only requires
+        // `packetSize >= sizeof(PACKET_CZ_CREATE_CHATROOM)` (15) and copies
+        // `packetSize - 15 + 1` bytes, so the NUL is accepted (`clif.cpp:12335`).
+        assert_eq!(bytes.len(), 21);
+        assert_eq!(&bytes[..2], &[0xD5, 0x00]);
+        assert_eq!(u16::from_le_bytes(bytes[2..4].try_into().unwrap()) as usize, bytes.len());
+        assert_eq!(u16::from_le_bytes(bytes[4..6].try_into().unwrap()), 20);
+        assert_eq!(bytes[6], 1);
+        assert_eq!(&bytes[7..15], &[0; 8]);
+        assert_eq!(&bytes[15..20], b"Trade");
+        assert_eq!(bytes[20], 0);
+    }
+
+    #[test]
+    fn enter_and_exit_chat_room_use_the_2019_sizes() {
+        let enter = EnterChatRoomRequestPacket {
+            chat_id: 0x0102_0304,
+            password: String::new(),
+        }
+        .packet_to_bytes_vec();
+        assert_eq!(enter.len(), 14);
+        assert_eq!(&enter[..2], &[0xD9, 0x00]);
+        assert_eq!(u32::from_le_bytes(enter[2..6].try_into().unwrap()), 0x0102_0304);
+        assert_eq!(&enter[6..14], &[0; 8]);
+
+        let exit = ExitChatRoomPacket {}.packet_to_bytes_vec();
+        assert_eq!(exit, [0xE3, 0x00]);
+    }
+
+    #[test]
+    fn chat_room_new_entry_parses_owner_limit_and_title() {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x00D7u16.to_le_bytes());
+        // Size placeholder, patched below: 17 fixed bytes + title.
+        bytes.extend_from_slice(&0u16.to_le_bytes());
+        bytes.extend_from_slice(&42u32.to_le_bytes()); // owner
+        bytes.extend_from_slice(&7u32.to_le_bytes()); // chat id
+        bytes.extend_from_slice(&20u16.to_le_bytes()); // limit
+        bytes.extend_from_slice(&3u16.to_le_bytes()); // users
+        bytes.push(1); // public
+        bytes.extend_from_slice(b"Party");
+        let size = bytes.len() as u16;
+        bytes[2..4].copy_from_slice(&size.to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = ChatRoomNewEntryPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(packet.owner_id, AccountId(42));
+        assert_eq!(packet.chat_id, 7);
+        assert_eq!(packet.limit, 20);
+        assert_eq!(packet.users, 3);
+        assert_eq!(packet.room_type, 1);
+        assert_eq!(packet.title, "Party");
+    }
+
+    #[test]
+    fn enter_chat_room_parses_the_member_rows() {
+        let mut bytes = Vec::new();
+        bytes.extend_from_slice(&0x00DBu16.to_le_bytes());
+        bytes.extend_from_slice(&0u16.to_le_bytes());
+        bytes.extend_from_slice(&9u32.to_le_bytes()); // chat id
+
+        for (role, name) in [(0u32, "Owner"), (1u32, "Guest")] {
+            bytes.extend_from_slice(&role.to_le_bytes());
+            let mut name_bytes = [0u8; 24];
+            name_bytes[..name.len()].copy_from_slice(name.as_bytes());
+            bytes.extend_from_slice(&name_bytes);
+        }
+
+        let size = bytes.len() as u16;
+        bytes[2..4].copy_from_slice(&size.to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = EnterChatRoomPacket::packet_from_bytes(&mut reader).unwrap();
+
+        assert_eq!(packet.chat_id, 9);
+        assert_eq!(packet.members.len(), 2);
+        assert_eq!(packet.members[0].role, 0);
+        assert_eq!(packet.members[0].name, "Owner");
+        assert_eq!(packet.members[1].role, 1);
+        assert_eq!(packet.members[1].name, "Guest");
+    }
+
+    #[test]
+    fn pincode_requests_match_char_clif_layout() {
+        let check = PincodeCheckPacket {
+            account_id: AccountId(0x1122_3344),
+            pin: [b'1', b'2', b'3', b'4'],
+        }
+        .packet_to_bytes_vec();
+
+        assert_eq!(check.len(), 10);
+        assert_eq!(&check[..2], &[0xB8, 0x08]);
+        assert_eq!(u32::from_le_bytes(check[2..6].try_into().unwrap()), 0x1122_3344);
+        assert_eq!(&check[6..10], b"1234");
+
+        let set_new = PincodeSetNewPacket {
+            account_id: AccountId(1),
+            pin: [b'0'; 4],
+        }
+        .packet_to_bytes_vec();
+        assert_eq!(set_new.len(), 10);
+        assert_eq!(&set_new[..2], &[0xBA, 0x08]);
+    }
+}

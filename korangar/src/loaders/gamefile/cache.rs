@@ -53,7 +53,13 @@ pub fn sync_cache_archive(game_file_loader: &GameFileLoader, texture_loader: Arc
     let ffmpeg_available = is_ffmpeg_available();
 
     if !ffmpeg_available {
-        println!("FFmpeg not found. Video re-encoding will be skipped");
+        // The client itself cannot decode Bink: without FFmpeg no AV1 `.ivf`
+        // side-car is created and every `.bik` movie falls back to the
+        // placeholder texture at runtime.
+        println!(
+            "FFmpeg not found. Bink (.bik) decoding is not implemented in the client and the FFmpeg transcode to AV1 .ivf is skipped; \
+             in-game movies will use the placeholder texture."
+        );
     }
 
     let path = Path::new(CACHE_FILE_NAME);

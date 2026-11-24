@@ -967,6 +967,85 @@ pub enum NetworkEvent {
     ServerAnnouncement {
         text: String,
     },
+    /// The server asks the client to show an NPC illustration
+    /// (`ZC_SHOW_IMAGE2`, 0x01B3).
+    ///
+    /// `image_name` is the GRF texture name or path from the script `cutin`
+    /// command; `location` follows the `ImageLocation` enum of the packet
+    /// (`255` clears every displayed image).
+    DisplayImage {
+        image_name: String,
+        location: ImageLocation,
+    },
+    /// The server wants a book opened (`ZC_READ_BOOK`, 0x0294).
+    ///
+    /// The packet carries only the book id and the page; the text is stored in
+    /// the client archive under `data\book\<book id>.txt`.
+    OpenBook {
+        book_id: u32,
+        page: u32,
+    },
+    /// `HC_ACK_PINCODE` (0x08B9) answer of the character server.
+    ///
+    /// `state` is the rAthena `pincode_state`: `0`/`7` = passed, `1` = ask,
+    /// `2`/`4` = create a new PIN, `3` = expired (change required),
+    /// `8` = wrong PIN.
+    PincodeState {
+        pincode_seed: u32,
+        account_id: AccountId,
+        state: u16,
+    },
+    /// `ZC_ACK_CREATE_CHATROOM` (0x00D6).
+    ChatRoomCreated {
+        flag: u8,
+    },
+    /// `ZC_ROOM_NEWENTRY` (0x00D7): a nearby chat room was announced.
+    ChatRoomAnnounced {
+        owner_id: AccountId,
+        chat_id: u32,
+        limit: u16,
+        users: u16,
+        room_type: u8,
+        title: String,
+    },
+    /// `ZC_DESTROY_ROOM` (0x00D8).
+    ChatRoomDestroyed {
+        chat_id: u32,
+    },
+    /// `ZC_REFUSE_ENTER_ROOM` (0x00DA).
+    ChatRoomEnterRefused {
+        result: u8,
+    },
+    /// `ZC_ENTER_ROOM` (0x00DB): the local player joined a chat room.
+    ChatRoomEntered {
+        chat_id: u32,
+        members: Vec<ChatRoomMember>,
+    },
+    /// `ZC_MEMBER_NEWENTRY` (0x00DC).
+    ChatRoomMemberJoined {
+        count: u16,
+        name: String,
+    },
+    /// `ZC_MEMBER_EXIT` (0x00DD).
+    ChatRoomMemberLeft {
+        count: u16,
+        name: String,
+        kicked: bool,
+    },
+    /// `ZC_CHANGE_CHATROOM` (0x00DF).
+    ChatRoomChanged {
+        owner_id: AccountId,
+        chat_id: u32,
+        limit: u16,
+        users: u16,
+        room_type: u8,
+        title: String,
+    },
+    /// `ZC_ROLE_CHANGE` (0x00E1): the room owner changed.
+    ChatRoomRoleChanged {
+        flag: u32,
+        name: String,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

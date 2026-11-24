@@ -646,6 +646,42 @@ pub enum InputEvent {
     ChatMarkupClicked {
         link: ChatMarkupLink,
     },
+    /// Open or close the chat-room window (create/join face while not in a
+    /// room, member/message face while in one).
+    ToggleChatRoomWindow,
+    /// Open or close the emote picker grid.
+    ToggleEmotePickerWindow,
+    /// Create a chat room (`CZ_CREATE_CHATROOM`, 0x00D5).
+    CreateChatRoom {
+        title: String,
+        limit: u16,
+    },
+    /// Join an announced chat room (`CZ_REQ_ENTER_ROOM`, 0x00D9).
+    JoinChatRoom {
+        chat_id: u32,
+        title: String,
+        password: String,
+    },
+    /// Leave the current chat room (`CZ_EXIT_ROOM`, 0x00E3).
+    LeaveChatRoom,
+    /// Send a line into the open chat room (same `CZ_REQUEST_CHAT` path as the
+    /// normal chat window).
+    SendChatRoomMessage {
+        text: String,
+    },
+    /// Start or stop recording the packet stream to `client/replays/`.
+    ToggleReplayRecording,
+    /// Submit the 4 digit pincode of the character-selection prompt.
+    SubmitPincode {
+        code: String,
+    },
+    /// Close the pincode prompt without answering.
+    ClosePincodePrompt,
+    /// Open another page of the currently displayed book.
+    OpenBookPage {
+        book_id: u32,
+        page: u32,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {

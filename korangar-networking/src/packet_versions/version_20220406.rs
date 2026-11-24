@@ -110,7 +110,11 @@ where
     register_ignored_noop::<_, CharacterInfoPerPagePacket>(packet_handler)?;
     register_ignored_noop::<_, CharacterSlotPagePacket>(packet_handler)?;
     register_ignored_noop::<_, CharacterBanListPacket>(packet_handler)?;
-    register_ignored_noop::<_, LoginPincodePacket>(packet_handler)?;
+    packet_handler.register(|packet: LoginPincodePacket| NetworkEvent::PincodeState {
+        pincode_seed: packet.pincode_seed,
+        account_id: packet.account_id,
+        state: packet.state,
+    })?;
     register_ignored_noop::<_, Packet0b18>(packet_handler)?;
     packet_handler.register(|packet: CharacterSelectionSuccessPacket| {
         let login_data = CharacterServerLoginData {
@@ -1178,7 +1182,10 @@ where
         experience_type: packet.experience_type,
         experience_source: packet.experience_source,
     })?;
-    register_ignored_noop::<_, DisplayImagePacket>(packet_handler)?;
+    packet_handler.register(|packet: DisplayImagePacket| NetworkEvent::DisplayImage {
+        image_name: packet.image_name,
+        location: packet.location,
+    })?;
     // `ZC_STATE_CHANGE` (0x0229): live body/health/option/PK state updates
     // (sitting/standing changes are separate, they come as ZC_NOTIFY_ACT).
     packet_handler.register(|packet: StateChangePacket| NetworkEvent::StateChange {
@@ -1935,6 +1942,52 @@ where
         expelled: true,
     })?;
     packet_handler.register(|packet: GuildInviteResultPacket| NetworkEvent::GuildInviteResult { result: packet.result })?;
+    // NPC illustration (`cutin` script command). The image is rendered inside
+    // the dialog window; `ImageLocation::ClearAll` removes it again.
+    // `ZC_READ_BOOK` opens the client-side book reader.
+    packet_handler.register(|packet: ReadBookPacket| NetworkEvent::OpenBook {
+        book_id: packet.book_id,
+        page: packet.page,
+    })?;
+    // Chat room family. The 2019 rAthena packet db registers 0x00D5..0x00E3
+    // (clif_packetdb.hpp:85-92); the server-to-client side is handled here and
+    // the client-to-server requests are sent from `korangar/src/lib.rs`.
+    packet_handler.register(|packet: CreateChatRoomResultPacket| NetworkEvent::ChatRoomCreated { flag: packet.flag })?;
+    packet_handler.register(|packet: ChatRoomNewEntryPacket| NetworkEvent::ChatRoomAnnounced {
+        owner_id: packet.owner_id,
+        chat_id: packet.chat_id,
+        limit: packet.limit,
+        users: packet.users,
+        room_type: packet.room_type,
+        title: packet.title,
+    })?;
+    packet_handler.register(|packet: DestroyChatRoomPacket| NetworkEvent::ChatRoomDestroyed { chat_id: packet.chat_id })?;
+    packet_handler.register(|packet: RefuseEnterChatRoomPacket| NetworkEvent::ChatRoomEnterRefused { result: packet.result })?;
+    packet_handler.register(|packet: EnterChatRoomPacket| NetworkEvent::ChatRoomEntered {
+        chat_id: packet.chat_id,
+        members: packet.members,
+    })?;
+    packet_handler.register(|packet: ChatRoomMemberNewEntryPacket| NetworkEvent::ChatRoomMemberJoined {
+        count: packet.count,
+        name: packet.name,
+    })?;
+    packet_handler.register(|packet: ChatRoomMemberExitPacket| NetworkEvent::ChatRoomMemberLeft {
+        count: packet.count,
+        name: packet.name,
+        kicked: packet.kicked != 0,
+    })?;
+    packet_handler.register(|packet: ChangeChatRoomPacket| NetworkEvent::ChatRoomChanged {
+        owner_id: packet.owner_id,
+        chat_id: packet.chat_id,
+        limit: packet.limit,
+        users: packet.users,
+        room_type: packet.flag,
+        title: packet.title,
+    })?;
+    packet_handler.register(|packet: ChatRoomRoleChangePacket| NetworkEvent::ChatRoomRoleChanged {
+        flag: packet.flag,
+        name: packet.name,
+    })?;
 
     Ok(())
 }

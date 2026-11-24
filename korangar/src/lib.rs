@@ -45,7 +45,9 @@ pub mod logging;
 mod login_server;
 #[cfg(feature = "debug")]
 mod networking;
+mod pincode;
 mod renderer;
+mod replay;
 mod settings;
 mod system;
 mod world;
@@ -73,6 +75,7 @@ use korangar_debug::profiling::Profiler;
 use korangar_interface::application::Clip;
 use korangar_interface::layout::MouseButton;
 use korangar_interface::{Interface, MouseMode, take_layout_profile};
+use korangar_loaders::FileLoader;
 use korangar_messages::{MessageDomain, format_message};
 use korangar_networking::{
     DisconnectReason, HotkeyState, ItemQuantity, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem,
@@ -93,6 +96,7 @@ use settings::{
     AudioSettings, AudioSettingsPathExt, AuraStyle, GraphicsSettingsCapabilities, GraphicsSettingsPathExt, InterfaceSettings,
     InterfaceSettingsPathExt,
 };
+use state::content_windows::ContentWindowsPathExt;
 use state::hotbar::{HOTBAR_ENTRIES_PER_TAB, HOTBAR_TAB_COUNT, HotbarPathExt};
 use state::inventory::InventoryPathExt;
 use state::lifecycle::{
@@ -169,7 +173,23 @@ struct ClientPacketCallback;
 
 #[cfg(not(feature = "debug"))]
 impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
+    fn incoming_packet<Packet>(&self, packet: &Packet)
+    where
+        Packet: ragnarok_packets::Packet,
+    {
+        crate::replay::record_packet(crate::replay::DIRECTION_INCOMING, packet);
+    }
+
+    fn outgoing_packet<Packet>(&self, packet: &Packet)
+    where
+        Packet: ragnarok_packets::Packet,
+    {
+        crate::replay::record_packet(crate::replay::DIRECTION_OUTGOING, packet);
+    }
+
     fn unknown_packet(&self, bytes: Vec<u8>) {
+        crate::replay::record_bytes(crate::replay::DIRECTION_INCOMING, &bytes);
+
         let header = bytes
             .get(..2)
             .map(|header| u16::from_le_bytes([header[0], header[1]]))
@@ -4519,7 +4539,13 @@ impl Client {
                         .follow_mut(client_state().character_slots())
                         .set_characters(characters);
 
-                    if !self.interface.is_window_with_class_open(WindowClass::CharacterSelection) {
+                    // While the pincode prompt is up the official client blocks
+                    // character selection; a selection attempt would make the char
+                    // server disconnect the session (`chclif_parse` only allows
+                    // 0x08B8/0x08BE/0x08C5/0x09A1 while the PIN is not verified).
+                    let pincode_visible = self.client_state.follow(client_state().content_windows().pincode()).visible;
+
+                    if !pincode_visible && !self.interface.is_window_with_class_open(WindowClass::CharacterSelection) {
                         // TODO: this will do one unnecessary restore_focus. check
                         // if that will be problematic
 
@@ -5194,11 +5220,28 @@ impl Client {
                     // event (broadcast packets); a `Broadcast` color alone is
                     // also used for normal player chat, so it must not open the
                     // announce box.
+                    // While a chat room is open the same line is also shown in the
+                    // room window (own lines arrive as `ZC_NOTIFY_PLAYERCHAT`,
+                    // other members as `ZC_NOTIFY_CHAT`).
+                    if self.client_state.follow(client_state().content_windows().chat_room()).is_in_room() {
+                        self.client_state
+                            .follow_mut(client_state().content_windows().chat_room())
+                            .push_message(text.clone(), false);
+                        self.interface.invalidate_layouts();
+                    }
+
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(text, color));
                 }
                 NetworkEvent::OverheadChatMessage { entity_id, text, color } => {
+                    if self.client_state.follow(client_state().content_windows().chat_room()).is_in_room() {
+                        self.client_state
+                            .follow_mut(client_state().content_windows().chat_room())
+                            .push_message(text.clone(), false);
+                        self.interface.invalidate_layouts();
+                    }
+
                     self.chat_bubbles.push(entity_id, text, color, client_tick);
                 }
                 NetworkEvent::WhisperReceived {
@@ -5270,6 +5313,157 @@ impl Client {
                 NetworkEvent::ServerAnnouncement { text } => {
                     let text = text.replace(['\r', '\n'], " ");
                     self.push_notification(NotificationKind::Announce, text, client_tick);
+                }
+                NetworkEvent::DisplayImage { image_name, location } => {
+                    if matches!(location, ragnarok_packets::ImageLocation::ClearAll) {
+                        self.client_state.follow_mut(client_state().dialog_window()).clear_image();
+                    } else if let Some(texture) = load_cutin_texture(&self.game_file_loader, &self.texture_loader, &image_name) {
+                        self.client_state.follow_mut(client_state().dialog_window()).set_image(texture);
+                    }
+
+                    self.interface.invalidate_layouts();
+                    self.interface.open_window(DialogWindow::new(client_state().dialog_window()));
+                }
+                NetworkEvent::OpenBook { book_id, page } => {
+                    let pages = load_book_pages(&self.game_file_loader, book_id);
+                    self.interface.close_window_with_class(WindowClass::Book);
+                    self.interface.open_window(BookWindow::new(book_id, page, pages));
+                }
+                NetworkEvent::PincodeState {
+                    pincode_seed,
+                    account_id,
+                    state,
+                } => {
+                    let outcome = self
+                        .client_state
+                        .follow_mut(client_state().content_windows().pincode())
+                        .handle_state(pincode_seed, account_id, state);
+
+                    match outcome {
+                        crate::state::content_windows::PincodePromptOutcome::Open => {
+                            self.interface.close_window_with_class(WindowClass::Pincode);
+                            self.interface.close_window_with_class(WindowClass::CharacterSelection);
+                            self.interface
+                                .open_window(PincodeWindow::new(client_state().content_windows().pincode()));
+                        }
+                        crate::state::content_windows::PincodePromptOutcome::Passed => {
+                            self.interface.close_window_with_class(WindowClass::Pincode);
+                            self.open_character_selection_if_closed();
+                        }
+                        crate::state::content_windows::PincodePromptOutcome::Unsupported(message) => {
+                            self.interface.close_window_with_class(WindowClass::Pincode);
+                            self.open_character_selection_if_closed();
+                            self.push_chat_message(ChatMessage::new(message.to_owned(), MessageColor::Error));
+                        }
+                    }
+                }
+                NetworkEvent::ChatRoomCreated { flag } => match flag {
+                    0 => {
+                        let player_name = self.client_state.follow(client_state().player_name()).clone();
+                        self.client_state
+                            .follow_mut(client_state().content_windows().chat_room())
+                            .created(&player_name);
+                        self.interface.close_window_with_class(WindowClass::ChatRoom);
+                        self.interface
+                            .open_window(ChatRoomWindow::new(client_state().content_windows().chat_room()));
+                    }
+                    1 => self
+                        .client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .set_error("The chat room limit was exceeded.".to_owned()),
+                    _ => self
+                        .client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .set_error("A chat room with the same name already exists.".to_owned()),
+                },
+                NetworkEvent::ChatRoomAnnounced {
+                    owner_id,
+                    chat_id,
+                    limit,
+                    users,
+                    room_type,
+                    title,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .announced(crate::state::content_windows::ChatRoomSummary {
+                            owner_id,
+                            chat_id,
+                            title,
+                            users,
+                            limit,
+                            room_type,
+                        });
+                    self.interface.invalidate_layouts();
+                }
+                NetworkEvent::ChatRoomDestroyed { chat_id } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .destroyed(chat_id);
+                    self.interface.invalidate_layouts();
+                }
+                NetworkEvent::ChatRoomEnterRefused { result } => {
+                    let message = match result {
+                        0 => "The chat room is full.",
+                        1 => "The chat room password is wrong.",
+                        2 => "You were kicked from that chat room.",
+                        4 => "You do not have enough zeny for that chat room.",
+                        5 => "Your level is too low for that chat room.",
+                        6 => "Your level is too high for that chat room.",
+                        7 => "Your job class cannot enter that chat room.",
+                        _ => "The server refused to enter the chat room.",
+                    };
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .set_error(message.to_owned());
+                    self.interface.invalidate_layouts();
+                }
+                NetworkEvent::ChatRoomEntered { chat_id, members } => {
+                    let members: Vec<(String, bool)> = members.iter().map(|member| (member.name.clone(), member.role == 0)).collect();
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .entered(chat_id, &members);
+                    self.interface.close_window_with_class(WindowClass::ChatRoom);
+                    self.interface
+                        .open_window(ChatRoomWindow::new(client_state().content_windows().chat_room()));
+                }
+                NetworkEvent::ChatRoomMemberJoined { name, .. } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .member_joined(&name);
+                    self.interface.invalidate_layouts();
+                }
+                NetworkEvent::ChatRoomMemberLeft { name, kicked, .. } => {
+                    let local_player_name = self.client_state.follow(client_state().player_name()).clone();
+                    let local_left = self
+                        .client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .member_left(&name, kicked, &local_player_name);
+
+                    if local_left {
+                        self.interface.close_window_with_class(WindowClass::ChatRoom);
+                    } else {
+                        self.interface.invalidate_layouts();
+                    }
+                }
+                NetworkEvent::ChatRoomChanged {
+                    owner_id,
+                    chat_id,
+                    limit,
+                    users,
+                    room_type,
+                    title,
+                } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .changed(chat_id, title, limit, room_type, owner_id, users);
+                    self.interface.invalidate_layouts();
+                }
+                NetworkEvent::ChatRoomRoleChanged { flag, name } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .role_changed(flag, &name);
+                    self.interface.invalidate_layouts();
                 }
                 NetworkEvent::UpdateEntityDetails {
                     entity_id,
@@ -7815,6 +8009,133 @@ impl Client {
                         }
                     }
                 }
+                InputEvent::ToggleChatRoomWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::ChatRoom) {
+                            true => self.interface.close_window_with_class(WindowClass::ChatRoom),
+                            false => self
+                                .interface
+                                .open_window(ChatRoomWindow::new(client_state().content_windows().chat_room())),
+                        }
+                    }
+                }
+                InputEvent::ToggleEmotePickerWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::EmotePicker) {
+                            true => self.interface.close_window_with_class(WindowClass::EmotePicker),
+                            false => self.interface.open_window(EmotePickerWindow),
+                        }
+                    }
+                }
+                InputEvent::CreateChatRoom { title, limit } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .create_title = title.clone();
+
+                    match self.networking_system.create_chat_room(title, String::new(), limit, 1) {
+                        Ok(()) => {}
+                        Err(_) => {
+                            self.client_state
+                                .follow_mut(client_state().content_windows().chat_room())
+                                .set_error("Not connected to the map server.".to_owned());
+                            self.interface.invalidate_layouts();
+                        }
+                    }
+                }
+                InputEvent::JoinChatRoom { chat_id, title, password } => {
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .set_joining_title(title);
+
+                    if self.networking_system.enter_chat_room(chat_id, password).is_err() {
+                        self.client_state
+                            .follow_mut(client_state().content_windows().chat_room())
+                            .set_error("Not connected to the map server.".to_owned());
+                        self.interface.invalidate_layouts();
+                    }
+                }
+                InputEvent::LeaveChatRoom => {
+                    let _ = self.networking_system.leave_chat_room();
+                    self.client_state
+                        .follow_mut(client_state().content_windows().chat_room())
+                        .leave_locally();
+                    self.interface.invalidate_layouts();
+                }
+                InputEvent::SendChatRoomMessage { text } => {
+                    let player_name = self.client_state.follow(client_state().player_name()).clone();
+
+                    if let Err(_) = self.networking_system.send_chat_message(&player_name, &text) {
+                        self.client_state
+                            .follow_mut(client_state().content_windows().chat_room())
+                            .set_error("Not connected to the map server.".to_owned());
+                    }
+                }
+                InputEvent::ToggleReplayRecording => {
+                    if crate::replay::is_recording() {
+                        let path = crate::replay::stop();
+                        let replay = self.client_state.follow_mut(client_state().content_windows().replay());
+                        replay.recording = false;
+                        replay.last_path = path.as_ref().map(|path| path.display().to_string()).unwrap_or_default();
+
+                        if let Some(path) = path {
+                            self.push_chat_message(ChatMessage::new(
+                                format!("Replay recording stopped: {}", path.display()),
+                                MessageColor::Information,
+                            ));
+                        }
+                    } else {
+                        match crate::replay::start() {
+                            Ok(path) => {
+                                let replay = self.client_state.follow_mut(client_state().content_windows().replay());
+                                replay.recording = true;
+                                replay.last_path = path.display().to_string();
+                                self.push_chat_message(ChatMessage::new(
+                                    format!("Replay recording started: {}", path.display()),
+                                    MessageColor::Information,
+                                ));
+                            }
+                            Err(error) => {
+                                self.push_chat_message(ChatMessage::new(
+                                    format!("Could not start replay recording: {error}"),
+                                    MessageColor::Error,
+                                ));
+                            }
+                        }
+                    }
+                }
+                InputEvent::SubmitPincode { code } => {
+                    let (seed, account_id, is_new) = {
+                        let pincode = self.client_state.follow(client_state().content_windows().pincode());
+                        (pincode.seed, pincode.account_id, pincode.is_new)
+                    };
+
+                    match crate::pincode::encrypt_pincode(seed, &code) {
+                        Some(pin) => {
+                            if self.networking_system.send_pincode(account_id, pin, is_new).is_ok() {
+                                self.client_state
+                                    .follow_mut(client_state().content_windows().pincode())
+                                    .code
+                                    .clear();
+                            } else {
+                                self.client_state.follow_mut(client_state().content_windows().pincode()).error =
+                                    "Not connected to the character server.".to_owned();
+                            }
+                        }
+                        None => {
+                            self.client_state.follow_mut(client_state().content_windows().pincode()).error =
+                                "Enter exactly 4 digits.".to_owned();
+                        }
+                    }
+                }
+                InputEvent::ClosePincodePrompt => {
+                    self.client_state.follow_mut(client_state().content_windows().pincode()).dismiss();
+                    self.interface.close_window_with_class(WindowClass::Pincode);
+                }
+                InputEvent::OpenBookPage { book_id, page } => {
+                    let pages = load_book_pages(&self.game_file_loader, book_id);
+                    self.interface.close_window_with_class(WindowClass::Book);
+                    self.interface.open_window(BookWindow::new(book_id, page, pages));
+                }
                 InputEvent::CloseTopWindow => {
                     let pending_warp_point = self.client_state.follow(client_state().dialog_window()).warp_point_skill();
                     let dialog_was_open = self.interface.is_window_with_class_open(WindowClass::Dialog);
@@ -9730,6 +10051,18 @@ impl Client {
     /// Open the character selection window, centred in the available screen
     /// area, and start the anti-crash selection cooldown if the client just
     /// returned from a map session.
+    fn open_character_selection_if_closed(&mut self) {
+        if !self.interface.is_window_with_class_open(WindowClass::CharacterSelection) {
+            #[cfg(not(feature = "debug"))]
+            self.interface.close_all_windows();
+
+            #[cfg(feature = "debug")]
+            self.interface.close_all_windows_except(DEBUG_WINDOWS);
+
+            self.open_character_selection_window();
+        }
+    }
+
     fn open_character_selection_window(&mut self) {
         self.client_state
             .follow_mut(client_state().character_selection_cooldown())
@@ -9756,6 +10089,12 @@ impl Client {
         // re-selection until the character selection window is shown and the
         // grace period started.
         self.client_state.follow_mut(client_state().character_selection_cooldown()).arm();
+        // Chat rooms and the pincode prompt belong to the previous map/account
+        // session; never carry them into the character selection screen.
+        self.client_state
+            .follow_mut(client_state().content_windows().chat_room())
+            .leave_locally();
+        self.client_state.follow_mut(client_state().content_windows().pincode()).dismiss();
 
         self.map = None;
         // The same-map teleport fast path must never apply to the next character
@@ -11302,6 +11641,76 @@ fn load_item_card_icons(
     })
 }
 
+/// Candidate archive paths for the `cutin` / `ZC_SHOW_IMAGE2` image name.
+///
+/// The 2019 server sends the bare script name (for example `kafra_01`); the
+/// classic client stores cut-ins under `data\texture\유저인터페이스\illust`.
+/// Servers may also send a path with an extension, and NPC/monster portraits
+/// (`monster\...`, `npc\...`) are accepted as a fallback.
+fn cutin_texture_candidates(image_name: &str) -> Vec<String> {
+    let name = image_name.trim().trim_end_matches('\0').trim();
+    let name = name.replace('/', "\\");
+
+    if name.is_empty() {
+        return Vec::new();
+    }
+
+    let has_extension = [".bmp", ".png", ".tga", ".jpg", ".jpeg"]
+        .iter()
+        .any(|extension| name.to_ascii_lowercase().ends_with(extension));
+    let has_directory = name.contains('\\');
+
+    let mut candidates = Vec::new();
+
+    // A full (or already `data\texture` relative) path wins over the inferred
+    // locations.
+    if has_directory || has_extension {
+        candidates.push(name.clone());
+    }
+
+    let stem = name.trim_end_matches(".bmp").trim_end_matches(".png").trim_end_matches(".tga");
+
+    for extension in ["bmp", "png", "tga"] {
+        candidates.push(format!("유저인터페이스\\illust\\{stem}.{extension}"));
+    }
+
+    for directory in ["monster", "npc"] {
+        candidates.push(format!("유저인터페이스\\illust\\{directory}\\{stem}.bmp"));
+        candidates.push(format!("{directory}\\{stem}.bmp"));
+    }
+
+    candidates.push(format!("{stem}.bmp"));
+
+    candidates.dedup();
+    candidates
+}
+
+/// Load the NPC illustration of `ZC_SHOW_IMAGE2` (0x01B3) from the archive.
+fn load_cutin_texture(game_file_loader: &GameFileLoader, texture_loader: &TextureLoader, image_name: &str) -> Option<Arc<Texture>> {
+    for candidate in cutin_texture_candidates(image_name) {
+        if game_file_loader.get(&format!("data\\texture\\{candidate}")).is_ok() {
+            return texture_loader.get_or_load(&candidate, ImageType::Color).ok();
+        }
+    }
+
+    None
+}
+
+/// Load and paginate `data\book\<book id>.txt`.
+///
+/// The classic book files are EUC-KR encoded; [`book_pages`] drops the leading
+/// `%RRGGBB` background command and splits the remaining text into fixed size
+/// pages. A missing file yields an empty page list, which the book window
+/// renders as a clear placeholder.
+fn load_book_pages(game_file_loader: &GameFileLoader, book_id: u32) -> Vec<Vec<String>> {
+    let Ok(bytes) = game_file_loader.get(&format!("data\\book\\{book_id}.txt")) else {
+        return Vec::new();
+    };
+
+    let (text, ..) = encoding_rs::EUC_KR.decode(&bytes);
+    book_pages(&text)
+}
+
 /// Returns `true` if the given environment variable is set to a truthy value.
 fn environment_flag(variable: &str) -> bool {
     std::env::var(variable).is_ok_and(|value| matches!(value.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes" | "on"))
@@ -12443,7 +12852,8 @@ mod tests {
     use ragnarok_bytes::{ByteWriter, ToBytes};
     use ragnarok_packets::{AmmunitionActionType, AttackRange, BuyItemResult, JobId, SkillId, SkillLevel, SkillType};
 
-    use super::{ammunition_action_code, buy_item_result_code, can_move_while_casting, is_same_map_teleport};
+    use super::{ammunition_action_code, buy_item_result_code, can_move_while_casting, cutin_texture_candidates, is_same_map_teleport};
+    use crate::interface::windows::book_pages;
     use crate::state::lifecycle::SessionState;
     use crate::state::skills::LearnedSkill;
 
@@ -12714,5 +13124,39 @@ mod tests {
             assert_eq!(ammunition_action_code(&action), code);
             assert_eq!(wire_code(&action), code, "wire drift for {action:?}");
         }
+    }
+    #[test]
+    fn cutin_names_resolve_to_the_classic_illust_directory_first() {
+        let candidates = cutin_texture_candidates("kafra_01");
+
+        assert_eq!(candidates[0], "유저인터페이스\\illust\\kafra_01.bmp");
+        assert!(!candidates.is_empty());
+        // Monster/NPC portrait fallbacks are present for servers that send a
+        // sprite name instead of a cut-in name.
+        assert!(candidates.iter().any(|candidate| candidate == "monster\\kafra_01.bmp"));
+        assert!(candidates.iter().any(|candidate| candidate == "npc\\kafra_01.bmp"));
+    }
+
+    #[test]
+    fn cutin_paths_with_extension_are_kept_verbatim() {
+        let candidates = cutin_texture_candidates("monster\\1002.bmp");
+        assert_eq!(candidates[0], "monster\\1002.bmp");
+        assert!(cutin_texture_candidates("   ").is_empty());
+    }
+
+    #[test]
+    fn book_pages_drop_the_background_command_and_split_by_line_count() {
+        let mut text = String::from("%faf0e6\r\n");
+        for index in 0..32 {
+            text.push_str(&format!("line {index}\r\n"));
+        }
+
+        let pages = book_pages(&text);
+        assert_eq!(pages.len(), 3);
+        assert_eq!(pages[0].len(), crate::interface::windows::BOOK_LINES_PER_PAGE);
+        assert_eq!(pages[0][0], "line 0");
+        assert_eq!(pages[2].len(), 2);
+        assert_eq!(pages[2][1], "line 31");
+        assert!(book_pages("").is_empty());
     }
 }

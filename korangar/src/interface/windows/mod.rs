@@ -1,5 +1,6 @@
 mod audio_settings;
 mod big_map;
+mod book;
 mod buff_bar;
 mod buy;
 mod buy_cart;
@@ -12,10 +13,12 @@ mod character_info;
 mod character_overview;
 mod character_selection;
 mod chat;
+mod chat_room;
 #[cfg(feature = "debug")]
 mod commands;
 mod context_menu;
 mod dialog;
+mod emote_picker;
 mod equipment;
 mod error;
 #[cfg(feature = "debug")]
@@ -38,6 +41,7 @@ mod notification_hud;
 #[cfg(feature = "debug")]
 mod packet_inspector;
 mod party;
+mod pincode;
 #[cfg(feature = "debug")]
 mod profiler;
 mod quest_log;
@@ -64,6 +68,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::audio_settings::AudioSettingsWindow;
 pub use self::big_map::BigMapWindow;
+pub use self::book::{BOOK_LINES_PER_PAGE, BookWindow, book_pages};
 pub use self::buff_bar::{BAR_STRIP_WIDTH, BuffBarWindow};
 pub use self::buy::BuyWindow;
 pub use self::buy_cart::BuyCartWindow;
@@ -76,10 +81,12 @@ pub use self::character_info::CharacterInfoWindow;
 pub use self::character_overview::CharacterOverviewWindow;
 pub use self::character_selection::{CharacterSelectionWindow, character_selection_window_position};
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
+pub use self::chat_room::ChatRoomWindow;
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
 pub use self::context_menu::{CharacterContextMenuWindow, ItemContextMenuWindow, ItemStorageAction};
 pub use self::dialog::{DialogWindow, DialogWindowState};
+pub use self::emote_picker::EmotePickerWindow;
 pub use self::equipment::EquipmentWindow;
 pub use self::error::ErrorWindow;
 #[cfg(feature = "debug")]
@@ -103,6 +110,7 @@ pub use self::notification_hud::{NOTIFICATION_HUD_WIDTH, NotificationHudWindow};
 #[cfg(feature = "debug")]
 pub use self::packet_inspector::PacketInspectorWindow;
 pub use self::party::{PartyInviteWindow, PartyWindow};
+pub use self::pincode::PincodeWindow;
 #[cfg(feature = "debug")]
 pub use self::profiler::{ProfilerWindow, ProfilerWindowState};
 pub use self::quest_log::QuestWindow;
@@ -130,10 +138,12 @@ pub enum WindowClass {
     AudioSettings,
     BigMap,
     BuffBar,
+    Book,
     Buy,
     BuyCart,
     BuyOrSell,
     Chat,
+    ChatRoom,
     CharacterCreation,
     CharacterDeletion,
     ContextMenu,
@@ -147,6 +157,7 @@ pub enum WindowClass {
     Hotbar,
     Inventory,
     ItemInfo,
+    EmotePicker,
     Equipment,
     SkillTree,
     SkillDescription,
@@ -169,6 +180,7 @@ pub enum WindowClass {
     Guild,
     Quest,
     PartyInvite,
+    Pincode,
     NotificationHud,
     Respawn,
     SelectServer,
