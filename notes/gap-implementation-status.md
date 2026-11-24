@@ -1,42 +1,49 @@
 # Gap implementation status
 
 Tracking the gaps from `rodecomp-game-gap-audit.md`. Order = player impact.
+Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 
-Done in this batch (5 parallel agents + lead): 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 14, 15, 18, 19, 27.
-
-| # | gap | status | commit |
+| # | gap | status | commits |
 | --- | --- | --- | --- |
 | 1 | Item drop (`CZ_ITEM_THROW`) | **done** | `a8acbc16` |
 | 2 | NPC text/number input (`ZC_OPEN_EDITDLG(STR)`) | **done** | `91b00672` |
-| 3 | Cart inventory (load/unload pushcart) | **done** | `5fa9dd91` |
+| 3 | Cart inventory | **done** | `5fa9dd91` |
 | 4 | Buy from another player's vending shop | **done** | `5fa9dd91`, `6fec220f` |
-| 5 | Guild system (window, members, positions, notice, actions) | **done** | `b78fc9a7` |
-| 6 | Rodex / mail (list, read, claim, delete) | **done** | `fc030b7f` |
-| 7 | Costume / shadow-gear slots | in progress (gap-render) | — |
-| 8 | Shield and robe rendering | in progress (gap-render) | — |
+| 5 | Guild system (info, members, positions, notice, invite/expel/leave) | **done** | `b78fc9a7` |
+| 6 | Rodex mail (list, read, claim, delete) | **done** | `fc030b7f` |
+| 7 | Costume / shadow-gear slots | **done** | `af61c058` |
+| 8 | Shield and robe rendering | **done** (per-motion draw tables not parsed) | `af61c058` |
 | 9 | Skill cooldown display | **done** | `1108f88f` |
 | 10 | Battle mode `/bm` | **done** | `1108f88f` |
-| 11 | Item/Navi/URL links in chat + NPC text | **done** | `507562f4` |
+| 11 | Item/Navi/URL links in chat + NPC text | **done** | `507562f4`, `20b0a154` |
 | 12 | Item comparison pane | **done** | `1108f88f` |
-| 13 | PvP/GvG/WoE targeting rules (`map_flags`) | in progress (gap-render) | — |
-| 14 | Hotbar 2×38 + F1–F12 | **done (2×9 UI, all 4 bars stored)** | `1108f88f` |
+| 13 | PvP/GvG/WoE flags / map properties | **flags exposed; targeting rules not enforced** | `af61c058` |
+| 14 | Hotbar 2 bars + F1–F12 | **done** (2×9 shown; 2 quick slots unrendered) | `1108f88f` |
 | 15 | Key rebinding UI + settings surface | **done** | `1108f88f` |
-| 16 | Refine / repair / identify / card composition | **done** | `31f6017c` |
+| 16 | Refine / repair / identify / card insert | **done** | `31f6017c` |
 | 17 | Bank (cash shop dropped by user decision) | **done** | `8aae9953` |
-| 18 | Whisper windows + chat tabs | **done** | `507562f4` |
+| 18 | Whisper windows + chat tabs | **done** (block list has no 2019 packet) | `507562f4` |
 | 19 | Head marks (`opt1`/`opt2`) | **done** | `507562f4` |
-| 20 | Party chat tab + party settings | in progress (gap-systems) | — |
-| 21 | Achievements | in progress (gap-content1) | — |
-| 22 | Navigation / path guide | in progress (gap-content1) | — |
-| 23 | Party booking | in progress (gap-systems) | — |
-| 24 | Clan | in progress (gap-systems) | — |
-| 25 | Pet / homunculus / mercenary | in progress (gap-systems) | — |
-| 26 | Monster DB + drop tables | in progress (gap-content1) | — |
-| 27 | Notification HUD (announce/pickup/level-up/quest banner) | **done** | `507562f4` |
-| 28 | Sky, lightmaps, scene fog | in progress (gap-render) | — |
-| 29 | Map cell updates / map properties | in progress (gap-render) | — |
-| 30 | NPC image / book window (notice/tip: no 2019 packet) | **done** | `8f738c12` |
+| 20 | Party chat tab + party settings | **done** | `507562f4`, `3d48d712` |
+| 21 | Achievements | **done** (titles need client Lua data) | `20b0a154` |
+| 22 | Navigation / path guide | **done** (client-side, no 2019 server packet) | `20b0a154` |
+| 23 | Party booking / LFG | **done** (outgoing join request needs PACKETVER ≥ 20191204) | `3d48d712` |
+| 24 | Clan | **done** (no 2019 member-list packet) | `3d48d712` |
+| 25 | Pet / homunculus / mercenary | **info windows done** (AI/commands out of scope) | `3d48d712` |
+| 26 | Monster DB + drop tables | **DB + Sense done; drops need server mob DB** | `20b0a154` |
+| 27 | Notification HUD | **done** | `507562f4` |
+| 28 | Sky, lightmaps, scene fog | **done** (fog needs a map with BG_Fog) | `af61c058` |
+| 29 | Dynamic cell updates | **done** | `af61c058` |
+| 30 | NPC image + book (notice/tip, transport: no 2019 packet) | **done** | `8f738c12` |
 | 31 | Chat rooms, emotes picker | **done** | `8f738c12` |
-| 32 | Bink movies | documented gap (needs decoder) | `8f738c12` |
-| 33 | Replay | recording only (playback todo) | `8f738c12` |
-| 34 | Pincode prompt (page-slot/config todo) | **done** | `8f738c12` |
+| 32 | Bink movies | **documented gap** (needs a Bink decoder; IVF side-cars work) | `8f738c12` |
+| 33 | Replay | **recording only** (playback not implemented) | `8f738c12` |
+| 34 | Pincode prompt (page-slot list / server config unassigned) | **done** | `8f738c12` |
+
+## Known remaining work
+- Replay playback.
+- Bink video decoding (only pre-transcoded `.ivf` side-cars play).
+- Drop tables in the monster DB (needs the server mob DB).
+- Per-motion robe/shield draw tables (`DrawOnTop`, `2dlayerdir`).
+- PvP/PK targeting restrictions (flags are exposed; rules not enforced).
+- In-game visual verification of batch 2 features (build + unit tests only).
