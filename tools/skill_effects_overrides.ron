@@ -2,45 +2,43 @@
 //
 // Consumed by `tools/gen_skill_effects.py --overrides` (default: this file).
 // Every descriptor here **replaces** the whole (skill, phase) entry of the
-// merged data. Used where the decompiled client implementation supersedes the
-// community effect table.
+// merged data.
 //
 // Asura Strike (`MO_EXTREMITYFIST`, 271) has no `SKILL_EFFECT_INFO_LIST` entry;
-// the original client draws it from hard-coded code:
-//   EF_BEGINASURA (328, duration 1000 ms) -> CRagEffect::AsuraStrike
-//     (RagEffect.cpp:14187):
-//     state 0 : two `effect\ring_white.tga` quads (sizes 45/25) + EF_BeginSpell.wav
-//     state 1 : PP_ASURACASTING with `effect\asura3/2/1.tga` rising above the caster
-//     state 21: PP_ASURACASTING with `effect\asura4/5/6.tga` falling
-// The six textures are the kanji of "阿修羅覇凰拳"; each glyph is a stack of
-// billboards rising 13 units/frame, so the original shows tall kanji columns,
-// not a latin banner.
+// the original client hard-codes it (EF_BEGINASURA, 1 s, RagEffect.cpp:14187):
+//   - two `effect\\ring_white.tga` waves + EF_BeginSpell.wav at the cast start,
+//   - the six kanji of 阿修羅覇凰拳 (effect\asura1..6.tga) as huge dark glyphs;
+//     in the original they appear one after another during the cast (with a
+//     cast time; instant casts skip them), and
+//   - the impact flash at the strike.
+// The textures are white with alpha; the client renders them dark, which is
+// why the glyphs are tinted near-black instead of additive.
 (
     provenance: "hand-written replacements for official-table rows superseded by decompiled client code (rodecomp)",
     effects: [
         (skill: 271, phase: Cast, action: Skill, layers: [
             (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 350, height: 2.0, bottom_radius: 6.0, top_radius: 22.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
             (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 350, delay_ms: 40, height: 2.0, bottom_radius: 4.0, top_radius: 14.0, grow: TopRadius, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (0.0, -2.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 80, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (0.0, 8.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 140, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (0.0, 18.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 200, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (0.0, -2.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 80, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (0.0, 8.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 140, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (0.0, 18.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 200, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", offset: (0.0, -2.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 80, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", offset: (0.0, 8.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 140, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", offset: (0.0, 18.0, 0.0), size: 46.0, size_end: 58.0, duration_ms: 700, delay_ms: 200, alpha: 0.9, blend: Additive),
+            // One glyph after another across the cast, growing towards the strike.
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", offset: (-32.0, 30.0, 0.0), size: 78.0, size_end: 96.0, duration_ms: 1000, delay_ms: 300, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (-19.0, 22.0, 0.0), size: 86.0, size_end: 104.0, duration_ms: 1000, delay_ms: 600, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (-6.0, 34.0, 0.0), size: 94.0, size_end: 112.0, duration_ms: 1000, delay_ms: 900, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura4.tga", offset: (7.0, 24.0, 0.0), size: 102.0, size_end: 120.0, duration_ms: 1000, delay_ms: 1200, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura5.tga", offset: (20.0, 32.0, 0.0), size: 110.0, size_end: 128.0, duration_ms: 1000, delay_ms: 1500, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura6.tga", offset: (33.0, 26.0, 0.0), size: 118.0, size_end: 136.0, duration_ms: 1000, delay_ms: 1800, alpha: 0.92, tint: (0.03, 0.03, 0.03)),
+        ]),
+        (skill: 271, phase: Success, layers: [
+            (kind: BodyFlash, tint: (1.0, 0.35, 0.05), hold_ms: 250, fade_ms: 650),
+            (kind: Texture, anchor: Target, file: "effect\\alpha_center.tga", size: 14.0, size_end: 24.0, duration_ms: 500, alpha: 0.8, blend: Additive),
         ]),
         (skill: 271, phase: Hit, layers: [
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura4.tga", offset: (0.0, 18.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 0, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura4.tga", offset: (0.0, 8.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 60, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura4.tga", offset: (0.0, -2.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 120, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura5.tga", offset: (0.0, 18.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 0, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura5.tga", offset: (0.0, 8.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 60, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura5.tga", offset: (0.0, -2.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 120, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura6.tga", offset: (0.0, 18.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 0, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura6.tga", offset: (0.0, 8.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 60, alpha: 0.9, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura6.tga", offset: (0.0, -2.0, 0.0), size: 58.0, size_end: 46.0, duration_ms: 500, delay_ms: 120, alpha: 0.9, blend: Additive),
+            // Impact: the whole word slams in at once for a moment.
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", offset: (-32.0, 30.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (-19.0, 22.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, delay_ms: 40, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (-6.0, 34.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, delay_ms: 80, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura4.tga", offset: (7.0, 24.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, delay_ms: 120, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura5.tga", offset: (20.0, 32.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, delay_ms: 160, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura6.tga", offset: (33.0, 26.0, 0.0), size: 136.0, size_end: 120.0, duration_ms: 400, delay_ms: 200, alpha: 0.95, tint: (0.03, 0.03, 0.03)),
             (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\lens1.tga", size: 10.0, size_end: 16.0, duration_ms: 550, delay_ms: 100, count: 16, alpha: 0.8, blend: Additive, wav: "effect\\mon_아수라 패황권.wav"),
         ]),
     ],

@@ -26,6 +26,10 @@ const FADE_OUT: f32 = 0.35;
 pub struct HitFlash {
     texture: Arc<Texture>,
     center: EffectCenter,
+    /// Extra world offset (above the feet `height` included) for entity-attached
+    /// layers; `EffectCenter::follow_entity` only refreshes the entity position,
+    /// so the offset has to be kept here or it would be lost every frame.
+    offset: Vector3<f32>,
     height: f32,
     count: u16,
     duration: f32,
@@ -43,12 +47,18 @@ pub struct HitFlash {
 impl HitFlash {
     /// Spawns the primitive for one data-file row. Returns `None` if the effect
     /// texture is not part of the game data.
-    pub fn spawn(texture_loader: &TextureLoader, center: EffectCenter, spec: &PrimitiveParams<'_>) -> Option<Self> {
+    pub fn spawn(
+        texture_loader: &TextureLoader,
+        center: EffectCenter,
+        offset: Vector3<f32>,
+        spec: &PrimitiveParams<'_>,
+    ) -> Option<Self> {
         let texture = texture_loader.get_or_load(spec.texture, ImageType::Color).ok()?;
 
         Some(Self {
             texture,
             center,
+            offset,
             height: spec.height,
             count: spec.count.clamp(1, 8),
             duration: (spec.duration_ms.max(50) as f32) / 1000.0,
@@ -80,7 +90,7 @@ fn fade_weight(elapsed: f32, duration: f32) -> f32 {
 
 impl EffectBase for HitFlash {
     fn culling_position(&self) -> Option<Point3<f32>> {
-        Some(raised(self.center.to_position(), self.height))
+        Some(raised(self.center.to_position() + self.offset, self.height))
     }
 
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool {
@@ -114,7 +124,7 @@ impl EffectBase for HitFlash {
             width: renderer.window_size().width,
             height: renderer.window_size().height,
         };
-        let anchor = raised(self.center.to_position(), self.height);
+        let anchor = raised(self.center.to_position() + self.offset, self.height);
 
         for index in 0..self.count {
             let seed = self.seed ^ (index as u32).wrapping_mul(0x9E37_79B9);
@@ -122,7 +132,9 @@ impl EffectBase for HitFlash {
             let radius = self.spread * pseudo_random(seed);
             let rise = self.spread * 0.5 * (pseudo_random(seed ^ 0x5555_5555) - 0.3);
             let position = anchor + Vector3::new(angle.cos() * radius, rise, angle.sin() * radius);
-            let spin = angle + self.time * 1.5;
+            // Textured skill glyphs (Asura kanji, ...) are upright and must not
+            // spin; only spread-out spark bursts rotate over time.
+            let spin = if self.spread > 0.0 { angle + self.time * 1.5 } else { angle };
             let half_size = size * 0.5 * (0.85 + 0.3 * pseudo_random(seed ^ 0x1234_5678));
             let corners = camera_facing_corners(camera, position, half_size, spin);
 

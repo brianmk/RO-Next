@@ -2942,7 +2942,7 @@ impl Client {
                 let Some(params) = PrimitiveParams::from_layer(layer) else {
                     return;
                 };
-                let center = self.texture_layer_center(center, layer, vertical);
+                let (center, offset) = self.texture_layer_center_with_offset(center, layer, vertical);
 
                 // A `frames` layer is the official client's multi-texture
                 // (totalTexture) component: play it as a flipbook.
@@ -2965,7 +2965,7 @@ impl Client {
                     return;
                 }
 
-                let Some(flash) = HitFlash::spawn(&self.texture_loader, center, &params) else {
+                let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, &params) else {
                     return;
                 };
 
@@ -3089,8 +3089,8 @@ impl Client {
                         self.add_skill_effect(Box::new(aura), owner);
                     }
                     Some(LayerPrimitive::HitFlash) | None => {
-                        let center = self.texture_layer_center(center, layer, vertical);
-                        let Some(flash) = HitFlash::spawn(&self.texture_loader, center, &params) else {
+                        let (center, offset) = self.texture_layer_center_with_offset(center, layer, vertical);
+                        let Some(flash) = HitFlash::spawn(&self.texture_loader, center, offset, &params) else {
                             return;
                         };
 
@@ -3190,6 +3190,23 @@ impl Client {
     /// Combines a resolved layer center with the layer offset and vertical
     /// anchor for the texture/cylinder primitives (they take a center point
     /// directly).
+    /// Like [`Self::texture_layer_center`], but keeps the offset separate for
+    /// procedural primitives: `EffectCenter::follow_entity` refreshes the entity
+    /// position every frame and would otherwise drop the data-file offset.
+    fn texture_layer_center_with_offset(
+        &self,
+        center: EffectCenter,
+        layer: &SkillEffectLayer,
+        vertical: f32,
+    ) -> (EffectCenter, Vector3<f32>) {
+        let offset = Vector3::new(layer.offset.x, vertical + layer.offset.y, layer.offset.z);
+
+        match center {
+            EffectCenter::Entity(entity_id, position) => (EffectCenter::Entity(entity_id, position), offset),
+            EffectCenter::Position(position) => (EffectCenter::Position(position + offset), Vector3::new(0.0, 0.0, 0.0)),
+        }
+    }
+
     fn texture_layer_center(&self, center: EffectCenter, layer: &SkillEffectLayer, vertical: f32) -> EffectCenter {
         match center {
             EffectCenter::Entity(entity_id, _) => EffectCenter::Entity(
