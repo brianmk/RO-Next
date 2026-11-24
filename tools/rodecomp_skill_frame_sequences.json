@@ -1,0 +1,251 @@
+{
+ "provenance": {
+  "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch, SetFrameSequence calls",
+  "file": "Source/Contents/Actors/RenderObject.cpp",
+  "note": "block 0x58 = attack block (88), 0x60 = skill block (96); duration is milliseconds or a runtime skill-animation value"
+ },
+ "sequences": {
+  "CH_PALMSTRIKE": {
+   "block": "0x60",
+   "first": "3",
+   "last": "4",
+   "loop_block": "0x60",
+   "loop_to": "4",
+   "loops": "1",
+   "duration": "1",
+   "interval": null,
+   "source": "RenderObject.cpp:5844",
+   "skill": 370
+  },
+  "CH_TIGERFIST": {
+   "block": "0x60",
+   "first": "4",
+   "last": "4",
+   "loop_block": "0x60",
+   "loop_to": "4",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5851",
+   "skill": 371
+  },
+  "MO_CHAINCOMBO": {
+   "block": "0x60",
+   "first": "5",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "5",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": null,
+   "source": "RenderObject.cpp:5830",
+   "skill": 272
+  },
+  "MO_COMBOFINISH": {
+   "block": "0x60",
+   "first": "1",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5837",
+   "skill": 273
+  },
+  "MO_EXTREMITYFIST": {
+   "block": "0x58",
+   "first": "0",
+   "last": "7",
+   "loop_block": "0x58",
+   "loop_to": "7",
+   "loops": "1",
+   "duration": "3500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5825",
+   "skill": 271
+  },
+  "MO_TRIPLEATTACK": {
+   "block": "0x58",
+   "first": "0",
+   "last": "7",
+   "loop_block": "0x58",
+   "loop_to": "7",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 4,
+   "source": "RenderObject.cpp:5800",
+   "skill": 263
+  },
+  "RL_FALLEN_ANGEL": {
+   "block": "0x58",
+   "first": "0",
+   "last": "7",
+   "loop_block": "0x58",
+   "loop_to": "7",
+   "loops": "1",
+   "duration": "3500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5909",
+   "skill": 2564
+  },
+  "SR_DRAGONCOMBO": {
+   "block": "0x60",
+   "first": "4",
+   "last": "4",
+   "loop_block": "0x60",
+   "loop_to": "4",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5867",
+   "skill": 2326
+  },
+  "SR_EARTHSHAKER": {
+   "block": "0x60",
+   "first": "1",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5876",
+   "skill": 2328
+  },
+  "SR_FALLENEMPIRE": {
+   "block": "0x60",
+   "first": "3",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5886",
+   "skill": 2329
+  },
+  "SR_SKYNETBLOW": {
+   "block": "0x60",
+   "first": "5",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "5",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5872",
+   "skill": 2327
+  },
+  "SR_TIGERCANNON": {
+   "block": "0x60",
+   "first": "5",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "5",
+   "loops": "1",
+   "duration": "g_session.FindActorSkillAnimationValue(this->render.accountId",
+   "interval": 6,
+   "source": "RenderObject.cpp:5872",
+   "skill": 2330
+  }
+ },
+ "unmatched": {
+  "AG_DEADLY_PROJECTION": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": null
+  },
+  "AG_SOUL_VC_STRIKE": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": null
+  },
+  "AG_ASTRAL_STRIKE": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": null
+  },
+  "TR_RETROSPECTION": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": null
+  },
+  "TR_SOUNDBLEND": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": null
+  },
+  "IQ_THIRD_PUNISH": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": null
+  },
+  "IQ_THIRD_FLAME_BOMB": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": null
+  },
+  "IQ_THIRD_CONSECRATION": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": null
+  }
+ }
+}
