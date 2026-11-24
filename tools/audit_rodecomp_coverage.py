@@ -117,6 +117,18 @@ def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
         # Compare against the version-correct assets: the 2019 ids for the songs
         # (2026 reworked them), the official ids otherwise.
         used = entry.get("used_assets") or entry["official_assets"]
+        # Assets the generator deliberately drops (the decompilation proves the
+        # official effect does not draw them) are not required.
+        dropped = {
+            asset.rsplit(".", 1)[0].replace("/", "\\").lower()
+            for (skill, _phase, asset), _reason in gen.DROPPED_LAYERS.items()
+            if skill == skill_id
+        }
+        used = [
+            asset
+            for asset in used
+            if asset.replace("/", "\\").lower().rsplit(".", 1)[0] not in dropped
+        ]
         missing = sorted({asset_key(asset) for asset in used} - rendered.get(skill_id, set()))
         drift = bool(entry["official_effect_ids"] and entry["client_effect_ids_2019"]) and not (
             set(entry["official_effect_ids"]) & set(entry["client_effect_ids_2019"])

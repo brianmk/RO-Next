@@ -96,7 +96,10 @@ class RodecompOverlayTests(unittest.TestCase):
             for layer in entry["layers"]:
                 unknown = set(layer) - LAYER_FIELDS
                 self.assertFalse(unknown, f"skill {entry['skill']}: unknown layer fields {unknown}")
-                self.assertIn(layer["kind"], {"Str", "Spr", "Texture", "Cylinder", "Primitive", "BodyFlash"})
+                self.assertIn(
+                layer["kind"],
+                {"Str", "Spr", "Texture", "Cylinder", "Primitive", "BodyFlash", "BodyWave", "BodyOutline", "BodySquash"},
+            )
 
     def test_layer_values_are_in_schema_range(self):
         for entry in self.overlay:
