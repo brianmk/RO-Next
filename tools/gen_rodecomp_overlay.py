@@ -85,6 +85,8 @@ def write_layer(layer: dict) -> str:
         "size_end",
         "duration_ms",
         "delay_ms",
+        "hold_ms",
+        "fade_ms",
         "count",
         "spread",
         "height",
