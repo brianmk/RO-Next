@@ -21,7 +21,7 @@ Done in this batch (5 parallel agents + lead): 1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 
 | 13 | PvP/GvG/WoE targeting rules (`map_flags`) | in progress (gap-render) | — |
 | 14 | Hotbar 2×38 + F1–F12 | **done (2×9 UI, all 4 bars stored)** | `1108f88f` |
 | 15 | Key rebinding UI + settings surface | **done** | `1108f88f` |
-| 16 | Refine / repair / identify / card composition | in progress (gap-itemfx) | — |
+| 16 | Refine / repair / identify / card composition | **done** | `31f6017c` |
 | 17 | Bank (cash shop dropped by user decision) | **done** | `8aae9953` |
 | 18 | Whisper windows + chat tabs | **done** | `507562f4` |
 | 19 | Head marks (`opt1`/`opt2`) | **done** | `507562f4` |
