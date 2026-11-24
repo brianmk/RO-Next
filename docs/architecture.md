@@ -60,7 +60,8 @@ Dependency rules that hold today:
 ```
 src/
   main.rs            CLI entry point (clap), calls Client::init / run
-  lib.rs             Client struct + the two event dispatchers (see debt below)
+  lib.rs             Client struct, lifecycle, data checks (5.8k lines)
+  client/            everything else that is Client behaviour (see below)
   client_config/     data-file loaders + `--check-*` validators (world, keybinds,
                      paper dolls, debug maps, ui audio, ...)
   networking/        map/login session glue on top of ro-next-networking
@@ -75,6 +76,28 @@ src/
   perf/ benchmark.rs profiling and the benchmark entry points
   msgstringtable.rs  generated message-string table
 ```
+
+`src/client/` is split by concern, one `impl Client` block per file:
+
+| file | lines | contents |
+| --- | --- | --- |
+| `network/mod.rs` | 279 | `handle_network_events`: routing only |
+| `network/{session,character,world,skills,inventory,commerce,social,ui}.rs` | 5.6k | one handler per `NetworkEvent` (224 handlers) |
+| `user_events.rs` | 467 | `process_user_events`: routing only (the debug camera arms stay inline, they take `delta_time`) |
+| `input_*.rs` | 2.6k | one handler per `InputEvent` (158 handlers in 13 files) |
+| `effects.rs` | 647 | skill effect phases/layers, auras, projectiles, cast circles |
+| `render.rs` | 713 | `MapRenderContext` + per-frame overlays (names, lights, shadows) |
+| `frame.rs` | 360 | focus, pacing, fps/perf logging, scaling, lifecycle tick |
+| `items.rs` | 360 | item menus, info windows, artwork, cutin/book loading |
+| `hud.rs` | 203 | opening/toggling/repositioning HUD windows |
+| `navigation.rs` | 188 | map-name normalisation, walkable tile search, routes |
+| `chat.rs` | 75 | chat/notification push helpers, localized templates |
+
+Handler convention: a handler takes the whole event and destructures it inside
+(`let NetworkEvent::X { .. } = event else { unreachable!() }`), so the dispatcher
+never repeats field types and handlers are unit-testable without a `Client`
+event buffer. `continue` in a moved arm body became `return` (same semantics:
+skip the rest of this event).
 
 Data lives in `ro-next/archive/` (shipped next to the binary): `data/client/*.ron`
 runtime tables, `data/languages/`, sprites and fonts. Every table is generated
@@ -110,38 +133,22 @@ here and duplicated `quality.yml`, so they were removed (the Nix job moved into
 Ranked by cost; the first two are the reason a small feature still touches a
 14k-line file.
 
-### 1. `ro-next/src/lib.rs` is a 14.9k-line file (11.5 % of the crate)
+### 1. The dispatchers still have no per-arm tests
 
-The `impl Client` block alone is 12.3k lines / 112 methods, and two functions
-hold most of it:
+`lib.rs` went from 14.9k to 5.8k lines: the two dispatchers are now routing-only
+(279 + 467 lines) with 382 per-variant handlers in `src/client/`. The handlers
+are plain `impl Client` methods that take the event, so a follow-up can unit
+test the pure ones without a client instance.
 
-| function | lines | what it is |
-| --- | --- | --- |
-| `handle_network_events` | ~4.3k | one `match` over `NetworkEvent`, bodies inline |
-| `process_user_events` | ~2.4k | one `match` over `UserEvent`, bodies inline |
+### 2. Handler families are keyword-grouped
 
-Proposed split (mechanical, compiler-checked, one module at a time):
+The family assignment (`session`, `character`, `world`, `skills`, `inventory`,
+`commerce`, `social`, `ui`) is a keyword rule over the variant name. A few
+handlers sit in a family that is only approximately right (e.g. mail under
+`ui`, achievements under `world`); moving one is a pure cut-and-paste between
+two files.
 
-```
-src/client/
-  mod.rs            Client struct, fields, init(), run loop
-  frame.rs          update_* / log_* / scaling / presentation
-  network/mod.rs    handle_network_events: dispatch only
-  network/chat.rs   network handlers per family
-  network/{party,guild,inventory,skill,entity,map,mail,trade}.rs
-  input/mod.rs      process_user_events: dispatch only
-  input/{chat,chat_room,skill_tree,inventory,storage,party,menu}.rs
-  effects.rs        spawn_* helpers (skill/status/projectile/teleport effects)
-  navigation.rs     nav route helpers
-  hud.rs            open_*/toggle_* window helpers
-```
 
-Each file gets `impl Client { ... }` (inherent impls may live in any module of
-the crate) and its own imports; `lib.rs` keeps the module declarations, the
-`Client` struct and the lifecycle. Start with `effects.rs` and `navigation.rs`
-(contiguous, few `self` fields), then the two dispatchers.
-
-### 2. The two dispatcher `match`es have no per-arm tests
 
 Because the arm bodies are inline, only the whole-event path is testable.
 Extracting each arm into `fn handle_<thing>(&mut self, ...)` makes the handlers

@@ -14,8 +14,36 @@
 //! * the committed data files carry the behaviour rows, and the `--check-*` CLI
 //!   entry points of the client accept them.
 
-/// The client source that used to hold the skill-id branches.
+/// The client sources that used to hold the skill-id branches.
 const LIB_RS: &str = include_str!("../src/lib.rs");
+/// The dispatch/handler sources (`lib.rs` plus `src/client/`), read at test
+/// time so the guard keeps working when a branch moves between modules. The
+/// data API modules are excluded: their docs name the removed constants on
+/// purpose.
+fn client_sources() -> Vec<(String, String)> {
+    fn walk(dir: &std::path::Path, out: &mut Vec<(String, String)>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|extension| extension.to_str()) == Some("rs")
+                && (path.ends_with("lib.rs") || path.to_string_lossy().contains("/client/"))
+            {
+                let source = std::fs::read_to_string(&path).expect("client source is readable");
+                out.push((path.display().to_string(), source));
+            }
+        }
+    }
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut sources = Vec::new();
+    walk(&root, &mut sources);
+    sources
+}
+
 /// The procedural effect modules that used to hold the asset/geometry
 /// constants.
 const STORM_CLOUD_RS: &str = include_str!("../src/world/effect/storm_cloud.rs");
@@ -43,28 +71,35 @@ const REMOVED_SKILL_BRANCHES: &[&str] = &[
 
 #[test]
 fn hardcoded_skill_id_branches_are_gone() {
+    let sources = client_sources();
     for branch in REMOVED_SKILL_BRANCHES {
-        assert!(
-            !LIB_RS.contains(branch),
-            "ro-next/src/lib.rs still contains the hardcoded skill branch {branch:?}; it belongs in skills.ron"
-        );
+        for (name, source) in &sources {
+            assert!(
+                !source.contains(branch),
+                "{name} still contains the hardcoded skill branch {branch:?}; it belongs in skills.ron"
+            );
+        }
     }
 
     // The behaviour goes through the data lookups instead.
     assert!(
-        LIB_RS.contains("crate::world::skills::channels("),
+        sources.iter().any(|(_, source)| source.contains("crate::world::skills::channels(")),
         "self casts have to use the data-driven channeling lookup"
     );
     assert!(
-        LIB_RS.contains("crate::world::skills::has_warp_target("),
+        sources
+            .iter()
+            .any(|(_, source)| source.contains("crate::world::skills::has_warp_target(")),
         "the provisional warp portal has to use the data-driven lookup"
     );
     assert!(
-        LIB_RS.contains("crate::world::skills::cloud("),
+        sources.iter().any(|(_, source)| source.contains("crate::world::skills::cloud(")),
         "the procedural cloud has to use the data-driven lookup"
     );
     assert!(
-        LIB_RS.contains("crate::world::jobs::can_move_while_casting("),
+        sources
+            .iter()
+            .any(|(_, source)| source.contains("crate::world::jobs::can_move_while_casting(")),
         "Free Cast has to use the job capability + skill flag data"
     );
 }

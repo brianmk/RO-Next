@@ -10,8 +10,34 @@
 //! * the `--check-messages` entry point validates the committed data and
 //!   rejects malformed files.
 
-/// The client-side result handlers (`lib.rs` of this crate).
+/// The client-side result handlers (`lib.rs` of this crate plus the
+/// per-family handlers under `src/client/network/`).
 const LIB_RS: &str = include_str!("../src/lib.rs");
+/// The result-handler sources: `lib.rs` plus the `src/client/` modules, read at
+/// test time so the guard keeps working when a handler moves between modules.
+fn client_sources() -> Vec<(String, String)> {
+    fn walk(dir: &std::path::Path, out: &mut Vec<(String, String)>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|extension| extension.to_str()) == Some("rs")
+                && (path.ends_with("lib.rs") || path.to_string_lossy().contains("/client/"))
+            {
+                let source = std::fs::read_to_string(&path).expect("client source is readable");
+                out.push((path.display().to_string(), source));
+            }
+        }
+    }
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut sources = Vec::new();
+    walk(&root, &mut sources);
+    sources
+}
 /// The login packet handlers that used to hold the 26 login mappings.
 const VERSION_RS: &str = include_str!("../../ro-next-networking/src/packet_versions/version_20220406.rs");
 /// The generated data file the handlers render from.
@@ -104,7 +130,12 @@ const CLIENT_SIDE_GUARDS: &[&str] = &["You do not have enough zeny."];
 
 #[test]
 fn hardcoded_result_message_arms_are_gone() {
-    for (name, source) in [("ro-next/src/lib.rs", LIB_RS), ("version_20220406.rs", VERSION_RS)] {
+    let sources = client_sources();
+    for (name, source) in sources
+        .iter()
+        .map(|(name, source)| (name.as_str(), source.as_str()))
+        .chain([("version_20220406.rs", VERSION_RS)])
+    {
         for message in REMOVED_HARDCODED_MESSAGES {
             if CLIENT_SIDE_GUARDS.contains(message) {
                 continue;
@@ -119,9 +150,11 @@ fn hardcoded_result_message_arms_are_gone() {
 
 #[test]
 fn result_handlers_go_through_the_message_table() {
+    let sources = client_sources();
+    let format_calls: usize = sources.iter().map(|(_, source)| source.matches("format_message(").count()).sum();
     assert!(
-        LIB_RS.matches("format_message(").count() >= 7,
-        "the map-server result handlers have to format through format_message"
+        format_calls >= 7,
+        "the map-server result handlers have to format through format_message (found {format_calls})"
     );
     for domain in [
         "MessageDomain::PartyMemberRemoved",
@@ -132,7 +165,10 @@ fn result_handlers_go_through_the_message_table() {
         "MessageDomain::AmmunitionAction",
         "MessageDomain::MapServerBan",
     ] {
-        assert!(LIB_RS.contains(domain), "lib.rs does not use {domain}");
+        assert!(
+            sources.iter().any(|(_, source)| source.contains(domain)),
+            "the client result handlers do not use {domain}"
+        );
     }
 
     assert!(
