@@ -5628,7 +5628,12 @@ impl Client {
                     }
                 }
                 NetworkEvent::VendingPurchaseResult { result } => {
-                    self.push_chat_warning(vending_purchase_result_message(result).to_owned());
+                    // The 2019 server only sends this ack for failures, but some
+                    // servers also send result 0 (success); do not report that as an
+                    // error.
+                    if result != 0 {
+                        self.push_chat_warning(vending_purchase_result_message(result).to_owned());
+                    }
                 }
                 NetworkEvent::IventoryItemAdded { item } => {
                     self.client_state
