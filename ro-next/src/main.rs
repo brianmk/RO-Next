@@ -9,7 +9,7 @@ use clap::Parser;
 use ro_next::Client;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(name = "RO-Next", version, about, long_about = None)]
 struct Arguments {
     /// Synchronize the asset cache and exit.
     #[arg(long)]
