@@ -1481,6 +1481,56 @@ where
         }
     }
 
+    /// Open the Rodex mailbox and request the inbox (`CZ_REQ_OPEN_MAILBOX2`,
+    /// 0x0AC0). All upper mail ids are zero: the first page of the normal tab.
+    pub fn open_mailbox(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailboxOpenRequestPacket {
+                mail_id: 0,
+                unknown: [0; 16],
+            }),
+        }
+    }
+
+    /// Force a mailbox refresh (`CZ_REQ_REFRESH_MAIL_LIST2`, 0x0AC1).
+    pub fn refresh_mailbox(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailboxRefreshRequestPacket {
+                mail_id: 0,
+                unknown: [0; 16],
+            }),
+        }
+    }
+
+    /// Request the body of one mail (`CZ_REQ_READ_MAIL`, 0x09EA).
+    pub fn read_mail(&mut self, mail_id: u64, open_type: u8) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailReadRequestPacket { open_type, mail_id }),
+        }
+    }
+
+    /// Claim the zeny attachment of a mail (`CZ_REQ_ZENY_FROM_MAIL`, 0x09F1).
+    pub fn claim_mail_zeny(&mut self, mail_id: u64, open_type: u8) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailClaimZenyRequestPacket { mail_id, open_type }),
+        }
+    }
+
+    /// Claim the item attachments of a mail (`CZ_REQ_ITEM_FROM_MAIL`, 0x09F3).
+    pub fn claim_mail_items(&mut self, mail_id: u64, open_type: u8) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailClaimItemRequestPacket { mail_id, open_type }),
+        }
+    }
+
+    /// Delete a mail (`CZ_REQ_DELETE_MAIL`, 0x09F5). The server refuses to
+    /// delete a mail that still has attachments.
+    pub fn delete_mail(&mut self, mail_id: u64, open_type: u8) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(MailDeleteRequestPacket { open_type, mail_id }),
+        }
+    }
+
     pub fn set_hotkey_data(&mut self, tab: HotbarTab, index: HotbarSlot, hotkey_data: HotkeyData) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(SetHotkeyData2Packet::new(tab, index, hotkey_data)),
@@ -3136,5 +3186,121 @@ mod packet_handlers {
         assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 42);
         assert_eq!(u16::from_le_bytes([bytes[8], bytes[9]]), 1);
         assert_eq!(u16::from_le_bytes([bytes[10], bytes[11]]), 4);
+    }
+
+    /// The Rodex mailbox packets (`ZC_ACK_MAIL_LIST3` 0x0AC2,
+    /// `ZC_ACK_READ_RODEX` 0x09EB, the claim/delete acks and
+    /// `ZC_MAIL_WINDOWS` 0x0260) have to reach the client. Before this lane
+    /// only `ZC_NOTIFY_UNREADMAIL` (0x09E7) was registered, as a noop.
+    #[test]
+    fn rodex_mail_packets_reach_the_client() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0AC2 ZC_ACK_MAIL_LIST3: one unread mail with zeny and items.
+        let mut row = Vec::new();
+        row.push(0); // open type: normal inbox
+        row.extend_from_slice(&7u64.to_le_bytes()); // mail id
+        row.push(0); // unread
+        row.push(0x2 | 0x4); // mail type: zeny + items
+        row.extend_from_slice(&fixed_name("Alice", 24)); // sender
+        row.extend_from_slice(&3_600u32.to_le_bytes()); // scheduled deletion
+        row.extend_from_slice(&6u16.to_le_bytes()); // title length incl. NUL
+        row.extend_from_slice(b"Hello\0");
+
+        let mut list = Vec::new();
+        list.extend_from_slice(&0x0AC2u16.to_le_bytes());
+        list.extend_from_slice(&((5 + row.len()) as u16).to_le_bytes());
+        list.push(1); // unknown, always 1
+        list.extend_from_slice(&row);
+
+        let events = feed(&mut handler, &list);
+        match events.0.as_slice() {
+            [NetworkEvent::MailList { mails }] => {
+                assert_eq!(mails.len(), 1);
+                assert_eq!(mails[0].mail_id, 7);
+                assert_eq!(mails[0].read, 0);
+                assert_eq!(mails[0].mail_type, 0x2 | 0x4);
+                assert_eq!(mails[0].sender, "Alice");
+                assert_eq!(mails[0].title, "Hello");
+            }
+            other => panic!("unexpected events for 0x0AC2: {other:?}"),
+        }
+
+        // 0x09EB ZC_ACK_READ_RODEX: body + zeny, no item rows.
+        let body = b"(no message)\0";
+        let mut read = Vec::new();
+        read.extend_from_slice(&0x09EBu16.to_le_bytes());
+        read.extend_from_slice(&((24 + body.len()) as u16).to_le_bytes());
+        read.push(0); // open type
+        read.extend_from_slice(&7u64.to_le_bytes()); // mail id
+        read.extend_from_slice(&(body.len() as u16).to_le_bytes()); // text length
+        read.extend_from_slice(&1_500u64.to_le_bytes()); // zeny
+        read.push(0); // item count
+        read.extend_from_slice(body);
+
+        let events = feed(&mut handler, &read);
+        match events.0.as_slice() {
+            [
+                NetworkEvent::MailRead {
+                    mail_id,
+                    open_type,
+                    body,
+                    zeny,
+                    items,
+                },
+            ] => {
+                assert_eq!(*mail_id, 7);
+                assert_eq!(*open_type, 0);
+                assert_eq!(body, "(no message)");
+                assert_eq!(*zeny, 1_500);
+                assert!(items.is_empty());
+            }
+            other => panic!("unexpected events for 0x09EB: {other:?}"),
+        }
+
+        // 0x09F2 / 0x09F4 claim results and 0x09F6 delete ack.
+        let mut claim_zeny = Vec::new();
+        claim_zeny.extend_from_slice(&0x09F2u16.to_le_bytes());
+        claim_zeny.extend_from_slice(&7u64.to_le_bytes());
+        claim_zeny.extend_from_slice(&[0, 0]); // open type, result
+        assert_eq!(claim_zeny.len(), 12);
+        let events = feed(&mut handler, &claim_zeny);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MailAttachmentClaimed {
+            mail_id: 7,
+            zeny: true,
+            result: 0,
+        }]));
+
+        let mut claim_item = Vec::new();
+        claim_item.extend_from_slice(&0x09F4u16.to_le_bytes());
+        claim_item.extend_from_slice(&7u64.to_le_bytes());
+        claim_item.extend_from_slice(&[0, 2]); // open type, result: too heavy
+        assert_eq!(claim_item.len(), 12);
+        let events = feed(&mut handler, &claim_item);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MailAttachmentClaimed {
+            mail_id: 7,
+            zeny: false,
+            result: 2,
+        }]));
+
+        let mut delete = Vec::new();
+        delete.extend_from_slice(&0x09F6u16.to_le_bytes());
+        delete.push(0); // open type
+        delete.extend_from_slice(&7u64.to_le_bytes());
+        assert_eq!(delete.len(), 11);
+        let events = feed(&mut handler, &delete);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MailDeleted { mail_id: 7 }]));
+
+        // 0x0260 ZC_MAIL_WINDOWS: the server opens the mailbox.
+        let mut window = Vec::new();
+        window.extend_from_slice(&0x0260u16.to_le_bytes());
+        window.extend_from_slice(&0i32.to_le_bytes());
+        assert_eq!(window.len(), 6);
+        let events = feed(&mut handler, &window);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MailboxWindow { open: true }]));
+
+        // 0x09E7 ZC_NOTIFY_UNREADMAIL is a real event now.
+        let events = feed(&mut handler, &[0xE7, 0x09, 1]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::MailUnreadStatus { unread: true }]));
     }
 }

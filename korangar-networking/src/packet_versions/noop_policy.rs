@@ -170,12 +170,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         reason: "ZC_REPUTE_INFO: reputation/ranking system not used on CondaRO",
     },
     IgnoredNoop {
-        header: 0x09E7,
-        server: NoopServer::Map,
-        class: IgnoreClass::SystemUnused,
-        reason: "ZC_NOTIFY_NEW_MAIL: mail system/mailbox UI not used on CondaRO",
-    },
-    IgnoredNoop {
         header: 0x0B7A,
         server: NoopServer::Map,
         class: IgnoreClass::SystemUnused,

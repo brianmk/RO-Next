@@ -122,6 +122,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleQuestWindow,
                 },
                 button! {
+                    text: "Mail",
+                    event: InputEvent::OpenMailboxWindow,
+                },
+                button! {
                     text: client_state().localization().minimap_button_text(),
                     event: InputEvent::ToggleMinimapWindow,
                 },

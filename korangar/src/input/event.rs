@@ -550,6 +550,31 @@ pub enum InputEvent {
         /// does not have enough zeny.
         price: u32,
     },
+    /// Open or close the Rodex mailbox window. Opening also requests the inbox
+    /// (`CZ_REQ_OPEN_MAILBOX2`, 0x0AC0).
+    OpenMailboxWindow,
+    /// Request the inbox again (`CZ_REQ_REFRESH_MAIL_LIST2`, 0x0AC1).
+    RefreshMailbox,
+    /// Request the body of one mail (`CZ_REQ_READ_MAIL`, 0x09EA).
+    ReadMail {
+        mail_id: u64,
+        open_type: u8,
+    },
+    /// Claim the zeny attachment of a mail (`CZ_REQ_ZENY_FROM_MAIL`, 0x09F1).
+    ClaimMailZeny {
+        mail_id: u64,
+        open_type: u8,
+    },
+    /// Claim the item attachments of a mail (`CZ_REQ_ITEM_FROM_MAIL`, 0x09F3).
+    ClaimMailItems {
+        mail_id: u64,
+        open_type: u8,
+    },
+    /// Delete a mail (`CZ_REQ_DELETE_MAIL`, 0x09F5).
+    DeleteMail {
+        mail_id: u64,
+        open_type: u8,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {
