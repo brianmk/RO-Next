@@ -72,4 +72,12 @@ impl Client {
     {
         ro_next_messages::render_template(self.client_state.follow(template), args)
     }
+
+    /// Push a non-modal warning into the chat window.
+    pub(crate) fn push_chat_warning(&mut self, message: String) {
+        crate::logging::log_warn!("{message}");
+        self.client_state
+            .follow_mut(client_state().chat_messages())
+            .push(ChatMessage::new(message, MessageColor::Error));
+    }
 }

@@ -24,6 +24,7 @@
 //!
 //! [`GameFileLoader`]: crate::loaders::GameFileLoader
 
+pub(crate) mod checks;
 mod debug_maps;
 mod ui_audio;
 mod world_config;
