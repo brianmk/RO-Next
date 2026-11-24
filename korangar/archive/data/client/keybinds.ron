@@ -22,10 +22,14 @@
 //   when no modifier is held, exactly like the classic client).
 // * `emotion_keys` - pressed together with Alt; the position in the list is
 //   the emotion number (first entry = emotion 0).
-// * `hotbar_keys` - the hotbar slots; the position in the list is the slot.
-// * `hotbar_tab_previous` / `hotbar_tab_next` - cycle the four hotkey tabs.
+// * `hotbar_keys` - the hotbar slots; the position in the list is the visible
+//   slot of the first row (F1-F9). The two server bars and their four rows
+//   are switched with the hotbar shortcuts below.
 // * `chat_command_keys` - keys that confirm a focused text input (the login
 //   form, the server selection and the chat command input).
+//
+// The player can remap the `shortcuts` in the interface settings window; those
+// overrides are stored in `client/keybind_settings.ron`.
 //
 // The defaults are the key bindings that used to be hardcoded in
 // `korangar/src/input/mod.rs` (verified against integration `8a0f46da`); the
@@ -56,10 +60,14 @@
         // shadow the Alt/Ctrl shortcuts above or a text input.
         (action: CycleMapWindows, key: "KeyM", exact_modifiers: true),
         (action: ToggleInventoryWindow, key: "KeyI", exact_modifiers: true),
+        // Hotbar controls: F12 hides/shows the hotbar, Ctrl+F12 rotates the
+        // visible rows of the active bar and F11 switches between the two
+        // server bars.
+        (action: ToggleHotbarWindow, key: "F12", exact_modifiers: true),
+        (action: SwitchHotbarBar, key: "F11", exact_modifiers: true),
+        (action: RotateHotbarRows, key: "F12", modifiers: [Control]),
     ],
     emotion_keys: ["Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9"],
-    hotbar_keys: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10"],
-    hotbar_tab_previous: "F11",
-    hotbar_tab_next: "F12",
+    hotbar_keys: ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9"],
     chat_command_keys: ["Enter", "NumpadEnter"],
 )

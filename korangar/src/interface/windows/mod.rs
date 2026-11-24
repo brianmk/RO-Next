@@ -87,10 +87,11 @@ pub use self::friend_request::FriendRequestWindow;
 pub use self::game_settings::GameSettingsWindow;
 pub use self::graphics_settings::GraphicsSettingsWindow;
 pub use self::guild::GuildWindow;
-pub use self::hotbar::{HOTBAR_ROW_WIDTH, HOTBAR_WINDOW_HEIGHT, HotbarWindow};
+pub use self::hotbar::{HOTBAR_WINDOW_HEIGHT, HOTBAR_WINDOW_WIDTH, HotbarWindow};
 pub use self::interface_settings::InterfaceSettingsWindow;
 pub use self::inventory::InventoryWindow;
 pub use self::item_info::ItemInfoWindow;
+pub(crate) use self::item_info::equipped_item_in_slot;
 pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 #[cfg(feature = "debug")]
 pub use self::maps::MapsWindow;

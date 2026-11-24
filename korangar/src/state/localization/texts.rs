@@ -113,6 +113,51 @@ fn default_context_menu_drop_tooltip() -> String {
     "Drop one item on the ground".to_owned()
 }
 
+/// Texts of the quality-of-life additions (battle mode, key binding editor,
+/// cooldown numbers and the item comparison pane).
+///
+/// Grouped like [`UiTexts`] so adding a new text does not have to touch every
+/// language file: the whole group uses its English default when a language
+/// file does not define it.
+#[derive(Serialize, Deserialize, RustState, StateElement)]
+pub struct QolTexts {
+    pub battle_mode_button_text: String,
+    pub cooldown_numbers_button_text: String,
+    pub chat_battle_mode_on: String,
+    pub chat_battle_mode_off: String,
+    pub keybindings_text: String,
+    pub keybind_hint_text: String,
+    pub keybind_press_key_text: String,
+    pub keybind_reset_button_text: String,
+    pub chat_keybind_saved: String,
+    pub chat_keybinds_reset: String,
+    pub hotbar_bar_switch_tooltip: String,
+    pub item_comparison_label: String,
+    pub item_comparison_nothing_text: String,
+    pub item_equipped_label: String,
+}
+
+impl Default for QolTexts {
+    fn default() -> Self {
+        Self {
+            battle_mode_button_text: "Battle mode (/bm)".to_owned(),
+            cooldown_numbers_button_text: "Cooldown seconds on skill slots".to_owned(),
+            chat_battle_mode_on: "Battle mode on: letter and number keys use the hotbar; Enter opens the chat.".to_owned(),
+            chat_battle_mode_off: "Battle mode off: letter keys type into the chat.".to_owned(),
+            keybindings_text: "Key bindings".to_owned(),
+            keybind_hint_text: "Click a binding, then press the new key. Escape cancels.".to_owned(),
+            keybind_press_key_text: "Press a key… (Esc cancels)".to_owned(),
+            keybind_reset_button_text: "Reset key bindings".to_owned(),
+            chat_keybind_saved: "Bound {action} to {keys}.".to_owned(),
+            chat_keybinds_reset: "Key bindings reset to their defaults.".to_owned(),
+            hotbar_bar_switch_tooltip: "Switch between hotbar bar 1 and 2".to_owned(),
+            item_comparison_label: "Equipped comparison".to_owned(),
+            item_comparison_nothing_text: "Nothing equipped in this slot".to_owned(),
+            item_equipped_label: "Equipped".to_owned(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, RustState, StateElement)]
 pub struct UiTexts {
     pub context_menu_whisper: String,

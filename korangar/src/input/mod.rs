@@ -1,3 +1,4 @@
+mod battle_mode;
 mod chat_command;
 mod event;
 mod key;
@@ -14,16 +15,39 @@ use winit::dpi::PhysicalPosition;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 use winit::keyboard::KeyCode;
 
-pub use self::chat_command::translate_slash_command;
+pub use self::chat_command::{BattleModeCommand, parse_battle_mode_command, translate_slash_command};
 pub use self::event::InputEvent;
 pub use self::key::Key;
-pub use self::keybinds::{ActiveModifiers, ShortcutAction};
+pub use self::keybinds::{ALL_SHORTCUT_ACTIONS, ActiveModifiers, ShortcutAction};
 pub use self::mode::{Grabbed, MouseInputMode, MouseModeExt};
 use crate::graphics::{PickerTarget, ScreenPosition, ScreenSize};
 
 const MOUSE_SCOLL_MULTIPLIER: f32 = 30.0;
 const KEY_COUNT: usize = variant_count::<KeyCode>();
 const DOUBLE_CLICK_TIME_MS: u32 = 250;
+
+/// Physical keys that battle mode routes to the hotbar. The mapping itself is
+/// in [`battle_mode::slot_for_key`].
+const BATTLE_MODE_KEYS: &[KeyCode] = &[
+    KeyCode::Digit0,
+    KeyCode::Digit1,
+    KeyCode::Digit2,
+    KeyCode::Digit3,
+    KeyCode::Digit4,
+    KeyCode::Digit5,
+    KeyCode::Digit6,
+    KeyCode::Digit7,
+    KeyCode::Digit8,
+    KeyCode::Digit9,
+    KeyCode::KeyA,
+    KeyCode::KeyB,
+    KeyCode::KeyC,
+    KeyCode::KeyD,
+    KeyCode::KeyE,
+    KeyCode::KeyF,
+    KeyCode::KeyG,
+    KeyCode::KeyH,
+];
 
 #[derive(Debug, Clone, Copy)]
 struct PreviousMouseButton {
@@ -62,6 +86,12 @@ pub struct InputSystem {
     right_mouse_button: Key,
     keys: [Key; KEY_COUNT],
     input_buffer: Vec<char>,
+    /// Battle-mode routing (`/bm`): printable keys go to the hotbar instead of
+    /// the chat while the chat line is closed.
+    battle_mode: bool,
+    /// Whether the next physical key press is captured for a key rebind.
+    capturing_key: bool,
+    captured_key: Option<(KeyCode, ActiveModifiers)>,
     picker_value: Arc<AtomicU64>,
     previous_mouse_button: Option<PreviousMouseButton>,
     right_mouse_button_press_position: ScreenPosition,
@@ -83,6 +113,9 @@ impl InputSystem {
         let keys = [Key::default(); KEY_COUNT];
 
         let input_buffer = Vec::new();
+        let battle_mode = false;
+        let capturing_key = false;
+        let captured_key = None;
         let previous_mouse_button = None;
 
         Self {
@@ -97,6 +130,9 @@ impl InputSystem {
             right_mouse_button,
             keys,
             input_buffer,
+            battle_mode,
+            capturing_key,
+            captured_key,
             picker_value,
             previous_mouse_button,
             right_mouse_button_press_position: ScreenPosition::default(),
@@ -181,7 +217,52 @@ impl InputSystem {
 
     pub fn update_keyboard(&mut self, key_code: KeyCode, state: ElementState) {
         let pressed = matches!(state, ElementState::Pressed);
+
+        // A pending rebind captures the physical key (with the modifier state)
+        // instead of letting it trigger its normal action.
+        if pressed
+            && self.capturing_key
+            && self.captured_key.is_none()
+            && !matches!(
+                key_code,
+                KeyCode::AltLeft
+                    | KeyCode::AltRight
+                    | KeyCode::ControlLeft
+                    | KeyCode::ControlRight
+                    | KeyCode::ShiftLeft
+                    | KeyCode::ShiftRight
+                    | KeyCode::SuperLeft
+                    | KeyCode::SuperRight
+            )
+        {
+            self.captured_key = Some((key_code, self.active_modifiers()));
+        }
+
         self.keys[key_code as usize].set_down(pressed);
+    }
+
+    /// Enables or disables battle-mode keyboard routing.
+    pub fn set_battle_mode(&mut self, battle_mode: bool) {
+        self.battle_mode = battle_mode;
+    }
+
+    /// Enables or disables capturing the next key press for a rebind.
+    pub fn set_key_capture(&mut self, capture: bool) {
+        self.capturing_key = capture;
+
+        if !capture {
+            self.captured_key = None;
+        }
+    }
+
+    /// Takes the key captured for a pending rebind, if one was pressed.
+    pub fn take_captured_key(&mut self) -> Option<(KeyCode, ActiveModifiers)> {
+        self.captured_key.take()
+    }
+
+    /// Whether the physical key is pressed in this frame.
+    pub fn key_pressed(&self, key_code: KeyCode) -> bool {
+        self.get_key(key_code).pressed()
     }
 
     pub fn buffer_character(&mut self, character: char) {
@@ -276,7 +357,7 @@ impl InputSystem {
     }
 
     /// The modifier state used by the data-driven key bindings.
-    fn active_modifiers(&self) -> ActiveModifiers {
+    pub fn active_modifiers(&self) -> ActiveModifiers {
         ActiveModifiers {
             alt: self.get_key(KeyCode::AltLeft).down(),
             control: self.get_key(KeyCode::ControlLeft).down(),
@@ -307,10 +388,25 @@ impl InputSystem {
         // The interface shortcuts are data-driven (`data\client\keybinds.ron`,
         // see the `keybinds` module). The table is evaluated in file order, so
         // the emitted event order stays the same as the classic bind table.
+        //
+        // An action can have more than one default entry (the inventory has
+        // Alt+E and plain I). A player override maps every entry of that
+        // action to the same key, so an action is only emitted once per frame.
+        let mut handled_actions = Vec::new();
+
         for keybind in keybinds::shortcuts() {
+            // Player overrides (`client/keybind_settings.ron`) are applied on
+            // top of the data table without rebuilding the global table.
+            let keybind = keybinds::effective(keybind);
+
             if !keybind.matches(modifiers) || !self.get_key(keybind.key).pressed() {
                 continue;
             }
+
+            if handled_actions.contains(&keybind.action) {
+                continue;
+            }
+            handled_actions.push(keybind.action);
 
             match keybind.action {
                 ShortcutAction::CloseOrMenu => {
@@ -337,6 +433,9 @@ impl InputSystem {
                 ShortcutAction::ToggleMinimapWindow => events.push(InputEvent::ToggleMinimapWindow),
                 ShortcutAction::CycleMapWindows => events.push(InputEvent::CycleMapWindows),
                 ShortcutAction::CloseTopWindow => events.push(InputEvent::CloseTopWindow),
+                ShortcutAction::ToggleHotbarWindow => events.push(InputEvent::ToggleHotbarWindow),
+                ShortcutAction::SwitchHotbarBar => events.push(InputEvent::SwitchHotbarBar),
+                ShortcutAction::RotateHotbarRows => events.push(InputEvent::RotateHotbarRows { delta: 1 }),
             }
         }
 
@@ -366,15 +465,18 @@ impl InputSystem {
             }
         }
 
-        // Page through the four hotkey tabs of the 2019 client with F11/F12.
-        // The function keys F1-F10 stay the "use this slot" keys.
-        let (tab_previous, tab_next) = keybinds::hotbar_tab_keys();
-        if self.get_key(tab_previous).pressed() {
-            events.push(InputEvent::CycleHotbarTab { delta: -1 });
-        }
-
-        if self.get_key(tab_next).pressed() {
-            events.push(InputEvent::CycleHotbarTab { delta: 1 });
+        // Battle mode (`/bm`): while the chat line is closed the number row and
+        // the first letter rows use the visible hotbar slots instead of typing
+        // into the chat. The data-driven shortcuts above still win, so a plain
+        // `I` keeps opening the inventory rather than firing a hotbar slot.
+        if self.battle_mode {
+            for key_code in BATTLE_MODE_KEYS {
+                if self.get_key(*key_code).pressed()
+                    && let Some(slot) = battle_mode::slot_for_key(*key_code)
+                {
+                    events.push(InputEvent::UseSkillInSlot { slot });
+                }
+            }
         }
 
         #[cfg(feature = "debug")]
@@ -581,13 +683,21 @@ mod tests {
             |event| matches!(event, InputEvent::StopSkill { slot } if slot.0 == 0)
         ));
 
-        // F11/F12 cycle the hotbar tabs.
+        // F12 hides/shows the hotbar, F11 switches the bar and Ctrl+F12
+        // rotates the visible rows.
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::F12], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::ToggleHotbarWindow)));
+        assert!(!has(&events, |event| matches!(event, InputEvent::RotateHotbarRows { .. })));
+
+        let mut harness = Harness::new();
+        let events = harness.frame(&[KeyCode::ControlLeft, KeyCode::F12], &[]);
+        assert!(has(&events, |event| matches!(event, InputEvent::RotateHotbarRows { delta: 1 })));
+        assert!(!has(&events, |event| matches!(event, InputEvent::ToggleHotbarWindow)));
+
         let mut harness = Harness::new();
         let events = harness.frame(&[KeyCode::F11], &[]);
-        assert!(has(&events, |event| matches!(event, InputEvent::CycleHotbarTab { delta: -1 })));
-
-        let events = harness.frame(&[KeyCode::F12], &[]);
-        assert!(has(&events, |event| matches!(event, InputEvent::CycleHotbarTab { delta: 1 })));
+        assert!(has(&events, |event| matches!(event, InputEvent::SwitchHotbarBar)));
 
         // The hotbar keys are not modifier-sensitive, like before.
         let mut harness = Harness::new();
@@ -596,6 +706,56 @@ mod tests {
             &events,
             |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 4)
         ));
+    }
+
+    #[test]
+    fn battle_mode_routes_number_and_letter_keys_to_the_hotbar() {
+        let mut harness = Harness::new();
+        harness.input.set_battle_mode(true);
+
+        let events = harness.frame(&[KeyCode::Digit3], &[]);
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 2)
+        ));
+
+        let events = harness.frame(&[KeyCode::KeyA], &[]);
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 10)
+        ));
+
+        // F1 still uses the first visible slot.
+        let events = harness.frame(&[KeyCode::F1], &[]);
+        assert!(has(
+            &events,
+            |event| matches!(event, InputEvent::UseSkillInSlot { slot } if slot.0 == 0)
+        ));
+
+        // Off again: the number row no longer fires a hotbar slot.
+        harness.input.set_battle_mode(false);
+        let events = harness.frame(&[KeyCode::Digit3], &[]);
+        assert!(!has(&events, |event| matches!(event, InputEvent::UseSkillInSlot { .. })));
+    }
+
+    #[test]
+    fn key_capture_takes_the_next_physical_key_with_modifiers() {
+        let mut harness = Harness::new();
+        harness.input.set_key_capture(true);
+
+        // Modifier-only presses are not captured.
+        harness.input.update_keyboard(KeyCode::ControlLeft, ElementState::Pressed);
+        assert!(harness.input.take_captured_key().is_none());
+
+        // The first real key is captured together with the modifier state.
+        harness.input.update_keyboard(KeyCode::KeyK, ElementState::Pressed);
+        let captured = harness.input.take_captured_key().expect("the key must be captured");
+        assert_eq!(captured.0, KeyCode::KeyK);
+        assert!(captured.1.control);
+        assert!(!captured.1.alt);
+
+        // Nothing is captured once the capture was taken.
+        assert!(harness.input.take_captured_key().is_none());
     }
 
     #[test]

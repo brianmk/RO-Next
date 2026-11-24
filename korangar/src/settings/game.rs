@@ -8,11 +8,27 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Serialize, Deserialize, RustState, StateElement)]
 pub struct GameSettings {
     pub auto_attack: bool,
+    /// Battle mode (`/bm`): while the chat line is closed, printable keys are
+    /// routed to the hotbar slots instead of typing into the chat.
+    #[serde(default)]
+    pub battle_mode: bool,
+    /// Draw the remaining seconds on skill cooldown overlays (hotbar and skill
+    /// tree). The sweep itself is always drawn.
+    #[serde(default = "default_show_cooldown_numbers")]
+    pub show_cooldown_numbers: bool,
+}
+
+fn default_show_cooldown_numbers() -> bool {
+    true
 }
 
 impl Default for GameSettings {
     fn default() -> Self {
-        Self { auto_attack: true }
+        Self {
+            auto_attack: true,
+            battle_mode: false,
+            show_cooldown_numbers: true,
+        }
     }
 }
 

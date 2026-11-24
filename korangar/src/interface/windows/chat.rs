@@ -14,7 +14,7 @@ use super::WindowClass;
 use crate::graphics::{Color, ShadowPadding};
 use crate::input::InputEvent;
 use crate::loaders::OverflowBehavior;
-use crate::settings::{InterfaceSettings, InterfaceSettingsPathExt};
+use crate::settings::{GameSettingsPathExt, InterfaceSettings, InterfaceSettingsPathExt};
 use crate::state::localization::LocalizationPathExt;
 use crate::state::theme::{
     ChatTheme, ColorTokens, ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, SpacingTokensPathExt,
@@ -436,12 +436,20 @@ where
         let send_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
             let text = state.get(&current_text_path);
 
-            if !text.is_empty() {
-                // Clear the text box.
-                state.update_value_with(current_text_path, |current_text| current_text.clear());
-                queue.queue(InputEvent::SendMessage { text: text.clone() });
-                queue.queue(Event::Unfocus);
+            if text.is_empty() {
+                // In battle mode Enter on an empty line closes the line again,
+                // like the official client.
+                if *state.get(&client_state().game_settings().battle_mode()) {
+                    queue.queue(Event::Unfocus);
+                }
+
+                return;
             }
+
+            // Clear the text box.
+            state.update_value_with(current_text_path, |current_text| current_text.clear());
+            queue.queue(InputEvent::SendMessage { text: text.clone() });
+            queue.queue(Event::Unfocus);
         };
 
         window! {

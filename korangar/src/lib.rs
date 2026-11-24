@@ -122,7 +122,7 @@ use winit::keyboard::PhysicalKey;
 use winit::window::{Fullscreen, Icon, Window, WindowId};
 
 use crate::graphics::*;
-use crate::input::{InputEvent, InputReport, InputSystem, translate_slash_command};
+use crate::input::{BattleModeCommand, InputEvent, InputReport, InputSystem, parse_battle_mode_command, translate_slash_command};
 use crate::interface::cursor::{MouseCursor, MouseCursorState};
 use crate::interface::resource::{ItemSource, SkillSource};
 use crate::interface::windows::*;
@@ -140,7 +140,7 @@ use crate::settings::{
 };
 use crate::state::character_slots::{MAX_CHARACTER_SLOTS, visible_character_slots};
 use crate::state::inventory::{ItemCategory, ItemUseAction, item_category, item_use_action};
-use crate::state::localization::LocalizationPathExt;
+use crate::state::localization::{LocalizationPathExt, QolTextsPathExt};
 use crate::state::minimap::{MapWindowCycle, direction_index_from_tile_delta};
 use crate::state::party::PartyPathExt;
 use crate::state::skills::{LearnedSkill, SkillTreeLayoutPathExt, bring_skill_to_level};
@@ -1588,6 +1588,8 @@ impl Client {
             audio_settings.effective_background_music_volume(),
         );
 
+        crate::input::keybinds::load_user_bindings();
+
         interface.open_window(LoginWindow::new(
             crate::client_state().login_window(),
             crate::client_state().login_settings(),
@@ -2378,7 +2380,7 @@ impl Client {
 
         let window_size = *self.client_state.follow(client_state().window_size());
         let scaling = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
-        let width = HOTBAR_ROW_WIDTH * scaling;
+        let width = HOTBAR_WINDOW_WIDTH * scaling;
         let height = HOTBAR_WINDOW_HEIGHT * scaling;
         let margin = 18.0 * scaling;
         let position = ScreenPosition {
@@ -2387,7 +2389,11 @@ impl Client {
         };
 
         self.interface.open_window_at_auto_size(
-            HotbarWindow::new(client_state().hotbar().skills(), client_state().skill_tree().skills()),
+            HotbarWindow::new(
+                client_state().hotbar().skills(),
+                client_state().skill_tree().skills(),
+                client_state().hotbar(),
+            ),
             position,
         );
     }
@@ -6706,7 +6712,7 @@ impl Client {
                 NetworkEvent::SkillCooldown { skill_id, until } => {
                     self.client_state
                         .follow_mut(client_state().skill_cooldowns())
-                        .start(skill_id, until);
+                        .start(skill_id, until, client_tick);
                 }
                 NetworkEvent::AttackRangeChanged { attack_range } => {
                     if let Some(player) = self.client_state.try_follow_mut(this_player()) {
@@ -7140,7 +7146,40 @@ impl Client {
             self.input_event_buffer.push(InputEvent::RotateCamera { rotation });
         }
 
-        if !interface_has_focus {
+        // Battle mode and the key binding editor both change how keyboard
+        // input is routed. The state is pushed into the input system before
+        // the one keyboard handler runs.
+        let battle_mode = *self.client_state.follow(client_state().game_settings().battle_mode());
+        self.input_system.set_battle_mode(battle_mode);
+
+        let rebind_action = self.client_state.follow(client_state().key_rebind()).capturing();
+        self.input_system.set_key_capture(rebind_action.is_some());
+
+        // Battle mode closes the chat line with Escape, like the official
+        // client: the line is the only focused element here, so the key must
+        // not reach the window/menu handling.
+        if rebind_action.is_none() && battle_mode && interface_has_focus && self.input_system.key_pressed(winit::keyboard::KeyCode::Escape)
+        {
+            self.interface.unfocus();
+        }
+
+        if let Some(action) = rebind_action {
+            // While a rebind waits for a key, the key is captured instead of
+            // triggering its normal action. Escape cancels the capture.
+            if let Some((key, modifiers)) = self.input_system.take_captured_key() {
+                if key == winit::keyboard::KeyCode::Escape {
+                    self.input_event_buffer.push(InputEvent::CancelRebind);
+                } else {
+                    self.input_event_buffer.push(InputEvent::RebindKey {
+                        action,
+                        key,
+                        alt: modifiers.alt,
+                        control: modifiers.control,
+                        shift: modifiers.shift,
+                    });
+                }
+            }
+        } else if !interface_has_focus {
             self.input_system.handle_keyboard_input(
                 &mut self.input_event_buffer,
                 #[cfg(feature = "debug")]
@@ -8013,6 +8052,18 @@ impl Client {
                     let _ = self.networking_system.warp_to_map(map_name, position);
                 }
                 InputEvent::SendMessage { text } => {
+                    // Battle mode (`/bm`, `/bm on`, `/bm off`) is handled
+                    // entirely client-side and never sent to the server.
+                    if let Some(command) = parse_battle_mode_command(&text) {
+                        let enabled = match command {
+                            BattleModeCommand::On => Some(true),
+                            BattleModeCommand::Off => Some(false),
+                            BattleModeCommand::Toggle => None,
+                        };
+                        self.input_event_buffer.push(InputEvent::ToggleBattleMode { enabled });
+                        continue;
+                    }
+
                     // Handle special client commands.
                     if text.as_str() == "/nc" {
                         let auto_attack = self.client_state.follow_mut(client_state().game_settings().auto_attack());
@@ -8232,6 +8283,64 @@ impl Client {
                         ("page", &(tab + 1).to_string()),
                         ("pages", &HOTBAR_TAB_COUNT.to_string()),
                     ]);
+                }
+                InputEvent::ToggleHotbarWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Hotbar) {
+                            true => self.interface.close_window_with_class(WindowClass::Hotbar),
+                            false => self.open_hotbar_window(),
+                        }
+                    }
+                }
+                InputEvent::SwitchHotbarBar => {
+                    self.client_state.follow_mut(client_state().hotbar()).switch_bar();
+                }
+                InputEvent::RotateHotbarRows { delta } => {
+                    self.client_state.follow_mut(client_state().hotbar()).rotate_rows(delta);
+                }
+                InputEvent::BeginRebind { action } => {
+                    self.client_state.follow_mut(client_state().key_rebind()).begin(action);
+                }
+                InputEvent::CancelRebind => {
+                    self.client_state.follow_mut(client_state().key_rebind()).cancel();
+                }
+                InputEvent::RebindKey {
+                    action,
+                    key,
+                    alt,
+                    control,
+                    shift,
+                } => {
+                    crate::input::keybinds::store_override(action, key, alt, control, shift);
+                    crate::input::keybinds::save_user_bindings();
+                    self.client_state.follow_mut(client_state().key_rebind()).cancel();
+
+                    let keys = crate::input::keybinds::binding_label(action);
+                    self.push_localized_chat(client_state().localization().qol().chat_keybind_saved(), &[
+                        ("action", action.label()),
+                        ("keys", &keys),
+                    ]);
+                }
+                InputEvent::ResetKeybinds => {
+                    crate::input::keybinds::clear_overrides();
+                    crate::input::keybinds::save_user_bindings();
+                    self.client_state.follow_mut(client_state().key_rebind()).cancel();
+                    self.push_localized_chat(client_state().localization().qol().chat_keybinds_reset(), &[]);
+                }
+                InputEvent::ToggleBattleMode { enabled } => {
+                    let battle_mode_path = client_state().game_settings().battle_mode();
+                    let battle_mode = self.client_state.follow_mut(battle_mode_path);
+                    let enabled = enabled.unwrap_or(!*battle_mode);
+                    *battle_mode = enabled;
+
+                    self.client_state.follow_mut(client_state().game_settings()).save();
+                    self.interface.unfocus();
+
+                    if enabled {
+                        self.push_localized_chat(client_state().localization().qol().chat_battle_mode_on(), &[]);
+                    } else {
+                        self.push_localized_chat(client_state().localization().qol().chat_battle_mode_off(), &[]);
+                    }
                 }
                 InputEvent::UseSkillInSlot { slot } => {
                     // Item hotkeys use the first matching inventory item, like the
@@ -9022,13 +9131,8 @@ impl Client {
                 }
                 (LoaderId::SkillSprite(skill_id), LoadableResource::SkillSprite { sprite }) => {
                     self.client_state
-                        .follow_mut(client_state().hotbar().skills())
-                        .iter_mut()
-                        .filter_map(|slot| slot.as_mut())
-                        .filter(|skill| skill.skill_id == skill_id)
-                        .for_each(|skill| {
-                            skill.sprite = Some(sprite.clone());
-                        });
+                        .follow_mut(client_state().hotbar())
+                        .update_skill_resource(skill_id, |skill| skill.sprite = Some(sprite.clone()));
 
                     if let Some(skill) = self
                         .client_state
@@ -9042,13 +9146,8 @@ impl Client {
                 }
                 (LoaderId::SkillActions(skill_id), LoadableResource::SkillActions { actions }) => {
                     self.client_state
-                        .follow_mut(client_state().hotbar().skills())
-                        .iter_mut()
-                        .filter_map(|slot| slot.as_mut())
-                        .filter(|skill| skill.skill_id == skill_id)
-                        .for_each(|skill| {
-                            skill.actions = Some(actions.clone());
-                        });
+                        .follow_mut(client_state().hotbar())
+                        .update_skill_resource(skill_id, |skill| skill.actions = Some(actions.clone()));
 
                     if let Some(skill) = self
                         .client_state
@@ -10790,8 +10889,20 @@ fn open_item_info_window(
     let artwork = load_item_artwork(library, texture_loader, item);
     let card_icons = load_item_card_icons(library, texture_loader, item);
 
+    // The comparison pane shows the item currently equipped in the same slot.
+    let equipped = match source {
+        ItemSource::Inventory | ItemSource::Equipment { .. } => {
+            equipped_item_in_slot(state.follow(client_state().inventory().items()), item)
+        }
+        // Items in the Kafra storage or the merchant cart are compared against
+        // the inventory as well; those lists never contain equipped items.
+        ItemSource::Storage | ItemSource::Cart => {
+            equipped_item_in_slot(state.follow(client_state().inventory().items()), item)
+        }
+    };
+
     interface.close_window_with_class(WindowClass::ItemInfo);
-    interface.open_window(ItemInfoWindow::new(item, category_label, artwork, card_icons));
+    interface.open_window(ItemInfoWindow::new(item, category_label, artwork, card_icons, equipped));
 }
 
 /// Loads the large artwork (collection image) of an item for the item display
@@ -12072,11 +12183,11 @@ mod tests {
     #[test]
     fn keybind_data_is_valid() {
         let bindings = super::check_keybinds(None).expect("the committed keybind data has to be valid");
-        // 16 shortcuts + 9 emotion keys + 10 hotbar slots + 2 tab keys +
-        // 2 chat command keys.
+        // 19 shortcut entries + 9 emotion keys + 9 hotbar slots + 2 chat
+        // command keys.
         assert_eq!(bindings, 39);
-        assert_eq!(crate::input::keybinds::shortcuts().len(), 16);
-        assert_eq!(crate::input::keybinds::hotbar_keys().len(), 10);
+        assert_eq!(crate::input::keybinds::shortcuts().len(), 19);
+        assert_eq!(crate::input::keybinds::hotbar_keys().len(), 9);
     }
 
     #[test]

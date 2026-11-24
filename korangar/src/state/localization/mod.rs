@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 mod texts;
 
 use rust_state::Path;
-pub use texts::{DropdownTexts, PaperDollTexts, UiTexts, UiTextsPathExt, dropdown_keys, template_text};
+pub use texts::{DropdownTexts, PaperDollTexts, QolTexts, QolTextsPathExt, UiTexts, UiTextsPathExt, dropdown_keys, template_text};
 
 #[cfg(feature = "debug")]
 use crate::input::InputEvent;
@@ -315,6 +315,10 @@ pub struct Localization {
     /// within the interface limit.
     #[serde(default = "default_ui_texts")]
     ui: UiTexts,
+    /// Texts of the quality-of-life additions (battle mode, key binding
+    /// editor, cooldown numbers, item comparison).
+    #[serde(default = "default_qol_texts")]
+    qol: QolTexts,
     /// Names and short labels of the paper doll equipment slots.
     #[serde(default = "default_paper_doll_texts")]
     paper_doll: PaperDollTexts,
@@ -471,6 +475,10 @@ pub struct Localization {
 /// existed.
 fn default_ui_texts() -> UiTexts {
     UiTexts::default()
+}
+
+fn default_qol_texts() -> QolTexts {
+    QolTexts::default()
 }
 
 /// Default for language files that were written before the paper doll text
