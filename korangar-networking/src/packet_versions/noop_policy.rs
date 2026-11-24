@@ -116,48 +116,14 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         class: IgnoreClass::OwnedElsewhere("item-descriptions"),
         reason: "ZC_SHOW_IMAGE: server image window, owned by the item-descriptions lane",
     },
-    // Trade is a separate feature (two-sided window + state + c2s packets).
-    IgnoredNoop {
-        header: 0x00EA,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_ACK_ADD_EXCHANGE_ITEM: trade window is a separate feature (no trade UI/state yet)",
-    },
-    IgnoredNoop {
-        header: 0x00EC,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_CONCLUDE_EXCHANGE_ITEM: trade window is a separate feature",
-    },
-    IgnoredNoop {
-        header: 0x00EE,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_CANCEL_EXCHANGE_ITEM: trade window is a separate feature",
-    },
-    IgnoredNoop {
-        header: 0x00F0,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_EXEC_EXCHANGE_ITEM: trade window is a separate feature",
-    },
+    // Trade is handled by real handlers (`version_20220406.rs`: request/offer/
+    // add/ack/conclude/exec). The undo ack only rolls the local lock state back,
+    // which the cancel path already does, so it stays a classified noop.
     IgnoredNoop {
         header: 0x00F1,
         server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_EXCHANGEITEM_UNDO: trade window is a separate feature",
-    },
-    IgnoredNoop {
-        header: 0x01F4,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_REQ_EXCHANGE_ITEM: trade window is a separate feature",
-    },
-    IgnoredNoop {
-        header: 0x01F5,
-        server: NoopServer::Map,
-        class: IgnoreClass::FeatureOutOfScope,
-        reason: "ZC_ACK_EXCHANGE_ITEM: trade window is a separate feature",
+        class: IgnoreClass::Duplicate,
+        reason: "ZC_EXCHANGEITEM_UNDO: the trade window clears the lock locally on cancel, so the echo is redundant",
     },
     // Party booking / LFG is not used by CondaRO's party flow.
     IgnoredNoop {
