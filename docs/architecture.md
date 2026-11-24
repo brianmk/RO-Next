@@ -4,11 +4,14 @@ How the RO-Next workspace is laid out, what each crate owns, and where the
 current structural debt sits. Keep this file current when a crate boundary or a
 top-level module moves.
 
+> Line counts and file lists below were last verified against `HEAD` = `3c46c219`
+> (2026-11-24) with `wc -l` per crate/module; re-check them when you move code.
+
 ## Workspace
 
-19 crates: the client (`ro-next`), nine supporting `ro-next-*` crates (plus four
-nested proc-macro/component crates) and four protocol crates that are
-independent of the client.
+19 packages: the client (`ro-next`), ten supporting `ro-next-*` crates, four
+nested proc-macro/component crates and four protocol crates that are usable
+without the client.
 
 ```
                         ragnarok-packets ── ragnarok-formats ── ragnarok-bytes
@@ -30,10 +33,10 @@ independent of the client.
 
 | crate | lines | owns |
 | --- | --- | --- |
-| `ro-next` | ~129k | client loop, rendering, world simulation, interface, everything game-specific |
+| `ro-next` | 132.6k | client loop, rendering, world simulation, interface, everything game-specific |
 | `ro-next-interface` | 11.1k | retained-mode UI framework (elements, windows, themes, layout) |
-| `ro-next-networking` | 10.4k | packet versioning, crypto, login/char/map sessions |
-| `ragnarok-packets` | 14.6k | packet definitions, opcode registries, serialization |
+| `ro-next-networking` | 10.7k | packet versioning, crypto, login/char/map sessions |
+| `ragnarok-packets` | 14.8k | packet definitions, opcode registries, serialization |
 | `ro-next-audio` | 5.2k | sound/music engine, volume control |
 | `ro-next-collision` | 1.9k | AABB, KD-tree, spheres |
 | `ro-next-container` | 1.8k | slab/cache containers |
@@ -43,15 +46,17 @@ independent of the client.
 | `ro-next-messages` | 1.3k | protocol result-code message table |
 | `ro-next-video` | 1.3k | AV1 video playback |
 | `ro-next-debug` | 1.1k | profiling + debug logging macros |
-| `ro-next-components` | 0.6k | shared UI component macros (inside `ro-next/components`) |
+| `ro-next-components` | 26 | shared UI component macros (inside `ro-next/components`) |
 | `ro-next-loaders` | 25 | the `FileLoader` trait |
 | `interface-macros`, `interface-components`, `interface-component-macros`, `debug-macros` | | proc macros for the UI crates |
 
 Dependency rules that hold today:
 
-* `ragnarok-*` never depend on `ro-next-*` (they are usable by other projects).
-  The one exception is a deliberate `interface` feature on `ragnarok-formats`
-  and `ragnarok-packets` for the packet browser.
+* `ragnarok-*` never depend on the client crate (`ro-next`); they are usable by
+  other projects. Two leaks exist today: `ragnarok-packets` requires
+  `ro-next-debug` for its logging macros, and `ragnarok-formats` +
+  `ragnarok-packets` optionally depend on `ro-next-interface` behind their
+  `interface` feature (packet/sprite browser support).
 * Only `ro-next` depends on every other crate; no crate depends on `ro-next`.
 * No dependency cycles.
 
@@ -60,7 +65,8 @@ Dependency rules that hold today:
 ```
 src/
   main.rs            CLI entry point (clap), calls Client::init / run
-  lib.rs             Client struct, lifecycle, data checks (5.8k lines)
+  lib.rs             module declarations, crate-wide `pub(crate) use` prelude and
+                     the re-exports the binary needs (488 lines)
   client/            everything else that is Client behaviour (see below)
   client_config/     data-file loaders + `--check-*` validators (world, keybinds,
                      paper dolls, debug maps, ui audio, ...)
@@ -73,7 +79,13 @@ src/
   state/             ClientState: every UI/world sub-state, localization, theme
   settings/          persisted settings files (`client/*.ron` next to archive/)
   input/             input mapping, chat commands, battle mode
-  perf/ benchmark.rs profiling and the benchmark entry points
+  login_server/      login-server address discovery and ping
+  pincode/           PIN-code dialog state
+  system/            OS-level helpers (window backend, desktop session)
+  perf.rs            frame/profile counters
+  benchmark.rs       benchmark entry points
+  crash.rs           panic hook and crash reports
+  logging.rs         log setup
   msgstringtable.rs  generated message-string table
 ```
 
@@ -87,14 +99,14 @@ src/
 | `gameplay.rs` | 767 | casting, aftercast timers, status/aura updates, skill-tree/experience bookkeeping |
 | `render.rs` | 713 | `MapRenderContext` + per-frame overlay renderers |
 | `effects.rs` | 711 | skill effect phases/layers, auras, projectiles, cast circles |
-| `loaders.rs` | 451 | loader bookkeeping, transient-failure retries, character-selection previews |
-| `windows.rs` | ~390 | open/close trade, storage, bank, cart, item-service, refining, vending; character-selection re-entry |
-| `items.rs` | 360 | item menus, info windows, artwork, cutin/book loading |
+| `user_events.rs` | 471 | `process_user_events`: routing only (the 22 debug camera arms stay inline: they take `delta_time`) |
+| `loaders.rs` | 450 | loader bookkeeping, transient-failure retries, character-selection previews |
+| `hud.rs`, `navigation.rs`, `chat.rs` | 438 (167/188/83) | window toggles, nav routes, chat push helpers |
+| `items.rs` | 364 | item menus, info windows, artwork, cutin/book loading |
+| `windows.rs` | 288 | open/close trade, storage, bank, cart, item-service, refining, vending; character-selection re-entry |
 | `network/mod.rs` | 281 | `handle_network_events`: routing only |
-| `network/{session,character,world,skills,inventory,commerce,social,ui}.rs` | 5.9k | 224 handlers |
-| `user_events.rs` | 471 | `process_user_events`: routing only (debug camera arms stay inline: they take `delta_time`) |
+| `network/{session,character,world,skills,inventory,commerce,social,ui}.rs` | 5.9k | 224 handlers (24/20/37/21/17/52/29/24) |
 | `input_*.rs` | 3.3k | 158 handlers in 13 files |
-| `hud.rs`, `navigation.rs`, `chat.rs` | 480 | window toggles, nav routes, chat push helpers |
 
 Handler convention: a handler takes the whole event and destructures it inside
 (`let NetworkEvent::X { .. } = event else { unreachable!() }`), so the dispatcher
@@ -112,10 +124,24 @@ skip the rest of this event).
 
 ## Tests
 
-* 719 unit tests inline in `ro-next` (`#[cfg(test)]` next to the code), 82 in
-  `ro-next-networking`.
-* Integration tests in `ro-next/tests/`: message tables, skill behaviour, world
-  audio data, UI consistency (each one re-reads the committed data file).
+`cargo test --workspace` (unit tests, integration suites and doctests):
+
+| crate / suite | tests |
+| --- | --- |
+| `ro-next` unit tests (inline `#[cfg(test)]`) | 719 (+21 ignored) |
+| `ro-next-networking` unit tests | 82 |
+| `ragnarok-packets` unit + `contract_2019` | 73 + 10 |
+| `ragnarok-bytes`, `ragnarok-formats` | 47, 11 |
+| `ro-next/tests/message_tables.rs` | 4 |
+| `ro-next/tests/skill_behaviour.rs` | 7 |
+| `ro-next/tests/world_audio_data.rs` | 7 |
+| `ro-next/tests/ui_consistency.rs` | 5 (4 fail — see debt #6) |
+
+The integration suites are repo-level guards: `message_tables`,
+`skill_behaviour` and `world_audio_data` re-read the committed data files and
+scan the dispatch sources; `ui_consistency` scans the window sources for
+hardcoded strings and design tokens. All of them read the tree at test time, so
+a guard keeps working when code moves to another module.
 * 12 Python suites for the data pipeline (`tools/test_*.py`) plus `--check` drift
   guards for all 19 generators.
 * `cargo clippy --workspace -- -Dwarnings` and `--all-features` are part of the
@@ -182,16 +208,15 @@ windows added by the gap/feature work without going through the table:
 
 | test | violations |
 | --- | --- |
-| `no_hardcoded_window_titles_in_user_facing_windows` | 14 titles (vending, quest log, trade ×2, rodex, guild, notifications, bank, refine, ...) |
-| `no_hardcoded_button_words_in_user_facing_windows` | 22 button labels |
-| `no_hardcoded_ui_words_outside_the_interface` | literals in `ro-next/src` outside `interface/` |
+| `no_hardcoded_window_titles_in_user_facing_windows` | 13 titles (vending, quest log, trade ×2, rodex, guild, notifications, bank, refine, chat room, emotes, pin, clan) |
+| `no_hardcoded_button_words_in_user_facing_windows` | 21 button labels |
+| `no_hardcoded_ui_words_outside_the_interface` | 4 literals (`input/keybinds.rs`, `state/item_service.rs`, `state/mod.rs` ×2) |
 | `hardcoded_style_literals_do_not_exceed_the_token_budget` | 6 colour literals against a budget of 0 |
 
 The fix is mechanical: add the strings to `state/localization/texts.rs` and both
 `archive/data/languages/*.ron` files, then reference them from the windows; the
 colour literals map onto existing theme tokens. Until then the strict gate
-cannot be green, so the two dispatcher functions currently carry the only
-comfortable place to work without tripping it.
+cannot be green — this is the only failing test suite in the workspace.
 
 ### 7. Housekeeping
 

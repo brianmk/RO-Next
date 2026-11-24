@@ -20,9 +20,33 @@
 
 use std::path::PathBuf;
 
-/// The client source that used to hold the configuration constants and the
-/// chat feedback literals.
-const LIB_RS: &str = include_str!("../src/lib.rs");
+/// The client dispatch/handler sources (`lib.rs` plus `src/client/`), read at
+/// test time so the guards keep working when code moves between modules. These
+/// files used to hold the configuration constants and the chat feedback
+/// literals.
+fn client_sources() -> String {
+    fn walk(dir: &std::path::Path, out: &mut String) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|extension| extension.to_str()) == Some("rs") {
+                out.push_str(&std::fs::read_to_string(&path).expect("client source is readable"));
+            }
+        }
+    }
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut sources = std::fs::read_to_string(root.join("lib.rs")).expect("lib.rs is readable");
+    walk(&root.join("client"), &mut sources);
+    sources
+}
+
+/// Lazily built, so every test scans the current tree.
+static LIB_RS: std::sync::LazyLock<String> = std::sync::LazyLock::new(client_sources);
 /// The debug map window that used to hold the warp array.
 const MAPS_RS: &str = include_str!("../src/interface/windows/maps.rs");
 /// The window module registry (proves the Maps window is still debug-only).
