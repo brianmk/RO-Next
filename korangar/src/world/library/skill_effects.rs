@@ -999,6 +999,128 @@ mod tests {
         }
     }
 
+    /// Dumps the official 2019 client skill tables from the GRF archives
+    /// (`skillid`/`effectid`/`skilleffectinfolist`/`actorstate`). Used by the
+    /// parity audit; writes a flat, line oriented table to
+    /// `/tmp/official_skill_tables.txt`.
+    #[test]
+    #[ignore]
+    fn dump_official_skill_tables() {
+        use korangar_loaders::FileLoader;
+        use mlua::Lua;
+
+        let loader = crate::loaders::GameFileLoader::default();
+        loader.load_archives_from_settings();
+        loader.load_patched_lua_files();
+
+        let lua = Lua::new();
+        for path in [
+            "data\\luafiles514\\lua files\\skillinfoz\\skillid.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\effectid.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\actorstate.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfolist.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfo_f.lub",
+            "data\\luafiles514\\lua files\\newskillinfo\\skillid.lub",
+        ] {
+            match loader.get(path) {
+                Ok(bytes) => match lua.load(&bytes).exec() {
+                    Ok(()) => println!("loaded {path}"),
+                    Err(error) => println!("execute failed {path}: {error}"),
+                },
+                Err(error) => println!("missing {path}: {error:?}"),
+            }
+        }
+
+        let mut out = String::new();
+
+        for name in [
+            "SKID",
+            "EFID",
+            "ACTOR_STATE",
+            "SKILL_EFFECT_INFO_LIST",
+            "SKILL_EFFECT_INFO",
+            "SKILL_INFO_LIST",
+        ] {
+            if let Ok(table) = lua.globals().get::<mlua::Table>(name) {
+                out.push_str(&format!("table|{name}|{}\n", table.len().unwrap_or(0)));
+            }
+        }
+
+        // SKID: skill Aegis name -> id.
+        if let Ok(skid) = lua.globals().get::<mlua::Table>("SKID") {
+            for pair in skid.pairs::<String, i64>() {
+                let Ok((name, id)) = pair else { continue };
+                out.push_str(&format!("skillid|{id}|{name}\n"));
+            }
+        }
+
+        // EFID: effect Aegis name -> id.
+        if let Ok(efid) = lua.globals().get::<mlua::Table>("EFID") {
+            for pair in efid.pairs::<String, i64>() {
+                let Ok((name, id)) = pair else { continue };
+                out.push_str(&format!("effectid|{id}|{name}\n"));
+            }
+        }
+
+        // SKILL_EFFECT_INFO_LIST: skill id -> effect fields.
+        let Ok(list) = lua.globals().get::<mlua::Table>("SKILL_EFFECT_INFO_LIST") else {
+            panic!("SKILL_EFFECT_INFO_LIST is missing from the client tables");
+        };
+
+        for pair in list.pairs::<i64, mlua::Table>() {
+            let Ok((skill, entry)) = pair else { continue };
+
+            for field in entry.clone().pairs::<String, mlua::Value>() {
+                let Ok((key, value)) = field else { continue };
+
+                match value {
+                    mlua::Value::Integer(number) => out.push_str(&format!("skill|{skill}|{key}|{number}\n")),
+                    mlua::Value::Number(number) => out.push_str(&format!("skill|{skill}|{key}|{number}\n")),
+                    mlua::Value::String(text) => {
+                        let bytes = text.as_bytes();
+                        match std::str::from_utf8(&bytes) {
+                            Ok(text) => out.push_str(&format!("skill|{skill}|{key}|{text}\n")),
+                            Err(_) => {
+                                let hex: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
+                                out.push_str(&format!("skill|{skill}|{key}|hex:{hex}\n"));
+                            }
+                        }
+                    }
+                    mlua::Value::Table(table) => {
+                        for (index, value) in table.sequence_values::<mlua::Value>().enumerate() {
+                            match value {
+                                Ok(mlua::Value::Integer(number)) => out.push_str(&format!("skill|{skill}|{key}[{index}]|{number}\n")),
+                                Ok(mlua::Value::String(text)) => {
+                                    let bytes = text.as_bytes();
+                                    match std::str::from_utf8(&bytes) {
+                                        Ok(text) => out.push_str(&format!("skill|{skill}|{key}[{index}]|{text}\n")),
+                                        Err(_) => {
+                                            let hex: String = bytes.iter().map(|byte| format!("{byte:02x}")).collect();
+                                            out.push_str(&format!("skill|{skill}|{key}[{index}]|hex:{hex}\n"))
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        // ACTOR_STATE: state name -> id (used for the caster animation).
+        if let Ok(states) = lua.globals().get::<mlua::Table>("ACTOR_STATE") {
+            for pair in states.pairs::<String, i64>() {
+                let Ok((name, id)) = pair else { continue };
+                out.push_str(&format!("actorstate|{id}|{name}\n"));
+            }
+        }
+
+        std::fs::write("/tmp/official_skill_tables.txt", &out).unwrap();
+        println!("wrote {} bytes", out.len());
+    }
+
     #[test]
     fn compiled_fallback_is_valid_and_broad() {
         let count = validate_compiled().expect("the compiled skill effect fallback has to be valid");

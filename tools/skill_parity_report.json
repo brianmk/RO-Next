@@ -1,0 +1,1295 @@
+[
+ {
+  "skill": 751,
+  "name": "NPC_ALL_STAT_DOWN",
+  "official_effect_ids": [
+   864
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\EF_DecAgility.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\EF_DecAgility.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 754,
+  "name": "NPC_IMMUNE_PROPERTY",
+  "official_effect_ids": [
+   1149
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 755,
+  "name": "NPC_MOVE_COORDINATE",
+  "official_effect_ids": [
+   1150,
+   1150
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2552,
+  "name": "RL_RICHS_COIN",
+  "official_effect_ids": [
+   1134
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2554,
+  "name": "RL_BANISHING_BUSTER",
+  "official_effect_ids": [
+   1066
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_BANISHING_BUSTER.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_BANISHING_BUSTER.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2555,
+  "name": "RL_B_TRAP",
+  "official_effect_ids": [],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_B_TRAP.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_B_TRAP.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2556,
+  "name": "RL_FLICKER",
+  "official_effect_ids": [
+   153
+  ],
+  "official_assets": [
+   "concentration"
+  ],
+  "official_wavs": [
+   "effect\\RL_FLICKER.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "concentration"
+  ],
+  "missing_wavs": [
+   "effect\\RL_FLICKER.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2557,
+  "name": "RL_S_STORM",
+  "official_effect_ids": [
+   1078
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_S_STORM.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_S_STORM.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2558,
+  "name": "RL_E_CHAIN",
+  "official_effect_ids": [
+   1137
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2560,
+  "name": "RL_C_MARKER",
+  "official_effect_ids": [],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_C_MARKER.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_C_MARKER.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2561,
+  "name": "RL_FIREDANCE",
+  "official_effect_ids": [
+   1133,
+   647
+  ],
+  "official_assets": [
+   "\ud2b8\ub798\ud0b9"
+  ],
+  "official_wavs": [
+   "effect\\\ub370\uc2a4\ud398\ub77c\ub3c4.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "\ud2b8\ub798\ud0b9"
+  ],
+  "missing_wavs": [
+   "effect\\\ub370\uc2a4\ud398\ub77c\ub3c4.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2562,
+  "name": "RL_H_MINE",
+  "official_effect_ids": [
+   1139
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2564,
+  "name": "RL_FALLEN_ANGEL",
+  "official_effect_ids": [
+   1140
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2566,
+  "name": "RL_D_TAIL",
+  "official_effect_ids": [
+   1068
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_D_TAIL.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_D_TAIL.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2567,
+  "name": "RL_FIRE_RAIN",
+  "official_effect_ids": [],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_FIRE_RAIN.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_FIRE_RAIN.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2568,
+  "name": "RL_HEAT_BARREL",
+  "official_effect_ids": [
+   1138
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2569,
+  "name": "RL_AM_BLAST",
+  "official_effect_ids": [],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_AM_BLAST.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_AM_BLAST.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2570,
+  "name": "RL_SLUGSHOT",
+  "official_effect_ids": [
+   1067
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\RL_SLUGSHOT.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\RL_SLUGSHOT.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2574,
+  "name": "SJ_LIGHTOFMOON",
+  "official_effect_ids": [
+   1198
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2576,
+  "name": "SJ_FULLMOONKICK",
+  "official_effect_ids": [
+   399,
+   1223,
+   1230
+  ],
+  "official_assets": [
+   "alpha_center"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "alpha_center"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2577,
+  "name": "SJ_LIGHTOFSTAR",
+  "official_effect_ids": [
+   1199
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2579,
+  "name": "SJ_NEWMOONKICK",
+  "official_effect_ids": [
+   1229
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2582,
+  "name": "SJ_NOVAEXPLOSING",
+  "official_effect_ids": [
+   1202
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2586,
+  "name": "SJ_BOOKOFDIMENSION",
+  "official_effect_ids": [
+   1231
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\so_elemental_shield.wav"
+  ],
+  "our_files": [
+   "\uc774\ud329\ud2b8\\\\book_of_dimension\\\\book_of_dimension"
+  ],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\so_elemental_shield.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": true
+ },
+ {
+  "skill": 2588,
+  "name": "SJ_DOCUMENT",
+  "official_effect_ids": [
+   1219
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2590,
+  "name": "SJ_LIGHTOFSUN",
+  "official_effect_ids": [
+   1197
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\ud53c\ub9c1.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2592,
+  "name": "SJ_SOLARBURST",
+  "official_effect_ids": [
+   1218
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2594,
+  "name": "SJ_FALLINGSTAR_ATK",
+  "official_effect_ids": [
+   1220
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\wizard_sightrasher.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\wizard_sightrasher.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2600,
+  "name": "SP_CURSEEXPLOSION",
+  "official_effect_ids": [
+   1233
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [
+   "\uc774\ud329\ud2b8\\\\curse_explosion\\\\curse_explosion"
+  ],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": true
+ },
+ {
+  "skill": 2602,
+  "name": "SP_SPA",
+  "official_effect_ids": [
+   1204
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2603,
+  "name": "SP_SHA",
+  "official_effect_ids": [
+   547
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2606,
+  "name": "SP_SOULDIVISION",
+  "official_effect_ids": [
+   1209
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\uce58\uc789.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\uce58\uc789.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2607,
+  "name": "SP_SOULREAPER",
+  "official_effect_ids": [
+   1234
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\ef_signum.wav"
+  ],
+  "our_files": [
+   "\uc774\ud329\ud2b8\\\\soul_reaper\\\\soul_reaper"
+  ],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\ef_signum.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": true
+ },
+ {
+  "skill": 2609,
+  "name": "SP_SOULCOLLECT",
+  "official_effect_ids": [
+   1209
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 2610,
+  "name": "SP_SOULEXPLOSION",
+  "official_effect_ids": [
+   1208,
+   1242
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\hunter_landmine.wav"
+  ],
+  "our_files": [
+   "\uc774\ud329\ud2b8\\\\soul_explosion\\\\soul_explosion"
+  ],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\hunter_landmine.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": true
+ },
+ {
+  "skill": 3004,
+  "name": "KO_JYUMONJIKIRI",
+  "official_effect_ids": [
+   996
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\cru_holy cross.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\cru_holy cross.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3005,
+  "name": "KO_SETSUDAN",
+  "official_effect_ids": [
+   997
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\T_\uc804\uae30.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\T_\uc804\uae30.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3006,
+  "name": "KO_BAKURETSU",
+  "official_effect_ids": [
+   983,
+   990
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
+   "effect\\\ud3ed\uc5fc\ub8e1.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
+   "effect\\\ud3ed\uc5fc\ub8e1.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3007,
+  "name": "KO_HAPPOKUNAI",
+  "official_effect_ids": [
+   981,
+   986
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3008,
+  "name": "KO_MUCHANAGE",
+  "official_effect_ids": [
+   330,
+   982
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3009,
+  "name": "KO_HUUMARANKA",
+  "official_effect_ids": [
+   984,
+   1000,
+   1002
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3011,
+  "name": "KO_MEIKYOUSISUI",
+  "official_effect_ids": [
+   57
+  ],
+  "official_assets": [
+   "ring_yellow"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_yellow"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3013,
+  "name": "KO_KYOUGAKU",
+  "official_effect_ids": [
+   59
+  ],
+  "official_assets": [
+   "ring_purple"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_purple"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3014,
+  "name": "KO_JYUSATSU",
+  "official_effect_ids": [
+   54
+  ],
+  "official_assets": [
+   "ring_blue"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_blue"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3015,
+  "name": "KO_KAHU_ENTEN",
+  "official_effect_ids": [
+   55
+  ],
+  "official_assets": [
+   "ring_red"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_red"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3016,
+  "name": "KO_HYOUHU_HUBUKI",
+  "official_effect_ids": [
+   441
+  ],
+  "official_assets": [
+   "ring_blue"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_blue"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3017,
+  "name": "KO_KAZEHU_SEIRAN",
+  "official_effect_ids": [
+   56
+  ],
+  "official_assets": [
+   "ring_white"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_white"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3018,
+  "name": "KO_DOHU_KOUKAI",
+  "official_effect_ids": [
+   12
+  ],
+  "official_assets": [
+   "ring_yellow"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_yellow"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3019,
+  "name": "KO_KAIHOU",
+  "official_effect_ids": [
+   989,
+   1008
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3020,
+  "name": "KO_ZENKAI",
+  "official_effect_ids": [],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3021,
+  "name": "KO_GENWAKU",
+  "official_effect_ids": [
+   55
+  ],
+  "official_assets": [
+   "ring_red"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_red"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3022,
+  "name": "KO_IZAYOI",
+  "official_effect_ids": [
+   999
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\ab_renovatio.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\ab_renovatio.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3023,
+  "name": "KG_KAGEHUMI",
+  "official_effect_ids": [
+   991
+  ],
+  "official_assets": [],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3024,
+  "name": "KG_KYOMU",
+  "official_effect_ids": [
+   1001
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3025,
+  "name": "KG_KAGEMUSYA",
+  "official_effect_ids": [
+   169
+  ],
+  "official_assets": [
+   "energycoat"
+  ],
+  "official_wavs": [
+   "effect\\mon_\uae08\uac15\ubd88\uad34.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "energycoat"
+  ],
+  "missing_wavs": [
+   "effect\\mon_\uae08\uac15\ubd88\uad34.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3026,
+  "name": "OB_ZANGETSU",
+  "official_effect_ids": [
+   1010,
+   12
+  ],
+  "official_assets": [
+   "ring_yellow"
+  ],
+  "official_wavs": [
+   "effect\\t_\ub530\ub4ef\ud55c\ub9c8\ubc95.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_yellow"
+  ],
+  "missing_wavs": [
+   "effect\\t_\ub530\ub4ef\ud55c\ub9c8\ubc95.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3027,
+  "name": "OB_OBOROGENSOU",
+  "official_effect_ids": [
+   1011
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\sign_up.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\sign_up.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3029,
+  "name": "OB_AKAITSUKI",
+  "official_effect_ids": [
+   1009,
+   55
+  ],
+  "official_assets": [
+   "ring_red"
+  ],
+  "official_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_red"
+  ],
+  "missing_wavs": [
+   "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3031,
+  "name": "ECL_SNOWFLIP",
+  "official_effect_ids": [
+   135
+  ],
+  "official_assets": [
+   "icecrash"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "icecrash"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3032,
+  "name": "ECL_PEONYMAMY",
+  "official_effect_ids": [
+   699
+  ],
+  "official_assets": [
+   "flower_leaf"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "flower_leaf"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3033,
+  "name": "ECL_SADAGUI",
+  "official_effect_ids": [
+   52
+  ],
+  "official_assets": [
+   "windhit%d"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "windhit%d"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3034,
+  "name": "ECL_SEQUOIADUST",
+  "official_effect_ids": [
+   314
+  ],
+  "official_assets": [
+   "ring_blue"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_blue"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 3035,
+  "name": "ECLAGE_RECALL",
+  "official_effect_ids": [
+   12
+  ],
+  "official_assets": [
+   "ring_yellow"
+  ],
+  "official_wavs": [],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [
+   "ring_yellow"
+  ],
+  "missing_wavs": [],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 5050,
+  "name": "SU_PURRING",
+  "official_effect_ids": [
+   1123
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\su_grooming.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\su_grooming.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 5051,
+  "name": "SU_SHRIMPARTY",
+  "official_effect_ids": [
+   1098
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\su_shrimpparty.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\su_shrimpparty.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ },
+ {
+  "skill": 5053,
+  "name": "SU_MEOWMEOW",
+  "official_effect_ids": [
+   1124
+  ],
+  "official_assets": [],
+  "official_wavs": [
+   "effect\\su_chattering.wav"
+  ],
+  "our_files": [],
+  "our_wavs": [],
+  "missing_assets": [],
+  "missing_wavs": [
+   "effect\\su_chattering.wav"
+  ],
+  "official_action": null,
+  "our_action": null,
+  "has_descriptor": false
+ }
+]

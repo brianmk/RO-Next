@@ -41,6 +41,23 @@ from pathlib import Path
 DEFAULT_FACTS = Path("tools/windows_client_skill_actions.json")
 DEFAULT_EXTRA = Path("tools/skill_actions_extra.json")
 DEFAULT_RODECOMP = Path("tools/skill_actions_rodecomp.json")
+DEFAULT_GRF2019 = Path("tools/grf2019_skill_facts.json")
+
+#: `ACTOR_STATE` id of the 2019 client tables -> our caster action.
+#:
+#: `CGameActor::SetState` maps the actor state to an ACT action block; the
+#: indices below are the blocks of that mapping (ST_ATTACK2 -> block 11,
+#: ST_NINJASKILL2/ST_NINJAREADY -> the skill block 12).
+GRF2019_MOTION_ACTION = {
+    0: "Idle",        # ST_STAND
+    2: "Attack",      # ST_ATTACK
+    5: "Pickup",      # ST_PICKUP
+    7: "Skill",       # ST_SKILL
+    8: "Skill",       # ST_BEGIN_SKILL
+    9: "Action(11)",  # ST_ATTACK2
+    36: "Skill",      # ST_NINJASKILL2 -> block 96 (skill)
+    37: "Skill",      # ST_NINJAREADY -> block 96 (skill)
+}
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
@@ -104,19 +121,6 @@ def load_facts(path: Path, extra_path: Path | None = None, rodecomp_path: Path |
             validate_action(skill_id, action, "rodecomp")
             actions[skill_id] = action
 
-    # Official decompilation table (highest priority): the 2026 client's
-    # `CSession::GetSkillActionInfo` motion for every learnable skill, mapped to
-    # the ACT action the entity layer plays. It supersedes the roBrowser dump
-    # where they disagree (the dump uses the attack animation for ~125 skills;
-    # the official client plays the cast gesture for most of them).
-    if rodecomp_path is not None and rodecomp_path.is_file():
-        rodecomp = json.loads(rodecomp_path.read_text())
-        for entry in rodecomp.get("overrides", []):
-            skill_id = int(entry["skill"])
-            action = entry["action"]
-            validate_action(skill_id, action, "rodecomp")
-            actions[skill_id] = action
-
     return sorted(actions.items())
 
 
@@ -162,11 +166,28 @@ def main() -> int:
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
     parser.add_argument("--extra", default=str(DEFAULT_EXTRA))
     parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP))
+    parser.add_argument("--grf2019", default=str(DEFAULT_GRF2019), help="begin-motion facts of the 2019 GRF tables")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
     payload = json.loads(Path(args.facts).read_text())
     rows = load_facts(Path(args.facts), Path(args.extra), Path(args.rodecomp))
+
+    # The 2019 GRF tables carry the begin motion of the skills they cover. They
+    # only fill skills no other fact table lists (the curated/exe rows win).
+    grf2019_path = Path(args.grf2019)
+    if grf2019_path.is_file():
+        known = dict(rows)
+        for skill_id, entry in json.loads(grf2019_path.read_text())["skills"].items():
+            skill = int(skill_id)
+            motion = entry.get("begin_motion")
+            if motion is None or skill in known:
+                continue
+            action = GRF2019_MOTION_ACTION.get(int(motion), "Skill")
+            validate_action(skill, action, "grf2019")
+            known[skill] = action
+        rows = sorted(known.items())
+
     if not rows:
         raise SystemExit("no skill action facts found")
 

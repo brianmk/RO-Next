@@ -46,6 +46,7 @@ DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
 DEFAULT_FACTS = Path("tools/windows_client_skill_sounds.json")
 DEFAULT_CUSTOM = Path("tools/skill_sounds_custom.ron")
 DEFAULT_RODECOMP = Path("tools/skill_sounds_rodecomp.ron")
+DEFAULT_GRF2019 = Path("tools/grf2019_skill_facts.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sounds.ron")
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
@@ -306,6 +307,7 @@ def main() -> int:
     parser.add_argument("--facts", default=str(DEFAULT_FACTS))
     parser.add_argument("--custom", default=str(DEFAULT_CUSTOM), help="hand-curated sound overrides")
     parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP), help="official-client sounds from the decompilation")
+    parser.add_argument("--grf2019", default=str(DEFAULT_GRF2019), help="per-skill wave files of the 2019 GRF tables")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
@@ -323,6 +325,20 @@ def main() -> int:
     wavs = collect_wavs(game_dir)
     if not wavs:
         raise SystemExit(f"no wav files found in the archives under {game_dir}")
+
+    # The 2019 GRF tables (SKILL_EFFECT_INFO_LIST) carry the wave file of every
+    # skill they cover. They fill the skills the community dump does not list
+    # (newer jobs); a skill that both sources cover keeps the community order.
+    grf2019_path = Path(args.grf2019)
+    if grf2019_path.is_file():
+        grf2019 = json.loads(grf2019_path.read_text())["skills"]
+        for skill_id, entry in grf2019.items():
+            skill = int(skill_id)
+            if skill in facts:
+                continue
+            wavs_of_skill = entry.get("wavs") or []
+            if wavs_of_skill:
+                facts[skill] = [{"wav": wav} for wav in wavs_of_skill]
 
     rows = build_rows(facts, wavs)
     if not rows:

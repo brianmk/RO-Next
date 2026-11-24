@@ -1479,7 +1479,7 @@
             skill: 263,
             phase: Success,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\cloud11.tga", size: 6.8, duration_ms: 1667, alpha: 0.2, blend: Additive, wav: "effect\\ef_hit2.wav"),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\cloud11.tga", size: 6.8, duration_ms: 1667, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -1494,7 +1494,7 @@
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\thunder_center.bmp", size: 6.8, duration_ms: 5000, alpha: 0.2, blend: Additive),
-                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\침투경_"], duration_ms: 267, wav: "effect\\mon_침투경.wav"),
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\침투경_"], duration_ms: 267),
             ],
         ),
         (
@@ -1517,9 +1517,7 @@
             skill: 268,
             phase: Success,
             layers: [
-                // Official `SuperSlashFan(4)` (RagEffect.cpp:16964): four copies
-                // of the super1..5 fan of slashes around the caster.
-                (kind: Texture, anchor: Caster, attached_entity: true, frames: ["effect\\super1.bmp", "effect\\super2.bmp", "effect\\super3.bmp", "effect\\super4.bmp", "effect\\super5.bmp"], frame_ms: 500, size: 6.8, duration_ms: 2500, count: 4, spread: 2.0, alpha: 0.2, blend: Additive, wav: "effect\\mon_금강불괴.wav"),
+                (kind: Texture, anchor: Caster, attached_entity: true, frames: ["effect\\super1.bmp", "effect\\super2.bmp", "effect\\super3.bmp", "effect\\super4.bmp", "effect\\super5.bmp"], frame_ms: 500, size: 6.8, duration_ms: 2500, alpha: 0.2, blend: Additive),
             ],
         ),
         (
@@ -1528,7 +1526,7 @@
             cast_circle_color: (255, 230, 160),
             action: Idle,
             layers: [
-                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1500, delay_ms: 100, count: 4, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.5, tint: (1.0, 0.88, 0.35), blend: Additive, wav: "effect\\mon_폭기.wav"),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", duration_ms: 1000, height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.9, tint: (1.0, 0.88, 0.35), blend: Additive, wav: "effect\\ef_beginspell.wav"),
                 (kind: BodyFlash, tint: (1.0, 0.85, 0.2), hold_ms: 250, fade_ms: 700),
             ],
         ),
@@ -1543,19 +1541,15 @@
             ],
         ),
         (
-            // Official `CRagEffect::AsuraStrike` (RagEffect.cpp:14187): two
-            // white ring waves + the rising `asura1..3` figure around the caster.
-            // The generic yellow cast cone used to stand in for it and the
-            // signature animation was missing entirely.
             skill: 271,
             phase: Cast,
             action: Skill,
             layers: [
-                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", count: 2, duration_ms: 350, delay_ms: 60, height: 2.0, bottom_radius: 3.0, top_radius: 16.0, grow: TopRadius, alpha: 0.75, tint: (1.0, 1.0, 1.0), blend: Additive, wav: "effect\\ef_beginspell.wav"),
-                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 300, height: 2.0, bottom_radius: 2.0, top_radius: 9.0, grow: TopRadius, alpha: 0.85, tint: (1.0, 1.0, 1.0), blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 8.0, 0.0), alpha: 0.7, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 4.0, 0.0), alpha: 0.8, blend: Additive),
-                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 0.0, 0.0), alpha: 0.9, blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 350, delay_ms: 60, count: 2, height: 2.0, bottom_radius: 3.0, top_radius: 16.0, grow: TopRadius, alpha: 0.75, blend: Additive, wav: "effect\\ef_beginspell.wav"),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 300, height: 2.0, bottom_radius: 2.0, top_radius: 9.0, grow: TopRadius, alpha: 0.85, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", offset: (0.0, 8.0, 0.0), size: 12.0, size_end: 16.0, duration_ms: 350, alpha: 0.7, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", offset: (0.0, 4.0, 0.0), size: 12.0, size_end: 16.0, duration_ms: 350, alpha: 0.8, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", size: 12.0, size_end: 16.0, duration_ms: 350, alpha: 0.9, blend: Additive),
             ],
         ),
         (
@@ -1570,7 +1564,7 @@
             skill: 271,
             phase: Hit,
             layers: [
-                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\lens1.tga", size: 10.0, size_end: 16.0, duration_ms: 550, count: 16, alpha: 0.8, blend: Additive, wav: "effect\\mon_아수라 패황권.wav"),
+                (kind: Texture, anchor: Target, attached_entity: true, file: "effect\\lens1.tga", size: 10.0, size_end: 16.0, duration_ms: 550, delay_ms: 100, count: 16, alpha: 0.8, blend: Additive, wav: "effect\\mon_아수라 패황권.wav"),
             ],
         ),
         (
@@ -3472,6 +3466,13 @@
             ],
         ),
         (
+            skill: 2556,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Caster, attached_entity: true, file: "concentration.str", wav: "effect\\ac_concentration.wav"),
+            ],
+        ),
+        (
             skill: 2586,
             phase: Success,
             layers: [
@@ -3525,6 +3526,97 @@
             phase: Success,
             layers: [
                 (kind: Spr, anchor: Target, files: ["이팩트\\soul_explosion\\soul_explosion"], offset: (0.0, 16.0, 0.0)),
+            ],
+        ),
+        (
+            skill: 3011,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.5),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 6.0, bottom_radius: 2.2, top_radius: 2.4, rotation_speed: 1.0, grow: Height),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3013,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_purple.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (0.8, 0.8, 0.8), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_purple.tga", height: 6.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (0.8, 0.8, 0.8), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_purple.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (0.8, 0.8, 0.8), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3014,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_blue.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.2, tint: (0.5, 0.5, 1.0), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_blue.tga", height: 2.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.2, tint: (0.5, 0.5, 1.0), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_blue.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.6, tint: (0.5, 0.5, 1.0), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3015,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3016,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_blue.tga", height: 8.0, bottom_radius: 2.0, top_radius: 10.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3017,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (0.6, 1.0, 0.6), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.6, tint: (0.6, 1.0, 0.6), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.6, tint: (0.6, 1.0, 0.6), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3018,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3021,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3026,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3029,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3035,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_yellow.tga", height: 8.0, bottom_radius: 2.0, top_radius: 10.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
             ],
         ),
         (

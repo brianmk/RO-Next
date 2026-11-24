@@ -1,0 +1,754 @@
+{
+ "provenance": {
+  "source": "CondaRO 2019 client GRF tables: SKILL_EFFECT_INFO_LIST / SKID / EFID / ACTOR_STATE (data.grf + CondaRO.grf, identical copies)",
+  "dump": "tools/client_skill_tables_2019.txt",
+  "counts": {
+   "skill_names": 1396,
+   "effect_names": 120,
+   "actor_states": 46,
+   "skills_with_effects": 61
+  }
+ },
+ "skills": {
+  "751": {
+   "name": "NPC_ALL_STAT_DOWN",
+   "effects": {
+    "target": [
+     864
+    ]
+   },
+   "wavs": [
+    "effect\\EF_DecAgility.wav"
+   ],
+   "begin_motion": null
+  },
+  "754": {
+   "name": "NPC_IMMUNE_PROPERTY",
+   "effects": {
+    "caster": [
+     1149
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "755": {
+   "name": "NPC_MOVE_COORDINATE",
+   "effects": {
+    "target": [
+     1150
+    ],
+    "caster": [
+     1150
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2552": {
+   "name": "RL_RICHS_COIN",
+   "effects": {
+    "caster": [
+     1134
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2554": {
+   "name": "RL_BANISHING_BUSTER",
+   "effects": {
+    "target": [
+     1066
+    ]
+   },
+   "wavs": [
+    "effect\\RL_BANISHING_BUSTER.wav"
+   ],
+   "begin_motion": null
+  },
+  "2555": {
+   "name": "RL_B_TRAP",
+   "effects": {},
+   "wavs": [
+    "effect\\RL_B_TRAP.wav"
+   ],
+   "begin_motion": null
+  },
+  "2556": {
+   "name": "RL_FLICKER",
+   "effects": {
+    "caster": [
+     153
+    ]
+   },
+   "wavs": [
+    "effect\\RL_FLICKER.wav"
+   ],
+   "begin_motion": null
+  },
+  "2557": {
+   "name": "RL_S_STORM",
+   "effects": {
+    "target": [
+     1078
+    ]
+   },
+   "wavs": [
+    "effect\\RL_S_STORM.wav"
+   ],
+   "begin_motion": null
+  },
+  "2558": {
+   "name": "RL_E_CHAIN",
+   "effects": {
+    "caster": [
+     1137
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2560": {
+   "name": "RL_C_MARKER",
+   "effects": {},
+   "wavs": [
+    "effect\\RL_C_MARKER.wav"
+   ],
+   "begin_motion": null
+  },
+  "2561": {
+   "name": "RL_FIREDANCE",
+   "effects": {
+    "target": [
+     647
+    ],
+    "caster": [
+     1133
+    ]
+   },
+   "wavs": [
+    "effect\\\ub370\uc2a4\ud398\ub77c\ub3c4.wav"
+   ],
+   "begin_motion": null
+  },
+  "2562": {
+   "name": "RL_H_MINE",
+   "effects": {
+    "target": [
+     1139
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2564": {
+   "name": "RL_FALLEN_ANGEL",
+   "effects": {
+    "caster": [
+     1140
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2566": {
+   "name": "RL_D_TAIL",
+   "effects": {
+    "target": [
+     1068
+    ]
+   },
+   "wavs": [
+    "effect\\RL_D_TAIL.wav"
+   ],
+   "begin_motion": null
+  },
+  "2567": {
+   "name": "RL_FIRE_RAIN",
+   "effects": {},
+   "wavs": [
+    "effect\\RL_FIRE_RAIN.wav"
+   ],
+   "begin_motion": null
+  },
+  "2568": {
+   "name": "RL_HEAT_BARREL",
+   "effects": {
+    "caster": [
+     1138
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2569": {
+   "name": "RL_AM_BLAST",
+   "effects": {},
+   "wavs": [
+    "effect\\RL_AM_BLAST.wav"
+   ],
+   "begin_motion": null
+  },
+  "2570": {
+   "name": "RL_SLUGSHOT",
+   "effects": {
+    "target": [
+     1067
+    ]
+   },
+   "wavs": [
+    "effect\\RL_SLUGSHOT.wav"
+   ],
+   "begin_motion": null
+  },
+  "2574": {
+   "name": "RL_GLITTERING_GREED_ATK",
+   "effects": {
+    "caster": [
+     1198
+    ]
+   },
+   "wavs": [
+    "effect\\t_\ud53c\ub9c1.wav"
+   ],
+   "begin_motion": null
+  },
+  "2576": {
+   "name": "2576",
+   "effects": {
+    "caster": [
+     399,
+     1223,
+     1230
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2577": {
+   "name": "2577",
+   "effects": {
+    "caster": [
+     1199
+    ]
+   },
+   "wavs": [
+    "effect\\t_\ud53c\ub9c1.wav"
+   ],
+   "begin_motion": null
+  },
+  "2579": {
+   "name": "2579",
+   "effects": {
+    "caster": [
+     1229
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2582": {
+   "name": "2582",
+   "effects": {
+    "target": [
+     1202
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2586": {
+   "name": "2586",
+   "effects": {
+    "caster": [
+     1231
+    ]
+   },
+   "wavs": [
+    "effect\\so_elemental_shield.wav"
+   ],
+   "begin_motion": null
+  },
+  "2588": {
+   "name": "2588",
+   "effects": {
+    "caster": [
+     1219
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2590": {
+   "name": "2590",
+   "effects": {
+    "caster": [
+     1197
+    ]
+   },
+   "wavs": [
+    "effect\\t_\ud53c\ub9c1.wav"
+   ],
+   "begin_motion": null
+  },
+  "2592": {
+   "name": "2592",
+   "effects": {
+    "caster": [
+     1218
+    ]
+   },
+   "wavs": [
+    "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
+   ],
+   "begin_motion": null
+  },
+  "2594": {
+   "name": "2594",
+   "effects": {
+    "target": [
+     1220
+    ]
+   },
+   "wavs": [
+    "effect\\wizard_sightrasher.wav"
+   ],
+   "begin_motion": null
+  },
+  "2600": {
+   "name": "2600",
+   "effects": {
+    "target": [
+     1233
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2602": {
+   "name": "2602",
+   "effects": {
+    "caster": [
+     1204
+    ]
+   },
+   "wavs": [
+    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+   ],
+   "begin_motion": null
+  },
+  "2603": {
+   "name": "2603",
+   "effects": {
+    "caster": [
+     547
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2606": {
+   "name": "2606",
+   "effects": {
+    "target": [
+     1209
+    ]
+   },
+   "wavs": [
+    "effect\\t_\uce58\uc789.wav"
+   ],
+   "begin_motion": null
+  },
+  "2607": {
+   "name": "2607",
+   "effects": {
+    "caster": [
+     1234
+    ]
+   },
+   "wavs": [
+    "effect\\ef_signum.wav"
+   ],
+   "begin_motion": null
+  },
+  "2609": {
+   "name": "2609",
+   "effects": {
+    "caster": [
+     1209
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "2610": {
+   "name": "2610",
+   "effects": {
+    "target": [
+     1208,
+     1242
+    ]
+   },
+   "wavs": [
+    "effect\\hunter_landmine.wav"
+   ],
+   "begin_motion": null
+  },
+  "3004": {
+   "name": "KO_JYUMONJIKIRI",
+   "effects": {
+    "target": [
+     996
+    ]
+   },
+   "wavs": [
+    "effect\\cru_holy cross.wav"
+   ],
+   "begin_motion": 9
+  },
+  "3005": {
+   "name": "KO_SETSUDAN",
+   "effects": {
+    "target": [
+     997
+    ]
+   },
+   "wavs": [
+    "effect\\T_\uc804\uae30.wav"
+   ],
+   "begin_motion": 36
+  },
+  "3006": {
+   "name": "KO_BAKURETSU",
+   "effects": {
+    "target": [
+     990
+    ],
+    "caster": [
+     983
+    ]
+   },
+   "wavs": [
+    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
+    "effect\\\ud3ed\uc5fc\ub8e1.wav"
+   ],
+   "begin_motion": 36
+  },
+  "3007": {
+   "name": "KO_HAPPOKUNAI",
+   "effects": {
+    "caster": [
+     981,
+     986
+    ]
+   },
+   "wavs": [
+    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+   ],
+   "begin_motion": 36
+  },
+  "3008": {
+   "name": "KO_MUCHANAGE",
+   "effects": {
+    "target": [
+     330,
+     982
+    ]
+   },
+   "wavs": [
+    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+   ],
+   "begin_motion": null
+  },
+  "3009": {
+   "name": "KO_HUUMARANKA",
+   "effects": {
+    "ground": [
+     984,
+     1000,
+     1002
+    ]
+   },
+   "wavs": [
+    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+   ],
+   "begin_motion": 36
+  },
+  "3011": {
+   "name": "KO_MEIKYOUSISUI",
+   "effects": {
+    "begin": [
+     57
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3013": {
+   "name": "KO_KYOUGAKU",
+   "effects": {
+    "begin": [
+     59
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3014": {
+   "name": "KO_JYUSATSU",
+   "effects": {
+    "begin": [
+     54
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3015": {
+   "name": "KO_KAHU_ENTEN",
+   "effects": {
+    "begin": [
+     55
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3016": {
+   "name": "KO_HYOUHU_HUBUKI",
+   "effects": {
+    "begin": [
+     441
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3017": {
+   "name": "KO_KAZEHU_SEIRAN",
+   "effects": {
+    "begin": [
+     56
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3018": {
+   "name": "KO_DOHU_KOUKAI",
+   "effects": {
+    "begin": [
+     12
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3019": {
+   "name": "KO_KAIHOU",
+   "effects": {
+    "target": [
+     1008
+    ],
+    "caster": [
+     989
+    ]
+   },
+   "wavs": [
+    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
+   ],
+   "begin_motion": null
+  },
+  "3020": {
+   "name": "KO_ZENKAI",
+   "effects": {},
+   "wavs": [],
+   "begin_motion": 36
+  },
+  "3021": {
+   "name": "KO_GENWAKU",
+   "effects": {
+    "begin": [
+     55
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 37
+  },
+  "3022": {
+   "name": "KO_IZAYOI",
+   "effects": {
+    "caster": [
+     999
+    ]
+   },
+   "wavs": [
+    "effect\\ab_renovatio.wav"
+   ],
+   "begin_motion": 36
+  },
+  "3023": {
+   "name": "KG_KAGEHUMI",
+   "effects": {
+    "caster": [
+     991
+    ]
+   },
+   "wavs": [],
+   "begin_motion": 36
+  },
+  "3024": {
+   "name": "KG_KYOMU",
+   "effects": {
+    "target": [
+     1001
+    ]
+   },
+   "wavs": [
+    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+   ],
+   "begin_motion": null
+  },
+  "3025": {
+   "name": "KG_KAGEMUSYA",
+   "effects": {
+    "target": [
+     169
+    ]
+   },
+   "wavs": [
+    "effect\\mon_\uae08\uac15\ubd88\uad34.wav"
+   ],
+   "begin_motion": null
+  },
+  "3026": {
+   "name": "OB_ZANGETSU",
+   "effects": {
+    "begin": [
+     12
+    ],
+    "target": [
+     1010
+    ]
+   },
+   "wavs": [
+    "effect\\t_\ub530\ub4ef\ud55c\ub9c8\ubc95.wav"
+   ],
+   "begin_motion": 37
+  },
+  "3027": {
+   "name": "OB_OBOROGENSOU",
+   "effects": {
+    "target": [
+     1011
+    ]
+   },
+   "wavs": [
+    "effect\\sign_up.wav"
+   ],
+   "begin_motion": 37
+  },
+  "3029": {
+   "name": "OB_AKAITSUKI",
+   "effects": {
+    "begin": [
+     55
+    ],
+    "target": [
+     1009
+    ]
+   },
+   "wavs": [
+    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
+   ],
+   "begin_motion": 37
+  },
+  "3031": {
+   "name": "ECL_SNOWFLIP",
+   "effects": {
+    "target": [
+     135
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "3032": {
+   "name": "ECL_PEONYMAMY",
+   "effects": {
+    "target": [
+     699
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "3033": {
+   "name": "ECL_SADAGUI",
+   "effects": {
+    "target": [
+     52
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "3034": {
+   "name": "ECL_SEQUOIADUST",
+   "effects": {
+    "target": [
+     314
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "3035": {
+   "name": "ECLAGE_RECALL",
+   "effects": {
+    "begin": [
+     12
+    ]
+   },
+   "wavs": [],
+   "begin_motion": null
+  },
+  "5050": {
+   "name": "SU_PURRING",
+   "effects": {
+    "target": [
+     1123
+    ]
+   },
+   "wavs": [
+    "effect\\su_grooming.wav"
+   ],
+   "begin_motion": null
+  },
+  "5051": {
+   "name": "SU_SHRIMPARTY",
+   "effects": {
+    "target": [
+     1098
+    ]
+   },
+   "wavs": [
+    "effect\\su_shrimpparty.wav"
+   ],
+   "begin_motion": null
+  },
+  "5053": {
+   "name": "SU_MEOWMEOW",
+   "effects": {
+    "target": [
+     1124
+    ]
+   },
+   "wavs": [
+    "effect\\su_chattering.wav"
+   ],
+   "begin_motion": null
+  }
+ }
+}

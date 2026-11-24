@@ -1,0 +1,26 @@
+// Hand-written phase overrides for the unified skill effect data file.
+//
+// Consumed by `tools/gen_skill_effects.py --overrides` (default: this file).
+// Unlike `tools/skill_effects_custom.ron` (additive layers), every descriptor
+// here **replaces** the whole (skill, phase) entry of the merged data, so it is
+// only used where the official table's row is an approximation that a
+// decompiled client implementation supersedes.
+//
+// Schema: the same descriptor schema as `skill_effects.ron`
+// (`skill`, `phase`, optional `cast_circle_color`/`action`, ordered `layers`).
+(
+    provenance: "hand-written replacements for official-table rows superseded by decompiled client code (rodecomp)",
+    effects: [
+        // Asura Strike cast: `CRagEffect::AsuraStrike` (RagEffect.cpp:14187)
+        // draws two expanding white ring waves and the rising asura1..3
+        // figure. The 2019 community table only lists the generic
+        // EF_BEGINSPELL cone, which is what this replaces.
+        (skill: 271, phase: Cast, action: Skill, layers: [
+            (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", count: 2, duration_ms: 350, delay_ms: 60, height: 2.0, bottom_radius: 3.0, top_radius: 16.0, grow: TopRadius, alpha: 0.75, tint: (1.0, 1.0, 1.0), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 300, height: 2.0, bottom_radius: 2.0, top_radius: 9.0, grow: TopRadius, alpha: 0.85, tint: (1.0, 1.0, 1.0), blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura3.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 8.0, 0.0), alpha: 0.7, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura2.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 4.0, 0.0), alpha: 0.8, blend: Additive),
+            (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\asura1.tga", size: 12.0, size_end: 16.0, duration_ms: 350, offset: (0.0, 0.0, 0.0), alpha: 0.9, blend: Additive),
+        ]),
+    ],
+)

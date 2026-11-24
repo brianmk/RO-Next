@@ -6185,6 +6185,528 @@
    ]
   },
   {
+   "skill": 2556,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Str",
+     "anchor": "Caster",
+     "file": "concentration.str",
+     "wav": "effect\\ac_concentration.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3011,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.5,
+     "tint": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "blend": "Alpha",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.2,
+     "top_radius": 2.4,
+     "height": 6.0,
+     "alpha": 1.0,
+     "tint": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "blend": "Alpha",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 1.0,
+     "tint": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "blend": "Alpha",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3013,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_purple.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.3,
+     "tint": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_purple.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 6.0,
+     "alpha": 0.7,
+     "tint": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_purple.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.7,
+     "tint": [
+      0.8,
+      0.8,
+      0.8
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3014,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.2,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 2.0,
+     "alpha": 0.2,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.6,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3015,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.3,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 4.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3016,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 10.0,
+     "height": 8.0,
+     "alpha": 0.8,
+     "tint": [
+      1.0,
+      1.0,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3017,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_white.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.3,
+     "tint": [
+      0.6,
+      1.0,
+      0.6
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_white.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 4.0,
+     "alpha": 0.6,
+     "tint": [
+      0.6,
+      1.0,
+      0.6
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_white.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.6,
+     "tint": [
+      0.6,
+      1.0,
+      0.6
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3018,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 10.0,
+     "height": 8.0,
+     "alpha": 0.8,
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3021,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.3,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 4.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3026,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 10.0,
+     "height": 8.0,
+     "alpha": 0.8,
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3029,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.0,
+     "height": 60.0,
+     "alpha": 0.3,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 2.6,
+     "height": 4.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_red.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 8.0,
+     "height": 6.0,
+     "alpha": 0.7,
+     "tint": [
+      1.0,
+      0.4,
+      0.4
+     ],
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "rotation_speed": 1.0,
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3035,
+   "phase": "Cast",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\ring_yellow.tga",
+     "bottom_radius": 2.0,
+     "top_radius": 10.0,
+     "height": 8.0,
+     "alpha": 0.8,
+     "blend": "Additive",
+     "grow": "TopRadius",
+     "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
    "skill": 5001,
    "phase": "Success",
    "layers": [
@@ -8016,9 +8538,9 @@
   }
  ],
  "statistics": {
-  "rows": 351,
-  "layers": 511,
-  "skills": 319,
+  "rows": 363,
+  "layers": 537,
+  "skills": 331,
   "dropped": {
    "action_hold_not_mapped": [
     "skill 61: official action hold=True",
@@ -8799,6 +9321,8 @@
     "skill 517 Success: effect 626 has no layer facts",
     "skill 532 Success: effect 617 has no layer facts",
     "skill 538 Ground: effect 620 has no layer facts",
+    "skill 754 Success: effect 1149 has no layer facts",
+    "skill 755 Success: effect 1150 has no layer facts",
     "skill 1002 Success: effect 599 has no layer facts",
     "skill 1005 Success: effect 602 has no layer facts",
     "skill 1006 Success: effect 601 has no layer facts",
@@ -8830,11 +9354,52 @@
     "skill 2486 Success: effect 917 has no layer facts",
     "skill 2487 Success: effect 918 has no layer facts",
     "skill 2490 Success: effect 919 has no layer facts",
+    "skill 2552 Success: effect 1134 has no layer facts",
+    "skill 2574 Success: effect 1198 has no layer facts",
+    "skill 2577 Success: effect 1199 has no layer facts",
+    "skill 2586 Success: effect 1231 has no layer facts",
+    "skill 2590 Success: effect 1197 has no layer facts",
+    "skill 2602 Success: effect 1204 has no layer facts",
+    "skill 2607 Success: effect 1234 has no layer facts",
+    "skill 2609 Success: effect 1209 has no layer facts",
+    "skill 3006 Success: effect 983 has no layer facts",
+    "skill 3007 Success: effect 981 has no layer facts",
+    "skill 3009 Ground: effect 984 has no layer facts",
+    "skill 3009 Ground: effect 1000 has no layer facts",
+    "skill 3009 Ground: effect 1002 has no layer facts",
+    "skill 3019 Success: effect 989 has no layer facts",
+    "skill 3022 Success: effect 999 has no layer facts",
+    "skill 3023 Success: effect 991 has no layer facts",
     "skill 8004 Success: effect 505 has no layer facts",
     "skill 8010 Success: effect 564 has no layer facts",
     "skill 8011 Success: effect 564 has no layer facts",
     "skill 8026 Success: effect 961 has no layer facts",
     "skill 8039 Success: effect 962 has no layer facts"
+   ],
+   "unknown_skill_effect_field": [
+    "skill 751: successEffectIdOnTarget",
+    "skill 755: successEffectIdOnTarget",
+    "skill 2554: successEffectIdOnTarget",
+    "skill 2582: successEffectIdOnTarget",
+    "skill 2594: successEffectIdOnTarget",
+    "skill 2600: successEffectIdOnTarget",
+    "skill 2606: successEffectIdOnTarget",
+    "skill 2610: successEffectIdOnTarget",
+    "skill 3006: successEffectIdOnTarget",
+    "skill 3008: successEffectIdOnTarget",
+    "skill 3019: successEffectIdOnTarget",
+    "skill 3024: successEffectIdOnTarget",
+    "skill 3025: successEffectIdOnTarget",
+    "skill 3026: successEffectIdOnTarget",
+    "skill 3027: successEffectIdOnTarget",
+    "skill 3029: successEffectIdOnTarget",
+    "skill 3031: successEffectIdOnTarget",
+    "skill 3032: successEffectIdOnTarget",
+    "skill 3033: successEffectIdOnTarget",
+    "skill 3034: successEffectIdOnTarget",
+    "skill 5050: successEffectIdOnTarget",
+    "skill 5051: successEffectIdOnTarget",
+    "skill 5053: successEffectIdOnTarget"
    ],
    "unsupported_layer_type": [
     "skill 7 Success effect 17: type PRIM",
@@ -8913,6 +9478,7 @@
     "skill 2216 Ground effect 732: type QuadHorn",
     "skill 2216 Ground effect 732: type FUNC",
     "skill 2217 Cast effect 805: type FUNC",
+    "skill 3007 Success effect 986: type FUNC",
     "skill 5405 Cast effect 2367: type FUNC",
     "skill 5406 Cast effect 2367: type FUNC",
     "skill 5407 Cast effect 2367: type FUNC",
@@ -9002,7 +9568,7 @@
    ]
   },
   "unmapped_parameters": {
-   "Cylinder.fade": 127,
+   "Cylinder.fade": 152,
    "Cylinder.fadeOut": 1,
    "Cylinder.repeat": 2,
    "Cylinder.zIndex": 28,
@@ -13969,8 +14535,8 @@
    ]
   },
   "extras": {
-   "layers_after_coalesce": 511,
-   "layers_before_coalesce": 642,
+   "layers_after_coalesce": 537,
+   "layers_before_coalesce": 668,
    "symbolic_layers": 42,
    "symbolic_sources": 37
   }
@@ -13980,16 +14546,16 @@
   "skills_with_official_layers": 178,
   "skills_without_official_layers": 279,
   "layer_count_by_kind": {
-   "Cylinder": 117,
+   "Cylinder": 142,
    "Primitive": 14,
    "Spr": 39,
-   "Str": 206,
+   "Str": 207,
    "Texture": 135
   },
   "row_count_by_phase": {
    "Ground": 19,
-   "Cast": 31,
-   "Success": 223,
+   "Cast": 42,
+   "Success": 224,
    "Release": 15,
    "Hit": 59,
    "Caster": 4

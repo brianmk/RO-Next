@@ -83,6 +83,7 @@ DEFAULT_STR_WHITELIST = REPO / "tools/windows_client_effect_whitelist.txt"
 DEFAULT_SPR_WHITELIST = REPO / "tools/windows_client_spr_whitelist.txt"
 DEFAULT_LEARNABLE = REPO / "tools/rathena_pre_re_learnable_skills.json"
 DEFAULT_OUTPUT = REPO / "tools/skill_effects_official.ron"
+DEFAULT_GRF2019 = REPO / "tools/grf2019_skill_facts.json"
 DEFAULT_JSON = REPO / "tools/skill_effects_official.json"
 DEFAULT_REPORT = REPO / "notes/skill-effects-official-data.md"
 
@@ -1589,6 +1590,7 @@ def main() -> int:
     parser.add_argument("--str-whitelist", default=str(DEFAULT_STR_WHITELIST))
     parser.add_argument("--spr-whitelist", default=str(DEFAULT_SPR_WHITELIST))
     parser.add_argument("--learnable", default=str(DEFAULT_LEARNABLE))
+    parser.add_argument("--grf2019", default=str(DEFAULT_GRF2019), help="per-skill effect ids of the 2019 GRF tables")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--json", dest="json_output", default=str(DEFAULT_JSON))
     parser.add_argument("--report-output", default=str(DEFAULT_REPORT))
@@ -1613,6 +1615,31 @@ def main() -> int:
     whitelists = (load_str_whitelist(Path(args.str_whitelist)), load_spr_whitelist(Path(args.spr_whitelist)))
 
     facts = {"skills": {int(k): v for k, v in facts_payload["skills"].items()}, "effects": facts_payload["effects"]}
+
+    # The 2019 GRF tables (`SKILL_EFFECT_INFO_LIST`) cover skills the community
+    # dump does not list (newer jobs). Their per-skill effect ids are merged in
+    # with the same field names so the same layer expansion applies; a skill
+    # that both sources list keeps the community rows.
+    GRF2019_FIELD = {
+        "caster": "successEffectIdOnCaster",
+        "target": "successEffectIdOnTarget",
+        "ground": "groundEffectId",
+        "begin": "beginCastEffectId",
+    }
+    grf2019_path = Path(args.grf2019)
+    if grf2019_path.is_file():
+        for skill_text, entry in json.loads(grf2019_path.read_text())["skills"].items():
+            skill_id = int(skill_text)
+            if skill_id in facts["skills"]:
+                continue
+            merged = [
+                {"field": GRF2019_FIELD[kind], "effects": effect_ids}
+                for kind, effect_ids in entry.get("effects", {}).items()
+                if kind in GRF2019_FIELD and effect_ids
+            ]
+            if merged:
+                facts["skills"][skill_id] = merged
+
     rows, stats = build(facts, layers_payload, assets, whitelists, actions_payload, sounds_payload, learnable_payload)
 
     if not rows:

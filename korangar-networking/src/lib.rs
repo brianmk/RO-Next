@@ -3934,10 +3934,13 @@ mod packet_handlers {
         assert_eq!(packet.len(), 8);
 
         let events = feed(&mut handler, &packet);
-        assert!(events.0.iter().any(|event| matches!(
-            event,
-            NetworkEvent::UpdateStat { stat_type: ragnarok_packets::StatType::Zeny(12_345) }
-        )), "{:?}", events.0);
+        assert!(
+            events.0.iter().any(|event| matches!(event, NetworkEvent::UpdateStat {
+                stat_type: ragnarok_packets::StatType::Zeny(12_345)
+            })),
+            "{:?}",
+            events.0
+        );
     }
 
     #[test]
