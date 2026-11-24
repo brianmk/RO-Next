@@ -30,20 +30,18 @@ Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 | 23 | Party booking / LFG | **done** (outgoing join request needs PACKETVER ≥ 20191204) | `3d48d712` |
 | 24 | Clan | **done** (no 2019 member-list packet) | `3d48d712` |
 | 25 | Pet / homunculus / mercenary | **info windows done** (AI/commands out of scope) | `3d48d712` |
-| 26 | Monster DB + drop tables | **DB + Sense done; drops need server mob DB** | `20b0a154` |
+| 26 | Monster DB + Sense stats | **done** — drop tables are server-side and are NOT shown by the official client either (verified: `UIMonsterInfoWnd.h`/`AdventureGuideMgr.h` have no drop fields), so no client copy is wanted | `20b0a154` |
 | 27 | Notification HUD | **done** | `507562f4` |
 | 28 | Sky, lightmaps, scene fog | **done** (fog needs a map with BG_Fog) | `af61c058` |
 | 29 | Dynamic cell updates | **done** | `af61c058` |
 | 30 | NPC image + book (notice/tip, transport: no 2019 packet) | **done** | `8f738c12` |
 | 31 | Chat rooms, emotes picker | **done** | `8f738c12` |
 | 32 | Bink movies | **documented gap** (needs a Bink decoder; IVF side-cars work) | `8f738c12` |
-| 33 | Replay | **recording only** (playback not implemented) | `8f738c12` |
+| 33 | Replay | recording exists; playback is an official-client feature but optional tooling, not prioritized (user decision) | `8f738c12` |
 | 34 | Pincode prompt (page-slot list / server config unassigned) | **done** | `8f738c12` |
 
 ## Known remaining work
-- Replay playback.
 - Bink video decoding (only pre-transcoded `.ivf` side-cars play).
-- Drop tables in the monster DB (needs the server mob DB).
 - Per-motion robe/shield draw tables (`DrawOnTop`, `2dlayerdir`).
 - PvP/PK targeting restrictions (flags are exposed; rules not enforced).
 - In-game visual verification of batch 2 features (build + unit tests only).
