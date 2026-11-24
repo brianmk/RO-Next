@@ -43,6 +43,10 @@ pub enum LoaderId {
     /// Animation of the equipped weapon that is drawn as its own layer on top
     /// of the player body animation.
     WeaponAnimationData(EntityId),
+    /// Animation of the equipped shield (own layer in front of the body).
+    ShieldAnimationData(EntityId),
+    /// Animation of the equipped robe (own top layer above the body).
+    RobeAnimationData(EntityId),
     ItemSprite(ItemId),
     Map(String),
     SkillSprite(SkillId),
@@ -56,6 +60,8 @@ pub enum LoadableResource {
     FalconAnimation(Arc<AnimationData>),
     CartAnimation(Arc<AnimationData>),
     WeaponAnimation(Arc<AnimationData>),
+    ShieldAnimation(Arc<AnimationData>),
+    RobeAnimation(Arc<AnimationData>),
     ItemSprite { texture: Arc<Texture> },
     SkillSprite { sprite: Arc<Sprite> },
     SkillActions { actions: Arc<Actions> },
@@ -109,15 +115,15 @@ pub struct AsyncLoader {
     /// Worker lane for every other load (entity animations, item/skill sprites,
     /// ...).
     visible_thread_pool: ThreadPool,
-    /// Candidate paths of weapon animations that are known to be missing from
-    /// the archives.
+    /// Candidate paths of equipment layers (weapon/shield/robe) that are known
+    /// to be missing from the archives.
     ///
     /// CondaRO's archives do not contain every per-job weapon sprite variant
     /// (e.g. the Sniper bow). Without this cache every population-engine shell
     /// spawn would queue another archive scan on the two loader threads for a
     /// sprite that can never be found, delaying the loads the client actually
     /// needs right after map entry.
-    failed_weapon_candidates: Arc<Mutex<HashSet<String>>>,
+    failed_equipment_candidates: Arc<Mutex<HashSet<String>>>,
 }
 
 impl AsyncLoader {
@@ -150,7 +156,7 @@ impl AsyncLoader {
             .unwrap();
 
         Self {
-            failed_weapon_candidates: Arc::new(Mutex::new(HashSet::new())),
+            failed_equipment_candidates: Arc::new(Mutex::new(HashSet::new())),
             action_loader,
             animation_loader,
             game_file_loader,
@@ -434,20 +440,79 @@ impl AsyncLoader {
         entity_id: EntityId,
         weapon_part_candidates: Vec<EntityPartFile>,
     ) -> Option<Arc<AnimationData>> {
-        if weapon_part_candidates.is_empty() {
+        self.request_equipment_layer_load(
+            LoaderId::WeaponAnimationData(entity_id),
+            weapon_part_candidates,
+            LoadableResource::WeaponAnimation,
+            "weapon",
+        )
+    }
+
+    /// Requests the equipped shield animation for `entity_id`.
+    ///
+    /// The candidate paths come from [`crate::world::shield::part_candidates`]
+    /// (item view id and classic shield names). The shield uses the body
+    /// animation state/action/frame like the weapon layer.
+    #[must_use]
+    pub fn request_shield_animation_data_load(
+        &self,
+        entity_id: EntityId,
+        shield_part_candidates: Vec<EntityPartFile>,
+    ) -> Option<Arc<AnimationData>> {
+        self.request_equipment_layer_load(
+            LoaderId::ShieldAnimationData(entity_id),
+            shield_part_candidates,
+            LoadableResource::ShieldAnimation,
+            "shield",
+        )
+    }
+
+    /// Requests the equipped robe animation for `entity_id`.
+    ///
+    /// The candidate paths come from [`crate::world::robe::part_candidates`]:
+    /// the shared robe sprite with the per-job action (the sprite keeps its
+    /// embedded palette).
+    #[must_use]
+    pub fn request_robe_animation_data_load(
+        &self,
+        entity_id: EntityId,
+        robe_part_candidates: Vec<EntityPartFile>,
+    ) -> Option<Arc<AnimationData>> {
+        self.request_equipment_layer_load(
+            LoaderId::RobeAnimationData(entity_id),
+            robe_part_candidates,
+            LoadableResource::RobeAnimation,
+            "robe",
+        )
+    }
+
+    /// Shared loader for the equipment sprite layers (weapon/shield/robe).
+    ///
+    /// All three are a single sprite/action pair drawn with the body animation
+    /// state, so they share the archive probing, the drawable-frame gate and
+    /// the negative-result cache. `label` is only used for logging.
+    #[must_use]
+    fn request_equipment_layer_load(
+        &self,
+        id: LoaderId,
+        part_candidates: Vec<EntityPartFile>,
+        wrap: fn(Arc<AnimationData>) -> LoadableResource,
+        label: &'static str,
+    ) -> Option<Arc<AnimationData>> {
+        if part_candidates.is_empty() {
             return None;
         }
 
         // Remember the first candidate path as the identity of the
-        // (job, sex, weapon) combination: all candidates of one entity share
-        // the same prefix and the archives are static, so a failed lookup can
-        // be cached forever.
-        let cache_key = weapon_part_candidates[0].path.clone();
-        if self.failed_weapon_candidates.lock().unwrap().contains(&cache_key) {
+        // (job, sex, view) combination: all candidates of one entity share the
+        // same prefix and the archives are static, so a failed lookup can be
+        // cached forever.
+        let cache_key = part_candidates[0].path.clone();
+        if self.failed_equipment_candidates.lock().unwrap().contains(&cache_key) {
             return None;
         }
 
-        if let Some(animation_data) = weapon_part_candidates.iter().find_map(|parts| {
+        if let Some(animation_data) = part_candidates.iter().find_map(|parts| {
             self.animation_loader
                 .get(std::slice::from_ref(parts))
                 .filter(|animation_data| crate::world::weapon::animation_is_drawable(animation_data))
@@ -458,29 +523,29 @@ impl AsyncLoader {
         let sprite_loader = self.sprite_loader.clone();
         let action_loader = self.action_loader.clone();
         let animation_loader = self.animation_loader.clone();
-        let failed_weapon_candidates = Arc::clone(&self.failed_weapon_candidates);
+        let failed_candidates = Arc::clone(&self.failed_equipment_candidates);
 
-        self.request_visible_load(LoaderId::WeaponAnimationData(entity_id), LoadKind::AnimationData, move || {
-            let mut last_error = LoadError::UnsupportedFormat("no weapon sprite found in the game archives".to_owned());
+        self.request_visible_load(id, LoadKind::AnimationData, move || {
+            let mut last_error = LoadError::UnsupportedFormat(format!("no {label} sprite found in the game archives"));
 
-            for part in &weapon_part_candidates {
+            for part in &part_candidates {
                 let parts = std::slice::from_ref(part);
-                if !(sprite_loader.file_exists(&format!("{}.spr", part.path)) && action_loader.file_exists(&format!("{}.act", part.path))) {
+                if !(sprite_loader.file_exists(&format!("{}.spr", part.path))
+                    && action_loader.file_exists(&format!("{}.act", part.action_path.as_deref().unwrap_or(&part.path))))
+                {
                     continue;
                 }
 
                 match animation_loader.load(&sprite_loader, &action_loader, EntityType::Player, parts) {
                     Ok(animation_data) => {
-                        // A trimmed data set can contain numeric per-job weapon
-                        // ACTs whose clips are all hidden placeholders (notably
-                        // bows: `궁수_남_1701` exists but draws nothing). Keep
-                        // trying the later classic-variant candidates instead of
-                        // dropping the whole weapon layer.
+                        // A trimmed data set can contain numeric per-job ACTs
+                        // whose clips are all hidden placeholders. Keep trying
+                        // the later candidates instead of dropping the layer.
                         if crate::world::weapon::animation_is_drawable(&animation_data) {
-                            return Ok(LoadableResource::WeaponAnimation(animation_data));
+                            return Ok(wrap(animation_data));
                         }
                         crate::logging::log_debug!(
-                            "weapon candidate {:?} has no drawable frames, trying the next candidate",
+                            "{label} candidate {:?} has no drawable frames, trying the next candidate",
                             part.path
                         );
                     }
@@ -489,10 +554,10 @@ impl AsyncLoader {
             }
 
             // No candidate could be loaded: remember the combination so the
-            // next entity with the same job/sex/weapon does not scan the
-            // archives again.
-            failed_weapon_candidates.lock().unwrap().insert(cache_key.clone());
-            crate::logging::log_info!("weapon animation not in the archives, disabling the weapon layer for `{cache_key}`");
+            // next entity with the same appearance does not scan the archives
+            // again.
+            failed_candidates.lock().unwrap().insert(cache_key.clone());
+            crate::logging::log_info!("{label} animation not in the archives, disabling the {label} layer for `{cache_key}`");
 
             Err(last_error)
         });

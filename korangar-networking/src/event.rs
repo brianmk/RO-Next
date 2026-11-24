@@ -967,6 +967,14 @@ pub enum NetworkEvent {
     ServerAnnouncement {
         text: String,
     },
+    /// The equipped items of the equip-switch window (`ZC_EQUIPSWITCH_LIST`,
+    /// 0x0A9B, `clif_equipswitch_list`). Every entry is an inventory index and
+    /// the equipment position(s) that item is pre-assigned to; the client
+    /// marks the items as equipped so the paper doll and the normal
+    /// equip/unequip flow see them.
+    EquipmentSwitchItems {
+        items: Vec<ragnarok_packets::EquippableSwitchItemInformation>,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

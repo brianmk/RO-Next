@@ -21,4 +21,9 @@ public struct GlobalUniforms {
     public var shadow_method: uint;
     public var shadow_detail: uint;
     public var use_sdsm: uint;
+    // Scene fog: rgb is the fog colour, a is the "fog enabled" mask.
+    public var fog_color: float4;
+    // Scene fog distance window (near, far).
+    public var fog_range: float2;
+    public var _fog_padding: float2;
 };

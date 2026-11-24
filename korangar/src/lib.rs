@@ -4633,7 +4633,7 @@ impl Client {
                         player.set_falcon_animation(falcon_animation);
                     }
 
-                    request_weapon_animation(&self.async_loader, &mut player);
+                    request_equipment_layers(&self.async_loader, &mut player);
 
                     let layout = self.async_loader.request_skill_tree_layout_load(player.get_job_id(), client_tick);
                     *self.client_state.follow_mut(client_state().skill_tree_window().selected_tab()) = layout.tabs.len().saturating_sub(1);
@@ -4780,7 +4780,7 @@ impl Client {
                             npc.set_falcon_animation(falcon_animation);
                         }
 
-                        request_weapon_animation(&self.async_loader, &mut npc);
+                        request_equipment_layers(&self.async_loader, &mut npc);
 
                         #[cfg(feature = "debug")]
                         npc.generate_pathing_mesh(&self.device, &self.queue, self.graphics_engine.bindless_support(), map);
@@ -4815,6 +4815,8 @@ impl Client {
                     self.asset_retries.forget(&LoaderId::AnimationData(entity_id));
                     self.asset_retries.forget(&LoaderId::FalconAnimationData(entity_id));
                     self.asset_retries.forget(&LoaderId::WeaponAnimationData(entity_id));
+                    self.asset_retries.forget(&LoaderId::ShieldAnimationData(entity_id));
+                    self.asset_retries.forget(&LoaderId::RobeAnimationData(entity_id));
 
                     // Classic teleport/logout behaviour: entities that leave via
                     // teleport/logout play a warp effect and sound at their last
@@ -4944,6 +4946,10 @@ impl Client {
                     destination,
                     starting_timestamp,
                 } => {
+                    // Clone the dynamic cell overrides before borrowing the
+                    // entity list mutably (breakable walls must affect the walk
+                    // prediction too).
+                    let cell_overrides = self.client_state.follow(client_state().map_cell_overrides()).clone();
                     let entities = self.client_state.follow_mut(client_state().entities());
                     let entity = entities.iter_mut().find(|entity| entity.get_entity_id() == entity_id);
 
@@ -4953,6 +4959,7 @@ impl Client {
                         entity.move_from_to(
                             map,
                             &mut self.path_finder,
+                            &cell_overrides,
                             origin.tile_position(),
                             destination.tile_position(),
                             starting_timestamp,
@@ -4966,12 +4973,15 @@ impl Client {
                     destination,
                     starting_timestamp,
                 } => {
+                    let cell_overrides = self.client_state.follow(client_state().map_cell_overrides()).clone();
+
                     if let Some(map) = &self.map
                         && let Some(player) = self.client_state.try_follow_mut(this_entity())
                     {
                         player.move_from_to(
                             map,
                             &mut self.path_finder,
+                            &cell_overrides,
                             origin.tile_position(),
                             destination.tile_position(),
                             starting_timestamp,
@@ -5064,6 +5074,12 @@ impl Client {
                     self.warp_skill_units.clear();
                     self.point_light_manager.clear();
                     self.audio_engine.clear_ambient_sound();
+
+                    // Dynamic cell overrides and the map properties belong to the
+                    // old map; the server re-sends them after the map entry.
+                    self.client_state.follow_mut(client_state().map_cell_overrides()).clear();
+                    *self.client_state.follow_mut(client_state().map_type()) = 0;
+                    *self.client_state.follow_mut(client_state().map_flags()) = 0;
 
                     // Only the player must stay alive between map changes.
                     self.client_state.follow_mut(client_state().entities()).truncate(1);
@@ -5840,6 +5856,21 @@ impl Client {
                         .follow_mut(client_state().inventory())
                         .fill(&self.async_loader, items);
                 }
+                NetworkEvent::EquipmentSwitchItems { items } => {
+                    // `ZC_EQUIPSWITCH_LIST` pre-assigns inventory items to
+                    // equipment positions (the equip-switch window). Recording the
+                    // position in the inventory state makes those items visible on
+                    // the paper doll and lets the normal equip/unequip flow move
+                    // them, instead of dropping the packet.
+                    let inventory = self.client_state.follow_mut(client_state().inventory());
+
+                    for item in &items {
+                        let position = EquipPosition::from_bits_truncate(item.position);
+                        inventory.update_equipped_position(item.index, position);
+                    }
+
+                    crate::logging::log_debug!("equip switch list: {} pre-assigned item(s)", items.len());
+                }
                 NetworkEvent::SetStorage { items, name } => {
                     self.client_state
                         .follow_mut(client_state().storage())
@@ -6123,7 +6154,7 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
 
-                    request_weapon_animation(&self.async_loader, entity);
+                    request_equipment_layers(&self.async_loader, entity);
 
                     // Only the own character's job change affects the local skill tree
                     // window. Population shells send job changes for jobs that do not
@@ -6175,7 +6206,7 @@ impl Client {
                         entity.set_falcon_animation(falcon_animation);
                     }
 
-                    request_weapon_animation(&self.async_loader, entity);
+                    request_equipment_layers(&self.async_loader, entity);
                 }
                 NetworkEvent::AppearanceChanged {
                     account_id,
@@ -6207,10 +6238,10 @@ impl Client {
                         }
                     }
 
-                    if outcome.weapon {
-                        // Equipping/unequipping a weapon does not change the body
-                        // sprite; reload only the (data-driven) weapon layer.
-                        request_weapon_animation(&self.async_loader, entity);
+                    if outcome.weapon || outcome.shield || outcome.robe {
+                        // Equipping/unequipping a weapon, shield or robe does not
+                        // change the body sprite; only the equipment layers change.
+                        request_equipment_layers(&self.async_loader, entity);
                     }
                 }
                 NetworkEvent::AutoRunSkill { skill_id, skill_level } => {
@@ -6246,8 +6277,8 @@ impl Client {
                         }
                     }
 
-                    if outcome.weapon {
-                        request_weapon_animation(&self.async_loader, entity);
+                    if outcome.weapon || outcome.shield || outcome.robe {
+                        request_equipment_layers(&self.async_loader, entity);
                     }
                 }
                 NetworkEvent::LoggedOut => {
@@ -6836,7 +6867,7 @@ impl Client {
                             .any(|entity| entity.get_entity_id() == target_entity_id)
                         && let Some(path) =
                             self.path_finder
-                                .find_walkable_path_in_range(&**map, player_position, target_position, attack_range)
+                                .find_walkable_path_in_range(&TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())), player_position, target_position, attack_range)
                     {
                         let nearest_tile = path.last().unwrap();
 
@@ -7007,7 +7038,17 @@ impl Client {
                     }
                 }
                 NetworkEvent::SpecialEffect { effect_id, .. } => {
-                    if let Some(weather) = self.weather.as_mut() {
+                    // `ZC_NOTIFY_EFFECT2` (0x01F3) is the map weather packet
+                    // (snow/fog/cloud/sakura/...). Indoor maps use the indoor
+                    // map type from `ZC_NOTIFY_MAPPROPERTY2`; outdoor weather
+                    // effects are not drawn there.
+                    let map_type = *self.client_state.follow(client_state().map_type());
+                    if crate::state::is_indoor_map_type(map_type) {
+                        crate::logging::log_debug!("ignoring outdoor weather effect {effect_id} on an indoor map");
+                        if let Some(weather) = self.weather.as_mut() {
+                            weather.clear();
+                        }
+                    } else if let Some(weather) = self.weather.as_mut() {
                         weather.set_effect(effect_id as i32, 0.0);
                     }
                 }
@@ -7153,10 +7194,21 @@ impl Client {
                     cell_type,
                     map_name,
                 } => {
-                    // rAthena cell type 0 = walkable, everything else blocks.
-                    // The loaded map is an immutable Arc<Map>, so the override
-                    // is recorded in the state and logged (collision follow-up).
-                    let walkable = cell_type == 0;
+                    // A delayed update for the map the player just left must not
+                    // patch collision on the new map.
+                    if let Some(current_map_name) = self.current_map_name.as_deref()
+                        && !current_map_name.eq_ignore_ascii_case(&map_name)
+                    {
+                        crate::logging::log_debug!("ignoring map cell update for `{map_name}` while on `{current_map_name}`");
+                        continue;
+                    }
+
+                    // rAthena cell types: 0 walkable, 1 blocked, 2 water,
+                    // 3 water+walkable, 4 water+snipeable, 5 cliff+snipeable,
+                    // 6 cliff. Only 0 and 3 are walkable. The loaded map is an
+                    // immutable Arc<Map>, so the override is recorded in the
+                    // state and applied by `TraversableMap` in the path finder.
+                    let walkable = matches!(cell_type, 0 | 3);
                     let overrides = self.client_state.follow_mut(client_state().map_cell_overrides());
 
                     match overrides.iter_mut().find(|(tile, _)| *tile == position) {
@@ -8301,10 +8353,12 @@ impl Client {
                                 let _ = self.networking_system.pick_up_item(entity_id);
 
                                 *self.client_state.follow_mut(client_state().buffered_action()) = None;
-                            } else if let Some(path) =
-                                self.path_finder
-                                    .find_walkable_path_in_range(&**map, player_position, item_position, ITEM_PICKUP_RANGE)
-                                && let Some(nearest_tile) = path.last()
+                            } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
+                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
+                                player_position,
+                                item_position,
+                                ITEM_PICKUP_RANGE,
+                            ) && let Some(nearest_tile) = path.last()
                             {
                                 let _ = self.networking_system.player_move(WorldPosition {
                                     x: nearest_tile.x,
@@ -8788,7 +8842,7 @@ impl Client {
                                         {
                                             let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                         } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                            &**map,
+                                            &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
                                             player_position,
                                             target_position,
                                             attack_range,
@@ -8845,7 +8899,7 @@ impl Client {
                                             {
                                                 let _ = self.networking_system.cast_ground_skill(skill_id, level, target_position);
                                             } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                                &**map,
+                                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
                                                 player_position,
                                                 target_position,
                                                 attack_range,
@@ -8906,7 +8960,7 @@ impl Client {
                                             {
                                                 let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                             } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                                &**map,
+                                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
                                                 player_position,
                                                 target_position,
                                                 attack_range,
@@ -9262,7 +9316,11 @@ impl Client {
 
             if matches!(
                 id,
-                LoaderId::AnimationData(_) | LoaderId::FalconAnimationData(_) | LoaderId::WeaponAnimationData(_)
+                LoaderId::AnimationData(_)
+                    | LoaderId::FalconAnimationData(_)
+                    | LoaderId::WeaponAnimationData(_)
+                    | LoaderId::ShieldAnimationData(_)
+                    | LoaderId::RobeAnimationData(_)
             ) {
                 self.asset_retries.note_available(&id);
             }
@@ -9336,6 +9394,26 @@ impl Client {
                         .find(|entity| entity.get_entity_id() == entity_id)
                     {
                         entity.set_weapon_animation(weapon_animation);
+                    }
+                }
+                (LoaderId::ShieldAnimationData(entity_id), LoadableResource::ShieldAnimation(shield_animation)) => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_shield_animation(shield_animation);
+                    }
+                }
+                (LoaderId::RobeAnimationData(entity_id), LoadableResource::RobeAnimation(robe_animation)) => {
+                    if let Some(entity) = self
+                        .client_state
+                        .follow_mut(client_state().entities())
+                        .iter_mut()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                    {
+                        entity.set_robe_animation(robe_animation);
                     }
                 }
                 (LoaderId::ItemSprite(item_id), LoadableResource::ItemSprite { texture }) => {
@@ -9593,8 +9671,11 @@ impl Client {
         // rendered without the weapon layer. Keep this out of the generic asset
         // failure reporting (and out of stderr) so map entry does not spam the
         // user or the log for every population-engine shell.
-        if let LoaderId::WeaponAnimationData(entity_id) = &id {
-            crate::logging::log_debug!("weapon animation unavailable for entity {}: {error:?}", entity_id.0);
+        if let LoaderId::WeaponAnimationData(entity_id)
+        | LoaderId::ShieldAnimationData(entity_id)
+        | LoaderId::RobeAnimationData(entity_id) = &id
+        {
+            crate::logging::log_debug!("equipment animation unavailable for entity {}: {error:?}", entity_id.0);
             return;
         }
 
@@ -9623,7 +9704,11 @@ impl Client {
             AssetFailureSeverity::Transient => {
                 if matches!(
                     id,
-                    LoaderId::AnimationData(_) | LoaderId::FalconAnimationData(_) | LoaderId::WeaponAnimationData(_)
+                    LoaderId::AnimationData(_)
+                        | LoaderId::FalconAnimationData(_)
+                        | LoaderId::WeaponAnimationData(_)
+                        | LoaderId::ShieldAnimationData(_)
+                        | LoaderId::RobeAnimationData(_)
                 ) {
                     self.asset_retries.note_failed(&id, Instant::now(), &format!("{error:?}"));
                 }
@@ -9890,6 +9975,12 @@ impl Client {
             if entity.needs_weapon_animation() {
                 missing.push(LoaderId::WeaponAnimationData(entity_id));
             }
+            if entity.needs_shield_animation() {
+                missing.push(LoaderId::ShieldAnimationData(entity_id));
+            }
+            if entity.needs_robe_animation() {
+                missing.push(LoaderId::RobeAnimationData(entity_id));
+            }
         }
 
         for id in missing {
@@ -9910,7 +10001,9 @@ impl Client {
             LoaderId::AnimationData(entity_id)
             | LoaderId::FalconAnimationData(entity_id)
             | LoaderId::CartAnimationData(entity_id)
-            | LoaderId::WeaponAnimationData(entity_id) => entity_id,
+            | LoaderId::WeaponAnimationData(entity_id)
+            | LoaderId::ShieldAnimationData(entity_id)
+            | LoaderId::RobeAnimationData(entity_id) => entity_id,
             _ => {
                 self.asset_retries.forget(&id);
                 return;
@@ -9929,8 +10022,12 @@ impl Client {
                     entity.has_falcon(),
                     entity.has_cart(),
                     entity.get_weapon_part_candidates(),
+                    entity.get_shield_part_candidates(),
+                    entity.get_robe_part_candidates(),
                     entity.get_cart_part_candidates(),
                     entity.has_weapon_animation(),
+                    entity.has_shield_animation(),
+                    entity.has_robe_animation(),
                     entity.has_cart_animation(),
                 )
             });
@@ -9941,8 +10038,12 @@ impl Client {
             has_falcon,
             has_cart,
             weapon_candidates,
+            shield_candidates,
+            robe_candidates,
             cart_candidates,
             has_weapon_animation,
+            has_shield_animation,
+            has_robe_animation,
             has_cart_animation,
         )) = entity_info
         else {
@@ -10027,6 +10128,38 @@ impl Client {
                     None => self.asset_retries.note_request(LoaderId::WeaponAnimationData(entity_id), now),
                 }
             }
+            LoaderId::ShieldAnimationData(_) => {
+                if shield_candidates.is_empty() || has_shield_animation {
+                    self.asset_retries.note_available(&LoaderId::ShieldAnimationData(entity_id));
+                    return;
+                }
+
+                match self.async_loader.request_shield_animation_data_load(entity_id, shield_candidates) {
+                    Some(shield_animation) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_shield_animation(shield_animation);
+                        }
+                        self.asset_retries.note_available(&LoaderId::ShieldAnimationData(entity_id));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::ShieldAnimationData(entity_id), now),
+                }
+            }
+            LoaderId::RobeAnimationData(_) => {
+                if robe_candidates.is_empty() || has_robe_animation {
+                    self.asset_retries.note_available(&LoaderId::RobeAnimationData(entity_id));
+                    return;
+                }
+
+                match self.async_loader.request_robe_animation_data_load(entity_id, robe_candidates) {
+                    Some(robe_animation) => {
+                        if let Some(entity) = self.find_entity_mut(entity_id) {
+                            entity.set_robe_animation(robe_animation);
+                        }
+                        self.asset_retries.note_available(&LoaderId::RobeAnimationData(entity_id));
+                    }
+                    None => self.asset_retries.note_request(LoaderId::RobeAnimationData(entity_id), now),
+                }
+            }
             _ => self.asset_retries.forget(&id),
         }
     }
@@ -10100,6 +10233,8 @@ impl Client {
             self.asset_retries.forget(&LoaderId::AnimationData(entity_id));
             self.asset_retries.forget(&LoaderId::FalconAnimationData(entity_id));
             self.asset_retries.forget(&LoaderId::WeaponAnimationData(entity_id));
+            self.asset_retries.forget(&LoaderId::ShieldAnimationData(entity_id));
+            self.asset_retries.forget(&LoaderId::RobeAnimationData(entity_id));
         }
 
         self.client_state
@@ -10938,12 +11073,21 @@ impl Client {
             top: input_report.mouse_position.top.clamp(0.0, screen_size.height),
         };
 
+        // Sky/background and scene fog from `mapskydata.lub`. Maps without sky
+        // data keep the black background, so existing maps render exactly as
+        // before. `BG_Fog` fades the geometry into the same colour (it is not
+        // enabled by this data set, the guarded path stays nevertheless).
+        let background_color = map.sky_background_color().unwrap_or(Color::BLACK);
+        let scene_fog = map.scene_fog();
+
         let uniforms = Uniforms {
             view_matrix,
             projection_matrix,
             camera_position,
             animation_timer_ms,
             ambient_light_color: map.ambient_light_color(),
+            fog_color: scene_fog.map(|fog| Color { alpha: 1.0, ..fog.color }).unwrap_or(Color::TRANSPARENT),
+            fog_range: scene_fog.map(|fog| [fog.near, fog.far]).unwrap_or([0.0, 0.0]),
             enhanced_lighting: lighting_mode == LightingMode::Enhanced,
             shadow_method,
             shadow_detail,
@@ -10967,6 +11111,7 @@ impl Client {
 
         let render_instruction = RenderInstruction {
             show_interface: self.show_interface,
+            background_color,
             picker_position,
             uniforms,
             indicator: indicator_instruction,
@@ -12395,13 +12540,22 @@ fn can_move_while_casting(job_id: JobId, skills: &[LearnedSkill]) -> bool {
             .any(|skill| crate::world::skills::grants_move_while_casting(skill.skill_id))
 }
 
-/// Requests the equipped weapon animation layer for `entity` through the
-/// data-driven weapon module and applies it when it becomes available.
+/// Requests the equipment animation layers (weapon, shield, robe) for
+/// `entity` through the data-driven appearance modules and applies the layers
+/// that are already available.
 ///
-/// Every packet path that changes the body/weapon appearance (character login,
-/// entity spawn, job change, hair change, equipment change) goes through this
-/// function. The candidate paths come from [`crate::world::weapon`], so no call
-/// site knows weapon types, item view ids or sprite suffixes.
+/// Every packet path that changes the body/equipment appearance (character
+/// login, entity spawn, job change, equipment change) goes through this
+/// function. The candidate paths come from [`crate::world::weapon`],
+/// [`crate::world::shield`] and [`crate::world::robe`], so no call site knows
+/// weapon types, item view ids or sprite suffixes.
+fn request_equipment_layers(async_loader: &AsyncLoader, entity: &mut Entity) {
+    request_weapon_animation(async_loader, entity);
+    request_shield_animation(async_loader, entity);
+    request_robe_animation(async_loader, entity);
+}
+
+/// Requests the equipped weapon animation layer for `entity`.
 fn request_weapon_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
     let profile = crate::world::weapon::profile(entity.get_weapon());
     let candidates = entity.get_weapon_part_candidates();
@@ -12435,6 +12589,32 @@ fn request_weapon_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
 
     if let Some(weapon_animation) = async_loader.request_weapon_animation_data_load(entity.get_entity_id(), candidates) {
         entity.set_weapon_animation(weapon_animation);
+    }
+}
+
+/// Requests the equipped shield animation layer for `entity`.
+fn request_shield_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
+    let candidates = entity.get_shield_part_candidates();
+
+    if candidates.is_empty() || entity.has_shield_animation() {
+        return;
+    }
+
+    if let Some(shield_animation) = async_loader.request_shield_animation_data_load(entity.get_entity_id(), candidates) {
+        entity.set_shield_animation(shield_animation);
+    }
+}
+
+/// Requests the equipped robe animation layer for `entity`.
+fn request_robe_animation(async_loader: &AsyncLoader, entity: &mut Entity) {
+    let candidates = entity.get_robe_part_candidates();
+
+    if candidates.is_empty() || entity.has_robe_animation() {
+        return;
+    }
+
+    if let Some(robe_animation) = async_loader.request_robe_animation_data_load(entity.get_entity_id(), candidates) {
+        entity.set_robe_animation(robe_animation);
     }
 }
 
@@ -12578,7 +12758,7 @@ mod tests {
     #[test]
     fn paper_doll_data_is_valid() {
         let slots = super::check_paper_doll(None).expect("the committed paper-doll data has to be valid");
-        assert_eq!(slots, 11, "one slot per classic equipment position");
+        assert_eq!(slots, 21, "one slot per equipment position (11 classic + 10 costume/shadow)");
     }
 
     #[test]

@@ -2,9 +2,7 @@ use cgmath::{Point3, Vector2};
 use ragnarok_formats::map::{GatData, GroundData, GroundTile, Surface, SurfaceType};
 use smallvec::smallvec_inline;
 
-#[cfg(feature = "debug")]
-use crate::graphics::Color;
-use crate::graphics::{ModelVertex, NativeModelVertex, PickerTarget, TileVertex, reduce_vertices};
+use crate::graphics::{Color, ModelVertex, NativeModelVertex, PickerTarget, TileVertex, reduce_vertices};
 use crate::loaders::map::{GAT_TILE_SIZE, GROUND_TILE_SIZE};
 use crate::loaders::{TextureSetBuilder, TextureSetTexture, smooth_ground_normals};
 
@@ -14,6 +12,81 @@ pub enum Heights {
     SouthEast,
     NorthWest,
     NorthEast,
+}
+
+/// Lightmap corner samples of an 8x8 GND lightmap (classic client
+/// `GroundLightmapSet::Build`, `GroundLightmaps.cpp`): (1,1), (5,1), (1,5),
+/// (5,5) of the 8x8 grid.
+const LIGHTMAP_CORNER_SAMPLES: [[usize; 2]; 4] = [[1, 1], [5, 1], [1, 5], [5, 5]];
+
+/// Decoded color of one corner of a GND lightmap, in linear RGB.
+///
+/// The GND 1.7+ lightmap is a sequence of `width * height / 64` 256-byte
+/// lightmaps. Inside one lightmap the first quarter is the alpha channel and
+/// the remaining three quarters are the RGB channels; a corner color is the
+/// classic `(rgb / 128) + alpha` light contribution, normalized to `1.0`.
+/// Returns `None` when the data set carries no lightmap data for the surface.
+fn lightmap_corner_color(ground_data: &GroundData, light_map_index: i16, corner: usize) -> Option<Color> {
+    if light_map_index < 0 {
+        return None;
+    }
+
+    let data = ground_data.light_map_data.as_deref()?;
+    let width = usize::try_from(ground_data.light_map_width).ok()?;
+    let height = usize::try_from(ground_data.light_map_height).ok()?;
+    if width == 0 || height == 0 {
+        return None;
+    }
+
+    let light_map_count = usize::try_from(ground_data.light_map_count).ok()?;
+    let index = usize::try_from(light_map_index).ok()?;
+    if index >= light_map_count {
+        return None;
+    }
+
+    let pixels = width.checked_mul(height)?;
+    let per_map = pixels.checked_mul(4)?;
+    let start = index.checked_mul(per_map)?;
+    let map = data.get(start..start.checked_add(per_map)?)?;
+
+    decode_lightmap_corner(map, width, height, corner)
+}
+
+/// Decodes one corner of a single 256-byte GND lightmap.
+///
+/// The first quarter of the lightmap is the alpha channel and the remaining
+/// three quarters are the RGB channels. `GroundGeometry::InitializeLighting`
+/// uses `rgb * 0.0078125 (= /128) + alpha` and normalizes the brightest channel
+/// to `1.0`.
+fn decode_lightmap_corner(map: &[u8], width: usize, height: usize, corner: usize) -> Option<Color> {
+    if width == 0 || height == 0 {
+        return None;
+    }
+
+    let pixels = width.checked_mul(height)?;
+    if map.len() < pixels.checked_mul(4)? {
+        return None;
+    }
+
+    // The official client samples the inset corners of the 8x8 lightmap; the
+    // CPU vertex-color approximation maps the four samples to the surface
+    // corners (south-west, south-east, north-west, north-east).
+    let [sample_x, sample_y] = LIGHTMAP_CORNER_SAMPLES[corner.min(3)];
+    let x = (sample_x * width / 8).min(width - 1);
+    let y = (sample_y * height / 8).min(height - 1);
+    let pixel = y * width + x;
+
+    let alpha = f32::from(*map.get(pixel)?) / 255.0;
+    let red = f32::from(*map.get(pixels + pixel * 3)?) / 128.0 + alpha;
+    let green = f32::from(*map.get(pixels + pixel * 3 + 1)?) / 128.0 + alpha;
+    let blue = f32::from(*map.get(pixels + pixel * 3 + 2)?) / 128.0 + alpha;
+
+    let largest = red.max(green).max(blue);
+    if largest > 1.0 {
+        Some(Color::rgb(red / largest, green / largest, blue / largest))
+    } else {
+        Some(Color::rgb(red, green, blue))
+    }
 }
 
 pub fn ground_vertices(
@@ -106,13 +179,33 @@ pub fn ground_vertices(
             let color_north_east = neighbor_color(1, 1);
             let color_north = neighbor_color(0, 1);
 
+            // GND lightmaps: the surface color is modulated by the decoded
+            // corner light of the surface's lightmap. Surfaces without a
+            // lightmap (or maps without lightmap data) keep their color, so
+            // maps without data render exactly as before.
+            let corner_color = |corner: usize, base: Color| match lightmap_corner_color(ground_data, ground_surface.light_map_index, corner)
+            {
+                Some(light) => Color {
+                    red: base.red * light.red,
+                    green: base.green * light.green,
+                    blue: base.blue * light.blue,
+                    alpha: base.alpha,
+                },
+                None => base,
+            };
+
+            let color_first = corner_color(0, ground_surface.color.into());
+            let color_second = corner_color(1, color_east);
+            let color_third = corner_color(2, color_north);
+            let color_fourth = corner_color(3, color_north_east);
+
             if let Some(first_normal) = first_normal {
                 ground_vertices.push(NativeModelVertex::new(
                     first_position,
                     first_normal,
                     first_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    ground_surface.color.into(),
+                    color_first,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -121,7 +214,7 @@ pub fn ground_vertices(
                     first_normal,
                     second_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    color_east,
+                    color_second,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -130,7 +223,7 @@ pub fn ground_vertices(
                     first_normal,
                     third_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    color_north,
+                    color_third,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -142,7 +235,7 @@ pub fn ground_vertices(
                     second_normal,
                     third_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    color_north,
+                    color_third,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -151,7 +244,7 @@ pub fn ground_vertices(
                     second_normal,
                     second_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    color_east,
+                    color_second,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -160,7 +253,7 @@ pub fn ground_vertices(
                     second_normal,
                     fourth_texture_coordinates,
                     ground_surface.texture_index as i32,
-                    color_north_east,
+                    color_fourth,
                     0.0,
                     smallvec_inline![0;3],
                 ));
@@ -392,5 +485,51 @@ pub fn neighbor_tile_index(surface_type: SurfaceType) -> Vector2<usize> {
         SurfaceType::North => Vector2::new(0, 1),
         SurfaceType::East => Vector2::new(1, 0),
         _ => unreachable!(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decode_lightmap_corner;
+
+    fn lightmap(pixel_red: u8, alpha: u8) -> Vec<u8> {
+        let mut map = vec![0u8; 64 * 4];
+        // The alpha channel is the first 64 bytes.
+        map[9] = alpha;
+        // The RGB channels follow: 3 bytes per pixel.
+        map[64 + 9 * 3] = pixel_red;
+        map
+    }
+
+    #[test]
+    fn decodes_the_official_corner_samples() {
+        // 8x8 lightmap, corner 0 samples pixel (1,1) = 9, rgb 128 -> red 1.0.
+        let color = decode_lightmap_corner(&lightmap(128, 0), 8, 8, 0).expect("8x8 lightmap must decode");
+        assert!((color.red - 1.0).abs() < 0.001);
+        assert!(color.green.abs() < 0.001);
+        assert!(color.blue.abs() < 0.001);
+
+        // The other corners sample (5,1), (1,5) and (5,5), which are black in
+        // this fixture.
+        for corner in 1..4 {
+            let color = decode_lightmap_corner(&lightmap(128, 0), 8, 8, corner).unwrap();
+            assert!(color.red.abs() < 0.001, "corner {corner} must be black");
+        }
+    }
+
+    #[test]
+    fn alpha_contributes_to_the_light() {
+        // alpha = 255 alone already gives a white light contribution.
+        let color = decode_lightmap_corner(&lightmap(0, 255), 8, 8, 0).unwrap();
+        assert!((color.red - 1.0).abs() < 0.001);
+        assert!((color.green - 1.0).abs() < 0.001);
+        assert!((color.blue - 1.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn malformed_lightmaps_are_ignored() {
+        assert!(decode_lightmap_corner(&[], 8, 8, 0).is_none());
+        assert!(decode_lightmap_corner(&[0; 255], 8, 8, 0).is_none());
+        assert!(decode_lightmap_corner(&[0; 256], 0, 8, 0).is_none());
     }
 }

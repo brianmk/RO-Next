@@ -18,8 +18,9 @@
 // The canvas/slot geometry and the character fitting constants are part of the
 // same table because they are the hand-tuned layout of this window. The
 // defaults are exactly the values that used to be hardcoded in
-// `korangar/src/interface/components/paper_doll.rs`, so the default and classic
-// themes render pixel-identically at 0.75, 1.0 and 1.25 interface scaling.
+// `korangar/src/interface/components/paper_doll.rs`, extended with the costume
+// and shadow-gear slots of the 2019 protocol (costume column on the right of
+// the character, shadow column on the far right).
 //
 // The table is validated when it is loaded (and by
 // `korangar --check-paper-doll [PATH]`): unknown fields/kinds, duplicate slots,
@@ -27,10 +28,10 @@
 // outside the canvas are rejected. A malformed override falls back to the
 // compiled table with a warning.
 (
-    provenance: "Korangar paper-doll equipment slot layout, moved out of korangar/src/interface/components/paper_doll.rs (11 equipment slots; verified against integration 8a0f46da)",
+    provenance: "Korangar paper-doll equipment slot layout, moved out of korangar/src/interface/components/paper_doll.rs (11 classic + 10 costume/shadow equipment slots; classic positions verified against integration 8a0f46da)",
     version: 1,
     // Paper-doll canvas the slots are placed in.
-    canvas_width: 220.0,
+    canvas_width: 440.0,
     canvas_height: 342.0,
     // Edge length of one equipment slot rectangle.
     slot_size: 42.0,
@@ -52,5 +53,17 @@
         (kind: LeftAccessory, left: 12.0, top: 274.0),
         (kind: RightAccessory, left: 166.0, top: 274.0),
         (kind: Shoes, left: 89.0, top: 296.0),
+        // Costume slots (right of the character).
+        (kind: CostumeHeadTop, left: 272.0, top: 4.0),
+        (kind: CostumeHeadMiddle, left: 272.0, top: 72.0),
+        (kind: CostumeHeadLower, left: 272.0, top: 140.0),
+        (kind: CostumeGarment, left: 272.0, top: 208.0),
+        // Shadow gear slots (far right column).
+        (kind: ShadowArmor, left: 354.0, top: 4.0),
+        (kind: ShadowWeapon, left: 354.0, top: 62.0),
+        (kind: ShadowShield, left: 354.0, top: 120.0),
+        (kind: ShadowShoes, left: 354.0, top: 178.0),
+        (kind: ShadowLeftAccessory, left: 354.0, top: 236.0),
+        (kind: ShadowRightAccessory, left: 354.0, top: 294.0),
     ],
 )

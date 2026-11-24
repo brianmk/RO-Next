@@ -276,6 +276,14 @@ func fragment(input: ForwardEntityVertexOutput) -> ForwardEntityFragmentOutput {
             color = color_balance(color, -0.01, 0.0, 0.0);
         }
 
+        color = apply_scene_fog(
+            color,
+            input.world_position.xyz,
+            global_uniforms.camera_position.xyz,
+            global_uniforms.fog_color,
+            global_uniforms.fog_range
+        );
+
         output.color = float4(color, alpha_channel);
         output.depth = frag_depth;
     }

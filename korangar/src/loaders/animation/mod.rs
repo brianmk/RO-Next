@@ -63,6 +63,19 @@ impl EntityPartFile {
         }
     }
 
+    /// Creates a part with an external palette and a separate action file.
+    ///
+    /// This is the robe layer layout: the sprite is shared by every job/sex
+    /// (`로브\<robe>\<robe>.spr`), the action is per job (`로브\<robe>\<sex>\
+    /// <job>_<sex>.act`) and the sprite is drawn with the body palette.
+    pub fn with_palette_and_action(path: impl Into<String>, palette_path: Option<String>, action_path: Option<String>) -> Self {
+        Self {
+            path: path.into(),
+            palette_path,
+            action_path,
+        }
+    }
+
     fn sprite_path(&self) -> String {
         format!("{}.spr", self.path)
     }

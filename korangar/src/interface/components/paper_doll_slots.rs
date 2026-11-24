@@ -1,9 +1,9 @@
 //! Data-driven paper-doll slot table.
 //!
-//! The equipment window draws the 11 equipment slots around the composited
-//! character sprite. The slot geometry, the canvas size and the character
-//! fitting constants used to be hardcoded in
-//! [`super::paper_doll`]; they now live in
+//! The equipment window draws the 21 equipment slots (11 classic, 4 costume and
+//! 6 shadow-gear slots) around the composited character sprite. The slot
+//! geometry, the canvas size and the character fitting constants used to be
+//! hardcoded in [`super::paper_doll`]; they now live in
 //! `archive/data/client/paper_doll_slots.ron`, embedded with `include_str!` as
 //! the compiled fallback and loaded through [`GameFileLoader`] so a server can
 //! override the layout in the client archive without rebuilding the client.
@@ -34,10 +34,13 @@ const FALLBACK: &str = include_str!("../../../archive/data/client/paper_doll_slo
 /// Number of equipment slots of the paper doll.
 ///
 /// This is a protocol shape, not a layout constant: a character wears at most
-/// one item per `EquipPosition` of the classic equipment window (head top,
-/// ammo, head middle, head lower, armor, garment, right/left hand, two
-/// accessories and shoes). The data file has to define exactly these 11 slots.
-pub const SLOT_COUNT: usize = 11;
+/// one item per `EquipPosition` of the equipment window. The classic eleven
+/// slots are head top, ammo, head middle, head lower, armor, garment,
+/// right/left hand, two accessories and shoes; the costume and shadow-gear
+/// positions of the 2019 protocol add four costume slots (head top/middle/
+/// lower and garment) and six shadow slots (armor, weapon, shield, shoes and
+/// two accessories). The data file has to define exactly these 21 slots.
+pub const SLOT_COUNT: usize = 21;
 
 /// Semantic kind of an equipment slot.
 ///
@@ -57,6 +60,16 @@ pub enum SlotKind {
     LeftAccessory,
     RightAccessory,
     Shoes,
+    CostumeHeadTop,
+    CostumeHeadMiddle,
+    CostumeHeadLower,
+    CostumeGarment,
+    ShadowArmor,
+    ShadowWeapon,
+    ShadowShield,
+    ShadowShoes,
+    ShadowLeftAccessory,
+    ShadowRightAccessory,
 }
 
 impl SlotKind {
@@ -76,6 +89,16 @@ impl SlotKind {
             // keep the wire name and only use the descriptive data-file name.
             SlotKind::RightAccessory => EquipPosition::RIGTH_ACCESSORY,
             SlotKind::Shoes => EquipPosition::SHOES,
+            SlotKind::CostumeHeadTop => EquipPosition::COSTUME_HEAD_TOP,
+            SlotKind::CostumeHeadMiddle => EquipPosition::COSTUME_HEAD_MIDDLE,
+            SlotKind::CostumeHeadLower => EquipPosition::COSTUME_HEAD_LOWER,
+            SlotKind::CostumeGarment => EquipPosition::COSTUME_GARMENT,
+            SlotKind::ShadowArmor => EquipPosition::SHADOW_ARMOR,
+            SlotKind::ShadowWeapon => EquipPosition::SHADOW_WEAPON,
+            SlotKind::ShadowShield => EquipPosition::SHADOW_SHIELD,
+            SlotKind::ShadowShoes => EquipPosition::SHADOW_SHOES,
+            SlotKind::ShadowLeftAccessory => EquipPosition::SHADOW_LEFT_ACCESSORY,
+            SlotKind::ShadowRightAccessory => EquipPosition::SHADOW_RIGHT_ACCESSORY,
         }
     }
 }
@@ -158,8 +181,8 @@ impl PaperDollSlots {
         self.slots.len()
     }
 
-    /// Rejects data that parses but cannot render the classic 11-slot paper
-    /// doll: wrong slot count, duplicates, invalid geometry.
+    /// Rejects data that parses but cannot render the paper doll: wrong slot
+    /// count, duplicates, invalid geometry.
     fn validate(&self) -> Result<(), String> {
         if !self.canvas_width.is_finite() || self.canvas_width <= 0.0 {
             return Err(format!("`canvas_width` must be positive and finite, got {}", self.canvas_width));
@@ -188,7 +211,7 @@ impl PaperDollSlots {
 
         if self.slots.len() != SLOT_COUNT {
             return Err(format!(
-                "expected exactly {SLOT_COUNT} equipment slots (one per classic equipment position), got {}",
+                "expected exactly {SLOT_COUNT} equipment slots (one per equipment position), got {}",
                 self.slots.len()
             ));
         }
@@ -297,7 +320,7 @@ mod tests {
     #[test]
     fn defaults_match_the_former_hardcoded_layout() {
         let slots = table();
-        assert_eq!(slots.canvas_width, 220.0);
+        assert_eq!(slots.canvas_width, 440.0);
         assert_eq!(slots.canvas_height, 342.0);
         assert_eq!(slots.slot_size, 42.0);
         assert_eq!(slots.character_max_scale, 3.2);
@@ -317,6 +340,16 @@ mod tests {
             (SlotKind::LeftAccessory, 12.0, 274.0),
             (SlotKind::RightAccessory, 166.0, 274.0),
             (SlotKind::Shoes, 89.0, 296.0),
+            (SlotKind::CostumeHeadTop, 272.0, 4.0),
+            (SlotKind::CostumeHeadMiddle, 272.0, 72.0),
+            (SlotKind::CostumeHeadLower, 272.0, 140.0),
+            (SlotKind::CostumeGarment, 272.0, 208.0),
+            (SlotKind::ShadowArmor, 354.0, 4.0),
+            (SlotKind::ShadowWeapon, 354.0, 62.0),
+            (SlotKind::ShadowShield, 354.0, 120.0),
+            (SlotKind::ShadowShoes, 354.0, 178.0),
+            (SlotKind::ShadowLeftAccessory, 354.0, 236.0),
+            (SlotKind::ShadowRightAccessory, 354.0, 294.0),
         ];
 
         assert_eq!(slots.slots.len(), expected.len());
@@ -342,6 +375,22 @@ mod tests {
         assert_eq!(SlotKind::LeftAccessory.equip_position(), EquipPosition::LEFT_ACCESSORY);
         assert_eq!(SlotKind::RightAccessory.equip_position(), EquipPosition::RIGTH_ACCESSORY);
         assert_eq!(SlotKind::Shoes.equip_position(), EquipPosition::SHOES);
+        assert_eq!(SlotKind::CostumeHeadTop.equip_position(), EquipPosition::COSTUME_HEAD_TOP);
+        assert_eq!(SlotKind::CostumeHeadMiddle.equip_position(), EquipPosition::COSTUME_HEAD_MIDDLE);
+        assert_eq!(SlotKind::CostumeHeadLower.equip_position(), EquipPosition::COSTUME_HEAD_LOWER);
+        assert_eq!(SlotKind::CostumeGarment.equip_position(), EquipPosition::COSTUME_GARMENT);
+        assert_eq!(SlotKind::ShadowArmor.equip_position(), EquipPosition::SHADOW_ARMOR);
+        assert_eq!(SlotKind::ShadowWeapon.equip_position(), EquipPosition::SHADOW_WEAPON);
+        assert_eq!(SlotKind::ShadowShield.equip_position(), EquipPosition::SHADOW_SHIELD);
+        assert_eq!(SlotKind::ShadowShoes.equip_position(), EquipPosition::SHADOW_SHOES);
+        assert_eq!(
+            SlotKind::ShadowLeftAccessory.equip_position(),
+            EquipPosition::SHADOW_LEFT_ACCESSORY
+        );
+        assert_eq!(
+            SlotKind::ShadowRightAccessory.equip_position(),
+            EquipPosition::SHADOW_RIGHT_ACCESSORY
+        );
     }
 
     #[test]
@@ -370,7 +419,7 @@ mod tests {
             "duplicate slot kinds must be rejected"
         );
         assert!(
-            validate(&data.replace("canvas_width: 220.0", "canvas_width: 0.0")).is_err(),
+            validate(&data.replace("canvas_width: 440.0", "canvas_width: 0.0")).is_err(),
             "a zero canvas must be rejected"
         );
         assert!(

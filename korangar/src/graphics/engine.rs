@@ -1253,11 +1253,20 @@ impl GraphicsEngine {
 
                 drop(compute_pass);
 
-                // Forward Pass
-                let mut render_pass =
-                    engine_context
-                        .forward_pass_context
-                        .create_pass(&mut forward_encoder, &engine_context.global_context, None);
+                // Forward Pass. The background/sky colour comes from the map
+                // (`mapskydata.lub`); maps without sky data keep black.
+                let background_color = instruction.background_color.components_linear();
+                let wgpu_background_color = wgpu::Color {
+                    r: background_color[0] as f64,
+                    g: background_color[1] as f64,
+                    b: background_color[2] as f64,
+                    a: background_color[3] as f64,
+                };
+                let mut render_pass = engine_context.forward_pass_context.create_pass(
+                    &mut forward_encoder,
+                    &engine_context.global_context,
+                    Some(wgpu_background_color),
+                );
 
                 let batch_data = &ModelBatchDrawData {
                     batches: instruction.model_batches,

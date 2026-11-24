@@ -4719,7 +4719,8 @@ bitflags::bitflags! {
         const RIGTH_ACCESSORY = 128;
         const COSTUME_HEAD_TOP = 1024;
         const COSTUME_HEAD_MIDDLE = 2048;
-        const COSTUME_HEAD_LOWER = 4196;
+        // rAthena `EQP_COSTUME_HEAD_LOW = 0x001000` (4096).
+        const COSTUME_HEAD_LOWER = 4096;
         const COSTUME_GARMENT = 8192;
         const AMMO = 32768;
         const SHADOW_ARMOR = 65536;

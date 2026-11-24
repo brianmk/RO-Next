@@ -124,6 +124,10 @@ impl Library {
         // The data-driven job/appearance registry (job sprites, palettes, hair
         // styles, job flags) is loaded here so every subsystem sees one table.
         crate::world::jobs::load(game_file_loader);
+        // The data-driven robe and shield appearance tables (robe sprite names
+        // and animated opacity, shield item id -> view id and sprite suffixes).
+        crate::world::robe::load(game_file_loader);
+        crate::world::shield::load(game_file_loader);
         // The data-driven skill behaviour and procedural effect data (clouds,
         // channeling, warp target, cast circle, warp portal, level aura).
         crate::world::skills::load(game_file_loader);

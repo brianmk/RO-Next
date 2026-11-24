@@ -425,6 +425,7 @@ impl Default for UiTexts {
 
 /// Names and labels of the equipment slots of the paper doll.
 #[derive(Serialize, Deserialize, RustState, StateElement)]
+#[serde(default)]
 pub struct PaperDollTexts {
     pub head_top_name: String,
     pub head_top_label: String,
@@ -448,6 +449,26 @@ pub struct PaperDollTexts {
     pub accessory_2_label: String,
     pub shoes_name: String,
     pub shoes_label: String,
+    pub costume_head_top_name: String,
+    pub costume_head_top_label: String,
+    pub costume_head_middle_name: String,
+    pub costume_head_middle_label: String,
+    pub costume_head_lower_name: String,
+    pub costume_head_lower_label: String,
+    pub costume_garment_name: String,
+    pub costume_garment_label: String,
+    pub shadow_armor_name: String,
+    pub shadow_armor_label: String,
+    pub shadow_weapon_name: String,
+    pub shadow_weapon_label: String,
+    pub shadow_shield_name: String,
+    pub shadow_shield_label: String,
+    pub shadow_shoes_name: String,
+    pub shadow_shoes_label: String,
+    pub shadow_accessory_1_name: String,
+    pub shadow_accessory_1_label: String,
+    pub shadow_accessory_2_name: String,
+    pub shadow_accessory_2_label: String,
 }
 
 impl Default for PaperDollTexts {
@@ -475,6 +496,26 @@ impl Default for PaperDollTexts {
             accessory_2_label: "ACC2".to_owned(),
             shoes_name: "Shoes".to_owned(),
             shoes_label: "SHOES".to_owned(),
+            costume_head_top_name: "Costume head top".to_owned(),
+            costume_head_top_label: "C-TOP".to_owned(),
+            costume_head_middle_name: "Costume head middle".to_owned(),
+            costume_head_middle_label: "C-MID".to_owned(),
+            costume_head_lower_name: "Costume head lower".to_owned(),
+            costume_head_lower_label: "C-LOW".to_owned(),
+            costume_garment_name: "Costume garment".to_owned(),
+            costume_garment_label: "C-GARM".to_owned(),
+            shadow_armor_name: "Shadow armor".to_owned(),
+            shadow_armor_label: "S-ARMOR".to_owned(),
+            shadow_weapon_name: "Shadow weapon".to_owned(),
+            shadow_weapon_label: "S-WPN".to_owned(),
+            shadow_shield_name: "Shadow shield".to_owned(),
+            shadow_shield_label: "S-SHLD".to_owned(),
+            shadow_shoes_name: "Shadow shoes".to_owned(),
+            shadow_shoes_label: "S-SHOES".to_owned(),
+            shadow_accessory_1_name: "Shadow accessory 1".to_owned(),
+            shadow_accessory_1_label: "S-ACC1".to_owned(),
+            shadow_accessory_2_name: "Shadow accessory 2".to_owned(),
+            shadow_accessory_2_label: "S-ACC2".to_owned(),
         }
     }
 }
@@ -495,6 +536,16 @@ impl PaperDollTexts {
             EquipPosition::LEFT_ACCESSORY => &self.accessory_1_name,
             EquipPosition::RIGTH_ACCESSORY => &self.accessory_2_name,
             EquipPosition::SHOES => &self.shoes_name,
+            EquipPosition::COSTUME_HEAD_TOP => &self.costume_head_top_name,
+            EquipPosition::COSTUME_HEAD_MIDDLE => &self.costume_head_middle_name,
+            EquipPosition::COSTUME_HEAD_LOWER => &self.costume_head_lower_name,
+            EquipPosition::COSTUME_GARMENT => &self.costume_garment_name,
+            EquipPosition::SHADOW_ARMOR => &self.shadow_armor_name,
+            EquipPosition::SHADOW_WEAPON => &self.shadow_weapon_name,
+            EquipPosition::SHADOW_SHIELD => &self.shadow_shield_name,
+            EquipPosition::SHADOW_SHOES => &self.shadow_shoes_name,
+            EquipPosition::SHADOW_LEFT_ACCESSORY => &self.shadow_accessory_1_name,
+            EquipPosition::SHADOW_RIGHT_ACCESSORY => &self.shadow_accessory_2_name,
             _ => &self.head_top_name,
         }
     }
@@ -513,6 +564,16 @@ impl PaperDollTexts {
             EquipPosition::LEFT_ACCESSORY => &self.accessory_1_label,
             EquipPosition::RIGTH_ACCESSORY => &self.accessory_2_label,
             EquipPosition::SHOES => &self.shoes_label,
+            EquipPosition::COSTUME_HEAD_TOP => &self.costume_head_top_label,
+            EquipPosition::COSTUME_HEAD_MIDDLE => &self.costume_head_middle_label,
+            EquipPosition::COSTUME_HEAD_LOWER => &self.costume_head_lower_label,
+            EquipPosition::COSTUME_GARMENT => &self.costume_garment_label,
+            EquipPosition::SHADOW_ARMOR => &self.shadow_armor_label,
+            EquipPosition::SHADOW_WEAPON => &self.shadow_weapon_label,
+            EquipPosition::SHADOW_SHIELD => &self.shadow_shield_label,
+            EquipPosition::SHADOW_SHOES => &self.shadow_shoes_label,
+            EquipPosition::SHADOW_LEFT_ACCESSORY => &self.shadow_accessory_1_label,
+            EquipPosition::SHADOW_RIGHT_ACCESSORY => &self.shadow_accessory_2_label,
             _ => &self.head_top_label,
         }
     }
@@ -904,6 +965,16 @@ mod tests {
             EquipPosition::LEFT_ACCESSORY,
             EquipPosition::RIGTH_ACCESSORY,
             EquipPosition::SHOES,
+            EquipPosition::COSTUME_HEAD_TOP,
+            EquipPosition::COSTUME_HEAD_MIDDLE,
+            EquipPosition::COSTUME_HEAD_LOWER,
+            EquipPosition::COSTUME_GARMENT,
+            EquipPosition::SHADOW_ARMOR,
+            EquipPosition::SHADOW_WEAPON,
+            EquipPosition::SHADOW_SHIELD,
+            EquipPosition::SHADOW_SHOES,
+            EquipPosition::SHADOW_LEFT_ACCESSORY,
+            EquipPosition::SHADOW_RIGHT_ACCESSORY,
         ];
         for position in positions {
             assert!(

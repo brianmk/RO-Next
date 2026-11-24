@@ -1,0 +1,65 @@
+// Data-driven shield appearance table.
+//
+// The entity-appear packets carry the shield *item id* (`status.shield`), while
+// the classic client selects the shield sprite by the item view id and the
+// localized shield name (see `EquipmentResourceMgr::GetShieldResourceName`).
+// This table is generated from the committed rAthena pre-renewal item facts
+// (`tools/rathena_pre_re_item_facts.json`, fields `id`/`view`/`equip_positions`)
+// and the sprite suffixes that actually exist under `data\sprite\방패\`.
+//
+// `item_views` maps shield item ids to view ids; `view_names` maps a view id to
+// the sprite name suffixes the archive ships (`방패\<job>\<job>_<sex>_<name>`;
+// the Korean `_방패` suffix is added by the client). Missing candidates are
+// skipped cleanly.
+(
+    provenance: "rAthena pre-renewal item facts + CondaRO client archive shield sprite names",
+    version: 1,
+    item_views: [
+        (item: 2101, view: 1),
+        (item: 2102, view: 1),
+        (item: 2103, view: 2),
+        (item: 2104, view: 2),
+        (item: 2105, view: 3),
+        (item: 2106, view: 3),
+        (item: 2107, view: 4),
+        (item: 2108, view: 4),
+        (item: 2109, view: 5),
+        (item: 2110, view: 4),
+        (item: 2111, view: 4),
+        (item: 2112, view: 1),
+        (item: 2113, view: 3),
+        (item: 2114, view: 2),
+        (item: 2115, view: 4),
+        (item: 2116, view: 1),
+        (item: 2117, view: 1),
+        (item: 2118, view: 1),
+        (item: 2119, view: 1),
+        (item: 2120, view: 1),
+        (item: 2121, view: 5),
+        (item: 2122, view: 4),
+        (item: 2123, view: 4),
+        (item: 2124, view: 2),
+        (item: 2125, view: 4),
+        (item: 2126, view: 2),
+        (item: 2127, view: 4),
+        (item: 2128, view: 4),
+        (item: 2129, view: 5),
+        (item: 2130, view: 4),
+        (item: 2131, view: 5),
+        (item: 2132, view: 2),
+        (item: 2133, view: 4),
+        (item: 2134, view: 2),
+        (item: 2135, view: 2),
+        (item: 2136, view: 2),
+        (item: 2137, view: 4),
+        (item: 2138, view: 3),
+        (item: 2139, view: 1),
+        (item: 2199, view: 1),
+    ],
+    view_names: [
+        (view: 1, names: ["가드"]),
+        (view: 2, names: ["버클러"]),
+        (view: 3, names: ["쉴드"]),
+        (view: 4, names: ["미러쉴드"]),
+    ],
+)

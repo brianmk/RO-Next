@@ -113,6 +113,16 @@ public static const var POINT_PCSS_MAX_RADIUS_TEXELS: float = 8.0;
 public static const var POINT_LIGHT_WORLD_SIZE: float = 1.5;
 
 [ForceInline]
+/// Scene fog from `mapskydata.lub` (`BG_Fog`): fades a lit fragment into the
+/// sky/background colour between `fog_range.x` and `fog_range.y`. `fog_color.a`
+/// is the "fog enabled" mask, so maps without fog data keep their exact
+/// appearance.
+public func apply_scene_fog(color: float3, world_position: float3, camera_position: float3, fog_color: float4, fog_range: float2) -> float3 {
+    let distance_to_camera = distance(world_position, camera_position);
+    let fog_amount = saturate((distance_to_camera - fog_range.x) / max(fog_range.y - fog_range.x, 0.0001));
+    return lerp(color, fog_color.rgb, fog_amount * fog_color.a);
+}
+
 public func get_shadow_offsets(normal: float3, light_direction: float3) -> float2 {
     let cos_alpha = saturate(dot(normal, light_direction));
     let sin_alpha = sqrt(1.0 - (cos_alpha * cos_alpha));
