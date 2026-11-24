@@ -1,4 +1,5 @@
-//! The `Entity` enum (player or NPC) and its rendering/UI trait impls.
+//! The `Entity` actor enum (player or NPC) with its movement, rendering and
+//! UI trait impls.
 
 use super::*;
 

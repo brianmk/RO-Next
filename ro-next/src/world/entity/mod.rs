@@ -44,12 +44,12 @@ use crate::world::{MarkerIdentifier, SubMesh};
 use crate::{Buffer, ModelVertex};
 
 mod common;
-mod entity;
+mod actor;
 mod npc;
 mod player;
 
 pub use self::common::*;
-pub use self::entity::*;
+pub use self::actor::*;
 pub use self::npc::*;
 pub use self::player::*;
 
