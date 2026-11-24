@@ -1264,6 +1264,12 @@ where
         }
     }
 
+    pub fn drop_item(&mut self, item_index: InventoryIndex, amount: u16) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(DropItemPacket::new(item_index, amount)),
+        }
+    }
+
     pub fn request_item_equip(&mut self, item_index: InventoryIndex, equip_position: EquipPosition) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestEquipItemPacket::new(item_index, equip_position)),

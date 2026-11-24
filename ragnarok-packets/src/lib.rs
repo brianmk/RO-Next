@@ -2089,6 +2089,18 @@ pub struct UseItemPacket {
     pub item_id: ItemId,
 }
 
+/// Drop an item from the inventory on the ground (CZ_ITEM_THROW).
+///
+/// Packet layout for PACKETVER 20190605 (rAthena `clif.cpp:11994`):
+/// `00a2 <index>.W <amount>.W`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x00A2)]
+pub struct DropItemPacket {
+    pub inventory_index: InventoryIndex,
+    pub amount: u16,
+}
+
 /// Result of using an item (ZC_USE_ITEM_ACK).
 ///
 /// Packet layout for PACKETVER >= 20181121:
@@ -5783,6 +5795,25 @@ mod tests {
         assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00CA);
         assert_eq!(bytes.len(), 3);
         assert_eq!(bytes[2], 0);
+    }
+
+    #[test]
+    fn drop_item_packet_layout() {
+        // rAthena CZ_ITEM_THROW at PACKETVER 20190605:
+        // 00a2 <index>.W <amount>.W (clif.cpp:11994).
+        use crate::DropItemPacket;
+
+        let packet = DropItemPacket::new(InventoryIndex(7), 3);
+
+        let mut byte_writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut byte_writer).unwrap();
+        let bytes = byte_writer.into_inner();
+
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00A2);
+        // Inventory indices are stored as index + 2 by the client protocol.
+        assert_eq!(u16::from_le_bytes([bytes[2], bytes[3]]), 9);
+        assert_eq!(u16::from_le_bytes([bytes[4], bytes[5]]), 3);
+        assert_eq!(bytes.len(), 6);
     }
 
     #[test]

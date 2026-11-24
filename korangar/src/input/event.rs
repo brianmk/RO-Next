@@ -236,6 +236,13 @@ pub enum InputEvent {
         /// Where the item is located (inventory or Kafra storage).
         source: ItemSource,
     },
+    /// Drop items from the inventory on the ground (one unit per click).
+    DropItem {
+        /// Inventory index of the item.
+        inventory_index: InventoryIndex,
+        /// Amount to drop.
+        amount: u16,
+    },
     /// Close the item info window.
     CloseItemInfo,
     /// Open the context menu of a Kafra storage item (right click on the item).

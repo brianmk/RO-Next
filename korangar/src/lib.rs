@@ -7409,6 +7409,11 @@ impl Client {
                         }
                     }
                 }
+                InputEvent::DropItem { inventory_index, amount } => {
+                    if let Err(error) = self.networking_system.drop_item(inventory_index, amount) {
+                        crate::logging::log_warn!("failed to send item drop: {error:?}");
+                    }
+                }
                 InputEvent::OpenItemInfo { inventory_index, source } => {
                     open_item_info_window(
                         &self.client_state,

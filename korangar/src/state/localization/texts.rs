@@ -108,6 +108,11 @@ pub mod dropdown_keys {
 }
 
 /// Static texts of the interface windows, buttons and tooltips.
+/// Default for language files written before the drop tooltip existed.
+fn default_context_menu_drop_tooltip() -> String {
+    "Drop one item on the ground".to_owned()
+}
+
 #[derive(Serialize, Deserialize, RustState, StateElement)]
 pub struct UiTexts {
     pub context_menu_whisper: String,
@@ -228,7 +233,8 @@ pub struct UiTexts {
     pub character_info_not_implemented_tooltip: String,
     pub item_not_usable_tooltip: String,
     pub storage_kafra_tooltip: String,
-    pub drop_not_implemented_tooltip: String,
+    #[serde(default = "default_context_menu_drop_tooltip")]
+    pub context_menu_drop_tooltip: String,
     pub account_email_first_tooltip: String,
     pub setting_unsupported_tooltip: String,
     pub character_level_text: String,
@@ -361,7 +367,7 @@ impl Default for UiTexts {
             character_info_not_implemented_tooltip: "Not implemented yet: there is no character info window".to_owned(),
             item_not_usable_tooltip: "This item cannot be used or equipped".to_owned(),
             storage_kafra_tooltip: "Talk to a Kafra to use the storage".to_owned(),
-            drop_not_implemented_tooltip: "Not implemented yet: the client cannot drop items on the ground".to_owned(),
+            context_menu_drop_tooltip: "Drop one item on the ground".to_owned(),
             account_email_first_tooltip: "Enter the account e-mail address first".to_owned(),
             setting_unsupported_tooltip: "This setting is not supported on your system".to_owned(),
             character_level_text: "Lv {} / Jlv {}".to_owned(),

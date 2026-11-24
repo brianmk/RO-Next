@@ -249,7 +249,7 @@
         character_info_not_implemented_tooltip: "Noch nicht implementiert: Es gibt kein Charakterinfo-Fenster",
         item_not_usable_tooltip: "Dieser Gegenstand kann nicht benutzt oder angelegt werden",
         storage_kafra_tooltip: "Sprich mit einer Kafra, um das Lager zu benutzen",
-        drop_not_implemented_tooltip: "Noch nicht implementiert: Der Client kann keine Gegenstände fallen lassen",
+        context_menu_drop_tooltip: "Einen Gegenstand auf den Boden werfen",
         account_email_first_tooltip: "Gib zuerst die Account-E-Mail-Adresse ein",
         setting_unsupported_tooltip: "Diese Einstellung wird auf deinem System nicht unterstützt",
         character_level_text: "Lv {} / Jlv {}",

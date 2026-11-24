@@ -328,9 +328,14 @@ impl CustomWindow<ClientState> for ItemContextMenuWindow {
                 },
                 button! {
                     text: client_state().localization().ui().context_menu_drop(),
-                    disabled: true,
-                    disabled_tooltip: client_state().localization().ui().drop_not_implemented_tooltip(),
-                    event: InputEvent::CloseContextMenu,
+                    tooltip: client_state().localization().ui().context_menu_drop_tooltip(),
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::DropItem {
+                            inventory_index: info_index,
+                            amount: 1,
+                        });
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
                 },
             ),
         }
