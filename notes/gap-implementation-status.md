@@ -12,12 +12,12 @@ Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 | 5 | Guild system (info, members, positions, notice, invite/expel/leave) | **done** | `b78fc9a7` |
 | 6 | Rodex mail (list, read, claim, delete) | **done** | `fc030b7f` |
 | 7 | Costume / shadow-gear slots | **done** | `af61c058` |
-| 8 | Shield and robe rendering | **done** (per-motion draw tables not parsed) | `af61c058` |
+| 8 | Shield and robe rendering | **done** (robe per-motion Lua draw tables; shield is fixed-layer by design) | `af61c058`, `776645f0` |
 | 9 | Skill cooldown display | **done** | `1108f88f` |
 | 10 | Battle mode `/bm` | **done** | `1108f88f` |
 | 11 | Item/Navi/URL links in chat + NPC text | **done** | `507562f4`, `20b0a154` |
 | 12 | Item comparison pane | **done** | `1108f88f` |
-| 13 | PvP/GvG/WoE flags / map properties | **flags exposed; targeting rules not enforced** | `af61c058` |
+| 13 | PvP/GvG/WoE targeting rules | **done** (official HandleActorPick rules; cursor-only refusal) | `af61c058`, `776645f0` |
 | 14 | Hotbar 2 bars + F1–F12 | **done** (2×9 shown; 2 quick slots unrendered) | `1108f88f` |
 | 15 | Key rebinding UI + settings surface | **done** | `1108f88f` |
 | 16 | Refine / repair / identify / card insert | **done** | `31f6017c` |
@@ -42,6 +42,4 @@ Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 
 ## Known remaining work
 - Bink video decoding (only pre-transcoded `.ivf` side-cars play).
-- Per-motion robe/shield draw tables (`DrawOnTop`, `2dlayerdir`).
-- PvP/PK targeting restrictions (flags are exposed; rules not enforced).
 - In-game visual verification of batch 2 features (build + unit tests only).
