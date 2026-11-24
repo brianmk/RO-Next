@@ -8,7 +8,7 @@ GPL-3.0) and looks the action up on every skill use. This script extracts only
 the **facts** (numeric skill ids + the action name + whether the action is a
 held pose) into a plain JSON file; none of the GPL source is copied.
 
-The extracted JSON (`tools/windows_client_skill_actions.json`) is the input of
+The extracted JSON (`tools/data/windows_client_skill_actions.json`) is the input of
 `gen_skill_actions.py`, which writes the client data file
 `korangar/archive/data/client/skill_actions.ron`.
 
@@ -29,7 +29,7 @@ import re
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_skill_actions.json")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_skill_actions.json")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 FILES = {
     "skill_const": f"{BASE_URL}/Skills/SkillConst.js",

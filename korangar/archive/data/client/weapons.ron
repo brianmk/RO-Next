@@ -5,10 +5,10 @@
 // Drift check:      `./tools/gen_weapons.py --check`
 //
 // Sources (committed facts, no game files needed to regenerate):
-//   * tools/rathena_pre_re_weapon_items.json — rAthena `db/pre-re/item_db_equip.yml`
+//   * tools/data/rathena_pre_re_weapon_items.json — rAthena `db/pre-re/item_db_equip.yml`
 //     of the CondaRO pre-renewal server (sha256 d6604ac72624cca980bef7e8c189764885bbb8c513c738bcc31ce47a76fcce1b, server HEAD 876717697fd0f8bb3f25294685cb9efb5db7dff1);
 //     707 weapon items. `enum weapon_type` / `enum e_ammo_type` from `src/map/pc.hpp`.
-//   * tools/weapon_client_assets.json — CondaRO client archives: data.grf (149167 files), CondaRO.grf (34565 files), palettes.grf (498263 files).
+//   * tools/data/weapon_client_assets.json — CondaRO client archives: data.grf (149167 files), CondaRO.grf (34565 files), palettes.grf (498263 files).
 //     Per-job weapon variant sprites and projectile item sprites that actually exist.
 //
 // The file is loaded at runtime through the normal client file loader

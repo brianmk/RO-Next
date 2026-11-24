@@ -3,9 +3,9 @@
 
 Covers the artefacts of the 2019 effect-id gap lane:
 
-* `tools/rodecomp_effect_layers.json` - the extracted facts (effect id -> layers,
+* `tools/data/rodecomp_effect_layers.json` - the extracted facts (effect id -> layers,
   provenance line numbers, scope, documented skips),
-* `tools/skill_effects_rodecomp_hardcoded.ron` - the generated fragment merged by
+* `tools/data/skill_effects_rodecomp_hardcoded.ron` - the generated fragment merged by
   `tools/gen_skill_effects.py --rodecomp-hardcoded`.
 
 Run:
@@ -22,10 +22,10 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/rodecomp_effect_layers.json"
-FRAGMENT = REPO / "tools/skill_effects_rodecomp_hardcoded.ron"
+FACTS = REPO / "tools/data/rodecomp_effect_layers.json"
+FRAGMENT = REPO / "tools/data/skill_effects_rodecomp_hardcoded.ron"
 GENERATOR = REPO / "tools/gen_rodecomp_effect_layers.py"
-GRF2019 = REPO / "tools/grf2019_skill_facts.json"
+GRF2019 = REPO / "tools/data/grf2019_skill_facts.json"
 
 LAYER_FIELDS = {
     "kind",

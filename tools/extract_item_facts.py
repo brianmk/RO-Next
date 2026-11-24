@@ -14,7 +14,7 @@ This script reads the CondaRO pre-renewal server tree:
   validate the bonus mapping; the constants themselves are part of the item
   script language, see ``FLAT_BONUS_FIELDS``).
 
-The output (``tools/rathena_pre_re_item_facts.json``) is the input of
+The output (``tools/data/rathena_pre_re_item_facts.json``) is the input of
 ``tools/gen_item_stats.py``, which writes the client data file
 ``korangar/archive/data/client/item_stats.ron``. Keeping the facts as a
 committed JSON file means the generator (and its ``--check`` drift guard) runs
@@ -35,7 +35,7 @@ The flat bonus parser therefore
 Usage:
     ./tools/extract_item_facts.py \\
         --server-tree /path/to/rathena \\
-        --output tools/rathena_pre_re_item_facts.json
+        --output tools/data/rathena_pre_re_item_facts.json
 
     ./tools/extract_item_facts.py --check   # fail if the committed JSON is stale
 """
@@ -57,7 +57,7 @@ except ImportError:  # pragma: no cover - dependency documented in the help
 
 #: The CondaRO pre-renewal server tree shipped on this machine.
 DEFAULT_SERVER_TREE = Path("/home/phantom/Games/ragnarok/CondaRO-linux/popeng-graft/scratch-condaro")
-DEFAULT_OUTPUT = Path("tools/rathena_pre_re_item_facts.json")
+DEFAULT_OUTPUT = Path("tools/data/rathena_pre_re_item_facts.json")
 
 #: The import manifest. Its ``Footer.Imports`` list is the authoritative list of
 #: item database files; the script follows it instead of hard-coding the split.

@@ -12,7 +12,7 @@ This script extracts only **facts** (numeric skill/effect ids, the exact
 `SkillEffect` field, and the effect table `wav` name) from the community
 reimplementation roBrowserLegacy (GPL-3.0); none of the GPL source is copied.
 
-The extracted JSON (`tools/windows_client_skill_sounds.json`) is the input of
+The extracted JSON (`tools/data/windows_client_skill_sounds.json`) is the input of
 `gen_skill_sounds.py`, which validates every wav against the CondaRO GRF
 archives and writes `korangar/archive/data/client/skill_sounds.ron`.
 
@@ -33,7 +33,7 @@ import re
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_skill_sounds.json")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_skill_sounds.json")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 FILES = {
     "skill_const": f"{BASE_URL}/Skills/SkillConst.js",

@@ -14,7 +14,7 @@ sends the weapon fields to the client):
 * the ``enum e_ammo_type`` values from ``src/map/pc.hpp`` (used to derive the
   projectile/ammo kind of each weapon kind).
 
-The output (``tools/rathena_pre_re_weapon_items.json``) is the input of
+The output (``tools/data/rathena_pre_re_weapon_items.json``) is the input of
 ``tools/gen_weapons.py``, which writes the client data file
 ``korangar/archive/data/client/weapons.ron``. Keeping the facts as a committed
 JSON file means the generator (and its ``--check`` drift guard) runs offline and
@@ -45,7 +45,7 @@ except ImportError:  # pragma: no cover - dependency documented in the help
 
 DEFAULT_ITEM_DB = Path("/home/phantom/rathena/db/pre-re/item_db_equip.yml")
 DEFAULT_PC_HPP = Path("/home/phantom/rathena/src/map/pc.hpp")
-DEFAULT_OUTPUT = Path("tools/rathena_pre_re_weapon_items.json")
+DEFAULT_OUTPUT = Path("tools/data/rathena_pre_re_weapon_items.json")
 
 #: Fallback if no `--pc-hpp` is given. Values are the rAthena `enum weapon_type`
 #: (source of truth: `src/map/pc.hpp`); they are only used to keep the

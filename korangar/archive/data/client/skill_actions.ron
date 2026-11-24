@@ -5,11 +5,11 @@
 // Drift check:      `./tools/gen_skill_actions.py --check`
 //
 // Facts extracted from the official client's skill action assignment
-// (`tools/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the
+// (`tools/data/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the
 // Windows client tables). Only numeric ids and action names are extracted.
 //
 // Rows corrected by the curated `overrides` section of
-// `tools/skill_actions_extra.json`: the official client's
+// `tools/data/skill_actions_extra.json`: the official client's
 // `CSession::GetSkillActionInfo` motion is an ACTORSTATEID, and
 // `CGameActor::SetState` maps it to the ACT action index recorded there.
 //

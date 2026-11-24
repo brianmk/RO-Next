@@ -4,8 +4,7 @@
 # settled: it runs nightly and on manual dispatch, and a failed comparison
 # reports as a failed job but is not part of the required checks of the
 # integration branch. Once the baselines are stable it can be moved to the
-# `ui`-labelled pull requests as a required gate (see
-# notes/korangar-p0-design-tokens-report.md).
+# `ui`-labelled pull requests as a required gate.
 #
 # It needs a reachable Ragnarok server and a dedicated verification account,
 # neither of which exists in this repository's CI. Configure the repository

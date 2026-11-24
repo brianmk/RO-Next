@@ -2,9 +2,9 @@
 """Audit the client's caster actions against the decompiled official motions.
 
 Sources:
-  tools/skill_actions_rodecomp.json        official motion per skill
+  tools/data/skill_actions_rodecomp.json        official motion per skill
                                            (CSession::GetSkillActionInfo/2)
-  tools/rodecomp_skill_frame_sequences.json explicit ACT block per skill
+  tools/data/rodecomp_skill_frame_sequences.json explicit ACT block per skill
                                            (CRenderObject::SetFrameSequence)
   korangar/archive/data/client/skill_actions.ron
 
@@ -22,8 +22,8 @@ import json
 import re
 from pathlib import Path
 
-FACTS = Path("tools/skill_actions_rodecomp.json")
-SEQUENCES = Path("tools/rodecomp_skill_frame_sequences.json")
+FACTS = Path("tools/data/skill_actions_rodecomp.json")
+SEQUENCES = Path("tools/data/rodecomp_skill_frame_sequences.json")
 DATA = Path("korangar/archive/data/client/skill_actions.ron")
 
 MOTION_ACTION = {

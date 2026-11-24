@@ -3866,7 +3866,7 @@ impl Client {
     /// warp and entities entering/leaving the view then all behave the same,
     /// and adding another glowing status only needs a data row in
     /// `archive/data/client/status_effects.ron` (see
-    /// `tools/status_effect_custom.ron`).
+    /// `tools/data/status_effect_custom.ron`).
     ///
     /// The reconciliation itself does not allocate: the per-frame active set is
     /// encoded as the last-seen frame next to each spawned aura, so only the

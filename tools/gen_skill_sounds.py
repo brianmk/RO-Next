@@ -8,12 +8,12 @@ table every skill except a hand-curated handful used one generic
 `ef_beginspell.wav`.
 
 The facts come from `tools/extract_skill_sounds.py`
-(`tools/windows_client_skill_sounds.json`). This generator walks the official
+(`tools/data/windows_client_skill_sounds.json`). This generator walks the official
 effect layers of every skill in play priority order (success, ground, cast,
 release, hit, caster), resolves the effect table `wav` names against the CondaRO
 GRF archives and writes the first existing candidates.
 
-The hand-curated overrides of `tools/skill_sounds_custom.ron` (classic client
+The hand-curated overrides of `tools/data/skill_sounds_custom.ron` (classic client
 behaviour that the official effect table does not carry, plus the generic cast
 fallback) are merged into the same file as separate `curated`/`generic`
 sections, so the runtime precedence stays exactly what it was when the table was
@@ -43,10 +43,10 @@ import zlib
 from pathlib import Path
 
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
-DEFAULT_FACTS = Path("tools/windows_client_skill_sounds.json")
-DEFAULT_CUSTOM = Path("tools/skill_sounds_custom.ron")
-DEFAULT_RODECOMP = Path("tools/skill_sounds_rodecomp.ron")
-DEFAULT_GRF2019 = Path("tools/grf2019_skill_facts.json")
+DEFAULT_FACTS = Path("tools/data/windows_client_skill_sounds.json")
+DEFAULT_CUSTOM = Path("tools/data/skill_sounds_custom.ron")
+DEFAULT_RODECOMP = Path("tools/data/skill_sounds_rodecomp.ron")
+DEFAULT_GRF2019 = Path("tools/data/grf2019_skill_facts.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sounds.ron")
 SCRIPT_DIR = Path(__file__).resolve().parent
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
@@ -264,9 +264,9 @@ def render(
         "// Drift check:      `./tools/gen_skill_sounds.py --check`",
         "//",
         "// Facts extracted from the official client's effect table",
-        "// (`tools/windows_client_skill_sounds.json`, roBrowserLegacy RE dump of the",
+        "// (`tools/data/windows_client_skill_sounds.json`, roBrowserLegacy RE dump of the",
         "// Windows client tables); every wav is validated against the CondaRO GRFs.",
-        "// The curated section comes from `tools/skill_sounds_custom.ron`.",
+        "// The curated section comes from `tools/data/skill_sounds_custom.ron`.",
         "//",
         "// Format: (skill id, wav files). Paths are relative to `data\\wav\\`; the",
         "// first existing file is played (see `korangar/src/world/skill_sound.rs`).",
@@ -284,7 +284,7 @@ def render(
     for file in generic:
         lines.append(f"        {ron_string(file)},")
     lines.append("    ],")
-    lines.append("    // Hand-curated overrides of `tools/skill_sounds_custom.ron`.")
+    lines.append("    // Hand-curated overrides of `tools/data/skill_sounds_custom.ron`.")
     lines.append(f"    // {custom_provenance}")
     lines.append("    curated: [")
     for skill_id, files in curated:

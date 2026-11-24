@@ -11,7 +11,7 @@ from two fact sources:
    which projectile/ammo sprite pairs are present.
 
 The scan is offline and only reads the GRF file tables; the result
-(``tools/weapon_client_assets.json``) is committed so that
+(``tools/data/weapon_client_assets.json``) is committed so that
 ``tools/gen_weapons.py`` and its ``--check`` drift guard work without the
 3.2 GB game archives.
 
@@ -35,7 +35,7 @@ Usage:
         --archive /path/to/client/game/data.grf \\
         --archive /path/to/client/game/CondaRO.grf \\
         --archive /path/to/client/game/palettes.grf \\
-        --output tools/weapon_client_assets.json
+        --output tools/data/weapon_client_assets.json
 """
 
 from __future__ import annotations
@@ -54,7 +54,7 @@ DEFAULT_ARCHIVES = [
     Path("/home/phantom/Games/ragnarok/CondaRO-linux/client/game/CondaRO.grf"),
     Path("/home/phantom/Games/ragnarok/CondaRO-linux/client/game/palettes.grf"),
 ]
-DEFAULT_OUTPUT = Path("tools/weapon_client_assets.json")
+DEFAULT_OUTPUT = Path("tools/data/weapon_client_assets.json")
 
 #: Per-job weapon variant file name:
 #: ``data\sprite\인간족\<stem>\<stem>_<sex>_<variant>.spr``.

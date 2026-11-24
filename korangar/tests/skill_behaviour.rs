@@ -10,7 +10,7 @@
 //! * the procedural effect modules read their textures/geometry from the data
 //!   (`world/skills.rs`) instead of hard-coded effect paths,
 //! * the curated skill-sound table is gone from Rust and lives in
-//!   `tools/skill_sounds_custom.ron` -> `skill_sounds.ron`,
+//!   `tools/data/skill_sounds_custom.ron` -> `skill_sounds.ron`,
 //! * the committed data files carry the behaviour rows, and the `--check-*` CLI
 //!   entry points of the client accept them.
 
@@ -107,7 +107,7 @@ fn procedural_effects_read_their_assets_from_data() {
 fn curated_skill_sounds_are_gone_from_rust() {
     assert!(
         !SKILL_SOUND_RS.contains("SKILL_SOUNDS"),
-        "the curated Rust sound table has to live in tools/skill_sounds_custom.ron"
+        "the curated Rust sound table has to live in tools/data/skill_sounds_custom.ron"
     );
     assert!(
         !SKILL_SOUND_RS.contains("GENERIC_CAST_SOUND"),

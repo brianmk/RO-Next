@@ -4,7 +4,7 @@
 The official client plays a skill's cast sound with an explicit
 `g_soundMgr->PlayWave("...")` inside the skill effect switches. This tool reads
 those calls from a `rodecomp` checkout and writes (or checks)
-`tools/skill_sounds_rodecomp.ron`, the input of `tools/gen_skill_sounds.py`.
+`tools/data/skill_sounds_rodecomp.ron`, the input of `tools/gen_skill_sounds.py`.
 
 Sources:
   * `Source/Contents/Skills/SkillId.h`            - skill name -> numeric id
@@ -25,7 +25,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_OUTPUT = REPO / "tools" / "skill_sounds_rodecomp.ron"
+DEFAULT_OUTPUT = REPO / "tools" / "data" / "skill_sounds_rodecomp.ron"
 
 SWITCHES = (
     ("Source/Client/Mode/GameModePackets.cpp", "void CGameMode::ReceiveSkillUse"),
@@ -125,7 +125,7 @@ def play_waves_in_switch(body: str) -> dict[str, list[str]]:
 
 
 def learnable_skills() -> set[int]:
-    document = json.loads((REPO / "tools" / "rathena_pre_re_learnable_skills.json").read_text(encoding="utf-8"))
+    document = json.loads((REPO / "tools" / "data" / "rathena_pre_re_learnable_skills.json").read_text(encoding="utf-8"))
     return {int(skill) for skill in document["skills"]}
 
 

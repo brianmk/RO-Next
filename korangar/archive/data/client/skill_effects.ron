@@ -21,8 +21,8 @@
 // The loader is `korangar/src/world/library/skill_effects.rs`.
 //
 // Sources: official EffectTable layer rows (multi-layer), the hard-coded C++
-// effect rows of the client decompilation (tools/skill_effects_rodecomp_hardcoded.ron),
-// the hand-written visuals (tools/skill_effects_custom.ron) and the legacy
+// effect rows of the client decompilation (tools/data/skill_effects_rodecomp_hardcoded.ron),
+// the hand-written visuals (tools/data/skill_effects_custom.ron) and the legacy
 // per-kind tables (skill_effect_assets/sprite/procedural .ron).
 (
     provenance: "Unified skill effect descriptors: official effect-table layers + migrated hand-written visuals",

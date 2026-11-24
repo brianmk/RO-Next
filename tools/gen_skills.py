@@ -14,7 +14,7 @@ survived outside of it as hard-coded skill-id branches and effect constants:
 * the cast circle, warp portal and level aura are drawn from hard-coded
   effect texture names and geometry constants.
 
-This generator turns `tools/skills_custom.ron` (the single hand-written input)
+This generator turns `tools/data/skills_custom.ron` (the single hand-written input)
 into the canonical runtime file
 
     korangar/archive/data/client/skills.ron
@@ -26,7 +26,7 @@ compiled fallback. The Rust schema lives in `korangar/src/world/skills.rs`;
 override).
 
 The generator needs **no** game data or facts JSON: the file is hand-curated
-data (like `tools/skill_effects_custom.ron`). `--check` is the drift guard and
+data (like `tools/data/skill_effects_custom.ron`). `--check` is the drift guard and
 runs offline in CI.
 
 Usage:
@@ -43,7 +43,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skills.ron")
-DEFAULT_CUSTOM = Path("tools/skills_custom.ron")
+DEFAULT_CUSTOM = Path("tools/data/skills_custom.ron")
 
 #: Phases accepted by the `clouds` rows (matches the client `SkillPhase` enum).
 PHASES = ("Ground", "Cast", "Success", "Release", "Hit", "Caster")

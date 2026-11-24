@@ -6,7 +6,7 @@
 // Schema check:     `korangar --check-items`
 //
 // Sources (committed facts, no game files needed to regenerate):
-//   * tools/rathena_pre_re_item_facts.json — extracted by `tools/extract_item_facts.py`
+//   * tools/data/rathena_pre_re_item_facts.json — extracted by `tools/extract_item_facts.py`
 //     from the CondaRO pre-renewal server tree's item database import manifest
 //     `db/pre-re/item_db.yml`:
 //     db/pre-re/item_db_usable.yml: sha256 ba3b8f1fe394a6826ca2d93e34f5eac481fdfc9c250c6a12b59b2a0f1f641b5f (1905 items)

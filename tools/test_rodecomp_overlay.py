@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Invariant tests for the rodecomp-derived skill effect overlay.
 
-* `tools/rodecomp_skill_facts.json` - the extracted official-client facts,
-* `tools/skill_effects_rodecomp.ron` - the generated overlay (input of the
+* `tools/data/rodecomp_skill_facts.json` - the extracted official-client facts,
+* `tools/data/skill_effects_rodecomp.ron` - the generated overlay (input of the
   unified pipeline),
-* `tools/skill_effects_rodecomp.ron` rows must be valid v1 pipeline layers,
+* `tools/data/skill_effects_rodecomp.ron` rows must be valid v1 pipeline layers,
 * the overlay must only add skills that had no descriptor in the committed
   unified data (it is for effects the data pipeline could not resolve),
 * the overlay must be up to date (`--check`).
@@ -23,8 +23,8 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/rodecomp_skill_facts.json"
-OVERLAY = REPO / "tools/skill_effects_rodecomp.ron"
+FACTS = REPO / "tools/data/rodecomp_skill_facts.json"
+OVERLAY = REPO / "tools/data/skill_effects_rodecomp.ron"
 MERGED = REPO / "korangar/archive/data/client/skill_effects.ron"
 GENERATOR = REPO / "tools/gen_rodecomp_overlay.py"
 
@@ -79,7 +79,7 @@ class RodecompOverlayTests(unittest.TestCase):
         cls.facts = json.loads(FACTS.read_text(encoding="utf-8"))
         cls.overlay = cls.gen.read_effects(OVERLAY)
         cls.merged = {int(entry["skill"]) for entry in cls.gen.read_effects(MERGED)}
-        cls.learnable = {int(key) for key in json.loads((REPO / "tools/rathena_pre_re_learnable_skills.json").read_text())["skills"]}
+        cls.learnable = {int(key) for key in json.loads((REPO / "tools/data/rathena_pre_re_learnable_skills.json").read_text())["skills"]}
 
     def test_facts_carry_provenance_and_a_commit_pin(self):
         provenance = self.facts["provenance"]

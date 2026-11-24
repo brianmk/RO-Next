@@ -6,7 +6,7 @@ and plays that action when a skill is used (attack skills swing the weapon,
 stance/buff skills keep the idle pose, trap skills use the pickup animation,
 ...). The facts are extracted from the official client tables by
 `tools/extract_skill_actions.py` into
-`tools/windows_client_skill_actions.json`, and this generator turns them into a
+`tools/data/windows_client_skill_actions.json`, and this generator turns them into a
 data file that the client loads at runtime through the regular
 `GameFileLoader`:
 
@@ -38,11 +38,11 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_FACTS = Path("tools/windows_client_skill_actions.json")
-DEFAULT_EXTRA = Path("tools/skill_actions_extra.json")
-DEFAULT_RODECOMP = Path("tools/skill_actions_rodecomp.json")
-DEFAULT_GRF2019 = Path("tools/grf2019_skill_facts.json")
-DEFAULT_SEQUENCES = Path("tools/rodecomp_skill_frame_sequences.json")
+DEFAULT_FACTS = Path("tools/data/windows_client_skill_actions.json")
+DEFAULT_EXTRA = Path("tools/data/skill_actions_extra.json")
+DEFAULT_RODECOMP = Path("tools/data/skill_actions_rodecomp.json")
+DEFAULT_GRF2019 = Path("tools/data/grf2019_skill_facts.json")
+DEFAULT_SEQUENCES = Path("tools/data/rodecomp_skill_frame_sequences.json")
 
 #: `ACTOR_STATE` id of the 2019 client tables -> our caster action.
 #:
@@ -134,11 +134,11 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// Drift check:      `./tools/gen_skill_actions.py --check`",
         "//",
         "// Facts extracted from the official client's skill action assignment",
-        "// (`tools/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the",
+        "// (`tools/data/windows_client_skill_actions.json`, roBrowserLegacy RE dump of the",
         "// Windows client tables). Only numeric ids and action names are extracted.",
         "//",
         "// Rows corrected by the curated `overrides` section of",
-        "// `tools/skill_actions_extra.json`: the official client's",
+        "// `tools/data/skill_actions_extra.json`: the official client's",
         "// `CSession::GetSkillActionInfo` motion is an ACTORSTATEID, and",
         "// `CGameActor::SetState` maps it to the ACT action index recorded there.",
         "//",

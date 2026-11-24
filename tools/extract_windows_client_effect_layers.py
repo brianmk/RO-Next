@@ -51,7 +51,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_effect_layers.json")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_effect_layers.json")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 EFFECT_TABLE_URL = f"{BASE_URL}/Effects/EffectTable.js"
 

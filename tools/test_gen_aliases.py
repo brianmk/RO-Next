@@ -3,8 +3,8 @@
 
 Run directly (`python3 tools/test_gen_aliases.py`) or through CI. No game
 files, server tree or Python packages are needed: only the committed facts
-(`tools/alias_facts.json`), the legacy parity snapshot
-(`tools/alias_legacy_parity.json`) and the committed data file.
+(`tools/data/alias_facts.json`), the legacy parity snapshot
+(`tools/data/alias_legacy_parity.json`) and the committed data file.
 
 The important test is `test_generated_tables_match_the_removed_rust_tables`:
 the data file must reproduce the three hand-maintained Rust tables of the
@@ -34,7 +34,7 @@ class AliasDataTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.facts = gen_aliases.load_facts()
-        cls.legacy = load_json(TOOLS_DIR / "alias_legacy_parity.json")
+        cls.legacy = load_json(TOOLS_DIR / "data" / "alias_legacy_parity.json")
         cls.aliases = gen_aliases.build_aliases(cls.facts)
 
     def mutated_facts(self) -> dict:

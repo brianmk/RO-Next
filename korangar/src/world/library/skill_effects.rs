@@ -47,7 +47,7 @@
 //!
 //! The hand-written special cases of the old `skill_visuals()` table are
 //! migrated into this data file as ordinary layers
-//! (`tools/skill_effects_custom.ron`) and the old blanket
+//! (`tools/data/skill_effects_custom.ron`) and the old blanket
 //! `has_custom_completion()` bypass is gone: a skill can combine handcrafted
 //! layers (for example the Blessing angel) with the official layers of the same
 //! phase (the `축복` sprite, texture glows, ...), and **all** layers spawn.

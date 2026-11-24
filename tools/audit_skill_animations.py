@@ -43,9 +43,9 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 DEFAULT_RATHENA_DIR = "/home/phantom/rathena"
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
-DEFAULT_EFFECTS = REPO / "tools/windows_client_skill_effects.json"
-DEFAULT_ACTIONS = REPO / "tools/windows_client_skill_actions.json"
-DEFAULT_SOUNDS = REPO / "tools/windows_client_skill_sounds.json"
+DEFAULT_EFFECTS = REPO / "tools/data/windows_client_skill_effects.json"
+DEFAULT_ACTIONS = REPO / "tools/data/windows_client_skill_actions.json"
+DEFAULT_SOUNDS = REPO / "tools/data/windows_client_skill_sounds.json"
 DEFAULT_STR_MAPPING = REPO / "korangar/archive/data/client/skill_effect_assets.ron"
 DEFAULT_PROC_MAPPING = REPO / "korangar/archive/data/client/skill_procedural_effects.ron"
 DEFAULT_ACTION_MAPPING = REPO / "korangar/archive/data/client/skill_actions.ron"

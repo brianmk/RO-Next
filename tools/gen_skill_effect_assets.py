@@ -12,11 +12,11 @@ in sync automatically.
 
 Source data:
 
-* `tools/windows_client_skill_effects.json` - numeric skill/effect ids, the
+* `tools/data/windows_client_skill_effects.json` - numeric skill/effect ids, the
   exact official `SkillEffect` field they come from and the effect file names
   extracted from the Windows client tables
   (`tools/extract_windows_client_skill_effects.py`).
-* `tools/windows_client_effect_whitelist.txt` - the 401 `.str` effect paths
+* `tools/data/windows_client_effect_whitelist.txt` - the 401 `.str` effect paths
   referenced by `CondaRO.exe` (extracted from the shipped Windows client).
 
 Every referenced file is validated against
@@ -72,8 +72,8 @@ import zlib
 from pathlib import Path
 
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
-DEFAULT_EFFECTS = Path("tools/windows_client_skill_effects.json")
-DEFAULT_WHITELIST = Path("tools/windows_client_effect_whitelist.txt")
+DEFAULT_EFFECTS = Path("tools/data/windows_client_skill_effects.json")
+DEFAULT_WHITELIST = Path("tools/data/windows_client_effect_whitelist.txt")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effect_assets.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 EFFECT_PREFIX = "data\\texture\\effect\\"

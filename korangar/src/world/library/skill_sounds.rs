@@ -11,7 +11,7 @@
 //! generic); the priority itself is applied in [`crate::world::skill_sound`]:
 //!
 //! * `curated` — hand-written, archive-verified overrides
-//!   (`tools/skill_sounds_custom.ron`, merged by the generator),
+//!   (`tools/data/skill_sounds_custom.ron`, merged by the generator),
 //! * `sounds` — the official per-skill table generated from the effect table,
 //! * `generic` — the fallback cast sound of skills without any mapping.
 //!

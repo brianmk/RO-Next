@@ -7,7 +7,7 @@
 //! owns the shared table that replaces them:
 //!
 //! * the data lives in `korangar/archive/data/client/messages.ron` (generated
-//!   from `tools/message_facts.json` by `tools/gen_messages.py`),
+//!   from `tools/data/message_facts.json` by `tools/gen_messages.py`),
 //! * the same file is embedded with `include_str!` as the compiled fallback,
 //!   and the client loads an archive override through its normal file loader
 //!   ([`install`]), so a server can override the texts without a rebuild and

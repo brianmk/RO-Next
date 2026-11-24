@@ -617,8 +617,7 @@ const DEFAULT_MAXIMUM_EFFECTS_PER_ENTITY: usize = 24;
 const DEFAULT_EFFECT_CULL_DISTANCE: f32 = 1800.0;
 
 /// Environment knob for [`EffectHolder::maximum_effects`]; `0` disables the
-/// cap. Documented in `scripts/perf/README.md` and
-/// `notes/korangar-p0-performance-report.md`.
+/// cap. Documented in `scripts/perf/README.md`.
 const MAXIMUM_EFFECTS_ENVIRONMENT_VARIABLE: &str = "KORANGAR_MAX_EFFECTS";
 /// Environment knob for [`EffectHolder::maximum_effects_per_entity`]; `0`
 /// disables the per-entity cap.

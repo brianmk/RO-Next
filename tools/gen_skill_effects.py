@@ -13,16 +13,16 @@ override and the compiled table can never drift apart.
 
 The file is the merge of these sources:
 
-1. `tools/skill_effects_official.ron` (optional, `--official`) - the complete
+1. `tools/data/skill_effects_official.ron` (optional, `--official`) - the complete
    official `EffectTable` layer lists (one entry per skill/phase, ordered
    layers). This is the "full official rows" generator deliverable; when it
    contains a skill/phase pair it supersedes the legacy rows for that pair.
-1b. `tools/skill_effects_rodecomp_hardcoded.ron` (optional,
+1b. `tools/data/skill_effects_rodecomp_hardcoded.ron` (optional,
    `--rodecomp-hardcoded`) - rows extracted from the client decompilation for
    the effects the 2019 table gives an id but no data layers (their visuals are
    hard-coded C++; see `tools/gen_rodecomp_effect_layers.py`). The merge only
    adds layers whose asset is not already present for that skill/phase.
-2. `tools/skill_effects_custom.ron` - the hand-written (older client) visuals
+2. `tools/data/skill_effects_custom.ron` - the hand-written (older client) visuals
    migrated out of `skill_cast_effect.rs` (Blessing angel, Angelus, Inc AGI,
    Concentration, Hammer Fall, Warp/Heal cast tints, Zen/Fury auras, body
    flash). Custom layers are additive: only a layer that references the same
@@ -53,7 +53,7 @@ Schema (RON, one entry per skill/phase, layers spawned in order):
         ],
     )
 
-See `tools/skill_effects_custom.ron` for the full field documentation. The
+See `tools/data/skill_effects_custom.ron` for the full field documentation. The
 Rust schema lives in `korangar/src/world/library/skill_effects.rs`; the
 `--check` flag is the drift guard and `korangar --check-skill-effects` validates
 the schema (and the archive override) at runtime.
@@ -61,7 +61,7 @@ the schema (and the archive override) at runtime.
 Usage:
     ./tools/gen_skill_effects.py                          # regenerate the data file
     ./tools/gen_skill_effects.py --check                  # fail if out of date
-    ./tools/gen_skill_effects.py --official tools/skill_effects_official.ron
+    ./tools/gen_skill_effects.py --official tools/data/skill_effects_official.ron
     ./tools/gen_skill_effects.py --validate-assets /path/to/client/game
 """
 
@@ -74,11 +74,11 @@ import sys
 from pathlib import Path
 
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_effects.ron")
-DEFAULT_CUSTOM = Path("tools/skill_effects_custom.ron")
-DEFAULT_OFFICIAL = Path("tools/skill_effects_official.ron")
-DEFAULT_RODECOMP_HARDCODED = Path("tools/skill_effects_rodecomp_hardcoded.ron")
-DEFAULT_RODECOMP = Path("tools/skill_effects_rodecomp.ron")
-DEFAULT_OVERRIDES = Path("tools/skill_effects_overrides.ron")
+DEFAULT_CUSTOM = Path("tools/data/skill_effects_custom.ron")
+DEFAULT_OFFICIAL = Path("tools/data/skill_effects_official.ron")
+DEFAULT_RODECOMP_HARDCODED = Path("tools/data/skill_effects_rodecomp_hardcoded.ron")
+DEFAULT_RODECOMP = Path("tools/data/skill_effects_rodecomp.ron")
+DEFAULT_OVERRIDES = Path("tools/data/skill_effects_overrides.ron")
 LEGACY_STR = Path("korangar/archive/data/client/skill_effect_assets.ron")
 LEGACY_SPR = Path("korangar/archive/data/client/skill_sprite_effects.ron")
 LEGACY_PROCEDURAL = Path("korangar/archive/data/client/skill_procedural_effects.ron")
@@ -713,8 +713,8 @@ def render(effects: list[dict[str, object]]) -> str:
         "// The loader is `korangar/src/world/library/skill_effects.rs`.",
         "//",
         "// Sources: official EffectTable layer rows (multi-layer), the hard-coded C++",
-        "// effect rows of the client decompilation (tools/skill_effects_rodecomp_hardcoded.ron),",
-        "// the hand-written visuals (tools/skill_effects_custom.ron) and the legacy",
+        "// effect rows of the client decompilation (tools/data/skill_effects_rodecomp_hardcoded.ron),",
+        "// the hand-written visuals (tools/data/skill_effects_custom.ron) and the legacy",
         "// per-kind tables (skill_effect_assets/sprite/procedural .ron).",
         "(",
         '    provenance: "Unified skill effect descriptors: official effect-table layers + migrated hand-written visuals",',

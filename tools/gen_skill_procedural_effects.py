@@ -4,7 +4,7 @@
 Many official skill visuals are **not** data files: they are hard-coded
 procedural primitives of the Windows client (hit-flash billboards, cylinder
 auras, projectile simulations). This generator turns the extracted facts about
-those primitives (`tools/windows_client_procedural_effects.json`) into a data
+those primitives (`tools/data/windows_client_procedural_effects.json`) into a data
 file that the client loads at runtime through the regular `GameFileLoader`:
 
     korangar/archive/data/client/skill_procedural_effects.ron
@@ -13,7 +13,7 @@ The file is embedded with `include_str!` as the compiled fallback, so the data
 file and the client cannot drift apart.
 
 For every skill with a procedural component (the classification comes from the
-committed audit table `tools/skill_procedural_components.csv`) the generator
+committed audit table `tools/data/skill_procedural_components.csv`) the generator
 maps each official effect id to one of the client's shared primitives:
 
 * `HitFlash`   - a burst of camera-facing textured quads (official `2D`/`3D`
@@ -55,8 +55,8 @@ from collections import Counter
 from pathlib import Path
 
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
-DEFAULT_FACTS = Path("tools/windows_client_procedural_effects.json")
-DEFAULT_COMPONENTS = Path("tools/skill_procedural_components.csv")
+DEFAULT_FACTS = Path("tools/data/windows_client_procedural_effects.json")
+DEFAULT_COMPONENTS = Path("tools/data/skill_procedural_components.csv")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_procedural_effects.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 TEXTURE_ROOT = "data\\texture\\"

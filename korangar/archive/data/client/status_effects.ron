@@ -14,10 +14,10 @@
 // Sources: rAthena `src/map/status.hpp` (`efst_type`, `sc_type`) and
 // `db/pre-re/status.yml`; the official client `stateiconinfo.lub`,
 // `stateiconimginfo.lub` and `efstids.lub`; the reverse-engineered
-// roBrowserLegacy classic status table (`tools/status_info_robrowser.json`);
-// the curated overlay `tools/status_effect_custom.ron` (extra names, icon
+// roBrowserLegacy classic status table (`tools/data/status_info_robrowser.json`);
+// the curated overlay `tools/data/status_effect_custom.ron` (extra names, icon
 // choices, SendVal value semantics and persistent aura specs). Extracted
-// facts: `tools/status_facts.json`.
+// facts: `tools/data/status_facts.json`.
 //
 // Categories: Buff, Debuff, Toggle, System. Refresh policies: Replace,
 // Keep. Stack policies: Single. Aura kinds: PersistentGlow.
@@ -770,8 +770,6 @@
                     body: (1.0, 0.85, 0.35),
                     glow: (1.0, 0.94, 0.39),
                 ),
-                // 30 % smaller than the raw effect-table radii (in-game report: the Fury
-                // aura was too large compared with the official client).
                 radii: (ground: 7.35, ring: 4.9, body: 16.8, body_glow: 9.8),
                 timing: (
                     body_frame_rate: 10.0,
@@ -782,7 +780,6 @@
                     pulse_amount: 0.2,
                 ),
                 alpha: (ground: 0.3, ring: 0.4, body: 0.45, body_glow: 0.4),
-                // 30 % smaller as well so the scaled aura keeps its proportions.
                 height: 8.4,
             ),
         ),

@@ -5,7 +5,7 @@
 //! of `data\client\skill_sounds.ron` (loaded by
 //! [`crate::world::library::skill_sounds`]) from the skill cast handlers. The
 //! old hand-curated Rust table is gone: the curated rows live in
-//! `tools/skill_sounds_custom.ron` and are merged into that data file.
+//! `tools/data/skill_sounds_custom.ron` and are merged into that data file.
 //!
 //! ## Sound lanes
 //!
@@ -521,7 +521,7 @@ mod tests {
 
     use super::*;
 
-    /// The hand-curated skills of `tools/skill_sounds_custom.ron` (now the
+    /// The hand-curated skills of `tools/data/skill_sounds_custom.ron` (now the
     /// `curated` section of the sound data file).
     const CURATED_SKILLS: [u16; 6] = [110, 27, 29, 33, 34, 45];
 

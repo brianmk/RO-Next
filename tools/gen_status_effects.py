@@ -14,12 +14,12 @@ override and the compiled table can never drift apart.
 
 Input is the committed facts document
 
-    tools/status_facts.json
+    tools/data/status_facts.json
 
 produced by `tools/extract_status_facts.py` from the rAthena server sources,
 the official 2019 client Lua tables (`stateiconinfo.lub`,
 `stateiconimginfo.lub`, `efstids.lub`), the vendored roBrowserLegacy classic
-status facts and the curated overlay `tools/status_effect_custom.ron`. Running
+status facts and the curated overlay `tools/data/status_effect_custom.ron`. Running
 this generator (and its `--check` mode) needs no game data and no server tree,
 so it is safe to run in CI.
 
@@ -81,7 +81,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-DEFAULT_FACTS = REPO / "tools/status_facts.json"
+DEFAULT_FACTS = REPO / "tools/data/status_facts.json"
 DEFAULT_OUTPUT = REPO / "korangar/archive/data/client/status_effects.ron"
 
 #: Must match the Rust enums of `world/library/status_effects.rs`.
@@ -251,10 +251,10 @@ def render(facts: dict[str, object]) -> str:
         "// Sources: rAthena `src/map/status.hpp` (`efst_type`, `sc_type`) and",
         "// `db/pre-re/status.yml`; the official client `stateiconinfo.lub`,",
         "// `stateiconimginfo.lub` and `efstids.lub`; the reverse-engineered",
-        "// roBrowserLegacy classic status table (`tools/status_info_robrowser.json`);",
-        "// the curated overlay `tools/status_effect_custom.ron` (extra names, icon",
+        "// roBrowserLegacy classic status table (`tools/data/status_info_robrowser.json`);",
+        "// the curated overlay `tools/data/status_effect_custom.ron` (extra names, icon",
         "// choices, SendVal value semantics and persistent aura specs). Extracted",
-        "// facts: `tools/status_facts.json`.",
+        "// facts: `tools/data/status_facts.json`.",
         "//",
         "// Categories: Buff, Debuff, Toggle, System. Refresh policies: Replace,",
         "// Keep. Stack policies: Single. Aura kinds: PersistentGlow.",

@@ -2,7 +2,7 @@
 //
 // Source: rAthena packet headers at PACKETVER 20190605
 // (src/map/packets.hpp, src/char/packets.hpp, src/common/packets.hpp plus the
-// checked-in tools/opcode_supplement_20190605.json). Regenerate with:
+// checked-in tools/data/opcode_supplement_20190605.json). Regenerate with:
 //
 //     ./tools/gen_opcode_lengths.py
 //

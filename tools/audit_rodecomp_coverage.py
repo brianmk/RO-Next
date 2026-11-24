@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Report how well the committed skill data covers the official client effects.
 
-The audit facts live in `tools/rodecomp_effect_coverage.json` (per skill: the
+The audit facts live in `tools/data/rodecomp_effect_coverage.json` (per skill: the
 official C++ effect ids, the 2019-era ids the client data uses, and the
 renderable assets of the official effect implementations). This tool joins them
 with the learnable-skill snapshot and the committed
@@ -32,8 +32,8 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-FACTS = REPO / "tools" / "rodecomp_effect_coverage.json"
-LEARNABLE = REPO / "tools" / "rathena_pre_re_learnable_skills.json"
+FACTS = REPO / "tools" / "data" / "rodecomp_effect_coverage.json"
+LEARNABLE = REPO / "tools" / "data" / "rathena_pre_re_learnable_skills.json"
 MERGED = REPO / "korangar" / "archive" / "data" / "client" / "skill_effects.ron"
 
 
@@ -104,7 +104,7 @@ def classify() -> tuple[dict[str, list[dict]], dict[str, int]]:
             for path in paths:
                 assets.add(asset_key(path))
 
-    flags_facts = json.loads((REPO / "tools" / "rodecomp_effect_flags.json").read_text(encoding="utf-8"))["effects"]
+    flags_facts = json.loads((REPO / "tools" / "data" / "rodecomp_effect_flags.json").read_text(encoding="utf-8"))["effects"]
 
     buckets: dict[str, list[dict]] = {name: [] for name in ("complete", "partial", "uncovered", "flag_only", "no_effect")}
     for skill_id, info in sorted(((int(key), value) for key, value in learnable.items())):

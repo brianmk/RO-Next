@@ -5,9 +5,9 @@
 // Drift check:      `./tools/gen_skill_sounds.py --check`
 //
 // Facts extracted from the official client's effect table
-// (`tools/windows_client_skill_sounds.json`, roBrowserLegacy RE dump of the
+// (`tools/data/windows_client_skill_sounds.json`, roBrowserLegacy RE dump of the
 // Windows client tables); every wav is validated against the CondaRO GRFs.
-// The curated section comes from `tools/skill_sounds_custom.ron`.
+// The curated section comes from `tools/data/skill_sounds_custom.ron`.
 //
 // Format: (skill id, wav files). Paths are relative to `data\wav\`; the
 // first existing file is played (see `korangar/src/world/skill_sound.rs`).
@@ -24,7 +24,7 @@
         "effect\\ef_beginspell.wav",
         "effect\\em_spell_enchanting.wav",
     ],
-    // Hand-curated overrides of `tools/skill_sounds_custom.ron`.
+    // Hand-curated overrides of `tools/data/skill_sounds_custom.ron`.
     // Hand-curated, archive-verified skill cast sound overrides: Hammer Fall, Warp Portal, Increase AGI, Angelus, Blessing and Concentration
     curated: [
         (skill: 24, files: ["effect\\ef_ruwach.wav"]),

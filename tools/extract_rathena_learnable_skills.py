@@ -12,7 +12,7 @@ skill", so the generator needs a stable, offline snapshot of:
   skill (after `Inherit` resolution).
 
 rAthena is GPL-3.0; only plain facts are extracted here (no code, no comments),
-into `tools/rathena_pre_re_learnable_skills.json`, so
+into `tools/data/rathena_pre_re_learnable_skills.json`, so
 `tools/gen_skill_effect_layers.py` stays deterministic without a local rAthena
 checkout and `--check` works on machines that only have the client data.
 
@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 DEFAULT_RATHENA_DIR = "/home/phantom/rathena"
-DEFAULT_OUTPUT = Path("tools/rathena_pre_re_learnable_skills.json")
+DEFAULT_OUTPUT = Path("tools/data/rathena_pre_re_learnable_skills.json")
 SKILL_DB = "db/pre-re/skill_db.yml"
 SKILL_TREE = "db/pre-re/skill_tree.yml"
 

@@ -261,7 +261,7 @@ jobs:
           python-version: "3.12"
 
       # `tools/gen_messages.py` is deterministic and only needs the committed
-      # facts (`tools/message_facts.json`), so this job needs no toolchain and
+      # facts (`tools/data/message_facts.json`), so this job needs no toolchain and
       # no rAthena checkout.
       - name: Protocol result-code message table is up to date
         run: python3 tools/gen_messages.py --check

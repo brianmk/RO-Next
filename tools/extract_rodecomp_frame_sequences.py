@@ -6,7 +6,7 @@ The original client plays a specific ACT block / frame range for many skills
 of that client do not carry this: it is hard-coded C++.
 
 Input (read-only): /home/phantom/Documents/deepseek-harness/default-workspace/rodecomp
-Output: tools/rodecomp_skill_frame_sequences.json
+Output: tools/data/rodecomp_skill_frame_sequences.json
 
 Usage: ./tools/extract_rodecomp_frame_sequences.py
 """
@@ -19,8 +19,8 @@ from pathlib import Path
 
 RODECOMP = Path("/home/phantom/Documents/deepseek-harness/default-workspace/rodecomp")
 RENDER_OBJECT = RODECOMP / "Source/Contents/Actors/RenderObject.cpp"
-SKID_DUMP = Path("tools/client_skill_tables_2019.txt")
-OUTPUT = Path("tools/rodecomp_skill_frame_sequences.json")
+SKID_DUMP = Path("tools/data/client_skill_tables_2019.txt")
+OUTPUT = Path("tools/data/rodecomp_skill_frame_sequences.json")
 
 SWITCH_START = 5740
 SWITCH_END = 5940

@@ -11,9 +11,9 @@ Compared against:
   korangar/archive/data/client/skill_effects.ron  (skill -> phase -> layers)
   korangar/archive/data/client/skill_sounds.ron   (skill -> wave files)
   korangar/archive/data/client/skill_actions.ron  (skill -> caster action)
-  tools/windows_client_effect_layers.json         (effect id -> layer assets)
+  tools/data/windows_client_effect_layers.json         (effect id -> layer assets)
 
-Output: a mismatch report on stdout and `tools/skill_parity_report.json`.
+Output: a mismatch report on stdout and `tools/data/skill_parity_report.json`.
 """
 
 from __future__ import annotations
@@ -27,8 +27,8 @@ TABLES = Path("/tmp/official_skill_tables.txt")
 EFFECTS = Path("korangar/archive/data/client/skill_effects.ron")
 SOUNDS = Path("korangar/archive/data/client/skill_sounds.ron")
 ACTIONS = Path("korangar/archive/data/client/skill_actions.ron")
-LAYERS = Path("tools/windows_client_effect_layers.json")
-REPORT = Path("tools/skill_parity_report.json")
+LAYERS = Path("tools/data/windows_client_effect_layers.json")
+REPORT = Path("tools/data/skill_parity_report.json")
 
 # official ACTOR_STATE id -> our caster action
 STATE_ACTION = {

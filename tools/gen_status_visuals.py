@@ -2,7 +2,7 @@
 """Generate the data-driven status body-visual table.
 
 Inputs:
-  * tools/rustnarok_status_facts.json (pinned rustnarok status facts; used to
+  * tools/data/rustnarok_status_facts.json (pinned rustnarok status facts; used to
     verify that every visualized status exists in the reference data),
   * the curated classic rows below (colours verified against the previous
     hardcoded status handler and rustnarok-client's status tables).
@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-FACTS = REPO / "tools" / "rustnarok_status_facts.json"
+FACTS = REPO / "tools" / "data" / "rustnarok_status_facts.json"
 OUTPUT = REPO / "korangar" / "archive" / "data" / "client" / "status_visual_effects.ron"
 
 #: The first verified B1 batch: id, tint RGB, priority, source. All are classic

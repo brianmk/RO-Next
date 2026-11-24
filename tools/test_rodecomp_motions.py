@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Invariant tests for the extracted caster-motion facts.
 
-`tools/rodecomp_skill_motions.json` is the audit artifact of the official
+`tools/data/rodecomp_skill_motions.json` is the audit artifact of the official
 client's `CSession::GetSkillActionInfo` / `GetSkillActionInfo2` motions (the
 actor states the caster is put into after a skill use).
 
@@ -16,8 +16,8 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools" / "rodecomp_skill_motions.json"
-LEARNABLE = REPO / "tools" / "rathena_pre_re_learnable_skills.json"
+FACTS = REPO / "tools" / "data" / "rodecomp_skill_motions.json"
+LEARNABLE = REPO / "tools" / "data" / "rathena_pre_re_learnable_skills.json"
 
 
 class RodecompMotionTests(unittest.TestCase):

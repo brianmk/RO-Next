@@ -4,7 +4,7 @@
 //! entity for as long as the status is active. The visuals are **data**: each
 //! glow style is a `PersistentGlow` aura spec in the client data file
 //! `archive/data/client/status_effects.ron` (generated from the official
-//! server/client data plus the curated overlay `tools/status_effect_custom.ron`
+//! server/client data plus the curated overlay `tools/data/status_effect_custom.ron`
 //! by `tools/gen_status_effects.py`). Adding or tuning an aura is a data row,
 //! not a Rust change; [`status_aura_spec`] is only a thin lookup into the
 //! status-effect data table.
@@ -35,7 +35,7 @@
 //!
 //! # Adding another status glow
 //!
-//! Add a data row to `tools/status_effect_custom.ron` (a `PersistentGlow` spec
+//! Add a data row to `tools/data/status_effect_custom.ron` (a `PersistentGlow` spec
 //! for the status ids) and regenerate the data file; nothing in this module has
 //! to change. The world reconciles the active status effects of
 //! [`crate::state::status_effects`] against the spawned auras every frame

@@ -15,7 +15,7 @@ effect is played (for example `effectIdOnCaster` plays on the caster while
 facts lets `gen_skill_effect_assets.py` write the correct spawn anchor instead
 of guessing it from a coarse group.
 
-The extracted JSON (`tools/windows_client_skill_effects.json`) is the input of
+The extracted JSON (`tools/data/windows_client_skill_effects.json`) is the input of
 `gen_skill_effect_assets.py`, which validates every referenced effect file
 against the CondaRO GRF archives and the `CondaRO.exe` effect whitelist.
 
@@ -39,7 +39,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_skill_effects.json")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_skill_effects.json")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 
 FILES = {

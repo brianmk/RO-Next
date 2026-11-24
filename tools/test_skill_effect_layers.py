@@ -3,12 +3,12 @@
 
 Read-only checks over the committed artefacts of this lane:
 
-* `tools/windows_client_effect_layers.json` - the extracted official effect
+* `tools/data/windows_client_effect_layers.json` - the extracted official effect
   table layer facts (every layer of every numeric effect id, in table order),
-* `tools/skill_effects_official.ron` - the generated fragment consumed by the
+* `tools/data/skill_effects_official.ron` - the generated fragment consumed by the
   unified pipeline merge generator,
-* `tools/skill_effects_official.json` - machine-readable rows + coverage,
-* `tools/rathena_pre_re_learnable_skills.json` - the learnable-skill snapshot.
+* `tools/data/skill_effects_official.json` - machine-readable rows + coverage,
+* `tools/data/rathena_pre_re_learnable_skills.json` - the learnable-skill snapshot.
 
 The tests assert the v1 pipeline schema (`skill_effects.rs` in the pipeline
 lane), the lead-requested priority rows (Blessing 34, Increase AGI 29, Angelus
@@ -28,10 +28,10 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-LAYERS = REPO / "tools/windows_client_effect_layers.json"
-OFFICIAL_RON = REPO / "tools/skill_effects_official.ron"
-OFFICIAL_JSON = REPO / "tools/skill_effects_official.json"
-LEARNABLE = REPO / "tools/rathena_pre_re_learnable_skills.json"
+LAYERS = REPO / "tools/data/windows_client_effect_layers.json"
+OFFICIAL_RON = REPO / "tools/data/skill_effects_official.ron"
+OFFICIAL_JSON = REPO / "tools/data/skill_effects_official.json"
+LEARNABLE = REPO / "tools/data/rathena_pre_re_learnable_skills.json"
 GENERATOR = REPO / "tools/gen_skill_effect_layers.py"
 
 #: Fields of `LayerFile` in `korangar/src/world/library/skill_effects.rs`
@@ -144,7 +144,7 @@ class OfficialSkillEffectDataTest(unittest.TestCase):
         self.assertTrue(effects["440"]["layers"][0]["attachedEntity"])
 
     def test_extractor_gaps_are_fixed(self) -> None:
-        facts = load_json(REPO / "tools/windows_client_skill_effects.json")
+        facts = load_json(REPO / "tools/data/windows_client_skill_effects.json")
         soul_strike = {field["field"]: field for field in facts["skills"]["13"]}
         self.assertEqual(soul_strike["hitEffectId"]["effects"], [0])
         self.assertEqual(soul_strike["firstHitEffectId"]["effects"], [1])

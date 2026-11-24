@@ -16,8 +16,8 @@
 //! default token set).
 //!
 //! This is v0: the highest-traffic windows are migrated, the remaining
-//! hardcoded values are listed in `notes/korangar-p0-design-tokens-report.md`
-//! and enforced by `scripts/ui-token-budget.sh` so the count can only go down.
+//! hardcoded values are enforced by `scripts/ui-token-budget.sh` so the count
+//! can only go down.
 
 use korangar_interface::element::StateElement;
 use rust_state::RustState;

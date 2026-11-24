@@ -13,12 +13,12 @@ Like `extract_windows_client_skill_effects.py`, this script only extracts
 names, symbolic effect names and the names of the JS constructors a `FUNC`
 component uses). None of the GPL source is copied into this repository.
 
-The extracted JSON (`tools/windows_client_procedural_effects.json`) is the input
+The extracted JSON (`tools/data/windows_client_procedural_effects.json`) is the input
 of `gen_skill_procedural_effects.py`, which turns it into the client data file
 `korangar/archive/data/client/skill_procedural_effects.ron`.
 
 The skill *symbol -> numeric id* mapping is read from the committed audit table
-`tools/skill_procedural_components.csv` (so `SkillConst.js` is not needed).
+`tools/data/skill_procedural_components.csv` (so `SkillConst.js` is not needed).
 
 Usage (needs the two JS tables; network or a local checkout):
 
@@ -38,8 +38,8 @@ import sys
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_procedural_effects.json")
-DEFAULT_COMPONENTS = Path("tools/skill_procedural_components.csv")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_procedural_effects.json")
+DEFAULT_COMPONENTS = Path("tools/data/skill_procedural_components.csv")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 FILES = {
     "skill_effect": f"{BASE_URL}/Skills/SkillEffect.js",

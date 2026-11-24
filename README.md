@@ -23,6 +23,13 @@ If you want to try it out for yourself, check out the [Installation page](wiki/I
 
 If you're running into issues while setting up or running Korangar please check the [Troubleshooting page](wiki/Troubleshooting.md). In case your issue is not listed feel free to [create an issue](https://github.com/vE5li/korangar/issues/new) or use the dedicated `support` channel on our [Discord server](https://discord.gg/2CqRZsvKja).
 
+## 📚 Documentation
+
+* [`docs/`](docs/README.md) — skills/effects, client systems, data pipelines and
+  the patcher release process.
+* [`tools/README.md`](tools/README.md) — the extractors/generators behind the
+  data tables in `korangar/archive/data/client/`.
+
 ## 🤝 Contributing
 
 This is a very ambitious project and we are always looking for contributors. If you are interested, please read [this page](wiki/Contributing.md).

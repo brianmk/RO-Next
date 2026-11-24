@@ -3,7 +3,7 @@
 
 Read-only checks over the committed artefacts of the P1 appearance migration:
 
-* ``tools/job_facts.json`` — the extracted facts (rAthena ``enum e_job``/skill
+* ``tools/data/job_facts.json`` — the extracted facts (rAthena ``enum e_job``/skill
   trees, the client archive appearance probe, the verified sprite fallbacks),
 * ``korangar/archive/data/client/jobs.ron`` — the generated data file consumed
   by ``korangar/src/world/jobs.rs``,
@@ -30,8 +30,9 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/job_facts.json"
+FACTS = REPO / "tools/data/job_facts.json"
 RON = REPO / "korangar/archive/data/client/jobs.ron"
+ACTOR_FACTS = REPO / "tools/data/rustnarok_actor_facts.json"
 GENERATOR = REPO / "tools/gen_jobs.py"
 
 
@@ -88,7 +89,8 @@ class JobFactsTest(unittest.TestCase):
         cls.jobs = cls.server["jobs"]
         cls.by_id = {job["id"]: job for job in cls.jobs}
         cls.gen = load_module(GENERATOR, "gen_jobs")
-        cls.data = cls.gen.build(cls.facts)
+        cls.actor_facts = json.loads(ACTOR_FACTS.read_text())
+        cls.data = cls.gen.build(cls.facts, cls.actor_facts)
         cls.ron_text = RON.read_text()
         cls.ron_jobs = parse_ron_jobs(cls.ron_text)
         cls.body = {"남": body_stems(cls.facts, "남"), "여": body_stems(cls.facts, "여")}
@@ -274,6 +276,9 @@ class JobFactsTest(unittest.TestCase):
             "sprite",
             "client_sprite",
             "palette",
+            "imf",
+            "weapon_folder",
+            "weapon_prefix",
             "source",
             "baby",
             "transcendent",
@@ -377,7 +382,7 @@ class JobFactsTest(unittest.TestCase):
         # A fallback that the archive probe did not see must be rejected.
         tampered["client"]["sprite_fallbacks"]["4252"] = "존재하지않는스프라이트"
         with self.assertRaises(SystemExit) as context:
-            self.gen.build(tampered)
+            self.gen.build(tampered, self.actor_facts)
         self.assertIn("has no body sprite", str(context.exception))
 
     def test_generator_rejects_unsorted_jobs(self) -> None:
@@ -389,7 +394,7 @@ class JobFactsTest(unittest.TestCase):
         # must still be rejected.
         tampered["server"]["jobs"] = tampered["server"]["jobs"] + [tampered["server"]["jobs"][0]]
         with self.assertRaises(SystemExit) as context:
-            self.gen.build(tampered)
+            self.gen.build(tampered, self.actor_facts)
         self.assertIn("not strictly ascending", str(context.exception))
 
 

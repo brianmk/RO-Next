@@ -19,14 +19,14 @@ so both stay in sync automatically. Format: see
 
 Sources (facts only, no GPL code):
 
-* `tools/windows_client_skill_effects.json` - numeric skill -> effect id mapping
+* `tools/data/windows_client_skill_effects.json` - numeric skill -> effect id mapping
   per phase (already used by `gen_skill_effect_assets.py`).
-* `tools/windows_client_sprite_effects.json` - the `type: 'SPR'` effect table
+* `tools/data/windows_client_sprite_effects.json` - the `type: 'SPR'` effect table
   entries (file names, flags, duration/yOffset parameters) extracted from the
   Windows client tables (`extract_windows_client_skill_sprite_effects.py`).
-* `tools/windows_client_spr_whitelist.txt` - the 152 `.spr` effect paths
+* `tools/data/windows_client_spr_whitelist.txt` - the 152 `.spr` effect paths
   referenced by `CondaRO.exe` (the sprite counterpart of the `.str` whitelist).
-* `tools/windows_client_skill_sprite_name_matches.json` - curated, high
+* `tools/data/windows_client_skill_sprite_name_matches.json` - curated, high
   confidence skill-name matches for effects that the extracted skill->effect
   table does not map (mostly the `su_*` New World set); every file in it must
   still be part of the official `CondaRO.exe` sprite whitelist.
@@ -57,10 +57,10 @@ import zlib
 from pathlib import Path
 
 DEFAULT_GAME_DIR = "/home/phantom/Games/ragnarok/CondaRO-linux/client/game"
-DEFAULT_EFFECTS = Path("tools/windows_client_skill_effects.json")
-DEFAULT_SPRITE_EFFECTS = Path("tools/windows_client_sprite_effects.json")
-DEFAULT_WHITELIST = Path("tools/windows_client_spr_whitelist.txt")
-DEFAULT_NAME_MATCHES = Path("tools/windows_client_skill_sprite_name_matches.json")
+DEFAULT_EFFECTS = Path("tools/data/windows_client_skill_effects.json")
+DEFAULT_SPRITE_EFFECTS = Path("tools/data/windows_client_sprite_effects.json")
+DEFAULT_WHITELIST = Path("tools/data/windows_client_spr_whitelist.txt")
+DEFAULT_NAME_MATCHES = Path("tools/data/windows_client_skill_sprite_name_matches.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/skill_sprite_effects.ron")
 ARCHIVES = ("CondaRO.grf", "data.grf", "palettes.grf")
 SPRITE_ROOT = "data\\sprite\\"

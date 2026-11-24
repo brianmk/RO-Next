@@ -34,7 +34,7 @@ lower-case file names and the client lowercases asset lookups (the official
 Windows client is case-insensitive). That is why the newer 4th/expanded class
 sprites (`dragon_knight_남.spr`, …) are found and used instead of a fallback.
 
-The scan is offline and read-only. The committed ``tools/job_facts.json`` lets
+The scan is offline and read-only. The committed ``tools/data/job_facts.json`` lets
 ``tools/gen_jobs.py --check`` run in CI without the 3.2 GB client archives or
 the rAthena server tree.
 
@@ -48,7 +48,7 @@ Usage:
 
     # explicit archives / output:
     ./tools/extract_job_facts.py --archive data.grf --archive CondaRO.grf \\
-        --archive palettes.grf --output tools/job_facts.json
+        --archive palettes.grf --output tools/data/job_facts.json
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ from pathlib import Path
 
 DEFAULT_SSH = "rathena"
 DEFAULT_SERVER_ROOT = "/home/phantom/rathena"
-DEFAULT_OUTPUT = Path("tools/job_facts.json")
+DEFAULT_OUTPUT = Path("tools/data/job_facts.json")
 
 #: Files read from the rAthena tree. The job database of current rAthena is
 #: split; ``enum e_job`` is the authoritative numeric job list the server sends

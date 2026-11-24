@@ -3,10 +3,10 @@
 
 Read-only checks over the committed artefacts of the weapon centralization:
 
-* ``tools/rathena_pre_re_weapon_items.json`` — the extracted server facts
+* ``tools/data/rathena_pre_re_weapon_items.json`` — the extracted server facts
   (every pre-renewal weapon item, the rAthena ``enum weapon_type`` and
   ``enum e_ammo_type`` values),
-* ``tools/weapon_client_assets.json`` — the client-archive facts (which
+* ``tools/data/weapon_client_assets.json`` — the client-archive facts (which
   per-job weapon sprite families and projectile sprites exist),
 * ``korangar/archive/data/client/weapons.ron`` — the generated data file
   consumed by ``korangar/src/world/weapon.rs``,
@@ -30,8 +30,8 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-ITEMS = REPO / "tools/rathena_pre_re_weapon_items.json"
-ASSETS = REPO / "tools/weapon_client_assets.json"
+ITEMS = REPO / "tools/data/rathena_pre_re_weapon_items.json"
+ASSETS = REPO / "tools/data/weapon_client_assets.json"
 RON = REPO / "korangar/archive/data/client/weapons.ron"
 GENERATOR = REPO / "tools/gen_weapons.py"
 
@@ -208,7 +208,7 @@ class WeaponGeneratorTest(unittest.TestCase):
     def test_ron_strings_escape_backslashes(self) -> None:
         content = self.gen.render(self.data, self.items["provenance"], self.assets["provenance"])
         # Sprite paths are Windows-style paths; RON needs them escaped.
-        self.assertIn('per_job: "인간족\\\\{job_stem}', content)
+        self.assertIn('per_job: "인간족\\\\{folder}\\\\{prefix}_{sex}_{variant}"', content)
         self.assertIn('"아이템\\\\화살"', content)
 
     def test_generator_check_reports_the_committed_file_as_current(self) -> None:

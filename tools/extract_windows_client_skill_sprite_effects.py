@@ -6,11 +6,11 @@ effect mapping and the effect parameters into code. Sprite effects are played
 from `data\\sprite\\이팩트\\...` (`.spr` + `.act` pairs). The community
 reimplementation `roBrowserLegacy` (GPL-3.0) documents the same effect table in
 `src/DB/Effects/EffectTable.js`; the skill -> effect id mapping is already
-extracted into `tools/windows_client_skill_effects.json`.
+extracted into `tools/data/windows_client_skill_effects.json`.
 
 This script extracts only the **facts** for `type: 'SPR'` effect-table entries
 (ids, file names, flags and numeric playback parameters) and writes them to
-`tools/windows_client_sprite_effects.json`. No GPL source is copied into this
+`tools/data/windows_client_sprite_effects.json`. No GPL source is copied into this
 repository; the JSON only contains numeric/boolean/name facts that
 `tools/gen_skill_sprite_effects.py` validates against the real GRF archives
 (the `.spr` **and** the `.act` file must exist).
@@ -39,7 +39,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-DEFAULT_OUTPUT = Path("tools/windows_client_sprite_effects.json")
+DEFAULT_OUTPUT = Path("tools/data/windows_client_sprite_effects.json")
 BASE_URL = "https://raw.githubusercontent.com/mrantares/robrowserlegacy/master/src/DB"
 EFFECT_TABLE_URL = f"{BASE_URL}/Effects/EffectTable.js"
 

@@ -3,7 +3,7 @@
 
 The curated skill sounds used to be a Rust constant (`SKILL_SOUNDS` in
 `korangar/src/world/skill_sound.rs`). They now live in
-``tools/skill_sounds_custom.ron`` and are merged by
+``tools/data/skill_sounds_custom.ron`` and are merged by
 ``tools/gen_skill_sounds.py`` into the ``curated``/``generic`` sections of
 ``korangar/archive/data/client/skill_sounds.ron`` (together with the official
 per-skill ``sounds`` table).
@@ -26,7 +26,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-CUSTOM = REPO / "tools/skill_sounds_custom.ron"
+CUSTOM = REPO / "tools/data/skill_sounds_custom.ron"
 RON = REPO / "korangar/archive/data/client/skill_sounds.ron"
 GENERATOR = REPO / "tools/gen_skill_sounds.py"
 EFFECT_GENERATOR = REPO / "tools/gen_skill_effects.py"
@@ -82,18 +82,28 @@ class SkillSoundDataTest(unittest.TestCase):
                 self.assertTrue(file.lower().endswith(".wav"), file)
                 self.assertFalse(file.lower().startswith("data\\wav\\"), file)
 
-    def test_curated_rows_are_exactly_the_previous_rust_table(self) -> None:
-        # The six skills and their candidate lists of the deleted SKILL_SOUNDS
-        # constant, in play-priority order.
+    def test_curated_rows_are_exactly_the_verified_overrides(self) -> None:
+        # Every curated skill and its candidate list, sorted by skill id. Each
+        # row is a sound the official client plays and that exists in the
+        # CondaRO GRFs (see `tools/data/skill_sounds_custom.ron`).
         self.assertEqual(
             self.custom_curated,
             [
+                (24, ["effect\\ef_ruwach.wav"]),
                 (27, ["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
                 (29, ["effect\\ef_incagility.wav"]),
                 (33, ["effect\\ef_angelus.wav"]),
                 (34, ["effect\\ef_blessing.wav", "effect\\spirit_handler\\sh_blessing_of_mystical_creatures.wav"]),
                 (45, ["effect\\ac_concentration.wav"]),
                 (110, ["effect\\black_hammerfall.wav"]),
+                (
+                    114,
+                    [
+                        "effect\\black_maximize_power_circle.wav",
+                        "effect\\black_maximize_power_sword.wav",
+                        "effect\\black_maximize_power_sword_bic.wav",
+                    ],
+                ),
             ],
         )
         # The deleted GENERIC_CAST_SOUND constant.

@@ -3,7 +3,7 @@
 
 Read-only checks over the committed artefacts of the Phase 4 migration:
 
-* ``tools/skills_custom.ron`` — the single hand-written input,
+* ``tools/data/skills_custom.ron`` — the single hand-written input,
 * ``korangar/archive/data/client/skills.ron`` — the generated runtime file
   consumed by ``korangar/src/world/skills.rs``,
 * ``tools/gen_skills.py`` — the generator + ``--check`` drift guard.
@@ -24,7 +24,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-CUSTOM = REPO / "tools/skills_custom.ron"
+CUSTOM = REPO / "tools/data/skills_custom.ron"
 RON = REPO / "korangar/archive/data/client/skills.ron"
 GENERATOR = REPO / "tools/gen_skills.py"
 

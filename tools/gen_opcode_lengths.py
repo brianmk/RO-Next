@@ -17,7 +17,7 @@ at the pinned `PACKETVER`:
 3. Flexible-array structs (`field[]`) become `Variable { base_size }` entries
    (their `sizeof` is the fixed part; the total length is in payload bytes
    0..2). Everything else becomes `Fixed(size)`.
-4. A checked-in supplement (`tools/opcode_supplement_20190605.json`) covers the
+4. A checked-in supplement (`tools/data/opcode_supplement_20190605.json`) covers the
    opcodes that the server does not define as structs: the hand-rolled
    char-server packets and the dynamic `enum packet_headers` opcodes
    (spawn/skill-unit/party/... packets). The supplement only names the server
@@ -69,7 +69,7 @@ CXX_FLAGS = f"-std=c++17 -O0 -DPACKETVER={PACKETVER} {INCLUDE_FLAGS}"
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_OUTPUT = ROOT / "ragnarok-packets/src/opcode_lengths_2019.rs"
-DEFAULT_SUPPLEMENT = ROOT / "tools/opcode_supplement_20190605.json"
+DEFAULT_SUPPLEMENT = ROOT / "tools/data/opcode_supplement_20190605.json"
 
 
 def server_command(args: argparse.Namespace, command: str) -> str:
@@ -327,7 +327,7 @@ def generate(args: argparse.Namespace) -> str:
         "//",
         f"// Source: rAthena packet headers at PACKETVER {PACKETVER}",
         "// (src/map/packets.hpp, src/char/packets.hpp, src/common/packets.hpp plus the",
-        "// checked-in tools/opcode_supplement_20190605.json). Regenerate with:",
+        "// checked-in tools/data/opcode_supplement_20190605.json). Regenerate with:",
         "//",
         "//     ./tools/gen_opcode_lengths.py",
         "//",

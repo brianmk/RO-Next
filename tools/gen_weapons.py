@@ -15,11 +15,11 @@ truth for weapon handling in RO-Next:
 
 Inputs (both committed, so this generator and its ``--check`` run offline):
 
-* ``tools/rathena_pre_re_weapon_items.json`` — every pre-renewal weapon item
+* ``tools/data/rathena_pre_re_weapon_items.json`` — every pre-renewal weapon item
   plus the rAthena ``enum weapon_type``/``enum e_ammo_type`` values
   (extracted by ``tools/extract_weapon_items.py`` from the CondaRO server
   tree's ``db/pre-re/item_db_equip.yml`` and ``src/map/pc.hpp``),
-* ``tools/weapon_client_assets.json`` — which per-job weapon sprite families
+* ``tools/data/weapon_client_assets.json`` — which per-job weapon sprite families
   exist in CondaRO's client archives and which projectile item sprites are
   present (extracted by ``tools/extract_weapon_client_assets.py``).
 
@@ -40,8 +40,8 @@ import json
 import sys
 from pathlib import Path
 
-DEFAULT_ITEMS = Path("tools/rathena_pre_re_weapon_items.json")
-DEFAULT_ASSETS = Path("tools/weapon_client_assets.json")
+DEFAULT_ITEMS = Path("tools/data/rathena_pre_re_weapon_items.json")
+DEFAULT_ASSETS = Path("tools/data/weapon_client_assets.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/weapons.ron")
 
 #: Weapon kinds and the classic client weapon sprite family names observed in
@@ -284,10 +284,10 @@ def render(data: dict, items_provenance: dict, assets_provenance: dict) -> str:
     add("// Drift check:      `./tools/gen_weapons.py --check`")
     add("//")
     add("// Sources (committed facts, no game files needed to regenerate):")
-    add(f"//   * tools/rathena_pre_re_weapon_items.json — rAthena `db/pre-re/item_db_equip.yml`")
+    add(f"//   * tools/data/rathena_pre_re_weapon_items.json — rAthena `db/pre-re/item_db_equip.yml`")
     add(f"//     of the CondaRO pre-renewal server (sha256 {item_db_sha}, server HEAD {server_head or 'unknown'});")
     add(f"//     {item_count} weapon items. `enum weapon_type` / `enum e_ammo_type` from `src/map/pc.hpp`.")
-    add(f"//   * tools/weapon_client_assets.json — CondaRO client archives: {archives}.")
+    add(f"//   * tools/data/weapon_client_assets.json — CondaRO client archives: {archives}.")
     add("//     Per-job weapon variant sprites and projectile item sprites that actually exist.")
     add("//")
     add("// The file is loaded at runtime through the normal client file loader")

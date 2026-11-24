@@ -3,7 +3,7 @@
 
 Read-only checks over the committed artefacts of the item stats remediation:
 
-* ``tools/rathena_pre_re_item_facts.json`` — the extracted server item facts,
+* ``tools/data/rathena_pre_re_item_facts.json`` — the extracted server item facts,
 * ``tools/extract_item_facts.py`` — the facts extractor and its flat bonus
   parser (conditional/string/percentage handling),
 * ``tools/gen_item_stats.py`` — the data file generator and ``--check`` drift
@@ -29,7 +29,7 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/rathena_pre_re_item_facts.json"
+FACTS = REPO / "tools/data/rathena_pre_re_item_facts.json"
 EXTRACTOR = REPO / "tools/extract_item_facts.py"
 GENERATOR = REPO / "tools/gen_item_stats.py"
 RON = REPO / "korangar/archive/data/client/item_stats.ron"

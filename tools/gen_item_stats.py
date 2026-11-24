@@ -15,7 +15,7 @@ every stat was silently zero. The facts now come from the item database the
 server actually uses.
 
 Input (committed, so this generator and its ``--check`` drift guard run
-offline): ``tools/rathena_pre_re_item_facts.json`` — extracted from the CondaRO
+offline): ``tools/data/rathena_pre_re_item_facts.json`` — extracted from the CondaRO
 pre-renewal server tree by ``tools/extract_item_facts.py``.
 
 The generated file is embedded in the client with ``include_str!`` as a
@@ -34,7 +34,7 @@ import json
 import sys
 from pathlib import Path
 
-DEFAULT_FACTS = Path("tools/rathena_pre_re_item_facts.json")
+DEFAULT_FACTS = Path("tools/data/rathena_pre_re_item_facts.json")
 DEFAULT_OUTPUT = Path("korangar/archive/data/client/item_stats.ron")
 
 #: RON field name -> facts field. The RON fields are the snake_case field names
@@ -185,7 +185,7 @@ def render(facts: dict, rows: list[tuple[int, dict]]) -> str:
     add("// Schema check:     `korangar --check-items`")
     add("//")
     add("// Sources (committed facts, no game files needed to regenerate):")
-    add("//   * tools/rathena_pre_re_item_facts.json — extracted by `tools/extract_item_facts.py`")
+    add("//   * tools/data/rathena_pre_re_item_facts.json — extracted by `tools/extract_item_facts.py`")
     add("//     from the CondaRO pre-renewal server tree's item database import manifest")
     add("//     `db/pre-re/item_db.yml`:")
     add(database_lines.rstrip("\n"))

@@ -4,9 +4,8 @@ Repeatable headless measurement of the korangar client frame cost, allocation
 churn and async-loader latency, plus the documented runtime budgets that keep
 crowded towns (population-engine shells, effect bursts) bounded.
 
-The workstream is described in `notes/korangar-p0-performance-report.md`; this
-README is the operator documentation: how to run the benchmark, how to read the
-numbers, how to update the baseline and how to run the regression gate.
+This README is the operator documentation: how to run the benchmark, how to
+read the numbers, how to update the baseline and how to run the regression gate.
 
 ---
 
@@ -131,9 +130,7 @@ map_change        28    33.81    46.80    56.54     1.17     0.09     0.48    19
 
 The absolute values depend on the host (a heavily loaded machine raises the
 p95/max columns and map load latencies). The gate only compares relative
-changes against this committed baseline. See
-`notes/korangar-p0-performance-report.md` for the before/after table of the
-P0 fixes.
+changes against this committed baseline.
 
 ## 4. Regression gate
 

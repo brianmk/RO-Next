@@ -6,10 +6,10 @@ The client used to map protocol result codes to English sentences with
 `korangar-networking/src/packet_versions/version_20220406.rs` for the login
 packets). This extractor produces the committed fact file that replaces them:
 
-    tools/message_facts.json
+    tools/data/message_facts.json
 
-Two sources are combined, per the audit (`notes/client-hardcoded-systems-audit.md`
-§4.4 / §8 Phase 0 item 3):
+Two sources are combined (the protocol result-code tables that used to be
+hardcoded in Rust):
 
 * **rAthena** (`https://github.com/rathena/rathena`, pinned revision) — the
   protocol result codes and the `MsgStringTable` ids/texts the official client
@@ -55,7 +55,7 @@ from pathlib import Path
 
 DEFAULT_RATHENA_DIR = Path("/home/phantom/rathena")
 DEFAULT_MSGSTRINGTABLE = Path("/home/phantom/Games/ragnarok/CondaRo-client/game/data/msgstringtable.txt")
-DEFAULT_OUTPUT = Path("tools/message_facts.json")
+DEFAULT_OUTPUT = Path("tools/data/message_facts.json")
 
 #: rAthena revision the committed facts were extracted from.
 RATHENA_COMMIT = "226bd83d39584bc91b6bf133f40bce95aa1f178c"

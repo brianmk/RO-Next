@@ -3,11 +3,11 @@
 
 Read-only checks over the committed artefacts of this lane:
 
-* `tools/status_facts.json` - the extracted/merged facts document
+* `tools/data/status_facts.json` - the extracted/merged facts document
   (rAthena server sources, official client Lua tables, vendored
   roBrowserLegacy classic table, curated overlay; provenance hashes included),
-* `tools/status_effect_custom.ron` - the curated overlay,
-* `tools/status_effect_legacy_tables.ron` - the frozen snapshot of the
+* `tools/data/status_effect_custom.ron` - the curated overlay,
+* `tools/data/status_effect_legacy_tables.ron` - the frozen snapshot of the
   hand-generated tables this lane replaced (transition parity oracle),
 * `korangar/archive/data/client/status_effects.ron` - the generated client
   data file (drift-checked by `tools/gen_status_effects.py --check`).
@@ -31,10 +31,10 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/status_facts.json"
-CUSTOM = REPO / "tools/status_effect_custom.ron"
-LEGACY = REPO / "tools/status_effect_legacy_tables.ron"
-ROBROWSER = REPO / "tools/status_info_robrowser.json"
+FACTS = REPO / "tools/data/status_facts.json"
+CUSTOM = REPO / "tools/data/status_effect_custom.ron"
+LEGACY = REPO / "tools/data/status_effect_legacy_tables.ron"
+ROBROWSER = REPO / "tools/data/status_info_robrowser.json"
 GENERATOR = REPO / "tools/gen_status_effects.py"
 DATA = REPO / "korangar/archive/data/client/status_effects.ron"
 

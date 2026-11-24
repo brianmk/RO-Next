@@ -96,7 +96,7 @@ Regenerate the registry after pinning a different server commit with:
 ```
 
 The generator preprocesses the rAthena headers with `-DPACKETVER=20190605`, runs a `sizeof()` probe
-for every packet struct and merges the checked-in `tools/opcode_supplement_20190605.json` (for
+for every packet struct and merges the checked-in `tools/data/opcode_supplement_20190605.json` (for
 hand-rolled char-server and dynamic `enum packet_headers` opcodes). Run the contract tests with:
 
 ```fish

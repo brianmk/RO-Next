@@ -1,8 +1,7 @@
 # Golden UI baseline matrix
 
 Committed reference screenshots for the interface, generated and checked by
-`scripts/ui-golden.sh` (see `notes/korangar-p0-design-tokens-report.md` for the
-design-token/rationale report).
+`scripts/ui-golden.sh`.
 
 Each image is a **crop of a single window**, not a full screenshot, so the
 animated 3D world behind the windows never has to be compared:

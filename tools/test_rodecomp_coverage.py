@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Invariant tests for the rodecomp coverage audit.
 
-* `tools/rodecomp_effect_coverage.json` is well formed and covers every skill it
+* `tools/data/rodecomp_effect_coverage.json` is well formed and covers every skill it
   lists with the version-correct asset set,
 * the classifier buckets the whole learnable-skill snapshot exactly once,
 * the committed data file is the one the classifier reads.
@@ -18,9 +18,9 @@ import unittest
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FACTS = REPO / "tools/rodecomp_effect_coverage.json"
-LEARNABLE = REPO / "tools/rathena_pre_re_learnable_skills.json"
-FLAGS = REPO / "tools/rodecomp_effect_flags.json"
+FACTS = REPO / "tools/data/rodecomp_effect_coverage.json"
+LEARNABLE = REPO / "tools/data/rathena_pre_re_learnable_skills.json"
+FLAGS = REPO / "tools/data/rodecomp_effect_flags.json"
 
 
 def load_audit():
