@@ -1099,6 +1099,77 @@ where
         }
     }
 
+    /// Requests the guild window tab/master mask
+    /// (`CZ_REQ_GUILD_MENUINTERFACE`, `0x014D`).
+    pub fn request_guild_menu_interface(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildMenuInterfaceRequestPacket {}),
+        }
+    }
+
+    /// Requests one guild window tab (`CZ_REQ_GUILD_MENU`, `0x014F`).
+    ///
+    /// `menu` is the rAthena `clif_parse_GuildRequestInfo` type: 0 = basic
+    /// info, 1 = members, 2 = positions, 3 = skills, 4 = expulsion list.
+    pub fn request_guild_info(&mut self, menu: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildMenuRequestPacket { menu }),
+        }
+    }
+
+    /// Requests a guild member's character name by character id
+    /// (`CZ_REQNAME_BYGID`, `0x094C` at PACKETVER 20190605).
+    pub fn request_guild_member_name(&mut self, character_id: CharacterId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildMemberNameRequestPacket { character_id }),
+        }
+    }
+
+    /// Invites a character to the guild by name (`CZ_REQ_JOIN_GUILD2`,
+    /// `0x0916`).
+    pub fn invite_to_guild(&mut self, name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildInviteRequestPacket { name }),
+        }
+    }
+
+    /// Leaves the guild (`CZ_REQ_LEAVE_GUILD`, `0x0159`).
+    pub fn leave_guild(&mut self, guild_id: u32, account_id: AccountId, character_id: CharacterId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildLeaveRequestPacket {
+                guild_id,
+                account_id,
+                character_id,
+                message: String::new(),
+            }),
+        }
+    }
+
+    /// Expels a guild member (`CZ_REQ_BAN_GUILD`, `0x015B`).
+    pub fn expel_guild_member(
+        &mut self,
+        guild_id: u32,
+        account_id: AccountId,
+        character_id: CharacterId,
+        message: String,
+    ) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildExpelRequestPacket {
+                guild_id,
+                account_id,
+                character_id,
+                message,
+            }),
+        }
+    }
+
+    /// Changes the guild notice (`CZ_REQ_GUILD_NOTICE`, `0x016E`).
+    pub fn change_guild_notice(&mut self, guild_id: u32, subject: String, notice: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildNoticeChangeRequestPacket { guild_id, subject, notice }),
+        }
+    }
+
     pub fn player_attack(&mut self, entity_id: EntityId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(RequestActionPacket::new(entity_id, Action::Attack)),
@@ -1594,8 +1665,9 @@ mod packet_handlers {
     use ragnarok_packets::handler::{HandlerResult, NoPacketCallback};
     use ragnarok_packets::{
         AccountId, AttackRange, CharacterId, ClientTick, Direction, DisplayEmotionPacket, EntityId, GuildEmblemImagePacket,
-        GuildEmblemRequestPacket, MarkerType, NAME_LENGTH, PacketExt, PacketHeader, RequestEmotionPacket,
-        RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
+        GuildEmblemRequestPacket, GuildInviteRequestPacket, GuildLeaveRequestPacket, GuildMemberNameRequestPacket,
+        GuildMenuInterfaceRequestPacket, GuildMenuRequestPacket, GuildNoticeChangeRequestPacket, MarkerType, NAME_LENGTH, PacketExt,
+        PacketHeader, RequestEmotionPacket, RequestEntityDetailsSuccessPacket, RequestPlayerDetailsSuccessPacket, SkillId, TilePosition,
     };
 
     use crate::event::NetworkEventList;
@@ -1965,6 +2037,89 @@ mod packet_handlers {
 
         // `0x0151` + guild id (u32 little endian).
         assert_eq!(writer.as_slice(), &[0x51, 0x01, 0x01, 0x00, 0x00, 0x00]);
+    }
+
+    #[test]
+    fn guild_window_requests_use_the_2019_opcodes() {
+        let mut writer = ByteWriter::new();
+        GuildMenuInterfaceRequestPacket {}.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice(), &[0x4D, 0x01]);
+
+        let mut writer = ByteWriter::new();
+        GuildMenuRequestPacket { menu: 2 }.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice(), &[0x4F, 0x01, 0x02, 0x00, 0x00, 0x00]);
+
+        // `CZ_REQNAME_BYGID` is 0x094C at 20190605 (the last
+        // `clif_parse_SolveCharName` registration, clif_packetdb.hpp:1636).
+        let mut writer = ByteWriter::new();
+        GuildMemberNameRequestPacket {
+            character_id: CharacterId(0x1234_5678),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(writer.as_slice(), &[0x4C, 0x09, 0x78, 0x56, 0x34, 0x12]);
+
+        let mut writer = ByteWriter::new();
+        GuildInviteRequestPacket { name: "Alt".to_owned() }
+            .packet_to_bytes(&mut writer)
+            .unwrap();
+        assert_eq!(&writer.as_slice()[0..2], &[0x16, 0x09]);
+        assert_eq!(writer.as_slice().len(), 26);
+
+        let mut writer = ByteWriter::new();
+        GuildLeaveRequestPacket {
+            guild_id: 7,
+            account_id: AccountId(150_009),
+            character_id: CharacterId(150_009),
+            message: String::new(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(&writer.as_slice()[0..2], &[0x59, 0x01]);
+        assert_eq!(writer.as_slice().len(), 54);
+
+        let mut writer = ByteWriter::new();
+        GuildNoticeChangeRequestPacket {
+            guild_id: 7,
+            subject: "subject".to_owned(),
+            notice: "notice".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(&writer.as_slice()[0..2], &[0x6E, 0x01]);
+        assert_eq!(writer.as_slice().len(), 186);
+    }
+
+    #[test]
+    fn guild_ack_packets_are_parsed_into_member_events() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0A83 ZC_ACK_LEAVE_GUILD: char id + reason[40].
+        let mut bytes = vec![0x83, 0x0A];
+        bytes.extend_from_slice(&150_009u32.to_le_bytes());
+        bytes.extend_from_slice(&[0u8; 40]);
+        assert_eq!(bytes.len(), 46);
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("leave ack packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::GuildMemberRemoved {
+            character_id: CharacterId(150_009),
+            expelled: false
+        }]));
+
+        // 0x0A82 ZC_ACK_BAN_GUILD: reason[40] + char id.
+        let mut bytes = vec![0x82, 0x0A];
+        bytes.extend_from_slice(&[0u8; 40]);
+        bytes.extend_from_slice(&150_010u32.to_le_bytes());
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let HandlerResult::Ok(events) = handler.process_one(&mut reader) else {
+            panic!("ban ack packet was not handled");
+        };
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::GuildMemberRemoved {
+            character_id: CharacterId(150_010),
+            expelled: true
+        }]));
     }
 
     #[test]

@@ -6841,6 +6841,680 @@ pub struct MailDeleteRequestPacket {
     pub mail_id: u64,
 }
 
+// ===========================================================================
+// Guild system (PACKETVER 20190605)
+//
+// rAthena only enables the guild packets for 2019 at these opcodes:
+//
+// * 0x014E `ZC_ACK_GUILD_MENUINTERFACE` (clif.cpp:8715) — window tab/rights
+//   mask
+// * 0x0A84 `ZC_GUILD_INFO` (clif.cpp:8734) — basic information
+// * 0x014C `ZC_MYGUILD_BASIC_INFO` (clif.cpp:8772) — alliance/opposition list
+// * 0x0AA5 `ZC_MEMBERMGR_INFO` (clif.cpp:8813) — member manager list
+// * 0x0166 `ZC_POSITION_ID_NAME_INFO` (clif.cpp:8863) — position names
+// * 0x0160 `ZC_POSITION_INFO` (clif.cpp:8890) — position rights
+// * 0x0174 `ZC_ACK_CHANGE_GUILD_POSITIONINFO` (clif.cpp:8925)
+// * 0x0156 `ZC_ACK_REQ_CHANGE_MEMBERS` (clif.cpp:8956)
+// * 0x016F `ZC_GUILD_NOTICE` (clif.cpp:9070)
+// * 0x0AF7 `ZC_ACK_REQNAME_BYGID` (clif.cpp:7007) — offline member names
+//
+// The member list of this PACKETVER does NOT contain the character name (the
+// name was only added in 2016/2020 layouts, see the `#if` chain in
+// `src/map/packets_struct.hpp:4759`). The classic client resolves the names of
+// offline members with `CZ_REQNAME_BYGID` and gets one `ZC_ACK_REQNAME_BYGID`
+// back per member; `0x094C` is the 2013+ opcode of that request (the last
+// `clif_parse_SolveCharName` registration in `clif_packetdb.hpp:1636`).
+// ===========================================================================
+
+/// One member row of `ZC_MEMBERMGR_INFO` (0x0AA5) at PACKETVER 20190605.
+///
+/// rAthena layout (`src/map/packets_struct.hpp:4759`): account id, char id,
+/// hair, hair color, sex, job, level, contribution EXP, online state,
+/// position id and last login time. The 2016+ layout has **no name field**;
+/// the client requests it separately by character id.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildMemberInfo {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    pub hair: u16,
+    pub hair_color: u16,
+    pub sex: u16,
+    pub job_id: JobId,
+    pub level: u16,
+    pub contribution_exp: u32,
+    /// `0` = offline, non-zero = online (`member.online`).
+    pub online: i32,
+    pub position_id: i32,
+    pub last_login: u32,
+}
+
+/// `ZC_MEMBERMGR_INFO` (0x0AA5): the complete guild member manager list.
+///
+/// `clif_guild_memberlist` (clif.cpp:8813) writes one
+/// [`GuildMemberInfo`] per member into this variable-length packet.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AA5)]
+#[variable_length]
+pub struct GuildMemberManagerInfoPacket {
+    #[repeating_remaining]
+    pub members: Vec<GuildMemberInfo>,
+}
+
+/// `ZC_ACK_GUILD_MENUINTERFACE` (0x014E), 6 bytes.
+///
+/// `clif_guild_masterormember` (clif.cpp:8715) sends `0xD7` for the guild
+/// master and `0x57` for a normal member. The `0x80` bit is therefore the
+/// "guild master / notice edit" flag (the other bits are tab permissions:
+/// `0x01` member manager, `0x02` positions, `0x04` skills, `0x10` expulsion
+/// list, `0x40` all-guild list).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x014E)]
+#[packet_size(6)]
+pub struct GuildMenuInterfacePacket {
+    pub menu_flags: u32,
+}
+
+/// `ZC_GUILD_INFO` (0x0A84), the 2016+ layout, 94 bytes.
+///
+/// `clif_guild_basicinfo` (clif.cpp:8734) writes the guild id, level, connected
+/// and maximum member count, average level, EXP/max EXP, tax points, honor,
+/// virtue, emblem version, name, managed land, zeny and the guild master's
+/// character id. The master **name** is not part of this layout; it is
+/// resolved from the member list row whose character id equals
+/// [`Self::master_character_id`] (position 0).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A84)]
+#[packet_size(94)]
+pub struct GuildInfoPacket {
+    pub guild_id: u32,
+    pub level: u32,
+    /// Number of currently connected members (`guild.connect_member`).
+    pub member_count: u32,
+    pub max_member_count: u32,
+    pub average_level: u32,
+    pub experience: u32,
+    pub max_experience: u32,
+    /// Tax points (rAthena currently always sends 0).
+    pub points: u32,
+    pub honor: u32,
+    pub virtue: u32,
+    /// Emblem version, used to refresh the cached emblem.
+    pub emblem_id: u32,
+    #[length(24)]
+    pub guild_name: String,
+    /// Managed castle/land name, 16 bytes (`MAP_NAME_LENGTH_EXT`).
+    #[length(16)]
+    pub manage_land: String,
+    pub zeny: u32,
+    /// Character id of the guild master (`guild.member[0].char_id`).
+    pub master_character_id: CharacterId,
+}
+
+/// One position name of `ZC_POSITION_ID_NAME_INFO` (0x0166).
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildPositionNameEntry {
+    pub position_id: u32,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_POSITION_ID_NAME_INFO` (0x0166).
+///
+/// The server always writes all [`MAX_GUILD_POSITIONS`] entries (20 * 28 bytes
+/// plus the length field = 564 bytes, `clif_guild_positionnamelist` at
+/// clif.cpp:8863). Modeled as variable length because the packet carries its
+/// own length field and the 2022 client reads a different struct there.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0166)]
+#[variable_length]
+pub struct GuildPositionNameInfoPacket {
+    #[repeating_remaining]
+    pub positions: Vec<GuildPositionNameEntry>,
+}
+
+/// Maximum number of guild positions in the 2019 client (`MAX_GUILDPOSITION`).
+pub const MAX_GUILD_POSITIONS: usize = 20;
+
+/// One entry of `ZC_POSITION_INFO` (0x0160).
+///
+/// `mode` uses `enum e_guild_permission` (`src/common/mmo.hpp:885`):
+/// `0x001` invite, `0x010` expel, `0x100` storage.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildPositionInfoEntry {
+    pub position_id: u32,
+    pub mode: u32,
+    pub ranking: u32,
+    pub pay_rate: u32,
+}
+
+/// `ZC_POSITION_INFO` (0x0160): the permission/pay-rate row of every position
+/// (`clif_guild_positioninfolist`, clif.cpp:8890).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0160)]
+#[variable_length]
+pub struct GuildPositionInfoPacket {
+    #[repeating_remaining]
+    pub positions: Vec<GuildPositionInfoEntry>,
+}
+
+/// One entry of `ZC_ACK_CHANGE_GUILD_POSITIONINFO` (0x0174), 40 bytes.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildPositionChangedEntry {
+    pub position_id: u32,
+    pub mode: u32,
+    pub ranking: u32,
+    pub pay_rate: u32,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_ACK_CHANGE_GUILD_POSITIONINFO` (0x0174): a position was renamed or its
+/// rights changed (`clif_guild_positionchanged`, clif.cpp:8925).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0174)]
+#[variable_length]
+pub struct GuildPositionChangedPacket {
+    #[repeating_remaining]
+    pub positions: Vec<GuildPositionChangedEntry>,
+}
+
+/// One entry of `ZC_ACK_REQ_CHANGE_MEMBERS` (0x0156), 12 bytes.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildMemberPositionChangedEntry {
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    pub position_id: i32,
+}
+
+/// `ZC_ACK_REQ_CHANGE_MEMBERS` (0x0156): a member was moved to another
+/// position (`clif_guild_memberpositionchanged`, clif.cpp:8956).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0156)]
+#[variable_length]
+pub struct GuildMemberPositionChangedPacket {
+    #[repeating_remaining]
+    pub members: Vec<GuildMemberPositionChangedEntry>,
+}
+
+/// One ally/opponent row of `ZC_MYGUILD_BASIC_INFO` (0x014C), 32 bytes.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct GuildAllianceInfo {
+    /// `0` = ally, `1` = antagonist (`guild_alliance.opposition`,
+    /// `src/common/mmo.hpp:787`).
+    pub relation: u32,
+    pub guild_id: u32,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_MYGUILD_BASIC_INFO` (0x014C): the alliance and opposition list
+/// (`clif_guild_allianceinfo`, clif.cpp:8772).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x014C)]
+#[variable_length]
+pub struct GuildAllianceInfoPacket {
+    #[repeating_remaining]
+    pub alliances: Vec<GuildAllianceInfo>,
+}
+
+/// `ZC_GUILD_NOTICE` (0x016F), 182 bytes: `subject[60]` + `notice[120]`
+/// (`clif_guild_notice`, clif.cpp:9070).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x016F)]
+#[packet_size(182)]
+pub struct GuildNoticePacket {
+    #[length(60)]
+    pub subject: String,
+    #[length(120)]
+    pub notice: String,
+}
+
+/// `ZC_ACK_REQNAME_BYGID` (0x0AF7), 32 bytes at PACKETVER >= 20180221.
+///
+/// rAthena answers `CZ_REQNAME_BYGID` with `clif_solved_charname`
+/// (clif.cpp:7007). `flag` is 3 when the character server returned a name and
+/// 2 when the char id is unknown.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AF7)]
+#[packet_size(32)]
+pub struct GuildMemberNamePacket {
+    pub flag: u16,
+    pub character_id: CharacterId,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `CZ_REQ_GUILD_MENUINTERFACE` (0x014D), 2 bytes: request the guild window tab
+/// and master mask (`clif_parse_GuildCheckMaster`, clif.cpp:14235).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x014D)]
+pub struct GuildMenuInterfaceRequestPacket {}
+
+/// `CZ_REQ_GUILD_MENU` (0x014F), 6 bytes: request one guild window tab.
+///
+/// `clif_parse_GuildRequestInfo` (clif.cpp:14253):
+/// `0` basic info + alliance list, `1` member list + position names,
+/// `2` position names + position rights, `3` skills, `4` expulsion list.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x014F)]
+pub struct GuildMenuRequestPacket {
+    pub menu: u32,
+}
+
+/// `CZ_REQNAME_BYGID` (0x094C at PACKETVER 20190605), 6 bytes.
+///
+/// The last `clif_parse_SolveCharName` registration for the 2019 client is
+/// `clif_packetdb.hpp:1636`; 0x0369 from the old table is
+/// `CZ_ACTION_REQUEST` at this PACKETVER and must not be used.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x094C)]
+pub struct GuildMemberNameRequestPacket {
+    pub character_id: CharacterId,
+}
+
+/// `CZ_REQ_JOIN_GUILD2` (0x0916): invite a character by name
+/// (`clif_parse_GuildInvite2`, clif.cpp:14483).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0916)]
+pub struct GuildInviteRequestPacket {
+    #[length(24)]
+    pub name: String,
+}
+
+/// `CZ_REQ_LEAVE_GUILD` (0x0159), 54 bytes: leave a guild.
+///
+/// `clif_parse_GuildLeave` (clif.cpp:14516) requires the guild id, the own
+/// account/character id and a 40-byte message.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0159)]
+#[packet_size(54)]
+pub struct GuildLeaveRequestPacket {
+    pub guild_id: u32,
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    #[length(40)]
+    pub message: String,
+}
+
+/// `CZ_REQ_BAN_GUILD` (0x015B), 54 bytes: expel a guild member.
+///
+/// `clif_parse_GuildExpulsion` (clif.cpp:14529). The message is the reason the
+/// server stores in the expulsion list.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x015B)]
+#[packet_size(54)]
+pub struct GuildExpelRequestPacket {
+    pub guild_id: u32,
+    pub account_id: AccountId,
+    pub character_id: CharacterId,
+    #[length(40)]
+    pub message: String,
+}
+
+/// `CZ_REQ_GUILD_NOTICE` (0x016E), 186 bytes: change subject and notice.
+///
+/// `clif_parse_GuildChangeNotice` (clif.cpp:14452); the packet db entry is
+/// `parseable_packet(0x016e,186,clif_parse_GuildChangeNotice,2,6,66)`, i.e.
+/// guild id at offset 2, subject at offset 6 and notice at offset 66.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x016E)]
+#[packet_size(186)]
+pub struct GuildNoticeChangeRequestPacket {
+    pub guild_id: u32,
+    #[length(60)]
+    pub subject: String,
+    #[length(120)]
+    pub notice: String,
+}
+
+#[cfg(test)]
+mod guild_packet_tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter};
+
+    use super::*;
+
+    fn guild_member(account_id: u32, character_id: u32, online: i32) -> GuildMemberInfo {
+        GuildMemberInfo {
+            account_id: AccountId(account_id),
+            character_id: CharacterId(character_id),
+            hair: 7,
+            hair_color: 3,
+            sex: 1,
+            job_id: JobId(14),
+            level: 99,
+            contribution_exp: 12_345,
+            online,
+            position_id: 2,
+            last_login: 1_700_000_000,
+        }
+    }
+
+    #[test]
+    fn guild_member_info_is_34_bytes() {
+        // rAthena `GUILD_MEMBER_INFO` (packets_struct.hpp:4759) at 20190605:
+        // 4 + 4 + 5 * 2 + 4 + 4 + 4 + 4 = 34 bytes.
+        assert_eq!(<GuildMemberInfo as ragnarok_bytes::FixedByteSize>::size_in_bytes(), 34);
+
+        let member = guild_member(150_009, 150_009, 1);
+        let mut writer = ByteWriter::new();
+        member.to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 34);
+    }
+
+    #[test]
+    fn guild_info_packet_is_94_bytes_and_round_trips() {
+        let packet = GuildInfoPacket {
+            guild_id: 7,
+            level: 5,
+            member_count: 3,
+            max_member_count: 20,
+            average_level: 90,
+            experience: 1_000,
+            max_experience: 2_000,
+            points: 0,
+            honor: 0,
+            virtue: 0,
+            emblem_id: 42,
+            guild_name: "Domination".to_owned(),
+            manage_land: "Prontera".to_owned(),
+            zeny: 0,
+            master_character_id: CharacterId(150_009),
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 94, "ZC_GUILD_INFO is 94 bytes at 20190605");
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+        let parsed = GuildInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(parsed.guild_name, "Domination");
+        assert_eq!(parsed.master_character_id, CharacterId(150_009));
+        assert_eq!(reader.get_offset(), 94);
+    }
+
+    #[test]
+    fn member_manager_packet_is_variable_and_parses_the_2019_rows() {
+        let packet = GuildMemberManagerInfoPacket {
+            members: vec![guild_member(150_009, 150_009, 1), guild_member(150_010, 150_010, 0)],
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        // 2 header + 2 length + 2 * 34.
+        assert_eq!(writer.as_slice().len(), 72);
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+        let parsed = GuildMemberManagerInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(parsed.members.len(), 2);
+        assert_eq!(parsed.members[0].account_id, AccountId(150_009));
+        assert_eq!(parsed.members[1].online, 0);
+        assert_eq!(reader.get_offset(), 72);
+    }
+
+    #[test]
+    fn position_name_packet_parses_all_20_entries() {
+        let positions = (0..MAX_GUILD_POSITIONS)
+            .map(|index| GuildPositionNameEntry {
+                position_id: index as u32,
+                name: format!("Position {index}"),
+            })
+            .collect();
+
+        let packet = GuildPositionNameInfoPacket { positions };
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 564, "20 * 28 + 4 length/header");
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+        let parsed = GuildPositionNameInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(parsed.positions.len(), 20);
+        assert_eq!(parsed.positions[19].name, "Position 19");
+        assert_eq!(reader.get_offset(), 564);
+    }
+
+    #[test]
+    fn notice_packet_is_182_bytes() {
+        let packet = GuildNoticePacket {
+            subject: "Welcome".to_owned(),
+            notice: "Be nice to each other.".to_owned(),
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 182);
+
+        let mut reader = ByteReader::without_metadata(writer.as_slice());
+        let parsed = GuildNoticePacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(parsed.subject, "Welcome");
+        assert_eq!(parsed.notice, "Be nice to each other.");
+    }
+
+    #[test]
+    fn guild_request_headers_and_sizes_match_20190605() {
+        let mut writer = ByteWriter::new();
+        GuildMenuInterfaceRequestPacket {}.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice(), &[0x4D, 0x01]);
+
+        let mut writer = ByteWriter::new();
+        GuildMenuRequestPacket { menu: 1 }.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice(), &[0x4F, 0x01, 0x01, 0x00, 0x00, 0x00]);
+
+        let mut writer = ByteWriter::new();
+        GuildMemberNameRequestPacket {
+            character_id: CharacterId(0x1234_5678),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(writer.as_slice(), &[0x4C, 0x09, 0x78, 0x56, 0x34, 0x12]);
+
+        let mut writer = ByteWriter::new();
+        GuildNoticeChangeRequestPacket {
+            guild_id: 7,
+            subject: "s".to_owned(),
+            notice: "n".to_owned(),
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        assert_eq!(writer.as_slice().len(), 186);
+    }
+
+    #[test]
+    fn guild_info_parses_the_2019_wire_layout() {
+        // Hand-built `ZC_GUILD_INFO` (0x0A84) fixture from the rAthena layout
+        // comment in clif.cpp:8730 and PACKET_ZC_GUILD_INFO (packets_struct.hpp:4830).
+        let mut bytes = vec![0u8; 94];
+        bytes[0..2].copy_from_slice(&0x0A84u16.to_le_bytes());
+        bytes[2..6].copy_from_slice(&7u32.to_le_bytes());
+        bytes[6..10].copy_from_slice(&5u32.to_le_bytes());
+        bytes[10..14].copy_from_slice(&3u32.to_le_bytes());
+        bytes[14..18].copy_from_slice(&20u32.to_le_bytes());
+        bytes[18..22].copy_from_slice(&90u32.to_le_bytes());
+        bytes[22..26].copy_from_slice(&1_000u32.to_le_bytes());
+        bytes[26..30].copy_from_slice(&2_000u32.to_le_bytes());
+        bytes[30..34].copy_from_slice(&10u32.to_le_bytes());
+        bytes[34..38].copy_from_slice(&1u32.to_le_bytes());
+        bytes[38..42].copy_from_slice(&2u32.to_le_bytes());
+        bytes[42..46].copy_from_slice(&42u32.to_le_bytes());
+        bytes[46..56].copy_from_slice(b"Domination");
+        bytes[70..78].copy_from_slice(b"Prontera");
+        bytes[86..90].copy_from_slice(&100u32.to_le_bytes());
+        bytes[90..94].copy_from_slice(&150_009u32.to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = GuildInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 94);
+        assert_eq!(packet.guild_id, 7);
+        assert_eq!(packet.member_count, 3);
+        assert_eq!(packet.max_member_count, 20);
+        assert_eq!(packet.points, 10);
+        assert_eq!(packet.emblem_id, 42);
+        assert_eq!(packet.guild_name, "Domination");
+        assert_eq!(packet.manage_land, "Prontera");
+        assert_eq!(packet.zeny, 100);
+        assert_eq!(packet.master_character_id, CharacterId(150_009));
+    }
+
+    #[test]
+    fn member_manager_parses_the_2019_wire_layout() {
+        // Header + length + one 34-byte GUILD_MEMBER_INFO row.
+        let mut bytes = vec![0u8; 38];
+        bytes[0..2].copy_from_slice(&0x0AA5u16.to_le_bytes());
+        bytes[2..4].copy_from_slice(&38u16.to_le_bytes());
+        bytes[4..8].copy_from_slice(&150_009u32.to_le_bytes());
+        bytes[8..12].copy_from_slice(&150_010u32.to_le_bytes());
+        bytes[12..14].copy_from_slice(&7u16.to_le_bytes());
+        bytes[14..16].copy_from_slice(&3u16.to_le_bytes());
+        bytes[16..18].copy_from_slice(&1u16.to_le_bytes());
+        bytes[18..20].copy_from_slice(&14u16.to_le_bytes());
+        bytes[20..22].copy_from_slice(&99u16.to_le_bytes());
+        bytes[22..26].copy_from_slice(&12_345u32.to_le_bytes());
+        bytes[26..30].copy_from_slice(&1i32.to_le_bytes());
+        bytes[30..34].copy_from_slice(&2i32.to_le_bytes());
+        bytes[34..38].copy_from_slice(&1_700_000_000u32.to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = GuildMemberManagerInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 38);
+        assert_eq!(packet.members.len(), 1);
+        let member = &packet.members[0];
+        assert_eq!(member.account_id, AccountId(150_009));
+        assert_eq!(member.character_id, CharacterId(150_010));
+        assert_eq!(member.hair, 7);
+        assert_eq!(member.hair_color, 3);
+        assert_eq!(member.sex, 1);
+        assert_eq!(member.job_id, JobId(14));
+        assert_eq!(member.level, 99);
+        assert_eq!(member.contribution_exp, 12_345);
+        assert_eq!(member.online, 1);
+        assert_eq!(member.position_id, 2);
+        assert_eq!(member.last_login, 1_700_000_000);
+    }
+
+    #[test]
+    fn member_name_packet_parses_the_2019_wire_layout() {
+        // Header + flag + char id + name[24].
+        let mut bytes = vec![0u8; 32];
+        bytes[0..2].copy_from_slice(&0x0AF7u16.to_le_bytes());
+        bytes[2..4].copy_from_slice(&3u16.to_le_bytes());
+        bytes[4..8].copy_from_slice(&150_009u32.to_le_bytes());
+        bytes[8..11].copy_from_slice(b"Alt");
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = GuildMemberNamePacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 32);
+        assert_eq!(packet.flag, 3);
+        assert_eq!(packet.character_id, CharacterId(150_009));
+        assert_eq!(packet.name, "Alt");
+    }
+
+    #[test]
+    fn guild_notice_parses_the_2019_wire_layout() {
+        // Header + subject[60] + notice[120] = 182 bytes.
+        let mut bytes = vec![0u8; 182];
+        bytes[0..2].copy_from_slice(&0x016Fu16.to_le_bytes());
+        bytes[2..9].copy_from_slice(b"Welcome");
+        bytes[62..76].copy_from_slice(b"Be nice to all");
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = GuildNoticePacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 182);
+        assert_eq!(packet.subject, "Welcome");
+        assert_eq!(packet.notice, "Be nice to all");
+    }
+
+    #[test]
+    fn leave_and_expel_packets_are_54_bytes() {
+        let leave = GuildLeaveRequestPacket {
+            guild_id: 7,
+            account_id: AccountId(150_009),
+            character_id: CharacterId(150_009),
+            message: String::new(),
+        };
+        let expel = GuildExpelRequestPacket {
+            guild_id: 7,
+            account_id: AccountId(150_010),
+            character_id: CharacterId(150_010),
+            message: "bye".to_owned(),
+        };
+
+        let mut writer = ByteWriter::new();
+        leave.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 54);
+        assert_eq!(&writer.as_slice()[0..2], &[0x59, 0x01]);
+
+        let mut writer = ByteWriter::new();
+        expel.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 54);
+        assert_eq!(&writer.as_slice()[0..2], &[0x5B, 0x01]);
+    }
+}
+
+/// `ZC_ACK_LEAVE_GUILD` (0x0A83 at PACKETVER >= 20161019), 46 bytes.
+///
+/// `clif_guild_leave` (clif.cpp:9124) notifies every guild member that a
+/// character left the guild. The 2016+ layout replaces the 24-byte name with
+/// the character id (`PACKET_ZC_ACK_LEAVE_GUILD2`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A83)]
+#[packet_size(46)]
+pub struct GuildLeaveNoticePacket {
+    pub character_id: CharacterId,
+    #[length(40)]
+    pub reason: String,
+}
+
+/// `ZC_ACK_BAN_GUILD` (0x0A82 at PACKETVER >= 20161019), 46 bytes.
+///
+/// `clif_guild_expulsion` (clif.cpp:9143); unlike the leave packet the reason
+/// comes first (`PACKET_ZC_ACK_BAN_GUILD3`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A82)]
+#[packet_size(46)]
+pub struct GuildBanNoticePacket {
+    #[length(40)]
+    pub reason: String,
+    pub character_id: CharacterId,
+}
+
+/// `ZC_ACK_REQ_JOIN_GUILD` (0x0169), 3 bytes.
+///
+/// `clif_guild_inviteack` (clif.cpp:9111) only sends this on failure:
+/// `0` = target cannot be invited (already in a guild / trading),
+/// `1` = target offline, `3` = guild full. There is no success ack; the
+/// invitation itself is `ZC_REQ_JOIN_GUILD` (0x016A) to the target.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0169)]
+#[packet_size(3)]
+pub struct GuildInviteResultPacket {
+    pub result: u8,
+}
+
 #[cfg(test)]
 mod mail_packet_tests {
     use ragnarok_bytes::{ByteReader, ByteWriter, ToBytes};

@@ -81,7 +81,8 @@ use korangar_networking::{
 #[cfg(feature = "debug")]
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
-    AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterServerInformation, ClientTick, Direction, DisappearanceReason,
+    AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
+    DisappearanceReason,
     EntityId, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult,
     SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
@@ -3932,6 +3933,8 @@ impl Client {
                     self.client_state.follow_mut(client_state().status_effects()).clear();
                     self.client_state.follow_mut(client_state().spirit_orbs()).clear();
                     self.client_state.follow_mut(client_state().mail()).clear();
+                    // The guild window data is only valid for this map session.
+                    self.client_state.follow_mut(client_state().guild()).reset();
 
                     if self.session.state() == SessionState::Shutdown {
                         // We are quitting; the clean logout is done, don't go back to
@@ -4495,6 +4498,12 @@ impl Client {
                     ));
 
                     *self.client_state.follow_mut(client_state().player_name()) = character_information.name;
+
+                    // Remember the local ids for the guild actions (leave/expel)
+                    // and start the guild state of this character from scratch.
+                    self.client_state
+                        .follow_mut(client_state().guild())
+                        .set_local_player(saved_login_data.account_id, character_information.character_id);
 
                     let entity_id = player.get_entity_id();
                     let entity_type = player.get_entity_type();
@@ -5136,6 +5145,120 @@ impl Client {
                         print_debug!("Failed to decode guild emblem of guild {guild_id} (emblem id {emblem_id}): {_error}");
                     }
                 },
+                NetworkEvent::GuildMenuInterface { menu_flags } => {
+                    self.client_state.follow_mut(client_state().guild()).menu_flags = menu_flags;
+                }
+                NetworkEvent::GuildInfo { information } => {
+                    let (guild_id, guild_name) = {
+                        let guild = self.client_state.follow_mut(client_state().guild());
+                        guild.apply_info(&information);
+                        (guild.guild_id, guild.name.clone())
+                    };
+
+                    if guild_id != 0 {
+                        if !guild_name.trim().is_empty() {
+                            // The overhead guild label is otherwise only filled from
+                            // `ZC_ACK_REQNAMEALL` (hover/context menu). The guild window
+                            // just learned the local guild name, so apply it to every
+                            // nearby member of the same guild.
+                            for entity in self.client_state.follow_mut(client_state().entities()) {
+                                if entity.get_guild_id() == guild_id {
+                                    entity.set_guild_name(Some(guild_name.clone()));
+                                }
+                            }
+                        }
+
+                        // The emblem is downloaded on demand; the guild window is a
+                        // second place that can learn the guild id first.
+                        if self.guild_emblems.request_if_needed(guild_id) {
+                            let _ = self.networking_system.request_guild_emblem(guild_id);
+                        }
+                    }
+                }
+                NetworkEvent::GuildMembers { members } => {
+                    let mut name_requests = Vec::new();
+
+                    {
+                        let guild = self.client_state.follow_mut(client_state().guild());
+                        guild.apply_members(&members);
+
+                        // The 2019 member list has no name field. Ask for every
+                        // unknown name once per map session.
+                        let unknown: Vec<CharacterId> = guild
+                            .members
+                            .iter()
+                            .filter(|member| member.name.trim().is_empty() && member.character_id.0 != 0)
+                            .map(|member| member.character_id)
+                            .filter(|character_id| !guild.requested_names.contains(character_id))
+                            .collect();
+
+                        for character_id in unknown {
+                            guild.requested_names.push(character_id);
+                            name_requests.push(character_id);
+                        }
+                    }
+
+                    for character_id in name_requests {
+                        let _ = self.networking_system.request_guild_member_name(character_id);
+                    }
+                }
+                NetworkEvent::GuildPositionNames { positions } => {
+                    self.client_state
+                        .follow_mut(client_state().guild())
+                        .apply_position_names(&positions);
+                }
+                NetworkEvent::GuildPositionRights { positions } => {
+                    self.client_state.follow_mut(client_state().guild()).apply_position_info(&positions);
+                }
+                NetworkEvent::GuildPositionChanged { positions } => {
+                    self.client_state
+                        .follow_mut(client_state().guild())
+                        .apply_position_changes(&positions);
+                }
+                NetworkEvent::GuildMemberPositionChanged { members } => {
+                    self.client_state
+                        .follow_mut(client_state().guild())
+                        .apply_member_position_changes(&members);
+                }
+                NetworkEvent::GuildNotice { subject, notice } => {
+                    self.client_state.follow_mut(client_state().guild()).apply_notice(subject, notice);
+                }
+                NetworkEvent::GuildAlliances { alliances } => {
+                    self.client_state.follow_mut(client_state().guild()).apply_alliances(&alliances);
+                }
+                NetworkEvent::GuildMemberName { character_id, name } => {
+                    self.client_state
+                        .follow_mut(client_state().guild())
+                        .apply_member_name(character_id, name);
+                }
+                NetworkEvent::GuildMemberRemoved { character_id, expelled } => {
+                    let is_local = self
+                        .client_state
+                        .follow(client_state().guild())
+                        .local_character_id
+                        .is_some_and(|local_character_id| local_character_id == character_id);
+
+                    if is_local {
+                        self.client_state.follow_mut(client_state().guild()).leave_local_guild();
+                        self.interface.close_window_with_class(WindowClass::Guild);
+                    } else {
+                        let guild = self.client_state.follow_mut(client_state().guild());
+                        guild.remove_member(character_id);
+                        guild.status_message = match expelled {
+                            true => "A member was expelled from the guild.".to_owned(),
+                            false => "A member left the guild.".to_owned(),
+                        };
+                    }
+                }
+                NetworkEvent::GuildInviteResult { result } => {
+                    let guild = self.client_state.follow_mut(client_state().guild());
+                    guild.status_message = match result {
+                        0 => "The invitation failed: the player is already in a guild or busy.".to_owned(),
+                        1 => "The invitation failed: the player is offline.".to_owned(),
+                        3 => "The invitation failed: the guild is full.".to_owned(),
+                        result => format!("The invitation failed (result {result})."),
+                    };
+                }
                 NetworkEvent::DamageEffect {
                     source_entity_id,
                     destination_entity_id,
@@ -7316,6 +7439,104 @@ impl Client {
 
                     self.client_state.follow_mut(client_state().party()).clear();
                     self.interface.close_window_with_class(WindowClass::Party);
+                }
+                InputEvent::ToggleGuildWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Guild) {
+                            true => self.interface.close_window_with_class(WindowClass::Guild),
+                            false => {
+                                self.interface.open_window(GuildWindow);
+
+                                // Opening the window asks the server for the menu
+                                // mask and the three tabs: basic info (0), member
+                                // list (1) and positions (2). rAthena ignores the
+                                // request when the player is not in a guild.
+                                let _ = self.networking_system.request_guild_menu_interface();
+
+                                for menu in [0, 1, 2] {
+                                    let _ = self.networking_system.request_guild_info(menu);
+                                }
+                            }
+                        }
+                    }
+                }
+                InputEvent::InviteToGuild { name } => {
+                    let can_invite = self.client_state.follow(client_state().guild()).can_invite();
+
+                    if can_invite {
+                        let _ = self.networking_system.invite_to_guild(name.clone());
+                        self.client_state.follow_mut(client_state().guild()).status_message = format!("Invited {name}.");
+                    } else {
+                        self.client_state.follow_mut(client_state().guild()).status_message =
+                            "You do not have permission to invite members.".to_owned();
+                    }
+                }
+                InputEvent::ExpelGuildMember { name } => {
+                    let outcome = {
+                        let guild = self.client_state.follow(client_state().guild());
+
+                        if !guild.can_expel() {
+                            Err("You do not have permission to expel members.".to_owned())
+                        } else {
+                            match guild.member_by_name(&name) {
+                                Some(member) if Some(member.character_id) == guild.local_character_id => {
+                                    Err("You cannot expel yourself.".to_owned())
+                                }
+                                Some(member) => Ok((guild.guild_id, member.account_id, member.character_id)),
+                                None => Err(format!("No guild member named {name}.")),
+                            }
+                        }
+                    };
+
+                    match outcome {
+                        Ok((guild_id, account_id, character_id)) => {
+                            let _ = self
+                                .networking_system
+                                .expel_guild_member(guild_id, account_id, character_id, String::new());
+                            self.client_state.follow_mut(client_state().guild()).status_message = format!("Expelling {name}...");
+                        }
+                        Err(message) => {
+                            self.client_state.follow_mut(client_state().guild()).status_message = message;
+                        }
+                    }
+                }
+                InputEvent::LeaveGuild => {
+                    let request = {
+                        let guild = self.client_state.follow(client_state().guild());
+
+                        match (guild.is_in_guild(), guild.local_account_id, guild.local_character_id) {
+                            (true, Some(account_id), Some(character_id)) => Ok((guild.guild_id, account_id, character_id)),
+                            _ => Err("You are not in a guild.".to_owned()),
+                        }
+                    };
+
+                    match request {
+                        Ok((guild_id, account_id, character_id)) => {
+                            let _ = self.networking_system.leave_guild(guild_id, account_id, character_id);
+                            self.client_state.follow_mut(client_state().guild()).status_message = "Leaving guild...".to_owned();
+                        }
+                        Err(message) => {
+                            self.client_state.follow_mut(client_state().guild()).status_message = message;
+                        }
+                    }
+                }
+                InputEvent::SaveGuildNotice { subject, notice } => {
+                    let guild_id = {
+                        let guild = self.client_state.follow(client_state().guild());
+
+                        if !guild.can_edit_notice() { None } else { Some(guild.guild_id) }
+                    };
+
+                    match guild_id {
+                        Some(guild_id) => {
+                            let _ = self.networking_system.change_guild_notice(guild_id, subject, notice);
+                            self.client_state.follow_mut(client_state().guild()).status_message = "Notice saved.".to_owned();
+                        }
+                        None => {
+                            self.client_state.follow_mut(client_state().guild()).status_message =
+                                "Only the guild master can change the notice.".to_owned();
+                        }
+                    }
                 }
                 InputEvent::ToggleBigMapWindow => {
                     if self.client_state.try_follow(this_entity()).is_some() {

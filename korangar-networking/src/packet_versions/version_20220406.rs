@@ -1859,6 +1859,44 @@ where
     packet_handler.register(|packet: NewMailStatusPacket| NetworkEvent::MailUnreadStatus {
         unread: packet.new_available != 0,
     })?;
+    // Guild window (PACKETVER 20190605). The layouts and clif.cpp references are
+    // documented on the packet structs in `ragnarok-packets`.
+    packet_handler.register(|packet: GuildMenuInterfacePacket| NetworkEvent::GuildMenuInterface {
+        menu_flags: packet.menu_flags,
+    })?;
+    packet_handler.register(|packet: GuildInfoPacket| NetworkEvent::GuildInfo { information: packet })?;
+    packet_handler.register(|packet: GuildMemberManagerInfoPacket| NetworkEvent::GuildMembers { members: packet.members })?;
+    packet_handler.register(|packet: GuildPositionNameInfoPacket| NetworkEvent::GuildPositionNames {
+        positions: packet.positions,
+    })?;
+    packet_handler.register(|packet: GuildPositionInfoPacket| NetworkEvent::GuildPositionRights {
+        positions: packet.positions,
+    })?;
+    packet_handler.register(|packet: GuildPositionChangedPacket| NetworkEvent::GuildPositionChanged {
+        positions: packet.positions,
+    })?;
+    packet_handler
+        .register(|packet: GuildMemberPositionChangedPacket| NetworkEvent::GuildMemberPositionChanged { members: packet.members })?;
+    packet_handler.register(|packet: GuildNoticePacket| NetworkEvent::GuildNotice {
+        subject: packet.subject,
+        notice: packet.notice,
+    })?;
+    packet_handler.register(|packet: GuildAllianceInfoPacket| NetworkEvent::GuildAlliances {
+        alliances: packet.alliances,
+    })?;
+    packet_handler.register(|packet: GuildMemberNamePacket| NetworkEvent::GuildMemberName {
+        character_id: packet.character_id,
+        name: packet.name,
+    })?;
+    packet_handler.register(|packet: GuildLeaveNoticePacket| NetworkEvent::GuildMemberRemoved {
+        character_id: packet.character_id,
+        expelled: false,
+    })?;
+    packet_handler.register(|packet: GuildBanNoticePacket| NetworkEvent::GuildMemberRemoved {
+        character_id: packet.character_id,
+        expelled: true,
+    })?;
+    packet_handler.register(|packet: GuildInviteResultPacket| NetworkEvent::GuildInviteResult { result: packet.result })?;
 
     Ok(())
 }

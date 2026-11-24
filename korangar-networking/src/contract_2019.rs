@@ -117,6 +117,18 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
         0x0B7A,
         "dead 2022 registration: 2019 has no NPC market (0x09D5/0x09D7 are the closest 2019 packets); 0x0B7A is the 2021+ layout",
     ),
+    (
+        0x0A82,
+        "not derivable: ZC_ACK_BAN_GUILD is an enum-based packet id in packets_struct.hpp (`guildExpulsion = 0xa82`); the 2019 struct \
+         PACKET_ZC_ACK_BAN_GUILD3 (reason[40] + char id) is written by hand in clif.cpp:9143 and the generated registry only covers \
+         packets.hpp headers",
+    ),
+    (
+        0x0A83,
+        "not derivable: ZC_ACK_LEAVE_GUILD is an enum-based packet id in packets_struct.hpp (`guildLeave = 0xa83`); the 2019 struct \
+         PACKET_ZC_ACK_LEAVE_GUILD2 (char id + reason[40]) is written by hand in clif.cpp:9124 and the generated registry only covers \
+         packets.hpp headers",
+    ),
 ];
 
 /// Full packet payloads for opcodes whose all-zero / all-one synthetic payload

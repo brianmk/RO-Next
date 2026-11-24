@@ -873,6 +873,66 @@ pub enum NetworkEvent {
     MailboxWindow {
         open: bool,
     },
+    /// Guild window tab/master mask (`ZC_ACK_GUILD_MENUINTERFACE`, 0x014E).
+    GuildMenuInterface {
+        menu_flags: u32,
+    },
+    /// Guild basic information (`ZC_GUILD_INFO`, 0x0A84).
+    GuildInfo {
+        information: GuildInfoPacket,
+    },
+    /// Guild member manager list (`ZC_MEMBERMGR_INFO`, 0x0AA5).
+    GuildMembers {
+        members: Vec<GuildMemberInfo>,
+    },
+    /// Guild position names (`ZC_POSITION_ID_NAME_INFO`, 0x0166).
+    GuildPositionNames {
+        positions: Vec<GuildPositionNameEntry>,
+    },
+    /// Guild position rights/pay rates (`ZC_POSITION_INFO`, 0x0160).
+    GuildPositionRights {
+        positions: Vec<GuildPositionInfoEntry>,
+    },
+    /// A guild position was changed (`ZC_ACK_CHANGE_GUILD_POSITIONINFO`,
+    /// 0x0174).
+    GuildPositionChanged {
+        positions: Vec<GuildPositionChangedEntry>,
+    },
+    /// A guild member was moved to another position
+    /// (`ZC_ACK_REQ_CHANGE_MEMBERS`, 0x0156).
+    GuildMemberPositionChanged {
+        members: Vec<GuildMemberPositionChangedEntry>,
+    },
+    /// Guild notice (`ZC_GUILD_NOTICE`, 0x016F).
+    GuildNotice {
+        subject: String,
+        notice: String,
+    },
+    /// Guild alliance/opposition list (`ZC_MYGUILD_BASIC_INFO`, 0x014C).
+    GuildAlliances {
+        alliances: Vec<GuildAllianceInfo>,
+    },
+    /// The character name of a guild member (`ZC_ACK_REQNAME_BYGID`, 0x0AF7).
+    ///
+    /// The 2019 member list has no name field, so the client asks the server
+    /// for every member name by character id.
+    GuildMemberName {
+        character_id: CharacterId,
+        name: String,
+    },
+    /// A character left or was expelled from the guild
+    /// (`ZC_ACK_LEAVE_GUILD` 0x0A83 / `ZC_ACK_BAN_GUILD` 0x0A82).
+    GuildMemberRemoved {
+        character_id: CharacterId,
+        expelled: bool,
+    },
+    /// The server rejected a guild invite (`ZC_ACK_REQ_JOIN_GUILD`, 0x0169).
+    ///
+    /// rAthena only sends this on failure; a successful invitation is delivered
+    /// to the target, so there is no success event.
+    GuildInviteResult {
+        result: u8,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

@@ -118,6 +118,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 button! {
+                    text: "Guild",
+                    event: InputEvent::ToggleGuildWindow,
+                },
+                button! {
                     text: "Quest Log",
                     event: InputEvent::ToggleQuestWindow,
                 },
