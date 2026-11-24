@@ -1347,6 +1347,14 @@ where
         }),
         _ => None,
     })?;
+    packet_handler.register(|packet: OpenEditDialogPacket| NetworkEvent::OpenEditDialog {
+        npc_id: packet.npc_id,
+        string_input: false,
+    })?;
+    packet_handler.register(|packet: OpenEditDialogStrPacket| NetworkEvent::OpenEditDialog {
+        npc_id: packet.npc_id,
+        string_input: true,
+    })?;
     packet_handler.register(|packet: NpcDialogPacket| {
         let NpcDialogPacket { npc_id, text } = packet;
 

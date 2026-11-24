@@ -5425,6 +5425,13 @@ impl Client {
                         None => self.pending_stat_updates.push(stat_type),
                     }
                 }
+                NetworkEvent::OpenEditDialog { npc_id, string_input } => {
+                    self.client_state
+                        .follow_mut(client_state().dialog_window())
+                        .start_input(npc_id, string_input);
+
+                    self.interface.open_window(DialogWindow::new(client_state().dialog_window()));
+                }
                 NetworkEvent::OpenDialog { text, npc_id } => {
                     self.client_state
                         .follow_mut(client_state().dialog_window())
@@ -7407,6 +7414,22 @@ impl Client {
                             }
                             _ => {}
                         }
+                    }
+                }
+                InputEvent::SubmitDialogInput { npc_id, string_input } => {
+                    let text = {
+                        let dialog = self.client_state.follow_mut(client_state().dialog_window());
+                        std::mem::take(&mut dialog.input_text)
+                    };
+                    let result = if string_input {
+                        self.networking_system.input_edit_dialog_str(npc_id, text)
+                    } else {
+                        let value = text.trim().parse::<i32>().unwrap_or(0);
+                        self.networking_system.input_edit_dialog(npc_id, value)
+                    };
+
+                    if let Err(error) = result {
+                        crate::logging::log_warn!("failed to send dialog input: {error:?}");
                     }
                 }
                 InputEvent::DropItem { inventory_index, amount } => {

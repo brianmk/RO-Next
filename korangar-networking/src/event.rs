@@ -347,6 +347,11 @@ pub enum NetworkEvent {
     UpdateStat {
         stat_type: StatType,
     },
+    OpenEditDialog {
+        npc_id: EntityId,
+        /// `true` for the string variant (`ZC_OPEN_EDITDLGSTR`).
+        string_input: bool,
+    },
     OpenDialog {
         text: String,
         npc_id: EntityId,

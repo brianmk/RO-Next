@@ -2089,6 +2089,55 @@ pub struct UseItemPacket {
     pub item_id: ItemId,
 }
 
+/// Server asks the client for a numeric value (`ZC_OPEN_EDITDLG`).
+///
+/// Packet layout for PACKETVER 20190605: `0142 <npc id>.L` (rAthena
+/// `clif.cpp:2637`). Answered with [`InputEditDialogPacket`].
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0142)]
+pub struct OpenEditDialogPacket {
+    pub npc_id: EntityId,
+}
+
+/// Server asks the client for a text value (`ZC_OPEN_EDITDLGSTR`).
+///
+/// Packet layout for PACKETVER 20190605: `01d4 <npc id>.L` (rAthena
+/// `clif.cpp:2665`). Answered with [`InputEditDialogStrPacket`].
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01D4)]
+pub struct OpenEditDialogStrPacket {
+    pub npc_id: EntityId,
+}
+
+/// Answer to `ZC_OPEN_EDITDLG` (CZ_INPUT_EDITDLG).
+///
+/// Packet layout for PACKETVER 20190605: `0143 <npc id>.L <value>.L`
+/// (rAthena `clif.cpp:13314`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0143)]
+pub struct InputEditDialogPacket {
+    pub npc_id: EntityId,
+    pub value: i32,
+}
+
+/// Answer to `ZC_OPEN_EDITDLGSTR` (CZ_INPUT_EDITDLGSTR).
+///
+/// Packet layout for PACKETVER 20190605: `01d5 <len>.W <npc id>.L <string>.?B`
+/// (rAthena `clif.cpp:13333`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01D5)]
+#[variable_length]
+#[allow_packet_size_mismatch]
+pub struct InputEditDialogStrPacket {
+    pub npc_id: EntityId,
+    #[length_remaining_off_by_one]
+    pub value: String,
+}
+
 /// Drop an item from the inventory on the ground (CZ_ITEM_THROW).
 ///
 /// Packet layout for PACKETVER 20190605 (rAthena `clif.cpp:11994`):
@@ -5795,6 +5844,37 @@ mod tests {
         assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x00CA);
         assert_eq!(bytes.len(), 3);
         assert_eq!(bytes[2], 0);
+    }
+
+    #[test]
+    fn edit_dialog_packets_layout() {
+        use crate::{EntityId, InputEditDialogPacket, InputEditDialogStrPacket, OpenEditDialogPacket};
+
+        let open = OpenEditDialogPacket::new(EntityId(42));
+        let mut writer = ByteWriter::new();
+        open.packet_to_bytes(&mut writer).unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0142);
+        assert_eq!(u32::from_le_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]), 42);
+        assert_eq!(bytes.len(), 6);
+
+        let numeric = InputEditDialogPacket::new(EntityId(42), -5);
+        let mut writer = ByteWriter::new();
+        numeric.packet_to_bytes(&mut writer).unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x0143);
+        assert_eq!(u32::from_le_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]), 42);
+        assert_eq!(i32::from_le_bytes([bytes[6], bytes[7], bytes[8], bytes[9]]), -5);
+        assert_eq!(bytes.len(), 10);
+
+        let text = InputEditDialogStrPacket::new(EntityId(42), "hi".to_owned());
+        let mut writer = ByteWriter::new();
+        text.packet_to_bytes(&mut writer).unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(u16::from_le_bytes([bytes[0], bytes[1]]), 0x01D5);
+        assert_eq!(u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]), 42);
+        assert_eq!(bytes[8], b'h');
+        assert_eq!(bytes[9], b'i');
     }
 
     #[test]

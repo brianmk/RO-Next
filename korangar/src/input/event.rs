@@ -236,6 +236,13 @@ pub enum InputEvent {
         /// Where the item is located (inventory or Kafra storage).
         source: ItemSource,
     },
+    /// Submit the current text of the NPC input field (`ZC_OPEN_EDITDLG(STR)`).
+    SubmitDialogInput {
+        /// Entity id of the NPC that opened the dialog.
+        npc_id: ragnarok_packets::EntityId,
+        /// Whether the dialog expects a string instead of a number.
+        string_input: bool,
+    },
     /// Drop items from the inventory on the ground (one unit per click).
     DropItem {
         /// Inventory index of the item.

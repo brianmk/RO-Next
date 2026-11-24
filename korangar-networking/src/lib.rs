@@ -1264,6 +1264,18 @@ where
         }
     }
 
+    pub fn input_edit_dialog(&mut self, npc_id: EntityId, value: i32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(InputEditDialogPacket::new(npc_id, value)),
+        }
+    }
+
+    pub fn input_edit_dialog_str(&mut self, npc_id: EntityId, value: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(InputEditDialogStrPacket::new(npc_id, value)),
+        }
+    }
+
     pub fn drop_item(&mut self, item_index: InventoryIndex, amount: u16) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(DropItemPacket::new(item_index, amount)),

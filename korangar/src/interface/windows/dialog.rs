@@ -1,5 +1,6 @@
 use std::cell::UnsafeCell;
 
+use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::ElementStoreMut;
 use korangar_interface::element::{Element, ElementBox, ErasedElement, StateElement};
 use korangar_interface::layout::{Resolvers, with_single_resolver};
@@ -31,6 +32,8 @@ pub(crate) enum DialogElementKind {
     Choice,
     /// The generic menu Cancel button (choice 255 / `-1`).
     CancelButton,
+    /// The NPC text/number input field and its submit button.
+    Input,
 }
 
 /// A small wrapper struct that serves two purposes:
@@ -75,12 +78,19 @@ pub struct DialogWindowState {
     /// Whether or not the elements should be cleared the next time
     /// [`start`](Self::start) is called.
     clear_next: bool,
+    /// Current text of the NPC input field (`ZC_OPEN_EDITDLG(STR)`).
+    pub input_text: String,
+    /// Whether the pending input expects a string (instead of a number).
+    pub string_input: bool,
     /// When set, the choice buttons are a Warp Portal destination list
     /// (`ZC_WARPLIST`) instead of an NPC menu. The picked entry answers the
     /// server with `CZ_SELECT_WARPPOINT`, which then creates the portal units.
     #[hidden_element]
     warp_point: Option<WarpPointList>,
 }
+
+/// ZST for the focus id of the NPC input text box.
+pub struct DialogInputBox;
 
 /// Pending Warp Portal destination list of the dialog window.
 pub struct WarpPointList {
@@ -122,6 +132,51 @@ impl DialogWindowState {
         self.npc_id = npc_id;
         self.warp_point = None;
         self
+    }
+
+    /// Shows the NPC text/number input field (`ZC_OPEN_EDITDLG(STR)`).
+    ///
+    /// rAthena scripts that call `input()` or ask for a numeric amount wait for
+    /// `CZ_INPUT_EDITDLG(STR)`; without this field the dialog would stall.
+    pub fn start_input(&mut self, npc_id: EntityId, string_input: bool) {
+        use korangar_interface::prelude::*;
+
+        self.initialize(npc_id);
+        self.elements.clear();
+        self.clear_next = false;
+        self.string_input = string_input;
+        self.input_text.clear();
+
+        let input_npc_id = self.npc_id;
+
+        self.elements.push(DialogElement::new(
+            text_box! {
+                ghost_text: if string_input { "Enter text" } else { "Enter a number" },
+                state: client_state().dialog_window().input_text(),
+                input_handler: DefaultHandler::<_, _, 64>::new(
+                    client_state().dialog_window().input_text(),
+                    InputEvent::SubmitDialogInput {
+                        npc_id: input_npc_id,
+                        string_input,
+                    },
+                ),
+                focus_id: DialogInputBox,
+            },
+            DialogElementKind::Input,
+        ));
+
+        self.elements.push(DialogElement::new(
+            button! {
+                text: "OK",
+                event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                    queue.queue(InputEvent::SubmitDialogInput {
+                        npc_id: input_npc_id,
+                        string_input,
+                    });
+                },
+            },
+            DialogElementKind::Input,
+        ));
     }
 
     /// Shows the Warp Portal destination list (`ZC_WARPLIST`).
@@ -362,6 +417,8 @@ impl Default for DialogWindowState {
             // Arguably not very clean but avoids using an Option.
             npc_id: EntityId(0),
             clear_next: false,
+            input_text: String::new(),
+            string_input: false,
             warp_point: None,
         }
     }
