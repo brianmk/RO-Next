@@ -7,9 +7,9 @@
 //! party window can show the classic 12 slot roster with HP bars, and
 //! `ro-next/src/lib.rs` can show party invitations, results and chat messages.
 
+use ragnarok_packets::{AccountId, CharacterId, JobId, PartyId, PartyListMember, TilePosition};
 use ro_next_interface::element::StateElement;
 use ro_next_networking::PartyMemberDetails;
-use ragnarok_packets::{AccountId, CharacterId, JobId, PartyId, PartyListMember, TilePosition};
 use rust_state::RustState;
 
 /// The 2019 server allows at most 12 party members.

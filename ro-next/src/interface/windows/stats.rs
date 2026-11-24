@@ -1,8 +1,8 @@
 use std::cell::{Cell, UnsafeCell};
 
-use ro_next_interface::event::{ClickHandler, EventQueue};
-use ro_next_interface::window::{CustomWindow, Window};
 use ragnarok_packets::StatUpType;
+use ro_next_interface::event::ClickHandler;
+use ro_next_interface::window::{CustomWindow, Window};
 use rust_state::{Path, PathExt, Selector, State};
 
 use crate::input::InputEvent;

@@ -15,9 +15,9 @@
 //! one `serde(default)` block, so language files written before the group
 //! existed still load.
 
+use ragnarok_packets::EquipPosition;
 use ro_next_interface::element::StateElement;
 use ro_next_interface::selector_helpers::ComputedSelector;
-use ragnarok_packets::EquipPosition;
 use rust_state::{RustState, Selector};
 use serde::{Deserialize, Serialize};
 
@@ -936,8 +936,8 @@ pub fn template_text(template: fn(&ClientState) -> &str, value: String) -> impl 
 
 #[cfg(test)]
 mod tests {
-    use ro_next_interface::element::StateElement;
     use ragnarok_packets::EquipPosition;
+    use ro_next_interface::element::StateElement;
 
     use super::{DropdownTexts, PaperDollTexts, UiTexts};
 

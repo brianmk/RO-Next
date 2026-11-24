@@ -38,6 +38,10 @@ pub mod whisper;
 use std::cell::Cell;
 use std::sync::Arc;
 
+use localization::Localization;
+#[cfg(feature = "debug")]
+use ragnarok_formats::map::{EffectSource, LightSource, MapData, SoundSource};
+use ragnarok_packets::{CharacterId, CharacterServerInformation, EntityId, Friend, TilePosition};
 use ro_next_interface::application::Application;
 use ro_next_interface::components::button::ButtonTheme;
 use ro_next_interface::components::collapsible::CollapsibleTheme;
@@ -53,10 +57,6 @@ use ro_next_interface::skin::SkinTheme;
 use ro_next_interface::theme::ThemePathGetter;
 use ro_next_interface::window::{StateWindow, WindowTheme};
 use ro_next_networking::{MessageColor, SellItem, ShopItem};
-use localization::Localization;
-#[cfg(feature = "debug")]
-use ragnarok_formats::map::{EffectSource, LightSource, MapData, SoundSource};
-use ragnarok_packets::{CharacterId, CharacterServerInformation, EntityId, Friend, TilePosition};
 #[cfg(feature = "debug")]
 use rust_state::{ManuallyAssertExt, VecIndexExt};
 use rust_state::{Path, PathExt, RustState, Selector};
@@ -232,6 +232,8 @@ pub const MAP_FLAG_SIEGE: u32 = 1 << 2;
 /// `MF_NOLOCKON`/versus map; the official client calls this `m_isSiegeZone`
 /// and applies the non-party PvP rule on such maps.
 pub const MAP_FLAG_DISABLE_LOCKON: u32 = 1 << 4;
+/// `MF_COUNTPK`; counted-PK map. Only the target-policy test reads it today.
+#[cfg(test)]
 pub const MAP_FLAG_COUNT_PK: u32 = 1 << 5;
 pub const MAP_FLAG_BATTLEFIELD: u32 = 1 << 7;
 pub const MAP_FLAG_DISABLE_COSTUME: u32 = 1 << 8;

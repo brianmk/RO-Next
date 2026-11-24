@@ -7,9 +7,9 @@
 //! Sending the old hardcoded placeholder `a@a.com` made the server refuse every
 //! deletion request.
 
+use ragnarok_packets::CharacterId;
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::CharacterId;
 use rust_state::{Path, PathExt, State};
 
 use crate::input::InputEvent;

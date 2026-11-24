@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use hashbrown::HashMap;
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{AttackRange, JobId, SkillId, SkillInformation, SkillLevel, SkillType};
+use ro_next_interface::element::StateElement;
 use rust_state::{Path, PathExt, RustState, Selector};
 
 use crate::loaders::Sprite;

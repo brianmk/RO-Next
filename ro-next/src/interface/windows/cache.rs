@@ -50,17 +50,6 @@ impl WindowCache {
             )
         });
 
-        // The spirit sphere counter sits directly above the buff bar, so
-        // filling/consuming the five Champion spheres is visible without
-        // moving the eyes away from the character. The window is only open
-        // while the player has spheres.
-        self.entries.entry(WindowClass::SpiritSpheres).or_insert_with(|| {
-            WindowState::new(
-                Anchor::new(AnchorPoint::BottomCenter, ScreenPosition { left: -42.0, top: -172.0 }),
-                ScreenSize { width: 83.0, height: 19.0 },
-            )
-        });
-
         // Whisper conversations open in the middle of the screen (the official
         // client also places them freely; the user can drag them afterwards).
         self.entries.entry(WindowClass::Whisper).or_insert_with(|| {

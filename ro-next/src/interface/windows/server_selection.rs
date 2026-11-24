@@ -1,10 +1,10 @@
 use std::cmp::Ordering;
 
+use ragnarok_packets::{CharacterServerInformation, CharacterServerInformationPathExt};
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{DefaultLayoutInfo, Element};
 use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{CharacterServerInformation, CharacterServerInformationPathExt};
 use rust_state::{Path, State};
 
 use crate::input::InputEvent;

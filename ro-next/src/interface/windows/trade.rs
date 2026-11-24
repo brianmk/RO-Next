@@ -16,10 +16,9 @@ use rust_state::{Path, PathExt, State};
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::ClientState;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::trade::{Trade, TradePathExt};
-use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::world::ResourceMetadata;
 
 const MAXIMUM_ITEMS: usize = 12;

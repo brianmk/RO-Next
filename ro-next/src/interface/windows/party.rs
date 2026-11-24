@@ -17,6 +17,7 @@
 //! The roster is rendered by a custom element instead of a macro generated list
 //! because the party size is dynamic and each row needs a text + bar layout.
 
+use ragnarok_packets::NAME_LENGTH;
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{Element, ElementBox};
@@ -24,7 +25,6 @@ use ro_next_interface::layout::area::Area;
 use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::prelude::{ComputedSelector, HorizontalAlignment, VerticalAlignment};
 use ro_next_interface::window::{CustomWindow, Window, WindowThemePathExt};
-use ragnarok_packets::NAME_LENGTH;
 use rust_state::{Path, PathExt, Selector, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};

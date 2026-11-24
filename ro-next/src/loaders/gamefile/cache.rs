@@ -9,8 +9,8 @@ use blake3::Hash;
 use ddsfile::{AlphaMode, D3D10ResourceDimension, Dds, DxgiFormat, NewDxgiParams};
 use hashbrown::HashSet;
 use image::{EncodableLayout, RgbaImage};
-use ro_next_loaders::FileLoader;
 use rayon::prelude::*;
+use ro_next_loaders::FileLoader;
 
 use crate::SHUTDOWN_SIGNAL;
 use crate::loaders::archive::seven_zip::{SevenZipArchive, SevenZipArchiveBuilder};

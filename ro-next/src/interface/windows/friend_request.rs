@@ -1,5 +1,5 @@
-use ro_next_interface::window::{CustomWindow, Window};
 use ragnarok_packets::Friend;
+use ro_next_interface::window::{CustomWindow, Window};
 use rust_state::PathExt;
 
 use crate::input::InputEvent;

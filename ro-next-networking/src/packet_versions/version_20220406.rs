@@ -3,9 +3,9 @@ use std::net::IpAddr;
 use std::rc::Rc;
 use std::time::Instant;
 
-use ro_next_messages::{MessageDomain, format_message};
 use ragnarok_packets::handler::{DuplicateHandlerError, PacketCallback, PacketHandler};
 use ragnarok_packets::*;
+use ro_next_messages::{MessageDomain, format_message};
 
 use crate::event::{NetworkEventList, NoNetworkEvents};
 use crate::items::ItemQuantity;

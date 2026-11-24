@@ -1,13 +1,13 @@
 #[cfg(feature = "debug")]
 use cgmath::Vector2;
-#[cfg(feature = "debug")]
-use ro_next_debug::profiling::FrameMeasurement;
-use ro_next_interface::event::{ClickHandler, Event, EventQueue};
-use ro_next_networking::{InventoryItem, ShopItem};
 use ragnarok_packets::{
     AccountId, AttackRange, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex,
     ItemId, JobId, PartyId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
 };
+#[cfg(feature = "debug")]
+use ro_next_debug::profiling::FrameMeasurement;
+use ro_next_interface::event::{ClickHandler, Event, EventQueue};
+use ro_next_networking::{InventoryItem, ShopItem};
 use rust_state::State;
 use winit::keyboard::KeyCode;
 

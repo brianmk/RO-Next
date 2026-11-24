@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
+use ragnarok_packets::{HotbarSlot, SkillId, SkillLevel, SkillType, TilePosition};
 use ro_next_interface::MouseMode;
 use ro_next_networking::InventoryItem;
-use ragnarok_packets::{HotbarSlot, SkillId, SkillLevel, SkillType, TilePosition};
 
 use crate::graphics::Texture;
 use crate::interface::resource::{ItemSource, SkillSource};

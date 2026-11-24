@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use cgmath::{Point3, Vector3};
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{ClientTick, Direction, EntityId, ItemId, TilePosition};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 use crate::FadeDirection;

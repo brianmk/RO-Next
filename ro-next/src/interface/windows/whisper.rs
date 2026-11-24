@@ -199,7 +199,7 @@ where
             queue.queue(InputEvent::SendWhisper { partner, text });
             queue.queue(Event::Unfocus);
         };
-        let send_action_button = send_action.clone();
+        let send_action_button = send_action;
 
         window! {
             title,

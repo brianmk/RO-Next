@@ -13,16 +13,14 @@ use ro_next_interface::event::{ClickHandler, EventQueue};
 use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::window::{CustomWindow, Window};
 use ro_next_networking::InventoryItem;
-use ragnarok_packets::InventoryIndex;
-use rust_state::{Path, PathExt, State};
+use rust_state::{Path, State};
 
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
-use crate::state::localization::LocalizationPathExt;
+use crate::state::ClientState;
 use crate::state::theme::InterfaceThemeType;
 use crate::state::vending::{Vending, VendingEntry, VendingPathExt};
-use crate::state::{ClientState, ClientStatePathExt, client_state};
 use crate::world::ResourceMetadata;
 
 /// Maximum number of inventory rows shown at once.

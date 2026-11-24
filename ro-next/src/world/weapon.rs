@@ -61,8 +61,8 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::{JobId, Sex};
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use super::{AnimationData, jobs};

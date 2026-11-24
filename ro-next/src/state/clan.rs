@@ -13,8 +13,8 @@
 //! members are online. The window states this explicitly instead of pretending
 //! the list is merely still loading.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::ClanInfoPacket;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// One ally or antagonist clan of `ZC_CLANINFO`.

@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use cgmath::{Point3, Vector3};
+use ragnarok_packets::{Direction, EntityId, QuestEffectPacket};
 use ro_next_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::Colorize;
 use ro_next_interface::application::Clip;
-use ragnarok_packets::{Direction, EntityId, QuestEffectPacket};
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize, Texture};
 use crate::loaders::{FontSize, GameFileLoader, ImageType, Scaling, Sprite, TextureLoader};
@@ -92,6 +92,7 @@ fn damage_text_font_size(
 
 /// Renders a damage/heal number, using the installed sprite damage font and
 /// falling back to the interface text renderer.
+#[allow(clippy::too_many_arguments)] // one argument per render parameter (position, size, colour, font, ...)
 fn render_number(
     renderer: &GameInterfaceRenderer,
     camera: &dyn Camera,
@@ -750,6 +751,10 @@ mod tests {
 /// Loaded sprite/action pair of the classic arrow projectile.
 pub struct ArrowAssets {
     pub sprite: Arc<Sprite>,
+    /// Action file of the sprite pair. A candidate only counts when both files
+    /// load, so it is kept for projectile animation; the renderer draws the
+    /// sprite's first frame today.
+    #[allow(dead_code)]
     pub actions: Arc<Actions>,
 }
 

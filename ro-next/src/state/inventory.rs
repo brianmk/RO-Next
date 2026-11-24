@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
+use ragnarok_packets::{EquipPosition, EquippableItemFlags, InventoryIndex, ItemId, RegularItemFlags};
 use ro_next_interface::element::StateElement;
 pub use ro_next_networking::item_type;
 use ro_next_networking::item_type::ItemTypeCategory;
 use ro_next_networking::{InventoryItem, InventoryItemDetails, NoMetadata};
-use ragnarok_packets::{EquipPosition, EquippableItemFlags, InventoryIndex, ItemId, RegularItemFlags};
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
@@ -289,8 +289,8 @@ impl Inventory {
 
 #[cfg(test)]
 mod tests {
-    use ro_next_networking::NoMetadata;
     use ragnarok_packets::{InventoryIndex, ItemId, RegularItemFlags};
+    use ro_next_networking::NoMetadata;
 
     use super::*;
 

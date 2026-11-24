@@ -9,8 +9,8 @@
 //!
 //! [`ClientState`]: crate::state::ClientState
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::AccountId;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// The 2019 server caps a chat room at this many users; used as the default

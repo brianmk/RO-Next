@@ -9,8 +9,8 @@
 //! details; the actual rendering happens in the item tooltips (inventory,
 //! storage, paper doll) and the item info window.
 
-use ro_next_networking::{InventoryItem, InventoryItemDetails, NoMetadata};
 use ragnarok_packets::{ItemId, ItemOptions};
+use ro_next_networking::{InventoryItem, InventoryItemDetails, NoMetadata};
 
 use super::{Library, ResourceMetadata};
 
@@ -185,8 +185,8 @@ pub fn item_tooltip_text(item: &InventoryItem<ResourceMetadata>) -> String {
 mod tests {
     use std::sync::Arc;
 
-    use ro_next_networking::{InventoryItem, InventoryItemDetails};
     use ragnarok_packets::{EquipPosition, EquippableItemFlags, InventoryIndex, ItemId, ItemOptions};
+    use ro_next_networking::{InventoryItem, InventoryItemDetails};
 
     use super::*;
     use crate::world::ItemStats;

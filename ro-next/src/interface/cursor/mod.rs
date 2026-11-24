@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use ro_next_interface::application::Clip;
 use ragnarok_packets::ClientTick;
+use ro_next_interface::application::Clip;
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize};
 use crate::input::Grabbed;

@@ -27,8 +27,8 @@
 use std::sync::OnceLock;
 
 use cgmath::Point3;
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::QuestColor;
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use crate::graphics::Color;

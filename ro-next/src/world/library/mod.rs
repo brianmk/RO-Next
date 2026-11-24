@@ -31,9 +31,9 @@ use std::sync::Arc;
 
 use encoding_rs::EUC_KR;
 use hashbrown::HashMap;
-use ro_next_loaders::FileLoader;
 use mlua::Lua;
 use ragnarok_packets::{ItemId, JobId, Sex, SkillId};
+use ro_next_loaders::FileLoader;
 
 pub use self::accessory_name::AccessoryName;
 pub use self::aliases::AliasesSummary;
@@ -54,8 +54,8 @@ pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 pub use self::monster_database::{MonsterDatabase, MonsterEntry};
 use self::monster_sprite::MonsterSprites;
-pub use self::navigation::{NavigationData, NavigationDestination, NavigationKind};
-pub(crate) use self::skill_actions::{CasterFrameSequence, caster_action_for_skill, default_caster_action, frame_sequence_for_skill};
+pub use self::navigation::{NavigationData, NavigationDestination};
+pub(crate) use self::skill_actions::{caster_action_for_skill, default_caster_action, frame_sequence_for_skill};
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
 pub(crate) use self::skill_effects::{
@@ -72,9 +72,8 @@ pub(crate) use self::status_effects::{
     value_lines as status_effect_value_lines,
 };
 pub(crate) use self::status_visuals::{
-    StatusVisualAnchor, StatusVisualKind, StatusVisualScope, StatusVisualSpec, StatusVisualState,
-    resolve_state as resolve_status_visual_state, status_visual, validate as validate_status_visual_data,
-    validate_compiled as validate_compiled_status_visuals,
+    StatusVisualAnchor, StatusVisualKind, resolve_state as resolve_status_visual_state, status_visual,
+    validate as validate_status_visual_data, validate_compiled as validate_compiled_status_visuals,
 };
 use crate::loaders::GameFileLoader;
 pub use crate::world::library::skill_information::SkillListInformation;

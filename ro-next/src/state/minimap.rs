@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{EntityId, TilePosition};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 use crate::graphics::Texture;
@@ -158,6 +158,7 @@ impl Minimap {
         self.marker_textures = marker_textures;
     }
 
+    #[cfg(test)]
     /// Name of the currently displayed map (without the file extension).
     ///
     /// Used by `<NAVI>` links to decide whether the destination is on the

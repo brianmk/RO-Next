@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::fmt::Display;
 
+use ragnarok_packets::SoldItemInformation;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{Element, ElementBox};
 use ro_next_interface::event::ClickHandler;
@@ -9,7 +10,6 @@ use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use ro_next_interface::window::{CustomWindow, Window};
 use ro_next_networking::SellItem;
-use ragnarok_packets::SoldItemInformation;
 use rust_state::{ManuallyAssertExt, Path, PathExt, Selector, State, VecIndexExt};
 
 use super::WindowClass;

@@ -15,8 +15,8 @@
 //! This module only holds the UI-facing state; the route is recomputed in
 //! `lib.rs` whenever the player moves or a new destination is selected.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::TilePosition;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Kind of a navigation destination. The label is used by the search window.

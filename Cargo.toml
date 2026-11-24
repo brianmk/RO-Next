@@ -2,6 +2,10 @@
 resolver = "3"
 members = ["ro-next", "ragnarok-*", "ro-next-*"]
 
+[workspace.package]
+edition = "2024"
+license = "MIT"
+
 [workspace.dependencies]
 arrayvec = "0.7"
 bitflags = "2"

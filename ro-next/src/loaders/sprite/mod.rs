@@ -2,6 +2,9 @@ use std::num::{NonZeroU32, NonZeroUsize};
 use std::sync::{Arc, Mutex};
 
 use image::RgbaImage;
+use ragnarok_bytes::{ByteReader, FromBytes};
+use ragnarok_formats::sprite::{Palette, PaletteColor, RgbaImageData, SpriteData};
+use ragnarok_formats::version::GenericFormatMetadata;
 #[cfg(feature = "debug")]
 use ro_next_container::CacheStatistics;
 use ro_next_container::{Cacheable, SimpleCache};
@@ -9,9 +12,6 @@ use ro_next_container::{Cacheable, SimpleCache};
 use ro_next_debug::logging::{Colorize, Timer, print_debug};
 use ro_next_interface::element::StateElement;
 use ro_next_loaders::FileLoader;
-use ragnarok_bytes::{ByteReader, FromBytes};
-use ragnarok_formats::sprite::{Palette, PaletteColor, RgbaImageData, SpriteData};
-use ragnarok_formats::version::GenericFormatMetadata;
 use rust_state::RustState;
 
 use super::{FALLBACK_SPRITE_FILE, TextureLoader};

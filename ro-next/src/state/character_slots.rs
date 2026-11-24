@@ -1,5 +1,5 @@
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{CharacterId, CharacterInformation};
+use ro_next_interface::element::StateElement;
 use rust_state::{Path, PathExt, RustState, Selector};
 
 use crate::state::ClientState;

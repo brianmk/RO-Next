@@ -12,8 +12,8 @@
 use std::sync::LazyLock;
 
 use cgmath::Vector3;
-use ro_next_networking::MessageColor;
 use ragnarok_packets::{ClientTick, EntityId};
+use ro_next_networking::MessageColor;
 
 use crate::graphics::{Color, ScreenPosition, ScreenSize};
 use crate::loaders::{FontSize, Scaling};

@@ -7,8 +7,8 @@
 //!     click) still results in a fresh, working character server session.
 use std::time::{Duration, Instant};
 
-use ro_next_networking::{LoginServerLoginData, NetworkEvent, NetworkingSystem, SupportedPacketVersion};
 use ragnarok_packets::CharacterServerInformation;
+use ro_next_networking::{LoginServerLoginData, NetworkEvent, NetworkingSystem, SupportedPacketVersion};
 
 fn main() {
     let version = SupportedPacketVersion::_20220406;

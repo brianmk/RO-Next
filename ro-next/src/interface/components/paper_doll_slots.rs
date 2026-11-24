@@ -20,8 +20,8 @@
 
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::EquipPosition;
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use crate::loaders::GameFileLoader;

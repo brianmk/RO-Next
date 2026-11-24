@@ -92,6 +92,7 @@ impl Weather {
         self.kind = None;
     }
 
+    #[cfg(test)]
     pub fn kind(&self) -> Option<Kind> {
         self.kind
     }

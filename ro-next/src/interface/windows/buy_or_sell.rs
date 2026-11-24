@@ -1,5 +1,5 @@
-use ro_next_interface::window::{CustomWindow, Window};
 use ragnarok_packets::{BuyOrSellOption, ShopId};
+use ro_next_interface::window::{CustomWindow, Window};
 
 use super::WindowClass;
 use crate::input::InputEvent;

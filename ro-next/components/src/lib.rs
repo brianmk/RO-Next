@@ -1,5 +1,5 @@
-use ro_next_interface::prelude::create_component_macro;
 use proc_macro::TokenStream;
+use ro_next_interface::prelude::create_component_macro;
 
 #[proc_macro]
 pub fn item_box(token_stream: TokenStream) -> TokenStream {

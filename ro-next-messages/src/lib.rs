@@ -72,7 +72,7 @@ pub const DATA_PATH: &str = "data\\client\\messages.ron";
 const FALLBACK: &str = include_str!("../../ro-next/archive/data/client/messages.ron");
 
 /// Number of message domains (must match [`MessageDomain::ALL`]).
-pub const DOMAIN_COUNT: usize = 9;
+pub const DOMAIN_COUNT: usize = 10;
 
 /// A family of protocol result codes with one message per code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Deserialize)]
@@ -95,6 +95,9 @@ pub enum MessageDomain {
     LoginFailed,
     /// `AC_REFUSE_LOGIN2` (login server refusal).
     LoginFailed2,
+    /// `ZC_PC_PURCHASE_RESULT_FROMMC` (vending/street-shop purchase result,
+    /// rAthena `e_pc_purchase_result_frommc`).
+    PurchaseFromMc,
 }
 
 impl MessageDomain {
@@ -109,6 +112,7 @@ impl MessageDomain {
         Self::MapServerBan,
         Self::LoginFailed,
         Self::LoginFailed2,
+        Self::PurchaseFromMc,
     ];
 
     /// Stable index used by the in-memory table.
@@ -123,6 +127,7 @@ impl MessageDomain {
             Self::MapServerBan => 6,
             Self::LoginFailed => 7,
             Self::LoginFailed2 => 8,
+            Self::PurchaseFromMc => 9,
         }
     }
 
@@ -138,6 +143,7 @@ impl MessageDomain {
             Self::MapServerBan => "map_server_ban",
             Self::LoginFailed => "login_failed",
             Self::LoginFailed2 => "login_failed2",
+            Self::PurchaseFromMc => "purchase_from_mc",
         }
     }
 }

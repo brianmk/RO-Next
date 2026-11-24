@@ -32,8 +32,8 @@
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::{JobId, Sex};
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use super::jobs;
@@ -224,8 +224,8 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, shield: u32) -> Vec<Entit
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileLoader;
     use ragnarok_packets::{JobId, Sex};
+    use ro_next_loaders::FileLoader;
 
     use super::{load, names_of, parse, part_candidates, view_of};
 

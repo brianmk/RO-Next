@@ -2,8 +2,8 @@
 //! quest notification/update packets). The server sends the list on map entry
 //! and small updates afterwards; this state feeds the quest tracker window.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::Quest;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, RustState, StateElement)]
@@ -70,6 +70,7 @@ impl QuestLog {
         self.entries.iter().filter(|entry| entry.active)
     }
 
+    #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }

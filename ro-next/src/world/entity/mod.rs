@@ -4,16 +4,16 @@ use std::time::Instant;
 
 use arrayvec::ArrayVec;
 use cgmath::{EuclideanSpace, Point3, Vector2, Vector3, VectorSpace};
+use ragnarok_packets::{
+    AccountId, AttackRange, CharacterId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex,
+    SpriteChangeType, StatType, TilePosition, WorldPosition,
+};
 use ro_next_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::Colorize;
 use ro_next_interface::element::StateElement;
 use ro_next_interface::window::{StateWindow, Window};
 use ro_next_networking::EntityData;
-use ragnarok_packets::{
-    AccountId, AttackRange, CharacterId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex,
-    SpriteChangeType, StatType, TilePosition, WorldPosition,
-};
 use rust_state::{Path, RustState, VecItem};
 #[cfg(feature = "debug")]
 use smallvec::smallvec_inline;
@@ -959,6 +959,7 @@ impl Common {
         self.has_cart() && self.cart_animation.is_none()
     }
 
+    #[cfg(test)]
     pub fn has_imf(&self) -> bool {
         self.imf.is_some()
     }
@@ -1031,11 +1032,13 @@ impl Common {
         self.weapon
     }
 
+    #[cfg(test)]
     /// Shield item id of the entity, `0` if none.
     pub fn get_shield(&self) -> u32 {
         self.shield
     }
 
+    #[cfg(test)]
     /// Robe view id of the entity, `0` if none.
     pub fn get_robe(&self) -> u16 {
         self.robe
@@ -2464,10 +2467,12 @@ impl Entity {
         self.get_common().get_weapon()
     }
 
+    #[cfg(test)]
     pub fn get_shield(&self) -> u32 {
         self.get_common().get_shield()
     }
 
+    #[cfg(test)]
     pub fn get_robe(&self) -> u16 {
         self.get_common().get_robe()
     }

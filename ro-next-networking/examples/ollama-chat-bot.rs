@@ -3,9 +3,9 @@ use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::thread::sleep;
 use std::time::Duration;
 
+use reqwest::StatusCode;
 use ro_next_debug::logging::Colorize;
 use ro_next_networking::{DisconnectReason, NetworkEvent, NetworkingSystem, SupportedPacketVersion};
-use reqwest::StatusCode;
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 struct Message {

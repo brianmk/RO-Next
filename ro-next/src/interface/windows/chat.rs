@@ -446,26 +446,32 @@ impl ChatWindowState {
         self.current_text = text;
     }
 
+    #[cfg(test)]
     pub fn active_channel(&self) -> ChatChannel {
         self.active_channel
     }
 
+    #[cfg(test)]
     pub fn send_channel(&self) -> ChatChannel {
         self.send_channel
     }
 
+    #[cfg(test)]
     pub fn guild_chat_available(&self) -> bool {
         self.guild_chat_available
     }
 
+    #[cfg(test)]
     pub fn set_active_channel(&mut self, channel: ChatChannel) {
         self.active_channel = channel;
     }
 
+    #[cfg(test)]
     pub fn set_send_channel(&mut self, channel: ChatChannel) {
         self.send_channel = channel;
     }
 
+    #[cfg(test)]
     pub fn set_guild_chat_available(&mut self, available: bool) {
         self.guild_chat_available = available;
     }

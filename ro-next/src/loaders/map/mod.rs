@@ -8,6 +8,9 @@ use std::sync::{Arc, Mutex};
 use bytemuck::Pod;
 use cgmath::Vector3;
 use hashbrown::HashMap;
+use ragnarok_bytes::{ByteReader, FromBytes};
+use ragnarok_formats::map::{GatData, GroundData, MapData, MapResources};
+use ragnarok_formats::version::MapFormatMetadata;
 use ro_next_audio::AudioEngine;
 use ro_next_collision::{AABB, KDTree, Sphere};
 #[cfg(feature = "debug")]
@@ -16,9 +19,6 @@ use ro_next_container::{SimpleCache, SimpleSlab};
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, Timer, print_debug};
 use ro_next_loaders::FileLoader;
-use ragnarok_bytes::{ByteReader, FromBytes};
-use ragnarok_formats::map::{GatData, GroundData, MapData, MapResources};
-use ragnarok_formats::version::MapFormatMetadata;
 use wgpu::{BufferUsages, Device, Queue};
 
 use self::minimap::generate_minimap;
@@ -460,10 +460,10 @@ fn create_index_buffer(device: &Device, queue: &Queue, resource: &str, label: &s
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileLoader;
     use ragnarok_bytes::{ByteReader, FromBytes};
     use ragnarok_formats::map::GroundData;
     use ragnarok_formats::version::MapFormatMetadata;
+    use ro_next_loaders::FileLoader;
 
     use crate::loaders::GameFileLoader;
 

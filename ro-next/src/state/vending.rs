@@ -5,8 +5,8 @@
 //! `CZ_REQ_OPENSTORE` packet takes. Keeping the state in `ClientState` lets the
 //! window survive one frame like the other server-driven windows.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::InventoryIndex;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 use serde::{Deserialize, Serialize};
 
@@ -49,10 +49,12 @@ impl Vending {
         self.entries.clear();
     }
 
+    #[cfg(test)]
     pub fn is_active(&self) -> bool {
         self.active
     }
 
+    #[cfg(test)]
     pub fn slots(&self) -> u16 {
         self.slots
     }
@@ -81,10 +83,12 @@ impl Vending {
         self.entries.push(entry);
     }
 
+    #[cfg(test)]
     pub fn remove_entry(&mut self, inventory_index: u16) {
         self.entries.retain(|entry| entry.inventory_index != inventory_index);
     }
 
+    #[cfg(test)]
     pub fn clear(&mut self) {
         self.entries.clear();
         self.active = false;
@@ -166,6 +170,7 @@ impl VendingBrowse {
         &self.pending_shop_name
     }
 
+    #[cfg(test)]
     pub fn is_active(&self) -> bool {
         self.active
     }
@@ -174,10 +179,12 @@ impl VendingBrowse {
         self.owner_account_id
     }
 
+    #[cfg(test)]
     pub fn shop_id(&self) -> u32 {
         self.shop_id
     }
 
+    #[cfg(test)]
     pub fn shop_name(&self) -> &str {
         &self.shop_name
     }

@@ -7,11 +7,6 @@ use std::mem::size_of;
 use std::sync::{Arc, Mutex};
 
 use cgmath::{Deg, Matrix4, Point3, SquareMatrix, Vector3};
-use ro_next_audio::AudioEngine;
-use ro_next_collision::{AABB, Frustum, KDTree, Sphere};
-use ro_next_container::{Cacheable, SimpleKey, SimpleSlab, create_simple_key};
-#[cfg(feature = "debug")]
-use ro_next_debug::logging::Colorize;
 #[cfg(feature = "debug")]
 use option_ext::OptionExt;
 #[cfg(feature = "debug")]
@@ -22,6 +17,11 @@ use ragnarok_formats::map::{LightSource, SoundSource, Tile, TileFlags};
 #[cfg(feature = "debug")]
 use ragnarok_formats::transform::Transform;
 use ragnarok_packets::{ClientTick, TilePosition};
+use ro_next_audio::AudioEngine;
+use ro_next_collision::{AABB, Frustum, KDTree, Sphere};
+use ro_next_container::{Cacheable, SimpleKey, SimpleSlab, create_simple_key};
+#[cfg(feature = "debug")]
+use ro_next_debug::logging::Colorize;
 use rust_state::RustState;
 use wgpu::Queue;
 

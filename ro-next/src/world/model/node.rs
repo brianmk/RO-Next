@@ -1,7 +1,7 @@
 use cgmath::{Matrix, Matrix4, Point3, SquareMatrix, Transform as PointTransform, Vector4, VectorSpace};
-use ro_next_interface::element::StateElement;
 use ragnarok_formats::model::{RotationKeyframeData, ScaleKeyframeData, TranslationKeyframeData};
 use ragnarok_formats::version::InternalVersion;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 use crate::graphics::ModelInstruction;

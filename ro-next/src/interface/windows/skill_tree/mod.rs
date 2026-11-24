@@ -3,9 +3,9 @@ mod state;
 mod tabs;
 
 use hashbrown::HashMap;
+use ragnarok_packets::{SkillId, SkillLevel};
 use ro_next_interface::element::StateElement;
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{SkillId, SkillLevel};
 use rust_state::{ManuallyAssertExt, Path, PathExt, RustState, State, VecIndexExt};
 
 use crate::input::InputEvent;

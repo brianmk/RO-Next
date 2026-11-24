@@ -1,6 +1,6 @@
+use ragnarok_packets::EntityId;
 #[cfg(feature = "debug")]
 use ro_next_container::SimpleKey;
-use ragnarok_packets::EntityId;
 
 #[cfg(feature = "debug")]
 use crate::world::MarkerIdentifier;

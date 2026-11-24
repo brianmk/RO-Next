@@ -87,6 +87,7 @@ DOMAIN_VARIANTS = [
     "MapServerBan",
     "LoginFailed",
     "LoginFailed2",
+    "PurchaseFromMc",
 ]
 
 #: `display` values the client understands.

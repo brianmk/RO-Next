@@ -17,8 +17,8 @@
 //! with the mercenary block id), so the companion info windows are matched to
 //! an entity by job id (pet), name (homunculus) or block id (mercenary).
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{EntityId, HomunculusPropertyPacket2019, JobId, MercenaryInfoPacket2019, PetPropertyPacket2019};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// rAthena `_sp` ids used by the companion parameter-change packets

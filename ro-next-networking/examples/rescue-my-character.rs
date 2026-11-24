@@ -4,9 +4,9 @@ use std::thread::sleep;
 use std::time::Duration;
 
 use clap::Parser;
+use ragnarok_packets::TilePosition;
 use ro_next_debug::logging::Colorize;
 use ro_next_networking::{DisconnectReason, NetworkEvent, NetworkingSystem, SupportedPacketVersion};
-use ragnarok_packets::TilePosition;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

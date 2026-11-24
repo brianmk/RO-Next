@@ -76,6 +76,7 @@ impl Trade {
         self.partner_locked = false;
     }
 
+    #[cfg(test)]
     pub fn is_active(&self) -> bool {
         self.active
     }
@@ -104,6 +105,7 @@ impl Trade {
         self.locked = locked;
     }
 
+    #[cfg(test)]
     pub fn is_locked(&self) -> bool {
         self.locked
     }
@@ -112,6 +114,7 @@ impl Trade {
         self.partner_locked = locked;
     }
 
+    #[cfg(test)]
     pub fn partner_locked(&self) -> bool {
         self.partner_locked
     }

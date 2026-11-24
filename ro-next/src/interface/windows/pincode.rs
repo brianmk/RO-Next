@@ -78,7 +78,7 @@ where
             queue.queue(InputEvent::SubmitPincode { code });
             queue.queue(ro_next_interface::event::Event::Unfocus);
         };
-        let submit_button_action = submit_action.clone();
+        let submit_button_action = submit_action;
 
         window! {
             title: "Enter PIN",

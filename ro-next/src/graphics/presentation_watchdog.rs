@@ -117,8 +117,7 @@ fn handle_stall(elapsed: Duration, backend_is_wayland: bool) {
         match relaunch_on_x11() {
             Ok(_) => {
                 log_warn!(
-                    "[surface] restarting the client on X11/XWayland (RO_NEXT_X11=1) to recover from the native Wayland presentation \
-                     stall"
+                    "[surface] restarting the client on X11/XWayland (RO_NEXT_X11=1) to recover from the native Wayland presentation stall"
                 );
                 std::process::exit(0);
             }
@@ -168,7 +167,7 @@ pub fn log_fallback_startup_line() {
     }
 
     log_warn!(
-        "[surface] this client was restarted because native Wayland presentation stalled (RO_NEXT_X11=1 is active, set \
-         RO_NEXT_WAYLAND=1 to retry native Wayland)"
+        "[surface] this client was restarted because native Wayland presentation stalled (RO_NEXT_X11=1 is active, set RO_NEXT_WAYLAND=1 \
+         to retry native Wayland)"
     );
 }

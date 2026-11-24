@@ -33,8 +33,8 @@
 
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::SkillId;
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use crate::graphics::Color;
@@ -212,8 +212,13 @@ pub(crate) struct WarpPortalSpec {
     pub streak_texture: &'static str,
     pub gradient_texture: &'static str,
     pub particle_sprite: &'static str,
+    /// Official skill-unit portal geometry from `skills.ron`: parsed and
+    /// validated, but the renderer currently uses the procedural warp shape.
+    #[allow(dead_code)]
     pub skill_radius: f32,
+    #[allow(dead_code)]
     pub skill_height: f32,
+    #[allow(dead_code)]
     pub skill_ring_count: u8,
 }
 

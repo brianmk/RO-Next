@@ -40,6 +40,7 @@ impl NotificationKind {
         }
     }
 
+    #[cfg(test)]
     /// Lowercase class name used for the theme/debug output.
     pub fn name(self) -> &'static str {
         match self {
@@ -119,10 +120,12 @@ impl NotificationHud {
         &self.entries
     }
 
+    #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
+    #[cfg(test)]
     pub fn clear(&mut self) {
         self.entries.clear();
     }

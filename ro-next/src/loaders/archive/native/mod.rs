@@ -11,10 +11,10 @@ use std::sync::Mutex;
 
 use blake3::Hasher;
 use flate2::bufread::ZlibDecoder;
-#[cfg(feature = "debug")]
-use ro_next_debug::logging::{Colorize, Timer, print_debug};
 use ragnarok_bytes::{ByteReader, FixedByteSize, FromBytes};
 use ragnarok_formats::archive::{AssetTable, FileTableRow, Header};
+#[cfg(feature = "debug")]
+use ro_next_debug::logging::{Colorize, Timer, print_debug};
 
 pub use self::builder::NativeArchiveBuilder;
 use crate::loaders::archive::Archive;

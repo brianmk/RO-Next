@@ -14,8 +14,8 @@
 //!
 //! All three are now one generated data file,
 //! `archive/data/client/aliases.ron`, produced by `tools/gen_aliases.py` from
-//! the committed facts `tools/data/alias_facts.json` (extracted from the rAthena
-//! server tree and the CondaRO client archives by
+//! the committed facts `tools/data/alias_facts.json` (extracted from the
+//! rAthena server tree and the CondaRO client archives by
 //! `tools/extract_alias_facts.py`; the generators and the facts are committed,
 //! `gen_aliases.py --check` is the CI drift guard).
 //!
@@ -37,8 +37,8 @@
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::{JobId, SkillId};
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use crate::loaders::GameFileLoader;

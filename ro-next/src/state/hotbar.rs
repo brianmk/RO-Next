@@ -11,10 +11,10 @@
 //! tab with `Ctrl+F12`, so all 36 regular rows of a bar can be reached. The
 //! first row is bound to F1-F9.
 
-use ro_next_interface::element::StateElement;
-use ro_next_networking::NetworkingSystem;
 use ragnarok_packets::handler::PacketCallback;
 use ragnarok_packets::{HotbarSlot, HotbarTab, HotkeyData, HotkeyType, ItemId};
+use ro_next_interface::element::StateElement;
+use ro_next_networking::NetworkingSystem;
 use rust_state::RustState;
 
 use crate::state::skills::LearnableSkill;

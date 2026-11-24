@@ -1,9 +1,9 @@
+use ragnarok_packets::{NAME_LENGTH, PASSWORD_LENGTH};
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::element::StateElement;
 use ro_next_interface::element::id::FocusIdExt;
 use ro_next_interface::event::{ClickHandler, EventQueue};
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{NAME_LENGTH, PASSWORD_LENGTH};
 use rust_state::{Path, PathExt, RustState, State};
 
 use crate::graphics::{Color, ShadowPadding};

@@ -2,7 +2,7 @@ mod achievement;
 mod audio_settings;
 mod bank;
 mod big_map;
-mod book;
+pub(crate) mod book;
 mod buff_bar;
 mod buy;
 mod buy_cart;
@@ -62,7 +62,6 @@ mod sell_cart;
 mod server_selection;
 mod skill_description;
 mod skill_tree;
-mod spirit_spheres;
 mod stats;
 mod storage;
 #[cfg(feature = "debug")]
@@ -78,7 +77,7 @@ pub use self::achievement::AchievementWindow;
 pub use self::audio_settings::AudioSettingsWindow;
 pub use self::bank::BankWindow;
 pub use self::big_map::BigMapWindow;
-pub use self::book::{BOOK_LINES_PER_PAGE, BookWindow, book_pages};
+pub use self::book::{BookWindow, book_pages};
 pub use self::buff_bar::{BAR_STRIP_WIDTH, BuffBarWindow};
 pub use self::buy::BuyWindow;
 pub use self::buy_cart::BuyCartWindow;
@@ -139,7 +138,6 @@ pub use self::sell_cart::SellCartWindow;
 pub use self::server_selection::ServerSelectionWindow;
 pub use self::skill_description::SkillDescriptionWindow;
 pub use self::skill_tree::{SkillTreeWindow, SkillTreeWindowState, SkillTreeWindowStatePathExt};
-pub use self::spirit_spheres::SpiritSphereWindow;
 pub use self::stats::StatsWindow;
 pub use self::storage::StorageWindow;
 #[cfg(feature = "debug")]
@@ -177,7 +175,6 @@ pub enum WindowClass {
     Equipment,
     SkillTree,
     SkillDescription,
-    SpiritSpheres,
     Stats,
     Trade,
     TradeRequest,
@@ -237,13 +234,7 @@ impl WindowClass {
     pub fn is_background_overlay(self) -> bool {
         matches!(
             self,
-            Self::Chat
-                | Self::Hotbar
-                | Self::Minimap
-                | Self::CharacterOverview
-                | Self::BuffBar
-                | Self::SpiritSpheres
-                | Self::NotificationHud
+            Self::Chat | Self::Hotbar | Self::Minimap | Self::CharacterOverview | Self::BuffBar | Self::NotificationHud
         )
     }
 }

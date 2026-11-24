@@ -31,6 +31,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use cgmath::{InnerSpace, Matrix3, Point3, Quaternion, Vector3};
+use rayon::spawn;
 use ro_next_collision::{KDTree, Sphere};
 use ro_next_container::{
     CacheStatistics, Cacheable, GenerationalSlab, SimpleCache, SimpleSlab, create_generational_key, create_simple_key,
@@ -38,7 +39,6 @@ use ro_next_container::{
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, print_debug};
 use ro_next_loaders::FileLoader;
-use rayon::spawn;
 
 use crate::backend::cpal::CpalBackend;
 use crate::backend::{Backend, SilentBackend};

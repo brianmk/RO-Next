@@ -2,15 +2,15 @@ use std::num::{NonZeroU32, NonZeroUsize};
 use std::sync::{Arc, Mutex};
 
 use cgmath::Deg;
+use ragnarok_bytes::{ByteReader, FromBytes};
+use ragnarok_formats::effect::EffectData;
+use ragnarok_formats::version::GenericFormatMetadata;
 #[cfg(feature = "debug")]
 use ro_next_container::CacheStatistics;
 use ro_next_container::SimpleCache;
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, Timer, print_debug};
 use ro_next_loaders::FileLoader;
-use ragnarok_bytes::{ByteReader, FromBytes};
-use ragnarok_formats::effect::EffectData;
-use ragnarok_formats::version::GenericFormatMetadata;
 use wgpu::BlendFactor;
 
 use super::error::LoadError;

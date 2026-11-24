@@ -115,8 +115,8 @@ impl TransientAssetNoticeLimiter {
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileNotFoundError;
     use ragnarok_packets::{EntityId, ItemId, SkillId};
+    use ro_next_loaders::FileNotFoundError;
 
     use super::{
         AssetFailureSeverity, MAX_TRANSIENT_ASSET_NOTICES, TransientAssetNoticeLimiter, asset_failure_log_key, asset_failure_severity,

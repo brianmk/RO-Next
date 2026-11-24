@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use cgmath::{Matrix4, MetricSpace, Point3, SquareMatrix, Vector3};
-use ro_next_collision::Sphere;
 use ragnarok_formats::map::LightSource;
 use ragnarok_packets::ClientTick;
+use ro_next_collision::Sphere;
 
 #[cfg(feature = "debug")]
 use crate::graphics::RenderOptions;

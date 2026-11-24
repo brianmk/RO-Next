@@ -5,12 +5,12 @@ use std::sync::{Arc, Mutex};
 #[cfg(feature = "debug")]
 use cgmath::SquareMatrix;
 use cgmath::{Array, Matrix4, Rad, Vector2};
+use num::Zero;
 #[cfg(feature = "debug")]
 use ro_next_container::CacheStatistics;
 use ro_next_container::SimpleCache;
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, print_debug};
-use num::Zero;
 
 use super::error::LoadError;
 use crate::loaders::{ActionLoader, FALLBACK_ACTIONS_FILE, FALLBACK_SPRITE_FILE, SpriteLoader};

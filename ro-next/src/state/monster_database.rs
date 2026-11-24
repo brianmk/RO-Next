@@ -9,8 +9,8 @@
 //! database (`data.grf` has no `mob_db`/`mobinfo` file), so drop rates and item
 //! drops require the server DB and are intentionally not shown.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::JobId;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Result of a Sense (`WZ_ESTIMATION`) cast.

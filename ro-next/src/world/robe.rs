@@ -28,9 +28,9 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
-use ro_next_loaders::FileLoader;
 use mlua::{Lua, Table};
 use ragnarok_packets::{JobId, Sex};
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use super::jobs;
@@ -578,8 +578,8 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, robe: u16, palette_path: 
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileLoader;
     use ragnarok_packets::{JobId, Sex};
+    use ro_next_loaders::FileLoader;
 
     use super::{load, parse, part_candidates, profile};
 

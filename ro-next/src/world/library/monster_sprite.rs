@@ -108,12 +108,12 @@ fn sprite_exists(game_file_loader: &GameFileLoader, path: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileLoader;
     use ragnarok_bytes::{ByteReader, FromBytes};
     use ragnarok_formats::action::ActionsData;
     use ragnarok_formats::sprite::SpriteData;
     use ragnarok_formats::version::GenericFormatMetadata;
     use ragnarok_packets::JobId;
+    use ro_next_loaders::FileLoader;
 
     use super::super::Library;
     use super::{aliases, sprite_exists};

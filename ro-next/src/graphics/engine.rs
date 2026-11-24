@@ -3,11 +3,11 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use cgmath::Vector2;
+use rayon::ThreadPool;
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, print_debug};
 #[cfg(feature = "debug")]
 use ro_next_debug::profile_block;
-use rayon::ThreadPool;
 use wgpu::util::StagingBelt;
 use wgpu::{
     Adapter, BufferAddress, CommandBuffer, CommandEncoder, CommandEncoderDescriptor, Device, Extent3d, Instance, Origin3d, PollType, Queue,
@@ -1291,13 +1291,11 @@ impl GraphicsEngine {
                     .draw(&mut render_pass, instruction.indicator.as_ref());
 
                 engine_context.forward_entity_drawer.draw(&mut render_pass, ForwardEntityDrawData {
-                    entities: instruction.entities,
                     pass_mode: EntityPassMode::Opaque,
                 });
 
                 // Transparent
                 engine_context.forward_entity_drawer.draw(&mut render_pass, ForwardEntityDrawData {
-                    entities: instruction.entities,
                     pass_mode: EntityPassMode::Transparent,
                 });
 

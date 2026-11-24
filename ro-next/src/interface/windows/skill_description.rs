@@ -11,9 +11,9 @@
 //! shows the structured information that is known to the client (the same data
 //! the skill tree and the hotbar use). See the report for details.
 
+use ragnarok_packets::{AttackRange, SkillLevel, SkillType};
 use ro_next_interface::element::Element;
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{AttackRange, SkillLevel, SkillType};
 use rust_state::PathExt;
 
 use crate::interface::windows::WindowClass;

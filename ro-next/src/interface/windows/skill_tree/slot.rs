@@ -1,5 +1,6 @@
 use std::cell::Cell;
 
+use ragnarok_packets::{SkillLevel, SkillType};
 use ro_next_interface::MouseMode;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{BaseLayoutInfo, Element};
@@ -7,7 +8,6 @@ use ro_next_interface::event::{ClickHandler, Event, EventQueue};
 use ro_next_interface::layout::tooltip::TooltipExt;
 use ro_next_interface::layout::{Icon, MouseButton, Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::prelude::{HorizontalAlignment, VerticalAlignment};
-use ragnarok_packets::{SkillLevel, SkillType};
 use rust_state::{Path, State};
 
 use super::{SkillTreeWindowState, SkillTreeWindowStatePathExt};

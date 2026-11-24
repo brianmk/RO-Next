@@ -1093,6 +1093,77 @@
           "client_source": "version_20220406.rs:101"
         }
       ]
+    },
+    {
+      "key": "purchase_from_mc",
+      "variant": "PurchaseFromMc",
+      "server_source": "rAthena src/map/clif.hpp e_pc_purchase_result_frommc (ZC_PC_PURCHASE_RESULT_FROMMC 0x0135)",
+      "unknown": {
+        "template": "The purchase from the vending shop failed (code {code}).",
+        "args": []
+      },
+      "rows": [
+        {
+          "code": 1,
+          "key": "shop.mc.not_enough_zeny",
+          "args": [],
+          "default": "You do not have enough zeny for this purchase.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        },
+        {
+          "code": 2,
+          "key": "shop.mc.weight_limit",
+          "args": [],
+          "default": "You are over your weight limit.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        },
+        {
+          "code": 4,
+          "key": "shop.mc.out_of_stock",
+          "args": [],
+          "default": "The item is out of stock.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        },
+        {
+          "code": 5,
+          "key": "shop.mc.trading",
+          "args": [],
+          "default": "You cannot buy from a vending shop while trading.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        },
+        {
+          "code": 6,
+          "key": "shop.mc.changed",
+          "args": [],
+          "default": "The shop information changed. Please open the shop again.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        },
+        {
+          "code": 7,
+          "key": "shop.mc.no_sales_info",
+          "args": [],
+          "default": "The shop has no sales information for this item.",
+          "display": "current",
+          "msg_id": null,
+          "official": null,
+          "client_source": "vendor-shop result arm of the map-server packet handler"
+        }
+      ]
     }
   ]
 }

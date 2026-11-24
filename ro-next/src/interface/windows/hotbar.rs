@@ -14,6 +14,7 @@
 //! background and chrome; the slot cards, skill icons and the toggles stay
 //! opaque.
 
+use ragnarok_packets::HotbarSlot;
 use ro_next_components::skill_box;
 use ro_next_interface::application::Application;
 use ro_next_interface::element::Element;
@@ -23,7 +24,6 @@ use ro_next_interface::layout::area::PartialArea;
 use ro_next_interface::layout::tooltip::TooltipExt;
 use ro_next_interface::layout::{Resolver, Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::window::{CustomWindow, Window, WindowTheme};
-use ragnarok_packets::HotbarSlot;
 use rust_state::{ArrayLookupExt, OptionExt, Path, PathExt, Selector, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};

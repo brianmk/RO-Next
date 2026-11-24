@@ -1,8 +1,8 @@
 //! Small popup menu that is opened by right-clicking a character, like the
 //! context menu of the original client.
 
-use ro_next_interface::window::{CustomWindow, Window};
 use ragnarok_packets::{EntityId, InventoryIndex, ItemId};
+use ro_next_interface::window::{CustomWindow, Window};
 use rust_state::{PathExt, State};
 
 use crate::input::InputEvent;

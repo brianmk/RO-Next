@@ -82,6 +82,7 @@ pub struct StatusGroundRing {
 }
 
 impl StatusGroundRing {
+    #[allow(clippy::too_many_arguments)] // one argument per ring geometry parameter
     pub fn new(
         texture_loader: &crate::loaders::TextureLoader,
         entity_id: EntityId,

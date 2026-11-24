@@ -238,6 +238,7 @@ mod character_slot_preview {
     use std::cell::{Cell, UnsafeCell};
     use std::time::Instant;
 
+    use ragnarok_packets::CharacterInformation;
     use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
     use ro_next_interface::element::{BaseLayoutInfo, Element};
     use ro_next_interface::event::{ClickHandler, EventQueue};
@@ -245,7 +246,6 @@ mod character_slot_preview {
     use ro_next_interface::layout::area::Area;
     use ro_next_interface::layout::tooltip::TooltipExt;
     use ro_next_interface::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
-    use ragnarok_packets::CharacterInformation;
     use rust_state::{Path, State};
 
     use super::character_preview_scale;

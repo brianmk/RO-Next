@@ -17,8 +17,8 @@
 //! The body of a read mail is merged into the list entry by mail id because the
 //! server sends a fresh list right after the read acknowledgement.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{MailAttachmentItem2019, MailListEntry2019};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Attachment flag of the list packet: the mail contains zeny
@@ -99,7 +99,7 @@ impl Mail {
         self.mail_type & MAIL_TYPE_ITEM != 0
     }
 
-    pub fn from_npc(&self) -> bool {
+    pub fn is_from_npc(&self) -> bool {
         self.mail_type & MAIL_TYPE_NPC != 0
     }
 
@@ -119,7 +119,7 @@ impl Mail {
             parts.push("items");
         }
 
-        if self.from_npc() {
+        if self.is_from_npc() {
             parts.push("NPC");
         }
 
@@ -351,7 +351,7 @@ mod tests {
 
         assert!(mail.has_zeny());
         assert!(mail.has_items());
-        assert!(mail.from_npc());
+        assert!(mail.is_from_npc());
         assert!(mail.has_attachments());
         assert!(!mail.read);
 

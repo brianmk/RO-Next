@@ -381,7 +381,7 @@ where
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use ro_next_interface::prelude::*;
 
-        let title_path = self.room_path.clone();
+        let title_path = self.room_path;
         let title = ComputedSelector::new_default(move |state: &ClientState| title_path.follow_safe(state).display_title());
 
         let create_title_path = self.room_path.create_title();
@@ -400,7 +400,7 @@ where
             });
             queue.queue(Event::Unfocus);
         };
-        let create_button_action = create_action.clone();
+        let create_button_action = create_action;
 
         let message_path = self.room_path.message_text();
         let message_action_path = self.room_path.message_text();
@@ -415,7 +415,7 @@ where
             queue.queue(InputEvent::SendChatRoomMessage { text });
             queue.queue(Event::Unfocus);
         };
-        let send_button_action = send_action.clone();
+        let send_button_action = send_action;
 
         let password_path = self.room_path.join_password();
         let error_path = self.room_path.error();
@@ -444,7 +444,7 @@ where
                         follow: true,
                         fit_content_height: false,
                         children: RoomContentElement {
-                            room_path: self.room_path.clone(),
+                            room_path: self.room_path,
                         },
                     },
                     split! {
@@ -498,7 +498,7 @@ where
                         follow: true,
                         fit_content_height: false,
                         children: NearbyRoomsElement {
-                            room_path: self.room_path.clone(),
+                            room_path: self.room_path,
                         },
                     },
                     text! {

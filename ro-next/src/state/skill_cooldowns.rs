@@ -1,5 +1,5 @@
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{ClientTick, SkillId};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// One active skill cooldown (`ZC_SKILL_POSTDELAY`, 0x043D).

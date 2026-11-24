@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use cgmath::{Array, EuclideanSpace, Matrix4, Point3, Rad, SquareMatrix, Vector2, Vector3};
 use hashbrown::{HashMap, HashSet};
-use ro_next_collision::{AABB, multiply_matrix4_and_point3};
-#[cfg(feature = "debug")]
-use ro_next_debug::logging::{Colorize, Timer};
-use ro_next_loaders::FileLoader;
 use num::Zero;
 use ragnarok_bytes::{ByteReader, FromBytes};
 use ragnarok_formats::model::{ModelData, NodeData};
 use ragnarok_formats::version::{GenericFormatMetadata, InternalVersion};
+use ro_next_collision::{AABB, multiply_matrix4_and_point3};
+#[cfg(feature = "debug")]
+use ro_next_debug::logging::{Colorize, Timer};
+use ro_next_loaders::FileLoader;
 use smallvec::SmallVec;
 
 use super::error::LoadError;

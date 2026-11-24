@@ -36,7 +36,7 @@ pub enum BattleModeCommand {
 /// battle-mode command, so it falls through to the regular slash-command
 /// translation instead of silently toggling.
 pub fn parse_battle_mode_command(text: &str) -> Option<BattleModeCommand> {
-    let mut parts = text.trim_start().split_whitespace();
+    let mut parts = text.split_whitespace();
     let command = parts.next()?;
 
     if !command.eq_ignore_ascii_case("/bm") {

@@ -1,6 +1,6 @@
 use cgmath::{Deg, Matrix3, Vector3};
-use ro_next_interface::element::StateElement;
 use ragnarok_formats::map::LightSettings;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 use crate::graphics::Color;

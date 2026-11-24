@@ -48,8 +48,7 @@ pub(crate) enum EntityPassMode {
     Transparent = 1,
 }
 
-pub(crate) struct ForwardEntityDrawData<'a> {
-    pub(crate) entities: &'a [EntityInstruction],
+pub(crate) struct ForwardEntityDrawData {
     pub(crate) pass_mode: EntityPassMode,
 }
 
@@ -81,7 +80,7 @@ pub(crate) struct ForwardEntityDrawer {
 
 impl Drawer<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAttachmentCount::One }> for ForwardEntityDrawer {
     type Context = ForwardRenderPassContext;
-    type DrawData<'data> = ForwardEntityDrawData<'data>;
+    type DrawData<'data> = ForwardEntityDrawData;
 
     fn new(
         capabilities: &Capabilities,
@@ -419,6 +418,7 @@ impl ForwardEntityDrawer {
         })
     }
 
+    #[allow(clippy::too_many_arguments)] // pipeline descriptors are positional by nature
     fn create_pipeline(
         device: &Device,
         global_context: &GlobalContext,

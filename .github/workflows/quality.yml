@@ -285,3 +285,21 @@ jobs:
           python3 -m py_compile tools/gen_messages.py tools/extract_message_facts.py
           python3 -m py_compile tools/gen_skills.py tools/gen_skill_sounds.py
           python3 -m py_compile tools/extract_alias_facts.py tools/gen_aliases.py tools/test_gen_aliases.py
+
+  # The flake is the documented local dev environment (`nix develop`,
+  # `.envrc`), so keep it building in CI instead of relying on local luck.
+  nix-devshell:
+    name: Nix devShell
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v25
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Build devShell
+        run: nix develop -L

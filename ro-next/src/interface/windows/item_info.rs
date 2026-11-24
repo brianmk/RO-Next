@@ -990,8 +990,8 @@ impl CustomWindow<ClientState> for ItemInfoWindow {
 
 #[cfg(test)]
 mod tests {
-    use ro_next_networking::{InventoryItem, InventoryItemDetails};
     use ragnarok_packets::{EquipPosition, EquippableItemFlags, InventoryIndex, ItemId, ItemOptions, RegularItemFlags};
+    use ro_next_networking::{InventoryItem, InventoryItemDetails};
 
     use super::{ComparisonStat, Delta, StatComparison, compare_stats, equipped_item_in_slot};
     use crate::world::{ItemStats, ResourceMetadata};

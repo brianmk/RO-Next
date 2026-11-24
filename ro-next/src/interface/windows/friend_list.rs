@@ -1,11 +1,11 @@
 use std::cmp::Ordering;
 
+use ragnarok_packets::{Friend, MIN_NAME_LENGTH, NAME_LENGTH};
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{Element, ElementBox, StateElement};
 use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{Friend, MIN_NAME_LENGTH, NAME_LENGTH};
 use rust_state::{ManuallyAssertExt, Path, PathExt, RustState, State, VecIndexExt};
 
 use crate::graphics::Color;

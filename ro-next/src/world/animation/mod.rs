@@ -3,9 +3,9 @@ use std::sync::{Arc, LazyLock};
 #[cfg(feature = "debug")]
 use cgmath::SquareMatrix;
 use cgmath::{Array, Matrix4, Point3, Transform, Vector2, Vector3, Zero};
+use ragnarok_packets::{ClientTick, Direction, EntityId};
 use ro_next_container::Cacheable;
 use ro_next_interface::element::StateElement;
-use ragnarok_packets::{ClientTick, Direction, EntityId};
 use rust_state::RustState;
 
 #[cfg(feature = "debug")]

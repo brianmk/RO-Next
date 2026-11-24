@@ -31,8 +31,8 @@
 //! flow (pick item -> materials -> attempt) differs from the Blacksmith skill
 //! refine list.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{InventoryIndex, ItemId};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Which item service the shared window currently shows.
@@ -143,7 +143,7 @@ pub struct RefiningMaterial {
 /// attempts the refine with `CZ_REQ_REFINING` (0x0AA3). The server re-sends the
 /// material list after every attempt; `ZC_ACK_ITEMREFINING` (0x0188) carries
 /// the new refine level. Closing sends `CZ_CLOSE_REFINING_UI` (0x0AA4).
-#[derive(RustState, StateElement)]
+#[derive(RustState, StateElement, Default)]
 pub struct RefiningUi {
     /// Whether the server opened the UI.
     pub open: bool,
@@ -162,20 +162,6 @@ pub struct RefiningUi {
     pub use_blacksmith_blessing: bool,
     /// Result line shown at the top of the window.
     pub status_message: String,
-}
-
-impl Default for RefiningUi {
-    fn default() -> Self {
-        Self {
-            open: false,
-            candidates: Vec::new(),
-            item: None,
-            materials: Vec::new(),
-            blacksmith_blessing: 0,
-            use_blacksmith_blessing: false,
-            status_message: String::new(),
-        }
-    }
 }
 
 impl RefiningUi {
@@ -214,7 +200,7 @@ impl RefiningUi {
 }
 
 /// State of the shared item service window.
-#[derive(RustState, StateElement)]
+#[derive(RustState, StateElement, Default)]
 pub struct ItemService {
     /// Service whose list is currently shown, `None` while the window is
     /// closed.
@@ -229,18 +215,6 @@ pub struct ItemService {
     /// State of the NPC/atcommand refine UI (`UIRefiningWnd`).
     #[hidden_element]
     pub refining: RefiningUi,
-}
-
-impl Default for ItemService {
-    fn default() -> Self {
-        Self {
-            kind: None,
-            entries: Vec::new(),
-            card: None,
-            status_message: String::new(),
-            refining: RefiningUi::default(),
-        }
-    }
 }
 
 impl ItemService {

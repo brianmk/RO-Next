@@ -69,8 +69,8 @@ use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 use cgmath::Vector3;
-use ro_next_loaders::FileLoader;
 use ragnarok_packets::SkillId;
+use ro_next_loaders::FileLoader;
 use serde::Deserialize;
 
 use crate::graphics::Color;
@@ -1012,8 +1012,8 @@ mod tests {
     #[test]
     #[ignore]
     fn probe_luafiles514_tables() {
-        use ro_next_loaders::FileLoader;
         use mlua::Lua;
+        use ro_next_loaders::FileLoader;
 
         let loader = crate::loaders::GameFileLoader::default();
         loader.load_archives_from_settings();
@@ -1096,8 +1096,8 @@ mod tests {
     #[test]
     #[ignore]
     fn dump_official_skill_tables() {
-        use ro_next_loaders::FileLoader;
         use mlua::Lua;
+        use ro_next_loaders::FileLoader;
 
         let loader = crate::loaders::GameFileLoader::default();
         loader.load_archives_from_settings();

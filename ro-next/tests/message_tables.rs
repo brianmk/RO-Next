@@ -96,10 +96,19 @@ const REMOVED_HARDCODED_MESSAGES: &[&str] = &[
     "Unknown error",
 ];
 
+/// Client-side guards that run *before* a request is sent, so the official
+/// client never receives them as a result code and the message table has no
+/// row for them. They are listed here so the check below stays about result
+/// codes only.
+const CLIENT_SIDE_GUARDS: &[&str] = &["You do not have enough zeny."];
+
 #[test]
 fn hardcoded_result_message_arms_are_gone() {
     for (name, source) in [("ro-next/src/lib.rs", LIB_RS), ("version_20220406.rs", VERSION_RS)] {
         for message in REMOVED_HARDCODED_MESSAGES {
+            if CLIENT_SIDE_GUARDS.contains(message) {
+                continue;
+            }
             assert!(
                 !source.contains(message),
                 "{name} still contains the hardcoded result message {message:?}; it belongs in messages.ron"
@@ -168,7 +177,7 @@ fn the_committed_data_file_is_the_message_source() {
 #[test]
 fn check_messages_validates_the_compiled_data_and_rejects_malformed_files() {
     let rows = ro_next::check_messages(None).expect("the compiled message data has to be valid");
-    assert_eq!(rows, 81, "the committed table has exactly the 81 previous result mappings");
+    assert_eq!(rows, 87, "the committed table has one row per result code of the 10 domains");
 
     let path = std::env::temp_dir().join(format!("ro-next-messages-check-{}.ron", std::process::id()));
     std::fs::write(&path, "( this is not a message table )").expect("failed to write the malformed fixture");

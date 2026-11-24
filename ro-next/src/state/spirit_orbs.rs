@@ -1,5 +1,5 @@
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::EntityId;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Spirit-sphere count of one entity (`ZC_SPIRITS` 0x01D0 /

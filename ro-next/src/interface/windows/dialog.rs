@@ -1,13 +1,13 @@
 use std::cell::UnsafeCell;
 use std::sync::Arc;
 
+use ragnarok_packets::{EntityId, SkillId};
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::element::{Element, ElementBox, ErasedElement, StateElement};
 use ro_next_interface::layout::area::Area;
 use ro_next_interface::layout::{Resolvers, with_single_resolver};
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{EntityId, SkillId};
 use rust_state::{Path, RustState, State};
 
 use super::WindowClass;

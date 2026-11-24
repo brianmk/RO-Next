@@ -1,11 +1,11 @@
 use std::any::TypeId;
 
 use etherparse::{SlicedPacket, TransportSlice};
-use ro_next_debug::logging::symbols::ARROW;
-use ro_next_debug::logging::{Colorize, Colorized};
 use ragnarok_bytes::{ByteReader, ConversionError};
 use ragnarok_packets::handler::{HandlerResult, PacketCallback, PacketHandler};
 use ragnarok_packets::*;
+use ro_next_debug::logging::symbols::ARROW;
+use ro_next_debug::logging::{Colorize, Colorized};
 
 // Adjust this to change which packets will print their content!
 const EXPAND_BEHAVIOR: ExpandBehavior = ExpandBehavior::Blacklist(&[

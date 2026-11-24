@@ -4,10 +4,11 @@
 //! entity for as long as the status is active. The visuals are **data**: each
 //! glow style is a `PersistentGlow` aura spec in the client data file
 //! `archive/data/client/status_effects.ron` (generated from the official
-//! server/client data plus the curated overlay `tools/data/status_effect_custom.ron`
-//! by `tools/gen_status_effects.py`). Adding or tuning an aura is a data row,
-//! not a Rust change; [`status_aura_spec`] is only a thin lookup into the
-//! status-effect data table.
+//! server/client data plus the curated overlay
+//! `tools/data/status_effect_custom.ron` by `tools/gen_status_effects.py`).
+//! Adding or tuning an aura is a data row, not a Rust change;
+//! [`status_aura_spec`] is only a thin lookup into the status-effect data
+//! table.
 //!
 //! The first data row is Assumptio (`EFST_ASSUMPTIO` 110 / `EFST_ASSUMPTIO2`
 //! 473): the official 2019 client renders `EF_ASSUMPTIO` in hard-coded C++ and
@@ -35,9 +36,9 @@
 //!
 //! # Adding another status glow
 //!
-//! Add a data row to `tools/data/status_effect_custom.ron` (a `PersistentGlow` spec
-//! for the status ids) and regenerate the data file; nothing in this module has
-//! to change. The world reconciles the active status effects of
+//! Add a data row to `tools/data/status_effect_custom.ron` (a `PersistentGlow`
+//! spec for the status ids) and regenerate the data file; nothing in this
+//! module has to change. The world reconciles the active status effects of
 //! [`crate::state::status_effects`] against the spawned auras every frame
 //! ([`crate::World`] `update_status_auras`), so start/end packets, local
 //! expiry, map change, death, refresh and entities entering/leaving the view

@@ -34,6 +34,7 @@ pub struct WhisperConversation {
 }
 
 impl WhisperConversation {
+    #[cfg(test)]
     pub fn partner(&self) -> &str {
         &self.partner
     }
@@ -126,6 +127,7 @@ impl WhisperConversations {
             .unwrap_or(&[])
     }
 
+    #[cfg(test)]
     /// History of one partner, for tests and diagnostics.
     pub fn messages(&self, partner: &str) -> &[WhisperMessage] {
         self.conversations
@@ -135,6 +137,7 @@ impl WhisperConversations {
             .unwrap_or(&[])
     }
 
+    #[cfg(test)]
     /// Forget every conversation (e.g. on logout).
     pub fn clear(&mut self) {
         self.active_partner.clear();

@@ -10,6 +10,7 @@
 
 use std::sync::Arc;
 
+use ragnarok_packets::EquipPosition;
 use ro_next_interface::MouseMode;
 use ro_next_interface::element::Element;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
@@ -18,7 +19,6 @@ use ro_next_interface::layout::area::Area;
 use ro_next_interface::layout::tooltip::TooltipExt;
 use ro_next_interface::layout::{MouseButton, Resolvers, WindowLayout, with_single_resolver};
 use ro_next_networking::{InventoryItem, InventoryItemDetails};
-use ragnarok_packets::EquipPosition;
 use rust_state::{Path, PathExt, Selector, State};
 
 use super::paper_doll_slots;

@@ -64,6 +64,15 @@ use cgmath::{InnerSpace, Point3, Vector3};
 use hashbrown::HashMap;
 use image::{EncodableLayout, ImageFormat, ImageReader};
 use input::{MouseInputMode, MouseModeExt};
+#[cfg(feature = "debug")]
+use networking::{PacketHistory, PacketHistoryCallback};
+use ragnarok_packets::{
+    AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
+    DisappearanceReason, EntityId, EquipPosition, EquippableItemFlags, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType,
+    InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId,
+    WorldPosition,
+};
+use renderer::InterfaceRenderer;
 use ro_next_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::{Colorize, print_debug};
@@ -80,15 +89,6 @@ use ro_next_networking::{
     DisconnectReason, HotkeyState, ItemQuantity, LoginServerLoginData, MessageColor, NetworkEvent, NetworkEventBuffer, NetworkingSystem,
     SellItem, SupportedPacketVersion,
 };
-#[cfg(feature = "debug")]
-use networking::{PacketHistory, PacketHistoryCallback};
-use ragnarok_packets::{
-    AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
-    DisappearanceReason, EntityId, EquipPosition, EquippableItemFlags, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType,
-    InventoryIndex, ItemId, JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId,
-    WorldPosition,
-};
-use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
 #[cfg(feature = "debug")]
 use rust_state::{VecIndexExt, VecLookupExt};
@@ -176,13 +176,13 @@ struct ClientPacketCallback;
 
 #[cfg(not(feature = "debug"))]
 impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
-    fn incoming_packet<Packet>(&self, packet: &Packet)
+    fn incoming_packet<Packet>(&self, _packet: &Packet)
     where
         Packet: ragnarok_packets::Packet,
     {
     }
 
-    fn outgoing_packet<Packet>(&self, packet: &Packet)
+    fn outgoing_packet<Packet>(&self, _packet: &Packet)
     where
         Packet: ragnarok_packets::Packet,
     {
@@ -2775,6 +2775,7 @@ impl Client {
         self.effect_holder.add_effect(Box::new(circle));
     }
 
+    #[allow(clippy::too_many_arguments)] // mirrors the effect-layer schema (phase, anchor, timing, tint)
     /// Spawns every layer of one skill phase.
     ///
     /// All visuals of a skill cast are driven by the single unified descriptor
@@ -6880,7 +6881,7 @@ impl Client {
                     // servers also send result 0 (success); do not report that as an
                     // error.
                     if result != 0 {
-                        self.push_chat_warning(vending_purchase_result_message(result).to_owned());
+                        self.push_chat_information(format_message(MessageDomain::PurchaseFromMc, u16::from(result), &[]));
                     }
                 }
                 NetworkEvent::IventoryItemAdded { item } => {
@@ -6899,10 +6900,11 @@ impl Client {
                     is_identified,
                 } => {
                     let name = self.library.item_name(item_id, is_identified);
-                    let message = ro_next_messages::render_template(
-                        self.client_state.follow(client_state().localization().chat_item_obtained()),
-                        &[("name", name.as_ref()), ("quantity", &quantity.to_string())],
-                    );
+                    let message =
+                        ro_next_messages::render_template(self.client_state.follow(client_state().localization().chat_item_obtained()), &[
+                            ("name", name.as_ref()),
+                            ("quantity", &quantity.to_string()),
+                        ]);
                     self.client_state
                         .follow_mut(client_state().chat_messages())
                         .push(ChatMessage::new(message, MessageColor::Information));
@@ -7868,7 +7870,7 @@ impl Client {
                         && self.can_attack_entity(target_entity_id)
                         && let Some(path) =
                             self.path_finder
-                                .find_walkable_path_in_range(&TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())), player_position, target_position, attack_range)
+                                .find_walkable_path_in_range(&TraversableMap::new(map, self.client_state.follow(client_state().map_cell_overrides())), player_position, target_position, attack_range)
                     {
                         let nearest_tile = path.last().unwrap();
 
@@ -9149,7 +9151,7 @@ impl Client {
                 InputEvent::SendChatRoomMessage { text } => {
                     let player_name = self.client_state.follow(client_state().player_name()).clone();
 
-                    if let Err(_) = self.networking_system.send_chat_message(&player_name, &text) {
+                    if self.networking_system.send_chat_message(&player_name, &text).is_err() {
                         self.client_state
                             .follow_mut(client_state().content_windows().chat_room())
                             .set_error("Not connected to the map server.".to_owned());
@@ -9890,7 +9892,7 @@ impl Client {
 
                                 *self.client_state.follow_mut(client_state().buffered_action()) = None;
                             } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
+                                &TraversableMap::new(map, self.client_state.follow(client_state().map_cell_overrides())),
                                 player_position,
                                 item_position,
                                 ITEM_PICKUP_RANGE,
@@ -10405,7 +10407,7 @@ impl Client {
                                         {
                                             let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                         } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                            &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
+                                            &TraversableMap::new(map, self.client_state.follow(client_state().map_cell_overrides())),
                                             player_position,
                                             target_position,
                                             attack_range,
@@ -10462,7 +10464,7 @@ impl Client {
                                             {
                                                 let _ = self.networking_system.cast_ground_skill(skill_id, level, target_position);
                                             } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
+                                                &TraversableMap::new(map, self.client_state.follow(client_state().map_cell_overrides())),
                                                 player_position,
                                                 target_position,
                                                 attack_range,
@@ -10523,7 +10525,7 @@ impl Client {
                                             {
                                                 let _ = self.networking_system.cast_skill(skill_id, level, entity_id);
                                             } else if let Some(path) = self.path_finder.find_walkable_path_in_range(
-                                                &TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())),
+                                                &TraversableMap::new(map, self.client_state.follow(client_state().map_cell_overrides())),
                                                 player_position,
                                                 target_position,
                                                 attack_range,
@@ -13158,21 +13160,6 @@ fn open_storage_item_menu(
 
 /// The amount of an [InventoryItem]: the stack size for regular items, one for
 /// equipment and other non-stackable items.
-/// Human readable reason for a failed vending purchase
-/// (`ZC_PC_PURCHASE_RESULT_FROMMC`, 0x0135). The result codes come from
-/// rAthena `e_pc_purchase_result_frommc` (`clif.hpp:818`).
-fn vending_purchase_result_message(result: u8) -> &'static str {
-    match result {
-        1 => "You do not have enough zeny for this purchase.",
-        2 => "You are over your weight limit.",
-        4 => "The item is out of stock.",
-        5 => "You cannot buy from a vending shop while trading.",
-        6 => "The shop information changed. Please open the shop again.",
-        7 => "The shop has no sales information for this item.",
-        _ => "The purchase from the vending shop failed.",
-    }
-}
-
 fn item_amount(item: &ro_next_networking::InventoryItem<ResourceMetadata>) -> u32 {
     match &item.details {
         ro_next_networking::InventoryItemDetails::Regular { amount, .. } => (*amount).into(),
@@ -14935,7 +14922,7 @@ mod tests {
 
         let pages = book_pages(&text);
         assert_eq!(pages.len(), 3);
-        assert_eq!(pages[0].len(), crate::interface::windows::BOOK_LINES_PER_PAGE);
+        assert_eq!(pages[0].len(), crate::interface::windows::book::BOOK_LINES_PER_PAGE);
         assert_eq!(pages[0][0], "line 0");
         assert_eq!(pages[2].len(), 2);
         assert_eq!(pages[2][1], "line 31");

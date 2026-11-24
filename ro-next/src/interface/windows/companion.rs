@@ -12,9 +12,9 @@
 //! Full pet/homunculus/mercenary AI, feeding, commands and skill trees are out
 //! of scope; this is an information window only.
 
+use ragnarok_packets::EntityId;
 use ro_next_interface::prelude::ComputedSelector;
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::EntityId;
 use rust_state::{PathExt, Selector};
 
 use crate::interface::windows::WindowClass;

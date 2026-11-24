@@ -1,6 +1,6 @@
+use ragnarok_packets::{MIN_NAME_LENGTH, NAME_LENGTH};
 use ro_next_interface::components::text_box::DefaultHandler;
 use ro_next_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{MIN_NAME_LENGTH, NAME_LENGTH};
 use rust_state::{Path, PathExt, State};
 
 use crate::input::InputEvent;

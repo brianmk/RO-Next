@@ -22,9 +22,9 @@
 //! Everything is optional data: a server without the navigation Lua files
 //! still gets an empty database and the rest of the client works unchanged.
 
-use ro_next_loaders::FileLoader;
 use mlua::Lua;
 use ragnarok_packets::{JobId, TilePosition};
+use ro_next_loaders::FileLoader;
 
 use crate::loaders::GameFileLoader;
 

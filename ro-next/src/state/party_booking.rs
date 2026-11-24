@@ -16,8 +16,8 @@
 //! a whisper action as the 2019 join workaround; the join request/reply state
 //! is still implemented for newer servers.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{AccountId, CharacterId, JobId, PartyBookingEntry2019, TilePosition};
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Maximum number of rows the server returns per search

@@ -37,8 +37,6 @@ pub struct WarpPortal {
     streak_texture: Arc<Texture>,
     gradient_texture: Arc<Texture>,
     particle_texture: Arc<Texture>,
-    /// Textures and flat skill-unit portal geometry of the data file.
-    config: &'static crate::world::skills::WarpPortalSpec,
 }
 
 impl WarpPortal {
@@ -55,7 +53,6 @@ impl WarpPortal {
             streak_texture,
             gradient_texture,
             particle_texture,
-            config,
         })
     }
 
@@ -291,7 +288,9 @@ impl WarpPortal {
 }
 
 /// Rotates the four corners of a ground aligned quad around the anchor (only
-/// the x/z components, so it stays on the ground).
+/// the x/z components, so it stays on the ground). Exercised by the unit test
+/// below; the renderer builds its quads already rotated.
+#[cfg(test)]
 fn rotate_ground_corners(corners: [Point3<f32>; 4], anchor: Point3<f32>, angle: f32) -> [Point3<f32>; 4] {
     corners.map(|corner| {
         let offset = corner - anchor;

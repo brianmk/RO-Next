@@ -4,14 +4,13 @@
 //! quest title, so the tracker shows the quest id and one line per objective.
 //! The window is opened from the menu and refreshed from `ClientState`.
 
-use ro_next_interface::prelude::ComputedSelector;
 use ro_next_interface::window::{CustomWindow, Window};
-use rust_state::{Path, PathExt, Selector};
+use rust_state::{Path, PathExt};
 
 use crate::interface::windows::WindowClass;
 use crate::loaders::OverflowBehavior;
+use crate::state::ClientState;
 use crate::state::quest_log::QuestLog;
-use crate::state::{ClientState, ClientStatePathExt};
 
 pub struct QuestWindow<A> {
     quest_log_path: A,

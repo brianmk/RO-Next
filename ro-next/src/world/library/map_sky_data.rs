@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
-use ro_next_loaders::FileLoader;
 use mlua::{Lua, Value};
+use ro_next_loaders::FileLoader;
 
 use super::{Library, Table};
 use crate::graphics::Color;

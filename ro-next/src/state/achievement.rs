@@ -13,8 +13,8 @@
 //! `ZC_REQ_ACH_REWARD_ACK` (0x0A26) and, on success, as a `ZC_ACH_UPDATE`
 //! with `got_rewarded = 1`.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::AchievementData;
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// One achievement of the player's log.

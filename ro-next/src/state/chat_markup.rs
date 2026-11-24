@@ -134,13 +134,10 @@ fn tag_name_at(text: &str) -> Option<&'static str> {
     let name = &text[..name_end];
 
     // Tag names are compared case-insensitively, like the official client.
-    for candidate in [TAG_ITEMLINK, TAG_ITEM, TAG_NAVI, TAG_URL] {
-        if name.eq_ignore_ascii_case(candidate) {
-            return Some(candidate);
-        }
-    }
-
-    None
+    [TAG_ITEMLINK, TAG_ITEM, TAG_NAVI, TAG_URL]
+        .into_iter()
+        .find(|&candidate| name.eq_ignore_ascii_case(candidate))
+        .map(|v| v as _)
 }
 
 /// Try to parse a recognised tag at the start of `text`. Returns the run and

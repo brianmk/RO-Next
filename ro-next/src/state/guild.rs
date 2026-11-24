@@ -15,11 +15,11 @@
 //! `ZC_ACK_REQNAME_BYGID` (0x0AF7) answers here. Until a name arrives the row
 //! shows an explicit `Unknown (#<char id>)` placeholder, never a blank name.
 
-use ro_next_interface::element::StateElement;
 use ragnarok_packets::{
     AccountId, CharacterId, GuildAllianceInfo, GuildInfoPacket, GuildMemberInfo, GuildMemberPositionChangedEntry,
     GuildPositionChangedEntry, GuildPositionInfoEntry, GuildPositionNameEntry, JobId,
 };
+use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 /// Position id of the guild master (`guild.member[0].position`).
