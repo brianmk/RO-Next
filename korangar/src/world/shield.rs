@@ -19,6 +19,15 @@
 //!
 //! The shield is drawn as its own animation layer with the body animation
 //! state/action/frame, in front of the body and behind the weapon.
+//!
+//! Per-motion layer direction: unlike the robe, the official client has **no**
+//! `DrawOnTop`/`2DLayerDir` table for shields. `SpriteLayerRenderer` draws the
+//! shield as the fixed layer 7 (`DrawLayer`/`ShouldDrawLayer`,
+//! `rodecomp/Source/Contents/Sprites/SpriteLayerDrawing.cpp`) and the
+//! per-motion placement comes from the cells/anchors of the shield `.act`
+//! frame, which the animation loader already applies. The archives were checked
+//! for a `ShieldLayerDir`/shield entry in the `2DLayerDir` Lua tables and none
+//! exists, so the fixed layer remains the correct fallback.
 
 use std::collections::HashSet;
 use std::sync::OnceLock;

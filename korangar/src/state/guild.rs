@@ -448,6 +448,22 @@ impl Guild {
         self.notice_input = self.notice.clone();
     }
 
+    /// Whether `guild_id` is the local guild or one of its **allied** guilds.
+    ///
+    /// This mirrors `GuildInfo::HasRelatedGuild`
+    /// (`rodecomp/Source/Contents/Guild/GuildInfo.cpp`): only alliances with
+    /// `relation == 0` (allies, not antagonists) count. The own guild is
+    /// included so callers can use the same predicate for the guild id of a
+    /// target entity; the local player itself is excluded separately.
+    pub fn is_related_guild(&self, guild_id: u32) -> bool {
+        guild_id != 0
+            && (guild_id == self.guild_id
+                || self
+                    .alliances
+                    .iter()
+                    .any(|alliance| !alliance.antagonist && alliance.guild_id == guild_id))
+    }
+
     /// Applies `ZC_MYGUILD_BASIC_INFO`.
     pub fn apply_alliances(&mut self, alliances: &[GuildAllianceInfo]) {
         self.alliances = alliances

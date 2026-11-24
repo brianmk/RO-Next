@@ -162,6 +162,15 @@ impl AnimationState {
         self.loop_mode
     }
 
+    /// Base action index of the animation currently being played.
+    ///
+    /// This is the value the official client calls `previousAnimation` when it
+    /// looks up per-motion appearance tables such as `DrawOnTop`
+    /// (`CCharacterRender::DrawOnTop` / `CPc::IsDrawOnTop`).
+    pub fn action_index(&self) -> usize {
+        self.action_base_offset
+    }
+
     /// Set a playback speed multiplier (e.g. `1.5` for a 50 % faster loop).
     pub fn with_speed(mut self, speed: f32) -> Self {
         self.speed = speed.max(0.01);
@@ -555,6 +564,57 @@ impl AnimationData {
         } else {
             &animation.frames[frame_index]
         }
+    }
+
+    /// Action index and frame index currently shown for the given state,
+    /// camera and facing direction.
+    ///
+    /// Per-motion appearance tables (`DrawOnTop`/`2DLayerDir`) are indexed by
+    /// the action number (the official `previousAnimation`) and the frame
+    /// number (the official `curMotion`), so the renderer needs both without
+    /// selecting the actual frame texture.
+    pub fn motion(&self, animation_state: &AnimationState, camera: &dyn Camera, direction: Direction) -> Option<(usize, usize)> {
+        if self.delays.is_empty() || self.animations.is_empty() {
+            return None;
+        }
+
+        let camera_direction = camera.camera_direction();
+        let direction = (camera_direction + u16::from(direction) as usize) & 7;
+        let animation_action_index = animation_state.action_index() * 8 + direction;
+
+        let delay_index = animation_action_index % self.delays.len();
+        let animation_index = animation_action_index % self.animations.len();
+
+        let delay = self.delays[delay_index];
+        let animation = &self.animations[animation_index];
+
+        if animation.frames.is_empty() {
+            return None;
+        }
+
+        let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
+        let factor = if factor > 0.0 { factor } else { 50.0 };
+
+        let frame_time = match animation_state.duration {
+            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
+            _ => (animation_state.time as f32 / factor) as u32,
+        };
+
+        let frame_index = match animation_state.is_sitting() {
+            true => 0,
+            false => match animation_state.looping {
+                true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
+                false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+            },
+        };
+
+        let frame_index = if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
+            0
+        } else {
+            frame_index
+        };
+
+        Some((animation_state.action_index(), frame_index))
     }
 
     pub fn calculate_world_matrix(

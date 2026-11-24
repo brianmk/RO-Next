@@ -256,6 +256,15 @@ impl Party {
         self.members.iter().find(|member| member.account_id == account_id)
     }
 
+    /// Whether `character_id` is a member of the local player's party.
+    ///
+    /// Entity-appear packets only carry the character id (`GID`) for players;
+    /// the account id is part of the party roster. Targeting rules use the
+    /// character id to recognize party members.
+    pub fn is_character_member(&self, character_id: CharacterId) -> bool {
+        self.members.iter().any(|member| member.character_id == character_id)
+    }
+
     pub fn find_member_mut(&mut self, account_id: AccountId) -> Option<&mut PartyMember> {
         self.members.iter_mut().find(|member| member.account_id == account_id)
     }

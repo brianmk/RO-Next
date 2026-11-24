@@ -157,6 +157,7 @@ use crate::state::{BufferedAction, SelectedServicePath, client_theme};
 use crate::system::{FrameTimers, GameTimer};
 #[cfg(feature = "debug")]
 use crate::world::MarkerIdentifier;
+use crate::world::target_policy::{TargetRelations, player_attack_decision, player_combat_zone};
 use crate::world::*;
 
 /// Next unique point-light id for position based effects. The point light
@@ -7737,6 +7738,10 @@ impl Client {
                             .follow(client_state().entities())
                             .iter()
                             .any(|entity| entity.get_entity_id() == target_entity_id)
+                        // Re-apply the PvP/GvG/PK targeting rules: the server
+                        // can report an out-of-range attack for a player that
+                        // this map does not make attackable.
+                        && self.can_attack_entity(target_entity_id)
                         && let Some(path) =
                             self.path_finder
                                 .find_walkable_path_in_range(&TraversableMap::new(&**map, self.client_state.follow(client_state().map_cell_overrides())), player_position, target_position, attack_range)
@@ -9679,16 +9684,36 @@ impl Client {
                     self.interface.invalidate_layouts();
                 }
                 InputEvent::PlayerInteract { entity_id } => {
-                    let entity = self
+                    // Copy everything out of the entity table before touching
+                    // any other `ClientState` field: the targeting rule reads
+                    // the map/party/guild state, and the attack dispatch needs
+                    // `&mut self`.
+                    let entity_type = self
                         .client_state
-                        .follow_mut(client_state().entities())
-                        .iter_mut()
-                        .find(|entity| entity.get_entity_id() == entity_id);
+                        .follow(client_state().entities())
+                        .iter()
+                        .find(|entity| entity.get_entity_id() == entity_id)
+                        .map(|entity| entity.get_entity_type());
 
-                    if let Some(entity) = entity {
-                        let _ = match entity.get_entity_type() {
-                            EntityType::Npc => self.networking_system.start_dialog(entity_id),
-                            EntityType::Monster => {
+                    match entity_type {
+                        Some(EntityType::Npc) => {
+                            let _ = self.networking_system.start_dialog(entity_id);
+                        }
+                        Some(EntityType::Monster) => {
+                            let auto_attack = *self.client_state.follow(client_state().game_settings().auto_attack());
+                            let buffered_action = self.client_state.follow_mut(client_state().buffered_action());
+
+                            if auto_attack {
+                                *buffered_action = Some(BufferedAction::AttackEntity { entity_id });
+                            }
+
+                            let _ = self.networking_system.player_attack(entity_id);
+                        }
+                        Some(EntityType::Player) => {
+                            // PvP/GvG/PK targeting: only dispatch the attack
+                            // when the map mode allows attacking this player
+                            // (`CGameMode::HandleActorPick` player branch).
+                            if self.can_attack_entity(entity_id) {
                                 let auto_attack = *self.client_state.follow(client_state().game_settings().auto_attack());
                                 let buffered_action = self.client_state.follow_mut(client_state().buffered_action());
 
@@ -9696,18 +9721,26 @@ impl Client {
                                     *buffered_action = Some(BufferedAction::AttackEntity { entity_id });
                                 }
 
-                                self.networking_system.player_attack(entity_id)
+                                let _ = self.networking_system.player_attack(entity_id);
                             }
-                            EntityType::Warp => self.networking_system.player_move({
-                                let position = entity.get_tile_position();
-                                WorldPosition {
+                        }
+                        Some(EntityType::Warp) => {
+                            let position = self
+                                .client_state
+                                .follow(client_state().entities())
+                                .iter()
+                                .find(|entity| entity.get_entity_id() == entity_id)
+                                .map(|entity| entity.get_tile_position());
+
+                            if let Some(position) = position {
+                                let _ = self.networking_system.player_move(WorldPosition {
                                     x: position.x,
                                     y: position.y,
                                     direction: Direction::North,
-                                }
-                            }),
-                            _ => Ok(()),
-                        };
+                                });
+                            }
+                        }
+                        _ => {}
                     }
                 }
                 InputEvent::PickUpItem { entity_id } => {
@@ -11776,6 +11809,81 @@ impl Client {
             .retain(|item| !item.should_be_removed(client_tick));
     }
 
+    /// Whether the local player may attack `entity_id` under the current
+    /// map's targeting rules.
+    ///
+    /// Monsters are attackable on every map (the official client's
+    /// `IsMonsterClass` branch of `CGameMode::HandleActorPick`); players are
+    /// subject to [`player_attack_decision`]. Entity types that are neither
+    /// (NPCs, warps, pets, homunculi, mercenaries) are not attack targets of
+    /// the local player's basic attack.
+    fn can_attack_entity(&self, entity_id: EntityId) -> bool {
+        let Some((entity_type, is_dead)) = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| (entity.get_entity_type(), entity.is_dead()))
+        else {
+            return false;
+        };
+
+        match entity_type {
+            EntityType::Monster => true,
+            EntityType::Player => !is_dead && self.can_attack_player(entity_id),
+            _ => false,
+        }
+    }
+
+    /// Whether the local player may attack the player `entity_id`.
+    ///
+    /// This is the client-side half of the official
+    /// `CGameMode::HandleActorPick`/`ProcessActorPick` player branch: the
+    /// map's PvP/GvG/PK zone, the target's party/guild relation and the
+    /// target's dead state decide whether an attack may be dispatched.
+    fn can_attack_player(&self, entity_id: EntityId) -> bool {
+        let Some((target_character_id, target_guild_id)) = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| (entity.get_character_id(), entity.get_guild_id()))
+        else {
+            return false;
+        };
+
+        let Some(local) = self.client_state.try_follow(this_entity()) else {
+            return false;
+        };
+
+        let local_entity_id = local.get_entity_id();
+        let local_guild_id = local.get_guild_id();
+
+        let zone = player_combat_zone(
+            *self.client_state.follow(client_state().map_type()),
+            *self.client_state.follow(client_state().map_flags()),
+        );
+
+        let is_party_member = self
+            .client_state
+            .follow(client_state().party())
+            .is_character_member(target_character_id);
+
+        // `GuildInfo::HasRelatedGuild` covers the own guild and allied
+        // guilds; the own guild id from the local entity is used as a
+        // fallback when the guild window data has not arrived yet.
+        let guild = self.client_state.follow(client_state().guild());
+        let is_related_guild = target_guild_id != 0 && (target_guild_id == local_guild_id || guild.is_related_guild(target_guild_id));
+
+        player_attack_decision(zone, TargetRelations {
+            is_self: entity_id == local_entity_id,
+            is_party_member,
+            is_related_guild,
+            is_dead: false,
+        })
+        .is_allowed()
+    }
+
     /// Fire any action that the player buffered while out of range or while
     /// still moving (attack, pick up item). Must be called after
     /// [`Self::update_entities`] so that the player's `stopped_moving` state
@@ -11793,6 +11901,13 @@ impl Client {
 
         match buffered_action {
             BufferedAction::AttackEntity { entity_id } => {
+                // Re-check the targeting rule here: the buffered attack can
+                // outlive a map change or the target can die while the player
+                // walks into range.
+                if !self.can_attack_entity(entity_id) {
+                    return;
+                }
+
                 let _ = self.networking_system.player_attack(entity_id);
 
                 let auto_attack = *self.client_state.follow(client_state().game_settings().auto_attack());
@@ -12227,6 +12342,13 @@ impl Client {
             _ => None,
         };
 
+        // Resolve the PvP/GvG/PK target rule before `point_light_manager` is
+        // borrowed mutably; the cursor decision below only needs this flag.
+        let hovered_entity_attackable = match input_report.mouse_target {
+            PickerTarget::Entity(entity_id) => self.can_attack_entity(entity_id),
+            _ => false,
+        };
+
         let point_light_set = Self::create_point_light_set(
             &mut self.point_light_manager,
             &mut self.point_light_set_buffer,
@@ -12322,17 +12444,24 @@ impl Client {
                     {
                         MouseCursorState::HoverItem
                     } else {
-                        self.client_state
+                        let entity_type = self
+                            .client_state
                             .follow(client_state().entities())
                             .iter()
                             .find(|entity| entity.get_entity_id() == entity_id)
-                            .map(|entity| match entity.get_entity_type() {
-                                EntityType::Npc => MouseCursorState::Dialog,
-                                EntityType::Warp => MouseCursorState::Warp,
-                                EntityType::Monster => MouseCursorState::Attack,
-                                _ => MouseCursorState::Default,
-                            })
-                            .unwrap_or(MouseCursorState::Default)
+                            .map(|entity| entity.get_entity_type());
+
+                        match entity_type {
+                            Some(EntityType::Npc) => MouseCursorState::Dialog,
+                            Some(EntityType::Warp) => MouseCursorState::Warp,
+                            Some(EntityType::Monster) => MouseCursorState::Attack,
+                            // The official client only shows the attack cursor
+                            // on a player when the PvP/GvG/PK rule allows the
+                            // attack; otherwise it keeps the default cursor
+                            // (`CGameMode::HandleActorPick` `SetCursorAction(0)`).
+                            Some(EntityType::Player) if hovered_entity_attackable => MouseCursorState::Attack,
+                            _ => MouseCursorState::Default,
+                        }
                     }
                 }
                 _ => MouseCursorState::Default,
