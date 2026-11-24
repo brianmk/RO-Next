@@ -87,7 +87,7 @@ fn resolve(game_file_loader: &GameFileLoader, job_id: JobId, identity: &str, gen
     generic.to_string()
 }
 
-fn is_monster_job_id(job_id: JobId) -> bool {
+pub(crate) fn is_monster_job_id(job_id: JobId) -> bool {
     matches!(
         job_id.0,
         MONSTER_JOB_ID_MIN..=MONSTER_JOB_ID_MAX | MONSTER_2_JOB_ID_MIN..=MONSTER_2_JOB_ID_MAX

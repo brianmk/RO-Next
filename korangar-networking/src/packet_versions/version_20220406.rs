@@ -700,8 +700,20 @@ where
     packet_handler.register(|packet: UpdateAttackRangePacket| NetworkEvent::AttackRangeChanged {
         attack_range: packet.attack_range,
     })?;
-    register_ignored_noop::<_, AchievementUpdatePacket>(packet_handler)?;
-    register_ignored_noop::<_, AchievementListPacket>(packet_handler)?;
+    packet_handler.register(|packet: AchievementListPacket| NetworkEvent::AchievementList {
+        achievements: packet.acheivement_data,
+        total_score: packet.total_score,
+        level: packet.level,
+        experience: packet.acheivement_experience,
+        experience_to_next_level: packet.acheivement_experience_to_next_level,
+    })?;
+    packet_handler.register(|packet: AchievementUpdatePacket| NetworkEvent::AchievementUpdate {
+        achievement: packet.acheivement_data,
+        total_score: packet.total_score,
+        level: packet.level,
+        experience: packet.acheivement_experience,
+        experience_to_next_level: packet.acheivement_experience_to_next_level,
+    })?;
     packet_handler.register(|packet: SpriteChangePacket| match packet.sprite_type {
         SpriteChangeType::Base => Some(NetworkEvent::ChangeJob {
             account_id: packet.account_id,
@@ -2057,6 +2069,17 @@ where
         flag: packet.flag,
         name: packet.name,
     })?;
+    // Achievement reward claim ack (`ZC_REQ_ACH_REWARD_ACK`, 0x0A26). The
+    // successful path also sends `ZC_ACH_UPDATE` with the rewarded flag, but
+    // the ack is what tells the player whether the claim was accepted.
+    packet_handler.register(|packet: AchievementRewardAckPacket| NetworkEvent::AchievementRewardResult {
+        achievement_id: packet.achievement_id,
+        success: packet.result != 0,
+    })?;
+    // Sense (`WZ_ESTIMATION`) result (`ZC_MONSTER_INFO`, 0x018C). There is no
+    // request packet: the server answers the skill cast, so the handler only
+    // forwards the monster stats to the monster database window.
+    packet_handler.register(|packet: MonsterInfoPacket| NetworkEvent::MonsterInfo { information: packet })?;
 
     Ok(())
 }

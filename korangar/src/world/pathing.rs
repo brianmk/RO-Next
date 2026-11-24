@@ -8,8 +8,16 @@ use ragnarok_packets::{AttackRange, TilePosition};
 
 const MOVE_DIAGONAL_COST: usize = 14;
 const MOVE_ORTHOGONAL_COST: usize = 10;
-/// The maximum size a walkable path can have.
+/// The maximum size a walkable path can have (the client's movement packet
+/// limit for entity walking).
 pub const MAX_WALK_PATH_SIZE: usize = 32;
+/// Maximum route length for the navigation guide. A route can be much longer
+/// than a single movement step; the limit only guards against a runaway A*
+/// search on a malformed map.
+pub const MAX_NAVIGATION_PATH_SIZE: usize = 2048;
+/// Maximum number of nodes the navigation A* search may expand before it gives
+/// up. This keeps `/navi` responsive even when the destination is unreachable.
+const MAX_NAVIGATION_EXPANSIONS: usize = 400_000;
 
 /// Essential trait that is needed to be implements for pathfinding.
 pub trait Traversable {
@@ -70,6 +78,35 @@ impl PathFinder {
         goal: TilePosition,
         attack_range: AttackRange,
     ) -> Option<&[TilePosition]> {
+        self.find_path_in_range(map, start, goal, attack_range, MAX_WALK_PATH_SIZE, usize::MAX)
+    }
+
+    /// Finds the full walkable route between start and goal for the navigation
+    /// guide. Unlike [`Self::find_walkable_path_in_range`] the route is not
+    /// capped at the 32-tile movement packet limit, so it can span a whole map.
+    ///
+    /// Returns [`None`] when no route exists, the route is longer than
+    /// [`MAX_NAVIGATION_PATH_SIZE`] or the search exceeded its node budget.
+    pub fn find_navigation_path(&mut self, map: &impl Traversable, start: TilePosition, goal: TilePosition) -> Option<&[TilePosition]> {
+        self.find_path_in_range(
+            map,
+            start,
+            goal,
+            AttackRange(0),
+            MAX_NAVIGATION_PATH_SIZE,
+            MAX_NAVIGATION_EXPANSIONS,
+        )
+    }
+
+    fn find_path_in_range(
+        &mut self,
+        map: &impl Traversable,
+        start: TilePosition,
+        goal: TilePosition,
+        attack_range: AttackRange,
+        max_path_size: usize,
+        max_expansions: usize,
+    ) -> Option<&[TilePosition]> {
         self.open_set.clear();
         self.closed_set.clear();
         self.came_from.clear();
@@ -83,12 +120,19 @@ impl PathFinder {
         });
         self.g_scores.insert(start, 0);
 
+        let mut expansions = 0;
+
         while let Some(current) = self.open_set.pop() {
             if current.position.x.abs_diff(goal.x).max(current.position.y.abs_diff(goal.y)) <= attack_range.0 {
-                return match self.reconstruct_path(start, current.position) {
+                return match self.reconstruct_path(start, current.position, max_path_size) {
                     true => Some(&self.path),
                     false => None,
                 };
+            }
+
+            expansions += 1;
+            if expansions > max_expansions {
+                return None;
             }
 
             if self.closed_set.contains(&current.position) {
@@ -236,14 +280,14 @@ impl PathFinder {
         }
     }
 
-    fn reconstruct_path(&mut self, start: TilePosition, goal: TilePosition) -> bool {
+    fn reconstruct_path(&mut self, start: TilePosition, goal: TilePosition, max_path_size: usize) -> bool {
         let mut current = goal;
 
         while current != start {
             self.path.push(current);
             current = *self.came_from.get(&current).unwrap();
 
-            if self.path.len() >= MAX_WALK_PATH_SIZE {
+            if self.path.len() >= max_path_size {
                 return false;
             }
         }
@@ -354,6 +398,24 @@ mod tests {
             TilePosition { x: 2, y: 1 },
             TilePosition { x: 2, y: 2 },
         ]);
+    }
+
+    #[test]
+    fn navigation_paths_are_not_capped_at_the_movement_limit() {
+        let map = TestMap::new(50, 5);
+        let mut pathfinder = PathFinder::default();
+
+        let start = TilePosition { x: 0, y: 0 };
+        let goal = TilePosition { x: 40, y: 0 };
+
+        // The movement path finder keeps the 32-tile packet limit.
+        assert!(pathfinder.find_walkable_path(&map, start, goal).is_none());
+
+        // The navigation route may span the whole map.
+        let path = pathfinder.find_navigation_path(&map, start, goal).unwrap();
+        assert_eq!(path.len(), 41);
+        assert_eq!(path.first(), Some(&start));
+        assert_eq!(path.last(), Some(&goal));
     }
 
     #[test]

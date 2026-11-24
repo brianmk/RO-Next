@@ -1,3 +1,4 @@
+pub mod achievement;
 pub mod bank;
 #[cfg(feature = "debug")]
 pub mod cache_statistics;
@@ -16,6 +17,8 @@ pub mod lifecycle;
 pub mod localization;
 pub mod mail;
 pub mod minimap;
+pub mod monster_database;
+pub mod navigation;
 pub mod notifications;
 pub mod party;
 pub mod quest_log;
@@ -77,6 +80,7 @@ use crate::renderer::InterfaceRenderer;
 use crate::settings::{
     GameSettings, GraphicsSettingsCapabilities, InterfaceSettings, InterfaceSettingsCapabilities, LoginSettings, ServiceSettings,
 };
+use crate::state::achievement::AchievementState;
 use crate::state::bank::Bank;
 use crate::state::character_previews::CharacterPreviews;
 use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
@@ -88,6 +92,8 @@ use crate::state::inventory::Inventory;
 use crate::state::key_rebind::KeyRebindState;
 use crate::state::mail::Mailbox;
 use crate::state::minimap::Minimap;
+use crate::state::monster_database::MonsterDatabaseState;
+use crate::state::navigation::Navigation;
 use crate::state::notifications::NotificationHud;
 use crate::state::party::Party;
 use crate::state::quest_log::QuestLog;
@@ -376,6 +382,14 @@ pub struct ClientState {
     /// Active quests shown in the quest tracker.
     #[hidden_element]
     quest_log: QuestLog,
+    /// Achievement log and reward claim state (`ZC_ALL_ACH_LIST` /
+    /// `ZC_ACH_UPDATE`).
+    achievement: AchievementState,
+    /// Client-side navigation destination, route and search field.
+    navigation: Navigation,
+    /// Monster database search field and last Sense (`ZC_MONSTER_INFO`)
+    /// result.
+    monster_database: MonsterDatabaseState,
     /// Rodex mailbox (`ZC_ACK_MAIL_LIST3` 0x0AC2 and the rest of the 2019 mail
     /// family).
     #[hidden_element]
@@ -738,6 +752,9 @@ impl ClientState {
             inventory,
             item_service: ItemService::default(),
             quest_log: QuestLog::default(),
+            achievement: AchievementState::default(),
+            navigation: Navigation::default(),
+            monster_database: MonsterDatabaseState::default(),
             mail: Mailbox::default(),
             trade: Trade::default(),
             vending: Vending::default(),

@@ -301,6 +301,13 @@
       "source": "src/map/clif.cpp clif_achievement_update: last field at offset 65"
     },
     {
+      "opcode": "0x0a26",
+      "name": "ZC_REQ_ACH_REWARD_ACK",
+      "kind": "fixed",
+      "size": 7,
+      "source": "src/map/clif_packetdb.hpp packet(0x0A26,7); src/map/clif.cpp clif_achievement_reward_ack: result.B at offset 2, achievement id.L at offset 3"
+    },
+    {
       "opcode": "0x0a9b",
       "name": "ZC_EQUIPSWITCH_LIST",
       "kind": "variable",

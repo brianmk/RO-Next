@@ -6,7 +6,7 @@ use korangar_interface::event::{ClickHandler, Event, EventQueue};
 use korangar_networking::{InventoryItem, ShopItem};
 use ragnarok_packets::{
     AccountId, AttackRange, BuyOrSellOption, CharacterId, CharacterServerInformation, EntityId, EquipPosition, HotbarSlot, InventoryIndex,
-    ItemId, PartyId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
+    ItemId, JobId, PartyId, ShopId, SkillId, SkillLevel, SkillType, SoldItemInformation, StatUpType, TilePosition,
 };
 use rust_state::State;
 use winit::keyboard::KeyCode;
@@ -753,6 +753,33 @@ pub enum InputEvent {
     OpenBookPage {
         book_id: u32,
         page: u32,
+    },
+    /// Open or close the achievement window.
+    ToggleAchievementWindow,
+    /// Open or close the navigation destination search window.
+    ToggleNavigationWindow,
+    /// Open or close the monster database window.
+    ToggleMonsterDatabaseWindow,
+    /// Claim the reward of a completed achievement (`CZ_REQ_ACH_REWARD`).
+    ClaimAchievementReward {
+        achievement_id: u32,
+    },
+    /// Mark a navigation destination and draw the local route when it is on the
+    /// current map.
+    NavigateToDestination {
+        /// Display name of the destination (map/NPC/monster).
+        name: String,
+        /// Map resource name without the `.gat` suffix.
+        map_name: String,
+        /// Exact destination cell, `None` for map-level targets.
+        position: Option<TilePosition>,
+    },
+    /// Remove the navigation destination and route from the minimap.
+    ClearNavigationDestination,
+    /// Select a monster in the monster database window.
+    SelectMonster {
+        /// Mob/job id of the monster.
+        job_id: JobId,
     },
 }
 
