@@ -55,7 +55,7 @@ pub use self::map_sky_data::MapSkyData;
 pub use self::monster_database::{MonsterDatabase, MonsterEntry};
 use self::monster_sprite::MonsterSprites;
 pub use self::navigation::{NavigationData, NavigationDestination, NavigationKind};
-pub(crate) use self::skill_actions::{caster_action_for_skill, default_caster_action};
+pub(crate) use self::skill_actions::{CasterFrameSequence, caster_action_for_skill, default_caster_action, frame_sequence_for_skill};
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
 pub(crate) use self::skill_effects::{

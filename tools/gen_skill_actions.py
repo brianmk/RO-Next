@@ -42,6 +42,7 @@ DEFAULT_FACTS = Path("tools/windows_client_skill_actions.json")
 DEFAULT_EXTRA = Path("tools/skill_actions_extra.json")
 DEFAULT_RODECOMP = Path("tools/skill_actions_rodecomp.json")
 DEFAULT_GRF2019 = Path("tools/grf2019_skill_facts.json")
+DEFAULT_SEQUENCES = Path("tools/rodecomp_skill_frame_sequences.json")
 
 #: `ACTOR_STATE` id of the 2019 client tables -> our caster action.
 #:
@@ -154,8 +155,15 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "    default_action: Skill,",
         "    actions: [",
     ]
-    for skill_id, action in rows:
-        lines.append(f"        (skill: {skill_id}, action: {action}),")
+    for skill_id, action, sequence in rows:
+        if sequence is None:
+            lines.append(f"        (skill: {skill_id}, action: {action}),")
+        else:
+            first, last, loop_to, duration_ms = sequence
+            lines.append(
+                f"        (skill: {skill_id}, action: {action}, "
+                f"sequence: (first: {first}, last: {last}, loop_to: {loop_to}, duration_ms: {duration_ms})),"
+            )
     lines.extend(["    ],", ")", ""])
     return "\n".join(lines)
 
@@ -167,6 +175,7 @@ def main() -> int:
     parser.add_argument("--extra", default=str(DEFAULT_EXTRA))
     parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP))
     parser.add_argument("--grf2019", default=str(DEFAULT_GRF2019), help="begin-motion facts of the 2019 GRF tables")
+    parser.add_argument("--sequences", default=str(DEFAULT_SEQUENCES), help="official per-skill frame sequences")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
@@ -191,6 +200,24 @@ def main() -> int:
     if not rows:
         raise SystemExit("no skill action facts found")
 
+    # Official per-skill frame sequences (`RenderObject.cpp` SetFrameSequence).
+    sequences: dict[int, tuple[int, int, int, int]] = {}
+    sequences_path = Path(getattr(args, "sequences", ""))
+    if sequences_path.is_file():
+        for name, entry in json.loads(sequences_path.read_text())["sequences"].items():
+            try:
+                block = int(entry["block"], 0)
+                first = int(entry["first"])
+                last = int(entry["last"])
+                loop_to = int(entry["loop_to"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            duration_text = str(entry.get("duration", "0"))
+            duration_ms = int(duration_text) if duration_text.isdigit() else 0
+            sequences[int(entry["skill"])] = (first, last, loop_to, duration_ms)
+
+    rows = [(skill, action, sequences.get(skill)) for skill, action in rows]
+
     content = render(rows, payload["provenance"])
     output = Path(args.output)
 
@@ -204,7 +231,7 @@ def main() -> int:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content)
-    summary = {action: sum(1 for _id, value in rows if value == action) for action in ACTIONS}
+    summary = {action: sum(1 for _id, value, _sequence in rows if value == action) for action in ACTIONS}
     print(f"{output}: {len(rows)} entries {summary}")
     return 0
 

@@ -2897,6 +2897,15 @@ impl Entity {
             .custom(entity_type, action_index, cast_time, looping, client_tick);
     }
 
+    /// Restricts the current caster animation to the official per-skill frame
+    /// sequence (`RenderObject.cpp` `SetFrameSequence`): frames
+    /// `first..=last`, then `loop_to..=last` for `duration_ms`.
+    pub fn set_skill_frame_sequence(&mut self, first: u8, last: u8, loop_to: u8, duration_ms: u32, client_tick: ClientTick) {
+        self.get_common_mut()
+            .animation_state
+            .frame_sequence(first, last, loop_to, duration_ms, client_tick);
+    }
+
     /// Starts a short body flash (hard-coded skill effect color flash, for
     /// example the yellow `EF_PORTAL5` flash of Zen).
     pub fn start_body_flash(&mut self, color: Color, hold_ms: u32, fade_ms: u32, additive: bool, client_tick: ClientTick) {

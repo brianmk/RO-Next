@@ -26,8 +26,18 @@ const DATA_PATH: &str = "data\\client\\skill_actions.ron";
 /// Fallback copy of the same file, compiled into the client.
 const FALLBACK: &str = include_str!("../../../archive/data/client/skill_actions.ron");
 
-/// A parsed mapping: the default action plus sorted `(skill id, action)` rows.
-type Mapping = (CasterAction, Vec<(u16, CasterAction)>);
+/// Official frame sequence of a skill (`RenderObject.cpp` `SetFrameSequence`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct CasterFrameSequence {
+    pub first: u8,
+    pub last: u8,
+    pub loop_to: u8,
+    pub duration_ms: u32,
+}
+
+/// A parsed mapping: the default action, sorted `(skill id, action)` rows and
+/// the per-skill frame sequences.
+type Mapping = (CasterAction, Vec<(u16, CasterAction)>, Vec<(u16, CasterFrameSequence)>);
 
 #[derive(Deserialize)]
 struct SkillActionFile {
@@ -37,10 +47,40 @@ struct SkillActionFile {
     actions: Vec<SkillActionEntry>,
 }
 
+/// Accepts both a bare RON value and the explicit `Some(..)`/`None` spelling.
+fn deserialize_option<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum BareOrOption<T> {
+        Bare(T),
+        Optional(Option<T>),
+    }
+
+    Ok(match BareOrOption::<T>::deserialize(deserializer)? {
+        BareOrOption::Bare(value) => Some(value),
+        BareOrOption::Optional(value) => value,
+    })
+}
+
 #[derive(Deserialize)]
 struct SkillActionEntry {
     skill: u16,
     action: CasterAction,
+    /// Optional official frame range of the action (`SetFrameSequence`).
+    #[serde(default, deserialize_with = "deserialize_option")]
+    sequence: Option<FrameSequenceEntry>,
+}
+
+#[derive(Deserialize)]
+struct FrameSequenceEntry {
+    first: u8,
+    last: u8,
+    loop_to: u8,
+    duration_ms: u32,
 }
 
 /// The compiled fallback mapping, parsed on first use (also used by tests).
@@ -50,11 +90,26 @@ static ARCHIVE: OnceLock<Mapping> = OnceLock::new();
 
 fn parse(content: &str) -> Result<Mapping, String> {
     let file: SkillActionFile = ron::from_str(content).map_err(|error| error.to_string())?;
-    let mut rows: Vec<(u16, CasterAction)> = file.actions.into_iter().map(|entry| (entry.skill, entry.action)).collect();
+    let mut rows: Vec<(u16, CasterAction)> = Vec::with_capacity(file.actions.len());
+    let mut sequences: Vec<(u16, CasterFrameSequence)> = Vec::new();
+
+    for entry in file.actions {
+        rows.push((entry.skill, entry.action));
+        if let Some(sequence) = entry.sequence {
+            sequences.push((entry.skill, CasterFrameSequence {
+                first: sequence.first,
+                last: sequence.last,
+                loop_to: sequence.loop_to,
+                duration_ms: sequence.duration_ms,
+            }));
+        }
+    }
+
     rows.sort_unstable_by_key(|(skill_id, _)| *skill_id);
     // Duplicate skill ids would make the binary search ambiguous.
     rows.dedup_by_key(|(skill_id, _)| *skill_id);
-    Ok((file.default_action, rows))
+    sequences.sort_unstable_by_key(|(skill_id, _)| *skill_id);
+    Ok((file.default_action, rows, sequences))
 }
 
 fn compiled() -> &'static Mapping {
@@ -62,7 +117,7 @@ fn compiled() -> &'static Mapping {
         Ok(mapping) => mapping,
         Err(error) => {
             crate::logging::log_warn!("skill actions: compiled fallback is invalid ({error})");
-            (CasterAction::Skill, Vec::new())
+            (CasterAction::Skill, Vec::new(), Vec::new())
         }
     })
 }
@@ -87,7 +142,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
         None => FALLBACK,
     };
 
-    let (default, rows) = match parse(content) {
+    let (default, rows, sequences) = match parse(content) {
         Ok(mapping) => mapping,
         Err(error) => {
             crate::logging::log_warn!("skill actions: invalid {DATA_PATH} ({error}), using the compiled fallback");
@@ -96,7 +151,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
     };
 
     let count = rows.len();
-    let _ = ARCHIVE.set((default, rows));
+    let _ = ARCHIVE.set((default, rows, sequences));
     crate::logging::log_info!("skill actions: loaded {count} entries, default action {default:?}");
     count
 }
@@ -104,10 +159,20 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
 /// Returns the official caster action of `skill_id`, or `None` when the skill
 /// is not listed (the caller then uses [`default_caster_action`]).
 pub(crate) fn caster_action_for_skill(skill_id: SkillId) -> Option<CasterAction> {
-    let (_default, rows) = mapping();
+    let (_default, rows, _sequences) = mapping();
     rows.binary_search_by_key(&skill_id.0, |(id, _)| *id)
         .ok()
         .map(|index| rows[index].1)
+}
+
+/// The official frame sequence of `skill_id`, if the decompiled client plays
+/// one (`RenderObject.cpp` `SetFrameSequence`).
+pub(crate) fn frame_sequence_for_skill(skill_id: SkillId) -> Option<CasterFrameSequence> {
+    let (_default, _rows, sequences) = mapping();
+    sequences
+        .binary_search_by_key(&skill_id.0, |(id, _)| *id)
+        .ok()
+        .map(|index| sequences[index].1)
 }
 
 /// The official default action for skills that are not listed.
@@ -119,7 +184,7 @@ pub(crate) fn default_caster_action() -> CasterAction {
 mod tests {
     use ragnarok_packets::SkillId;
 
-    use super::{CasterAction, FALLBACK, caster_action_for_skill, default_caster_action, parse};
+    use super::{CasterAction, FALLBACK, caster_action_for_skill, default_caster_action, frame_sequence_for_skill, parse};
 
     fn action(skill_id: u16) -> Option<CasterAction> {
         caster_action_for_skill(SkillId(skill_id))
@@ -127,13 +192,24 @@ mod tests {
 
     #[test]
     fn data_file_is_valid_and_has_entries() {
-        let (default, rows) = parse(FALLBACK).expect("valid fallback");
+        let (default, rows, _sequences) = parse(FALLBACK).expect("valid fallback");
         assert_eq!(default, CasterAction::Skill);
         assert!(rows.len() >= 200, "mapping should stay broad, got {}", rows.len());
         assert!(
             rows.windows(2).all(|pair| pair[0].0 < pair[1].0),
             "rows must be sorted and unique"
         );
+    }
+
+    #[test]
+    fn asura_and_champion_frame_sequences_are_loaded() {
+        let asura = frame_sequence_for_skill(SkillId(271)).expect("Asura has an official sequence");
+        assert_eq!((asura.first, asura.last, asura.loop_to, asura.duration_ms), (0, 7, 7, 3500));
+
+        let chain = frame_sequence_for_skill(SkillId(272)).expect("Chain Combo has an official sequence");
+        assert_eq!((chain.first, chain.last), (5, 5));
+
+        assert!(frame_sequence_for_skill(SkillId(5)).is_none(), "Bash has no explicit sequence");
     }
 
     #[test]

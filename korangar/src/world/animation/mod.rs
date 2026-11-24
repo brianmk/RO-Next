@@ -89,6 +89,26 @@ pub enum AnimationLoopMode {
 }
 
 /// Resolve a frame index for a looping animation.
+/// Maps an action frame index onto the official `first..=last` / `loop_to..`
+/// sequence of `RenderObject.cpp`'s `SetFrameSequence`.
+fn sequence_frame_index(index: usize, first: u8, last: u8, loop_to: u8) -> usize {
+    let first = first as usize;
+    let last = last as usize;
+    let loop_to = loop_to.clamp(first as u8, last as u8) as usize;
+
+    if last <= first {
+        return first;
+    }
+
+    let span = last - first + 1;
+    if index < span {
+        return first + index;
+    }
+
+    let loop_span = last - loop_to + 1;
+    first + (loop_to - first) + (index - span) % loop_span
+}
+
 fn looped_frame_index(frame_time: u32, frame_count: usize, loop_mode: AnimationLoopMode) -> usize {
     if frame_count <= 1 {
         return 0;
@@ -127,6 +147,10 @@ pub struct AnimationState {
     speed: f32,
     /// How the animation loops once it reaches the last frame.
     loop_mode: AnimationLoopMode,
+    /// Official per-skill frame range: play `first..=last` and continue with
+    /// `loop_to..=last` (`RenderObject.cpp` `SetFrameSequence`). `None` plays
+    /// the whole action.
+    frame_sequence: Option<(u8, u8, u8)>,
 }
 
 impl AnimationState {
@@ -142,6 +166,7 @@ impl AnimationState {
             looping: true,
             speed: 1.0,
             loop_mode: AnimationLoopMode::default(),
+            frame_sequence: None,
         }
     }
 
@@ -256,6 +281,16 @@ impl AnimationState {
         };
         self.factor = None;
         self.looping = looping;
+    }
+
+    /// Restricts the current action to the official frame sequence
+    /// (`first..=last`, then `loop_to..=last`) for `duration_ms`.
+    pub fn frame_sequence(&mut self, first: u8, last: u8, loop_to: u8, duration_ms: u32, client_tick: ClientTick) {
+        self.frame_sequence = Some((first, last, loop_to));
+        self.start_time = client_tick;
+        self.factor = None;
+        self.looping = duration_ms == 0;
+        self.duration = (duration_ms > 0).then_some(duration_ms);
     }
 
     /// Combat-ready stance (official `READYFIGHT` action, `SM_ENDURE`).
@@ -472,6 +507,13 @@ impl AnimationData {
         // animation, independent of the camera direction.
         let action_duration = self.action_duration_ms(animation_state);
 
+        // An official frame sequence runs exactly for its configured duration.
+        if animation_state.frame_sequence.is_some()
+            && let Some(duration) = animation_state.duration
+        {
+            return animation_state.time >= duration;
+        }
+
         // A looping animation (for example a cast with a cast time) finishes when
         // its duration is over, but always plays at least one full cycle so that a
         // very short cast does not cut the casting gesture off after one or two
@@ -541,21 +583,28 @@ impl AnimationData {
         // A zero delay in an ACT file must not divide by zero.
         let factor = if factor > 0.0 { factor } else { 50.0 };
 
-        let frame_time = match animation_state.duration {
-            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
-            _ => (animation_state.time as f32 / factor) as u32,
-        };
+        // Official per-skill sequences play the ACT timing of the range and
+        // then loop its last frames for the remaining duration.
+        let frame_index = if let Some((first, last, loop_to)) = animation_state.frame_sequence {
+            let frame_time = (animation_state.time as f32 / factor) as usize;
+            sequence_frame_index(frame_time, first, last, loop_to)
+        } else {
+            let frame_time = match animation_state.duration {
+                Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
+                _ => (animation_state.time as f32 / factor) as u32,
+            };
 
-        // The sit pose must be static: the classic client shows a stable sitting
-        // pose, and cycling the sit action frames/directions makes the character
-        // (especially the head) bob around. Always use the first frame of the
-        // sitting action instead.
-        let frame_index = match animation_state.is_sitting() {
-            true => 0,
-            false => match animation_state.looping {
-                true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
-                false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
-            },
+            // The sit pose must be static: the classic client shows a stable sitting
+            // pose, and cycling the sit action frames/directions makes the character
+            // (especially the head) bob around. Always use the first frame of the
+            // sitting action instead.
+            match animation_state.is_sitting() {
+                true => 0,
+                false => match animation_state.looping {
+                    true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
+                    false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+                },
+            }
         };
 
         // Remove Doridori animation from Player
@@ -595,17 +644,22 @@ impl AnimationData {
         let factor = animation_state.factor.map(|factor| delay * factor).unwrap_or_else(|| delay * 50.0);
         let factor = if factor > 0.0 { factor } else { 50.0 };
 
-        let frame_time = match animation_state.duration {
-            Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
-            _ => (animation_state.time as f32 / factor) as u32,
-        };
+        let frame_index = if let Some((first, last, loop_to)) = animation_state.frame_sequence {
+            let frame_time = (animation_state.time as f32 / factor) as usize;
+            sequence_frame_index(frame_time, first, last, loop_to)
+        } else {
+            let frame_time = match animation_state.duration {
+                Some(duration) if !animation_state.looping => animation_state.time * animation.frames.len() as u32 / duration.max(1),
+                _ => (animation_state.time as f32 / factor) as u32,
+            };
 
-        let frame_index = match animation_state.is_sitting() {
-            true => 0,
-            false => match animation_state.looping {
-                true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
-                false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
-            },
+            match animation_state.is_sitting() {
+                true => 0,
+                false => match animation_state.looping {
+                    true => looped_frame_index(frame_time, animation.frames.len(), animation_state.loop_mode),
+                    false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
+                },
+            }
         };
 
         let frame_index = if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
@@ -800,6 +854,25 @@ impl AnimationData {
 
 #[cfg(test)]
 mod tests {
+    use super::sequence_frame_index;
+
+    #[test]
+    fn frame_sequences_play_the_range_and_loop_the_tail() {
+        // Asura: attack frames 0..7, hold frame 7.
+        assert_eq!(sequence_frame_index(0, 0, 7, 7), 0);
+        assert_eq!(sequence_frame_index(6, 0, 7, 7), 6);
+        assert_eq!(sequence_frame_index(7, 0, 7, 7), 7);
+        assert_eq!(sequence_frame_index(20, 0, 7, 7), 7);
+        // Chain Combo: only frame 5.
+        assert_eq!(sequence_frame_index(3, 5, 5, 5), 5);
+        // Combo Finish: frames 1..2, loop frame 2.
+        assert_eq!(sequence_frame_index(0, 1, 2, 2), 1);
+        assert_eq!(sequence_frame_index(1, 1, 2, 2), 2);
+        assert_eq!(sequence_frame_index(2, 1, 2, 2), 2);
+        // Chain Crush: frames 3..4, loop frame 4.
+        assert_eq!(sequence_frame_index(5, 3, 4, 4), 4);
+    }
+
     use ragnarok_packets::ClientTick;
 
     use super::{AnimationActionType, AnimationLoopMode, AnimationState, looped_frame_index};

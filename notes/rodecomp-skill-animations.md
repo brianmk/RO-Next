@@ -46,11 +46,25 @@ frame sequences applied on top:
 | SR_TIGERCANNON (2330) | `0x60` skill | 5 | skill anim value |
 | RL_FALLEN_ANGEL (2564) | `0x58` attack | 0–7 loop 7 | 3500 ms |
 
-## Remaining gap
+## Frame-sequence playback (implemented)
 
-The client plays the **block start** of an action, not the official
-`first..last` frame range with its loop target and per-skill duration. Skills
-whose sequence begins at a later frame (e.g. `MO_CHAINCOMBO` frame 5,
-`CH_TIGERFIST` frame 4, `SR_EARTHSHAKER` frames 1–2) therefore still show the
-block's first frames. Emulating this needs a `frame_sequence` field in
-`skill_actions.ron` and frame-range playback in the entity animation system.
+The client now plays the official range instead of the block start:
+
+- **Data**: `skill_actions.ron` rows carry an optional
+  `sequence: (first, last, loop_to, duration_ms)` written by
+  `tools/gen_skill_actions.py` from `tools/rodecomp_skill_frame_sequences.json`.
+- **Engine**: `AnimationState::frame_sequence` restricts the current action;
+  `sequence_frame_index` plays `first..=last` and then loops
+  `loop_to..=last`, while `duration_ms` bounds the total time (0 = one pass at
+  the ACT frame speed). Both `get_frame` and `motion` use the same mapping.
+- **Timing**: instant casts start the sequence at cast time, cast-time skills
+  when the skill resolves (`SkillNoDamage`/`SkillGroundCast`), which is where
+  `RenderObject.cpp` runs its damage switch.
+
+Asura therefore plays attack frames 0..7 and then holds frame 7 for 3.5 s,
+Chain Combo locks frame 5, Combo Finish frames 1..2 loop frame 2, Palm Strike
+3..4, and the Star Emperor skills their own frames.
+
+Remaining approximation: the official `isAsuraAttack` slide (route step 55,
+`GameObject.cpp:2307`) is a *movement* detail the client cannot derive from the
+animation data; the server-driven position updates are followed as usual.
