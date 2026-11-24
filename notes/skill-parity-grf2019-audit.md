@@ -51,6 +51,25 @@ Mismatches were fixed by feeding the GRF facts into the existing generators:
   replaces whole phases where decompiled client code supersedes the table
   (Asura Strike cast → `CRagEffect::AsuraStrike`).
 
+## Korean file names
+
+GRF file names are stored as **EUC-KR (CP949) bytes**, not UTF-8:
+
+* the client decodes them with `encoding_rs::EUC_KR` (`ragnarok-bytes/src/reader.rs:1,49,82`;
+  `FileTableRow.file_name` is a decoded `String`), and the file table keys are
+  lower-cased (`archive/native/mod.rs:71`);
+* the Python GRF reader decodes with `cp949` (`GrfFileTable` in
+  `extract_weapon_client_assets.py`), so the generated RON paths are UTF-8
+  Hangul;
+* the Lua table dump stores every non-UTF-8 string as `hex:<bytes>` and
+  `extract_grf2019_skill_facts.py` decodes it as CP949 — that is how
+  `effect\mon_아수라 패황권.wav`, `effect\270바람.tga` and `이팩트\침투경_`
+  keep their real names.
+
+All 614 asset references of the client data resolve against the archives
+(`tools/audit_asset_case.py`), including the Korean-named textures, sprites and
+sounds.
+
 ## Case sensitivity
 
 The official client is case-insensitive; Linux is not, but both cache layers
