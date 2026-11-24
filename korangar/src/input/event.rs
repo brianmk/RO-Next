@@ -741,8 +741,6 @@ pub enum InputEvent {
     SendChatRoomMessage {
         text: String,
     },
-    /// Start or stop recording the packet stream to `client/replays/`.
-    ToggleReplayRecording,
     /// Submit the 4 digit pincode of the character-selection prompt.
     SubmitPincode {
         code: String,

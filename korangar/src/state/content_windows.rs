@@ -2,7 +2,6 @@
 //!
 //! * the chat room window (`CZ_CREATE_CHATROOM` / `ZC_ENTER_ROOM` family),
 //! * the optional character-server pincode prompt (`HC_ACK_PINCODE`, 0x08B9),
-//! * the menu-side state of the packet-stream recorder (replay recording).
 //!
 //! Keeping all three in one root keeps the [`ClientState`] change to a single
 //! field. The book window has no mutable state of its own: it is rebuilt from
@@ -439,16 +438,6 @@ impl PincodePrompt {
     }
 }
 
-/// State of the menu-side replay recording toggle.
-#[derive(Default, RustState, StateElement)]
-pub struct ReplayControl {
-    #[hidden_element]
-    pub recording: bool,
-    /// Path of the replay that was recorded last, shown in the menu.
-    #[hidden_element]
-    pub last_path: String,
-}
-
 /// Root of the window state added for this feature set.
 #[derive(Default, RustState, StateElement)]
 pub struct ContentWindows {
@@ -456,8 +445,6 @@ pub struct ContentWindows {
     pub chat_room: ChatRoom,
     #[hidden_element]
     pub pincode: PincodePrompt,
-    #[hidden_element]
-    pub replay: ReplayControl,
 }
 
 #[cfg(test)]

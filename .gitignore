@@ -24,5 +24,3 @@ korangar/*.7z
 # Python bytecode
 __pycache__/
 
-# Packet-stream recordings (replay recording; playback not implemented)
-client/replays/

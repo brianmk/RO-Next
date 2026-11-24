@@ -47,7 +47,6 @@ mod login_server;
 mod networking;
 mod pincode;
 mod renderer;
-mod replay;
 mod settings;
 mod system;
 mod world;
@@ -180,19 +179,15 @@ impl ragnarok_packets::handler::PacketCallback for ClientPacketCallback {
     where
         Packet: ragnarok_packets::Packet,
     {
-        crate::replay::record_packet(crate::replay::DIRECTION_INCOMING, packet);
     }
 
     fn outgoing_packet<Packet>(&self, packet: &Packet)
     where
         Packet: ragnarok_packets::Packet,
     {
-        crate::replay::record_packet(crate::replay::DIRECTION_OUTGOING, packet);
     }
 
     fn unknown_packet(&self, bytes: Vec<u8>) {
-        crate::replay::record_bytes(crate::replay::DIRECTION_INCOMING, &bytes);
-
         let header = bytes
             .get(..2)
             .map(|header| u16::from_le_bytes([header[0], header[1]]))
@@ -9029,39 +9024,6 @@ impl Client {
                         self.client_state
                             .follow_mut(client_state().content_windows().chat_room())
                             .set_error("Not connected to the map server.".to_owned());
-                    }
-                }
-                InputEvent::ToggleReplayRecording => {
-                    if crate::replay::is_recording() {
-                        let path = crate::replay::stop();
-                        let replay = self.client_state.follow_mut(client_state().content_windows().replay());
-                        replay.recording = false;
-                        replay.last_path = path.as_ref().map(|path| path.display().to_string()).unwrap_or_default();
-
-                        if let Some(path) = path {
-                            self.push_chat_message(ChatMessage::new(
-                                format!("Replay recording stopped: {}", path.display()),
-                                MessageColor::Information,
-                            ));
-                        }
-                    } else {
-                        match crate::replay::start() {
-                            Ok(path) => {
-                                let replay = self.client_state.follow_mut(client_state().content_windows().replay());
-                                replay.recording = true;
-                                replay.last_path = path.display().to_string();
-                                self.push_chat_message(ChatMessage::new(
-                                    format!("Replay recording started: {}", path.display()),
-                                    MessageColor::Information,
-                                ));
-                            }
-                            Err(error) => {
-                                self.push_chat_message(ChatMessage::new(
-                                    format!("Could not start replay recording: {error}"),
-                                    MessageColor::Error,
-                                ));
-                            }
-                        }
                     }
                 }
                 InputEvent::SubmitPincode { code } => {

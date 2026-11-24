@@ -296,7 +296,7 @@ pub struct ClientState {
     login_window: LoginWindowState,
     /// Internal state of the chat window.
     chat_window: ChatWindowState,
-    /// State of the chat-room, pincode and replay-recording windows.
+    /// State of the chat-room and pincode windows.
     #[hidden_element]
     content_windows: ContentWindows,
     /// Minimap of the currently loaded map.
