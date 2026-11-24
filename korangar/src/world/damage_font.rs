@@ -120,6 +120,10 @@ static DAMAGE_FONT: OnceLock<Option<Arc<DamageFont>>> = OnceLock::new();
 
 /// Installs the damage font (only the first call has an effect).
 pub fn install(font: Option<DamageFont>) {
+    match &font {
+        Some(font) => crate::logging::log_info!("damage font: official sprite digits loaded ({} frames)", font.digit_count()),
+        None => crate::logging::log_warn!("damage font: sprite digits not found, falling back to text damage numbers"),
+    }
     let _ = DAMAGE_FONT.set(font.map(Arc::new));
 }
 
