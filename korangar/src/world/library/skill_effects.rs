@@ -980,6 +980,25 @@ mod tests {
         skill_effect_layers(SkillId(skill_id), phase)
     }
 
+    /// Asura Strike uses the official `AsuraStrike` visuals: two white ring
+    /// waves and the `asura1..3` figure around the caster. The old data had a
+    /// generic yellow cast cone, which is why the skill looked like it had no
+    /// animation.
+    #[test]
+    fn asura_strike_carries_the_official_charge_effect() {
+        let cast = skil_effect_layers(271, SkillPhase::Cast);
+        let textures: HashSet<&str> = cast.iter().filter_map(|layer| layer.file).collect();
+
+        for expected in [
+            "effect\\ring_white.tga",
+            "effect\\asura1.tga",
+            "effect\\asura2.tga",
+            "effect\\asura3.tga",
+        ] {
+            assert!(textures.contains(expected), "missing {expected} in {textures:?}");
+        }
+    }
+
     #[test]
     fn compiled_fallback_is_valid_and_broad() {
         let count = validate_compiled().expect("the compiled skill effect fallback has to be valid");
