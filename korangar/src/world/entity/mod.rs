@@ -1418,7 +1418,17 @@ impl Common {
         let body_wave = self.body_wave.map(|wave| wave.offset(client_tick)).unwrap_or(0.0);
         let body_position = self.world_position + cgmath::Vector3::new(0.0, body_wave, 0.0);
 
-        let outline_active = self.body_outline.filter(|outline| outline.active(client_tick));
+        // Official `render.flags 0x80000`: an undead entity draws the dark green
+        // body outline (option bit 0x10000, `GameModePackets.cpp:3010`).
+        let undead_outline = (self.effect_state & 0x10000) != 0;
+        let outline_active = self
+            .body_outline
+            .filter(|outline| outline.active(client_tick))
+            .or(undead_outline.then_some(BodyOutline {
+                color: Color::rgb_u8(0x05, 0x64, 0x05),
+                start_tick: client_tick,
+                duration_ms: u32::MAX,
+            }));
 
         if let (Some(outline), Some(animation_data)) = (outline_active, self.animation_data.as_ref()) {
             for step in 1..=3 {
