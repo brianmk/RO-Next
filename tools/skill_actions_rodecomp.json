@@ -1483,10 +1483,10 @@
   },
   {
    "skill": 271,
-   "action": "Skill",
-   "motion": 8,
+   "action": "Attack",
+   "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=8 (ST_BEGIN_SKILL) - official ground truth"
+   "source": "RenderObject.cpp:5825 (case MO_EXTREMITYFIST): SetFrameSequence(0x58 attack block, frames 0..7, 3500 ms) - official asura swing"
   },
   {
    "skill": 272,
@@ -1903,10 +1903,10 @@
   },
   {
    "skill": 370,
-   "action": "Attack",
-   "motion": 2,
+   "action": "Skill",
+   "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo2 motion=2 (attack swing) - official ground truth"
+   "source": "RenderObject.cpp:5852 (case CH_PALMSTRIKE): SetFrameSequence(0x60 skill block, frames 3..4) - official ground truth"
   },
   {
    "skill": 371,
@@ -1917,10 +1917,10 @@
   },
   {
    "skill": 372,
-   "action": "Attack",
-   "motion": 2,
+   "action": "Skill",
+   "motion": 8,
    "state": null,
-   "source": "GetSkillActionInfo2 motion=2 (attack swing) - official ground truth"
+   "source": "RenderObject.cpp CH_CHAINCRUSH has no frame sequence (effect only): fall back to GetSkillActionInfo motion 8 (ST_BEGIN_SKILL) - official ground truth"
   },
   {
    "skill": 373,

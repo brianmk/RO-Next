@@ -143,10 +143,11 @@ mod tests {
         for skill_id in [5, 7, 56, 62] {
             assert_eq!(action(skill_id), Some(CasterAction::Attack), "skill {skill_id}");
         }
-        // Asura Strike and Meteor Assault keep the begin-skill pose (motion 8).
-        for skill_id in [406, 271] {
-            assert_eq!(action(skill_id), Some(CasterAction::Skill), "skill {skill_id}");
-        }
+        // Asura Strike plays the official attack block (RenderObject.cpp
+        // `SetFrameSequence(0x58, frames 0..7, 3500 ms)`); Meteor Assault keeps
+        // the begin-skill pose (motion 8).
+        assert_eq!(action(271), Some(CasterAction::Attack), "skill 271");
+        assert_eq!(action(406), Some(CasterAction::Skill), "skill 406");
     }
 
     #[test]

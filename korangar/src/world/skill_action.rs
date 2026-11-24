@@ -88,25 +88,23 @@ mod tests {
         for skill_id in [5, 7, 56] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
         }
-        // Asura Strike and Meteor Assault keep the begin-skill pose (motion 8);
-        // their feedback is the effect, not an attack swing.
-        for skill_id in [271, 406] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
-        }
+        // Asura Strike uses the official attack block (RenderObject.cpp
+        // `SetFrameSequence(0x58, 0..7, 3500 ms)`); Meteor Assault the
+        // begin-skill pose (motion 8).
+        assert_eq!(caster_action(SkillId(271)), CasterAction::Attack, "skill 271");
+        assert_eq!(caster_action(SkillId(406)), CasterAction::Skill, "skill 406");
     }
 
     #[test]
     fn champion_skills_follow_the_official_motion_table() {
-        // Official ground truth (`CSession::GetSkillActionInfo`, motion 8 =
-        // ST_BEGIN_SKILL): Raging Trifecta Blow (motion 2), Raging Palm Strike
-        // and Chain Crush Combo play the attack swing.
-        for skill_id in [263, 370, 372] {
+        // Official ground truth: Raging Trifecta Blow and Asura Strike play the
+        // attack block (RenderObject.cpp `SetFrameSequence(0x58, ...)`); every
+        // other Champion skill with a frame sequence uses the skill block
+        // (0x60), and Chain Crush Combo has no sequence at all (motion 8).
+        for skill_id in [263, 271] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
         }
-        // Occult Impaction, Throw Spirit Sphere, Raging Quadruple Blow, Raging
-        // Thrust and Glacier Fist fall through the official switch without an
-        // attack motion, so they keep the begin-skill gesture.
-        for skill_id in [266, 267, 271, 272, 273, 371] {
+        for skill_id in [266, 267, 272, 273, 370, 371, 372] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
         // Fury and Mental Strength stay idle poses.
