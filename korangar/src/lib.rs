@@ -82,8 +82,8 @@ use korangar_networking::{
 use networking::{PacketHistory, PacketHistoryCallback};
 use ragnarok_packets::{
     AccountId, AmmunitionActionType, AttackRange, BuyItemResult, CharacterId, CharacterServerInformation, ClientTick, Direction,
-    DisappearanceReason, EntityId, EquipPosition, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex,
-    ItemId, JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
+    DisappearanceReason, EntityId, EquipPosition, ExperienceSource, ExperienceType, Friend, HotbarSlot, HotkeyType, InventoryIndex, ItemId,
+    JobId, MarkerType, SellItemsResult, SkillId, SkillLevel, SkillType, StatType, TilePosition, UnitId, WorldPosition,
 };
 use renderer::InterfaceRenderer;
 use rust_state::{ManuallyAssertExt, State};
@@ -11224,9 +11224,7 @@ fn open_item_info_window(
         }
         // Items in the Kafra storage or the merchant cart are compared against
         // the inventory as well; those lists never contain equipped items.
-        ItemSource::Storage | ItemSource::Cart => {
-            equipped_item_in_slot(state.follow(client_state().inventory().items()), item)
-        }
+        ItemSource::Storage | ItemSource::Cart => equipped_item_in_slot(state.follow(client_state().inventory().items()), item),
     };
 
     open_item_info_window_for_item(state, interface, item, equipped, library, texture_loader);

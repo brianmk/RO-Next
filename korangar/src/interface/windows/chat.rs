@@ -607,7 +607,6 @@ where
                     queue.queue(Event::Unfocus);
                 }
 
-
                 return;
             }
 
