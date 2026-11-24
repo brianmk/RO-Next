@@ -40,6 +40,15 @@ Batch 1 (5 agents) and batch 2 (6 agents) are merged; the table reflects `main`.
 | 33 | Replay | recording exists; playback is an official-client feature but optional tooling, not prioritized (user decision) | `8f738c12` |
 | 34 | Pincode prompt (page-slot list / server config unassigned) | **done** | `8f738c12` |
 
+## Skill data parity (2019 GRF tables)
+
+`notes/skill-parity-grf2019-audit.md`: every skill covered by the client's own
+`SKILL_EFFECT_INFO_LIST` was audited against the GRF tables; sounds and caster
+animations now match for all of them (415 skills with a sound, 549 action
+entries), and effect rows exist for every skill whose effect ids have extracted
+layer data. The remaining effect-id gap (4th-job/expanded classes 981..1231)
+has no layer definitions outside `CondaRO.exe` and is documented there.
+
 ## Known remaining work
 - Bink video decoding (only pre-transcoded `.ivf` side-cars play).
 - In-game visual verification of batch 2 features (build + unit tests only).
