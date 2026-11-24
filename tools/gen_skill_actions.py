@@ -216,7 +216,24 @@ def main() -> int:
             duration_ms = int(duration_text) if duration_text.isdigit() else 0
             sequences[int(entry["skill"])] = (first, last, loop_to, duration_ms)
 
-    rows = [(skill, action, sequences.get(skill)) for skill, action in rows]
+    # An explicit frame sequence names the official ACT block; it replaces the
+    # motion-derived action (0x58 attack block, 0x60 skill block).
+    sequence_actions: dict[int, str] = {}
+    sequence_data: dict[int, tuple[int, int, int, int]] = {}
+    for skill, (first, last, loop_to, duration_ms) in sequences.items():
+        block = None
+        for entry in json.loads(sequences_path.read_text())["sequences"].values():
+            if int(entry["skill"]) == skill:
+                try:
+                    block = int(entry["block"], 0)
+                except (KeyError, TypeError, ValueError):
+                    block = None
+                break
+        if block is not None and block % 8 == 0:
+            sequence_actions[skill] = f"Action({block // 8})"
+        sequence_data[skill] = (first, last, loop_to, duration_ms)
+
+    rows = [(skill, sequence_actions.get(skill, action), sequence_data.get(skill)) for skill, action in rows]
 
     content = render(rows, payload["provenance"])
     output = Path(args.output)

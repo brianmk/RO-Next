@@ -83,15 +83,13 @@ mod tests {
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
-        // Bash, Magnum Break, Pierce: the official `GetSkillActionInfo` sets
-        // motion 2 (ST_ATTACK) for exactly these weapon swings.
+        // Motion ST_ATTACK (2) is WeaponActionBase block 80, i.e. Action(10).
         for skill_id in [5, 7, 56] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(10), "skill {}", skill_id);
         }
-        // Asura Strike uses the official attack block (RenderObject.cpp
-        // `SetFrameSequence(0x58, 0..7, 3500 ms)`); Meteor Assault the
-        // begin-skill pose (motion 8).
-        assert_eq!(caster_action(SkillId(271)), CasterAction::Attack, "skill 271");
+        // Asura Strike uses the official attack block 88 (0x58, frames 0..7,
+        // 3500 ms); Meteor Assault the begin-skill gesture (block 96).
+        assert_eq!(caster_action(SkillId(271)), CasterAction::Action(11), "skill 271");
         assert_eq!(caster_action(SkillId(406)), CasterAction::Skill, "skill 406");
     }
 
@@ -102,9 +100,16 @@ mod tests {
         // other Champion skill with a frame sequence uses the skill block
         // (0x60), and Chain Crush Combo has no sequence at all (motion 8).
         for skill_id in [263, 271] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(11), "skill {}", skill_id);
         }
-        for skill_id in [266, 267, 272, 273, 370, 371, 372] {
+        // Skills with an explicit 0x60 sequence name the skill block directly
+        // (Action(12) == block 96); the ones without a sequence (Occult
+        // Impaction, Throw Spirit Sphere, Chain Crush Combo) keep the
+        // begin-skill default.
+        for skill_id in [272, 273, 370, 371] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(12), "skill {}", skill_id);
+        }
+        for skill_id in [266, 267, 372] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
         // Fury and Mental Strength stay idle poses.

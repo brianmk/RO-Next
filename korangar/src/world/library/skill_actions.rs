@@ -213,16 +213,14 @@ mod tests {
     }
 
     #[test]
-    fn attack_skills_play_the_attack_pose() {
-        // Bash, Magnum Break, Pierce, Bowling Bash: the only learnable skills
-        // whose official `GetSkillActionInfo` motion is ST_ATTACK (2).
+    fn skills_use_the_official_act_blocks() {
+        // Motion ST_ATTACK (2) maps to WeaponActionBase block 80 (Action(10)).
         for skill_id in [5, 7, 56, 62] {
-            assert_eq!(action(skill_id), Some(CasterAction::Attack), "skill {skill_id}");
+            assert_eq!(action(skill_id), Some(CasterAction::Action(10)), "skill {skill_id}");
         }
-        // Asura Strike plays the official attack block (RenderObject.cpp
-        // `SetFrameSequence(0x58, frames 0..7, 3500 ms)`); Meteor Assault keeps
-        // the begin-skill pose (motion 8).
-        assert_eq!(action(271), Some(CasterAction::Attack), "skill 271");
+        // Asura Strike plays the official attack block 88 (0x58, frames 0..7,
+        // 3500 ms); Meteor Assault keeps the begin-skill gesture (block 96).
+        assert_eq!(action(271), Some(CasterAction::Action(11)), "skill 271");
         assert_eq!(action(406), Some(CasterAction::Skill), "skill 406");
     }
 

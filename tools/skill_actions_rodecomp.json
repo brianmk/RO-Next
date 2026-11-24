@@ -34,10 +34,10 @@
   },
   {
    "skill": 5,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 6,
@@ -48,10 +48,10 @@
   },
   {
    "skill": 7,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 8,
@@ -293,10 +293,10 @@
   },
   {
    "skill": 42,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 43,
@@ -321,10 +321,10 @@
   },
   {
    "skill": 46,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 47,
@@ -391,24 +391,24 @@
   },
   {
    "skill": 56,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 57,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 58,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 59,
@@ -426,17 +426,17 @@
   },
   {
    "skill": 61,
-   "action": "Attack",
+   "action": "ReadyFight",
    "motion": 11,
    "state": null,
-   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=11 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 62,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 63,
@@ -762,10 +762,10 @@
   },
   {
    "skill": 110,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 111,
@@ -1035,10 +1035,10 @@
   },
   {
    "skill": 149,
-   "action": "Attack",
+   "action": "ReadyFight",
    "motion": 11,
    "state": null,
-   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=11 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 150,
@@ -1056,10 +1056,10 @@
   },
   {
    "skill": 152,
-   "action": "Attack",
+   "action": "ReadyFight",
    "motion": 11,
    "state": null,
-   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=11 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 153,
@@ -2043,10 +2043,10 @@
   },
   {
    "skill": 397,
-   "action": "Attack",
+   "action": "ReadyFight",
    "motion": 11,
    "state": null,
-   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=11 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 398,
@@ -2246,10 +2246,10 @@
   },
   {
    "skill": 426,
-   "action": "Skill",
+   "action": "Action(5)",
    "motion": 19,
    "state": null,
-   "source": "GetSkillActionInfo motion=19 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=19 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 427,
@@ -2736,10 +2736,10 @@
   },
   {
    "skill": 499,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 500,
@@ -2869,31 +2869,31 @@
   },
   {
    "skill": 518,
-   "action": "Skill",
+   "action": "Action(5)",
    "motion": 42,
    "state": null,
-   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=42 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 519,
-   "action": "Skill",
+   "action": "Action(5)",
    "motion": 42,
    "state": null,
-   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=42 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 520,
-   "action": "Skill",
+   "action": "Action(5)",
    "motion": 42,
    "state": null,
-   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=42 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 521,
-   "action": "Skill",
+   "action": "Action(5)",
    "motion": 42,
    "state": null,
-   "source": "GetSkillActionInfo motion=42 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=42 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 522,
@@ -3079,10 +3079,10 @@
   },
   {
    "skill": 1004,
-   "action": "Attack",
+   "action": "ReadyFight",
    "motion": 11,
    "state": null,
-   "source": "GetSkillActionInfo motion=11 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=11 -> WeaponActionBase block (RenderObject.cpp:3353)"
   },
   {
    "skill": 1005,
@@ -3114,10 +3114,10 @@
   },
   {
    "skill": 1009,
-   "action": "Attack",
+   "action": "Action(10)",
    "motion": 2,
    "state": null,
-   "source": "GetSkillActionInfo motion=2 (default 8 = ST_BEGIN_SKILL)"
+   "source": "GetSkillActionInfo motion=2 -> WeaponActionBase(ST_ATTACK)=80 (RenderObject.cpp:3353)"
   },
   {
    "skill": 1010,

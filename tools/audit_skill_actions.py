@@ -26,21 +26,37 @@ FACTS = Path("tools/skill_actions_rodecomp.json")
 SEQUENCES = Path("tools/rodecomp_skill_frame_sequences.json")
 DATA = Path("korangar/archive/data/client/skill_actions.ron")
 
-MOTION_ACTION = {0: "Idle", 2: "Attack", 5: "Pickup", 7: "Skill", 8: "Skill"}
+MOTION_ACTION = {
+    0: "Idle",
+    2: "Action(10)",   # WeaponActionBase(ST_ATTACK) = 80
+    5: "Pickup",       # 24
+    7: "Skill",        # 96
+    8: "Skill",        # 96
+    11: "ReadyFight",  # ST_ATTACKWAIT = 32
+    12: "Action(5)",   # ST_THROW = 40
+    16: "Skill",       # ST_DANCE = 96
+    18: "Action(11)",  # ST_READYSHOT = 88
+    19: "Action(5)",   # ST_READYJUMP = 40
+    28: "Action(5)",   # ST_THROW2 = 40
+    37: "Skill",       # ST_NINJAREADY = 96
+    41: "Skill",       # ST_GUNREADY = 96
+    42: "Action(5)",   # ST_GUNREADY2 = 40
+}
 
 
 def main() -> int:
     rows = json.loads(FACTS.read_text())["overrides"]
     sequences = json.loads(SEQUENCES.read_text())["sequences"] if SEQUENCES.is_file() else {}
-    data = dict(re.findall(r"\(skill: (\d+), action: (\w+(?:\(\d+\))?)\)", DATA.read_text()))
+    data = dict(re.findall(r"\(skill: (\d+), action: (\w+(?:\(\d+\))?)", DATA.read_text()))
 
     expected_by_skill: dict[int, str] = {}
     for name, entry in sequences.items():
-        block = entry["block"]
-        if block == "0x58":
-            expected_by_skill[entry["skill"]] = "Attack"
-        elif block == "0x60":
-            expected_by_skill[entry["skill"]] = "Skill"
+        try:
+            block = int(entry["block"], 0)
+        except (KeyError, TypeError, ValueError):
+            continue
+        if block % 8 == 0:
+            expected_by_skill[entry["skill"]] = f"Action({block // 8})"
 
     missing: list[int] = []
     mismatches: list[tuple[int, str, str]] = []
