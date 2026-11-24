@@ -48,9 +48,32 @@ fn every_ignored_noop_is_registered_with_a_reason() {
     }
 }
 
+/// The version module plus its per-domain registration submodules, read at test
+/// time so the check keeps working when a registration moves to another file.
+fn version_module_sources() -> String {
+    fn walk(dir: &std::path::Path, out: &mut String) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                walk(&path, out);
+            } else if path.extension().and_then(|extension| extension.to_str()) == Some("rs") {
+                out.push_str(&std::fs::read_to_string(&path).expect("registration source is readable"));
+            }
+        }
+    }
+
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/packet_versions");
+    let mut sources = std::fs::read_to_string(root.join("version_20220406.rs")).expect("version module is readable");
+    walk(&root.join("version_20220406"), &mut sources);
+    sources
+}
+
 #[test]
 fn version_module_registers_no_bare_noops() {
-    let source = include_str!("../packet_versions/version_20220406.rs");
+    let source = version_module_sources();
 
     assert_eq!(
         source.matches("register_noop::<").count(),
