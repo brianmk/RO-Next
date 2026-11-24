@@ -3606,6 +3606,30 @@
    ]
   },
   {
+   "skill": 471,
+   "name": "SL_SKE",
+   "effect_ids": [
+    427
+   ],
+   "evidence": "EF_ASURABODY_MONSTER sets render.flags 0x800: the official client draws the body three times at 1-3% larger scale in flat 0x3737FF behind the sprite (Player.cpp 1139-1184). Until the dedicated outline pass exists the skill gets an additive blue body tint so it is no longer visually inert.",
+   "mode": "append",
+   "layers": [
+    {
+     "kind": "BodyFlash",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "tint": [
+      0.216,
+      0.216,
+      1.0
+     ],
+     "hold_ms": 1000,
+     "fade_ms": 200,
+     "blend": "Additive"
+    }
+   ]
+  },
+  {
    "skill": 472,
    "name": "SL_SKA",
    "effect_ids": [

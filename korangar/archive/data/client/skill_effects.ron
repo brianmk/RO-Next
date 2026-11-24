@@ -2474,6 +2474,13 @@
             ],
         ),
         (
+            skill: 471,
+            phase: Success,
+            layers: [
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.216, 0.216, 1.0), blend: Additive, hold_ms: 1000, fade_ms: 200),
+            ],
+        ),
+        (
             skill: 472,
             phase: Success,
             layers: [

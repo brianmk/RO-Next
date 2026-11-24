@@ -527,7 +527,21 @@ can be finished. `AL_INCAGI` 29 falls into a large no-op case group in
 `OnProcess`; its body visual comes from a status-side path, so the row keeps its
 textures for now.
 
-### 5b-3. Flag-only skills: what each official effect actually asks for
+### 5b-2c. What is left of the flag-only family
+
+After the tint/overlay/wave work every flag-only skill has a visible effect
+except two:
+
+* `SL_SKE` 471 receives an additive blue body tint as an interim stand-in for
+  the official `0x800` **rim outline** (three 1-3% scaled copies in flat
+  `0x3737FF`, drawn behind the sprite, `Player.cpp:1139-1184`). A faithful
+  outline needs a dedicated pass: the sprite shader multiplies the texture by
+  the instance colour, so a flat silhouette requires a new fragment branch and
+  a depth-tested draw after the opaque depth is written.
+* `TK_HIGHJUMP` 426 (landing squash `0x40` + blur `0x20000`) is still only the
+  jump effect; both flags are screen-space post effects.
+
+## 5b-3. Flag-only skills: what each official effect actually asks for
 
 `tools/rodecomp_effect_flags.json` extracts, for 107 effect ids, the
 `render.flags` bits and `SetColor` calls from the decompiled `RagEffect.cpp`
