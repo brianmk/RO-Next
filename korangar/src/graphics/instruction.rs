@@ -16,6 +16,8 @@ use crate::world::MarkerIdentifier;
 #[derive(Default)]
 pub struct RenderInstruction<'a> {
     pub show_interface: bool,
+    /// Clear colour of the forward pass (the map sky, or black).
+    pub background_color: Color,
     pub picker_position: ScreenPosition,
     pub uniforms: Uniforms,
     pub indicator: Option<IndicatorInstruction>,
@@ -62,6 +64,10 @@ pub struct Uniforms {
     pub camera_position: Vector4<f32>,
     pub animation_timer_ms: f32,
     pub ambient_light_color: Color,
+    /// Scene fog colour; `alpha == 0` disables fog.
+    pub fog_color: Color,
+    /// Scene fog distance window (`near`, `far`).
+    pub fog_range: [f32; 2],
     pub enhanced_lighting: bool,
     pub shadow_method: ShadowMethod,
     pub shadow_detail: ShadowDetail,
@@ -77,6 +83,8 @@ impl Default for Uniforms {
             camera_position: Vector4::zero(),
             animation_timer_ms: 0.0,
             ambient_light_color: Color::default(),
+            fog_color: Color::TRANSPARENT,
+            fog_range: [0.0, 0.0],
             enhanced_lighting: false,
             shadow_method: ShadowMethod::Hard,
             shadow_detail: ShadowDetail::Low,

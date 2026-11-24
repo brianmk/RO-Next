@@ -104,6 +104,11 @@ pub(crate) struct GlobalUniforms {
     shadow_method: u32,
     shadow_detail: u32,
     use_sdsm: u32,
+    /// Scene fog colour (linear); `a == 0` disables fog.
+    fog_color: [f32; 4],
+    /// Scene fog distance window (`near`, `far`).
+    fog_range: [f32; 2],
+    _fog_padding: [f32; 2],
 }
 
 #[derive(Copy, Clone, Pod, Zeroable)]
@@ -483,6 +488,9 @@ impl Prepare for GlobalContext {
             shadow_method: instructions.uniforms.shadow_method.into(),
             shadow_detail: instructions.uniforms.shadow_detail.into(),
             use_sdsm: instructions.uniforms.use_sdsm as u32,
+            fog_color: instructions.uniforms.fog_color.components_linear(),
+            fog_range: instructions.uniforms.fog_range,
+            _fog_padding: [0.0; 2],
         };
 
         self.directional_light_uniforms = DirectionalLightUniforms {

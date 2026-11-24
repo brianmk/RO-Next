@@ -197,6 +197,53 @@ impl BufferedAction {
     }
 }
 
+/// `ZC_MAPPROPERTY_R2` flags that are needed outside the packet layer.
+///
+/// The bits are defined by rAthena `clif_map_property` (0x099B):
+/// bit 0 PvP, bit 1 GvG, bit 2 siege, bit 5 PvP counter, bit 8 costumes
+/// disabled. The remaining bits are not consumed by the renderer yet.
+pub const MAP_FLAG_PVP: u32 = 1 << 0;
+pub const MAP_FLAG_GVG: u32 = 1 << 1;
+pub const MAP_FLAG_SIEGE: u32 = 1 << 2;
+pub const MAP_FLAG_COUNT_PK: u32 = 1 << 5;
+pub const MAP_FLAG_DISABLE_COSTUME: u32 = 1 << 8;
+
+/// `e_map_type` values from `ZC_NOTIFY_MAPPROPERTY2` that are indoors.
+const INDOOR_MAP_TYPES: &[u16] = &[
+    1,  // MAPTYPE_VILLAGE_IN
+    3,  // MAPTYPE_DUNGEON
+    9,  // MAPTYPE_DUNGEON2
+    10, // MAPTYPE_DUNGEON3
+];
+
+/// `e_map_type` values that are PvP/PK/GvG maps.
+const PVP_MAP_TYPES: &[u16] = &[
+    4,  // MAPTYPE_ARENA
+    5,  // MAPTYPE_PENALTY_FREEPKZONE
+    6,  // MAPTYPE_NOPENALTY_FREEPKZONE
+    7,  // MAPTYPE_EVENT_GUILDWAR
+    11, // MAPTYPE_PKSERVER
+    12, // MAPTYPE_PVPSERVER
+    17, // MAPTYPE_PORINGBATTLE
+    20, // MAPTYPE_PVP_TOURNAMENT
+];
+
+/// Whether an `e_map_type` (`ZC_NOTIFY_MAPPROPERTY2`) is an indoor map type.
+pub fn is_indoor_map_type(map_type: u16) -> bool {
+    INDOOR_MAP_TYPES.contains(&map_type)
+}
+
+/// Whether an `e_map_type` / `ZC_MAPPROPERTY_R2` flag combination is a
+/// PvP/PK/GvG map.
+pub fn is_pvp_map(map_type: u16, map_flags: u32) -> bool {
+    map_flags & (MAP_FLAG_PVP | MAP_FLAG_GVG | MAP_FLAG_SIEGE) != 0 || PVP_MAP_TYPES.contains(&map_type)
+}
+
+/// Whether the `ZC_MAPPROPERTY_R2` flags disable costume sprites.
+pub fn costumes_disabled(map_flags: u32) -> bool {
+    map_flags & MAP_FLAG_DISABLE_COSTUME != 0
+}
+
 /// Internal state of the client. Everything that can be viewed or modified via
 /// the user interface should be in here. State that takes care of managing OS
 /// or rendering resources should be in [`Client`](super::Client).
@@ -450,6 +497,35 @@ impl ClientState {
             .first()
             .map(|entity| self.spirit_orbs.get(entity.get_entity_id()))
             .unwrap_or(0)
+    }
+
+    /// Whether the current map is indoors (`ZC_NOTIFY_MAPPROPERTY2` map type).
+    ///
+    /// Indoor maps do not draw the outdoor weather effects; their background
+    /// and lighting come from the map's own RSW/GND/mapskydata entries.
+    pub fn is_indoor_map(&self) -> bool {
+        is_indoor_map_type(self.map_type)
+    }
+
+    /// Whether the current map is a PvP/PK/GvG map (`ZC_MAPPROPERTY_R2` flags
+    /// and the map type).
+    ///
+    /// The flag is exposed for the future targeting rules (attack cursor on
+    /// non-party/non-guild members); the renderer does not change behaviour
+    /// based on it yet.
+    pub fn is_pvp_map(&self) -> bool {
+        is_pvp_map(self.map_type, self.map_flags)
+    }
+
+    /// Whether the server disabled costume sprites on the current map
+    /// (`ZC_MAPPROPERTY_R2` bit 8).
+    pub fn costumes_disabled(&self) -> bool {
+        costumes_disabled(self.map_flags)
+    }
+
+    /// Dynamic map-cell overrides from `ZC_UPDATE_MAPINFO` (tile -> walkable).
+    pub fn map_cell_overrides(&self) -> &[(TilePosition, bool)] {
+        &self.map_cell_overrides
     }
 
     pub fn new(
@@ -1056,4 +1132,40 @@ pub fn prepare_effect_source_inspection(
         });
 
     client_state().inspecting_effect_sources().index(index).manually_asserted()
+}
+
+#[cfg(test)]
+mod map_property_tests {
+    use super::{MAP_FLAG_DISABLE_COSTUME, MAP_FLAG_GVG, MAP_FLAG_PVP, costumes_disabled, is_indoor_map_type, is_pvp_map};
+
+    #[test]
+    fn indoor_map_types_follow_the_protocol() {
+        // Village interior and the three dungeon types are indoors.
+        for map_type in [1, 3, 9, 10] {
+            assert!(is_indoor_map_type(map_type), "map type {map_type}");
+        }
+        for map_type in [0, 2, 4, 5, 7, 12, 17, 20] {
+            assert!(!is_indoor_map_type(map_type), "map type {map_type}");
+        }
+    }
+
+    #[test]
+    fn pvp_comes_from_the_flags_or_the_map_type() {
+        assert!(is_pvp_map(0, MAP_FLAG_PVP));
+        assert!(is_pvp_map(0, MAP_FLAG_GVG));
+        assert!(is_pvp_map(12, 0), "MAPTYPE_PVPSERVER");
+        assert!(is_pvp_map(4, 0), "MAPTYPE_ARENA");
+        assert!(is_pvp_map(17, 0), "MAPTYPE_PORINGBATTLE");
+        assert!(!is_pvp_map(0, 0));
+        assert!(!is_pvp_map(2, 0), "a field map is not PvP");
+        // Unrelated flags do not turn a map into PvP.
+        assert!(!is_pvp_map(0, MAP_FLAG_DISABLE_COSTUME));
+    }
+
+    #[test]
+    fn costume_flag_is_exposed() {
+        assert!(costumes_disabled(MAP_FLAG_DISABLE_COSTUME));
+        assert!(!costumes_disabled(MAP_FLAG_PVP));
+        assert!(!costumes_disabled(0));
+    }
 }

@@ -122,8 +122,8 @@ pub enum EntityType {
 /// Equipment appearance slots the entity layer keeps from the server.
 ///
 /// The server sends these through `ZC_SPRITE_CHANGE` (`0x01D7`) and the
-/// equipment acknowledgement packets. Only the weapon is rendered as its own
-/// layer so far; shield and robe are kept for the follow-up layer work.
+/// equipment acknowledgement packets. The weapon, shield and robe are each
+/// rendered as their own animation layer on top of the body.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EquipmentLook {
     Weapon,
@@ -138,6 +138,10 @@ pub struct SpriteChangeOutcome {
     pub body: bool,
     /// Equipped weapon changed: reload the weapon animation layer.
     pub weapon: bool,
+    /// Equipped shield changed: reload the shield animation layer.
+    pub shield: bool,
+    /// Equipped robe changed: reload the robe animation layer.
+    pub robe: bool,
 }
 
 impl From<JobId> for EntityType {
@@ -243,12 +247,14 @@ pub struct Common {
     pub weapon: u32,
     /// Shield value (`shield` in the entity-appear packets), `0` if none.
     ///
-    /// Kept for the follow-up shield-layer work; not rendered yet.
+    /// The server sends the shield item id; [`super::shield`] resolves it to
+    /// the item view id and the sprite candidates of the equipped shield.
     #[hidden_element]
-    #[allow(dead_code)]
     pub shield: u32,
-    /// Robe view id (`robe` in the entity-appear packets).
-    #[allow(dead_code)]
+    /// Robe view id (`robe` in the entity-appear packets), `0` if none.
+    ///
+    /// See [`super::robe`] for the sprite candidates and the animated opacity
+    /// of transparent robes.
     #[hidden_element]
     pub robe: u16,
     /// Animation of the hunter falcon, loaded lazily when the entity actually
@@ -294,6 +300,12 @@ pub struct Common {
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
     weapon_animation: Option<Arc<AnimationData>>,
+    /// Equipped shield animation, drawn in front of the body/head layers.
+    #[hidden_element]
+    shield_animation: Option<Arc<AnimationData>>,
+    /// Equipped robe animation, drawn as the top layer over the body.
+    #[hidden_element]
+    robe_animation: Option<Arc<AnimationData>>,
     pub active_movement: Option<Movement>,
     pub animation_data: Option<Arc<AnimationData>>,
     /// Pending death: the tick at which the server reported the death. The
@@ -660,6 +672,8 @@ impl Common {
             status_weapon_additive: false,
             status_alpha: None,
             weapon_animation: None,
+            shield_animation: None,
+            robe_animation: None,
             active_movement,
             entity_type,
             movement_speed,
@@ -714,6 +728,8 @@ impl Common {
             // the new appearance job.
             self.animation_data = None;
             self.weapon_animation = None;
+            self.shield_animation = None;
+            self.robe_animation = None;
             self.cart_animation = None;
         }
 
@@ -921,9 +937,51 @@ impl Common {
         super::weapon::part_candidates(appearance_job, self.sex, self.weapon)
     }
 
+    /// Candidate sprite part files of the equipped shield.
+    ///
+    /// The candidate construction (numeric view id, classic shield names) lives
+    /// in [`crate::world::shield::part_candidates`].
+    pub fn get_shield_part_candidates(&self) -> Vec<EntityPartFile> {
+        let appearance_job = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
+        if crate::world::jobs::is_outfit_job(appearance_job) {
+            // Wedding/holiday outfits show no shield.
+            return Vec::new();
+        }
+        super::shield::part_candidates(appearance_job, self.sex, self.shield)
+    }
+
+    /// Candidate sprite/action pairs of the equipped robe.
+    ///
+    /// The robe sprite is shared by every job/sex and the action is per job;
+    /// the sprite is drawn with the body palette (classic client
+    /// `RenderRobe`). See [`crate::world::robe::part_candidates`].
+    pub fn get_robe_part_candidates(&self) -> Vec<EntityPartFile> {
+        let appearance_job = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
+        if appearance_job.0 != self.job_id.0 && crate::world::jobs::is_outfit_job(appearance_job) {
+            // Outfits already include the garment shape.
+            return Vec::new();
+        }
+        // Classic `RenderRobe` draws the robe with the sprite's own embedded
+        // palette (and the body's blend mode), and this data set ships no
+        // external robe palettes; the per-job/sex resolution above selects the
+        // right animation. A data set with external robe palettes can pass them
+        // to `part_candidates`.
+        super::robe::part_candidates(appearance_job, self.sex, self.robe, None)
+    }
+
     /// Equipped weapon value: a server `W_*` weapon type or an item view id.
     pub fn get_weapon(&self) -> u32 {
         self.weapon
+    }
+
+    /// Shield item id of the entity, `0` if none.
+    pub fn get_shield(&self) -> u32 {
+        self.shield
+    }
+
+    /// Robe view id of the entity, `0` if none.
+    pub fn get_robe(&self) -> u16 {
+        self.robe
     }
 
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
@@ -945,13 +1003,67 @@ impl Common {
                     self.weapon_animation = None;
                 }
             }
-            EquipmentLook::Shield => self.shield = value,
-            EquipmentLook::Robe => self.robe = value as u16,
+            EquipmentLook::Shield => {
+                if self.shield != value {
+                    self.shield = value;
+                    self.shield_animation = None;
+                }
+            }
+            EquipmentLook::Robe => {
+                let value = value as u16;
+                if self.robe != value {
+                    self.robe = value;
+                    self.robe_animation = None;
+                }
+            }
         }
     }
 
     pub fn has_weapon_animation(&self) -> bool {
         self.weapon_animation.is_some()
+    }
+
+    /// Keeps a loaded shield animation.
+    ///
+    /// Trimmed data sets can ship shield ACTs without drawable frames; such an
+    /// animation is rejected like a placeholder weapon animation.
+    pub fn set_shield_animation(&mut self, animation_data: Arc<AnimationData>) {
+        if super::weapon::animation_is_drawable(&animation_data) {
+            self.shield_animation = Some(animation_data);
+        }
+    }
+
+    pub fn has_shield_animation(&self) -> bool {
+        self.shield_animation.is_some()
+    }
+
+    pub fn needs_shield_animation(&self) -> bool {
+        self.shield != 0 && self.shield_animation.is_none() && !self.get_shield_part_candidates().is_empty()
+    }
+
+    pub fn set_robe_animation(&mut self, animation_data: Arc<AnimationData>) {
+        if super::weapon::animation_is_drawable(&animation_data) {
+            self.robe_animation = Some(animation_data);
+        }
+    }
+
+    pub fn has_robe_animation(&self) -> bool {
+        self.robe_animation.is_some()
+    }
+
+    pub fn needs_robe_animation(&self) -> bool {
+        self.robe != 0 && self.robe_animation.is_none() && !self.get_robe_part_candidates().is_empty()
+    }
+
+    /// Current opacity multiplier of the equipped robe at `client_tick`.
+    ///
+    /// Implements the animated `RobeOpacity` window; fully opaque robes return
+    /// `1.0` without any per-frame work.
+    pub fn robe_opacity(&self, client_tick: ClientTick) -> f32 {
+        match super::robe::profile(self.robe) {
+            Some(profile) => profile.opacity_at(client_tick.0),
+            None => 1.0,
+        }
     }
 
     pub fn get_entity_part_files(&self, library: &Library) -> Vec<EntityPartFile> {
@@ -1141,11 +1253,13 @@ impl Common {
         &mut self,
         map: &Map,
         path_finder: &mut PathFinder,
+        cell_overrides: &[(TilePosition, bool)],
         start: TilePosition,
         goal: TilePosition,
         starting_timestamp: ClientTick,
     ) {
-        if let Some(path) = path_finder.find_walkable_path(map, start, goal) {
+        let traversable = crate::world::TraversableMap::new(map, cell_overrides);
+        if let Some(path) = path_finder.find_walkable_path(&traversable, start, goal) {
             if path.len() <= 1 {
                 return;
             }
@@ -1475,6 +1589,35 @@ impl Common {
                 duration_ms: u32::MAX,
             }));
 
+        // Robe layer. The classic client draws the robe with the body palette
+        // and the animated `RobeOpacity` alpha; robes whose per-motion
+        // `DrawOnTop` entry says "behind" are drawn before the body, everything
+        // else is the top layer (after the weapon/shield layers below).
+        let robe_top_layer = crate::world::robe::profile(self.robe)
+            .map(|profile| profile.is_top_layer())
+            .unwrap_or(true);
+        let robe_alpha = alpha * self.robe_opacity(client_tick);
+
+        if !robe_top_layer && let Some(robe_animation) = self.robe_animation.as_ref() {
+            robe_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                body_position,
+                &self.animation_state,
+                self.direction,
+                robe_alpha,
+                tint,
+                self.scale,
+                self.imf.as_deref(),
+                false,
+                false,
+                -0.03,
+                1.0,
+            );
+        }
+
         if let (Some(outline), Some(animation_data)) = (outline_active, self.animation_data.as_ref()) {
             for step in 1..=3 {
                 let scale = self.scale * (1.0 + step as f32 * 0.01);
@@ -1518,6 +1661,28 @@ impl Common {
             );
         }
 
+        // Equipped shield: drawn in front of the body and behind the weapon,
+        // using the same body animation state/action/frame.
+        if let Some(shield_animation) = self.shield_animation.as_ref() {
+            shield_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                self.world_position,
+                &self.animation_state,
+                self.direction,
+                alpha,
+                tint,
+                self.scale,
+                None,
+                false,
+                false,
+                0.01,
+                1.0,
+            );
+        }
+
         // Equipped weapon: rendered as its own animation layer with the body
         // animation state/action/frame so the weapon follows idle/walk/attack.
         // `EF_LIGHTBLADE` (Magical Power) blinks it on alternate frames.
@@ -1538,6 +1703,28 @@ impl Common {
                 self.status_weapon_additive,
                 false,
                 0.0,
+                1.0,
+            );
+        }
+
+        // Robe top layer (the common case): drawn over the body and equipment
+        // layers with the animated opacity of transparent robes.
+        if robe_top_layer && let Some(robe_animation) = self.robe_animation.as_ref() {
+            robe_animation.render(
+                instructions,
+                camera,
+                add_to_picker,
+                self.entity_id,
+                body_position,
+                &self.animation_state,
+                self.direction,
+                robe_alpha,
+                tint,
+                self.scale,
+                self.imf.as_deref(),
+                false,
+                false,
+                0.02,
                 1.0,
             );
         }
@@ -2035,6 +2222,7 @@ impl Npc {
             common.move_from_to(
                 map,
                 path_finder,
+                &[],
                 entity_data.position.tile_position(),
                 destination.tile_position(),
                 client_tick,
@@ -2192,16 +2380,48 @@ impl Entity {
         self.get_common().get_weapon_part_candidates()
     }
 
+    pub fn get_shield_part_candidates(&self) -> Vec<EntityPartFile> {
+        self.get_common().get_shield_part_candidates()
+    }
+
+    pub fn get_robe_part_candidates(&self) -> Vec<EntityPartFile> {
+        self.get_common().get_robe_part_candidates()
+    }
+
     pub fn get_weapon(&self) -> u32 {
         self.get_common().get_weapon()
+    }
+
+    pub fn get_shield(&self) -> u32 {
+        self.get_common().get_shield()
+    }
+
+    pub fn get_robe(&self) -> u16 {
+        self.get_common().get_robe()
     }
 
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
         self.get_common_mut().set_weapon_animation(animation_data);
     }
 
+    pub fn set_shield_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.get_common_mut().set_shield_animation(animation_data);
+    }
+
+    pub fn set_robe_animation(&mut self, animation_data: Arc<AnimationData>) {
+        self.get_common_mut().set_robe_animation(animation_data);
+    }
+
     pub fn has_weapon_animation(&self) -> bool {
         self.get_common().has_weapon_animation()
+    }
+
+    pub fn has_shield_animation(&self) -> bool {
+        self.get_common().has_shield_animation()
+    }
+
+    pub fn has_robe_animation(&self) -> bool {
+        self.get_common().has_robe_animation()
     }
 
     /// Whether the body animation data of this entity is still missing
@@ -2220,6 +2440,18 @@ impl Entity {
     pub fn needs_weapon_animation(&self) -> bool {
         let common = self.get_common();
         common.animation_data.is_some() && !common.has_weapon_animation() && !common.get_weapon_part_candidates().is_empty()
+    }
+
+    /// Whether the equipped shield animation is required but still missing.
+    pub fn needs_shield_animation(&self) -> bool {
+        let common = self.get_common();
+        common.animation_data.is_some() && common.needs_shield_animation()
+    }
+
+    /// Whether the equipped robe animation is required but still missing.
+    pub fn needs_robe_animation(&self) -> bool {
+        let common = self.get_common();
+        common.animation_data.is_some() && common.needs_robe_animation()
     }
 
     fn get_common(&self) -> &Common {
@@ -2398,8 +2630,14 @@ impl Entity {
                 common.set_equipment_look(value, EquipmentLook::Weapon);
                 outcome.weapon = true;
             }
-            SpriteChangeType::Shield => common.set_equipment_look(value, EquipmentLook::Shield),
-            SpriteChangeType::Robe => common.set_equipment_look(value, EquipmentLook::Robe),
+            SpriteChangeType::Shield => {
+                common.set_equipment_look(value, EquipmentLook::Shield);
+                outcome.shield = true;
+            }
+            SpriteChangeType::Robe => {
+                common.set_equipment_look(value, EquipmentLook::Robe);
+                outcome.robe = true;
+            }
             _ => return None,
         }
 
@@ -2648,15 +2886,18 @@ impl Entity {
         self.get_common_mut().update(audio_engine, map, camera, client_tick);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn move_from_to(
         &mut self,
         map: &Map,
         path_finder: &mut PathFinder,
+        cell_overrides: &[(TilePosition, bool)],
         from: TilePosition,
         to: TilePosition,
         starting_timestamp: ClientTick,
     ) {
-        self.get_common_mut().move_from_to(map, path_finder, from, to, starting_timestamp);
+        self.get_common_mut()
+            .move_from_to(map, path_finder, cell_overrides, from, to, starting_timestamp);
     }
 
     #[cfg(feature = "debug")]

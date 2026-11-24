@@ -29,7 +29,7 @@ pub(crate) struct ForwardRenderPassContext {
 impl RenderPassContext<{ BindGroupCount::Two }, { ColorAttachmentCount::Three }, { DepthAttachmentCount::One }>
     for ForwardRenderPassContext
 {
-    type PassData<'data> = Option<()>;
+    type PassData<'data> = Option<Color>;
 
     fn new(_device: &Device, _queue: &Queue, _texture_loader: &TextureLoader, global_context: &GlobalContext) -> Self {
         let color_texture_format = global_context.forward_color_texture.get_format();
@@ -49,8 +49,12 @@ impl RenderPassContext<{ BindGroupCount::Two }, { ColorAttachmentCount::Three },
         &mut self,
         encoder: &'encoder mut CommandEncoder,
         global_context: &GlobalContext,
-        _pass_data: Option<()>,
+        pass_data: Option<Color>,
     ) -> RenderPass<'encoder> {
+        // The sky/background colour of the map (`mapskydata.lub`); maps without
+        // sky data keep the previous black background.
+        let background_color = pass_data.unwrap_or(Color::BLACK);
+
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some(PASS_NAME),
             color_attachments: &[
@@ -62,7 +66,7 @@ impl RenderPassContext<{ BindGroupCount::Two }, { ColorAttachmentCount::Three },
                         .as_ref()
                         .map(|texture| texture.get_texture_view()),
                     ops: Operations {
-                        load: LoadOp::Clear(Color::BLACK),
+                        load: LoadOp::Clear(background_color),
                         store: StoreOp::Store,
                     },
                 }),

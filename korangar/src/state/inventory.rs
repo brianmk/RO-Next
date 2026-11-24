@@ -157,7 +157,12 @@ impl Inventory {
     }
 
     pub fn update_equipped_position(&mut self, index: InventoryIndex, new_equipped_position: EquipPosition) {
-        let item = self.items.iter_mut().find(|item| item.index == index).unwrap();
+        // The equip-switch list can arrive before the inventory is filled (or
+        // reference an item the server already removed); a missing index is not
+        // an error.
+        let Some(item) = self.items.iter_mut().find(|item| item.index == index) else {
+            return;
+        };
 
         let InventoryItemDetails::Equippable { equipped_position, .. } = &mut item.details else {
             // This can happen for ammunition for example.

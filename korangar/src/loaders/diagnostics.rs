@@ -39,6 +39,8 @@ pub fn asset_failure_log_key(id: &LoaderId) -> String {
         LoaderId::CartAnimationData(_) => "cart-animation-data".to_owned(),
         LoaderId::ImfData(..) => "imf-data".to_owned(),
         LoaderId::WeaponAnimationData(_) => "weapon-animation-data".to_owned(),
+        LoaderId::ShieldAnimationData(_) => "shield-animation-data".to_owned(),
+        LoaderId::RobeAnimationData(_) => "robe-animation-data".to_owned(),
         LoaderId::ItemSprite(item_id) => format!("item-sprite:{}", item_id.0),
         LoaderId::SkillSprite(skill_id) => format!("skill-sprite:{}", skill_id.0),
         LoaderId::SkillActions(skill_id) => format!("skill-actions:{}", skill_id.0),
@@ -74,7 +76,9 @@ pub fn transient_asset_failure_message(id: &LoaderId, _error: &LoadError) -> Str
         | LoaderId::FalconAnimationData(_)
         | LoaderId::CartAnimationData(_)
         | LoaderId::ImfData(..)
-        | LoaderId::WeaponAnimationData(_) => "Some character animations",
+        | LoaderId::WeaponAnimationData(_)
+        | LoaderId::ShieldAnimationData(_)
+        | LoaderId::RobeAnimationData(_) => "Some character animations",
         LoaderId::CharacterPreview(_) => "The character preview",
         LoaderId::ItemSprite(_) => "Some item icons",
         LoaderId::SkillSprite(_) | LoaderId::SkillActions(_) => "Some skill icons",

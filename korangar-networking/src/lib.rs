@@ -1951,8 +1951,12 @@ mod packet_handlers {
             0,
             "every parsed-but-unconsumed packet must use register_ignored_noop with a classification"
         );
+        // The exact number shrinks as features land (the noop table is a
+        // backlog), so only a sanity floor is asserted here; the table itself
+        // is validated entry by entry in
+        // `every_ignored_noop_is_registered_with_a_reason`.
         assert!(
-            source.matches("register_ignored_noop::<").count() >= 20,
+            source.matches("register_ignored_noop::<").count() >= 10,
             "expected the classified noop registrations to remain in place"
         );
     }

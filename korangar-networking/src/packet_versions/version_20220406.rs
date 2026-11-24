@@ -944,7 +944,9 @@ where
             }
         }
     })?;
-    register_ignored_noop::<_, EquippableSwitchItemListPacket>(packet_handler)?;
+    packet_handler.register(|packet: EquippableSwitchItemListPacket| NetworkEvent::EquipmentSwitchItems {
+        items: packet.item_information,
+    })?;
     packet_handler.register(|packet: MapTypePacket| NetworkEvent::MapProperties {
         map_type: packet.map_type,
         flags: packet.flags,

@@ -12,8 +12,11 @@ use crate::world::{Player, ResourceMetadata};
 
 /// Total width of the equipment window. The content is split into two equally
 /// sized columns (paper doll and stats), so this is derived from the width of
-/// the paper doll canvas.
-const WINDOW_WIDTH: f32 = 488.0;
+/// the paper doll canvas: the canvas grew from 220 to 440 pixels when the
+/// costume and shadow-gear slots were added, and the split only gives each
+/// column half of the added width, so the window grows by twice the canvas
+/// growth (488 -> 928).
+const WINDOW_WIDTH: f32 = 928.0;
 
 pub struct EquipmentWindow<A, B> {
     items_path: A,

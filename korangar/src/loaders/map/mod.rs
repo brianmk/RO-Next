@@ -27,7 +27,7 @@ use self::water_plane::generate_water_plane;
 use super::error::LoadError;
 use crate::graphics::{BindlessSupport, Buffer, ModelVertex, TextureSet};
 use crate::loaders::{GameFileLoader, ModelLoader, TextureLoader, TextureSetBuilder, VideoLoader, split_mesh_by_texture};
-use crate::world::{Library, LightSourceKey, Lighting, MapSkyData, Model, SubMesh, Video};
+use crate::world::{Library, LightSourceKey, Lighting, MapSky, MapSkyData, Model, SubMesh, Video};
 use crate::{EffectSourceExt, LightSourceExt, Map, Object, ObjectKey, SoundSourceExt};
 
 pub const GROUND_TILE_SIZE: f32 = 10.0;
@@ -133,8 +133,10 @@ impl MapLoader {
         let map_file_name = format!("data\\{}.rsw", &resource_file);
         let mut map_data: MapData = parse_generic_data(&map_file_name, &self.game_file_loader)?;
 
-        // TODO: NHA Implement sky rendering
-        let _map_sky_data = library.get::<MapSkyData>(&resource_file);
+        // `mapskydata.lub` carries the sky colour/fog of the map. Maps that
+        // are not in the table (or a data set without the lua file) use the
+        // default entry, i.e. no sky and no fog, and render exactly as before.
+        let map_sky_data = library.get::<MapSkyData>(&resource_file);
 
         let ground_file = format!("data\\{}", map_data.ground_file);
         let ground_data: GroundData = parse_generic_data(&ground_file, &self.game_file_loader)?;
@@ -298,6 +300,23 @@ impl MapLoader {
 
         let lighting = Lighting::new(map_data.light_settings);
 
+        // Sky/fog distances are derived from the map size because neither the
+        // RSW nor the GND file carries them.
+        let map_extent = Vector3::new(
+            ground_data.width as f32 * GROUND_TILE_SIZE,
+            0.0,
+            ground_data.height as f32 * GROUND_TILE_SIZE,
+        );
+        let sky = MapSky::from_map_sky_data(map_sky_data, map_extent, lighting.ambient_light_color());
+        crate::logging::log_debug!(
+            "map sky {}: background {:?}, fog {:?}, stars {}, clouds {}",
+            resource_file,
+            sky.background_color(),
+            sky.fog(),
+            sky.has_stars(),
+            sky.has_clouds()
+        );
+
         let mut light_sources = SimpleSlab::with_capacity(map_data.resources.light_sources.len() as u32);
         let light_source_spheres: Vec<(LightSourceKey, Sphere)> = map_data
             .resources
@@ -317,6 +336,7 @@ impl MapLoader {
             gat_data.map_height as u16,
             object_kdtree.root_boundary(),
             lighting,
+            sky,
             water_plane,
             gat_data.tiles,
             sub_meshes,
@@ -436,4 +456,37 @@ fn create_index_buffer(device: &Device, queue: &Queue, resource: &str, label: &s
         BufferUsages::COPY_DST | BufferUsages::INDEX,
         indices,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use korangar_loaders::FileLoader;
+    use ragnarok_bytes::{ByteReader, FromBytes};
+    use ragnarok_formats::map::GroundData;
+    use ragnarok_formats::version::MapFormatMetadata;
+
+    use crate::loaders::GameFileLoader;
+
+    /// The CondaRO GND files are version 1.7 and carry the lightmap pixels.
+    /// This is an archive-backed smoke test; it is ignored in the normal test
+    /// run because the game archives are not part of the repository.
+    #[test]
+    #[ignore = "requires the CondaRO game archives in the client directory"]
+    fn gnd_lightmap_data_is_parsed() {
+        let loader = GameFileLoader::default();
+        loader.load_archives_from_settings();
+
+        let bytes = loader.get("data\\prontera.gnd").expect("prontera.gnd must be in the archives");
+        let mut byte_reader: ByteReader = ByteReader::with_default_metadata::<MapFormatMetadata>(&bytes);
+        let ground_data = GroundData::from_bytes(&mut byte_reader).expect("prontera.gnd must parse");
+
+        assert!(ground_data.light_map_count > 0);
+        assert_eq!(ground_data.light_map_width, 8);
+        assert_eq!(ground_data.light_map_height, 8);
+
+        let data = ground_data.light_map_data.expect("GND 1.7+ must carry lightmap data");
+        let expected = ground_data.light_map_count as usize * 8 * 8 * 4;
+        assert_eq!(data.len(), expected, "one 256-byte lightmap per entry");
+        assert!(data.iter().any(|value| *value != 0), "the lightmaps are not all black");
+    }
 }

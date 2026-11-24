@@ -4719,7 +4719,8 @@ bitflags::bitflags! {
         const RIGTH_ACCESSORY = 128;
         const COSTUME_HEAD_TOP = 1024;
         const COSTUME_HEAD_MIDDLE = 2048;
-        const COSTUME_HEAD_LOWER = 4196;
+        // rAthena `EQP_COSTUME_HEAD_LOW = 0x001000` (4096).
+        const COSTUME_HEAD_LOWER = 4096;
         const COSTUME_GARMENT = 8192;
         const AMMO = 32768;
         const SHADOW_ARMOR = 65536;
@@ -8752,7 +8753,6 @@ mod item_service_packet_tests {
         assert_eq!(&bytes[2..4], &1i16.to_le_bytes());
         assert_eq!(&bytes[4..6], &2i16.to_le_bytes());
         assert_eq!(&bytes[6..10], &4001u32.to_le_bytes());
-
     }
 }
 

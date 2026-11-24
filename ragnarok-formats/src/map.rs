@@ -230,14 +230,22 @@ pub struct GroundData {
     pub light_map_width: i32,
     pub light_map_height: i32,
     pub light_map_cells_per_grid: i32,
+    /// GND 1.7+ lightmap pixels: `light_map_count` maps of
+    /// `light_map_width * light_map_height` pixels with four bytes each.
+    ///
+    /// The per-pixel layout is decoded by the map loader
+    /// (`GroundLightmaps.cpp`): the first quarter is the alpha channel, the
+    /// remaining three quarters are the RGB channels of the 8x8 lightmap.
     #[version_equals_or_above(1, 7)]
     #[repeating_expr(light_map_count as usize * light_map_width as usize * light_map_height as usize * 4)]
     #[new_default]
-    pub _skip: Option<Vec<u8>>,
+    pub light_map_data: Option<Vec<u8>>,
+    /// Pre-1.7 lightmaps only carry the raw per-corner light values; the
+    /// client keeps the surface color and renders them as before.
     #[version_below(1, 7)]
     #[repeating_expr(light_map_count * 16)]
     #[new_default]
-    pub _skip2: Option<Vec<u8>>,
+    pub light_map_data_legacy: Option<Vec<u8>>,
     #[new_derive]
     pub surface_count: i32,
     #[repeating(surface_count)]

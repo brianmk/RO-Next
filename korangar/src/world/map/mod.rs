@@ -1,4 +1,5 @@
 mod lighting;
+mod sky;
 
 #[cfg(feature = "debug")]
 use std::collections::HashSet;
@@ -25,6 +26,7 @@ use rust_state::RustState;
 use wgpu::Queue;
 
 pub use self::lighting::Lighting;
+pub use self::sky::{MapSky, SceneFog};
 use super::{Camera, Entity, GroundItem, Object, PointLightId, PointLightManager, ResourceSet, ResourceSetBuffer, SubMesh, Video};
 #[cfg(feature = "debug")]
 use super::{LightSourceExt, Model, PointLightSet};
@@ -116,6 +118,7 @@ pub struct Map {
     height: u16,
     level_bound: AABB,
     lighting: Lighting,
+    sky: MapSky,
     water_plane: Option<WaterPlane>,
     tiles: Vec<Tile>,
     sub_meshes: Vec<SubMesh>,
@@ -151,6 +154,7 @@ impl Map {
         height: u16,
         level_bound: AABB,
         lighting: Lighting,
+        sky: MapSky,
         water_plane: Option<WaterPlane>,
         tiles: Vec<Tile>,
         sub_meshes: Vec<SubMesh>,
@@ -177,6 +181,7 @@ impl Map {
             height,
             level_bound,
             lighting,
+            sky,
             water_plane,
             tiles,
             sub_meshes,
@@ -531,6 +536,17 @@ impl Map {
         self.lighting.directional_light()
     }
 
+    /// Sky/background colour from `mapskydata.lub`, `None` when the map has no
+    /// sky data.
+    pub fn sky_background_color(&self) -> Option<Color> {
+        self.sky.background_color()
+    }
+
+    /// Scene fog derived from `BG_Fog`, `None` for maps without fog data.
+    pub fn scene_fog(&self) -> Option<SceneFog> {
+        self.sky.fog()
+    }
+
     #[cfg_attr(feature = "debug", korangar_debug::profile)]
     pub fn register_point_lights(
         &self,
@@ -859,5 +875,46 @@ impl Traversable for Map {
         self.get_tile(position)
             .map(|tile| tile.flags.contains(TileFlags::SNIPABLE))
             .unwrap_or(false)
+    }
+}
+
+/// A map view that applies the dynamic cell overrides from `ZC_UPDATE_MAPINFO`
+/// (0x0192) on top of the static GAT collision.
+///
+/// The loaded [`Map`] is shared and immutable (maps are cached), so breakable
+/// walls cannot be patched into its tile data. Path finding therefore uses this
+/// borrowed view: the most recent override (the state vector keeps one entry
+/// per tile) wins, everything else falls through to the static map.
+pub struct TraversableMap<'a> {
+    map: &'a Map,
+    cell_overrides: &'a [(TilePosition, bool)],
+}
+
+impl<'a> TraversableMap<'a> {
+    pub fn new(map: &'a Map, cell_overrides: &'a [(TilePosition, bool)]) -> Self {
+        Self { map, cell_overrides }
+    }
+
+    fn cell_override(&self, position: TilePosition) -> Option<bool> {
+        self.cell_overrides
+            .iter()
+            .rev()
+            .find(|(tile, _)| *tile == position)
+            .map(|(_, walkable)| *walkable)
+    }
+}
+
+impl Traversable for TraversableMap<'_> {
+    fn is_walkable(&self, position: TilePosition) -> bool {
+        self.cell_override(position).unwrap_or_else(|| self.map.is_walkable(position))
+    }
+
+    fn is_snipeable(&self, position: TilePosition) -> bool {
+        match self.cell_override(position) {
+            // A wall that was broken open is walkable and can be shot through;
+            // a floor tile that became a wall blocks projectiles as well.
+            Some(walkable) => walkable,
+            None => self.map.is_snipeable(position),
+        }
     }
 }

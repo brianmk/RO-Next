@@ -1,0 +1,72 @@
+// Data-driven robe (garment) appearance table.
+//
+// Generated from the CondaRO client lua data (`data\luafiles514\lua files\datainfo\
+// spriterobeid.lub`, `spriterobename.lub`, `spriterobename_f.lub` and
+// `transparentitem/transparentitem.lub`). Every entry is one robe view id:
+//
+// * `names` - sprite folder names of the robe, most preferred first. The
+//   archive layout is `data\sprite\로브\<name>\...`; older robes use the
+//   Korean name, newer cash robes use the English `_f` name, so both are
+//   tried and missing candidates are skipped cleanly.
+// * `alpha` - animated opacity window from `querytransparentiteminfo`
+//   (`from`, `to`, `period` in milliseconds). Robes without an entry are
+//   fully opaque.
+//
+// The table is embedded as the compiled fallback and can be overridden in the
+// client archive (`data\client\robes.ron`).
+(
+    provenance: "CondaRO client lua files (spriterobeid/spriterobename(_f)/transparentitem, PACKETVER 20190605)",
+    version: 1,
+    robes: [
+        (id: 1, names: ["천사날개", "ANGEL_WINGS"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 2, names: ["모험가배낭", "BAG_OF_ADVENTURER"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 3, names: ["타락천사의날개", "WINGS_OF_FALLEN_ANGEL"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 4, names: ["아미스트르가방", "AMISTR_BAG"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 5, names: ["아버지사랑날개2012", "Love_Dad_Wings_2012"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 6, names: ["기린의날개", "KIRIN_WING"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 7, names: ["피아멧트의리본", "Ribbon_Piamat"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 8, names: ["루드라의날개", "Rudra_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 9, names: ["행복의날개", "Wing_Of_Happiness"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 10, names: ["대악마날개", "GraetDevilWing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 11, names: ["메카닉윙", "MechanicWing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 12, names: ["소악마날개", "Devil_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 13, names: ["안토니오가방", "Bag_Of_Antonio"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 14, names: ["분홍큐피트날개", "Cupid_Wing_Pink"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 15, names: ["하늘색큐피트날개", "Cupid_Wing_Skyblue"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 16, names: ["포링가방", "Poring_Bag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 17, names: ["우리엘의날개", "Wings_of_Uriel"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 18, names: ["엔젤페더", "Angel_feather"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 19, names: ["검의날개", "SwordWing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 20, names: ["빛과어둠의날개", "Light_Darkness_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 21, names: ["요정의파란날개", "Blue_Fairy_Wing"], alpha: (from: 255, to: 255, period: 2000)),
+        (id: 22, names: ["EXE_Backpack"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 23, names: ["Thanatos_Sword"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 24, names: ["Wings_of_Michael"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 25, names: ["GiantCatBag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 26, names: ["BlackCatBag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 27, names: ["Gerhard_Von_Devi_Bag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 28, names: ["C_2018_RTC_Cape_TW"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 29, names: ["2018_RTC_Cape1_TW"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 30, names: ["2018_RTC_Cape2_TW"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 31, names: ["2018_RTC_Cape3_TW"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 32, names: ["2018_RTC_Cape4_TW"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 33, names: ["C_Bloody_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 34, names: ["C_BlueAngeling_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 35, names: ["C_PinkButterfly_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 36, names: ["C_GoldButterfly_Wing"], alpha: (from: 100, to: 200, period: 25500)),
+        (id: 37, names: ["C_Wings_of_Gabriel"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 38, names: ["C_PinkButterfly_Wing"], alpha: (from: 100, to: 200, period: 25500)),
+        (id: 39, names: ["Violet_Halo"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 40, names: ["CherryFesRibbon"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 41, names: ["SnackParty"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 42, names: ["AngelRibbonWing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 43, names: ["BlackBearBackpack"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 44, names: ["Halloween_Poring_Bag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 45, names: ["Chrismas_Tree"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 46, names: ["Backside_Ribbon_Bell"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 47, names: ["HeartChocoBag"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 48, names: ["C_Valkyrie_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 49, names: ["Archangel_Wing"], alpha: (from: 255, to: 255, period: 25500)),
+        (id: 50, names: ["WingOfHeart"], alpha: (from: 255, to: 255, period: 25500)),
+    ],
+)
