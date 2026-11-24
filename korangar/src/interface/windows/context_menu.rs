@@ -138,6 +138,13 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                 },
                 browse_shop_button,
                 button! {
+                    text: "Chat room",
+                    event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                        queue.queue(InputEvent::ToggleChatRoomWindow);
+                        queue.queue(InputEvent::CloseContextMenu);
+                    },
+                },
+                button! {
                     text: client_state().localization().ui().context_menu_view_character_info(),
                     event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
                         queue.queue(InputEvent::ViewCharacterInfo {

@@ -1,3 +1,13 @@
+//! Video loading for the in-game `.bik` movies.
+//!
+//! **Bink decoding is not implemented.** The client only plays a pre-transcoded
+//! AV1 `.ivf` side-car (`data\video\<name>.bik.ivf`) that the cache tool
+//! produces with FFmpeg. When the side-car is missing, the loader logs the
+//! actionable warning below and falls back to the shipped placeholder texture;
+//! it never tries to decode the `.bik` container. See
+//! [`sync_cache_archive`](crate::loaders::gamefile::cache::sync_cache_archive)
+//! for the FFmpeg based transcode path.
+
 use std::iter;
 use std::sync::Arc;
 
@@ -42,7 +52,10 @@ impl VideoLoader {
             crate::logging::warn_once(
                 module_path!(),
                 &path,
-                format_args!("could not find the IVF video file `{path}`; using the placeholder texture"),
+                format_args!(
+                    "Bink video decoding is not implemented; expected the pre-transcoded AV1 side-car `{path}` (run the cache sync with \
+                     FFmpeg installed to create it). Using the placeholder texture."
+                ),
             );
             return None;
         };
@@ -104,7 +117,10 @@ impl VideoLoader {
                 crate::logging::warn_once(
                     module_path!(),
                     path,
-                    format_args!("failed to load video `{path}`; using the placeholder texture"),
+                    format_args!(
+                        "failed to load video `{path}` (Bink `.bik` decoding is not implemented, only pre-transcoded AV1 `.ivf` side-cars \
+                         are played); using the placeholder texture"
+                    ),
                 );
 
                 // The fallback texture is part of the base game archive. If even

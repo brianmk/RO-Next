@@ -1196,6 +1196,49 @@ where
         }
     }
 
+    /// Create a chat room (`CZ_CREATE_CHATROOM`, 0x00D5).
+    ///
+    /// `room_type` is `0` for a password protected room and `1` for a public
+    /// one, like the `type` field of the 2019 packet.
+    pub fn create_chat_room(&mut self, title: String, password: String, limit: u16, room_type: u8) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(CreateChatRoomPacket {
+                limit,
+                room_type,
+                password,
+                title,
+            }),
+        }
+    }
+
+    /// Join a chat room (`CZ_REQ_ENTER_ROOM`, 0x00D9).
+    pub fn enter_chat_room(&mut self, chat_id: u32, password: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(EnterChatRoomRequestPacket { chat_id, password }),
+        }
+    }
+
+    /// Leave the current chat room (`CZ_EXIT_ROOM`, 0x00E3).
+    pub fn leave_chat_room(&mut self) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(ExitChatRoomPacket {}),
+        }
+    }
+
+    /// Answer the character server's pincode prompt.
+    ///
+    /// `pin` is the already obfuscated four byte value (see
+    /// `korangar::pincode::encrypt_pincode`). `is_new` selects
+    /// `CZ_PINCODE_SET_NEW` (0x08BA) instead of `CZ_PINCODE_CHECK` (0x08B8).
+    pub fn send_pincode(&mut self, account_id: AccountId, pin: [u8; 4], is_new: bool) -> Result<(), NotConnectedError> {
+        match self.character_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => match is_new {
+                true => self.send_character_server_packet(PincodeSetNewPacket { account_id, pin }),
+                false => self.send_character_server_packet(PincodeCheckPacket { account_id, pin }),
+            },
+        }
+    }
+
     /// Whisper a message to another character.
     pub fn send_whisper(&mut self, target_name: &str, message: &str) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {
@@ -3857,5 +3900,180 @@ mod packet_handlers {
             item_id: ItemId(4001),
             equip_flag: 0,
         }]));
+    }
+
+    #[test]
+    fn display_image_packet_emits_display_image() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut bytes = vec![0xB3, 0x01];
+        let mut image = [0u8; 64];
+        image[..9].copy_from_slice(b"kafra_01\0");
+        bytes.extend_from_slice(&image);
+        bytes.push(2); // bottom right corner
+        assert_eq!(bytes.len(), 67);
+
+        let events = feed(&mut handler, &bytes);
+        match events.0.as_slice() {
+            [NetworkEvent::DisplayImage { image_name, location }] => {
+                assert_eq!(image_name, "kafra_01");
+                assert!(matches!(location, ragnarok_packets::ImageLocation::BottomRight));
+            }
+            other => panic!("unexpected events for 0x01B3: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn read_book_packet_emits_open_book() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut bytes = vec![0x94, 0x02];
+        bytes.extend_from_slice(&11017u32.to_le_bytes());
+        bytes.extend_from_slice(&3u32.to_le_bytes());
+        assert_eq!(bytes.len(), 10);
+
+        let events = feed(&mut handler, &bytes);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::OpenBook {
+            book_id: 11017,
+            page: 3,
+        }]));
+    }
+
+    #[test]
+    fn pincode_packet_emits_pincode_state() {
+        let mut handler =
+            NetworkingSystem::create_character_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut bytes = vec![0xB9, 0x08];
+        bytes.extend_from_slice(&0x1234u32.to_le_bytes()); // seed
+        bytes.extend_from_slice(&77u32.to_le_bytes()); // account id
+        bytes.extend_from_slice(&1u16.to_le_bytes()); // PINCODE_ASK
+        assert_eq!(bytes.len(), 12);
+
+        let events = feed(&mut handler, &bytes);
+        match events.0.as_slice() {
+            [
+                NetworkEvent::PincodeState {
+                    pincode_seed,
+                    account_id,
+                    state,
+                },
+            ] => {
+                assert_eq!(*pincode_seed, 0x1234);
+                assert_eq!(*account_id, AccountId(77));
+                assert_eq!(*state, 1);
+            }
+            other => panic!("unexpected events for 0x08B9: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn chat_room_packets_emit_room_events() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x00D6 create result.
+        let events = feed(&mut handler, &[0xD6, 0x00, 0]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ChatRoomCreated { flag: 0 }]));
+
+        // 0x00D7 room announcement.
+        let mut announcement = Vec::new();
+        announcement.extend_from_slice(&0x00D7u16.to_le_bytes());
+        announcement.extend_from_slice(&0u16.to_le_bytes());
+        announcement.extend_from_slice(&42u32.to_le_bytes());
+        announcement.extend_from_slice(&9u32.to_le_bytes());
+        announcement.extend_from_slice(&20u16.to_le_bytes());
+        announcement.extend_from_slice(&3u16.to_le_bytes());
+        announcement.push(1);
+        announcement.extend_from_slice(b"Party");
+        let size = announcement.len() as u16;
+        announcement[2..4].copy_from_slice(&size.to_le_bytes());
+
+        let events = feed(&mut handler, &announcement);
+        match events.0.as_slice() {
+            [
+                NetworkEvent::ChatRoomAnnounced {
+                    owner_id,
+                    chat_id,
+                    limit,
+                    users,
+                    room_type,
+                    title,
+                },
+            ] => {
+                assert_eq!(*owner_id, AccountId(42));
+                assert_eq!(*chat_id, 9);
+                assert_eq!(*limit, 20);
+                assert_eq!(*users, 3);
+                assert_eq!(*room_type, 1);
+                assert_eq!(title, "Party");
+            }
+            other => panic!("unexpected events for 0x00D7: {other:?}"),
+        }
+
+        // 0x00DB joined room with two members.
+        let mut joined = Vec::new();
+        joined.extend_from_slice(&0x00DBu16.to_le_bytes());
+        joined.extend_from_slice(&0u16.to_le_bytes());
+        joined.extend_from_slice(&9u32.to_le_bytes());
+        for (role, name) in [(0u32, "Owner"), (1u32, "Guest")] {
+            joined.extend_from_slice(&role.to_le_bytes());
+            let mut name_bytes = [0u8; 24];
+            name_bytes[..name.len()].copy_from_slice(name.as_bytes());
+            joined.extend_from_slice(&name_bytes);
+        }
+        let size = joined.len() as u16;
+        joined[2..4].copy_from_slice(&size.to_le_bytes());
+
+        let events = feed(&mut handler, &joined);
+        match events.0.as_slice() {
+            [NetworkEvent::ChatRoomEntered { chat_id, members }] => {
+                assert_eq!(*chat_id, 9);
+                assert_eq!(members.len(), 2);
+                assert_eq!(members[0].name, "Owner");
+                assert_eq!(members[1].name, "Guest");
+            }
+            other => panic!("unexpected events for 0x00DB: {other:?}"),
+        }
+
+        // 0x00DC member joined.
+        let mut new_member = vec![0xDC, 0x00];
+        new_member.extend_from_slice(&3u16.to_le_bytes());
+        let mut name_bytes = [0u8; 24];
+        name_bytes[..5].copy_from_slice(b"Third");
+        new_member.extend_from_slice(&name_bytes);
+        assert_eq!(new_member.len(), 28);
+        let events = feed(&mut handler, &new_member);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ChatRoomMemberJoined {
+            count: 3,
+            name,
+        }] if name == "Third"));
+
+        // 0x00DD member exit (kicked flag).
+        let mut exit = vec![0xDD, 0x00];
+        exit.extend_from_slice(&2u16.to_le_bytes());
+        let mut name_bytes = [0u8; 24];
+        name_bytes[..5].copy_from_slice(b"Third");
+        exit.extend_from_slice(&name_bytes);
+        exit.push(1);
+        assert_eq!(exit.len(), 29);
+        let events = feed(&mut handler, &exit);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ChatRoomMemberLeft {
+            count: 2,
+            name,
+            kicked: true,
+        }] if name == "Third"));
+
+        // 0x00E1 owner change.
+        let mut role = vec![0xE1, 0x00];
+        role.extend_from_slice(&1u32.to_le_bytes());
+        let mut name_bytes = [0u8; 24];
+        name_bytes[..5].copy_from_slice(b"Guest");
+        role.extend_from_slice(&name_bytes);
+        assert_eq!(role.len(), 30);
+        let events = feed(&mut handler, &role);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::ChatRoomRoleChanged {
+            flag: 1,
+            name,
+        }] if name == "Guest"));
     }
 }

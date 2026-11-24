@@ -5,6 +5,7 @@ pub mod character_previews;
 pub mod character_selection_cooldown;
 pub mod character_slots;
 pub mod chat_markup;
+pub mod content_windows;
 pub mod friend_names;
 pub mod guild;
 pub mod hotbar;
@@ -80,6 +81,7 @@ use crate::state::bank::Bank;
 use crate::state::character_previews::CharacterPreviews;
 use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
+use crate::state::content_windows::ContentWindows;
 use crate::state::guild::Guild;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
@@ -235,6 +237,9 @@ pub struct ClientState {
     login_window: LoginWindowState,
     /// Internal state of the chat window.
     chat_window: ChatWindowState,
+    /// State of the chat-room, pincode and replay-recording windows.
+    #[hidden_element]
+    content_windows: ContentWindows,
     /// Minimap of the currently loaded map.
     minimap: Minimap,
     /// Internal state of the friend list window.
@@ -511,6 +516,7 @@ impl ClientState {
             let notifications = NotificationHud::default();
 
             let chat_window = ChatWindowState::default();
+            let content_windows = ContentWindows::default();
             let minimap = Minimap::default();
             let spirit_orbs = SpiritOrbs::default();
             let skill_cooldowns = SkillCooldowns::default();
@@ -625,6 +631,7 @@ impl ClientState {
             client_info,
             login_window,
             chat_window,
+            content_windows,
             minimap,
             friend_list_window,
             dialog_window,

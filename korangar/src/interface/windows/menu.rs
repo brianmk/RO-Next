@@ -1,9 +1,11 @@
 use korangar_interface::window::{CustomWindow, Window};
+use rust_state::PathExt;
 
 use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 #[cfg(feature = "debug")]
 use crate::state::client_theme;
+use crate::state::content_windows::{ContentWindowsPathExt, ReplayControlPathExt};
 use crate::state::localization::LocalizationPathExt;
 #[cfg(feature = "debug")]
 use crate::state::localization::UiTextsPathExt;
@@ -22,6 +24,12 @@ impl CustomWindow<ClientState> for MenuWindow {
 
     fn to_window<'a>(self) -> impl Window<ClientState> + 'a {
         use korangar_interface::prelude::*;
+
+        let recording_path = client_state().content_windows().replay().recording();
+        let replay_text = ComputedSelector::new_default(move |state: &ClientState| match *recording_path.follow_safe(state) {
+            true => "Stop replay recording".to_owned(),
+            false => "Record replay".to_owned(),
+        });
 
         window! {
             title: client_state().localization().menu_window_title(),
@@ -44,6 +52,19 @@ impl CustomWindow<ClientState> for MenuWindow {
                 button! {
                     text: client_state().localization().audio_settings_button_text(),
                     event: InputEvent::ToggleAudioSettingsWindow,
+                },
+                button! {
+                    text: "Chat room",
+                    event: InputEvent::ToggleChatRoomWindow,
+                },
+                button! {
+                    text: "Emotes",
+                    event: InputEvent::ToggleEmotePickerWindow,
+                },
+                button! {
+                    text: replay_text,
+                    tooltip: "Record the raw packet stream to client/replays/<timestamp>.replay (playback is not implemented).",
+                    event: InputEvent::ToggleReplayRecording,
                 },
                 #[cfg(feature = "debug")]
                 button! {

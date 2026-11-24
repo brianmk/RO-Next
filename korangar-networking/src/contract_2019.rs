@@ -68,6 +68,11 @@ const IGNORED_OPCODES: &[(u16, &str)] = &[
          framing",
     ),
     (
+        0x0294,
+        "not derivable: ZC_READ_BOOK is written by hand in clif_readbook (clif.cpp:18354, 10 bytes: book id + page); it has no PACKET_* \
+         struct in the 2019 headers and therefore no registry entry",
+    ),
+    (
         0x0ADE,
         "not derivable: ZC_NOTIFY_CRITICALWEIGHT is written by hand in clif_weight_limit (packet 0x0ADE, 6 bytes, u32 percentage)",
     ),

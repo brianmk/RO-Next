@@ -423,6 +423,8 @@ impl PacketCallback for PacketHistoryCallback {
     where
         Packet: ragnarok_packets::Packet,
     {
+        crate::replay::record_packet(crate::replay::DIRECTION_INCOMING, packet);
+
         let packet: Packet = packet.clone();
 
         // NOTE: Since this is just for debugging purposes we don't care if sending the
@@ -450,6 +452,8 @@ impl PacketCallback for PacketHistoryCallback {
     where
         Packet: ragnarok_packets::Packet,
     {
+        crate::replay::record_packet(crate::replay::DIRECTION_OUTGOING, packet);
+
         let packet: Packet = packet.clone();
 
         // NOTE: Since this is just for debugging purposes we don't care if sending the
@@ -474,6 +478,8 @@ impl PacketCallback for PacketHistoryCallback {
     }
 
     fn unknown_packet(&self, bytes: Vec<u8>) {
+        crate::replay::record_bytes(crate::replay::DIRECTION_INCOMING, &bytes);
+
         let packet = UnknownPacket { bytes };
 
         // NOTE: Since this is just for debugging purposes we don't care if sending the

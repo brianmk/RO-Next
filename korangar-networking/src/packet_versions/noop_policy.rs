@@ -62,12 +62,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         reason: "HC_BLOCK_CHARACTER: ban list; bans are reported through LoginFailedPacket/LoginFailedPacket2",
     },
     IgnoredNoop {
-        header: 0x08B9,
-        server: NoopServer::Character,
-        class: IgnoreClass::NoClientAction,
-        reason: "HC_PINCODE: server has pincode_enabled=no and the client has no pincode UI",
-    },
-    IgnoredNoop {
         header: 0x099D,
         server: NoopServer::Character,
         class: IgnoreClass::Duplicate,
@@ -109,12 +103,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
         server: NoopServer::Map,
         class: IgnoreClass::OwnedElsewhere("item-descriptions"),
         reason: "ZC_EQUIPSWITCH_LIST: equip-switch window, owned by the item-descriptions lane",
-    },
-    IgnoredNoop {
-        header: 0x01B3,
-        server: NoopServer::Map,
-        class: IgnoreClass::OwnedElsewhere("item-descriptions"),
-        reason: "ZC_SHOW_IMAGE: server image window, owned by the item-descriptions lane",
     },
     // Trade is handled by real handlers (`version_20220406.rs`: request/offer/
     // add/ack/conclude/exec). The undo ack only rolls the local lock state back,

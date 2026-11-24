@@ -1,16 +1,20 @@
 use std::cell::UnsafeCell;
+use std::sync::Arc;
 
 use korangar_interface::components::text_box::DefaultHandler;
 use korangar_interface::element::store::{ElementStore, ElementStoreMut};
 use korangar_interface::element::{Element, ElementBox, ErasedElement, StateElement};
+use korangar_interface::layout::area::Area;
 use korangar_interface::layout::{Resolvers, with_single_resolver};
 use korangar_interface::window::{CustomWindow, Window};
 use ragnarok_packets::{EntityId, SkillId};
 use rust_state::{Path, RustState, State};
 
 use super::WindowClass;
+use crate::graphics::{Color, Texture};
 use crate::input::InputEvent;
 use crate::interface::markup::{MarkupClickHandler, MarkupLayout, layout_markup, render_markup};
+use crate::renderer::LayoutExt;
 use crate::state::chat_markup::{has_markup, parse_chat_markup};
 use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{ColorTokensPathExt, DesignTokensPathExt, InterfaceThemePathExt, InterfaceThemeType, TypographyTokensPathExt};
@@ -36,6 +40,8 @@ pub(crate) enum DialogElementKind {
     CancelButton,
     /// The NPC text/number input field and its submit button.
     Input,
+    /// The NPC illustration sent with `ZC_SHOW_IMAGE2` (0x01B3).
+    Image,
 }
 
 /// A small wrapper struct that serves two purposes:
@@ -152,6 +158,63 @@ impl Element<ClientState> for MarkupTextElement {
             link_color,
             &self.click_handler,
         );
+    }
+}
+
+/// Maximum height of the illustration inside the dialog window.
+const DIALOG_IMAGE_HEIGHT: f32 = 200.0;
+
+/// The illustration the server sent with `ZC_SHOW_IMAGE2` (0x01B3).
+///
+/// The texture is loaded from the client archive by
+/// `Client::load_cutin_texture`; the element only scales it into the dialog
+/// width while preserving the aspect ratio.
+struct DialogImage {
+    texture: Arc<Texture>,
+}
+
+impl DialogImage {
+    fn new(texture: Arc<Texture>) -> Self {
+        Self { texture }
+    }
+}
+
+impl Element<ClientState> for DialogImage {
+    type LayoutInfo = Area;
+
+    fn create_layout_info(
+        &mut self,
+        _state: &State<ClientState>,
+        _store: ElementStoreMut,
+        resolvers: &mut dyn Resolvers<ClientState>,
+    ) -> Self::LayoutInfo {
+        with_single_resolver(resolvers, |resolver| resolver.with_height(DIALOG_IMAGE_HEIGHT))
+    }
+
+    fn lay_out<'a>(
+        &'a self,
+        _state: &'a State<ClientState>,
+        _store: ElementStore<'a>,
+        area: &'a Self::LayoutInfo,
+        layout: &mut korangar_interface::layout::WindowLayout<'a, ClientState>,
+    ) {
+        let size = self.texture.get_size();
+        let texture_width = size.width.max(1) as f32;
+        let texture_height = size.height.max(1) as f32;
+
+        // Fit the illustration into the dialog without distorting it.
+        let scale = (area.width / texture_width).min(area.height / texture_height);
+        let width = texture_width * scale;
+        let height = texture_height * scale;
+
+        let image_area = Area {
+            left: area.left + (area.width - width) / 2.0,
+            top: area.top + (area.height - height) / 2.0,
+            width,
+            height,
+        };
+
+        layout.add_texture(image_area, self.texture.clone(), Color::WHITE, false);
     }
 }
 
@@ -319,6 +382,28 @@ impl DialogWindowState {
     /// Leaves the Warp Portal destination mode.
     pub fn clear_warp_point(&mut self) {
         self.warp_point = None;
+    }
+
+    /// Replace the dialog illustration (`ZC_SHOW_IMAGE2`, 0x01B3).
+    ///
+    /// A previous image is removed first, so the dialog never stacks multiple
+    /// cut-ins; the element is placed above the text lines like the official
+    /// client's cut-in window.
+    pub fn set_image(&mut self, texture: Arc<Texture>) {
+        self.elements.retain(|element| element.kind != DialogElementKind::Image);
+        self.elements
+            .insert(0, DialogElement::new(DialogImage::new(texture), DialogElementKind::Image));
+    }
+
+    /// Remove the dialog illustration (`ImageLocation::ClearAll`).
+    pub fn clear_image(&mut self) {
+        self.elements.retain(|element| element.kind != DialogElementKind::Image);
+    }
+
+    /// Whether the dialog currently shows an illustration.
+    #[cfg(test)]
+    pub fn has_image(&self) -> bool {
+        self.elements.iter().any(|element| element.kind == DialogElementKind::Image)
     }
 
     /// Add text to the dialog.
