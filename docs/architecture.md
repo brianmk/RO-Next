@@ -4,8 +4,9 @@ How the RO-Next workspace is laid out, what each crate owns, and where the
 current structural debt sits. Keep this file current when a crate boundary or a
 top-level module moves.
 
-> Line counts and file lists below were last verified against `HEAD` = `3c46c219`
-> (2026-11-24) with `wc -l` per crate/module; re-check them when you move code.
+> Line counts, file lists and dependency claims below were last verified on
+> 2026-11-24 with `wc -l` per crate/module, `cargo metadata` and a full
+> `cargo test --workspace`; re-check them when you move code.
 
 ## Workspace
 
@@ -33,7 +34,7 @@ without the client.
 
 | crate | lines | owns |
 | --- | --- | --- |
-| `ro-next` | 132.6k | client loop, rendering, world simulation, interface, everything game-specific |
+| `ro-next` | 132.6k (132,644) | client loop, rendering, world simulation, interface, everything game-specific |
 | `ro-next-interface` | 11.1k | retained-mode UI framework (elements, windows, themes, layout) |
 | `ro-next-networking` | 10.7k | packet versioning, crypto, login/char/map sessions |
 | `ragnarok-packets` | 14.8k | packet definitions, opcode registries, serialization |
