@@ -126,6 +126,18 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleQuestWindow,
                 },
                 button! {
+                    text: "Achievement",
+                    event: InputEvent::ToggleAchievementWindow,
+                },
+                button! {
+                    text: "Navigation",
+                    event: InputEvent::ToggleNavigationWindow,
+                },
+                button! {
+                    text: "Monster Database",
+                    event: InputEvent::ToggleMonsterDatabaseWindow,
+                },
+                button! {
                     text: "Mail",
                     event: InputEvent::OpenMailboxWindow,
                 },

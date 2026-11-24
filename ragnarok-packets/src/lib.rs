@@ -7544,6 +7544,137 @@ pub struct GuildInviteResultPacket {
     pub result: u8,
 }
 
+/// Sent by the client to claim the reward of a completed achievement
+/// (`CZ_REQ_ACH_REWARD`, 0x0A25 at PACKETVER 20190605).
+///
+/// rAthena registers the handler as a fixed 6-byte packet
+/// (`clif_packetdb.hpp:1769`) and reads the achievement id at byte 2
+/// (`clif_parse_AchievementCheckReward`, `clif.cpp:21846-21855`):
+/// `0a25 <achievement id>.L`.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A25)]
+#[packet_size(6)]
+pub struct AchievementRewardRequestPacket {
+    pub achievement_id: u32,
+}
+
+/// Server answer to [`AchievementRewardRequestPacket`]
+/// (`ZC_REQ_ACH_REWARD_ACK`, 0x0A26 at PACKETVER 20190605).
+///
+/// rAthena registers the packet as 7 bytes (`clif_packetdb.hpp:1770`) and
+/// writes `result` at byte 2 and the achievement id at byte 3
+/// (`clif_achievement_reward_ack`, `clif.cpp:21860-21872`):
+/// `0a26 <result>.B <achievement id>.L`. `result = 1` means the reward was
+/// granted; `0` means the claim was rejected (not completed / already
+/// rewarded / inter-server failure).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0A26)]
+#[packet_size(7)]
+pub struct AchievementRewardAckPacket {
+    pub result: u8,
+    pub achievement_id: u32,
+}
+
+/// Result of a successful Sense (`WZ_ESTIMATION`) cast
+/// (`ZC_MONSTER_INFO`, 0x018C at PACKETVER 20190605).
+///
+/// rAthena `clif_skill_estimation` (`clif.cpp:6272-6298`) writes:
+/// `018c <class>.W <level>.W <size>.W <hp>.L <def>.W <race>.W <mdef>.W
+/// <element>.W <water>.B <earth>.B <fire>.B <wind>.B <poison>.B <holy>.B
+/// <shadow>.B <ghost>.B <undead>.B` (29 bytes). The class is the monster
+/// view/job id, the elemental values are percentage resistances.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x018C)]
+#[packet_size(29)]
+pub struct MonsterInfoPacket {
+    pub job_id: JobId,
+    pub level: u16,
+    pub size: u16,
+    pub health_points: u32,
+    pub defense: i16,
+    pub race: u16,
+    pub magic_defense: i16,
+    pub element: u16,
+    pub water: u8,
+    pub earth: u8,
+    pub fire: u8,
+    pub wind: u8,
+    pub poison: u8,
+    pub holy: u8,
+    pub shadow: u8,
+    pub ghost: u8,
+    pub undead: u8,
+}
+
+#[cfg(test)]
+mod content_packet_tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter, ToBytes};
+
+    use super::*;
+
+    #[test]
+    fn achievement_wire_layouts_match_the_2019_server() {
+        // CZ_REQ_ACH_REWARD: clif_packetdb.hpp:1769 registers 6 bytes and
+        // clif_parse_AchievementCheckReward reads the id at offset 2.
+        let mut writer = ByteWriter::new();
+        AchievementRewardRequestPacket {
+            achievement_id: 0x0102_0304,
+        }
+        .packet_to_bytes(&mut writer)
+        .unwrap();
+        let bytes = writer.into_inner();
+        assert_eq!(bytes.len(), 6);
+        assert_eq!(&bytes[..2], &[0x25, 0x0A]);
+        assert_eq!(&bytes[2..6], &0x0102_0304u32.to_le_bytes());
+
+        // ZC_REQ_ACH_REWARD_ACK: 7 bytes, result at 2, id at 3.
+        let mut bytes = vec![0u8; 7];
+        bytes[0..2].copy_from_slice(&0x0A26u16.to_le_bytes());
+        bytes[2] = 1;
+        bytes[3..7].copy_from_slice(&0x0102_0304u32.to_le_bytes());
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = AchievementRewardAckPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 7);
+        assert_eq!(packet.result, 1);
+        assert_eq!(packet.achievement_id, 0x0102_0304);
+    }
+
+    #[test]
+    fn monster_info_parses_the_2019_wire_layout() {
+        // 018c <class>.W <level>.W <size>.W <hp>.L <def>.W <race>.W
+        //      <mdef>.W <element>.W { <resistance>.B } * 9
+        let mut bytes = vec![0u8; 29];
+        bytes[0..2].copy_from_slice(&0x018Cu16.to_le_bytes());
+        bytes[2..4].copy_from_slice(&1002u16.to_le_bytes());
+        bytes[4..6].copy_from_slice(&61u16.to_le_bytes());
+        bytes[6..8].copy_from_slice(&1u16.to_le_bytes());
+        bytes[8..12].copy_from_slice(&3211521u32.to_le_bytes());
+        bytes[12..14].copy_from_slice(&12i16.to_le_bytes());
+        bytes[14..16].copy_from_slice(&1u16.to_le_bytes());
+        bytes[16..18].copy_from_slice(&7i16.to_le_bytes());
+        bytes[18..20].copy_from_slice(&9u16.to_le_bytes());
+        bytes[20..29].copy_from_slice(&[100, 90, 80, 70, 60, 50, 40, 30, 20]);
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = MonsterInfoPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 29);
+        assert_eq!(packet.job_id, JobId(1002));
+        assert_eq!(packet.level, 61);
+        assert_eq!(packet.size, 1);
+        assert_eq!(packet.health_points, 3211521);
+        assert_eq!(packet.defense, 12);
+        assert_eq!(packet.race, 1);
+        assert_eq!(packet.magic_defense, 7);
+        assert_eq!(packet.element, 9);
+        assert_eq!(packet.water, 100);
+        assert_eq!(packet.undead, 20);
+    }
+}
+
 #[cfg(test)]
 mod mail_packet_tests {
     use ragnarok_bytes::{ByteReader, ByteWriter, ToBytes};

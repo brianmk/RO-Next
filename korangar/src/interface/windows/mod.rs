@@ -1,3 +1,4 @@
+mod achievement;
 mod audio_settings;
 mod big_map;
 mod buff_bar;
@@ -34,6 +35,8 @@ mod login;
 mod maps;
 mod menu;
 mod minimap;
+mod monster_database;
+mod navigation;
 mod notification_hud;
 #[cfg(feature = "debug")]
 mod packet_inspector;
@@ -62,6 +65,7 @@ mod whisper;
 
 use serde::{Deserialize, Serialize};
 
+pub use self::achievement::AchievementWindow;
 pub use self::audio_settings::AudioSettingsWindow;
 pub use self::big_map::BigMapWindow;
 pub use self::buff_bar::{BAR_STRIP_WIDTH, BuffBarWindow};
@@ -99,6 +103,8 @@ pub use self::login::{LoginWindow, LoginWindowState, LoginWindowStatePathExt};
 pub use self::maps::MapsWindow;
 pub use self::menu::MenuWindow;
 pub use self::minimap::MinimapWindow;
+pub use self::monster_database::MonsterDatabaseWindow;
+pub use self::navigation::NavigationWindow;
 pub use self::notification_hud::{NOTIFICATION_HUD_WIDTH, NotificationHudWindow};
 #[cfg(feature = "debug")]
 pub use self::packet_inspector::PacketInspectorWindow;
@@ -158,6 +164,9 @@ pub enum WindowClass {
     VendingBrowse,
     Cart,
     Storage,
+    Achievement,
+    Navigation,
+    MonsterDatabase,
     Whisper,
     FriendList,
     FriendRequest,

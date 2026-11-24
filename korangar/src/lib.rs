@@ -3238,6 +3238,34 @@ impl Client {
             .push(ChatMessage::new(message, MessageColor::Information));
     }
 
+    /// Open or close the achievement window.
+    fn toggle_achievement_window(&mut self) {
+        if self.interface.is_window_with_class_open(WindowClass::Achievement) {
+            self.interface.close_window_with_class(WindowClass::Achievement);
+        } else {
+            self.interface.open_window(AchievementWindow);
+        }
+    }
+
+    /// Open or close the navigation destination search window.
+    fn toggle_navigation_window(&mut self) {
+        if self.interface.is_window_with_class_open(WindowClass::Navigation) {
+            self.interface.close_window_with_class(WindowClass::Navigation);
+        } else {
+            self.interface.open_window(NavigationWindow::new(self.library.navigation()));
+        }
+    }
+
+    /// Open or close the monster database window.
+    fn toggle_monster_database_window(&mut self) {
+        if self.interface.is_window_with_class_open(WindowClass::MonsterDatabase) {
+            self.interface.close_window_with_class(WindowClass::MonsterDatabase);
+        } else {
+            self.interface
+                .open_window(MonsterDatabaseWindow::new(self.library.monster_database()));
+        }
+    }
+
     /// Open (or focus) the whisper conversation window with `partner`.
     fn open_whisper_window(&mut self, partner: &str) {
         self.client_state.follow_mut(client_state().whisper()).open(partner);
@@ -3247,39 +3275,186 @@ impl Client {
         }
     }
 
-    /// Handle a `<NAVI>` click: place a marker on the minimap when the
-    /// destination is on the current map, otherwise report the position.
-    ///
-    /// The 2019 server has no client-side navigation packet, so moving there
-    /// is up to the player; the client only shows where it is (the official
-    /// client is a paid add-on feature).
+    /// Normalize a map resource name for the navigation data: no `.gat`
+    /// suffix, lower case (the navigation Lua tables use bare map names).
+    fn normalize_navigation_map_name(map_name: &str) -> String {
+        map_name.trim().trim_end_matches(".gat").to_ascii_lowercase()
+    }
+
+    /// Handle a `<NAVI>` click: mark the target and draw the local route.
     fn navigate_to_map_position(&mut self, map_name: &str, x: u16, y: u16) {
-        let target = map_name.trim().trim_end_matches(".gat").to_ascii_lowercase();
-        let current = self.current_map_name.as_deref().map(str::to_ascii_lowercase);
-        let is_current_map = current.as_deref() == Some(target.as_str());
+        self.set_navigation_destination(None, map_name, Some(TilePosition { x, y }));
+    }
+
+    /// Nearest walkable cell around `center`, used for map-level navigation
+    /// targets such as the map center.
+    fn nearest_walkable_tile(map: &Map, center: TilePosition, max_radius: u16) -> TilePosition {
+        if map.is_walkable(center) {
+            return center;
+        }
+
+        let max_radius = max_radius as i32;
+
+        for radius in 1..=max_radius {
+            for delta_y in -radius..=radius {
+                for delta_x in -radius..=radius {
+                    // Only inspect the ring at this radius.
+                    if delta_x.abs() != radius && delta_y.abs() != radius {
+                        continue;
+                    }
+
+                    let candidate = TilePosition {
+                        x: (center.x as i32 + delta_x).clamp(0, u16::MAX as i32) as u16,
+                        y: (center.y as i32 + delta_y).clamp(0, u16::MAX as i32) as u16,
+                    };
+
+                    if map.is_walkable(candidate) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+
+        center
+    }
+
+    /// Marks a navigation destination and computes the walkable route with the
+    /// existing [`PathFinder`] (see `world/pathing.rs`).
+    ///
+    /// The 2019 server has no client-side navigation packet, so the route is
+    /// purely local: it is drawn on the minimap and the player still has to
+    /// walk/warp there. For destinations on another map only the target is
+    /// recorded (the client has no cross-map walking).
+    fn set_navigation_destination(&mut self, display_name: Option<String>, map_name: &str, position: Option<TilePosition>) {
+        let target_map = Self::normalize_navigation_map_name(map_name);
+        let current_map = self.current_map_name.as_deref().map(Self::normalize_navigation_map_name);
+        let is_current_map = current_map.as_deref() == Some(target_map.as_str());
+
+        let name = display_name.unwrap_or_else(|| target_map.clone());
+        let kind = match position.is_some() {
+            true => crate::state::navigation::NavigationKind::Npc,
+            false => crate::state::navigation::NavigationKind::Map,
+        };
+
+        let mut destination = crate::state::navigation::NavigationTarget {
+            kind,
+            name: name.clone(),
+            map_name: target_map.clone(),
+            position,
+        };
+
+        let mut route = Vec::new();
+        let status;
 
         if is_current_map {
-            self.client_state
-                .follow_mut(client_state().minimap())
-                .add_marker(crate::state::minimap::MinimapMarker {
-                    // Synthetic id; server markers use the NPC entity id and are
-                    // managed separately.
-                    entity_id: EntityId(u32::MAX - 1),
-                    position: TilePosition { x, y },
-                    color: [255, 200, 60, 255],
-                    expires_at: None,
-                });
+            let goal = match position {
+                Some(position) => Some(position),
+                None => self.map.as_ref().map(|map| {
+                    let (width, height) = map.get_dimensions();
+                    let center = TilePosition {
+                        x: width / 2,
+                        y: height / 2,
+                    };
 
-            if !self.interface.is_window_with_class_open(WindowClass::Minimap) {
-                self.interface.open_window(MinimapWindow);
-                self.map_window_cycle = MapWindowCycle::Minimap;
+                    Self::nearest_walkable_tile(map, center, 12)
+                }),
+            };
+
+            match goal {
+                Some(goal) => {
+                    destination.position = Some(goal);
+
+                    let player_position = self.client_state.try_follow(this_entity()).map(|entity| entity.get_tile_position());
+
+                    match (self.map.as_ref(), player_position) {
+                        (Some(map), Some(start)) => match self.path_finder.find_navigation_path(&**map, start, goal) {
+                            Some(path) => {
+                                route = path.to_vec();
+                                status = format!("Navigation: {} at {},{} - {} tiles", name, goal.x, goal.y, route.len());
+                            }
+                            None => {
+                                status = format!("Navigation: no walkable route to {name} at {},{}", goal.x, goal.y);
+                            }
+                        },
+                        _ => status = format!("Navigation: {name} at {},{} - map/player not ready yet", goal.x, goal.y),
+                    }
+                }
+                None => status = format!("Navigation: map {target_map} is not loaded"),
             }
-
-            self.push_chat_information(format!("Navigation: {map_name} ({x}, {y})"));
         } else {
-            self.push_chat_information(format!(
-                "Navigation: {map_name} ({x}, {y}) is not on the current map. Use a warp NPC or @go to get there."
-            ));
+            status = format!(
+                "Navigation: {name} is on map {}. The client only draws the local route; use a warp NPC or @go to get there.",
+                target_map
+            );
+        }
+
+        self.client_state
+            .follow_mut(client_state().navigation())
+            .set_destination(destination, route, is_current_map, status.clone());
+
+        if is_current_map && !self.interface.is_window_with_class_open(WindowClass::Minimap) {
+            self.interface.open_window(MinimapWindow);
+            self.map_window_cycle = MapWindowCycle::Minimap;
+        }
+
+        self.push_chat_information(status);
+    }
+
+    /// Recomputes the local route after the player moved (called on every tile
+    /// change from the minimap update).
+    fn refresh_navigation_route(&mut self) {
+        let destination = match self.client_state.follow(client_state().navigation()).destination() {
+            Some(destination) => destination.clone(),
+            None => return,
+        };
+
+        let current_map = self.current_map_name.as_deref().map(Self::normalize_navigation_map_name);
+
+        if current_map.as_deref() != Some(destination.map_name.as_str()) {
+            return;
+        }
+
+        let (Some(goal), Some(map)) = (destination.position, self.map.as_ref()) else {
+            return;
+        };
+        let Some(start) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_tile_position()) else {
+            return;
+        };
+
+        // While the player walks along the current route there is nothing to
+        // recompute; only a deviation (or a new destination) triggers a new
+        // A* search. This keeps the per-tile update cheap.
+        if self.client_state.follow(client_state().navigation()).route().contains(&start) {
+            return;
+        }
+
+        let navigation = self.client_state.follow_mut(client_state().navigation());
+
+        match self.path_finder.find_navigation_path(&**map, start, goal) {
+            Some(path) => {
+                let route = path.to_vec();
+                navigation.set_route(route, format!("Route: {} tiles", path.len()));
+            }
+            None => navigation.set_route(Vec::new(), "No walkable route to the destination.".to_owned()),
+        }
+    }
+
+    /// Clears the navigation destination and route.
+    fn clear_navigation(&mut self) {
+        self.client_state.follow_mut(client_state().navigation()).clear();
+    }
+
+    /// Re-evaluates the navigation target after a map finished loading.
+    fn on_navigation_map_loaded(&mut self, map_name: &str) {
+        let destination = self.client_state.follow(client_state().navigation()).destination().cloned();
+        let Some(destination) = destination else {
+            return;
+        };
+
+        if Self::normalize_navigation_map_name(map_name) == destination.map_name {
+            self.set_navigation_destination(Some(destination.name), &destination.map_name, destination.position);
+        } else {
+            self.client_state.follow_mut(client_state().navigation()).clear_route();
         }
     }
 
@@ -4687,6 +4862,9 @@ impl Client {
                     self.skill_sounds.clear();
                     self.skill_sound_gate.clear();
                     self.client_state.follow_mut(client_state().quest_log()).clear();
+                    self.client_state.follow_mut(client_state().navigation()).clear();
+                    self.client_state.follow_mut(client_state().monster_database()).clear();
+                    self.client_state.follow_mut(client_state().achievement()).clear();
 
                     self.particle_holder.clear();
                     self.effect_holder.clear();
@@ -5039,6 +5217,9 @@ impl Client {
                     self.skill_sounds.clear();
                     self.skill_sound_gate.clear();
                     self.client_state.follow_mut(client_state().quest_log()).clear();
+                    self.client_state.follow_mut(client_state().navigation()).clear();
+                    self.client_state.follow_mut(client_state().monster_database()).clear();
+                    self.client_state.follow_mut(client_state().achievement()).clear();
                     // The server closes the storage on a map change; close the UI
                     // and drop the transient list immediately so it can't go stale.
                     self.close_storage_window();
@@ -7065,6 +7246,80 @@ impl Client {
                 NetworkEvent::QuestRemoved { quest_id } => {
                     self.client_state.follow_mut(client_state().quest_log()).remove(quest_id);
                 }
+                NetworkEvent::AchievementList {
+                    achievements,
+                    total_score,
+                    level,
+                    experience,
+                    experience_to_next_level,
+                } => {
+                    self.client_state.follow_mut(client_state().achievement()).set_list(
+                        &achievements,
+                        total_score,
+                        level,
+                        experience,
+                        experience_to_next_level,
+                    );
+                }
+                NetworkEvent::AchievementUpdate {
+                    achievement,
+                    total_score,
+                    level,
+                    experience,
+                    experience_to_next_level,
+                } => {
+                    self.client_state.follow_mut(client_state().achievement()).update(
+                        &achievement,
+                        total_score,
+                        level,
+                        experience,
+                        experience_to_next_level,
+                    );
+                }
+                NetworkEvent::AchievementRewardResult { achievement_id, success } => {
+                    self.client_state
+                        .follow_mut(client_state().achievement())
+                        .set_reward_result(achievement_id, success);
+                    let message = match success {
+                        true => format!("Achievement {achievement_id}: reward granted."),
+                        false => format!("Achievement {achievement_id}: reward not available."),
+                    };
+                    self.push_chat_information(message);
+                }
+                NetworkEvent::MonsterInfo { information } => {
+                    let sense = crate::state::monster_database::SenseInfo {
+                        job_id: information.job_id,
+                        level: information.level,
+                        size: information.size,
+                        health_points: information.health_points,
+                        defense: information.defense,
+                        race: information.race,
+                        magic_defense: information.magic_defense,
+                        element: information.element,
+                        resistances: [
+                            information.water,
+                            information.earth,
+                            information.fire,
+                            information.wind,
+                            information.poison,
+                            information.holy,
+                            information.shadow,
+                            information.ghost,
+                            information.undead,
+                        ],
+                    };
+
+                    self.client_state.follow_mut(client_state().monster_database()).set_sense(sense);
+                    self.push_chat_information(format!(
+                        "Sense: monster #{} level {} HP {}",
+                        information.job_id.0, information.level, information.health_points
+                    ));
+
+                    if !self.interface.is_window_with_class_open(WindowClass::MonsterDatabase) {
+                        self.interface
+                            .open_window(MonsterDatabaseWindow::new(self.library.monster_database()));
+                    }
+                }
                 NetworkEvent::OpenStore { slots } => {
                     // `ZC_OPENSTORE` after MC_VENDING: show the shop editor.
                     // The server keeps the character in the vending state until
@@ -7904,6 +8159,23 @@ impl Client {
                         self.interface.open_window(QuestWindow::new(client_state().quest_log()));
                     }
                 }
+                InputEvent::ToggleAchievementWindow => self.toggle_achievement_window(),
+                InputEvent::ToggleNavigationWindow => self.toggle_navigation_window(),
+                InputEvent::ToggleMonsterDatabaseWindow => self.toggle_monster_database_window(),
+                InputEvent::ClaimAchievementReward { achievement_id } => {
+                    let _ = self.networking_system.request_achievement_reward(achievement_id);
+                    self.push_chat_information(format!("Achievement {achievement_id}: reward requested."));
+                }
+                InputEvent::NavigateToDestination { name, map_name, position } => {
+                    self.set_navigation_destination(Some(name), &map_name, position);
+                }
+                InputEvent::ClearNavigationDestination => {
+                    self.clear_navigation();
+                    self.push_chat_information("Navigation destination cleared.".to_owned());
+                }
+                InputEvent::SelectMonster { job_id } => {
+                    self.client_state.follow_mut(client_state().monster_database()).set_selected(job_id);
+                }
                 InputEvent::TradeRequest { account_id } => {
                     let _ = self.networking_system.request_trade(ragnarok_packets::AccountId(account_id));
                 }
@@ -8366,6 +8638,33 @@ impl Client {
                         }
 
                         continue;
+                    }
+
+                    // Client-side navigation guide (`/navi <map> [<x> <y>]`).
+                    // The 2019 server has no navigation packet, so this never
+                    // reaches the server: it marks the destination and draws the
+                    // local route on the minimap.
+                    {
+                        let mut words = text.split_whitespace();
+
+                        if words.next() == Some("/navi") {
+                            let arguments: Vec<&str> = words.collect();
+
+                            match arguments.as_slice() {
+                                [map_name] => {
+                                    self.set_navigation_destination(None, map_name, None);
+                                }
+                                [map_name, x, y] => match (x.parse::<u16>(), y.parse::<u16>()) {
+                                    (Ok(x), Ok(y)) => self.set_navigation_destination(None, map_name, Some(TilePosition { x, y })),
+                                    _ => self.push_chat_information(
+                                        "Usage: /navi <map> <x> <y> (coordinates are map cells, e.g. /navi prontera 155 183).".to_owned(),
+                                    ),
+                                },
+                                _ => self.push_chat_information("Usage: /navi <map> [<x> <y>] (e.g. /navi prontera 155 183).".to_owned()),
+                            }
+
+                            continue;
+                        }
                     }
 
                     // Whisper command, filled in by the character context menu:
@@ -9433,6 +9732,7 @@ impl Client {
                             }
 
                             self.directional_shadow_camera.set_level_bound(map.get_level_bound());
+                            self.on_navigation_map_loaded(&map_name);
                             let _ = self.networking_system.map_loaded();
                         }
                     }
@@ -10386,6 +10686,10 @@ impl Client {
                 self.client_state
                     .follow_mut(client_state().minimap())
                     .set_player_position(Some(player_position), player_direction);
+
+                if previous_position != Some(player_position) {
+                    self.refresh_navigation_route();
+                }
             }
             None => {
                 self.minimap_last_tile = None;

@@ -286,6 +286,12 @@ pub struct UiTexts {
     pub character_spheres_text: String,
     pub party_invitation_text: String,
     pub party_no_invitation_text: String,
+    /// Window title of the achievement window.
+    pub achievement_window_title: String,
+    /// Window title of the navigation search window.
+    pub navigation_window_title: String,
+    /// Window title of the monster database window.
+    pub monster_database_window_title: String,
 }
 
 impl Default for UiTexts {
@@ -419,6 +425,9 @@ impl Default for UiTexts {
             character_spheres_text: "Spheres {}".to_owned(),
             party_invitation_text: "You are invited to join the party \"{}\".".to_owned(),
             party_no_invitation_text: "You have no open party invitation.".to_owned(),
+            achievement_window_title: "Achievement".to_owned(),
+            navigation_window_title: "Navigation".to_owned(),
+            monster_database_window_title: "Monster Database".to_owned(),
         }
     }
 }

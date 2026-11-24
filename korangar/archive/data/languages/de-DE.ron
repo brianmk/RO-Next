@@ -256,6 +256,9 @@
         character_spheres_text: "Sphären {}",
         party_invitation_text: "Du wurdest eingeladen, der Gruppe \"{}\" beizutreten.",
         party_no_invitation_text: "Du hast keine offene Gruppeneinladung.",
+        achievement_window_title: "Erfolge",
+        navigation_window_title: "Navigation",
+        monster_database_window_title: "Monsterdatenbank",
     ),
     paper_doll: (
         head_top_name: "Kopf oben",

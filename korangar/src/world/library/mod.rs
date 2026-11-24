@@ -11,7 +11,9 @@ mod item_stats_fallback;
 pub(crate) mod job_alias;
 mod job_identity;
 mod map_sky_data;
+mod monster_database;
 mod monster_sprite;
+mod navigation;
 mod skill_actions;
 mod skill_delays;
 mod skill_effects;
@@ -25,6 +27,7 @@ mod status_visuals;
 
 use std::borrow::Cow;
 use std::hash::Hash;
+use std::sync::Arc;
 
 use encoding_rs::EUC_KR;
 use hashbrown::HashMap;
@@ -49,7 +52,9 @@ pub(crate) use self::item_stats::{
 };
 pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
+pub use self::monster_database::{MonsterDatabase, MonsterEntry};
 use self::monster_sprite::MonsterSprites;
+pub use self::navigation::{NavigationData, NavigationDestination, NavigationKind};
 pub(crate) use self::skill_actions::{caster_action_for_skill, default_caster_action};
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
@@ -84,6 +89,8 @@ pub struct Library {
     skill_requirements_table: <SkillListRequirements as Table>::Storage,
     skill_tree_table: <SkillTreeLayout as Table>::Storage,
     monster_sprites: MonsterSprites,
+    navigation: Arc<NavigationData>,
+    monster_database: Arc<MonsterDatabase>,
     skill_icons: SkillIcons,
     accessory_name_table: <AccessoryName as Table>::Storage,
     card_composition: CardComposition,
@@ -107,6 +114,13 @@ impl Library {
         let skill_requirements_table = SkillListRequirements::load(game_file_loader)?;
         let skill_tree_table = SkillTreeLayout::load(game_file_loader)?;
         let monster_sprites = MonsterSprites::load(game_file_loader, &job_identity_table);
+        // The navigation destinations come from the official client's Lua
+        // navigation tables; the monster database reuses the same rows (plus
+        // the job identity table) so the data is parsed only once.
+        let navigation = Arc::new(NavigationData::load(game_file_loader));
+        let monster_database = Arc::new(MonsterDatabase::build(&navigation, &job_identity_table, |job_id| {
+            monster_sprites.path(job_id).to_owned()
+        }));
         let skill_icons = SkillIcons::load(game_file_loader, &skill_information_table);
         let accessory_name_table = AccessoryName::load(game_file_loader)?;
         let card_composition = CardComposition::load(game_file_loader);
@@ -137,6 +151,8 @@ impl Library {
             skill_requirements_table,
             skill_tree_table,
             monster_sprites,
+            navigation,
+            monster_database,
             skill_icons,
             accessory_name_table,
             card_composition,
@@ -268,6 +284,17 @@ impl Library {
     #[inline(always)]
     pub fn monster_sprite_path(&self, job_id: JobId) -> &str {
         self.monster_sprites.path(job_id)
+    }
+
+    /// Client-side navigation destination database loaded from the archives.
+    pub fn navigation(&self) -> Arc<NavigationData> {
+        self.navigation.clone()
+    }
+
+    /// Client-side monster database (navigation names/levels/locations plus
+    /// the job identity sprite names).
+    pub fn monster_database(&self) -> Arc<MonsterDatabase> {
+        self.monster_database.clone()
     }
 
     /// Icon path (relative to `data\sprite\`, without extension) for a skill.

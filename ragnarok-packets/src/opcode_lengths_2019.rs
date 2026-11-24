@@ -2406,6 +2406,12 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         source: "supplement",
     },
     OpcodeLengthEntry {
+        header: 0x0A26,
+        name: "ZC_REQ_ACH_REWARD_ACK",
+        length: OpcodeLength::Fixed(7),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
         header: 0x0A27,
         name: "ZC_RECOVERY",
         length: OpcodeLength::Fixed(8),

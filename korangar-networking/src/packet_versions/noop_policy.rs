@@ -140,18 +140,6 @@ pub const IGNORED_NOOPS: &[IgnoredNoop] = &[
     },
     // Systems CondaRO does not run / has no UI for.
     IgnoredNoop {
-        header: 0x0A23,
-        server: NoopServer::Map,
-        class: IgnoreClass::SystemUnused,
-        reason: "ZC_ACK_ACHIEVEMENT_LIST: achievement system/UI not used on CondaRO",
-    },
-    IgnoredNoop {
-        header: 0x0A24,
-        server: NoopServer::Map,
-        class: IgnoreClass::SystemUnused,
-        reason: "ZC_ACHIEVEMENT_UPDATE: achievement system/UI not used on CondaRO",
-    },
-    IgnoredNoop {
         header: 0x098A,
         server: NoopServer::Map,
         class: IgnoreClass::SystemUnused,

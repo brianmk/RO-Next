@@ -274,6 +274,11 @@ impl Map {
         self.minimap.as_ref()
     }
 
+    /// Size of the map in GAT cells (the server coordinate space).
+    pub fn get_dimensions(&self) -> (u16, u16) {
+        (self.width, self.height)
+    }
+
     pub fn get_level_bound(&self) -> AABB {
         self.level_bound
     }

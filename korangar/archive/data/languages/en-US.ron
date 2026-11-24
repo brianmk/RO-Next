@@ -256,6 +256,9 @@
         character_spheres_text: "Spheres {}",
         party_invitation_text: "You are invited to join the party \"{}\".",
         party_no_invitation_text: "You have no open party invitation.",
+        achievement_window_title: "Achievement",
+        navigation_window_title: "Navigation",
+        monster_database_window_title: "Monster Database",
     ),
     paper_doll: (
         head_top_name: "Head top",

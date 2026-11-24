@@ -1091,6 +1091,15 @@ where
         }
     }
 
+    /// Claims the reward of a completed achievement (`CZ_REQ_ACH_REWARD`,
+    /// 0x0A25). The answer arrives as [`NetworkEvent::AchievementRewardResult`]
+    /// and, on success, as a `ZC_ACH_UPDATE` with the `rewarded` flag set.
+    pub fn request_achievement_reward(&mut self, achievement_id: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(AchievementRewardRequestPacket { achievement_id }),
+        }
+    }
+
     /// Requests the emblem image of a guild (`CZ_REQ_GUILD_EMBLEM_IMG`,
     /// `0x0151`).
     pub fn request_guild_emblem(&mut self, guild_id: u32) -> Result<(), NotConnectedError> {

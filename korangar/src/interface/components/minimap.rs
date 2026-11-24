@@ -160,15 +160,68 @@ where
             }
         }
 
+        // Client-side navigation route (`/navi`, search window). The route is
+        // computed with `world/pathing.rs` and only exists for destinations on
+        // the current map.
+        let cells_width = *state.get(&client_state().minimap().cells_width()) as f32;
+        let cells_height = *state.get(&client_state().minimap().cells_height()) as f32;
+
+        if cells_width > 0.0 && cells_height > 0.0 {
+            let navigation_path = client_state().navigation();
+            let navigation = state.get(&navigation_path);
+            let route_color = Color::from_rgba_bytes([255, 200, 60, 190]);
+            let route_outline = Color::from_rgba_bytes([40, 30, 0, 190]);
+            let destination_color = Color::from_rgba_bytes([255, 120, 40, 255]);
+
+            if !navigation.route().is_empty() {
+                layout.with_layer(|layout| {
+                    for tile in navigation.route() {
+                        let center_x = map_area.left + draw_width * ((tile.x as f32 + 0.5) / cells_width);
+                        let center_y = map_area.top + draw_height * (1.0 - (tile.y as f32 + 0.5) / cells_height);
+
+                        layout.add_rectangle(
+                            Area {
+                                left: center_x - 1.5,
+                                top: center_y - 1.5,
+                                width: 3.0,
+                                height: 3.0,
+                            },
+                            CornerDiameter::uniform(1.0),
+                            route_color,
+                            route_outline,
+                            ShadowPadding::uniform(0.0),
+                        );
+                    }
+                });
+            }
+
+            if let Some(position) = navigation.destination().and_then(|destination| destination.position) {
+                let center_x = map_area.left + draw_width * ((position.x as f32 + 0.5) / cells_width);
+                let center_y = map_area.top + draw_height * (1.0 - (position.y as f32 + 0.5) / cells_height);
+
+                layout.with_layer(|layout| {
+                    layout.add_rectangle(
+                        Area {
+                            left: center_x - 4.0,
+                            top: center_y - 4.0,
+                            width: 8.0,
+                            height: 8.0,
+                        },
+                        CornerDiameter::uniform(2.0),
+                        destination_color,
+                        marker_outline_color,
+                        ShadowPadding::uniform(1.0),
+                    );
+                });
+            }
+        }
+
         // Player marker: an arrow that points into the direction the player is
         // facing, positioned by the player's tile relative to the map size in
         // cells.
         let Some(player_position) = *state.get(&client_state().minimap().player_position()) else {
             return;
         };
-
-        let cells_width = *state.get(&client_state().minimap().cells_width()) as f32;
-        let cells_height = *state.get(&client_state().minimap().cells_height()) as f32;
 
         if cells_width <= 0.0 || cells_height <= 0.0 {
             return;

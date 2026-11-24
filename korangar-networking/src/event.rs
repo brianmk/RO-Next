@@ -967,6 +967,39 @@ pub enum NetworkEvent {
     ServerAnnouncement {
         text: String,
     },
+    /// Full achievement list (`ZC_ALL_ACH_LIST`, 0x0A23).
+    ///
+    /// The 2019 server sends this on map entry (rAthena
+    /// `clif_achievement_list_all`, `clif.cpp:21767`). The packet carries the
+    /// progress counters only; the achievement titles/descriptions are client
+    /// Lua data that this client data set does not ship.
+    AchievementList {
+        achievements: Vec<AchievementData>,
+        total_score: u32,
+        level: u16,
+        experience: u32,
+        experience_to_next_level: u32,
+    },
+    /// A single achievement was started, progressed, completed or rewarded
+    /// (`ZC_ACH_UPDATE`, 0x0A24).
+    AchievementUpdate {
+        achievement: AchievementData,
+        total_score: u32,
+        level: u16,
+        experience: u32,
+        experience_to_next_level: u32,
+    },
+    /// Result of a reward claim (`ZC_REQ_ACH_REWARD_ACK`, 0x0A26).
+    AchievementRewardResult {
+        achievement_id: u32,
+        /// `true` when the server granted the reward.
+        success: bool,
+    },
+    /// Sense (`WZ_ESTIMATION`) result for a monster (`ZC_MONSTER_INFO`,
+    /// 0x018C).
+    MonsterInfo {
+        information: MonsterInfoPacket,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).
