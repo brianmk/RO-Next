@@ -529,6 +529,23 @@ pub enum InputEvent {
     InspectFrame {
         measurement: FrameMeasurement,
     },
+    /// Open or close the guild window. Only works while playing.
+    ToggleGuildWindow,
+    /// Invite a character to the guild (`CZ_REQ_JOIN_GUILD2`, 0x0916).
+    InviteToGuild {
+        name: String,
+    },
+    /// Expel a guild member by name (`CZ_REQ_BAN_GUILD`, 0x015B).
+    ExpelGuildMember {
+        name: String,
+    },
+    /// Leave the current guild (`CZ_REQ_LEAVE_GUILD`, 0x0159).
+    LeaveGuild,
+    /// Change the guild notice (`CZ_REQ_GUILD_NOTICE`, 0x016E).
+    SaveGuildNotice {
+        subject: String,
+        notice: String,
+    },
 }
 
 impl From<InputEvent> for Event<ClientState> {

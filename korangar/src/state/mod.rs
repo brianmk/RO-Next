@@ -4,6 +4,7 @@ pub mod character_previews;
 pub mod character_selection_cooldown;
 pub mod character_slots;
 pub mod friend_names;
+pub mod guild;
 pub mod hotbar;
 pub mod inventory;
 pub mod lifecycle;
@@ -70,6 +71,7 @@ use crate::settings::{
 use crate::state::character_previews::CharacterPreviews;
 use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
+use crate::state::guild::Guild;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
 use crate::state::minimap::Minimap;
@@ -199,6 +201,9 @@ pub struct ClientState {
     status_effects: StatusEffects,
     /// Party state (roster, HP, invitations) of the 2019 party system.
     party: Party,
+    /// Guild state (basic info, members, positions, notice) of the 2019 guild
+    /// system.
+    guild: Guild,
     /// List of all friends.
     friend_list: Vec<Friend>,
     /// Online state of each entry of `friend_list` (same length/order).
@@ -429,6 +434,10 @@ impl ClientState {
             let party = Party::default();
         });
 
+        time_phase!("create guild state", {
+            let guild = Guild::default();
+        });
+
         time_phase!("create friend list state", {
             let friend_list = Vec::default();
             let friend_online = Vec::default();
@@ -523,6 +532,7 @@ impl ClientState {
             chat_messages,
             status_effects: StatusEffects::default(),
             party,
+            guild,
             friend_list,
             friend_online,
             shop_items,
