@@ -98,6 +98,8 @@ impl GroundItem {
                 1.0,
                 None,
                 false,
+                false,
+                0.0,
             );
         }
     }

@@ -2477,7 +2477,8 @@
             skill: 471,
             phase: Success,
             layers: [
-                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.216, 0.216, 1.0), blend: Additive, hold_ms: 1000, fade_ms: 200),
+                (kind: BodyOutline, anchor: Caster, attached_entity: true, duration_ms: 1000, tint: (0.216, 0.216, 1.0)),
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.216, 0.216, 1.0), blend: Additive, hold_ms: 300, fade_ms: 700),
             ],
         ),
         (

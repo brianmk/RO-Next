@@ -49,6 +49,8 @@ public struct ForwardEntityInstanceData {
     public var curvature: float;
     public var mirror: uint;
     public var texture_index: int;
+    /// Bit 0: additive blend instances; bit 1: flat silhouette (outline copy).
+    public var flags: uint;
 };
 
 public struct TileLightIndices {

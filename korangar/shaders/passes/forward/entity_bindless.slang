@@ -18,6 +18,7 @@ struct ForwardEntityBindlessVertexOutput {
     [[vk::location(5)]] var original_depth_offset: float;
     [[vk::location(6)]] var original_curvature: float;
     [[vk::location(7)]] var texture_index: int;
+    [[vk::location(9)]] var flags: uint;
     [[vk::location(8)]] var color: float4;
 };
 
@@ -75,6 +76,7 @@ func vs_main(input: EntityVertexInput) -> ForwardEntityBindlessVertexOutput {
     output.original_curvature = instance.curvature;
     output.texture_index = instance.texture_index;
     output.color = instance.color;
+    output.flags = instance.flags;
     return output;
 }
 
@@ -122,6 +124,15 @@ func fragment(input: ForwardEntityBindlessVertexOutput) -> ForwardEntityFragment
 
     var alpha_channel = diffuse_color.a;
     alpha_channel *= input.color.a;
+
+    // Flat silhouette copies of the body (official 0x800/0x80000 outline):
+    // unlit instance colour, texture alpha only.
+    if ((input.flags & 2u) != 0u) {
+        var flat_output: ForwardEntityFragmentOutput;
+        flat_output.color = float4(input.color.rgb, alpha_channel);
+        flat_output.depth = saturate(input.position.z);
+        return flat_output;
+    }
 
     var output: ForwardEntityFragmentOutput;
 

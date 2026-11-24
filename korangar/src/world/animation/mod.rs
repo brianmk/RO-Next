@@ -635,6 +635,8 @@ impl AnimationData {
         scale: f32,
         imf: Option<&Imf>,
         additive: bool,
+        flat: bool,
+        depth_boost: f32,
     ) {
         let frame = self.get_frame(animation_state, camera, direction);
         let head_behind_body = imf.is_some_and(|imf| self.head_behind_body(imf, animation_state, camera, direction));
@@ -680,7 +682,7 @@ impl AnimationData {
                     // behind the body when the IMF says so.
                     -0.01 - 0.005 * index as f32
                 } else {
-                    0.005 * index as f32
+                    0.005 * index as f32 + depth_boost
                 },
                 curvature,
                 color,
@@ -688,6 +690,7 @@ impl AnimationData {
                 entity_id,
                 add_to_picker,
                 additive,
+                flat,
                 texture: texture.clone(),
                 distance,
             });

@@ -37,7 +37,7 @@ pub(crate) struct InstanceData {
     curvature: f32,
     mirror: u32,
     texture_index: i32,
-    padding: u32,
+    flags: u32,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -312,7 +312,7 @@ impl Prepare for ForwardEntityDrawer {
                     // The unused padding carries the additive flag to the GPU;
                     // the flag is currently consumed on the CPU by the two
                     // draw ranges, but it stays available for a future shader.
-                    padding: instruction.additive as u32,
+                    flags: instruction.additive as u32 | (instruction.flat as u32) << 1,
                 });
             }
 
@@ -340,7 +340,7 @@ impl Prepare for ForwardEntityDrawer {
                     curvature: instruction.curvature,
                     mirror: instruction.mirror as u32,
                     texture_index: 0,
-                    padding: instruction.additive as u32,
+                    flags: instruction.additive as u32 | (instruction.flat as u32) << 1,
                 });
             }
 

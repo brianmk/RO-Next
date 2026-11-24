@@ -278,6 +278,8 @@ pub struct Common {
     status_weapon_blink: bool,
     #[hidden_element]
     body_wave: Option<BodyWave>,
+    #[hidden_element]
+    body_outline: Option<BodyOutline>,
     /// Draw the body layers with an additive blend (official
     /// `EF_REDBODY`/`render.flags & 1`).
     status_body_additive: bool,
@@ -483,6 +485,20 @@ impl EntityFlash {
     }
 }
 
+/// Flat silhouette copies of the body (official sprite outline).
+#[derive(Debug, Clone, Copy)]
+pub struct BodyOutline {
+    color: Color,
+    start_tick: ClientTick,
+    duration_ms: u32,
+}
+
+impl BodyOutline {
+    fn active(&self, client_tick: ClientTick) -> bool {
+        client_tick.0.saturating_sub(self.start_tick.0) < self.duration_ms
+    }
+}
+
 /// Vertical sine wave of the body sprites (official `render.flags` bit 0x8).
 #[derive(Debug, Clone, Copy)]
 pub struct BodyWave {
@@ -609,6 +625,7 @@ impl Common {
             status_tint: None,
             status_weapon_blink: false,
             body_wave: None,
+            body_outline: None,
             status_body_additive: false,
             status_weapon_additive: false,
             status_alpha: None,
@@ -788,6 +805,15 @@ impl Common {
     /// Blink the equipped weapon layer (official `EF_LIGHTBLADE`).
     pub fn set_weapon_blink(&mut self, blink: bool) {
         self.status_weapon_blink = blink;
+    }
+
+    /// Start the flat-colour body outline (official `render.flags` 0x800).
+    pub fn start_body_outline(&mut self, color: Color, duration_ms: u32, client_tick: ClientTick) {
+        self.body_outline = Some(BodyOutline {
+            color,
+            start_tick: client_tick,
+            duration_ms,
+        });
     }
 
     /// Start the vertical body wave (official `render.flags` bit 0x8).
@@ -1392,6 +1418,30 @@ impl Common {
         let body_wave = self.body_wave.map(|wave| wave.offset(client_tick)).unwrap_or(0.0);
         let body_position = self.world_position + cgmath::Vector3::new(0.0, body_wave, 0.0);
 
+        let outline_active = self.body_outline.filter(|outline| outline.active(client_tick));
+
+        if let (Some(outline), Some(animation_data)) = (outline_active, self.animation_data.as_ref()) {
+            for step in 1..=3 {
+                let scale = self.scale * (1.0 + step as f32 * 0.01);
+                animation_data.render(
+                    instructions,
+                    camera,
+                    add_to_picker,
+                    self.entity_id,
+                    body_position,
+                    &self.animation_state,
+                    self.direction,
+                    alpha,
+                    outline.color,
+                    scale,
+                    self.imf.as_deref(),
+                    false,
+                    true,
+                    -0.02 - step as f32 * 0.005,
+                );
+            }
+        }
+
         if let Some(animation_data) = self.animation_data.as_ref() {
             animation_data.render(
                 instructions,
@@ -1406,6 +1456,8 @@ impl Common {
                 self.scale,
                 self.imf.as_deref(),
                 self.body_additive(client_tick),
+                false,
+                0.0,
             );
         }
 
@@ -1427,6 +1479,8 @@ impl Common {
                 self.scale,
                 None,
                 self.status_weapon_additive,
+                false,
+                0.0,
             );
         }
 
@@ -1448,6 +1502,8 @@ impl Common {
                 self.scale,
                 None,
                 false,
+                false,
+                0.0,
             );
         }
 
@@ -1470,6 +1526,8 @@ impl Common {
                 self.scale,
                 None,
                 false,
+                false,
+                0.0,
             );
         }
     }
@@ -2039,6 +2097,10 @@ impl Entity {
 
     pub fn start_body_wave(&mut self, duration_ms: u32, amplitude: f32, client_tick: ClientTick) {
         self.get_common_mut().start_body_wave(duration_ms, amplitude, client_tick);
+    }
+
+    pub fn start_body_outline(&mut self, color: Color, duration_ms: u32, client_tick: ClientTick) {
+        self.get_common_mut().start_body_outline(color, duration_ms, client_tick);
     }
 
     /// Sets the additive body/weapon sprite blend of the active statuses.

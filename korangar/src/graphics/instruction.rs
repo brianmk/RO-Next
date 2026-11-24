@@ -301,6 +301,9 @@ pub struct EntityInstruction {
     /// WBOIT blend when it falls in the transparent pass. Set by status
     /// effects (official `render.flags & 1` / `& 2`).
     pub additive: bool,
+    /// Flat silhouette copy (official sprite outline): the fragment shader
+    /// ignores lighting and writes the instance colour.
+    pub flat: bool,
     pub texture: Arc<Texture>,
     pub distance: f32,
 }

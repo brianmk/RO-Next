@@ -139,6 +139,9 @@ pub(crate) enum LayerKind {
     /// Vertical sine wave of the caster's body layers (official `render.flags`
     /// bit 0x8: the body wobbles while the effect runs).
     BodyWave,
+    /// Flat-colour silhouette copies of the body behind the sprite (official
+    /// `render.flags` 0x800/0x80000 outline).
+    BodyOutline,
 }
 
 /// Where a layer of a skill spawns.
@@ -708,6 +711,11 @@ fn validate_layer(skill: u16, phase: SkillPhase, layer: &LayerFile) -> Result<()
                 return Err(format!("{}: body wave is out of range", context()));
             }
         }
+        LayerKind::BodyOutline => {
+            if layer.duration_ms == 0 || layer.duration_ms > 10_000 {
+                return Err(format!("{}: body outline duration is out of range", context()));
+            }
+        }
     }
 
     if let Some(wav) = layer.wav.as_deref()
@@ -1274,7 +1282,7 @@ mod tests {
                         assert!(layer.primitive.is_some());
                         assert!(layer.file.is_some());
                     }
-                    LayerKind::BodyFlash | LayerKind::BodyWave => {}
+                    LayerKind::BodyFlash | LayerKind::BodyWave | LayerKind::BodyOutline => {}
                 }
             }
         }

@@ -9,7 +9,7 @@
 // from the effect implementation (`CRagEffect::*` primitives). Only skills where
 // the decompiled code and the 2019-era effect table agree on the effect id are
 // included. See `notes/rodecomp-skill-status-aura-audit.md`.
-// 143 skills, 244 layers.
+// 143 skills, 245 layers.
 (
     provenance: "rodecomp-derived rows for official hard-coded skill effects",
     effects: [
@@ -540,7 +540,8 @@
         ]),
         // skill 471 SL_SKE: official effect [427] - appended official layers
         (skill: 471, phase: Success, layers: [
-            (kind: BodyFlash, anchor: Caster, attached_entity: true, hold_ms: 1000, fade_ms: 200, tint: (0.216, 0.216, 1.0), blend: Additive),
+            (kind: BodyOutline, anchor: Caster, attached_entity: true, duration_ms: 1000, tint: (0.216, 0.216, 1.0)),
+            (kind: BodyFlash, anchor: Caster, attached_entity: true, hold_ms: 300, fade_ms: 700, tint: (0.216, 0.216, 1.0), blend: Additive),
         ]),
         // skill 472 SL_SKA: official effect [254, 261] - appended official layers
         (skill: 472, phase: Success, layers: [
