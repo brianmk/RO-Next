@@ -33,9 +33,9 @@ begin motion) with `skill_effects.ron` / `skill_sounds.ron` /
 | check | before | after |
 | --- | --- | --- |
 | skills in the GRF table | 66 | 66 |
-| no client descriptor | 62 | 62 (16 now have full-layer rows; the rest's effect ids have no layer data in any table) |
+| no client descriptor | 62 | 43 (their 43 effect ids have no layer definitions in any extracted table) |
 | missing official sound | 37 | **0** (wave files merged into `skill_sounds.ron`) |
-| missing official effect asset | 19 | only effects whose layer data is unknown |
+| missing official effect asset | 19 | **0** (templates like `windhit%d` handled) |
 | caster action missing/mismatch | 19 | **0** (`beginMotionType` merged into `skill_actions.ron`) |
 
 Mismatches were fixed by feeding the GRF facts into the existing generators:
@@ -66,9 +66,9 @@ the client data against both GRFs (611 assets): **0 unresolved**.
 
 ## Remaining gaps
 
-Effect ids 981-1011, 1066-1078, 1133-1150, 1197-1231 (4th-job / expanded
-classes) have no layer definitions in any extracted table; their visuals live
-only in `CondaRO.exe`. Those skills currently get their official **sound** and
-**action** but no effect rows. Extracting the remaining effect implementations
+43 effect ids (981-1011, 1066-1078, 1133-1150, 1197-1231, 4th-job / expanded
+classes plus a few NPC skills) have no layer definitions in any extracted
+table; their visuals live only in `CondaRO.exe`. Those skills currently get
+their official **sound** and **action** but no effect rows. Extracting the remaining effect implementations
 from the decompilation (`CRagEffect` switches) is the next step if those jobs
 are ever enabled on the server.

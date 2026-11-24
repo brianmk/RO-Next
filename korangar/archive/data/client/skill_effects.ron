@@ -3473,6 +3473,21 @@
             ],
         ),
         (
+            skill: 2561,
+            phase: Success,
+            layers: [
+                (kind: Spr, anchor: Target, attached_entity: true, files: ["이팩트\\트래킹"]),
+            ],
+        ),
+        (
+            skill: 2576,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 9.0, grow: TopRadius, alpha: 0.6, wav: "effect\\헤드 크러쉬.wav"),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\alpha_center.tga", duration_ms: 175, count: 6, bottom_radius: 0.02, top_radius: 14.4, grow: TopRadius, alpha: 0.6),
+            ],
+        ),
+        (
             skill: 2586,
             phase: Success,
             layers: [
@@ -3597,6 +3612,13 @@
             ],
         ),
         (
+            skill: 3025,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: true, file: "energycoat.str"),
+            ],
+        ),
+        (
             skill: 3026,
             phase: Cast,
             layers: [
@@ -3610,6 +3632,36 @@
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 60.0, bottom_radius: 2.0, top_radius: 2.0, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (1.0, 0.4, 0.4), blend: Additive),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 4.0, bottom_radius: 2.0, top_radius: 2.6, rotation_speed: 1.0, grow: Height, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive),
                 (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_red.tga", height: 6.0, bottom_radius: 2.0, top_radius: 8.0, rotation_speed: 1.0, grow: TopRadius, alpha: 0.7, tint: (1.0, 0.4, 0.4), blend: Additive, wav: "effect\\ef_beginspell.wav"),
+            ],
+        ),
+        (
+            skill: 3031,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: true, file: "icecrash.str"),
+            ],
+        ),
+        (
+            skill: 3032,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: true, file: "flower_leaf.str"),
+            ],
+        ),
+        (
+            skill: 3033,
+            phase: Success,
+            layers: [
+                (kind: Str, anchor: Target, attached_entity: true, file: "windhit1.str", wav: "_hit_fist1.wav"),
+            ],
+        ),
+        (
+            skill: 3034,
+            phase: Success,
+            layers: [
+                (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\ring_blue.tga", duration_ms: 1500, height: 70.0, bottom_radius: 0.6, top_radius: 0.6, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (0.5, 0.5, 1.0), blend: Additive, wav: "effect\\ef_teleportation.wav"),
+                (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\ring_blue.tga", duration_ms: 1500, height: 46.0, bottom_radius: 0.8, top_radius: 1.2, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (0.5, 0.5, 1.0), blend: Additive),
+                (kind: Cylinder, anchor: Target, attached_entity: true, file: "effect\\ring_blue.tga", duration_ms: 1500, height: 10.0, bottom_radius: 1.0, top_radius: 1.4, rotation_speed: 1.0, grow: Height, alpha: 0.3, tint: (0.5, 0.5, 1.0), blend: Additive),
             ],
         ),
         (

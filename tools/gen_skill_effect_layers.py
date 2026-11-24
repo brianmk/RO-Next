@@ -115,6 +115,7 @@ FIELD_SPECS = {
     "successEffectIdOnCasterByScreenDirection": ("Success", "Caster"),
     "successEffectIdOnCasterAimed": ("Success", "Caster"),
     "successEffectIdOnCasterAimed": ("Success", "Caster"),
+    "successEffectIdOnTarget": ("Success", "Target"),
     "successEffectIdOnTargetByLevel": ("Success", "Target"),
     "successEffectIdOnTargetByScreenSide": ("Success", "Target"),
     "releaseEffectId": ("Release", "Target"),
@@ -1630,7 +1631,11 @@ def main() -> int:
     if grf2019_path.is_file():
         for skill_text, entry in json.loads(grf2019_path.read_text())["skills"].items():
             skill_id = int(skill_text)
-            if skill_id in facts["skills"]:
+            existing = facts["skills"].get(skill_id)
+            # The community dump lists some newer skills with empty effect
+            # lists (it knows the name but not the ids); only a skill with real
+            # ids keeps precedence.
+            if existing and any(row.get("effects") for row in existing):
                 continue
             merged = [
                 {"field": GRF2019_FIELD[kind], "effects": effect_ids}

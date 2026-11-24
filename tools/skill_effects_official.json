@@ -6198,6 +6198,53 @@
    ]
   },
   {
+   "skill": 2561,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Spr",
+     "anchor": "Target",
+     "files": [
+      "이팩트\\트래킹"
+     ],
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 2576,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\alpha_center.tga",
+     "bottom_radius": 0.02,
+     "top_radius": 9.0,
+     "height": 0.0,
+     "alpha": 0.6,
+     "count": 6,
+     "grow": "TopRadius",
+     "duration_ms": 175,
+     "attached_entity": true,
+     "wav": "effect\\헤드 크러쉬.wav"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "file": "effect\\alpha_center.tga",
+     "bottom_radius": 0.02,
+     "top_radius": 14.4,
+     "height": 0.0,
+     "alpha": 0.6,
+     "count": 6,
+     "grow": "TopRadius",
+     "duration_ms": 175,
+     "attached_entity": true
+    }
+   ]
+  },
+  {
    "skill": 3011,
    "phase": "Cast",
    "layers": [
@@ -6608,6 +6655,18 @@
    ]
   },
   {
+   "skill": 3025,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Str",
+     "anchor": "Target",
+     "file": "energycoat.str",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
    "skill": 3026,
    "phase": "Cast",
    "layers": [
@@ -6683,6 +6742,107 @@
      "grow": "TopRadius",
      "rotation_speed": 1.0,
      "wav": "effect\\ef_beginspell.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3031,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Str",
+     "anchor": "Target",
+     "file": "icecrash.str",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3032,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Str",
+     "anchor": "Target",
+     "file": "flower_leaf.str",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3033,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Str",
+     "anchor": "Target",
+     "file": "windhit1.str",
+     "wav": "_hit_fist1.wav",
+     "attached_entity": true
+    }
+   ]
+  },
+  {
+   "skill": 3034,
+   "phase": "Success",
+   "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 0.6,
+     "top_radius": 0.6,
+     "height": 70.0,
+     "alpha": 0.3,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "duration_ms": 1500,
+     "wav": "effect\\ef_teleportation.wav",
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 0.8,
+     "top_radius": 1.2,
+     "height": 46.0,
+     "alpha": 0.3,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "duration_ms": 1500,
+     "attached_entity": true
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Target",
+     "file": "effect\\ring_blue.tga",
+     "bottom_radius": 1.0,
+     "top_radius": 1.4,
+     "height": 10.0,
+     "alpha": 0.3,
+     "tint": [
+      0.5,
+      0.5,
+      1.0
+     ],
+     "blend": "Additive",
+     "grow": "Height",
+     "rotation_speed": 1.0,
+     "duration_ms": 1500,
      "attached_entity": true
     }
    ]
@@ -8538,9 +8698,9 @@
   }
  ],
  "statistics": {
-  "rows": 363,
-  "layers": 537,
-  "skills": 331,
+  "rows": 370,
+  "layers": 547,
+  "skills": 338,
   "dropped": {
    "action_hold_not_mapped": [
     "skill 61: official action hold=True",
@@ -8786,29 +8946,15 @@
     "skill 2517 Success: ef_sr_howlingoflion_cast",
     "skill 2517 Hit: ef_sr_howlingoflion_hit",
     "skill 2518 Success: ef_rideinlightning",
-    "skill 2557 Success: ef_s_storm",
-    "skill 2558 Success: ef_rl_e_chain",
     "skill 2560 Success: ef_c_marker1",
-    "skill 2561 Success: ef_rl_firedance",
-    "skill 2562 Success: ef_rl_h_mine",
     "skill 2563 Success: ef_rl_p_alter",
-    "skill 2564 Success: ef_rl_fallen_angel",
-    "skill 2566 Success: ef_rl_d_tail",
     "skill 2567 Success: ef_rl_fire_rain",
-    "skill 2568 Success: ef_rl_heat_barrel",
-    "skill 2570 Success: ef_rl_slugshot",
-    "skill 2576 Success: ef_sj_fullmoonkick",
-    "skill 2579 Success: ef_sj_newmoonkick",
     "skill 2580 Success: ef_sj_flashkick",
     "skill 2584 Success: ef_sj_fallingstar",
-    "skill 2588 Success: ef_sj_document",
-    "skill 2592 Success: ef_sj_solarburst",
     "skill 2593 Success: ef_sj_prominencekick",
     "skill 2596 Success: ef_sp_soulgolem",
     "skill 2601 Success: ef_sp_soulcurse",
     "skill 2608 Success: ef_sp_soulrevolve",
-    "skill 3004 Success: ef_ko_jyumonjikiri",
-    "skill 3005 Success: ef_ko_setsudan",
     "skill 5002 Success: ef_ra_unlimit",
     "skill 5004 Hit: ef_dragonbreath_water",
     "skill 5007 Success: ef_frigg_song",
@@ -9249,6 +9395,7 @@
     "skill 654 Hit effect 49: firehit%d resolved to firehit1.str (candidates: ['firehit1.str', 'firehit2.str', 'firehit3.str'])",
     "skill 656 Hit effect 52: windhit%d resolved to windhit1.str (candidates: ['windhit1.str', 'windhit2.str', 'windhit3.str'])",
     "skill 706 Success effect 1020: bubble%d_1 resolved to bubble1_1.str (candidates: ['bubble1_1.str', 'bubble2_1.str', 'bubble3_1.str', 'bubble4_1.str'])",
+    "skill 3033 Success effect 52: windhit%d resolved to windhit1.str (candidates: ['windhit1.str', 'windhit2.str', 'windhit3.str'])",
     "skill 8202 Hit effect 49: firehit%d resolved to firehit1.str (candidates: ['firehit1.str', 'firehit2.str', 'firehit3.str'])"
    ],
    "unknown_effect": [
@@ -9321,7 +9468,9 @@
     "skill 517 Success: effect 626 has no layer facts",
     "skill 532 Success: effect 617 has no layer facts",
     "skill 538 Ground: effect 620 has no layer facts",
+    "skill 751 Success: effect 864 has no layer facts",
     "skill 754 Success: effect 1149 has no layer facts",
+    "skill 755 Success: effect 1150 has no layer facts",
     "skill 755 Success: effect 1150 has no layer facts",
     "skill 1002 Success: effect 599 has no layer facts",
     "skill 1005 Success: effect 602 has no layer facts",
@@ -9355,51 +9504,59 @@
     "skill 2487 Success: effect 918 has no layer facts",
     "skill 2490 Success: effect 919 has no layer facts",
     "skill 2552 Success: effect 1134 has no layer facts",
+    "skill 2554 Success: effect 1066 has no layer facts",
+    "skill 2557 Success: effect 1078 has no layer facts",
+    "skill 2558 Success: effect 1137 has no layer facts",
+    "skill 2561 Success: effect 1133 has no layer facts",
+    "skill 2562 Success: effect 1139 has no layer facts",
+    "skill 2564 Success: effect 1140 has no layer facts",
+    "skill 2566 Success: effect 1068 has no layer facts",
+    "skill 2568 Success: effect 1138 has no layer facts",
+    "skill 2570 Success: effect 1067 has no layer facts",
     "skill 2574 Success: effect 1198 has no layer facts",
+    "skill 2576 Success: effect 1223 has no layer facts",
+    "skill 2576 Success: effect 1230 has no layer facts",
     "skill 2577 Success: effect 1199 has no layer facts",
+    "skill 2579 Success: effect 1229 has no layer facts",
+    "skill 2582 Success: effect 1202 has no layer facts",
     "skill 2586 Success: effect 1231 has no layer facts",
+    "skill 2588 Success: effect 1219 has no layer facts",
     "skill 2590 Success: effect 1197 has no layer facts",
+    "skill 2592 Success: effect 1218 has no layer facts",
+    "skill 2594 Success: effect 1220 has no layer facts",
+    "skill 2600 Success: effect 1233 has no layer facts",
     "skill 2602 Success: effect 1204 has no layer facts",
+    "skill 2606 Success: effect 1209 has no layer facts",
     "skill 2607 Success: effect 1234 has no layer facts",
     "skill 2609 Success: effect 1209 has no layer facts",
+    "skill 2610 Success: effect 1208 has no layer facts",
+    "skill 2610 Success: effect 1242 has no layer facts",
+    "skill 3004 Success: effect 996 has no layer facts",
+    "skill 3005 Success: effect 997 has no layer facts",
+    "skill 3006 Success: effect 990 has no layer facts",
     "skill 3006 Success: effect 983 has no layer facts",
     "skill 3007 Success: effect 981 has no layer facts",
+    "skill 3008 Success: effect 330 has no layer facts",
+    "skill 3008 Success: effect 982 has no layer facts",
     "skill 3009 Ground: effect 984 has no layer facts",
     "skill 3009 Ground: effect 1000 has no layer facts",
     "skill 3009 Ground: effect 1002 has no layer facts",
+    "skill 3019 Success: effect 1008 has no layer facts",
     "skill 3019 Success: effect 989 has no layer facts",
     "skill 3022 Success: effect 999 has no layer facts",
     "skill 3023 Success: effect 991 has no layer facts",
+    "skill 3024 Success: effect 1001 has no layer facts",
+    "skill 3026 Success: effect 1010 has no layer facts",
+    "skill 3027 Success: effect 1011 has no layer facts",
+    "skill 3029 Success: effect 1009 has no layer facts",
+    "skill 5050 Success: effect 1123 has no layer facts",
+    "skill 5051 Success: effect 1098 has no layer facts",
+    "skill 5053 Success: effect 1124 has no layer facts",
     "skill 8004 Success: effect 505 has no layer facts",
     "skill 8010 Success: effect 564 has no layer facts",
     "skill 8011 Success: effect 564 has no layer facts",
     "skill 8026 Success: effect 961 has no layer facts",
     "skill 8039 Success: effect 962 has no layer facts"
-   ],
-   "unknown_skill_effect_field": [
-    "skill 751: successEffectIdOnTarget",
-    "skill 755: successEffectIdOnTarget",
-    "skill 2554: successEffectIdOnTarget",
-    "skill 2582: successEffectIdOnTarget",
-    "skill 2594: successEffectIdOnTarget",
-    "skill 2600: successEffectIdOnTarget",
-    "skill 2606: successEffectIdOnTarget",
-    "skill 2610: successEffectIdOnTarget",
-    "skill 3006: successEffectIdOnTarget",
-    "skill 3008: successEffectIdOnTarget",
-    "skill 3019: successEffectIdOnTarget",
-    "skill 3024: successEffectIdOnTarget",
-    "skill 3025: successEffectIdOnTarget",
-    "skill 3026: successEffectIdOnTarget",
-    "skill 3027: successEffectIdOnTarget",
-    "skill 3029: successEffectIdOnTarget",
-    "skill 3031: successEffectIdOnTarget",
-    "skill 3032: successEffectIdOnTarget",
-    "skill 3033: successEffectIdOnTarget",
-    "skill 3034: successEffectIdOnTarget",
-    "skill 5050: successEffectIdOnTarget",
-    "skill 5051: successEffectIdOnTarget",
-    "skill 5053: successEffectIdOnTarget"
    ],
    "unsupported_layer_type": [
     "skill 7 Success effect 17: type PRIM",
@@ -9478,6 +9635,7 @@
     "skill 2216 Ground effect 732: type QuadHorn",
     "skill 2216 Ground effect 732: type FUNC",
     "skill 2217 Cast effect 805: type FUNC",
+    "skill 2576 Success effect 399: type FUNC",
     "skill 3007 Success effect 986: type FUNC",
     "skill 5405 Cast effect 2367: type FUNC",
     "skill 5406 Cast effect 2367: type FUNC",
@@ -9568,10 +9726,10 @@
    ]
   },
   "unmapped_parameters": {
-   "Cylinder.fade": 152,
+   "Cylinder.fade": 157,
    "Cylinder.fadeOut": 1,
    "Cylinder.repeat": 2,
-   "Cylinder.zIndex": 28,
+   "Cylinder.zIndex": 30,
    "Primitive.delayLate": 1,
    "Primitive.fadeIn": 11,
    "Primitive.fadeOut": 11,
@@ -14535,8 +14693,8 @@
    ]
   },
   "extras": {
-   "layers_after_coalesce": 537,
-   "layers_before_coalesce": 668,
+   "layers_after_coalesce": 547,
+   "layers_before_coalesce": 678,
    "symbolic_layers": 42,
    "symbolic_sources": 37
   }
@@ -14546,16 +14704,16 @@
   "skills_with_official_layers": 178,
   "skills_without_official_layers": 279,
   "layer_count_by_kind": {
-   "Cylinder": 142,
+   "Cylinder": 147,
    "Primitive": 14,
-   "Spr": 39,
-   "Str": 207,
+   "Spr": 40,
+   "Str": 211,
    "Texture": 135
   },
   "row_count_by_phase": {
    "Ground": 19,
    "Cast": 42,
-   "Success": 224,
+   "Success": 231,
    "Release": 15,
    "Hit": 59,
    "Caster": 4

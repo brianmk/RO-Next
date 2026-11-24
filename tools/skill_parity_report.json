@@ -10,11 +10,11 @@
    "effect\\EF_DecAgility.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\EF_DecAgility.wav"
+  "our_wavs": [
+   "effect\\ef_decagility.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -79,11 +79,11 @@
    "effect\\RL_BANISHING_BUSTER.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_BANISHING_BUSTER.wav"
+  "our_wavs": [
+   "effect\\rl_banishing_buster.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -97,11 +97,11 @@
    "effect\\RL_B_TRAP.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_B_TRAP.wav"
+  "our_wavs": [
+   "effect\\rl_b_trap.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -118,17 +118,18 @@
   "official_wavs": [
    "effect\\RL_FLICKER.wav"
   ],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "concentration"
+  "our_files": [
+   "concentration.str"
   ],
-  "missing_wavs": [
-   "effect\\RL_FLICKER.wav"
+  "our_wavs": [
+   "effect\\ac_concentration.wav",
+   "effect\\rl_flicker.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2557,
@@ -141,11 +142,11 @@
    "effect\\RL_S_STORM.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_S_STORM.wav"
+  "our_wavs": [
+   "effect\\rl_s_storm.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -175,11 +176,11 @@
    "effect\\RL_C_MARKER.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_C_MARKER.wav"
+  "our_wavs": [
+   "effect\\rl_c_marker.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -197,17 +198,17 @@
   "official_wavs": [
    "effect\\\ub370\uc2a4\ud398\ub77c\ub3c4.wav"
   ],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "\ud2b8\ub798\ud0b9"
+  "our_files": [
+   "\uc774\ud329\ud2b8\\\ud2b8\ub798\ud0b9"
   ],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\\ub370\uc2a4\ud398\ub77c\ub3c4.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2562,
@@ -252,11 +253,11 @@
    "effect\\RL_D_TAIL.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_D_TAIL.wav"
+  "our_wavs": [
+   "effect\\rl_d_tail.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -270,11 +271,11 @@
    "effect\\RL_FIRE_RAIN.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_FIRE_RAIN.wav"
+  "our_wavs": [
+   "effect\\rl_fire_rain.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -304,11 +305,11 @@
    "effect\\RL_AM_BLAST.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_AM_BLAST.wav"
+  "our_wavs": [
+   "effect\\rl_am_blast.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -324,18 +325,18 @@
    "effect\\RL_SLUGSHOT.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\RL_SLUGSHOT.wav"
+  "our_wavs": [
+   "effect\\rl_slugshot.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2574,
-  "name": "SJ_LIGHTOFMOON",
+  "name": "RL_GLITTERING_GREED_ATK",
   "official_effect_ids": [
    1198
   ],
@@ -344,18 +345,18 @@
    "effect\\t_\ud53c\ub9c1.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2576,
-  "name": "SJ_FULLMOONKICK",
+  "name": "2576",
   "official_effect_ids": [
    399,
    1223,
@@ -365,19 +366,21 @@
    "alpha_center"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "alpha_center"
+  "our_files": [
+   "effect\\alpha_center.tga"
   ],
+  "our_wavs": [
+   "effect\\\ud5e4\ub4dc \ud06c\ub7ec\uc26c.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 2577,
-  "name": "SJ_LIGHTOFSTAR",
+  "name": "2577",
   "official_effect_ids": [
    1199
   ],
@@ -386,18 +389,18 @@
    "effect\\t_\ud53c\ub9c1.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2579,
-  "name": "SJ_NEWMOONKICK",
+  "name": "2579",
   "official_effect_ids": [
    1229
   ],
@@ -413,7 +416,7 @@
  },
  {
   "skill": 2582,
-  "name": "SJ_NOVAEXPLOSING",
+  "name": "2582",
   "official_effect_ids": [
    1202
   ],
@@ -429,7 +432,7 @@
  },
  {
   "skill": 2586,
-  "name": "SJ_BOOKOFDIMENSION",
+  "name": "2586",
   "official_effect_ids": [
    1231
   ],
@@ -438,20 +441,20 @@
    "effect\\so_elemental_shield.wav"
   ],
   "our_files": [
-   "\uc774\ud329\ud2b8\\\\book_of_dimension\\\\book_of_dimension"
+   "\uc774\ud329\ud2b8\\book_of_dimension\\book_of_dimension"
   ],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\so_elemental_shield.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": true
  },
  {
   "skill": 2588,
-  "name": "SJ_DOCUMENT",
+  "name": "2588",
   "official_effect_ids": [
    1219
   ],
@@ -467,7 +470,7 @@
  },
  {
   "skill": 2590,
-  "name": "SJ_LIGHTOFSUN",
+  "name": "2590",
   "official_effect_ids": [
    1197
   ],
@@ -476,18 +479,18 @@
    "effect\\t_\ud53c\ub9c1.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\ud53c\ub9c1.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2592,
-  "name": "SJ_SOLARBURST",
+  "name": "2592",
   "official_effect_ids": [
    1218
   ],
@@ -496,18 +499,18 @@
    "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\g\ub370\ubaa8\ub2c9\ud654\uc774\uc5b4.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2594,
-  "name": "SJ_FALLINGSTAR_ATK",
+  "name": "2594",
   "official_effect_ids": [
    1220
   ],
@@ -516,25 +519,25 @@
    "effect\\wizard_sightrasher.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\wizard_sightrasher.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2600,
-  "name": "SP_CURSEEXPLOSION",
+  "name": "2600",
   "official_effect_ids": [
    1233
   ],
   "official_assets": [],
   "official_wavs": [],
   "our_files": [
-   "\uc774\ud329\ud2b8\\\\curse_explosion\\\\curse_explosion"
+   "\uc774\ud329\ud2b8\\curse_explosion\\curse_explosion"
   ],
   "our_wavs": [],
   "missing_assets": [],
@@ -545,7 +548,7 @@
  },
  {
   "skill": 2602,
-  "name": "SP_SPA",
+  "name": "2602",
   "official_effect_ids": [
    1204
   ],
@@ -554,18 +557,18 @@
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2603,
-  "name": "SP_SHA",
+  "name": "2603",
   "official_effect_ids": [
    547
   ],
@@ -581,7 +584,7 @@
  },
  {
   "skill": 2606,
-  "name": "SP_SOULDIVISION",
+  "name": "2606",
   "official_effect_ids": [
    1209
   ],
@@ -590,18 +593,18 @@
    "effect\\t_\uce58\uc789.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\uce58\uc789.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
  },
  {
   "skill": 2607,
-  "name": "SP_SOULREAPER",
+  "name": "2607",
   "official_effect_ids": [
    1234
   ],
@@ -610,20 +613,20 @@
    "effect\\ef_signum.wav"
   ],
   "our_files": [
-   "\uc774\ud329\ud2b8\\\\soul_reaper\\\\soul_reaper"
+   "\uc774\ud329\ud2b8\\soul_reaper\\soul_reaper"
   ],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\ef_signum.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": true
  },
  {
   "skill": 2609,
-  "name": "SP_SOULCOLLECT",
+  "name": "2609",
   "official_effect_ids": [
    1209
   ],
@@ -639,7 +642,7 @@
  },
  {
   "skill": 2610,
-  "name": "SP_SOULEXPLOSION",
+  "name": "2610",
   "official_effect_ids": [
    1208,
    1242
@@ -649,13 +652,13 @@
    "effect\\hunter_landmine.wav"
   ],
   "our_files": [
-   "\uc774\ud329\ud2b8\\\\soul_explosion\\\\soul_explosion"
+   "\uc774\ud329\ud2b8\\soul_explosion\\soul_explosion"
   ],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\hunter_landmine.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": true
@@ -671,11 +674,11 @@
    "effect\\cru_holy cross.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\cru_holy cross.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -691,13 +694,13 @@
    "effect\\T_\uc804\uae30.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\T_\uc804\uae30.wav"
+  "our_wavs": [
+   "effect\\t_\uc804\uae30.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -713,14 +716,14 @@
    "effect\\\ud3ed\uc5fc\ub8e1.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav",
    "effect\\\ud3ed\uc5fc\ub8e1.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -735,13 +738,13 @@
    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  "our_wavs": [
+   "effect\\t_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -756,11 +759,11 @@
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -778,13 +781,13 @@
    "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
-   "effect\\T_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
+  "our_wavs": [
+   "effect\\t_\ud68c\uc624\ub9ac\ucc28\uae30.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -797,15 +800,17 @@
    "ring_yellow"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_yellow"
+  "our_files": [
+   "effect\\ring_yellow.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3013,
@@ -817,15 +822,17 @@
    "ring_purple"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_purple"
+  "our_files": [
+   "effect\\ring_purple.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3014,
@@ -837,15 +844,17 @@
    "ring_blue"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_blue"
+  "our_files": [
+   "effect\\ring_blue.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3015,
@@ -857,15 +866,17 @@
    "ring_red"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_red"
+  "our_files": [
+   "effect\\ring_red.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3016,
@@ -877,15 +888,17 @@
    "ring_blue"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_blue"
+  "our_files": [
+   "effect\\ring_blue.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3017,
@@ -897,15 +910,17 @@
    "ring_white"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_white"
+  "our_files": [
+   "effect\\ring_white.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3018,
@@ -917,15 +932,17 @@
    "ring_yellow"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_yellow"
+  "our_files": [
+   "effect\\ring_yellow.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3019,
@@ -939,11 +956,11 @@
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\\ub2cc\uc790_\ub358\uc9c0\uae30.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -959,7 +976,7 @@
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -972,15 +989,17 @@
    "ring_red"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_red"
+  "our_files": [
+   "effect\\ring_red.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3022,
@@ -993,13 +1012,13 @@
    "effect\\ab_renovatio.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\ab_renovatio.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -1015,7 +1034,7 @@
   "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -1029,11 +1048,11 @@
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -1050,17 +1069,17 @@
   "official_wavs": [
    "effect\\mon_\uae08\uac15\ubd88\uad34.wav"
   ],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "energycoat"
+  "our_files": [
+   "energycoat.str"
   ],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\mon_\uae08\uac15\ubd88\uad34.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3026,
@@ -1075,17 +1094,18 @@
   "official_wavs": [
    "effect\\t_\ub530\ub4ef\ud55c\ub9c8\ubc95.wav"
   ],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_yellow"
+  "our_files": [
+   "effect\\ring_yellow.tga"
   ],
-  "missing_wavs": [
+  "our_wavs": [
+   "effect\\ef_beginspell.wav",
    "effect\\t_\ub530\ub4ef\ud55c\ub9c8\ubc95.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3027,
@@ -1098,13 +1118,13 @@
    "effect\\sign_up.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\sign_up.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
+  "our_action": "Skill",
   "has_descriptor": false
  },
  {
@@ -1120,17 +1140,18 @@
   "official_wavs": [
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_red"
+  "our_files": [
+   "effect\\ring_red.tga"
   ],
-  "missing_wavs": [
+  "our_wavs": [
+   "effect\\ef_beginspell.wav",
    "effect\\t_\uc5d0\ub108\uc9c0\ubc29\ucd9c.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
-  "our_action": null,
-  "has_descriptor": false
+  "our_action": "Skill",
+  "has_descriptor": true
  },
  {
   "skill": 3031,
@@ -1142,15 +1163,15 @@
    "icecrash"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "icecrash"
+  "our_files": [
+   "icecrash.str"
   ],
+  "our_wavs": [],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3032,
@@ -1162,15 +1183,15 @@
    "flower_leaf"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "flower_leaf"
+  "our_files": [
+   "flower_leaf.str"
   ],
+  "our_wavs": [],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3033,
@@ -1182,15 +1203,17 @@
    "windhit%d"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "windhit%d"
+  "our_files": [
+   "windhit1.str"
   ],
+  "our_wavs": [
+   "_hit_fist1.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3034,
@@ -1202,15 +1225,17 @@
    "ring_blue"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_blue"
+  "our_files": [
+   "effect\\ring_blue.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_teleportation.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 3035,
@@ -1222,15 +1247,17 @@
    "ring_yellow"
   ],
   "official_wavs": [],
-  "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [
-   "ring_yellow"
+  "our_files": [
+   "effect\\ring_yellow.tga"
   ],
+  "our_wavs": [
+   "effect\\ef_beginspell.wav"
+  ],
+  "missing_assets": [],
   "missing_wavs": [],
   "official_action": null,
   "our_action": null,
-  "has_descriptor": false
+  "has_descriptor": true
  },
  {
   "skill": 5050,
@@ -1243,11 +1270,11 @@
    "effect\\su_grooming.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\su_grooming.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -1263,11 +1290,11 @@
    "effect\\su_shrimpparty.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\su_shrimpparty.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false
@@ -1283,11 +1310,11 @@
    "effect\\su_chattering.wav"
   ],
   "our_files": [],
-  "our_wavs": [],
-  "missing_assets": [],
-  "missing_wavs": [
+  "our_wavs": [
    "effect\\su_chattering.wav"
   ],
+  "missing_assets": [],
+  "missing_wavs": [],
   "official_action": null,
   "our_action": null,
   "has_descriptor": false

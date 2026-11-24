@@ -80,6 +80,11 @@ def parse_ron_skills(path: Path, block_re: str) -> dict[int, list[str]]:
     return result
 
 
+def unescape(path: str) -> str:
+    """RON stores backslashes escaped (`effect\\x.tga`); give back the path."""
+    return path.replace("\\\\", "\\")
+
+
 def parse_effects() -> dict[int, dict]:
     text = EFFECTS.read_text()
     skills: dict[int, dict] = {}
@@ -92,6 +97,9 @@ def parse_effects() -> dict[int, dict]:
         files = re.findall(r'file: "([^"]+)"', block) + [f for group in re.findall(r'files: \[([^\]]*)\]', block) for f in re.findall(r'"([^"]+)"', group)]
         frames = [f for group in re.findall(r'frames: \[([^\]]*)\]', block) for f in re.findall(r'"([^"]+)"', group)]
         wavs = re.findall(r'wav: "([^"]+)"', block)
+        files = [unescape(f) for f in files]
+        frames = [unescape(f) for f in frames]
+        wavs = [unescape(f) for f in wavs]
         kinds = re.findall(r"kind: (\w+)", block)
         entry["phases"][phase]["files"].extend(files + frames)
         entry["phases"][phase]["wavs"].extend(wavs)
@@ -105,7 +113,7 @@ def parse_sounds() -> dict[int, list[str]]:
     sounds: dict[int, list[str]] = defaultdict(list)
     for match in re.finditer(r"\(skill: (\d+), files: \[([^\]]*)\]\)", text):
         skill_id = int(match.group(1))
-        sounds[skill_id].extend(re.findall(r'"([^"]+)"', match.group(2)))
+        sounds[skill_id].extend(unescape(wav) for wav in re.findall(r'"([^"]+)"', match.group(2)))
     return sounds
 
 
@@ -156,10 +164,21 @@ def main() -> None:
         for field in ("waveFileName", "targetWaveFileName", "beginWaveFileName"):
             official_wavs.extend(fields.get(field, []))
 
-        ours_effect_names = {Path(f).stem.lower() for f in our_files}
-        official_assets_names = {Path(a).stem.lower() for a in official_assets}
+        # Both sides use Windows-style separators; normalize before taking the
+        # stem so Linux `Path` does not treat the whole string as one name.
+        ours_effect_names = {Path(f.replace("\\", "/")).stem.lower() for f in our_files}
+        official_assets_names = {Path(a.replace("\\", "/")).stem.lower() for a in official_assets}
 
-        missing_assets = sorted(a for a in official_assets_names if a not in ours_effect_names)
+        def asset_present(asset: str) -> bool:
+            if asset in ours_effect_names:
+                return True
+            # The tables use templates (`windhit%d`) for numbered files.
+            if "%" in asset:
+                pattern = re.escape(asset).replace("%d", r"\d+").replace("%s", r".+")
+                return any(re.fullmatch(pattern, name) for name in ours_effect_names)
+            return False
+
+        missing_assets = sorted(a for a in official_assets_names if not asset_present(a))
         missing_wavs = sorted(w for w in official_wavs if Path(w).name.lower() not in {Path(x).name.lower() for x in our_wavs})
 
         official_motion = fields.get("beginMotionType")
