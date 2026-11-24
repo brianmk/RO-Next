@@ -8,9 +8,8 @@ use korangar_interface::prelude::{HorizontalAlignment, VerticalAlignment};
 use rust_state::{Path, State};
 
 use crate::loaders::OverflowBehavior;
-use crate::state::localization::{LocalizationPathExt, UiTextsPathExt};
 use crate::state::theme::{DesignTokensPathExt, InterfaceThemePathExt, ItemCardThemePathExt, TypographyTokensPathExt};
-use crate::state::{ClientState, ClientStatePathExt, client_state, client_theme};
+use crate::state::{ClientState, client_theme};
 
 /// Formats a zeny amount with thousands separators, e.g. `1,234 z`.
 pub fn format_zeny(value: u64) -> String {

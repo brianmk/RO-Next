@@ -999,6 +999,92 @@ mod tests {
         }
     }
 
+    /// For every skill-related Lua file, lists the global tables it defines and
+    /// checks whether any of them has an entry for Asura Strike (271).
+    #[test]
+    #[ignore]
+    fn probe_skill_table_globals() {
+        use korangar_loaders::FileLoader;
+        use mlua::Lua;
+
+        let loader = crate::loaders::GameFileLoader::default();
+        loader.load_archives_from_settings();
+        loader.load_patched_lua_files();
+
+        let prerequisites = [
+            "data\\luafiles514\\lua files\\skillinfoz\\jobinheritlist.lub",
+            "data\\luafiles514\\lua files\\skillinfoz\\skillid.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\actorstate.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\effectid.lub",
+        ];
+        let candidates = [
+            "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfolist.lub",
+            "data\\luafiles514\\lua files\\skilleffectinfo\\skilleffectinfo_f.lub",
+            "data\\luafiles514\\lua files\\skillinfoz\\skillinfolist.lub",
+            "data\\luafiles514\\lua files\\skillinfoz\\skillinfo_f.lub",
+            "data\\luafiles514\\lua files\\exmacro\\skill_exmacro.lub",
+            "data\\luafiles514\\lua files\\newskillinfo\\skillid.lub",
+            "data\\luafiles514\\lua files\\hateffectinfo\\hateffectinfo.lub",
+        ];
+
+        let mut out = String::new();
+        for candidate in candidates {
+            let lua = Lua::new();
+            for path in prerequisites {
+                if let Ok(bytes) = loader.get(path) {
+                    let _ = lua.load(&bytes).exec();
+                }
+            }
+
+            let before: Vec<String> = lua
+                .globals()
+                .pairs::<mlua::Value, mlua::Value>()
+                .filter_map(|pair| match pair {
+                    Ok((mlua::Value::String(name), _)) => Some(name.to_string_lossy().to_string()),
+                    _ => None,
+                })
+                .collect();
+
+            let bytes = match loader.get(candidate) {
+                Ok(bytes) => bytes,
+                Err(_) => {
+                    out.push_str(&format!("{candidate}: missing\n"));
+                    continue;
+                }
+            };
+            match lua.load(&bytes).exec() {
+                Ok(()) => out.push_str(&format!("{candidate}: loaded\n")),
+                Err(error) => out.push_str(&format!("{candidate}: failed: {error}\n")),
+            }
+
+            for pair in lua.globals().pairs::<mlua::Value, mlua::Value>() {
+                let Ok((mlua::Value::String(name), value)) = pair else { continue };
+                let name = name.to_string_lossy().to_string();
+                if before.contains(&name) || !matches!(value, mlua::Value::Table(_)) {
+                    continue;
+                }
+                let mlua::Value::Table(table) = value else { continue };
+                let has_asura = table
+                    .get::<mlua::Value>(271u32)
+                    .map(|v| !matches!(v, mlua::Value::Nil))
+                    .unwrap_or(false);
+                out.push_str(&format!("  new global {name} (271: {has_asura})\n"));
+                let mut count = 0;
+                for pair in table.clone().pairs::<mlua::Value, mlua::Value>() {
+                    let Ok((key, _)) = pair else { continue };
+                    if count < 4 {
+                        out.push_str(&format!("     key {:?}\n", key));
+                    }
+                    count += 1;
+                }
+                out.push_str(&format!("     keys: {count}\n"));
+            }
+        }
+
+        std::fs::write("/tmp/skill_table_globals.txt", &out).unwrap();
+        println!("wrote {} bytes", out.len());
+    }
+
     /// Dumps the official 2019 client skill tables from the GRF archives
     /// (`skillid`/`effectid`/`skilleffectinfolist`/`actorstate`). Used by the
     /// parity audit; writes a flat, line oriented table to
@@ -1015,6 +1101,7 @@ mod tests {
 
         let lua = Lua::new();
         for path in [
+            "data\\luafiles514\\lua files\\skillinfoz\\jobinheritlist.lub",
             "data\\luafiles514\\lua files\\skillinfoz\\skillid.lub",
             "data\\luafiles514\\lua files\\skilleffectinfo\\effectid.lub",
             "data\\luafiles514\\lua files\\skilleffectinfo\\actorstate.lub",

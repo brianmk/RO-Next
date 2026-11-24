@@ -160,9 +160,6 @@ use crate::world::MarkerIdentifier;
 use crate::world::target_policy::{TargetRelations, player_attack_decision, player_combat_zone};
 use crate::world::*;
 
-/// Duration of the full-screen "ASURA STRIKE" banner in seconds.
-const ASURA_STRIKE_BANNER_SECONDS: f32 = 1.8;
-
 /// Next unique point-light id for position based effects. The point light
 /// manager uses the id to decide which light renders with a shadow, so it has
 /// to be unique.
@@ -993,8 +990,6 @@ pub struct Client {
     current_map_name: Option<String>,
 
     particle_holder: ParticleHolder,
-    /// Remaining time of the full-screen "ASURA STRIKE" banner in seconds.
-    asura_strike_banner: f32,
     /// Lazily loaded flying-projectile sprite/action pairs, keyed by the
     /// projectile kind from the weapon data file. `None` marks a projectile
     /// whose sprites are missing, so the failed load is not retried per hit.
@@ -1713,7 +1708,6 @@ impl Client {
             map_window_cycle: MapWindowCycle::Closed,
             minimap_last_tile: None,
             particle_holder,
-            asura_strike_banner: 0.0,
             projectile_assets: HashMap::new(),
             point_light_manager,
             effect_holder,
@@ -4463,10 +4457,10 @@ impl Client {
                     // layer of the `Cast` phase (per-cast de-duplicated).
                     self.spawn_skill_effect_phase(skill_id, SkillPhase::Cast, source_entity_id, None, None, client_tick);
 
-                    // Asura Strike gets the classic full-screen lettering and,
-                    // for the local player, a screen shake.
+                    // Asura Strike shakes the screen for the local caster (the
+                    // original client draws no full-screen lettering: the kanji
+                    // are world layers of the skill effect data).
                     if skill_id == SkillId(271) {
-                        self.asura_strike_banner = ASURA_STRIKE_BANNER_SECONDS;
                         let is_own_cast = self
                             .client_state
                             .try_follow(this_entity())
@@ -12332,10 +12326,6 @@ impl Client {
         }
 
         // Update the Asura Strike banner.
-        if self.asura_strike_banner > 0.0 {
-            self.asura_strike_banner -= delta_time as f32;
-        }
-
         // Update particles.
         self.particle_holder.update(delta_time as f32);
         self.effect_holder
@@ -12809,28 +12799,6 @@ impl Client {
             #[cfg(feature = "debug")]
             render_context.render_bounding_boxes();
             render_context.render_world_overlays();
-        }
-
-        // Full-screen Asura Strike lettering (drawn above the world).
-        if self.asura_strike_banner > 0.0 {
-            let window = *self.client_state.follow(client_state().window_size());
-            let alpha = (self.asura_strike_banner / ASURA_STRIKE_BANNER_SECONDS).clamp(0.0, 1.0);
-            let color = Color::rgba(1.0, 0.95, 0.75, alpha);
-            let outline = Color::rgba(0.35, 0.05, 0.0, alpha);
-            let font_size = FontSize(window.height * 0.12);
-            let position = ScreenPosition {
-                left: window.width * 0.5,
-                top: window.height * 0.22,
-            };
-
-            self.bottom_interface_renderer.render_outlined_text(
-                "ASURA STRIKE",
-                position,
-                color,
-                outline,
-                font_size,
-                AlignHorizontal::Center,
-            );
         }
 
         let in_game_theme_path = client_state().in_game_theme().tooltip();

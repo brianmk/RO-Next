@@ -96,14 +96,18 @@ mod tests {
     }
 
     #[test]
-    fn champion_attack_skills_play_the_attack_animation() {
-        // Raging Trifecta Blow, Occult Impaction, Throw Spirit Sphere, Raging
-        // Quadruple Blow, Raging Thrust, Raging Palm Strike, Glacier Fist and
-        // Chain Crush Combo are physical attacks; they must not all fall back to
-        // the generic cast gesture (in-game report: every Champion skill looked
-        // identical).
-        for skill_id in [263, 266, 267, 272, 273, 370, 371, 372] {
+    fn champion_skills_follow_the_official_motion_table() {
+        // Official ground truth (`CSession::GetSkillActionInfo`, motion 8 =
+        // ST_BEGIN_SKILL): Raging Trifecta Blow (motion 2), Raging Palm Strike
+        // and Chain Crush Combo play the attack swing.
+        for skill_id in [263, 370, 372] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
+        }
+        // Occult Impaction, Throw Spirit Sphere, Raging Quadruple Blow, Raging
+        // Thrust and Glacier Fist fall through the official switch without an
+        // attack motion, so they keep the begin-skill gesture.
+        for skill_id in [266, 267, 271, 272, 273, 371] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
         // Fury and Mental Strength stay idle poses.
         for skill_id in [268, 270] {
