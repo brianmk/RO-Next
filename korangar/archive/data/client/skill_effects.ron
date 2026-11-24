@@ -928,8 +928,12 @@
             skill: 130,
             phase: Success,
             layers: [
-                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 900, count: 2, height: 2.0, bottom_radius: 6.0, top_radius: 32.0, alpha: 0.5, blend: Additive, wav: "effect\\hunter_detecting.wav"),
-                (kind: Cylinder, anchor: Ground, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 900, delay_ms: 200, count: 2, height: 2.0, bottom_radius: 6.0, top_radius: 32.0, alpha: 0.5, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (0.6, 0.35, 0.0), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive, wav: "effect\\hunter_detecting.wav"),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (0.3, 0.65, 0.52), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (-0.3, 0.95, 0.52), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (-0.6, 0.35, 0.0), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (-0.3, 0.65, -0.52), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive),
+                (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\fashasha.tga", offset: (0.3, 0.95, -0.52), size: 1.5, size_end: 3.0, duration_ms: 950, alpha: 0.6, blend: Additive),
             ],
         ),
         (
