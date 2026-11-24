@@ -646,6 +646,18 @@ pub enum InputEvent {
     ChatMarkupClicked {
         link: ChatMarkupLink,
     },
+    /// Open or close the bank window. Opening sends the banking requests and
+    /// requests the current vault balance.
+    ToggleBankWindow,
+    /// Deposit the amount typed into the bank window
+    /// (`CZ_REQ_BANKING_DEPOSIT`, 0x09A7).
+    BankDeposit,
+    /// Withdraw the amount typed into the bank window
+    /// (`CZ_REQ_BANKING_WITHDRAW`, 0x09A9).
+    BankWithdraw,
+    /// Close the bank window and end the banking session
+    /// (`CZ_REQ_CLOSE_BANKING`, 0x09B8).
+    CloseBank,
 }
 
 impl From<InputEvent> for Event<ClientState> {

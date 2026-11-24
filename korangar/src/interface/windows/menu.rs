@@ -126,6 +126,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleQuestWindow,
                 },
                 button! {
+                    text: "Bank",
+                    event: InputEvent::ToggleBankWindow,
+                },
+                button! {
                     text: "Mail",
                     event: InputEvent::OpenMailboxWindow,
                 },

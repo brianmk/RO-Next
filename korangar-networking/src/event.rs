@@ -967,6 +967,35 @@ pub enum NetworkEvent {
     ServerAnnouncement {
         text: String,
     },
+    /// The server asked the client to open one of its built-in UI windows
+    /// (`ZC_UI_OPEN`, 0x0AE2). `ui_type` 0 is the bank (`OUT_UI_BANK`).
+    OpenUserInterface {
+        ui_type: u8,
+        data: u32,
+    },
+    /// The banking session was opened (`ZC_ACK_OPEN_BANKING`, 0x09B7).
+    BankOpened,
+    /// The current bank vault (`ZC_BANKING_CHECK`, 0x09A6).
+    BankBalance {
+        money: u64,
+        reason: u16,
+    },
+    /// A deposit was processed (`ZC_ACK_BANKING_DEPOSIT`, 0x09A8). `reason` is
+    /// `enum e_BANKING_DEPOSIT_ACK`.
+    BankDepositResult {
+        reason: u16,
+        money: u64,
+        zeny: i32,
+    },
+    /// A withdrawal was processed (`ZC_ACK_BANKING_WITHDRAW`, 0x09AA). `reason`
+    /// is `enum e_BANKING_WITHDRAW_ACK`.
+    BankWithdrawResult {
+        reason: u16,
+        money: u64,
+        zeny: i32,
+    },
+    /// The banking session was closed (`ZC_ACK_CLOSE_BANKING`, 0x09B9).
+    BankClosed,
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

@@ -1,3 +1,4 @@
+pub mod bank;
 #[cfg(feature = "debug")]
 pub mod cache_statistics;
 pub mod character_previews;
@@ -73,6 +74,7 @@ use crate::renderer::InterfaceRenderer;
 use crate::settings::{
     GameSettings, GraphicsSettingsCapabilities, InterfaceSettings, InterfaceSettingsCapabilities, LoginSettings, ServiceSettings,
 };
+use crate::state::bank::Bank;
 use crate::state::character_previews::CharacterPreviews;
 use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
@@ -335,6 +337,9 @@ pub struct ClientState {
     /// data).
     #[hidden_element]
     zeny: Option<u64>,
+    /// Bank window state (`CZ_REQ_BANKING_*`, rAthena banking system).
+    #[hidden_element]
+    bank: Bank,
     /// Items in the Kafra storage, filled while a storage window is open.
     storage: Inventory,
     /// Current number of items in the Kafra storage
@@ -548,6 +553,7 @@ impl ClientState {
             let hotbar = Hotbar::default();
             let inventory = Inventory::default();
             let zeny = None;
+            let bank = Bank::default();
             let cart = Inventory::default();
             let vending_browse = VendingBrowse::default();
             let storage = Inventory::default();
@@ -647,6 +653,7 @@ impl ClientState {
             vending_browse,
             cart,
             zeny,
+            bank,
             storage,
             storage_amount,
             storage_maximum_amount,

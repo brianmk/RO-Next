@@ -1935,7 +1935,30 @@ where
         expelled: true,
     })?;
     packet_handler.register(|packet: GuildInviteResultPacket| NetworkEvent::GuildInviteResult { result: packet.result })?;
-
+    // Bank (PACKETVER 20190605). The server only sends these when
+    // `battle_config.feature_banking` is enabled and the map does not carry the
+    // `nobank` mapflag; the client always registers the handlers so a server
+    // that enables the feature works without another client build.
+    packet_handler.register(|packet: OpenUserInterfacePacket| NetworkEvent::OpenUserInterface {
+        ui_type: packet.ui_type,
+        data: packet.data,
+    })?;
+    packet_handler.register(|_: BankOpenAckPacket| NetworkEvent::BankOpened)?;
+    packet_handler.register(|packet: BankBalancePacket| NetworkEvent::BankBalance {
+        money: packet.money,
+        reason: packet.reason,
+    })?;
+    packet_handler.register(|packet: BankDepositAckPacket| NetworkEvent::BankDepositResult {
+        reason: packet.reason,
+        money: packet.money,
+        zeny: packet.zeny,
+    })?;
+    packet_handler.register(|packet: BankWithdrawAckPacket| NetworkEvent::BankWithdrawResult {
+        reason: packet.reason,
+        money: packet.money,
+        zeny: packet.zeny,
+    })?;
+    packet_handler.register(|_: BankCloseAckPacket| NetworkEvent::BankClosed)?;
     Ok(())
 }
 

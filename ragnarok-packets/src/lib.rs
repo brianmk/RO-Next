@@ -7544,6 +7544,226 @@ pub struct GuildInviteResultPacket {
     pub result: u8,
 }
 
+// --- Bank (rAthena `clif_parse_Bank*`, PACKETVER >= 20130717) --------------
+//
+// All layouts come from `src/map/packets.hpp` (structs `PACKET_ZC_*BANKING*`)
+// and the parsers in `src/map/clif.cpp:7327-7535`.
+
+/// `ZC_UI_OPEN` (0x0AE2): the server asks the client to open one of its
+/// built-in UI windows.
+///
+/// At PACKETVER 20190605 the packet is 7 bytes: `type.W type.B data.L`
+/// (`PACKET_ZC_UI_OPEN`, `src/map/packets_struct.hpp:2241`, `clif_ui_open` at
+/// `src/map/clif.cpp:21916`). `ui_type` is `enum out_ui_type`
+/// (`src/map/clif.hpp:1415`); `0` is `OUT_UI_BANK`, which the `openbank` NPC
+/// script command sends (`src/map/script.cpp:27070`). Opening the bank still
+/// needs the `CZ_REQ_OPEN_BANKING` request below.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AE2)]
+#[packet_size(7)]
+pub struct OpenUserInterfacePacket {
+    /// `enum out_ui_type`: 0 bank, 1 stylist, 5 tip, 6 quest, ...
+    pub ui_type: u8,
+    pub data: u32,
+}
+
+/// `ZC_ACK_OPEN_BANKING` (0x09B7), 4 bytes: the server accepted the banking
+/// session (`clif_bank_open`, `src/map/clif.cpp:7327`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09B7)]
+#[packet_size(4)]
+pub struct BankOpenAckPacket {
+    /// Always 0 in rAthena.
+    pub unknown: u16,
+}
+
+/// `ZC_ACK_CLOSE_BANKING` (0x09B9), 4 bytes (`clif_bank_close`,
+/// `src/map/clif.cpp:7369`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09B9)]
+#[packet_size(4)]
+pub struct BankCloseAckPacket {
+    /// Always 0 in rAthena.
+    pub unknown: u16,
+}
+
+/// `ZC_BANKING_CHECK` (0x09A6), 12 bytes: the current bank vault and a reason
+/// code (`clif_Bank_Check`, `src/map/clif.cpp:7405`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09A6)]
+#[packet_size(12)]
+pub struct BankBalancePacket {
+    /// Amount in the account-wide bank vault (`sd.bank_vault`).
+    pub money: u64,
+    /// Reason code; rAthena always sends 0 here.
+    pub reason: u16,
+}
+
+/// `ZC_ACK_BANKING_DEPOSIT` (0x09A8), 16 bytes (`clif_bank_deposit`,
+/// `src/map/clif.cpp:7446`). `reason` uses `enum e_BANKING_DEPOSIT_ACK`
+/// (`src/map/clif.hpp:93`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09A8)]
+#[packet_size(16)]
+pub struct BankDepositAckPacket {
+    pub reason: u16,
+    /// Bank vault after the transaction.
+    pub money: u64,
+    /// Carried zeny after the transaction.
+    pub zeny: i32,
+}
+
+/// `ZC_ACK_BANKING_WITHDRAW` (0x09AA), 16 bytes (`clif_bank_withdraw`,
+/// `src/map/clif.cpp:7490`). `reason` uses `enum e_BANKING_WITHDRAW_ACK`
+/// (`src/map/clif.hpp:100`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09AA)]
+#[packet_size(16)]
+pub struct BankWithdrawAckPacket {
+    pub reason: u16,
+    /// Bank vault after the transaction.
+    pub money: u64,
+    /// Carried zeny after the transaction.
+    pub zeny: i32,
+}
+
+/// `CZ_REQ_OPEN_BANKING` (0x09B6), 6 bytes: open the banking session. rAthena
+/// only answers when `AID` equals the sender's account id
+/// (`clif_parse_BankOpen`, `src/map/clif.cpp:7342`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09B6)]
+#[packet_size(6)]
+pub struct BankOpenRequestPacket {
+    pub account_id: AccountId,
+}
+
+/// `CZ_REQ_CLOSE_BANKING` (0x09B8), 6 bytes
+/// (`clif_parse_BankClose`, `src/map/clif.cpp:7383`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09B8)]
+#[packet_size(6)]
+pub struct BankCloseRequestPacket {
+    pub account_id: AccountId,
+}
+
+/// `CZ_REQ_BANKING_CHECK` (0x09AB), 6 bytes: request `ZC_BANKING_CHECK`
+/// (`clif_parse_BankCheck`, `src/map/clif.cpp:7419`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09AB)]
+#[packet_size(6)]
+pub struct BankCheckRequestPacket {
+    pub account_id: AccountId,
+}
+
+/// `CZ_REQ_BANKING_DEPOSIT` (0x09A7), 10 bytes (`clif_parse_BankDeposit`,
+/// `src/map/clif.cpp:7462`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09A7)]
+#[packet_size(10)]
+pub struct BankDepositRequestPacket {
+    pub account_id: AccountId,
+    /// Amount to move into the bank vault.
+    pub zeny: u32,
+}
+
+/// `CZ_REQ_BANKING_WITHDRAW` (0x09A9), 10 bytes (`clif_parse_BankWithdraw`,
+/// `src/map/clif.cpp:7505`).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09A9)]
+#[packet_size(10)]
+pub struct BankWithdrawRequestPacket {
+    pub account_id: AccountId,
+    /// Amount to move out of the bank vault.
+    pub zeny: u32,
+}
+
+#[cfg(test)]
+mod bank_packet_tests {
+    use ragnarok_bytes::{ByteWriter, ToBytes};
+
+    use super::*;
+
+    trait PacketToBytesVec {
+        fn packet_to_bytes_vec(&self) -> Vec<u8>;
+    }
+
+    impl<T: PacketExt> PacketToBytesVec for T {
+        fn packet_to_bytes_vec(&self) -> Vec<u8> {
+            let mut writer = ByteWriter::new();
+            self.packet_to_bytes(&mut writer).unwrap();
+            writer.into_inner()
+        }
+    }
+
+    #[test]
+    fn bank_requests_match_the_rathena_layout() {
+        let open = BankOpenRequestPacket {
+            account_id: AccountId(0x0102_0304),
+        }
+        .packet_to_bytes_vec();
+        assert_eq!(open.len(), 6);
+        assert_eq!(&open[..2], &[0xB6, 0x09]);
+        assert_eq!(&open[2..6], &0x0102_0304u32.to_le_bytes());
+
+        let deposit = BankDepositRequestPacket {
+            account_id: AccountId(7),
+            zeny: 1000,
+        }
+        .packet_to_bytes_vec();
+        assert_eq!(deposit.len(), 10);
+        assert_eq!(&deposit[..2], &[0xA7, 0x09]);
+        assert_eq!(&deposit[2..6], &7u32.to_le_bytes());
+        assert_eq!(&deposit[6..10], &1000u32.to_le_bytes());
+
+        let withdraw = BankWithdrawRequestPacket {
+            account_id: AccountId(7),
+            zeny: 250,
+        }
+        .packet_to_bytes_vec();
+        assert_eq!(withdraw.len(), 10);
+        assert_eq!(&withdraw[..2], &[0xA9, 0x09]);
+    }
+
+    #[test]
+    fn bank_acknowledgements_parse_the_server_layout() {
+        // PACKET_ZC_ACK_BANKING_DEPOSIT: reason.W money.Q zeny.L
+        let mut bytes = vec![0xA8, 0x09];
+        bytes.extend_from_slice(&1u16.to_le_bytes());
+        bytes.extend_from_slice(&123_456u64.to_le_bytes());
+        bytes.extend_from_slice(&7_890i32.to_le_bytes());
+
+        let packet = BankDepositAckPacket::packet_from_bytes(&mut ByteReader::without_metadata(&bytes)).unwrap();
+        assert_eq!(packet.reason, 1);
+        assert_eq!(packet.money, 123_456);
+        assert_eq!(packet.zeny, 7_890);
+
+        // PACKET_ZC_BANKING_CHECK: money.Q reason.W
+        let mut bytes = vec![0xA6, 0x09];
+        bytes.extend_from_slice(&55u64.to_le_bytes());
+        bytes.extend_from_slice(&0u16.to_le_bytes());
+
+        let packet = BankBalancePacket::packet_from_bytes(&mut ByteReader::without_metadata(&bytes)).unwrap();
+        assert_eq!(packet.money, 55);
+        assert_eq!(packet.reason, 0);
+    }
+
+    #[test]
+    fn open_user_interface_packet_is_seven_bytes() {
+        assert_eq!(OpenUserInterfacePacket { ui_type: 0, data: 0 }.packet_to_bytes_vec().len(), 7);
+    }
+}
+
 #[cfg(test)]
 mod mail_packet_tests {
     use ragnarok_bytes::{ByteReader, ByteWriter, ToBytes};
