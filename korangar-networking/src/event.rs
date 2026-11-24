@@ -967,6 +967,94 @@ pub enum NetworkEvent {
     ServerAnnouncement {
         text: String,
     },
+    // --- Party booking ("party search" / LFG, 2019) -------------------------
+    /// `ZC_PARTY_BOOKING_ACK_REGISTER` (0x0803): result of registering an
+    /// advertisement (`0` success, `1` failure, `2` already registered).
+    PartyBookingRegisterResult {
+        result: u16,
+    },
+    /// `ZC_PARTY_BOOKING_ACK_SEARCH` (0x0805): one page of search results.
+    PartyBookingSearchResult {
+        more_results: bool,
+        entries: Vec<PartyBookingEntry2019>,
+    },
+    /// `ZC_PARTY_BOOKING_ACK_DELETE` (0x0807): result of deleting the own
+    /// advertisement.
+    PartyBookingDeleteResult {
+        result: u16,
+    },
+    /// `ZC_PARTY_BOOKING_NOTIFY_INSERT` (0x0809): a new advertisement.
+    PartyBookingInserted {
+        entry: PartyBookingEntry2019,
+    },
+    /// `ZC_PARTY_BOOKING_NOTIFY_UPDATE` (0x080A): changed desired jobs.
+    PartyBookingUpdated {
+        index: u32,
+        jobs: [u16; 6],
+    },
+    /// `ZC_PARTY_BOOKING_NOTIFY_DELETE` (0x080B): removed advertisement.
+    PartyBookingDeleted {
+        index: u32,
+    },
+    /// `ZC_PARTY_REQ_MASTER_TO_JOIN` (0x0AE7): another player asked to join
+    /// the local player's party through the booking board.
+    ///
+    /// Only sent by servers with `PACKETVER >= 20191204`; the CondaRO 20190605
+    /// server does not register this packet.
+    PartyBookingJoinRequest {
+        character_id: CharacterId,
+        account_id: AccountId,
+        name: String,
+        position: TilePosition,
+    },
+    /// `ZC_PARTY_JOIN_REQ_ACK_FROM_MASTER` (0x0AFA): the party leader answered
+    /// a booking join request.
+    PartyBookingJoinResult {
+        player_name: String,
+        party_name: String,
+        account_id: AccountId,
+        refused: bool,
+    },
+    // --- Clan (2019) --------------------------------------------------------
+    /// `ZC_CLANINFO` (0x098A): basic clan information. The 2019 packet set has
+    /// no clan member list; this is everything the server sends.
+    ClanInfo {
+        info: ClanInfoPacket,
+    },
+    /// `ZC_NOTIFY_CLAN_CONNECTINFO` (0x0988): online/maximum clan members.
+    ClanOnlineCount {
+        online_members: u16,
+        maximum_members: u16,
+    },
+    // --- Pet / homunculus / mercenary --------------------------------------
+    /// `ZC_PROPERTY_PET` (0x01A2): base data of the local player's pet.
+    PetProperty {
+        property: PetPropertyPacket2019,
+    },
+    /// `ZC_CHANGESTATE_PET` (0x01A4): intimacy/hunger/accessory change.
+    PetStateChanged {
+        entity_id: EntityId,
+        state_type: u8,
+        value: i32,
+    },
+    /// `ZC_PROPERTY_HOMUN` (0x09F7): full homunculus status sheet.
+    HomunculusProperty {
+        property: HomunculusPropertyPacket2019,
+    },
+    /// `ZC_HO_PAR_CHANGE` (0x07DB): homunculus HP/SP/EXP change.
+    HomunculusParameterChanged {
+        parameter: u16,
+        value: i32,
+    },
+    /// `ZC_MER_INIT` (0x029B): full mercenary status sheet.
+    MercenaryInfo {
+        info: MercenaryInfoPacket2019,
+    },
+    /// `ZC_MER_PAR_CHANGE` (0x02A2): mercenary HP/SP/faith/kills change.
+    MercenaryParameterChanged {
+        parameter: u16,
+        value: i32,
+    },
 }
 
 /// Party member information sent by `ZC_ADD_MEMBER_TO_GROUP` (0x0AE4).

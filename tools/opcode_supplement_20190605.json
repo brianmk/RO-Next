@@ -404,6 +404,62 @@
       "kind": "variable",
       "base_size": 5,
       "source": "src/map/clif.cpp clif_Mail_refreshinbox (PACKETVER >= 20170419 uses cmd 0xac2): 2 header + 2 length + 1 unknown = 5, then one 41 byte maillistinfo row with a variable, NUL terminated title each"
+    },
+    {
+      "opcode": "0x029b",
+      "name": "ZC_MER_INIT",
+      "kind": "fixed",
+      "size": 80,
+      "source": "src/map/clif.cpp clif_mercenary_info writes 80 bytes; src/map/clif_packetdb.hpp:944 packet(0x029b,80)"
+    },
+    {
+      "opcode": "0x02a2",
+      "name": "ZC_MER_PAR_CHANGE",
+      "kind": "fixed",
+      "size": 8,
+      "source": "src/map/clif.cpp clif_mercenary_updatestatus: header + u16 type + i32 value; src/map/clif_packetdb.hpp:823 packet(0x02a2,8)"
+    },
+    {
+      "opcode": "0x0803",
+      "name": "ZC_PARTY_BOOKING_ACK_REGISTER",
+      "kind": "fixed",
+      "size": 4,
+      "source": "src/map/clif.cpp clif_PartyBookingRegisterAck: header + u16 result"
+    },
+    {
+      "opcode": "0x0805",
+      "name": "ZC_PARTY_BOOKING_ACK_SEARCH",
+      "kind": "variable",
+      "base_size": 5,
+      "source": "src/map/clif.cpp clif_PartyBookingSearchAck: header + length + u8 more_results, then 48-byte rows"
+    },
+    {
+      "opcode": "0x0807",
+      "name": "ZC_PARTY_BOOKING_ACK_DELETE",
+      "kind": "fixed",
+      "size": 4,
+      "source": "src/map/clif.cpp clif_PartyBookingDeleteAck: header + u16 result"
+    },
+    {
+      "opcode": "0x0809",
+      "name": "ZC_PARTY_BOOKING_NOTIFY_INSERT",
+      "kind": "fixed",
+      "size": 50,
+      "source": "src/map/clif.cpp clif_PartyBookingInsertNotify: index + name[24] + expire + level + map + jobs[6] = 50; clif_packetdb.hpp:1319 packet(0x0809,50)"
+    },
+    {
+      "opcode": "0x080a",
+      "name": "ZC_PARTY_BOOKING_NOTIFY_UPDATE",
+      "kind": "fixed",
+      "size": 18,
+      "source": "src/map/clif.cpp clif_PartyBookingUpdateNotify: index + jobs[6] = 18; clif_packetdb.hpp:1320 packet(0x080A,18)"
+    },
+    {
+      "opcode": "0x080b",
+      "name": "ZC_PARTY_BOOKING_NOTIFY_DELETE",
+      "kind": "fixed",
+      "size": 6,
+      "source": "src/map/clif.cpp clif_PartyBookingDeleteNotify: index; clif_packetdb.hpp:1321 packet(0x080B,6)"
     }
   ]
 }

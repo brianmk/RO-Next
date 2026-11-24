@@ -1692,11 +1692,9 @@ where
         account_id: packet.account_id,
         is_dead: packet.is_dead != 0,
     })?;
-    // Party booking (the 2019 "party search") is not used by this client yet;
-    // the packets are registered so a booking broadcast cannot desynchronize
-    // the map server stream.
-    register_ignored_noop::<_, PartyBookingJoinRequestPacket2019>(packet_handler)?;
-    register_ignored_noop::<_, PartyBookingJoinResultPacket2019>(packet_handler)?;
+    // Party booking (the 2019 "party search") is handled in the booking block
+    // at the end of this function; the join flow is server-gated
+    // (PACKETVER >= 20191204) but registered for newer servers.
     // `ZC_MSG_STATE_CHANGE` (0x0196) is used by the 2019 server to end statuses
     // (and to start them on non-player units); it has no duration fields.
     packet_handler.register(|packet: StatusChangeSequencePacket| NetworkEvent::StatusEffect {
@@ -1709,8 +1707,8 @@ where
         values: [0; 3],
     })?;
     register_ignored_noop::<_, ReputationPacket>(packet_handler)?;
-    register_ignored_noop::<_, ClanInfoPacket>(packet_handler)?;
-    register_ignored_noop::<_, ClanOnlineCountPacket>(packet_handler)?;
+    // Clan information is handled in the clan block at the end of this
+    // function; the 2019 server only sends the basic info and online count.
     packet_handler.register(|packet: ChangeMapCellPacket| NetworkEvent::MapCellChanged {
         position: packet.position,
         cell_type: packet.cell_type,
@@ -1935,6 +1933,77 @@ where
         expelled: true,
     })?;
     packet_handler.register(|packet: GuildInviteResultPacket| NetworkEvent::GuildInviteResult { result: packet.result })?;
+
+    // Party booking / LFG (2019). rAthena registers the booking board at
+    // 0x0802..0x080B; the direct join flow (0x0AE7/0x0AFA) is gated with
+    // `#if PACKETVER >= 20191204` server side, so a 20190605 server never sends
+    // it. Both are registered anyway so a newer server cannot desynchronize the
+    // stream.
+    packet_handler
+        .register(|packet: PartyBookingRegisterResultPacket2019| NetworkEvent::PartyBookingRegisterResult { result: packet.result })?;
+    packet_handler.register(
+        |packet: PartyBookingSearchResultPacket2019| NetworkEvent::PartyBookingSearchResult {
+            more_results: packet.more_results != 0,
+            entries: packet.entries,
+        },
+    )?;
+    packet_handler
+        .register(|packet: PartyBookingDeleteResultPacket2019| NetworkEvent::PartyBookingDeleteResult { result: packet.result })?;
+    packet_handler.register(|packet: PartyBookingInsertNotifyPacket2019| NetworkEvent::PartyBookingInserted { entry: packet.entry })?;
+    packet_handler.register(|packet: PartyBookingUpdateNotifyPacket2019| NetworkEvent::PartyBookingUpdated {
+        index: packet.index,
+        jobs: packet.jobs,
+    })?;
+    packet_handler.register(|packet: PartyBookingDeleteNotifyPacket2019| NetworkEvent::PartyBookingDeleted { index: packet.index })?;
+    packet_handler.register(
+        |packet: PartyBookingJoinRequestPacket2019| NetworkEvent::PartyBookingJoinRequest {
+            character_id: packet.character_id,
+            account_id: packet.account_id,
+            name: packet.name,
+            position: packet.position,
+        },
+    )?;
+    packet_handler.register(
+        |packet: PartyBookingJoinResultPacket2019| NetworkEvent::PartyBookingJoinResult {
+            player_name: packet.player_name,
+            party_name: packet.party_name,
+            account_id: packet.account_id,
+            refused: packet.refused != 0,
+        },
+    )?;
+
+    // Clan (2019): the server sends the basic information and the online count
+    // on map login for a character that is in a clan (`clan.cpp:113`). There is
+    // no clan member list packet at this PACKETVER.
+    packet_handler.register(|packet: ClanInfoPacket| NetworkEvent::ClanInfo { info: packet })?;
+    packet_handler.register(|packet: ClanOnlineCountPacket| NetworkEvent::ClanOnlineCount {
+        online_members: packet.online_members,
+        maximum_members: packet.maximum_members,
+    })?;
+
+    // Pet / homunculus / mercenary status packets. These always describe the
+    // local player's own unit (pets/homunculi have no actor id in the packet;
+    // the mercenary block id is carried by 0x029B).
+    packet_handler.register(|packet: PetPropertyPacket2019| NetworkEvent::PetProperty { property: packet })?;
+    packet_handler.register(|packet: PetStateChangePacket2019| NetworkEvent::PetStateChanged {
+        entity_id: packet.entity_id,
+        state_type: packet.state_type,
+        value: packet.value,
+    })?;
+    packet_handler.register(|packet: HomunculusPropertyPacket2019| NetworkEvent::HomunculusProperty { property: packet })?;
+    packet_handler.register(
+        |packet: HomunculusParameterChangePacket2019| NetworkEvent::HomunculusParameterChanged {
+            parameter: packet.parameter,
+            value: packet.value,
+        },
+    )?;
+    packet_handler.register(|packet: MercenaryInfoPacket2019| NetworkEvent::MercenaryInfo { info: packet })?;
+    packet_handler.register(
+        |packet: MercenaryParameterChangePacket2019| NetworkEvent::MercenaryParameterChanged {
+            parameter: packet.parameter,
+            value: packet.value,
+        },
+    )?;
 
     Ok(())
 }

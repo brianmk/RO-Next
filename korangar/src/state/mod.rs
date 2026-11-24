@@ -4,6 +4,8 @@ pub mod character_previews;
 pub mod character_selection_cooldown;
 pub mod character_slots;
 pub mod chat_markup;
+pub mod clan;
+pub mod companion;
 pub mod friend_names;
 pub mod guild;
 pub mod hotbar;
@@ -15,6 +17,7 @@ pub mod mail;
 pub mod minimap;
 pub mod notifications;
 pub mod party;
+pub mod party_booking;
 pub mod quest_log;
 pub mod skill_cooldowns;
 pub mod skills;
@@ -76,6 +79,8 @@ use crate::settings::{
 use crate::state::character_previews::CharacterPreviews;
 use crate::state::character_selection_cooldown::CharacterSelectionCooldown;
 use crate::state::character_slots::CharacterSlots;
+use crate::state::clan::Clan;
+use crate::state::companion::Companion;
 use crate::state::guild::Guild;
 use crate::state::hotbar::Hotbar;
 use crate::state::inventory::Inventory;
@@ -84,6 +89,7 @@ use crate::state::mail::Mailbox;
 use crate::state::minimap::Minimap;
 use crate::state::notifications::NotificationHud;
 use crate::state::party::Party;
+use crate::state::party_booking::PartyBooking;
 use crate::state::quest_log::QuestLog;
 use crate::state::skill_cooldowns::SkillCooldowns;
 use crate::state::skills::SkillTree;
@@ -282,6 +288,12 @@ pub struct ClientState {
     /// Guild state (basic info, members, positions, notice) of the 2019 guild
     /// system.
     guild: Guild,
+    /// Party-booking board state (the 2019 "party search" / LFG UI).
+    party_booking: PartyBooking,
+    /// Clan state (basic info and online count) of the 2019 clan system.
+    clan: Clan,
+    /// Pet / homunculus / mercenary information of the local player's units.
+    companion: Companion,
     /// List of all friends.
     friend_list: Vec<Friend>,
     /// Online state of each entry of `friend_list` (same length/order).
@@ -531,6 +543,18 @@ impl ClientState {
             let guild = Guild::default();
         });
 
+        time_phase!("create party booking state", {
+            let party_booking = PartyBooking::default();
+        });
+
+        time_phase!("create clan state", {
+            let clan = Clan::default();
+        });
+
+        time_phase!("create companion state", {
+            let companion = Companion::default();
+        });
+
         time_phase!("create friend list state", {
             let friend_list = Vec::default();
             let friend_online = Vec::default();
@@ -631,6 +655,9 @@ impl ClientState {
             status_effects: StatusEffects::default(),
             party,
             guild,
+            party_booking,
+            clan,
+            companion,
             friend_list,
             friend_online,
             shop_items,

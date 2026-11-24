@@ -11,8 +11,8 @@ use korangar_interface::element::StateElement;
 use korangar_interface::window::{StateWindow, Window};
 use korangar_networking::EntityData;
 use ragnarok_packets::{
-    AccountId, AttackRange, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex, SpriteChangeType,
-    StatType, TilePosition, WorldPosition,
+    AccountId, AttackRange, CharacterId, CharacterInformation, ClientTick, Direction, DisappearanceReason, EntityId, JobId, Sex,
+    SpriteChangeType, StatType, TilePosition, WorldPosition,
 };
 use rust_state::{Path, RustState, VecItem};
 #[cfg(feature = "debug")]
@@ -117,6 +117,42 @@ pub enum EntityType {
     Npc,
     Player,
     Warp,
+    /// A pet (`BL_PET`, object type `0x7`). Pets reuse monster class ids for
+    /// their sprite, so the object type of the entity-appear packet is what
+    /// distinguishes them from a wild monster of the same job id.
+    Pet,
+    /// A homunculus (`BL_HOM`, object type `0x8`), job ids 6001..=6016 and
+    /// 6048..=6052, rendered from `data\sprite\homun\`.
+    Homunculus,
+    /// A mercenary (`BL_MER`, object type `0x9`). Mercenaries reuse monster
+    /// class ids and are rendered with the monster sprite folder.
+    Mercenary,
+}
+
+impl EntityType {
+    /// Maps the rAthena `clif_bl_type` object type byte of the entity-appear
+    /// packets to an entity type.
+    ///
+    /// Source: `src/map/clif.cpp:346` (`clif_bl_type`). Only the companion
+    /// types are mapped here: players, monsters and NPCs already classify
+    /// correctly by job id, and the existing job-id fallback keeps NPCs whose
+    /// view is a monster sprite working. Pets and mercenaries *reuse monster
+    /// class ids*, so the object type (`0x7`/`0x9`) is the only way to tell
+    /// them apart from a wild monster of the same class. Homunculi have their
+    /// own job-id range, but the object type keeps them correct even for a
+    /// custom server that reuses a different id.
+    pub fn from_object_type(object_type: u8) -> Option<Self> {
+        match object_type {
+            // NPC_PET_TYPE.
+            0x7 => Some(Self::Pet),
+            // NPC_HOM_TYPE.
+            0x8 => Some(Self::Homunculus),
+            // NPC_MERSOL_TYPE.
+            0x9 => Some(Self::Mercenary),
+            // Everything else is classified by job id as before.
+            _ => None,
+        }
+    }
 }
 
 /// Equipment appearance slots the entity layer keeps from the server.
@@ -184,6 +220,9 @@ impl SoundState {
 #[derive(Clone, RustState, StateElement)]
 pub struct Common {
     pub entity_id: EntityId,
+    /// Character id carried by the entity-appear packet (`0` for non-players).
+    #[hidden_element]
+    pub character_id: CharacterId,
     pub job_id: JobId,
     pub health_points: usize,
     pub maximum_health_points: usize,
@@ -427,6 +466,14 @@ fn get_entity_part_files(
         // sprite instead of the black `missing.spr` placeholder (the data set is
         // partially trimmed, see `world/library/monster_sprite.rs`).
         EntityType::Monster => vec![EntityPartFile::new(library.monster_sprite_path(job_id).to_string())],
+        // Pets and mercenaries reuse monster class ids for their sprite; the
+        // object type of the appear packet is what tells them apart from a wild
+        // monster. Their name comes from the appear packet and is set in
+        // `Common::new`.
+        EntityType::Pet | EntityType::Mercenary => vec![EntityPartFile::new(library.monster_sprite_path(job_id).to_string())],
+        // Homunculi have their own sprite folder (`data\sprite\homun\`), the
+        // job id -> file stem mapping is data from the client job table.
+        EntityType::Homunculus => vec![EntityPartFile::new(crate::world::jobs::homunculus_sprite_path(job_id))],
         // Warps and hidden NPCs have no sprite in the game files. The kRO client draws
         // warps as a dedicated hard-coded effect (see `WarpPortal`) and does not draw
         // hidden NPCs at all. Requesting a sprite path for them would end up loading
@@ -609,9 +656,18 @@ impl Common {
         );
 
         let active_movement = None;
-        let entity_type = job_id.into();
+        // `object_type` comes from the same entity-appear packet and is the only
+        // way to distinguish pets/mercenaries from wild monsters; fall back to
+        // the data-driven job id classification when it is missing/unknown.
+        let entity_type = EntityType::from_object_type(entity_data.object_type).unwrap_or_else(|| job_id.into());
 
-        let details = ResourceState::new(ResourcePolicy::ENTITY_DETAILS);
+        let mut details = ResourceState::new(ResourcePolicy::ENTITY_DETAILS);
+        // Pet/homunculus/mercenary appear packets carry the unit name, and the
+        // server never answers a name request for them (they are not players or
+        // NPCs), so seed the details/name label from the packet.
+        if matches!(entity_type, EntityType::Pet | EntityType::Homunculus | EntityType::Mercenary) && !entity_data.name.trim().is_empty() {
+            details.mark_available(entity_data.name.trim().to_owned());
+        }
         let guild_id = entity_data.guild_id;
         // Filled in later from the player details response (`0x0A30`).
         let guild_name = match entity_data.guild_name.trim() {
@@ -626,6 +682,7 @@ impl Common {
             tile_position,
             world_position,
             entity_id,
+            character_id: entity_data.character_id,
             job_id,
             direction,
             head_direction,
@@ -2240,6 +2297,12 @@ impl Entity {
         self.get_common().entity_id
     }
 
+    /// Character id from the entity-appear packet (`GID`), `0` for non-player
+    /// actors.
+    pub fn get_character_id(&self) -> CharacterId {
+        self.get_common().character_id
+    }
+
     pub fn get_sex(&self) -> Sex {
         self.get_common().sex
     }
@@ -2734,6 +2797,24 @@ impl StateWindow<ClientState> for Entity {
             // None and dispaly a message if the entity disappeared.
             elements: (),
         }
+    }
+}
+
+#[cfg(test)]
+mod object_type_tests {
+    use super::EntityType;
+
+    #[test]
+    fn only_companion_object_types_override_the_job_id_classification() {
+        assert_eq!(EntityType::from_object_type(0x7), Some(EntityType::Pet));
+        assert_eq!(EntityType::from_object_type(0x8), Some(EntityType::Homunculus));
+        assert_eq!(EntityType::from_object_type(0x9), Some(EntityType::Mercenary));
+        // Players/monsters/NPCs keep the existing job-id classification.
+        assert_eq!(EntityType::from_object_type(0x0), None);
+        assert_eq!(EntityType::from_object_type(0x5), None);
+        assert_eq!(EntityType::from_object_type(0x6), None);
+        assert_eq!(EntityType::from_object_type(0xC), None);
+        assert_eq!(EntityType::from_object_type(0x7F), None);
     }
 }
 

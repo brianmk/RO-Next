@@ -76,6 +76,17 @@ ENTITY_TYPE_RANGES = {
     "player_ranges": [(0, 44), (4000, 5999)],
     "npc_ranges": [(46, 999), (10000, 19999)],
     "monster_ranges": [(1000, 3999), (20000, 29999)],
+    # Client job ids of homunculi (JT_MER_LIF..JT_MER_VANILMIRTH_H2 and the
+    # Homunculus S ids). The entity-appear object type 0x8 is the authoritative
+    # marker; these ranges are the job-id fallback.
+    "homunculus_ranges": [(6001, 6016), (6048, 6052)],
+    # Dedicated mercenary client job ids (JT_MER_ARCHER01..JT_MER_MONSTER).
+    # Summoned mercenaries usually reuse monster class ids and are identified
+    # by the appear object type 0x9 instead.
+    "mercenary_ranges": [(6017, 6047)],
+    # Pets reuse the monster class id of their monster, so there is no separate
+    # pet job id range: the appear object type 0x7 identifies them.
+    "pet_ranges": [],
     "default": "Npc",
 }
 
@@ -351,7 +362,25 @@ def render(data: dict) -> str:
     add("    entity_types: (")
     add(f"        warp: {json.dumps(data['special']['warp'])},")
     add(f"        hidden: {json.dumps(data['special']['hidden'])},")
-    for key in ("player_ranges", "npc_ranges", "monster_ranges"):
+    for key in (
+        "player_ranges",
+        "npc_ranges",
+        "monster_ranges",
+        "homunculus_ranges",
+        "mercenary_ranges",
+        "pet_ranges",
+    ):
+        if key == "homunculus_ranges":
+            add("        // Homunculus client job ids (JT_MER_LIF..JT_MER_VANILMIRTH_H2 and the")
+            add("        // Homunculus S ids). The entity-appear object type 0x8 is the")
+            add("        // authoritative marker; these ranges are the job-id fallback.")
+        if key == "mercenary_ranges":
+            add("        // Dedicated mercenary client job ids (JT_MER_ARCHER01..JT_MER_MONSTER).")
+            add("        // Summoned mercenaries usually reuse monster class ids and are")
+            add("        // identified by the appear object type 0x9 instead.")
+        if key == "pet_ranges":
+            add("        // Pets reuse the monster class id of their monster and are identified")
+            add("        // by the appear object type 0x7, so this list is normally empty.")
         ranges = ", ".join(ron_range(start, end) for start, end in data["entity_type_ranges"][key])
         add(f"        {key}: [{ranges}],")
     add(f"        default: {data['entity_type_ranges']['default']},")

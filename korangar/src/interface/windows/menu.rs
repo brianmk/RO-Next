@@ -122,6 +122,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleGuildWindow,
                 },
                 button! {
+                    text: "Clan",
+                    event: InputEvent::ToggleClanWindow,
+                },
+                button! {
                     text: "Quest Log",
                     event: InputEvent::ToggleQuestWindow,
                 },

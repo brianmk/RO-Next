@@ -2,12 +2,12 @@
 //! context menu of the original client.
 
 use korangar_interface::window::{CustomWindow, Window};
-use ragnarok_packets::{InventoryIndex, ItemId};
+use ragnarok_packets::{EntityId, InventoryIndex, ItemId};
 use rust_state::{PathExt, State};
 
 use crate::input::InputEvent;
 use crate::interface::resource::ItemSource;
-use crate::interface::windows::WindowClass;
+use crate::interface::windows::{CompanionKind, WindowClass};
 use crate::state::inventory::ItemUseAction;
 use crate::state::localization::{LocalizationPathExt, UiTextsPathExt, template_text};
 use crate::state::theme::InterfaceThemeType;
@@ -27,6 +27,10 @@ pub struct CharacterContextMenuWindow {
     /// Title of the target's open vending shop (`ZC_STORE_ENTRY`); `None` while
     /// the player is not vending.
     vending_shop_name: Option<String>,
+    /// `Some` when the right-clicked entity is a pet/homunculus/mercenary.
+    /// Player actions (whisper, trade, ...) are then replaced by the companion
+    /// info entry.
+    companion_kind: Option<CompanionKind>,
 }
 
 impl CharacterContextMenuWindow {
@@ -36,6 +40,7 @@ impl CharacterContextMenuWindow {
         target_level: u16,
         target_guild: Option<String>,
         vending_shop_name: Option<String>,
+        companion_kind: Option<CompanionKind>,
     ) -> Self {
         Self {
             target_name,
@@ -43,6 +48,7 @@ impl CharacterContextMenuWindow {
             target_level,
             target_guild,
             vending_shop_name,
+            companion_kind,
         }
     }
 }
@@ -57,6 +63,15 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
 
         let target_name = self.target_name;
         let target_account_id = self.target_account_id;
+        let target_entity_id = EntityId(target_account_id);
+        let companion_kind = self.companion_kind;
+        let is_companion = companion_kind.is_some();
+        let companion_label = match companion_kind {
+            Some(CompanionKind::Pet) => "Pet info",
+            Some(CompanionKind::Homunculus) => "Homunculus info",
+            Some(CompanionKind::Mercenary) => "Mercenary info",
+            None => "Companion info",
+        };
         let whisper_name = target_name.clone();
         let add_friend_name = target_name.clone();
         let invite_party_name = target_name.clone();
@@ -100,6 +115,17 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
             minimum_width: CONTEXT_MENU_WIDTH,
             maximum_width: CONTEXT_MENU_WIDTH,
             elements: (
+                either! {
+                    selector: ComputedSelector::<_, bool>::new_default(move |_: &ClientState| is_companion),
+                    on_true: button! {
+                        text: companion_label,
+                        event: move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+                            queue.queue(InputEvent::OpenCompanionInfo { entity_id: target_entity_id });
+                            queue.queue(InputEvent::CloseContextMenu);
+                        },
+                    },
+                    on_false: fragment! {
+                        children: (
                 button! {
                     text: client_state().localization().ui().context_menu_whisper(),
                     tooltip: whisper_tooltip,
@@ -146,6 +172,9 @@ impl CustomWindow<ClientState> for CharacterContextMenuWindow {
                             guild_name: info_guild.clone(),
                         });
                         queue.queue(InputEvent::CloseContextMenu);
+                    },
+                },
+                        ),
                     },
                 },
             ),

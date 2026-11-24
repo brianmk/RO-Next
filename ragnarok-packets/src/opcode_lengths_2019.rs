@@ -1566,6 +1566,18 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         source: "map header",
     },
     OpcodeLengthEntry {
+        header: 0x029B,
+        name: "ZC_MER_INIT",
+        length: OpcodeLength::Fixed(80),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x02A2,
+        name: "ZC_MER_PAR_CHANGE",
+        length: OpcodeLength::Fixed(8),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
         header: 0x02B0,
         name: "CA_LOGIN_CHANNEL",
         length: OpcodeLength::Fixed(85),
@@ -1762,6 +1774,42 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         name: "CZ_PC_PURCHASE_ITEMLIST_FROMMC2",
         length: OpcodeLength::Variable { base_size: 12 },
         source: "map header",
+    },
+    OpcodeLengthEntry {
+        header: 0x0803,
+        name: "ZC_PARTY_BOOKING_ACK_REGISTER",
+        length: OpcodeLength::Fixed(4),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x0805,
+        name: "ZC_PARTY_BOOKING_ACK_SEARCH",
+        length: OpcodeLength::Variable { base_size: 5 },
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x0807,
+        name: "ZC_PARTY_BOOKING_ACK_DELETE",
+        length: OpcodeLength::Fixed(4),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x0809,
+        name: "ZC_PARTY_BOOKING_NOTIFY_INSERT",
+        length: OpcodeLength::Fixed(50),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x080A,
+        name: "ZC_PARTY_BOOKING_NOTIFY_UPDATE",
+        length: OpcodeLength::Fixed(18),
+        source: "supplement",
+    },
+    OpcodeLengthEntry {
+        header: 0x080B,
+        name: "ZC_PARTY_BOOKING_NOTIFY_DELETE",
+        length: OpcodeLength::Fixed(6),
+        source: "supplement",
     },
     OpcodeLengthEntry {
         header: 0x080E,

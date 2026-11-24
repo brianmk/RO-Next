@@ -7219,6 +7219,372 @@ pub struct GuildNoticeChangeRequestPacket {
     pub notice: String,
 }
 
+// ===========================================================================
+// Party booking ("party search" / LFG) and party settings (PACKETVER 20190605)
+//
+// The 2019 party booking board is advertised, searched, updated and deleted
+// with the 0x0802..0x080B opcode block:
+//
+// * 0x0802 `CZ_PARTY_BOOKING_REQ_REGISTER`  (clif.cpp:13948) — 18 bytes: level,
+//   map index and 6 desired job ids.
+// * 0x0803 `ZC_PARTY_BOOKING_ACK_REGISTER`   (clif.cpp:13970) — 4 bytes.
+// * 0x0804 `CZ_PARTY_BOOKING_REQ_SEARCH`     (clif.cpp:13983) — 14 bytes.
+// * 0x0805 `ZC_PARTY_BOOKING_ACK_SEARCH`     (clif.cpp:14000) — variable,
+//   48-byte entries.
+// * 0x0806 `CZ_PARTY_BOOKING_REQ_DELETE`     (clif.cpp:14024) — header only.
+// * 0x0807 `ZC_PARTY_BOOKING_ACK_DELETE`     (clif.cpp:14040) — 4 bytes.
+// * 0x0808 `CZ_PARTY_BOOKING_REQ_UPDATE`     (clif.cpp:14051) — 14 bytes.
+// * 0x0809 `ZC_PARTY_BOOKING_NOTIFY_INSERT`  (clif.cpp:14068) — 50 bytes.
+// * 0x080A `ZC_PARTY_BOOKING_NOTIFY_UPDATE`  (clif.cpp:14090) — 18 bytes.
+// * 0x080B `ZC_PARTY_BOOKING_NOTIFY_DELETE`  (clif.cpp:14107) — 6 bytes.
+//
+// The direct "join request" flow added in 2019-12 (`CZ/ZC_PARTY_REQ_*_TO_JOIN`,
+// clif.cpp:25349) is gated with `#if PACKETVER >= 20191204`, so the pinned
+// CondaRO 20190605 server does not parse or send it. The packets are still
+// modelled so a newer server can use the same client code.
+// ===========================================================================
+
+/// One advertisement row of `ZC_PARTY_BOOKING_ACK_SEARCH` (0x0805) and
+/// `ZC_PARTY_BOOKING_NOTIFY_INSERT` (0x0809).
+///
+/// rAthena writes the same 48-byte row in both packets
+/// (`clif_PartyBookingSearchAck`, clif.cpp:14000 and
+/// `clif_PartyBookingInsertNotify`, clif.cpp:14068): index, character name,
+/// expire time, level, map index and six job ids.
+#[derive(Debug, Clone, ByteConvertable, FixedByteSize)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+pub struct PartyBookingEntry2019 {
+    pub index: u32,
+    #[length(24)]
+    pub character_name: String,
+    /// Expire timestamp sent by the server (rAthena writes the start time
+    /// here, see the `FIXME` in clif.cpp:14008).
+    pub expire_time: u32,
+    pub level: u16,
+    pub map_id: u16,
+    pub jobs: [u16; 6],
+}
+
+/// `ZC_PARTY_BOOKING_ACK_REGISTER` (0x0803): result of registering an
+/// advertisement. `0` = success, `1` = failure, `2` = already registered
+/// (clif.cpp:13970).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0803)]
+#[packet_size(4)]
+pub struct PartyBookingRegisterResultPacket2019 {
+    pub result: u16,
+}
+
+/// `ZC_PARTY_BOOKING_ACK_SEARCH` (0x0805): search result page.
+///
+/// `more_results` is `1` when the server stopped at
+/// `MAX_PARTY_BOOKING_RESULTS` and more rows are available (clif.cpp:14000).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0805)]
+#[variable_length]
+pub struct PartyBookingSearchResultPacket2019 {
+    pub more_results: u8,
+    #[repeating_remaining]
+    pub entries: Vec<PartyBookingEntry2019>,
+}
+
+/// `ZC_PARTY_BOOKING_ACK_DELETE` (0x0807): result of deleting the own
+/// advertisement. `0`/`1` = success, `2` = failure, `3` = nothing registered
+/// (clif.cpp:14040).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0807)]
+#[packet_size(4)]
+pub struct PartyBookingDeleteResultPacket2019 {
+    pub result: u16,
+}
+
+/// `ZC_PARTY_BOOKING_NOTIFY_INSERT` (0x0809): a new advertisement was added
+/// to the board.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0809)]
+#[packet_size(50)]
+pub struct PartyBookingInsertNotifyPacket2019 {
+    pub entry: PartyBookingEntry2019,
+}
+
+/// `ZC_PARTY_BOOKING_NOTIFY_UPDATE` (0x080A): the desired jobs of an
+/// advertisement changed.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x080A)]
+#[packet_size(18)]
+pub struct PartyBookingUpdateNotifyPacket2019 {
+    pub index: u32,
+    pub jobs: [u16; 6],
+}
+
+/// `ZC_PARTY_BOOKING_NOTIFY_DELETE` (0x080B): an advertisement was removed.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x080B)]
+#[packet_size(6)]
+pub struct PartyBookingDeleteNotifyPacket2019 {
+    pub index: u32,
+}
+
+/// `CZ_PARTY_BOOKING_REQ_REGISTER` (0x0802): advertise a party/character on
+/// the booking board.
+///
+/// `level` is the party level shown in the search, `map_id` the map index
+/// (`0` = any map) and `jobs` the six desired job ids (`u16::MAX` = any job).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0802)]
+#[packet_size(18)]
+pub struct PartyBookingRegisterRequestPacket2019 {
+    pub level: u16,
+    pub map_id: u16,
+    pub jobs: [u16; 6],
+}
+
+/// `CZ_PARTY_BOOKING_REQ_SEARCH` (0x0804): search the booking board.
+///
+/// `job` is `-1` for any job, `last_index` pages through the results and
+/// `result_count` is the maximum number of rows the client wants
+/// (`MAX_PARTY_BOOKING_RESULTS` server side).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0804)]
+#[packet_size(14)]
+pub struct PartyBookingSearchRequestPacket2019 {
+    pub level: u16,
+    pub map_id: u16,
+    pub job: i16,
+    pub last_index: u32,
+    pub result_count: u16,
+}
+
+/// `CZ_PARTY_BOOKING_REQ_DELETE` (0x0806): remove the own advertisement.
+///
+/// The 2019 packet db registers the request with length 2
+/// (`parseable_packet(0x0806,2,...)`, clif_packetdb.hpp:1316), i.e. header
+/// only.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0806)]
+pub struct PartyBookingDeleteRequestPacket2019 {}
+
+/// `CZ_PARTY_BOOKING_REQ_UPDATE` (0x0808): change the desired jobs of the own
+/// advertisement.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0808)]
+#[packet_size(14)]
+pub struct PartyBookingUpdateRequestPacket2019 {
+    pub jobs: [u16; 6],
+}
+
+/// `CZ_PARTY_REQ_MASTER_TO_JOIN` (0x0AE6): request to join the party of a
+/// booking advertisement. Only parsed by servers with
+/// `PACKETVER >= 20191204` (clif_packetdb.hpp:1981).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AE6)]
+#[packet_size(10)]
+pub struct PartyBookingJoinRequestPacket {
+    pub character_id: CharacterId,
+    pub account_id: AccountId,
+}
+
+/// `CZ_PARTY_REQ_ACK_MASTER_TO_JOIN` (0x0AF8): accept (`1`) or reject (`0`) a
+/// booking join request, sent by the party leader.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x0AF8)]
+#[packet_size(11)]
+pub struct PartyBookingJoinReplyPacket {
+    pub character_id: CharacterId,
+    pub account_id: AccountId,
+    pub accept: u8,
+}
+
+/// `CZ_GROUPINFO_CHANGE_V2` (0x07D7): change the party EXP share and item
+/// rules. `clif_parse_PartyChangeOption` (clif.cpp:13893) reads the EXP flag
+/// as `L`, the item pickup and item share flags as bytes.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07D7)]
+#[packet_size(8)]
+pub struct PartyOptionRequestPacket2019 {
+    /// `0` = each take, `1` = even share.
+    pub experience_option: u32,
+    /// `1` = "even share" item pickup rule.
+    pub item_pickup: u8,
+    /// `1` = item sharing enabled.
+    pub item_share: u8,
+}
+
+/// `CZ_CHANGE_GROUP_MASTER` (0x07DA): transfer party leadership.
+///
+/// `clif_parse_PartyChangeLeader` (clif.cpp:13938) reads the account id at
+/// offset 2.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07DA)]
+#[packet_size(6)]
+pub struct ChangePartyLeaderPacket {
+    pub account_id: AccountId,
+}
+
+// ===========================================================================
+// Pet / homunculus / mercenary (PACKETVER 20190605)
+//
+// * 0x01A2 `ZC_PROPERTY_PET` (clif.cpp:8286) — 37 bytes at 20190605 (name,
+//   renamed flag, level, hunger, intimacy, accessory, job).
+// * 0x01A4 `ZC_CHANGESTATE_PET` (clif.cpp:8230) — 11 bytes, intimacy/hunger
+//   update of one pet.
+// * 0x07DB `ZC_HO_PAR_CHANGE` (clif.cpp:1754) — 8 bytes, homunculus HP/SP/EXP
+//   change (type + i32).
+// * 0x09F7 `ZC_PROPERTY_HOMUN` (clif.cpp:1811) — 77 bytes at 20190605; the full
+//   homunculus status sheet.
+// * 0x029B `ZC_MER_INIT` (clif.cpp:18234) — 80 bytes at 20190605
+//   (`packet(0x029b,80)`, clif_packetdb.hpp:944).
+// * 0x02A2 `ZC_MER_PAR_CHANGE` (clif.cpp:18166) — 8 bytes, mercenary
+//   HP/SP/faith/kills update.
+//
+// The pet/homunculus packets have no actor id (they always describe the local
+// player's unit), which is why the state matches them by job/name.
+// `ZC_MER_INIT` starts with the mercenary block id.
+// ===========================================================================
+
+/// `ZC_PROPERTY_PET` (0x01A2): pet base data of the local player's pet.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01A2)]
+#[packet_size(37)]
+pub struct PetPropertyPacket2019 {
+    #[length(24)]
+    pub name: String,
+    /// `1` when the pet was renamed (`pet.rename_flag`).
+    pub renamed: u8,
+    pub level: u16,
+    /// Fullness/hunger value (`pet.hungry`).
+    pub hunger: u16,
+    /// Intimacy value (`pet.intimate`).
+    pub intimacy: u16,
+    /// Accessory item view id.
+    pub accessory: u16,
+    /// Monster class id of the pet.
+    pub job_id: JobId,
+}
+
+/// `ZC_CHANGESTATE_PET` (0x01A4): one pet state value changed.
+///
+/// `state_type`: `0` = pre-init, `1` = intimacy, `2` = hunger, `3` =
+/// accessory, `4` = performance, `5` = hairstyle (clif.cpp:8230).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x01A4)]
+#[packet_size(11)]
+pub struct PetStateChangePacket2019 {
+    pub state_type: u8,
+    pub entity_id: EntityId,
+    pub value: i32,
+}
+
+/// `ZC_PROPERTY_HOMUN` (0x09F7): full homunculus status sheet.
+///
+/// The layout is `PACKET_ZC_PROPERTY_HOMUN2` at PACKETVER 20190605
+/// (`src/map/packets_struct.hpp:2823`, `packet(0x09F7,77)`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x09F7)]
+#[packet_size(77)]
+pub struct HomunculusPropertyPacket2019 {
+    #[length(24)]
+    pub name: String,
+    /// Bit 0 = renamed, bit 1 = vaporized, bit 2 = dead (clif.cpp:1820).
+    pub flags: u8,
+    pub level: u16,
+    pub hunger: u16,
+    pub intimacy: u16,
+    /// Equipped item id (`0` unless a homunculus item is equipped).
+    pub item_id: u32,
+    pub attack: u16,
+    pub magic_attack: u16,
+    pub hit: u16,
+    pub critical: u16,
+    pub defense: u16,
+    pub magic_defense: u16,
+    pub flee: u16,
+    pub attack_motion: u16,
+    pub health_points: u32,
+    pub maximum_health_points: u32,
+    pub spell_points: u16,
+    pub maximum_spell_points: u16,
+    pub experience: u32,
+    pub maximum_experience: u32,
+    pub skill_points: u16,
+    pub attack_range: u16,
+}
+
+/// `ZC_HO_PAR_CHANGE` (0x07DB): homunculus parameter change.
+///
+/// `parameter` is the rAthena `_sp` id: `1` = base EXP, `5` = HP, `7` = SP
+/// (`src/map/map.hpp:514`).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x07DB)]
+#[packet_size(8)]
+pub struct HomunculusParameterChangePacket2019 {
+    pub parameter: u16,
+    pub value: i32,
+}
+
+/// `ZC_MER_INIT` (0x029B): full mercenary status sheet at PACKETVER 20190605.
+///
+/// rAthena writes this by hand in `clif_mercenary_info` (clif.cpp:18234) and
+/// registers it as 80 bytes (`packet(0x029b,80)`, clif_packetdb.hpp:944).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x029B)]
+#[packet_size(80)]
+pub struct MercenaryInfoPacket2019 {
+    pub entity_id: EntityId,
+    pub attack: u16,
+    pub magic_attack: u16,
+    pub hit: u16,
+    pub critical: u16,
+    pub defense: u16,
+    pub magic_defense: u16,
+    pub flee: u16,
+    pub attack_motion: u16,
+    #[length(24)]
+    pub name: String,
+    pub level: u16,
+    pub health_points: u32,
+    pub maximum_health_points: u32,
+    pub spell_points: u32,
+    pub maximum_spell_points: u32,
+    /// Unix timestamp (client tick) when the mercenary disappears.
+    pub expire_time: u32,
+    pub faith: u16,
+    pub calls: u32,
+    pub kills: u32,
+    pub attack_range: u16,
+}
+
+/// `ZC_MER_PAR_CHANGE` (0x02A2): mercenary parameter change. The parameter
+/// ids are the rAthena `_sp` values (`SP_HP` 5, `SP_MAXHP` 6, `SP_SP` 7,
+/// `SP_MERCKILLS` 189, `SP_MERCFAITH` 190).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, korangar_interface::element::StateElement))]
+#[header(0x02A2)]
+#[packet_size(8)]
+pub struct MercenaryParameterChangePacket2019 {
+    pub parameter: u16,
+    pub value: i32,
+}
+
 #[cfg(test)]
 mod guild_packet_tests {
     use ragnarok_bytes::{ByteReader, ByteWriter};
@@ -7800,5 +8166,162 @@ mod mail_packet_tests {
             self.packet_to_bytes(&mut writer).unwrap();
             writer.into_inner()
         }
+    }
+}
+
+#[cfg(test)]
+mod companion_and_booking_packet_tests {
+    use ragnarok_bytes::ByteWriter;
+
+    use super::*;
+
+    fn packet_len(packet: &impl PacketExt) -> usize {
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        writer.as_slice().len()
+    }
+
+    #[test]
+    fn party_booking_client_packets_match_the_2019_wire_sizes() {
+        assert_eq!(
+            packet_len(&PartyBookingRegisterRequestPacket2019 {
+                level: 99,
+                map_id: 0,
+                jobs: [u16::MAX; 6],
+            }),
+            18
+        );
+        assert_eq!(
+            packet_len(&PartyBookingSearchRequestPacket2019 {
+                level: 0,
+                map_id: 0,
+                job: -1,
+                last_index: 0,
+                result_count: 10,
+            }),
+            14
+        );
+        assert_eq!(packet_len(&PartyBookingUpdateRequestPacket2019 { jobs: [0; 6] }), 14);
+        assert_eq!(packet_len(&PartyBookingDeleteRequestPacket2019 {}), 2);
+        assert_eq!(
+            packet_len(&PartyBookingJoinRequestPacket {
+                character_id: CharacterId(1),
+                account_id: AccountId(2),
+            }),
+            10
+        );
+        assert_eq!(
+            packet_len(&PartyBookingJoinReplyPacket {
+                character_id: CharacterId(1),
+                account_id: AccountId(2),
+                accept: 1,
+            }),
+            11
+        );
+        assert_eq!(
+            packet_len(&PartyOptionRequestPacket2019 {
+                experience_option: 1,
+                item_pickup: 1,
+                item_share: 0,
+            }),
+            8
+        );
+        assert_eq!(packet_len(&ChangePartyLeaderPacket { account_id: AccountId(2) }), 6);
+    }
+
+    #[test]
+    fn party_booking_server_rows_are_48_bytes() {
+        // The insert notification is header (2) + one row (48).
+        assert_eq!(
+            packet_len(&PartyBookingInsertNotifyPacket2019 {
+                entry: PartyBookingEntry2019 {
+                    index: 0,
+                    character_name: String::new(),
+                    expire_time: 0,
+                    level: 0,
+                    map_id: 0,
+                    jobs: [0; 6],
+                },
+            }),
+            50
+        );
+    }
+
+    #[test]
+    fn companion_packets_match_the_2019_wire_sizes() {
+        assert_eq!(
+            packet_len(&PetPropertyPacket2019 {
+                name: String::new(),
+                renamed: 0,
+                level: 0,
+                hunger: 0,
+                intimacy: 0,
+                accessory: 0,
+                job_id: JobId(1002),
+            }),
+            37
+        );
+        assert_eq!(
+            packet_len(&PetStateChangePacket2019 {
+                state_type: 1,
+                entity_id: EntityId(1),
+                value: 0,
+            }),
+            11
+        );
+        assert_eq!(
+            packet_len(&HomunculusPropertyPacket2019 {
+                name: String::new(),
+                flags: 0,
+                level: 0,
+                hunger: 0,
+                intimacy: 0,
+                item_id: 0,
+                attack: 0,
+                magic_attack: 0,
+                hit: 0,
+                critical: 0,
+                defense: 0,
+                magic_defense: 0,
+                flee: 0,
+                attack_motion: 0,
+                health_points: 0,
+                maximum_health_points: 0,
+                spell_points: 0,
+                maximum_spell_points: 0,
+                experience: 0,
+                maximum_experience: 0,
+                skill_points: 0,
+                attack_range: 0,
+            }),
+            77
+        );
+        assert_eq!(packet_len(&HomunculusParameterChangePacket2019 { parameter: 5, value: 0 }), 8);
+        assert_eq!(
+            packet_len(&MercenaryInfoPacket2019 {
+                entity_id: EntityId(1),
+                attack: 0,
+                magic_attack: 0,
+                hit: 0,
+                critical: 0,
+                defense: 0,
+                magic_defense: 0,
+                flee: 0,
+                attack_motion: 0,
+                name: String::new(),
+                level: 0,
+                health_points: 0,
+                maximum_health_points: 0,
+                spell_points: 0,
+                maximum_spell_points: 0,
+                expire_time: 0,
+                faith: 0,
+                calls: 0,
+                kills: 0,
+                attack_range: 0,
+            }),
+            80
+        );
+        assert_eq!(packet_len(&MercenaryParameterChangePacket2019 { parameter: 5, value: 0 }), 8);
     }
 }

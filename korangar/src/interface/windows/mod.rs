@@ -12,8 +12,10 @@ mod character_info;
 mod character_overview;
 mod character_selection;
 mod chat;
+mod clan;
 #[cfg(feature = "debug")]
 mod commands;
+mod companion;
 mod context_menu;
 mod dialog;
 mod equipment;
@@ -76,8 +78,10 @@ pub use self::character_info::CharacterInfoWindow;
 pub use self::character_overview::CharacterOverviewWindow;
 pub use self::character_selection::{CharacterSelectionWindow, character_selection_window_position};
 pub use self::chat::{ChatTextBox, ChatWindow, ChatWindowState};
+pub use self::clan::ClanWindow;
 #[cfg(feature = "debug")]
 pub use self::commands::CommandsWindow;
+pub use self::companion::{CompanionInfoWindow, CompanionKind};
 pub use self::context_menu::{CharacterContextMenuWindow, ItemContextMenuWindow, ItemStorageAction};
 pub use self::dialog::{DialogWindow, DialogWindowState};
 pub use self::equipment::EquipmentWindow;
@@ -167,6 +171,8 @@ pub enum WindowClass {
     Minimap,
     Party,
     Guild,
+    Clan,
+    CompanionInfo,
     Quest,
     PartyInvite,
     NotificationHud,

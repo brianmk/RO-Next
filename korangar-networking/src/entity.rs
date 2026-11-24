@@ -3,6 +3,20 @@ use ragnarok_packets::*;
 #[derive(Debug)]
 pub struct EntityData {
     pub entity_id: EntityId,
+    /// rAthena `clif_bl_type` object type of the actor (`0` = player,
+    /// `5` = monster, `6`/`0xC` = NPC, `7` = pet, `8` = homunculus,
+    /// `9` = mercenary, `0xA` = elemental, `0xD`/`0xE` = ABR/bionic).
+    ///
+    /// The 2019 entity-appear packets carry this byte before the actor id; it
+    /// is the only reliable way to tell a pet/mercenary from a wild monster of
+    /// the same job id, because pets and mercenaries reuse monster class ids.
+    pub object_type: u8,
+    /// Character id of a player (`group_id`/`GID` in the appear packets). For
+    /// non-player actors this is `0`.
+    pub character_id: CharacterId,
+    /// Name carried by the appear packet (2013+ layouts). Empty for packets or
+    /// servers that do not send one.
+    pub name: String,
     pub movement_speed: u16,
     pub job_id: JobId,
     pub head: u16,
@@ -69,6 +83,9 @@ impl EntityData {
     pub fn from_character(account_id: AccountId, character_information: &CharacterInformation, position: WorldPosition) -> Self {
         Self {
             entity_id: EntityId(account_id.0),
+            object_type: 0,
+            character_id: character_information.character_id,
+            name: character_information.name.clone(),
             movement_speed: character_information.movement_speed as u16,
             job_id: character_information.job_id,
             head: character_information.head as u16,
@@ -106,6 +123,9 @@ impl From<EntityAppearPacket> for EntityData {
     fn from(packet: EntityAppearPacket) -> Self {
         Self {
             entity_id: packet.entity_id,
+            object_type: packet.object_type,
+            character_id: CharacterId(packet.group_id),
+            name: packet.name.clone(),
             movement_speed: packet.movement_speed,
             job_id: packet.job_id,
             head: packet.head,
@@ -138,6 +158,9 @@ impl From<EntityAppear2Packet> for EntityData {
     fn from(packet: EntityAppear2Packet) -> Self {
         Self {
             entity_id: packet.entity_id,
+            object_type: packet.object_type,
+            character_id: CharacterId(packet.group_id),
+            name: packet.name.clone(),
             movement_speed: packet.movement_speed,
             job_id: packet.job_id,
             head: packet.head,
@@ -174,6 +197,9 @@ impl From<MovingEntityAppearPacket> for EntityData {
 
         Self {
             entity_id: packet.entity_id,
+            object_type: packet.object_type,
+            character_id: CharacterId(packet.group_id),
+            name: packet.name.clone(),
             movement_speed: packet.movement_speed,
             job_id: packet.job_id,
             head: packet.head,
