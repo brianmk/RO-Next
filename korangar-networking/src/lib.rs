@@ -3918,6 +3918,42 @@ mod packet_handlers {
         }]));
     }
 
+    /// A successful use-item ack (`ZC_USE_ITEM_ACK` 0x01C8) must update the
+    /// amount *and* emit `ItemUsed`, which drives the official use-item
+    /// animation. A failed use only reports the error.
+    #[test]
+    fn use_item_ack_emits_the_use_item_animation_event() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        let mut used = Vec::new();
+        used.extend_from_slice(&0x01C8u16.to_le_bytes());
+        used.extend_from_slice(&7u16.to_le_bytes()); // inventory index 5 (+2)
+        used.extend_from_slice(&501u32.to_le_bytes()); // item id
+        used.extend_from_slice(&1u32.to_le_bytes()); // account id
+        used.extend_from_slice(&4i16.to_le_bytes()); // remaining amount
+        used.push(1); // result: success
+        assert_eq!(used.len(), 15);
+
+        let events = feed(&mut handler, &used);
+        assert!(
+            events
+                .0
+                .iter()
+                .any(|event| matches!(event, NetworkEvent::ItemUsed { item_id } if item_id.0 == 501))
+        );
+        assert!(
+            events
+                .0
+                .iter()
+                .any(|event| matches!(event, NetworkEvent::InventoryItemAmountChanged { amount: 4, .. }))
+        );
+
+        let mut failed = used.clone();
+        *failed.last_mut().unwrap() = 0;
+        let events = feed(&mut handler, &failed);
+        assert!(!events.0.iter().any(|event| matches!(event, NetworkEvent::ItemUsed { .. })));
+    }
+
     /// The item service packets (refine, repair, identify, card composition)
     /// are registered and turn into the typed events the client consumes.
     #[test]

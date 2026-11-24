@@ -271,14 +271,17 @@ where
     // rAthena sends the boolean `ok` flag directly in `result` (1 = the item was
     // used, 0 = using it failed) together with the remaining amount.
     packet_handler.register(|packet: UseItemAckPacket| match packet.result {
-        0 => Some(NetworkEvent::ChatMessage {
+        0 => vec![NetworkEvent::ChatMessage {
             text: "Failed to use item.".to_owned(),
             color: MessageColor::Error,
-        }),
-        _ => Some(NetworkEvent::InventoryItemAmountChanged {
-            index: packet.inventory_index,
-            amount: packet.amount.max(0) as u16,
-        }),
+        }],
+        _ => vec![
+            NetworkEvent::InventoryItemAmountChanged {
+                index: packet.inventory_index,
+                amount: packet.amount.max(0) as u16,
+            },
+            NetworkEvent::ItemUsed { item_id: packet.item_id },
+        ],
     })?;
     packet_handler.register(|packet: WhisperReceivedPacket| NetworkEvent::WhisperReceived {
         sender_name: packet.sender_name,

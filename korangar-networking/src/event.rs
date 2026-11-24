@@ -1158,6 +1158,12 @@ pub enum NetworkEvent {
         flag: u32,
         name: String,
     },
+    /// A consumable item was used successfully (`ZC_USE_ITEM_ACK`, result
+    /// non-zero). The client plays the official use-item effect (a short
+    /// translucent column and rising sparkles) on the user.
+    ItemUsed {
+        item_id: ragnarok_packets::ItemId,
+    },
     /// The equipped items of the equip-switch window (`ZC_EQUIPSWITCH_LIST`,
     /// 0x0A9B, `clif_equipswitch_list`). Every entry is an inventory index and
     /// the equipment position(s) that item is pre-assigned to; the client

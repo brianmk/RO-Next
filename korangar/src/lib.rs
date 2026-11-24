@@ -6860,6 +6860,16 @@ impl Client {
 
                     self.merge_learned_skills_into_skill_tree(client_tick);
                 }
+                NetworkEvent::ItemUsed { item_id } => {
+                    // The official client plays the use-item effect (EF_EXIT)
+                    // for consumables above the classic item ids
+                    // (`IsAboveItemId600` in the classic client).
+                    if item_id.0 > 600
+                        && let Some(entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id())
+                    {
+                        self.spawn_item_use_effect(entity_id);
+                    }
+                }
                 NetworkEvent::InventoryItemAmountChanged { index, amount } => {
                     self.client_state
                         .follow_mut(client_state().inventory())
@@ -14366,6 +14376,72 @@ fn can_move_while_casting(job_id: JobId, skills: &[LearnedSkill]) -> bool {
         && skills
             .iter()
             .any(|skill| crate::world::skills::grants_move_while_casting(skill.skill_id))
+}
+
+impl Client {
+    /// Plays the official "use item" animation (effect `EF_EXIT`): a short
+    /// translucent column (`effect\alpha_down.tga`), rising sparkles
+    /// (`이팩트\particle1`) and the `_heal_effect.wav` sound at the user.
+    ///
+    /// The effect is spawned when a consumable is used successfully
+    /// (`ZC_USE_ITEM_ACK` with a non-zero result). Item ids above 600 use the
+    /// effect, matching the official client's `IsAboveItemId600` check.
+    fn spawn_item_use_effect(&mut self, entity_id: EntityId) {
+        let Some(position) = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| entity.get_position())
+        else {
+            return;
+        };
+
+        let center = EffectCenter::Entity(entity_id, position);
+
+        // Translucent column: 35 units high, 4.5 unit radii, ~0.35 alpha,
+        // growing from the ground (`CRagEffect::Exit`).
+        let params = PrimitiveParams {
+            texture: "effect\\alpha_down.tga",
+            seed: 0,
+            count: 1,
+            duration_ms: 600,
+            delay_ms: 0,
+            size: 9.0,
+            size_end: 9.0,
+            spread: 0.0,
+            height: 35.0,
+            bottom_radius: 4.5,
+            top_radius: 4.5,
+            alpha: 0.35,
+            color: Color::WHITE,
+            additive: false,
+            rotation_speed: 0.0,
+            grow: AuraGrow::Height,
+        };
+
+        if let Some(aura) = spawn_ground_aura(&self.texture_loader, center.clone(), &params) {
+            self.effect_holder.add_effect(Box::new(aura));
+        }
+
+        // Rising sparkle sprite (`particle1.spr/.act`): the official effect
+        // spawns a particle every ninth tick for the duration of the column.
+        let sprite_params = SpriteEffectParams {
+            files: &["이팩트\\particle1"],
+            offset: Vector3::new(0.0, 6.0, 0.0),
+            scale: 1.0,
+            duration_ms: 600,
+            color: Color::WHITE,
+            additive: true,
+        };
+
+        if let Some(sprite) = SpriteEffect::spawn(&self.sprite_loader, &self.action_loader, center, &sprite_params) {
+            self.effect_holder.add_effect(Box::new(sprite));
+        }
+
+        let sound_effect = self.audio_engine.load("data\\wav\\_heal_effect.wav");
+        self.audio_engine.play_spatial_sound_effect(sound_effect, position, 250.0);
+    }
 }
 
 /// Requests the equipment animation layers (weapon, shield, robe) for
