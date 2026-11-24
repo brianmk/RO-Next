@@ -93,6 +93,7 @@ use settings::{
     AudioSettings, AudioSettingsPathExt, AuraStyle, GraphicsSettingsCapabilities, GraphicsSettingsPathExt, InterfaceSettings,
     InterfaceSettingsPathExt,
 };
+use state::bank::parse_zeny_amount;
 use state::hotbar::{HOTBAR_ENTRIES_PER_TAB, HOTBAR_TAB_COUNT, HotbarPathExt};
 use state::inventory::InventoryPathExt;
 use state::lifecycle::{
@@ -5867,6 +5868,60 @@ impl Client {
                 NetworkEvent::StorageClosed => {
                     self.close_storage_window();
                 }
+                NetworkEvent::OpenUserInterface { ui_type, data: _ } => {
+                    // `OUT_UI_BANK` (0, `clif.hpp:1416`) is the NPC `openbank`
+                    // trigger. The window itself is opened by the banking request.
+                    if ui_type == 0 {
+                        self.open_bank_window();
+                    }
+                }
+                NetworkEvent::BankOpened => {
+                    if !self.interface.is_window_with_class_open(WindowClass::Bank) {
+                        self.interface.open_window(BankWindow);
+                    }
+
+                    self.client_state.follow_mut(client_state().bank()).set_status("Bank opened.");
+                }
+                NetworkEvent::BankBalance { money, reason } => {
+                    let bank = self.client_state.follow_mut(client_state().bank());
+                    bank.set_balance(money);
+                    bank.set_status(match reason {
+                        0 => "Bank ready.",
+                        _ => "The bank is not available on this map or server.",
+                    });
+
+                    if !self.interface.is_window_with_class_open(WindowClass::Bank) {
+                        self.interface.open_window(BankWindow);
+                    }
+                }
+                NetworkEvent::BankDepositResult { reason, money, zeny } => {
+                    self.client_state.follow_mut(client_state().bank()).apply_deposit(reason, money);
+
+                    // The ack carries the carried zeny after the transaction; the
+                    // regular 0x00B1 zeny update usually follows as well.
+                    if let Ok(zeny) = u64::try_from(zeny) {
+                        *self.client_state.follow_mut(client_state().zeny()) = Some(zeny);
+                    }
+
+                    if !self.interface.is_window_with_class_open(WindowClass::Bank) {
+                        self.interface.open_window(BankWindow);
+                    }
+                }
+                NetworkEvent::BankWithdrawResult { reason, money, zeny } => {
+                    self.client_state.follow_mut(client_state().bank()).apply_withdraw(reason, money);
+
+                    if let Ok(zeny) = u64::try_from(zeny) {
+                        *self.client_state.follow_mut(client_state().zeny()) = Some(zeny);
+                    }
+
+                    if !self.interface.is_window_with_class_open(WindowClass::Bank) {
+                        self.interface.open_window(BankWindow);
+                    }
+                }
+                NetworkEvent::BankClosed => {
+                    self.client_state.follow_mut(client_state().bank()).close();
+                    self.interface.close_window_with_class(WindowClass::Bank);
+                }
                 NetworkEvent::SetCart { items } => {
                     // The cart list arrives on map entry and whenever the cart is
                     // (re)opened. It is kept in state so the cart window can be
@@ -8079,6 +8134,47 @@ impl Client {
                     let _ = self.networking_system.close_storage();
                     self.close_storage_window();
                 }
+                InputEvent::ToggleBankWindow => {
+                    if self.client_state.try_follow(this_entity()).is_some() {
+                        match self.interface.is_window_with_class_open(WindowClass::Bank) {
+                            true => self.close_bank_window(),
+                            false => self.open_bank_window(),
+                        }
+                    }
+                }
+                InputEvent::BankDeposit => {
+                    let amount = parse_zeny_amount(self.client_state.follow(client_state().bank()).deposit_input());
+
+                    match amount {
+                        Some(amount) => {
+                            if let Some(account_id) = self.own_account_id() {
+                                let _ = self.networking_system.bank_deposit(account_id, amount);
+                                self.client_state.follow_mut(client_state().bank()).set_status("Depositing...");
+                            }
+                        }
+                        None => self
+                            .client_state
+                            .follow_mut(client_state().bank())
+                            .set_status("Enter a valid zeny amount first."),
+                    }
+                }
+                InputEvent::BankWithdraw => {
+                    let amount = parse_zeny_amount(self.client_state.follow(client_state().bank()).withdraw_input());
+
+                    match amount {
+                        Some(amount) => {
+                            if let Some(account_id) = self.own_account_id() {
+                                let _ = self.networking_system.bank_withdraw(account_id, amount);
+                                self.client_state.follow_mut(client_state().bank()).set_status("Withdrawing...");
+                            }
+                        }
+                        None => self
+                            .client_state
+                            .follow_mut(client_state().bank())
+                            .set_status("Enter a valid zeny amount first."),
+                    }
+                }
+                InputEvent::CloseBank => self.close_bank_window(),
                 InputEvent::ItemDoubleClick { source, item } => {
                     // Double clicking is the quick way to move a whole stack while
                     // the Kafra storage window is open.
@@ -9675,6 +9771,38 @@ impl Client {
         *self.client_state.follow_mut(client_state().storage_amount()) = 0;
         *self.client_state.follow_mut(client_state().storage_maximum_amount()) = 0;
         *self.client_state.follow_mut(client_state().storage_name()) = String::new();
+    }
+
+    /// Account id of the logged-in player. The banking requests are checked
+    /// against it by the server (`clif_parse_BankOpen`, clif.cpp:7342).
+    fn own_account_id(&self) -> Option<AccountId> {
+        self.saved_login_data.map(|login_data| login_data.account_id)
+    }
+
+    /// Open the bank window, start the banking session and request the vault.
+    fn open_bank_window(&mut self) {
+        let Some(account_id) = self.own_account_id() else {
+            return;
+        };
+
+        if !self.interface.is_window_with_class_open(WindowClass::Bank) {
+            self.interface.open_window(BankWindow);
+        }
+
+        self.client_state.follow_mut(client_state().bank()).open();
+
+        let _ = self.networking_system.open_bank(account_id);
+        let _ = self.networking_system.check_bank(account_id);
+    }
+
+    /// Close the bank window and end the banking session.
+    fn close_bank_window(&mut self) {
+        if let Some(account_id) = self.own_account_id() {
+            let _ = self.networking_system.close_bank(account_id);
+        }
+
+        self.client_state.follow_mut(client_state().bank()).close();
+        self.interface.close_window_with_class(WindowClass::Bank);
     }
 
     /// Close the cart window and drop the transient cart list.

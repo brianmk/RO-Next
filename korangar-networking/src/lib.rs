@@ -1664,6 +1664,42 @@ where
             SupportedPacketVersion::_20220406 => self.send_map_server_packet(LevelUpSkillPacket::new(skill_id)),
         }
     }
+
+    /// Open the banking session (`CZ_REQ_OPEN_BANKING`, 0x09B6). rAthena only
+    /// answers when the account id matches the sender.
+    pub fn open_bank(&mut self, account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BankOpenRequestPacket { account_id }),
+        }
+    }
+
+    /// Close the banking session (`CZ_REQ_CLOSE_BANKING`, 0x09B8).
+    pub fn close_bank(&mut self, account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BankCloseRequestPacket { account_id }),
+        }
+    }
+
+    /// Request the current bank vault (`CZ_REQ_BANKING_CHECK`, 0x09AB).
+    pub fn check_bank(&mut self, account_id: AccountId) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BankCheckRequestPacket { account_id }),
+        }
+    }
+
+    /// Move zeny into the bank vault (`CZ_REQ_BANKING_DEPOSIT`, 0x09A7).
+    pub fn bank_deposit(&mut self, account_id: AccountId, zeny: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BankDepositRequestPacket { account_id, zeny }),
+        }
+    }
+
+    /// Move zeny out of the bank vault (`CZ_REQ_BANKING_WITHDRAW`, 0x09A9).
+    pub fn bank_withdraw(&mut self, account_id: AccountId, zeny: u32) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(BankWithdrawRequestPacket { account_id, zeny }),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -3493,5 +3529,52 @@ mod packet_handlers {
         // 0x09E7 ZC_NOTIFY_UNREADMAIL is a real event now.
         let events = feed(&mut handler, &[0xE7, 0x09, 1]);
         assert!(matches!(events.0.as_slice(), [NetworkEvent::MailUnreadStatus { unread: true }]));
+    }
+
+    #[test]
+    fn bank_packets_produce_typed_events() {
+        let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+        // 0x0AE2 ZC_UI_OPEN with `OUT_UI_BANK` (clif_ui_open, clif.cpp:21916).
+        let mut ui_open = Vec::new();
+        ui_open.extend_from_slice(&0x0AE2u16.to_le_bytes());
+        ui_open.push(0); // OUT_UI_BANK
+        ui_open.extend_from_slice(&0u32.to_le_bytes());
+        assert_eq!(ui_open.len(), 7);
+        let events = feed(&mut handler, &ui_open);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::OpenUserInterface {
+            ui_type: 0,
+            data: 0
+        }]));
+
+        // 0x09B7 ZC_ACK_OPEN_BANKING.
+        let events = feed(&mut handler, &[0xB7, 0x09, 0, 0]);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::BankOpened]));
+
+        // 0x09A6 ZC_BANKING_CHECK: money.Q reason.W.
+        let mut balance = Vec::new();
+        balance.extend_from_slice(&0x09A6u16.to_le_bytes());
+        balance.extend_from_slice(&123_456u64.to_le_bytes());
+        balance.extend_from_slice(&0u16.to_le_bytes());
+        assert_eq!(balance.len(), 12);
+        let events = feed(&mut handler, &balance);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::BankBalance {
+            money: 123_456,
+            reason: 0,
+        }]));
+
+        // 0x09A8 ZC_ACK_BANKING_DEPOSIT: reason.W money.Q zeny.L.
+        let mut deposit = Vec::new();
+        deposit.extend_from_slice(&0x09A8u16.to_le_bytes());
+        deposit.extend_from_slice(&0u16.to_le_bytes());
+        deposit.extend_from_slice(&500u64.to_le_bytes());
+        deposit.extend_from_slice(&1_000i32.to_le_bytes());
+        assert_eq!(deposit.len(), 16);
+        let events = feed(&mut handler, &deposit);
+        assert!(matches!(events.0.as_slice(), [NetworkEvent::BankDepositResult {
+            reason: 0,
+            money: 500,
+            zeny: 1_000,
+        }]));
     }
 }

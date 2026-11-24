@@ -1,4 +1,5 @@
 mod audio_settings;
+mod bank;
 mod big_map;
 mod buff_bar;
 mod buy;
@@ -63,6 +64,7 @@ mod whisper;
 use serde::{Deserialize, Serialize};
 
 pub use self::audio_settings::AudioSettingsWindow;
+pub use self::bank::BankWindow;
 pub use self::big_map::BigMapWindow;
 pub use self::buff_bar::{BAR_STRIP_WIDTH, BuffBarWindow};
 pub use self::buy::BuyWindow;
@@ -190,6 +192,7 @@ pub enum WindowClass {
     Profiler,
     #[cfg(feature = "debug")]
     CacheStatistics,
+    Bank,
 }
 
 impl WindowClass {
