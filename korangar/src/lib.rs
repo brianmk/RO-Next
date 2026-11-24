@@ -5960,7 +5960,12 @@ impl Client {
                         .or_else(|| self.client_state.try_follow(this_entity()))
                     {
                         let particle: Box<dyn Particle + Send + Sync> = match damage_amount {
-                            Some(amount) => Box::new(DamageNumber::new(entity.get_position(), amount as u64, is_critical)),
+                            Some(amount) => Box::new(DamageNumber::new(
+                                entity.get_position(),
+                                amount as u64,
+                                is_critical,
+                                entity.get_direction(),
+                            )),
                             None => Box::new(Miss::new(entity.get_position())),
                         };
 

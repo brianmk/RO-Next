@@ -638,12 +638,14 @@ fn stage_effects(client: &mut Client, bench: &mut BenchState, now: Instant) {
                     position + offset,
                     100 + u64::from(tick) * 37 + u64::from(index),
                     index == 0,
+                    ragnarok_packets::Direction::NorthEast,
                 ))),
-                1 => {
-                    client
-                        .particle_holder
-                        .spawn_particle(Box::new(DamageNumber::new(position + offset, 10_000 + u64::from(index), false)))
-                }
+                1 => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
+                    position + offset,
+                    10_000 + u64::from(index),
+                    false,
+                    ragnarok_packets::Direction::SouthEast,
+                ))),
                 2 => client
                     .particle_holder
                     .spawn_particle(Box::new(HealNumber::new(position + offset, 500 + u64::from(index)))),

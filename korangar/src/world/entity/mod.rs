@@ -2827,6 +2827,11 @@ impl Entity {
         self.get_common_mut().direction = direction;
     }
 
+    /// Current body direction (used by the damage-number fountain).
+    pub fn get_direction(&self) -> Direction {
+        self.get_common().direction
+    }
+
     pub fn set_head_direction(&mut self, head_direction: usize) {
         self.get_common_mut().head_direction = head_direction;
     }

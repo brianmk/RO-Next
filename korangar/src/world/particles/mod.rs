@@ -6,8 +6,7 @@ use korangar_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use korangar_debug::logging::Colorize;
 use korangar_interface::application::Clip;
-use ragnarok_packets::{EntityId, QuestEffectPacket};
-use rand_aes::tls::rand_f32;
+use ragnarok_packets::{Direction, EntityId, QuestEffectPacket};
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize, Texture};
 use crate::loaders::{FontSize, GameFileLoader, ImageType, Scaling, Sprite, TextureLoader};
@@ -91,6 +90,43 @@ fn damage_text_font_size(
     FontSize(pixels / scaling)
 }
 
+/// Renders a damage/heal number, using the installed sprite damage font and
+/// falling back to the interface text renderer.
+fn render_number(
+    renderer: &GameInterfaceRenderer,
+    camera: &dyn Camera,
+    window_size: ScreenSize,
+    text: &str,
+    position: Point3<f32>,
+    base_pixels: f32,
+    magnitude_scale: f32,
+    color: Color,
+) {
+    let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
+    let screen_position = camera.clip_to_screen_space(clip_space_position);
+    let final_position = ScreenPosition {
+        left: screen_position.x * window_size.width,
+        top: screen_position.y * window_size.height,
+    };
+
+    let height = damage_text_pixels(base_pixels, magnitude_scale, camera.distance_to(position), window_size.height);
+
+    if let Some(font) = crate::world::damage_font::damage_font() {
+        let screen_clip = ScreenClip {
+            left: 0.0,
+            top: 0.0,
+            right: window_size.width,
+            bottom: window_size.height,
+        };
+
+        font.render(renderer, text, final_position, height, color, screen_clip);
+        return;
+    }
+
+    let font_size = FontSize(height / renderer.scaling_factor().max(0.1));
+    renderer.render_damage_text(text, final_position, color, font_size);
+}
+
 pub trait Particle {
     fn update(&mut self, delta_time: f32) -> bool;
 
@@ -109,31 +145,67 @@ pub trait Particle {
     fn culling_position(&self) -> Point3<f32>;
 }
 
-fn random_velocity() -> f32 {
-    rand_f32() * 40.0 - 20.0
+/// Upward speed of a damage number at spawn (world units per second).
+///
+/// Together with [`DAMAGE_NUMBER_GRAVITY`] this forms the parabolic arc of the
+/// official "damage fountain": the number rises, peaks and falls back while it
+/// drifts away from the hit entity.
+const DAMAGE_NUMBER_UP_SPEED: f32 = 45.0;
+/// Downward acceleration of the damage-number arc (world units / s^2).
+const DAMAGE_NUMBER_GRAVITY: f32 = 150.0;
+/// Horizontal drift speed of the fountain (world units per second).
+const DAMAGE_NUMBER_DRIFT_SPEED: f32 = 8.0;
+/// Lifetime of a damage number in seconds.
+const DAMAGE_NUMBER_LIFETIME: f32 = 0.9;
+
+/// Horizontal drift direction of the official damage fountain.
+///
+/// The classic client drifts the numbers diagonally away from the hit entity,
+/// based on the octant the entity faces (`CMsgEffect::MsgEffectDriftDirection`:
+/// angle 0..90 -> (-0.8, +0.8), 90..180 -> (-0.8, -0.8), 180..270 ->
+/// (+0.8, -0.8), 270..360 -> (+0.8, +0.8)).
+pub fn damage_number_drift(direction: Direction) -> Vector3<f32> {
+    let (x, z) = match u16::from(direction) {
+        // North / North-East.
+        0 | 1 => (-0.8, 0.8),
+        // East / South-East.
+        2 | 3 => (-0.8, -0.8),
+        // South / South-West.
+        4 | 5 => (0.8, -0.8),
+        // West / North-West.
+        _ => (0.8, 0.8),
+    };
+
+    Vector3::new(x, 0.0, z) * DAMAGE_NUMBER_DRIFT_SPEED
 }
 
 pub struct DamageNumber {
     position: Point3<f32>,
+    /// Spawn position of the arc (already offset above the head).
+    origin: Point3<f32>,
+    /// Horizontal drift velocity of the fountain.
+    drift: Vector3<f32>,
     damage_amount: String,
     magnitude_scale: f32,
-    velocity_y: f32,
-    velocity_x: f32,
-    velocity_z: f32,
-    timer: f32,
+    elapsed: f32,
     is_critical: bool,
 }
 
 impl DamageNumber {
-    pub fn new(position: Point3<f32>, damage_amount: u64, is_critical: bool) -> Self {
+    /// Creates a damage number above `position` that follows the official
+    /// damage fountain: a parabolic arc that drifts diagonally away from the
+    /// hit entity based on the direction it faces. `direction` is optional so
+    /// effects without an entity (e.g. ground damage) still show a number.
+    pub fn new(position: Point3<f32>, damage_amount: u64, is_critical: bool, direction: Direction) -> Self {
+        let origin = position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0);
+
         Self {
-            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
+            position: origin,
+            origin,
+            drift: damage_number_drift(direction),
             damage_amount: damage_amount.to_string(),
             magnitude_scale: damage_magnitude_scale(damage_amount),
-            velocity_y: 50.0,
-            velocity_x: random_velocity(),
-            velocity_z: random_velocity(),
-            timer: 0.6,
+            elapsed: 0.0,
             is_critical,
         }
     }
@@ -145,14 +217,16 @@ impl Particle for DamageNumber {
     }
 
     fn update(&mut self, delta_time: f32) -> bool {
-        self.velocity_y -= 200.0 * delta_time;
+        self.elapsed += delta_time;
+        let time = self.elapsed;
 
-        self.position.y += self.velocity_y * delta_time;
-        self.position.x += self.velocity_x * delta_time;
-        self.position.z += self.velocity_z * delta_time;
+        // Parabolic arc: rises with the spawn speed and falls under gravity
+        // while the horizontal drift carries it away from the entity.
+        let height = DAMAGE_NUMBER_UP_SPEED * time - 0.5 * DAMAGE_NUMBER_GRAVITY * time * time;
 
-        self.timer -= delta_time;
-        self.timer > 0.0
+        self.position = self.origin + self.drift * time + Vector3::new(0.0, height, 0.0);
+
+        self.elapsed < DAMAGE_NUMBER_LIFETIME
     }
 
     fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
@@ -241,20 +315,22 @@ impl Particle for Miss {
 
 pub struct HealNumber {
     position: Point3<f32>,
+    origin: Point3<f32>,
     heal_amount: String,
     magnitude_scale: f32,
-    velocity_y: f32,
-    timer: f32,
+    elapsed: f32,
 }
 
 impl HealNumber {
     pub fn new(position: Point3<f32>, heal_amount: u64) -> Self {
+        let origin = position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0);
+
         Self {
-            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
+            position: origin,
+            origin,
             heal_amount: heal_amount.to_string(),
             magnitude_scale: damage_magnitude_scale(heal_amount),
-            velocity_y: 50.0,
-            timer: 1.0,
+            elapsed: 0.0,
         }
     }
 }
@@ -265,32 +341,24 @@ impl Particle for HealNumber {
     }
 
     fn update(&mut self, delta_time: f32) -> bool {
-        self.velocity_y -= 50.0 * delta_time;
-
-        self.position.y += self.velocity_y * delta_time;
-
-        self.timer -= delta_time;
-        self.timer > 0.0
+        self.elapsed += delta_time;
+        let time = self.elapsed;
+        let height = DAMAGE_NUMBER_UP_SPEED * time - 0.5 * DAMAGE_NUMBER_GRAVITY * time * time;
+        self.position = self.origin + Vector3::new(0.0, height, 0.0);
+        self.elapsed < DAMAGE_NUMBER_LIFETIME
     }
 
     fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
-        let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
-        let screen_position = camera.clip_to_screen_space(clip_space_position);
-        let final_position = ScreenPosition {
-            left: screen_position.x * window_size.width,
-            top: screen_position.y * window_size.height,
-        };
-
-        let font_size = damage_text_font_size(
+        render_number(
             renderer,
             camera,
-            self.position,
             window_size,
+            &self.heal_amount,
+            self.position,
             BASE_DAMAGE_TEXT_PIXELS,
             self.magnitude_scale,
+            Color::rgb_u8(30, 255, 30),
         );
-
-        renderer.render_damage_text(&self.heal_amount, final_position, Color::rgb_u8(30, 255, 30), font_size);
     }
 }
 
@@ -683,4 +751,30 @@ mod tests {
 pub struct ArrowAssets {
     pub sprite: Arc<Sprite>,
     pub actions: Arc<Actions>,
+}
+
+#[cfg(test)]
+mod damage_fountain_tests {
+    use cgmath::{InnerSpace, Vector3};
+    use ragnarok_packets::Direction;
+
+    use super::{DAMAGE_NUMBER_DRIFT_SPEED, damage_number_drift};
+
+    /// The drift direction follows the entity facing octant like the classic
+    /// client (`MsgEffectDriftDirection`).
+    #[test]
+    fn drift_follows_the_entity_facing() {
+        let cases = [
+            (Direction::North, Vector3::new(-0.8, 0.0, 0.8)),
+            (Direction::East, Vector3::new(-0.8, 0.0, -0.8)),
+            (Direction::South, Vector3::new(0.8, 0.0, -0.8)),
+            (Direction::West, Vector3::new(0.8, 0.0, 0.8)),
+        ];
+
+        for (direction, expected) in cases {
+            let drift = damage_number_drift(direction);
+            let expected = expected * DAMAGE_NUMBER_DRIFT_SPEED;
+            assert!((drift - expected).magnitude() < 1e-5, "{direction:?}: {drift:?}");
+        }
+    }
 }
