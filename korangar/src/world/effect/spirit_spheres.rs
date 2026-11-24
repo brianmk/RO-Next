@@ -22,7 +22,11 @@ use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 
 /// Radius of the orbit around the character in world units.
-const ORBIT_RADIUS: f32 = 3.52;
+///
+/// The raw classic-client orbit is 3.52 units; the spheres are drawn 10 %
+/// wider because the smaller orbit crowded the character sprite (in-game
+/// report).
+const ORBIT_RADIUS: f32 = 3.52 * 1.1;
 /// Height of the orbit above the character's feet.
 const ORBIT_HEIGHT: f32 = 20.0;
 /// Rotation speed of the orbit in radians per second.
