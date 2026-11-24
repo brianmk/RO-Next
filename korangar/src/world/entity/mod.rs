@@ -1650,9 +1650,24 @@ impl Common {
         // and the animated `RobeOpacity` alpha; robes whose per-motion
         // `DrawOnTop` entry says "behind" are drawn before the body, everything
         // else is the top layer (after the weapon/shield layers below).
-        let robe_top_layer = crate::world::robe::profile(self.robe)
-            .map(|profile| profile.is_top_layer())
-            .unwrap_or(true);
+        //
+        // The decision comes from the official `2DLayerDir`/`_New_2DLayerDir`
+        // Lua tables (`CCharacterRender::DrawOnTop` /
+        // `CPc::IsDrawOnTop`), indexed by the body action and frame. When the
+        // archives do not ship those tables the robe stays on top, which was
+        // the previous behavior.
+        let body_job = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
+        let (body_action, body_motion) = self
+            .animation_data
+            .as_ref()
+            .and_then(|animation_data| animation_data.motion(&self.animation_state, camera, self.direction))
+            .unwrap_or((0, 0));
+        let robe_top_layer =
+            crate::world::robe::draw_on_top(self.robe, self.sex, body_job, body_action, body_motion).unwrap_or_else(|| {
+                crate::world::robe::profile(self.robe)
+                    .map(|profile| profile.is_top_layer())
+                    .unwrap_or(true)
+            });
         let robe_alpha = alpha * self.robe_opacity(client_tick);
 
         if !robe_top_layer && let Some(robe_animation) = self.robe_animation.as_ref() {

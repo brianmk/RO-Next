@@ -38,6 +38,7 @@ mod skill_completion;
 mod skill_name_text;
 mod skill_sound;
 mod sound;
+pub(crate) mod target_policy;
 mod video;
 pub(crate) mod weapon;
 

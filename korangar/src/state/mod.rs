@@ -211,13 +211,29 @@ impl BufferedAction {
 
 /// `ZC_MAPPROPERTY_R2` flags that are needed outside the packet layer.
 ///
-/// The bits are defined by rAthena `clif_map_property` (0x099B):
-/// bit 0 PvP, bit 1 GvG, bit 2 siege, bit 5 PvP counter, bit 8 costumes
-/// disabled. The remaining bits are not consumed by the renderer yet.
+/// The bits are defined by rAthena `clif_map_property` (0x099B,
+/// `src/map/clif.cpp`):
+///
+/// * bit 0 `MF_PVP`: show the attack cursor on non-party members (PvP),
+/// * bit 1 `MF_GVG`/`MF_BATTLEGROUND`: GvG (non-guild) map,
+/// * bit 2 siege/GvG castle (emblem over the head),
+/// * bit 4 `MF_NOLOCKON` (or any versus map): lock-on restriction,
+/// * bit 5 PvP counter (the official client calls this `m_isPvpZone`),
+/// * bit 7 battlefield/battleground,
+/// * bit 8 costumes disabled.
+///
+/// The official client stores the same bits under the (historical) map
+/// property indices 7, 8, 9, 16, 17, 19 and 20 respectively; see
+/// `CGameMode::ReceiveMapProperty` in
+/// `rodecomp/Source/Client/Mode/GameModeNotices.cpp`.
 pub const MAP_FLAG_PVP: u32 = 1 << 0;
 pub const MAP_FLAG_GVG: u32 = 1 << 1;
 pub const MAP_FLAG_SIEGE: u32 = 1 << 2;
+/// `MF_NOLOCKON`/versus map; the official client calls this `m_isSiegeZone`
+/// and applies the non-party PvP rule on such maps.
+pub const MAP_FLAG_DISABLE_LOCKON: u32 = 1 << 4;
 pub const MAP_FLAG_COUNT_PK: u32 = 1 << 5;
+pub const MAP_FLAG_BATTLEFIELD: u32 = 1 << 7;
 pub const MAP_FLAG_DISABLE_COSTUME: u32 = 1 << 8;
 
 /// `e_map_type` values from `ZC_NOTIFY_MAPPROPERTY2` that are indoors.
