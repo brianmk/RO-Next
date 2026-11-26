@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod forest_light;
 pub mod halo;
 pub mod height_ramp;
 pub mod intimidate;
@@ -153,6 +154,8 @@ pub enum PrimitiveId {
     Halo,
     /// prim 143 (`PrimTextureSpin`)
     TextureSpin,
+    /// prim 66 (`ForestLight`) - spawned only, the original has no motion case.
+    ForestLight,
 }
 
 impl PrimitiveId {
@@ -181,6 +184,7 @@ impl PrimitiveId {
             Self::RisingFan2 => 131,
             Self::Halo => 39,
             Self::TextureSpin => 143,
+            Self::ForestLight => 66,
         }
     }
 }
@@ -647,6 +651,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::TextureSpin => {
                 texture_spin::on_process(self, master);
+                true
+            }
+            PrimitiveId::ForestLight => {
+                forest_light::on_process(self);
                 true
             }
         };
