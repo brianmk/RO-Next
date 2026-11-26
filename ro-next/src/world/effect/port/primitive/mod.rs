@@ -21,6 +21,7 @@ pub mod intimidate;
 pub mod particle3d;
 pub mod particle_up;
 pub mod quadhorn;
+pub mod pulse_kind;
 pub mod pulsing_columns;
 pub mod ripple_rings;
 pub mod rising_fan;
@@ -156,6 +157,8 @@ pub enum PrimitiveId {
     TextureSpin,
     /// prim 66 (`ForestLight`) - spawned only, the original has no motion case.
     ForestLight,
+    /// prim 64 (`TexturedPulseKind`) - spawned only, no motion case either.
+    PulseKind,
 }
 
 impl PrimitiveId {
@@ -185,6 +188,7 @@ impl PrimitiveId {
             Self::Halo => 39,
             Self::TextureSpin => 143,
             Self::ForestLight => 66,
+            Self::PulseKind => 64,
         }
     }
 }
@@ -655,6 +659,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::ForestLight => {
                 forest_light::on_process(self);
+                true
+            }
+            PrimitiveId::PulseKind => {
+                pulse_kind::on_process(self);
                 true
             }
         };
