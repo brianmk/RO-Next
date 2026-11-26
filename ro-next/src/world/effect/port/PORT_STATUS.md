@@ -81,6 +81,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::TexturedTripleOrbit` (`EF_GRADIUS_LASER`) | `RagEffect.cpp:7123-7183` | 1 |
 | `CRagEffect::TexturedSprayKind` / `TexturedSpray` helpers | `RagEffect.cpp:4642-4689`, `4064-4097` | 2 |
 | Rogue coin family (`EF_RG_COIN`, `EF_RG_COIN2..7`) - data table | `RagEffect.cpp:20997-21100` | 4 |
+| `CRagEffect::SnowFall` (helper, pending `EF_FROSTMYSTY` wiring) | `RagEffect.cpp:6615-6663` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
