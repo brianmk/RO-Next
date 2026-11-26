@@ -25,6 +25,7 @@
 //! | 48 | `RenderColorPlane` | `TexturedMagicRing(name, kind)` - the bottom-song family |
 //! | 75 | `RenderSlash1` | `JobLvUp50_2` (`EF_KAIZEL`), `RunStop` (`EF_STOPEFFECT`) |
 //! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
+//! | 10, 11 | `RenderRecordQuads` | `PP_3DSPLINE`/`PP_3DSPIRAL` helix ribbons |
 //! | 13 | `RenderArcBand` | cart revolution, magnum, bowling bash, frost diver |
 //! | 42, 53, 59, 116 | `RenderFieldPanel` | shield throws, thrown items, heal sparks, sprinkle sand, snow, rising orbs |
 //! | 9 | `RenderPyramid` | earth spike, heavens drive, storm gust, grim tooth |
@@ -269,6 +270,8 @@ pub enum SlotRenderer {
     Slash1,
     /// `RenderRecordRings` - id 12.
     RecordRings,
+    /// `RenderRecordQuads` - ids 10/11 (`PP_3DSPLINE`/`PP_3DSPIRAL`).
+    RecordQuads,
     /// `RenderArcBand` - id 13.
     ArcBand,
     /// `RenderFieldPanel` - ids 42/53/59/116 (and the other ids in that case
@@ -325,6 +328,9 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::Bottom2 => SlotRenderer::ColorPlane,
         PrimitiveId::Slash1 => SlotRenderer::Slash1,
         PrimitiveId::Circle3d => SlotRenderer::RecordRings,
+        // `EffectPrimitiveRendering.cpp:747-750`: both ids draw the shared
+        // `RenderRecordQuads`.
+        PrimitiveId::Spline3d | PrimitiveId::Spiral3d => SlotRenderer::RecordQuads,
         PrimitiveId::Cylinder3d => SlotRenderer::ArcBand,
         PrimitiveId::ParticleUp => SlotRenderer::FieldPanel,
         PrimitiveId::ShieldBoomerang | PrimitiveId::ThrowItem | PrimitiveId::ShieldBoomerang3 => SlotRenderer::FieldPanel,
@@ -382,6 +388,7 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::ColorPlane) => render_color_plane(state, &mut out),
         Some(SlotRenderer::Slash1) => render_slash_1(state, &mut out),
         Some(SlotRenderer::RecordRings) => render_record_rings(state, &mut out),
+        Some(SlotRenderer::RecordQuads) => render_record_quads(state, &mut out),
         Some(SlotRenderer::ArcBand) => render_arc_band(state, &mut out),
         Some(SlotRenderer::FieldPanel) => render_field_panel(state, &mut out),
         Some(SlotRenderer::Pyramid) => render_pyramid(state, &mut out),
@@ -1138,6 +1145,62 @@ pub fn render_record_rings(state: &EffectPrimitiveState, out: &mut Vec<SlotTrian
 
             i += arc_angle;
         }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderRecordQuads (10, 11)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRecordQuads` - `EffectPrimitiveRendering.cpp:5790-5842`,
+/// dispatch `:747-750` for `PP_3DSPLINE`/`PP_3DSPIRAL`.
+///
+/// Every segment record contributes a quad split into the two triangles
+/// `(corner0, corner1, corner2)` and `(corner3, corner2, corner1)`:
+///
+/// ```text
+/// triangle A: (0,1,2)  uv (0,1) (1,1) (0,0)
+/// triangle B: (3,2,1)  uv (1,0) (0,0) (1,1)
+/// ```
+///
+/// The `v` axis runs from the top edge (`corners[0..2]`, v = 1) to the bottom
+/// edge (`corners[2..4]`, v = 0), and the colour is the record's own packed
+/// `color` (alpha + RGB swept by `ShiftSegment`) rather than `state.argb`.
+///
+/// Quirk kept: the official call is `SubmitTriangle(triangle, 1)`, a literal
+/// `RSF_ALPHA`, so `state.renderFlag` is ignored here (unlike
+/// `RenderRecordRings`, which passes it through). The port therefore always
+/// uses the alpha queue.
+///
+/// `Visible()` (all three projected `rhw > 0`) is enforced by the renderer
+/// when it projects the world-space corners, exactly like the other slot
+/// renderers; the original's `rpCnt` scratch slot reuse has no observable
+/// effect on the submitted order.
+pub fn render_record_quads(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let texture = texture_slot(state, 0);
+    let blend = SlotBlend::Alpha;
+
+    for index in 0..state.num_segment.max(0) as usize {
+        // The official `records[50]` is always allocated and zeroed, so a
+        // `numSegment` larger than the ported `Vec` renders zero corners
+        // (the original's behaviour) instead of shortening the strip.
+        let record = state.records.get(index).copied().unwrap_or_default();
+
+        out.push(SlotTriangle::new(
+            [record.corners[0], record.corners[1], record.corners[2]],
+            [[0.0, 1.0], [1.0, 1.0], [0.0, 0.0]],
+            record.color,
+            texture,
+            blend,
+        ));
+
+        out.push(SlotTriangle::new(
+            [record.corners[3], record.corners[2], record.corners[1]],
+            [[1.0, 0.0], [0.0, 0.0], [1.0, 1.0]],
+            record.color,
+            texture,
+            blend,
+        ));
     }
 }
 
@@ -3740,6 +3803,8 @@ mod tests {
             (PrimitiveId::PulsingColumns, SlotRenderer::Casting),
             (PrimitiveId::RippleRings, SlotRenderer::Casting),
             (PrimitiveId::Circle3d, SlotRenderer::RecordRings),
+            (PrimitiveId::Spline3d, SlotRenderer::RecordQuads),
+            (PrimitiveId::Spiral3d, SlotRenderer::RecordQuads),
             (PrimitiveId::Cylinder3d, SlotRenderer::ArcBand),
             (PrimitiveId::ParticleUp, SlotRenderer::FieldPanel),
             (PrimitiveId::ShieldBoomerang, SlotRenderer::FieldPanel),
@@ -3790,6 +3855,8 @@ mod tests {
             PrimitiveId::PulsingColumns,
             PrimitiveId::RippleRings,
             PrimitiveId::Circle3d,
+            PrimitiveId::Spline3d,
+            PrimitiveId::Spiral3d,
             PrimitiveId::ParticleUp,
             PrimitiveId::ShieldBoomerang,
             PrimitiveId::ThrowItem,
@@ -4199,6 +4266,51 @@ mod tests {
         assert_eq!(triangles[0].argb, 0x1122_3344);
         assert_eq!(triangles[0].texture, Some("effect\\ring.tga"));
         assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn record_quads_emit_the_official_triangle_order_uvs_and_colour() {
+        let mut state = state_of(PrimitiveId::Spiral3d);
+        state.texture = Some("effect\\spline.tga");
+        state.num_segment = 2;
+        // `SubmitTriangle(..., 1)` hard-codes `RSF_ALPHA`; a body that set
+        // additive flags could not change this renderer's queue.
+        state.render_flag = 3;
+        state.records = vec![
+            PrimitiveRecord {
+                corners: [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+                color: 0x1122_3344,
+                ..Default::default()
+            },
+            PrimitiveRecord {
+                corners: [[2.0, 0.0, 1.0], [3.0, 0.0, 1.0], [3.0, 1.0, 1.0], [2.0, 1.0, 1.0]],
+                color: 0x5566_7788,
+                ..Default::default()
+            },
+        ];
+
+        let triangles = triangles(&state);
+
+        // Two records -> two triangles each, in record order.
+        assert_eq!(triangles.len(), 4);
+
+        // Triangle A: corners 0,1,2 and `uv` (0,1) (1,1) (0,0).
+        assert_eq!(triangles[0].corners, [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0]]);
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [0.0, 0.0]]);
+        assert_eq!(triangles[0].argb, 0x1122_3344);
+        assert_eq!(triangles[0].texture, Some("effect\\spline.tga"));
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+
+        // Triangle B: corners 3,2,1 and `uv` (1,0) (0,0) (1,1).
+        assert_eq!(triangles[1].corners, [[0.0, 1.0, 0.0], [1.0, 1.0, 0.0], [1.0, 0.0, 0.0]]);
+        assert_eq!(triangles[1].texture_coordinates, [[1.0, 0.0], [0.0, 0.0], [1.0, 1.0]]);
+        assert_eq!(triangles[1].argb, 0x1122_3344);
+
+        // The second record repeats the pattern with its own colour.
+        assert_eq!(triangles[2].corners, [[2.0, 0.0, 1.0], [3.0, 0.0, 1.0], [3.0, 1.0, 1.0]]);
+        assert_eq!(triangles[2].argb, 0x5566_7788);
+        assert_eq!(triangles[3].corners, [[2.0, 1.0, 1.0], [3.0, 1.0, 1.0], [3.0, 0.0, 1.0]]);
+        assert_eq!(triangles[3].argb, 0x5566_7788);
     }
 
     #[test]

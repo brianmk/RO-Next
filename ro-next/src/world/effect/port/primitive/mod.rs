@@ -41,6 +41,7 @@ pub mod shield_boomerang;
 pub mod shield_boomerang3;
 pub mod slash1;
 pub mod spin_quad;
+pub mod spline_spiral;
 pub mod stacked_rings;
 pub mod texture2d;
 pub mod texture3d;
@@ -171,6 +172,15 @@ pub enum PrimitiveId {
     /// sprite trail. Shares the official `RenderSegmentSprites2` sprite pass
     /// with the other particle primitives.
     ParticleSpline,
+    /// `PP_3DSPLINE` (10) - the helix quad ribbon
+    /// (`EffectPrimitiveMotion.cpp:8265-8288`).
+    /// Drawn by `RenderRecordQuads` from `records[].corners`, one quad per
+    /// segment. No `EffectPrimId.h` name collision with `PP_3DPARTICLESPLINE`.
+    Spline3d,
+    /// `PP_3DSPIRAL` (11) - the same motion and renderer as [`Self::Spline3d`];
+    /// the official `switch` falls through both cases
+    /// (`EffectPrimitiveMotion.cpp:8265-8266`).
+    Spiral3d,
     /// `PP_WIND` (62)
     Wind,
     /// `PP_INTIMIDATE` (43)
@@ -280,6 +290,8 @@ impl PrimitiveId {
             Self::Particle3d => 5,
             Self::Particle3dGravity => 6,
             Self::ParticleSpline => 8,
+            Self::Spline3d => 10,
+            Self::Spiral3d => 11,
             Self::Wind => 62,
             Self::Intimidate => 43,
             Self::AuraGlow => 82,
@@ -519,6 +531,11 @@ pub struct EffectPrimitiveState {
     pub delta_pos: [f32; 3],
     pub delta_pos2: [f32; 3],
     pub delta_pos3: [f32; 3],
+    /// `/* 03B8 */ segPos[4]` - the live quad corners of
+    /// `PP_3DSPLINE`/`PP_3DSPIRAL`. `ShiftSegment` copies them into
+    /// `records[0].corners` (`EffectPrimitiveMotion.cpp:3040-3043`), which
+    /// `RenderRecordQuads` reads.
+    pub seg_pos: [[f32; 3]; 4],
     /// `/* 037C */ orgPos`
     pub org_pos: [f32; 3],
     /// `/* 0370 */ speed3d`
@@ -679,6 +696,8 @@ impl Default for EffectPrimitiveState {
             delta_pos: [0.0; 3],
             delta_pos2: [0.0; 3],
             delta_pos3: [0.0; 3],
+            // `EffectPrim.cpp:18-20`: the constructor zeroes every `segPos`.
+            seg_pos: [[0.0; 3]; 4],
             org_pos: [0.0; 3],
             speed3d: [0.0; 3],
             speed: 0.0,
@@ -774,6 +793,12 @@ impl EffectPrimitiveState {
                 // end does **not** retire the primitive; it lives until
                 // `stateCnt > duration`.
                 particle_spline::on_process(self, angles, master);
+                true
+            }
+            // `EffectPrimitiveMotion.cpp:8265-8288`: both ids share one motion
+            // body. It has no `bool` return and consumes no RNG.
+            PrimitiveId::Spline3d | PrimitiveId::Spiral3d => {
+                spline_spiral::on_process(self, angles, master);
                 true
             }
             PrimitiveId::Wind => {
@@ -969,6 +994,8 @@ impl EffectPrimitiveState {
         if segments > 0 {
             let first = &mut self.records[0];
             first.position = self.position;
+            // `EffectPrimitiveMotion.cpp:3040-3043`.
+            first.corners = self.seg_pos;
             first.radius = self.radius;
             first.scale = self.size;
             first.angle = self.longitude;
@@ -1164,6 +1191,12 @@ mod tests {
     fn double_gum_gang_and_textured_slam_ids_match_the_dispatch() {
         assert_eq!(PrimitiveId::DoubleGumGang.id(), 99);
         assert_eq!(PrimitiveId::TexturedSlam.id(), 147);
+    }
+
+    #[test]
+    fn spline_and_spiral_ids_match_the_dispatch() {
+        assert_eq!(PrimitiveId::Spline3d.id(), 10);
+        assert_eq!(PrimitiveId::Spiral3d.id(), 11);
     }
 
     #[test]
