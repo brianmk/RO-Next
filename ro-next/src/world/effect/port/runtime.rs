@@ -286,14 +286,20 @@ pub struct EffectRuntime {
     /// `EF_RUN` writes `stateCnt` behind flag `0x8000`
     /// (`RagEffect.cpp:23621-23626`). The official `render.flags` word is
     /// cleared after every drawn frame (`GameObject.cpp:435`), so the guard
-    /// holds every frame and the write happens each step; only
-    /// `CRenderObject::Reset` resets the field itself.
+    /// holds every frame and the write happens each step.
+    ///
+    /// Persistence: **`CRenderObject::Reset` does not touch this byte**
+    /// (`RenderObjectState.cpp:74-94` has no `runStartTick` assignment) and no
+    /// other code resets it; it is zero from actor construction and only the
+    /// `EF_RUN` body writes it, so the last value persists for the actor's
+    /// lifetime. [`Self::begin_step`] leaves it alone.
     ///
     /// Additive. The client bridge stores it on the caster entity
-    /// ([`crate::world::Entity::set_render_run_start_tick`]). Its consumer is
+    /// ([`crate::world::Entity::set_render_run_start_tick`]). Its consumers are
     /// `CRenderObject::GetSequenceSpriteOverride`'s accessory-sprite swap
-    /// (`RenderObject.cpp:794-800`), which the client does not model;
-    /// applied-but-record-only.
+    /// (`RenderObject.cpp:794-800`) and `CRenderObject::ProcessFootprint`'s
+    /// dummy-effect selection (`RagEffect.cpp:17127`), neither of which the
+    /// client models; applied-but-record-only.
     pub parent_run_start_tick: Option<u8>,
     /// `CRagEffect::NotifyGameMode(char value)` - `RagEffect.cpp:8672-8676`:
     /// on frame 0 it sends `MM_SONG_TALK` with `value` to the current mode.
@@ -650,8 +656,9 @@ impl EffectRuntime {
     /// `SetColor` persists on the actor, and neither are
     /// [`Self::parent_outline_alpha`], [`Self::parent_effect_phase`],
     /// [`Self::parent_tint_phase`], [`Self::parent_shrink_phase`] or
-    /// [`Self::parent_run_start_tick`]: those are only reset by
-    /// `CRenderObject::Reset` (`RenderObjectState.cpp:75-90`), so
+    /// [`Self::parent_run_start_tick`]: the first four are only reset by
+    /// `CRenderObject::Reset` (`RenderObjectState.cpp:75-90`) and
+    /// `runStartTick` is never reset at all, so
     /// `EF_ASURABODY`'s pinned `200`, `EF_ASURABODY_MONSTER`'s frozen `199`
     /// and every later body's last phase survive every step, as in the
     /// original. [`Self::game_mode_notify`] is likewise a one-shot request,

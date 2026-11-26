@@ -170,10 +170,12 @@ pub struct Common {
     /// `render.runStartTick` (`RenderObjectState.h:129`, `unsigned char`)
     /// written by a ported effect body.
     ///
-    /// Official consumer: `CRenderObject::GetSequenceSpriteOverride`'s
-    /// angel/devil headband swap (`RenderObject.cpp:794-800`). The client
-    /// does not override accessory sprites by tick, so it is recorded but
-    /// **not consumed**.
+    /// Official consumers: `CRenderObject::GetSequenceSpriteOverride`'s
+    /// angel/devil headband swap (`RenderObject.cpp:794-800`) and
+    /// `CRenderObject::ProcessFootprint`'s dummy-effect selection
+    /// (`RagEffect.cpp:17127`). The client does neither, so it is recorded but
+    /// **not consumed**. Unlike the other phase registers,
+    /// `CRenderObject::Reset` does not zero this byte; only `EF_RUN` writes it.
     #[hidden_element]
     pub(crate) render_run_start_tick: Option<u8>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
