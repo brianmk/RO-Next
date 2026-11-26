@@ -34,6 +34,7 @@ pub mod skill_aura;
 pub mod sonicblow;
 pub mod spread_flat;
 pub mod textured_aura;
+pub mod violet_ring_cloud;
 
 pub use bash::Bash;
 pub use agiup::AgilityUp;
@@ -66,3 +67,4 @@ pub use skill_aura::TexturedSkillAura;
 pub use sonicblow::SonicBlow;
 pub use spread_flat::TexturedSpreadFlat;
 pub use textured_aura::TexturedAura;
+pub use violet_ring_cloud::VioletRingCloud;
