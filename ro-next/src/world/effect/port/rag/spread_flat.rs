@@ -27,17 +27,8 @@ impl TexturedSpreadFlat {
     }
 }
 
-impl PortedEffect for TexturedSpreadFlat {
-    fn lifetime(&self) -> i32 {
-        self.lifetime
-    }
-
-    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
-        if runtime.frame != 0 {
-            return true;
-        }
-
-        let kind = self.kind;
+/// One `TexturedSpreadFlat` call: spawns a single `PP` ring primitive.
+pub(crate) fn spawn_one(runtime: &mut EffectRuntime, texture: &'static str, kind: i32) {
         let lifetime = runtime.lifetime;
         let angles = Angles::shared();
 
@@ -81,14 +72,14 @@ impl PortedEffect for TexturedSpreadFlat {
             distances[index] = runtime.rng.clamped_random(11) as f32 * 0.015 + 0.15;
         }
 
-        for _ in 0..self.count {
+        {
             let ring = runtime.launch(PrimitiveId::HeightRamp, [0.0, 0.0, 0.0]);
             let state = runtime.primitive_mut(ring);
 
             state.render_flag = 1 | 4; // RSF_ALPHA | RSF_CUSTOM_BLEND
             state.duration = lifetime;
             state.size = size;
-            state.texture = Some(self.texture);
+            state.texture = Some(texture);
 
             for index in 0..4usize {
                 let slot = &mut state.slots[index];
@@ -122,6 +113,21 @@ impl PortedEffect for TexturedSpreadFlat {
                 slot.height = [0.0; 21];
                 slot.flag1 = [0; 21];
             }
+        }
+}
+
+impl PortedEffect for TexturedSpreadFlat {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame != 0 {
+            return true;
+        }
+
+        for _ in 0..self.count {
+            spawn_one(runtime, self.texture, self.kind);
         }
 
         true
