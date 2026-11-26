@@ -511,7 +511,14 @@ mod tests {
                 }
             }
 
-            assert!(!runtime.primitives.is_empty(), "{effect:?} spawned nothing");
+            if runtime.primitives.is_empty() {
+                // A `.str`-only body is drawn by its clip, never by a
+                // primitive (e.g. Two Hand Quicken, Lex Divina). Those ids are
+                // legitimate as long as the string table knows their resource;
+                // every other body must still spawn geometry.
+                assert!(needs_str_clips(effect), "{effect:?} spawned nothing");
+                continue;
+            }
 
             for primitive in &runtime.primitives {
                 // Two legitimate shapes carry no texture: sprite particles
