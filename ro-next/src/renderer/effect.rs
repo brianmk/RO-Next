@@ -157,6 +157,41 @@ impl EffectRenderer {
         });
     }
 
+    /// Submits one triangle whose corners are already in NDC.
+    ///
+    /// `RenderTeiRect`'s `extra == 3` projects the quad, then overwrites the
+    /// window-space `x`/`y` of every vertex and forces `rhw = 1`, `z = 1e-09`.
+    /// That makes the triangle a pre-transformed (`D3DFVF_XYZRHW`) primitive,
+    /// so it has no world-space corners left to project. The port stores the
+    /// final NDC corners and the forced reverse-z depth (1.0, the near plane)
+    /// instead; the triangle goes through the same queue as every other
+    /// slot/record triangle.
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_triangle_projected(
+        &mut self,
+        corners: [[f32; 2]; 3],
+        depth: f32,
+        texture_coordinates: [Vector2<f32>; 3],
+        color: Color,
+        source_blend_factor: BlendFactor,
+        destination_blend_factor: BlendFactor,
+        texture: Arc<Texture>,
+    ) {
+        let vertices = std::array::from_fn(|index| EffectTriangleVertex {
+            clip_space_position: ScreenPosition::new(corners[index][0], corners[index][1]),
+            depth,
+            texture_coordinate: texture_coordinates[index],
+        });
+
+        self.triangle_instructions.push(EffectTriangleInstruction {
+            vertices,
+            color,
+            source_blend_factor,
+            destination_blend_factor,
+            texture,
+        });
+    }
+
     /// Renders a screen space effect quad.
     ///
     /// All corners of the effect are assumed to lie on a plane through

@@ -31,6 +31,7 @@
 //! | 64 | `RenderRectUp` | textured pulse kind |
 //! | 66 | `RenderPentagon` | forest light |
 //! | 89 | `RenderFanBeam` | textured quad spin |
+//! | 82 | `RenderTeiFacingSlots` | `TexturedAura` - glows, status auras, map spheres, tarot cards |
 //!
 //! ## Projection and depth
 //!
@@ -82,6 +83,33 @@
 //! * Angles are read from the client's trig tables with the index wrapped into
 //!   `[0, 360]`; the original would read out of bounds where a body leaves a
 //!   `height[...]` phase outside that range.
+//! * `RenderTeiFacingSlots` reads `slots[0].alphaT`/`slots[1].alphaT`, which
+//!   `PrimAuraGlow` fills with `FaceCamera` from the client camera. The port's
+//!   effect simulation has no camera, so the holder computes the same two
+//!   angles at render time ([`face_camera_angles`]) and passes them in
+//!   [`SlotRenderContext`]. `RenderTeiFacingSlots`'s `extra == 3` branch also
+//!   reads `g_renderer->viewport` and `this->render.distanceScale`; both are
+//!   render context and are carried by the same struct.
+//!
+//! ## `extra == 3` (the face-camera clamp)
+//!
+//! `RenderTeiRect`'s `extra == 3` (only `RenderTeiFacingSlots` kind 16, i.e.
+//! `TexturedAura` kind 22) projects the quad, then rewrites each vertex's
+//! window-space `x` around the projected `render.position` and shifts `y` by
+//! `(-30 * viewport.height / 480) * render.distanceScale` (integer division
+//! before the float cast). It forces `z = 1e-09`, `rhw = 1`, i.e. a
+//! pre-transformed near-plane triangle. The port projects the same corners to
+//! window pixels, applies the same rewrite, converts the result to NDC and
+//! submits it through [`SlotTriangle::projected`]. The triangles behind the
+//! camera still project (like the original's `Project`, which has no `w`
+//! guard); non-finite results are dropped instead of being submitted as `NaN`.
+//!
+//! `this->render.distanceScale` is `1.0` for every `CEffectPrim`:
+//! `CRenderObject::CRenderObject` -> `Reset` sets it
+//! (`RenderObjectState.cpp:44`) and no effect body ever assigns it again (the
+//! actor render paths that recompute `render.distanceScale` are
+//! `CGameActor`/`CPc`-only). The port carries it as
+//! [`CEFFECT_PRIM_DISTANCE_SCALE`] so the term stays explicit.
 
 use cgmath::{Point3, Vector2};
 use wgpu::BlendFactor;
@@ -89,6 +117,8 @@ use wgpu::BlendFactor;
 use super::angles::Angles;
 use super::math::matrix_mult;
 use super::primitive::{EffectPrimitiveSlot, EffectPrimitiveState, PrimitiveId};
+use crate::graphics::ScreenSize;
+use crate::world::Camera;
 
 /// `RenderTeiRect`'s triangle array bound (`if (*rpCnt >= 510) return;`).
 pub(crate) const MAX_TRIANGLES_PER_PRIMITIVE: usize = 510;
@@ -123,6 +153,16 @@ impl SlotBlend {
     }
 }
 
+/// `CRenderObject::Reset`'s `render.distanceScale = 1`
+/// (`RenderObjectState.cpp:44`).
+///
+/// `CEffectPrim` inherits `CRenderObject` and no effect body ever assigns the
+/// field again, so this is the exact `this->render.distanceScale` that
+/// `RenderTeiRect`'s `extra == 3` term multiplies. The holder threads it into
+/// [`SlotRenderContext`] instead of hard-coding the factor in the geometry, so
+/// the value is explicit and testable.
+pub const CEFFECT_PRIM_DISTANCE_SCALE: f32 = 1.0;
+
 /// One triangle built by a slot/record renderer, in world space.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct SlotTriangle {
@@ -137,6 +177,24 @@ pub struct SlotTriangle {
     /// with `1e-09` and `rhw` with `1.0`, i.e. forces the triangle to the near
     /// plane. The port's reverse-z buffer expresses that as depth `1.0`.
     pub forced_depth: Option<f32>,
+    /// `RenderTeiRect`'s `extra == 3` (only `RenderTeiFacingSlots` kind 16):
+    /// the original has already rewritten the projected vertices and forced
+    /// `rhw = 1`, so there are no world-space corners left to project. When
+    /// `Some`, the triangle is submitted pre-projected through
+    /// [`EffectRenderer::render_triangle_projected`](crate::renderer::EffectRenderer::render_triangle_projected)
+    /// and `corners` is unused.
+    pub projected: Option<ProjectedTriangle>,
+}
+
+/// A triangle the official renderer already projected and rewrote in window
+/// space (`RenderTeiRect`'s `extra == 3`), stored as final NDC.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ProjectedTriangle {
+    /// NDC `x`/`y` of the three corners, in submission order.
+    pub corners: [[f32; 2]; 3],
+    /// Reverse-z depth. The original writes `z = 1e-09` into a standard depth
+    /// buffer, i.e. the near plane, which the port expresses as `1.0`.
+    pub depth: f32,
 }
 
 impl SlotTriangle {
@@ -148,8 +206,31 @@ impl SlotTriangle {
             texture,
             blend,
             forced_depth: None,
+            projected: None,
         }
     }
+}
+
+/// The render-context values `RenderTeiFacingSlots` reads outside the primitive
+/// state: the camera (for the `extra == 3` projection and `FaceCamera`), the
+/// viewport, and `this->render.distanceScale`.
+///
+/// The other slot/record renderers are pure functions of the primitive state;
+/// this context is only consulted by [`render_tei_facing_slots`]. It is passed
+/// through [`triangles_with_context`] so [`triangles`] stays callable without a
+/// camera.
+#[derive(Clone, Copy)]
+pub struct SlotRenderContext<'a> {
+    /// The camera that rendered the frame. Used to project the kind-16 quad
+    /// and is not stored anywhere.
+    pub camera: &'a dyn Camera,
+    /// `g_renderer->viewport` in physical pixels
+    /// (`EffectRenderer::window_size`).
+    pub viewport: ScreenSize,
+    /// `this->render.distanceScale`; see [`CEFFECT_PRIM_DISTANCE_SCALE`].
+    pub distance_scale: f32,
+    /// `slots[0].alphaT` / `slots[1].alphaT` as `FaceCamera` computes them.
+    pub facing: [i16; 2],
 }
 
 /// `g_fullCircleAngle` - `EffectPrimitiveRendering.cpp:44`.
@@ -193,6 +274,8 @@ pub enum SlotRenderer {
     Pentagon,
     /// `RenderFanBeam` - id 89.
     FanBeam,
+    /// `RenderTeiFacingSlots` - id 82 (and the other ids in that case list).
+    AuraGlow,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -215,6 +298,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::PulseKind => SlotRenderer::RectUp,
         PrimitiveId::ForestLight => SlotRenderer::Pentagon,
         PrimitiveId::SpinQuad => SlotRenderer::FanBeam,
+        PrimitiveId::AuraGlow => SlotRenderer::AuraGlow,
         _ => return None,
     })
 }
@@ -223,7 +307,18 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
 ///
 /// The order matters: the original submits into per-queue lists and the client
 /// blends them in insertion order, so the port keeps the same sequence.
+///
+/// This is the camera-less entry point. It is everything the slot/record
+/// primitives need except `RenderTeiFacingSlots`'s `extra == 3` sub-path (which
+/// has no geometry without a projection); the live render path uses
+/// [`triangles_with_context`].
 pub fn triangles(state: &EffectPrimitiveState) -> Vec<SlotTriangle> {
+    triangles_with_context(state, None)
+}
+
+/// [`triangles`] plus the render-context values
+/// [`RenderTeiFacingSlots`](render_tei_facing_slots) needs.
+pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&SlotRenderContext<'_>>) -> Vec<SlotTriangle> {
     let mut out = Vec::new();
 
     match renderer(state) {
@@ -243,6 +338,7 @@ pub fn triangles(state: &EffectPrimitiveState) -> Vec<SlotTriangle> {
         Some(SlotRenderer::RectUp) => render_rect_up(state, &mut out),
         Some(SlotRenderer::Pentagon) => render_pentagon(state, &mut out),
         Some(SlotRenderer::FanBeam) => render_fan_beam(state, &mut out),
+        Some(SlotRenderer::AuraGlow) => render_tei_facing_slots(state, context, &mut out),
         None => {}
     }
 
@@ -1969,6 +2065,419 @@ pub fn render_fan_beam(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>
     }
 }
 
+// ---------------------------------------------------------------------------
+// RenderTeiFacingSlots (82)
+// ---------------------------------------------------------------------------
+
+/// `FaceCamera` - `EffectPrimitiveMotion.cpp:100-114`.
+///
+/// The original reads the game camera's `camera.yaw`/`camera.pitch` floats,
+/// truncates each into a `short` and derives the two angles
+/// `Tei_TowardScreen` rotates by:
+///
+/// ```text
+/// slots[0].alphaT = (short)camera.yaw;   slots[0].alphaT = 360 - it;
+/// slots[1].alphaT = (short)camera.pitch; slots[1].alphaT = 360 - it + 90;
+///                                        if (>= 360) -= 360;
+/// ```
+///
+/// The port's [`Camera`] trait exposes the view direction rather than those two
+/// floats, so the orbit angles are recovered from it. A camera orbited by
+/// `(yaw, pitch)` looks along `(cos p sin y, -sin p, cos p cos y)`, hence
+/// `yaw = atan2(direction.x, direction.z)` and `pitch = asin(-direction.y)`.
+/// The yaw is wrapped into `[0, 360)` first, matching the client's
+/// `CameraSmoothing`, which keeps `camera.yaw` in that range.
+///
+/// This is exactly the rotation `FaceCamera` is for: it turns the `+Y` normal
+/// of the x/z-plane quad towards the camera, so the aura billboards.
+pub fn face_camera_angles(camera: &dyn Camera) -> [i16; 2] {
+    let direction = camera.view_direction();
+
+    let yaw = direction.x.atan2(direction.z).to_degrees();
+    let yaw = if yaw < 0.0 { yaw + 360.0 } else { yaw };
+    let pitch = (-direction.y).clamp(-1.0, 1.0).asin().to_degrees();
+
+    let scroll = 360 - i32::from(quantize_camera_angle(yaw));
+    let mut tilt = 360 - i32::from(quantize_camera_angle(pitch)) + 90;
+
+    if tilt >= 360 {
+        tilt -= 360;
+    }
+
+    [scroll as i16, tilt as i16]
+}
+
+/// Applies the client's `(short)` truncation to an angle recovered from the
+/// camera's view direction.
+///
+/// The `atan2`/`asin` round-trip has about `1e-5` degrees of error, which is
+/// enough to push an exactly integral camera angle (the port's fixed
+/// `view_angle = 180`, `CAMERA_PITCH = -55` defaults) just below the next
+/// integer and truncate it one degree low. Snapping to `0.001` degrees first
+/// removes only that numerical noise and leaves the client's truncation intact
+/// for every real (non-boundary) camera angle.
+fn quantize_camera_angle(degrees: f32) -> i16 {
+    ((degrees * 1000.0).round() / 1000.0) as i16
+}
+
+/// `static_cast<float>(-30 * g_renderer->viewport.height / 480) *
+/// this->render.distanceScale` from `RenderTeiRect`'s `extra == 3` branch.
+///
+/// The `-30 * height / 480` part is **integer** arithmetic before the cast
+/// (`EffectPrimitiveRendering.cpp:900`), so e.g. 1080 px gives `-67`, not
+/// `-67.5`.
+pub fn face_camera_vertical_shift(viewport_height: i32, distance_scale: f32) -> f32 {
+    ((-30 * viewport_height) / 480) as f32 * distance_scale
+}
+
+/// One 18-argument `RenderTeiRect` call of the `RenderTeiFacingSlots` switch.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct FacingRect {
+    /// `(red, green, blue)` of the call.
+    colour: (u8, u8, u8),
+    /// `pw`: `1` is `INVSRCALPHA` (plain alpha), `0` is `ONE` (the glow blend).
+    pw_one: bool,
+    /// `extra == 3`, the screen-space face-camera clamp.
+    extra_three: bool,
+}
+
+const AURA_WHITE: (u8, u8, u8) = (255, 255, 255);
+
+/// Shorthand for a [`FacingRect`] in the const tables below.
+const fn aura_rect(colour: (u8, u8, u8), pw_one: bool, extra_three: bool) -> FacingRect {
+    FacingRect {
+        colour,
+        pw_one,
+        extra_three,
+    }
+}
+
+/// `case 0:` / `case 3:`.
+const AURA_RECTS_0_3: [FacingRect; 1] = [aura_rect(AURA_WHITE, true, false)];
+/// `case 2:` falls through 4, 5, 10, 12 and 15.
+const AURA_RECTS_2: [FacingRect; 6] = [
+    aura_rect((130, 130, 250), false, false),
+    aura_rect(AURA_WHITE, false, false),
+    aura_rect((125, 255, 125), false, false),
+    aura_rect((150, 150, 150), false, false),
+    aura_rect((50, 50, 50), false, false),
+    aura_rect((51, 153, 153), false, false),
+];
+/// `case 4:` falls through 5, 10, 12 and 15.
+const AURA_RECTS_4: [FacingRect; 5] = [
+    aura_rect(AURA_WHITE, false, false),
+    aura_rect((125, 255, 125), false, false),
+    aura_rect((150, 150, 150), false, false),
+    aura_rect((50, 50, 50), false, false),
+    aura_rect((51, 153, 153), false, false),
+];
+/// `case 5:` falls through 10, 12 and 15.
+const AURA_RECTS_5: [FacingRect; 4] = [
+    aura_rect((125, 255, 125), false, false),
+    aura_rect((150, 150, 150), false, false),
+    aura_rect((50, 50, 50), false, false),
+    aura_rect((51, 153, 153), false, false),
+];
+/// `case 10:` falls through 12 and 15.
+const AURA_RECTS_10: [FacingRect; 3] = [
+    aura_rect((150, 150, 150), false, false),
+    aura_rect((50, 50, 50), false, false),
+    aura_rect((51, 153, 153), false, false),
+];
+/// `case 12:` falls through 15 (there is no `break;` after case 12).
+const AURA_RECTS_12: [FacingRect; 2] = [aura_rect((50, 50, 50), false, false), aura_rect((51, 153, 153), false, false)];
+const AURA_RECTS_15: [FacingRect; 1] = [aura_rect((51, 153, 153), false, false)];
+const AURA_RECTS_16: [FacingRect; 1] = [aura_rect(AURA_WHITE, true, true)];
+const AURA_RECTS_17: [FacingRect; 1] = [aura_rect(AURA_WHITE, false, false)];
+const AURA_RECTS_18: [FacingRect; 2] = [aura_rect((5, 5, 255), false, false), aura_rect((155, 155, 255), false, false)];
+const AURA_RECTS_19: [FacingRect; 2] = [aura_rect((5, 255, 5), false, false), aura_rect((155, 255, 155), false, false)];
+const AURA_RECTS_20: [FacingRect; 2] = [aura_rect((255, 5, 5), false, false), aura_rect((255, 155, 155), false, false)];
+const AURA_RECTS_32: [FacingRect; 1] = [aura_rect((255, 5, 5), false, false)];
+
+/// The `switch (slots[ec].flag1[2])` of `RenderTeiFacingSlots`
+/// (`EffectPrimitiveRendering.cpp:7878-7932`), encoded as the exact sequence of
+/// `RenderTeiRect` calls each entry point emits.
+///
+/// The C++ switch has a real fall-through:
+///
+/// ```text
+/// case 2:  ... // 130,130,250
+/// case 4:  ... // 255,255,255
+/// case 5:  ... // 125,255,125
+/// case 10: ... // 150,150,150
+/// case 12: ... //  50, 50, 50
+/// case 15: ... //  51,153,153
+///          break;
+/// ```
+///
+/// so entering at 2 emits six rects, at 4 five, at 5 four, at 10 three, at 12
+/// two and at 15 one. Note that **case 12 also falls into 15**: there is no
+/// `break;` after the case 12 call. Cases 0/3, 16, 17, 18, 19, 20 and 32 have
+/// their own `break`s; every other value emits nothing.
+///
+/// `kind = 16` is the only `extra == 3` call, and 0/3 and 16 are the only
+/// `pw = 1` calls.
+fn facing_rects(kind: i8) -> &'static [FacingRect] {
+    match kind {
+        0 | 3 => &AURA_RECTS_0_3,
+        2 => &AURA_RECTS_2,
+        4 => &AURA_RECTS_4,
+        5 => &AURA_RECTS_5,
+        10 => &AURA_RECTS_10,
+        12 => &AURA_RECTS_12,
+        15 => &AURA_RECTS_15,
+        16 => &AURA_RECTS_16,
+        17 => &AURA_RECTS_17,
+        18 => &AURA_RECTS_18,
+        19 => &AURA_RECTS_19,
+        20 => &AURA_RECTS_20,
+        32 => &AURA_RECTS_32,
+        _ => &[],
+    }
+}
+
+/// `Tei_TowardScreen`'s per-corner angle step of `RenderTeiFacingSlots`,
+/// including the one-shot `if (angle < 0) angle += 360;` of the original.
+fn advance_facing_angle(angle: i32, delta: i32) -> i32 {
+    if delta == 0 {
+        return angle;
+    }
+
+    let next = angle + delta;
+
+    if next < 0 { next + 360 } else { next }
+}
+
+/// `CEffectPrim::RenderTeiFacingSlots` -
+/// `EffectPrimitiveRendering.cpp:7779-7934`.
+///
+/// One quad per live slot: four points at `distance` (wobbled by `height[8]`
+/// through the client sine table) around `fullDisplayAngle`. `height[10]` is
+/// the shape (0, 1 or 2 select the angular spacing; any other value leaves all
+/// four points coincident). The quad is rotated towards the screen with
+/// `slots[0].alphaT`/`slots[1].alphaT`, offset by the slot's own `vecBNow`, and
+/// emitted by the 18-argument `RenderTeiRect` with full-texture UVs and texture
+/// index `slots[ec].flag1[0]`. The colour/blend/`extra` sequence comes from
+/// [`facing_rects`]'s `switch (slots[ec].flag1[2])`, including its
+/// fall-through.
+///
+/// `f1 = 1` in every call, so `RenderTeiRect` does *not* add
+/// `render.position`: the base is the slot's `vecBNow`. `state.size` is not
+/// read by this primitive - that table belongs to the 10-argument
+/// `RenderTeiRect` overload.
+///
+/// **Known input gap (simulation, not this renderer).** The port's
+/// `rag::TexturedAura` does not reproduce two writes of `RagEffect.cpp:17964`
+/// and `:17965`: `flag1[4] = kind` (with `4 -> 1`) and
+/// `height[15] = render.position.y - vecBPre.y`. Consequently the ported
+/// motion runs its `flag1[4] == 0` alpha branch for every aura, and
+/// `vecBNow.y` is the primitive position instead of the kinds' `-10`/`-30`/
+/// head lift. The renderer consumes `vecBNow` and `flag1[2]` exactly; fixing
+/// the body would place the aura correctly without any change here.
+pub fn render_tei_facing_slots(state: &EffectPrimitiveState, context: Option<&SlotRenderContext<'_>>, out: &mut Vec<SlotTriangle>) {
+    let facing = context.map_or([state.slots[0].alpha_t, state.slots[1].alpha_t], |context| context.facing);
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let dist = slot.distance * table_sin(slot.height[8] as i32) * 0.05 + slot.distance;
+        let shape = slot.height[10];
+
+        let deltas = if shape == 0.0 {
+            [-90, -90, -90]
+        } else if shape == 1.0 {
+            [-60, -120, -60]
+        } else if shape == 2.0 {
+            [-130, -50, -130]
+        } else {
+            [0, 0, 0]
+        };
+
+        let mut angles = [0i32; 4];
+        angles[0] = i32::from(slot.full_display_angle);
+
+        for index in 0..3 {
+            angles[index + 1] = advance_facing_angle(angles[index], deltas[index]);
+        }
+
+        let mut corners: Quad = angles.map(|angle| [dist * table_cos(angle), 0.0, dist * table_sin(angle)]);
+
+        let kind = slot.flag1[2];
+
+        if kind == 3 {
+            for corner in corners.iter_mut() {
+                corner[0] += 3.1;
+                corner[2] += 6.0;
+            }
+        } else if (17..=31).contains(&kind) {
+            for corner in corners.iter_mut() {
+                corner[2] += 6.0;
+            }
+        }
+
+        tei_toward_screen(&mut corners, facing[0], facing[1]);
+
+        let base = slot.vec_b_now;
+        let corners = corners.map(|corner| add(corner, base));
+
+        // `case 0` and `case 3` pass `(vec1, vec2, vec3, vec4)`; every other
+        // case passes `(vec2, vec1, vec4, vec3)`.
+        let quad = if kind == 0 || kind == 3 {
+            corners
+        } else {
+            [corners[1], corners[0], corners[3], corners[2]]
+        };
+
+        let texture_index = i32::from(slot.flag1[0]);
+        let alpha = slot.alpha_b;
+
+        for rect in facing_rects(kind) {
+            let blend = if rect.pw_one { SlotBlend::Alpha } else { SlotBlend::AlphaOne };
+
+            if rect.extra_three {
+                emit_tei_rect_extra_three(state, out, alpha, quad, texture_index, rect.colour, blend, context);
+            } else {
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    alpha,
+                    quad,
+                    texture_index,
+                    false,
+                    rect.colour,
+                    (0.0, 1.0, 0.0, 1.0),
+                    blend,
+                );
+            }
+        }
+    }
+}
+
+/// `RenderTeiRect`'s `extra == 3` branch
+/// (`EffectPrimitiveRendering.cpp:891-908`, identical for the second triangle).
+///
+/// Projects the four corners to window pixels, rewrites the two triangles'
+/// `x` symmetrically around the projected `render.position` (keeping each
+/// triangle's original width), shifts `y` by
+/// `(-30 * viewport.height / 480) * distanceScale` and forces
+/// `z = 1e-09`/`rhw = 1`. The result is stored as NDC on the triangle.
+///
+/// Without a [`SlotRenderContext`] the projection cannot be reproduced; the
+/// call is skipped (only reachable through the camera-less [`triangles`]
+/// helper - the live render path always provides the context).
+#[allow(clippy::too_many_arguments)]
+fn emit_tei_rect_extra_three(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    alpha: i16,
+    quad: Quad,
+    texture_index: i32,
+    (red, green, blue): (u8, u8, u8),
+    blend: SlotBlend,
+    context: Option<&SlotRenderContext<'_>>,
+) {
+    let Some(context) = context else {
+        return;
+    };
+
+    let viewport = context.viewport;
+
+    if viewport.width <= 0.0 || viewport.height <= 0.0 {
+        return;
+    }
+
+    let Some(anchor) = project_window_pixel(context.camera, state.position, viewport) else {
+        return;
+    };
+
+    let mut projected = [[0.0f32; 2]; 4];
+
+    for (index, corner) in quad.iter().enumerate() {
+        let Some(pixel) = project_window_pixel(context.camera, *corner, viewport) else {
+            return;
+        };
+
+        projected[index] = pixel;
+    }
+
+    // `static_cast<float>(-30 * viewport.height / 480)`: the division is
+    // integer arithmetic before the cast, then multiplied by distanceScale.
+    let shift = face_camera_vertical_shift(viewport.height as i32, context.distance_scale);
+
+    let first_width = (projected[0][0] - projected[1][0]).abs() * 0.5;
+    let first = [
+        [anchor[0] + first_width, projected[0][1] + shift],
+        [anchor[0] - first_width, projected[1][1] + shift],
+        [anchor[0] - first_width, projected[2][1] + shift],
+    ];
+
+    let second_width = (projected[3][0] - projected[2][0]).abs() * 0.5;
+    let second = [
+        [anchor[0] + second_width, projected[3][1] + shift],
+        [anchor[0] - second_width, projected[2][1] + shift],
+        [anchor[0] + second_width, projected[0][1] + shift],
+    ];
+
+    let to_ndc = |pixel: [f32; 2]| [pixel[0] / viewport.width * 2.0 - 1.0, 1.0 - pixel[1] / viewport.height * 2.0];
+
+    let argb = pack_argb(alpha, red, green, blue);
+    let texture = texture_slot(state, texture_index.max(0) as usize);
+    let blend = resolve_blend(state.render_flag, blend);
+    let uvs = [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]];
+
+    push_projected(out, first.map(to_ndc), [uvs[0], uvs[1], uvs[2]], argb, texture, blend);
+    push_projected(out, second.map(to_ndc), [uvs[3], uvs[2], uvs[0]], argb, texture, blend);
+}
+
+/// Pushes one already-projected triangle (`RenderTeiRect`'s `extra == 3`).
+fn push_projected(
+    out: &mut Vec<SlotTriangle>,
+    corners: [[f32; 2]; 3],
+    texture_coordinates: [[f32; 2]; 3],
+    argb: u32,
+    texture: Option<&'static str>,
+    blend: SlotBlend,
+) {
+    if out.len() >= MAX_TRIANGLES_PER_PRIMITIVE {
+        return;
+    }
+
+    let mut triangle = SlotTriangle::new([[0.0; 3]; 3], texture_coordinates, argb, texture, blend);
+    triangle.projected = Some(ProjectedTriangle { corners, depth: 1.0 });
+
+    out.push(triangle);
+}
+
+/// `CRenderer::Project`'s window-space mapping without its implicit visibility
+/// test (`Project` has no `w` guard; `RenderTeiRect`'s `extra == 3` relies on
+/// that and forces `rhw = 1` afterwards).
+///
+/// Returns window pixels with a top-left origin, exactly like
+/// [`project_point`](super::super::project_point), or `None` only when the
+/// homogeneous divide is not finite.
+fn project_window_pixel(camera: &dyn Camera, position: [f32; 3], viewport: ScreenSize) -> Option<[f32; 2]> {
+    let clip_space_position = camera.view_projection_matrix() * Point3::new(position[0], position[1], position[2]).to_homogeneous();
+
+    if clip_space_position.w.abs() <= f32::EPSILON {
+        return None;
+    }
+
+    let inverse_w = 1.0 / clip_space_position.w;
+    let normalized_x = clip_space_position.x * inverse_w;
+    let normalized_y = clip_space_position.y * inverse_w;
+
+    let pixel = [
+        (normalized_x * 0.5 + 0.5) * viewport.width,
+        (0.5 - normalized_y * 0.5) * viewport.height,
+    ];
+
+    (pixel[0].is_finite() && pixel[1].is_finite()).then_some(pixel)
+}
+
 /// The world-space corners of one [`SlotTriangle`] as [`Point3`]s (the shape
 /// the effect renderer takes).
 pub fn triangle_points(triangle: &SlotTriangle) -> [Point3<f32>; 3] {
@@ -1982,8 +2491,15 @@ pub fn triangle_uvs(triangle: &SlotTriangle) -> [Vector2<f32>; 3] {
 
 #[cfg(test)]
 mod tests {
+    use cgmath::{Deg, Matrix4, Vector3};
+
     use super::*;
     use crate::world::effect::port::primitive::PrimitiveRecord;
+
+    const WINDOW: ScreenSize = ScreenSize {
+        width: 640.0,
+        height: 480.0,
+    };
 
     fn render(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         super::renderer(state)
@@ -2060,6 +2576,7 @@ mod tests {
             (PrimitiveId::PulseKind, SlotRenderer::RectUp),
             (PrimitiveId::ForestLight, SlotRenderer::Pentagon),
             (PrimitiveId::SpinQuad, SlotRenderer::FanBeam),
+            (PrimitiveId::AuraGlow, SlotRenderer::AuraGlow),
         ];
 
         for (id, expected_renderer) in expected {
@@ -2095,6 +2612,7 @@ mod tests {
             PrimitiveId::PulseKind,
             PrimitiveId::ForestLight,
             PrimitiveId::SpinQuad,
+            PrimitiveId::AuraGlow,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -2753,5 +3271,485 @@ mod tests {
 
         assert_eq!(triangles.len(), 160);
         assert!(triangles.len() < MAX_TRIANGLES_PER_PRIMITIVE);
+    }
+
+    // -----------------------------------------------------------------------
+    // RenderTeiFacingSlots (82)
+    // -----------------------------------------------------------------------
+
+    /// A camera with the same projection conventions as the game cameras
+    /// (left handed, y up, reverse-z), at the origin.
+    struct TestCamera {
+        eye: Point3<f32>,
+        focus: Point3<f32>,
+        view: Matrix4<f32>,
+        projection: Matrix4<f32>,
+        view_projection: Matrix4<f32>,
+        direction: Vector3<f32>,
+    }
+
+    impl TestCamera {
+        /// Looks along `+z` from `(0, 0, -10)`.
+        fn new() -> Self {
+            Self::looking_towards(Vector3::unit_z())
+        }
+
+        /// Looks along `(cos p sin y, -sin p, cos p cos y)`, i.e. orbited by
+        /// `(yaw, pitch)` exactly like the client camera.
+        fn orbited(yaw_degrees: f32, pitch_degrees: f32) -> Self {
+            let yaw = yaw_degrees.to_radians();
+            let pitch = pitch_degrees.to_radians();
+
+            Self::looking_towards(Vector3::new(pitch.cos() * yaw.sin(), -pitch.sin(), pitch.cos() * yaw.cos()))
+        }
+
+        /// A camera 10 world units behind the origin, looking along
+        /// `direction`.
+        fn looking_towards(direction: Vector3<f32>) -> Self {
+            let eye = Point3::new(-direction.x * 10.0, -direction.y * 10.0, -direction.z * 10.0);
+            let focus = Point3::new(eye.x + direction.x, eye.y + direction.y, eye.z + direction.z);
+            let view = Matrix4::look_to_lh(eye, direction, Vector3::unit_y());
+            let projection = crate::graphics::perspective_reverse_lh(Deg(45.0), 4.0 / 3.0);
+
+            Self {
+                eye,
+                focus,
+                view,
+                projection,
+                view_projection: projection * view,
+                direction,
+            }
+        }
+    }
+
+    impl Camera for TestCamera {
+        fn camera_position(&self) -> Point3<f32> {
+            self.eye
+        }
+
+        fn focus_point(&self) -> Point3<f32> {
+            self.focus
+        }
+
+        fn generate_view_projection(&mut self, _window_size: ScreenSize) {}
+
+        fn look_up_vector(&self) -> Vector3<f32> {
+            Vector3::unit_y()
+        }
+
+        fn view_projection_matrices(&self) -> (Matrix4<f32>, Matrix4<f32>) {
+            (self.view, self.projection)
+        }
+
+        fn view_projection_matrix(&self) -> Matrix4<f32> {
+            self.view_projection
+        }
+
+        fn view_direction(&self) -> Vector3<f32> {
+            self.direction
+        }
+    }
+
+    /// A prim-82 state with one live slot and the default `TexturedAura`
+    /// settings: texture slot 0, `render_flag` 5 (`ALPHA | CUSTOM_BLEND`),
+    /// `alphaB = 200`, `distance = 10`.
+    fn aura_state(kind: i8) -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::AuraGlow);
+        state.render_flag = 5;
+        state.texture = Some("effect\\aura.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 200,
+            distance: 10.0,
+            ..Default::default()
+        };
+        state.slots[0].flag1[2] = kind;
+
+        state
+    }
+
+    fn aura_point(distance: f32, angle: i32) -> [f32; 3] {
+        let (cos, sin) = trig(angle);
+
+        [distance * cos, 0.0, distance * sin]
+    }
+
+    fn assert_close(left: f32, right: f32) {
+        assert!((left - right).abs() < 1e-4, "{left} != {right}");
+    }
+
+    fn assert_corners_close(left: [[f32; 2]; 3], right: [[f32; 2]; 3]) {
+        for (left, right) in left.into_iter().zip(right) {
+            assert_close(left[0], right[0]);
+            assert_close(left[1], right[1]);
+        }
+    }
+
+    #[test]
+    fn face_camera_angles_are_recovered_from_the_view_direction() {
+        // `+z`: yaw 0, pitch 0 -> 360 and 360 - 0 + 90.
+        assert_eq!(face_camera_angles(&TestCamera::new()), [360, 90]);
+
+        // A non-integral orbit keeps the client's `(short)` truncation.
+        assert_eq!(face_camera_angles(&TestCamera::orbited(30.5, 20.5)), [330, 70]);
+
+        // The port's default camera: `view_angle = 180`, `CAMERA_PITCH = -55`.
+        assert_eq!(face_camera_angles(&TestCamera::orbited(180.0, -55.0)), [180, 145]);
+    }
+
+    #[test]
+    fn face_camera_rotation_turns_the_quad_towards_the_camera() {
+        let camera = TestCamera::orbited(30.5, 20.5);
+        let facing = face_camera_angles(&camera);
+        let mut state = aura_state(0);
+        state.position = [1.0, 2.0, 3.0];
+        state.slots[0].vec_b_now = [1.0, 2.0, 3.0];
+
+        let mut corners: Quad = [
+            aura_point(10.0, 0),
+            aura_point(10.0, 270),
+            aura_point(10.0, 180),
+            aura_point(10.0, 90),
+        ];
+        tei_toward_screen(&mut corners, facing[0], facing[1]);
+
+        // The x/z-plane quad's normal is rotated onto the camera direction
+        // (within one integer table degree).
+        let edge_a = [
+            corners[1][0] - corners[0][0],
+            corners[1][1] - corners[0][1],
+            corners[1][2] - corners[0][2],
+        ];
+        let edge_b = [
+            corners[3][0] - corners[0][0],
+            corners[3][1] - corners[0][1],
+            corners[3][2] - corners[0][2],
+        ];
+        let normal = [
+            edge_a[1] * edge_b[2] - edge_a[2] * edge_b[1],
+            edge_a[2] * edge_b[0] - edge_a[0] * edge_b[2],
+            edge_a[0] * edge_b[1] - edge_a[1] * edge_b[0],
+        ];
+        let magnitude = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]).sqrt();
+        let normal = [normal[0] / magnitude, normal[1] / magnitude, normal[2] / magnitude];
+        let direction = camera.view_direction();
+
+        // Facing the camera means the normal is anti-parallel to the view
+        // direction; a 1 degree table error is at most ~0.018 in the dot.
+        let dot = normal[0] * direction.x + normal[1] * direction.y + normal[2] * direction.z;
+        assert!((dot + 1.0).abs() < 0.02, "normal . view = {dot}");
+    }
+
+    #[test]
+    fn face_camera_vertical_shift_uses_integer_division() {
+        assert_eq!(face_camera_vertical_shift(480, 1.0), -30.0);
+        assert_eq!(face_camera_vertical_shift(1080, 1.0), -67.0, "-67.5 truncates toward zero");
+        assert_eq!(face_camera_vertical_shift(1080, CEFFECT_PRIM_DISTANCE_SCALE), -67.0);
+        assert_eq!(face_camera_vertical_shift(1080, 2.0), -134.0);
+    }
+
+    #[test]
+    fn aura_kind_table_reproduces_the_official_switch_and_its_fall_through() {
+        // `case 2` falls through 4, 5, 10, 12 and 15.
+        let two: Vec<_> = facing_rects(2).iter().map(|rect| rect.colour).collect();
+        assert_eq!(two, vec![
+            (130, 130, 250),
+            (255, 255, 255),
+            (125, 255, 125),
+            (150, 150, 150),
+            (50, 50, 50),
+            (51, 153, 153),
+        ]);
+
+        // Entering the chain lower emits a shorter suffix.
+        assert_eq!(facing_rects(4).len(), 5);
+        assert_eq!(facing_rects(5).len(), 4);
+        assert_eq!(facing_rects(10).len(), 3);
+        assert_eq!(facing_rects(12).len(), 2);
+        assert_eq!(facing_rects(15).len(), 1);
+
+        // Case 12 falls into case 15 too: there is no `break;` after it.
+        assert_eq!(facing_rects(12)[1].colour, (51, 153, 153));
+
+        // The two-rect cases.
+        assert_eq!(facing_rects(18).iter().map(|rect| rect.colour).collect::<Vec<_>>(), vec![
+            (5, 5, 255),
+            (155, 155, 255)
+        ]);
+        assert_eq!(facing_rects(19).iter().map(|rect| rect.colour).collect::<Vec<_>>(), vec![
+            (5, 255, 5),
+            (155, 255, 155)
+        ]);
+        assert_eq!(facing_rects(20).iter().map(|rect| rect.colour).collect::<Vec<_>>(), vec![
+            (255, 5, 5),
+            (255, 155, 155)
+        ]);
+
+        // Only 0/3/16 pass `pw = 1`; only 16 is the `extra == 3` path.
+        for kind in [0, 3, 16] {
+            assert!(facing_rects(kind).iter().all(|rect| rect.pw_one), "kind {kind}");
+        }
+        for kind in [2, 4, 5, 10, 12, 15, 17, 18, 19, 20, 32] {
+            assert!(facing_rects(kind).iter().all(|rect| !rect.pw_one), "kind {kind}");
+        }
+        assert!(facing_rects(16)[0].extra_three);
+
+        // Unlisted kinds emit nothing.
+        assert!(facing_rects(6).is_empty());
+        assert!(facing_rects(14).is_empty());
+        assert!(facing_rects(33).is_empty());
+    }
+
+    #[test]
+    fn aura_kind_zero_builds_the_official_square() {
+        let state = aura_state(0);
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        assert_eq!(built[0].texture, Some("effect\\aura.tga"));
+        assert_eq!(built[0].argb, pack_argb(200, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].projected, None);
+        assert_eq!(built[0].forced_depth, None);
+
+        // Shape 0: 0, -90, -180, -270.
+        let v1 = aura_point(10.0, 0);
+        let v2 = aura_point(10.0, 270);
+        let v3 = aura_point(10.0, 180);
+        let v4 = aura_point(10.0, 90);
+
+        // Cases 0/3 pass `(vec1, vec2, vec3, vec4)`; the quad is split
+        // `(v1, v2, v3)` then `(v4, v3, v1)` with full-texture UVs.
+        assert_eq!(built[0].corners, [v1, v2, v3]);
+        assert_eq!(built[1].corners, [v4, v3, v1]);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+    }
+
+    #[test]
+    fn aura_shape_one_uses_the_official_spacing() {
+        // `TexturedAura` kind 1 sets `flag1[2] = 0` (renderer case 0/3) and
+        // `height[10] = 1` (shape 1).
+        let mut state = aura_state(0);
+        state.slots[0].height[10] = 1.0;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        assert_eq!(built[0].argb, pack_argb(200, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        // Shape 1: 0, -60, -180, -240/120.
+        let v1 = aura_point(10.0, 0);
+        let v2 = aura_point(10.0, 300);
+        let v3 = aura_point(10.0, 180);
+        let v4 = aura_point(10.0, 120);
+
+        // Case 0/3 passes `(vec1, vec2, vec3, vec4)`.
+        assert_eq!(built[0].corners, [v1, v2, v3]);
+        assert_eq!(built[1].corners, [v4, v3, v1]);
+    }
+
+    #[test]
+    fn aura_kind_three_offsets_the_shape_two_square() {
+        let mut state = aura_state(3);
+        state.slots[0].height[10] = 2.0;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        assert_eq!(built[0].argb, pack_argb(200, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        // Shape 2: 0, -130, -180/180, -230/130 -> with `kind == 3` the whole
+        // quad also moves +3.1 in x and +6 in z.
+        let shifted = |angle: i32| {
+            let mut point = aura_point(10.0, angle);
+            point[0] += 3.1;
+            point[2] += 6.0;
+
+            point
+        };
+        let v1 = shifted(0);
+        let v2 = shifted(230);
+        let v3 = shifted(180);
+        let v4 = shifted(50);
+
+        assert_eq!(built[0].corners, [v1, v2, v3]);
+        assert_eq!(built[1].corners, [v4, v3, v1]);
+    }
+
+    #[test]
+    fn aura_kind_two_emits_the_whole_fall_through_chain() {
+        let state = aura_state(2);
+        let built = triangles(&state);
+
+        // Six RenderTeiRect calls, two triangles each.
+        assert_eq!(built.len(), 12);
+
+        let expected = [
+            (130, 130, 250),
+            (255, 255, 255),
+            (125, 255, 125),
+            (150, 150, 150),
+            (50, 50, 50),
+            (51, 153, 153),
+        ];
+
+        for (index, colour) in expected.into_iter().enumerate() {
+            let argb = pack_argb(200, colour.0, colour.1, colour.2);
+
+            assert_eq!(built[index * 2].argb, argb, "rect {index}");
+            assert_eq!(built[index * 2 + 1].argb, argb, "rect {index} second triangle");
+            assert_eq!(built[index * 2].blend, SlotBlend::AlphaOne);
+        }
+
+        // Shape 0 corners, in the `(vec2, vec1, vec4, vec3)` order shared by
+        // every rect of the chain.
+        let v1 = aura_point(10.0, 0);
+        let v2 = aura_point(10.0, 270);
+        let v3 = aura_point(10.0, 180);
+        let v4 = aura_point(10.0, 90);
+
+        for quad in built.chunks(2) {
+            assert_eq!(quad[0].corners, [v2, v1, v4]);
+            assert_eq!(quad[1].corners, [v3, v4, v2]);
+        }
+    }
+
+    #[test]
+    fn aura_case_four_and_twelve_enter_mid_chain() {
+        let four = triangles(&aura_state(4));
+
+        assert_eq!(four.len(), 10, "case 4 emits 4, 5, 10, 12 and 15");
+        assert_eq!(four[0].argb, pack_argb(200, 255, 255, 255));
+
+        let twelve = triangles(&aura_state(12));
+
+        assert_eq!(twelve.len(), 4, "case 12 emits 12 and then falls into 15");
+        assert_eq!(twelve[0].argb, pack_argb(200, 50, 50, 50));
+        assert_eq!(twelve[2].argb, pack_argb(200, 51, 153, 153));
+    }
+
+    #[test]
+    fn aura_unlisted_kind_draws_nothing() {
+        assert!(triangles(&aura_state(6)).is_empty());
+        assert!(triangles(&aura_state(14)).is_empty());
+    }
+
+    #[test]
+    fn aura_without_a_live_slot_or_alpha_draws_nothing() {
+        // No live slot.
+        let mut state = state_of(PrimitiveId::AuraGlow);
+        state.texture = Some("effect\\aura.tga");
+        assert!(triangles(&state).is_empty());
+
+        // Live but transparent (`alpha <= 0`).
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 0,
+            distance: 10.0,
+            ..Default::default()
+        };
+        assert!(triangles(&state).is_empty());
+
+        // A single alpha unit is enough (the official gate is `alpha <= 0`).
+        state.slots[0].alpha_b = 1;
+        assert_eq!(triangles(&state).len(), 2);
+    }
+
+    #[test]
+    fn aura_uses_the_slot_flag_as_the_texture_index() {
+        let mut state = aura_state(0);
+        state.texture_secondary = Some("effect\\aura2.tga");
+        state.slots[0].flag1[0] = 1;
+
+        assert_eq!(triangles(&state)[0].texture, Some("effect\\aura2.tga"));
+    }
+
+    #[test]
+    fn aura_kind_sixteen_uses_the_face_camera_clamp() {
+        let camera = TestCamera::new();
+        let context = SlotRenderContext {
+            camera: &camera,
+            viewport: WINDOW,
+            distance_scale: CEFFECT_PRIM_DISTANCE_SCALE,
+            facing: [0, 0],
+        };
+
+        // `TexturedAura` kind 22 sets `flag1[2] = 16`, `distance = 4`,
+        // `height[10] = 0`, `fullDisplayAngle = 135` and lifts `vecBNow`.
+        let mut state = aura_state(16);
+        state.position = [1.0, 2.0, 3.0];
+        state.slots[0].distance = 4.0;
+        state.slots[0].full_display_angle = 135;
+        state.slots[0].vec_b_now = [1.0, 7.0, 3.0];
+
+        let built = triangles_with_context(&state, Some(&context));
+
+        assert_eq!(built.len(), 2);
+
+        // Rebuild the same four world corners, project them and apply the
+        // official rewrite independently.
+        let v1 = [aura_point(4.0, 135)[0] + 1.0, 7.0, aura_point(4.0, 135)[2] + 3.0];
+        let v2 = [aura_point(4.0, 45)[0] + 1.0, 7.0, aura_point(4.0, 45)[2] + 3.0];
+        let v3 = [aura_point(4.0, 315)[0] + 1.0, 7.0, aura_point(4.0, 315)[2] + 3.0];
+        let v4 = [aura_point(4.0, 225)[0] + 1.0, 7.0, aura_point(4.0, 225)[2] + 3.0];
+
+        // Case 16 passes `(vec2, vec1, vec4, vec3)`.
+        let quad = [v2, v1, v4, v3];
+        let pixels = quad.map(|corner| project_window_pixel(&camera, corner, WINDOW).expect("in front of the camera"));
+        let anchor = project_window_pixel(&camera, state.position, WINDOW).expect("in front of the camera");
+        let shift = face_camera_vertical_shift(WINDOW.height as i32, CEFFECT_PRIM_DISTANCE_SCALE);
+
+        let to_ndc = |pixel: [f32; 2]| [pixel[0] / WINDOW.width * 2.0 - 1.0, 1.0 - pixel[1] / WINDOW.height * 2.0];
+
+        let first_width = (pixels[0][0] - pixels[1][0]).abs() * 0.5;
+        let first = [
+            to_ndc([anchor[0] + first_width, pixels[0][1] + shift]),
+            to_ndc([anchor[0] - first_width, pixels[1][1] + shift]),
+            to_ndc([anchor[0] - first_width, pixels[2][1] + shift]),
+        ];
+
+        let second_width = (pixels[3][0] - pixels[2][0]).abs() * 0.5;
+        let second = [
+            to_ndc([anchor[0] + second_width, pixels[3][1] + shift]),
+            to_ndc([anchor[0] - second_width, pixels[2][1] + shift]),
+            to_ndc([anchor[0] + second_width, pixels[0][1] + shift]),
+        ];
+
+        assert_eq!(built[0].argb, pack_argb(200, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].forced_depth, None, "the depth lives in `projected`");
+        assert_eq!(built[0].texture, Some("effect\\aura.tga"));
+
+        let first_projected = built[0].projected.expect("kind 16 is pre-transformed");
+        let second_projected = built[1].projected.expect("kind 16 is pre-transformed");
+
+        assert_eq!(first_projected.depth, 1.0);
+        assert_eq!(second_projected.depth, 1.0);
+        assert_corners_close(first_projected.corners, first);
+        assert_corners_close(second_projected.corners, second);
+
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+    }
+
+    #[test]
+    fn aura_kind_sixteen_without_a_camera_draws_nothing() {
+        // The camera-less `triangles()` helper cannot reproduce
+        // `TransformVert`; the live render path always supplies the context.
+        assert!(triangles(&aura_state(16)).is_empty());
+    }
+
+    #[test]
+    fn aura_draws_at_the_slots_vec_b_now() {
+        let mut state = aura_state(0);
+        state.slots[0].vec_b_now = [5.0, -30.0, 7.0];
+
+        let built = triangles(&state);
+        let v1 = aura_point(10.0, 0);
+
+        assert_eq!(built[0].corners[0], [v1[0] + 5.0, -30.0, v1[2] + 7.0]);
     }
 }

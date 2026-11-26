@@ -226,7 +226,8 @@ impl PortedEffectHolder {
     ///   `RenderArcBand`, `RenderFieldPanel`, `RenderPyramid`, ...), see
     ///   [`render_slots`]. They are submitted as triangles because their
     ///   vertices carry independent heights and depths; the forward effect pass
-    ///   draws them right after the quad list.
+    ///   draws them right after the quad list. This includes `TexturedAura`'s
+    ///   prim 82 (`RenderTeiFacingSlots`).
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
         let anchor = Point3::new(self.runtime.position[0], self.runtime.position[1], self.runtime.position[2]);
 
@@ -370,13 +371,28 @@ pub(crate) fn color_from_argb(argb: u32) -> Color {
 /// project per vertex, then reject a triangle whose `rhw` is not positive).
 /// A triangle without a resolvable texture draws nothing, like the descriptor
 /// effects; a missing asset must not take the whole effect down.
+///
+/// The context carries the three values `RenderTeiFacingSlots` (prim 82) reads
+/// outside the primitive state: the camera (`extra == 3`'s `TransformVert` and
+/// `FaceCamera`), `g_renderer->viewport`, and `this->render.distanceScale`.
+/// The other renderers ignore it.
 fn render_slot_primitive(renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader, state: &EffectPrimitiveState) {
+    let context = render_slots::SlotRenderContext {
+        camera,
+        viewport: renderer.window_size(),
+        // `CRenderObject::Reset`'s 1.0; see `CEFFECT_PRIM_DISTANCE_SCALE`.
+        distance_scale: render_slots::CEFFECT_PRIM_DISTANCE_SCALE,
+        // `FaceCamera`, computed at render time because the simulation has no
+        // camera. The rest of the module reads the same two angles.
+        facing: render_slots::face_camera_angles(camera),
+    };
+
     // One primitive usually draws a few hundred triangles that all sample the
     // same one of its (at most three) texture slots, so the loader is only
     // asked again when the path changes.
     let mut cached: Option<(&'static str, Option<Arc<crate::graphics::Texture>>)> = None;
 
-    for triangle in render_slots::triangles(state) {
+    for triangle in render_slots::triangles_with_context(state, Some(&context)) {
         let Some(path) = triangle.texture else {
             continue;
         };
@@ -399,6 +415,21 @@ fn render_slot_primitive(renderer: &mut EffectRenderer, camera: &dyn Camera, tex
         let corners = render_slots::triangle_points(&triangle);
         let texture_coordinates = render_slots::triangle_uvs(&triangle);
         let color = color_from_argb(triangle.argb);
+
+        if let Some(projected) = &triangle.projected {
+            // `RenderTeiRect`'s `extra == 3`: the corners are already NDC.
+            renderer.render_triangle_projected(
+                projected.corners,
+                projected.depth,
+                texture_coordinates,
+                color,
+                source_blend_factor,
+                destination_blend_factor,
+                texture,
+            );
+
+            continue;
+        }
 
         match triangle.forced_depth {
             Some(depth) => renderer.render_triangle_with_depth(

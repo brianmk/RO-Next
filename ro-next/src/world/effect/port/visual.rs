@@ -12,10 +12,11 @@
 //! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`], the
 //! `RenderSegmentSprites2` sprite pass of [`super::sprite_pass`] for the
 //! `.spr` particle families, and the slot/record primitives of
-//! [`super::render_slots`] (rings, cylinders, columns, fans, halo, wind and
-//! arc walls) as additive triangle lists. The remaining primitive families
-//! (`PP_3DSPHERE`, the arc/sweep families and the effect ids whose `Render*`
-//! member is not ported yet) are skipped rather than guessed.
+//! [`super::render_slots`] (rings, cylinders, columns, fans, halo, wind, arc
+//! walls and the `TexturedAura` glow of prim 82) as additive triangle lists.
+//! The remaining primitive families (`PP_3DSPHERE`, the arc/sweep families and
+//! the effect ids whose `Render*` member is not ported yet) are skipped rather
+//! than guessed.
 //!
 //! The sprite pass needs the client's [`SpriteLoader`]/[`ActionLoader`]; they
 //! are handed to the holder here so it can resolve the ACT frame count while
