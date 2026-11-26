@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 
 use super::angles::Angles;
-use super::math::{matrix_mult, Matrix};
+use super::math::matrix_mult;
 use super::primitive::PrimitiveId;
 use super::runtime::{EffectRuntime, PortedEffect};
 
@@ -191,6 +191,7 @@ impl PortedEffect for TexturedForkBolt {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::world::effect::port::math::Matrix;
     use crate::world::effect::port::runtime::{step, EffectRuntime};
 
     fn close(left: f32, right: f32) -> bool {

@@ -9,7 +9,6 @@
 //! once the caller opens its clip.
 
 use super::super::angles::Angles;
-use super::super::math::matrix_mult;
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -80,7 +79,7 @@ impl PortedEffect for StormGust {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn fragments_start_after_frame_thirty() {
