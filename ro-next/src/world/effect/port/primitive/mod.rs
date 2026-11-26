@@ -241,10 +241,22 @@ pub enum PrimitiveId {
     WaveSpin,
     /// prim 35 - `PrimFloatingBubbles`' ascending icons (`SuperSlashFan`, i.e.
     /// `EF_GUMGANG`/`EF_STEELBODY`). No `EffectPrimId.h` symbol; named after
-    /// its motion body. Drawn by `RenderOrbitIcons`. Prim 99
-    /// (`PP_DOUBLEGUMGANG`) shares the motion but has its own renderer and is
-    /// not ported.
+    /// its motion body. Drawn by `RenderOrbitIcons`.
     FloatingBubbles,
+    /// `PP_DOUBLEGUMGANG` (99) - `SuperSlashSpread`'s nested icon sheets
+    /// (`EF_DOUBLEGUMGANG`/2/3). Shares prim 35's motion
+    /// (`PrimFloatingBubbles`, `EffectPrimitiveMotion.cpp:9646-9649`) and slot
+    /// layout, but has its own renderer, `RenderDoubleGumGang`
+    /// (`EffectPrimitiveRendering.cpp:7106`, dispatch `:495-497`).
+    DoubleGumGang,
+    /// prim 147 - `CRagEffect::TexturedSlam`'s fan (`EF_SECRA`/2, the
+    /// `EF_ROLLING1..10` family and `EF_HEARTASURA`). The official enum has no
+    /// symbol for it (`EffectPrimId.h` has no 147), so the port names it after
+    /// its only spawner: `EffectPrimitiveMotion.cpp:8425-8426` moves it with
+    /// `PrimRisingFan` (prim 130's motion) and
+    /// `EffectPrimitiveRendering.cpp:431-433` draws it with `RenderHaloLayers`
+    /// (prim 68's renderer).
+    TexturedSlam,
 }
 
 impl PrimitiveId {
@@ -292,6 +304,8 @@ impl PrimitiveId {
             Self::Casting3d => 30,
             Self::WaveSpin => 31,
             Self::FloatingBubbles => 35,
+            Self::DoubleGumGang => 99,
+            Self::TexturedSlam => 147,
         }
     }
 }
@@ -849,7 +863,17 @@ impl EffectPrimitiveState {
                 wave_spin::on_process(self, angles, master);
                 true
             }
-            PrimitiveId::FloatingBubbles => floating_bubbles::on_process(self, master, rng),
+            PrimitiveId::FloatingBubbles | PrimitiveId::DoubleGumGang => floating_bubbles::on_process(self, master, rng),
+            PrimitiveId::TexturedSlam => {
+                // `OnProcess`'s `case 147` belongs to the "follow the master"
+                // pre-switch group (`EffectPrimitiveMotion.cpp:8062-8065`):
+                // `render.position = master->render.position;`. The motion
+                // body is `PrimRisingFan`, which only follows on its own when
+                // `slots[0].flag1[4] == 1`; `TexturedSlam` sets 5/6/7.
+                self.position = master.position;
+                rising_fan::rising_fan(self, master);
+                true
+            }
         };
 
         if !alive {
@@ -1115,5 +1139,41 @@ mod tests {
         assert_eq!(get_angle(0.0, 10.0), 91);
         assert_eq!(get_angle(-10.0, 0.0), 180);
         assert_eq!(get_angle(0.0, -10.0), 269);
+    }
+
+    #[test]
+    fn double_gum_gang_and_textured_slam_ids_match_the_dispatch() {
+        assert_eq!(PrimitiveId::DoubleGumGang.id(), 99);
+        assert_eq!(PrimitiveId::TexturedSlam.id(), 147);
+    }
+
+    #[test]
+    fn textured_slam_follows_the_master_before_its_rising_fan() {
+        let angles = Angles::new();
+        let master = MasterState {
+            position: [7.0, 8.0, 9.0],
+            ..Default::default()
+        };
+        let mut state = EffectPrimitiveState {
+            count: PrimitiveId::TexturedSlam,
+            duration: 100,
+            ..Default::default()
+        };
+
+        state.slots[0].life = 1;
+        // `TexturedSlam`'s kinds are 5/6/7; `PrimRisingFan` only follows the
+        // master by itself when `flag1[4] == 1`, so the dispatch prelude does.
+        state.slots[0].flag1[4] = 6;
+        state.slots[0].distance = 21.0;
+
+        assert!(state.on_process(&angles, &master, &mut EffectRng::new(1)));
+
+        assert_eq!(state.position, [7.0, 8.0, 9.0]);
+        // `PrimRisingFan`'s first step: `process = 1`, heights start rising and
+        // the radius closes by 0.2.
+        assert_eq!(state.slots[0].process, 1);
+        assert_eq!(state.slots[0].height[1], 10.0);
+        assert_eq!(state.slots[0].height[10], 10.0);
+        assert!((state.slots[0].distance - 20.8).abs() < 1e-6);
     }
 }

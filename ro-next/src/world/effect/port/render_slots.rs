@@ -20,6 +20,8 @@
 //! | 30, 31 | `Render3DCasting` | `TexturedQuadRingSized` rings (`EF_AURABLADE`, `EF_BEGINASURA`), `EF_GUMGANG2` |
 //! | 35 | `RenderOrbitIcons` | `SuperSlashFan` - `EF_GUMGANG`, `EF_STEELBODY` |
 //! | 68 | `RenderHaloLayers` | `AsuraStrike`/`TexturedSkillIcon` - `EF_BEGINASURA`, 1..7, 11 |
+//! | 99 | `RenderDoubleGumGang` | `SuperSlashSpread` - `EF_DOUBLEGUMGANG`, 2, 3 |
+//! | 147 | `RenderHaloLayers` (stored angles) | `TexturedSlam` - `EF_SECRA`/2, `EF_ROLLING1..10`, `EF_HEARTASURA` |
 //! | 48 | `RenderColorPlane` | `TexturedMagicRing(name, kind)` - the bottom-song family |
 //! | 75 | `RenderSlash1` | `JobLvUp50_2` (`EF_KAIZEL`), `RunStop` (`EF_STOPEFFECT`) |
 //! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
@@ -91,14 +93,14 @@
 //! * Angles are read from the client's trig tables with the index wrapped into
 //!   `[0, 360]`; the original would read out of bounds where a body leaves a
 //!   `height[...]` phase outside that range.
-//! * `RenderTeiRect`'s `extra == 2` (only `RenderOrbitIcons`, prim 35) bumps
-//!   every projected vertex's reciprocal depth by `+0.000045` and recomputes `z
-//!   = RhwToDepth(rhw)` (`DepthAlpha.cpp:33`), a constant depth nudge of
-//!   `10.067114 * 0.000045 = 0.000453` in the original's depth units. The port
-//!   projects in the holder pass and has no per-vertex depth channel on
-//!   [`SlotTriangle`], so the nudge is not reproduced (the geometry, colours
-//!   and blend are). It only biases the icons against the caster in the depth
-//!   buffer.
+//! * `RenderTeiRect`'s `extra == 2` (only `RenderOrbitIcons`, prim 35, and
+//!   `RenderDoubleGumGang`, prim 99) bumps every projected vertex's reciprocal
+//!   depth by `+0.000045` and recomputes `z = RhwToDepth(rhw)`
+//!   (`DepthAlpha.cpp:33`), a constant depth nudge of `10.067114 * 0.000045 =
+//!   0.000453` in the original's depth units. The port projects in the holder
+//!   pass and has no per-vertex depth channel on [`SlotTriangle`], so the nudge
+//!   is not reproduced (the geometry, colours and blend are). It only biases
+//!   the icons against the caster in the depth buffer.
 //! * `RenderTeiFacingSlots` reads `slots[0].alphaT`/`slots[1].alphaT`, which
 //!   `PrimAuraGlow` fills with `FaceCamera` from the client camera. The port's
 //!   effect simulation has no camera, so the holder computes the same two
@@ -310,6 +312,8 @@ pub enum SlotRenderer {
     HaloLayers,
     /// `RenderOrbitIcons` - prim 35 (`SuperSlashFan`).
     OrbitIcons,
+    /// `RenderDoubleGumGang` - prim 99 (`PP_DOUBLEGUMGANG`).
+    DoubleGumGang,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -343,7 +347,10 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::PeongUp => SlotRenderer::PeongUp,
         PrimitiveId::Casting3d | PrimitiveId::WaveSpin => SlotRenderer::Casting,
         PrimitiveId::AsuraCasting => SlotRenderer::HaloLayers,
+        // Prim 147 (`TexturedSlam`) reuses `RenderHaloLayers`.
+        PrimitiveId::TexturedSlam => SlotRenderer::HaloLayers,
         PrimitiveId::FloatingBubbles => SlotRenderer::OrbitIcons,
+        PrimitiveId::DoubleGumGang => SlotRenderer::DoubleGumGang,
         _ => return None,
     })
 }
@@ -403,10 +410,17 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
             render_peong_up(state, facing, &mut out);
         }
         Some(SlotRenderer::HaloLayers) => {
-            // `PrimAsuraCasting` runs `FaceCamera(state.slots)` each frame; the
-            // hermetic simulation has no camera, so the live render path uses
-            // the angles recovered from it (like `RenderTeiFacingSlots`).
-            let facing = facing_or_stored(state, context);
+            // `PrimAsuraCasting` (prim 68) runs `FaceCamera(state.slots)` each
+            // frame; the hermetic simulation has no camera, so the live render
+            // path uses the angles recovered from it (like
+            // `RenderTeiFacingSlots`). Prim 147's `PrimRisingFan` does *not*
+            // call `FaceCamera`, so `TexturedSlam`'s layers keep the
+            // constructor's zeroed `alphaT` angles.
+            let facing = if matches!(state.count, PrimitiveId::AsuraCasting) {
+                facing_or_stored(state, context)
+            } else {
+                [state.slots[0].alpha_t, state.slots[1].alpha_t]
+            };
 
             render_halo_layers(state, facing, &mut out);
         }
@@ -414,6 +428,13 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
             let facing = facing_or_stored(state, context);
 
             render_orbit_icons(state, facing, 1.0, 100, 100, 255, &mut out);
+        }
+        Some(SlotRenderer::DoubleGumGang) => {
+            // `PrimFloatingBubbles` runs `FaceCamera` each frame (prim 99 shares
+            // it), so the live path uses the camera angles like prim 35.
+            let facing = facing_or_stored(state, context);
+
+            render_double_gum_gang(state, facing, &mut out);
         }
         None => {}
     }
@@ -3059,6 +3080,166 @@ const EFFECT_ICON_RADIUS: f32 = 4.0;
 const EFFECT_ICON_OUTER_RADIUS: f32 = 2.0;
 
 // ---------------------------------------------------------------------------
+// RenderDoubleGumGang (99)
+// ---------------------------------------------------------------------------
+
+/// `const float length = 4.0f;` in `RenderDoubleGumGang`
+/// (`EffectPrimitiveRendering.cpp:7161`). Equal to `g_effectIconRadius`, but
+/// the original spells it as a local literal.
+const DOUBLE_GUMGANG_ICON_LENGTH: f32 = 4.0;
+
+/// `CEffectPrim::RenderDoubleGumGang` -
+/// `EffectPrimitiveRendering.cpp:7106-7363`.
+///
+/// `PP_DOUBLEGUMGANG`'s three nested `superN.bmp` sheets. Each live slot draws
+/// twelve quads: for `i = 0..2` (scale `1.0`, `1.2`, `2.0`) it emits one quad
+/// per slot vector (`vecBPre`, `vecBNow`, `vecTPre`, `vecTNow`), so four live
+/// slots make 48 quads / 96 triangles.
+///
+/// The base corners sit on the 45/135/225/315 degree diagonals at radius
+/// `distance * rdist` and are turned towards the screen by `Tei_TowardScreen`
+/// with `slots[0..1].alphaT` (prim 99 shares `PrimFloatingBubbles`, which runs
+/// `FaceCamera`). The per-vector offsets are rebuilt at a fixed `length = 4.0`
+/// from `height[3]`/`[7]`/`[11]`/`[15]`; their `y` keeps the body's random
+/// vertical offset (`SuperSlashSpread`). Every corner is then dropped by
+/// `height[20]` (the caster name offset).
+///
+/// `slot.flag1[4]` selects the colours: `0` blue, `1` grey, anything else red
+/// (`EF_DOUBLEGUMGANG` passes 2, `...2` 1, `...3` 0).
+///
+/// The alpha is `min(height[1|5|9|13], slot.process)`: `SuperSlashSpread` seeds
+/// 40/80/120/160, so the rings fade in one unit per frame. The texture is
+/// `height[2|6|10|14]`, and the corner order flips when
+/// `(texture == 0 || texture == 2) != visible-range`, exactly like
+/// `RenderOrbitIcons`.
+///
+/// `RenderTeiRect`'s `extra == 2` reciprocal-depth nudge is not reproduced (see
+/// the module header's deviations). Nothing here writes back into the slot's
+/// `vec*` fields; the motion body never reads them.
+pub fn render_double_gum_gang(state: &EffectPrimitiveState, facing: [i16; 2], out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        // The original rebuilds the four vectors on every `i`; their angle
+        // indices do not depend on `i`, so the port hoists them. Only `x`/`z`
+        // are rewritten - `y` keeps the body's `-ClampedRandomAtZero(10)`
+        // offset.
+        let offsets: [[f32; 3]; 4] = [
+            [
+                table_cos(slot.height[3] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+                slot.vec_b_pre[1],
+                table_sin(slot.height[3] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+            ],
+            [
+                table_cos(slot.height[7] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+                slot.vec_b_now[1],
+                table_sin(slot.height[7] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+            ],
+            [
+                table_cos(slot.height[11] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+                slot.vec_t_pre[1],
+                table_sin(slot.height[11] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+            ],
+            [
+                table_cos(slot.height[15] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+                slot.vec_t_now[1],
+                table_sin(slot.height[15] as i32) * DOUBLE_GUMGANG_ICON_LENGTH,
+            ],
+        ];
+
+        for i in 0..3usize {
+            let (red, green, blue, rdist) = double_gum_gang_color(slot.flag1[4], i);
+            let rx = slot.distance * rdist;
+
+            let mut corners = [
+                [table_cos(45) * rx, 0.0, table_sin(45) * rx],
+                [table_cos(135) * rx, 0.0, table_sin(135) * rx],
+                [table_cos(225) * rx, 0.0, table_sin(225) * rx],
+                [table_cos(315) * rx, 0.0, table_sin(315) * rx],
+            ];
+
+            tei_toward_screen(&mut corners, facing[0], facing[1]);
+
+            let base = corners;
+
+            // `(angle index, texture index, alpha index, owner vector)` in the
+            // original's block order: `vecBPre`, `vecBNow`, `vecTPre`,
+            // `vecTNow`.
+            let icons: [(usize, usize, usize, [f32; 3]); 4] = [
+                (3, 2, 1, offsets[0]),
+                (7, 6, 5, offsets[1]),
+                (11, 10, 9, offsets[2]),
+                (15, 14, 13, offsets[3]),
+            ];
+
+            for (angle_index, texture_index, alpha_index, offset) in icons {
+                let difference = (slot.height[angle_index] - facing[0] as f32) as i32;
+                let icon_faces_us = (difference < 70 && difference > -80) || !(-270..=270).contains(&difference);
+
+                let texture = slot.height[texture_index];
+                let keep_order = (texture == 0.0 || texture == EFFECT_ICON_OUTER_RADIUS) == icon_faces_us;
+
+                let mut quad = if keep_order {
+                    [
+                        add(base[0], offset),
+                        add(base[1], offset),
+                        add(base[2], offset),
+                        add(base[3], offset),
+                    ]
+                } else {
+                    [
+                        add(base[1], offset),
+                        add(base[0], offset),
+                        add(base[3], offset),
+                        add(base[2], offset),
+                    ]
+                };
+
+                let name_offset = slot.height[20];
+
+                for corner in &mut quad {
+                    corner[1] -= name_offset;
+                }
+
+                // `count = (int)height[...]; if (count > process) count = process;`
+                let alpha = (slot.height[alpha_index] as i32).min(slot.process) as i16;
+                let texture_slot_index = (slot.height[texture_index] as i8).max(0) as usize;
+
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    alpha,
+                    quad,
+                    texture_slot_index as i32,
+                    true,
+                    (red, green, blue),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                );
+            }
+        }
+    }
+}
+
+/// The colour/scale table of [`render_double_gum_gang`]
+/// (`EffectPrimitiveRendering.cpp:7126-7177`).
+fn double_gum_gang_color(kind: i8, layer: usize) -> (u8, u8, u8, f32) {
+    const BLUE: [(u8, u8, u8, f32); 3] = [(100, 100, 255, 1.0), (0, 0, 120, 1.2), (0, 0, 120, 2.0)];
+    const GREY: [(u8, u8, u8, f32); 3] = [(90, 90, 80, 1.0), (60, 60, 50, 1.2), (30, 30, 20, 2.0)];
+    const RED: [(u8, u8, u8, f32); 3] = [(255, 100, 100, 1.0), (120, 0, 0, 1.2), (120, 0, 0, 2.0)];
+
+    match kind {
+        0 => BLUE[layer],
+        1 => GREY[layer],
+        _ => RED[layer],
+    }
+}
+
+// ---------------------------------------------------------------------------
 // RenderTeiFacingSlots (82)
 // ---------------------------------------------------------------------------
 
@@ -5652,5 +5833,197 @@ mod tests {
 
         assert_eq!(built[0].corners[0][1], -4.0 - 6.0);
         assert_eq!(built[0].corners[1][1], -4.0 - 6.0);
+    }
+
+    // -----------------------------------------------------------------------
+    // RenderDoubleGumGang (99) / RenderHaloLayers (147)
+    // -----------------------------------------------------------------------
+
+    /// `SuperSlashSpread(2, value)`'s slot: `distance = 2`, four records at
+    /// alpha 40/80/120/160, textures `height[2|6|10|14]`, angles
+    /// `height[3|7|11|15]`.
+    fn double_gum_gang_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::DoubleGumGang);
+        // `state.renderFlag = RSF_ALPHA | RSF_CUSTOM_BLEND;`
+        state.render_flag = 1 | 4;
+        state.texture_frames = SUPER_TEXTURES.to_vec();
+        state.texture = Some(SUPER_TEXTURES[0]);
+        state.slots[0].life = 1;
+        state.slots[0].process = 40;
+        state.slots[0].distance = 2.0;
+        state.slots[0].height[0] = 10.0;
+        state.slots[0].height[1] = 40.0;
+        state.slots[0].height[2] = 3.0;
+        state.slots[0].height[3] = 10.0;
+        state.slots[0].height[5] = 80.0;
+        state.slots[0].height[6] = 4.0;
+        state.slots[0].height[7] = 20.0;
+        state.slots[0].height[9] = 120.0;
+        state.slots[0].height[10] = 0.0;
+        state.slots[0].height[11] = 30.0;
+        state.slots[0].height[13] = 160.0;
+        state.slots[0].height[14] = 1.0;
+        state.slots[0].height[15] = 40.0;
+        state.slots[0].vec_b_pre = [0.0, -4.0, 0.0];
+        state.slots[0].vec_b_now = [0.0, -5.0, 0.0];
+        state.slots[0].vec_t_pre = [0.0, -6.0, 0.0];
+        state.slots[0].vec_t_now = [0.0, -7.0, 0.0];
+
+        state
+    }
+
+    #[test]
+    fn the_super_slash_renderers_are_dispatched() {
+        assert_eq!(render(&state_of(PrimitiveId::DoubleGumGang)), Some(SlotRenderer::DoubleGumGang));
+        assert_eq!(render(&state_of(PrimitiveId::TexturedSlam)), Some(SlotRenderer::HaloLayers));
+    }
+
+    #[test]
+    fn double_gum_gang_draws_three_scales_of_four_icon_quads() {
+        let built = triangles(&double_gum_gang_state());
+
+        // Three scales x four slot vectors x one quad (two triangles).
+        assert_eq!(built.len(), 24);
+
+        let (cos10, sin10) = trig(10);
+        let (cos45, sin45) = trig(45);
+        let (cos135, sin135) = trig(135);
+        let close = |left: [f32; 3], right: [f32; 3]| {
+            (left[0] - right[0]).abs() < 1e-4 && (left[1] - right[1]).abs() < 1e-4 && (left[2] - right[2]).abs() < 1e-4
+        };
+
+        // Layer 0 (`rdist = 1.0`, radius 2), record 0: texture 3 makes both
+        // sides of the visibility test differ, so the corners swap to
+        // `vec2, vec1, vec4, vec3`. Offset y is the body's random -4.
+        let offset = [cos10 * DOUBLE_GUMGANG_ICON_LENGTH, -4.0, sin10 * DOUBLE_GUMGANG_ICON_LENGTH];
+        let first = [2.0 * cos135 + offset[0], offset[1], 2.0 * sin135 + offset[2]];
+        let second = [2.0 * cos45 + offset[0], offset[1], 2.0 * sin45 + offset[2]];
+        assert!(close(built[0].corners[0], first), "{:?}", built[0].corners[0]);
+        assert!(close(built[0].corners[1], second), "{:?}", built[0].corners[1]);
+
+        // Blue layer 0, alpha `min(40, process)`, texture `height[2] = 3`,
+        // `pw = 0` -> `SRCALPHA`/`ONE`.
+        assert_eq!(built[0].argb, pack_argb(40, 100, 100, 255));
+        assert_eq!(built[0].texture, Some(SUPER_TEXTURES[3]));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+
+        // Layer 1 (i = 1) uses the darker blue at `distance * 1.2`.
+        assert_eq!(built[8].argb, pack_argb(40, 0, 0, 120));
+
+        // Layer 2 (i = 2) scales by 2.0 and keeps the same blue.
+        assert_eq!(built[16].argb, pack_argb(40, 0, 0, 120));
+        let (cos135, sin135) = trig(135);
+        let offset = [cos10 * DOUBLE_GUMGANG_ICON_LENGTH, -4.0, sin10 * DOUBLE_GUMGANG_ICON_LENGTH];
+        let expected = [2.0 * 2.0 * cos135 + offset[0], offset[1], 2.0 * 2.0 * sin135 + offset[2]];
+        assert!(close(built[16].corners[0], expected), "{:?}", built[16].corners[0]);
+    }
+
+    #[test]
+    fn double_gum_gang_kind_selects_the_colour_table() {
+        for (kind, colour) in [(2i8, (255u8, 100u8, 100u8)), (1, (90, 90, 80))] {
+            let mut state = double_gum_gang_state();
+            state.slots[0].flag1[4] = kind;
+
+            assert_eq!(
+                triangles(&state)[0].argb,
+                pack_argb(40, colour.0, colour.1, colour.2),
+                "kind {kind}"
+            );
+        }
+    }
+
+    #[test]
+    fn double_gum_gang_alpha_is_capped_by_the_process_counter() {
+        let mut state = double_gum_gang_state();
+        state.slots[0].process = 25;
+
+        let built = triangles(&state);
+
+        // Every one of the four records is capped at the same process value.
+        for triangle in built.iter().take(4) {
+            assert_eq!(triangle.argb, pack_argb(25, 100, 100, 255));
+        }
+    }
+
+    #[test]
+    fn double_gum_gang_follows_the_face_camera_angles() {
+        let mut turned = double_gum_gang_state();
+        turned.slots[0].alpha_t = 90;
+        turned.slots[1].alpha_t = 0;
+
+        let built = triangles(&turned);
+        let (cos10, sin10) = trig(10);
+        let (cos45, sin45) = trig(45);
+
+        // `RotatePairY(90)` maps the 135 degree base corner to (x, z) =
+        // (-sin135, cos135) * 2, then the icon offset is added unrotated.
+        let offset = [cos10 * DOUBLE_GUMGANG_ICON_LENGTH, -4.0, sin10 * DOUBLE_GUMGANG_ICON_LENGTH];
+        let expected = [-2.0 * sin45 + offset[0], offset[1], 2.0 * cos45 + offset[2]];
+        let close = |left: f32, right: f32| (left - right).abs() < 1e-4;
+
+        assert!(close(built[0].corners[0][0], expected[0]), "{:?}", built[0].corners[0]);
+        assert_eq!(built[0].corners[0][1], expected[1]);
+        assert!(close(built[0].corners[0][2], expected[2]), "{:?}", built[0].corners[0]);
+    }
+
+    /// `TexturedSlam(name, kind)`'s kind-6 slot: `distance = 21`, ten layers at
+    /// alpha 100, `flag1[4] = 6`.
+    fn textured_slam_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::TexturedSlam);
+        state.render_flag = 1 | 4;
+        state.texture = Some("effect\\priest_spell.bmp");
+        state.slots[0].life = 1;
+        state.slots[0].distance = 21.0;
+        state.slots[0].flag1[4] = 6;
+
+        for index in 1..=10 {
+            state.slots[0].height[index] = 100.0;
+        }
+
+        state
+    }
+
+    #[test]
+    fn textured_slam_draws_the_halo_layers_with_stored_angles() {
+        let built = triangles(&textured_slam_state());
+
+        // Ten layers, two quads each for kind 6 (the 1.1x outer pass).
+        assert_eq!(built.len(), 40);
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].texture, Some("effect\\priest_spell.bmp"));
+        assert_eq!(built[2].argb, pack_argb(100, 5, 5, 255));
+
+        // The first pass is dropped by 40 (`kind 6`); layer 10 sits on the
+        // 35/145 degree diagonal, and the quad is `(vec2, vec1, vec4, vec3)`.
+        let (cos145, sin145) = trig(145);
+        let close = |left: f32, right: f32| (left - right).abs() < 1e-4;
+        assert!(close(built[0].corners[0][0], 21.0 * cos145));
+        assert!(close(built[0].corners[0][1], -40.0));
+        assert!(close(built[0].corners[0][2], 21.0 * sin145));
+    }
+
+    #[test]
+    fn textured_slam_ignores_the_camera_facing() {
+        let camera = TestCamera::new();
+        let context = SlotRenderContext {
+            camera: &camera,
+            viewport: WINDOW,
+            distance_scale: CEFFECT_PRIM_DISTANCE_SCALE,
+            facing: [90, 45],
+        };
+
+        let state = textured_slam_state();
+        let with_camera = triangles_with_context(&state, Some(&context));
+        let without = triangles(&state);
+
+        // `PrimRisingFan` does not call `FaceCamera`, so prim 147 keeps the
+        // constructor's zeroed `alphaT` and ignores the camera angles.
+        assert_eq!(with_camera, without);
+
+        // Prim 68 still uses them.
+        let asura = halo_state(0);
+        let turned = triangles_with_context(&asura, Some(&context));
+        assert_ne!(turned, triangles(&asura));
     }
 }

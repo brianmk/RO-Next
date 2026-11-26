@@ -83,6 +83,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::rag::textured_slam::spawn(effect) {
+        return Some(body);
+    }
+
     if let Some(body) = super::rag::champion::spawn(effect) {
         return Some(body);
     }
@@ -494,6 +498,10 @@ pub fn ported_ids() -> Vec<EffectId> {
         // `SuperSlashFan`, `TexturedCrossLevel`, `WhiteYellowRings`,
         // `TexturedSkillIcon`).
         EffectId::Gumgang,
+        EffectId::Gumgangnpc,
+        EffectId::Doublegumgang,
+        EffectId::Doublegumgang2,
+        EffectId::Doublegumgang3,
         EffectId::Steelbody,
         EffectId::Gumgang2,
         EffectId::Aurablade,
@@ -506,6 +514,22 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Beginasura6,
         EffectId::Beginasura7,
         EffectId::Beginasura11,
+        // Prim 147's only spawner, `CRagEffect::TexturedSlam`
+        // (`rag/textured_slam.rs`): `EF_SECRA`/2, the `EF_ROLLING1..10` family
+        // and `EF_HEARTASURA`.
+        EffectId::Secra,
+        EffectId::Secra2,
+        EffectId::Rolling1,
+        EffectId::Rolling2,
+        EffectId::Rolling3,
+        EffectId::Rolling4,
+        EffectId::Rolling5,
+        EffectId::Rolling6,
+        EffectId::Rolling7,
+        EffectId::Rolling8,
+        EffectId::Rolling9,
+        EffectId::Rolling10,
+        EffectId::Heartasura,
     ]);
 
     ids
@@ -685,6 +709,19 @@ mod tests {
             (EffectId::BottomUglydance, 29999),
             (EffectId::BottomDontforgetme, 29999),
             (EffectId::BottomServiceforyou, 29999),
+            // Champion fan family (`rag/asura.rs`): `EffectTypes.cpp:427`,
+            // `:464`, `:494-495`.
+            (EffectId::Gumgangnpc, 1500),
+            (EffectId::Doublegumgang, 99_999_999),
+            (EffectId::Doublegumgang2, 99_999),
+            (EffectId::Doublegumgang3, 99_999),
+            // Prim 147's `TexturedSlam` family (`rag/textured_slam.rs`):
+            // `EffectTypes.cpp:767-776`, `:868`, `:871`, `:888`.
+            (EffectId::Secra, 300),
+            (EffectId::Secra2, 300),
+            (EffectId::Rolling1, 99_999_999),
+            (EffectId::Rolling10, 99_999_999),
+            (EffectId::Heartasura, 99_999_999),
         ];
 
         for (effect, lifetime) in expect {

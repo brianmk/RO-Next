@@ -90,6 +90,7 @@ pub mod textured_magic_ring;
 pub mod textured_mark;
 pub mod textured_pulse;
 pub mod textured_pulse_kind;
+pub mod textured_slam;
 pub mod throw_item;
 pub mod thunderstorm;
 pub mod torch_dust_ring;

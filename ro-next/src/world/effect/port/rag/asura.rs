@@ -6,13 +6,18 @@
 //! | `AsuraStrike` | `:14187-14305` | 30, 68 | `EF_BEGINASURA` (328), `EF_BEGINASURA11` (510) |
 //! | `TexturedQuadRingSized` | `:17437-17608` | 30 | helper for `AsuraStrike`/`WhiteYellowRings` |
 //! | `WhiteYellowRings` | `:18656-18662` | 30 | `EF_AURABLADE` (367) |
-//! | `SuperSlashFan` | `:16964-17023` | 35 | `EF_GUMGANG` (203), `EF_STEELBODY` (254) |
+//! | `SuperSlashFan` | `:16964-17023` | 35 | `EF_GUMGANG` (203), `EF_GUMGANGNPC` (455), `EF_STEELBODY` (254) |
+//! | `SuperSlashSpread` | `:17017-17066` | 99 | `EF_DOUBLEGUMGANG` (418), 2 (485), 3 (486) |
 //! | `TexturedCrossLevel` | `:5246-5292` | 31 | `EF_GUMGANG2` (261) |
 //! | `TexturedSkillIcon` | `:3774-3840` | 68 | `EF_BEGINASURA1..7` (467-473) |
 //!
 //! The official dispatch sites:
 //!
 //! * `EF_GUMGANG` - `RagEffect.cpp:24166-24168` (`SuperSlashFan(1, 0)`),
+//! * `EF_GUMGANGNPC` - `:24169-24171` (`SuperSlashFan(2, 1)`),
+//! * `EF_DOUBLEGUMGANG` - `:24172-24174` (`SuperSlashSpread(2, 2)`),
+//! * `EF_DOUBLEGUMGANG2` - `:24175-24177` (`SuperSlashSpread(2, 1)`),
+//! * `EF_DOUBLEGUMGANG3` - `:24178-24180` (`SuperSlashSpread(2, 0)`),
 //! * `EF_STEELBODY` - `:24181-24183` (`SuperSlashFan(4, 0)`),
 //! * `EF_GUMGANG2` - `:23506-23508`
 //!   (`TexturedCrossLevel("effect\\ring_yellow.tga", 0)`),
@@ -25,7 +30,8 @@
 //!
 //! Lifetimes come from `EffectTypes.cpp`: 203 `99999` (`:212`), 254
 //! `99999999` (`:263`), 261 `300` (`:270`), 328 `1000` (`:337`), 367 `60`
-//! (`:376`), 467-473 `300` each (`:476-482`), 510 `1000` (`:519`).
+//! (`:376`), 418 `99999999` (`:427`), 455 `1500` (`:464`), 467-473 `300` each
+//! (`:476-482`), 485/486 `99999` (`:494-495`), 510 `1000` (`:519`).
 //!
 //! Every body copies `state.parent->render.position` into `render.position`
 //! before its frame gate; [`EffectRuntime::position`] already is that anchor,
@@ -41,7 +47,7 @@
 //! `5` (height[10]), `360` (height[11]), `10` (vecTNow.y), `5` (height[14]),
 //! `360` (height[15]). The port consumes them from [`EffectRuntime::rng`] in
 //! that exact order; `SuperSlashFan(4, 0)` therefore uses 48 values against a
-//! single shared sequence.
+//! single shared sequence. `SuperSlashSpread` draws the same twelve per slot.
 //!
 //! `TexturedSkillIcon`'s `level > 0`/`mode == 2` branches call `rand()` for a
 //! skill-icon id. None of the ported call sites take those branches (all seven
@@ -243,6 +249,92 @@ fn super_slash_fan(runtime: &mut EffectRuntime, count: i8, value: i8) {
         slot.vec_t_now[1] = -draws[9] as f32;
         slot.height[12] = 10.0;
         slot.height[13] = 250.0;
+        slot.height[14] = draws[10] as f32;
+        slot.height[15] = draws[11] as f32;
+        slot.flag1[4] = value;
+    }
+}
+
+/// `CRagEffect::SuperSlashSpread` - `RagEffect.cpp:17017-17066`.
+///
+/// Arms one prim 99 (`RenderDoubleGumGang`) with `count` live slots at
+/// `distance = 2.0` and the same five `effect\superN.bmp` textures as
+/// [`super_slash_fan`]. The slot layout is prim 35's four
+/// `(height, alpha, textureIndex, angle)` records, but the alpha seeds are
+/// 40/80/120/160 - the renderer fades each ring in against `slot.process` - and
+/// `height[2|6|10|14]` is the texture index. `flag1[4] = value` selects the
+/// renderer's colour table (2 red, 1 grey, 0 blue) and `state.size` is zeroed.
+///
+/// Quirks kept: `process` is explicitly reset to 0, `height[0|4|8|12]` stay at
+/// the `10.0` the original writes, and the twelve draws per slot follow the
+/// same `10, 5, 360` order as `SuperSlashFan`.
+fn super_slash_spread(runtime: &mut EffectRuntime, count: i8, value: i8) {
+    // `CopyVector(...)`; `runtime.position` is the anchor.
+
+    if runtime.frame != 0 {
+        return;
+    }
+
+    let lifetime = runtime.lifetime;
+    let index = runtime.launch(PrimitiveId::DoubleGumGang, [0.0, 0.0, 0.0]);
+
+    // Same twelve draws per slot as `SuperSlashFan`, block by block, taken
+    // before the primitive is borrowed.
+    let mut slot_draws = vec![[0i32; 12]; count.max(0) as usize];
+
+    for draws in &mut slot_draws {
+        for (draw, range) in draws.iter_mut().zip([10, 5, 360, 10, 5, 360, 10, 5, 360, 10, 5, 360]) {
+            *draw = runtime.rng.clamped_random(range);
+        }
+    }
+
+    let state = runtime.primitive_mut(index);
+
+    // `state.renderFlag = RSF_ALPHA | RSF_CUSTOM_BLEND;`
+    state.render_flag = 1 | 4;
+    state.duration = lifetime;
+    state.total_texture = 5;
+    state.texture = Some("effect\\super1.bmp");
+    state.texture_secondary = Some("effect\\super2.bmp");
+    state.texture_tertiary = Some("effect\\super3.bmp");
+    state.texture_frames = vec![
+        "effect\\super1.bmp",
+        "effect\\super2.bmp",
+        "effect\\super3.bmp",
+        "effect\\super4.bmp",
+        "effect\\super5.bmp",
+    ];
+    // `state.size = 0.0f;`
+    state.size = 0.0;
+
+    for slot in &mut state.slots {
+        slot.life = 0;
+    }
+
+    for (i, draws) in slot_draws.iter().enumerate() {
+        let slot = &mut state.slots[i];
+
+        slot.process = 0;
+        slot.life = 1;
+        slot.distance = 2.0;
+        slot.vec_b_pre[1] = -draws[0] as f32;
+        slot.height[0] = 10.0;
+        slot.height[1] = 40.0;
+        slot.height[2] = draws[1] as f32;
+        slot.height[3] = draws[2] as f32;
+        slot.vec_b_now[1] = -draws[3] as f32;
+        slot.height[4] = 10.0;
+        slot.height[5] = 80.0;
+        slot.height[6] = draws[4] as f32;
+        slot.height[7] = draws[5] as f32;
+        slot.vec_t_pre[1] = -draws[6] as f32;
+        slot.height[8] = 10.0;
+        slot.height[9] = 120.0;
+        slot.height[10] = draws[7] as f32;
+        slot.height[11] = draws[8] as f32;
+        slot.vec_t_now[1] = -draws[9] as f32;
+        slot.height[12] = 10.0;
+        slot.height[13] = 160.0;
         slot.height[14] = draws[10] as f32;
         slot.height[15] = draws[11] as f32;
         slot.flag1[4] = value;
@@ -513,6 +605,26 @@ impl PortedEffect for Gumgang {
     }
 }
 
+/// `EF_GUMGANGNPC` (455) - `case EF_GUMGANGNPC:` (`RagEffect.cpp:24169-24171`),
+/// lifetime 1500 (`EffectTypes.cpp:464`).
+///
+/// Same `SuperSlashFan` fan as `EF_GUMGANG`, with two live slots and
+/// `flag1[4] = 1` (the renderer's grey/red icon colour).
+#[derive(Debug, Default)]
+pub struct GumgangNpc;
+
+impl PortedEffect for GumgangNpc {
+    fn lifetime(&self) -> i32 {
+        1500
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        super_slash_fan(runtime, 2, 1);
+
+        true
+    }
+}
+
 /// `EF_STEELBODY` (254) - `case EF_STEELBODY:` (`RagEffect.cpp:24181-24183`),
 /// lifetime 99999999 (`EffectTypes.cpp:263`).
 #[derive(Debug, Default)]
@@ -525,6 +637,63 @@ impl PortedEffect for SteelBody {
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         super_slash_fan(runtime, 4, 0);
+
+        true
+    }
+}
+
+/// `EF_DOUBLEGUMGANG` (418) - `case EF_DOUBLEGUMGANG:`
+/// (`RagEffect.cpp:24172-24174`), lifetime 99999999 (`EffectTypes.cpp:427`).
+///
+/// `SuperSlashSpread(2, 2)`: two prim 99 slots with the red colour table.
+#[derive(Debug, Default)]
+pub struct DoubleGumGang;
+
+impl PortedEffect for DoubleGumGang {
+    fn lifetime(&self) -> i32 {
+        99_999_999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        super_slash_spread(runtime, 2, 2);
+
+        true
+    }
+}
+
+/// `EF_DOUBLEGUMGANG2` (485) - `case EF_DOUBLEGUMGANG2:`
+/// (`RagEffect.cpp:24175-24177`), lifetime 99999 (`EffectTypes.cpp:494`).
+///
+/// `SuperSlashSpread(2, 1)`: two prim 99 slots with the grey colour table.
+#[derive(Debug, Default)]
+pub struct DoubleGumGang2;
+
+impl PortedEffect for DoubleGumGang2 {
+    fn lifetime(&self) -> i32 {
+        99_999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        super_slash_spread(runtime, 2, 1);
+
+        true
+    }
+}
+
+/// `EF_DOUBLEGUMGANG3` (486) - `case EF_DOUBLEGUMGANG3:`
+/// (`RagEffect.cpp:24178-24180`), lifetime 99999 (`EffectTypes.cpp:495`).
+///
+/// `SuperSlashSpread(2, 0)`: two prim 99 slots with the blue colour table.
+#[derive(Debug, Default)]
+pub struct DoubleGumGang3;
+
+impl PortedEffect for DoubleGumGang3 {
+    fn lifetime(&self) -> i32 {
+        99_999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        super_slash_spread(runtime, 2, 0);
 
         true
     }
@@ -629,6 +798,10 @@ pub const ASURA_ICON_TEXTURES: [&str; 7] = [
 pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
     Some(match effect {
         EffectId::Gumgang => Box::new(Gumgang),
+        EffectId::Gumgangnpc => Box::new(GumgangNpc),
+        EffectId::Doublegumgang => Box::new(DoubleGumGang),
+        EffectId::Doublegumgang2 => Box::new(DoubleGumGang2),
+        EffectId::Doublegumgang3 => Box::new(DoubleGumGang3),
         EffectId::Steelbody => Box::new(SteelBody),
         EffectId::Gumgang2 => Box::new(Gumgang2),
         EffectId::Aurablade => Box::new(AuraBlade),
@@ -650,6 +823,13 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
     &[
         // `EffectTypes.cpp:212`.
         (EffectId::Gumgang, 99_999),
+        // `EffectTypes.cpp:464`.
+        (EffectId::Gumgangnpc, 1500),
+        // `EffectTypes.cpp:427`.
+        (EffectId::Doublegumgang, 99_999_999),
+        // `EffectTypes.cpp:494-495`.
+        (EffectId::Doublegumgang2, 99_999),
+        (EffectId::Doublegumgang3, 99_999),
         // `EffectTypes.cpp:263`.
         (EffectId::Steelbody, 99_999_999),
         // `EffectTypes.cpp:270`.
@@ -831,6 +1011,85 @@ mod tests {
         assert_eq!(primitive.slots[3].distance, 3.5);
         assert_eq!(primitive.slots[3].height[13], 250.0);
         assert_eq!(primitive.slots[3].flag1[4], 0);
+    }
+
+    #[test]
+    fn gumgangnpc_is_the_two_slot_fan_with_value_one() {
+        let mut body = GumgangNpc;
+        let mut runtime = runtime(&body, 23);
+
+        body.on_process(&mut runtime);
+
+        let primitive = &runtime.primitives[0].state;
+        assert_eq!(primitive.count, PrimitiveId::FloatingBubbles);
+        assert_eq!(primitive.slots.iter().filter(|slot| slot.life == 1).count(), 2);
+        assert_eq!(primitive.slots[0].flag1[4], 1);
+        assert_eq!(primitive.slots[1].flag1[4], 1);
+        assert_eq!(primitive.slots[1].height[13], 250.0);
+    }
+
+    #[test]
+    fn double_gumgang_is_the_nested_spread_sheet() {
+        let mut body = DoubleGumGang;
+        let mut runtime = runtime(&body, 31);
+
+        body.on_process(&mut runtime);
+
+        let primitive = &runtime.primitives[0].state;
+        assert_eq!(primitive.count, PrimitiveId::DoubleGumGang);
+        assert_eq!(primitive.count.id(), 99);
+        assert_eq!(primitive.render_flag, 5);
+        assert_eq!(primitive.size, 0.0);
+        assert_eq!(primitive.total_texture, 5);
+        assert_eq!(primitive.texture_frames.len(), 5);
+        assert_eq!(primitive.slots.iter().filter(|slot| slot.life == 1).count(), 2);
+        assert_eq!(primitive.slots[0].distance, 2.0);
+        assert_eq!(primitive.slots[0].process, 0);
+        assert_eq!(primitive.slots[0].height[1], 40.0);
+        assert_eq!(primitive.slots[0].height[5], 80.0);
+        assert_eq!(primitive.slots[0].height[9], 120.0);
+        assert_eq!(primitive.slots[0].height[13], 160.0);
+        assert_eq!(primitive.slots[0].flag1[4], 2);
+        assert_eq!(primitive.slots[1].flag1[4], 2);
+        assert_eq!(primitive.slots[1].distance, 2.0);
+    }
+
+    #[test]
+    fn super_slash_spread_rng_order_matches_the_fan() {
+        let mut body = DoubleGumGang3;
+        let mut runtime = runtime(&body, 42);
+
+        let mut expected = EffectRng::new(42);
+        let mut draws = [(0i32, 0i32, 0i32); 8];
+
+        for draw in &mut draws {
+            let y = expected.clamped_random(10);
+            let index = expected.clamped_random(5);
+            let angle = expected.clamped_random(360);
+
+            *draw = (y, index, angle);
+        }
+
+        body.on_process(&mut runtime);
+
+        for (slot_index, slot_draws) in draws.chunks(4).enumerate() {
+            let slot = &runtime.primitives[0].state.slots[slot_index];
+
+            for (record, (_y, index, angle)) in slot_draws.iter().enumerate() {
+                let base = record * 4;
+
+                assert_eq!(slot.height[base + 2], *index as f32, "slot {slot_index} record {record}");
+                assert_eq!(slot.height[base + 3], *angle as f32, "slot {slot_index} record {record}");
+            }
+
+            assert_eq!(slot.vec_b_pre[1], -(slot_draws[0].0) as f32);
+            assert_eq!(slot.vec_b_now[1], -(slot_draws[1].0) as f32);
+            assert_eq!(slot.vec_t_pre[1], -(slot_draws[2].0) as f32);
+            assert_eq!(slot.vec_t_now[1], -(slot_draws[3].0) as f32);
+        }
+
+        // `EF_DOUBLEGUMGANG3` is the blue table (`value == 0`).
+        assert_eq!(runtime.primitives[0].state.slots[0].flag1[4], 0);
     }
 
     #[test]

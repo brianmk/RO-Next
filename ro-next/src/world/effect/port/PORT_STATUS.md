@@ -255,6 +255,15 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - Render deviation: `RenderTeiRect`'s `extra == 2` (prim 35 only) nudges reciprocal depth by 0.000045; the shared triangle path has no per-vertex depth, so geometry/colour/blend are exact and only that nudge is omitted.
 - Still open: `EF_GUMGANGNPC` (portable, one call), prim 99 `PP_DOUBLEGUMGANG`, prim 147 `RenderHaloLayers` consumer.
 
+### Round 94 (prim 99, prim 147 and the last still-open ids)
+
+- prim **99** `PP_DOUBLEGUMGANG` - `RenderDoubleGumGang` (`EffectPrimitiveRendering.cpp:7106`, dispatch `:495-497`). Shares prim 35's `PrimFloatingBubbles` motion and slot layout; new `SlotRenderer::DoubleGumGang`.
+- prim **147** - no `EffectPrimId.h` symbol. Motion `PrimRisingFan` (prim 130, `EffectPrimitiveMotion.cpp:8425`), renderer `RenderHaloLayers` (prim 68, `EffectPrimitiveRendering.cpp:431`). Its only spawner is `CRagEffect::TexturedSlam`, so `render_slots` dispatches it as a distinct halo consumer.
+- Bodies: `EF_GUMGANGNPC` (`SuperSlashFan(2, 1)`), `EF_DOUBLEGUMGANG`/2/3 (`SuperSlashSpread(2, 2/1/0)`), and the `TexturedSlam` family - `EF_SECRA`/2, `EF_ROLLING1..10`, `EF_HEARTASURA` (new `rag/textured_slam.rs`). 17 ids.
+- Quirk kept: `TexturedSlam` never calls `FaceCamera`, so its `RenderHaloLayers` layers use the constructor's zeroed `slots[0..1].alphaT`; the live render path passes the stored angles for prim 147 and the recovered camera angles for prim 68.
+- RNG: `SuperSlashSpread` draws the same twelve-per-slot `10, 5, 360` sequence as `SuperSlashFan` (24 values for its two slots).
+- Registry now 393 ids; the skill map regenerates with 185 mappings.
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
