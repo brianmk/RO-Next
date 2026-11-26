@@ -29,6 +29,7 @@ pub mod signum;
 pub mod whitespray;
 pub mod skill_aura;
 pub mod sonicblow;
+pub mod spread_flat;
 pub mod textured_aura;
 
 pub use bash::Bash;
@@ -57,4 +58,5 @@ pub use whitespray::WhiteSpray;
 pub use magnum::MagnumBreak;
 pub use skill_aura::TexturedSkillAura;
 pub use sonicblow::SonicBlow;
+pub use spread_flat::TexturedSpreadFlat;
 pub use textured_aura::TexturedAura;

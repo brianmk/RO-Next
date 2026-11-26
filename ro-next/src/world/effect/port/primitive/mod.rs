@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod height_ramp;
 pub mod intimidate;
 pub mod particle3d;
 pub mod quadhorn;
@@ -127,6 +128,8 @@ pub enum PrimitiveId {
     Intimidate,
     /// `PP_AURA` / prim 82 (`PrimAuraGlow`)
     AuraGlow,
+    /// prim 137 (`PrimHeightRamp`)
+    HeightRamp,
 }
 
 impl PrimitiveId {
@@ -146,6 +149,7 @@ impl PrimitiveId {
             Self::Wind => 62,
             Self::Intimidate => 43,
             Self::AuraGlow => 82,
+            Self::HeightRamp => 137,
         }
     }
 }
@@ -560,6 +564,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::AuraGlow => {
                 aura_glow::on_process(self, master);
+                true
+            }
+            PrimitiveId::HeightRamp => {
+                height_ramp::on_process(self, angles);
                 true
             }
         };

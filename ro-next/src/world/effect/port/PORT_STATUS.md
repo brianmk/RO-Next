@@ -62,13 +62,15 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | prim 82 `PrimAuraGlow` + slot vectors | `EffectPrimitiveMotion.cpp:6837-6946` | 4 |
 | `CRagEffect::TexturedAura` (kinds 0-22, parent sprite lift) + 26 aura effects | `RagEffect.cpp:17769-17960` | 6 |
 | `CRagEffect::TexturedSkillAura` (`EF_DETECTING`, `EF_DETECT2/3/4`) | `RagEffect.cpp:15281-15370` | 3 |
+| prim 137 `PrimHeightRamp` | `EffectPrimitiveMotion.cpp:4970-5008` | 4 |
+| `CRagEffect::TexturedSpreadFlat` (`EF_REDLINE`, `EF_BLUELINE`) | `RagEffect.cpp:6986-7070` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 125 effect ids (66 generated from `TexturedClassChange`, 26 from
-`TexturedAura`, 33 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+**Registry:** 127 effect ids (66 generated from `TexturedClassChange`, 26 from
+`TexturedAura`, 35 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
 so the *skill* coverage is far higher than the id ratio suggests.

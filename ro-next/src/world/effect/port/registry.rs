@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange, TexturedSkillAura, WhiteSpray,
+    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -37,6 +37,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Detect2 => Box::new(TexturedSkillAura::new(2, 250)),
         EffectId::Detect3 => Box::new(TexturedSkillAura::new(3, 250)),
         EffectId::Detect4 => Box::new(TexturedSkillAura::new(4, 250)),
+        EffectId::Redline => Box::new(TexturedSpreadFlat::new("effect\\ring_red.tga", 3, 3, 75)),
+        EffectId::Blueline => Box::new(TexturedSpreadFlat::new("effect\\ring_blue.tga", 12, 6, 999)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -95,6 +97,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Detect2,
         EffectId::Detect3,
         EffectId::Detect4,
+        EffectId::Redline,
+        EffectId::Blueline,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -163,6 +167,8 @@ mod tests {
             (EffectId::Detect2, 250),
             (EffectId::Detect3, 250),
             (EffectId::Detect4, 250),
+            (EffectId::Redline, 75),
+            (EffectId::Blueline, 999),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
