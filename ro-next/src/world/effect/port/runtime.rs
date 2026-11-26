@@ -60,6 +60,8 @@ pub struct EffectRuntime {
     /// as Bowling Bash.
     pub parent_angle: f32,
     pub flag: i32,
+    /// `state.count` - the hit count some bodies read (e.g. Blitz Beat).
+    pub count: i32,
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
@@ -90,6 +92,7 @@ impl EffectRuntime {
             body_tint: None,
             parent_angle: 0.0,
             flag: 0,
+            count: 0,
             primitives: Vec::new(),
             sounds: Vec::new(),
             shakes: 0,

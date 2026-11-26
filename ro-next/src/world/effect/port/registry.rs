@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    BottomCarpet, BottomLayer, BottomLayers, Cloud11Burst, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, Cloud11Burst, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -91,6 +91,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Heavensdrive => Box::new(StoneSpike::new(250)),
         EffectId::Napalmbeat => Box::new(NapalmBeat::default()),
         EffectId::Sma3 => Box::new(TexturedComet::new(1, 50)),
+        EffectId::Blitzbeat => Box::new(BlitzBeat::new(250)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -203,6 +204,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Heavensdrive,
         EffectId::Napalmbeat,
         EffectId::Sma3,
+        EffectId::Blitzbeat,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -325,6 +327,7 @@ mod tests {
             (EffectId::Heavensdrive, 250),
             (EffectId::Napalmbeat, 100),
             (EffectId::Sma3, 50),
+            (EffectId::Blitzbeat, 250),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),

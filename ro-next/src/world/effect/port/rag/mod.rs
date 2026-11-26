@@ -6,6 +6,7 @@
 pub mod bash;
 pub mod agiup;
 pub mod aqua;
+pub mod blitz_beat;
 pub mod blessing;
 pub mod bottom_carpet;
 pub mod bowlingbash;
@@ -70,6 +71,7 @@ pub mod water_ball_burst;
 pub use bash::Bash;
 pub use agiup::AgilityUp;
 pub use aqua::Aqua;
+pub use blitz_beat::BlitzBeat;
 pub use blessing::Blessing;
 pub use bottom_carpet::BottomCarpet;
 pub use bowlingbash::BowlingBash;
