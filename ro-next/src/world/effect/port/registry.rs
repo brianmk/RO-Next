@@ -58,6 +58,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::registry_batch_f::spawn(effect) {
+        return Some(body);
+    }
+
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
@@ -230,6 +234,7 @@ pub fn ported_ids() -> Vec<EffectId> {
     ids.extend_from_slice(super::registry_batch_c::ids());
     ids.extend_from_slice(super::registry_batch_d::ids());
     ids.extend_from_slice(super::registry_batch_e::ids());
+    ids.extend_from_slice(super::registry_batch_f::ids());
 
     ids.extend_from_slice(&[
         EffectId::Hit2,
