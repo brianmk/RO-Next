@@ -594,6 +594,42 @@ impl Client {
             .find(|entity| entity.get_entity_id() == destination_entity_id)
             .map(|entity| entity.get_tile_position());
 
+        // A skill damage packet without a damage value is a miss/block: the
+        // client spawns no number for it. Log it at debug level so a missing
+        // damage number can be told apart from a missing packet.
+        if let Some(skill_id) = skill_id
+            && damage_amount.is_none()
+        {
+            crate::logging::log_debug!("damage skill: skill {} damage packet carried no damage", skill_id.0);
+        }
+
+        // Falcon attack flight (`CGameActor::statusEffects[0]`): the official
+        // client sends `AM_REQ_ATTACK` to the falcon actor for
+        // `IsFalconAttackSkill()` ids (Blitz Beat, Falcon Assault and the hawk
+        // skills); `ZC_NOTIFY_SKILL` is the only packet carrying a skill id.
+        // The falcon must already be summoned (`OPTION_FALCON`); otherwise
+        // there is no actor to move.
+        if let Some(skill_id) = skill_id
+            && crate::world::is_falcon_attack_skill(skill_id)
+            && let Some(target_world_position) =
+                target_position.and_then(|tile_position| self.map.as_ref()?.get_world_position(tile_position))
+        {
+            let entities = self.client_state.follow_mut(client_state().entities());
+            if let Some(entity) = entities.iter_mut().find(|entity| entity.get_entity_id() == source_entity_id)
+                && entity.has_falcon()
+            {
+                // The animation load is lazy (requested when the option first
+                // appears); the damage packet can arrive while it is pending.
+                if !entity.has_falcon_animation()
+                    && let Some(falcon_animation) = self.async_loader.request_falcon_animation_data_load(source_entity_id)
+                {
+                    entity.set_falcon_animation(falcon_animation);
+                }
+
+                entity.start_falcon_flight(target_world_position, client_tick);
+            }
+        }
+
         // Instant damage skills (e.g. Bash, Magnum Break) send no
         // completion packet: their acknowledged cast waits for this hit
         // packet to play the official skill sound (so it is heard at the

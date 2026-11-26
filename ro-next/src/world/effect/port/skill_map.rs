@@ -298,6 +298,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(90), SkillPhase::Success, EffectId::Earthspike, PortedAnchor::Caster),
     (SkillId(113), SkillPhase::Success, EffectId::Overthrust, PortedAnchor::Caster),
     (SkillId(124), SkillPhase::Success, EffectId::Removetrap, PortedAnchor::Caster),
+    (SkillId(129), SkillPhase::Success, EffectId::Blitzbeat, PortedAnchor::Target),
     (SkillId(136), SkillPhase::Success, EffectId::Sonicblow, PortedAnchor::Caster),
     (SkillId(137), SkillPhase::Hit, EffectId::Grimtooth, PortedAnchor::Caster),
     (SkillId(138), SkillPhase::Success, EffectId::Enchantpoison, PortedAnchor::Caster),
@@ -405,6 +406,19 @@ mod tests {
         assert!(ported_effect_for(SkillId(5), SkillPhase::Hit).is_none());
         assert!(ported_effect_for(SkillId(u16::MAX), SkillPhase::Success).is_none());
         assert!(ported_effect_for(SkillId(5), SkillPhase::Success).is_none());
+    }
+
+    #[test]
+    fn blitz_beat_maps_to_its_ported_body() {
+        // `HT_BLITZBEAT` (129) has no `skill_effects.ron` descriptor row,
+        // so this mapping can only come from the 2019 client effect table
+        // (`client_effect_ids_2019` -> `EF_BLITZBEAT` 115). It is what makes
+        // the opt-in ported body reachable for the skill.
+        assert_eq!(
+            ported_effect_for(SkillId(129), SkillPhase::Success).map(|effect| effect as u32),
+            Some(EffectId::Blitzbeat as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(129), SkillPhase::Success), PortedAnchor::Target);
     }
 
     #[test]

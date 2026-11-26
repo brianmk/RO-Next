@@ -86,6 +86,13 @@ pub struct Common {
     /// Independent animation state of the falcon (perched/flapping loop).
     #[hidden_element]
     pub(crate) falcon_animation_state: AnimationState,
+    /// Active falcon-attack flight (`AM_REQ_ATTACK`); `None` while perched.
+    #[hidden_element]
+    pub(crate) falcon_flight: Option<FalconFlight>,
+    /// The flight has entered its return leg and the perched flap loop has been
+    /// restored (the flight action is only used for the dive).
+    #[hidden_element]
+    pub(crate) falcon_returning: bool,
     /// Merchant cart animation, loaded lazily while the entity has a cart
     /// option (`effect_state & OPTION_CART_MASK`).
     #[hidden_element]
@@ -395,6 +402,8 @@ impl Common {
             falcon_animation_state: AnimationState::new(EntityType::Npc, client_tick)
                 .with_speed(FALCON_ANIMATION_SPEED)
                 .with_loop_mode(AnimationLoopMode::PingPong),
+            falcon_flight: None,
+            falcon_returning: false,
             cart_animation: None,
             imf: None,
             cart_status_active: false,
@@ -451,6 +460,15 @@ impl Common {
         let old_appearance = crate::world::jobs::appearance_job(self.job_id, self.effect_state);
         let cart_changed = (self.effect_state ^ effect_state) & OPTION_CART_MASK != 0;
         self.effect_state = effect_state;
+
+        if self.effect_state & OPTION_FALCON == 0 {
+            // No falcon actor: stop a flight and park the shared animation
+            // state so a later re-summon starts from the perched flap loop.
+            self.falcon_flight = None;
+            self.falcon_returning = false;
+            self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+        }
+
         let new_appearance = crate::world::jobs::appearance_job(self.job_id, effect_state);
 
         if cart_changed {
@@ -546,6 +564,39 @@ impl Common {
 
     pub fn has_falcon_animation(&self) -> bool {
         self.falcon_animation.is_some()
+    }
+
+    /// World position the falcon rests at while it is perched.
+    ///
+    /// The classic client keeps the falcon actor next to/above its owner
+    /// (`AM_SET_MASTER_POINTER`, `MsgEffect.cpp:1660-1672`); this client draws
+    /// it above the head with the same owner-relative offset every frame.
+    pub(crate) fn falcon_perch_position(&self) -> Point3<f32> {
+        self.world_position + Vector3::new(0.0, FALCON_HEIGHT * self.scale, 0.0)
+    }
+
+    /// Starts the falcon attack flight towards `target`.
+    ///
+    /// Source: `CGameActor::ProcessSkillMessage` sends `AM_REQ_ATTACK` with the
+    /// target position to `statusEffects[0]` (`RenderObject.cpp:5388`) and
+    /// `CMsgEffect::SendMsg` starts the flight (`MsgEffect.cpp:1611-1617`).
+    /// The falcon has to be summoned (`OPTION_FALCON`) and its animation
+    /// loaded; otherwise there is no actor to move.
+    pub fn start_falcon_flight(&mut self, target: Point3<f32>, client_tick: ClientTick) {
+        if !self.has_falcon() || self.falcon_animation.is_none() {
+            return;
+        }
+
+        let perch = self.falcon_perch_position();
+        let Some(flight) = FalconFlight::new(perch, target, client_tick) else {
+            return;
+        };
+
+        self.falcon_flight = Some(flight);
+        self.falcon_returning = false;
+        // Actions 8-15 of the falcon ACT are the one-frame flight directions.
+        self.falcon_animation_state
+            .custom(EntityType::Npc, FALCON_ACTION_FLIGHT, 0, true, client_tick);
     }
 
     /// Whether the entity currently has a merchant cart option set.
@@ -887,6 +938,25 @@ impl Common {
             // wraps modulo the frame count, and resetting here causes a one-frame
             // freeze/duplicate frame at the loop point (visible as a stutter).
             self.falcon_animation_state.update(client_tick);
+
+            // A falcon attack flight takes over the perch loop: the flight
+            // action is a one-frame glide, and the perched flap resumes for the
+            // return leg (official `FollowOwner`) and after the flight.
+            let perch = self.falcon_perch_position();
+            let flight_pose = self.falcon_flight.as_ref().map(|flight| flight.sample(client_tick, perch));
+
+            match flight_pose {
+                Some(Some(pose)) if !pose.flying && !self.falcon_returning => {
+                    self.falcon_returning = true;
+                    self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+                }
+                Some(None) => {
+                    self.falcon_flight = None;
+                    self.falcon_returning = false;
+                    self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+                }
+                _ => {}
+            }
         }
 
         if let Some(animation_data) = self.animation_data.as_ref() {
@@ -1507,12 +1577,20 @@ impl Common {
             );
         }
 
-        // Falcon companion: drawn above the owner (classic client shows it perched
-        // on / flying above the hunter). Only rendered while the option bit is set.
+        // Falcon companion: drawn above the owner while perched, or at its own
+        // flight position while a falcon attack is playing. Only rendered while
+        // the option bit is set.
         if self.has_falcon()
             && let Some(falcon_animation) = self.falcon_animation.as_ref()
         {
-            let falcon_position = self.world_position + Vector3::new(0.0, FALCON_HEIGHT * self.scale, 0.0);
+            let perch = self.falcon_perch_position();
+            let (falcon_position, falcon_direction) = self
+                .falcon_flight
+                .as_ref()
+                .and_then(|flight| flight.sample(client_tick, perch))
+                .map(|pose| (pose.position, pose.direction))
+                .unwrap_or((perch, self.direction));
+
             falcon_animation.render(
                 instructions,
                 camera,
@@ -1520,7 +1598,7 @@ impl Common {
                 self.entity_id,
                 falcon_position,
                 &self.falcon_animation_state,
-                self.direction,
+                falcon_direction,
                 alpha,
                 tint,
                 self.scale,

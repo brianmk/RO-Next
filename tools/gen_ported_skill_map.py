@@ -6,7 +6,9 @@ The map answers: *which ported official effect id does skill X play at phase P?*
 Sources:
 
 * `tools/data/rodecomp_effect_coverage.json` - per skill, the effect ids the
-  official client uses (`used_effect_ids`). This is the id source.
+  official client uses (`used_effect_ids`). This is the id source. Hard-coded
+  procedural effects (no descriptor row, empty `used_effect_ids`) fall back to
+  the 2019 client effect table (`client_effect_ids_2019`).
 * `tools/data/windows_client_skill_effects.json` - the official field each id
   comes from (`successEffectId`, `hitEffectId`, `damageEffectIdOnCaster`,
   `groundEffectId`, ...). The coverage file is an aggregate of this file, so it
@@ -15,6 +17,8 @@ Sources:
   currently spawns for a skill. A phase the spawn path never reaches cannot be
   used, so the official phase is intersected with this list (see
   `PHASE_PREFERENCE` for the fallback when the official phase has no descriptor).
+  Skills without any descriptor row still spawn their ported body in every
+  phase, so their official phase is used directly.
 * the port registry sources - `registry::ported_ids()`, emitted as the
   `PORTED` const. A Rust test pins the generated const to the runtime list.
 
@@ -177,8 +181,13 @@ def descriptor_phases() -> dict[int, list[str]]:
     return phases
 
 
+def official_phase(fields: list[dict]) -> str:
+    """The client phase the official SkillEffect field belongs to."""
+    return next((FIELD_PHASE[field["field"]] for field in fields if field["field"] in FIELD_PHASE), "Success")
+
+
 def choose_phase(fields: list[dict], descriptors: list[str]) -> str:
-    official = next((FIELD_PHASE[field["field"]] for field in fields if field["field"] in FIELD_PHASE), "Success")
+    official = official_phase(fields)
 
     for phase in PHASE_PREFERENCE[official]:
         if phase in descriptors:
@@ -234,12 +243,35 @@ def main() -> int:
 
     for key, entry in coverage.items():
         skill = int(key)
-        used = [effect_id for effect_id in (entry.get("used_effect_ids") or []) if id_to_name.get(effect_id) in ported_set]
+        raw_used = entry.get("used_effect_ids") or []
+        used = [effect_id for effect_id in raw_used if id_to_name.get(effect_id) in ported_set]
+        skill_descriptors = descriptors.get(skill, [])
+        hardcoded_effect = False
+
+        if not used and not raw_used and not skill_descriptors:
+            # Hard-coded official effects have no descriptor rows and an empty
+            # `used_effect_ids` (the coverage audit classifies them as
+            # "official-effect-is-hardcoded-procedural"). The 2019 client effect
+            # table (`skilleffectinfolist.lub`, extracted as
+            # `client_effect_ids_2019`) still names the effect id, so the ported
+            # body can be mapped for skills the descriptor pipeline never sees
+            # (e.g. `HT_BLITZBEAT` 129 -> `EF_BLITZBEAT` 115). The fallback is
+            # deliberately limited to skills with *no* official effect ids: it
+            # must not replace the curated ids anywhere else.
+            used = [
+                effect_id
+                for effect_id in (entry.get("client_effect_ids_2019") or [])
+                if id_to_name.get(effect_id) in ported_set
+            ]
+            hardcoded_effect = bool(used)
+
         if not used:
             continue
 
-        skill_descriptors = descriptors.get(skill, [])
-        if not skill_descriptors:
+        if not skill_descriptors and not hardcoded_effect:
+            # Skills with descriptor rows keep the descriptor-phase constraint
+            # below; a ported id on a descriptor-less skill is only usable when
+            # it is the hard-coded official effect found above.
             skipped_no_descriptor.append(skill)
             continue
 
@@ -250,15 +282,25 @@ def main() -> int:
         chosen = candidates[0]
         for effect_id in candidates:
             fields = [field for field in windows.get(key, []) if effect_id in field["effects"]]
-            official = next((FIELD_PHASE[field["field"]] for field in fields if field["field"] in FIELD_PHASE), "Success")
+            official = official_phase(fields)
             if official in skill_descriptors:
                 chosen = effect_id
                 break
 
         effect_name = id_to_name[chosen]
         fields = [field for field in windows.get(key, []) if chosen in field["effects"]]
-        phase = choose_phase(fields, skill_descriptors)
-        anchor = "Target" if phase in TARGET_PHASES else "Caster"
+
+        if skill_descriptors:
+            phase = choose_phase(fields, skill_descriptors)
+            anchor = "Target" if phase in TARGET_PHASES else "Caster"
+        else:
+            # No descriptor rows: the ported backend is the only visual, so the
+            # spawn path reaches every phase and the official phase is used
+            # as-is. `CSession::PlaySkillTargetEffect` spawns these target-effect
+            # entries at `target->render.position` (`JobInheritance.cpp:1586-1590`).
+            phase = official_phase(fields)
+            anchor = "Target"
+
         if effect_name in TRAVEL_FROM_CASTER:
             anchor = "Caster"
 
@@ -375,6 +417,19 @@ def main() -> int:
     lines.append("        assert!(ported_effect_for(SkillId(5), SkillPhase::Hit).is_none());")
     lines.append("        assert!(ported_effect_for(SkillId(u16::MAX), SkillPhase::Success).is_none());")
     lines.append("        assert!(ported_effect_for(SkillId(5), SkillPhase::Success).is_none());")
+    lines.append("    }")
+    lines.append("")
+    lines.append("    #[test]")
+    lines.append("    fn blitz_beat_maps_to_its_ported_body() {")
+    lines.append("        // `HT_BLITZBEAT` (129) has no `skill_effects.ron` descriptor row,")
+    lines.append("        // so this mapping can only come from the 2019 client effect table")
+    lines.append("        // (`client_effect_ids_2019` -> `EF_BLITZBEAT` 115). It is what makes")
+    lines.append("        // the opt-in ported body reachable for the skill.")
+    lines.append("        assert_eq!(")
+    lines.append("            ported_effect_for(SkillId(129), SkillPhase::Success).map(|effect| effect as u32),")
+    lines.append("            Some(EffectId::Blitzbeat as u32)")
+    lines.append("        );")
+    lines.append("        assert_eq!(ported_anchor_for(SkillId(129), SkillPhase::Success), PortedAnchor::Target);")
     lines.append("    }")
     lines.append("")
     lines.append("    #[test]")

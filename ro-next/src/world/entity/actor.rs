@@ -30,6 +30,14 @@ impl Entity {
         self.get_common().has_falcon_animation()
     }
 
+    /// Starts the official falcon attack flight towards `target`.
+    ///
+    /// Triggered from the skill damage packet for
+    /// `IsFalconAttackSkill()` ids (Blitz Beat, Falcon Assault, hawk skills).
+    pub fn start_falcon_flight(&mut self, target: Point3<f32>, client_tick: ClientTick) {
+        self.get_common_mut().start_falcon_flight(target, client_tick);
+    }
+
     /// Whether this entity currently has a merchant cart option set.
     pub fn has_cart(&self) -> bool {
         self.get_common().has_cart()

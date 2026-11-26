@@ -16,6 +16,20 @@ fn ported_effects_enabled() -> bool {
     *ENABLED.get_or_init(|| std::env::var("RO_NEXT_PORTED_FX").map(|value| value == "1").unwrap_or(false))
 }
 
+/// Whether a `(skill, phase)` pair has anything to spawn.
+///
+/// Split from [`Client::spawn_skill_effect_phase`] so the ordering rule is
+/// testable without a client: a pair is spawnable when the descriptor table
+/// has layers **or** the opt-in ported backend has a body for it. Ported
+/// bodies such as Blitz Beat have no descriptor row at all.
+fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled: bool) -> bool {
+    if !crate::world::skill_effect_layers(skill_id, phase).is_empty() {
+        return true;
+    }
+
+    ported_enabled && crate::world::port::skill_map::ported_effect_for(skill_id, phase).is_some()
+}
+
 impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", ro_next_debug::profile)]
@@ -207,7 +221,12 @@ impl Client {
     ) {
         let layers = crate::world::skill_effect_layers(skill_id, phase);
 
-        if layers.is_empty() {
+        // The opt-in ported backend is independent of the descriptor table:
+        // some official effects (e.g. `EF_BLITZBEAT`) are hard-coded procedural
+        // bodies with no `skill_effects.ron` row at all, so the empty-layer
+        // case must still reach `spawn_ported_skill_effect`. Skills with
+        // neither layers nor a ported body keep the cheap early-out.
+        if !should_spawn_skill_phase(skill_id, phase, ported_effects_enabled()) {
             return;
         }
 
@@ -825,5 +844,30 @@ impl Client {
 
         let sound_effect = self.audio_engine.load("data\\wav\\_heal_effect.wav");
         self.audio_engine.play_spatial_sound_effect(sound_effect, position, 250.0);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::SkillId;
+
+    use super::should_spawn_skill_phase;
+    use crate::world::SkillPhase;
+
+    /// Regression for Blitz Beat: `EF_BLITZBEAT` is a hard-coded procedural
+    /// body with no `skill_effects.ron` descriptor row, so the ported hook must
+    /// run even when the layer list is empty.
+    #[test]
+    fn ported_body_spawns_without_descriptor_layers() {
+        assert!(
+            crate::world::skill_effect_layers(SkillId(129), SkillPhase::Success).is_empty(),
+            "Blitz Beat must stay descriptor-less; the ported body replaces it"
+        );
+
+        assert!(should_spawn_skill_phase(SkillId(129), SkillPhase::Success, true));
+        // The same pair is a no-op while the opt-in backend is off.
+        assert!(!should_spawn_skill_phase(SkillId(129), SkillPhase::Success, false));
+        // No descriptor and no ported body keeps the cheap early-out.
+        assert!(!should_spawn_skill_phase(SkillId(u16::MAX), SkillPhase::Success, true));
     }
 }

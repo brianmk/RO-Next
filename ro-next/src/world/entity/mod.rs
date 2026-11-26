@@ -45,11 +45,14 @@ use crate::{Buffer, ModelVertex};
 
 mod actor;
 mod common;
+mod falcon;
 mod npc;
 mod player;
 
 pub use self::actor::*;
 pub use self::common::*;
+pub use self::falcon::is_falcon_attack_skill;
+pub(crate) use self::falcon::{FALCON_ACTION_FLIGHT, FalconFlight};
 pub use self::npc::*;
 pub use self::player::*;
 
