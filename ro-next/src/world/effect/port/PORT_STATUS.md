@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 312 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 324 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -232,6 +232,13 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - prim **42** `PP_SHIELDBOOMERANG`, **53** `PP_THROWITEM`, **116** `PP_SHIELDBOOMERANG3` — all three reuse the shared `RenderFieldPanel` (its `flag1[2]`/`flag1[3]` switches already covered ThrowItem and TANJI), so only motion modules plus `primitive::get_angle` (`EffectPrimitiveState.cpp:51-70`) were needed. Bodies: ThrowItem, DoubleThrowItem, TexturedShieldThrow, ShieldBoomerang3, TANJI (20 ids).
 - Batch g: AbsorbSpirits, Bash3D/3/4, TrueSight (TexturedQuadSpin phases), HitTexture (TexturedAura kind 2). Quirk kept: the helpers no-op after frame 0, so all geometry appears on the first frame and the port calls them every frame to preserve RNG order.
 - Backlog coverage after rounds 89-90: `.str` tier 57/57, layer tier 74/144, manual tier 0/35.
+
+### Round 91
+
+- prim **24** `PP_3DCASTING_2` (`Casting2`, reuses `render_3d_casting`), **48** `PP_BOTTOM2` (`Bottom2`, new `render_color_plane`), **75** `PP_SLASH1` (`Slash1`, new `render_slash_1`).
+- Bodies: Defender, Reflect Shield, Kaizel, Stop Effect, and the five `TexturedMagicRing` bottoms (Dissonance, AssassinCross, UglyDance, Don'tForgetMe, ServiceForYou).
+- **Manual tier opened**: MagicCrasher, Memorize, LinkLight (caster-body only). The registry invariant now accepts a zero-primitive body when its batch declares it via `is_caster_body_only`, so the remaining 32 T3 effects need no shared-file edits.
+- Manual-tier blockers measured: 12 portable as-is, 15 need one actor-render field (`effectPhase` 8, `tintPhase` 5, `shrinkPhase`/`outlineAlpha`/`runStartTick`), 2 need `NotifyGameMode`.
 
 ### Known wiring gaps (client spawn path)
 
