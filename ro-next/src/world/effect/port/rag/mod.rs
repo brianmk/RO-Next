@@ -4,12 +4,14 @@
 //! classic `CRagEffect` methods that the pre-renewal skills use most.
 
 pub mod bash;
+pub mod agiup;
 pub mod aqua;
 pub mod blessing;
 pub mod bowlingbash;
 pub mod cart;
 pub mod decagility;
 pub mod earthspike;
+pub mod enchantpoison;
 pub mod endure;
 pub mod fireball;
 pub mod frostdiver;
@@ -24,12 +26,14 @@ pub mod signum;
 pub mod sonicblow;
 
 pub use bash::Bash;
+pub use agiup::AgilityUp;
 pub use aqua::Aqua;
 pub use blessing::Blessing;
 pub use bowlingbash::BowlingBash;
 pub use cart::CartRevolution;
 pub use decagility::DecAgility;
 pub use earthspike::EarthSpike;
+pub use enchantpoison::EnchantPoison;
 pub use endure::Endure;
 pub use fireball::FireBall;
 pub use frostdiver::FrostDiver;

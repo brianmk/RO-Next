@@ -8,7 +8,7 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, EarthSpike, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
+    AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
     Revive, Signum, SonicBlow,
 };
 use super::runtime::PortedEffect;
@@ -22,6 +22,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
+        EffectId::Enchantpoison => Box::new(EnchantPoison::default()),
+        EffectId::Agiup => Box::new(AgilityUp::default()),
         EffectId::Aqua => Box::new(Aqua::default()),
         EffectId::Revive => Box::new(Revive::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
@@ -60,6 +62,8 @@ pub fn ported_ids() -> &'static [EffectId] {
         EffectId::Decagility,
         EffectId::Aqua,
         EffectId::Revive,
+        EffectId::Enchantpoison,
+        EffectId::Agiup,
         EffectId::Bash,
         EffectId::Magnumbreak,
         EffectId::Frostdiver,
@@ -98,6 +102,8 @@ mod tests {
             (EffectId::Decagility, 100),
             (EffectId::Aqua, 100),
             (EffectId::Revive, 250),
+            (EffectId::Enchantpoison, 250),
+            (EffectId::Agiup, 100),
             (EffectId::Bash, 40),
             (EffectId::Magnumbreak, 30),
             (EffectId::Frostdiver, 150),
