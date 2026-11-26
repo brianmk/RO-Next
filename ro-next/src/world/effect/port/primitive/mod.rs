@@ -307,6 +307,10 @@ pub struct EffectPrimitiveState {
     /// `/* 01C4 */ renderFlag` - `RSF_*` bits; `0x200` is the additive blend
     /// used by the ring primitives.
     pub render_flag: u32,
+    /// `.spr` asset of a sprite particle (`SetSpriteName`).
+    pub sprite: Option<&'static str>,
+    /// `.act` asset of a sprite particle (`SetActionName`).
+    pub action: Option<&'static str>,
     /// Texture asset the body loads for this primitive (`g_texMgr.Load(...)`),
     /// relative to `data\` as the official paths are written. `None` for
     /// sprite (`.spr/.act`) primitives.
@@ -419,6 +423,8 @@ impl Default for EffectPrimitiveState {
             count: PrimitiveId::Texture2d,
             render_angle: 0.0,
             render_flag: 1,
+            sprite: None,
+            action: None,
             texture: None,
             primitive_type: 0,
             master_reached: false,
