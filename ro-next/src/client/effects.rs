@@ -30,6 +30,29 @@ fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled
     ported_enabled && crate::world::port::skill_map::ported_effect_for(skill_id, phase).is_some()
 }
 
+/// `AM_SETCOUNT` value carried by the official skill launcher: the effect
+/// level `state.count` is the skill level verbatim
+/// (`JobInheritance.cpp:2147/2153` sends `level` for
+/// `MG_COLDBOLT`/`MG_FIREBOLT`, and the same message carries the Blitz Beat
+/// level).
+///
+/// Free-standing so the spawn path's level -> count mapping is testable
+/// without a `Client`. The bodies scale with it: Blitz Beat emits one bolt per
+/// count, Fire/Ice Arrow multiply it by ten on frame 12.
+fn effect_count_for_skill_level(level: u16) -> i32 {
+    i32::from(level)
+}
+
+/// Applies the official `AM_SETCOUNT` to a freshly spawned runtime.
+///
+/// `None` (no level known for this caster) keeps the constructor's zero, which
+/// is the pre-wiring "no bolts" behaviour; it must not be mistaken for level 0.
+fn apply_effect_skill_level(runtime: &mut crate::world::port::runtime::EffectRuntime, level: Option<u16>) {
+    if let Some(level) = level {
+        runtime.count = effect_count_for_skill_level(level);
+    }
+}
+
 impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", ro_next_debug::profile)]
@@ -292,6 +315,36 @@ impl Client {
         );
     }
 
+    /// The local player's learned level of `skill_id`, when
+    /// `source_entity_id` is the local player.
+    ///
+    /// The cast packets that spawn the count-consuming bodies carry no level:
+    /// `ZC_USESKILL_ACK` (0x0B1A, `NetworkEvent::SkillCast`) has no skill-level
+    /// field and `ZC_NOTIFY_SKILL` (0x01DE, `NetworkEvent::DamageEffect`) has
+    /// none either. The only `SkillId -> level` state in the client is the
+    /// local player's skill tree (`ZC_SKILLINFO_LIST` / `ZC_SKILLINFO_UPDATE`),
+    /// which is also the level the local cast request sends
+    /// (`input_skills.rs::use_skill`). A remote player's level is never
+    /// transmitted, so `None` is the only possible answer there.
+    ///
+    /// This is the earliest the level is known on the spawn path: the
+    /// `Success`/`Cast` effects of Blitz Beat (129), Fire Bolt (19) and Cold
+    /// Bolt (14) spawn from the damage/cast packet, both of which only arrive
+    /// after the skill tree has the level.
+    fn local_learned_skill_level(&self, source_entity_id: EntityId, skill_id: SkillId) -> Option<u16> {
+        let local_entity_id = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id())?;
+
+        if local_entity_id != source_entity_id {
+            return None;
+        }
+
+        self.client_state
+            .follow(client_state().skill_tree().skills())
+            .iter()
+            .find(|learned_skill| learned_skill.skill_id == skill_id)
+            .map(|learned_skill| learned_skill.skill_level.0)
+    }
+
     /// Spawns the ported official effect (`port::skill_map`) of one skill
     /// phase, when the opt-in backend is enabled and the pair is mapped.
     ///
@@ -323,6 +376,11 @@ impl Client {
         let Some(source_position) = self.entity_position(source_entity_id) else {
             return;
         };
+
+        // The official launcher gets this from the skill-use packet; the 2019
+        // client state only stores the local player's level, which is enough
+        // for the count-consuming bodies (see `local_learned_skill_level`).
+        let skill_level = self.local_learned_skill_level(source_entity_id, skill_id);
 
         // Deterministic per cast/phase: no wall clock, so two clients (and two
         // tests) playing the same packet see the same randomness.
@@ -356,9 +414,22 @@ impl Client {
                 .map(|target| [target.x, target.y, target.z])
                 .unwrap_or(runtime.position);
             runtime.parent_angle = parent_angle;
-            // `state.param[0]` is the skill level; the phase spawn signature
-            // does not carry it yet, so level-scaled bodies use level 1.
+            // `state.param[0]` is the effect-maker parameter
+            // (`AM_SETPARAM`, `EffectMaker.cpp:58`), not the skill level; keep
+            // the existing placeholder untouched so the aura bodies that read
+            // it are not re-scaled by this change.
             runtime.param = 1.0;
+            // The official skill launcher sends `AM_SETCOUNT` with the skill
+            // level (`JobInheritance.cpp:2147/2153`); effect-level
+            // `state.count` is that level (Blitz Beat bolts, Fire/Ice Arrow's
+            // `count *= 10`).
+            apply_effect_skill_level(runtime, skill_level);
+            // `PlayEffectWaveAt` (`RagEffect.cpp:22972`) subtracts the local
+            // player position from the effect position. The runtime has no
+            // player object, so snapshot it for the positional-sound bodies.
+            if let Some(listener) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position()) {
+                runtime.listener_position = [listener.x, listener.y, listener.z];
+            }
         }
 
         if self.effect_holder.add_unit(Box::new(visual), source_entity_id) {
@@ -851,8 +922,9 @@ impl Client {
 mod tests {
     use ragnarok_packets::SkillId;
 
-    use super::should_spawn_skill_phase;
+    use super::{apply_effect_skill_level, effect_count_for_skill_level, should_spawn_skill_phase};
     use crate::world::SkillPhase;
+    use crate::world::port::runtime::EffectRuntime;
 
     /// Regression for Blitz Beat: `EF_BLITZBEAT` is a hard-coded procedural
     /// body with no `skill_effects.ron` descriptor row, so the ported hook must
@@ -869,5 +941,31 @@ mod tests {
         assert!(!should_spawn_skill_phase(SkillId(129), SkillPhase::Success, false));
         // No descriptor and no ported body keeps the cheap early-out.
         assert!(!should_spawn_skill_phase(SkillId(u16::MAX), SkillPhase::Success, true));
+    }
+
+    /// `AM_SETCOUNT` sends the skill level itself (`JobInheritance.cpp:2147`).
+    #[test]
+    fn official_skill_level_is_the_effect_count() {
+        assert_eq!(effect_count_for_skill_level(1), 1);
+        assert_eq!(effect_count_for_skill_level(3), 3);
+        assert_eq!(effect_count_for_skill_level(10), 10);
+    }
+
+    #[test]
+    fn spawn_applies_the_learned_level_to_the_effect_count() {
+        let mut runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+
+        // No level known (remote caster): the constructor's zero is kept, the
+        // same "no bolts" behaviour as before the wiring.
+        apply_effect_skill_level(&mut runtime, None);
+        assert_eq!(runtime.count, 0);
+
+        // Blitz Beat (129) at level 3 -> three bolts; Fire/Ice Arrow then
+        // multiply the count by ten on frame 12 inside their own bodies.
+        apply_effect_skill_level(&mut runtime, Some(3));
+        assert_eq!(runtime.count, 3);
+
+        // The effect-maker parameter is a separate message (`AM_SETPARAM`).
+        assert_eq!(runtime.param, 0.0);
     }
 }

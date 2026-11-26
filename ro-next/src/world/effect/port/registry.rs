@@ -13,13 +13,13 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
-    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, EarthSpike, EnchantPoison, EnchantPoisonCast, Endure, Entry, Exit, FireArrow,
-    FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, GrimTooth, GrimToothAtk, HealBurst,
-    HealRingSparkle, Hit2, IceArrow, IceWall, IncAgility, LockOn, MagicRing, MagnumBreak, NapalmBeat, Overthrust, PortalRings, PortalSpell,
-    PotionPill, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere,
-    SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedComet,
-    TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TorchDustRing, TripleOrbit,
-    Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
+    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, Entry,
+    Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth,
+    GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, LockOn, Loud, MagicRing, MagnumBreak,
+    NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Signum,
+    SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam,
+    TexturedComet, TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TorchDustRing,
+    TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -188,6 +188,16 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // opens the clip before frame 0; an empty constructor set is fine.
         EffectId::Signum => Box::new(Signum::new(Vec::new())),
         EffectId::Cartrevolution => Box::new(CartRevolution::new(Vec::new())),
+        // Positional-sound dispatch cases (`rag/positional.rs`): the body is
+        // the effect's `.str` clip plus one `PlayWave` with listener-relative
+        // coordinates (`PlayEffectWaveAt` for Gloria and the four elemental
+        // weapons, a raw `PlayWave` for Holy Cross and Loud).
+        EffectId::Gloria => Box::new(Gloria::new(Vec::new())),
+        EffectId::Flamelauncher | EffectId::Frostweapon | EffectId::Lightningloader | EffectId::Seismicweapon => {
+            Box::new(ElementalWeapon::new(Vec::new()))
+        }
+        EffectId::Holycross => Box::new(HolyCross::new(Vec::new())),
+        EffectId::Loud => Box::new(Loud::new(Vec::new())),
         _ => return None,
     })
 }
@@ -331,6 +341,13 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Overthrust,
         EffectId::Signum,
         EffectId::Cartrevolution,
+        EffectId::Gloria,
+        EffectId::Flamelauncher,
+        EffectId::Frostweapon,
+        EffectId::Lightningloader,
+        EffectId::Seismicweapon,
+        EffectId::Holycross,
+        EffectId::Loud,
     ]);
 
     ids
@@ -470,6 +487,13 @@ mod tests {
             (EffectId::Overthrust, 250),
             (EffectId::Signum, 999),
             (EffectId::Cartrevolution, 999),
+            (EffectId::Gloria, 999),
+            (EffectId::Flamelauncher, 999),
+            (EffectId::Frostweapon, 999),
+            (EffectId::Lightningloader, 999),
+            (EffectId::Seismicweapon, 999),
+            (EffectId::Holycross, 499),
+            (EffectId::Loud, 300),
         ];
 
         for (effect, lifetime) in expect {

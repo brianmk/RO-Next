@@ -306,6 +306,46 @@ static BULLSEYE: StrResource = StrResource {
     loop_limit: 0,
 };
 
+// Positional-sound tier (`rag/positional.rs`). One row per registered id; the
+// bodies differ only in the `PlayWave` frame/offset. `Gloria` takes the
+// switch's regular name (the `gloria_min.str` variant is the other side of the
+// `TT_MIN_EFFECT_ON_OFF` ternary); every row keeps the single-pass default.
+
+static GLORIA: StrResource = StrResource {
+    files: &["Gloria.str"],
+    loop_limit: 0,
+};
+
+static HOLY_CROSS: StrResource = StrResource {
+    files: &["holy_cross.str"],
+    loop_limit: 0,
+};
+
+static ENC_FIRE: StrResource = StrResource {
+    files: &["enc_fire.str"],
+    loop_limit: 0,
+};
+
+static ENC_ICE: StrResource = StrResource {
+    files: &["enc_ice.str"],
+    loop_limit: 0,
+};
+
+static ENC_WIND: StrResource = StrResource {
+    files: &["enc_wind.str"],
+    loop_limit: 0,
+};
+
+static ENC_EARTH: StrResource = StrResource {
+    files: &["enc_earth.str"],
+    loop_limit: 0,
+};
+
+static LOUD: StrResource = StrResource {
+    files: &["loud.str"],
+    loop_limit: 0,
+};
+
 /// The official `.str` resource of an effect, if its body drives
 /// `ProcessEZ2STR`.
 ///
@@ -438,6 +478,25 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         EffectId::Hyousyouraku => &ICY,
         // `case EF_BULLSEYE: std::sprintf(name, "불스아이.str");` - 503-504.
         EffectId::Bullseye => &BULLSEYE,
+        // Positional-sound tier (`rag/positional.rs`).
+        //
+        // `case EF_GLORIA:` `gloria_min.str` toggle - 66-68.
+        EffectId::Gloria => &GLORIA,
+        // `case EF_HOLYCROSS: std::sprintf(name, "holy_cross.str");` - 344-345.
+        EffectId::Holycross => &HOLY_CROSS,
+        // `case EF_FLAMELAUNCHER: std::sprintf(name, "enc_fire.str");`
+        // - 374-375.
+        EffectId::Flamelauncher => &ENC_FIRE,
+        // `case EF_FROSTWEAPON: std::sprintf(name, "enc_ice.str");` - 377-378.
+        EffectId::Frostweapon => &ENC_ICE,
+        // `case EF_LIGHTNINGLOADER: std::sprintf(name, "enc_wind.str");`
+        // - 380-381.
+        EffectId::Lightningloader => &ENC_WIND,
+        // `case EF_SEISMICWEAPON: std::sprintf(name, "enc_earth.str");`
+        // - 383-384.
+        EffectId::Seismicweapon => &ENC_EARTH,
+        // `case EF_LOUD: std::sprintf(name, "loud.str");` - 386-387.
+        EffectId::Loud => &LOUD,
         _ => return None,
     })
 }
@@ -673,6 +732,26 @@ mod tests {
         for (effect, file) in expect {
             assert_eq!(str_clips_for(effect), Some(&[file][..]), "{effect:?}");
             // No follow-up row sets `state.loopLimit` in `Init`, so the
+            // `CRagEffect` constructor default (`RagEffect.cpp:109`) stands.
+            assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
+        }
+    }
+
+    #[test]
+    fn positional_sound_rows_match_the_initialization_switch() {
+        let expect = [
+            (EffectId::Gloria, "Gloria.str"),
+            (EffectId::Holycross, "holy_cross.str"),
+            (EffectId::Flamelauncher, "enc_fire.str"),
+            (EffectId::Frostweapon, "enc_ice.str"),
+            (EffectId::Lightningloader, "enc_wind.str"),
+            (EffectId::Seismicweapon, "enc_earth.str"),
+            (EffectId::Loud, "loud.str"),
+        ];
+
+        for (effect, file) in expect {
+            assert_eq!(str_clips_for(effect), Some(&[file][..]), "{effect:?}");
+            // No positional row overrides `state.loopLimit` in `Init`, so the
             // `CRagEffect` constructor default (`RagEffect.cpp:109`) stands.
             assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
         }

@@ -90,6 +90,29 @@ pub struct EffectRuntime {
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
+    /// `g_modeMgr.GetGameMode()->scene->player->render.position` - the listener
+    /// origin [`Self::play_sound_at_height`] subtracts from the effect
+    /// position.
+    ///
+    /// `PlayEffectWaveAt` (`RagEffect.cpp:22972`) reads the *current* local
+    /// player position on every call. The hermetic runtime has no player
+    /// object, so this is a spawn-time snapshot: the client's spawn path fills
+    /// it from the local entity and tests set it explicitly. The constructor
+    /// value `[0, 0, 0]` makes the horizontal offset equal the effect position,
+    /// i.e. what a listener at the world origin would hear.
+    pub listener_position: [f32; 3],
+    /// Positional sounds played on the current step as
+    /// `(name, [dx, height, dz])`, mirroring
+    /// `g_soundMgr->PlayWave(name, x, y, z, 250, 40, 1.0f, 0)`
+    /// (`SoundMgr.cpp:627`) and the `PlayEffectWaveAt` helper built on it.
+    ///
+    /// Additive channel: [`Self::sounds`] keeps the inline
+    /// (`PlayEffectWaveInline`) call shape untouched. The offset is
+    /// listener-relative, exactly like the raw `PlayWave` arguments; the audio
+    /// layer can turn it into a world position with
+    /// `listener_position + offset` (for `PlayEffectWaveAt`, `dx`/`dz`
+    /// already are `effect.position - listener_position`).
+    pub positional_sounds: Vec<(String, [f32; 3])>,
     /// `MM_QUAKE` requests made by the body so far.
     pub shakes: u32,
     pub rng: EffectRng,
@@ -124,6 +147,8 @@ impl EffectRuntime {
             count: 0,
             primitives: Vec::new(),
             sounds: Vec::new(),
+            listener_position: [0.0; 3],
+            positional_sounds: Vec::new(),
             shakes: 0,
             rng: EffectRng::new(seed),
             str_clips: Vec::new(),
@@ -245,6 +270,31 @@ impl EffectRuntime {
     /// `PlayEffectWaveInline(*this, name)`.
     pub fn play_sound(&mut self, name: &str) {
         self.sounds.push(name.to_owned());
+    }
+
+    /// `PlayEffectWaveAt(effect, name, height)` - `RagEffect.cpp:22972`:
+    ///
+    /// ```text
+    /// g_soundMgr->PlayWave(name,
+    ///     effect.render.position.x - player->render.position.x,
+    ///     height,
+    ///     effect.render.position.z - player->render.position.z,
+    ///     250, 40, 1.0f, 0);
+    /// ```
+    ///
+    /// [`Self::listener_position`] stands in for the local player position, so
+    /// the recorded offset is `[dx, height, dz]` with the same horizontal
+    /// parts the official helper computes.
+    pub fn play_sound_at_height(&mut self, name: &str, height: f32) {
+        let listener = self.listener_position;
+        self.play_sound_at(name, [self.position[0] - listener[0], height, self.position[2] - listener[2]]);
+    }
+
+    /// Raw `g_soundMgr->PlayWave(name, dx, height, dz, ...)` with explicit
+    /// listener-relative coordinates, e.g. Holy Cross' literal `(0, 0, 0)`
+    /// (`RagEffect.cpp:25264-25270`).
+    pub fn play_sound_at(&mut self, name: &str, offset: [f32; 3]) {
+        self.positional_sounds.push((name.to_owned(), offset));
     }
 
     /// `CRagEffect::Init` opening the `.str` resource of an effect.
@@ -519,5 +569,35 @@ mod tests {
 
         assert_eq!(runtime.longitude, 0.0);
         assert_eq!(runtime.latitude, 0.0);
+    }
+
+    #[test]
+    fn play_sound_at_height_mirrors_play_effect_wave_at() {
+        let mut runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+        runtime.position = [13.0, 7.0, 25.0];
+        runtime.listener_position = [10.0, 7.0, 20.0];
+
+        runtime.play_sound_at_height("effect\\priest_gloria.wav", 1.0);
+
+        // `PlayWave(name, effect.x - player.x, height, effect.z - player.z)`.
+        // The listener's y is never read by the helper.
+        assert_eq!(runtime.positional_sounds, vec![("effect\\priest_gloria.wav".to_owned(), [
+            3.0, 1.0, 5.0
+        ])]);
+        assert!(runtime.sounds.is_empty(), "the inline channel stays untouched");
+    }
+
+    #[test]
+    fn play_sound_at_records_the_raw_play_wave_coordinates() {
+        let mut runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+
+        runtime.play_sound_at("effect\\cru_holy cross.wav", [0.0, 0.0, 0.0]);
+        runtime.play_sound_at("_enemy_hit_wind1.wav", [-150.0, 0.0, 2.5]);
+
+        assert_eq!(runtime.positional_sounds, vec![
+            ("effect\\cru_holy cross.wav".to_owned(), [0.0, 0.0, 0.0]),
+            ("_enemy_hit_wind1.wav".to_owned(), [-150.0, 0.0, 2.5]),
+        ]);
+        assert!(runtime.sounds.is_empty());
     }
 }
