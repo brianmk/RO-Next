@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 324 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 341 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -239,6 +239,13 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - Bodies: Defender, Reflect Shield, Kaizel, Stop Effect, and the five `TexturedMagicRing` bottoms (Dissonance, AssassinCross, UglyDance, Don'tForgetMe, ServiceForYou).
 - **Manual tier opened**: MagicCrasher, Memorize, LinkLight (caster-body only). The registry invariant now accepts a zero-primitive body when its batch declares it via `is_caster_body_only`, so the remaining 32 T3 effects need no shared-file edits.
 - Manual-tier blockers measured: 12 portable as-is, 15 need one actor-render field (`effectPhase` 8, `tintPhase` 5, `shrinkPhase`/`outlineAlpha`/`runStartTick`), 2 need `NotifyGameMode`.
+
+### Round 92 (manual tier + Champion)
+
+- Manual tier 3/35 -> **16/35**: MagicCrasher/Memorize/LinkLight, then RedBody, Assumptio, ReflectBody, PinkBody, MagicCrasher2, ChemicalBody, DoubleCastBody, Shrink, FalconAssault, plus LightBlade, AuraBlade2, AsuraBody, AsuraBody_Monster, TransBlueBody.
+- Champion: ComboAttack1..5 and ChainCombo as `.str` bodies (rows added to `str_table.rs`), AsuraBody/AsuraBody_Monster with `parent_outline_alpha`/`parent_effect_phase` (record-only; the original only resets them in `CRenderObject::Reset`, so ASURABODY pins at 200 and ASURABODY_MONSTER freezes at 199).
+- Champion still blocked on primitives: **35** (Gumgang 203, SteelBody 254), **31** (Gumgang2 261), **30** (AuraBlade 367 + the two rings in BeginAsura/BeginAsura11), **68 `PP_ASURACASTING`** (BeginAsura 328, BeginAsura1..7 467-473, BeginAsura11 510). Prims 30/31/35 have no `EffectPrimId.h` symbol (enum jumps 27 -> 34).
+- `EF_SU_STOOP` has no `EffectId` variant (packets jump 1124 -> 1133).
 
 ### Known wiring gaps (client spawn path)
 
