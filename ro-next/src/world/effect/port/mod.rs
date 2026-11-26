@@ -31,6 +31,7 @@ pub mod holder;
 pub mod math;
 pub mod primitive;
 pub mod registry;
+pub mod registry_class_change;
 pub mod rng;
 pub mod rag;
 pub mod runtime;

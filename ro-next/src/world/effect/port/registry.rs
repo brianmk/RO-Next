@@ -19,27 +19,16 @@ use super::runtime::PortedEffect;
 /// bodies that need `.str` clips (`EF_SIGNUM`, `EF_CARTREVOLUTION`); see
 /// [`ported_ids`] for the asset-free set.
 pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
+    if let Some(body) = super::registry_class_change::spawn(effect) {
+        return Some(body);
+    }
+
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
         EffectId::Enchantpoison => Box::new(EnchantPoison::default()),
         EffectId::Detoxication => Box::new(Detoxication::default()),
         EffectId::Agiup => Box::new(AgilityUp::default()),
-        EffectId::Rapidshower => Box::new(TexturedClassChange::new(&[26], 100)),
-        EffectId::Magicalbullet => Box::new(TexturedClassChange::new(&[27], 100)),
-        EffectId::Spreadattack => Box::new(TexturedClassChange::new(&[28], 100)),
-        EffectId::Tracking => Box::new(TexturedClassChange::new(&[29], 100)),
-        EffectId::Tripleaction => Box::new(TexturedClassChange::new(&[30], 100)),
-        EffectId::Kirikage => Box::new(TexturedClassChange::new(&[15], 100)),
-        EffectId::Kasumikiri => Box::new(TexturedClassChange::new(&[17], 100)),
-        EffectId::Issen => Box::new(TexturedClassChange::new(&[18], 100)),
-        EffectId::M02 => Box::new(TexturedClassChange::new(&[8], 100)),
-        EffectId::M07 => Box::new(TexturedClassChange::new(&[13], 100)),
-        EffectId::NpcEarthquake => Box::new(TexturedClassChange::new(&[31], 100)),
-        EffectId::PokLove => Box::new(TexturedClassChange::new(&[32], 100)),
-        EffectId::SilentBreeze => Box::new(TexturedClassChange::new(&[82], 100)),
-        EffectId::Stonering => Box::new(TexturedClassChange::new(&[60], 300)),
-        EffectId::Vacuum => Box::new(TexturedClassChange::new(&[64, 65], 1000)),
         EffectId::Aqua => Box::new(Aqua::default()),
         EffectId::Revive => Box::new(Revive::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
@@ -69,8 +58,10 @@ pub fn needs_str_clips(effect: EffectId) -> bool {
 }
 
 /// Every ported, asset-free effect id.
-pub fn ported_ids() -> &'static [EffectId] {
-    &[
+pub fn ported_ids() -> Vec<EffectId> {
+    let mut ids = super::registry_class_change::ids().to_vec();
+
+    ids.extend_from_slice(&[
         EffectId::Hit2,
         EffectId::Endure,
         EffectId::Blessing,
@@ -109,7 +100,9 @@ pub fn ported_ids() -> &'static [EffectId] {
         EffectId::Hyousensou,
         EffectId::Sonicblow,
         EffectId::Overthrust,
-    ]
+    ]);
+
+    ids
 }
 
 #[cfg(test)]
@@ -118,7 +111,7 @@ mod tests {
 
     #[test]
     fn every_ported_id_spawns_with_its_official_lifetime() {
-        for &effect in ported_ids() {
+        for effect in ported_ids() {
             let body = spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"));
             assert!(body.lifetime() > 0, "{effect:?} has no lifetime");
         }
@@ -186,7 +179,7 @@ mod tests {
         use crate::world::effect::port::primitive::PrimitiveId;
         use crate::world::effect::port::runtime::{step, EffectRuntime};
 
-        for &effect in ported_ids() {
+        for effect in ported_ids() {
             let mut body = spawn(effect).unwrap();
             let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 99);
 

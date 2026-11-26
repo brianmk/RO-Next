@@ -135,11 +135,30 @@ pub(crate) fn class_change(kind: u8) -> Option<&'static ClassChange> {
 pub struct TexturedClassChange {
     kinds: Vec<u8>,
     lifetime: i32,
+    /// `(frame, wave)` sounds scheduled by the effect's dispatch block.
+    waves: Vec<(i32, &'static str)>,
+    /// Frames on which the block sends `MM_QUAKE`.
+    quakes: Vec<i32>,
 }
 
 impl TexturedClassChange {
     pub fn new(kinds: &[u8], lifetime: i32) -> Self {
-        Self { kinds: kinds.to_vec(), lifetime }
+        Self {
+            kinds: kinds.to_vec(),
+            lifetime,
+            waves: Vec::new(),
+            quakes: Vec::new(),
+        }
+    }
+
+    pub fn with_waves(mut self, waves: &[(i32, &'static str)]) -> Self {
+        self.waves = waves.to_vec();
+        self
+    }
+
+    pub fn with_quakes(mut self, frames: &[i32]) -> Self {
+        self.quakes = frames.to_vec();
+        self
     }
 }
 
@@ -149,6 +168,16 @@ impl PortedEffect for TexturedClassChange {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        let frame = runtime.frame;
+
+        if self.quakes.contains(&frame) {
+            runtime.quake();
+        }
+
+        for wave in self.waves.iter().filter(|(at, _)| *at == frame) {
+            runtime.play_sound(wave.1);
+        }
+
         for &kind in &self.kinds {
             // Only kind 30 has a `stage` of 30; everything else fires on frame 0.
             let stage = if kind == 30 { 30 } else { 0 };

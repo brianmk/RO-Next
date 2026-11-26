@@ -53,10 +53,17 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::IncAgilityCenter` (`EF_AGIUP`) | `RagEffect.cpp:16534-16582` | 2 |
 | `CRagEffect::Detoxication` (`EF_DETOXICATION`) | `RagEffect.cpp:13187-13211` | 2 |
 | `CRagEffect::TexturedClassChange` - 84-kind sprite table behind ~80 effect ids | `RagEffect.cpp:18730-19370` | 5 |
+| `registry_class_change.rs` - 66 generated effect-id entries with waves/quake | dispatch switch | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 121 tests, all green. **38 effect ids registered** (27 of them in the pre-re coverage set) plus the generic `Hit2` impact.
+Total: 123 tests, all green.
+
+**Registry:** 89 effect ids (66 generated from `TexturedClassChange` + 23 hand-written
+bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+(official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
+classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
+so the *skill* coverage is far higher than the id ratio suggests.
 
 ## Next (W2/W3/W6)
 
