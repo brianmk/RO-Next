@@ -142,6 +142,11 @@ impl PortedEffect for TexturedAura {
             state.slots[0].flag1[2] = flag;
             state.slots[0].height[10] = height10;
             state.slots[0].full_display_angle = display_angle;
+
+            // `RagEffect.cpp:17964-17965`: the motion kind (4 collapses to 1)
+            // and the vertical lift the motion uses to place `vecBNow`.
+            state.slots[0].flag1[4] = if kind == 4 { 1 } else { kind as i8 };
+            state.slots[0].height[15] = position_y - state.slots[0].vec_b_pre[1];
         }
 
         true
@@ -168,6 +173,9 @@ mod tests {
         assert_eq!(state.slots[0].life, 1);
         assert_eq!(state.slots[0].distance, 8.0);
         assert_eq!(state.slots[0].flag1[2], 15);
+        // `RagEffect.cpp:17964-17965`: motion kind and the lift the motion uses.
+        assert_eq!(state.slots[0].flag1[4], 19);
+        assert_eq!(state.slots[0].height[15], 30.0);
         assert_eq!(state.slots[1].life, 0);
     }
 
@@ -198,6 +206,8 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         let slot = &runtime.primitives[0].state.slots[0];
+        assert_eq!(slot.flag1[4], 1, "kind 1 stores its own motion kind");
+        assert_eq!(slot.height[15], 30.0, "lift = position.y - vecBPre.y");
         assert_eq!(slot.distance, 8.0);
         assert_eq!(slot.full_display_angle, 120);
         assert_eq!(slot.height[10], 1.0);
