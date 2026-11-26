@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod halo;
 pub mod height_ramp;
 pub mod intimidate;
 pub mod particle3d;
@@ -147,6 +148,8 @@ pub enum PrimitiveId {
     RisingFan,
     /// prim 131 (`PrimRisingFan2`)
     RisingFan2,
+    /// prim 39 (TexturedHalo)
+    Halo,
 }
 
 impl PrimitiveId {
@@ -173,6 +176,7 @@ impl PrimitiveId {
             Self::RippleRings => 63,
             Self::RisingFan => 130,
             Self::RisingFan2 => 131,
+            Self::Halo => 39,
         }
     }
 }
@@ -624,6 +628,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::RisingFan2 => {
                 rising_fan::rising_fan2(self, master);
+                true
+            }
+            PrimitiveId::Halo => {
+                halo::on_process(self, master);
                 true
             }
         };
