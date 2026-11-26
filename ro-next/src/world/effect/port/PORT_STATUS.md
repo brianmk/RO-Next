@@ -73,13 +73,14 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | prim 63 `PrimRippleRings` | `EffectPrimitiveMotion.cpp:6638-6739` | 4 |
 | `CRagEffect::VioletRingCloud` (`EF_PORTAL2`, `EF_PORTAL3`) | `RagEffect.cpp:15364-15577` | 2 |
 | `CRagEffect::TexturedMagicRing` (`EF_BIG_PORTAL`, `EF_BIG_PORTAL2`) | `RagEffect.cpp:15565-15703` | 2 |
+| `CRagEffect::StormGust` (`EF_STORMGUST`) | `RagEffect.cpp:15176-15215` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 136 effect ids (66 generated from `TexturedClassChange`, 26 from
-`TexturedAura`, 44 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+**Registry:** 137 effect ids (66 generated from `TexturedClassChange`, 26 from
+`TexturedAura`, 45 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
 so the *skill* coverage is far higher than the id ratio suggests.

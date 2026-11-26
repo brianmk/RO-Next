@@ -34,6 +34,7 @@ pub mod whitespray;
 pub mod skill_aura;
 pub mod sonicblow;
 pub mod spread_flat;
+pub mod storm_gust;
 pub mod textured_aura;
 pub mod violet_ring_cloud;
 
@@ -68,5 +69,6 @@ pub use magnum::MagnumBreak;
 pub use skill_aura::TexturedSkillAura;
 pub use sonicblow::SonicBlow;
 pub use spread_flat::TexturedSpreadFlat;
+pub use storm_gust::StormGust;
 pub use textured_aura::TexturedAura;
 pub use violet_ring_cloud::VioletRingCloud;
