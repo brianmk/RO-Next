@@ -122,6 +122,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | prim 6 `Prim3DParticleGravity` + `CRagEffect::Steal` (`EF_STEAL`) | `EffectPrimitiveMotion.cpp:2581-2619`, `RagEffect.cpp:1835-1875` | 9 |
 | prim 155 `PrimWanderingFlames` + `CRagEffect::TexturedForkBolt` (ported, unregistered) | `EffectPrimitiveMotion.cpp:7353-7403`, `RagEffect.cpp:7268-7321` | 12 |
 | `ParticleTime` (`EF_SMA_READY`), `StoneWall` (`EF_EARTHWALL`), `Hit3` (`EF_HIT3`) | `RagEffect.cpp:12121-12177`, `13088-13124`, `863-935` | 9 |
+| **client wiring**: `port/visual.rs` (`PortedVisual` over `EffectBase`), `port/skill_map.rs` (45 skill->id mappings), opt-in hook in `client/effects.rs` | `tools/gen_ported_skill_map.py`, `RO_NEXT_PORTED_FX=1` | 10 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
