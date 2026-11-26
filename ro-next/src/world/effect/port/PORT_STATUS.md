@@ -51,10 +51,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `EF_AQUA` | `RagEffect.cpp:23363-23375` | 1 |
 | `CRagEffect::PoisonAttack` (`EF_ENCHANTPOISON`) | `RagEffect.cpp:13276-13338` | 2 |
 | `CRagEffect::IncAgilityCenter` (`EF_AGIUP`) | `RagEffect.cpp:16534-16582` | 2 |
+| `CRagEffect::Detoxication` (`EF_DETOXICATION`) | `RagEffect.cpp:13187-13211` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 114 tests, all green. Effect bodies ported: **20 / 236** + the generic `Hit2` impact.
+Total: 116 tests, all green. Effect bodies ported: **21 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 
