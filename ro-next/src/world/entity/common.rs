@@ -783,6 +783,26 @@ impl Common {
         }
     }
 
+    /// ACT block of this entity's attack swing.
+    ///
+    /// The kRO player sprite layout stores the weapon swing in either the
+    /// `ST_ATTACK` block (80..87) or the `ST_ATTACK2` block (88..95); which one
+    /// a weapon ACT animates depends on the job/weapon pair (for example knight
+    /// swords use 80..87 while knight spears and hunter bows use 88..95). Pick
+    /// the block the loaded weapon ACT actually draws, so the weapon layer does
+    /// not drop out during the attack. Non-player entities keep the non-player
+    /// layout (`Attack1` = block 2).
+    pub fn attack_action(&self) -> crate::world::AnimationActionType {
+        if !matches!(self.entity_type, EntityType::Player | EntityType::Hidden) {
+            return crate::world::AnimationActionType::Attack1;
+        }
+
+        match self.weapon_animation.as_deref() {
+            Some(animation) => crate::world::weapon::attack_action(animation),
+            None => crate::world::AnimationActionType::Attack2,
+        }
+    }
+
     /// Applies an equipped weapon change (server `ZC_SPRITE_CHANGE` with
     /// `Weapon` / `Shield` / `Robe`).
     pub fn set_equipment_look(&mut self, value: u32, slot: EquipmentLook) {

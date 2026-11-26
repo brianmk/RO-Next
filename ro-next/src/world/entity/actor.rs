@@ -599,11 +599,15 @@ impl Entity {
         }
     }
 
-    pub fn set_attack(&mut self, attack_duration: u32, critical: bool, client_tick: ClientTick) {
+    pub fn set_attack(&mut self, attack_duration: u32, _critical: bool, client_tick: ClientTick) {
+        // Critical hits share the normal weapon swing in the official client;
+        // only the damage number differs. The action block is chosen from the
+        // loaded weapon ACT because the player attack blocks (80..87 and
+        // 88..95) are job/weapon specific.
         let entity_type = self.get_entity_type();
-        self.get_common_mut()
-            .animation_state
-            .attack(entity_type, attack_duration, critical, client_tick);
+        let common = self.get_common_mut();
+        let action = common.attack_action();
+        common.animation_state.attack(entity_type, attack_duration, action, client_tick);
     }
 
     pub fn stopped_moving(&self) -> bool {
