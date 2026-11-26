@@ -75,6 +75,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::registry_batch_j::spawn(effect) {
+        return Some(body);
+    }
+
     if let Some(body) = super::rag::asura::spawn(effect) {
         return Some(body);
     }
@@ -306,6 +310,7 @@ pub fn ported_ids() -> Vec<EffectId> {
     ids.extend_from_slice(super::registry_batch_g::ids());
     ids.extend_from_slice(super::registry_batch_h::ids());
     ids.extend_from_slice(super::registry_batch_i::ids());
+    ids.extend_from_slice(super::registry_batch_j::ids());
 
     ids.extend_from_slice(&[
         EffectId::Hit2,
