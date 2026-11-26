@@ -25,6 +25,7 @@ pub mod ripple_rings;
 pub mod rising_fan;
 pub mod spin_quad;
 pub mod texture3d;
+pub mod texture_spin;
 pub mod aura_glow;
 pub mod wind;
 pub mod texture2d;
@@ -150,6 +151,8 @@ pub enum PrimitiveId {
     RisingFan2,
     /// prim 39 (TexturedHalo)
     Halo,
+    /// prim 143 (`PrimTextureSpin`)
+    TextureSpin,
 }
 
 impl PrimitiveId {
@@ -177,6 +180,7 @@ impl PrimitiveId {
             Self::RisingFan => 130,
             Self::RisingFan2 => 131,
             Self::Halo => 39,
+            Self::TextureSpin => 143,
         }
     }
 }
@@ -284,6 +288,8 @@ pub struct EffectPrimitiveState {
     pub total_texture: u32,
     /// `/* 01E8 */ animSpeed`
     pub anim_speed: i32,
+    /// Number of frames in `texture_frames` (the original's `totalTexture`).
+    pub frame_count: u32,
     /// `/* 0254 */ repeatAnim`
     pub repeat_anim: u8,
 
@@ -460,6 +466,7 @@ impl Default for EffectPrimitiveState {
             change_point: -1,
             total_texture: 1,
             anim_speed: 4,
+            frame_count: 1,
             repeat_anim: 1,
             red_speed: 0,
             green_speed: 0,
@@ -636,6 +643,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::Halo => {
                 halo::on_process(self, master);
+                true
+            }
+            PrimitiveId::TextureSpin => {
+                texture_spin::on_process(self, master);
                 true
             }
         };
