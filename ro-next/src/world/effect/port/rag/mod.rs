@@ -60,6 +60,7 @@ pub mod torch_dust_ring;
 pub mod triple_orbit;
 pub mod violet_ring_cloud;
 pub mod water_ball;
+pub mod water_ball_burst;
 
 pub use bash::Bash;
 pub use agiup::AgilityUp;
@@ -118,3 +119,4 @@ pub use torch_dust_ring::TorchDustRing;
 pub use triple_orbit::TripleOrbit;
 pub use violet_ring_cloud::VioletRingCloud;
 pub use water_ball::WaterBall;
+pub use water_ball_burst::WaterBallBurst;
