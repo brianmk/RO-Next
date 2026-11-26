@@ -8,7 +8,7 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    Bash, Blessing, BowlingBash, CartRevolution, EarthSpike, Endure, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
+    Bash, Blessing, BowlingBash, CartRevolution, EarthSpike, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
     Signum, SonicBlow,
 };
 use super::runtime::PortedEffect;
@@ -22,6 +22,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
+        EffectId::Fireball => Box::new(FireBall::default()),
         EffectId::Blessing => Box::new(Blessing::default()),
         EffectId::Bash => Box::new(Bash::default()),
         EffectId::Magnumbreak => Box::new(MagnumBreak::default()),
@@ -52,6 +53,7 @@ pub fn ported_ids() -> &'static [EffectId] {
         EffectId::Hit2,
         EffectId::Endure,
         EffectId::Blessing,
+        EffectId::Fireball,
         EffectId::Bash,
         EffectId::Magnumbreak,
         EffectId::Frostdiver,
@@ -86,6 +88,7 @@ mod tests {
             (EffectId::Hit2, 50),
             (EffectId::Endure, 80),
             (EffectId::Blessing, 150),
+            (EffectId::Fireball, 100),
             (EffectId::Bash, 40),
             (EffectId::Magnumbreak, 30),
             (EffectId::Frostdiver, 150),
@@ -124,7 +127,15 @@ mod tests {
             let mut body = spawn(effect).unwrap();
             let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 99);
 
-            step(&mut body, &mut runtime);
+            // Some bodies only start emitting after a delay (Fire Ball at frame
+            // 20), so run a few frames before requiring primitives.
+            for _ in 0..40 {
+                step(&mut body, &mut runtime);
+
+                if !runtime.primitives.is_empty() {
+                    break;
+                }
+            }
 
             assert!(!runtime.primitives.is_empty(), "{effect:?} spawned nothing");
 
@@ -164,7 +175,7 @@ mod tests {
 
     #[test]
     fn unported_effects_return_none() {
-        assert!(spawn(EffectId::Fireball).is_none());
+        assert!(spawn(EffectId::Thunderstorm).is_none());
         assert!(!ported_ids().iter().any(|effect| !needs_str_clips(*effect) && spawn(*effect).is_none()));
     }
 }

@@ -45,9 +45,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `render_flag` (`RSF_*`, additive 0x200) | primitive state + ring bodies | 2 |
 | `PortedEffectHolder` (fixed 16 ms stepping) | plan 4.2 | 6 |
 | holder render path (`Texture2d`/`Flash2d` quads via `EffectRenderer`) | plan W3 | 3 |
+| `CRagEffect::FireBall` (`EF_FIREBALL`) | `RagEffect.cpp:325-367` | 2 |
+| primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 103 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
+Total: 105 tests, all green. Effect bodies ported: **15 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 

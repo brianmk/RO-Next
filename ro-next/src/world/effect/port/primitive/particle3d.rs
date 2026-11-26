@@ -103,7 +103,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
     }
 
     if (state.pattern & 0x20u32) != 0 {
-        state.roll = master.render_angle - master.camera_yaw;
+        state.roll = state.render_angle - master.camera_yaw;
     }
 
     state.process_alpha(master);
