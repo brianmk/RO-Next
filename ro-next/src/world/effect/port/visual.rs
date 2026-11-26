@@ -193,6 +193,17 @@ impl EffectBase for PortedVisual {
     ///   but has no client-side state machine to drive; the visible part of the
     ///   official write - animation `0x60`, frame `2`, 25 ms - is carried by
     ///   the frame sequence above.
+    /// * The actor render bytes the manual-tier bodies write directly on the
+    ///   parent (`render.effectPhase`, `tintPhase`, `shrinkPhase`,
+    ///   `outlineAlpha`, `runStartTick`; `RenderObjectState.h:121-129`) are
+    ///   replayed onto the caster's `Entity` registers by
+    ///   [`apply_render_fields`]. Those registers persist for the whole effect
+    ///   because the original only clears them in `CRenderObject::Reset`; the
+    ///   visual re-applies the runtime's last write every frame and clears it
+    ///   when the effect retires. The client has no render pass for these
+    ///   phases yet, so they are applied-but-record-only (see
+    ///   `world::entity::Common`'s field docs for the official consumers that
+    ///   would read them).
     fn apply_caster_state(&mut self, entity: &mut crate::world::Entity, client_tick: ragnarok_packets::ClientTick) {
         let runtime = self.holder.runtime();
 
@@ -218,6 +229,8 @@ impl EffectBase for PortedVisual {
 
             self.applied_frame_sequence = Some(runtime.parent_frame_sequence_frame);
         }
+
+        apply_render_fields(entity, CasterRenderFields::read(runtime));
     }
 
     /// Clears the tint this visual applied when the effect retires.
@@ -234,6 +247,8 @@ impl EffectBase for PortedVisual {
         }
 
         self.applied_frame_sequence = None;
+
+        clear_render_fields(entity, CasterRenderFields::read(self.holder.runtime()));
     }
 
     fn mark_for_deletion(&mut self) {
@@ -286,6 +301,92 @@ fn tint_from_channels(channels: [i16; 4], previous: crate::graphics::Color) -> c
 /// (`0x60` = block 12); `Entity`'s custom action takes the block index.
 fn action_block(animation: u8) -> usize {
     usize::from(animation / 8)
+}
+
+/// The five actor render bytes the manual-tier effect bodies write directly on
+/// the shared parent (`CRenderObject::render`, `RenderObjectState.h:121-129`).
+///
+/// The official bodies mutate the shared actor from inside `OnProcess`; the
+/// port cannot, so the runtime keeps the write and this snapshot carries it to
+/// the caster's [`crate::world::Entity`]. `None` means the effect never wrote
+/// that register, and therefore must not clear another effect's value.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+struct CasterRenderFields {
+    /// `short render.effectPhase` (`RenderObjectState.h:127`).
+    effect_phase: Option<i16>,
+    /// `unsigned char render.tintPhase` (`:128`).
+    tint_phase: Option<u8>,
+    /// `unsigned char render.shrinkPhase` (`:121`, low byte of the
+    /// `pulsePhaseState` union).
+    shrink_phase: Option<u8>,
+    /// `unsigned char render.outlineAlpha` (`:125`).
+    outline_alpha: Option<u8>,
+    /// `unsigned char render.runStartTick` (`:129`).
+    run_start_tick: Option<u8>,
+}
+
+impl CasterRenderFields {
+    /// Reads the runtime's last write of every register. The values persist on
+    /// the runtime because `CRenderObject::Reset` (`RenderObjectState.cpp:75`,
+    /// `:90`) is their only reset in the original.
+    fn read(runtime: &EffectRuntime) -> Self {
+        Self {
+            effect_phase: runtime.parent_effect_phase,
+            tint_phase: runtime.parent_tint_phase,
+            shrink_phase: runtime.parent_shrink_phase,
+            outline_alpha: runtime.parent_outline_alpha,
+            run_start_tick: runtime.parent_run_start_tick,
+        }
+    }
+}
+
+/// Replays each register the effect actually wrote onto the caster entity.
+///
+/// Unwritten (`None`) registers are left alone: a second effect on the same
+/// actor must keep its own value.
+fn apply_render_fields(entity: &mut crate::world::Entity, fields: CasterRenderFields) {
+    if let Some(phase) = fields.effect_phase {
+        entity.set_render_effect_phase(Some(phase));
+    }
+
+    if let Some(phase) = fields.tint_phase {
+        entity.set_render_tint_phase(Some(phase));
+    }
+
+    if let Some(phase) = fields.shrink_phase {
+        entity.set_render_shrink_phase(Some(phase));
+    }
+
+    if let Some(alpha) = fields.outline_alpha {
+        entity.set_render_outline_alpha(Some(alpha));
+    }
+
+    if let Some(tick) = fields.run_start_tick {
+        entity.set_render_run_start_tick(Some(tick));
+    }
+}
+
+/// Clears exactly the registers [`apply_render_fields`] installed.
+fn clear_render_fields(entity: &mut crate::world::Entity, fields: CasterRenderFields) {
+    if fields.effect_phase.is_some() {
+        entity.set_render_effect_phase(None);
+    }
+
+    if fields.tint_phase.is_some() {
+        entity.set_render_tint_phase(None);
+    }
+
+    if fields.shrink_phase.is_some() {
+        entity.set_render_shrink_phase(None);
+    }
+
+    if fields.outline_alpha.is_some() {
+        entity.set_render_outline_alpha(None);
+    }
+
+    if fields.run_start_tick.is_some() {
+        entity.set_render_run_start_tick(None);
+    }
 }
 
 #[cfg(test)]
@@ -434,5 +535,44 @@ mod tests {
         assert_eq!(action_block(0x60), 12);
         assert_eq!(action_block(0x58), 11);
         assert_eq!(action_block(0), 0);
+    }
+
+    #[test]
+    fn caster_render_fields_read_only_the_registers_the_body_wrote() {
+        let mut runtime = EffectRuntime::new(50, [0.0, 0.0], 1);
+
+        // Nothing written: the bridge must not clear another effect's value.
+        assert_eq!(CasterRenderFields::read(&runtime), CasterRenderFields::default());
+
+        runtime.set_parent_effect_phase(14);
+        runtime.set_parent_tint_phase(63);
+        runtime.set_parent_shrink_phase(22);
+        runtime.set_parent_outline_alpha(200);
+        runtime.set_parent_run_start_tick(7);
+
+        assert_eq!(CasterRenderFields::read(&runtime), CasterRenderFields {
+            effect_phase: Some(14),
+            tint_phase: Some(63),
+            shrink_phase: Some(22),
+            outline_alpha: Some(200),
+            run_start_tick: Some(7),
+        });
+    }
+
+    #[test]
+    fn caster_render_fields_keep_the_last_write_across_steps() {
+        // `CRenderObject::Reset` is the only reset; `begin_step` must not drop
+        // the phase, so the bridge keeps re-applying it until retirement.
+        let mut runtime = EffectRuntime::new(50, [0.0, 0.0], 1);
+        runtime.set_parent_effect_phase(33);
+        runtime.set_parent_tint_phase(34);
+
+        let mut reference = runtime;
+        reference.begin_step();
+
+        let fields = CasterRenderFields::read(&reference);
+        assert_eq!(fields.effect_phase, Some(33));
+        assert_eq!(fields.tint_phase, Some(34));
+        assert_eq!(fields.shrink_phase, None, "never written");
     }
 }

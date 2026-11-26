@@ -80,6 +80,37 @@ impl Entity {
         self.get_common_mut().set_status_alpha(alpha);
     }
 
+    /// Records the `render.effectPhase` write of a ported effect body
+    /// (`port/visual.rs`). Feeds [`Common::render_effect_phase`]; no client
+    /// render pass reads it yet.
+    pub fn set_render_effect_phase(&mut self, phase: Option<i16>) {
+        self.get_common_mut().set_render_effect_phase(phase);
+    }
+
+    /// Records the `render.tintPhase` write of a ported effect body. Feeds
+    /// [`Common::render_tint_phase`]; no client render pass reads it yet.
+    pub fn set_render_tint_phase(&mut self, phase: Option<u8>) {
+        self.get_common_mut().set_render_tint_phase(phase);
+    }
+
+    /// Records the `render.shrinkPhase` write of a ported effect body. Feeds
+    /// [`Common::render_shrink_phase`]; no client render pass reads it yet.
+    pub fn set_render_shrink_phase(&mut self, phase: Option<u8>) {
+        self.get_common_mut().set_render_shrink_phase(phase);
+    }
+
+    /// Records the `render.outlineAlpha` write of a ported effect body. Feeds
+    /// [`Common::render_outline_alpha`]; no client render pass reads it yet.
+    pub fn set_render_outline_alpha(&mut self, alpha: Option<u8>) {
+        self.get_common_mut().set_render_outline_alpha(alpha);
+    }
+
+    /// Records the `render.runStartTick` write of a ported effect body. Feeds
+    /// [`Common::render_run_start_tick`]; no client render pass reads it yet.
+    pub fn set_render_run_start_tick(&mut self, tick: Option<u8>) {
+        self.get_common_mut().set_render_run_start_tick(tick);
+    }
+
     pub fn needs_cart_animation(&self) -> bool {
         self.get_common().needs_cart_animation()
     }

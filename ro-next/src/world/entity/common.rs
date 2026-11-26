@@ -125,6 +125,57 @@ pub struct Common {
     pub(crate) status_weapon_additive: bool,
     /// Body alpha multiplier from a status visual (`BodyFade`), `None` = 1.0.
     pub(crate) status_alpha: Option<f32>,
+    /// `render.effectPhase` (`RenderObjectState.h:127`, `short`) written by a
+    /// ported effect body (`port/visual.rs` replays it every frame; `None` =
+    /// never written).
+    ///
+    /// Official consumers: the flag-`0x80` sine lift and flag-`0x20` random
+    /// squash (`ActorGeometry.cpp:114-143`), the `0x40` swing/jitter
+    /// (`ActorGeometry.cpp:205-218`, `RenderObject.cpp:806-819`), the
+    /// `0x100` fade/lift (`Player.cpp:1195-1204`), the `0x10000` jump lift
+    /// and the `0x80800`/`0x2000` overlay ramps
+    /// (`RenderObject.cpp:1838-1850`, `:2028-2040`) and
+    /// `DrawStatusOverlays` (`RenderObject.cpp:720-739`). The client render
+    /// path has no phase-driven transform yet, so the register is recorded
+    /// and cleared by the port bridge but **not consumed**.
+    #[hidden_element]
+    pub(crate) render_effect_phase: Option<i16>,
+    /// `render.tintPhase` (`RenderObjectState.h:128`, `unsigned char`) written
+    /// by a ported effect body.
+    ///
+    /// Official consumers: `CRenderObject::DrawTintedQuad`'s alpha ramp
+    /// (`RenderObject.cpp:826-846`) and the flag-`0x20000` rise
+    /// (`Player.cpp:1206-1218`). No client render pass reads it yet, so it is
+    /// recorded but **not consumed**.
+    #[hidden_element]
+    pub(crate) render_tint_phase: Option<u8>,
+    /// `render.shrinkPhase` (`RenderObjectState.h:121`, `unsigned char`, low
+    /// byte of the `pulsePhaseState` union) written by a ported effect body.
+    ///
+    /// Official consumer: `CRenderObject::ScaleByPulse` behind flag `0x10`
+    /// (`RenderObject.cpp:749-767`, `GameActor.cpp:932-940`). The client has
+    /// no pulse scale, so it is recorded but **not consumed**.
+    #[hidden_element]
+    pub(crate) render_shrink_phase: Option<u8>,
+    /// `render.outlineAlpha` (`RenderObjectState.h:125`, `unsigned char`)
+    /// written by a ported effect body.
+    ///
+    /// Official consumer: the flat outline copies behind flags `0x800`/
+    /// `0x80000` (`Player.cpp:1139-1190`, `RenderObject.cpp:2068-2085`). The
+    /// client's [`Self::body_outline`] pass is driven by its own timed
+    /// descriptor layer and does not read this byte, so it is recorded but
+    /// **not consumed**.
+    #[hidden_element]
+    pub(crate) render_outline_alpha: Option<u8>,
+    /// `render.runStartTick` (`RenderObjectState.h:129`, `unsigned char`)
+    /// written by a ported effect body.
+    ///
+    /// Official consumer: `CRenderObject::GetSequenceSpriteOverride`'s
+    /// angel/devil headband swap (`RenderObject.cpp:794-800`). The client
+    /// does not override accessory sprites by tick, so it is recorded but
+    /// **not consumed**.
+    #[hidden_element]
+    pub(crate) render_run_start_tick: Option<u8>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
     /// animation using the body animation state (same ACT action layout).
     #[hidden_element]
@@ -416,6 +467,11 @@ impl Common {
             status_body_additive: false,
             status_weapon_additive: false,
             status_alpha: None,
+            render_effect_phase: None,
+            render_tint_phase: None,
+            render_shrink_phase: None,
+            render_outline_alpha: None,
+            render_run_start_tick: None,
             weapon_animation: None,
             shield_animation: None,
             robe_animation: None,
@@ -683,6 +739,38 @@ impl Common {
 
     pub fn set_status_alpha(&mut self, alpha: Option<f32>) {
         self.status_alpha = alpha;
+    }
+
+    /// Records `render.effectPhase` from a ported effect body
+    /// (`port/visual.rs`). The value is the official `short` write, so it is
+    /// stored unwidened. No client render pass reads it yet; see
+    /// [`Self::render_effect_phase`].
+    pub fn set_render_effect_phase(&mut self, phase: Option<i16>) {
+        self.render_effect_phase = phase;
+    }
+
+    /// Records `render.tintPhase` from a ported effect body. No client render
+    /// pass reads it yet; see [`Self::render_tint_phase`].
+    pub fn set_render_tint_phase(&mut self, phase: Option<u8>) {
+        self.render_tint_phase = phase;
+    }
+
+    /// Records `render.shrinkPhase` from a ported effect body. No client render
+    /// pass reads it yet; see [`Self::render_shrink_phase`].
+    pub fn set_render_shrink_phase(&mut self, phase: Option<u8>) {
+        self.render_shrink_phase = phase;
+    }
+
+    /// Records `render.outlineAlpha` from a ported effect body. No client
+    /// render pass reads it yet; see [`Self::render_outline_alpha`].
+    pub fn set_render_outline_alpha(&mut self, alpha: Option<u8>) {
+        self.render_outline_alpha = alpha;
+    }
+
+    /// Records `render.runStartTick` from a ported effect body. No client
+    /// render pass reads it yet; see [`Self::render_run_start_tick`].
+    pub fn set_render_run_start_tick(&mut self, tick: Option<u8>) {
+        self.render_run_start_tick = tick;
     }
 
     pub fn needs_cart_animation(&self) -> bool {

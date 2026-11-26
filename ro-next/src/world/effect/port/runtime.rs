@@ -220,11 +220,11 @@ pub struct EffectRuntime {
     /// reset - so [`Self::begin_step`] leaves the value in place and the
     /// last write persists.
     ///
-    /// Additive. **Recorded only**: the client's `Entity` has no
-    /// `outlineAlpha` register and the consumers are the actor outline passes
-    /// (`Player.cpp:1142`, `RenderObject.cpp:2072`). Applying it would need
-    /// changes to `world/entity/*` and `port/visual.rs`, outside this port's
-    /// files.
+    /// Additive. The client bridge stores it on the caster entity
+    /// ([`crate::world::Entity::set_render_outline_alpha`]); the actor
+    /// outline passes that consume it (`Player.cpp:1142`,
+    /// `RenderObject.cpp:2072`) have no client equivalent yet, so it is
+    /// applied-but-record-only.
     pub parent_outline_alpha: Option<u8>,
     /// `state.parent->render.effectPhase` write of the effect body -
     /// `RenderObjectState.h:127` (`short`).
@@ -237,11 +237,79 @@ pub struct EffectRuntime {
     /// The runtime reproduces that persistence: [`Self::begin_step`] does not
     /// clear it.
     ///
-    /// Additive. **Recorded only**: the consumers are the actor render passes
-    /// that lift/distort the sprite by phase (`RenderObject.cpp:811`,
-    /// `Player.cpp:1196`), which the client's `Entity` does not model. Applying
-    /// it would need changes to `world/entity/*` and `port/visual.rs`.
+    /// Additive. The client bridge stores it on the caster entity
+    /// ([`crate::world::Entity::set_render_effect_phase`]); the body render
+    /// path has no phase consumer yet, so it is applied-but-record-only.
     pub parent_effect_phase: Option<i16>,
+    /// `state.parent->render.tintPhase` write of the effect body -
+    /// `RenderObjectState.h:128` (`unsigned char`).
+    ///
+    /// One field, several writers: `EF_BLUEBODY` writes `stateCnt / 3` while
+    /// `stateCnt <= 150` (`RagEffect.cpp:21312-21316`); `EF_MADNESS_BLUE`
+    /// pins `20` on every fourth frame (`:21318-21324`); `EF_MADNESS_RED`
+    /// does the same through flag `0x40000` (`:21326-21332`); `EF_RED_HIT`
+    /// writes `stateCnt * 3` while `stateCnt <= 16` (`:21781-21787`);
+    /// `EF_REDLIGHTBODY`/`EF_UNK_1398` write
+    /// `(unsigned char)((float)stateCnt * 0.125f)` up to frame 200 and pin
+    /// `25` afterwards (`:21793-21802`); `EF_LANDBODY` writes `stateCnt`
+    /// (`:24551-24555`).
+    ///
+    /// `CRenderObject::Reset` (`RenderObjectState.cpp:76`) is the only reset,
+    /// so [`Self::begin_step`] leaves the value in place and the last write
+    /// persists - the same rule as [`Self::parent_outline_alpha`].
+    ///
+    /// Additive. The client bridge stores it on the caster entity
+    /// ([`crate::world::Entity::set_render_tint_phase`]). Consumers are the
+    /// tinted body quads `CRenderObject::DrawTintedQuad` (the
+    /// `tintPhase <= 10 / <= 20 / <= 50` alpha ramp,
+    /// `RenderObject.cpp:826-846`) and the flag-`0x20000` rise
+    /// (`Player.cpp:1206-1218`); neither exists in the client renderer yet,
+    /// so it is applied-but-record-only.
+    pub parent_tint_phase: Option<u8>,
+    /// `state.parent->render.shrinkPhase` write of the effect body -
+    /// `RenderObjectState.h:121` (`unsigned char`, the low byte of the
+    /// `pulsePhaseState` union).
+    ///
+    /// `EF_BABYBODY` writes `stateCnt` while `stateCnt <= 45`
+    /// (`RagEffect.cpp:24478-24484`). Only `CRenderObject::Reset`
+    /// (`RenderObjectState.cpp:75-76`) clears it, so it persists.
+    ///
+    /// Additive. The client bridge stores it on the caster entity
+    /// ([`crate::world::Entity::set_render_shrink_phase`]). Its consumer is
+    /// `CRenderObject::ScaleByPulse` behind flag `0x10`
+    /// (`RenderObject.cpp:749-767`, `GameActor.cpp:932-940`), which the client
+    /// entity has no equivalent of; applied-but-record-only.
+    pub parent_shrink_phase: Option<u8>,
+    /// `state.parent->render.runStartTick` write of the effect body -
+    /// `RenderObjectState.h:129` (`unsigned char`).
+    ///
+    /// `EF_RUN` writes `stateCnt` behind flag `0x8000`
+    /// (`RagEffect.cpp:23621-23626`). The official `render.flags` word is
+    /// cleared after every drawn frame (`GameObject.cpp:435`), so the guard
+    /// holds every frame and the write happens each step; only
+    /// `CRenderObject::Reset` resets the field itself.
+    ///
+    /// Additive. The client bridge stores it on the caster entity
+    /// ([`crate::world::Entity::set_render_run_start_tick`]). Its consumer is
+    /// `CRenderObject::GetSequenceSpriteOverride`'s accessory-sprite swap
+    /// (`RenderObject.cpp:794-800`), which the client does not model;
+    /// applied-but-record-only.
+    pub parent_run_start_tick: Option<u8>,
+    /// `CRagEffect::NotifyGameMode(char value)` - `RagEffect.cpp:8672-8676`:
+    /// on frame 0 it sends `MM_SONG_TALK` with `value` to the current mode.
+    ///
+    /// `EF_TALK_FROSTJOKE` passes `1` (`RagEffect.cpp:24052-24054`) and
+    /// `EF_TALK_SCREAM` passes `0` (`:24055-24057`). The mode handler
+    /// (`GameMode.cpp:4972-5030`) reads `BA_frostjoke.txt` / `DC_scream.txt`,
+    /// picks a random line (`rand() % 117 + 1` / `rand() % 114 + 1`), prefixes
+    /// the player name and sends it as a chat packet
+    /// (`CZ_MOVE_ITEM_FROM_BODY_TO_STORE`, the classic "talk" packet).
+    ///
+    /// Additive. **Recorded only**: the client has no localised
+    /// `BA_frostjoke.txt`/`DC_scream.txt` asset path, no `MM_SONG_TALK`
+    /// equivalent and no chat-packet send hook for it, so the value is kept
+    /// for a later bridge. It is not an actor-render register.
+    pub game_mode_notify: Option<i8>,
     /// The last `state.parent->SetFrameSequence(...)` call of the effect body.
     ///
     /// `EF_STORMKICK5` is the only ported caller so far:
@@ -294,6 +362,10 @@ impl EffectRuntime {
             parent_state: None,
             parent_outline_alpha: None,
             parent_effect_phase: None,
+            parent_tint_phase: None,
+            parent_shrink_phase: None,
+            parent_run_start_tick: None,
+            game_mode_notify: None,
             parent_frame_sequence: None,
             parent_frame_sequence_frame: -1,
         }
@@ -525,6 +597,36 @@ impl EffectRuntime {
         self.parent_effect_phase = Some(phase);
     }
 
+    /// `state.parent->render.tintPhase = phase`.
+    ///
+    /// Stored verbatim; see [`Self::parent_tint_phase`] for the persistence
+    /// rule and the record-only status.
+    pub fn set_parent_tint_phase(&mut self, phase: u8) {
+        self.parent_tint_phase = Some(phase);
+    }
+
+    /// `state.parent->render.shrinkPhase = phase`.
+    ///
+    /// Stored verbatim; see [`Self::parent_shrink_phase`].
+    pub fn set_parent_shrink_phase(&mut self, phase: u8) {
+        self.parent_shrink_phase = Some(phase);
+    }
+
+    /// `state.parent->render.runStartTick = tick`.
+    ///
+    /// Stored verbatim; see [`Self::parent_run_start_tick`].
+    pub fn set_parent_run_start_tick(&mut self, tick: u8) {
+        self.parent_run_start_tick = Some(tick);
+    }
+
+    /// `CRagEffect::NotifyGameMode(value)` - `RagEffect.cpp:8672-8676`.
+    ///
+    /// Stored verbatim; see [`Self::game_mode_notify`] for why the client does
+    /// not dispatch the `MM_SONG_TALK` message yet.
+    pub fn notify_game_mode(&mut self, value: i8) {
+        self.game_mode_notify = Some(value);
+    }
+
     /// `state.parent->SetFrameSequence(...)` - records the eight arguments and
     /// the effect frame that wrote them.
     pub fn set_parent_frame_sequence(&mut self, sequence: ParentFrameSequence) {
@@ -546,11 +648,14 @@ impl EffectRuntime {
     /// requesting it on the next step. Both step drivers call this before
     /// `OnProcess`; the colour request is intentionally **not** cleared because
     /// `SetColor` persists on the actor, and neither are
-    /// [`Self::parent_outline_alpha`] / [`Self::parent_effect_phase`]: those
-    /// two fields are only reset by `CRenderObject::Reset`
-    /// (`RenderObjectState.cpp:75`, `:90`), so `EF_ASURABODY`'s pinned `200`
-    /// and `EF_ASURABODY_MONSTER`'s frozen `199` survive every later step, as
-    /// in the original.
+    /// [`Self::parent_outline_alpha`], [`Self::parent_effect_phase`],
+    /// [`Self::parent_tint_phase`], [`Self::parent_shrink_phase`] or
+    /// [`Self::parent_run_start_tick`]: those are only reset by
+    /// `CRenderObject::Reset` (`RenderObjectState.cpp:75-90`), so
+    /// `EF_ASURABODY`'s pinned `200`, `EF_ASURABODY_MONSTER`'s frozen `199`
+    /// and every later body's last phase survive every step, as in the
+    /// original. [`Self::game_mode_notify`] is likewise a one-shot request,
+    /// not a per-frame word.
     pub fn begin_step(&mut self) {
         self.parent_flags = 0;
     }
@@ -862,6 +967,49 @@ mod tests {
 
         assert_eq!(runtime.parent_flags, 0);
         assert_eq!(runtime.parent_color, Some([-1, 255, 255, 160]));
+    }
+
+    #[test]
+    fn render_phase_writes_persist_across_begin_step() {
+        // `CRenderObject::Reset` (`RenderObjectState.cpp:75-90`) is the only
+        // reset of these fields, so a body's last write survives the per-frame
+        // `render.flags` clear - `begin_step` must not clear them.
+        let mut runtime = EffectRuntime::new(60, [0.0, 0.0], 1);
+
+        runtime.set_parent_effect_phase(41);
+        runtime.set_parent_tint_phase(160);
+        runtime.set_parent_shrink_phase(27);
+        runtime.set_parent_run_start_tick(9);
+        runtime.set_parent_outline_alpha(200);
+        runtime.notify_game_mode(1);
+
+        runtime.begin_step();
+
+        assert_eq!(runtime.parent_effect_phase, Some(41));
+        assert_eq!(runtime.parent_tint_phase, Some(160));
+        assert_eq!(runtime.parent_shrink_phase, Some(27));
+        assert_eq!(runtime.parent_run_start_tick, Some(9));
+        assert_eq!(runtime.parent_outline_alpha, Some(200));
+        assert_eq!(runtime.game_mode_notify, Some(1));
+    }
+
+    #[test]
+    fn render_phase_writes_start_unset_and_store_their_exact_width() {
+        let mut runtime = EffectRuntime::new(60, [0.0, 0.0], 1);
+
+        assert_eq!(runtime.parent_effect_phase, None);
+        assert_eq!(runtime.parent_tint_phase, None);
+        assert_eq!(runtime.parent_shrink_phase, None);
+        assert_eq!(runtime.parent_run_start_tick, None);
+        assert_eq!(runtime.game_mode_notify, None);
+
+        // `unsigned char` / `short` narrowing happens at the call site, exactly
+        // like `static_cast<unsigned char>(...)` / `static_cast<short>(...)`.
+        runtime.set_parent_tint_phase(u8::MAX);
+        runtime.set_parent_effect_phase(i16::MIN);
+
+        assert_eq!(runtime.parent_tint_phase, Some(255));
+        assert_eq!(runtime.parent_effect_phase, Some(i16::MIN));
     }
 
     #[test]
