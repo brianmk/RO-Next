@@ -4,6 +4,7 @@
 //! classic `CRagEffect` methods that the pre-renewal skills use most.
 
 pub mod bash;
+pub mod bowlingbash;
 pub mod cart;
 pub mod earthspike;
 pub mod endure;
@@ -16,6 +17,7 @@ pub mod signum;
 pub mod sonicblow;
 
 pub use bash::Bash;
+pub use bowlingbash::BowlingBash;
 pub use cart::CartRevolution;
 pub use earthspike::EarthSpike;
 pub use endure::Endure;

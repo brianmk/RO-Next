@@ -12,6 +12,7 @@
 
 pub mod circle;
 pub mod circle3d;
+pub mod cylinder;
 pub mod flash;
 pub mod quadhorn;
 pub mod texture3d;
@@ -112,6 +113,8 @@ pub enum PrimitiveId {
     Texture3d,
     /// `PP_3DCROSSTEXTURE` (16)
     CrossTexture3d,
+    /// `PP_3DCYLINDER` (13)
+    Cylinder3d,
 }
 
 impl PrimitiveId {
@@ -126,6 +129,7 @@ impl PrimitiveId {
             Self::QuadHorn3d => 9,
             Self::Texture3d => 1,
             Self::CrossTexture3d => 16,
+            Self::Cylinder3d => 13,
         }
     }
 }
@@ -214,6 +218,12 @@ pub struct EffectPrimitiveState {
     /// `/* 02F4 */ innerSize`, `/* 02F8 */ outerSize`
     pub inner_size: f32,
     pub outer_size: f32,
+    /// `/* 02FC */ innerSpeed`, `/* 0300 */ outerSpeed`
+    pub inner_speed: f32,
+    pub outer_speed: f32,
+    /// `/* 0304 */ innerAccel`, `/* 0308 */ outerAccel`
+    pub inner_accel: f32,
+    pub outer_accel: f32,
     /// `/* 0318 */ size`, `/* 031C */ sizeSpeed`, `/* 0320 */ sizeAccel`
     pub size: f32,
     pub size_speed: f32,
@@ -257,9 +267,6 @@ pub struct EffectPrimitiveState {
     /// `/* 02BC */ speed`, `/* 02C0 */ accel`
     pub speed: f32,
     pub accel: f32,
-    /// `/* 02FC */ innerSpeed`, `/* 0300 */ innerSpeedAccel`
-    pub inner_speed: f32,
-    pub inner_accel: f32,
     /// `/* 0160 */ transform` - 12-float affine matrix.
     pub transform: Matrix,
     /// `/* 0190 */ rotTransform`
@@ -342,6 +349,10 @@ impl Default for EffectPrimitiveState {
             min_alpha: 0.0,
             inner_size: 0.0,
             outer_size: 0.0,
+            inner_speed: 0.0,
+            outer_speed: 0.0,
+            inner_accel: 0.0,
+            outer_accel: 0.0,
             size: 1.0,
             size_speed: 0.0,
             size_accel: 0.0,
@@ -372,8 +383,6 @@ impl Default for EffectPrimitiveState {
             speed3d: [0.0; 3],
             speed: 0.0,
             accel: 0.0,
-            inner_speed: 0.0,
-            inner_accel: 0.0,
             transform: Matrix::default(),
             rot_transform: Matrix::default(),
             num_segment: 1,
@@ -436,6 +445,10 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => texture3d::on_process(self, angles, master, rng),
+            PrimitiveId::Cylinder3d => {
+                cylinder::on_process(self, angles, master);
+                true
+            }
         };
 
         if !alive {

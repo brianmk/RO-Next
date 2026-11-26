@@ -43,6 +43,9 @@ pub struct EffectRuntime {
     pub target_offset: [f32; 3],
     pub delta_pos3: [f32; 3],
     pub render_angle: f32,
+    /// `state.parent->render.angle` - the caster's facing, used by bodies such
+    /// as Bowling Bash.
+    pub parent_angle: f32,
     pub flag: i32,
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
@@ -66,6 +69,7 @@ impl EffectRuntime {
             target_offset: [0.0; 3],
             delta_pos3: [0.0; 3],
             render_angle: 0.0,
+            parent_angle: 0.0,
             flag: 0,
             primitives: Vec::new(),
             sounds: Vec::new(),
