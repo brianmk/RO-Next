@@ -118,6 +118,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::TeleportSpiral` (`EF_EXIT2`) | `RagEffect.cpp:17683-17765` | 1 |
 | `CRagEffect::Aspersio` (`EF_ASPERSIO`, holy water orbit) | `RagEffect.cpp:1568-1597` | 2 |
 | `CRagEffect::Sphere` (`EF_SPHERE`) + orbit `chRadiSpeed` cycle | `RagEffect.cpp:2017-2046` | 1 |
+| `CRagEffect::RemoveTrap` (`EF_REMOVETRAP`) | `RagEffect.cpp:1986-2013` | 1 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
