@@ -40,6 +40,7 @@ pub mod spread_flat;
 pub mod sprinkle_sand;
 pub mod storm_gust;
 pub mod textured_aura;
+pub mod triple_orbit;
 pub mod violet_ring_cloud;
 
 pub use bash::Bash;
@@ -79,4 +80,5 @@ pub use spread_flat::TexturedSpreadFlat;
 pub use sprinkle_sand::SprinkleSand;
 pub use storm_gust::StormGust;
 pub use textured_aura::TexturedAura;
+pub use triple_orbit::TripleOrbit;
 pub use violet_ring_cloud::VioletRingCloud;

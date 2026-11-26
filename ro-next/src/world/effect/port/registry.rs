@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, FirePillar, HealBurst, MagicRing, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Cloud11Burst, FirePillar, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -55,6 +55,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::PotionBerserk => Box::new(PotionPill::new(false, 199)),
         EffectId::PotionBerserk2 => Box::new(PotionPill::new(true, 199)),
         EffectId::Firepillaron2 => Box::new(FirePillar::new(90)),
+        EffectId::GradiusLaser => Box::new(TripleOrbit::new("effect\\white02.bmp", 500)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -131,6 +132,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::PotionBerserk,
         EffectId::PotionBerserk2,
         EffectId::Firepillaron2,
+        EffectId::GradiusLaser,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -217,6 +219,7 @@ mod tests {
             (EffectId::PotionBerserk, 199),
             (EffectId::PotionBerserk2, 199),
             (EffectId::Firepillaron2, 90),
+            (EffectId::GradiusLaser, 500),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
