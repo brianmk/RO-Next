@@ -152,7 +152,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 277 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 282 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -210,6 +210,12 @@ so the *skill* coverage is far higher than the id ratio suggests.
   (`PlayEffectWaveAt`) and `play_sound_at` (raw `PlayWave` offsets), plus
   `listener_position` snapshot. Ported: Gloria, ElementalWeapon (4 ids),
   Holy Cross, Loud, with their `str_table` rows.
+
+### Round 88
+
+- **Screen offsets**: `EffectRuntime::str_offset` + `process_str_with(offset)` (default `DEFAULT_STR_OFFSET = [0,-80,0]`); `str_render::render` takes the offset explicitly, so `ProcessEZ2STR(0,0,0)`/`(0,-20,0)` call sites are faithful. Unblocked Thunderstorm (30), ShieldCharge (246), Devotion (251), Lkconcentration (369), RejectSword (392).
+- **Parent tint/flags**: `parent_color` + `set_parent_color` + `parent_flags`/`add_parent_flags` recorded exactly, but **not applied to the caster** — `EffectBase::update` only receives `&[Entity]`, so the mutable bridge would have to live in `PortedVisual`/`client/effects.rs` (documented on the fields).
+- **Audio bridge**: `port/sound_sink.rs` drains `runtime.sounds` then `runtime.positional_sounds` after every 16 ms step and plays them through the *same* `AudioEngine::play_spatial_sound_effect` path the descriptor effects use (250 range, listener-relative offsets resolved to world positions). Not matched: `PlayWave`'s `minimumDistance = 40` (engine hardcodes 5), post-spawn listener movement, cross-channel interleaving (no shared sequence number).
 
 ### Known wiring gaps (client spawn path)
 
