@@ -25,14 +25,23 @@
 //! handed over for the same reason: the holder opens the effect's official
 //! `.str` screen-sprite clips (`port/str_table.rs`) at spawn, before the first
 //! 16 ms step.
+//!
+//! Sounds recorded by the ported bodies are forwarded to the client's
+//! [`AudioEngine`] through [`super::sound_sink::AudioEffectSink`]: every 16 ms
+//! step drains the runtime's inline and positional channels and plays each
+//! entry with the same `AudioEngine::load` + `play_spatial_sound_effect`
+//! calls the descriptor effects use. A visual without an audio engine (unit
+//! tests) stays silent.
 
 use std::collections::HashSet;
 use std::sync::Arc;
 
 use cgmath::Point3;
+use ro_next_audio::AudioEngine;
 
 use super::holder::PortedEffectHolder;
 use super::runtime::EffectRuntime;
+use super::sound_sink::AudioEffectSink;
 use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::effect::EffectBase;
@@ -44,6 +53,9 @@ pub struct PortedVisual {
     /// `None` only in unit tests, which have no wgpu device. Rendering is a
     /// no-op without a loader; simulation and lifetime stay testable.
     texture_loader: Option<Arc<TextureLoader>>,
+    /// The client's audio engine. `None` in unit tests (no audio device); the
+    /// recorded sounds are then dropped by [`PortedEffectHolder::update`].
+    audio_engine: Option<Arc<AudioEngine<GameFileLoader>>>,
     /// Assets already requested from the loader. Ported bodies launch their
     /// primitives over time, so the texture list grows after construction.
     /// Owned strings because a `.str` clip's texture names come from its
@@ -68,6 +80,7 @@ impl PortedVisual {
                 .with_sprite_loaders(sprite_loader, action_loader)
                 .with_game_file_loader(&game_file_loader),
             texture_loader: Some(texture_loader),
+            audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
         };
@@ -75,6 +88,18 @@ impl PortedVisual {
         visual.prefetch_textures();
 
         visual
+    }
+
+    /// Attaches the client's audio engine, so the sounds the ported bodies
+    /// record are played through the existing sound-effect mixer.
+    ///
+    /// Kept out of [`Self::new`] so the unit tests (and any headless caller)
+    /// can drive the visual without an audio device; without it the visual
+    /// stays silent.
+    pub fn with_audio_engine(mut self, audio_engine: Arc<AudioEngine<GameFileLoader>>) -> Self {
+        self.audio_engine = Some(audio_engine);
+
+        self
     }
 
     pub fn runtime(&self) -> &EffectRuntime {
@@ -120,7 +145,15 @@ impl EffectBase for PortedVisual {
             return false;
         }
 
-        let alive = self.holder.update(delta_time as f64);
+        let alive = match &self.audio_engine {
+            Some(audio_engine) => {
+                let mut sink = AudioEffectSink::new(audio_engine);
+                self.holder.update_with_sounds(delta_time as f64, &mut sink)
+            }
+            // No audio device (tests): the simulation still steps and drops
+            // the sounds.
+            None => self.holder.update(delta_time as f64),
+        };
         self.prefetch_textures();
 
         alive
@@ -164,6 +197,7 @@ mod tests {
         PortedVisual {
             holder: PortedEffectHolder::new(effect, 1).expect("registered effect"),
             texture_loader: None,
+            audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
         }
@@ -250,6 +284,7 @@ mod tests {
                 .expect("registered effect")
                 .with_str_clips(clips),
             texture_loader: None,
+            audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
         };

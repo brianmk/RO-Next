@@ -16,6 +16,7 @@ use wgpu::BlendFactor;
 
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::runtime::{EffectRuntime, PortedEffect};
+use super::sound_sink::{self, SoundSink};
 use super::str_player::Clip;
 use super::str_table::{self, ClipSet, StrResource};
 use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass, str_render};
@@ -55,21 +56,29 @@ impl PortedEffectHolder {
     /// Creates the holder for a registered effect id.
     pub fn new(effect: EffectId, seed: u64) -> Option<Self> {
         let body = registry::spawn(effect)?;
-        let lifetime = body.lifetime();
-        let mut runtime = EffectRuntime::new(lifetime, [0.0, 0.0], seed);
-        let _ = &mut runtime;
+        let mut holder = Self::with_body(body, seed);
+        holder.str_resource = str_table::str_resource(effect);
 
-        Some(Self {
+        Some(holder)
+    }
+
+    /// Wraps an already-spawned body. Split from [`Self::new`] so the
+    /// simulation tests can step a synthetic body that records sounds on both
+    /// channels; production effects always come from the registry.
+    fn with_body(body: Box<dyn PortedEffect>, seed: u64) -> Self {
+        let lifetime = body.lifetime();
+
+        Self {
             body,
-            runtime,
+            runtime: EffectRuntime::new(lifetime, [0.0, 0.0], seed),
             accumulator_ms: 0.0,
             finished: false,
-            str_resource: str_table::str_resource(effect),
+            str_resource: None,
             str_textures: Vec::new(),
             sprite_loader: None,
             action_loader: None,
             sprite_frame_counts: HashMap::new(),
-        })
+        }
     }
 
     /// Official `.str` files the effect opens at spawn (`CRagEffect::Init`),
@@ -192,7 +201,21 @@ impl PortedEffectHolder {
     /// of 50 ms produces three steps and a 5 ms frame produces none.
     /// Returns `false` once the effect has finished (and keeps returning
     /// `false`).
+    ///
+    /// Sounds the body records are dropped; use [`Self::update_with_sounds`]
+    /// to forward them to an audio sink.
     pub fn update(&mut self, delta_seconds: f64) -> bool {
+        self.update_with_sounds(delta_seconds, &mut DiscardSounds)
+    }
+
+    /// Advances the effect and forwards every recorded sound to `sink`.
+    ///
+    /// The sounds are drained after **each** 16 ms step, in the order the body
+    /// and the primitive pass recorded them, so a catch-up frame of 50 ms
+    /// emits the sounds of its first step before those of its third and every
+    /// sound is played exactly once. Positions are resolved by
+    /// [`sound_sink::drain_into`].
+    pub fn update_with_sounds(&mut self, delta_seconds: f64, sink: &mut dyn SoundSink) -> bool {
         if self.finished {
             return false;
         }
@@ -202,7 +225,12 @@ impl PortedEffectHolder {
         while self.accumulator_ms >= FRAME_FREQUENCY_MS as f64 {
             self.accumulator_ms -= FRAME_FREQUENCY_MS as f64;
 
-            if !self.step() {
+            let alive = self.step();
+            // The body may have played its last sound before returning
+            // `false`, so drain even when the step retires the effect.
+            sound_sink::drain_into(&mut self.runtime, sink);
+
+            if !alive {
                 self.finished = true;
                 return false;
             }
@@ -414,6 +442,14 @@ impl PortedEffectHolder {
     }
 }
 
+/// Sink of [`PortedEffectHolder::update`]: drops the recorded sounds, for
+/// callers that own no audio engine (the hermetic tests).
+struct DiscardSounds;
+
+impl SoundSink for DiscardSounds {
+    fn play(&mut self, _sound: &sound_sink::PortedSound, _position: Point3<f32>) {}
+}
+
 /// The four screen-space corners and UVs of a `Render2DPrimitive` quad,
 /// relative to the projected anchor (`master.screen`).
 pub(crate) fn quad_corners(state: &EffectPrimitiveState, anchor_screen: [f32; 2]) -> ([Vector2<f32>; 4], [Vector2<f32>; 4]) {
@@ -571,6 +607,7 @@ fn blend_factors(render_flag: u32) -> (BlendFactor, BlendFactor) {
 
 #[cfg(test)]
 mod tests {
+    use super::super::sound_sink::RecordingSink;
     use super::super::str_player::{KeyFrame, Transform};
     use super::*;
 
@@ -860,5 +897,119 @@ mod tests {
         assert!(holder.runtime().str_player.is_none());
         assert!(holder.update(0.016));
         assert!(holder.runtime().primitives.is_empty(), "the ring lands on frame 30");
+    }
+
+    /// One step that records two inline `PlayEffectWaveInline` sounds and one
+    /// positional `PlayWave` offset. No single ported body uses both channels
+    /// today, so this is the synthetic mixed case for the drain order.
+    struct MixedChannels;
+
+    impl PortedEffect for MixedChannels {
+        fn lifetime(&self) -> i32 {
+            20
+        }
+
+        fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+            if runtime.frame == 0 {
+                runtime.play_sound("effect\\EF_Signum.wav");
+                runtime.play_sound("effect\\EF_Bash.wav");
+                runtime.play_sound_at("effect\\cru_holy cross.wav", [3.0, 1.0, 5.0]);
+            }
+
+            true
+        }
+    }
+
+    #[test]
+    fn all_recorded_channels_play_once_in_recorded_order_with_their_offsets() {
+        let mut holder = PortedEffectHolder::with_body(Box::new(MixedChannels), 1);
+        holder.runtime_mut().position = [13.0, 7.0, 25.0];
+        holder.runtime_mut().listener_position = [10.0, 7.0, 20.0];
+
+        let mut sink = RecordingSink::default();
+        assert!(holder.update_with_sounds(0.016, &mut sink));
+
+        assert_eq!(sink.plays, vec![
+            ("effect\\EF_Signum.wav".to_owned(), None, Point3::new(13.0, 7.0, 25.0)),
+            ("effect\\EF_Bash.wav".to_owned(), None, Point3::new(13.0, 7.0, 25.0)),
+            (
+                "effect\\cru_holy cross.wav".to_owned(),
+                Some([3.0, 1.0, 5.0]),
+                Point3::new(13.0, 8.0, 25.0)
+            ),
+        ]);
+
+        // Played once: a later step has nothing left to drain.
+        assert!(holder.update_with_sounds(0.016, &mut sink));
+        assert_eq!(sink.plays.len(), 3);
+    }
+
+    struct OneSoundPerStep;
+
+    impl PortedEffect for OneSoundPerStep {
+        fn lifetime(&self) -> i32 {
+            20
+        }
+
+        fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+            runtime.play_sound(&format!("effect\\step{}.wav", runtime.frame));
+
+            true
+        }
+    }
+
+    #[test]
+    fn a_catch_up_frame_drains_every_step_in_order() {
+        let mut holder = PortedEffectHolder::with_body(Box::new(OneSoundPerStep), 1);
+        let mut sink = RecordingSink::default();
+
+        assert!(holder.update_with_sounds(0.050, &mut sink));
+
+        // 50 ms = three 16 ms steps (frames 0, 1 and 2), each drained on its
+        // own: the sounds of the first step are not deferred behind the third.
+        assert_eq!(holder.runtime().frame, 3);
+
+        let names: Vec<_> = sink.plays.iter().map(|(name, ..)| name.as_str()).collect();
+        assert_eq!(names, ["effect\\step0.wav", "effect\\step1.wav", "effect\\step2.wav"]);
+    }
+
+    struct LastSound;
+
+    impl PortedEffect for LastSound {
+        fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+            runtime.play_sound("effect\\last.wav");
+
+            false
+        }
+
+        fn lifetime(&self) -> i32 {
+            1
+        }
+    }
+
+    #[test]
+    fn a_sound_recorded_by_the_retiring_step_is_still_played() {
+        let mut holder = PortedEffectHolder::with_body(Box::new(LastSound), 1);
+        let mut sink = RecordingSink::default();
+
+        assert!(!holder.update_with_sounds(0.016, &mut sink));
+        assert_eq!(sink.plays.len(), 1);
+        assert_eq!(sink.plays[0].0, "effect\\last.wav");
+    }
+
+    #[test]
+    fn a_real_body_forwards_its_official_sounds_through_the_holder() {
+        // Signum records `EF_Signum.wav` then `EF_Bash.wav` on frame 30
+        // (`RagEffect.cpp:2107-2154`).
+        let mut holder = PortedEffectHolder::new(EffectId::Signum, 1).unwrap();
+        let mut sink = RecordingSink::default();
+
+        for _ in 0..31 {
+            assert!(holder.update_with_sounds(0.016, &mut sink));
+        }
+
+        let names: Vec<_> = sink.plays.iter().map(|(name, ..)| name.as_str()).collect();
+        assert_eq!(names, ["effect\\EF_Signum.wav", "effect\\EF_Bash.wav"]);
+        assert_eq!(sink.plays[0].2, Point3::new(0.0, 0.0, 0.0));
     }
 }

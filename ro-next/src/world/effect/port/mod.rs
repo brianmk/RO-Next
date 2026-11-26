@@ -49,6 +49,7 @@ pub mod render_slots;
 pub mod rng;
 pub mod runtime;
 pub mod skill_map;
+pub mod sound_sink;
 pub mod sprite_pass;
 pub mod str_player;
 pub mod str_render;

@@ -403,7 +403,11 @@ impl Client {
             self.action_loader.clone(),
             // Used only for the effect's official `.str` clips (`port/str_table.rs`).
             self.game_file_loader.clone(),
-        );
+        )
+        // The ported bodies record the official `PlayWave` calls; the visual
+        // forwards them to the same audio engine the descriptor effects use
+        // (`port/sound_sink.rs`).
+        .with_audio_engine(self.audio_engine.clone());
         let parent_angle = self.entity_parent_angle(source_entity_id);
         {
             let runtime = visual.runtime_mut();
