@@ -208,6 +208,40 @@ pub struct EffectRuntime {
     /// is recorded for the bridge and the visible animation is carried by
     /// [`Self::parent_frame_sequence`].
     pub parent_state: Option<i32>,
+    /// `state.parent->render.outlineAlpha` write of the effect body -
+    /// `RenderObjectState.h:125` (`unsigned char`).
+    ///
+    /// Written by `EF_ASURABODY` (`RagEffect.cpp:24517`): `stateCnt < 200 ?
+    /// (unsigned char)stateCnt : 200`. The official write sits inside the
+    /// `(render.flags & 0x800) == 0` guard, and that flag word *is* cleared per
+    /// rendered frame, so the write happens on every frame in practice.
+    /// `outlineAlpha` itself is **not** cleared per frame -
+    /// `CRenderObject::Reset` (`RenderObjectState.cpp:90`) is the only
+    /// reset - so [`Self::begin_step`] leaves the value in place and the
+    /// last write persists.
+    ///
+    /// Additive. **Recorded only**: the client's `Entity` has no
+    /// `outlineAlpha` register and the consumers are the actor outline passes
+    /// (`Player.cpp:1142`, `RenderObject.cpp:2072`). Applying it would need
+    /// changes to `world/entity/*` and `port/visual.rs`, outside this port's
+    /// files.
+    pub parent_outline_alpha: Option<u8>,
+    /// `state.parent->render.effectPhase` write of the effect body -
+    /// `RenderObjectState.h:127` (`short`).
+    ///
+    /// Written by `EF_ASURABODY_MONSTER` (`RagEffect.cpp:24524`):
+    /// `stateCnt < 150 ? (short)(stateCnt + 50) : <no write>`. Like
+    /// [`Self::parent_outline_alpha`] this field is only reset by
+    /// `CRenderObject::Reset` (`RenderObjectState.cpp:75`), so the original
+    /// stops writing after frame 149 and the actor keeps the last value, `199`.
+    /// The runtime reproduces that persistence: [`Self::begin_step`] does not
+    /// clear it.
+    ///
+    /// Additive. **Recorded only**: the consumers are the actor render passes
+    /// that lift/distort the sprite by phase (`RenderObject.cpp:811`,
+    /// `Player.cpp:1196`), which the client's `Entity` does not model. Applying
+    /// it would need changes to `world/entity/*` and `port/visual.rs`.
+    pub parent_effect_phase: Option<i16>,
     /// The last `state.parent->SetFrameSequence(...)` call of the effect body.
     ///
     /// `EF_STORMKICK5` is the only ported caller so far:
@@ -258,6 +292,8 @@ impl EffectRuntime {
             parent_color: None,
             parent_flags: 0,
             parent_state: None,
+            parent_outline_alpha: None,
+            parent_effect_phase: None,
             parent_frame_sequence: None,
             parent_frame_sequence_frame: -1,
         }
@@ -472,6 +508,23 @@ impl EffectRuntime {
         self.parent_state = Some(state);
     }
 
+    /// `state.parent->render.outlineAlpha = alpha`.
+    ///
+    /// Stored verbatim; see [`Self::parent_outline_alpha`] for why the client
+    /// does not drive the outline pass from it (recorded only) and why
+    /// [`Self::begin_step`] does not clear it.
+    pub fn set_parent_outline_alpha(&mut self, alpha: u8) {
+        self.parent_outline_alpha = Some(alpha);
+    }
+
+    /// `state.parent->render.effectPhase = phase`.
+    ///
+    /// Stored verbatim; see [`Self::parent_effect_phase`] for the persistence
+    /// rule and the record-only status.
+    pub fn set_parent_effect_phase(&mut self, phase: i16) {
+        self.parent_effect_phase = Some(phase);
+    }
+
     /// `state.parent->SetFrameSequence(...)` - records the eight arguments and
     /// the effect frame that wrote them.
     pub fn set_parent_frame_sequence(&mut self, sequence: ParentFrameSequence) {
@@ -492,7 +545,12 @@ impl EffectRuntime {
     /// after the frame is drawn, so a body that stops setting bit `8` stops
     /// requesting it on the next step. Both step drivers call this before
     /// `OnProcess`; the colour request is intentionally **not** cleared because
-    /// `SetColor` persists on the actor.
+    /// `SetColor` persists on the actor, and neither are
+    /// [`Self::parent_outline_alpha`] / [`Self::parent_effect_phase`]: those
+    /// two fields are only reset by `CRenderObject::Reset`
+    /// (`RenderObjectState.cpp:75`, `:90`), so `EF_ASURABODY`'s pinned `200`
+    /// and `EF_ASURABODY_MONSTER`'s frozen `199` survive every later step, as
+    /// in the original.
     pub fn begin_step(&mut self) {
         self.parent_flags = 0;
     }

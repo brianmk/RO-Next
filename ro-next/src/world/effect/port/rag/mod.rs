@@ -12,6 +12,7 @@ pub mod blitz_beat;
 pub mod bottom_carpet;
 pub mod bowlingbash;
 pub mod cart;
+pub mod champion;
 pub mod chemical_line;
 pub mod class_change;
 pub mod cloud11;

@@ -75,6 +75,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::rag::champion::spawn(effect) {
+        return Some(body);
+    }
+
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
@@ -459,6 +463,23 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::BottomUglydance,
         EffectId::BottomDontforgetme,
         EffectId::BottomServiceforyou,
+        // Champion caster bodies (`rag/champion.rs`). The ids stay literal
+        // here - instead of `ids.extend_from_slice(super::rag::champion::ids())`
+        // - because `tools/gen_ported_skill_map.py` reconstructs this list by
+        // parsing this exact array.
+        EffectId::Lightblade,
+        EffectId::Aurablade2,
+        EffectId::Asurabody,
+        EffectId::AsurabodyMonster,
+        EffectId::Transbluebody,
+        // Champion `.str` bodies (same module): `yunta_1..5.str` and
+        // `연환.str`, registered in `port/str_table.rs`.
+        EffectId::Comboattack1,
+        EffectId::Comboattack2,
+        EffectId::Comboattack3,
+        EffectId::Comboattack4,
+        EffectId::Comboattack5,
+        EffectId::Chaincombo,
     ]);
 
     ids
@@ -715,7 +736,8 @@ mod tests {
                 assert!(
                     needs_str_clips(effect)
                         || super::super::registry_batch_h::is_caster_body_only(effect)
-                        || super::super::registry_batch_i::is_caster_body_only(effect),
+                        || super::super::registry_batch_i::is_caster_body_only(effect)
+                        || super::super::rag::champion::is_caster_body_only(effect),
                     "{effect:?} spawned nothing"
                 );
                 continue;

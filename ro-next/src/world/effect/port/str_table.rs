@@ -371,6 +371,41 @@ static THUNDERSTORM: StrResource = StrResource {
     loop_limit: 0,
 };
 
+// Champion `.str` bodies (`rag/champion.rs`). The five combo-attack clips are
+// one resource per id; `Init` has no `loopLimit` override for any of them, so
+// each keeps the constructor default 0 (`RagEffect.cpp:109`) and the effect
+// retires with the clip.
+
+static COMBO_ATTACK_1: StrResource = StrResource {
+    files: &["yunta_1.str"],
+    loop_limit: 0,
+};
+
+static COMBO_ATTACK_2: StrResource = StrResource {
+    files: &["yunta_2.str"],
+    loop_limit: 0,
+};
+
+static COMBO_ATTACK_3: StrResource = StrResource {
+    files: &["yunta_3.str"],
+    loop_limit: 0,
+};
+
+static COMBO_ATTACK_4: StrResource = StrResource {
+    files: &["yunta_4.str"],
+    loop_limit: 0,
+};
+
+static COMBO_ATTACK_5: StrResource = StrResource {
+    files: &["yunta_5.str"],
+    loop_limit: 0,
+};
+
+static CHAIN_COMBO: StrResource = StrResource {
+    files: &["연환.str"],
+    loop_limit: 0,
+};
+
 /// The official `.str` resource of an effect, if its body drives
 /// `ProcessEZ2STR`.
 ///
@@ -537,6 +572,20 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         // `case EF_THUNDERSTORM: std::sprintf(name, "ThunderStorm.str");`
         // - 39-40.
         EffectId::Thunderstorm => &THUNDERSTORM,
+        // Champion `.str` bodies (`rag/champion.rs`).
+        //
+        // `case EF_COMBOATTACK1: std::sprintf(name, "yunta_1.str");` - 262-264.
+        EffectId::Comboattack1 => &COMBO_ATTACK_1,
+        // `case EF_COMBOATTACK2: std::sprintf(name, "yunta_2.str");` - 265-267.
+        EffectId::Comboattack2 => &COMBO_ATTACK_2,
+        // `case EF_COMBOATTACK3: std::sprintf(name, "yunta_3.str");` - 268-270.
+        EffectId::Comboattack3 => &COMBO_ATTACK_3,
+        // `case EF_COMBOATTACK4: std::sprintf(name, "yunta_4.str");` - 271-273.
+        EffectId::Comboattack4 => &COMBO_ATTACK_4,
+        // `case EF_COMBOATTACK5: std::sprintf(name, "yunta_5.str");` - 274-276.
+        EffectId::Comboattack5 => &COMBO_ATTACK_5,
+        // `case EF_CHAINCOMBO: std::sprintf(name, "연환.str");` - 347-349.
+        EffectId::Chaincombo => &CHAIN_COMBO,
         _ => return None,
     })
 }
@@ -699,6 +748,28 @@ mod tests {
         assert_eq!(str_clips_for(EffectId::Lkconcentration), Some(&["TwoHand.str"][..]));
         assert_eq!(str_clips_for(EffectId::Rejectsword), Some(&["sword.str"][..]));
         assert_eq!(str_clips_for(EffectId::Thunderstorm), Some(&["ThunderStorm.str"][..]));
+    }
+
+    #[test]
+    fn champion_rows_match_the_initialization_switch() {
+        let expect = [
+            // `RagEffectInitialization.cpp:262-276`.
+            (EffectId::Comboattack1, "yunta_1.str"),
+            (EffectId::Comboattack2, "yunta_2.str"),
+            (EffectId::Comboattack3, "yunta_3.str"),
+            (EffectId::Comboattack4, "yunta_4.str"),
+            (EffectId::Comboattack5, "yunta_5.str"),
+            // `RagEffectInitialization.cpp:347-349`.
+            (EffectId::Chaincombo, "연환.str"),
+        ];
+
+        for (effect, name) in expect {
+            let files = str_clips_for(effect).unwrap_or_else(|| panic!("{effect:?} has no .str row"));
+            assert_eq!(files, &[name][..], "{effect:?}");
+            // `CRagEffect::CRagEffect` sets `loopLimit = 0` (`RagEffect.cpp:109`)
+            // and `Init` does not override it for any of these ids.
+            assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
+        }
     }
 
     #[test]
