@@ -119,6 +119,9 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::Aspersio` (`EF_ASPERSIO`, holy water orbit) | `RagEffect.cpp:1568-1597` | 2 |
 | `CRagEffect::Sphere` (`EF_SPHERE`) + orbit `chRadiSpeed` cycle | `RagEffect.cpp:2017-2046` | 1 |
 | `CRagEffect::RemoveTrap` (`EF_REMOVETRAP`) | `RagEffect.cpp:1986-2013` | 1 |
+| prim 6 `Prim3DParticleGravity` + `CRagEffect::Steal` (`EF_STEAL`) | `EffectPrimitiveMotion.cpp:2581-2619`, `RagEffect.cpp:1835-1875` | 9 |
+| prim 155 `PrimWanderingFlames` + `CRagEffect::TexturedForkBolt` (ported, unregistered) | `EffectPrimitiveMotion.cpp:7353-7403`, `RagEffect.cpp:7268-7321` | 12 |
+| `ParticleTime` (`EF_SMA_READY`), `StoneWall` (`EF_EARTHWALL`), `Hit3` (`EF_HIT3`) | `RagEffect.cpp:12121-12177`, `13088-13124`, `863-935` | 9 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
