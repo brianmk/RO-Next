@@ -17,7 +17,7 @@ use super::rag::{
     FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, GrimTooth, GrimToothAtk, HealBurst,
     HealRingSparkle, Hit2, IceArrow, IceWall, IncAgility, LockOn, MagicRing, MagnumBreak, NapalmBeat, Overthrust, PortalRings, PortalSpell,
     PotionPill, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere,
-    SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedClassChange, TexturedComet,
+    SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedComet,
     TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TorchDustRing, TripleOrbit,
     Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
 };

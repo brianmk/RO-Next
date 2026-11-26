@@ -152,7 +152,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 231 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 236 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -181,6 +181,12 @@ so the *skill* coverage is far higher than the id ratio suggests.
 * `.str` animation type 4 keeps a persistent `ratio`; the original reads an
   uninitialised local (`RagEffect.cpp:1519-1522`). Undefined behaviour cannot be
   reproduced.
+
+### Known wiring gaps (client spawn path)
+
+- effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
+- `EF_NEW_METALLICSOUND_LINE` (official 1584) has no `EffectId` variant in `ragnarok-packets` (max 1243); the body is ready.
+- Chemical V/V2/V3 are notice effects (`GameModeNotices.cpp:4234/4248`), not skill-table effects, so the generated skill map cannot reach them.
 
 ### Ready next (no engine work needed)
 
