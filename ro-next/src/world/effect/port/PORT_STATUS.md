@@ -23,9 +23,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::MagnumBreak` (`EF_MAGNUMBREAK`) | `RagEffect.cpp:9799-9849` | 4 |
 | `EF_SONICBLOW` inline body | `RagEffect.cpp:23801-23821` | 3 |
 | `CRagEffect::CartRevolution` (`EF_CARTREVOLUTION`) | `RagEffect.cpp:2234-2273` | 4 |
+| `CRagEffect::Signum` (`EF_SIGNUM`) | `RagEffect.cpp:2107-2154` | 2 |
+| `CRagEffect::StoneCurseRing` (`EF_OVERTHRUST`) | `RagEffect.cpp:10441-10470` | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 49 tests, all green. Effect bodies ported: **4 / 236**.
+Total: 53 tests, all green. Effect bodies ported: **6 / 236**.
 
 ## Next (W2/W3/W6)
 
