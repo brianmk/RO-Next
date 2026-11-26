@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange, WhiteSpray,
+    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange, TexturedSkillAura, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -33,6 +33,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Enchantpoison => Box::new(EnchantPoison::default()),
         EffectId::Detoxication => Box::new(Detoxication::default()),
         EffectId::Agiup => Box::new(AgilityUp::default()),
+        EffectId::Detecting => Box::new(TexturedSkillAura::new(0, 250)),
+        EffectId::Detect2 => Box::new(TexturedSkillAura::new(2, 250)),
+        EffectId::Detect3 => Box::new(TexturedSkillAura::new(3, 250)),
+        EffectId::Detect4 => Box::new(TexturedSkillAura::new(4, 250)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -87,6 +91,10 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Enchantpoison,
         EffectId::Detoxication,
         EffectId::Agiup,
+        EffectId::Detecting,
+        EffectId::Detect2,
+        EffectId::Detect3,
+        EffectId::Detect4,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -151,6 +159,10 @@ mod tests {
             (EffectId::Enchantpoison, 250),
             (EffectId::Detoxication, 100),
             (EffectId::Agiup, 100),
+            (EffectId::Detecting, 250),
+            (EffectId::Detect2, 250),
+            (EffectId::Detect3, 250),
+            (EffectId::Detect4, 250),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
