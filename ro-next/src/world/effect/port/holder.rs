@@ -17,8 +17,8 @@ use wgpu::BlendFactor;
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::runtime::{EffectRuntime, PortedEffect};
 use super::str_player::Clip;
-use super::str_table::{self, StrResource};
-use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass};
+use super::str_table::{self, ClipSet, StrResource};
+use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass, str_render};
 use crate::graphics::Color;
 use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
@@ -35,6 +35,11 @@ pub struct PortedEffectHolder {
     /// itself is opened before the first step by [`Self::with_str_clips`] or
     /// [`Self::with_game_file_loader`].
     str_resource: Option<&'static StrResource>,
+    /// `EZeffectClip::names` per `.str` clip, already resolved to the client
+    /// loader's `effect\...` paths (`str_table::ClipSet::textures`). Empty
+    /// until a resource is opened; the playback player does not need it, only
+    /// the draw pass does.
+    str_textures: Vec<Vec<String>>,
     /// `.spr`/`.act` loaders of the client for the sprite primitives. `None`
     /// in unit tests, which have no game archives, and for effects without
     /// sprite bodies; the sprite pass then draws nothing.
@@ -60,6 +65,7 @@ impl PortedEffectHolder {
             accumulator_ms: 0.0,
             finished: false,
             str_resource: str_table::str_resource(effect),
+            str_textures: Vec::new(),
             sprite_loader: None,
             action_loader: None,
             sprite_frame_counts: HashMap::new(),
@@ -79,9 +85,22 @@ impl PortedEffectHolder {
     /// the client's `EffectLoader`) and attaches the layers here, before the
     /// first 16 ms step. Effects without a `.str` resource ignore the call, so
     /// their simulation is untouched.
-    pub fn with_str_clips(mut self, clips: Vec<Clip>) -> Self {
+    pub fn with_str_clips(self, clips: Vec<Clip>) -> Self {
+        self.with_str_clip_set(ClipSet {
+            clips,
+            textures: Vec::new(),
+        })
+    }
+
+    /// Opens the effect's `.str` resource from already-parsed clips and their
+    /// per-clip texture lists.
+    ///
+    /// The asset layer resolves [`Self::str_files`] through
+    /// [`str_table::load_clips`] and gets one of these; `with_str_clips` is the
+    /// texture-less shorthand for tests.
+    pub fn with_str_clip_set(mut self, clip_set: ClipSet) -> Self {
         if let Some(resource) = self.str_resource {
-            self.open_str(resource, clips);
+            self.open_str(resource, clip_set);
         }
 
         self
@@ -100,19 +119,20 @@ impl PortedEffectHolder {
         };
 
         match str_table::load_clips(game_file_loader, resource) {
-            Some(clips) => self.open_str(resource, clips),
+            Some(clip_set) => self.open_str(resource, clip_set),
             None => crate::logging::log_debug!("ported effect: missing .str resource {:?}", resource.files),
         }
 
         self
     }
 
-    fn open_str(&mut self, resource: &StrResource, clips: Vec<Clip>) {
-        if clips.is_empty() {
+    fn open_str(&mut self, resource: &StrResource, clip_set: ClipSet) {
+        if clip_set.clips.is_empty() {
             return;
         }
 
-        self.runtime.open_str(clips);
+        self.runtime.open_str(clip_set.clips);
+        self.str_textures = clip_set.textures;
 
         if let Some(player) = self.runtime.str_player.as_mut() {
             player.loop_limit = resource.loop_limit;
@@ -146,8 +166,8 @@ impl PortedEffectHolder {
     /// primary one: animated sequences (`texture_frames`) and two/three
     /// texture primitives (`texture_secondary`, `texture_tertiary`) must be
     /// resident when the motion advances `curMotion`.
-    pub fn textures(&self) -> impl Iterator<Item = &'static str> + '_ {
-        self.runtime.primitives.iter().flat_map(|primitive| {
+    pub fn textures(&self) -> impl Iterator<Item = &str> + '_ {
+        let primitives = self.runtime.primitives.iter().flat_map(|primitive| {
             let state = &primitive.state;
 
             state
@@ -156,7 +176,14 @@ impl PortedEffectHolder {
                 .chain(state.texture_secondary)
                 .chain(state.texture_tertiary)
                 .chain(state.texture_frames.iter().copied())
-        })
+        });
+
+        // The `.str` clip's own texture list. Its paths are owned by the
+        // holder (the loader builds them from the file's 128-byte names), so
+        // they cannot be `&'static str` like the primitive paths.
+        let str_textures = self.str_textures.iter().flatten().map(String::as_str);
+
+        primitives.chain(str_textures)
     }
 
     /// Advances the effect by `delta_seconds` of wall time.
@@ -289,6 +316,10 @@ impl PortedEffectHolder {
     ///   vertices carry independent heights and depths; the forward effect pass
     ///   draws them right after the quad list. This includes `TexturedAura`'s
     ///   prim 82 (`RenderTeiFacingSlots`).
+    /// * the effect's own `.str` clips - `CRagEffect::Render`/ `RenderAniClip`,
+    ///   see [`str_render`]. The pass runs after the primitive list and draws
+    ///   only the clips `ProcessEZ2STR` marked as visible this frame (layer 0
+    ///   is the resource's control layer and is never drawn).
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
         let anchor = Point3::new(self.runtime.position[0], self.runtime.position[1], self.runtime.position[2]);
 
@@ -362,6 +393,19 @@ impl PortedEffectHolder {
                 _ => {}
             }
         }
+
+        // `CRagEffect::Render` - the effect's own `.str` pass, drawn once per
+        // visible clip after the primitive list. It is driven by
+        // `ProcessEZ2STR`'s `layerDrawn` flags, not by a `PrimitiveId`.
+        str_render::render(
+            renderer,
+            camera,
+            textures,
+            anchor,
+            self.runtime.str_player.as_ref(),
+            &self.runtime.str_clips,
+            &self.str_textures,
+        );
     }
 
     /// Number of 16 ms steps still pending in the accumulator (test hook).
@@ -775,6 +819,23 @@ mod tests {
         // `Signum::on_process` forwards that as the effect's retirement.
         assert!(!holder.update(0.016));
         assert!(holder.is_finished());
+    }
+
+    #[test]
+    fn str_texture_names_are_carried_for_the_draw_pass_and_prefetch() {
+        let mut holder = PortedEffectHolder::new(EffectId::Signum, 1).unwrap().with_str_clip_set(ClipSet {
+            clips: clip(&[(0, 10.0)]),
+            textures: vec![vec!["effect\\cross01.bmp".to_owned(), "effect\\cross02.bmp".to_owned()]],
+        });
+
+        assert_eq!(holder.runtime().str_clips.len(), 1);
+        assert_eq!(holder.runtime().str_player.as_ref().unwrap().transforms[0].x, 0.0);
+
+        assert!(holder.update(0.016));
+
+        let textures: Vec<_> = holder.textures().collect();
+        assert!(textures.contains(&"effect\\cross01.bmp"));
+        assert!(textures.contains(&"effect\\cross02.bmp"));
     }
 
     #[test]

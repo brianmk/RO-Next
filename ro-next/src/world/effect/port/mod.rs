@@ -12,9 +12,9 @@
 //!
 //! * [`clock`] - the fixed 16 ms simulation step (`Timer.cpp`).
 //! * [`primitive`] - `CEffectPrim` state machine and the ported primitives.
-//! * [`runtime`] - the per-frame driver that mirrors
-//!   `EffectLists::Update -> CEffect::Update -> OnProcess -> ++stateCnt` and
-//!   the separate primitive update pass.
+//! * [`runtime`] - the per-frame driver that mirrors `EffectLists::Update ->
+//!   CEffect::Update -> OnProcess -> ++stateCnt` and the separate primitive
+//!   update pass.
 //! * [`rag`] - ported effect bodies, one function per original method.
 //!
 //! Nothing here is wired into the live render path yet; that happens once the
@@ -30,6 +30,9 @@ pub mod clock;
 pub mod holder;
 pub mod math;
 pub mod primitive;
+pub mod rag;
+pub mod rag_batch_a;
+pub mod rag_batch_b;
 pub mod registry;
 pub mod registry_batch_a;
 pub mod registry_batch_b;
@@ -38,13 +41,11 @@ pub mod registry_textured_aura;
 pub mod render3d;
 pub mod render_slots;
 pub mod rng;
-pub mod rag;
-pub mod rag_batch_a;
-pub mod rag_batch_b;
 pub mod runtime;
 pub mod skill_map;
 pub mod sprite_pass;
 pub mod str_player;
+pub mod str_render;
 pub mod str_table;
 pub mod visual;
 

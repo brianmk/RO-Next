@@ -16,6 +16,15 @@
 //! (`loaders/effect/mod.rs:48-61`), so [`load_clips`] reuses that parser and
 //! only converts the raw key frames into the port's [`Clip`]; the transform
 //! fields are the `EZeffectTransform` members (`EZeffectResource.h:13-43`).
+//!
+//! Besides the key frames, `CEZeffectClip` carries `textureCount` names
+//! (`names[110]`, `EZeffectResource.h:45-52`). The port threads them into
+//! [`ClipSet::textures`] exactly like the client loader turns
+//! `LayerData::texture_names` into `effect\{prefix}{name}` (and, as in
+//! `EZeffectClip::Texture`, appends `.bmp` when the name has no extension).
+//! The fixed 128-byte name fields are already stripped at their first NUL by
+//! the `String` parser both loaders use, so no trailing padding reaches the
+//! texture list.
 
 use ragnarok_bytes::{ByteReader, FromBytes};
 use ragnarok_formats::effect::{EffectData, Frame as EffectFrame, LayerData};
@@ -111,18 +120,31 @@ pub fn str_loop_limit(effect: EffectId) -> i32 {
     str_resource(effect).map_or(0, |resource| resource.loop_limit)
 }
 
+/// One `.str` resource as the asset layer hands it to the holder.
+///
+/// `clips` is the `ProcessEZ2STR` playback data ([`Clip`]); `textures` is the
+/// per-clip texture list of `EZeffectClip::names`, resolved to the same
+/// `effect\...` paths the client's `EffectLoader` builds. The two vectors are
+/// parallel: `textures[layer][frame]` is the texture `layer`'s current
+/// `aniframe` selects.
+#[derive(Debug, Clone, Default)]
+pub struct ClipSet {
+    pub clips: Vec<Clip>,
+    pub textures: Vec<Vec<String>>,
+}
+
 /// Loads the first loadable file of `resource` as a set of clips.
 ///
 /// This is the `.str` read of `CEZeffectRes::Load` on top of the same
 /// `EffectData` parser the client's `EffectLoader` uses. `None` means no file
 /// could be resolved/parsed, in which case the body plays without its `.str`
 /// layer instead of aborting the effect.
-pub fn load_clips(game_file_loader: &GameFileLoader, resource: &StrResource) -> Option<Vec<Clip>> {
+pub fn load_clips(game_file_loader: &GameFileLoader, resource: &StrResource) -> Option<ClipSet> {
     resource.files.iter().find_map(|file| load_clip_file(game_file_loader, file))
 }
 
 /// Reads and parses one `.str` file (relative to [`STR_DIRECTORY`]).
-pub fn load_clip_file(game_file_loader: &GameFileLoader, file: &str) -> Option<Vec<Clip>> {
+pub fn load_clip_file(game_file_loader: &GameFileLoader, file: &str) -> Option<ClipSet> {
     let path = format!("{STR_DIRECTORY}{file}");
     let mut bytes = game_file_loader.get(&path).ok()?;
     strip_effect_magic_prefix(&mut bytes);
@@ -130,7 +152,52 @@ pub fn load_clip_file(game_file_loader: &GameFileLoader, file: &str) -> Option<V
     let mut byte_reader = ByteReader::with_default_metadata::<GenericFormatMetadata>(&bytes);
     let effect_data = EffectData::from_bytes(&mut byte_reader).ok()?;
 
-    Some(clips_from_layers(&effect_data.layers))
+    Some(ClipSet {
+        clips: clips_from_layers(&effect_data.layers),
+        textures: textures_from_layers(&effect_data.layers, texture_prefix(file)),
+    })
+}
+
+/// The directory part of a `.str` path, with its trailing separator.
+///
+/// This is the client loader's rule (`loaders/effect/mod.rs:63-66`): the
+/// texture name is relative to the `.str` file's own directory, which is
+/// prepended as `effect\{prefix}{name}`. Implemented with `rfind` so a
+/// multi-byte file name (the official resources include Korean names) cannot
+/// hit a non-char boundary.
+pub(crate) fn texture_prefix(path: &str) -> &str {
+    match path.rfind('\\') {
+        Some(index) => &path[..=index],
+        None => "",
+    }
+}
+
+/// `EZeffectClip::names` -> texture paths.
+///
+/// `loaders/effect/mod.rs:80-85` builds `effect\{prefix}{name}` for every
+/// name, and `EZeffectClip::Texture` (`EZeffectResource.cpp:107-124`) appends
+/// `.bmp` when the path has no extension. Both rules are applied here so the
+/// port's renderer can hand the result straight to `TextureLoader`.
+pub(crate) fn textures_from_layers(layers: &[LayerData], prefix: &str) -> Vec<Vec<String>> {
+    layers
+        .iter()
+        .map(|layer| {
+            layer
+                .texture_names
+                .iter()
+                .map(|name| {
+                    let mut path = format!("effect\\{prefix}{}", name.name);
+
+                    // `path.find_last_of('.') == std::string::npos`.
+                    if !path.contains('.') {
+                        path.push_str(".bmp");
+                    }
+
+                    path
+                })
+                .collect()
+        })
+        .collect()
 }
 
 /// Converts the parsed layers of a `.str` file into the port's clips.
@@ -285,5 +352,74 @@ mod tests {
         assert_eq!(clips[0].frames[1].frame, 12);
         assert_eq!(clips[0].frames[1].transform.kind, 1, "delta key type");
         assert_eq!(clips[0].frames[1].transform.x, -1.0);
+    }
+
+    #[test]
+    fn texture_names_become_the_loader_paths() {
+        let layers = [LayerData {
+            texture_count: 2,
+            texture_names: vec![
+                ragnarok_formats::effect::TextureName {
+                    name: "cross01.bmp".to_owned(),
+                },
+                ragnarok_formats::effect::TextureName {
+                    name: "cross02.tga".to_owned(),
+                },
+            ],
+            frame_count: 0,
+            frames: Vec::new(),
+        }];
+
+        let textures = textures_from_layers(&layers, "");
+
+        assert_eq!(textures, vec![vec![
+            "effect\\cross01.bmp".to_owned(),
+            "effect\\cross02.tga".to_owned()
+        ]]);
+    }
+
+    #[test]
+    fn a_texture_without_an_extension_gets_the_official_bmp_default() {
+        let layers = [LayerData {
+            texture_count: 1,
+            texture_names: vec![ragnarok_formats::effect::TextureName {
+                name: "cross01".to_owned(),
+            }],
+            frame_count: 0,
+            frames: Vec::new(),
+        }];
+
+        assert_eq!(textures_from_layers(&layers, ""), vec![vec!["effect\\cross01.bmp".to_owned()]]);
+    }
+
+    #[test]
+    fn the_str_directory_prefix_is_prepended_like_the_client_loader() {
+        assert_eq!(texture_prefix("Cross.str"), "");
+        assert_eq!(texture_prefix("RL_STORM\\S_STORM.str"), "RL_STORM\\");
+
+        let layers = [LayerData {
+            texture_count: 1,
+            texture_names: vec![ragnarok_formats::effect::TextureName {
+                name: "storm01.bmp".to_owned(),
+            }],
+            frame_count: 0,
+            frames: Vec::new(),
+        }];
+
+        assert_eq!(textures_from_layers(&layers, texture_prefix("RL_STORM\\S_STORM.str")), vec![
+            vec!["effect\\RL_STORM\\storm01.bmp".to_owned()]
+        ]);
+    }
+
+    #[test]
+    fn an_empty_texture_list_stays_empty() {
+        let layers = [LayerData {
+            texture_count: 0,
+            texture_names: Vec::new(),
+            frame_count: 0,
+            frames: Vec::new(),
+        }];
+
+        assert_eq!(textures_from_layers(&layers, ""), vec![Vec::<String>::new()]);
     }
 }

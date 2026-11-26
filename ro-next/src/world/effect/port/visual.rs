@@ -13,10 +13,11 @@
 //! `RenderSegmentSprites2` sprite pass of [`super::sprite_pass`] for the
 //! `.spr` particle families, and the slot/record primitives of
 //! [`super::render_slots`] (rings, cylinders, columns, fans, halo, wind, arc
-//! walls and the `TexturedAura` glow of prim 82) as additive triangle lists.
-//! The remaining primitive families (`PP_3DSPHERE`, the arc/sweep families and
-//! the effect ids whose `Render*` member is not ported yet) are skipped rather
-//! than guessed.
+//! walls and the `TexturedAura` glow of prim 82) as additive triangle lists,
+//! and the effect's `.str` clip layers of [`super::str_render`]. The remaining
+//! primitive families (`PP_3DSPHERE`, the arc/sweep families and the effect
+//! ids whose `Render*` member is not ported yet) are skipped rather than
+//! guessed.
 //!
 //! The sprite pass needs the client's [`SpriteLoader`]/[`ActionLoader`]; they
 //! are handed to the holder here so it can resolve the ACT frame count while
@@ -45,7 +46,9 @@ pub struct PortedVisual {
     texture_loader: Option<Arc<TextureLoader>>,
     /// Assets already requested from the loader. Ported bodies launch their
     /// primitives over time, so the texture list grows after construction.
-    prefetched: HashSet<&'static str>,
+    /// Owned strings because a `.str` clip's texture names come from its
+    /// resource file and are not `&'static`.
+    prefetched: HashSet<String>,
     gets_deleted: bool,
 }
 
@@ -100,7 +103,7 @@ impl PortedVisual {
         };
 
         for path in self.holder.textures() {
-            if !self.prefetched.insert(path) {
+            if !self.prefetched.insert(path.to_owned()) {
                 continue;
             }
 
