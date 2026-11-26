@@ -17,7 +17,9 @@ pub mod flash;
 pub mod height_ramp;
 pub mod intimidate;
 pub mod particle3d;
+pub mod particle_up;
 pub mod quadhorn;
+pub mod pulsing_columns;
 pub mod spin_quad;
 pub mod texture3d;
 pub mod aura_glow;
@@ -133,6 +135,10 @@ pub enum PrimitiveId {
     HeightRamp,
     /// prim 89 (TexturedQuadSpin)
     SpinQuad,
+    /// prim 59 (`PrimParticleUp`)
+    ParticleUp,
+    /// prim 60 (`PrimPulsingColumns`)
+    PulsingColumns,
 }
 
 impl PrimitiveId {
@@ -154,6 +160,8 @@ impl PrimitiveId {
             Self::AuraGlow => 82,
             Self::HeightRamp => 137,
             Self::SpinQuad => 89,
+            Self::ParticleUp => 59,
+            Self::PulsingColumns => 60,
         }
     }
 }
@@ -576,6 +584,14 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::SpinQuad => {
                 spin_quad::on_process(self, master);
+                true
+            }
+            PrimitiveId::ParticleUp => {
+                particle_up::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::PulsingColumns => {
+                pulsing_columns::on_process(self, angles, master);
                 true
             }
         };

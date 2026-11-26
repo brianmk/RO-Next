@@ -66,6 +66,8 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::TexturedSpreadFlat` (`EF_REDLINE`, `EF_BLUELINE`) | `RagEffect.cpp:6986-7070` | 2 |
 | prim 89 spin-quad | `EffectPrimitiveMotion.cpp:9817-9859` | 4 |
 | `CRagEffect::TexturedQuadSpin` (`EF_BASH3D5/6`) | `RagEffect.cpp:3617-3653` | 3 |
+| prim 59 `PrimParticleUp` | `EffectPrimitiveMotion.cpp:3692-3738` | 2 |
+| prim 60 `PrimPulsingColumns` (heal/fire columns) | `EffectPrimitiveMotion.cpp:6541-6650` | 4 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
