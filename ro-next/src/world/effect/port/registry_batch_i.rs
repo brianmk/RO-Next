@@ -8,7 +8,9 @@
 
 use ragnarok_packets::EffectId;
 
-use super::rag_batch_i::{Assumptio, ChemicalBody, DoubleCastBody, FalconAssault, MagicCrasher2, PinkBody, RedBody, ReflectBody, Shrink};
+use super::rag_batch_i::{
+    Assumptio, ChemicalBody, DoubleCastBody, FalconAssault, MagicCrasher2, PinkBody, RedBody, ReflectBody, Shrink, SuStoop,
+};
 use super::runtime::PortedEffect;
 
 /// Creates the batch body for an effect id.
@@ -32,6 +34,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Shrink => Box::new(Shrink::new()),
         // `case EF_FALCONASSAULT:` - `RagEffect.cpp:23782-23797`.
         EffectId::Falconassault => Box::new(FalconAssault::new()),
+        // `case EF_SU_STOOP:` - `RagEffect.cpp:22202-22207`.
+        EffectId::SuStoop => Box::new(SuStoop::new()),
         _ => return None,
     })
 }
@@ -48,6 +52,7 @@ pub fn ids() -> &'static [EffectId] {
         EffectId::Doublecastbody,
         EffectId::Shrink,
         EffectId::Falconassault,
+        EffectId::SuStoop,
     ]
 }
 
@@ -72,6 +77,8 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
         (EffectId::Shrink, 200),
         // `EffectTypes.cpp:396`
         (EffectId::Falconassault, 200),
+        // `EffectTypes.cpp:1141`
+        (EffectId::SuStoop, 99999999),
     ]
 }
 
@@ -88,6 +95,7 @@ pub fn is_caster_body_only(effect: EffectId) -> bool {
             | EffectId::Doublecastbody
             | EffectId::Shrink
             | EffectId::Falconassault
+            | EffectId::SuStoop
     )
 }
 
@@ -119,10 +127,11 @@ mod tests {
     fn unowned_effects_are_not_claimed() {
         // `EF_ASSUMPTIO2` (24326) has a `.str` body, not a caster-body one.
         assert!(spawn(EffectId::Assumptio2).is_none());
-        // `EF_SU_STOOP` (1132) is the one manual-tier id with no `EffectId`
-        // variant; its neighbours are not claimed either.
+        // The ids around `EF_SU_STOOP` (1132) are still unported: 1123 and
+        // 1124 have no body, and 1132 itself is claimed by this batch.
         assert!(spawn(EffectId::SuGrooming).is_none());
         assert!(spawn(EffectId::SuChattering).is_none());
+        assert!(spawn(EffectId::SuStoop).is_some());
         // Owned elsewhere (registry.rs's hand-written table / batch "h").
         assert!(spawn(EffectId::Magiccrasher).is_none());
         assert!(spawn(EffectId::Reflectshield).is_none());

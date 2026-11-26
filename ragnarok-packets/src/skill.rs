@@ -1309,6 +1309,15 @@ pub enum EffectId {
     #[numeric_value(1123)]
     SuGrooming,
     SuChattering,
+    /// `EF_SU_STOOP` (`EffectTypes.h:1140`, official id 1132).
+    ///
+    /// The caster-body stoop effect (`RagEffect.cpp:22202-22207`) was missing
+    /// from this enum, leaving no value between `SuChattering` (1124) and
+    /// `Firedance` (1133). `22202` is the decompiled case's line number, not
+    /// its id. Declared with its real numeric value so neither neighbour
+    /// shifts.
+    #[numeric_value(1132)]
+    SuStoop,
     #[numeric_value(1133)]
     Firedance,
     RichsCoinA,

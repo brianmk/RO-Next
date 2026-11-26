@@ -26,14 +26,12 @@
 //! copy only document it. Frame gates, literals, the `%` parity tests and the
 //! RNG draw order are kept.
 //!
-//! This batch ports nine of the twelve ids the prior assessment listed.
+//! This batch ports ten of the twelve ids the prior assessment listed.
 //! `EF_LIGHTBLADE` and `EF_AURABLADE2` are owned by the concurrent Champion
-//! batch (`port/rag/champion.rs`), and `EF_SU_STOOP`
-//! (`RagEffect.cpp:22202-22207`) cannot be registered at all: the
-//! `ragnarok_packets` `EffectId` enum has no `SuStoop` variant
-//! (`ragnarok-packets/src/skill.rs` jumps from id 1124 to
-//! `#[numeric_value(1133)] Firedance`), so `registry_batch_i::spawn` can never
-//! be asked for it.
+//! batch (`port/rag/champion.rs`). The tenth, `EF_SU_STOOP`
+//! (`RagEffect.cpp:22202-22207`), needed the missing `EffectId::SuStoop`
+//! variant (official id 1132, `EffectTypes.h:1140`) added alongside this body;
+//! it was declared with its real numeric value so no existing id shifted.
 
 #![allow(dead_code)]
 
@@ -388,8 +386,50 @@ impl PortedEffect for FalconAssault {
     }
 }
 
+// ---------------------------------------------------------------------------
+// EF_SU_STOOP
+// ---------------------------------------------------------------------------
+
+/// `case EF_SU_STOOP:` - `RagEffect.cpp:22202-22207`.
+///
+/// Frame 0 copies the caster position (the port's spawn anchor already is that
+/// position, so the copy is a no-op here) and plays
+/// `effect\mon_금강불괴.wav` through `PlayEffectWave`. Every later frame is a
+/// no-op: no flags, no colour, no primitive, no RNG. Lifetime 99999999
+/// (`EffectTypes.cpp:1141`), so the effect only ends when the server deletes
+/// it; the body always returns `true`.
+#[derive(Debug, Default)]
+pub struct SuStoop;
+
+impl SuStoop {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl PortedEffect for SuStoop {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:1141` - `result[EF_SU_STOOP] = 99999999`.
+        99999999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 0 {
+            // `this->render.position = this->state.parent->render.position;`
+            // is a no-op in the hermetic runtime: `position` already is the
+            // caster anchor filled by the spawn path.
+            runtime.play_sound("effect\\mon_금강불괴.wav");
+        }
+
+        true
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use ragnarok_bytes::{ByteReader, ByteWriter, FromBytes, ToBytes};
+    use ragnarok_packets::EffectId;
+
     use super::super::runtime::{EffectRng, EffectRuntime, run_to_completion, step};
     use super::*;
 
@@ -400,7 +440,7 @@ mod tests {
     #[test]
     fn batch_i_lifetimes_match_effect_types() {
         // `EffectTypes.cpp:377`, `:384`, `:428`, `:405`, `:412`, `:509`,
-        // `:530`, `:608` and `:396`.
+        // `:530`, `:608`, `:396` and `:1141`.
         assert_eq!(RedBody::new().lifetime(), 99999);
         assert_eq!(Assumptio::new().lifetime(), 99999);
         assert_eq!(ReflectBody::new().lifetime(), 99999999);
@@ -410,6 +450,30 @@ mod tests {
         assert_eq!(DoubleCastBody::new().lifetime(), 120);
         assert_eq!(Shrink::new().lifetime(), 200);
         assert_eq!(FalconAssault::new().lifetime(), 200);
+        assert_eq!(SuStoop::new().lifetime(), 99999999);
+    }
+
+    #[test]
+    fn sustoop_id_keeps_its_official_numeric_value() {
+        // `EffectTypes.h:1139-1141` - `EF_SU_STOOP = 1132`, between
+        // `EF_SU_CHATTERING` (1124) and `EF_FIREDANCE` (1133). `22202` is the
+        // decompiled case's line number, never an id. Pinned through the
+        // `ByteConvertable` wire encoding (`#[numeric_value]` does not change
+        // the Rust discriminant) so no later insertion can shift it.
+        fn encoded(effect: EffectId) -> [u8; 4] {
+            let mut writer = ByteWriter::new();
+            effect.to_bytes(&mut writer).expect("EffectId encodes");
+
+            writer.as_slice().try_into().expect("EffectId is a u32")
+        }
+
+        assert_eq!(encoded(EffectId::SuStoop), 1132u32.to_le_bytes());
+        assert_eq!(encoded(EffectId::SuChattering), 1124u32.to_le_bytes());
+        assert_eq!(encoded(EffectId::Firedance), 1133u32.to_le_bytes());
+
+        let bytes = 1132u32.to_le_bytes();
+        let decoded = EffectId::from_bytes(&mut ByteReader::without_metadata(&bytes)).expect("1132 is a known id");
+        assert!(matches!(decoded, EffectId::SuStoop), "1132 must decode to SuStoop");
     }
 
     // -- EF_REDBODY --------------------------------------------------------
@@ -795,5 +859,50 @@ mod tests {
         assert_eq!(snapshots.len(), 200);
         assert_eq!(runtime.shakes, 1);
         assert_eq!(runtime.parent_angle, 30.0);
+    }
+
+    // -- EF_SU_STOOP -------------------------------------------------------
+
+    #[test]
+    fn sustoop_plays_the_wave_on_frame_zero_only() {
+        let mut effect = SuStoop::new();
+        let mut runtime = runtime_with(16, 99999999);
+
+        step(&mut effect, &mut runtime); // frame 0
+        assert_eq!(runtime.sounds, vec!["effect\\mon_금강불괴.wav".to_owned()]);
+        assert_eq!(runtime.parent_flags, 0);
+        assert_eq!(runtime.parent_color, None, "SetColor is never called");
+        assert!(runtime.primitives.is_empty());
+
+        // The buffer is cumulative here (the holder drains it per step): no
+        // later frame adds a second sound.
+        for _ in 0..120 {
+            step(&mut effect, &mut runtime);
+        }
+        assert_eq!(runtime.frame, 121);
+        assert_eq!(runtime.sounds.len(), 1);
+        assert_eq!(runtime.sounds[0], "effect\\mon_금강불괴.wav");
+        assert_eq!(runtime.shakes, 0);
+        assert!(runtime.primitives.is_empty());
+        assert_eq!(runtime.parent_flags, 0);
+        assert_eq!(runtime.parent_color, None);
+
+        // No RNG draws: a fresh generator is still in the same state.
+        let mut reference = EffectRng::new(16);
+        assert_eq!(runtime.rng.clamped_random(1000), reference.clamped_random(1000));
+    }
+
+    #[test]
+    fn sustoop_stays_alive_until_its_huge_lifetime() {
+        let mut effect = SuStoop::new();
+        let mut runtime = runtime_with(17, 99999999);
+
+        // 500 frames is far short of the 99999999-frame lifetime, so every
+        // step reports alive and the frame counter reaches 500.
+        for _ in 0..500 {
+            assert!(step(&mut effect, &mut runtime));
+        }
+        assert_eq!(runtime.frame, 500);
+        assert_eq!(runtime.sounds.len(), 1);
     }
 }
