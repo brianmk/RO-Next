@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 341 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 355 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -246,6 +246,14 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - Champion: ComboAttack1..5 and ChainCombo as `.str` bodies (rows added to `str_table.rs`), AsuraBody/AsuraBody_Monster with `parent_outline_alpha`/`parent_effect_phase` (record-only; the original only resets them in `CRenderObject::Reset`, so ASURABODY pins at 200 and ASURABODY_MONSTER freezes at 199).
 - Champion still blocked on primitives: **35** (Gumgang 203, SteelBody 254), **31** (Gumgang2 261), **30** (AuraBlade 367 + the two rings in BeginAsura/BeginAsura11), **68 `PP_ASURACASTING`** (BeginAsura 328, BeginAsura1..7 467-473, BeginAsura11 510). Prims 30/31/35 have no `EffectPrimId.h` symbol (enum jumps 27 -> 34).
 - `EF_SU_STOOP` has no `EffectId` variant (packets jump 1124 -> 1133).
+
+### Round 93 (Champion complete)
+
+- prim **68** `PP_ASURACASTING` (`PrimAsuraCasting` + `RenderHaloLayers`), **30** `Casting3d` (inline motion, reuses `render_3d_casting`), **31** `WaveSpin` (`PrimWaveSpin`), **35** `FloatingBubbles` (`PrimFloatingBubbles` + `RenderOrbitIcons`). Prims 30/31/35 have no `EffectPrimId.h` symbol, so they are named after their motion/render functions.
+- Helpers: `TexturedQuadRingSized`, `SuperSlashFan`, `TexturedCrossLevel`, `TexturedSkillIcon`, `AsuraStrike`, `WhiteYellowRings`.
+- **Champion is complete**: Gumgang 203, Steelbody 254, Gumgang2 261, Beginasura 328, Aurablade 367, Beginasura1..7 467-473, Beginasura11 510 - with `EffectId::SuStoop` (1132) as a bonus fix.
+- Render deviation: `RenderTeiRect`'s `extra == 2` (prim 35 only) nudges reciprocal depth by 0.000045; the shared triangle path has no per-vertex depth, so geometry/colour/blend are exact and only that nudge is omitted.
+- Still open: `EF_GUMGANGNPC` (portable, one call), prim 99 `PP_DOUBLEGUMGANG`, prim 147 `RenderHaloLayers` consumer.
 
 ### Known wiring gaps (client spawn path)
 
