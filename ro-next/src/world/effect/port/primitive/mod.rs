@@ -595,7 +595,11 @@ impl Default for EffectPrimitiveState {
             rgb_cycle_delay: 0,
             ch_radi_speed: 0,
             v1: 0.0,
-            v2: 0.0,
+            // `EffectPrim.cpp:126-130`: the constructor starts with
+            // `v1 = 0`, `u1Bits = 0`, `v2 = 1.0`, `u2 = 1.0`. The 3-D texture
+            // renderer samples `[v1, v2]`; leaving `v2` at zero would make
+            // every plane sample a single texel row.
+            v2: 1.0,
             max_height_size: 100.0,
             delta_pos_accel: [0.0; 3],
             action_frame_count: 1,

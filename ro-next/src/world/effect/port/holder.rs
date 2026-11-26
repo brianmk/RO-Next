@@ -19,6 +19,7 @@ use crate::world::Camera;
 use super::FRAME_FREQUENCY_MS;
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::registry;
+use super::render3d;
 use super::runtime::{EffectRuntime, PortedEffect};
 
 pub struct PortedEffectHolder {
@@ -58,11 +59,22 @@ impl PortedEffectHolder {
     }
 
     /// Texture assets the effect references; the loader prefetches these.
+    ///
+    /// Every slot of a primitive's texture array is listed, not only the
+    /// primary one: animated sequences (`texture_frames`) and two/three
+    /// texture primitives (`texture_secondary`, `texture_tertiary`) must be
+    /// resident when the motion advances `curMotion`.
     pub fn textures(&self) -> impl Iterator<Item = &'static str> + '_ {
-        self.runtime
-            .primitives
-            .iter()
-            .filter_map(|primitive| primitive.state.texture)
+        self.runtime.primitives.iter().flat_map(|primitive| {
+            let state = &primitive.state;
+
+            state
+                .texture
+                .into_iter()
+                .chain(state.texture_secondary)
+                .chain(state.texture_tertiary)
+                .chain(state.texture_frames.iter().copied())
+        })
     }
 
     /// Advances the effect by `delta_seconds` of wall time.
@@ -89,11 +101,15 @@ impl PortedEffectHolder {
         true
     }
 
-    /// Submits the primitives that map to a single textured quad.
+    /// Submits every primitive the port can draw today.
     ///
-    /// Covers `PP_2DTEXTURE` and `PP_2DFLASH` (both render through
-    /// `Render2DPrimitive`). Rings, cylinders and 3-D volumes need triangle or
-    /// world-space geometry and are not drawn yet.
+    /// * `PP_2DTEXTURE`/`PP_2DFLASH` - screen-space quads
+    ///   (`Render2DPrimitive`).
+    /// * `PP_3DTEXTURE`/`PP_3DCROSSTEXTURE` - world-space quads
+    ///   (`DrawEffectPrimitive15`/`RenderCrossPlanes`), see [`render3d`].
+    ///
+    /// Rings, cylinders, arcs and the sprite primitives need geometry/render
+    /// paths that are not ported yet; they are skipped rather than guessed.
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
         let anchor = Point3::new(
             self.runtime.position[0],
@@ -108,33 +124,54 @@ impl PortedEffectHolder {
 
             let state = &primitive.state;
 
-            if !matches!(state.count, PrimitiveId::Texture2d | PrimitiveId::Flash2d) {
-                continue;
+            match state.count {
+                PrimitiveId::Texture2d | PrimitiveId::Flash2d => {
+                    let Some(path) = state.texture else {
+                        continue;
+                    };
+
+                    let Ok(texture) = textures.get_or_load(path, ImageType::Color) else {
+                        continue;
+                    };
+
+                    let (corners, uvs) = quad_corners(state, self.runtime.screen);
+                    let (source, destination) = blend_factors(state.render_flag);
+
+                    renderer.render_effect(
+                        camera,
+                        anchor,
+                        texture,
+                        corners,
+                        uvs,
+                        Vector2::new(0.0, 0.0),
+                        Rad(0.0),
+                        primitive_color(state),
+                        source,
+                        destination,
+                    );
+                }
+                PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => {
+                    render3d::render_textured_primitive(renderer, camera, textures, state);
+                }
+                // TODO(sprite pass): `Particle3d`/`Particle3dGravity`/`Orbit`
+                // (and the `.spr` bodies of `rag::class_change`) only carry
+                // `sprite`/`action`; `ParticleUp`, `PulsingColumns`,
+                // `RippleRings`, `RisingFan`, `Halo`, `SpinQuad`,
+                // `TextureSpin`, `WanderingFlames` are slot/record primitives.
+                // `SpriteEffect` is not reusable as-is: it needs
+                // `Arc<Sprite>`/`Arc<Actions>` from `SpriteLoader`/
+                // `ActionLoader`, neither of which reaches
+                // `PortedEffectHolder::render`, and the official
+                // `RenderSegmentSprites2` projects every `records[seg]` and
+                // draws one sprite cell per ACT cell with
+                // `sprite->images[cell.imageType][cell.image]` (the port's
+                // `texture_secondary` slot), scaling by the record's
+                // `scale`/`cell.scaleY` and the record's depth. Missing: the
+                // two loaders in the holder context, a per-record cell
+                // renderer, and the ACT frame selection from
+                // `action_index`/`action_frame_count` plus `cur_motion`.
+                _ => {}
             }
-
-            let Some(path) = state.texture else {
-                continue;
-            };
-
-            let Ok(texture) = textures.get_or_load(path, ImageType::Color) else {
-                continue;
-            };
-
-            let (corners, uvs) = quad_corners(state, self.runtime.screen);
-            let (source, destination) = blend_factors(state.render_flag);
-
-            renderer.render_effect(
-                camera,
-                anchor,
-                texture,
-                corners,
-                uvs,
-                Vector2::new(0.0, 0.0),
-                Rad(0.0),
-                primitive_color(state),
-                source,
-                destination,
-            );
         }
     }
 
@@ -269,6 +306,54 @@ mod tests {
 
         assert!(textures.contains(&"effect\\alpha_down.tga"));
         assert!(textures.contains(&"EFFECT\\alpha_center.tga"));
+    }
+
+    #[test]
+    fn textures_lists_secondary_and_animated_slots() {
+        let mut holder = PortedEffectHolder::new(EffectId::Bash, 1).unwrap();
+        holder.update(0.016);
+
+        {
+            let state = holder.runtime_mut().primitive_mut(0);
+            state.texture = Some("effect\\primary.bmp");
+            state.texture_secondary = Some("effect\\secondary.bmp");
+            state.texture_tertiary = Some("effect\\tertiary.bmp");
+            state.texture_frames = vec!["effect\\frame0.bmp", "effect\\frame1.bmp"];
+        }
+
+        let textures: Vec<_> = holder.textures().collect();
+
+        assert!(textures.contains(&"effect\\primary.bmp"));
+        assert!(textures.contains(&"effect\\secondary.bmp"));
+        assert!(textures.contains(&"effect\\tertiary.bmp"));
+        assert!(textures.contains(&"effect\\frame0.bmp"));
+        assert!(textures.contains(&"effect\\frame1.bmp"));
+    }
+
+    #[test]
+    fn two_d_quad_corners_keep_their_existing_geometry_and_uvs() {
+        let state = EffectPrimitiveState {
+            position: [10.0, 20.0, 0.0],
+            width_size: 2.0,
+            height_size: 3.0,
+            roll: 0.0,
+            ..Default::default()
+        };
+
+        let (corners, uvs) = quad_corners(&state, [4.0, 6.0]);
+
+        assert_eq!(corners, [
+            Vector2::new(4.0, 11.0),
+            Vector2::new(8.0, 11.0),
+            Vector2::new(8.0, 17.0),
+            Vector2::new(4.0, 17.0),
+        ]);
+        assert_eq!(uvs, [
+            Vector2::new(0.0, 0.0),
+            Vector2::new(1.0, 0.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(0.0, 1.0),
+        ]);
     }
 
     #[test]

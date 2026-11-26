@@ -6,12 +6,14 @@
 //! holder, steps it with the wall-clock delta the client passes to every
 //! effect, and forwards rendering to `holder.render`.
 //!
-//! Rendering support is exactly what the holder supports today:
+//! Rendering support is what the holder implements: the
 //! `PP_2DTEXTURE`/`PP_2DFLASH` screen quads anchored to the effect's world
-//! position. The world-space primitives (`PP_3DTEXTURE`, `PP_3DCROSSTEXTURE`,
-//! rings, cylinders, particles, ...) need the official 3-D primitive
-//! renderer - the holder does not build that geometry yet - so they are *not*
-//! drawn here rather than guessed from the camera.
+//! position, plus the world-space quads of `PP_3DTEXTURE` (15) and
+//! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`]. The remaining
+//! primitive families (rings, cylinders, arcs, the record/slot primitives and
+//! the `.spr` particle families) need geometry or a sprite render path the
+//! holder does not have yet; they are skipped rather than guessed (see the
+//! `TODO(sprite pass)` in `PortedEffectHolder::render`).
 
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -115,9 +117,8 @@ impl EffectBase for PortedVisual {
             return;
         };
 
-        // `Texture2d`/`Flash2d` quads (relative to the effect's world anchor).
-        // The 3-D primitive families are intentionally left to the future
-        // primitive renderer; see the module docs.
+        // 2-D screen quads and the world-space `PP_3DTEXTURE`/
+        // `PP_3DCROSSTEXTURE` quads; the holder owns the primitive dispatch.
         self.holder.render(renderer, camera, texture_loader);
     }
 
