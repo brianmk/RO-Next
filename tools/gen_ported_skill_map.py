@@ -54,6 +54,7 @@ REGISTRY_SOURCES = (
     "registry_batch_f.rs",
     "registry_batch_g.rs",
     "registry_batch_h.rs",
+    "registry_batch_i.rs",
 )
 
 # The client's `SkillPhase` order (`skill_effects.rs::SkillPhase::index`).
