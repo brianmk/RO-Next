@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod particle3d;
 pub mod quadhorn;
 pub mod texture3d;
 pub mod texture2d;
@@ -115,6 +116,8 @@ pub enum PrimitiveId {
     CrossTexture3d,
     /// `PP_3DCYLINDER` (13)
     Cylinder3d,
+    /// `PP_3DPARTICLE` (5)
+    Particle3d,
 }
 
 impl PrimitiveId {
@@ -130,6 +133,7 @@ impl PrimitiveId {
             Self::Texture3d => 1,
             Self::CrossTexture3d => 16,
             Self::Cylinder3d => 13,
+            Self::Particle3d => 5,
         }
     }
 }
@@ -257,9 +261,10 @@ pub struct EffectPrimitiveState {
     pub height_speed: f32,
     pub height_accel: f32,
 
-    /// `/* 0388 */ deltaPos`, `/* 0394 */ deltaPos2`
+    /// `/* 0388 */ deltaPos`, `/* 0394 */ deltaPos2`, `/* 03A0 */ deltaPos3`
     pub delta_pos: [f32; 3],
     pub delta_pos2: [f32; 3],
+    pub delta_pos3: [f32; 3],
     /// `/* 037C */ orgPos`
     pub org_pos: [f32; 3],
     /// `/* 0370 */ speed3d`
@@ -309,6 +314,10 @@ pub struct EffectPrimitiveState {
     pub v2: f32,
     /// `/* 036C */ maxHeightSize`
     pub max_height_size: f32,
+    /// `deltaPosAccel` - used by `pattern & 0x400` and `changePoint`.
+    pub delta_pos_accel: [f32; 3],
+    /// Frame count of the attached `.act` action (`AnimMotion`).
+    pub action_frame_count: u32,
     /// `/* 0104 */ render.curMotion` - current texture index of animated prims.
     pub cur_motion: u32,
 }
@@ -379,6 +388,7 @@ impl Default for EffectPrimitiveState {
             height_accel: 0.0,
             delta_pos: [0.0; 3],
             delta_pos2: [0.0; 3],
+            delta_pos3: [0.0; 3],
             org_pos: [0.0; 3],
             speed3d: [0.0; 3],
             speed: 0.0,
@@ -405,6 +415,8 @@ impl Default for EffectPrimitiveState {
             v1: 0.0,
             v2: 0.0,
             max_height_size: 100.0,
+            delta_pos_accel: [0.0; 3],
+            action_frame_count: 1,
             cur_motion: 0,
         }
     }
@@ -449,6 +461,7 @@ impl EffectPrimitiveState {
                 cylinder::on_process(self, angles, master);
                 true
             }
+            PrimitiveId::Particle3d => particle3d::on_process(self, angles, master, rng),
         };
 
         if !alive {

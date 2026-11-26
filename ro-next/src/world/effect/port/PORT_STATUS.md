@@ -39,9 +39,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::Hit2` (`EF_HIT2` + physical impacts) | `RagEffect.cpp:807-859` | 2 |
 | `CRagEffect::FrostDiver2` (`EF_FROSTDIVER2`) | `RagEffect.cpp:414-452` | 1 |
 | effect-id registry (`EffectId -> body`) | plan 4.2 | 4 |
+| `PP_3DPARTICLE` + `AnimMotion` | `EffectPrimitiveMotion.cpp:2488`, `:576` | 4 |
+| `CRagEffect::Blessing` (`EF_BLESSING`) | `RagEffect.cpp:1612-1720` | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 86 tests, all green. Effect bodies ported: **13 / 236** + the generic `Hit2` impact.
+Total: 92 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 
