@@ -18,7 +18,6 @@ use crate::graphics::passes::{BindGroupCount, ColorAttachmentCount, DepthAttachm
 use crate::graphics::shader_compiler::ShaderCompiler;
 use crate::graphics::{BindlessSupport, Buffer, Capabilities, EffectInstruction, GlobalContext, Prepare, RenderInstruction, Texture};
 use crate::loaders::TextureLoader;
-
 const DRAWER_NAME: &str = "forward effect";
 const PASS_NAME: &str = "forward effect render pass";
 const INITIAL_INSTRUCTION_SIZE: usize = 256;
@@ -182,6 +181,28 @@ pub(crate) struct InstanceData {
     depth1: [f32; 2],
 }
 
+/// One triangle submitted by [`EffectTriangleInstruction`]. Mirrors
+/// `EffectTriangleInstanceData` in `modules/postprocessing.slang`; every member
+/// is 8-byte aligned and the struct size is a multiple of 8.
+#[derive(Copy, Clone, Pod, Zeroable)]
+#[repr(C)]
+pub(crate) struct TriangleInstanceData {
+    position0: [f32; 2],
+    position1: [f32; 2],
+    position2: [f32; 2],
+    texture0: [f32; 2],
+    texture1: [f32; 2],
+    texture2: [f32; 2],
+    color0: [f32; 2],
+    color1: [f32; 2],
+    /// NDC depth (reverse-z) of corner 0 and corner 1.
+    depth0: [f32; 2],
+    /// NDC depth of corner 2 in `x`; `y` pads the struct.
+    depth1: [f32; 2],
+    texture_index: i32,
+    padding: u32,
+}
+
 pub(crate) struct ForwardEffectDrawer {
     bindless_support: bool,
     solid_pixel_texture: Arc<Texture>,
@@ -198,6 +219,22 @@ pub(crate) struct ForwardEffectDrawer {
     bump: Bump,
     lookup: HashMap<u64, i32>,
     batches: Vec<EffectBatch>,
+    /// Additive triangle-list path (slot/record primitives). It uses per
+    /// texture bind groups like the non-bindless quad path, whatever the
+    /// capability: a slot primitive emits at most a handful of textures, so
+    /// one bind group switch per texture is cheaper than maintaining a second
+    /// bindless table.
+    triangle_shader_module: ShaderModule,
+    triangle_pipeline_layout: PipelineLayout,
+    triangle_bind_group_layout: BindGroupLayout,
+    triangle_bind_group: BindGroup,
+    triangle_instance_data_buffer: Buffer<TriangleInstanceData>,
+    triangle_pipelines: HashMap<(BlendFactor, BlendFactor), RenderPipeline>,
+    triangle_instance_data: Vec<TriangleInstanceData>,
+    /// Texture of every submitted triangle, in instance order; `draw` binds a
+    /// new one whenever the texture id changes.
+    triangle_textures: Vec<Arc<Texture>>,
+    triangle_batches: Vec<EffectBatch>,
 }
 
 impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttachmentCount::One }> for ForwardEffectDrawer {
@@ -312,6 +349,59 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
             pipelines.insert((source_blend_factor, destination_blend_factor), pipeline);
         }
 
+        // Triangle-list path of the slot/record primitives. It always samples a
+        // single texture through bind group 2 (the same layout the non-bindless
+        // quad path uses), so it does not depend on the bindless capability.
+        let triangle_shader_module = shader_compiler.create_shader_module("postprocessing", "effect_triangle");
+
+        let triangle_instance_data_buffer = Buffer::with_capacity(
+            device,
+            format!("{DRAWER_NAME} triangle instance data"),
+            BufferUsages::COPY_DST | BufferUsages::STORAGE,
+            (size_of::<TriangleInstanceData>() * INITIAL_INSTRUCTION_SIZE) as _,
+        );
+
+        let triangle_bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
+            label: Some(DRAWER_NAME),
+            entries: &[BindGroupLayoutEntry {
+                binding: 0,
+                visibility: ShaderStages::VERTEX_FRAGMENT,
+                ty: BindingType::Buffer {
+                    ty: BufferBindingType::Storage { read_only: true },
+                    has_dynamic_offset: false,
+                    min_binding_size: NonZeroU64::new(size_of::<TriangleInstanceData>() as _),
+                },
+                count: None,
+            }],
+        });
+
+        let triangle_bind_group = Self::create_triangle_bind_group(device, &triangle_bind_group_layout, &triangle_instance_data_buffer);
+
+        let triangle_pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
+            label: Some(DRAWER_NAME),
+            bind_group_layouts: &[
+                Some(pass_bind_group_layouts[0]),
+                Some(&triangle_bind_group_layout),
+                Some(Texture::bind_group_layout(device)),
+            ],
+            immediate_size: 0,
+        });
+
+        let mut triangle_pipelines = HashMap::with_capacity(PRELOAD_PIPELINES.len());
+        for (source_blend_factor, destination_blend_factor) in PRELOAD_PIPELINES.iter().copied() {
+            let pipeline = Self::create_pipeline(
+                device,
+                &triangle_shader_module,
+                &triangle_pipeline_layout,
+                color_attachment_format,
+                depth_attachment_format,
+                sample_count,
+                source_blend_factor,
+                destination_blend_factor,
+            );
+            triangle_pipelines.insert((source_blend_factor, destination_blend_factor), pipeline);
+        }
+
         Self {
             bindless_support: capabilities.bindless_support() == BindlessSupport::Full,
             solid_pixel_texture: global_context.solid_pixel_texture.clone(),
@@ -328,15 +418,22 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
             bump: Bump::default(),
             lookup: HashMap::default(),
             batches: Vec::default(),
+            triangle_shader_module,
+            triangle_pipeline_layout,
+            triangle_bind_group_layout,
+            triangle_bind_group,
+            triangle_instance_data_buffer,
+            triangle_pipelines,
+            triangle_instance_data: Vec::default(),
+            triangle_textures: Vec::default(),
+            triangle_batches: Vec::default(),
         }
     }
 
     fn draw(&mut self, pass: &mut RenderPass<'_>, draw_data: Self::DrawData<'_>) {
-        if self.batches.is_empty() {
-            return;
+        if !self.batches.is_empty() {
+            pass.set_bind_group(1, &self.bind_group, &[]);
         }
-
-        pass.set_bind_group(1, &self.bind_group, &[]);
 
         for batch in self.batches.drain(..) {
             if let Some(pipeline) = self.pipelines.get(&batch.blend_state) {
@@ -363,11 +460,57 @@ impl Drawer<{ BindGroupCount::One }, { ColorAttachmentCount::One }, { DepthAttac
                 }
             }
         }
+
+        // Triangles always use bind group 1 (their own instance buffer) and
+        // bind group 2 (one texture per draw group), like the non-bindless quad
+        // path above.
+        if !self.triangle_batches.is_empty() {
+            pass.set_bind_group(1, &self.triangle_bind_group, &[]);
+
+            for batch in self.triangle_batches.drain(..) {
+                if let Some(pipeline) = self.triangle_pipelines.get(&batch.blend_state) {
+                    pass.set_pipeline(pipeline);
+
+                    let start = batch.offset;
+                    let end = start + batch.count;
+
+                    let mut current_texture_id = self.solid_pixel_texture.get_id();
+                    pass.set_bind_group(2, self.solid_pixel_texture.get_bind_group(), &[]);
+
+                    for index in start..end {
+                        let texture = &self.triangle_textures[index];
+
+                        if texture.get_id() != current_texture_id {
+                            current_texture_id = texture.get_id();
+                            pass.set_bind_group(2, texture.get_bind_group(), &[]);
+                        }
+
+                        let index = index as u32;
+
+                        pass.draw(0..3, index..index + 1);
+                    }
+                }
+            }
+        }
     }
 }
 
 impl Prepare for ForwardEffectDrawer {
     fn prepare(&mut self, device: &Device, instructions: &RenderInstruction) {
+        self.prepare_quads(device, instructions);
+        self.prepare_triangles(device, instructions);
+    }
+
+    fn upload(&mut self, device: &Device, staging_belt: &mut StagingBelt, command_encoder: &mut CommandEncoder) {
+        self.instance_data_buffer
+            .write(device, staging_belt, command_encoder, &self.instance_data);
+        self.triangle_instance_data_buffer
+            .write(device, staging_belt, command_encoder, &self.triangle_instance_data);
+    }
+}
+
+impl ForwardEffectDrawer {
+    fn prepare_quads(&mut self, device: &Device, instructions: &RenderInstruction) {
         let draw_count = instructions.effects.len();
 
         if draw_count == 0 {
@@ -520,9 +663,140 @@ impl Prepare for ForwardEffectDrawer {
         }
     }
 
-    fn upload(&mut self, device: &Device, staging_belt: &mut StagingBelt, command_encoder: &mut CommandEncoder) {
-        self.instance_data_buffer
-            .write(device, staging_belt, command_encoder, &self.instance_data);
+    /// Prepares the additive triangle-list path.
+    ///
+    /// The instructions already carry their final NDC positions and depths, so
+    /// preparing is only a copy into the std430 instance layout plus a batch
+    /// split on the translated blend state (the same translation as the quad
+    /// path, so both share the preloaded pipelines).
+    fn prepare_triangles(&mut self, device: &Device, instructions: &RenderInstruction) {
+        self.triangle_instance_data.clear();
+        self.triangle_textures.clear();
+        self.triangle_batches.clear();
+
+        let triangles = instructions.effect_triangles;
+
+        if triangles.is_empty() {
+            return;
+        }
+
+        let mut blend_state = premultiplied_blend_state(triangles[0].source_blend_factor, triangles[0].destination_blend_factor);
+        let mut offset = 0;
+
+        for (index, instruction) in triangles.iter().enumerate() {
+            let triangle_blend_state = premultiplied_blend_state(instruction.source_blend_factor, instruction.destination_blend_factor);
+
+            if triangle_blend_state != blend_state {
+                Self::push_triangle_batch(
+                    device,
+                    &mut self.triangle_pipelines,
+                    &mut self.triangle_batches,
+                    &self.triangle_shader_module,
+                    self.color_attachment_format,
+                    self.depth_attachment_format,
+                    self.sample_count,
+                    &self.triangle_pipeline_layout,
+                    blend_state,
+                    self.triangle_instance_data.len() - offset,
+                    offset,
+                );
+
+                blend_state = triangle_blend_state;
+                offset = index;
+            }
+
+            let color = instruction.color.components_linear();
+            let [vertex0, vertex1, vertex2] = instruction.vertices;
+
+            self.triangle_instance_data.push(TriangleInstanceData {
+                position0: vertex0.clip_space_position.into(),
+                position1: vertex1.clip_space_position.into(),
+                position2: vertex2.clip_space_position.into(),
+                texture0: vertex0.texture_coordinate.into(),
+                texture1: vertex1.texture_coordinate.into(),
+                texture2: vertex2.texture_coordinate.into(),
+                color0: [color[0], color[1]],
+                color1: [color[2], color[3]],
+                depth0: [vertex0.depth, vertex1.depth],
+                depth1: [vertex2.depth, 0.0],
+                texture_index: 0,
+                padding: 0,
+            });
+            self.triangle_textures.push(instruction.texture.clone());
+        }
+
+        Self::push_triangle_batch(
+            device,
+            &mut self.triangle_pipelines,
+            &mut self.triangle_batches,
+            &self.triangle_shader_module,
+            self.color_attachment_format,
+            self.depth_attachment_format,
+            self.sample_count,
+            &self.triangle_pipeline_layout,
+            blend_state,
+            self.triangle_instance_data.len() - offset,
+            offset,
+        );
+
+        self.triangle_instance_data_buffer
+            .reserve(device, self.triangle_instance_data.len());
+        self.triangle_bind_group =
+            Self::create_triangle_bind_group(device, &self.triangle_bind_group_layout, &self.triangle_instance_data_buffer);
+    }
+
+    fn create_triangle_bind_group(
+        device: &Device,
+        bind_group_layout: &BindGroupLayout,
+        instance_data_buffer: &Buffer<TriangleInstanceData>,
+    ) -> BindGroup {
+        device.create_bind_group(&BindGroupDescriptor {
+            label: Some(DRAWER_NAME),
+            layout: bind_group_layout,
+            entries: &[BindGroupEntry {
+                binding: 0,
+                resource: instance_data_buffer.as_entire_binding(),
+            }],
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn push_triangle_batch(
+        device: &Device,
+        pipelines: &mut HashMap<(BlendFactor, BlendFactor), RenderPipeline>,
+        batches: &mut Vec<EffectBatch>,
+        shader_module: &ShaderModule,
+        color_attachment_format: TextureFormat,
+        depth_attachment_format: TextureFormat,
+        sample_count: u32,
+        pipeline_layout: &PipelineLayout,
+        blend_state: (BlendFactor, BlendFactor),
+        count: usize,
+        offset: usize,
+    ) {
+        if count == 0 {
+            return;
+        }
+
+        if !pipelines.contains_key(&blend_state) {
+            let pipeline = Self::create_pipeline(
+                device,
+                shader_module,
+                pipeline_layout,
+                color_attachment_format,
+                depth_attachment_format,
+                sample_count,
+                blend_state.0,
+                blend_state.1,
+            );
+            pipelines.insert(blend_state, pipeline);
+        }
+
+        batches.push(EffectBatch {
+            offset,
+            count,
+            blend_state,
+        });
     }
 }
 

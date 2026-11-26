@@ -124,6 +124,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `ParticleTime` (`EF_SMA_READY`), `StoneWall` (`EF_EARTHWALL`), `Hit3` (`EF_HIT3`) | `RagEffect.cpp:12121-12177`, `13088-13124`, `863-935` | 9 |
 | **client wiring**: `port/visual.rs` (`PortedVisual` over `EffectBase`), `port/skill_map.rs` (45 skill->id mappings), opt-in hook in `client/effects.rs` | `tools/gen_ported_skill_map.py`, `RO_NEXT_PORTED_FX=1` | 10 |
 | **world-space rendering**: `port/render3d.rs` for `PP_3DTEXTURE` (15) and `PP_3DCROSSTEXTURE` (16) via `render_effect_with_depth`, official corner order/UVs/pattern bits, frame selection | `EffectPrimitiveRendering.cpp:116`, `:6172` | 19 |
+| **slot/record rendering**: `port/render_slots.rs` ports `Render3DCasting` (60/63), `RenderRecordRings` (12), `RenderArcBand` (13), `RenderFieldPanel` (59), `RenderPyramid` (9), `RenderArcWalls` (137), `RenderFacingQuads` (130), `RenderRipple` (131), `RenderSizedSquare` (39), `RenderRiseArc` (62), `RenderGroundSquare` (143), `RenderTwinGlowSquares` (155), `RenderOrbitSquare` (43), `RenderRectUp` (64), `RenderPentagon` (66), `RenderFanBeam` (89); additive triangle path in `graphics/passes/forward/effect.rs` + `effect_triangle.slang` | `EffectPrimitiveRendering.cpp:1667-6675`, `EffectPrimitiveArcs.cpp:437`, `EffectPrimitiveSweeps.cpp:421`, `EffectPrimitiveGlowSquares.cpp:7` | 27 |
 
 ### Rendering coverage
 
@@ -132,7 +133,8 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `PP_2DTEXTURE` (0), `PP_2DFLASH` (3) | yes (screen quads) |
 | `PP_3DTEXTURE` (15), `PP_3DCROSSTEXTURE` (16) | yes (world quads, per-corner depth) |
 | sprite particles (5/6/7) and every `.spr` body (incl. the 66 `TexturedClassChange` ids) | yes - `port/sprite_pass.rs` ports `RenderSegmentSprites2`, `AdjustCellPosition`, the 1/7 world scale, frame selection and blend flags |
-| slot/record prims (59, 60, 62, 63, 82, 89, 130/131, 137, 143, 155, 9, 12, 13, 39, 43, 64, 66) | no - needs their official slot/triangle renderers (`RenderTeiFacingSlots`, `RenderRecordRings`, `RenderArcBand`, ...) |
+| slot/record prims 9, 12, 13, 39, 43, 59, 60, 62, 63, 64, 66, 89, 130, 131, 137, 143, 155 | yes - `port/render_slots.rs` ports their official `Render*` members as additive triangle lists (per-vertex projection, exact corner order, UV windows, `state.size` colour table, `extra` forced depth and `RSF_*` blend selection) |
+| slot prim 82 (`RenderTeiFacingSlots`) and the remaining `Render*` families | no - not ported yet (82 also needs the `extra == 3` screen-space clamp of the 18-argument `RenderTeiRect`) |
 
 Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend state is undefined in the decompilation (no body sets it); `sprite_type > 1`/third image index is an out-of-bounds read in the original; class-change direction rows are absent from the ported `ClassChange` table (those cells draw row 0); per-corner DX9 `rhw` depth is replaced by the anchor depth.
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |

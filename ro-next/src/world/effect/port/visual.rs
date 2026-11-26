@@ -9,11 +9,13 @@
 //! Rendering support is what the holder implements: the
 //! `PP_2DTEXTURE`/`PP_2DFLASH` screen quads anchored to the effect's world
 //! position, the world-space quads of `PP_3DTEXTURE` (15) and
-//! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`], and the
+//! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`], the
 //! `RenderSegmentSprites2` sprite pass of [`super::sprite_pass`] for the
-//! `.spr` particle families. The remaining primitive families (rings,
-//! cylinders, arcs and the record/slot primitives) need geometry render paths
-//! the holder does not have yet; they are skipped rather than guessed.
+//! `.spr` particle families, and the slot/record primitives of
+//! [`super::render_slots`] (rings, cylinders, columns, fans, halo, wind and
+//! arc walls) as additive triangle lists. The remaining primitive families
+//! (`PP_3DSPHERE`, the arc/sweep families and the effect ids whose `Render*`
+//! member is not ported yet) are skipped rather than guessed.
 //!
 //! The sprite pass needs the client's [`SpriteLoader`]/[`ActionLoader`]; they
 //! are handed to the holder here so it can resolve the ACT frame count while

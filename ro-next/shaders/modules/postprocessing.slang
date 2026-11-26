@@ -55,6 +55,29 @@ public struct RectangleInstanceData {
     public var texture_index: int;
 }
 
+/// One triangle of the slot/record effect primitives: three pre-projected
+/// corners with their own reverse-z depth and texture coordinate, plus the
+/// per-triangle colour the official `RenderTeiRect`/`RenderRecordRings` assign
+/// to all three vertices. Must stay layout-compatible with
+/// `TriangleInstanceData` in `graphics/passes/forward/effect.rs`.
+public struct EffectTriangleInstanceData {
+    public var position0: float2;
+    public var position1: float2;
+    public var position2: float2;
+    public var texture0: float2;
+    public var texture1: float2;
+    public var texture2: float2;
+    public var color0: float2;
+    public var color1: float2;
+    /// NDC depth of corner 0 and 1 (split so that every member is 8-byte
+    /// aligned like in the quad instance struct).
+    public var depth0: float2;
+    /// NDC depth of corner 2 in `x`; `y` pads the struct to a multiple of 8.
+    public var depth1: float2;
+    public var texture_index: int;
+    public var padding: uint;
+}
+
 public struct DebugUniforms {
     public var show_picker_buffer: uint;
     public var show_directional_shadow_map: uint;

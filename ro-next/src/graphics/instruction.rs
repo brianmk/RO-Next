@@ -41,6 +41,10 @@ pub struct RenderInstruction<'a> {
     pub point_shadow_models: &'a [ModelInstruction],
     pub point_shadow_entities: &'a mut [EntityInstruction],
     pub effects: &'a [EffectInstruction],
+    /// Additive triangle-list effects (the slot/record primitives of the
+    /// official client: rings, cylinders, columns, fans). Drawn in the same
+    /// pass as `effects`, after every quad.
+    pub effect_triangles: &'a [EffectTriangleInstruction],
     pub water: Option<WaterInstruction<'a>>,
     pub map_picker_tile_vertex_buffer: Option<&'a Buffer<TileVertex>>,
     pub map_picker_tile_index_buffer: Option<&'a Buffer<u32>>,
@@ -330,6 +334,36 @@ pub struct EffectInstruction {
     pub texture_bottom_left: Vector2<f32>,
     pub texture_top_right: Vector2<f32>,
     pub texture_bottom_right: Vector2<f32>,
+    pub color: Color,
+    pub source_blend_factor: BlendFactor,
+    pub destination_blend_factor: BlendFactor,
+    pub texture: Arc<Texture>,
+}
+
+/// One corner of an [`EffectTriangleInstruction`].
+///
+/// The positions are already projected: `clip_space_position` is a pair of NDC
+/// coordinates and `depth` is the NDC depth (reverse-z) of that corner. The
+/// official slot/record renderers project every vertex of every triangle on
+/// their own, so a triangle can span three different depths; storing the NDC
+/// values keeps that exact and needs no camera matrix in the shader.
+#[derive(Clone, Copy, Debug)]
+pub struct EffectTriangleVertex {
+    pub clip_space_position: ScreenPosition,
+    pub depth: f32,
+    pub texture_coordinate: Vector2<f32>,
+}
+
+/// A single triangle of the official client's slot/record primitives.
+///
+/// Those primitives are submitted as `D3DPT_TRIANGLELIST` triangles with a
+/// constant `diffuse` per triangle (`RenderTeiRect`, `RenderRecordRings`,
+/// `RenderArcBand`, `RenderPyramid`), so one instruction is one triangle with
+/// one colour. The client submits them into the alpha/custom-blend queues; the
+/// renderer batches them by blend state exactly like the quad path.
+#[derive(Clone, Debug)]
+pub struct EffectTriangleInstruction {
+    pub vertices: [EffectTriangleVertex; 3],
     pub color: Color,
     pub source_blend_factor: BlendFactor,
     pub destination_blend_factor: BlendFactor,

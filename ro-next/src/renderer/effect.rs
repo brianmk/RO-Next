@@ -4,11 +4,16 @@ use cgmath::{Matrix2, Point3, Rad, Vector2, Vector4};
 use ro_next_interface::application::Position;
 use wgpu::BlendFactor;
 
-use crate::graphics::{Color, EffectInstruction, ScreenPosition, ScreenSize, Texture};
+use crate::graphics::{Color, EffectInstruction, EffectTriangleInstruction, EffectTriangleVertex, ScreenPosition, ScreenSize, Texture};
 use crate::world::Camera;
 
 pub struct EffectRenderer {
     instructions: Vec<EffectInstruction>,
+    /// Additive triangle-list primitives of the official slot/record renderers
+    /// (rings, cylinders, columns, fans). They cannot be expressed as quads
+    /// because every vertex has its own depth and the strips are not planar, so
+    /// they go through their own GPU path in the forward effect pass.
+    triangle_instructions: Vec<EffectTriangleInstruction>,
     window_size: ScreenSize,
 }
 
@@ -16,16 +21,23 @@ impl EffectRenderer {
     pub fn new(window_size: ScreenSize) -> Self {
         Self {
             instructions: Vec::default(),
+            triangle_instructions: Vec::default(),
             window_size,
         }
     }
 
     pub fn clear(&mut self) {
         self.instructions.clear();
+        self.triangle_instructions.clear();
     }
 
     pub fn get_instructions(&self) -> &[EffectInstruction] {
         self.instructions.as_ref()
+    }
+
+    /// The triangles submitted for the current frame.
+    pub fn get_triangle_instructions(&self) -> &[EffectTriangleInstruction] {
+        self.triangle_instructions.as_ref()
     }
 
     pub fn update_window_size(&mut self, window_size: ScreenSize) {
@@ -34,6 +46,115 @@ impl EffectRenderer {
 
     pub fn window_size(&self) -> ScreenSize {
         self.window_size
+    }
+
+    /// Submits one triangle of a slot/record primitive.
+    ///
+    /// The three corners are world positions; each is projected (and depth
+    /// tested) on its own, exactly like the official `Project` + `Visible`
+    /// pair: a triangle with any corner at or behind the camera plane is
+    /// dropped (`RenderTriangle::Visible` rejects `rhw <= 0`), and every corner
+    /// keeps its own NDC depth (reverse-z) so the triangle is depth tested
+    /// against the scene per vertex.
+    ///
+    /// The colour is per triangle, which is what every official emitter does
+    /// (`RenderTeiRect`, `RenderRecordRings`, `RenderArcBand`, `RenderPyramid`
+    /// write the same diffuse to all three vertices).
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_triangle(
+        &mut self,
+        camera: &dyn Camera,
+        corners: [Point3<f32>; 3],
+        texture_coordinates: [Vector2<f32>; 3],
+        color: Color,
+        source_blend_factor: BlendFactor,
+        destination_blend_factor: BlendFactor,
+        texture: Arc<Texture>,
+    ) {
+        let view_projection = camera.view_projection_matrix();
+        let mut vertices = [EffectTriangleVertex {
+            clip_space_position: ScreenPosition::new(0.0, 0.0),
+            depth: 0.0,
+            texture_coordinate: Vector2::new(0.0, 0.0),
+        }; 3];
+
+        for (index, corner) in corners.iter().enumerate() {
+            let clip_space_position = view_projection * corner.to_homogeneous();
+
+            // `RenderTriangle::Visible` requires every corner to have a
+            // positive reciprocal w.
+            if clip_space_position.w <= 0.0 {
+                return;
+            }
+
+            vertices[index] = EffectTriangleVertex {
+                clip_space_position: ScreenPosition::new(
+                    clip_space_position.x / clip_space_position.w,
+                    clip_space_position.y / clip_space_position.w,
+                ),
+                depth: clip_space_position.z / clip_space_position.w,
+                texture_coordinate: texture_coordinates[index],
+            };
+        }
+
+        self.triangle_instructions.push(EffectTriangleInstruction {
+            vertices,
+            color,
+            source_blend_factor,
+            destination_blend_factor,
+            texture,
+        });
+    }
+
+    /// Submits one triangle with an explicit NDC depth for every corner.
+    ///
+    /// Used by the official `RenderTeiRect` variants whose `extra` flag forces
+    /// the triangle to the near plane (`extra == 1` in the decompilation writes
+    /// z = 1e-09 into a standard depth buffer, i.e. "always on top"); the
+    /// port's reverse-z buffer expresses the same thing as depth 1.0.
+    #[allow(clippy::too_many_arguments)]
+    pub fn render_triangle_with_depth(
+        &mut self,
+        camera: &dyn Camera,
+        corners: [Point3<f32>; 3],
+        texture_coordinates: [Vector2<f32>; 3],
+        depths: [f32; 3],
+        color: Color,
+        source_blend_factor: BlendFactor,
+        destination_blend_factor: BlendFactor,
+        texture: Arc<Texture>,
+    ) {
+        let view_projection = camera.view_projection_matrix();
+        let mut vertices = [EffectTriangleVertex {
+            clip_space_position: ScreenPosition::new(0.0, 0.0),
+            depth: 0.0,
+            texture_coordinate: Vector2::new(0.0, 0.0),
+        }; 3];
+
+        for (index, corner) in corners.iter().enumerate() {
+            let clip_space_position = view_projection * corner.to_homogeneous();
+
+            if clip_space_position.w <= 0.0 {
+                return;
+            }
+
+            vertices[index] = EffectTriangleVertex {
+                clip_space_position: ScreenPosition::new(
+                    clip_space_position.x / clip_space_position.w,
+                    clip_space_position.y / clip_space_position.w,
+                ),
+                depth: depths[index],
+                texture_coordinate: texture_coordinates[index],
+            };
+        }
+
+        self.triangle_instructions.push(EffectTriangleInstruction {
+            vertices,
+            color,
+            source_blend_factor,
+            destination_blend_factor,
+            texture,
+        });
     }
 
     /// Renders a screen space effect quad.

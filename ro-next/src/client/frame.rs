@@ -2016,6 +2016,7 @@ impl Client {
             point_shadow_models: &self.point_shadow_model_instructions,
             point_shadow_entities: &mut self.point_shadow_entity_instructions,
             effects: self.effect_renderer.get_instructions(),
+            effect_triangles: self.effect_renderer.get_triangle_instructions(),
             water: water_instruction,
             map_picker_tile_vertex_buffer: Some(map.get_tile_picker_vertex_buffer()),
             map_picker_tile_index_buffer: Some(map.get_tile_picker_index_buffer()),

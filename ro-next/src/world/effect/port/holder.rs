@@ -16,7 +16,7 @@ use wgpu::BlendFactor;
 
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::runtime::{EffectRuntime, PortedEffect};
-use super::{FRAME_FREQUENCY_MS, registry, render3d, sprite_pass};
+use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass};
 use crate::graphics::Color;
 use crate::loaders::{ActionLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
@@ -221,9 +221,12 @@ impl PortedEffectHolder {
     /// * every primitive that carries a `.spr`/`.act` pair - the sprite
     ///   particles and the `TexturedClassChange` bodies
     ///   (`RenderSegmentSprites2`), see [`sprite_pass`].
-    ///
-    /// Rings, cylinders and arcs need geometry/render paths that are not
-    /// ported yet; they are skipped rather than guessed.
+    /// * the slot/record primitives - rings, cylinders, columns, fans, halo,
+    ///   wind and arc walls (`Render3DCasting`, `RenderRecordRings`,
+    ///   `RenderArcBand`, `RenderFieldPanel`, `RenderPyramid`, ...), see
+    ///   [`render_slots`]. They are submitted as triangles because their
+    ///   vertices carry independent heights and depths; the forward effect pass
+    ///   draws them right after the quad list.
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
         let anchor = Point3::new(self.runtime.position[0], self.runtime.position[1], self.runtime.position[2]);
 
@@ -233,6 +236,18 @@ impl PortedEffectHolder {
             }
 
             let state = &primitive.state;
+
+            // `CEffectPrim::Render`'s `switch (state.count)` for the
+            // slot/record primitives - `Render3DCasting`, `RenderRecordRings`,
+            // `RenderArcBand`, `RenderFieldPanel`, `RenderPyramid`,
+            // `RenderArcWalls`, `RenderFacingQuads`, `RenderRipple`,
+            // `RenderSizedSquare`, `RenderRiseArc`, `RenderGroundSquare` and
+            // `RenderTwinGlowSquares`.
+            if render_slots::renderer(state).is_some() {
+                render_slot_primitive(renderer, camera, textures, state);
+
+                continue;
+            }
 
             // `RenderSegmentSprites2`: a primitive that owns a sprite is drawn
             // per ACT cell, whatever its `count` is.
@@ -277,13 +292,11 @@ impl PortedEffectHolder {
                 PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => {
                     render3d::render_textured_primitive(renderer, camera, textures, state);
                 }
-                // `ParticleUp`, `PulsingColumns`, `RippleRings`, `RisingFan`,
-                // `Halo`, `SpinQuad`, `TextureSpin`, `WanderingFlames` and
-                // the remaining rings/cylinders/arcs are slot/record
-                // primitives whose official render functions are not ported
-                // yet. Sprite primitives (`Particle3d`, `Particle3dGravity`,
+                // Sprite primitives (`Particle3d`, `Particle3dGravity`,
                 // `Orbit` and the `.spr` bodies) were already dispatched above
-                // by their `sprite` field.
+                // by their `sprite` field, and the slot/record primitives by
+                // `render_slots::renderer`. The remaining ids have no ported
+                // renderer.
                 _ => {}
             }
         }
@@ -333,12 +346,82 @@ pub(crate) fn quad_corners(state: &EffectPrimitiveState, anchor_screen: [f32; 2]
 
 /// `argb` as stored by `ProcessAlpha` -> renderer colour.
 pub(crate) fn primitive_color(state: &EffectPrimitiveState) -> Color {
-    let alpha = ((state.argb >> 24) & 0xFF) as f32 / 255.0;
-    let red = ((state.argb >> 16) & 0xFF) as f32 / 255.0;
-    let green = ((state.argb >> 8) & 0xFF) as f32 / 255.0;
-    let blue = (state.argb & 0xFF) as f32 / 255.0;
+    color_from_argb(state.argb)
+}
+
+/// Decodes the packed `argb` of a primitive/slot triangle.
+///
+/// The official emitters pack the alpha into the high byte and the three
+/// colour bytes below it (`(((alphaB << 8) + r) << 8) + g) << 8) + b`), which
+/// is exactly `EffectPrimitiveState::argb`'s layout after `ProcessAlpha`.
+pub(crate) fn color_from_argb(argb: u32) -> Color {
+    let alpha = ((argb >> 24) & 0xFF) as f32 / 255.0;
+    let red = ((argb >> 16) & 0xFF) as f32 / 255.0;
+    let green = ((argb >> 8) & 0xFF) as f32 / 255.0;
+    let blue = (argb & 0xFF) as f32 / 255.0;
 
     Color::rgba(red, green, blue, alpha)
+}
+
+/// Submits one slot/record primitive as its official triangle list.
+///
+/// The slot renderers build the geometry in world space and the renderer
+/// projects every corner on its own (`RenderTeiRect`/`RenderRecordRings` also
+/// project per vertex, then reject a triangle whose `rhw` is not positive).
+/// A triangle without a resolvable texture draws nothing, like the descriptor
+/// effects; a missing asset must not take the whole effect down.
+fn render_slot_primitive(renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader, state: &EffectPrimitiveState) {
+    // One primitive usually draws a few hundred triangles that all sample the
+    // same one of its (at most three) texture slots, so the loader is only
+    // asked again when the path changes.
+    let mut cached: Option<(&'static str, Option<Arc<crate::graphics::Texture>>)> = None;
+
+    for triangle in render_slots::triangles(state) {
+        let Some(path) = triangle.texture else {
+            continue;
+        };
+
+        let texture = match &cached {
+            Some((cached_path, texture)) if *cached_path == path => texture.clone(),
+            _ => {
+                let texture = textures.get_or_load(path, ImageType::Color).ok();
+                cached = Some((path, texture.clone()));
+
+                texture
+            }
+        };
+
+        let Some(texture) = texture else {
+            continue;
+        };
+
+        let (source_blend_factor, destination_blend_factor) = triangle.blend.factors();
+        let corners = render_slots::triangle_points(&triangle);
+        let texture_coordinates = render_slots::triangle_uvs(&triangle);
+        let color = color_from_argb(triangle.argb);
+
+        match triangle.forced_depth {
+            Some(depth) => renderer.render_triangle_with_depth(
+                camera,
+                corners,
+                texture_coordinates,
+                [depth; 3],
+                color,
+                source_blend_factor,
+                destination_blend_factor,
+                texture,
+            ),
+            None => renderer.render_triangle(
+                camera,
+                corners,
+                texture_coordinates,
+                color,
+                source_blend_factor,
+                destination_blend_factor,
+                texture,
+            ),
+        }
+    }
 }
 
 /// `RSF_ADDITIVE` (0x2) or the `0x200` shorthand the effect bodies use.

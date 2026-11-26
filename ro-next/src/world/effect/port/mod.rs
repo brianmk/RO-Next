@@ -36,6 +36,7 @@ pub mod registry_batch_b;
 pub mod registry_class_change;
 pub mod registry_textured_aura;
 pub mod render3d;
+pub mod render_slots;
 pub mod rng;
 pub mod rag;
 pub mod rag_batch_a;

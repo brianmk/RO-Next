@@ -1,0 +1,2757 @@
+//! Renderers for the official client's **slot/record** effect primitives.
+//!
+//! These are the primitives whose geometry is built from the four
+//! `EffectPrimitiveSlot`s (`slots[0..4]`, 21 height samples each) or from the
+//! segment `records[]`, and which the official client submits as
+//! `D3DPT_TRIANGLELIST` triangles through `CRenderer::SubmitTriangle`. They are
+//! the reason the port needs a triangle path: a ring is a strip of independent
+//! vertices with a height per angle, so no quad can represent it.
+//!
+//! Every function here is a line-by-line port of one `CEffectPrim::Render*`
+//! member (`Source/Contents/Effects/Primitives/EffectPrimitiveRendering.cpp`
+//! and `EffectPrimitiveSweeps.cpp`/`EffectPrimitiveArcs.cpp`/
+//! `EffectPrimitiveGlowSquares.cpp`), dispatched by `CEffectPrim::Render`'s
+//! `switch (state.count)`:
+//!
+//! | id | official renderer | used by |
+//! | --- | --- | --- |
+//! | 60, 63 | `Render3DCasting` | heal pillar/ring, portals, magic ring, ripple rings |
+//! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
+//! | 13 | `RenderArcBand` | cart revolution, magnum, bowling bash, frost diver |
+//! | 59 | `RenderFieldPanel` | heal sparks, sprinkle sand, snow, rising orbs |
+//! | 9 | `RenderPyramid` | earth spike, heavens drive, storm gust, grim tooth |
+//! | 137 | `RenderArcWalls` | height ramp / arc walls |
+//! | 130 | `RenderFacingQuads` | rising fan |
+//! | 131 | `RenderRipple` | rising fan 2 |
+//! | 39 | `RenderSizedSquare` | halo |
+//! | 62 | `RenderRiseArc` | wind |
+//! | 143 | `RenderGroundSquare` | texture spin |
+//! | 155 | `RenderTwinGlowSquares` | wandering flames / fork bolt |
+//! | 43 | `RenderOrbitSquare` | intimidate / white spray |
+//! | 64 | `RenderRectUp` | textured pulse kind |
+//! | 66 | `RenderPentagon` | forest light |
+//! | 89 | `RenderFanBeam` | textured quad spin |
+//!
+//! ## Projection and depth
+//!
+//! The official renderers fill `RenderVertex` with `g_renderer->Project(...)`
+//! (screen space + `rhw`), then call `RenderTriangle::Visible()` (`rhw > 0` for
+//! all three vertices) before `SubmitTriangle`. The port keeps the world-space
+//! corners here and lets
+//! [`EffectRenderer::render_triangle`](crate::renderer::EffectRenderer::render_triangle)
+//! do the same per-vertex projection, so one triangle can still span three
+//! different depths. That is also how the already-ported `PP_3DTEXTURE` path
+//! works.
+//!
+//! ## Blend states
+//!
+//! `SubmitTriangle(triangle, flags)` puts the triangle into a queue chosen by
+//! `RSF_*` flags (`RenderQueues.cpp:20-60`):
+//!
+//! * `RSF_ADDITIVE` (`0x2`) - the additive queue, drawn `ONE`/`ONE`,
+//! * `RSF_CUSTOM_BLEND` (`0x4`) - `queue_01EC`, drawn with the triangle's own
+//!   `sourceBlend`/`destinationBlend` (DX9 enum values: `5` = `SRCALPHA`, `6` =
+//!   `INVSRCALPHA`, `2` = `ONE`),
+//! * otherwise - `queue_0198`, drawn `SRCALPHA`/`INVSRCALPHA`.
+//!
+//! The client's effect pipeline is premultiplied, so the forward effect pass
+//! translates a `SrcAlpha` source factor to `One`; both paths are expressed
+//! with the same factors the quad path uses.
+//!
+//! ## Deliberate deviations (all render-side, simulation untouched)
+//!
+//! * `RenderFieldPanel`'s `ecl_fild01.rsw` alpha clamp reads the map name; the
+//!   port has no map context in the renderer and skips it (it only dims that
+//!   one map's field panels above alpha 100).
+//! * `RenderPyramid`'s `flag1[0] == 3` branch rewrites `state.argb` with
+//!   `std::rand()` *inside the render call*. Rendering may not mutate the
+//!   ported simulation, so the same flicker colour is derived deterministically
+//!   from `state.state_cnt` instead (documented at [`pyramid_color`]).
+//! * `RenderTeiRect`'s `extra == 1` writes `z = 1e-09`, `rhw = 1` (the near
+//!   plane of the original's standard depth buffer). The port's scene uses
+//!   reverse-z, so the same "always on top" is submitted as depth `1.0`; the
+//!   triangle still has to be in front of the camera to be projected at all.
+//! * `RenderRectUp` leaves its colour and `pw` uninitialised for a `height[3]`
+//!   other than 0/1/2/4. Undefined values cannot be reproduced; no ported body
+//!   writes such a value (`TexturedPulseKind` only writes 0 and 4), and the
+//!   port falls back to the `height[3] == 0` white/glow values.
+//! * The 510-triangle cap of `RenderTeiRect`/the `triangles[512]` array is
+//!   enforced on *emitted* triangles; the original counts only the visible
+//!   ones. No ported body comes close (the densest, a 4-slot casting ring, is
+//!   160).
+//! * Angles are read from the client's trig tables with the index wrapped into
+//!   `[0, 360]`; the original would read out of bounds where a body leaves a
+//!   `height[...]` phase outside that range.
+
+use cgmath::{Point3, Vector2};
+use wgpu::BlendFactor;
+
+use super::angles::Angles;
+use super::math::matrix_mult;
+use super::primitive::{EffectPrimitiveSlot, EffectPrimitiveState, PrimitiveId};
+
+/// `RenderTeiRect`'s triangle array bound (`if (*rpCnt >= 510) return;`).
+pub(crate) const MAX_TRIANGLES_PER_PRIMITIVE: usize = 510;
+
+/// The DX9 blend pair the official triangle was submitted with, already
+/// resolved through the `RSF_*` queue selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SlotBlend {
+    /// `SRCALPHA` / `INVSRCALPHA` - the alpha queue.
+    Alpha,
+    /// `SRCALPHA` / `ONE` - `RSF_CUSTOM_BLEND` with destination blend `ONE`,
+    /// the glow blend of the casting/sized-square primitives.
+    AlphaOne,
+    /// `ONE` / `ONE` - the `RSF_ADDITIVE` queue.
+    Additive,
+}
+
+impl SlotBlend {
+    /// The factors handed to
+    /// [`EffectRenderer`](crate::renderer::EffectRenderer).
+    ///
+    /// `Alpha` and `AlphaOne` keep `SrcAlpha` as the source factor: the effect
+    /// pass translates it to `One` for the client's premultiplied textures
+    /// (see `graphics/passes/forward/effect.rs`), which reproduces the straight
+    /// alpha of the original exactly.
+    pub fn factors(self) -> (BlendFactor, BlendFactor) {
+        match self {
+            Self::Alpha => (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
+            Self::AlphaOne => (BlendFactor::SrcAlpha, BlendFactor::One),
+            Self::Additive => (BlendFactor::One, BlendFactor::One),
+        }
+    }
+}
+
+/// One triangle built by a slot/record renderer, in world space.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SlotTriangle {
+    pub corners: [[f32; 3]; 3],
+    pub texture_coordinates: [[f32; 2]; 3],
+    /// Packed `argb` exactly as the official emitter builds it.
+    pub argb: u32,
+    /// `state.textures[index]` of the triangle.
+    pub texture: Option<&'static str>,
+    pub blend: SlotBlend,
+    /// `RenderTeiRect`'s `extra == 1`: the original overwrites the projected z
+    /// with `1e-09` and `rhw` with `1.0`, i.e. forces the triangle to the near
+    /// plane. The port's reverse-z buffer expresses that as depth `1.0`.
+    pub forced_depth: Option<f32>,
+}
+
+impl SlotTriangle {
+    fn new(corners: [[f32; 3]; 3], texture_coordinates: [[f32; 2]; 3], argb: u32, texture: Option<&'static str>, blend: SlotBlend) -> Self {
+        Self {
+            corners,
+            texture_coordinates,
+            argb,
+            texture,
+            blend,
+            forced_depth: None,
+        }
+    }
+}
+
+/// `g_fullCircleAngle` - `EffectPrimitiveRendering.cpp:44`.
+const FULL_CIRCLE_ANGLE: f32 = 360.0;
+/// `g_projectionDepthNumerator` - `RenderProjection.cpp:9`. It doubles as the
+/// `textureV` of `RenderTeiRect` and the `uInc` wrap of the record renderers.
+const PROJECTION_DEPTH_NUMERATOR: f32 = 1.0;
+
+/// The `Render*` function of a primitive id, if it is ported.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SlotRenderer {
+    /// `Render3DCasting` - ids 60/63 (and every other id in that case list).
+    Casting,
+    /// `RenderRecordRings` - id 12.
+    RecordRings,
+    /// `RenderArcBand` - id 13.
+    ArcBand,
+    /// `RenderFieldPanel` - id 59 (and the other ids in that case list).
+    FieldPanel,
+    /// `RenderPyramid` - ids 9/117.
+    Pyramid,
+    /// `RenderArcWalls` - id 137.
+    ArcWalls,
+    /// `RenderFacingQuads` - id 130.
+    FacingQuads,
+    /// `RenderRipple` - id 131.
+    Ripple,
+    /// `RenderSizedSquare` - id 39 (and 26/28/67/88/161).
+    SizedSquare,
+    /// `RenderRiseArc` - id 62.
+    RiseArc,
+    /// `RenderGroundSquare` - id 143.
+    GroundSquare,
+    /// `RenderTwinGlowSquares` - id 155.
+    TwinGlowSquares,
+    /// `RenderOrbitSquare` - id 43.
+    OrbitSquare,
+    /// `RenderRectUp` - id 64.
+    RectUp,
+    /// `RenderPentagon` - id 66.
+    Pentagon,
+    /// `RenderFanBeam` - id 89.
+    FanBeam,
+}
+
+/// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
+/// (`EffectPrimitiveRendering.cpp:222-650`).
+pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
+    Some(match state.count {
+        PrimitiveId::PulsingColumns | PrimitiveId::RippleRings => SlotRenderer::Casting,
+        PrimitiveId::Circle3d => SlotRenderer::RecordRings,
+        PrimitiveId::Cylinder3d => SlotRenderer::ArcBand,
+        PrimitiveId::ParticleUp => SlotRenderer::FieldPanel,
+        PrimitiveId::QuadHorn3d => SlotRenderer::Pyramid,
+        PrimitiveId::HeightRamp => SlotRenderer::ArcWalls,
+        PrimitiveId::RisingFan => SlotRenderer::FacingQuads,
+        PrimitiveId::RisingFan2 => SlotRenderer::Ripple,
+        PrimitiveId::Halo => SlotRenderer::SizedSquare,
+        PrimitiveId::Wind => SlotRenderer::RiseArc,
+        PrimitiveId::TextureSpin => SlotRenderer::GroundSquare,
+        PrimitiveId::WanderingFlames => SlotRenderer::TwinGlowSquares,
+        PrimitiveId::Intimidate => SlotRenderer::OrbitSquare,
+        PrimitiveId::PulseKind => SlotRenderer::RectUp,
+        PrimitiveId::ForestLight => SlotRenderer::Pentagon,
+        PrimitiveId::SpinQuad => SlotRenderer::FanBeam,
+        _ => return None,
+    })
+}
+
+/// Every triangle the primitive draws this frame, in submission order.
+///
+/// The order matters: the original submits into per-queue lists and the client
+/// blends them in insertion order, so the port keeps the same sequence.
+pub fn triangles(state: &EffectPrimitiveState) -> Vec<SlotTriangle> {
+    let mut out = Vec::new();
+
+    match renderer(state) {
+        Some(SlotRenderer::Casting) => render_3d_casting(state, &mut out),
+        Some(SlotRenderer::RecordRings) => render_record_rings(state, &mut out),
+        Some(SlotRenderer::ArcBand) => render_arc_band(state, &mut out),
+        Some(SlotRenderer::FieldPanel) => render_field_panel(state, &mut out),
+        Some(SlotRenderer::Pyramid) => render_pyramid(state, &mut out),
+        Some(SlotRenderer::ArcWalls) => render_arc_walls(state, &mut out),
+        Some(SlotRenderer::FacingQuads) => render_facing_quads(state, &mut out),
+        Some(SlotRenderer::Ripple) => render_ripple(state, &mut out),
+        Some(SlotRenderer::SizedSquare) => render_sized_square(state, &mut out),
+        Some(SlotRenderer::RiseArc) => render_rise_arc(state, &mut out),
+        Some(SlotRenderer::GroundSquare) => render_ground_square(state, &mut out),
+        Some(SlotRenderer::TwinGlowSquares) => render_twin_glow_squares(state, &mut out),
+        Some(SlotRenderer::OrbitSquare) => render_orbit_square(state, &mut out),
+        Some(SlotRenderer::RectUp) => render_rect_up(state, &mut out),
+        Some(SlotRenderer::Pentagon) => render_pentagon(state, &mut out),
+        Some(SlotRenderer::FanBeam) => render_fan_beam(state, &mut out),
+        None => {}
+    }
+
+    out
+}
+
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+fn angles() -> &'static Angles {
+    Angles::shared()
+}
+
+/// `g_cosTable[index]` with the index the renderers compute.
+///
+/// The client tables have 722 entries: `0..=360` and the negated half at
+/// `361 + degrees` used by `ClientCosine`/`ClientSine`. The renderers index
+/// them with plain integers, so the same indexing is kept here; a value outside
+/// the table (which the decompilation would read out of bounds) is wrapped into
+/// `[0, 360]` instead.
+fn table_index(degrees: i32) -> usize {
+    if degrees < 0 {
+        let mirrored = 361 + degrees % 361;
+
+        mirrored.clamp(0, 361) as usize
+    } else if degrees > 360 {
+        (degrees % 360) as usize
+    } else {
+        degrees as usize
+    }
+}
+
+fn table_cos(degrees: i32) -> f32 {
+    angles().raw_cosine(table_index(degrees))
+}
+
+fn table_sin(degrees: i32) -> f32 {
+    angles().raw_sine(table_index(degrees))
+}
+
+/// The packed `argb` of a triangle: `(alphaB, red, green, blue)` with the alpha
+/// in the high byte, exactly like
+/// `(((alphaB << 8) + r) << 8) + g) << 8) + b`.
+fn pack_argb(alpha: i16, red: u8, green: u8, blue: u8) -> u32 {
+    let alpha = alpha.clamp(0, 255) as u32;
+
+    (alpha << 24) | ((red as u32) << 16) | ((green as u32) << 8) | blue as u32
+}
+
+/// `this->state.textures[index]`.
+///
+/// The port stores the texture array as either the animated `texture_frames`
+/// sequence (indexed by the frame, like `textures[curMotion]`) or as the three
+/// fixed slots the bodies assign (`textures[0..2]`).
+pub(crate) fn texture_slot(state: &EffectPrimitiveState, index: usize) -> Option<&'static str> {
+    if !state.texture_frames.is_empty() {
+        return state
+            .texture_frames
+            .get(index)
+            .copied()
+            .or_else(|| state.texture_frames.last().copied());
+    }
+
+    match index {
+        0 => state.texture,
+        1 => state.texture_secondary,
+        2 => state.texture_tertiary,
+        _ => None,
+    }
+}
+
+/// `state.textures[curMotion]` - the frame the animated primitives advance.
+fn current_texture(state: &EffectPrimitiveState) -> Option<&'static str> {
+    texture_slot(state, state.cur_motion as usize)
+}
+
+/// The `RSF_*` queue selection of `CRenderer::Submit` (`RenderQueues.cpp:20`).
+///
+/// `RSF_ADDITIVE` wins over `RSF_CUSTOM_BLEND`, which wins over the alpha
+/// queue, so the per-triangle blend of `RenderTeiRect` only applies when the
+/// body asked for the custom-blend queue.
+fn resolve_blend(render_flag: u32, triangle_blend: SlotBlend) -> SlotBlend {
+    if (render_flag & 0x2) != 0 {
+        SlotBlend::Additive
+    } else if (render_flag & 0x4) != 0 {
+        triangle_blend
+    } else {
+        SlotBlend::Alpha
+    }
+}
+
+/// `Tei_TowardScreen` - `EffectPrimitiveMotion.cpp:4730`.
+fn tei_toward_screen(corners: &mut [[f32; 3]; 4], rot0: i16, rot1: i16) {
+    for corner in corners.iter_mut() {
+        rotate_pair_x(corner, rot1 as i32);
+    }
+
+    for corner in corners.iter_mut() {
+        rotate_pair_y(corner, rot0 as i32);
+    }
+}
+
+/// `RotatePairX` - `EffectPrimitiveMotion.cpp:4712`.
+fn rotate_pair_x(point: &mut [f32; 3], angle: i32) {
+    let z = point[2];
+    let y = point[1];
+
+    point[2] = z * table_cos(angle) - y * table_sin(angle);
+    point[1] = y * table_cos(angle) + z * table_sin(angle);
+}
+
+/// `RotatePairY` - `EffectPrimitiveMotion.cpp:4721`.
+fn rotate_pair_y(point: &mut [f32; 3], angle: i32) {
+    let x = point[0];
+    let z = point[2];
+
+    point[0] = x * table_cos(angle) - z * table_sin(angle);
+    point[2] = z * table_cos(angle) + x * table_sin(angle);
+}
+
+fn add(a: [f32; 3], b: [f32; 3]) -> [f32; 3] {
+    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
+}
+
+/// The four screen-space corners of one `RenderTeiRect`/`RenderRecordRings`
+/// emitter, before `render.position` is added.
+type Quad = [[f32; 3]; 4];
+
+/// Emits the two triangles and texture coordinates of the 10-argument
+/// `RenderTeiRect` (`EffectPrimitiveRendering.cpp:978`).
+///
+/// * `tex_part` selects the horizontal texture window (`texPart / 21`), so a
+///   column strip samples one 1/21 slice of the texture per height segment,
+/// * the first triangle is `(vec1, vec2, vec3)`, the second `(vec4, vec3,
+///   vec1)`, with `v = textureV` on the outer edge and `0` on the inner edge,
+/// * the colour comes from the `state.size` table (`size_color`), including its
+///   `alphaB = 80` override for size 3.
+fn emit_tei_rect_10(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>, tex_part: i32, alpha_b: i16, quad: Quad, pw: i32) {
+    if out.len() >= MAX_TRIANGLES_PER_PRIMITIVE {
+        return;
+    }
+
+    let (red, green, blue, texture_v, glow) = size_color(state.size);
+
+    let alpha = if state.size as i32 == 3 { 80 } else { alpha_b };
+
+    // `left = texPart / 21` (`0` for texPart 0), `right = (texPart + 1) / 21`.
+    let left = if tex_part == 0 { 0.0 } else { tex_part as f32 / 21.0 };
+    let right = (tex_part + 1) as f32 / 21.0;
+
+    let position = state.position;
+    let corners = quad.map(|corner| add(corner, position));
+    let argb = pack_argb(alpha, red, green, blue);
+    let blend = resolve_blend(state.render_flag, if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha });
+    let texture = texture_slot(state, pw.max(0) as usize);
+
+    push_quad(
+        out,
+        [corners[0], corners[1], corners[2], corners[3]],
+        [(left, texture_v), (right, texture_v), (right, 0.0), (left, 0.0)],
+        argb,
+        texture,
+        blend,
+    );
+}
+
+/// Emits the two triangles of the 18-argument `RenderTeiRect`
+/// (`EffectPrimitiveRendering.cpp:825`), used by the "field panel" style
+/// primitives.
+///
+/// `add_position` is the `f1` argument: when it is zero the four corners are
+/// offset by `render.position` first (the quad renderers pass corners relative
+/// to the anchor), when it is one the corners are already absolute world
+/// positions.
+#[allow(clippy::too_many_arguments)]
+fn emit_tei_rect_18(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    alpha: i16,
+    quad: Quad,
+    texture_index: i32,
+    add_position: bool,
+    (red, green, blue): (u8, u8, u8),
+    (ty1, ty2, tx, tx2): (f32, f32, f32, f32),
+    blend: SlotBlend,
+) {
+    if out.len() >= MAX_TRIANGLES_PER_PRIMITIVE {
+        return;
+    }
+
+    let position = state.position;
+    let corners = if add_position {
+        quad.map(|corner| add(corner, position))
+    } else {
+        quad
+    };
+
+    let argb = pack_argb(alpha, red, green, blue);
+    let blend = resolve_blend(state.render_flag, blend);
+    let texture = texture_slot(state, texture_index.max(0) as usize);
+
+    push_quad(
+        out,
+        [corners[0], corners[1], corners[2], corners[3]],
+        [(tx, ty2), (tx2, ty2), (tx2, ty1), (tx, ty1)],
+        argb,
+        texture,
+        blend,
+    );
+}
+
+/// Splits a quad into the two triangles both `RenderTeiRect` overloads emit:
+/// `(c0, c1, c2)` then `(c3, c2, c0)`, with the matching UVs.
+#[allow(clippy::too_many_arguments)]
+fn push_quad(out: &mut Vec<SlotTriangle>, corners: Quad, uvs: [(f32, f32); 4], argb: u32, texture: Option<&'static str>, blend: SlotBlend) {
+    let triangle = |indices: [usize; 3]| {
+        SlotTriangle::new(
+            indices.map(|index| corners[index]),
+            indices.map(|index| [uvs[index].0, uvs[index].1]),
+            argb,
+            texture,
+            blend,
+        )
+    };
+
+    if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+        out.push(triangle([0, 1, 2]));
+    }
+
+    if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+        out.push(triangle([3, 2, 0]));
+    }
+}
+
+/// The colour table of the 10-argument `RenderTeiRect`
+/// (`EffectPrimitiveRendering.cpp:985-1120`).
+///
+/// Returns `(red, green, blue, textureV, glow)`. `glow` is the destination
+/// blend `ONE` (`blend = 2`, the initial value) versus `INVSRCALPHA`
+/// (`blend = 6`, set by the listed cases).
+pub fn size_color(size: f32) -> (u8, u8, u8, f32, bool) {
+    let mut texture_v = PROJECTION_DEPTH_NUMERATOR;
+    let mut glow = true;
+    let (red, green, blue) = match size as i32 {
+        0 => {
+            glow = false;
+            (255, 255, 255)
+        }
+        1 => (255, 175, 175),
+        2 => {
+            glow = false;
+            (195, 195, 255)
+        }
+        3 => {
+            glow = false;
+            (255, 255, 255)
+        }
+        4 => (100, 100, 255),
+        6 => (255, 100, 100),
+        7 => (100, 255, 100),
+        8 => (255, 255, 170),
+        9 => (140, 210, 140),
+        10 => (255, 89, 182),
+        11 => (170, 170, 255),
+        12 => {
+            glow = false;
+            (50, 50, 50)
+        }
+        13 => {
+            glow = false;
+            (255, 50, 255)
+        }
+        14 => {
+            glow = false;
+            (120, 120, 255)
+        }
+        15 => (10, 255, 10),
+        16 => (20, 255, 20),
+        17 => (0, 0, 255),
+        18 => (255, 0, 0),
+        19 => (0, 255, 0),
+        20 => (255, 255, 0),
+        21 => (255, 0, 255),
+        22 => (0, 255, 255),
+        23 => {
+            glow = false;
+            (41, 94, 188)
+        }
+        24 => (10, 66, 114),
+        25 => (35, 146, 185),
+        26 => (164, 205, 254),
+        27 => (84, 169, 205),
+        28 => (108, 26, 255),
+        29 => (177, 255, 58),
+        30 => (85, 30, 185),
+        31 => (244, 187, 124),
+        32 => {
+            glow = false;
+            (0, 0, 0)
+        }
+        40 => (70, 70, 255),
+        41 => (30, 30, 255),
+        42 => {
+            glow = false;
+            (43, 40, 46)
+        }
+        43 => {
+            glow = false;
+            (125, 182, 160)
+        }
+        44 => {
+            glow = false;
+            (180, 55, 30)
+        }
+        45 => (65, 141, 231),
+        46 => (164, 47, 29),
+        47 => (172, 154, 56),
+        48 => (80, 20, 20),
+        49 => (200, 130, 84),
+        50 => (255, 198, 91),
+        100 => {
+            texture_v = 0.9;
+            glow = false;
+            (250, 250, 255)
+        }
+        _ => (255, 255, 255),
+    };
+
+    (red, green, blue, texture_v, glow)
+}
+
+// ---------------------------------------------------------------------------
+// Render3DCasting (60, 63)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::Render3DCasting` - `EffectPrimitiveRendering.cpp:6596-6675`.
+///
+/// Every live slot sweeps its `fullDisplayAngle` in 21 steps
+/// (`fullDisplayAngle / 20` apart, integer division) around `rotStart`, with a
+/// ring radius of `distance` and a height of `height[order]` raised along
+/// `riseAngle`. Consecutive sweep positions form one quad per step; the quad's
+/// texture window is the segment index (`texPart = order - 1`), so the column
+/// texture repeats 1/21 per height step.
+///
+/// Two `maxHeight` values are recognised by the original and shift the whole
+/// strip down by 2 or 1 units; the port keeps that (`6.001`/`24.001` are the
+/// markers the ring-wave bodies set).
+pub fn render_3d_casting(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        if state.slots[ec].life != 1 {
+            continue;
+        }
+
+        let slot = &state.slots[ec];
+        let basic_angle = slot.full_display_angle as i32 / 20;
+
+        // The original would loop forever here (`count += 0`); every body that
+        // draws casting geometry sets at least 20 degrees. Bail out instead of
+        // hanging.
+        if basic_angle <= 0 {
+            continue;
+        }
+
+        let base_y = if slot.max_height == 6.001 {
+            -2.0
+        } else if slot.max_height == 24.001 {
+            -1.0
+        } else {
+            0.0
+        };
+
+        let mut order = 0usize;
+        let mut previous_bottom = [0.0f32; 3];
+        let mut previous_top = [0.0f32; 3];
+        let mut count = 0i32;
+
+        while count <= slot.full_display_angle as i32 {
+            let mut angle = (count + slot.rot_start as i32) % 360;
+
+            if slot.full_display_angle == 360 && order == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+
+            let bottom = [cosine * slot.distance, base_y, sine * slot.distance];
+
+            let rx = table_cos(slot.rise_angle as i32) * slot.height[order];
+            let ry = table_sin(slot.rise_angle as i32) * slot.height[order];
+            let rz = sine * rx;
+            let rx = cosine * rx;
+            let top = [bottom[0] + rx, base_y - ry, bottom[2] + rz];
+
+            if order > 0 {
+                emit_tei_rect_10(
+                    state,
+                    out,
+                    order as i32 - 1,
+                    slot.alpha_b,
+                    [previous_bottom, bottom, top, previous_top],
+                    0,
+                );
+            }
+
+            order += 1;
+            if order >= 21 {
+                order = 20;
+            }
+
+            previous_bottom = bottom;
+            previous_top = top;
+            count += basic_angle;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderRecordRings (12)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRecordRings` - `EffectPrimitiveRendering.cpp:5846-5942`.
+///
+/// One ring per segment record: the inner radius is `records[j].radius -
+/// state.size`, the outer is `records[j].radius`, and the strip is swept in
+/// `arcAngle` steps over `360 - arcAngle` degrees. Each step emits two
+/// triangles whose `u` advances by a quarter of the texture per step
+/// (`uInc`), wrapping at 1, and whose `v` is 1 on the inner edge and 0 on the
+/// outer one. The per-vertex colour is `records[j].color`, the alpha ramp that
+/// `ShiftSegment` builds.
+pub fn render_record_rings(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let temp = FULL_CIRCLE_ANGLE - state.arc_angle;
+    let arc_angle = state.arc_angle;
+    let mut u_inc = 0.0f32;
+
+    for record in state.records.iter().take(state.num_segment.max(0) as usize) {
+        let inner_size = record.radius - state.size;
+
+        let mut i = 0.0f32;
+
+        while i <= temp {
+            let angle1 = i as i32;
+            let angle2 = (i + arc_angle) as i32;
+
+            let cs1 = table_cos(angle1);
+            let sn1 = table_sin(angle1);
+            let cs2 = table_cos(angle2);
+            let sn2 = table_sin(angle2);
+
+            let position = record.position;
+            let matrix = &record.matrix.values;
+
+            let vec1 = add(matrix_mult([inner_size * cs1, inner_size * sn1, 0.0], matrix), position);
+            let vec2 = add(matrix_mult([inner_size * cs2, inner_size * sn2, 0.0], matrix), position);
+            let vec3 = add(matrix_mult([record.radius * cs1, record.radius * sn1, 0.0], matrix), position);
+            let vec4 = add(matrix_mult([record.radius * cs2, record.radius * sn2, 0.0], matrix), position);
+
+            let blend = resolve_blend(state.render_flag, SlotBlend::Alpha);
+            let texture = texture_slot(state, 0);
+            let u_left = u_inc;
+            let u_right = u_inc + 0.25;
+
+            if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+                out.push(SlotTriangle::new(
+                    [vec1, vec2, vec3],
+                    [[u_left, 1.0], [u_right, 1.0], [u_left, 0.0]],
+                    record.color,
+                    texture,
+                    blend,
+                ));
+            }
+
+            if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+                out.push(SlotTriangle::new(
+                    [vec4, vec3, vec2],
+                    [[u_right, 0.0], [u_left, 0.0], [u_right, 1.0]],
+                    record.color,
+                    texture,
+                    blend,
+                ));
+            }
+
+            u_inc += 0.25;
+            if u_inc >= PROJECTION_DEPTH_NUMERATOR {
+                u_inc = 0.0;
+            }
+
+            i += arc_angle;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderArcBand (13)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderArcBand` - `EffectPrimitiveRendering.cpp:6008-6100`.
+///
+/// The cylinder band: `innerSize` is the radius at the anchor height and
+/// `outerSize` the radius at `-heightSize` (the band flares downwards), swept
+/// in `arcAngle` steps. Every step emits the two triangles
+/// `(inner1, outer1, inner2)` and `(outer2, outer1, inner2)` with the texture
+/// `u` advancing a quarter per step and `v` = 1 on the inner rim, 0 on the
+/// outer one. The colour is the primitive's `argb` (`ProcessAlpha`).
+pub fn render_arc_band(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let temp = FULL_CIRCLE_ANGLE - state.arc_angle;
+    let arc_angle = state.arc_angle;
+    let matrix = &state.transform.values;
+    let mut u_inc = 0.0f32;
+
+    let mut i = 0.0f32;
+
+    while i <= temp {
+        let angle1 = i as i32;
+        let angle2 = (i + arc_angle) as i32;
+
+        let cs1 = table_cos(angle1);
+        let sn1 = table_sin(angle1);
+        let cs2 = table_cos(angle2);
+        let sn2 = table_sin(angle2);
+
+        let vec1 = add(
+            matrix_mult([state.inner_size * cs1, 0.0, state.inner_size * sn1], matrix),
+            state.position,
+        );
+        let vec2 = add(
+            matrix_mult([state.inner_size * cs2, 0.0, state.inner_size * sn2], matrix),
+            state.position,
+        );
+        let vec3 = add(
+            matrix_mult([state.outer_size * cs1, -state.height_size, state.outer_size * sn1], matrix),
+            state.position,
+        );
+        let vec4 = add(
+            matrix_mult([state.outer_size * cs2, -state.height_size, state.outer_size * sn2], matrix),
+            state.position,
+        );
+
+        let blend = resolve_blend(1, SlotBlend::Alpha);
+        let texture = current_texture(state);
+        let u_left = u_inc;
+        let u_right = u_inc + 0.25;
+
+        if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+            out.push(SlotTriangle::new(
+                [vec1, vec3, vec2],
+                [[u_left, 1.0], [u_right, 1.0], [u_left, 0.0]],
+                state.argb,
+                texture,
+                blend,
+            ));
+        }
+
+        if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+            out.push(SlotTriangle::new(
+                [vec4, vec3, vec2],
+                [[u_right, 0.0], [u_left, 0.0], [u_right, 1.0]],
+                state.argb,
+                texture,
+                blend,
+            ));
+        }
+
+        u_inc += 0.25;
+        if u_inc >= PROJECTION_DEPTH_NUMERATOR {
+            u_inc = 0.0;
+        }
+
+        i += arc_angle;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderFieldPanel (59)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderFieldPanel` - `EffectPrimitiveRendering.cpp:3312-3505`.
+///
+/// The billboard-ish "field panel" family: four ground-plane corners at
+/// `distance` rotated by `fullDisplayAngle`, then rotated towards the screen by
+/// `slots[0].alphaT`/`slots[1].alphaT` (`Tei_TowardScreen`), offset by the
+/// slot's own `vecBNow`. `slots[0].flag1[2]` selects the colour and corner
+/// order; `slots[ec].flag1[0]` is the texture index. `height[8]` wobbles the
+/// radius, `height[9] == 10` shifts the panel 4 units in x, and `flag1[2] ==
+/// 25` drops it 110 units.
+///
+/// The `ecl_fild01.rsw` alpha clamp of the original reads the map name; that
+/// context does not exist in the renderer (see the module deviations).
+pub fn render_field_panel(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        // `if (height[8] >= 360 || height[8] < 0) height[8] = 0;`
+        let height8 = if slot.height[8] >= 360.0 || slot.height[8] < 0.0 {
+            0.0
+        } else {
+            slot.height[8]
+        };
+
+        let rx = slot.distance * table_sin(height8 as i32) * 0.05 + slot.distance;
+
+        let angle1 = slot.full_display_angle as i32;
+        let angle2 = angle1 + if angle1 < 270 { 90 } else { -270 };
+        let angle3 = angle2 + if angle2 + 90 >= 360 { -270 } else { 90 };
+        let angle4 = angle3 + if angle3 + 90 >= 360 { -270 } else { 90 };
+
+        let mut corners: Quad = [
+            [rx * table_cos(angle1), 0.0, rx * table_sin(angle1)],
+            [rx * table_cos(angle2), 0.0, rx * table_sin(angle2)],
+            [rx * table_cos(angle3), 0.0, rx * table_sin(angle3)],
+            [rx * table_cos(angle4), 0.0, rx * table_sin(angle4)],
+        ];
+
+        if slot.height[9] == 10.0 {
+            for corner in corners.iter_mut() {
+                corner[0] += 4.0;
+            }
+        }
+
+        tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+
+        let base = slot.vec_b_now;
+        let corners = corners.map(|corner| add(corner, base));
+
+        let texture_index = slot.flag1[0] as i32;
+        // `switch (this->state.slots[0].flag1[2])`
+        //
+        // Every call passes `pw`; the 18-argument `RenderTeiRect` turns
+        // `pw != 0` into `INVSRCALPHA` (plain alpha) and `pw == 0` into `ONE`
+        // (the glow blend), hence the `glow` booleans below.
+        let flipped = [corners[1], corners[0], corners[3], corners[2]];
+
+        match state.slots[0].flag1[2] {
+            0 => emit_field_panel(state, out, slot.alpha_b, corners, texture_index, false, (255, 255, 255)),
+            1 => emit_field_panel(state, out, slot.alpha_b, corners, texture_index, true, (150, 150, 250)),
+            2 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (130, 130, 250)),
+            3 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (200, 200, 100)),
+            4 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (255, 255, 255)),
+            7 | 23 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (255, 255, 255)),
+            8 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (135, 255, 135)),
+            10 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (250, 250, 150)),
+            11 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (220, 250, 220)),
+            12 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (252, 171, 143)),
+            13 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (250, 100, 100)),
+            14 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (94, 0, 0)),
+            15 => emit_field_panel(state, out, slot.alpha_b, corners, texture_index, false, (255, 200, 255)),
+            16 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (0, 0, 0)),
+            17 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, false, (255, 180, 180)),
+            18 => emit_field_panel(state, out, slot.alpha_b / 2, flipped, texture_index, true, (255, 255, 255)),
+            24 => emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, true, (63, 72, 204)),
+            9 => {
+                // `switch (this->state.slots[0].flag1[3])`
+                let colours = match state.slots[0].flag1[3] {
+                    // pw = 1 for 1..=5, pw = 0 for 6.
+                    1 => Some(((255, 135, 135), false)),
+                    2 => Some(((255, 205, 135), false)),
+                    3 => Some(((255, 255, 135), false)),
+                    4 => Some(((255, 255, 255), false)),
+                    5 => Some(((135, 135, 255), false)),
+                    6 => Some(((255, 255, 255), true)),
+                    _ => None,
+                };
+
+                if let Some((colour, glow)) = colours {
+                    emit_field_panel(state, out, slot.alpha_b, flipped, texture_index, glow, colour);
+                }
+            }
+            25 => {
+                let dropped = corners.map(|corner| [corner[0], corner[1] - 110.0, corner[2]]);
+
+                emit_field_panel(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    [dropped[1], dropped[0], dropped[3], dropped[2]],
+                    texture_index,
+                    true,
+                    (255, 255, 255),
+                );
+            }
+            _ => {}
+        }
+    }
+}
+
+/// The 18-argument `RenderTeiRect` call shape of `RenderFieldPanel`.
+#[allow(clippy::too_many_arguments)]
+fn emit_field_panel(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    alpha: i16,
+    corners: Quad,
+    texture_index: i32,
+    glow: bool,
+    (red, green, blue): (u8, u8, u8),
+) {
+    emit_tei_rect_18(
+        state,
+        out,
+        alpha,
+        corners,
+        texture_index,
+        false,
+        (red, green, blue),
+        (0.0, 1.0, 0.0, 1.0),
+        if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha },
+    );
+}
+
+// ---------------------------------------------------------------------------
+// RenderPyramid (9)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderPyramid` - `EffectPrimitiveRendering.cpp:6100-6172`.
+///
+/// `PP_3DQUADHORN`'s four-sided pyramid: a square base of `state.size` and an
+/// apex `heightSize` above it in +z, rotated by `rotTransform`. Each of the
+/// four side triangles samples a fifth of the texture (`uVal` advances 0.2).
+/// The base corner order is the official one, so the visible sides are
+/// `(-,-) -> apex -> (+,-)`, then counter-clockwise.
+pub fn render_pyramid(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let size = state.size;
+    let height = state.height_size;
+
+    let corners: [[[f32; 3]; 3]; 4] = [
+        [[-size, -size, 0.0], [0.0, 0.0, height], [size, -size, 0.0]],
+        [[-size, -size, 0.0], [0.0, 0.0, height], [-size, size, 0.0]],
+        [[-size, size, 0.0], [0.0, 0.0, height], [size, size, 0.0]],
+        [[size, size, 0.0], [0.0, 0.0, height], [size, -size, 0.0]],
+    ];
+
+    let argb = if state.slots[0].flag1[0] == 3 {
+        pyramid_color(state)
+    } else {
+        state.argb
+    };
+
+    let matrix = &state.rot_transform.values;
+    let mut u_value = 0.0f32;
+
+    for triangle in corners.iter() {
+        let projected = triangle.map(|corner| add(matrix_mult(corner, matrix), state.position));
+
+        let (blend, argb) = if state.slots[0].flag1[0] == 3 {
+            // `SubmitTriangle(..., 5)` with `sourceBlend = 5`,
+            // `destinationBlend = 2` by the caller.
+            (resolve_blend(5, SlotBlend::AlphaOne), argb)
+        } else {
+            (resolve_blend(1, SlotBlend::Alpha), state.argb)
+        };
+
+        if out.len() < MAX_TRIANGLES_PER_PRIMITIVE {
+            out.push(SlotTriangle::new(
+                projected,
+                [[u_value, 1.0], [u_value, 0.0], [u_value + 0.2, 1.0]],
+                argb,
+                texture_slot(state, 0),
+                blend,
+            ));
+        }
+
+        u_value += 0.2;
+    }
+}
+
+/// The `flag1[0] == 3` colour override of `RenderPyramid`.
+///
+/// The original does `state.argb = ((((rand() % 11) << 8) + rand() % 11) << 8)
+/// - 0xD7D701` *inside the render call*, i.e. it mutates the simulation state
+/// and flickers with the process-wide `std::rand` sequence. Rendering in the
+/// port is `&self` (it must not touch the simulation), so the same shape is
+/// built from a deterministic hash of the frame and slot phase: the alpha byte
+/// stays zero and the colour bytes stay in `0..11`, so the additive spark
+/// flicker is preserved without a side effect.
+fn pyramid_color(state: &EffectPrimitiveState) -> u32 {
+    let mut seed = (state.state_cnt as u32).wrapping_mul(0x9E37_79B9) ^ (state.slots[0].process as u32);
+    seed ^= seed >> 15;
+    seed = seed.wrapping_mul(0x85EB_CA6B);
+    seed ^= seed >> 13;
+
+    let red = seed % 11;
+    let green = (seed >> 8) % 11;
+
+    0u32.wrapping_sub(((green << 8) + red) << 8).wrapping_sub(0xD7D701)
+}
+
+// ---------------------------------------------------------------------------
+// RenderArcWalls (137)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderArcWalls` - `EffectPrimitiveSweeps.cpp:421-521`.
+///
+/// Two wall bands per slot: an inner one at `distance` with the red
+/// `255,10,10` field-panel texture and an outer one at `distance * 1.5`
+/// (offset 45 degrees) with the `state.size` colour table. The sweep is
+/// `fullDisplayAngle / 4` apart, five height samples per slot. Both bands add
+/// the slot's `vecBNow + vecTPre` to every corner, which is the "wall" offset
+/// the motion accumulates.
+pub fn render_arc_walls(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let step = slot.full_display_angle as i32 / 4;
+
+        // `offset += 0` would loop forever in the original.
+        if step <= 0 {
+            continue;
+        }
+
+        let base = add(slot.vec_b_now, slot.vec_t_pre);
+
+        // Inner wall band (`distance`), red field-panel colour.
+        let mut previous_bottom = [0.0f32; 3];
+        let mut previous_top = [0.0f32; 3];
+        let mut i = 0i32;
+        let mut offset = 0i32;
+
+        while offset <= slot.full_display_angle as i32 {
+            let mut angle = (slot.rot_start as i32 + offset) % 360;
+
+            if slot.full_display_angle == 360 && i == 4 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+            let rise_x = table_cos(slot.rise_angle as i32) * slot.height[i as usize];
+            let rise_y = table_sin(slot.rise_angle as i32) * slot.height[i as usize];
+
+            let current_bottom = add([cosine * slot.distance, 0.0, sine * slot.distance], base);
+            let current_top = add(
+                [
+                    cosine * slot.distance + cosine * rise_x,
+                    -rise_y,
+                    sine * slot.distance + sine * rise_x,
+                ],
+                base,
+            );
+
+            if i > 0 {
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b / 5,
+                    [previous_bottom, current_bottom, previous_top, current_top],
+                    0,
+                    true,
+                    (255, 10, 10),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::Alpha,
+                );
+            }
+
+            i += 1;
+            if i > 4 {
+                i = 4;
+            }
+
+            previous_bottom = current_bottom;
+            previous_top = current_top;
+            offset += step;
+        }
+
+        // Outer wall band (`distance * 1.5`, rotated 45 degrees).
+        let mut i = 0i32;
+        let mut offset = 0i32;
+
+        while offset <= slot.full_display_angle as i32 {
+            let mut angle = (slot.rot_start as i32 + 45 + offset) % 360;
+
+            if slot.full_display_angle == 360 && i == 4 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+            let rise_x = table_cos(slot.rise_angle as i32) * slot.height[i as usize];
+            let rise_y = table_sin(slot.rise_angle as i32) * slot.height[i as usize];
+
+            let current_bottom = add([cosine * slot.distance * 1.5, 0.0, sine * slot.distance * 1.5], base);
+            let current_top = add(
+                [
+                    cosine * slot.distance * 1.5 + cosine * rise_x,
+                    -rise_y,
+                    sine * slot.distance * 1.5 + sine * rise_x,
+                ],
+                base,
+            );
+
+            // The original clears the rise on the bottom of this band before
+            // adding the slot offset: `curB.y = 0`.
+            let current_bottom = [current_bottom[0], base[1], current_bottom[2]];
+
+            if i > 0 {
+                emit_tei_rect_10(
+                    state,
+                    out,
+                    i - 1,
+                    slot.alpha_b,
+                    [previous_bottom, current_bottom, current_top, previous_top],
+                    0,
+                );
+            }
+
+            i += 1;
+            if i > 4 {
+                i = 4;
+            }
+
+            previous_bottom = current_bottom;
+            previous_top = current_top;
+            offset += step;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderFacingQuads (130)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderFacingQuads` - `EffectPrimitiveRendering.cpp:1667-1700`.
+///
+/// A `distance`-sized square turned towards the screen (`Tei_TowardScreen`),
+/// drawn four times at the slot's four stored positions (`vecBPre`, `vecBNow`,
+/// `vecTPre`, `vecTNow`). The alpha of each copy is `height[11..14] * 2`
+/// (`flag1[11..14]`), and `slot.flag1[5]` selects the colour.
+pub fn render_facing_quads(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let size = slot.distance;
+        let mut corners: Quad = [
+            [size * table_cos(45), 0.0, size * table_sin(45)],
+            [size * table_cos(135), 0.0, size * table_sin(135)],
+            [size * table_cos(225), 0.0, size * table_sin(225)],
+            [size * table_cos(315), 0.0, size * table_sin(315)],
+        ];
+
+        tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+
+        let (red, green, blue) = match slot.flag1[5] {
+            7 => (250, 70, 100),
+            8 => (250, 250, 10),
+            10 => (250, 250, 250),
+            _ => (70, 120, 100),
+        };
+
+        let positions = [slot.vec_b_pre, slot.vec_b_now, slot.vec_t_pre, slot.vec_t_now];
+        let alphas = [slot.flag1[11], slot.flag1[12], slot.flag1[13], slot.flag1[14]];
+
+        for (position, alpha) in positions.into_iter().zip(alphas) {
+            let doubled = alpha as i32 * 2;
+            let alpha = if doubled >= 0 { doubled as i16 } else { 0 };
+            let corners = corners.map(|corner| add(corner, position));
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                corners,
+                0,
+                true,
+                (red, green, blue),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderRipple (131)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRipple` - `EffectPrimitiveRendering.cpp:2173-2230`.
+///
+/// Ten concentric squares per slot, from `ring = 10` down to `1`, each
+/// `distance + spread` wide (`spread` grows by 3 per ring, or 1 for kind 2),
+/// rotated towards the screen, lowered 30 units (40 for kind 2), and drawn with
+/// the alpha stored in `height[ring]`. The texture index is `flag1[0]`.
+pub fn render_ripple(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        for ring in (1..=10usize).rev() {
+            let kind = slot.flag1[4];
+            let mut spread = 10i32 - ring as i32;
+
+            if kind != 2 {
+                spread *= 3;
+            }
+
+            let rx = spread as f32 + slot.distance;
+
+            let mut corners: Quad = [
+                [rx * table_cos(45), 0.0, rx * table_sin(45)],
+                [rx * table_cos(135), 0.0, rx * table_sin(135)],
+                [rx * table_cos(225), 0.0, rx * table_sin(225)],
+                [rx * table_cos(315), 0.0, rx * table_sin(315)],
+            ];
+
+            let base = slot.height[0];
+            for corner in corners.iter_mut() {
+                corner[0] += base;
+            }
+
+            tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+
+            let drop = if kind == 2 { 40.0 } else { 30.0 };
+            for corner in corners.iter_mut() {
+                corner[1] -= drop;
+            }
+
+            let alpha = slot.height[ring] as i32;
+            if alpha <= 0 {
+                continue;
+            }
+
+            let (red, green, blue) = if ring == 10 { (55, 55, 255) } else { (5, 5, 255) };
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha as i16,
+                [corners[1], corners[0], corners[3], corners[2]],
+                slot.flag1[0] as i32,
+                true,
+                (red, green, blue),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderSizedSquare (39)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderSizedSquare` - `EffectPrimitiveRendering.cpp:5942-6008`.
+///
+/// A ground square of radius
+/// `(sin(riseAngle) + 1) * (distance * 0.1) + distance * 0.8`, rotated by the
+/// slot's `rotStart` (or `ec * 23` for the sizes the `RenderSizedSquare` case
+/// list does not name), drawn with `state.size` selecting the colour. This is
+/// the halo ring.
+pub fn render_sized_square(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let size = state.size;
+        let mut angle = ec as i32 * 23;
+
+        if size == 100.0 || size >= 110.0 || (size == 4.0 && slot.height[4] == 4.0) || size == 10.0 || size == 0.0 {
+            angle = slot.rot_start as i32;
+        }
+
+        // `const double radius = (g_sinTable[riseAngle] + 1.0f) * (distance * 0.1f) +
+        // distance * 0.8;` The sum is evaluated in float and then widened; the
+        // trigonometric product below is the part that runs in double.
+        let radius = (table_sin(slot.rise_angle as i32) + 1.0) * (slot.distance * 0.1) + slot.distance * 0.8;
+
+        let angle2 = if angle + 90 >= 360 { angle - 270 } else { angle + 90 };
+        let angle3 = if angle2 + 90 >= 360 { angle2 - 270 } else { angle2 + 90 };
+        let angle4 = if angle3 + 90 >= 360 { angle3 - 270 } else { angle3 + 90 };
+
+        let y = slot.height[0];
+        let point = |degrees: i32| {
+            [
+                ((table_cos(degrees) as f64) * radius as f64) as f32,
+                y,
+                ((table_sin(degrees) as f64) * radius as f64) as f32,
+            ]
+        };
+
+        let quad: Quad = [point(angle), point(angle2), point(angle3), point(angle4)];
+
+        // The mode table of the original: the duplicate calls (101, 100) are
+        // kept.
+        match size as i32 {
+            101 => {
+                for _ in 0..2 {
+                    emit_sized(state, out, slot, quad, (255, 0, 0), SlotBlend::AlphaOne);
+                }
+            }
+            102 => emit_sized(state, out, slot, quad, (255, 255, 0), SlotBlend::AlphaOne),
+            111 => emit_sized(state, out, slot, quad, (55, 55, 255), SlotBlend::AlphaOne),
+            112 => emit_sized(state, out, slot, quad, (105, 225, 105), SlotBlend::AlphaOne),
+            100 => {
+                for _ in 0..2 {
+                    emit_sized(state, out, slot, quad, (255, 255, 255), SlotBlend::AlphaOne);
+                }
+            }
+            110 => emit_sized(state, out, slot, quad, (255, 255, 255), SlotBlend::Alpha),
+            113 => emit_sized(state, out, slot, quad, (5, 5, 255), SlotBlend::AlphaOne),
+            114 => emit_sized(state, out, slot, quad, (155, 5, 5), SlotBlend::AlphaOne),
+            15 => emit_sized(state, out, slot, quad, (35, 255, 35), SlotBlend::AlphaOne),
+            17 => emit_sized(state, out, slot, quad, (105, 105, 255), SlotBlend::AlphaOne),
+            18 => emit_sized(state, out, slot, quad, (35, 35, 255), SlotBlend::AlphaOne),
+            0 => emit_sized(state, out, slot, quad, (255, 255, 255), SlotBlend::Alpha),
+            _ => emit_sized(state, out, slot, quad, (255, 255, 255), SlotBlend::AlphaOne),
+        }
+    }
+}
+
+fn emit_sized(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    slot: &EffectPrimitiveSlot,
+    quad: Quad,
+    colour: (u8, u8, u8),
+    blend: SlotBlend,
+) {
+    emit_tei_rect_18(state, out, slot.alpha_b, quad, 0, false, colour, (0.0, 1.0, 0.0, 1.0), blend);
+}
+
+// ---------------------------------------------------------------------------
+// RenderRiseArc (62)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRiseArc` - `EffectPrimitiveRendering.cpp:1599-1642`.
+///
+/// The winding arc of `PP_WIND`: 21 height samples swept over
+/// `fullDisplayAngle / 21` degrees, each step one `RenderTeiRect` strip at
+/// `distance` with the slot's `maxHeight` as the base offset.
+pub fn render_rise_arc(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let step = slot.full_display_angle as i32 / 21;
+
+        if step <= 0 {
+            continue;
+        }
+
+        let mut i = 0usize;
+        let mut previous_bottom = [0.0f32; 3];
+        let mut previous_top = [0.0f32; 3];
+        let mut offset = 0i32;
+
+        while offset < slot.full_display_angle as i32 {
+            let mut angle = (slot.rot_start as i32 + offset) % 360;
+
+            if slot.full_display_angle == 360 && i == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+
+            let bottom = [cosine * slot.distance, -slot.max_height, sine * slot.distance];
+
+            let rise_x = table_cos(slot.rise_angle as i32) * slot.height[i];
+            let rise_y = table_sin(slot.rise_angle as i32) * slot.height[i];
+
+            let top = [bottom[0] + cosine * rise_x, -(rise_y + slot.max_height), bottom[2] + sine * rise_x];
+
+            if i > 0 {
+                emit_tei_rect_10(
+                    state,
+                    out,
+                    i as i32 - 1,
+                    slot.alpha_b,
+                    [previous_bottom, bottom, top, previous_top],
+                    0,
+                );
+            }
+
+            i += 1;
+            if i >= 21 {
+                i = 20;
+            }
+
+            previous_bottom = bottom;
+            previous_top = top;
+            offset += step;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderGroundSquare (143)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderGroundSquare` - `EffectPrimitiveArcs.cpp:437-481`.
+///
+/// `PP_TEXTURETWEEN`'s ground square: `radius = (sin(riseAngle) + 1) *
+/// (distance * 0.1) + distance * 0.8` at `height[0]`, rotated by `rotStart` in
+/// 90 degree steps. `height[2] == 1` selects the glow blend, `height[1]` is the
+/// texture index (a `char` cast in the original).
+pub fn render_ground_square(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let mut angle = slot.rot_start as i32;
+        let radius = (table_sin(slot.rise_angle as i32) + 1.0) * (slot.distance * 0.1) + slot.distance * 0.8;
+        let y = slot.height[0];
+
+        let point = |degrees: i32| {
+            [
+                ((table_cos(degrees) as f64) * radius as f64) as f32,
+                y,
+                ((table_sin(degrees) as f64) * radius as f64) as f32,
+            ]
+        };
+
+        let first = point(angle);
+
+        angle += if angle < 270 { 90 } else { -270 };
+        let second = point(angle);
+
+        angle += if angle + 90 < 360 { 90 } else { -270 };
+        let third = point(angle);
+
+        angle += if angle + 90 < 360 { 90 } else { -270 };
+        let fourth = point(angle);
+
+        let glow = slot.height[2] != 1.0;
+
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [first, second, third, fourth],
+            slot.height[1] as i8 as i32,
+            true,
+            (255, 255, 255),
+            (0.0, 1.0, 0.0, 1.0),
+            if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha },
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderTwinGlowSquares (155)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderTwinGlowSquares` -
+/// `EffectPrimitiveGlowSquares.cpp:7-109`.
+///
+/// Two `distance`-sized squares turned towards the screen and placed at
+/// `vecBPre` and `vecBNow`; the pair is the fork bolt's twin glow. The alphas
+/// live in `height[12]`/`height[13]`, `flag1[0]` selects the colour pair, and
+/// both copies are submitted with `extra = 1` (forced to the near plane, i.e.
+/// depth `1.0` in the port's reverse-z buffer).
+pub fn render_twin_glow_squares(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let mut corners: Quad = [
+            [slot.distance * table_cos(45), 0.0, slot.distance * table_sin(45)],
+            [slot.distance * table_cos(135), 0.0, slot.distance * table_sin(135)],
+            [slot.distance * table_cos(225), 0.0, slot.distance * table_sin(225)],
+            [slot.distance * table_cos(315), 0.0, slot.distance * table_sin(315)],
+        ];
+
+        tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+
+        for (position, height_index) in [(slot.vec_b_pre, 12usize), (slot.vec_b_now, 13usize)] {
+            let alpha = slot.height[height_index] as i32;
+            let alpha = alpha.max(0);
+
+            let corners = corners.map(|corner| add(corner, position));
+            let first_triangle = out.len();
+
+            match slot.flag1[0] {
+                1 => {
+                    // pw = 1 (alpha) then pw = 0 (glow).
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        (alpha / 3) as i16,
+                        corners,
+                        0,
+                        true,
+                        (255, 255, 255),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha as i16,
+                        corners,
+                        0,
+                        true,
+                        (255, 50, 50),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::AlphaOne,
+                    );
+                }
+                2 => emit_tei_rect_18(
+                    state,
+                    out,
+                    alpha as i16,
+                    [corners[1], corners[0], corners[3], corners[2]],
+                    0,
+                    true,
+                    (255, 255, 255),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                ),
+                3 => emit_tei_rect_18(
+                    state,
+                    out,
+                    alpha as i16,
+                    [corners[1], corners[0], corners[3], corners[2]],
+                    0,
+                    true,
+                    (255, 255, 255),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                ),
+                _ => {
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        (alpha / 3) as i16,
+                        corners,
+                        0,
+                        true,
+                        (255, 255, 255),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha as i16,
+                        corners,
+                        0,
+                        true,
+                        (50, 50, 255),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::AlphaOne,
+                    );
+                }
+            }
+
+            // `extra == 1`: the original overwrites z with 1e-09, i.e. draws
+            // the glow on top regardless of the scene depth.
+            for triangle in &mut out[first_triangle..] {
+                triangle.forced_depth = Some(1.0);
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderOrbitSquare (43)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderOrbitSquare` - `EffectPrimitiveRendering.cpp:3838-3925`.
+///
+/// The intimidate orbit square: a `height[1]`-radius square at `rotStart`,
+/// tilted by `height[2]`, offset by `distance` along `fullDisplayAngle` and
+/// `riseAngle`, and placed at the slot's `vecBNow`. `flag1[0]` selects the
+/// colour (2/8/9 also turn the square towards the screen); 6 and 7 are forced
+/// onto the near plane (`extra = 1`).
+pub fn render_orbit_square(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let distance = slot.distance;
+        let full_angle = slot.full_display_angle as i32;
+        let base_x = table_cos(full_angle) * distance - table_sin(full_angle) * 0.0;
+        let offset_y = table_sin(full_angle) * distance + table_cos(full_angle) * 0.0;
+        let offset_x = base_x * table_cos(slot.rise_angle as i32) - table_sin(slot.rise_angle as i32) * 0.0;
+        let offset_z = base_x * table_sin(slot.rise_angle as i32) + table_cos(slot.rise_angle as i32) * 0.0;
+
+        let radius = slot.height[1];
+        let angle1 = slot.rot_start as i32;
+        let tilt = slot.height[2] as i32;
+        let sn = table_sin(tilt);
+        let cs = table_cos(tilt);
+
+        let angle2 = if angle1 + 90 < 360 { angle1 + 90 } else { angle1 - 270 };
+        let angle3 = angle2 + if angle2 + 90 < 360 { 90 } else { -270 };
+        let angle4 = angle3 + if angle3 + 90 < 360 { 90 } else { -270 };
+
+        let tilted = |degrees: i32| {
+            [
+                cs * (radius * table_cos(degrees)) - sn * 0.0,
+                radius * table_sin(degrees),
+                sn * (radius * table_cos(degrees)) + cs * 0.0,
+            ]
+        };
+
+        let mut corners: Quad = [tilted(angle1), tilted(angle2), tilted(angle3), tilted(angle4)];
+        let kind = slot.flag1[0];
+
+        if kind == 2 {
+            let face1 = if angle1 + 90 < 360 { angle1 + 90 } else { angle1 - 270 };
+            let face2 = face1 + if face1 + 90 < 360 { 90 } else { -270 };
+            let face3 = face2 + if face2 + 90 < 360 { 90 } else { -270 };
+
+            let flat = |degrees: i32| [radius * table_cos(degrees), 0.0, radius * table_sin(degrees)];
+
+            corners = [flat(angle1), flat(face1), flat(face2), flat(face3)];
+            tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+        } else if kind == 8 || kind == 9 {
+            let face1 = angle1 + if angle1 < 270 { 90 } else { -270 };
+            let face2 = face1 + if face1 + 90 < 360 { 90 } else { -270 };
+            let face3 = face2 + if face2 + 90 < 360 { 90 } else { -270 };
+
+            let flat = |degrees: i32| [radius * table_cos(degrees), 0.0, radius * table_sin(degrees)];
+
+            corners = [flat(angle1), flat(face1), flat(face2), flat(face3)];
+            tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+        }
+
+        let position = slot.vec_b_now;
+        let offset = [offset_x, offset_y, offset_z];
+        let corners = corners.map(|corner| add(add(corner, offset), position));
+
+        let colour = match kind {
+            0 => (100, 150, 255),
+            1 => (250, 250, 155),
+            2 => (250, 100, 100),
+            3 => (50, 50, 255),
+            4 => (255, 50, 50),
+            5 => (50, 255, 50),
+            6 => (250, 100, 100),
+            7 => (5, 5, 255),
+            8 => (50, 50, 255),
+            9 => (70, 70, 70),
+            _ => continue,
+        };
+
+        let start = out.len();
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            corners,
+            0,
+            false,
+            colour,
+            (0.0, 1.0, 0.0, 1.0),
+            SlotBlend::AlphaOne,
+        );
+
+        // Kinds 6/7 pass `extra = 1` (near plane).
+        if kind == 6 || kind == 7 {
+            for triangle in &mut out[start..] {
+                triangle.forced_depth = Some(1.0);
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderRectUp (64)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRectUp` - `EffectPrimitiveRendering.cpp:5149-5227`.
+///
+/// `TexturedPulseKind`'s vertical box: the slot's `height[0]`/`height[1]`
+/// corners rotated by `rotStart` at `y = -1`, `height[2]` lowering the top
+/// edge, and four side quads (plus two crossing quads for `height[3] == 2`).
+/// `height[3]` selects the colour and the blend.
+pub fn render_rect_up(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let cs1 = table_cos(slot.rot_start as i32);
+        let sn1 = table_sin(slot.rot_start as i32);
+
+        let mut rx = slot.height[0];
+        let mut rz = slot.height[1];
+        let corner = |rx: f32, rz: f32| [cs1 * rx - sn1 * rz, -1.0, sn1 * rx + cs1 * rz];
+
+        let vec_b_pre = corner(rx, rz);
+        rz = -slot.height[1];
+        let vec_b_now = corner(rx, rz);
+        rx = -slot.height[0];
+        let vec_t_now = corner(rx, rz);
+        rz = slot.height[1];
+        let vec_t_pre = corner(rx, rz);
+
+        let y = -1.0 - slot.height[2];
+        let vec1 = [vec_b_pre[0], y, vec_b_pre[2]];
+        let vec2 = [vec_b_now[0], y, vec_b_now[2]];
+        let vec3 = [vec_t_pre[0], y, vec_t_pre[2]];
+        let vec4 = [vec_t_now[0], y, vec_t_now[2]];
+
+        // `height[3]` selects the colour and `pw`. The original leaves the
+        // values uninitialised for any other height; no ported body sets one
+        // (`TexturedPulseKind` only writes 0 and 4), so the port keeps the
+        // `height[3] == 0` white/glow values there and says so.
+        let (colour, glow) = match slot.height[3] {
+            0.0 => ((255, 255, 255), true),
+            1.0 => ((235, 255, 235), false),
+            2.0 => ((80, 80, 80), false),
+            4.0 => {
+                let blue = (slot.height[4] + 0.0 + slot.height[5]) as i32 as u8;
+                ((255, 255, blue), false)
+            }
+            _ => ((255, 255, 255), true),
+        };
+
+        let emit = |out: &mut Vec<SlotTriangle>, alpha: i16, quad: Quad| {
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                quad,
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha },
+            )
+        };
+
+        emit(out, slot.alpha_b, [vec_b_pre, vec_b_now, vec2, vec1]);
+        emit(out, slot.alpha_b, [vec_b_now, vec_t_now, vec4, vec2]);
+        emit(out, slot.alpha_b, [vec_t_now, vec_t_pre, vec3, vec4]);
+        emit(out, slot.alpha_b, [vec_t_pre, vec_b_pre, vec1, vec3]);
+
+        if slot.height[3] == 2.0 {
+            let alpha = (slot.alpha_b as i32 * 2).min(255) as i16;
+            emit(out, alpha, [vec_b_pre, vec_t_now, vec4, vec1]);
+            emit(out, alpha, [vec_b_now, vec_t_pre, vec3, vec2]);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderPentagon (66)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderPentagon` - `EffectPrimitiveRendering.cpp:2342-2422`.
+///
+/// `ForestLight`'s pentagon: six sweep positions (`rotStart + point * 72`,
+/// wrapped once) between the slot's `vecTNow` (bottom ring) and `vecTPre` (top
+/// ring), each `maxHeight` wide. `flag1[0] == 13` selects the blue colour.
+pub fn render_pentagon(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let top = slot.vec_t_pre;
+
+        let mut previous_bottom = [0.0f32; 3];
+        let mut previous_top = [0.0f32; 3];
+
+        for point in 0..=5i32 {
+            let mut angle = slot.rot_start as i32 + point * 72;
+
+            if angle >= 360 {
+                angle -= 360;
+            }
+
+            let dx = slot.max_height * table_cos(angle);
+            let dz = slot.max_height * table_sin(angle);
+
+            let bottom = [dx + slot.vec_t_now[0], slot.vec_t_now[1], dz + slot.vec_t_now[2]];
+            let top_point = [top[0] + dx, top[1], top[2] + dz];
+
+            if point != 0 {
+                let colour = if slot.flag1[0] == 13 { (80, 80, 255) } else { (230, 255, 230) };
+
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    [previous_bottom, bottom, top_point, previous_top],
+                    0,
+                    false,
+                    colour,
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                );
+            }
+
+            previous_bottom = bottom;
+            previous_top = top_point;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderFanBeam (89)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderFanBeam` - `EffectPrimitiveRendering.cpp:3563-3645`.
+///
+/// `TexturedQuadSpin`'s two fans at `rotStart`: a narrow beam (`±2`, `±1` for
+/// mode 2) and a wide one (`±5`, `±2`), both from the slot's `vecBNow`-relative
+/// origin at `height[0]`. `height[4]` selects the colour and the blend; modes 6
+/// are forced onto the near plane (`extra = 1`).
+pub fn render_fan_beam(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let mode = slot.height[4];
+        let length = slot.distance;
+        let lift = slot.height[0];
+        let rot_cos = table_cos(slot.rot_start as i32);
+        let rot_sin = table_sin(slot.rot_start as i32);
+
+        let emit = |out: &mut Vec<SlotTriangle>, half: i32, glow: bool, colour: (u8, u8, u8), extra: bool| {
+            let mut left = slot.rise_angle as i32 - half;
+            if left < 0 {
+                left += 360;
+            }
+            let mut right = slot.rise_angle as i32 + half;
+            if right >= 360 {
+                right -= 360;
+            }
+
+            let corner1 = [
+                rot_cos * (length * table_cos(left)),
+                rot_sin * (length * table_cos(left)) + lift,
+                length * table_sin(left),
+            ];
+            let corner2 = [
+                length * table_cos(right) * rot_cos,
+                length * table_cos(right) * rot_sin + lift,
+                length * table_sin(right),
+            ];
+            let apex = [0.0, lift, 0.0];
+
+            let start = out.len();
+            emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                [corner1, corner2, apex, apex],
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha },
+            );
+
+            if extra {
+                for triangle in &mut out[start..] {
+                    triangle.forced_depth = Some(1.0);
+                }
+            }
+        };
+
+        let narrow = if mode == 2.0 { 1 } else { 2 };
+        let (narrow_colour, narrow_glow, narrow_extra) = if mode == 2.0 {
+            ((0, 0, 250), true, false)
+        } else if mode == 3.0 {
+            ((250, 250, 250), true, false)
+        } else if mode == 4.0 {
+            ((0, 0, 250), true, false)
+        } else if mode == 5.0 {
+            ((50, 50, 50), true, false)
+        } else if mode == 6.0 {
+            ((0, 0, 255), true, true)
+        } else {
+            ((0, 250, 250), true, false)
+        };
+        emit(out, narrow, narrow_glow, narrow_colour, narrow_extra);
+
+        let wide = if mode == 2.0 { 2 } else { 5 };
+        let (wide_colour, wide_glow, wide_extra) = if mode == 2.0 {
+            ((250, 250, 0), true, false)
+        } else if mode == 3.0 {
+            ((250, 250, 250), false, false)
+        } else if mode == 4.0 {
+            ((250, 250, 0), false, false)
+        } else if mode == 5.0 {
+            ((250, 250, 250), false, false)
+        } else if mode == 6.0 {
+            ((50, 50, 255), true, true)
+        } else {
+            ((250, 0, 0), true, false)
+        };
+        emit(out, wide, wide_glow, wide_colour, wide_extra);
+    }
+}
+
+/// The world-space corners of one [`SlotTriangle`] as [`Point3`]s (the shape
+/// the effect renderer takes).
+pub fn triangle_points(triangle: &SlotTriangle) -> [Point3<f32>; 3] {
+    triangle.corners.map(|corner| Point3::new(corner[0], corner[1], corner[2]))
+}
+
+/// The texture coordinates of one [`SlotTriangle`] as [`Vector2`]s.
+pub fn triangle_uvs(triangle: &SlotTriangle) -> [Vector2<f32>; 3] {
+    triangle.texture_coordinates.map(|uv| Vector2::new(uv[0], uv[1]))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::world::effect::port::primitive::PrimitiveRecord;
+
+    fn render(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
+        super::renderer(state)
+    }
+
+    fn state_of(id: PrimitiveId) -> EffectPrimitiveState {
+        EffectPrimitiveState {
+            count: id,
+            position: [0.0, 0.0, 0.0],
+            ..Default::default()
+        }
+    }
+
+    /// `(cos, sin)` of a table angle, so the assertions spell out the same
+    /// arithmetic the renderers use.
+    fn trig(degrees: i32) -> (f32, f32) {
+        (table_cos(degrees), table_sin(degrees))
+    }
+
+    #[test]
+    fn size_color_matches_the_official_table() {
+        // Default: white glow (`blend = 2`).
+        assert_eq!(size_color(9.0), (140, 210, 140, 1.0, true));
+        assert_eq!(size_color(16.0), (20, 255, 20, 1.0, true));
+        // Cases that set `blend = 6` (straight alpha).
+        assert_eq!(size_color(0.0), (255, 255, 255, 1.0, false));
+        assert_eq!(size_color(2.0), (195, 195, 255, 1.0, false));
+        assert_eq!(size_color(13.0), (255, 50, 255, 1.0, false));
+        assert_eq!(size_color(32.0), (0, 0, 0, 1.0, false));
+        // The one case with a texture window.
+        assert_eq!(size_color(100.0), (250, 250, 255, 0.9, false));
+        // Unlisted sizes keep the white glow default.
+        assert_eq!(size_color(5.0), (255, 255, 255, 1.0, true));
+    }
+
+    #[test]
+    fn blend_resolution_follows_the_render_flags() {
+        // `RSF_ADDITIVE` wins.
+        assert_eq!(resolve_blend(3, SlotBlend::Alpha), SlotBlend::Additive);
+        assert_eq!(resolve_blend(0x203, SlotBlend::AlphaOne), SlotBlend::Additive);
+        // `RSF_CUSTOM_BLEND` uses the triangle blend.
+        assert_eq!(resolve_blend(5, SlotBlend::AlphaOne), SlotBlend::AlphaOne);
+        assert_eq!(resolve_blend(5, SlotBlend::Alpha), SlotBlend::Alpha);
+        // Plain `RSF_ALPHA` (and `RSF_NO_DEPTH`) force the alpha queue.
+        assert_eq!(resolve_blend(1, SlotBlend::AlphaOne), SlotBlend::Alpha);
+        assert_eq!(resolve_blend(0x201, SlotBlend::AlphaOne), SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn packed_argb_has_alpha_red_green_blue_in_that_order() {
+        assert_eq!(pack_argb(180, 140, 210, 140), 0xB4_8C_D2_8C);
+        assert_eq!(pack_argb(0, 255, 255, 255), 0x00FF_FFFF);
+        // Negative alphas (which the motion clamps away) saturate.
+        assert_eq!(pack_argb(-5, 0, 0, 0), 0x0000_0000);
+    }
+
+    #[test]
+    fn every_ported_slot_id_dispatches_to_its_official_renderer() {
+        let expected = [
+            (PrimitiveId::PulsingColumns, SlotRenderer::Casting),
+            (PrimitiveId::RippleRings, SlotRenderer::Casting),
+            (PrimitiveId::Circle3d, SlotRenderer::RecordRings),
+            (PrimitiveId::Cylinder3d, SlotRenderer::ArcBand),
+            (PrimitiveId::ParticleUp, SlotRenderer::FieldPanel),
+            (PrimitiveId::QuadHorn3d, SlotRenderer::Pyramid),
+            (PrimitiveId::HeightRamp, SlotRenderer::ArcWalls),
+            (PrimitiveId::RisingFan, SlotRenderer::FacingQuads),
+            (PrimitiveId::RisingFan2, SlotRenderer::Ripple),
+            (PrimitiveId::Halo, SlotRenderer::SizedSquare),
+            (PrimitiveId::Wind, SlotRenderer::RiseArc),
+            (PrimitiveId::TextureSpin, SlotRenderer::GroundSquare),
+            (PrimitiveId::WanderingFlames, SlotRenderer::TwinGlowSquares),
+            (PrimitiveId::Intimidate, SlotRenderer::OrbitSquare),
+            (PrimitiveId::PulseKind, SlotRenderer::RectUp),
+            (PrimitiveId::ForestLight, SlotRenderer::Pentagon),
+            (PrimitiveId::SpinQuad, SlotRenderer::FanBeam),
+        ];
+
+        for (id, expected_renderer) in expected {
+            assert_eq!(render(&state_of(id)), Some(expected_renderer), "id {:?}", id);
+        }
+
+        // Not slot primitives.
+        assert_eq!(render(&state_of(PrimitiveId::Texture2d)), None);
+        assert_eq!(render(&state_of(PrimitiveId::Texture3d)), None);
+        assert_eq!(render(&state_of(PrimitiveId::Particle3d)), None);
+    }
+
+    #[test]
+    fn no_live_slot_and_no_record_draws_nothing() {
+        // `RenderPyramid` and `RenderArcBand` are the exceptions: they build
+        // their geometry from the primitive's own `size`/`heightSize`/radii and
+        // have no slot gate (a zero-size band is still submitted, just
+        // degenerate). Every slot-driven renderer draws nothing without a live
+        // slot, and the record renderer draws nothing without a segment.
+        for id in [
+            PrimitiveId::PulsingColumns,
+            PrimitiveId::RippleRings,
+            PrimitiveId::Circle3d,
+            PrimitiveId::ParticleUp,
+            PrimitiveId::HeightRamp,
+            PrimitiveId::RisingFan,
+            PrimitiveId::RisingFan2,
+            PrimitiveId::Halo,
+            PrimitiveId::Wind,
+            PrimitiveId::TextureSpin,
+            PrimitiveId::WanderingFlames,
+            PrimitiveId::Intimidate,
+            PrimitiveId::PulseKind,
+            PrimitiveId::ForestLight,
+            PrimitiveId::SpinQuad,
+        ] {
+            let mut state = state_of(id);
+            // No segment records: `numSegment` is what the record renderer
+            // iterates, and every body that uses it calls `InitSegment`.
+            state.records.clear();
+            state.num_segment = 0;
+
+            assert!(triangles(&state).is_empty(), "id {:?} drew with no live slot", id);
+        }
+    }
+
+    #[test]
+    fn pyramid_draws_from_the_primitive_without_a_live_slot() {
+        // `RenderPyramid` never inspects the slots; it is the stone slab's
+        // own `size`/`heightSize` geometry (a zero-size slab still submits).
+        let mut state = state_of(PrimitiveId::QuadHorn3d);
+        state.size = 2.0;
+        state.height_size = 5.0;
+
+        assert_eq!(triangles(&state).len(), 4);
+    }
+
+    #[test]
+    fn casting_ring_emits_one_quad_per_sweep_segment() {
+        let mut state = state_of(PrimitiveId::PulsingColumns);
+        state.size = 9.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\heal.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 100,
+            height: [20.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // `fullDisplayAngle / 20 = 18`, `0..=360` is 21 sweep positions and the
+        // first one only seeds `vec1`/`vec3`, so 20 quads = 40 triangles.
+        assert_eq!(triangles.len(), 40);
+    }
+
+    #[test]
+    fn casting_ring_first_quad_has_exact_corners_and_uvs() {
+        let mut state = state_of(PrimitiveId::PulsingColumns);
+        state.size = 9.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\heal.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 100,
+            height: [20.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        let (cos0, sin0) = trig(0);
+        let (cos18, sin18) = trig(18);
+        let (cos90, sin90) = trig(90);
+
+        // order 0 seeds the strip: angle 0, `height[0] = 20`.
+        let rx = cos90 * 20.0;
+        let ry = sin90 * 20.0;
+        let previous_bottom = [cos0 * 10.0, 0.0, sin0 * 10.0];
+        let previous_top = [cos0 * 10.0 + cos0 * rx, -ry, sin0 * 10.0 + sin0 * rx];
+
+        // order 1 (angle 18, `height[1] = 20`).
+        let bottom = [cos18 * 10.0, 0.0, sin18 * 10.0];
+        let top = [cos18 * 10.0 + cos18 * rx, -ry, sin18 * 10.0 + sin18 * rx];
+
+        assert_eq!(triangles[0].corners, [previous_bottom, bottom, top]);
+        // `texPart = order - 1 = 0`: left 0, right 1/21, v = textureV = 1.
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [1.0 / 21.0, 1.0], [
+            1.0 / 21.0,
+            0.0
+        ],]);
+
+        assert_eq!(triangles[1].corners, [previous_top, top, previous_bottom]);
+        assert_eq!(triangles[1].texture_coordinates, [[0.0, 0.0], [1.0 / 21.0, 0.0], [0.0, 1.0],]);
+
+        // size 9 -> (140, 210, 140), alpha 100, custom blend so the size table
+        // decides (glow = true for size 9).
+        assert_eq!(triangles[0].argb, pack_argb(100, 140, 210, 140));
+        assert_eq!(triangles[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(triangles[0].texture, Some("effect\\heal.tga"));
+    }
+
+    #[test]
+    fn casting_ring_texture_window_advances_with_the_height_index() {
+        let mut state = state_of(PrimitiveId::PulsingColumns);
+        state.size = 9.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\heal.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 100,
+            height: [20.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // The last quad is `texPart = 19`: u from 19/21 to 20/21.
+        let last = triangles[triangles.len() - 2];
+        assert_eq!(last.texture_coordinates[0], [19.0 / 21.0, 1.0]);
+        assert_eq!(last.texture_coordinates[1], [20.0 / 21.0, 1.0]);
+        assert_eq!(last.texture_coordinates[2], [20.0 / 21.0, 0.0]);
+    }
+
+    #[test]
+    fn casting_ring_recognises_the_ring_wave_offset_marker() {
+        // maxHeight 6.001 lowers the ring by 2 units (the ring-wave bodies).
+        let mut state = state_of(PrimitiveId::RippleRings);
+        state.size = 16.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\ring_white.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 0.0,
+            rise_angle: 2,
+            max_height: 6.001,
+            alpha_b: 240,
+            height: [0.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        assert_eq!(triangles.len(), 40);
+        // Every corner keeps the -2 base offset; the heights are zero.
+        for triangle in &triangles {
+            for corner in &triangle.corners {
+                assert_eq!(corner[1], -2.0);
+            }
+        }
+    }
+
+    #[test]
+    fn record_rings_sweep_in_arc_angle_steps() {
+        let mut state = state_of(PrimitiveId::Circle3d);
+        state.arc_angle = 90.0;
+        state.size = 2.0;
+        state.render_flag = 1;
+        state.texture = Some("effect\\ring.tga");
+        state.num_segment = 1;
+        state.records = vec![PrimitiveRecord {
+            position: [1.0, 2.0, 3.0],
+            radius: 10.0,
+            color: 0x1122_3344,
+            matrix: crate::world::effect::port::math::Matrix::default(),
+            ..Default::default()
+        }];
+
+        let triangles = triangles(&state);
+
+        // 360 - 90 = 270, so i = 0, 90, 180, 270 -> four steps, two triangles.
+        assert_eq!(triangles.len(), 8);
+
+        let (cos0, sin0) = trig(0);
+        let (cos90, sin90) = trig(90);
+
+        let vec1 = [1.0 + 8.0 * cos0, 2.0 + 8.0 * sin0, 3.0];
+        let vec2 = [1.0 + 8.0 * cos90, 2.0 + 8.0 * sin90, 3.0];
+        let vec3 = [1.0 + 10.0 * cos0, 2.0 + 10.0 * sin0, 3.0];
+        let vec4 = [1.0 + 10.0 * cos90, 2.0 + 10.0 * sin90, 3.0];
+
+        assert_eq!(triangles[0].corners, [vec1, vec2, vec3]);
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [0.25, 1.0], [0.0, 0.0],]);
+        assert_eq!(triangles[1].corners, [vec4, vec3, vec2]);
+        assert_eq!(triangles[1].texture_coordinates, [[0.25, 0.0], [0.0, 0.0], [0.25, 1.0],]);
+        assert_eq!(triangles[0].argb, 0x1122_3344);
+        assert_eq!(triangles[0].texture, Some("effect\\ring.tga"));
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn arc_band_builds_the_flared_cylinder() {
+        let mut state = state_of(PrimitiveId::Cylinder3d);
+        state.arc_angle = 180.0;
+        state.inner_size = 5.0;
+        state.outer_size = 10.0;
+        state.height_size = 4.0;
+        state.argb = 0xAA_BB_CC_DD;
+        state.render_flag = 1;
+        state.texture = Some("effect\\lens2.tga");
+
+        let triangles = triangles(&state);
+
+        // 360 - 180 = 180, so i = 0, 180 -> two steps, two triangles each.
+        assert_eq!(triangles.len(), 4);
+
+        let (cos0, sin0) = trig(0);
+        let (cos180, sin180) = trig(180);
+
+        let vec1 = [5.0 * cos0, 0.0, 5.0 * sin0];
+        let vec2 = [5.0 * cos180, 0.0, 5.0 * sin180];
+        let vec3 = [10.0 * cos0, -4.0, 10.0 * sin0];
+        let vec4 = [10.0 * cos180, -4.0, 10.0 * sin180];
+
+        assert_eq!(triangles[0].corners, [vec1, vec3, vec2]);
+        assert_eq!(triangles[1].corners, [vec4, vec3, vec2]);
+        assert_eq!(triangles[0].argb, 0xAA_BB_CC_DD);
+        assert_eq!(triangles[0].texture, Some("effect\\lens2.tga"));
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn field_panel_draws_a_screen_facing_square() {
+        let mut state = state_of(PrimitiveId::ParticleUp);
+        state.render_flag = 5;
+        state.texture = Some("effect\\pok1.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            full_display_angle: 0,
+            distance: 10.0,
+            flag1: [0; 21],
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+
+        let (cos0, sin0) = trig(0);
+        let (cos90, sin90) = trig(90);
+        let (cos180, sin180) = trig(180);
+        let (cos270, sin270) = trig(270);
+
+        let corners = [
+            [10.0 * cos0, 0.0, 10.0 * sin0],
+            [10.0 * cos90, 0.0, 10.0 * sin90],
+            [10.0 * cos180, 0.0, 10.0 * sin180],
+            [10.0 * cos270, 0.0, 10.0 * sin270],
+        ];
+
+        assert_eq!(built[0].corners, [corners[0], corners[1], corners[2]]);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0],]);
+        assert_eq!(built[1].corners, [corners[3], corners[2], corners[0]]);
+        // `slots[0].flag1[2] == 0` passes `pw = 1`, i.e. plain alpha.
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+
+        // `flag1[2] == 1` is a `pw = 0` glow case.
+        let mut glowing = state;
+        glowing.slots[0].flag1[2] = 1;
+        let glowing_triangles = triangles(&glowing);
+        assert_eq!(glowing_triangles[0].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn field_panel_without_alpha_draws_nothing() {
+        let mut state = state_of(PrimitiveId::ParticleUp);
+        state.render_flag = 5;
+        state.texture = Some("effect\\pok1.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 0,
+            distance: 10.0,
+            ..Default::default()
+        };
+
+        assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn pyramid_has_four_sides_and_a_fifth_step_texture_window() {
+        let mut state = state_of(PrimitiveId::QuadHorn3d);
+        state.size = 2.0;
+        state.height_size = 5.0;
+        state.argb = 0xFFFF_FFFF;
+        state.texture = Some("effect\\stone.bmp");
+
+        let triangles = triangles(&state);
+
+        assert_eq!(triangles.len(), 4);
+
+        assert_eq!(triangles[0].corners, [[-2.0, -2.0, 0.0], [0.0, 0.0, 5.0], [2.0, -2.0, 0.0],]);
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [0.0, 0.0], [0.2, 1.0],]);
+
+        assert_eq!(triangles[1].corners, [[-2.0, -2.0, 0.0], [0.0, 0.0, 5.0], [-2.0, 2.0, 0.0],]);
+        assert_eq!(triangles[1].texture_coordinates, [[0.2, 1.0], [0.2, 0.0], [0.4, 1.0],]);
+
+        assert_eq!(triangles[3].texture_coordinates[0], [0.6, 1.0]);
+        assert_eq!(triangles[3].texture_coordinates[2], [0.8, 1.0]);
+    }
+
+    #[test]
+    fn arc_walls_draws_two_bands_per_live_slot() {
+        let mut state = state_of(PrimitiveId::HeightRamp);
+        state.size = 9.0;
+        state.render_flag = 1;
+        state.texture = Some("effect\\wall.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            alpha_b: 100,
+            height: [
+                20.0, 40.0, 60.0, 80.0, 100.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            ],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // step = 90: five sweep positions, four quads per band, two bands.
+        assert_eq!(triangles.len(), 16);
+    }
+
+    #[test]
+    fn facing_quads_draws_four_copies_per_live_slot() {
+        let mut state = state_of(PrimitiveId::RisingFan);
+        state.render_flag = 1;
+        state.texture = Some("effect\\fan.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            distance: 5.0,
+            flag1: {
+                let mut flag1 = [0; 21];
+                flag1[5] = 7;
+                flag1[11] = 40;
+                flag1[12] = 50;
+                flag1[13] = 60;
+                flag1[14] = 70;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // Four positions, two triangles each.
+        assert_eq!(triangles.len(), 8);
+        // `flag1[5] == 7` is (250, 70, 100).
+        assert_eq!(triangles[0].argb, pack_argb(80, 250, 70, 100));
+        assert_eq!(triangles[2].argb, pack_argb(100, 250, 70, 100));
+        assert_eq!(triangles[4].argb, pack_argb(120, 250, 70, 100));
+        assert_eq!(triangles[6].argb, pack_argb(140, 250, 70, 100));
+    }
+
+    #[test]
+    fn ripple_draws_ten_rings_when_every_height_is_positive() {
+        let mut state = state_of(PrimitiveId::RisingFan2);
+        state.render_flag = 1;
+        state.texture = Some("effect\\ripple.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            distance: 3.0,
+            flag1: [0; 21],
+            height: [
+                0.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            ],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // ring = 10..1, all alphas positive: ten quads.
+        assert_eq!(triangles.len(), 20);
+        // The outermost ring (ring 10) is the bright blue.
+        assert_eq!(triangles[0].argb, pack_argb(10, 55, 55, 255));
+        // The others are the dim blue.
+        assert_eq!(triangles[2].argb, pack_argb(10, 5, 5, 255));
+    }
+
+    #[test]
+    fn sized_square_uses_the_mode_table_and_the_rot_start() {
+        let mut state = state_of(PrimitiveId::Halo);
+        state.size = 0.0;
+        state.render_flag = 1;
+        state.texture = Some("effect\\halo.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 0,
+            alpha_b: 90,
+            height: [3.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // size 0 -> mode 0, one quad.
+        assert_eq!(triangles.len(), 2);
+
+        // radius = (sin(0) + 1) * (10 * 0.1) + 10 * 0.8 = 9.
+        let (cos0, sin0) = trig(0);
+        let (cos90, sin90) = trig(90);
+        assert_eq!(triangles[0].corners[0], [9.0 * cos0, 3.0, 9.0 * sin0]);
+        assert_eq!(triangles[0].corners[1], [9.0 * cos90, 3.0, 9.0 * sin90]);
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn ground_square_follows_the_rot_start_and_the_glow_selector() {
+        let mut state = state_of(PrimitiveId::TextureSpin);
+        state.render_flag = 1;
+        state.texture = Some("effect\\spin.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 0,
+            alpha_b: 90,
+            height: {
+                let mut height = [0.0; 21];
+                height[0] = 2.0;
+                height[1] = 0.0;
+                height[2] = 0.0;
+                height
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        assert_eq!(built[0].corners[0], [9.0, 2.0, 0.0]);
+        // height[2] != 1 is the glow blend, but render_flag 1 (no
+        // `RSF_CUSTOM_BLEND`) forces the alpha queue.
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        let mut glowing = state;
+        glowing.render_flag = 5;
+        assert_eq!(triangles(&glowing)[0].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn twin_glow_squares_are_forced_onto_the_near_plane() {
+        let mut state = state_of(PrimitiveId::WanderingFlames);
+        state.render_flag = 1;
+        state.texture = Some("effect\\fork.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            distance: 5.0,
+            vec_b_pre: [1.0, 0.0, 2.0],
+            vec_b_now: [3.0, 0.0, 4.0],
+            height: {
+                let mut height = [0.0; 21];
+                height[12] = 90.0;
+                height[13] = 60.0;
+                height
+            },
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // flag1[0] == 0 draws two quads per copy, at vecBPre and vecBNow.
+        assert_eq!(triangles.len(), 8);
+        assert!(triangles.iter().all(|triangle| triangle.forced_depth == Some(1.0)));
+
+        let (cos45, sin45) = trig(45);
+        // First copy: vecBPre + corner, then `render.position` (zero).
+        assert_eq!(triangles[0].corners[0], [1.0 + 5.0 * cos45, 0.0, 2.0 + 5.0 * sin45]);
+        // alphas: alpha/3 and alpha for height[12] = 90.
+        assert_eq!(triangles[0].argb, pack_argb(30, 255, 255, 255));
+        assert_eq!(triangles[2].argb, pack_argb(90, 50, 50, 255));
+    }
+
+    #[test]
+    fn rise_arc_emits_one_strip_per_height_sample() {
+        let mut state = state_of(PrimitiveId::Wind);
+        state.render_flag = 1;
+        state.texture = Some("effect\\wind.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 42,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 100,
+            height: [20.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // step = 42 / 21 = 2, offsets 0..40 (21 positions), the first seeds.
+        assert_eq!(triangles.len(), 40);
+        // `maxHeight` lowers the whole strip by 40.
+        assert_eq!(triangles[0].corners[0][1], -40.0);
+    }
+
+    #[test]
+    fn orbit_square_builds_the_tilted_square_at_the_slot_position() {
+        let mut state = state_of(PrimitiveId::Intimidate);
+        state.render_flag = 1;
+        state.texture = Some("effect\\orbit.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            distance: 10.0,
+            full_display_angle: 0,
+            rise_angle: 0,
+            rot_start: 0,
+            height: {
+                let mut height = [0.0; 21];
+                height[1] = 5.0;
+                height[2] = 0.0;
+                height
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // `flag1[0] == 0` draws one quad.
+        assert_eq!(built.len(), 2);
+
+        // baseX = distance = 10, offsetX = baseX * cos(riseAngle) = 10,
+        // offsetY/offsetZ = 0, position = 0.
+        let offset = [10.0, 0.0, 0.0];
+        let point = |degrees: i32| [offset[0] + 5.0 * table_cos(degrees), 5.0 * table_sin(degrees), offset[2]];
+        assert_eq!(built[0].corners[0], point(0));
+        assert_eq!(built[0].corners[1], point(90));
+        assert_eq!(built[0].argb, pack_argb(100, 100, 150, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn rect_up_draws_four_sides_and_the_two_crossing_quads() {
+        let mut state = state_of(PrimitiveId::PulseKind);
+        state.render_flag = 5;
+        state.texture = Some("effect\\pulse.tga");
+        let mut height = [0.0; 21];
+        height[0] = 5.0;
+        height[1] = 5.0;
+        height[2] = 2.0;
+        height[3] = 0.0;
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            rot_start: 0,
+            height,
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 8);
+        // y = -1 - height[2] = -3; the first side is the quad
+        // (BPre, BNow, vec2, vec1), emitted as (0, 1, 2) then (3, 2, 0).
+        assert_eq!(built[0].corners, [[5.0, -1.0, 5.0], [5.0, -1.0, -5.0], [5.0, -3.0, -5.0],]);
+        assert_eq!(built[1].corners, [[5.0, -3.0, 5.0], [5.0, -3.0, -5.0], [5.0, -1.0, 5.0],]);
+        // height[3] == 0 is the white glow.
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn pentagon_sweeps_six_points_between_the_two_rings() {
+        let mut state = state_of(PrimitiveId::ForestLight);
+        state.render_flag = 1;
+        state.texture = Some("effect\\forest.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            rot_start: 0,
+            max_height: 5.0,
+            vec_t_now: [0.0, 0.0, 0.0],
+            vec_t_pre: [0.0, 10.0, 0.0],
+            flag1: {
+                let mut flag1 = [0; 21];
+                flag1[0] = 13;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // point 0 seeds, points 1..=5 draw.
+        assert_eq!(built.len(), 10);
+        let (cos72, sin72) = trig(72);
+        assert_eq!(built[0].corners[0], [5.0, 0.0, 0.0]);
+        assert_eq!(built[0].corners[1], [5.0 * cos72, 0.0, 5.0 * sin72]);
+        assert_eq!(built[0].corners[2], [5.0 * cos72, 10.0, 5.0 * sin72]);
+        assert_eq!(built[0].argb, pack_argb(100, 80, 80, 255));
+    }
+
+    #[test]
+    fn fan_beam_draws_the_narrow_and_the_wide_fan() {
+        let mut state = state_of(PrimitiveId::SpinQuad);
+        state.render_flag = 5;
+        state.texture = Some("effect\\fan.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            distance: 10.0,
+            rise_angle: 0,
+            rot_start: 0,
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // Two fans, one quad each.
+        assert_eq!(built.len(), 4);
+
+        // First fan: +-2 degrees; vec1 uses the rotated cosine for x, the
+        // rotated sine for y and the raw sine for z.
+        let (cos358, sin358) = trig(358);
+        let (cos2, sin2) = trig(2);
+        assert_eq!(built[0].corners[0], [10.0 * cos358, 0.0, 10.0 * sin358]);
+        assert_eq!(built[0].corners[1], [10.0 * cos2, 0.0, 10.0 * sin2]);
+        assert_eq!(built[0].corners[2], [0.0, 0.0, 0.0]);
+        // mode 0 -> dim cyan for both fans, glow.
+        assert_eq!(built[0].argb, pack_argb(100, 0, 250, 250));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[2].argb, pack_argb(100, 250, 0, 0));
+    }
+
+    #[test]
+    fn four_live_slots_are_kept_under_the_official_triangle_cap() {
+        let mut state = state_of(PrimitiveId::PulsingColumns);
+        state.size = 9.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\heal.tga");
+        state.slots = [EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 10.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 100,
+            height: [20.0; 21],
+            ..Default::default()
+        }; 4];
+
+        let triangles = triangles(&state);
+
+        assert_eq!(triangles.len(), 160);
+        assert!(triangles.len() < MAX_TRIANGLES_PER_PRIMITIVE);
+    }
+}
