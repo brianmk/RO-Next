@@ -123,6 +123,16 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | prim 155 `PrimWanderingFlames` + `CRagEffect::TexturedForkBolt` (ported, unregistered) | `EffectPrimitiveMotion.cpp:7353-7403`, `RagEffect.cpp:7268-7321` | 12 |
 | `ParticleTime` (`EF_SMA_READY`), `StoneWall` (`EF_EARTHWALL`), `Hit3` (`EF_HIT3`) | `RagEffect.cpp:12121-12177`, `13088-13124`, `863-935` | 9 |
 | **client wiring**: `port/visual.rs` (`PortedVisual` over `EffectBase`), `port/skill_map.rs` (45 skill->id mappings), opt-in hook in `client/effects.rs` | `tools/gen_ported_skill_map.py`, `RO_NEXT_PORTED_FX=1` | 10 |
+| **world-space rendering**: `port/render3d.rs` for `PP_3DTEXTURE` (15) and `PP_3DCROSSTEXTURE` (16) via `render_effect_with_depth`, official corner order/UVs/pattern bits, frame selection | `EffectPrimitiveRendering.cpp:116`, `:6172` | 19 |
+
+### Rendering coverage
+
+| primitive family | draws in client |
+| --- | --- |
+| `PP_2DTEXTURE` (0), `PP_2DFLASH` (3) | yes (screen quads) |
+| `PP_3DTEXTURE` (15), `PP_3DCROSSTEXTURE` (16) | yes (world quads, per-corner depth) |
+| sprite particles (5/6/7, `.spr` bodies) | no - `TODO(sprite pass)`: needs sprite/action loaders and `RenderSegmentSprites2` projection |
+| slot/record prims (59, 60, 62, 63, 82, 89, 130/131, 137, 143, 155, 9, 12, 13, 39, 43, 64, 66) | no - needs their official slot/triangle renderers |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
