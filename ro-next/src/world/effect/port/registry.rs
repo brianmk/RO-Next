@@ -443,10 +443,15 @@ mod tests {
     }
 
     #[test]
-    fn ported_ids_include_the_str_driven_bodies() {
+    fn ported_ids_are_unique_and_include_the_str_driven_bodies() {
         let ids = ported_ids();
 
-        assert_eq!(ids.len(), 203, "201 registered ids + Signum + Cart Revolution");
+        // No magic total: the batches grow the registry, so the assertion is
+        // about the invariants (uniqueness + the str-driven ids) instead of a
+        // literal count that every new body would have to edit.
+        let unique: std::collections::HashSet<_> = ids.iter().copied().collect();
+        assert_eq!(unique.len(), ids.len(), "ported_ids() must not repeat an id");
+
         assert!(ids.iter().any(|&id| matches!(id, EffectId::Signum)));
         assert!(ids.iter().any(|&id| matches!(id, EffectId::Cartrevolution)));
     }
