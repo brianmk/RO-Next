@@ -449,8 +449,12 @@ mod tests {
         // No magic total: the batches grow the registry, so the assertion is
         // about the invariants (uniqueness + the str-driven ids) instead of a
         // literal count that every new body would have to edit.
-        let unique: std::collections::HashSet<_> = ids.iter().copied().collect();
-        assert_eq!(unique.len(), ids.len(), "ported_ids() must not repeat an id");
+        // `EffectId` is not `Hash`/`Eq`, so compare by its debug name.
+        let mut names: Vec<String> = ids.iter().map(|id| format!("{id:?}")).collect();
+        names.sort();
+        let before = names.len();
+        names.dedup();
+        assert_eq!(names.len(), before, "ported_ids() must not repeat an id");
 
         assert!(ids.iter().any(|&id| matches!(id, EffectId::Signum)));
         assert!(ids.iter().any(|&id| matches!(id, EffectId::Cartrevolution)));
