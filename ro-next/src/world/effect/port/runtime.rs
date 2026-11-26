@@ -37,6 +37,13 @@ pub struct EffectRuntime {
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
     pub position: [f32; 3],
+    /// `state.deltaPos4` equivalents the effect bodies own: the offset to the
+    /// target (`deltaPos`), the travelled vector (`deltaPos3`), the facing
+    /// (`render.angle`) and the `flag` used by the projectile-style bodies.
+    pub target_offset: [f32; 3],
+    pub delta_pos3: [f32; 3],
+    pub render_angle: f32,
+    pub flag: i32,
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
@@ -54,6 +61,10 @@ impl EffectRuntime {
             lifetime,
             screen,
             position: [0.0; 3],
+            target_offset: [0.0; 3],
+            delta_pos3: [0.0; 3],
+            render_angle: 0.0,
+            flag: 0,
             primitives: Vec::new(),
             sounds: Vec::new(),
             rng: EffectRng::new(seed),
@@ -79,6 +90,34 @@ impl EffectRuntime {
 
     pub fn primitive_mut(&mut self, index: usize) -> &mut EffectPrimitiveState {
         &mut self.primitives[index].state
+    }
+
+    /// `CRenderObject::Face(x, z)` - `ActorGeometry.cpp:47-64`.
+    pub fn face(&mut self, x: f32, z: f32) {
+        let delta_x = x - self.position[0];
+        let delta_z = z - self.position[2];
+
+        if delta_x != 0.0 || delta_z != 0.0 {
+            let mut angle = ((delta_x as f64).atan2((-delta_z) as f64) as f32 / 3.141592f32) * 180.0;
+            self.render_angle = angle;
+
+            if angle >= 360.0 {
+                angle -= 360.0;
+                self.render_angle = angle;
+            }
+
+            if angle < 0.0 {
+                self.render_angle = angle + 360.0;
+            }
+        }
+    }
+
+    /// `CRenderObject::CalcDist(x, z)` - `ActorGeometry.cpp:66-70`.
+    pub fn calc_dist(&self, x: f32, z: f32) -> f32 {
+        let delta_x = x - self.position[0];
+        let delta_z = z - self.position[2];
+
+        (delta_z * delta_z + delta_x * delta_x).sqrt()
     }
 
     /// `PlayEffectWaveInline(*this, name)`.

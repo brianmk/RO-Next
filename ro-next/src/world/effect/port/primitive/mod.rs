@@ -13,6 +13,7 @@
 pub mod circle;
 pub mod circle3d;
 pub mod flash;
+pub mod quadhorn;
 pub mod texture2d;
 
 use super::angles::Angles;
@@ -67,6 +68,8 @@ pub enum PrimitiveId {
     Circle3d,
     /// `PP_3DSPHERE` (14)
     Sphere3d,
+    /// `PP_3DQUADHORN` (9)
+    QuadHorn3d,
 }
 
 impl PrimitiveId {
@@ -78,6 +81,7 @@ impl PrimitiveId {
             Self::Circle2d => 4,
             Self::Circle3d => 12,
             Self::Sphere3d => 14,
+            Self::QuadHorn3d => 9,
         }
     }
 }
@@ -150,6 +154,9 @@ pub struct EffectPrimitiveState {
     /// `/* 029C */ changeSpeed`, `/* 02A0 */ changeAccel`
     pub change_speed: f32,
     pub change_accel: f32,
+    /// `/* 02A4 */ changeSpeed3d`, `/* 02B0 */ changeAccel3d`
+    pub change_speed3d: [f32; 3],
+    pub change_accel3d: [f32; 3],
     /// `/* 02CC */ changeHeightSpeed`, `/* 02D0 */ changeHeightAccel`
     pub change_height_speed: f32,
     pub change_height_accel: f32,
@@ -211,6 +218,8 @@ pub struct EffectPrimitiveState {
     pub inner_accel: f32,
     /// `/* 0160 */ transform` - 12-float affine matrix.
     pub transform: Matrix,
+    /// `/* 0190 */ rotTransform`
+    pub rot_transform: Matrix,
     /// `/* 01F4 */ numSegment`
     pub num_segment: i32,
     /// `/* 06B8 */ records[50]`
@@ -267,6 +276,8 @@ impl Default for EffectPrimitiveState {
             arc_angle: 36.0,
             change_speed: 0.0001,
             change_accel: 0.0001,
+            change_speed3d: [0.0001; 3],
+            change_accel3d: [0.0001; 3],
             change_height_speed: 0.0001,
             change_height_accel: 0.0001,
             change_width_accel: 0.0001,
@@ -308,6 +319,7 @@ impl Default for EffectPrimitiveState {
             inner_speed: 0.0,
             inner_accel: 0.0,
             transform: Matrix::default(),
+            rot_transform: Matrix::default(),
             num_segment: 1,
             records: Vec::new(),
             position: [0.0; 3],
@@ -356,6 +368,10 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::Texture2d => texture2d::on_process(self, angles, master, rng),
+            PrimitiveId::QuadHorn3d => {
+                quadhorn::on_process(self, angles, master);
+                true
+            }
         };
 
         if !alive {

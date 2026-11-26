@@ -27,14 +27,18 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::StoneCurseRing` (`EF_OVERTHRUST`) | `RagEffect.cpp:10441-10470` | 2 |
 | `PP_2DTEXTURE` (`Move2DPrimitive`) | `EffectPrimitiveMotion.cpp:7719` | 4 |
 | `CRagEffect::Endure` (`EF_ENDURE`) | `RagEffect.cpp:224-284` | 2 |
+| `PP_3DQUADHORN` (`AdvanceEffectPrimitive`) | `EffectPrimitiveMotion.cpp:543` | 3 |
+| effect facing/distance (`Face`, `CalcDist`, `RotatedForward`) | `ActorGeometry.cpp:47`, `RagEffect.cpp:136` | - |
+| `CRagEffect::FrostDiver` (`EF_FROSTDIVER`/`2`/`3`) | `RagEffect.cpp:456-529` | 3 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 59 tests, all green. Effect bodies ported: **7 / 236**.
+Total: 65 tests, all green. Effect bodies ported: **8 / 236**.
 
 ## Next (W2/W3/W6)
 
 1. `PP_3DTEXTURE` (`MoveEffectPrimitive`) - the 3-D textured sprite family; needs
    the camera/terrain context that `MoveEffectPrimitive` reads.
+2. `PP_3DPARTICLE` - sprite particles, unblocks Blessing and the buff family.
 2. Wire `str_player` into `EffectWithLight`: replace the interpolating
    `FrameTimer` path and the buggy key map in `loaders/effect/mod.rs`.
 3. `EF_SIGNUM` and `EF_OVERTHRUST` (both are now expressible with the primitives
