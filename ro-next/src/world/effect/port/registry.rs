@@ -14,6 +14,7 @@ use ragnarok_packets::EffectId;
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
     Aspersio, BlitzBeat, BottomCarpet, RemoveTrap, Sphere, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, TeleportSpiral, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TexturedPulse, WhiteSpray,
+    StormKick,
 };
 use super::runtime::PortedEffect;
 
@@ -47,6 +48,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::registry_batch_e::spawn(effect) {
+        return Some(body);
+    }
+
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
@@ -69,6 +74,15 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BigPortal => Box::new(MagicRing::new(0, 2000)),
         EffectId::BigPortal2 => Box::new(MagicRing::new(1, 99_999_999)),
         EffectId::Stormgust => Box::new(StormGust::default()),
+        // `CRagEffect`'s Storm Kick dispatch (`RagEffect.cpp:23663-23736`).
+        // `EF_STORMKICK4/5` stay blocked: they call the unported
+        // `WhiteLightTrail`/`SetFrameSequence` helpers.
+        EffectId::Stormkick => Box::new(StormKick::new(EffectId::Stormkick)),
+        EffectId::Stormkick1 => Box::new(StormKick::new(EffectId::Stormkick1)),
+        EffectId::Stormkick2 => Box::new(StormKick::new(EffectId::Stormkick2)),
+        EffectId::Stormkick3 => Box::new(StormKick::new(EffectId::Stormkick3)),
+        EffectId::Stormkick6 => Box::new(StormKick::new(EffectId::Stormkick6)),
+        EffectId::Stormkick7 => Box::new(StormKick::new(EffectId::Stormkick7)),
         EffectId::Fireball3 => Box::new(RocketPunch::new(false, 100)),
         EffectId::Fireball6 => Box::new(RocketPunch::new(true, 100)),
         EffectId::Sprinklesand => Box::new(SprinkleSand::new(20, 300)),
@@ -183,6 +197,7 @@ pub fn ported_ids() -> Vec<EffectId> {
     ids.extend_from_slice(super::registry_batch_b::ids());
     ids.extend_from_slice(super::registry_batch_c::ids());
     ids.extend_from_slice(super::registry_batch_d::ids());
+    ids.extend_from_slice(super::registry_batch_e::ids());
 
     ids.extend_from_slice(&[
         EffectId::Hit2,
@@ -211,6 +226,12 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::BigPortal,
         EffectId::BigPortal2,
         EffectId::Stormgust,
+        EffectId::Stormkick,
+        EffectId::Stormkick1,
+        EffectId::Stormkick2,
+        EffectId::Stormkick3,
+        EffectId::Stormkick6,
+        EffectId::Stormkick7,
         EffectId::Fireball3,
         EffectId::Fireball6,
         EffectId::Sprinklesand,
@@ -339,6 +360,12 @@ mod tests {
             (EffectId::BigPortal, 2000),
             (EffectId::BigPortal2, 99_999_999),
             (EffectId::Stormgust, 9999),
+            (EffectId::Stormkick, 100),
+            (EffectId::Stormkick1, 100),
+            (EffectId::Stormkick2, 100),
+            (EffectId::Stormkick3, 100),
+            (EffectId::Stormkick6, 100),
+            (EffectId::Stormkick7, 1000),
             (EffectId::Fireball3, 100),
             (EffectId::Fireball6, 100),
             (EffectId::Sprinklesand, 300),

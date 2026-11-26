@@ -32,6 +32,7 @@
 //! | 66 | `RenderPentagon` | forest light |
 //! | 89 | `RenderFanBeam` | textured quad spin |
 //! | 82 | `RenderTeiFacingSlots` | `TexturedAura` - glows, status auras, map spheres, tarot cards |
+//! | 103 | `RenderStackedRings` | `TexturedMark` - the Storm Kick rings |
 //!
 //! ## Projection and depth
 //!
@@ -278,6 +279,8 @@ pub enum SlotRenderer {
     AuraGlow,
     /// `RenderHalfSphere` - id 104.
     HalfSphere,
+    /// `RenderStackedRings` - prim 103 (`TexturedMark`).
+    StackedRings,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -302,6 +305,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::SpinQuad => SlotRenderer::FanBeam,
         PrimitiveId::AuraGlow => SlotRenderer::AuraGlow,
         PrimitiveId::HalfSphere => SlotRenderer::HalfSphere,
+        PrimitiveId::StackedRings => SlotRenderer::StackedRings,
         _ => return None,
     })
 }
@@ -343,6 +347,7 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::FanBeam) => render_fan_beam(state, &mut out),
         Some(SlotRenderer::AuraGlow) => render_tei_facing_slots(state, context, &mut out),
         Some(SlotRenderer::HalfSphere) => render_half_sphere(state, &mut out),
+        Some(SlotRenderer::StackedRings) => render_stacked_rings(state, &mut out),
         None => {}
     }
 
@@ -2027,6 +2032,115 @@ pub fn render_half_sphere(state: &EffectPrimitiveState, out: &mut Vec<SlotTriang
 }
 
 // ---------------------------------------------------------------------------
+// RenderStackedRings (103)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderStackedRings` -
+/// `EffectPrimitiveRendering.cpp:3645-3737`.
+///
+/// `TexturedMark`'s stacked rings: for each live slot, `flag1[0]` rings (10 by
+/// default, 14 for the tall kind 10) spaced 45 degrees apart, descending by
+/// `height[1]` and shrinking by `(2.2 - i * 0.2) * distance` per ring. Ring 0
+/// sits at `-height[0]`; each ring is a quad whose top edge (`vec3`/`vec4`) is
+/// one unit above its bottom edge (`vec1`/`vec2`), submitted through the
+/// 18-argument `RenderTeiRect` with `f1 = 0` (the corners are relative to the
+/// primitive's `render.position`).
+///
+/// `flag1[4]` (the `TexturedMark` kind) selects the colour and blend: `pw = 0`
+/// is the `ONE` destination blend ([`SlotBlend::AlphaOne`]), `pw = 1` the
+/// straight alpha blend ([`SlotBlend::Alpha`]). Kind 11 submits two overlaid
+/// quads (white at `alphaB / 3`, red at `alphaB`); kind 8 divides the alpha by
+/// 10. Kinds 9 and every other value emit nothing, exactly like the original's
+/// empty `default`.
+pub fn render_stacked_rings(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let mut y = -slot.height[0];
+        let mut radius = slot.max_height;
+
+        for i in 0..slot.flag1[0].max(0) as i32 {
+            if i > 0 {
+                y += slot.height[1];
+                radius -= (2.2 - i as f32 * 0.2) * slot.distance;
+            }
+
+            // `short angle1 = rotStart + 45 * i;`
+            // `if (angle1 >= 360) angle1 = (unsigned short)angle1 % 360;`
+            let mut angle1 = slot.rot_start as i32 + 45 * i;
+            if angle1 >= 360 {
+                angle1 = (angle1 as u16 % 360) as i32;
+            }
+
+            let vec1 = [radius * table_cos(angle1), y - 1.0, radius * table_sin(angle1)];
+
+            // The remaining corners only ever subtract one full turn; the
+            // original applies the same single-wrap to each.
+            let mut angle2 = angle1 + 90;
+            if angle2 >= 360 {
+                angle2 -= 360;
+            }
+
+            let vec2 = [radius * table_cos(angle2), y - 1.0, radius * table_sin(angle2)];
+
+            let mut angle3 = angle2 + 90;
+            if angle3 >= 360 {
+                angle3 -= 360;
+            }
+
+            let vec3 = [radius * table_cos(angle3), y, radius * table_sin(angle3)];
+
+            let mut angle4 = angle3 + 90;
+            if angle4 >= 360 {
+                angle4 -= 360;
+            }
+
+            let vec4 = [radius * table_cos(angle4), y, radius * table_sin(angle4)];
+
+            let quad = [vec1, vec2, vec3, vec4];
+            let alpha = slot.alpha_b;
+
+            // `switch (slot.flag1[4])`
+            match slot.flag1[4] {
+                // `0, 0, 0, 50, 50, 255, 0, 1, 0, 1, 0`
+                0 => stacked_ring(out, state, alpha, quad, (50, 50, 255), SlotBlend::AlphaOne),
+                // `1, 0, 0, 164, 136, 55, ...`
+                1 => stacked_ring(out, state, alpha, quad, (164, 136, 55), SlotBlend::Alpha),
+                2 => stacked_ring(out, state, alpha, quad, (155, 255, 155), SlotBlend::Alpha),
+                3 => stacked_ring(out, state, alpha, quad, (130, 130, 255), SlotBlend::Alpha),
+                4 => stacked_ring(out, state, alpha, quad, (255, 50, 50), SlotBlend::Alpha),
+                5 => stacked_ring(out, state, alpha, quad, (5, 5, 5), SlotBlend::Alpha),
+                6 => stacked_ring(out, state, alpha, quad, (255, 255, 255), SlotBlend::Alpha),
+                7 => stacked_ring(out, state, alpha, quad, (255, 125, 255), SlotBlend::Alpha),
+                // `static_cast<short>(alphaB / 10)`
+                8 => stacked_ring(out, state, alpha / 10, quad, (225, 225, 255), SlotBlend::Alpha),
+                // `0, 0, 0, 125, 125, 255, ...`
+                10 => stacked_ring(out, state, alpha, quad, (125, 125, 255), SlotBlend::AlphaOne),
+                11 => {
+                    // `static_cast<short>(alphaB / 3)` white, then `alphaB` red.
+                    stacked_ring(out, state, alpha / 3, quad, (255, 255, 255), SlotBlend::Alpha);
+                    stacked_ring(out, state, alpha, quad, (255, 55, 55), SlotBlend::AlphaOne);
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+/// One 18-argument `RenderTeiRect` call of [`render_stacked_rings`].
+///
+/// Every call passes `f1 = 0` (add `render.position` to the corners),
+/// `tn = 0` (the primitive's first texture), and the full `0, 1` texture
+/// window.
+fn stacked_ring(out: &mut Vec<SlotTriangle>, state: &EffectPrimitiveState, alpha: i16, quad: Quad, colour: (u8, u8, u8), blend: SlotBlend) {
+    emit_tei_rect_18(state, out, alpha, quad, 0, true, colour, (0.0, 1.0, 0.0, 1.0), blend);
+}
+
+// ---------------------------------------------------------------------------
 // RenderPentagon (66)
 // ---------------------------------------------------------------------------
 
@@ -2696,6 +2810,7 @@ mod tests {
             (PrimitiveId::SpinQuad, SlotRenderer::FanBeam),
             (PrimitiveId::AuraGlow, SlotRenderer::AuraGlow),
             (PrimitiveId::HalfSphere, SlotRenderer::HalfSphere),
+            (PrimitiveId::StackedRings, SlotRenderer::StackedRings),
         ];
 
         for (id, expected_renderer) in expected {
@@ -2733,6 +2848,7 @@ mod tests {
             PrimitiveId::SpinQuad,
             PrimitiveId::AuraGlow,
             PrimitiveId::HalfSphere,
+            PrimitiveId::StackedRings,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -3994,5 +4110,144 @@ mod tests {
         }
 
         assert_eq!(triangles(&state).len(), MAX_TRIANGLES_PER_PRIMITIVE);
+    }
+
+    // -----------------------------------------------------------------
+    // RenderStackedRings (103)
+    // -----------------------------------------------------------------
+
+    /// `TexturedMark`'s default slot: 10 rings, 40 radius, 2 spacing,
+    /// `height[0] = 50`, `height[1] = 5`.
+    fn stacked_rings_state(kind: i8) -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::StackedRings);
+        // `TexturedMark` sets `RSF_ALPHA | RSF_CUSTOM_BLEND`.
+        state.render_flag = 1 | 4;
+        state.texture = Some("effect\\storm2.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            max_height: 40.0,
+            distance: 2.0,
+            height: {
+                let mut height = [0.0f32; 21];
+                height[0] = 50.0;
+                height[1] = 5.0;
+                height
+            },
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[0] = 10;
+                flag1[4] = kind;
+                flag1
+            },
+            ..Default::default()
+        };
+        state
+    }
+
+    #[test]
+    fn stacked_rings_emits_two_triangles_per_ring() {
+        assert_eq!(triangles(&stacked_rings_state(0)).len(), 20);
+    }
+
+    #[test]
+    fn stacked_rings_first_ring_uses_the_official_corners_and_colour() {
+        let mut state = stacked_rings_state(0);
+        state.position = [1.0, 2.0, 3.0];
+
+        let built = triangles(&state);
+
+        // Ring 0: `y = -height[0] = -50`, `radius = maxHeight = 40`,
+        // `angle1..4 = 0, 90, 180, 270`; the bottom edge (`vec1`/`vec2`) is one
+        // unit below the top edge (`vec3`/`vec4`). The tables are read with the
+        // same integer indices the renderer uses.
+        let radius = 40.0f32;
+        let vec1 = [radius * table_cos(0), -51.0, radius * table_sin(0)];
+        let vec2 = [radius * table_cos(90), -51.0, radius * table_sin(90)];
+        let vec3 = [radius * table_cos(180), -50.0, radius * table_sin(180)];
+
+        assert_eq!(built[0].corners[0], [vec1[0] + 1.0, vec1[1] + 2.0, vec1[2] + 3.0]);
+        assert_eq!(built[0].corners[1], [vec2[0] + 1.0, vec2[1] + 2.0, vec2[2] + 3.0]);
+        assert_eq!(built[0].corners[2], [vec3[0] + 1.0, vec3[1] + 2.0, vec3[2] + 3.0]);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(built[0].argb, pack_argb(100, 50, 50, 255));
+        assert_eq!(built[0].texture, Some("effect\\storm2.tga"));
+        // Kind 0 passes `pw = 0`, i.e. the `ONE` destination blend.
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].forced_depth, None);
+
+        // The second triangle is `(vec4, vec3, vec1)`.
+        let vec4 = [radius * table_cos(270), -50.0, radius * table_sin(270)];
+        assert_eq!(built[1].corners[0], [vec4[0] + 1.0, vec4[1] + 2.0, vec4[2] + 3.0]);
+        assert_eq!(built[1].corners[1], built[0].corners[2]);
+        assert_eq!(built[1].corners[2], built[0].corners[0]);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+    }
+
+    #[test]
+    fn stacked_rings_second_ring_rises_height_one_and_shrinks_by_distance() {
+        let state = stacked_rings_state(0);
+
+        let built = triangles(&state);
+
+        // Ring 1: `y = -50 + height[1] = -45`,
+        // `radius = 40 - (2.2 - 0.2) * distance = 36`, `angle1 = 45`.
+        let radius = 36.0f32;
+        let expected = [radius * table_cos(45), -46.0, radius * table_sin(45)];
+
+        assert_eq!(built[2].corners[0], expected);
+    }
+
+    #[test]
+    fn stacked_rings_kind_selects_the_official_colour_and_blend() {
+        // (kind, alpha, colour, blend)
+        let expected = [
+            (0i8, 100i16, (50u8, 50u8, 255u8), SlotBlend::AlphaOne),
+            (1, 100, (164, 136, 55), SlotBlend::Alpha),
+            (2, 100, (155, 255, 155), SlotBlend::Alpha),
+            (3, 100, (130, 130, 255), SlotBlend::Alpha),
+            (4, 100, (255, 50, 50), SlotBlend::Alpha),
+            (5, 100, (5, 5, 5), SlotBlend::Alpha),
+            (6, 100, (255, 255, 255), SlotBlend::Alpha),
+            (7, 100, (255, 125, 255), SlotBlend::Alpha),
+            // Kind 8 divides the alpha by 10.
+            (8, 10, (225, 225, 255), SlotBlend::Alpha),
+            (10, 100, (125, 125, 255), SlotBlend::AlphaOne),
+        ];
+
+        for (kind, alpha, colour, blend) in expected {
+            let built = triangles(&stacked_rings_state(kind));
+
+            assert_eq!(built.len(), 20, "kind {kind}");
+            assert_eq!(built[0].argb, pack_argb(alpha, colour.0, colour.1, colour.2), "kind {kind}");
+            assert_eq!(built[0].blend, blend, "kind {kind}");
+            assert!(built.iter().all(|triangle| triangle.argb == built[0].argb), "kind {kind}");
+        }
+    }
+
+    #[test]
+    fn stacked_rings_kind_eleven_overlays_white_third_alpha_and_red() {
+        let built = triangles(&stacked_rings_state(11));
+
+        // Two quads per ring: white at `alphaB / 3`, then red at `alphaB`.
+        assert_eq!(built.len(), 40);
+        assert_eq!(built[0].argb, pack_argb(33, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[2].argb, pack_argb(100, 255, 55, 55));
+        assert_eq!(built[2].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn stacked_rings_skips_dead_slots_unlisted_kinds_and_zero_alpha() {
+        // Kind 9 has no case in the original switch.
+        assert!(triangles(&stacked_rings_state(9)).is_empty());
+
+        let mut transparent = stacked_rings_state(0);
+        transparent.slots[0].alpha_b = 0;
+        assert!(triangles(&transparent).is_empty());
+
+        let mut dead = stacked_rings_state(0);
+        dead.slots[0].life = 0;
+        assert!(triangles(&dead).is_empty());
     }
 }

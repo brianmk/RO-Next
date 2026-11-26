@@ -64,6 +64,12 @@ pub struct EffectRuntime {
     pub body_tint: Option<[u8; 3]>,
     /// `state.parent->render.angle` - the caster's facing, used by bodies such
     /// as Bowling Bash.
+    ///
+    /// Storm Kick (`EF_STORMKICK`/`EF_STORMKICK1`) also *writes* it: the
+    /// official bodies run `parent->render.angle += 30` / `+= 14` with a single
+    /// `> 360.0` subtraction. The port mutates this per-effect copy exactly
+    /// like the original; the client can mirror the post-step value back onto
+    /// the caster actor (the original rotates the shared actor in place).
     pub parent_angle: f32,
     pub flag: i32,
     /// `state.count` - the hit count some bodies read (e.g. Blitz Beat).

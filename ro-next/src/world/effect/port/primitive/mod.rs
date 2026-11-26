@@ -29,6 +29,7 @@ pub mod pulsing_columns;
 pub mod ripple_rings;
 pub mod rising_fan;
 pub mod spin_quad;
+pub mod stacked_rings;
 pub mod texture3d;
 pub mod texture_spin;
 pub mod aura_glow;
@@ -176,6 +177,10 @@ pub enum PrimitiveId {
     WanderingFlames,
     /// `PP_HALFSPHERE` (104) - `CRagEffect::TexturedPulse`'s shell.
     HalfSphere,
+    /// prim 103 - `CRagEffect::TexturedMark`'s stacked rings. The official
+    /// enum has no symbol for it (`EffectPrimId.h` jumps from 102 to 104), so
+    /// the port names it after its renderer, `RenderStackedRings`.
+    StackedRings,
 }
 
 impl PrimitiveId {
@@ -210,6 +215,7 @@ impl PrimitiveId {
             Self::PulseKind => 64,
             Self::WanderingFlames => 155,
             Self::HalfSphere => 104,
+            Self::StackedRings => 103,
         }
     }
 }
@@ -726,6 +732,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::HalfSphere => {
                 half_sphere::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::StackedRings => {
+                stacked_rings::on_process(self, rng);
                 true
             }
         };
