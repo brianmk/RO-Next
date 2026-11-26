@@ -18,6 +18,7 @@ pub mod forest_light;
 pub mod halo;
 pub mod height_ramp;
 pub mod intimidate;
+pub mod orbit;
 pub mod particle3d;
 pub mod particle_up;
 pub mod quadhorn;
@@ -155,6 +156,8 @@ pub enum PrimitiveId {
     Halo,
     /// prim 143 (`PrimTextureSpin`)
     TextureSpin,
+    /// prim 7 (`PP_3DPARTICLEORBIT`)
+    Orbit,
     /// prim 66 (`ForestLight`) - spawned only, the original has no motion case.
     ForestLight,
     /// prim 64 (`TexturedPulseKind`) - spawned only, no motion case either.
@@ -187,6 +190,7 @@ impl PrimitiveId {
             Self::RisingFan2 => 131,
             Self::Halo => 39,
             Self::TextureSpin => 143,
+            Self::Orbit => 7,
             Self::ForestLight => 66,
             Self::PulseKind => 64,
         }
@@ -368,6 +372,9 @@ pub struct EffectPrimitiveState {
     pub radius: f32,
     pub radius_speed: f32,
     pub radius_accel: f32,
+    /// `gravSpeed`, `gravAccel` (orbit primitives).
+    pub grav_speed: f32,
+    pub grav_accel: f32,
     /// `/* 0354 */ widthSize`, `/* 0358 */ widthSpeed`, `/* 035C */ widthAccel`
     pub width_size: f32,
     pub width_speed: f32,
@@ -521,6 +528,8 @@ impl Default for EffectPrimitiveState {
             lati_accel: 0.0,
             roll_accel: 0.0,
             radius: 0.0,
+            grav_speed: 0.0,
+            grav_accel: 0.0,
             radius_speed: 0.0,
             radius_accel: 0.0,
             width_size: 0.0,
@@ -661,6 +670,12 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::TextureSpin => {
                 texture_spin::on_process(self, master);
+                true
+            }
+            PrimitiveId::Orbit => {
+                orbit::on_process(self, angles, master);
+                self.process_alpha(master);
+                self.shift_segment();
                 true
             }
             PrimitiveId::ForestLight => {

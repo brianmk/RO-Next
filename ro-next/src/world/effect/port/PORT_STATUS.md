@@ -110,6 +110,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::Entry` (`EF_ENTRY`) | `RagEffect.cpp:2191-2230` | 1 |
 | `CRagEffect::Vallentine` (5 ids: VALLENTINE/2, 05VAL, ITEMFAST, RO2YEAR) | `RagEffect.cpp:8741-8779` | 3 |
 | `CRagEffect::SonicBlowHit` (`EF_SONICBLOWHIT`) | `RagEffect.cpp:2324-2364` | 1 |
+| prim 7 `PP_3DPARTICLEORBIT` | `EffectPrimitiveMotion.cpp:2936-2985` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
