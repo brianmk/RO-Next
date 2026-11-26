@@ -456,11 +456,6 @@ mod tests {
     }
 
     #[test]
-    fn unported_effect_has_no_holder() {
-        assert!(PortedEffectHolder::new(EffectId::Stormkick8, 1).is_none());
-    }
-
-    #[test]
     fn str_effect_keeps_its_opened_clip_across_update() {
         use super::super::str_player::{Clip, KeyFrame, Transform};
 

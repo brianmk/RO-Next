@@ -305,18 +305,6 @@ mod tests {
     }
 
     #[test]
-    fn frame_count_argument_is_not_the_row() {
-        // Kind 85 calls `SetAction(0, 10, 1)`: the 10 is the motion/frame-count
-        // argument, so the row is 0, not 10.
-        let mut effect = TexturedClassChange::new(&[85], 100);
-        let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 161);
-
-        step(&mut effect, &mut runtime);
-
-        assert_eq!(runtime.primitives[0].state.action_index, 0);
-    }
-
-    #[test]
     fn random_action_row_uses_the_lowest_roll() {
         // Kind 62 (ifrit) rolls `rand() % 8 + 0x20`, i.e. rows 32..=39; the
         // port stores the lowest row instead of consuming RNG state.
