@@ -18,6 +18,7 @@ pub mod height_ramp;
 pub mod intimidate;
 pub mod particle3d;
 pub mod quadhorn;
+pub mod spin_quad;
 pub mod texture3d;
 pub mod aura_glow;
 pub mod wind;
@@ -130,6 +131,8 @@ pub enum PrimitiveId {
     AuraGlow,
     /// prim 137 (`PrimHeightRamp`)
     HeightRamp,
+    /// prim 89 (TexturedQuadSpin)
+    SpinQuad,
 }
 
 impl PrimitiveId {
@@ -150,6 +153,7 @@ impl PrimitiveId {
             Self::Intimidate => 43,
             Self::AuraGlow => 82,
             Self::HeightRamp => 137,
+            Self::SpinQuad => 89,
         }
     }
 }
@@ -568,6 +572,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::HeightRamp => {
                 height_ramp::on_process(self, angles);
+                true
+            }
+            PrimitiveId::SpinQuad => {
+                spin_quad::on_process(self, master);
                 true
             }
         };
