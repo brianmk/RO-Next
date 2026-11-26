@@ -2036,7 +2036,7 @@ pub fn render_half_sphere(state: &EffectPrimitiveState, out: &mut Vec<SlotTriang
 // ---------------------------------------------------------------------------
 
 /// `CEffectPrim::RenderStackedRings` -
-/// `EffectPrimitiveRendering.cpp:3645-3737`.
+/// `EffectPrimitiveRendering.cpp:3645-3729`.
 ///
 /// `TexturedMark`'s stacked rings: for each live slot, `flag1[0]` rings (10 by
 /// default, 14 for the tall kind 10) spaced 45 degrees apart, descending by

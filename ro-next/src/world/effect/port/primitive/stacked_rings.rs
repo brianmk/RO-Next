@@ -1,6 +1,6 @@
 //! prim 103 (`EffectPrimId.h` has no symbol for it; the switches use
 //! `case 103`) - `CEffectPrim::PrimSpinFade`,
-//! `EffectPrimitiveMotion.cpp:5299-5331`.
+//! `EffectPrimitiveMotion.cpp:5299-5327`.
 //!
 //! The motion of `CRagEffect::TexturedMark`'s stacked rings. One live slot:
 //! every active frame the slot turns by `rand() % 3 + 3` degrees and its alpha
