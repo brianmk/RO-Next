@@ -456,6 +456,8 @@ pub struct EffectPrimitiveState {
     /// `/* 01FC */ RGBCycleCnt`, `/* 0234 */ RGBCycleDelay`
     pub rgb_cycle_cnt: u32,
     pub rgb_cycle_delay: u32,
+    /// `chRadiSpeed` - enables the chPoint radius cycle.
+    pub ch_radi_speed: u32,
     /// `/* 02E4 */ v1`, `/* 02E8 */ v2`
     pub v1: f32,
     pub v2: f32,
@@ -574,6 +576,7 @@ impl Default for EffectPrimitiveState {
             master_reached: false,
             rgb_cycle_cnt: 0,
             rgb_cycle_delay: 0,
+            ch_radi_speed: 0,
             v1: 0.0,
             v2: 0.0,
             max_height_size: 100.0,

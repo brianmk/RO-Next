@@ -30,6 +30,22 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
         state.grav_accel = state.change_accel;
     }
 
+    if state.ch_radi_speed != 0 {
+        let mut index = state.color_cycle_index;
+        let count = state.ch_point.len() as u32;
+
+        if index < 0 || index as u32 >= count {
+            state.color_cycle_index = 0;
+            index = 0;
+        }
+
+        if state.state_cnt as f32 == state.ch_point[index as usize] {
+            state.radius_speed = state.ch_val1[index as usize];
+            state.radius_accel = state.ch_val2[index as usize];
+            state.color_cycle_index = index + 1;
+        }
+    }
+
     state.transform.make_y_rotation(angles.radian(state.longitude as i32));
 
     state.delta_pos = forward(state.radius, &state.transform.values);
