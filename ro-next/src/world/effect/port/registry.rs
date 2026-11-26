@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, FirePillar, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Cloud11Burst, EnchantPoisonCast, FirePillar, FireSparks, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -68,6 +68,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Readyportal2 => Box::new(RingWave::blue(200)),
         EffectId::Waterball => Box::new(WaterBall::new(250)),
         EffectId::Spearbmr => Box::new(SpearBmr::new(250)),
+        EffectId::Edp => Box::new(EnchantPoisonCast::default()),
+        EffectId::Firefly => Box::new(FireSparks::default()),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -157,6 +159,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Readyportal2,
         EffectId::Waterball,
         EffectId::Spearbmr,
+        EffectId::Edp,
+        EffectId::Firefly,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -256,6 +260,8 @@ mod tests {
             (EffectId::Readyportal2, 200),
             (EffectId::Waterball, 250),
             (EffectId::Spearbmr, 250),
+            (EffectId::Edp, 120),
+            (EffectId::Firefly, 100),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
