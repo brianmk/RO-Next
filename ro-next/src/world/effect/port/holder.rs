@@ -251,6 +251,8 @@ impl PortedEffectHolder {
     /// would be one frame too late for the `repeatAnim == 0` bodies, which
     /// retire as soon as `curMotion` reaches `FrameCount`.
     fn step(&mut self) -> bool {
+        self.runtime.begin_step();
+
         if !self.body.on_process(&mut self.runtime) {
             return false;
         }
@@ -433,6 +435,7 @@ impl PortedEffectHolder {
             self.runtime.str_player.as_ref(),
             &self.runtime.str_clips,
             &self.str_textures,
+            str_render::screen_offset(self.runtime.str_offset),
         );
     }
 
@@ -792,7 +795,9 @@ mod tests {
 
     #[test]
     fn unported_effect_has_no_holder() {
-        assert!(PortedEffectHolder::new(EffectId::Thunderstorm, 1).is_none());
+        // Thunderstorm is ported now; `EF_STORMKICK8` (1223) still needs the
+        // unported `WhiteLightTrail`/`SetFrameSequence` helpers.
+        assert!(PortedEffectHolder::new(EffectId::Stormkick8, 1).is_none());
     }
 
     #[test]

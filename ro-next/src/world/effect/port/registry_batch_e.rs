@@ -330,8 +330,8 @@ mod tests {
     fn unowned_effects_are_not_claimed() {
         assert!(spawn(EffectId::Bash).is_none());
         // `EF_LKCONCENTRATION` shares `TwoHand.str` but has its own dispatch
-        // case (it also calls `SetColor`, which the port does not model yet),
-        // so it is not part of this batch.
-        assert!(spawn(EffectId::Lkconcentration).is_none());
+        // case in `rag/lkconcentration.rs` (it also calls `SetColor`), so it
+        // is not part of this batch.
+        assert!(spawn(EffectId::Stormkick8).is_none());
     }
 }

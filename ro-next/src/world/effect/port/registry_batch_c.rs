@@ -88,7 +88,8 @@ mod tests {
 
     #[test]
     fn unported_effects_stay_out_of_the_batch() {
-        assert!(spawn(EffectId::Thunderstorm).is_none());
+        // Thunderstorm is ported now; `EF_STORMKICK8` still is not.
+        assert!(spawn(EffectId::Stormkick8).is_none());
         assert!(spawn(EffectId::Darkattack).is_none());
     }
 }

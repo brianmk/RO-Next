@@ -253,7 +253,7 @@ mod tests {
 
     #[test]
     fn unported_effect_has_no_holder() {
-        assert!(PortedEffectHolder::new(EffectId::Thunderstorm, 1).is_none());
+        assert!(PortedEffectHolder::new(EffectId::Stormkick8, 1).is_none());
     }
 
     #[test]

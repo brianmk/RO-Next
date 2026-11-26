@@ -346,6 +346,31 @@ static LOUD: StrResource = StrResource {
     loop_limit: 0,
 };
 
+// Per-id `ProcessEZ2STR` offset tier (`rag/shield_charge.rs`,
+// `rag/devotion.rs`, `rag/lkconcentration.rs`, `rag/reject_sword.rs`,
+// `rag/thunderstorm.rs`). The offset is runtime state, not a resource
+// property, so every row keeps the single-pass default.
+
+static SHIELD_CHARGE: StrResource = StrResource {
+    files: &["shield_charge.str"],
+    loop_limit: 0,
+};
+
+static DEVOTION: StrResource = StrResource {
+    files: &["devotion.str"],
+    loop_limit: 0,
+};
+
+static REJECT_SWORD: StrResource = StrResource {
+    files: &["sword.str"],
+    loop_limit: 0,
+};
+
+static THUNDERSTORM: StrResource = StrResource {
+    files: &["ThunderStorm.str"],
+    loop_limit: 0,
+};
+
 /// The official `.str` resource of an effect, if its body drives
 /// `ProcessEZ2STR`.
 ///
@@ -396,8 +421,9 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         EffectId::Concentration => &CONCENTRATION,
         // `case EF_TWOHANDQUICKEN: case EF_SPEARQUICKEN:
         //  case EF_LKCONCENTRATION: std::sprintf(name, "TwoHand.str");`
-        // - 439-443.
-        EffectId::Twohandquicken | EffectId::Spearquicken => &TWO_HAND,
+        // - 439-443. `EF_LKCONCENTRATION` has its own dispatch case at
+        // `RagEffect.cpp:10377`, but it opens the same resource.
+        EffectId::Twohandquicken | EffectId::Spearquicken | EffectId::Lkconcentration => &TWO_HAND,
         // `case EF_MAGICROD: std::sprintf(name, "매직로드.str");` - 341-343.
         EffectId::Magicrod => &MAGIC_ROD,
 
@@ -497,6 +523,20 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         EffectId::Seismicweapon => &ENC_EARTH,
         // `case EF_LOUD: std::sprintf(name, "loud.str");` - 386-387.
         EffectId::Loud => &LOUD,
+        // Per-id `ProcessEZ2STR` offset tier. The offsets differ
+        // (`shield_charge` 0, `devotion` -20, the other three -80) but the
+        // resource row is only the file name.
+        //
+        // `case EF_SHIELDCHARGE: std::sprintf(name, "shield_charge.str");`
+        // - 365-366.
+        EffectId::Shieldcharge => &SHIELD_CHARGE,
+        // `case EF_DEVOTION: std::sprintf(name, "devotion.str");` - 368-369.
+        EffectId::Devotion => &DEVOTION,
+        // `case EF_REJECTSWORD: std::sprintf(name, "sword.str");` - 430-431.
+        EffectId::Rejectsword => &REJECT_SWORD,
+        // `case EF_THUNDERSTORM: std::sprintf(name, "ThunderStorm.str");`
+        // - 39-40.
+        EffectId::Thunderstorm => &THUNDERSTORM,
         _ => return None,
     })
 }
@@ -654,6 +694,11 @@ mod tests {
         assert_eq!(str_clips_for(EffectId::Aspersio), Some(&["Aspersio.str"][..]));
         assert_eq!(str_clips_for(EffectId::PotionBerserk), Some(&["버서크.str"][..]));
         assert_eq!(str_clips_for(EffectId::PotionBerserk2), Some(&["버서크.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Shieldcharge), Some(&["shield_charge.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Devotion), Some(&["devotion.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Lkconcentration), Some(&["TwoHand.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Rejectsword), Some(&["sword.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Thunderstorm), Some(&["ThunderStorm.str"][..]));
     }
 
     #[test]

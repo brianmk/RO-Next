@@ -39,9 +39,13 @@
 //! [`super::sprite_pass`] uses), which is why [`quad`] already bakes the
 //! origin into the corners.
 //!
-//! `ProcessEZ2STR` also offsets the whole layer in screen space. Every ported
-//! effect id calls `ProcessEZ2STR(0, -80, 0)`, so the holder passes
-//! [`PROCESS_EZ2STR_OFFSET`].
+//! `ProcessEZ2STR` also offsets the whole layer in screen space. The offset is
+//! per-effect runtime state ([`super::runtime::EffectRuntime::str_offset`]):
+//! most bodies call `ProcessEZ2STR(0, -80, 0)` (the runtime default,
+//! [`super::runtime::DEFAULT_STR_OFFSET`]), ShieldCharge's dispatch calls
+//! `ProcessEZ2STRC65300` = `(0, 0, 0)` (`RagEffect.cpp:1884-1885`), Devotion
+//! calls `(0, -20, 0)` (`RagEffect.cpp:24604-24606`), and the holder passes
+//! the current value through [`screen_offset`].
 //!
 //! `layer 0` is **not** drawn: `CRagEffect::Render` starts its loop at layer 1
 //! (`RagEffect.cpp:14724`), exactly like `CEZ2STRParticle::DrawScreen`
@@ -69,17 +73,13 @@ use crate::graphics::Color;
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 
-/// `ProcessEZ2STR`'s screen-space anchor offset.
-///
-/// Every effect that calls `ProcessEZ2STR` in the ported set passes
-/// `(0, -80, 0)`: `RagEffect.cpp:1563` (ShieldCharge), `:1595` (Aspersio),
-/// `:11020` (GlassWall), `:15087` (Potion_Berserk), `:15215` (StormGust),
-/// `:2154` (Signum) and `:2271` (CartRevolution). `ProcessEZ2STR` adds it to
-/// the projected parent position (`tlvertX/Y`), i.e. it is a raw window-pixel
-/// shift, not a world-space one. The two `ProcessEZ2STR(0, 0, 0)` call sites
-/// (`:1878` C3FE00, `:1884` C65300) belong to effects that are not ported yet;
-/// a per-id offset would go on [`super::str_table::StrResource`] at that point.
-pub const PROCESS_EZ2STR_OFFSET: Vector2<f32> = Vector2::new(0.0, -80.0);
+/// The x/y half of the runtime's [`super::runtime::EffectRuntime::str_offset`]
+/// in the vector type [`quad`] consumes. `ProcessEZ2STR` also adds its z to
+/// `state.tlvertZ` (`RagEffect.cpp:1420`), but `RenderAniClip` projects the
+/// screen quad from `tlvertX/Y` only, so z has no effect on this pass.
+pub fn screen_offset(offset: [f32; 3]) -> Vector2<f32> {
+    Vector2::new(offset[0], offset[1])
+}
 
 /// `RenderAniClip`'s fixed 640x480 reference-screen origin: the keyframe's
 /// `x`/`y` are absolute coordinates in that space, so the local offset is
@@ -324,6 +324,7 @@ pub fn render(
     player: Option<&Ez2StrPlayer>,
     clips: &[Clip],
     layer_textures: &[Vec<String>],
+    screen_offset: Vector2<f32>,
 ) {
     let visible = visible_layers(player, clips, layer_textures);
 
@@ -344,7 +345,7 @@ pub fn render(
             continue;
         };
 
-        let quad = quad(layer.transform, scale, PROCESS_EZ2STR_OFFSET);
+        let quad = quad(layer.transform, scale, screen_offset);
 
         renderer.render_effect(
             camera,
@@ -486,7 +487,7 @@ mod tests {
         transform.x = 330.0;
         transform.y = 250.0;
 
-        let quad = quad(&transform, 2.0, PROCESS_EZ2STR_OFFSET);
+        let quad = quad(&transform, 2.0, screen_offset(super::super::runtime::DEFAULT_STR_OFFSET));
 
         // v0 = bottom left: x = ((330 - 320) + -10) * 2 + 0 + 319 = 319,
         // y = ((250 - 240) + 20) * 2 - 80 + 291 = 271.

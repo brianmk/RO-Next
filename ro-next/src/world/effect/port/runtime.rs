@@ -18,6 +18,17 @@ use super::primitive::{EffectPrimitiveState, MasterState, PrimitiveId};
 pub use super::rng::EffectRng;
 use super::str_player::{Clip, Ez2StrPlayer};
 
+/// `ProcessEZ2STR(0, -80, 0)` - the argument every pre-existing ported effect
+/// passes (`ProcessEZ2STRC10830`, `RagEffect.cpp:1823-1824`, and its siblings).
+///
+/// This is the **only** home of the `-80` literal: the `.str` renderer
+/// (`port/str_render.rs`) takes the value from
+/// [`EffectRuntime::str_offset`] and never hard-codes it. Bodies that the
+/// official dispatch calls with a different offset (ShieldCharge's
+/// `ProcessEZ2STRC65300` = `(0, 0, 0)`, Devotion's `(0, -20, 0)`) override the
+/// field through [`EffectRuntime::process_str_with`].
+pub const DEFAULT_STR_OFFSET: [f32; 3] = [0.0, -80.0, 0.0];
+
 /// A live `CEffectPrim` owned by an effect.
 #[derive(Debug, Clone)]
 pub struct PrimitiveInstance {
@@ -120,6 +131,44 @@ pub struct EffectRuntime {
     pub str_clips: Vec<Clip>,
     /// `ProcessEZ2STR` state, created when the body opens a `.str` resource.
     pub str_player: Option<Ez2StrPlayer>,
+    /// The `x, y, z` arguments of the body's current `ProcessEZ2STR` call.
+    ///
+    /// `ProcessEZ2STR` adds them to the projected parent position
+    /// (`state.tlvertX/Y/Z`, `RagEffect.cpp:1418-1420`); the `.str` renderer
+    /// reads the x/y pair as a raw screen-pixel shift. The official dispatch
+    /// uses `(0, -80, 0)` almost everywhere ([`DEFAULT_STR_OFFSET`]), but
+    /// ShieldCharge calls `ProcessEZ2STRC65300` (`(0, 0, 0)`,
+    /// `RagEffect.cpp:1884-1885`) and Devotion calls `(0, -20, 0)`
+    /// (`RagEffect.cpp:24604-24606`), so the value is per-effect runtime state,
+    /// not a constant.
+    ///
+    /// Additive: this field did not exist before; every existing body keeps
+    /// the constructor's [`DEFAULT_STR_OFFSET`] because it calls
+    /// [`Self::process_str`] unchanged.
+    pub str_offset: [f32; 3],
+    /// `state.parent->render.colorChannels` request of the current frame - the
+    /// argument list of the last `SetColor(alpha, red, green, blue)`
+    /// (`RenderObject.cpp:534-547`), with `-1` meaning "leave this channel
+    /// unchanged". `None` until a body calls
+    /// [`Self::set_parent_color`].
+    ///
+    /// Additive: the field and helper are new, so no existing body observes
+    /// them. Like [`Self::body_tint`] this is a simulation-side request; the
+    /// bridge that copies it onto the caster entity is described in
+    /// [`Self::set_parent_color`].
+    pub parent_color: Option<[i16; 4]>,
+    /// `state.parent->render.flags` bits the body requests this frame.
+    ///
+    /// The official actor clears `render.flags` after every rendered frame
+    /// (`GameObject.cpp:435`, `GameActor.cpp:685-687`), so this starts at `0`
+    /// on each 16 ms step and only the body's current-frame writes are
+    /// visible. [`Self::add_parent_flags`] is the `flags += 8` idiom.
+    ///
+    /// Like [`Self::parent_color`], no client consumer reads this field yet;
+    /// the mutable actor handle is only available in the ported-effect bridge
+    /// (`port/visual.rs` / `client/effects.rs`), which this change does not
+    /// own.
+    pub parent_flags: u32,
 }
 
 impl EffectRuntime {
@@ -153,6 +202,9 @@ impl EffectRuntime {
             rng: EffectRng::new(seed),
             str_clips: Vec::new(),
             str_player: None,
+            str_offset: DEFAULT_STR_OFFSET,
+            parent_color: None,
+            parent_flags: 0,
         }
     }
 
@@ -304,7 +356,9 @@ impl EffectRuntime {
         self.str_player = Some(player);
     }
 
-    /// `CRagEffect::ProcessEZ2STR(0, -80, 0)`.
+    /// `CRagEffect::ProcessEZ2STR` for the runtime's current
+    /// [`Self::str_offset`] (the constructor default is `(0, -80, 0)`;
+    /// [`Self::process_str_with`] overrides it per call site).
     ///
     /// Returns `false` when every loop of the resource has finished, which
     /// makes the body retire the effect (the original does `return false`).
@@ -323,6 +377,57 @@ impl EffectRuntime {
         self.frame = player.state_cnt;
 
         alive
+    }
+
+    /// `ProcessEZ2STR(x, y, z)` with an explicit screen offset.
+    ///
+    /// Same player/timeline work as [`Self::process_str`]; the only addition is
+    /// that the offset the `.str` renderer reads from [`Self::str_offset`] is
+    /// set to the official call site's arguments. ShieldCharge passes
+    /// `(0, 0, 0)` (`RagEffect.cpp:1884-1885`, via `ProcessEZ2STRC65300`) and
+    /// Devotion passes `(0, -20, 0)` (`RagEffect.cpp:24604-24606`).
+    pub fn process_str_with(&mut self, offset: [f32; 3]) -> bool {
+        self.str_offset = offset;
+        self.process_str()
+    }
+
+    /// `state.parent->SetColor(alpha, red, green, blue)`
+    /// (`RenderObject.cpp:534-547`).
+    ///
+    /// The four arguments are recorded verbatim, including the `-1` channels
+    /// the original leaves untouched. The official call mutates the shared
+    /// caster actor; the port's hermetic runtime cannot reach that actor from a
+    /// body (see the module-level note below), so the request is exposed here
+    /// for the client bridge. `None` means no `SetColor` call has happened.
+    ///
+    /// **Application status:** simulation-visible only at the moment. The
+    /// client's ported-effect spawn path attaches the visual to the caster but
+    /// [`crate::world::effect::EffectBase::update`] receives an immutable
+    /// `&[Entity]`, so `PortedVisual` has no mutable actor handle to call
+    /// `Entity::set_status_tint` on. Wiring this field to the actor belongs to
+    /// the client bridge (`client/effects.rs`/`port/visual.rs`), which another
+    /// change owns this round; reading [`Self::parent_color`] there is the
+    /// remaining step.
+    pub fn set_parent_color(&mut self, alpha: i16, red: i16, green: i16, blue: i16) {
+        self.parent_color = Some([alpha, red, green, blue]);
+    }
+
+    /// `state.parent->render.flags += bits` (`if ((flags & bits) == 0)` in the
+    /// official bodies; the OR is equivalent because the actor clears the word
+    /// every frame).
+    pub fn add_parent_flags(&mut self, bits: u32) {
+        self.parent_flags |= bits;
+    }
+
+    /// Clears the per-frame actor-flag request before the body runs.
+    ///
+    /// `GameObject.cpp:435` / `GameActor.cpp:685-687` clear `render.flags`
+    /// after the frame is drawn, so a body that stops setting bit `8` stops
+    /// requesting it on the next step. Both step drivers call this before
+    /// `OnProcess`; the colour request is intentionally **not** cleared because
+    /// `SetColor` persists on the actor.
+    pub fn begin_step(&mut self) {
+        self.parent_flags = 0;
     }
 
     /// Advances every live primitive by one frame.
@@ -395,6 +500,8 @@ impl<T: PortedEffect + ?Sized> PortedEffect for Box<T> {
 ///
 /// Returns `false` when the effect has finished and must be retired.
 pub fn step(effect: &mut dyn PortedEffect, runtime: &mut EffectRuntime) -> bool {
+    runtime.begin_step();
+
     if !effect.on_process(runtime) {
         return false;
     }
@@ -599,5 +706,36 @@ mod tests {
             ("_enemy_hit_wind1.wav".to_owned(), [-150.0, 0.0, 2.5]),
         ]);
         assert!(runtime.sounds.is_empty());
+    }
+    #[test]
+    fn str_offset_defaults_to_the_process_ez2str_minus_80_call() {
+        let runtime = EffectRuntime::new(10, [0.0, 0.0], 1);
+
+        assert_eq!(runtime.str_offset, DEFAULT_STR_OFFSET);
+        assert_eq!(runtime.str_offset, [0.0, -80.0, 0.0]);
+    }
+
+    #[test]
+    fn process_str_with_records_the_official_screen_offset() {
+        let mut runtime = EffectRuntime::new(10, [0.0, 0.0], 1);
+
+        assert!(runtime.process_str_with([0.0, -20.0, 0.0]));
+        assert_eq!(runtime.str_offset, [0.0, -20.0, 0.0]);
+
+        // `process_str` keeps the offset the body last set; it is not a reset.
+        assert!(runtime.process_str());
+        assert_eq!(runtime.str_offset, [0.0, -20.0, 0.0]);
+    }
+
+    #[test]
+    fn begin_step_clears_the_actor_flag_request_but_keeps_the_color() {
+        let mut runtime = EffectRuntime::new(10, [0.0, 0.0], 1);
+        runtime.add_parent_flags(8);
+        runtime.set_parent_color(-1, 255, 255, 160);
+
+        runtime.begin_step();
+
+        assert_eq!(runtime.parent_flags, 0);
+        assert_eq!(runtime.parent_color, Some([-1, 255, 255, 160]));
     }
 }
