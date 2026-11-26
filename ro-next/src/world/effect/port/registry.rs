@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    BottomLayer, BottomLayers, Cloud11Burst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    BottomLayer, BottomLayers, Cloud11Burst, PortalSpell, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -81,6 +81,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Forestlight6 => Box::new(ForestLight6::new(29999)),
         EffectId::BottomMag => Box::new(TexturedPulseKind::new("effect\\ring_red.tga", 0, 29999)),
         EffectId::BottomSanc => Box::new(TexturedPulseKind::new("effect\\alpha_down.tga", 1, 29999)),
+        EffectId::Portal => Box::new(PortalSpell::new(100)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -183,6 +184,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Forestlight6,
         EffectId::BottomMag,
         EffectId::BottomSanc,
+        EffectId::Portal,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -295,6 +297,7 @@ mod tests {
             (EffectId::Forestlight6, 29999),
             (EffectId::BottomMag, 29999),
             (EffectId::BottomSanc, 29999),
+            (EffectId::Portal, 100),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
