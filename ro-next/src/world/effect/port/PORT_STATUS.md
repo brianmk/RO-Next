@@ -91,6 +91,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::EnchantPoison2` (`EF_EDP`) | `RagEffect.cpp:13241-13272` | 1 |
 | `CRagEffect::FireSparks` (`EF_FIREFLY`) with colour-cycle track | `RagEffect.cpp:371-410` | 1 |
 | prim 39 halo + `CRagEffect::TexturedHalo` (4 bottom effects) | `EffectPrimitiveMotion.cpp:9651-9688`, `RagEffect.cpp:4839-4896` | 5 |
+| animated texture sequences (`texture_frames`, `frame_count`) - `TorchDustRing` groundwork | `RagEffect.cpp:3241-3290` | - |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
