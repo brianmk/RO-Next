@@ -152,7 +152,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 236 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 277 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -197,9 +197,26 @@ so the *skill* coverage is far higher than the id ratio suggests.
   weapon ACT's 80..87 / 88..95 block (`weapon::attack_action`), because blocks
   0..7 and 40..47 hold only `-1` placeholders in every weapon ACT.
 
+### Client wiring fixed (round 87)
+
+- **Effect-level `count`**: the damage/cast packets carry no skill level, so the
+  spawn path reads the local player's skill tree (`local_learned_skill_level`)
+  and sets `runtime.count = level` (matching `AM_SETCOUNT`,
+  `JobInheritance.cpp:2147/2153`). Confirmed populated for a Blitz Beat cast
+  (the spawn path is local-caster-only, which is exactly when the tree has the
+  level). `runtime.param` stays `1.0` because it is the `AM_SETPARAM` maker
+  parameter, not the level.
+- **Positional sounds**: `EffectRuntime::positional_sounds` + `play_sound_at_height`
+  (`PlayEffectWaveAt`) and `play_sound_at` (raw `PlayWave` offsets), plus
+  `listener_position` snapshot. Ported: Gloria, ElementalWeapon (4 ids),
+  Holy Cross, Loud, with their `str_table` rows.
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
+- **Audio bridge**: `runtime.sounds` / `runtime.positional_sounds` are recorded
+  but not yet forwarded to the `AudioEngine`, so ported sounds are silent while
+  the visuals and `.str` layers play.
 - `EF_NEW_METALLICSOUND_LINE` (official 1584) has no `EffectId` variant in `ragnarok-packets` (max 1243); the body is ready.
 - Chemical V/V2/V3 are notice effects (`GameModeNotices.cpp:4234/4248`), not skill-table effects, so the generated skill map cannot reach them.
 
