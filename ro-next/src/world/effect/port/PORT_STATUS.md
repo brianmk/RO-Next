@@ -152,7 +152,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 214 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 231 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -181,6 +181,11 @@ so the *skill* coverage is far higher than the id ratio suggests.
 * `.str` animation type 4 keeps a persistent `ratio`; the original reads an
   uninitialised local (`RagEffect.cpp:1519-1522`). Undefined behaviour cannot be
   reproduced.
+
+### Ready next (no engine work needed)
+
+`.str`-only follow-up: 34 more T1 ids are the same clip-only profile (29, 67, 70, 84, 85, 88, 101, 103, 104, 111, 112, 126, 136, 143, 148, 149, 150, 151, 169, 234, 235, 268, 269-272, 390, 391, 406, 407, 440, 635, 636, 649).
+Blocked on runtime support (12): positional sound height (`PlayEffectWaveAt`/`PlayWave` with offsets) for Gloria, FlameLauncher, FrostWeapon, LightningLoader, SeismicWeapon, HolyCross, Loud; `process_str` offsets other than `(0,-80,0)` for ShieldCharge/Devotion; parent actor tint/flags for Lkconcentration/RejectSword; and `EF_THUNDERSTORM` (portable, but the unported-effects test still pins it).
 
 ### Queued after the port (last item)
 
