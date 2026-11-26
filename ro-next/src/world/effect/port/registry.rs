@@ -463,10 +463,17 @@ mod tests {
             assert!(!runtime.primitives.is_empty(), "{effect:?} spawned nothing");
 
             for primitive in &runtime.primitives {
-                // Sprite-carrying primitives (`particle1/3/7.spr` & co) only
-                // ever set `.spr/.act`; requiring a `texture` on them would be
-                // a false positive. Everything else must name its texture.
-                if primitive.state.sprite.is_some() {
+                // Two legitimate shapes carry no texture: sprite particles
+                // (`particle1/3/7.spr`, `.spr/.act` only) and the plain
+                // `Particle3d`/`Orbit` motes whose sprite the original attaches
+                // elsewhere (e.g. Blessing). Everything else must name a
+                // texture.
+                if primitive.state.sprite.is_some()
+                    || matches!(
+                        primitive.state.count,
+                        PrimitiveId::Particle3d | PrimitiveId::Orbit
+                    )
+                {
                     continue;
                 }
 
