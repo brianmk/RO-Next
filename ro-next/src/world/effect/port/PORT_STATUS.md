@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 389 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 397 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -270,6 +270,23 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - prim **99** `PP_DOUBLEGUMGANG` (shared `PrimFloatingBubbles` motion, new `RenderDoubleGumGang`) and prim **147** (`TexturedSlam`, reuses `PrimRisingFan` + `render_halo_layers`).
 - 17 ids: Gumgangnpc 455, Doublegumgang 418/485/486, Secra 859/862, Rolling1..10 758-767, Heartasura 879.
 - Backlog coverage **178/236 = 75.4%** (effort 74.0%): `.str` 57/57, layers 88/144, manual 33/35.
+
+### Round 95 (actor render passes + particle spline)
+
+Rendered vs record-only for the parent render registers:
+
+| register | state | consumer |
+| --- | --- | --- |
+| `tintPhase` | **rendered** | `world::entity::render_phase::tint` + additive body redraw (`DrawTintedQuad`, `RenderObject.cpp:826-846`); RGB comes from the actor tint because the client has no per-frame `render.flags` |
+| `shrinkPhase` | **rendered** | `render_phase::pulse_scale` applied to every layer scale (`ScaleByPulse`, `:749-767`) |
+| `outlineAlpha` | **rendered** | three flat 1-3% body copies in `0x3737FF` (`Player.cpp:1139-1190`) |
+| `effectPhase` | record-only | every consumer is gated on a different `render.flags` bit; no per-frame flag register |
+| `runStartTick` | record-only | needs the headband sprite-override table + footprint registry |
+| `NotifyGameMode` | record-only | needs the localised scream/frost-joke assets and the talk packet path |
+
+- prim **8** `PP_3DPARTICLESPLINE` (`Prim3DParticleSpline`, new `MakeTransform`/`Lift`; renders through the existing sprite pass) + ids Waterball2 117, Blooddrain 216, Energydrain 217, Energydrain2 378, Energydrain3 383, Soulstrike 15, Soulstrike2 451, EnergydrainBlack 1208.
+- Backlog coverage **181/236 = 76.7%** (effort 75.3%): `.str` 57/57, layers 91/144, manual 33/35.
+- Known mapping gap: `EF_PEONG_BLACK` (1207) has no `EffectId` variant, so `SonicSlashFan(1)` cannot be registered yet.
 
 ### Known wiring gaps (client spawn path)
 
