@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, TeleportSpiral, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -105,6 +105,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Hptime => Box::new(RisingOrbs::new("effect\\white02.bmp", 0, 300)),
         EffectId::Sptime => Box::new(RisingOrbs::new("effect\\white02.bmp", 1, 300)),
         EffectId::Lockon => Box::new(LockOn::new(200)),
+        EffectId::Exit2 => Box::new(TeleportSpiral::new("effect\\ring_purple.tga", 200)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -231,6 +232,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Hptime,
         EffectId::Sptime,
         EffectId::Lockon,
+        EffectId::Exit2,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -367,6 +369,7 @@ mod tests {
             (EffectId::Hptime, 300),
             (EffectId::Sptime, 300),
             (EffectId::Lockon, 200),
+            (EffectId::Exit2, 200),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),

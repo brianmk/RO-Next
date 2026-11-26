@@ -115,13 +115,14 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::Warp` (`EF_WARP`) | `RagEffect.cpp:2414-2463` | 2 |
 | `CRagEffect::TexturedRisingOrbs` (`EF_HPTIME`, `EF_SPTIME`) | `RagEffect.cpp:7187-7265` | 3 |
 | `CRagEffect::LockOnMarker` (`EF_LOCKON`) | `RagEffect.cpp:9740-9795` | 1 |
+| `CRagEffect::TeleportSpiral` (`EF_EXIT2`) | `RagEffect.cpp:17683-17765` | 1 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 194 effect ids (66 generated from `TexturedClassChange`, 26 from
-`TexturedAura`, 102 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+**Registry:** 195 effect ids (66 generated from `TexturedClassChange`, 26 from
+`TexturedAura`, 103 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
 so the *skill* coverage is far higher than the id ratio suggests.
