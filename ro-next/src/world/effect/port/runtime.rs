@@ -48,6 +48,8 @@ pub struct EffectRuntime {
     pub target_offset: [f32; 3],
     pub delta_pos3: [f32; 3],
     pub render_angle: f32,
+    /// `camera->camera.yaw` - used by action-facing effects.
+    pub camera_yaw: f32,
     /// `state.parent->render.angle` - the caster's facing, used by bodies such
     /// as Bowling Bash.
     pub parent_angle: f32,
@@ -76,6 +78,7 @@ impl EffectRuntime {
             target_offset: [0.0; 3],
             delta_pos3: [0.0; 3],
             render_angle: 0.0,
+            camera_yaw: 0.0,
             parent_angle: 0.0,
             flag: 0,
             primitives: Vec::new(),
@@ -132,6 +135,23 @@ impl EffectRuntime {
     }
 
     /// `CRenderObject::CalcDist(x, z)` - `ActorGeometry.cpp:66-70`.
+    /// `CEffectPrim::Get_Angle` - `EffectPrimitiveState.cpp:51-70`. Returns the
+    /// table index whose cosine the normalised vector still exceeds.
+    pub fn get_angle(&self, x: f32, y: f32) -> i16 {
+        let angles = super::angles::Angles::shared();
+        let length = (x * x + y * y).sqrt();
+        let normal_y = y / length;
+        let normal_x = x / length;
+
+        for index in 0..=180i16 {
+            if normal_x >= angles.raw_cosine(index as usize) {
+                return if normal_y >= 0.0 { index } else { 360 - index };
+            }
+        }
+
+        0
+    }
+
     pub fn calc_dist(&self, x: f32, z: f32) -> f32 {
         let delta_x = x - self.position[0];
         let delta_z = z - self.position[2];

@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, HealBurst, MagicRing, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Cloud11Burst, HealBurst, MagicRing, RocketPunch, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -49,6 +49,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BigPortal => Box::new(MagicRing::new(0, 2000)),
         EffectId::BigPortal2 => Box::new(MagicRing::new(1, 99_999_999)),
         EffectId::Stormgust => Box::new(StormGust::default()),
+        EffectId::Fireball3 => Box::new(RocketPunch::new(false, 100)),
+        EffectId::Fireball6 => Box::new(RocketPunch::new(true, 100)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -119,6 +121,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::BigPortal,
         EffectId::BigPortal2,
         EffectId::Stormgust,
+        EffectId::Fireball3,
+        EffectId::Fireball6,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -199,6 +203,8 @@ mod tests {
             (EffectId::BigPortal, 2000),
             (EffectId::BigPortal2, 99_999_999),
             (EffectId::Stormgust, 9999),
+            (EffectId::Fireball3, 100),
+            (EffectId::Fireball6, 100),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
