@@ -27,6 +27,14 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::registry_batch_a::spawn(effect) {
+        return Some(body);
+    }
+
+    if let Some(body) = super::registry_batch_b::spawn(effect) {
+        return Some(body);
+    }
+
     Some(match effect {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
@@ -151,6 +159,8 @@ pub fn needs_str_clips(effect: EffectId) -> bool {
 pub fn ported_ids() -> Vec<EffectId> {
     let mut ids = super::registry_class_change::ids().to_vec();
     ids.extend_from_slice(super::registry_textured_aura::ids());
+    ids.extend_from_slice(super::registry_batch_a::ids());
+    ids.extend_from_slice(super::registry_batch_b::ids());
 
     ids.extend_from_slice(&[
         EffectId::Hit2,
