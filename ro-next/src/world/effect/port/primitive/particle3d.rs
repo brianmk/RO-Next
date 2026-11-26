@@ -112,7 +112,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
 }
 
 /// `CEffectPrim::AnimMotion` - `EffectPrimitiveMotion.cpp:576-601`.
-fn anim_motion(state: &mut EffectPrimitiveState) -> bool {
+pub(super) fn anim_motion(state: &mut EffectPrimitiveState) -> bool {
     if state.state_cnt % state.anim_speed.max(1) != 0 {
         return true;
     }

@@ -2,9 +2,9 @@
 //! primitives use).
 //!
 //! The client's `matrix` is 12 floats, row-major 3x4: rows `0..3`, `3..6`,
-//! `6..9` are the rotation/scale part and `9..12` the translation. Rotations are
-//! built with `ClientSin`/`ClientCos` (float `sinf`/`cosf`) and appended with
-//! `Rotate`, whose row-major multiply order is preserved here.
+//! `6..9` are the rotation/scale part and `9..12` the translation. Rotations
+//! are built with `ClientSin`/`ClientCos` (float `sinf`/`cosf`) and appended
+//! with `Rotate`, whose row-major multiply order is preserved here.
 
 use super::angles::{client_cos, client_sin};
 
@@ -16,6 +16,15 @@ pub struct Matrix {
 
 /// `g_identityMatrix`.
 pub const IDENTITY: [f32; 12] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0];
+
+/// `g_depthAverageHalf` - `MapSkyMgr.cpp:27`, the quaternion half-angle factor
+/// `matrix::MakeTransform` uses.
+const DEPTH_AVERAGE_HALF: f32 = 0.5;
+
+/// `g_projectionDepthNumerator` - `RenderProjection.cpp:9`. `MakeTransform`
+/// writes it on the quaternion matrix diagonal (the original uses it instead
+/// of `1.0` when the projection depth changes).
+const PROJECTION_DEPTH_NUMERATOR: f32 = 1.0;
 
 impl Default for Matrix {
     fn default() -> Self {
@@ -86,7 +95,55 @@ impl Matrix {
         self.rotate(&rotation.values);
     }
 
-    /// `Rotate(float* values, const float* rotation)` - `AffineMatrix.cpp:16-36`.
+    /// `matrix::MakeTransform(const float* rotaxis, float rotangle)` -
+    /// `AffineMatrix.cpp:237-264`.
+    ///
+    /// The axis-angle overload used by `PP_3DPARTICLESPLINE`: the rotation is
+    /// built from the quaternion `(axis * sin(angle / 2), cos(angle / 2))`,
+    /// with `g_projectionDepthNumerator` on the diagonal and the translation
+    /// part zeroed (the original has a second overload that takes a position;
+    /// this one does not).
+    pub fn make_transform(&mut self, rot_axis: &[f32; 3], radians: f32) {
+        let omega = radians * DEPTH_AVERAGE_HALF;
+        // The original overload calls `sinf`/`cosf`, not the `ClientSin`
+        // double-promoting helpers the rotation builders use.
+        let sine = omega.sin();
+        let cosine = omega.cos();
+        let qx = sine * rot_axis[0];
+        let qy = sine * rot_axis[1];
+        let qz = sine * rot_axis[2];
+        let qw = cosine;
+
+        let x2 = qx + qx;
+        let y2 = qy + qy;
+        let z2 = qz + qz;
+        let wx = qw * x2;
+        let wy = qw * y2;
+        let wz = qw * z2;
+        let xx = qx * x2;
+        let xy = qx * y2;
+        let xz = qx * z2;
+        let yy = qy * y2;
+        let yz = qy * z2;
+        let zz = qz * z2;
+
+        let numerator = PROJECTION_DEPTH_NUMERATOR;
+        self.values[0] = numerator - (yy + zz);
+        self.values[1] = xy + wz;
+        self.values[3] = xy - wz;
+        self.values[2] = xz - wy;
+        self.values[6] = xz + wy;
+        self.values[4] = numerator - (xx + zz);
+        self.values[5] = yz + wx;
+        self.values[7] = yz - wx;
+        self.values[8] = numerator - (xx + yy);
+        self.values[9] = 0.0;
+        self.values[10] = 0.0;
+        self.values[11] = 0.0;
+    }
+
+    /// `Rotate(float* values, const float* rotation)` -
+    /// `AffineMatrix.cpp:16-36`.
     fn rotate(&mut self, rotation: &[f32; 12]) {
         let mut x = [0.0f32; 4];
         let mut y = [0.0f32; 4];
@@ -110,7 +167,8 @@ impl Matrix {
     }
 }
 
-/// `Forward(vector3d&, float, const float*)` - `EffectPrimitiveMotion.cpp:76-81`.
+/// `Forward(vector3d&, float, const float*)` -
+/// `EffectPrimitiveMotion.cpp:76-81`.
 pub fn forward(distance: f32, matrix: &[f32; 12]) -> [f32; 3] {
     let point = [0.0f32, 0.0f32, distance];
 
@@ -121,9 +179,21 @@ pub fn forward(distance: f32, matrix: &[f32; 12]) -> [f32; 3] {
     ]
 }
 
-/// `Upward(vector3d&, float, const float*)` - `EffectPrimitiveMotion.cpp:84-89`.
+/// `Upward(vector3d&, float, const float*)` -
+/// `EffectPrimitiveMotion.cpp:84-89`.
 pub fn upward(distance: f32, matrix: &[f32; 12]) -> [f32; 3] {
     let point = [0.0f32, -distance, 0.0f32];
+
+    [
+        ((matrix[3] * point[1] + matrix[0] * point[0]) + point[2] * matrix[6]) + matrix[9],
+        ((matrix[4] * point[1] + matrix[1] * point[0]) + point[2] * matrix[7]) + matrix[10],
+        ((matrix[5] * point[1] + matrix[2] * point[0]) + point[2] * matrix[8]) + matrix[11],
+    ]
+}
+
+/// `Lift(vector3d&, float, const float*)` - `EffectPrimitiveMotion.cpp:92-97`.
+pub fn lift(distance: f32, matrix: &[f32; 12]) -> [f32; 3] {
+    let point = [0.0f32, distance, 0.0f32];
 
     [
         ((matrix[3] * point[1] + matrix[0] * point[0]) + point[2] * matrix[6]) + matrix[9],
@@ -194,6 +264,33 @@ mod tests {
 
         assert!(result[0].abs() < EPSILON);
         assert!((result[1] + 1.0).abs() < EPSILON);
+        assert!(result[2].abs() < EPSILON);
+    }
+
+    #[test]
+    fn make_transform_builds_an_axis_angle_rotation() {
+        let mut matrix = Matrix::identity();
+        matrix.make_transform(&[0.0, 0.0, 1.0], std::f32::consts::FRAC_PI_2);
+
+        // A +90 degree Z rotation maps +x onto +y; the translation column is
+        // zero, unlike the position-taking overload.
+        assert!(matrix.values[0].abs() < EPSILON);
+        assert!((matrix.values[1] - 1.0).abs() < EPSILON);
+        assert!((matrix.values[3] + 1.0).abs() < EPSILON);
+        assert!((matrix.values[4]).abs() < EPSILON);
+        assert_eq!(matrix.values[9..], [0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn lift_rotates_the_up_vector_by_the_matrix() {
+        let mut matrix = Matrix::identity();
+        matrix.make_transform(&[0.0, 0.0, 1.0], std::f32::consts::FRAC_PI_2);
+
+        // Up (0, distance, 0) rotated +90 around Z points along -x.
+        let result = lift(2.0, &matrix.values);
+
+        assert!((result[0] + 2.0).abs() < EPSILON);
+        assert!(result[1].abs() < EPSILON);
         assert!(result[2].abs() < EPSILON);
     }
 }

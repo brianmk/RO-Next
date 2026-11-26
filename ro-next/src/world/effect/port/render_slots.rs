@@ -351,6 +351,10 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::TexturedSlam => SlotRenderer::HaloLayers,
         PrimitiveId::FloatingBubbles => SlotRenderer::OrbitIcons,
         PrimitiveId::DoubleGumGang => SlotRenderer::DoubleGumGang,
+        // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
+        // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
+        // is the sprite pass (`sprite_pass`), not a slot/record renderer.
+        PrimitiveId::ParticleSpline => return None,
         _ => return None,
     })
 }
@@ -3771,6 +3775,8 @@ mod tests {
         assert_eq!(render(&state_of(PrimitiveId::Texture2d)), None);
         assert_eq!(render(&state_of(PrimitiveId::Texture3d)), None);
         assert_eq!(render(&state_of(PrimitiveId::Particle3d)), None);
+        // `PP_3DPARTICLESPLINE` shares `RenderSegmentSprites2` (sprite pass).
+        assert_eq!(render(&state_of(PrimitiveId::ParticleSpline)), None);
     }
 
     #[test]

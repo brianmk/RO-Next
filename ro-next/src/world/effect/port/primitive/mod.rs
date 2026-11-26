@@ -29,6 +29,7 @@ pub mod intimidate;
 pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
+pub mod particle_spline;
 pub mod particle_up;
 pub mod peong_up;
 pub mod pulse_kind;
@@ -166,6 +167,10 @@ pub enum PrimitiveId {
     Particle3d,
     /// `PP_3DPARTICLEGRAVITY` (6)
     Particle3dGravity,
+    /// `PP_3DPARTICLESPLINE` (8) - `Prim3DParticleSpline`'s multi-segment
+    /// sprite trail. Shares the official `RenderSegmentSprites2` sprite pass
+    /// with the other particle primitives.
+    ParticleSpline,
     /// `PP_WIND` (62)
     Wind,
     /// `PP_INTIMIDATE` (43)
@@ -274,6 +279,7 @@ impl PrimitiveId {
             Self::Cylinder3d => 13,
             Self::Particle3d => 5,
             Self::Particle3dGravity => 6,
+            Self::ParticleSpline => 8,
             Self::Wind => 62,
             Self::Intimidate => 43,
             Self::AuraGlow => 82,
@@ -443,6 +449,10 @@ pub struct EffectPrimitiveState {
 
     /// `/* 0288 */ arcAngle`
     pub arc_angle: f32,
+    /// `/* 0290 */ rotAxis[3]` - the axis `PP_3DPARTICLESPLINE` feeds to
+    /// `matrix::MakeTransform` (the effect bodies set it from
+    /// `MatrixMult(forward, {0, 0, 1})`).
+    pub rot_axis: [f32; 3],
     /// `/* 029C */ changeSpeed`, `/* 02A0 */ changeAccel`
     pub change_speed: f32,
     pub change_accel: f32,
@@ -623,6 +633,7 @@ impl Default for EffectPrimitiveState {
             ch_val1: Vec::new(),
             ch_val2: Vec::new(),
             arc_angle: 36.0,
+            rot_axis: [0.0; 3],
             change_speed: 0.0001,
             change_accel: 0.0001,
             change_speed3d: [0.0; 3],
@@ -757,6 +768,14 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::Particle3d => particle3d::on_process(self, angles, master, rng),
             PrimitiveId::Particle3dGravity => particle3d_gravity::on_process(self, angles, master, rng),
+            PrimitiveId::ParticleSpline => {
+                // `EffectPrimitiveMotion.cpp:8183-8185` calls the body and
+                // discards its `bool` - unlike `PP_3DPARTICLE`, the animation
+                // end does **not** retire the primitive; it lives until
+                // `stateCnt > duration`.
+                particle_spline::on_process(self, angles, master);
+                true
+            }
             PrimitiveId::Wind => {
                 wind::on_process(self);
                 true

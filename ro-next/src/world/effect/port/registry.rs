@@ -12,16 +12,17 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
+    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
     ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
-    EnchantPoisonCast, Endure, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty,
-    GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel,
-    LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill,
-    QuadRingStack, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum,
-    SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji,
-    TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
-    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
-    VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
+    EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks,
+    ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2,
+    HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat,
+    Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave,
+    RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr, Sphere,
+    SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam, TexturedComet,
+    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
+    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2,
+    WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -288,6 +289,22 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BottomUglydance => Box::new(TexturedMagicRing::new("effect\\ring_red.tga", 0, 29999)),
         EffectId::BottomDontforgetme => Box::new(TexturedMagicRing::new("effect\\magic_green.tga", 2, 29999)),
         EffectId::BottomServiceforyou => Box::new(TexturedMagicRing::new("effect\\safeline.bmp", 4, 29999)),
+        // `PP_3DPARTICLESPLINE` (8) family. `case EF_WATERBALL2:`
+        // `RagEffect.cpp:23932-23934`; `case EF_BLOODDRAIN:` `:24738-24740`;
+        // `case EF_ENERGYDRAIN:` `:24741-24743`; `case EF_ENERGYDRAIN2:`
+        // `:24744-24752`; `case EF_ENERGYDRAIN3:` `:24753-24761`;
+        // `case EF_SOULSTRIKE:` `:23168-23170`; `case EF_SOULSTRIKE2:`
+        // `:23178-23180`; `case EF_ENERGYDRAIN_BLACK:` `:22263-22270`.
+        // Lifetimes: `EffectTypes.cpp:126`, `:225`, `:226`, `:387`, `:392`,
+        // `:24`, `:460`, `:1217`.
+        EffectId::Waterball2 => Box::new(WaterBall2::new(100)),
+        EffectId::Blooddrain => Box::new(RedParticleSpray::new(3, 200)),
+        EffectId::Energydrain => Box::new(BloodDrain::new(200)),
+        EffectId::Energydrain2 => Box::new(EnergyDrain2::new(200)),
+        EffectId::Energydrain3 => Box::new(EnergyDrain3::new(200)),
+        EffectId::EnergydrainBlack => Box::new(EnergyDrainBlack::new(200)),
+        EffectId::Soulstrike => Box::new(SoulStrike::new(false, 100)),
+        EffectId::Soulstrike2 => Box::new(SoulStrike::new(true, 100)),
         _ => return None,
     })
 }
@@ -375,6 +392,14 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Entry2,
         EffectId::Readyportal2,
         EffectId::Waterball,
+        EffectId::Waterball2,
+        EffectId::Blooddrain,
+        EffectId::Energydrain,
+        EffectId::Energydrain2,
+        EffectId::Energydrain3,
+        EffectId::EnergydrainBlack,
+        EffectId::Soulstrike,
+        EffectId::Soulstrike2,
         EffectId::Spearbmr,
         EffectId::Edp,
         EffectId::Firefly,
@@ -602,6 +627,14 @@ mod tests {
             (EffectId::Entry2, 100),
             (EffectId::Readyportal2, 200),
             (EffectId::Waterball, 250),
+            (EffectId::Waterball2, 100),
+            (EffectId::Blooddrain, 200),
+            (EffectId::Energydrain, 200),
+            (EffectId::Energydrain2, 200),
+            (EffectId::Energydrain3, 200),
+            (EffectId::EnergydrainBlack, 200),
+            (EffectId::Soulstrike, 100),
+            (EffectId::Soulstrike2, 100),
             (EffectId::Spearbmr, 250),
             (EffectId::Edp, 120),
             (EffectId::Firefly, 100),
