@@ -75,6 +75,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::rag::asura::spawn(effect) {
+        return Some(body);
+    }
+
     if let Some(body) = super::rag::champion::spawn(effect) {
         return Some(body);
     }
@@ -480,6 +484,23 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Comboattack4,
         EffectId::Comboattack5,
         EffectId::Chaincombo,
+        // Champion Asura/`SuperSlashFan` bodies (`rag/asura.rs`): the primitive
+        // helpers that unblocked the Champion pass (`AsuraStrike`,
+        // `SuperSlashFan`, `TexturedCrossLevel`, `WhiteYellowRings`,
+        // `TexturedSkillIcon`).
+        EffectId::Gumgang,
+        EffectId::Steelbody,
+        EffectId::Gumgang2,
+        EffectId::Aurablade,
+        EffectId::Beginasura,
+        EffectId::Beginasura1,
+        EffectId::Beginasura2,
+        EffectId::Beginasura3,
+        EffectId::Beginasura4,
+        EffectId::Beginasura5,
+        EffectId::Beginasura6,
+        EffectId::Beginasura7,
+        EffectId::Beginasura11,
     ]);
 
     ids

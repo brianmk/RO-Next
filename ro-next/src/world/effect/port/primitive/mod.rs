@@ -10,14 +10,17 @@
 //! present so far; add fields as functions are ported, never re-order or
 //! re-purpose one.
 
+pub mod asura_casting;
 pub mod aura_glow;
 pub mod bottom2;
 pub mod casting2;
+pub mod casting3d;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
 pub mod flash_fade;
+pub mod floating_bubbles;
 pub mod forest_light;
 pub mod half_sphere;
 pub mod halo;
@@ -43,6 +46,7 @@ pub mod texture3d;
 pub mod texture_spin;
 pub mod throw_item;
 pub mod wandering_flames;
+pub mod wave_spin;
 pub mod wind;
 
 use super::angles::Angles;
@@ -91,6 +95,15 @@ pub struct MasterState {
     /// read by `PP_HALFSPHERE` (prim 104), which aligns the shell to its
     /// parent rather than to the effect's own `render.angle`.
     pub parent_angle: f32,
+    /// `CRagEffect::state.parent->GetNameOffset()` - `GameActor.cpp:931`.
+    ///
+    /// Read by `PrimFloatingBubbles` (prim 35), which lifts the four orbit
+    /// icons by it (`slots[].height[20]`). The original only runs the
+    /// assignment when the effect has a parent actor; a non-mount actor
+    /// returns `0.0`, which is exactly the default. `None` means "no parent
+    /// information" (the hermetic runtime), so the body leaves the sample at
+    /// zero like a non-mount caster.
+    pub parent_name_offset: Option<f32>,
     /// Camera pitch / yaw and `g_cameraYawOffset`, read by `pattern`
     /// 0x40/0x200.
     pub camera_pitch: f32,
@@ -116,6 +129,7 @@ impl Default for MasterState {
             master_delta_pos: [0.0; 3],
             render_angle: 0.0,
             parent_angle: 0.0,
+            parent_name_offset: None,
             camera_pitch: 0.0,
             camera_yaw: 0.0,
             camera_yaw_offset: 90.0,
@@ -213,6 +227,24 @@ pub enum PrimitiveId {
     /// `CRagEffect::TexturedMagicRing`'s colour planes (the bottom-song
     /// family). Unrelated to `EF_BOTTOM2`, which is `PP_3DTEXTURE`.
     Bottom2,
+    /// `PP_ASURACASTING` (68) - `PrimAsuraCasting`'s blade columns
+    /// (`CRagEffect::AsuraStrike`) and the skill-icon flash
+    /// (`CRagEffect::TexturedSkillIcon`). Drawn by `RenderHaloLayers`.
+    AsuraCasting,
+    /// prim 30 - `TexturedQuadRingSized`'s expanding rings. The official enum
+    /// has no symbol for it (`EffectPrimId.h` jumps from 27 to 34), so the
+    /// port names it after its renderer, `Render3DCasting`.
+    Casting3d,
+    /// prim 31 - `PrimWaveSpin`'s spinning rings (`TexturedCrossLevel`, i.e.
+    /// `EF_GUMGANG2`). No `EffectPrimId.h` symbol; named after its motion
+    /// body. Drawn by the shared `Render3DCasting`.
+    WaveSpin,
+    /// prim 35 - `PrimFloatingBubbles`' ascending icons (`SuperSlashFan`, i.e.
+    /// `EF_GUMGANG`/`EF_STEELBODY`). No `EffectPrimId.h` symbol; named after
+    /// its motion body. Drawn by `RenderOrbitIcons`. Prim 99
+    /// (`PP_DOUBLEGUMGANG`) shares the motion but has its own renderer and is
+    /// not ported.
+    FloatingBubbles,
 }
 
 impl PrimitiveId {
@@ -256,6 +288,10 @@ impl PrimitiveId {
             Self::Casting2 => 24,
             Self::Slash1 => 75,
             Self::Bottom2 => 48,
+            Self::AsuraCasting => 68,
+            Self::Casting3d => 30,
+            Self::WaveSpin => 31,
+            Self::FloatingBubbles => 35,
         }
     }
 }
@@ -801,6 +837,19 @@ impl EffectPrimitiveState {
             PrimitiveId::Casting2 => casting2::on_process(self, angles, master),
             PrimitiveId::Slash1 => slash1::on_process(self, master),
             PrimitiveId::Bottom2 => bottom2::on_process(self, angles, master),
+            PrimitiveId::AsuraCasting => {
+                asura_casting::on_process(self, master);
+                true
+            }
+            PrimitiveId::Casting3d => {
+                casting3d::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::WaveSpin => {
+                wave_spin::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::FloatingBubbles => floating_bubbles::on_process(self, master, rng),
         };
 
         if !alive {

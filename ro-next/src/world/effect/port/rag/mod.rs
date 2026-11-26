@@ -6,6 +6,7 @@
 pub mod agiup;
 pub mod aqua;
 pub mod aspersio;
+pub mod asura;
 pub mod bash;
 pub mod blessing;
 pub mod blitz_beat;

@@ -17,6 +17,9 @@
 //! | --- | --- | --- |
 //! | 60, 63 | `Render3DCasting` | heal pillar/ring, portals, magic ring, ripple rings |
 //! | 24 | `Render3DCasting` | `QuadRingStack` - `EF_DEFENDER`, `EF_REFLECTSHIELD` |
+//! | 30, 31 | `Render3DCasting` | `TexturedQuadRingSized` rings (`EF_AURABLADE`, `EF_BEGINASURA`), `EF_GUMGANG2` |
+//! | 35 | `RenderOrbitIcons` | `SuperSlashFan` - `EF_GUMGANG`, `EF_STEELBODY` |
+//! | 68 | `RenderHaloLayers` | `AsuraStrike`/`TexturedSkillIcon` - `EF_BEGINASURA`, 1..7, 11 |
 //! | 48 | `RenderColorPlane` | `TexturedMagicRing(name, kind)` - the bottom-song family |
 //! | 75 | `RenderSlash1` | `JobLvUp50_2` (`EF_KAIZEL`), `RunStop` (`EF_STOPEFFECT`) |
 //! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
@@ -88,6 +91,14 @@
 //! * Angles are read from the client's trig tables with the index wrapped into
 //!   `[0, 360]`; the original would read out of bounds where a body leaves a
 //!   `height[...]` phase outside that range.
+//! * `RenderTeiRect`'s `extra == 2` (only `RenderOrbitIcons`, prim 35) bumps
+//!   every projected vertex's reciprocal depth by `+0.000045` and recomputes `z
+//!   = RhwToDepth(rhw)` (`DepthAlpha.cpp:33`), a constant depth nudge of
+//!   `10.067114 * 0.000045 = 0.000453` in the original's depth units. The port
+//!   projects in the holder pass and has no per-vertex depth channel on
+//!   [`SlotTriangle`], so the nudge is not reproduced (the geometry, colours
+//!   and blend are). It only biases the icons against the caster in the depth
+//!   buffer.
 //! * `RenderTeiFacingSlots` reads `slots[0].alphaT`/`slots[1].alphaT`, which
 //!   `PrimAuraGlow` fills with `FaceCamera` from the client camera. The port's
 //!   effect simulation has no camera, so the holder computes the same two
@@ -295,6 +306,10 @@ pub enum SlotRenderer {
     StackedRings,
     /// `RenderPeongUp` - prim 96 (`WhiteLightTrail`).
     PeongUp,
+    /// `RenderHaloLayers` - prim 68 (`PP_ASURACASTING`).
+    HaloLayers,
+    /// `RenderOrbitIcons` - prim 35 (`SuperSlashFan`).
+    OrbitIcons,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -326,6 +341,9 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::FlashFade => SlotRenderer::BladeFins,
         PrimitiveId::StackedRings => SlotRenderer::StackedRings,
         PrimitiveId::PeongUp => SlotRenderer::PeongUp,
+        PrimitiveId::Casting3d | PrimitiveId::WaveSpin => SlotRenderer::Casting,
+        PrimitiveId::AsuraCasting => SlotRenderer::HaloLayers,
+        PrimitiveId::FloatingBubbles => SlotRenderer::OrbitIcons,
         _ => return None,
     })
 }
@@ -384,10 +402,36 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
 
             render_peong_up(state, facing, &mut out);
         }
+        Some(SlotRenderer::HaloLayers) => {
+            // `PrimAsuraCasting` runs `FaceCamera(state.slots)` each frame; the
+            // hermetic simulation has no camera, so the live render path uses
+            // the angles recovered from it (like `RenderTeiFacingSlots`).
+            let facing = facing_or_stored(state, context);
+
+            render_halo_layers(state, facing, &mut out);
+        }
+        Some(SlotRenderer::OrbitIcons) => {
+            let facing = facing_or_stored(state, context);
+
+            render_orbit_icons(state, facing, 1.0, 100, 100, 255, &mut out);
+        }
         None => {}
     }
 
     out
+}
+
+/// `[slots[0].alphaT, slots[1].alphaT]` after `FaceCamera`.
+///
+/// Prim 68 (`PrimAsuraCasting`), prim 35 (`PrimFloatingBubbles`) and prim 96
+/// (`PrimPeongUp`) all call `FaceCamera`, which the hermetic simulation cannot
+/// run. The live render path therefore takes the two angles from the camera
+/// ([`face_camera_angles`]); the camera-less [`triangles`] entry point falls
+/// back to the values stored in the slots.
+fn facing_or_stored(state: &EffectPrimitiveState, context: Option<&SlotRenderContext<'_>>) -> [i16; 2] {
+    context
+        .map(|context| context.facing)
+        .unwrap_or([state.slots[0].alpha_t, state.slots[1].alpha_t])
 }
 
 // ---------------------------------------------------------------------------
@@ -2685,6 +2729,334 @@ pub fn render_fan_beam(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>
         emit(out, wide, wide_glow, wide_colour, wide_extra);
     }
 }
+
+// ---------------------------------------------------------------------------
+// RenderHaloLayers (68)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderHaloLayers` - `EffectPrimitiveRendering.cpp:4140-4265`.
+///
+/// `PP_ASURACASTING`'s stacked fan layers. Every live slot draws ten quads,
+/// layer `i = 10` (outermost) down to `1`: the four corners sit on the
+/// 45/135/225/315 degree diagonals at radius `step + distance`, where `step`
+/// is `10 - i` (times three unless `flag1[4]` is 2/4/5), all lifted by
+/// `height[0]` and turned towards the screen by `FaceCamera`
+/// (`Tei_TowardScreen`). The quad is then dropped by 30 units (40 for kinds
+/// 2/4/6/7).
+///
+/// `slot.flag1[4]` selects the colour and the blend:
+///
+/// * `0` - black, `pw = 1`,
+/// * `3` - dark grey; layer 10 draws at half alpha and again at full alpha,
+/// * `5` - white, `pw = 1`, plus a second white pass at 1.1x radius,
+/// * `6`/`7` - white, `pw = 0` (glow), plus a second pass at 1.1x radius (kind
+///   7 red-tinted, otherwise blue-tinted),
+/// * anything else - white, `pw = 1`.
+///
+/// `slot.flag1[0]` picks the texture (`state.textures[flag1[0]]`).
+///
+/// The original writes the four rotated corners and the 1.1x scaling back into
+/// `slots[ec].vecBPre/vecBNow/vecTNow/vecTPre`. Nothing reads those vectors
+/// afterwards (the motion body does not), so the port keeps them local.
+pub fn render_halo_layers(state: &EffectPrimitiveState, facing: [i16; 2], out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        for i in (1..=10usize).rev() {
+            let mode = slot.flag1[4];
+
+            let (angle1, angle2) = if mode == 6 || mode == 7 { (35, 145) } else { (45, 135) };
+
+            let mut step = 10 - i as i32;
+
+            if mode != 2 && mode != 4 && mode != 5 {
+                step *= 3;
+            }
+
+            let radius = step as f32 + slot.distance;
+
+            let b_pre = [radius * table_cos(angle1), 0.0, table_sin(angle1) * radius];
+            let b_now = [radius * table_cos(angle2), 0.0, table_sin(angle2) * radius];
+
+            // `unsigned angle3 = angle2 + (kinds 6/7 ? 70 : 90); if (>= 360) -= 360;`
+            let mut angle3 = angle2 + if mode == 6 || mode == 7 { 70 } else { 90 };
+
+            if angle3 >= 360 {
+                angle3 -= 360;
+            }
+
+            let t_now = [radius * table_cos(angle3), 0.0, table_sin(angle3) * radius];
+
+            // `int angle4 = angle3 + (kinds 6/7 ? 110 : 90); if (>= 360) -= 360;`
+            let mut angle4 = angle3 + if mode == 6 || mode == 7 { 110 } else { 90 };
+
+            if angle4 >= 360 {
+                angle4 -= 360;
+            }
+
+            let t_pre = [radius * table_cos(angle4), 0.0, table_sin(angle4) * radius];
+
+            let base = slot.height[0];
+            let mut corners = [
+                [base + b_pre[0], 0.0, b_pre[2]],
+                [base + b_now[0], 0.0, b_now[2]],
+                [base + t_now[0], 0.0, t_now[2]],
+                [base + t_pre[0], 0.0, t_pre[2]],
+            ];
+
+            tei_toward_screen(&mut corners, facing[0], facing[1]);
+
+            let lift = if mode == 2 || mode == 4 || mode == 6 || mode == 7 {
+                40.0
+            } else {
+                30.0
+            };
+
+            for corner in &mut corners {
+                corner[1] -= lift;
+            }
+
+            // `RenderTeiRect(..., vec2, vec1, vec4, vec3, ...)`.
+            let quad = [corners[1], corners[0], corners[3], corners[2]];
+            let texture_index = slot.flag1[0] as u8 as usize;
+            let alpha = slot.height[i] as i32;
+
+            if alpha > 0 {
+                match mode {
+                    0 => halo_layer_quad(out, state, quad, alpha as i16, texture_index, (0, 0, 0), SlotBlend::Alpha),
+                    3 => {
+                        if i == 10 {
+                            halo_layer_quad(
+                                out,
+                                state,
+                                quad,
+                                (alpha / 2) as i16,
+                                texture_index,
+                                (10, 10, 10),
+                                SlotBlend::Alpha,
+                            );
+                        }
+
+                        halo_layer_quad(out, state, quad, alpha as i16, texture_index, (10, 10, 10), SlotBlend::Alpha);
+                    }
+                    5 => halo_layer_quad(out, state, quad, alpha as i16, texture_index, (255, 255, 255), SlotBlend::Alpha),
+                    6 | 7 => halo_layer_quad(
+                        out,
+                        state,
+                        quad,
+                        alpha as i16,
+                        texture_index,
+                        (255, 255, 255),
+                        SlotBlend::AlphaOne,
+                    ),
+                    _ => halo_layer_quad(out, state, quad, alpha as i16, texture_index, (255, 255, 255), SlotBlend::Alpha),
+                }
+            }
+
+            if mode == 5 || mode == 6 || mode == 7 {
+                let scaled = |corner: [f32; 3]| [corner[0] * 1.1, corner[1] * 1.1, corner[2] * 1.1];
+
+                let mut outer = [
+                    add_scaled_height(base, scaled(b_pre)),
+                    add_scaled_height(base, scaled(b_now)),
+                    add_scaled_height(base, scaled(t_now)),
+                    add_scaled_height(base, scaled(t_pre)),
+                ];
+
+                tei_toward_screen(&mut outer, facing[0], facing[1]);
+
+                let outer_lift = if mode == 5 { 30.0 } else { 40.0 };
+
+                for corner in &mut outer {
+                    corner[1] -= outer_lift;
+                }
+
+                let quad = [outer[1], outer[0], outer[3], outer[2]];
+                let outer_alpha = slot.height[i] as i32;
+
+                if outer_alpha > 0 {
+                    let colour = if mode == 7 { (255, 5, 5) } else { (5, 5, 255) };
+
+                    halo_layer_quad(out, state, quad, outer_alpha as i16, texture_index, colour, SlotBlend::AlphaOne);
+                }
+            }
+        }
+    }
+}
+
+/// `{corner.x + height[0], corner.y, corner.z}` for the outer pass of
+/// [`render_halo_layers`]: the original adds the lift to `x` only
+/// (`vec1.Set(vecBPre.x + height[0], vecBPre.y, vecBPre.z)`).
+fn add_scaled_height(height: f32, corner: [f32; 3]) -> [f32; 3] {
+    [corner[0] + height, corner[1], corner[2]]
+}
+
+/// One 18-argument `RenderTeiRect` call of [`render_halo_layers`].
+///
+/// `f1 = 0` (the corners are relative to `render.position`), full `0, 1`
+/// texture window, and the caller's `pw`/colour/`tn`.
+#[allow(clippy::too_many_arguments)]
+fn halo_layer_quad(
+    out: &mut Vec<SlotTriangle>,
+    state: &EffectPrimitiveState,
+    quad: Quad,
+    alpha: i16,
+    texture_index: usize,
+    colour: (u8, u8, u8),
+    blend: SlotBlend,
+) {
+    emit_tei_rect_18(
+        state,
+        out,
+        alpha,
+        quad,
+        texture_index as i32,
+        true,
+        colour,
+        (0.0, 1.0, 0.0, 1.0),
+        blend,
+    );
+}
+
+// ---------------------------------------------------------------------------
+// RenderOrbitIcons (35)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderOrbitIcons` - `EffectPrimitiveRendering.cpp:4764-4897`.
+///
+/// `SuperSlashFan`'s four orbiting icon quads. Each live slot keeps four
+/// independent icon records, one per slot vector, in `height[4k..4k+3]`:
+/// `height[4k]` is the icon height, `height[4k+1]` the alpha, `height[4k+2]`
+/// the texture index and `height[4k+3]` the orbit angle. Every record is a
+/// square at the slot's `distance` radius, turned towards the screen by
+/// `slots[0..1].alphaT` (`FaceCamera`), offset by the slot vector
+/// (`vecBPre`/`vecBNow`/`vecTPre`/`vecTNow`, whose `y` holds the body's
+/// random vertical offset) and by `-height[20]` (the caster's name offset).
+///
+/// The back-facing test is
+/// `(height[4k+2] == 0 || height[4k+2] == g_effectIconOuterRadius) ==
+/// ((angle - roll) in (-80, 70) || |angle - roll| > 270)`: when it holds the
+/// quad keeps the 45/135/225/315 order, otherwise corners 2/1 and 4/3 are
+/// swapped so the icon stays readable from the other side.
+///
+/// When `flag1[4] == 1` the colour switches to red for every *later* slot too
+/// (the original overwrites its `red`/`green`/`blue` parameters).
+///
+/// `extra == 2`'s reciprocal-depth nudge is not reproduced; see the module
+/// header's deviations.
+#[allow(clippy::too_many_arguments)]
+pub fn render_orbit_icons(
+    state: &EffectPrimitiveState,
+    facing: [i16; 2],
+    scale: f32,
+    mut red: u8,
+    mut green: u8,
+    mut blue: u8,
+    out: &mut Vec<SlotTriangle>,
+) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        if slot.flag1[4] == 1 {
+            red = 255;
+            green = 20;
+            blue = 20;
+        }
+
+        let rx = scale * slot.distance;
+
+        let mut corners = [
+            [rx * table_cos(45), 0.0, rx * table_sin(45)],
+            [rx * table_cos(135), 0.0, rx * table_sin(135)],
+            [rx * table_cos(225), 0.0, rx * table_sin(225)],
+            [rx * table_cos(315), 0.0, rx * table_sin(315)],
+        ];
+
+        let rot0 = facing[0];
+
+        tei_toward_screen(&mut corners, rot0, facing[1]);
+
+        let base = corners;
+
+        // `(angle index, texture index, alpha index, owner vector)`, in the
+        // original's four blocks: `vecBPre`, `vecBNow`, `vecTPre`, `vecTNow`.
+        let icons: [(usize, usize, usize, [f32; 3]); 4] = [
+            (3, 2, 1, slot.vec_b_pre),
+            (7, 6, 5, slot.vec_b_now),
+            (11, 10, 9, slot.vec_t_pre),
+            (15, 14, 13, slot.vec_t_now),
+        ];
+
+        for (angle_index, texture_index, alpha_index, owner) in icons {
+            let angle = slot.height[angle_index] as i32;
+
+            // `slot.vecBPre.x = cos(angle0) * g_effectIconRadius;
+            //  slot.vecBPre.z = sin(angle0) * g_effectIconRadius;`
+            // Only `x`/`z` are rewritten; `y` keeps the body's value.
+            let offset = [
+                table_cos(angle) * EFFECT_ICON_RADIUS,
+                owner[1],
+                table_sin(angle) * EFFECT_ICON_RADIUS,
+            ];
+
+            let difference = (slot.height[angle_index] - rot0 as f32) as i32;
+            let icon_faces_us = (difference < 70 && difference > -80) || !(-270..=270).contains(&difference);
+
+            let texture = slot.height[texture_index];
+            let keep_order = (texture == 0.0 || texture == EFFECT_ICON_OUTER_RADIUS) == icon_faces_us;
+
+            let mut quad = if keep_order {
+                [
+                    add(base[0], offset),
+                    add(base[1], offset),
+                    add(base[2], offset),
+                    add(base[3], offset),
+                ]
+            } else {
+                [
+                    add(base[1], offset),
+                    add(base[0], offset),
+                    add(base[3], offset),
+                    add(base[2], offset),
+                ]
+            };
+
+            let name_offset = slot.height[20];
+
+            for corner in &mut quad {
+                corner[1] -= name_offset;
+            }
+
+            let alpha = slot.height[alpha_index] as i32 as i16;
+            let texture_slot_index = (slot.height[texture_index] as i8).max(0) as usize;
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                quad,
+                texture_slot_index as i32,
+                true,
+                (red, green, blue),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        }
+    }
+}
+
+/// `g_effectIconRadius` - `EffectPrimitiveRendering.cpp:43`.
+const EFFECT_ICON_RADIUS: f32 = 4.0;
+/// `g_effectIconOuterRadius` - `EffectPrimitiveRendering.cpp:40`.
+const EFFECT_ICON_OUTER_RADIUS: f32 = 2.0;
 
 // ---------------------------------------------------------------------------
 // RenderTeiFacingSlots (82)
@@ -5101,5 +5473,184 @@ mod tests {
         let mut above = peong_up_state();
         above.slots[0].vec_b_pre[1] = 1.0;
         assert!(triangles(&above).is_empty());
+    }
+
+    // -----------------------------------------------------------------------
+    // RenderHaloLayers (68) / RenderOrbitIcons (35)
+    // -----------------------------------------------------------------------
+
+    const SUPER_TEXTURES: [&str; 5] = [
+        "effect\\super1.bmp",
+        "effect\\super2.bmp",
+        "effect\\super3.bmp",
+        "effect\\super4.bmp",
+        "effect\\super5.bmp",
+    ];
+
+    fn halo_state(kind: i8) -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::AsuraCasting);
+        state.render_flag = 5;
+        state.texture_frames = vec!["effect\\asura3.tga", "effect\\asura2.tga", "effect\\asura1.tga"];
+        state.texture = Some("effect\\asura3.tga");
+        state.slots[0].life = 1;
+        state.slots[0].flag1[4] = kind;
+        state.slots[0].distance = 4.1;
+
+        for index in 1..=10 {
+            state.slots[0].height[index] = 100.0;
+        }
+
+        state
+    }
+
+    fn orbit_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::FloatingBubbles);
+        state.render_flag = 5;
+        state.texture_frames = SUPER_TEXTURES.to_vec();
+        state.texture = Some(SUPER_TEXTURES[0]);
+        state.slots[0].life = 1;
+        state.slots[0].distance = 3.5;
+        state.slots[0].height[1] = 70.0;
+        state.slots[0].height[2] = 3.0;
+        state.slots[0].height[3] = 10.0;
+        state.slots[0].height[5] = 130.0;
+        state.slots[0].height[6] = 4.0;
+        state.slots[0].height[7] = 20.0;
+        state.slots[0].height[9] = 190.0;
+        state.slots[0].height[10] = 0.0;
+        state.slots[0].height[11] = 30.0;
+        state.slots[0].height[13] = 250.0;
+        state.slots[0].height[14] = 1.0;
+        state.slots[0].height[15] = 40.0;
+        state.slots[0].vec_b_pre = [0.0, -4.0, 0.0];
+        state.slots[0].vec_b_now = [0.0, -5.0, 0.0];
+        state.slots[0].vec_t_pre = [0.0, -6.0, 0.0];
+        state.slots[0].vec_t_now = [0.0, -7.0, 0.0];
+
+        state
+    }
+
+    #[test]
+    fn the_asura_renderers_are_dispatched() {
+        assert_eq!(render(&state_of(PrimitiveId::AsuraCasting)), Some(SlotRenderer::HaloLayers));
+        assert_eq!(render(&state_of(PrimitiveId::FloatingBubbles)), Some(SlotRenderer::OrbitIcons));
+        assert_eq!(render(&state_of(PrimitiveId::Casting3d)), Some(SlotRenderer::Casting));
+        assert_eq!(render(&state_of(PrimitiveId::WaveSpin)), Some(SlotRenderer::Casting));
+    }
+
+    #[test]
+    fn halo_layers_draw_ten_black_quads_for_kind_zero() {
+        let state = halo_state(0);
+        let built = triangles(&state);
+
+        // Ten layers, one quad (two triangles) each.
+        assert_eq!(built.len(), 20);
+
+        let (cos45, sin45) = trig(45);
+        let (cos135, sin135) = trig(135);
+        let (cos315, sin315) = trig(315);
+
+        // Layer i = 10: `step = 0`, so the radius is the slot distance; the
+        // corners are `vec2, vec1, vec4, vec3` lifted by 30.
+        let b_now = [4.1 * cos135, -30.0, sin135 * 4.1];
+        let b_pre = [4.1 * cos45, -30.0, sin45 * 4.1];
+        let t_pre = [4.1 * cos315, -30.0, sin315 * 4.1];
+        let close = |left: [f32; 3], right: [f32; 3]| {
+            (left[0] - right[0]).abs() < 1e-4 && (left[1] - right[1]).abs() < 1e-4 && (left[2] - right[2]).abs() < 1e-4
+        };
+        assert!(close(built[0].corners[0], b_now), "{:?}", built[0].corners[0]);
+        assert!(close(built[0].corners[1], b_pre), "{:?}", built[0].corners[1]);
+        assert!(close(built[0].corners[2], t_pre), "{:?}", built[0].corners[2]);
+
+        // Kind 0 draws black through the straight alpha queue and uses
+        // `textures[flag1[0]]`.
+        assert_eq!(built[0].argb, pack_argb(100, 0, 0, 0));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].texture, Some("effect\\asura3.tga"));
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+    }
+
+    #[test]
+    fn halo_layers_kind_three_doubles_the_outermost_layer() {
+        let built = triangles(&halo_state(3));
+
+        // Eleven quads: layer 10 draws twice.
+        assert_eq!(built.len(), 22);
+        assert_eq!(built[0].argb, pack_argb(50, 10, 10, 10));
+        assert_eq!(built[2].argb, pack_argb(100, 10, 10, 10));
+        assert_eq!(built[4].argb, pack_argb(100, 10, 10, 10));
+    }
+
+    #[test]
+    fn halo_layers_kind_five_adds_the_scaled_outer_pass() {
+        let built = triangles(&halo_state(5));
+
+        // Two quads per layer, ten layers.
+        assert_eq!(built.len(), 40);
+
+        // First pass: white, straight alpha.
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        // Second pass: blue glow at 1.1x the radius.
+        let (cos45, _) = trig(45);
+        assert_eq!(built[2].argb, pack_argb(100, 5, 5, 255));
+        assert_eq!(built[2].blend, SlotBlend::AlphaOne);
+        let expected = 4.1 * 1.1 * cos45;
+        assert!((built[2].corners.iter().map(|corner| corner[0]).fold(0.0f32, f32::max) - expected).abs() < 1e-4);
+    }
+
+    #[test]
+    fn orbit_icons_draw_four_quads_and_pick_the_texture_by_index() {
+        let built = triangles(&orbit_state());
+
+        assert_eq!(built.len(), 8);
+
+        let (cos10, sin10) = trig(10);
+        let (cos45, sin45) = trig(45);
+        let (cos135, sin135) = trig(135);
+
+        // Record 0 keeps its order when `(index == 0 || index == 2) ==
+        // |angle - roll| < 80`; index 3 makes both sides false, so the
+        // corners swap to `vec2, vec1, vec4, vec3`.
+        let offset = [cos10 * EFFECT_ICON_RADIUS, -4.0, sin10 * EFFECT_ICON_RADIUS];
+        let first = [3.5 * cos135 + offset[0], offset[1], 3.5 * sin135 + offset[2]];
+        let second = [3.5 * cos45 + offset[0], offset[1], 3.5 * sin45 + offset[2]];
+        let close = |left: [f32; 3], right: [f32; 3]| {
+            (left[0] - right[0]).abs() < 1e-4 && (left[1] - right[1]).abs() < 1e-4 && (left[2] - right[2]).abs() < 1e-4
+        };
+        assert!(close(built[0].corners[0], first), "{:?}", built[0].corners[0]);
+        assert!(close(built[0].corners[1], second), "{:?}", built[0].corners[1]);
+
+        // Alpha from `height[1]`, texture from `height[2]`.
+        assert_eq!(built[0].argb, pack_argb(70, 100, 100, 255));
+        assert_eq!(built[0].texture, Some("effect\\super4.bmp"));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn orbit_icons_switch_to_red_for_kind_one_and_keep_it() {
+        let mut state = orbit_state();
+        state.slots[1] = state.slots[0];
+        state.slots[0].flag1[4] = 1;
+
+        let built = triangles(&state);
+        assert_eq!(built.len(), 16);
+
+        // The original overwrites its colour parameters, so every later slot is
+        // red too.
+        assert_eq!(built[0].argb, pack_argb(70, 255, 20, 20));
+        assert_eq!(built[8].argb, pack_argb(70, 255, 20, 20));
+    }
+
+    #[test]
+    fn orbit_icons_subtract_the_master_name_offset() {
+        let mut state = orbit_state();
+        state.slots[0].height[20] = 6.0;
+
+        let built = triangles(&state);
+
+        assert_eq!(built[0].corners[0][1], -4.0 - 6.0);
+        assert_eq!(built[0].corners[1][1], -4.0 - 6.0);
     }
 }
