@@ -27,7 +27,7 @@ impl Default for EarthSpike {
 
 impl PortedEffect for EarthSpike {
     fn lifetime(&self) -> i32 {
-        240
+        250
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
