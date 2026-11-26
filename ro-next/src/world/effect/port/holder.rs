@@ -7,9 +7,17 @@
 //! the effect renderer): `update` only advances the timeline, so the timing
 //! model can be verified without a GPU.
 
+use cgmath::{Point3, Rad, Vector2};
 use ragnarok_packets::EffectId;
+use wgpu::BlendFactor;
+
+use crate::graphics::Color;
+use crate::loaders::{ImageType, TextureLoader};
+use crate::renderer::EffectRenderer;
+use crate::world::Camera;
 
 use super::FRAME_FREQUENCY_MS;
+use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::registry;
 use super::runtime::{EffectRuntime, PortedEffect};
 
@@ -81,9 +89,113 @@ impl PortedEffectHolder {
         true
     }
 
+    /// Submits the primitives that map to a single textured quad.
+    ///
+    /// Covers `PP_2DTEXTURE` and `PP_2DFLASH` (both render through
+    /// `Render2DPrimitive`). Rings, cylinders and 3-D volumes need triangle or
+    /// world-space geometry and are not drawn yet.
+    pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
+        let anchor = Point3::new(
+            self.runtime.position[0],
+            self.runtime.position[1],
+            self.runtime.position[2],
+        );
+
+        for primitive in &self.runtime.primitives {
+            if !primitive.alive {
+                continue;
+            }
+
+            let state = &primitive.state;
+
+            if !matches!(state.count, PrimitiveId::Texture2d | PrimitiveId::Flash2d) {
+                continue;
+            }
+
+            let Some(path) = state.texture else {
+                continue;
+            };
+
+            let Ok(texture) = textures.get_or_load(path, ImageType::Color) else {
+                continue;
+            };
+
+            let (corners, uvs) = quad_corners(state, self.runtime.screen);
+            let (source, destination) = blend_factors(state.render_flag);
+
+            renderer.render_effect(
+                camera,
+                anchor,
+                texture,
+                corners,
+                uvs,
+                Vector2::new(0.0, 0.0),
+                Rad(0.0),
+                primitive_color(state),
+                source,
+                destination,
+            );
+        }
+    }
+
     /// Number of 16 ms steps still pending in the accumulator (test hook).
     pub fn pending_steps(&self) -> u32 {
         (self.accumulator_ms / FRAME_FREQUENCY_MS as f64) as u32
+    }
+}
+
+/// The four screen-space corners and UVs of a `Render2DPrimitive` quad,
+/// relative to the projected anchor (`master.screen`).
+pub(crate) fn quad_corners(state: &EffectPrimitiveState, anchor_screen: [f32; 2]) -> ([Vector2<f32>; 4], [Vector2<f32>; 4]) {
+    let roll = state.roll.to_radians();
+    let (sin, cos) = roll.sin_cos();
+
+    let width = state.width_size;
+    let height = state.height_size;
+
+    let center = Vector2::new(state.position[0] - anchor_screen[0], state.position[1] - anchor_screen[1]);
+
+    // Clockwise from the top-left corner: (-w,-h), (w,-h), (w,h), (-w,h).
+    let local = [
+        Vector2::new(-width, -height),
+        Vector2::new(width, -height),
+        Vector2::new(width, height),
+        Vector2::new(-width, height),
+    ];
+
+    let corners = local.map(|point| {
+        Vector2::new(
+            point.x * cos - point.y * sin + center.x,
+            point.x * sin + point.y * cos + center.y,
+        )
+    });
+
+    let uvs = [
+        Vector2::new(0.0, 0.0),
+        Vector2::new(1.0, 0.0),
+        Vector2::new(1.0, 1.0),
+        Vector2::new(0.0, 1.0),
+    ];
+
+    (corners, uvs)
+}
+
+/// `argb` as stored by `ProcessAlpha` -> renderer colour.
+pub(crate) fn primitive_color(state: &EffectPrimitiveState) -> Color {
+    let alpha = ((state.argb >> 24) & 0xFF) as f32 / 255.0;
+    let red = ((state.argb >> 16) & 0xFF) as f32 / 255.0;
+    let green = ((state.argb >> 8) & 0xFF) as f32 / 255.0;
+    let blue = (state.argb & 0xFF) as f32 / 255.0;
+
+    Color::rgba(red, green, blue, alpha)
+}
+
+/// `RSF_ADDITIVE` (0x2) or the `0x200` shorthand the effect bodies use.
+fn blend_factors(render_flag: u32) -> (BlendFactor, BlendFactor) {
+    if (render_flag & 0x200) != 0 {
+        (BlendFactor::One, BlendFactor::One)
+    } else {
+        (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha)
     }
 }
 
@@ -157,6 +269,52 @@ mod tests {
 
         assert!(textures.contains(&"effect\\alpha_down.tga"));
         assert!(textures.contains(&"EFFECT\\alpha_center.tga"));
+    }
+
+    #[test]
+    fn quad_corners_are_relative_to_the_anchor_and_rotated() {
+        let state = EffectPrimitiveState {
+            position: [320.0, 240.0, 0.0],
+            width_size: 10.0,
+            height_size: 20.0,
+            roll: 0.0,
+            ..Default::default()
+        };
+
+        let (corners, uvs) = quad_corners(&state, [300.0, 200.0]);
+
+        assert_eq!(corners[0], Vector2::new(20.0 - 10.0, 40.0 - 20.0));
+        assert_eq!(corners[2], Vector2::new(20.0 + 10.0, 40.0 + 20.0));
+        assert_eq!(uvs[2], Vector2::new(1.0, 1.0));
+
+        // A 90 degree roll swaps the axes.
+        let mut rotated = state;
+        rotated.roll = 90.0;
+        let (rotated_corners, _) = quad_corners(&rotated, [300.0, 200.0]);
+        // (-10,-20) rotated by 90 deg -> (+20,-10), plus the centre (20,40).
+        assert!((rotated_corners[0].x - 40.0).abs() < 1e-4);
+        assert!((rotated_corners[0].y - 30.0).abs() < 1e-4);
+    }
+
+    #[test]
+    fn color_decodes_the_packed_argb() {
+        let state = EffectPrimitiveState {
+            argb: 0x80_FF_00_40,
+            ..Default::default()
+        };
+
+        let color = primitive_color(&state);
+
+        assert!((color.red - 1.0).abs() < 1e-6);
+        assert!((color.green - 0.0).abs() < 1e-6);
+        assert!((color.blue - 64.0 / 255.0).abs() < 1e-6);
+        assert!((color.alpha - 128.0 / 255.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn additive_flag_selects_one_one_blending() {
+        assert_eq!(blend_factors(0x200), (BlendFactor::One, BlendFactor::One));
+        assert_eq!(blend_factors(1), (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha));
     }
 
     #[test]

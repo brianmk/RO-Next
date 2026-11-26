@@ -44,9 +44,10 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | texture assets on every primitive (`g_texMgr.Load`) | all ported bodies | 2 |
 | `render_flag` (`RSF_*`, additive 0x200) | primitive state + ring bodies | 2 |
 | `PortedEffectHolder` (fixed 16 ms stepping) | plan 4.2 | 6 |
+| holder render path (`Texture2d`/`Flash2d` quads via `EffectRenderer`) | plan W3 | 3 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 100 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
+Total: 103 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 
