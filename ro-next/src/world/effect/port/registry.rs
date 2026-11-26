@@ -15,13 +15,13 @@ use super::rag::{
     AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
     ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
     EnchantPoisonCast, Endure, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty,
-    GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility,
+    GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel,
     LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill,
-    RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow,
-    SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam,
-    TexturedComet, TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
-    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst,
-    WhiteSpray,
+    QuadRingStack, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum,
+    SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji,
+    TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
+    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
+    VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -249,6 +249,25 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Throwitem9 => Box::new(ThrowItem::new("유저인터페이스\\item\\풍마_열화.bmp", 3, 200)),
         EffectId::Throwitem10 => Box::new(ThrowItem::new("effect\\coin_a.bmp", 3, 200)),
         EffectId::Throwitem11 => Box::new(ThrowItem::new("유저인터페이스\\item\\폭탄버섯포자.bmp", 1, 300)),
+        // Prims 24/48/75: the bodies that spawn `PP_3DCASTING_2`,
+        // `PP_BOTTOM2` and `PP_SLASH1`.
+        //
+        // `case EF_DEFENDER:` / `case EF_REFLECTSHIELD:` - `RagEffect.cpp:24194-24199`.
+        EffectId::Defender => Box::new(QuadRingStack::new("effect\\ring_black.tga", 200)),
+        EffectId::Reflectshield => Box::new(QuadRingStack::new("effect\\ring_yellow.tga", 200)),
+        // `case EF_KAIZEL:` - `RagEffect.cpp:21287-21292`, lifetime 200
+        // (`EffectTypes.cpp:599`).
+        EffectId::Kaizel => Box::new(Kaizel::new(200)),
+        // `case EF_STOPEFFECT:` - `RagEffect.cpp:25147-25154`, lifetime 100
+        // (`EffectTypes.cpp:453`).
+        EffectId::Stopeffect => Box::new(StopEffect::new(100)),
+        // The bottom-song family - `RagEffect.cpp:23989-24037`, all lifetime
+        // 29999 (`EffectTypes.cpp:286`, `:296`, `:299`, `:301`, `:303`).
+        EffectId::BottomDissonance => Box::new(TexturedMagicRing::new("effect\\ring_blue.tga", 0, 29999)),
+        EffectId::BottomAssassincross => Box::new(TexturedMagicRing::new("effect\\ring_red.tga", 1, 29999)),
+        EffectId::BottomUglydance => Box::new(TexturedMagicRing::new("effect\\ring_red.tga", 0, 29999)),
+        EffectId::BottomDontforgetme => Box::new(TexturedMagicRing::new("effect\\magic_green.tga", 2, 29999)),
+        EffectId::BottomServiceforyou => Box::new(TexturedMagicRing::new("effect\\safeline.bmp", 4, 29999)),
         _ => return None,
     })
 }
@@ -426,6 +445,15 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Throwitem9,
         EffectId::Throwitem10,
         EffectId::Throwitem11,
+        EffectId::Defender,
+        EffectId::Reflectshield,
+        EffectId::Kaizel,
+        EffectId::Stopeffect,
+        EffectId::BottomDissonance,
+        EffectId::BottomAssassincross,
+        EffectId::BottomUglydance,
+        EffectId::BottomDontforgetme,
+        EffectId::BottomServiceforyou,
     ]);
 
     ids
@@ -596,6 +624,15 @@ mod tests {
             (EffectId::Throwitem9, 200),
             (EffectId::Throwitem10, 200),
             (EffectId::Throwitem11, 300),
+            (EffectId::Defender, 200),
+            (EffectId::Reflectshield, 200),
+            (EffectId::Kaizel, 200),
+            (EffectId::Stopeffect, 100),
+            (EffectId::BottomDissonance, 29999),
+            (EffectId::BottomAssassincross, 29999),
+            (EffectId::BottomUglydance, 29999),
+            (EffectId::BottomDontforgetme, 29999),
+            (EffectId::BottomServiceforyou, 29999),
         ];
 
         for (effect, lifetime) in expect {
@@ -668,7 +705,13 @@ mod tests {
                 // primitive (e.g. Two Hand Quicken, Lex Divina). Those ids are
                 // legitimate as long as the string table knows their resource;
                 // every other body must still spawn geometry.
-                assert!(needs_str_clips(effect), "{effect:?} spawned nothing");
+                // Caster-body effects (the whole manual tier) legitimately spawn
+                // neither geometry nor a clip; each batch declares its own.
+                assert!(
+                    needs_str_clips(effect)
+                        || super::super::registry_batch_h::is_caster_body_only(effect),
+                    "{effect:?} spawned nothing"
+                );
                 continue;
             }
 

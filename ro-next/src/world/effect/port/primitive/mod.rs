@@ -11,6 +11,8 @@
 //! re-purpose one.
 
 pub mod aura_glow;
+pub mod bottom2;
+pub mod casting2;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
@@ -33,6 +35,7 @@ pub mod ripple_rings;
 pub mod rising_fan;
 pub mod shield_boomerang;
 pub mod shield_boomerang3;
+pub mod slash1;
 pub mod spin_quad;
 pub mod stacked_rings;
 pub mod texture2d;
@@ -199,6 +202,17 @@ pub enum PrimitiveId {
     /// `PP_SHIELDBOOMERANG3` (116) - `CRagEffect::ShieldBoomerang3`'s
     /// five-fragment throw.
     ShieldBoomerang3,
+    /// `PP_3DCASTING_2` (24) - `CRagEffect::QuadRingStack`'s stacked rings
+    /// (`EF_DEFENDER`, `EF_REFLECTSHIELD`). Drawn by the shared
+    /// `Render3DCasting`.
+    Casting2,
+    /// `PP_SLASH1` (75) - `CRagEffect::JobLvUp50_2`'s (`EF_KAIZEL`) and
+    /// `CRagEffect::RunStop`'s (`EF_STOPEFFECT`) blade ring.
+    Slash1,
+    /// `PP_BOTTOM2` (48) - the two-argument
+    /// `CRagEffect::TexturedMagicRing`'s colour planes (the bottom-song
+    /// family). Unrelated to `EF_BOTTOM2`, which is `PP_3DTEXTURE`.
+    Bottom2,
 }
 
 impl PrimitiveId {
@@ -239,6 +253,9 @@ impl PrimitiveId {
             Self::ShieldBoomerang => 42,
             Self::ThrowItem => 53,
             Self::ShieldBoomerang3 => 116,
+            Self::Casting2 => 24,
+            Self::Slash1 => 75,
+            Self::Bottom2 => 48,
         }
     }
 }
@@ -781,6 +798,9 @@ impl EffectPrimitiveState {
                 shield_boomerang3::on_process(self, angles, master);
                 true
             }
+            PrimitiveId::Casting2 => casting2::on_process(self, angles, master),
+            PrimitiveId::Slash1 => slash1::on_process(self, master),
+            PrimitiveId::Bottom2 => bottom2::on_process(self, angles, master),
         };
 
         if !alive {

@@ -16,6 +16,9 @@
 //! | id | official renderer | used by |
 //! | --- | --- | --- |
 //! | 60, 63 | `Render3DCasting` | heal pillar/ring, portals, magic ring, ripple rings |
+//! | 24 | `Render3DCasting` | `QuadRingStack` - `EF_DEFENDER`, `EF_REFLECTSHIELD` |
+//! | 48 | `RenderColorPlane` | `TexturedMagicRing(name, kind)` - the bottom-song family |
+//! | 75 | `RenderSlash1` | `JobLvUp50_2` (`EF_KAIZEL`), `RunStop` (`EF_STOPEFFECT`) |
 //! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
 //! | 13 | `RenderArcBand` | cart revolution, magnum, bowling bash, frost diver |
 //! | 42, 53, 59, 116 | `RenderFieldPanel` | shield throws, thrown items, heal sparks, sprinkle sand, snow, rising orbs |
@@ -244,8 +247,13 @@ const PROJECTION_DEPTH_NUMERATOR: f32 = 1.0;
 /// The `Render*` function of a primitive id, if it is ported.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SlotRenderer {
-    /// `Render3DCasting` - ids 60/63 (and every other id in that case list).
+    /// `Render3DCasting` - ids 60/63 (and every other id in that case list,
+    /// including prim 24).
     Casting,
+    /// `RenderColorPlane` - id 48 (`PP_BOTTOM2`).
+    ColorPlane,
+    /// `RenderSlash1` - id 75 (`PP_SLASH1`).
+    Slash1,
     /// `RenderRecordRings` - id 12.
     RecordRings,
     /// `RenderArcBand` - id 13.
@@ -294,6 +302,9 @@ pub enum SlotRenderer {
 pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
     Some(match state.count {
         PrimitiveId::PulsingColumns | PrimitiveId::RippleRings => SlotRenderer::Casting,
+        PrimitiveId::Casting2 => SlotRenderer::Casting,
+        PrimitiveId::Bottom2 => SlotRenderer::ColorPlane,
+        PrimitiveId::Slash1 => SlotRenderer::Slash1,
         PrimitiveId::Circle3d => SlotRenderer::RecordRings,
         PrimitiveId::Cylinder3d => SlotRenderer::ArcBand,
         PrimitiveId::ParticleUp => SlotRenderer::FieldPanel,
@@ -339,6 +350,8 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
 
     match renderer(state) {
         Some(SlotRenderer::Casting) => render_3d_casting(state, &mut out),
+        Some(SlotRenderer::ColorPlane) => render_color_plane(state, &mut out),
+        Some(SlotRenderer::Slash1) => render_slash_1(state, &mut out),
         Some(SlotRenderer::RecordRings) => render_record_rings(state, &mut out),
         Some(SlotRenderer::ArcBand) => render_arc_band(state, &mut out),
         Some(SlotRenderer::FieldPanel) => render_field_panel(state, &mut out),
@@ -848,6 +861,138 @@ pub fn render_3d_casting(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangl
             previous_bottom = bottom;
             previous_top = top;
             count += basic_angle;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderColorPlane (48)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderColorPlane` - `EffectPrimitiveRendering.cpp:2710-2746`.
+///
+/// One upright colour plane per live slot with a positive `alphaB`: the quad
+/// spans `vecBNow` to `vecBPre` horizontally and from `y = 0` down to
+/// `y = -maxHeight`. The colour comes from `slot.height[0]` (the
+/// `TexturedMagicRing` `kind`), and `kind` 1/2 use the straight alpha blend
+/// (`pw = 1`) while 3/4/everything else use the glow blend (`pw = 0`).
+///
+/// The corners are absolute slot vectors, but the call passes `f1 = 0`, so the
+/// original still adds `render.position` to all four before projecting; the
+/// port keeps that (`add_position`).
+pub fn render_color_plane(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let height = -slot.max_height;
+        let first = [slot.vec_b_now[0], 0.0, slot.vec_b_now[2]];
+        let second = [slot.vec_b_pre[0], 0.0, slot.vec_b_pre[2]];
+        let third = [slot.vec_b_pre[0], height, slot.vec_b_pre[2]];
+        let fourth = [slot.vec_b_now[0], height, slot.vec_b_now[2]];
+
+        let kind = slot.height[0];
+
+        let (colour, blend) = if kind == 1.0 {
+            ((255, 155, 155), SlotBlend::Alpha)
+        } else if kind == 2.0 {
+            ((155, 255, 155), SlotBlend::Alpha)
+        } else if kind == 3.0 {
+            ((255, 255, 100), SlotBlend::AlphaOne)
+        } else if kind == 4.0 {
+            ((255, 150, 150), SlotBlend::AlphaOne)
+        } else {
+            ((255, 255, 255), SlotBlend::AlphaOne)
+        };
+
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [first, second, third, fourth],
+            0,
+            true,
+            colour,
+            (0.0, 1.0, 0.0, 1.0),
+            blend,
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderSlash1 (75)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderSlash1` - `EffectPrimitiveRendering.cpp:5402-5468`.
+///
+/// Three quads per live slot with `alphaB > 0`, swept from
+/// `rotStart - 1` over `rotStart + 1` in one-degree steps. The inner edge is at
+/// radius `height[0]`, the outer at `height[0] + distance`, and the drop below
+/// `y = -0.0` depends on the step index: the middle quad (index 1) drops
+/// `maxHeight` on the outer edge and `maxHeight * 0.2` on the inner one, the
+/// two outer quads drop `* 0.4` / `* 0.1`. Only the middle quad keeps the
+/// slot's full alpha; the others use `alphaB / 3` (integer division).
+///
+/// The call passes `pw = 0`, i.e. the glow (destination `ONE`) blend, and the
+/// quad arguments are `(vec1, vec3, vec4, vec2)` in the original's local
+/// naming.
+pub fn render_slash_1(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        for index in 0..=2i32 {
+            let mut angle = slot.rot_start as i32 - 1 + index;
+
+            if angle < 0 {
+                angle += 360;
+            } else if angle >= 360 {
+                angle -= 360;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+
+            let mut radius = slot.height[0];
+
+            let first = [cosine * radius, -0.0, sine * radius];
+            let mut second = first;
+            second[1] = if index == 1 {
+                first[1] - slot.max_height * 0.2
+            } else {
+                first[1] - slot.max_height * 0.1
+            };
+
+            radius = slot.height[0] + slot.distance;
+
+            let third = [cosine * radius, -0.0, sine * radius];
+            let mut fourth = third;
+            fourth[1] = if index == 1 {
+                third[1] - slot.max_height
+            } else {
+                third[1] - slot.max_height * 0.4
+            };
+
+            // `static_cast<short>(alpha)`; `alphaB / 3` truncates toward zero.
+            let alpha = if index == 1 { slot.alpha_b } else { slot.alpha_b / 3 };
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                [first, third, fourth, second],
+                0,
+                true,
+                (255, 255, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
         }
     }
 }
@@ -3060,6 +3205,9 @@ mod tests {
             (PrimitiveId::FlashFade, SlotRenderer::BladeFins),
             (PrimitiveId::StackedRings, SlotRenderer::StackedRings),
             (PrimitiveId::PeongUp, SlotRenderer::PeongUp),
+            (PrimitiveId::Casting2, SlotRenderer::Casting),
+            (PrimitiveId::Bottom2, SlotRenderer::ColorPlane),
+            (PrimitiveId::Slash1, SlotRenderer::Slash1),
         ];
 
         for (id, expected_renderer) in expected {
@@ -3103,6 +3251,9 @@ mod tests {
             PrimitiveId::FlashFade,
             PrimitiveId::StackedRings,
             PrimitiveId::PeongUp,
+            PrimitiveId::Casting2,
+            PrimitiveId::Bottom2,
+            PrimitiveId::Slash1,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -3256,6 +3407,201 @@ mod tests {
                 assert_eq!(corner[1], -2.0);
             }
         }
+    }
+
+    #[test]
+    fn casting2_dispatches_to_the_shared_casting_renderer() {
+        let mut state = state_of(PrimitiveId::Casting2);
+        state.size = 0.0;
+        state.render_flag = 5;
+        state.texture = Some("effect\\ring_black.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            full_display_angle: 360,
+            rot_start: 180,
+            distance: 8.0,
+            rise_angle: 90,
+            max_height: 40.0,
+            alpha_b: 80,
+            height: [0.0; 21],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // Same sweep as the other casting prims: 20 quads = 40 triangles.
+        assert_eq!(triangles.len(), 40);
+        assert_eq!(triangles[0].texture, Some("effect\\ring_black.tga"));
+        // size 0 -> white, `blend = 6` (straight alpha) from the size table.
+        assert_eq!(triangles[0].argb, pack_argb(80, 255, 255, 255));
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+    }
+
+    #[test]
+    fn color_plane_emits_one_plane_per_live_slot_with_exact_corners() {
+        let mut state = state_of(PrimitiveId::Bottom2);
+        state.render_flag = 5;
+        state.texture = Some("effect\\ring_blue.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            height: [1.0; 21],
+            max_height: 25.0,
+            vec_b_now: [-1.0, 0.0, 2.0],
+            vec_b_pre: [1.0, 0.0, -2.0],
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        assert_eq!(triangles.len(), 2);
+        assert_eq!(triangles[0].corners, [[-1.0, 0.0, 2.0], [1.0, 0.0, -2.0], [1.0, -25.0, -2.0]]);
+        assert_eq!(triangles[1].corners, [[-1.0, -25.0, 2.0], [1.0, -25.0, -2.0], [-1.0, 0.0, 2.0]]);
+        // `ty1 = 0`, `ty2 = 1`, `tx = 0`, `tx2 = 1`: the whole texture.
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(triangles[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+        // `height[0] == 1` -> (255, 155, 155) with `pw = 1` (straight alpha).
+        assert_eq!(triangles[0].argb, pack_argb(100, 255, 155, 155));
+        assert_eq!(triangles[0].blend, SlotBlend::Alpha);
+        assert_eq!(triangles[0].texture, Some("effect\\ring_blue.tga"));
+    }
+
+    #[test]
+    fn color_plane_kind_table_matches_the_decompilation() {
+        let expected = [
+            // kind, rgb, blend
+            (1.0f32, (255, 155, 155), SlotBlend::Alpha),
+            (2.0, (155, 255, 155), SlotBlend::Alpha),
+            (3.0, (255, 255, 100), SlotBlend::AlphaOne),
+            (4.0, (255, 150, 150), SlotBlend::AlphaOne),
+            // Any other kind falls through to plain white with `pw = 0`.
+            (0.0, (255, 255, 255), SlotBlend::AlphaOne),
+            (7.0, (255, 255, 255), SlotBlend::AlphaOne),
+        ];
+
+        for (kind, (red, green, blue), blend) in expected {
+            let mut state = state_of(PrimitiveId::Bottom2);
+            state.render_flag = 5;
+            state.texture = Some("effect\\safeline.bmp");
+            state.slots[0] = EffectPrimitiveSlot {
+                life: 1,
+                alpha_b: 60,
+                height: [kind; 21],
+                max_height: 10.0,
+                ..Default::default()
+            };
+
+            let triangles = triangles(&state);
+
+            assert_eq!(triangles.len(), 2, "kind {kind}");
+            assert_eq!(triangles[0].argb, pack_argb(60, red, green, blue), "kind {kind}");
+            assert_eq!(triangles[0].blend, blend, "kind {kind}");
+        }
+    }
+
+    #[test]
+    fn color_plane_skips_dead_or_transparent_slots() {
+        let mut state = state_of(PrimitiveId::Bottom2);
+        state.render_flag = 5;
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 0,
+            height: [1.0; 21],
+            ..Default::default()
+        };
+        state.slots[1] = EffectPrimitiveSlot {
+            life: 0,
+            alpha_b: 200,
+            height: [1.0; 21],
+            ..Default::default()
+        };
+
+        assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn slash1_emits_three_blades_per_live_slot() {
+        let mut state = state_of(PrimitiveId::Slash1);
+        state.render_flag = 5;
+        state.texture = Some("effect\\magic_blue.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 90,
+            height: [5.0; 21],
+            distance: 2.0,
+            max_height: 4.0,
+            rot_start: 0,
+            ..Default::default()
+        };
+
+        let triangles = triangles(&state);
+
+        // `i = 0, 1, 2` -> three quads -> six triangles.
+        assert_eq!(triangles.len(), 6);
+
+        let (cos359, sin359) = trig(359);
+        let (cos0, sin0) = trig(0);
+        let (cos1, sin1) = trig(1);
+
+        // i = 0: angle 359, inner radius 5, outer 7.
+        let first = [cos359 * 5.0, -0.0, sin359 * 5.0];
+        let second = [first[0], -0.4, first[2]];
+        let third = [cos359 * 7.0, -0.0, sin359 * 7.0];
+        let fourth = [third[0], -1.6, third[2]];
+        assert_eq!(triangles[0].corners, [first, third, fourth]);
+        assert_eq!(triangles[1].corners, [second, fourth, first]);
+        // `alphaB / 3` on the outer blades.
+        assert_eq!(triangles[0].argb, pack_argb(30, 255, 255, 255));
+        assert_eq!(triangles[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(triangles[0].texture, Some("effect\\magic_blue.tga"));
+        assert_eq!(triangles[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(triangles[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+
+        // i = 1: angle 0 and the full-height middle blade.
+        let first = [cos0 * 5.0, -0.0, sin0 * 5.0];
+        let second = [first[0], -0.8, first[2]];
+        let third = [cos0 * 7.0, -0.0, sin0 * 7.0];
+        let fourth = [third[0], -4.0, third[2]];
+        assert_eq!(triangles[2].corners, [first, third, fourth]);
+        assert_eq!(triangles[3].corners, [second, fourth, first]);
+        assert_eq!(triangles[2].argb, pack_argb(90, 255, 255, 255));
+
+        // i = 2: angle 1.
+        let first = [cos1 * 5.0, -0.0, sin1 * 5.0];
+        let second = [first[0], -0.4, first[2]];
+        let third = [cos1 * 7.0, -0.0, sin1 * 7.0];
+        let fourth = [third[0], -1.6, third[2]];
+        assert_eq!(triangles[4].corners, [first, third, fourth]);
+        assert_eq!(triangles[5].corners, [second, fourth, first]);
+        assert_eq!(triangles[4].argb, pack_argb(30, 255, 255, 255));
+    }
+
+    #[test]
+    fn slash1_wraps_the_blade_angle_and_skips_dead_slots() {
+        // rotStart 0 makes i = 0 use angle -1, which wraps to 359.
+        let mut state = state_of(PrimitiveId::Slash1);
+        state.render_flag = 5;
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 3,
+            height: [1.0; 21],
+            distance: 1.0,
+            max_height: 1.0,
+            rot_start: 0,
+            ..Default::default()
+        };
+
+        let blades = triangles(&state);
+        let (cos359, sin359) = trig(359);
+        assert_eq!(blades[0].corners[0], [cos359 * 1.0, -0.0, sin359 * 1.0]);
+        // `alphaB / 3` truncates 3 / 3 = 1.
+        assert_eq!(blades[0].argb, pack_argb(1, 255, 255, 255));
+
+        // A slot whose `alphaB` is zero draws nothing, even when alive.
+        let mut transparent = state_of(PrimitiveId::Slash1);
+        transparent.render_flag = 5;
+        transparent.slots[0].life = 1;
+        assert!(triangles(&transparent).is_empty());
     }
 
     #[test]
