@@ -45,6 +45,7 @@ impl PortedEffect for Bash {
             state.max_alpha = 170.0;
             state.alpha_speed = state.max_alpha / 6.0;
             state.fade_out_cnt = state.duration - 10;
+            state.texture = Some("effect\\alpha_down.tga");
         }
 
         // 20 sparks. (The low-effect variant halves this to 10; out of scope.)
@@ -73,6 +74,7 @@ impl PortedEffect for Bash {
             state.alpha_speed = state.max_alpha / 10.0;
             // `duration - duration / 3` with integer division: 40 - 13 = 27.
             state.fade_out_cnt = state.duration - state.duration / 3;
+            state.texture = Some("EFFECT\\alpha_center.tga");
         }
         true
     }

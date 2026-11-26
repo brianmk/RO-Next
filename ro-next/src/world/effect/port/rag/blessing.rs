@@ -47,6 +47,7 @@ impl PortedEffect for Blessing {
                 state.alpha_speed = state.max_alpha / 30.0;
                 state.fade_out_cnt = state.duration - 30;
                 state.init_segment();
+                state.texture = Some("effect\\alpha_down.tga");
             }
         }
 

@@ -80,6 +80,7 @@ impl PortedEffect for Hit2 {
 
                 state.alpha = 0.0;
                 state.alpha_speed = state.max_alpha * 0.125;
+                state.texture = Some(if index % 2 == 0 { "effect\\lens1.tga" } else { "effect\\lens2.tga" });
             }
 
             // The original alternates the texture by fragment index; the

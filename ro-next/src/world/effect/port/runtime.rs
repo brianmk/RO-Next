@@ -207,10 +207,20 @@ pub trait PortedEffect {
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool;
 }
 
+impl<T: PortedEffect + ?Sized> PortedEffect for Box<T> {
+    fn lifetime(&self) -> i32 {
+        (**self).lifetime()
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        (**self).on_process(runtime)
+    }
+}
+
 /// One `CEffect::Update` step, including the primitive pass.
 ///
 /// Returns `false` when the effect has finished and must be retired.
-pub fn step(effect: &mut impl PortedEffect, runtime: &mut EffectRuntime) -> bool {
+pub fn step(effect: &mut dyn PortedEffect, runtime: &mut EffectRuntime) -> bool {
     if !effect.on_process(runtime) {
         return false;
     }
@@ -228,7 +238,7 @@ pub fn step(effect: &mut impl PortedEffect, runtime: &mut EffectRuntime) -> bool
 
 /// Runs an effect to completion, collecting the state after every frame.
 /// Used by the per-effect tests and by the future golden-frame tooling.
-pub fn run_to_completion(effect: &mut impl PortedEffect, runtime: &mut EffectRuntime) -> Vec<FrameSnapshot> {
+pub fn run_to_completion(effect: &mut dyn PortedEffect, runtime: &mut EffectRuntime) -> Vec<FrameSnapshot> {
     let mut snapshots = Vec::new();
 
     loop {

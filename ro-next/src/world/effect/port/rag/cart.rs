@@ -48,6 +48,7 @@ impl PortedEffect for CartRevolution {
                 state.alpha_speed = state.max_alpha / 15.0;
                 state.fade_out_cnt = state.duration - 15;
                 state.init_segment();
+                state.texture = Some("effect\\ring_yellow.tga");
             }
 
             let blast = runtime.launch(PrimitiveId::Sphere3d, [0.0, 0.0, 0.0]);
@@ -61,6 +62,7 @@ impl PortedEffect for CartRevolution {
                 state.max_alpha = 240.0;
                 state.alpha_speed = state.max_alpha / 7.0;
                 state.fade_out_cnt = state.duration - 15;
+                state.texture = Some("effect\\대폭발.tga");
             }
         }
 

@@ -116,6 +116,53 @@ mod tests {
     }
 
     #[test]
+    fn every_registered_body_assigns_its_official_texture() {
+        use crate::world::effect::port::primitive::PrimitiveId;
+        use crate::world::effect::port::runtime::{step, EffectRuntime};
+
+        for &effect in ported_ids() {
+            let mut body = spawn(effect).unwrap();
+            let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 99);
+
+            step(&mut body, &mut runtime);
+
+            assert!(!runtime.primitives.is_empty(), "{effect:?} spawned nothing");
+
+            for primitive in &runtime.primitives {
+                if primitive.state.count == PrimitiveId::Particle3d {
+                    // Sprite particles carry `.spr/.act`, not a texture.
+                    continue;
+                }
+
+                assert!(
+                    primitive.state.texture.is_some(),
+                    "{effect:?} left a {:?} primitive without a texture",
+                    primitive.state.count
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn key_textures_match_the_decompilation() {
+        use crate::world::effect::port::runtime::{step, EffectRuntime};
+
+        let mut bash = spawn(EffectId::Bash).unwrap();
+        let mut runtime = EffectRuntime::new(bash.lifetime(), [0.0, 0.0], 1);
+        step(&mut bash, &mut runtime);
+
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\alpha_down.tga"));
+        assert_eq!(runtime.primitives[1].state.texture, Some("EFFECT\\alpha_center.tga"));
+
+        let mut bowling = spawn(EffectId::Bowlingbash).unwrap();
+        let mut runtime = EffectRuntime::new(bowling.lifetime(), [0.0, 0.0], 1);
+        step(&mut bowling, &mut runtime);
+
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\ring_blue.tga"));
+        assert_eq!(runtime.primitives[1].state.texture, Some("effect\\ring_yellow.tga"));
+    }
+
+    #[test]
     fn unported_effects_return_none() {
         assert!(spawn(EffectId::Fireball).is_none());
         assert!(!ported_ids().iter().any(|effect| !needs_str_clips(*effect) && spawn(*effect).is_none()));

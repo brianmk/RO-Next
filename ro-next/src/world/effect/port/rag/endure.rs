@@ -46,6 +46,7 @@ impl PortedEffect for Endure {
                 state.alpha_speed = state.max_alpha / 20.0;
                 // `duration - duration / 3` with integer division: 80 - 26.
                 state.fade_out_cnt = state.duration - state.duration / 3;
+                state.texture = Some("effect\\endure.tga");
             }
         }
 
@@ -75,6 +76,7 @@ impl PortedEffect for Endure {
             state.delta_pos2[0] = angles.sine(state.longitude as i32) * radius;
             state.delta_pos2[1] = angles.cosine(state.longitude as i32) * -radius;
             state.delta_pos2[1] -= 20.0;
+            state.texture = Some("effect\\alpha_down.tga");
         }
 
         true

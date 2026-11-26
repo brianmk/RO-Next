@@ -302,6 +302,10 @@ pub struct EffectPrimitiveState {
     pub ch_cnt: u32,
     /// `/* 01D0 */ count` - the primitive id.
     pub count: PrimitiveId,
+    /// Texture asset the body loads for this primitive (`g_texMgr.Load(...)`),
+    /// relative to `data\` as the official paths are written. `None` for
+    /// sprite (`.spr/.act`) primitives.
+    pub texture: Option<&'static str>,
     /// `/* 01CC */ type` - per-primitive number used by `pattern & 0x20`.
     pub primitive_type: i32,
     /// `/* 014C */ masterReached`
@@ -408,6 +412,7 @@ impl Default for EffectPrimitiveState {
             is_disappear: 0,
             ch_cnt: 0,
             count: PrimitiveId::Texture2d,
+            texture: None,
             primitive_type: 0,
             master_reached: false,
             rgb_cycle_cnt: 0,

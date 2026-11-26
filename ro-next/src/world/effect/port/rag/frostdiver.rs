@@ -115,6 +115,7 @@ impl PortedEffect for FrostDiver {
             state.accel = decay + decay;
             state.ch_cnt = 20;
             state.fade_out_cnt = state.duration - 10;
+            state.texture = Some("effect\\ice.tga");
         }
 
         let target = runtime.target_offset;

@@ -41,9 +41,10 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | effect-id registry (`EffectId -> body`) | plan 4.2 | 4 |
 | `PP_3DPARTICLE` + `AnimMotion` | `EffectPrimitiveMotion.cpp:2488`, `:576` | 4 |
 | `CRagEffect::Blessing` (`EF_BLESSING`) | `RagEffect.cpp:1612-1720` | 2 |
+| texture assets on every primitive (`g_texMgr.Load`) | all ported bodies | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 92 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
+Total: 94 tests, all green. Effect bodies ported: **14 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 

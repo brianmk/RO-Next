@@ -53,6 +53,7 @@ impl PortedEffect for BowlingBash {
 
             let duration = state.duration;
             state.fade_out_cnt = duration - duration / 2;
+            state.texture = Some("effect\\ring_blue.tga");
         }
 
         if frame == 0 {
@@ -70,6 +71,7 @@ impl PortedEffect for BowlingBash {
             state.alpha = 45.0;
             state.fade_out_cnt = 35;
             state.init_segment();
+            state.texture = Some("effect\\ring_yellow.tga");
         }
 
         true

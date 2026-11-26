@@ -57,6 +57,7 @@ impl PortedEffect for IncAgility {
                 state.max_alpha = 200.0;
                 state.alpha_speed = state.max_alpha / 15.0;
                 state.fade_out_cnt = state.duration - 15;
+                state.texture = Some(if self.dex { "effect\\dex_agi_up.bmp" } else { "effect\\agi_up.bmp" });
             }
         }
 
@@ -87,6 +88,7 @@ impl PortedEffect for IncAgility {
         state.max_alpha = 200.0;
         state.alpha_speed = state.max_alpha / 20.0;
         state.fade_out_cnt = state.duration - 20;
+        state.texture = Some("effect\\ac_center2.tga");
 
         true
     }

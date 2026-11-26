@@ -59,6 +59,7 @@ impl PortedEffect for FrostDiver2 {
             state.ch_cnt = 20;
             state.alpha = 200.0;
             state.fade_out_cnt = state.duration - 10;
+            state.texture = Some("effect\\ice.tga");
         }
 
         true

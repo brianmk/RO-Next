@@ -40,6 +40,7 @@ impl PortedEffect for Overthrust {
         let slowdown = -(state.radius_speed / (state.duration + 40) as f32);
         state.radius_accel = slowdown + slowdown;
         state.fade_out_cnt = 0;
+        state.texture = Some("effect\\alpha_center.tga");
 
         true
     }

@@ -41,6 +41,7 @@ impl PortedEffect for SonicBlow {
         state.radius_speed = 7.0;
         // `ring.radiusAccel = -(ring.radiusSpeed / (duration + 40)) * 2`
         state.radius_accel = -(state.radius_speed / (state.duration + 40) as f32) * 2.0;
+        state.texture = Some("effect\\alpha_center.tga");
         true
     }
 }

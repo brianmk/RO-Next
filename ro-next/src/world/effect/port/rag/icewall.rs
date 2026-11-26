@@ -58,6 +58,7 @@ impl PortedEffect for IceWall {
             let decay = -(state.speed / 40.0);
             state.accel = decay + decay;
             state.fade_out_cnt = state.duration - 10;
+            state.texture = Some("effect\\ice.tga");
         }
 
         true

@@ -47,6 +47,7 @@ impl PortedEffect for Signum {
                 state.alpha_speed = state.max_alpha / 6.0;
                 // `duration - duration / 3` with integer division: 40 - 13.
                 state.fade_out_cnt = state.duration - state.duration / 3;
+                state.texture = Some("effect\\alpha_down.tga");
             }
 
             for _ in 0..20 {
@@ -69,6 +70,7 @@ impl PortedEffect for Signum {
                 state.alpha = 0.0;
                 state.max_alpha = 200.0;
                 state.alpha_speed = state.max_alpha / 10.0;
+                state.texture = Some("EFFECT\\alpha_center.tga");
             }
         }
 

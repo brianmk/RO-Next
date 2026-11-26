@@ -44,6 +44,7 @@ impl PortedEffect for MagnumBreak {
             state.alpha_speed = state.max_alpha / 15.0;
             state.fade_out_cnt = state.duration - 15;
             state.init_segment();
+            state.texture = Some("effect\\ring_yellow.tga");
         }
 
         // The blast: `LaunchEffectPrim(14, ...)`.
@@ -57,6 +58,7 @@ impl PortedEffect for MagnumBreak {
             state.alpha = 0.0;
             state.alpha_speed = state.max_alpha / 15.0;
             state.fade_out_cnt = state.duration - 15;
+            state.texture = Some("effect\\대폭발.tga");
         }
 
         // Second ring: `LaunchEffectPrim(12, ...)`, fixed 30-frame duration.
@@ -72,6 +74,7 @@ impl PortedEffect for MagnumBreak {
             state.alpha_speed = state.max_alpha / 15.0;
             state.fade_out_cnt = state.duration - 15;
             state.init_segment();
+            state.texture = Some("effect\\ring_yellow.tga");
         }
         true
     }
