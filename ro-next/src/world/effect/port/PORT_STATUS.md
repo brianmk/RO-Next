@@ -182,6 +182,21 @@ so the *skill* coverage is far higher than the id ratio suggests.
   uninitialised local (`RagEffect.cpp:1519-1522`). Undefined behaviour cannot be
   reproduced.
 
+### Client wiring fixed
+
+- `spawn_skill_effect_phase` no longer returns early on an empty descriptor
+  layer list; a phase now spawns its ported body when `should_spawn_skill_phase`
+  says so, so descriptor-less skills (HT_BLITZBEAT = 129) actually fire. The
+  generated map falls back to the 2019 client table for those skills
+  (`SkillId(129) Success -> Blitzbeat`, anchor Target).
+- Falcon flight: `world/entity/falcon.rs` ports the `AM_REQ_ATTACK` state
+  machine (25-tick dive, 10-tick strike, 25-tick return) over the perched
+  `data\sprite\이팩트\매` ACT (16 actions: 0-7 perched flap, 8-15 flight); it
+  triggers from `ZC_NOTIFY_SKILL` (0x01DE) for falcon skills.
+- Weapon layer: armed players idle on ACT block 32..39 and attack on the
+  weapon ACT's 80..87 / 88..95 block (`weapon::attack_action`), because blocks
+  0..7 and 40..47 hold only `-1` placeholders in every weapon ACT.
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
