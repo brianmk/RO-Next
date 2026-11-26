@@ -40,7 +40,9 @@ pub mod rag;
 pub mod rag_batch_a;
 pub mod rag_batch_b;
 pub mod runtime;
+pub mod skill_map;
 pub mod str_player;
+pub mod visual;
 
 /// `frameFreq = 1000 / 60` from `Timer.cpp:32`, in milliseconds.
 pub const FRAME_FREQUENCY_MS: u64 = 1000 / 60;

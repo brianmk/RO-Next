@@ -6,6 +6,16 @@
 
 use crate::*;
 
+/// Opt-in switch for the ported (1:1 official) effect backend.
+///
+/// Read once so that the two backends never disagree mid-session; with the
+/// variable unset the client behaves exactly as before the hook was added.
+fn ported_effects_enabled() -> bool {
+    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
+    *ENABLED.get_or_init(|| std::env::var("RO_NEXT_PORTED_FX").map(|value| value == "1").unwrap_or(false))
+}
+
 impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", ro_next_debug::profile)]
@@ -249,6 +259,89 @@ impl Client {
         {
             crate::logging::log_debug!("skill effect: spawned procedural cloud for skill {}", skill_id.0);
             self.effect_holder.add_unit(Box::new(cloud), source_entity_id);
+        }
+
+        // Opt-in: additionally play the ported 1:1 official effect for this
+        // skill/phase. Additive - the descriptor layers above are untouched.
+        self.spawn_ported_skill_effect(
+            skill_id,
+            phase,
+            source_entity_id,
+            target_entity_id,
+            target_position,
+            client_tick,
+        );
+    }
+
+    /// Spawns the ported official effect (`port::skill_map`) of one skill
+    /// phase, when the opt-in backend is enabled and the pair is mapped.
+    ///
+    /// The effect is attached to the caster (like the procedural cloud above)
+    /// so it is cleaned up with the entity; its runtime is seeded from the
+    /// cast tick and the caster/target positions.
+    #[allow(clippy::too_many_arguments)]
+    fn spawn_ported_skill_effect(
+        &mut self,
+        skill_id: SkillId,
+        phase: SkillPhase,
+        source_entity_id: EntityId,
+        target_entity_id: Option<EntityId>,
+        target_position: Option<Point3<f32>>,
+        client_tick: ClientTick,
+    ) {
+        use crate::world::port::holder::PortedEffectHolder;
+        use crate::world::port::skill_map::{PortedAnchor, ported_anchor_for, ported_effect_for};
+        use crate::world::port::visual::PortedVisual;
+
+        if !ported_effects_enabled() {
+            return;
+        }
+
+        let Some(effect_id) = ported_effect_for(skill_id, phase) else {
+            return;
+        };
+
+        let Some(source_position) = self.entity_position(source_entity_id) else {
+            return;
+        };
+
+        // Deterministic per cast/phase: no wall clock, so two clients (and two
+        // tests) playing the same packet see the same randomness.
+        let seed = u64::from(client_tick.0) ^ (u64::from(skill_id.0) << 32) ^ u64::from(phase.index());
+
+        let Some(holder) = PortedEffectHolder::new(effect_id, seed) else {
+            return;
+        };
+
+        let target_position = target_position.or_else(|| target_entity_id.and_then(|entity_id| self.entity_position(entity_id)));
+        let position = match ported_anchor_for(skill_id, phase) {
+            PortedAnchor::Caster => source_position,
+            PortedAnchor::Target => target_position.unwrap_or(source_position),
+        };
+
+        let mut visual = PortedVisual::new(holder, self.texture_loader.clone());
+        let parent_angle = self.entity_parent_angle(source_entity_id);
+        {
+            let runtime = visual.runtime_mut();
+            runtime.position = [position.x, position.y, position.z];
+            // `CRagEffect::state.deltaPos`: the target the travelling bodies
+            // (Fire Ball, Frost Diver, Spear Boomerang, Grim Tooth) fly to.
+            runtime.target_offset = target_position
+                .map(|target| [target.x, target.y, target.z])
+                .unwrap_or(runtime.position);
+            runtime.parent_angle = parent_angle;
+            // `state.param[0]` is the skill level; the phase spawn signature
+            // does not carry it yet, so level-scaled bodies use level 1.
+            runtime.param = 1.0;
+        }
+
+        if self.effect_holder.add_unit(Box::new(visual), source_entity_id) {
+            crate::logging::log_debug!(
+                "skill effect: spawned ported {:?} for skill {} phase {:?}",
+                effect_id,
+                skill_id.0,
+                phase
+            );
         }
     }
 
@@ -537,6 +630,24 @@ impl Client {
             .iter()
             .find(|entity| entity.get_entity_id() == entity_id)
             .map(|entity| entity.get_position())
+    }
+
+    /// `CGameObject::render.angle` of an entity, in degrees.
+    ///
+    /// The client stores the 8-direction facing (`Direction`); the official
+    /// actor constructor converts it with `render.angle = (direction + 4) * 45`
+    /// (`GameObject.cpp:2044`), which is what the ported effects read as
+    /// `runtime.parent_angle`.
+    pub(crate) fn entity_parent_angle(&self, entity_id: EntityId) -> f32 {
+        let direction = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .find(|entity| entity.get_entity_id() == entity_id)
+            .map(|entity| entity.get_direction() as u16)
+            .unwrap_or(0);
+
+        ((f32::from(direction) + 4.0) * 45.0) % 360.0
     }
 
     /// Overhead and body height anchors of an entity (in world units above its

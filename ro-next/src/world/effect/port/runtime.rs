@@ -250,7 +250,11 @@ impl EffectRuntime {
 }
 
 /// A ported `CRagEffect` body or dedicated `CEffect` subclass.
-pub trait PortedEffect {
+///
+/// Bodies are owned by the client's effect list
+/// (`Box<dyn EffectBase + Send + Sync>`), so the simulation state has to be
+/// thread-shareable even though it is only stepped on the render thread.
+pub trait PortedEffect: Send + Sync {
     /// `effectLifetime` from `EffectTypes.cpp`.
     fn lifetime(&self) -> i32;
 
