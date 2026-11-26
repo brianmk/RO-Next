@@ -396,6 +396,8 @@ pub struct EffectPrimitiveState {
     pub sprite: Option<&'static str>,
     /// `.act` asset of a sprite particle (`SetActionName`).
     pub action: Option<&'static str>,
+    /// Second texture of two-texture primitives (`textures[1]`).
+    pub texture_secondary: Option<&'static str>,
     /// Texture asset the body loads for this primitive (`g_texMgr.Load(...)`),
     /// relative to `data\` as the official paths are written. `None` for
     /// sprite (`.spr/.act`) primitives.
@@ -512,6 +514,7 @@ impl Default for EffectPrimitiveState {
             sprite: None,
             action: None,
             texture: None,
+            texture_secondary: None,
             primitive_type: 0,
             master_reached: false,
             rgb_cycle_cnt: 0,
