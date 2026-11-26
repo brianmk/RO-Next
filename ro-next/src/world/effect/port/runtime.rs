@@ -15,6 +15,7 @@
 
 use super::angles::Angles;
 use super::primitive::{EffectPrimitiveState, MasterState, PrimitiveId};
+use super::str_player::{Clip, Ez2StrPlayer};
 
 /// Deterministic stand-in for the C runtime's `rand()`.
 ///
@@ -68,10 +69,16 @@ pub struct EffectRuntime {
     /// `state.tlvertX/tlvertY` - projected anchor on the 640x480 reference
     /// screen. The real client fills this from the camera every frame.
     pub screen: [f32; 2],
+    /// `render.position` - the world position, used by 3-D primitives.
+    pub position: [f32; 3],
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
     pub rng: EffectRng,
+    /// `.str` clips the body opened (`CRagEffect::Init`).
+    pub str_clips: Vec<Clip>,
+    /// `ProcessEZ2STR` state, created when the body opens a `.str` resource.
+    pub str_player: Option<Ez2StrPlayer>,
 }
 
 impl EffectRuntime {
@@ -80,9 +87,12 @@ impl EffectRuntime {
             frame: 0,
             lifetime,
             screen,
+            position: [0.0; 3],
             primitives: Vec::new(),
             sounds: Vec::new(),
             rng: EffectRng::new(seed),
+            str_clips: Vec::new(),
+            str_player: None,
         }
     }
 
@@ -110,10 +120,38 @@ impl EffectRuntime {
         self.sounds.push(name.to_owned());
     }
 
+    /// `CRagEffect::Init` opening the `.str` resource of an effect.
+    pub fn open_str(&mut self, clips: Vec<Clip>) {
+        let player = Ez2StrPlayer::new(&clips);
+        self.str_clips = clips;
+        self.str_player = Some(player);
+    }
+
+    /// `CRagEffect::ProcessEZ2STR(0, -80, 0)`.
+    ///
+    /// Returns `false` when every loop of the resource has finished, which makes
+    /// the body retire the effect (the original does `return false`). The player
+    /// shares the effect's frame counter, and `InitEZ2STRFrame` resets it on a
+    /// loop - so the runtime frame is synced back afterwards.
+    pub fn process_str(&mut self) -> bool {
+        let Some(player) = &mut self.str_player else {
+            return true;
+        };
+
+        player.state_cnt = self.frame;
+
+        let alive = player.process(&self.str_clips);
+
+        self.frame = player.state_cnt;
+
+        alive
+    }
+
     /// Advances every live primitive by one frame.
     pub fn process_primitives(&mut self) {
         let master = MasterState {
             screen: self.screen,
+            position: self.position,
             state_cnt: self.frame,
             duration: self.lifetime,
         };
@@ -137,14 +175,19 @@ pub trait PortedEffect {
 
     /// One `OnProcess` step. `runtime.frame` is the `stateCnt` the original
     /// body reads; it is incremented by [`step`] after this returns.
-    fn on_process(&mut self, runtime: &mut EffectRuntime);
+    ///
+    /// Returning `false` retires the effect, mirroring `return false` in the
+    /// decompiled `OnProcess` bodies.
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool;
 }
 
 /// One `CEffect::Update` step, including the primitive pass.
 ///
 /// Returns `false` when the effect has finished and must be retired.
 pub fn step(effect: &mut impl PortedEffect, runtime: &mut EffectRuntime) -> bool {
-    effect.on_process(runtime);
+    if !effect.on_process(runtime) {
+        return false;
+    }
 
     runtime.frame += 1;
 
@@ -203,9 +246,9 @@ mod tests {
             self.lifetime
         }
 
-        fn on_process(&mut self, runtime: &mut EffectRuntime) {
+        fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
             if runtime.frame != 0 {
-                return;
+                return true;
             }
 
             let index = runtime.launch(PrimitiveId::Circle2d, [0.0, 0.0, 0.0]);
@@ -213,6 +256,8 @@ mod tests {
             state.duration = 10;
             state.radius = 5.0;
             state.pattern = 1;
+
+            true
         }
     }
 

@@ -22,11 +22,11 @@ impl PortedEffect for Bash {
         LIFETIME
     }
 
-    fn on_process(&mut self, runtime: &mut EffectRuntime) {
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         // The official body recomputes `tlvertX/Y` from the camera every frame;
         // the runtime already carries the projected anchor.
         if runtime.frame != 0 {
-            return;
+            return true;
         }
 
         self.spawned = true;
@@ -74,6 +74,7 @@ impl PortedEffect for Bash {
             // `duration - duration / 3` with integer division: 40 - 13 = 27.
             state.fade_out_cnt = state.duration - state.duration / 3;
         }
+        true
     }
 }
 

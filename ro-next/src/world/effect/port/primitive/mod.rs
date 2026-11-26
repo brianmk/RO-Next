@@ -11,9 +11,11 @@
 //! re-purpose one.
 
 pub mod circle;
+pub mod circle3d;
 pub mod flash;
 
 use super::angles::Angles;
+use super::math::Matrix;
 
 /// One fixed-function-pipeline vertex as the official client submits it.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -42,6 +44,9 @@ pub struct MasterState {
     /// `CRagEffect::state.tlvertX/tlvertY` - projected anchor on the 640x480
     /// reference screen.
     pub screen: [f32; 2],
+    /// `CRagEffect::render.position` - the world position. 3-D primitives
+    /// anchor to this instead of the screen.
+    pub position: [f32; 3],
     /// `CRagEffect::state.stateCnt` and `.duration`.
     pub state_cnt: i32,
     pub duration: i32,
@@ -56,6 +61,10 @@ pub enum PrimitiveId {
     Flash2d,
     /// `PP_2DCIRCLE` (4)
     Circle2d,
+    /// `PP_3DCIRCLE` (12)
+    Circle3d,
+    /// `PP_3DSPHERE` (14)
+    Sphere3d,
 }
 
 impl PrimitiveId {
@@ -65,6 +74,36 @@ impl PrimitiveId {
             Self::Texture2d => 0,
             Self::Flash2d => 3,
             Self::Circle2d => 4,
+            Self::Circle3d => 12,
+            Self::Sphere3d => 14,
+        }
+    }
+}
+
+/// `EffectPrimitiveRecord` - one segment record of a multi-segment primitive.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PrimitiveRecord {
+    pub position: [f32; 3],
+    pub corners: [[f32; 3]; 4],
+    pub radius: f32,
+    pub scale: f32,
+    pub angle: f32,
+    pub matrix: Matrix,
+    pub alpha: f32,
+    pub color: u32,
+}
+
+impl Default for PrimitiveRecord {
+    fn default() -> Self {
+        Self {
+            position: [0.0; 3],
+            corners: [[0.0; 3]; 4],
+            radius: 0.0,
+            scale: 0.0,
+            angle: 0.0,
+            matrix: Matrix::default(),
+            alpha: 0.0,
+            color: 0,
         }
     }
 }
@@ -158,6 +197,22 @@ pub struct EffectPrimitiveState {
     /// `/* 0388 */ deltaPos`, `/* 0394 */ deltaPos2`
     pub delta_pos: [f32; 3],
     pub delta_pos2: [f32; 3],
+    /// `/* 037C */ orgPos`
+    pub org_pos: [f32; 3],
+    /// `/* 0370 */ speed3d`
+    pub speed3d: [f32; 3],
+    /// `/* 02BC */ speed`, `/* 02C0 */ accel`
+    pub speed: f32,
+    pub accel: f32,
+    /// `/* 02FC */ innerSpeed`, `/* 0300 */ innerSpeedAccel`
+    pub inner_speed: f32,
+    pub inner_accel: f32,
+    /// `/* 0160 */ transform` - 12-float affine matrix.
+    pub transform: Matrix,
+    /// `/* 01F4 */ numSegment`
+    pub num_segment: i32,
+    /// `/* 06B8 */ records[50]`
+    pub records: Vec<PrimitiveRecord>,
 
     /// `/* 013C */ render.position`
     pub position: [f32; 3],
@@ -244,6 +299,15 @@ impl Default for EffectPrimitiveState {
             height_accel: 0.0,
             delta_pos: [0.0; 3],
             delta_pos2: [0.0; 3],
+            org_pos: [0.0; 3],
+            speed3d: [0.0; 3],
+            speed: 0.0,
+            accel: 0.0,
+            inner_speed: 0.0,
+            inner_accel: 0.0,
+            transform: Matrix::default(),
+            num_segment: 1,
+            records: Vec::new(),
             position: [0.0; 3],
             argb: u32::MAX,
             red: 255,
@@ -275,12 +339,88 @@ impl EffectPrimitiveState {
         match self.count {
             PrimitiveId::Circle2d => circle::on_process(self, master),
             PrimitiveId::Flash2d => flash::on_process(self, angles, master),
+            PrimitiveId::Circle3d => circle3d::on_process(self, angles, master),
+            PrimitiveId::Sphere3d => self.on_process_sphere(master),
             PrimitiveId::Texture2d => {}
         }
 
         self.state_cnt += 1;
 
         self.state_cnt <= self.duration
+    }
+
+    /// `PP_3DSPHERE` - `EffectPrimitiveMotion.cpp:8225-8234`.
+    fn on_process_sphere(&mut self, master: &MasterState) {
+        self.org_pos = [
+            master.position[0] + self.delta_pos2[0],
+            master.position[1] + self.delta_pos2[1],
+            master.position[2] + self.delta_pos2[2],
+        ];
+        self.position = self.org_pos;
+        self.radius_speed = self.radius_accel + self.radius_speed;
+        self.radius = self.radius_speed + self.radius;
+        self.longitude = self.long_speed + self.longitude;
+        self.process_alpha(master);
+    }
+
+    fn ensure_records(&mut self) {
+        let needed = self.num_segment.max(0) as usize;
+
+        if self.records.len() < needed {
+            self.records.resize(needed, PrimitiveRecord::default());
+        }
+    }
+
+    /// `CEffectPrim::InitSegment` - `EffectPrimitiveRecords.cpp:9-35`.
+    pub fn init_segment(&mut self) {
+        self.ensure_records();
+
+        for index in 0..self.num_segment.max(0) as usize {
+            let record = &mut self.records[index];
+            record.position = self.position;
+            record.radius = self.radius;
+            record.scale = self.size;
+            record.angle = self.longitude;
+            record.matrix = self.transform;
+            record.alpha = self.alpha;
+            record.color = record_color(self.alpha, self.red, self.green, self.blue);
+        }
+    }
+
+    /// `CEffectPrim::ShiftSegment` - `EffectPrimitiveMotion.cpp:3018-3050`.
+    pub fn shift_segment(&mut self) {
+        self.ensure_records();
+
+        let segments = self.num_segment.max(0) as usize;
+
+        for index in (1..segments).rev() {
+            let previous = self.records[index - 1];
+            let record = &mut self.records[index];
+
+            record.position = previous.position;
+            record.corners = previous.corners;
+            record.radius = previous.radius;
+            record.angle = previous.angle;
+            record.matrix = previous.matrix;
+
+            let level = self.alpha / segments as f32;
+            record.alpha = self.alpha - index as f32 * level;
+            record.color = record_color(record.alpha, self.red, self.green, self.blue);
+
+            let level = self.size / segments as f32;
+            record.scale = self.size - index as f32 * level / 2.0;
+        }
+
+        if segments > 0 {
+            let first = &mut self.records[0];
+            first.position = self.position;
+            first.radius = self.radius;
+            first.scale = self.size;
+            first.angle = self.longitude;
+            first.matrix = self.transform;
+            first.alpha = self.alpha;
+            first.color = record_color(self.alpha, self.red, self.green, self.blue);
+        }
     }
 
     /// `ProcessAlpha()` - `EffectPrimitiveColor.cpp:26-77`.
@@ -353,6 +493,16 @@ impl EffectPrimitiveState {
             self.alpha_speed = -(self.alpha / (master.duration - master.state_cnt) as f32);
         }
     }
+}
+
+/// Packed record colour as computed by `InitSegment`/`ShiftSegment`.
+fn record_color(alpha: f32, red: i32, green: i32, blue: i32) -> u32 {
+    let alpha = alpha as i32 as u32;
+
+    (alpha << 24)
+        + ((red as u8 as u32) << 16)
+        + ((green as u8 as u32) << 8)
+        + (blue as u8 as u32)
 }
 
 #[cfg(test)]

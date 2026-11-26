@@ -102,12 +102,12 @@ fn wrap(degrees: &mut i32) {
 }
 
 /// `ClientSin(volatile float)`.
-fn client_sin(angle: f32) -> f32 {
+pub fn client_sin(angle: f32) -> f32 {
     (angle as f64).sin() as f32
 }
 
 /// `ClientCos(volatile float)`.
-fn client_cos(angle: f32) -> f32 {
+pub fn client_cos(angle: f32) -> f32 {
     (angle as f64).cos() as f32
 }
 
