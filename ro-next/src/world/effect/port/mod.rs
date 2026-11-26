@@ -45,6 +45,7 @@ pub mod runtime;
 pub mod skill_map;
 pub mod sprite_pass;
 pub mod str_player;
+pub mod str_table;
 pub mod visual;
 
 /// `frameFreq = 1000 / 60` from `Timer.cpp:32`, in milliseconds.

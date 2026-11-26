@@ -27,7 +27,13 @@ impl PortedEffect for Signum {
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         if runtime.frame == 0 && !self.opened {
-            runtime.open_str(std::mem::take(&mut self.clips));
+            // The holder opens the official `Cross.str` resource before the
+            // first step; only fall back to constructor clips when no asset
+            // layer supplied them.
+            if runtime.str_player.is_none() && !self.clips.is_empty() {
+                runtime.open_str(std::mem::take(&mut self.clips));
+            }
+
             self.opened = true;
         }
 

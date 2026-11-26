@@ -1,9 +1,13 @@
 //! Effect-id registry: `EF_*` id -> ported effect body.
 //!
 //! This is the table the client will consult once the ported backend is wired
-//! (plan 4.2). It only contains bodies that need **no external assets**; the
-//! `.str`-driven bodies (`Signum`, `CartRevolution`) are created by the asset
-//! loader instead, because they need their clips at construction time.
+//! (plan 4.2). Bodies that open a `.str` screen-sprite clip (`Signum`,
+//! `CartRevolution`) are registered like every other body: their clip is the
+//! asset-side half, resolved by [`super::str_table`] and opened by
+//! [`super::holder::PortedEffectHolder`] at spawn.
+//!
+//! [`needs_str_clips`] only reports whether an id has an official `.str`
+//! resource; it no longer excludes the id from [`spawn`]/[`ported_ids`].
 
 use ragnarok_packets::EffectId;
 
@@ -15,9 +19,9 @@ use super::runtime::PortedEffect;
 
 /// Creates the ported body for an effect id, if one exists.
 ///
-/// Returns `None` for effects that are not ported yet **and** for the ported
-/// bodies that need `.str` clips (`EF_SIGNUM`, `EF_CARTREVOLUTION`); see
-/// [`ported_ids`] for the asset-free set.
+/// `.str`-driven bodies are created with no clips; the holder opens their
+/// official resource from [`super::str_table`] before the first step. Returns
+/// `None` only for effects that are not ported yet.
 pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
     if let Some(body) = super::registry_class_change::spawn(effect) {
         return Some(body);
@@ -145,17 +149,24 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Hyousensou => Box::new(EarthSpike::new(2)),
         EffectId::Sonicblow => Box::new(SonicBlow::default()),
         EffectId::Overthrust => Box::new(Overthrust::default()),
+        // `.str` bodies (official names in `port/str_table.rs`). The holder
+        // opens the clip before frame 0; an empty constructor set is fine.
+        EffectId::Signum => Box::new(Signum::new(Vec::new())),
+        EffectId::Cartrevolution => Box::new(CartRevolution::new(Vec::new())),
         _ => return None,
     })
 }
 
-/// Effect ids whose body needs `.str` clips; constructed by the asset loader,
-/// not by [`spawn`].
+/// Whether the effect opens an official `.str` screen-sprite resource
+/// (`CRagEffect::Init`, `RagEffectInitialization.cpp:16-711`).
+///
+/// Informational: the resource is opened by the holder at spawn, so this no
+/// longer excludes an id from [`spawn`] or [`ported_ids`].
 pub fn needs_str_clips(effect: EffectId) -> bool {
-    matches!(effect, EffectId::Signum | EffectId::Cartrevolution)
+    super::str_table::str_resource(effect).is_some()
 }
 
-/// Every ported, asset-free effect id.
+/// Every ported effect id.
 pub fn ported_ids() -> Vec<EffectId> {
     let mut ids = super::registry_class_change::ids().to_vec();
     ids.extend_from_slice(super::registry_textured_aura::ids());
@@ -268,6 +279,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Hyousensou,
         EffectId::Sonicblow,
         EffectId::Overthrust,
+        EffectId::Signum,
+        EffectId::Cartrevolution,
     ]);
 
     ids
@@ -393,6 +406,8 @@ mod tests {
             (EffectId::Hyousensou, 250),
             (EffectId::Sonicblow, 40),
             (EffectId::Overthrust, 250),
+            (EffectId::Signum, 999),
+            (EffectId::Cartrevolution, 999),
         ];
 
         for (effect, lifetime) in expect {
@@ -402,11 +417,28 @@ mod tests {
     }
 
     #[test]
-    fn str_driven_bodies_are_not_spawned_without_assets() {
+    fn str_driven_bodies_spawn_like_every_other_body() {
         assert!(needs_str_clips(EffectId::Signum));
         assert!(needs_str_clips(EffectId::Cartrevolution));
-        assert!(spawn(EffectId::Signum).is_none());
-        assert!(spawn(EffectId::Cartrevolution).is_none());
+        assert_eq!(
+            super::super::str_table::str_clips_for(EffectId::Signum),
+            Some(&["Cross.str"][..])
+        );
+        assert_eq!(
+            super::super::str_table::str_clips_for(EffectId::Cartrevolution),
+            Some(&["CartRevolution.str"][..])
+        );
+        assert!(spawn(EffectId::Signum).is_some());
+        assert!(spawn(EffectId::Cartrevolution).is_some());
+    }
+
+    #[test]
+    fn ported_ids_include_the_str_driven_bodies() {
+        let ids = ported_ids();
+
+        assert_eq!(ids.len(), 203, "201 registered ids + Signum + Cart Revolution");
+        assert!(ids.iter().any(|&id| matches!(id, EffectId::Signum)));
+        assert!(ids.iter().any(|&id| matches!(id, EffectId::Cartrevolution)));
     }
 
     #[test]

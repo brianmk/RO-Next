@@ -16,9 +16,11 @@ use wgpu::BlendFactor;
 
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::runtime::{EffectRuntime, PortedEffect};
+use super::str_player::Clip;
+use super::str_table::{self, StrResource};
 use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass};
 use crate::graphics::Color;
-use crate::loaders::{ActionLoader, ImageType, SpriteLoader, TextureLoader};
+use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 
@@ -28,6 +30,11 @@ pub struct PortedEffectHolder {
     /// Milliseconds not yet consumed by a 16 ms step.
     accumulator_ms: f64,
     finished: bool,
+    /// `CRagEffect::Init`'s `.str` resource row of this effect id, if any;
+    /// `None` for every effect without a screen-sprite clip. The resource
+    /// itself is opened before the first step by [`Self::with_str_clips`] or
+    /// [`Self::with_game_file_loader`].
+    str_resource: Option<&'static StrResource>,
     /// `.spr`/`.act` loaders of the client for the sprite primitives. `None`
     /// in unit tests, which have no game archives, and for effects without
     /// sprite bodies; the sprite pass then draws nothing.
@@ -52,10 +59,64 @@ impl PortedEffectHolder {
             runtime,
             accumulator_ms: 0.0,
             finished: false,
+            str_resource: str_table::str_resource(effect),
             sprite_loader: None,
             action_loader: None,
             sprite_frame_counts: HashMap::new(),
         })
+    }
+
+    /// Official `.str` files the effect opens at spawn (`CRagEffect::Init`),
+    /// if any. Names are relative to `data\texture\effect\`.
+    pub fn str_files(&self) -> Option<&'static [&'static str]> {
+        self.str_resource.map(|resource| resource.files)
+    }
+
+    /// Opens the effect's `.str` resource from already-parsed clips.
+    ///
+    /// The asset layer resolves [`Self::str_files`] through
+    /// [`str_table::load_clips`] (which reads the same `EffectData` layout as
+    /// the client's `EffectLoader`) and attaches the layers here, before the
+    /// first 16 ms step. Effects without a `.str` resource ignore the call, so
+    /// their simulation is untouched.
+    pub fn with_str_clips(mut self, clips: Vec<Clip>) -> Self {
+        if let Some(resource) = self.str_resource {
+            self.open_str(resource, clips);
+        }
+
+        self
+    }
+
+    /// Loads and opens the effect's official `.str` resource through the
+    /// client's game-file loader.
+    ///
+    /// A missing or malformed resource must not take the effect down: the body
+    /// keeps running its non-`.str` primitives without a screen-sprite layer.
+    /// With a resource attached, `ProcessEZ2STR` owns the ending exactly as in
+    /// the original (`Signum::on_process` forwards its `false`).
+    pub fn with_game_file_loader(mut self, game_file_loader: &GameFileLoader) -> Self {
+        let Some(resource) = self.str_resource else {
+            return self;
+        };
+
+        match str_table::load_clips(game_file_loader, resource) {
+            Some(clips) => self.open_str(resource, clips),
+            None => crate::logging::log_debug!("ported effect: missing .str resource {:?}", resource.files),
+        }
+
+        self
+    }
+
+    fn open_str(&mut self, resource: &StrResource, clips: Vec<Clip>) {
+        if clips.is_empty() {
+            return;
+        }
+
+        self.runtime.open_str(clips);
+
+        if let Some(player) = self.runtime.str_player.as_mut() {
+            player.loop_limit = resource.loop_limit;
+        }
     }
 
     /// Attaches the client's sprite/action loaders, so the holder can fill the
@@ -466,7 +527,25 @@ fn blend_factors(render_flag: u32) -> (BlendFactor, BlendFactor) {
 
 #[cfg(test)]
 mod tests {
+    use super::super::str_player::{KeyFrame, Transform};
     use super::*;
+
+    fn clip(keys: &[(i32, f32)]) -> Vec<Clip> {
+        vec![Clip {
+            texture_count: 1,
+            frames: keys
+                .iter()
+                .map(|&(frame, x)| KeyFrame {
+                    frame,
+                    transform: Transform {
+                        x,
+                        kind: 0,
+                        ..Default::default()
+                    },
+                })
+                .collect(),
+        }]
+    }
 
     #[test]
     fn bash_runs_exactly_one_hundred_sixty_milliseconds_per_ten_frames() {
@@ -633,5 +712,92 @@ mod tests {
     #[test]
     fn unported_effect_has_no_holder() {
         assert!(PortedEffectHolder::new(EffectId::Thunderstorm, 1).is_none());
+    }
+
+    #[test]
+    fn str_effects_name_their_official_resource_before_any_asset_is_loaded() {
+        let signum = PortedEffectHolder::new(EffectId::Signum, 1).unwrap();
+        assert_eq!(signum.str_files(), Some(&["Cross.str"][..]));
+        assert!(signum.runtime().str_player.is_none(), "no clip before the asset layer attaches");
+        assert!(signum.runtime().str_clips.is_empty());
+
+        let cart = PortedEffectHolder::new(EffectId::Cartrevolution, 1).unwrap();
+        assert_eq!(cart.str_files(), Some(&["CartRevolution.str"][..]));
+        assert!(cart.runtime().str_player.is_none());
+
+        let bash = PortedEffectHolder::new(EffectId::Bash, 1).unwrap();
+        assert_eq!(bash.str_files(), None);
+    }
+
+    #[test]
+    fn supplied_clips_open_the_str_player_at_spawn() {
+        let mut holder = PortedEffectHolder::new(EffectId::Signum, 1)
+            .unwrap()
+            .with_str_clips(clip(&[(0, 10.0), (3, 40.0)]));
+
+        assert_eq!(holder.runtime().str_clips.len(), 1);
+        assert_eq!(holder.runtime().str_clips[0].texture_count, 1);
+
+        let player = holder.runtime().str_player.as_ref().expect("the clip was opened");
+        assert_eq!(player.state_cnt, 0);
+        assert_eq!(player.loop_limit, 0, "RagEffectState's default loopLimit");
+        assert_eq!(player.current_key, vec![0]);
+
+        // `InitEZ2STRFrame` only resets the cursor; the first key is applied by
+        // the first `ProcessEZ2STR` call (frame 0 of the effect).
+        assert!(holder.update(0.016));
+        let player = holder.runtime().str_player.as_ref().unwrap();
+        assert_eq!(player.transforms[0].x, 10.0);
+
+        let cart = PortedEffectHolder::new(EffectId::Cartrevolution, 1)
+            .unwrap()
+            .with_str_clips(clip(&[(0, 0.0)]));
+        assert!(cart.runtime().str_player.is_some());
+    }
+
+    #[test]
+    fn the_opened_clip_advances_on_the_sixteen_millisecond_clock() {
+        let mut holder = PortedEffectHolder::new(EffectId::Signum, 1)
+            .unwrap()
+            .with_str_clips(clip(&[(0, 10.0), (3, 40.0)]));
+
+        // Key frames land on the same counter `ProcessEZ2STR` reads: the key
+        // at frame 3 is drawn on the fourth 16 ms step.
+        for _ in 0..4 {
+            assert!(holder.update(0.016));
+        }
+
+        let player = holder.runtime().str_player.as_ref().expect("clip still open");
+        assert_eq!(player.transforms[0].x, 40.0);
+        assert_eq!(player.current_key[0], -1, "the single layer reached its last key");
+
+        // The next step makes `ProcessEZ2STR` return false (loopLimit 0), and
+        // `Signum::on_process` forwards that as the effect's retirement.
+        assert!(!holder.update(0.016));
+        assert!(holder.is_finished());
+    }
+
+    #[test]
+    fn effects_without_a_str_resource_ignore_supplied_clips() {
+        let mut holder = PortedEffectHolder::new(EffectId::Bash, 1)
+            .unwrap()
+            .with_str_clips(clip(&[(0, 1.0)]));
+
+        assert!(holder.runtime().str_player.is_none());
+        assert!(holder.runtime().str_clips.is_empty());
+
+        assert!(holder.update(0.016));
+        assert_eq!(holder.runtime().primitives.len(), 21, "Bash is unchanged");
+    }
+
+    #[test]
+    fn a_missing_str_asset_leaves_the_effect_alive_without_its_clip() {
+        let mut holder = PortedEffectHolder::new(EffectId::Signum, 1)
+            .unwrap()
+            .with_game_file_loader(&GameFileLoader::default());
+
+        assert!(holder.runtime().str_player.is_none());
+        assert!(holder.update(0.016));
+        assert!(holder.runtime().primitives.is_empty(), "the ring lands on frame 30");
     }
 }

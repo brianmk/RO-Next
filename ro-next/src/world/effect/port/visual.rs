@@ -20,7 +20,10 @@
 //!
 //! The sprite pass needs the client's [`SpriteLoader`]/[`ActionLoader`]; they
 //! are handed to the holder here so it can resolve the ACT frame count while
-//! the effect is stepped and draw the sprite quads.
+//! the effect is stepped and draw the sprite quads. The [`GameFileLoader`] is
+//! handed over for the same reason: the holder opens the effect's official
+//! `.str` screen-sprite clips (`port/str_table.rs`) at spawn, before the first
+//! 16 ms step.
 
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -29,7 +32,7 @@ use cgmath::Point3;
 
 use super::holder::PortedEffectHolder;
 use super::runtime::EffectRuntime;
-use crate::loaders::{ActionLoader, ImageType, SpriteLoader, TextureLoader};
+use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::effect::EffectBase;
 use crate::world::{Camera, PointLightManager};
@@ -52,9 +55,15 @@ impl PortedVisual {
         texture_loader: Arc<TextureLoader>,
         sprite_loader: Arc<SpriteLoader>,
         action_loader: Arc<ActionLoader>,
+        game_file_loader: Arc<GameFileLoader>,
     ) -> Self {
         let mut visual = Self {
-            holder: holder.with_sprite_loaders(sprite_loader, action_loader),
+            // The game-file loader opens the effect's official `.str` clips
+            // (`port/str_table.rs`) before the first step, like
+            // `CRagEffect::Init` does on the original.
+            holder: holder
+                .with_sprite_loaders(sprite_loader, action_loader)
+                .with_game_file_loader(&game_file_loader),
             texture_loader: Some(texture_loader),
             prefetched: HashSet::new(),
             gets_deleted: false,
@@ -208,5 +217,52 @@ mod tests {
     #[test]
     fn unported_effect_has_no_holder() {
         assert!(PortedEffectHolder::new(EffectId::Thunderstorm, 1).is_none());
+    }
+
+    #[test]
+    fn str_effect_keeps_its_opened_clip_across_update() {
+        use super::super::str_player::{Clip, KeyFrame, Transform};
+
+        let clips = vec![Clip {
+            texture_count: 1,
+            frames: vec![
+                KeyFrame {
+                    frame: 0,
+                    transform: Transform {
+                        x: 1.0,
+                        ..Default::default()
+                    },
+                },
+                KeyFrame {
+                    frame: 3,
+                    transform: Transform {
+                        x: 2.0,
+                        ..Default::default()
+                    },
+                },
+            ],
+        }];
+        let mut visual = PortedVisual {
+            holder: PortedEffectHolder::new(EffectId::Signum, 1)
+                .expect("registered effect")
+                .with_str_clips(clips),
+            texture_loader: None,
+            prefetched: HashSet::new(),
+            gets_deleted: false,
+        };
+
+        assert!(visual.runtime().str_player.is_some());
+        assert_eq!(visual.runtime().str_clips.len(), 1);
+
+        for _ in 0..4 {
+            assert!(visual.update(&[], 0.016));
+        }
+
+        let player = visual.runtime().str_player.as_ref().expect("clip still open");
+        assert_eq!(player.transforms[0].x, 2.0, "the `.str` timeline advanced with the 16 ms clock");
+
+        // With loopLimit 0 the finished resource retires the effect.
+        assert!(!visual.update(&[], 0.016));
+        assert!(visual.is_finished());
     }
 }

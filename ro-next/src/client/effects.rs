@@ -324,6 +324,8 @@ impl Client {
             self.texture_loader.clone(),
             self.sprite_loader.clone(),
             self.action_loader.clone(),
+            // Used only for the effect's official `.str` clips (`port/str_table.rs`).
+            self.game_file_loader.clone(),
         );
         let parent_angle = self.entity_parent_angle(source_entity_id);
         {
