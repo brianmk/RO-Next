@@ -46,10 +46,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `PortedEffectHolder` (fixed 16 ms stepping) | plan 4.2 | 6 |
 | holder render path (`Texture2d`/`Flash2d` quads via `EffectRenderer`) | plan W3 | 3 |
 | `CRagEffect::FireBall` (`EF_FIREBALL`) | `RagEffect.cpp:325-367` | 2 |
+| `CRagEffect::DecAgility` (`EF_DECAGILITY`) | `RagEffect.cpp:15222-15279` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 105 tests, all green. Effect bodies ported: **15 / 236** + the generic `Hit2` impact.
+Total: 107 tests, all green. Effect bodies ported: **16 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 

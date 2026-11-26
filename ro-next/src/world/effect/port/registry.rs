@@ -8,7 +8,7 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    Bash, Blessing, BowlingBash, CartRevolution, EarthSpike, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
+    Bash, Blessing, BowlingBash, CartRevolution, DecAgility, EarthSpike, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
     Signum, SonicBlow,
 };
 use super::runtime::PortedEffect;
@@ -23,6 +23,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Hit2 => Box::new(Hit2::new(0)),
         EffectId::Endure => Box::new(Endure::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
+        EffectId::Decagility => Box::new(DecAgility::default()),
         EffectId::Blessing => Box::new(Blessing::default()),
         EffectId::Bash => Box::new(Bash::default()),
         EffectId::Magnumbreak => Box::new(MagnumBreak::default()),
@@ -54,6 +55,7 @@ pub fn ported_ids() -> &'static [EffectId] {
         EffectId::Endure,
         EffectId::Blessing,
         EffectId::Fireball,
+        EffectId::Decagility,
         EffectId::Bash,
         EffectId::Magnumbreak,
         EffectId::Frostdiver,
@@ -89,6 +91,7 @@ mod tests {
             (EffectId::Endure, 80),
             (EffectId::Blessing, 150),
             (EffectId::Fireball, 100),
+            (EffectId::Decagility, 100),
             (EffectId::Bash, 40),
             (EffectId::Magnumbreak, 30),
             (EffectId::Frostdiver, 150),
