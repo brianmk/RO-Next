@@ -118,10 +118,15 @@ impl PortedEffect for TexturedAura {
         let param = runtime.param;
         let parent_action_height = runtime.parent_action_height;
         let position_y = runtime.position[1];
+        let (position_x, position_z) = (runtime.position[0], runtime.position[2]);
 
         for &(texture, kind) in &self.auras {
             let (distance, flag, height10, display_angle, vy) =
                 kind_params(kind, param, parent_action_height, &mut runtime.rng);
+
+            // The common tail draws the rotation *after* the kind branch, so the
+            // branch's alphaB/rotStart values are dead in the original too.
+            let rot_start = runtime.rng.clamped_random(360) as i16;
 
             let aura = runtime.launch(PrimitiveId::AuraGlow, [0.0, 0.0, 0.0]);
             let state = runtime.primitive_mut(aura);
@@ -147,6 +152,15 @@ impl PortedEffect for TexturedAura {
             // and the vertical lift the motion uses to place `vecBNow`.
             state.slots[0].flag1[4] = if kind == 4 { 1 } else { kind as i8 };
             state.slots[0].height[15] = position_y - state.slots[0].vec_b_pre[1];
+
+            // `RagEffect.cpp:17960-17963`: the tail overwrites what the kind
+            // branch set for alphaB/rotStart.
+            state.slots[0].height[8] = 0.0;
+            state.slots[0].alpha_b = 0;
+            state.slots[0].vec_b_now[0] = position_x;
+            state.slots[0].vec_b_now[2] = position_z;
+            state.slots[0].rot_start = rot_start;
+            state.slots[0].flag1[0] = 0;
         }
 
         true
