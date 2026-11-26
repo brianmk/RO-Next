@@ -142,6 +142,8 @@ Prim 82 note: the switch is on `slots[0].flag1[2]` (render kind), **not** `flag1
 
 Documented render-side deviations (simulation untouched): `RenderFieldPanel` map-name alpha clamp skipped; `RenderPyramid`'s `std::rand` colour rewrite replaced by a deterministic hash (render is `&self`); `RenderRectUp`'s uninitialised colour falls back to case 0; the 510-triangle cap counts emitted triangles; render-time scratch writes to slot vectors are not written back; `RenderTeiRect` `extra` 2/3 not implemented (no ported body uses them).
 
+`.str` clips: `port/str_table.rs` resolves the official resource per id (`Cross.str`, `CartRevolution.str`, `SafetyWall.str`, `StormGust.str`, `Aspersio.str`, `버서크.str`; `RagEffectInitialization.cpp:45-248`, `RagEffect.cpp:108-109` for the default `loopLimit = 0`), loads them through the client's `EffectData` reader and opens the player at spawn; `EF_SIGNUM` and `EF_CARTREVOLUTION` are now spawnable. The clips advance on the 16 ms clock but are **not rasterized yet** - `PortedEffectHolder::render` has no `.str` pass and `Clip` carries no texture names.
+
 Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend state is undefined in the decompilation (no body sets it); `sprite_type > 1`/third image index is an out-of-bounds read in the original; class-change direction rows are absent from the ported `ClassChange` table (those cells draw row 0); per-corner DX9 `rhw` depth is replaced by the anchor depth.
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
