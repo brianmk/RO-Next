@@ -37,6 +37,8 @@ pub mod registry_class_change;
 pub mod registry_textured_aura;
 pub mod rng;
 pub mod rag;
+pub mod rag_batch_a;
+pub mod rag_batch_b;
 pub mod runtime;
 pub mod str_player;
 
