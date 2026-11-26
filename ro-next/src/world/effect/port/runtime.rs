@@ -50,6 +50,8 @@ pub struct EffectRuntime {
     pub render_angle: f32,
     /// `camera->camera.yaw` - used by action-facing effects.
     pub camera_yaw: f32,
+    /// `AM_CHANGE_COLOR` body tint (`None` = `AM_RETURN_COLOR`).
+    pub body_tint: Option<[u8; 3]>,
     /// `state.parent->render.angle` - the caster's facing, used by bodies such
     /// as Bowling Bash.
     pub parent_angle: f32,
@@ -79,6 +81,7 @@ impl EffectRuntime {
             delta_pos3: [0.0; 3],
             render_angle: 0.0,
             camera_yaw: 0.0,
+            body_tint: None,
             parent_angle: 0.0,
             flag: 0,
             primitives: Vec::new(),

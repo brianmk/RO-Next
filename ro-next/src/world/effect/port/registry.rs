@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, HealBurst, MagicRing, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Cloud11Burst, HealBurst, MagicRing, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -52,6 +52,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Fireball3 => Box::new(RocketPunch::new(false, 100)),
         EffectId::Fireball6 => Box::new(RocketPunch::new(true, 100)),
         EffectId::Sprinklesand => Box::new(SprinkleSand::new(20, 300)),
+        EffectId::PotionBerserk => Box::new(PotionPill::new(false, 199)),
+        EffectId::PotionBerserk2 => Box::new(PotionPill::new(true, 199)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -125,6 +127,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Fireball3,
         EffectId::Fireball6,
         EffectId::Sprinklesand,
+        EffectId::PotionBerserk,
+        EffectId::PotionBerserk2,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -208,6 +212,8 @@ mod tests {
             (EffectId::Fireball3, 100),
             (EffectId::Fireball6, 100),
             (EffectId::Sprinklesand, 300),
+            (EffectId::PotionBerserk, 199),
+            (EffectId::PotionBerserk2, 199),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),
