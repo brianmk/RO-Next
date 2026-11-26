@@ -463,11 +463,10 @@ mod tests {
             assert!(!runtime.primitives.is_empty(), "{effect:?} spawned nothing");
 
             for primitive in &runtime.primitives {
-                if matches!(
-                    primitive.state.count,
-                    PrimitiveId::Particle3d | PrimitiveId::Orbit
-                ) {
-                    // Sprite particles carry `.spr/.act`, not a texture.
+                // Sprite-carrying primitives (`particle1/3/7.spr` & co) only
+                // ever set `.spr/.act`; requiring a `texture` on them would be
+                // a false positive. Everything else must name its texture.
+                if primitive.state.sprite.is_some() {
                     continue;
                 }
 
