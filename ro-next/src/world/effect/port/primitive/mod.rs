@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod intimidate;
 pub mod particle3d;
 pub mod quadhorn;
 pub mod texture3d;
@@ -121,6 +122,8 @@ pub enum PrimitiveId {
     Particle3d,
     /// `PP_WIND` (62)
     Wind,
+    /// `PP_INTIMIDATE` (43)
+    Intimidate,
 }
 
 impl PrimitiveId {
@@ -138,6 +141,7 @@ impl PrimitiveId {
             Self::Cylinder3d => 13,
             Self::Particle3d => 5,
             Self::Wind => 62,
+            Self::Intimidate => 43,
         }
     }
 }
@@ -535,6 +539,10 @@ impl EffectPrimitiveState {
             PrimitiveId::Particle3d => particle3d::on_process(self, angles, master, rng),
             PrimitiveId::Wind => {
                 wind::on_process(self);
+                true
+            }
+            PrimitiveId::Intimidate => {
+                intimidate::on_process(self);
                 true
             }
         };

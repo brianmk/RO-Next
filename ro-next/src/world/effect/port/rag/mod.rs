@@ -26,6 +26,7 @@ pub mod overthrust;
 pub mod magnum;
 pub mod revive;
 pub mod signum;
+pub mod whitespray;
 pub mod sonicblow;
 
 pub use bash::Bash;
@@ -50,5 +51,6 @@ pub use incagi::IncAgility;
 pub use overthrust::Overthrust;
 pub use revive::Revive;
 pub use signum::Signum;
+pub use whitespray::WhiteSpray;
 pub use magnum::MagnumBreak;
 pub use sonicblow::SonicBlow;

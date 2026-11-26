@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange,
+    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -31,6 +31,14 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Agiup => Box::new(AgilityUp::default()),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
+        EffectId::Intimidate => Box::new(
+            WhiteSpray::new(0, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]),
+        ),
+        EffectId::Intimidate2 => Box::new(WhiteSpray::new(2, 16, 999)),
+        EffectId::Intimidate3 => Box::new(
+            WhiteSpray::new(3, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]),
+        ),
+        EffectId::Intimidate4 => Box::new(WhiteSpray::new(4, 10, 999).with_waves(&[(25, "effect\\triangle.wav")])),
         EffectId::Aqua => Box::new(Aqua::default()),
         EffectId::Revive => Box::new(Revive::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
@@ -76,6 +84,10 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Agiup,
         EffectId::Portal4,
         EffectId::Portal5,
+        EffectId::Intimidate,
+        EffectId::Intimidate2,
+        EffectId::Intimidate3,
+        EffectId::Intimidate4,
         EffectId::Rapidshower,
         EffectId::Magicalbullet,
         EffectId::Spreadattack,
@@ -136,6 +148,10 @@ mod tests {
             (EffectId::Agiup, 100),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
+            (EffectId::Intimidate, 999),
+            (EffectId::Intimidate2, 999),
+            (EffectId::Intimidate3, 999),
+            (EffectId::Intimidate4, 999),
             (EffectId::Rapidshower, 100),
             (EffectId::Magicalbullet, 100),
             (EffectId::Spreadattack, 100),
