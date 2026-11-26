@@ -180,7 +180,7 @@ impl PrimitiveId {
             Self::Circle3d => 12,
             Self::Sphere3d => 14,
             Self::QuadHorn3d => 9,
-            Self::Texture3d => 1,
+            Self::Texture3d => 15,
             Self::CrossTexture3d => 16,
             Self::Cylinder3d => 13,
             Self::Particle3d => 5,

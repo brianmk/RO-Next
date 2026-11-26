@@ -43,6 +43,13 @@ impl PortedEffect for WaterBall {
         state.speed3d[1] = -(25.0 / state.duration as f32);
         state.delta_pos2[1] = -5.0;
         state.anim_speed = 5;
+        // `totalTexture = 3` with the three slots the official body loads.
+        state.frame_count = 3;
+        state.texture_frames = vec![
+            "effect\\water_out_a.bmp",
+            "effect\\water_out_b.bmp",
+            "effect\\water_out_c.bmp",
+        ];
         state.texture = Some("effect\\water_out_a.bmp");
         state.texture_secondary = Some("effect\\water_out_b.bmp");
         state.texture_tertiary = Some("effect\\water_out_c.bmp");
