@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Cloud11Burst, FirePillar, RogueCoin, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Cloud11Burst, FirePillar, FrostMysty, RogueCoin, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -63,6 +63,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::RgCoin5 => Box::new(RogueCoin::coin5(300)),
         EffectId::RgCoin6 => Box::new(RogueCoin::coin6(300)),
         EffectId::RgCoin7 => Box::new(RogueCoin::coin7(300)),
+        EffectId::Frostmysty => Box::new(FrostMysty::new(300)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => Box::new(
@@ -147,6 +148,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::RgCoin5,
         EffectId::RgCoin6,
         EffectId::RgCoin7,
+        EffectId::Frostmysty,
         EffectId::Portal4,
         EffectId::Portal5,
         EffectId::Intimidate,
@@ -241,6 +243,7 @@ mod tests {
             (EffectId::RgCoin5, 300),
             (EffectId::RgCoin6, 300),
             (EffectId::RgCoin7, 300),
+            (EffectId::Frostmysty, 300),
             (EffectId::Portal4, 200),
             (EffectId::Portal5, 200),
             (EffectId::Intimidate, 999),

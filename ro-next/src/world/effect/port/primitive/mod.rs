@@ -21,6 +21,7 @@ pub mod particle_up;
 pub mod quadhorn;
 pub mod pulsing_columns;
 pub mod ripple_rings;
+pub mod rising_fan;
 pub mod spin_quad;
 pub mod texture3d;
 pub mod aura_glow;
@@ -142,6 +143,10 @@ pub enum PrimitiveId {
     PulsingColumns,
     /// prim 63 (`PrimRippleRings`)
     RippleRings,
+    /// prim 130 (`PrimRisingFan`)
+    RisingFan,
+    /// prim 131 (`PrimRisingFan2`)
+    RisingFan2,
 }
 
 impl PrimitiveId {
@@ -166,6 +171,8 @@ impl PrimitiveId {
             Self::ParticleUp => 59,
             Self::PulsingColumns => 60,
             Self::RippleRings => 63,
+            Self::RisingFan => 130,
+            Self::RisingFan2 => 131,
         }
     }
 }
@@ -606,6 +613,14 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::RippleRings => {
                 ripple_rings::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::RisingFan => {
+                rising_fan::rising_fan(self, master);
+                true
+            }
+            PrimitiveId::RisingFan2 => {
+                rising_fan::rising_fan2(self, master);
                 true
             }
         };

@@ -81,14 +81,16 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::TexturedTripleOrbit` (`EF_GRADIUS_LASER`) | `RagEffect.cpp:7123-7183` | 1 |
 | `CRagEffect::TexturedSprayKind` / `TexturedSpray` helpers | `RagEffect.cpp:4642-4689`, `4064-4097` | 2 |
 | Rogue coin family (`EF_RG_COIN`, `EF_RG_COIN2..7`) - data table | `RagEffect.cpp:20997-21100` | 4 |
-| `CRagEffect::SnowFall` (helper, pending `EF_FROSTMYSTY` wiring) | `RagEffect.cpp:6615-6663` | 2 |
+| `CRagEffect::SnowFall` | `RagEffect.cpp:6615-6663` | 2 |
+| prims 130/131 `PrimRisingFan` / `PrimRisingFan2` + `RaiseFanHeights` | `EffectPrimitiveMotion.cpp:6314-6479` | 4 |
+| `CRagEffect::SaintWing` + `EF_FROSTMYSTY` | `RagEffect.cpp:5092-5119`, `20682-20689` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 152 effect ids (66 generated from `TexturedClassChange`, 26 from
-`TexturedAura`, 60 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+**Registry:** 153 effect ids (66 generated from `TexturedClassChange`, 26 from
+`TexturedAura`, 61 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
 so the *skill* coverage is far higher than the id ratio suggests.
