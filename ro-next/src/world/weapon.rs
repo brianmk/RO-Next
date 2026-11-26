@@ -47,16 +47,19 @@
 //! animation stays in [`crate::world::AnimationState`]; the projectile decision
 //! is centralised here.
 //!
-//! ## Data set limitation (documented, not worked around with fake assets)
+//! ## Actor action blocks used by the weapon layer
 //!
 //! The CondaRO client archives contain **no** classic job-independent weapon
-//! layer (`data\sprite\인간족\무기\*`) and the per-job weapon variants
-//! (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`) exist but their ACT clips
-//! are all hidden placeholders. The registry still attempts every candidate (so
-//! a complete data set renders weapons without code changes) and the weapon
-//! layer is dropped when no candidate contains a drawable frame. No item/skill
-//! icon is drawn in the world as a substitute; the equipment/inventory UI
-//! already shows the item icon.
+//! layer (`data\sprite\인간족\무기\*`); the per-job weapon variants
+//! (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`) carry the real weapon
+//! graphics. Their ACT data does **not** animate the classic stand/walk/sit
+//! blocks (0..31); the armed stand pose lives in the ready-fight block
+//! (`32..39`) and the swing in the `ST_ATTACK` (`80..87`) or `ST_ATTACK2`
+//! (`88..95`) block, depending on the job/weapon pair (some also animate the
+//! skill block `96..103`). The entity layer therefore idles on block 32..39
+//! and picks the attack block with [`attack_action`], otherwise the weapon layer
+//! would be loaded but never drawn. No item/skill icon is drawn in the world as
+//! a substitute; the equipment/inventory UI already shows the item icon.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
@@ -758,13 +761,34 @@ pub(crate) fn animation_is_drawable(animation_data: &AnimationData) -> bool {
         .any(|frame| frame.frame_parts.iter().any(|part| part.sprite_number != usize::MAX))
 }
 
+/// Attack action (`ST_ATTACK` = 80..87 or `ST_ATTACK2` = 88..95) of the
+/// equipped weapon ACT.
+///
+/// The player attack animations are split into two blocks. A weapon ACT only
+/// animates one of them (e.g. knight swords use 80..87 while knight spears and
+/// hunter bows use 88..95; some animate both), so the entity plays the block
+/// that actually contains drawable frames. Defaults to `ST_ATTACK` when the
+/// weapon is not loaded yet or animates both blocks.
+pub(crate) fn attack_action(animation_data: &AnimationData) -> super::AnimationActionType {
+    use super::AnimationActionType;
+
+    const ATTACK_BLOCK: usize = 10;
+    const ATTACK2_BLOCK: usize = 11;
+
+    if !animation_data.action_is_drawable(ATTACK_BLOCK) && animation_data.action_is_drawable(ATTACK2_BLOCK) {
+        AnimationActionType::Attack3
+    } else {
+        AnimationActionType::Attack2
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::{JobId, Sex};
 
-    use super::{AmmoKind, ProjectileKind, WeaponKind, animation_is_drawable, parse, part_candidates, profile, projectile_for_weapon};
+    use super::{AmmoKind, ProjectileKind, WeaponKind, animation_is_drawable, attack_action, parse, part_candidates, profile, projectile_for_weapon};
     use crate::world::EntityType;
-    use crate::world::animation::{Animation, AnimationData, AnimationFrame, AnimationFramePart};
+    use crate::world::animation::{Animation, AnimationActionType, AnimationData, AnimationFrame, AnimationFramePart};
 
     fn archer() -> JobId {
         JobId(3)
@@ -1010,10 +1034,51 @@ mod tests {
         }
     }
 
+    /// A synthetic player weapon animation with `drawable_actions` as full ACT
+    /// action indices; every other action is a hidden placeholder.
+    fn fake_block_animation(drawable_actions: &[usize]) -> AnimationData {
+        #[cfg(feature = "debug")]
+        use cgmath::SquareMatrix;
+
+        let hidden = AnimationFrame {
+            event: None,
+            offset: cgmath::Vector2::new(0, 0),
+            top_left: cgmath::Vector2::new(0, 0),
+            size: cgmath::Vector2::new(1, 1),
+            frame_parts: vec![AnimationFramePart::default()],
+            #[cfg(feature = "debug")]
+            horizontal_matrix: cgmath::Matrix4::identity(),
+            #[cfg(feature = "debug")]
+            vertical_matrix: cgmath::Matrix4::identity(),
+        };
+        let visible = AnimationFrame {
+            frame_parts: vec![AnimationFramePart {
+                sprite_number: 0,
+                ..Default::default()
+            }],
+            ..hidden.clone()
+        };
+
+        AnimationData {
+            animation_pair: Vec::new(),
+            animations: (0..104)
+                .map(|action| Animation {
+                    frames: vec![if drawable_actions.contains(&action) {
+                        visible.clone()
+                    } else {
+                        hidden.clone()
+                    }],
+                })
+                .collect(),
+            delays: vec![4.0; 104],
+            entity_type: EntityType::Player,
+        }
+    }
+
     #[test]
     fn placeholder_only_weapon_animations_are_rejected() {
-        // The CondaRO per-job weapon ACTs contain only hidden clips
-        // (`sprite_number == usize::MAX`); they must not be kept as a layer.
+        // A weapon ACT whose clips are all hidden (`sprite_number ==
+        // usize::MAX`) must not be kept as a layer.
         assert!(!animation_is_drawable(&fake_animation(usize::MAX)));
 
         // A data set with real weapon pixels passes the gate.
@@ -1027,5 +1092,23 @@ mod tests {
             entity_type: EntityType::Player,
         };
         assert!(!animation_is_drawable(&empty));
+    }
+
+    #[test]
+    fn attack_action_follows_the_drawable_weapon_attack_block() {
+        // Knight sword / archer bow files animate ST_ATTACK (action block 80).
+        let attack = fake_block_animation(&[32, 80]);
+        assert_eq!(attack_action(&attack), AnimationActionType::Attack2);
+
+        // Knight spear / hunter bow files animate ST_ATTACK2 (action block 88).
+        let attack2 = fake_block_animation(&[32, 88]);
+        assert_eq!(attack_action(&attack2), AnimationActionType::Attack3);
+
+        // A weapon that animates both blocks keeps the primary (ST_ATTACK).
+        let both = fake_block_animation(&[32, 80, 88]);
+        assert_eq!(attack_action(&both), AnimationActionType::Attack2);
+
+        // A weapon layer that is still loading falls back to ST_ATTACK.
+        assert_eq!(attack_action(&fake_animation(0)), AnimationActionType::Attack2);
     }
 }

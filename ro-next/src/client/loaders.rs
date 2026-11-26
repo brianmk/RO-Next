@@ -379,12 +379,11 @@ impl Client {
             return;
         }
 
-        // Missing/placeholder weapon sprites are expected in this data set (the
-        // CondaRO archives have no drawable per-job weapon clips; see
-        // `world::weapon`); the async loader caches the failure and the entity is
-        // rendered without the weapon layer. Keep this out of the generic asset
-        // failure reporting (and out of stderr) so map entry does not spam the
-        // user or the log for every population-engine shell.
+        // Missing weapon/shield/robe sprites are expected for custom/costume
+        // gear (see `world::weapon`); the async loader caches the failure and
+        // the entity is rendered without that layer. Keep this out of the
+        // generic asset failure reporting (and out of stderr) so map entry does
+        // not spam the user or the log for every population-engine shell.
         if let LoaderId::WeaponAnimationData(entity_id)
         | LoaderId::ShieldAnimationData(entity_id)
         | LoaderId::RobeAnimationData(entity_id) = &id

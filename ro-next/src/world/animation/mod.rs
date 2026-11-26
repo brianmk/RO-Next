@@ -20,7 +20,7 @@ const PICKUP_ANIMATION_FACTOR: f32 = 25.0;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-enum AnimationActionType {
+pub enum AnimationActionType {
     Attack1,
     Attack2,
     Attack3,
@@ -45,7 +45,14 @@ impl AnimationActionType {
     pub fn action_base_offset(&self, entity_type: EntityType) -> usize {
         match entity_type {
             EntityType::Hidden | EntityType::Player => match self {
-                AnimationActionType::Idle => 0,
+                // The player body ACT layout has two standing blocks: the
+                // classic block 0..7 is the *weaponless* relaxed pose, while
+                // the armed stand pose is the ready-fight block 32..39. Every
+                // per-job weapon ACT (kRO 2019 data set) only animates the
+                // ready-fight (32..39) and attack (80..95) blocks, so idling on
+                // block 0 would make the equipped weapon layer invisible
+                // (official `CPc::JobActionBase(ST_STAND) = 32`).
+                AnimationActionType::Idle => 4,
                 AnimationActionType::Walk => 1,
                 AnimationActionType::Sit => 2,
                 AnimationActionType::Pickup => 3,
@@ -217,11 +224,16 @@ impl AnimationState {
         self.looping = true;
     }
 
-    pub fn attack(&mut self, entity_type: EntityType, attack_duration: u32, critical: bool, client_tick: ClientTick) {
-        self.action_type = match critical {
-            true => AnimationActionType::Attack3,
-            false => AnimationActionType::Attack1,
-        };
+    /// Play an attack swing.
+    ///
+    /// `action` selects the ACT block: [`AnimationActionType::Attack1`] (2) for
+    /// the non-player layout, or [`AnimationActionType::Attack2`] (80..87) /
+    /// [`AnimationActionType::Attack3`] (88..95) for the player attack blocks.
+    /// The equipped weapon ACT only animates one of the player blocks (its data
+    /// depends on the job/weapon pair), so the caller picks the block that the
+    /// weapon layer actually draws.
+    pub fn attack(&mut self, entity_type: EntityType, attack_duration: u32, action: AnimationActionType, client_tick: ClientTick) {
+        self.action_type = action;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
         // A server-provided attack duration can be zero (e.g. some instant
@@ -482,6 +494,23 @@ pub(crate) fn duration_from_frame_counts(action_base_offset: usize, frame_counts
 }
 
 impl AnimationData {
+    /// Whether the ACT block starting at `action` (8 directions) contains at
+    /// least one drawable frame.
+    ///
+    /// `action` is the block index (`32` for ready-fight, `80`/`88` for the
+    /// player attack blocks), matching [`AnimationActionType::action_base_offset`].
+    /// A trimmed ACT can contain only placeholder clips (`sprite_number ==
+    /// usize::MAX`) for a block; such a block draws nothing.
+    pub fn action_is_drawable(&self, action: usize) -> bool {
+        self.animations
+            .iter()
+            .skip(action * 8)
+            .take(8)
+            .flat_map(|animation| animation.frames.iter())
+            .flat_map(|frame| frame.frame_parts.iter())
+            .any(|part| part.sprite_number != usize::MAX)
+    }
+
     pub fn is_animation_over(&self, animation_state: &AnimationState) -> bool {
         if self.delays.is_empty() || self.animations.is_empty() {
             return true;
@@ -888,7 +917,7 @@ mod tests {
         // The crash report from the Geffenia maps: a zero duration animation
         // state divides by zero in `is_animation_over`.
         let mut state = AnimationState::new(EntityType::Monster, ClientTick(0));
-        state.attack(EntityType::Monster, 0, false, ClientTick(0));
+        state.attack(EntityType::Monster, 0, AnimationActionType::Attack1, ClientTick(0));
         state.duration = Some(0);
 
         let animation_data = AnimationData {
@@ -912,6 +941,71 @@ mod tests {
         };
 
         assert!(empty_animation_data.is_animation_over(&AnimationState::new(EntityType::Monster, ClientTick(0))));
+    }
+
+    #[test]
+    fn player_idle_uses_the_armed_ready_fight_block() {
+        // The kRO player body/weapon ACTs animate the armed stand pose in the
+        // ready-fight block 32..39; block 0..7 is the weaponless relaxation
+        // pose. Idling on block 0 made every equipped weapon layer invisible
+        // because no per-job weapon ACT has frames there.
+        let state = AnimationState::new(EntityType::Player, ClientTick(0));
+        assert_eq!(state.action_index(), 4);
+        assert_eq!(state.action_index() * 8, 32);
+
+        // Non-players keep the non-player layout (idle is ACT block 0).
+        assert_eq!(AnimationState::new(EntityType::Monster, ClientTick(0)).action_index(), 0);
+        assert_eq!(AnimationState::new(EntityType::Npc, ClientTick(0)).action_index(), 0);
+    }
+
+    #[test]
+    fn player_attack_uses_a_player_attack_block() {
+        // ST_THROW (block 5 = 40..47) is not a weapon swing block; the player
+        // attack animations are 80..87 (Attack2) and 88..95 (Attack3).
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.attack(EntityType::Player, 100, AnimationActionType::Attack2, ClientTick(0));
+        assert_eq!(state.action_index(), 10);
+        assert_eq!(state.action_index() * 8, 80);
+
+        // Monsters keep the non-player attack block (2).
+        let mut monster = AnimationState::new(EntityType::Monster, ClientTick(0));
+        monster.attack(EntityType::Monster, 100, AnimationActionType::Attack1, ClientTick(0));
+        assert_eq!(monster.action_index(), 2);
+    }
+
+    #[test]
+    fn action_is_drawable_only_for_blocks_with_real_frames() {
+        // Mirrors the kRO 2019 weapon ACT layout: the armed stand pose is in
+        // block 4 (32..39), the swing in block 10 (80..87), and every other
+        // block is a hidden placeholder. The player idle/attack mapping must
+        // therefore target block 4 / 10 instead of the classic idle block 0.
+        let hidden = super::fallback_frame().clone();
+        let visible = super::AnimationFrame {
+            frame_parts: vec![super::AnimationFramePart {
+                sprite_number: 0,
+                ..Default::default()
+            }],
+            ..hidden.clone()
+        };
+        let animations = (0..104)
+            .map(|action| super::Animation {
+                frames: vec![match action / 8 {
+                    4 | 10 => visible.clone(),
+                    _ => hidden.clone(),
+                }],
+            })
+            .collect();
+        let animation_data = super::AnimationData {
+            animation_pair: Vec::new(),
+            animations,
+            delays: vec![100.0; 104],
+            entity_type: EntityType::Player,
+        };
+
+        assert!(!animation_data.action_is_drawable(0));
+        assert!(animation_data.action_is_drawable(4));
+        assert!(animation_data.action_is_drawable(10));
+        assert!(!animation_data.action_is_drawable(11));
     }
 
     #[test]
@@ -971,12 +1065,19 @@ mod tests {
 
     #[test]
     fn player_action_offsets_match_the_ro_act_file() {
-        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 0);
+        // Idle is the armed ready-fight block: the classic stand block 0..7 is
+        // the weaponless pose and no per-job weapon ACT animates it.
+        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 4);
         assert_eq!(AnimationActionType::Walk.action_base_offset(EntityType::Player), 1);
         assert_eq!(AnimationActionType::Sit.action_base_offset(EntityType::Player), 2);
         assert_eq!(AnimationActionType::Pickup.action_base_offset(EntityType::Player), 3);
+        assert_eq!(AnimationActionType::ReadyFight.action_base_offset(EntityType::Player), 4);
+        // `Attack1` is the ST_THROW block (40..47), used by throw skills, not by
+        // the auto attack; the weapon swings in `Attack2`/`Attack3`.
         assert_eq!(AnimationActionType::Attack1.action_base_offset(EntityType::Player), 5);
         assert_eq!(AnimationActionType::Die.action_base_offset(EntityType::Player), 8);
+        assert_eq!(AnimationActionType::Attack2.action_base_offset(EntityType::Player), 10);
+        assert_eq!(AnimationActionType::Attack3.action_base_offset(EntityType::Player), 11);
         assert_eq!(AnimationActionType::Skill.action_base_offset(EntityType::Player), 12);
     }
 
