@@ -121,6 +121,8 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::RemoveTrap` (`EF_REMOVETRAP`) | `RagEffect.cpp:1986-2013` | 1 |
 | prim 6 `Prim3DParticleGravity` + `CRagEffect::Steal` (`EF_STEAL`) | `EffectPrimitiveMotion.cpp:2581-2619`, `RagEffect.cpp:1835-1875` | 9 |
 | prim 155 `PrimWanderingFlames` + `CRagEffect::TexturedForkBolt` (ported, unregistered) | `EffectPrimitiveMotion.cpp:7353-7403`, `RagEffect.cpp:7268-7321` | 12 |
+| prim 96 `PrimPeongUp` + `CRagEffect::WhiteLightTrail`, Storm Kick 4/5 | `EffectPrimitiveMotion.cpp:3744-3778`, `RagEffect.cpp:13451-13516`, `:23703-23722` | 11 |
+| `CRagEffect` metallic-sound line (`EF_NEW_METALLICSOUND_LINE`, 1584) | `RagEffect.cpp:22532-22544` | 2 |
 | `ParticleTime` (`EF_SMA_READY`), `StoneWall` (`EF_EARTHWALL`), `Hit3` (`EF_HIT3`) | `RagEffect.cpp:12121-12177`, `13088-13124`, `863-935` | 9 |
 | **client wiring**: `port/visual.rs` (`PortedVisual` over `EffectBase`), `port/skill_map.rs` (45 skill->id mappings), opt-in hook in `client/effects.rs` | `tools/gen_ported_skill_map.py`, `RO_NEXT_PORTED_FX=1` | 10 |
 | **world-space rendering**: `port/render3d.rs` for `PP_3DTEXTURE` (15) and `PP_3DCROSSTEXTURE` (16) via `render_effect_with_depth`, official corner order/UVs/pattern bits, frame selection | `EffectPrimitiveRendering.cpp:116`, `:6172` | 19 |
@@ -152,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 282 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 290 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -214,8 +216,16 @@ so the *skill* coverage is far higher than the id ratio suggests.
 ### Round 88
 
 - **Screen offsets**: `EffectRuntime::str_offset` + `process_str_with(offset)` (default `DEFAULT_STR_OFFSET = [0,-80,0]`); `str_render::render` takes the offset explicitly, so `ProcessEZ2STR(0,0,0)`/`(0,-20,0)` call sites are faithful. Unblocked Thunderstorm (30), ShieldCharge (246), Devotion (251), Lkconcentration (369), RejectSword (392).
-- **Parent tint/flags**: `parent_color` + `set_parent_color` + `parent_flags`/`add_parent_flags` recorded exactly, but **not applied to the caster** — `EffectBase::update` only receives `&[Entity]`, so the mutable bridge would have to live in `PortedVisual`/`client/effects.rs` (documented on the fields).
-- **Audio bridge**: `port/sound_sink.rs` drains `runtime.sounds` then `runtime.positional_sounds` after every 16 ms step and plays them through the *same* `AudioEngine::play_spatial_sound_effect` path the descriptor effects use (250 range, listener-relative offsets resolved to world positions). Not matched: `PlayWave`'s `minimumDistance = 40` (engine hardcodes 5), post-spawn listener movement, cross-channel interleaving (no shared sequence number).
+- **Parent tint/flags**: `parent_color` + `set_parent_color` + `parent_flags`/`add_parent_flags` recorded exactly. The tint is now **applied**: `EffectHolder::update` takes the mutable entity slice (handed over by `client/frame.rs`), and the new `EffectBase::apply_caster_state`/`clear_caster_state` hooks replay `SetColor` through `Entity::set_status_tint` (with `-1` channels keeping their previous value) and clear it when the effect retires. `parent_flags` stays recorded only: `Entity` has no per-frame `render.flags` register, and bits 1/8 map to different persistent mechanisms.
+- **Audio bridge** (landed round 88): `port/sound_sink.rs` drains `runtime.sounds` then `runtime.positional_sounds` after every 16 ms step and plays them through the *same* `AudioEngine::play_spatial_sound_effect` path the descriptor effects use (250 range, listener-relative offsets resolved to world positions). Not matched: `PlayWave`'s `minimumDistance = 40` (engine hardcodes 5), post-spawn listener movement, cross-channel interleaving (no shared sequence number).
+
+### Round 89
+
+- prim **96** `PeongUp` + `CRagEffect::WhiteLightTrail`; `EF_STORMKICK4` (462, 200) and `EF_STORMKICK5` (463, 300) registered. Storm Kick 5's `SetFrameSequence(0x60,2,2,0x60,2,1,25,0)` needed a `ParentFrameSequence` carrier applied through `Entity::set_skill_frame_sequence` (`Custom(12)` -> ACT block 96+direction).
+- `EffectId::NewMetallicSoundLine` (1584) added to `ragnarok-packets`; its `TexturedBeam` + 3 `TexturedForkBolt` body registered (default `TT_MIN_EFFECT_ON_OFF` branch).
+- **Parent tint is applied**, not just recorded: `EffectHolder::update` now takes `&mut [Entity]`, and `PortedVisual` replays `SetColor` into `Entity::set_status_tint` (`-1` channels keep the previous value), clearing it on retirement.
+- Batch f: Sightrasher, TurnUndead, HasteUp, Dance2, Thunderstorm2.
+- Constructor defaults fixed centrally: `change_speed3d`/`change_accel3d` now start at `0` per `EffectPrim.cpp:97-102`.
 
 ### Known wiring gaps (client spawn path)
 
@@ -223,13 +233,13 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - **Audio bridge**: `runtime.sounds` / `runtime.positional_sounds` are recorded
   but not yet forwarded to the `AudioEngine`, so ported sounds are silent while
   the visuals and `.str` layers play.
-- `EF_NEW_METALLICSOUND_LINE` (official 1584) has no `EffectId` variant in `ragnarok-packets` (max 1243); the body is ready.
-- Chemical V/V2/V3 are notice effects (`GameModeNotices.cpp:4234/4248`), not skill-table effects, so the generated skill map cannot reach them.
+- `parent_flags` bits are recorded but not translated to the caster entity (no per-frame `render.flags` register; see the Round 88/89 note).
+- Chemical V/V2/V3 are notice effects (`GameModeNotices.cpp:4234/4248`), not skill-table effects, so the generated skill map cannot reach them. `EF_NEW_METALLICSOUND_LINE` is a notice path too, so it is registered but has no skill-map row.
 
 ### Ready next (no engine work needed)
 
 `.str`-only follow-up: 34 more T1 ids are the same clip-only profile (29, 67, 70, 84, 85, 88, 101, 103, 104, 111, 112, 126, 136, 143, 148, 149, 150, 151, 169, 234, 235, 268, 269-272, 390, 391, 406, 407, 440, 635, 636, 649).
-Blocked on runtime support (12): positional sound height (`PlayEffectWaveAt`/`PlayWave` with offsets) for Gloria, FlameLauncher, FrostWeapon, LightningLoader, SeismicWeapon, HolyCross, Loud; `process_str` offsets other than `(0,-80,0)` for ShieldCharge/Devotion; parent actor tint/flags for Lkconcentration/RejectSword; and `EF_THUNDERSTORM` (portable, but the unported-effects test still pins it).
+Blocked on runtime support (12): positional sound height (`PlayEffectWaveAt`/`PlayWave` with offsets) for Gloria, FlameLauncher, FrostWeapon, LightningLoader, SeismicWeapon, HolyCross, Loud; `process_str` offsets other than `(0,-80,0)` for ShieldCharge/Devotion; parent actor flag bits for RejectSword; and `EF_THUNDERSTORM` (portable, but the unported-effects test still pins it).
 
 ### Queued after the port (last item)
 
