@@ -8,12 +8,16 @@
 //!
 //! Rendering support is what the holder implements: the
 //! `PP_2DTEXTURE`/`PP_2DFLASH` screen quads anchored to the effect's world
-//! position, plus the world-space quads of `PP_3DTEXTURE` (15) and
-//! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`]. The remaining
-//! primitive families (rings, cylinders, arcs, the record/slot primitives and
-//! the `.spr` particle families) need geometry or a sprite render path the
-//! holder does not have yet; they are skipped rather than guessed (see the
-//! `TODO(sprite pass)` in `PortedEffectHolder::render`).
+//! position, the world-space quads of `PP_3DTEXTURE` (15) and
+//! `PP_3DCROSSTEXTURE` (16) built by [`super::render3d`], and the
+//! `RenderSegmentSprites2` sprite pass of [`super::sprite_pass`] for the
+//! `.spr` particle families. The remaining primitive families (rings,
+//! cylinders, arcs and the record/slot primitives) need geometry render paths
+//! the holder does not have yet; they are skipped rather than guessed.
+//!
+//! The sprite pass needs the client's [`SpriteLoader`]/[`ActionLoader`]; they
+//! are handed to the holder here so it can resolve the ACT frame count while
+//! the effect is stepped and draw the sprite quads.
 
 use std::collections::HashSet;
 use std::sync::Arc;
@@ -22,7 +26,7 @@ use cgmath::Point3;
 
 use super::holder::PortedEffectHolder;
 use super::runtime::EffectRuntime;
-use crate::loaders::{ImageType, TextureLoader};
+use crate::loaders::{ActionLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::effect::EffectBase;
 use crate::world::{Camera, PointLightManager};
@@ -40,9 +44,14 @@ pub struct PortedVisual {
 }
 
 impl PortedVisual {
-    pub fn new(holder: PortedEffectHolder, texture_loader: Arc<TextureLoader>) -> Self {
+    pub fn new(
+        holder: PortedEffectHolder,
+        texture_loader: Arc<TextureLoader>,
+        sprite_loader: Arc<SpriteLoader>,
+        action_loader: Arc<ActionLoader>,
+    ) -> Self {
         let mut visual = Self {
-            holder,
+            holder: holder.with_sprite_loaders(sprite_loader, action_loader),
             texture_loader: Some(texture_loader),
             prefetched: HashSet::new(),
             gets_deleted: false,
@@ -117,8 +126,9 @@ impl EffectBase for PortedVisual {
             return;
         };
 
-        // 2-D screen quads and the world-space `PP_3DTEXTURE`/
-        // `PP_3DCROSSTEXTURE` quads; the holder owns the primitive dispatch.
+        // 2-D screen quads, the world-space `PP_3DTEXTURE`/
+        // `PP_3DCROSSTEXTURE` quads and the `.spr` particle quads; the holder
+        // owns the primitive dispatch.
         self.holder.render(renderer, camera, texture_loader);
     }
 

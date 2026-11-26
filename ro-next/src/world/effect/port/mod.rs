@@ -42,6 +42,7 @@ pub mod rag_batch_a;
 pub mod rag_batch_b;
 pub mod runtime;
 pub mod skill_map;
+pub mod sprite_pass;
 pub mod str_player;
 pub mod visual;
 

@@ -319,7 +319,12 @@ impl Client {
             PortedAnchor::Target => target_position.unwrap_or(source_position),
         };
 
-        let mut visual = PortedVisual::new(holder, self.texture_loader.clone());
+        let mut visual = PortedVisual::new(
+            holder,
+            self.texture_loader.clone(),
+            self.sprite_loader.clone(),
+            self.action_loader.clone(),
+        );
         let parent_angle = self.entity_parent_angle(source_entity_id);
         {
             let runtime = visual.runtime_mut();

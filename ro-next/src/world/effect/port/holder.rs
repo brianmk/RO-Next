@@ -7,20 +7,20 @@
 //! the effect renderer): `update` only advances the timeline, so the timing
 //! model can be verified without a GPU.
 
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use cgmath::{Point3, Rad, Vector2};
 use ragnarok_packets::EffectId;
 use wgpu::BlendFactor;
 
+use super::primitive::{EffectPrimitiveState, PrimitiveId};
+use super::runtime::{EffectRuntime, PortedEffect};
+use super::{FRAME_FREQUENCY_MS, registry, render3d, sprite_pass};
 use crate::graphics::Color;
-use crate::loaders::{ImageType, TextureLoader};
+use crate::loaders::{ActionLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
-
-use super::FRAME_FREQUENCY_MS;
-use super::primitive::{EffectPrimitiveState, PrimitiveId};
-use super::registry;
-use super::render3d;
-use super::runtime::{EffectRuntime, PortedEffect};
 
 pub struct PortedEffectHolder {
     body: Box<dyn PortedEffect>,
@@ -28,6 +28,15 @@ pub struct PortedEffectHolder {
     /// Milliseconds not yet consumed by a 16 ms step.
     accumulator_ms: f64,
     finished: bool,
+    /// `.spr`/`.act` loaders of the client for the sprite primitives. `None`
+    /// in unit tests, which have no game archives, and for effects without
+    /// sprite bodies; the sprite pass then draws nothing.
+    sprite_loader: Option<Arc<SpriteLoader>>,
+    action_loader: Option<Arc<ActionLoader>>,
+    /// `(sprite path, action path, action row) -> frame count`, filled by the
+    /// asset pass in [`Self::attach_sprite_actions`]. `0` means the pair could
+    /// not be loaded and the primitive stays undrawn.
+    sprite_frame_counts: HashMap<(&'static str, &'static str, i32), u32>,
 }
 
 impl PortedEffectHolder {
@@ -43,7 +52,19 @@ impl PortedEffectHolder {
             runtime,
             accumulator_ms: 0.0,
             finished: false,
+            sprite_loader: None,
+            action_loader: None,
+            sprite_frame_counts: HashMap::new(),
         })
+    }
+
+    /// Attaches the client's sprite/action loaders, so the holder can fill the
+    /// ACT frame count of sprite primitives and draw them. The effect bodies
+    /// keep their own logic; only the asset-side frame count is supplied here.
+    pub fn with_sprite_loaders(mut self, sprite_loader: Arc<SpriteLoader>, action_loader: Arc<ActionLoader>) -> Self {
+        self.sprite_loader = Some(sprite_loader);
+        self.action_loader = Some(action_loader);
+        self
     }
 
     pub fn runtime(&self) -> &EffectRuntime {
@@ -79,9 +100,10 @@ impl PortedEffectHolder {
 
     /// Advances the effect by `delta_seconds` of wall time.
     ///
-    /// The official client runs effects on a **fixed 16 ms** step, so a frame of
-    /// 50 ms produces three steps and a 5 ms frame produces none. Returns
-    /// `false` once the effect has finished (and keeps returning `false`).
+    /// The official client runs effects on a **fixed 16 ms** step, so a frame
+    /// of 50 ms produces three steps and a 5 ms frame produces none.
+    /// Returns `false` once the effect has finished (and keeps returning
+    /// `false`).
     pub fn update(&mut self, delta_seconds: f64) -> bool {
         if self.finished {
             return false;
@@ -92,7 +114,7 @@ impl PortedEffectHolder {
         while self.accumulator_ms >= FRAME_FREQUENCY_MS as f64 {
             self.accumulator_ms -= FRAME_FREQUENCY_MS as f64;
 
-            if !super::runtime::step(self.body.as_mut(), &mut self.runtime) {
+            if !self.step() {
                 self.finished = true;
                 return false;
             }
@@ -101,21 +123,109 @@ impl PortedEffectHolder {
         true
     }
 
+    /// One fixed step, in the official order.
+    ///
+    /// This mirrors [`super::runtime::step`] operand for operand - body
+    /// `OnProcess`, `++stateCnt`, the lifetime check, then the primitive pass -
+    /// and additionally resolves the ACT frame count of newly launched sprite
+    /// primitives between the body and the primitive pass. That is where the
+    /// original loads the resource: `SetSpriteName`/`SetActionName` run inside
+    /// the body's `LaunchEffectPrim` block, so the same frame's `AnimMotion`
+    /// already sees the real `FrameCount`. Doing it after the primitive pass
+    /// would be one frame too late for the `repeatAnim == 0` bodies, which
+    /// retire as soon as `curMotion` reaches `FrameCount`.
+    fn step(&mut self) -> bool {
+        if !self.body.on_process(&mut self.runtime) {
+            return false;
+        }
+
+        self.runtime.frame += 1;
+
+        if self.runtime.frame >= self.runtime.lifetime {
+            return false;
+        }
+
+        self.attach_sprite_actions();
+        self.runtime.process_primitives();
+
+        true
+    }
+
+    /// Asset-layer counterpart of `SetActionName`: resolves the `.act` row of
+    /// every live sprite primitive and stores its motion count in
+    /// [`EffectPrimitiveState::action_frame_count`], which the ported
+    /// `AnimMotion` uses as `CActRes::FrameCount`.
+    ///
+    /// This is not simulation logic: the count is a file input the original
+    /// reads synchronously, and the port's bodies cannot know it. It also
+    /// prefetches the `.spr` so the first render frame does not hitch on disk.
+    fn attach_sprite_actions(&mut self) {
+        let Self {
+            runtime,
+            sprite_loader,
+            action_loader,
+            sprite_frame_counts,
+            ..
+        } = self;
+
+        let (Some(sprite_loader), Some(action_loader)) = (sprite_loader.as_deref(), action_loader.as_deref()) else {
+            return;
+        };
+
+        for primitive in &mut runtime.primitives {
+            if !primitive.alive {
+                continue;
+            }
+
+            let state = &mut primitive.state;
+
+            let (Some(sprite_path), Some(action_path)) = (state.sprite, state.action) else {
+                continue;
+            };
+
+            let row = sprite_pass::action_row(state);
+            let key = (sprite_path, action_path, row as i32);
+
+            let frame_count = match sprite_frame_counts.get(&key) {
+                Some(&frame_count) => frame_count,
+                None => {
+                    let frame_count = if !sprite_loader.file_exists(sprite_path) || !action_loader.file_exists(action_path) {
+                        0
+                    } else {
+                        let _ = sprite_loader.get_or_load(sprite_path, None);
+
+                        action_loader
+                            .get_or_load(action_path)
+                            .ok()
+                            .and_then(|actions| sprite_pass::action_frame_count(&actions.actions, row))
+                            .unwrap_or(0)
+                    };
+
+                    sprite_frame_counts.insert(key, frame_count);
+                    frame_count
+                }
+            };
+
+            if frame_count > 0 {
+                state.action_frame_count = frame_count;
+            }
+        }
+    }
+
     /// Submits every primitive the port can draw today.
     ///
     /// * `PP_2DTEXTURE`/`PP_2DFLASH` - screen-space quads
     ///   (`Render2DPrimitive`).
     /// * `PP_3DTEXTURE`/`PP_3DCROSSTEXTURE` - world-space quads
     ///   (`DrawEffectPrimitive15`/`RenderCrossPlanes`), see [`render3d`].
+    /// * every primitive that carries a `.spr`/`.act` pair - the sprite
+    ///   particles and the `TexturedClassChange` bodies
+    ///   (`RenderSegmentSprites2`), see [`sprite_pass`].
     ///
-    /// Rings, cylinders, arcs and the sprite primitives need geometry/render
-    /// paths that are not ported yet; they are skipped rather than guessed.
+    /// Rings, cylinders and arcs need geometry/render paths that are not
+    /// ported yet; they are skipped rather than guessed.
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
-        let anchor = Point3::new(
-            self.runtime.position[0],
-            self.runtime.position[1],
-            self.runtime.position[2],
-        );
+        let anchor = Point3::new(self.runtime.position[0], self.runtime.position[1], self.runtime.position[2]);
 
         for primitive in &self.runtime.primitives {
             if !primitive.alive {
@@ -123,6 +233,20 @@ impl PortedEffectHolder {
             }
 
             let state = &primitive.state;
+
+            // `RenderSegmentSprites2`: a primitive that owns a sprite is drawn
+            // per ACT cell, whatever its `count` is.
+            if state.sprite.is_some() {
+                sprite_pass::render_primitive(
+                    renderer,
+                    camera,
+                    self.sprite_loader.as_deref(),
+                    self.action_loader.as_deref(),
+                    state,
+                );
+
+                continue;
+            }
 
             match state.count {
                 PrimitiveId::Texture2d | PrimitiveId::Flash2d => {
@@ -153,23 +277,13 @@ impl PortedEffectHolder {
                 PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => {
                     render3d::render_textured_primitive(renderer, camera, textures, state);
                 }
-                // TODO(sprite pass): `Particle3d`/`Particle3dGravity`/`Orbit`
-                // (and the `.spr` bodies of `rag::class_change`) only carry
-                // `sprite`/`action`; `ParticleUp`, `PulsingColumns`,
-                // `RippleRings`, `RisingFan`, `Halo`, `SpinQuad`,
-                // `TextureSpin`, `WanderingFlames` are slot/record primitives.
-                // `SpriteEffect` is not reusable as-is: it needs
-                // `Arc<Sprite>`/`Arc<Actions>` from `SpriteLoader`/
-                // `ActionLoader`, neither of which reaches
-                // `PortedEffectHolder::render`, and the official
-                // `RenderSegmentSprites2` projects every `records[seg]` and
-                // draws one sprite cell per ACT cell with
-                // `sprite->images[cell.imageType][cell.image]` (the port's
-                // `texture_secondary` slot), scaling by the record's
-                // `scale`/`cell.scaleY` and the record's depth. Missing: the
-                // two loaders in the holder context, a per-record cell
-                // renderer, and the ACT frame selection from
-                // `action_index`/`action_frame_count` plus `cur_motion`.
+                // `ParticleUp`, `PulsingColumns`, `RippleRings`, `RisingFan`,
+                // `Halo`, `SpinQuad`, `TextureSpin`, `WanderingFlames` and
+                // the remaining rings/cylinders/arcs are slot/record
+                // primitives whose official render functions are not ported
+                // yet. Sprite primitives (`Particle3d`, `Particle3dGravity`,
+                // `Orbit` and the `.spr` bodies) were already dispatched above
+                // by their `sprite` field.
                 _ => {}
             }
         }
