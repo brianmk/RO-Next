@@ -37,6 +37,8 @@ pub struct EffectRuntime {
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
     pub position: [f32; 3],
+    /// `state.param[0]` - effect parameter (skill level / power) some bodies use.
+    pub param: f32,
     /// `state.deltaPos4` equivalents the effect bodies own: the offset to the
     /// target (`deltaPos`), the travelled vector (`deltaPos3`), the facing
     /// (`render.angle`) and the `flag` used by the projectile-style bodies.
@@ -66,6 +68,7 @@ impl EffectRuntime {
             lifetime,
             screen,
             position: [0.0; 3],
+            param: 0.0,
             target_offset: [0.0; 3],
             delta_pos3: [0.0; 3],
             render_angle: 0.0,

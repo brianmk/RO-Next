@@ -18,6 +18,7 @@ pub mod intimidate;
 pub mod particle3d;
 pub mod quadhorn;
 pub mod texture3d;
+pub mod aura_glow;
 pub mod wind;
 pub mod texture2d;
 
@@ -124,6 +125,8 @@ pub enum PrimitiveId {
     Wind,
     /// `PP_INTIMIDATE` (43)
     Intimidate,
+    /// `PP_AURA` / prim 82 (`PrimAuraGlow`)
+    AuraGlow,
 }
 
 impl PrimitiveId {
@@ -142,6 +145,7 @@ impl PrimitiveId {
             Self::Particle3d => 5,
             Self::Wind => 62,
             Self::Intimidate => 43,
+            Self::AuraGlow => 82,
         }
     }
 }
@@ -200,6 +204,11 @@ pub struct EffectPrimitiveSlot {
     pub rise_angle: i16,
     /// `/* 0080 */ distance`
     pub distance: f32,
+    /// `/* 0084 */ vectors[4]` union: vecBNow / vecTNow / vecBPre / vecTPre
+    pub vec_b_now: [f32; 3],
+    pub vec_t_now: [f32; 3],
+    pub vec_b_pre: [f32; 3],
+    pub vec_t_pre: [f32; 3],
 }
 
 impl Default for EffectPrimitiveSlot {
@@ -216,6 +225,10 @@ impl Default for EffectPrimitiveSlot {
             flag1: [0; 21],
             rise_angle: 0,
             distance: 0.0,
+            vec_b_now: [0.0; 3],
+            vec_t_now: [0.0; 3],
+            vec_b_pre: [0.0; 3],
+            vec_t_pre: [0.0; 3],
         }
     }
 }
@@ -543,6 +556,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::Intimidate => {
                 intimidate::on_process(self);
+                true
+            }
+            PrimitiveId::AuraGlow => {
+                aura_glow::on_process(self, master);
                 true
             }
         };

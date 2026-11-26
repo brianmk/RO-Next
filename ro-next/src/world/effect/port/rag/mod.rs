@@ -28,6 +28,7 @@ pub mod revive;
 pub mod signum;
 pub mod whitespray;
 pub mod sonicblow;
+pub mod textured_aura;
 
 pub use bash::Bash;
 pub use agiup::AgilityUp;
@@ -54,3 +55,4 @@ pub use signum::Signum;
 pub use whitespray::WhiteSpray;
 pub use magnum::MagnumBreak;
 pub use sonicblow::SonicBlow;
+pub use textured_aura::TexturedAura;
