@@ -31,11 +31,14 @@ pub mod pulsing_columns;
 pub mod quadhorn;
 pub mod ripple_rings;
 pub mod rising_fan;
+pub mod shield_boomerang;
+pub mod shield_boomerang3;
 pub mod spin_quad;
 pub mod stacked_rings;
 pub mod texture2d;
 pub mod texture3d;
 pub mod texture_spin;
+pub mod throw_item;
 pub mod wandering_flames;
 pub mod wind;
 
@@ -188,6 +191,14 @@ pub enum PrimitiveId {
     StackedRings,
     /// `PP_PEONGUP` (96) - `CRagEffect::WhiteLightTrail`'s rising light trail.
     PeongUp,
+    /// `PP_SHIELDBOOMERANG` (42) - the shield throw of
+    /// `CRagEffect::TexturedShieldThrow` and `CRagEffect::TANJI`.
+    ShieldBoomerang,
+    /// `PP_THROWITEM` (53) - `CRagEffect::ThrowItem`'s thrown-item trail.
+    ThrowItem,
+    /// `PP_SHIELDBOOMERANG3` (116) - `CRagEffect::ShieldBoomerang3`'s
+    /// five-fragment throw.
+    ShieldBoomerang3,
 }
 
 impl PrimitiveId {
@@ -225,6 +236,9 @@ impl PrimitiveId {
             Self::FlashFade => 154,
             Self::StackedRings => 103,
             Self::PeongUp => 96,
+            Self::ShieldBoomerang => 42,
+            Self::ThrowItem => 53,
+            Self::ShieldBoomerang3 => 116,
         }
     }
 }
@@ -755,6 +769,18 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::PeongUp => peong_up::on_process(self, angles, master, rng),
+            PrimitiveId::ShieldBoomerang => {
+                shield_boomerang::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::ThrowItem => {
+                throw_item::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::ShieldBoomerang3 => {
+                shield_boomerang3::on_process(self, angles, master);
+                true
+            }
         };
 
         if !alive {
@@ -909,6 +935,29 @@ impl EffectPrimitiveState {
     }
 }
 
+/// `CEffectPrim::Get_Angle` - `EffectPrimitiveState.cpp:51-70`.
+///
+/// The motion primitives need the same heading helper as the bodies; it is a
+/// pure function of the client trig table. Kept here (rather than in a single
+/// motion module) because both `PrimShieldBoomerang` and `PrimThrowItem`
+/// call it. The body-side copy lives on
+/// [`EffectRuntime::get_angle`](super::runtime::EffectRuntime::get_angle); the
+/// two implementations are identical.
+pub(super) fn get_angle(x: f32, y: f32) -> i16 {
+    let angles = Angles::shared();
+    let length = (x * x + y * y).sqrt();
+    let normal_y = y / length;
+    let normal_x = x / length;
+
+    for index in 0..=180i16 {
+        if normal_x >= angles.raw_cosine(index as usize) {
+            return if normal_y >= 0.0 { index } else { 360 - index };
+        }
+    }
+
+    180
+}
+
 /// Packed record colour as computed by `InitSegment`/`ShiftSegment`.
 fn record_color(alpha: f32, red: i32, green: i32, blue: i32) -> u32 {
     let alpha = alpha as i32 as u32;
@@ -987,5 +1036,15 @@ mod tests {
         }
 
         assert!(!state.on_process(&angles, &master, &mut EffectRng::new(1)));
+    }
+
+    #[test]
+    fn get_angle_reads_the_client_trig_table() {
+        // `Get_Angle` indexes the 3.141592f table, so the cardinal directions
+        // are not exactly 0/90/180 (the existing body tests rely on 91).
+        assert_eq!(get_angle(10.0, 0.0), 0);
+        assert_eq!(get_angle(0.0, 10.0), 91);
+        assert_eq!(get_angle(-10.0, 0.0), 180);
+        assert_eq!(get_angle(0.0, -10.0), 269);
     }
 }

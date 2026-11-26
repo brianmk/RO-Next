@@ -13,14 +13,15 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
-    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
-    Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria,
-    GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, LkConcentration, LockOn, Loud,
-    MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, RejectSword, RemoveTrap,
-    Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond,
-    SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedPulse,
-    TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
-    VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
+    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
+    EnchantPoisonCast, Endure, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty,
+    GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility,
+    LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill,
+    RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow,
+    SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam,
+    TexturedComet, TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
+    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst,
+    WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -220,6 +221,30 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         }
         EffectId::Holycross => Box::new(HolyCross::new(Vec::new())),
         EffectId::Loud => Box::new(Loud::new(Vec::new())),
+        // The shield-throw and throw-item family: each dispatch block is one
+        // body call (`RagEffect.cpp:24630-24640`, `:10150-10151`, `:19456-19457`,
+        // `:20446-20447`, `:21159-21172`, `:21359-21364`, `:21684-21689`,
+        // `:24241-24243`); `EF_THROWITEM4` calls the same body twice.
+        EffectId::Shieldboomerang => Box::new(TexturedShieldThrow::new("effect\\shield_boomerang.bmp", 499)),
+        EffectId::Shieldboomerang2 => Box::new(TexturedShieldThrow::new("effect\\토마.bmp", 499)),
+        EffectId::Shieldboomerang3 => Box::new(ShieldBoomerang3::new("effect\\shield_boomerang.bmp", 499)),
+        EffectId::Shieldboomerang4 => Box::new(TexturedShieldThrow::new("유저인터페이스\\item\\배틀액스.bmp", 499)),
+        EffectId::Tanji => Box::new(Tanji::new(300)),
+        EffectId::Throwitem => Box::new(ThrowItem::new("유저인터페이스\\item\\빈병.bmp", 0, 300)),
+        EffectId::Throwitem2 => Box::new(ThrowItem::new("유저인터페이스\\item\\빈포션병.bmp", 1, 300)),
+        EffectId::Throwitem3 => Box::new(ThrowItem::new("유저인터페이스\\item\\돌.bmp", 2, 200)),
+        EffectId::Throwitem4 => Box::new(DoubleThrowItem::new(
+            ThrowItem::new("유저인터페이스\\item\\화염병.bmp", 10, 300),
+            ThrowItem::new("유저인터페이스\\item\\염산병.bmp", 11, 300),
+            300,
+        )),
+        EffectId::Throwitem5 => Box::new(ThrowItem::new("유저인터페이스\\item\\버서크포션.bmp", 1, 300)),
+        EffectId::Throwitem6 => Box::new(ThrowItem::new("유저인터페이스\\item\\베넘나이프.bmp", 3, 200)),
+        EffectId::Throwitem7 => Box::new(ThrowItem::new("유저인터페이스\\item\\수리검.bmp", 3, 200)),
+        EffectId::Throwitem8 => Box::new(ThrowItem::new("유저인터페이스\\item\\쿠나이_독.bmp", 3, 200)),
+        EffectId::Throwitem9 => Box::new(ThrowItem::new("유저인터페이스\\item\\풍마_열화.bmp", 3, 200)),
+        EffectId::Throwitem10 => Box::new(ThrowItem::new("effect\\coin_a.bmp", 3, 200)),
+        EffectId::Throwitem11 => Box::new(ThrowItem::new("유저인터페이스\\item\\폭탄버섯포자.bmp", 1, 300)),
         _ => return None,
     })
 }
@@ -380,6 +405,22 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Seismicweapon,
         EffectId::Holycross,
         EffectId::Loud,
+        EffectId::Shieldboomerang,
+        EffectId::Shieldboomerang2,
+        EffectId::Shieldboomerang3,
+        EffectId::Shieldboomerang4,
+        EffectId::Tanji,
+        EffectId::Throwitem,
+        EffectId::Throwitem2,
+        EffectId::Throwitem3,
+        EffectId::Throwitem4,
+        EffectId::Throwitem5,
+        EffectId::Throwitem6,
+        EffectId::Throwitem7,
+        EffectId::Throwitem8,
+        EffectId::Throwitem9,
+        EffectId::Throwitem10,
+        EffectId::Throwitem11,
     ]);
 
     ids
@@ -534,6 +575,22 @@ mod tests {
             (EffectId::Seismicweapon, 999),
             (EffectId::Holycross, 499),
             (EffectId::Loud, 300),
+            (EffectId::Shieldboomerang, 499),
+            (EffectId::Shieldboomerang2, 499),
+            (EffectId::Shieldboomerang3, 499),
+            (EffectId::Shieldboomerang4, 499),
+            (EffectId::Tanji, 300),
+            (EffectId::Throwitem, 300),
+            (EffectId::Throwitem2, 300),
+            (EffectId::Throwitem3, 200),
+            (EffectId::Throwitem4, 300),
+            (EffectId::Throwitem5, 300),
+            (EffectId::Throwitem6, 200),
+            (EffectId::Throwitem7, 200),
+            (EffectId::Throwitem8, 200),
+            (EffectId::Throwitem9, 200),
+            (EffectId::Throwitem10, 200),
+            (EffectId::Throwitem11, 300),
         ];
 
         for (effect, lifetime) in expect {

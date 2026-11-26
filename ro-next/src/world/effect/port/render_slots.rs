@@ -18,7 +18,7 @@
 //! | 60, 63 | `Render3DCasting` | heal pillar/ring, portals, magic ring, ripple rings |
 //! | 12 | `RenderRecordRings` | magnum/cart/bowling rings, spray pond, water ball |
 //! | 13 | `RenderArcBand` | cart revolution, magnum, bowling bash, frost diver |
-//! | 59 | `RenderFieldPanel` | heal sparks, sprinkle sand, snow, rising orbs |
+//! | 42, 53, 59, 116 | `RenderFieldPanel` | shield throws, thrown items, heal sparks, sprinkle sand, snow, rising orbs |
 //! | 9 | `RenderPyramid` | earth spike, heavens drive, storm gust, grim tooth |
 //! | 137 | `RenderArcWalls` | height ramp / arc walls |
 //! | 130 | `RenderFacingQuads` | rising fan |
@@ -250,7 +250,8 @@ pub enum SlotRenderer {
     RecordRings,
     /// `RenderArcBand` - id 13.
     ArcBand,
-    /// `RenderFieldPanel` - id 59 (and the other ids in that case list).
+    /// `RenderFieldPanel` - ids 42/53/59/116 (and the other ids in that case
+    /// list, `EffectPrimitiveRendering.cpp:573-592`).
     FieldPanel,
     /// `RenderPyramid` - ids 9/117.
     Pyramid,
@@ -296,6 +297,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::Circle3d => SlotRenderer::RecordRings,
         PrimitiveId::Cylinder3d => SlotRenderer::ArcBand,
         PrimitiveId::ParticleUp => SlotRenderer::FieldPanel,
+        PrimitiveId::ShieldBoomerang | PrimitiveId::ThrowItem | PrimitiveId::ShieldBoomerang3 => SlotRenderer::FieldPanel,
         PrimitiveId::QuadHorn3d => SlotRenderer::Pyramid,
         PrimitiveId::HeightRamp => SlotRenderer::ArcWalls,
         PrimitiveId::RisingFan => SlotRenderer::FacingQuads,
@@ -3038,6 +3040,9 @@ mod tests {
             (PrimitiveId::Circle3d, SlotRenderer::RecordRings),
             (PrimitiveId::Cylinder3d, SlotRenderer::ArcBand),
             (PrimitiveId::ParticleUp, SlotRenderer::FieldPanel),
+            (PrimitiveId::ShieldBoomerang, SlotRenderer::FieldPanel),
+            (PrimitiveId::ThrowItem, SlotRenderer::FieldPanel),
+            (PrimitiveId::ShieldBoomerang3, SlotRenderer::FieldPanel),
             (PrimitiveId::QuadHorn3d, SlotRenderer::Pyramid),
             (PrimitiveId::HeightRamp, SlotRenderer::ArcWalls),
             (PrimitiveId::RisingFan, SlotRenderer::FacingQuads),
@@ -3079,6 +3084,9 @@ mod tests {
             PrimitiveId::RippleRings,
             PrimitiveId::Circle3d,
             PrimitiveId::ParticleUp,
+            PrimitiveId::ShieldBoomerang,
+            PrimitiveId::ThrowItem,
+            PrimitiveId::ShieldBoomerang3,
             PrimitiveId::HeightRamp,
             PrimitiveId::RisingFan,
             PrimitiveId::RisingFan2,
@@ -3376,6 +3384,29 @@ mod tests {
         };
 
         assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn shield_and_item_primitives_use_the_field_panel_geometry() {
+        // `EffectPrimitiveRendering.cpp:573-592` routes PP_SHIELDBOOMERANG,
+        // PP_THROWITEM and PP_SHIELDBOOMERANG3 through RenderFieldPanel.
+        for id in [PrimitiveId::ShieldBoomerang, PrimitiveId::ThrowItem, PrimitiveId::ShieldBoomerang3] {
+            let mut state = state_of(id);
+            state.texture = Some("effect\\shield_boomerang.bmp");
+            state.slots[0] = EffectPrimitiveSlot {
+                life: 1,
+                alpha_b: 120,
+                full_display_angle: 0,
+                distance: 7.0,
+                ..Default::default()
+            };
+
+            let built = triangles(&state);
+
+            assert_eq!(built.len(), 2, "id {id:?}");
+            assert_eq!(built[0].texture, Some("effect\\shield_boomerang.bmp"));
+            assert_eq!(built[0].argb, pack_argb(120, 255, 255, 255));
+        }
     }
 
     #[test]
