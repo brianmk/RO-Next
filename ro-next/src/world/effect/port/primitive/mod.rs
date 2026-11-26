@@ -282,6 +282,10 @@ impl Default for EffectPrimitiveSlot {
 pub struct EffectPrimitiveState {
     /// `/* 01DC */ pattern`
     pub pattern: u32,
+    /// `state.commonPattern`.
+    pub common_pattern: u32,
+    /// `state.type` (the original's `20/50` render class selector).
+    pub type_field: i32,
     /// `/* 01E0 */ stateCnt`
     pub state_cnt: i32,
     /// `/* 01E4 */ duration`
@@ -466,6 +470,8 @@ impl Default for EffectPrimitiveState {
     /// `change*` fields to `0.0001`. Effects rely on them.
     fn default() -> Self {
         Self {
+            common_pattern: 0,
+            type_field: 0,
             pattern: 0,
             state_cnt: 0,
             duration: 100,
