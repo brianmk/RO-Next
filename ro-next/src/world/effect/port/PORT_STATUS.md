@@ -136,6 +136,10 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | slot/record prims 9, 12, 13, 39, 43, 59, 60, 62, 63, 64, 66, 89, 130, 131, 137, 143, 155 | yes - `port/render_slots.rs` ports their official `Render*` members as additive triangle lists (per-vertex projection, exact corner order, UV windows, `state.size` colour table, `extra` forced depth and `RSF_*` blend selection) |
 | slot prim 82 (`RenderTeiFacingSlots`) and the remaining `Render*` families | no - not ported yet (82 also needs the `extra == 3` screen-space clamp of the 18-argument `RenderTeiRect`) |
 
+Triangle pass: `EffectTriangleInstruction` + `EffectTriangleVertex` (pre-projected NDC corners, per-vertex depth, texture, blend), an additive `ForwardEffectDrawer` triangle pipeline + `effect_triangle.slang`; quads untouched, triangles drawn after them.
+
+Documented render-side deviations (simulation untouched): `RenderFieldPanel` map-name alpha clamp skipped; `RenderPyramid`'s `std::rand` colour rewrite replaced by a deterministic hash (render is `&self`); `RenderRectUp`'s uninitialised colour falls back to case 0; the 510-triangle cap counts emitted triangles; render-time scratch writes to slot vectors are not written back; `RenderTeiRect` `extra` 2/3 not implemented (no ported body uses them).
+
 Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend state is undefined in the decompilation (no body sets it); `sprite_type > 1`/third image index is an out-of-bounds read in the original; class-change direction rows are absent from the ported `ClassChange` table (those cells draw row 0); per-corner DX9 `rhw` depth is replaced by the anchor depth.
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
