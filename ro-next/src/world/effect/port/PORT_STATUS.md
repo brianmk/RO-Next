@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 355 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 389 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -263,6 +263,13 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - Quirk kept: `TexturedSlam` never calls `FaceCamera`, so its `RenderHaloLayers` layers use the constructor's zeroed `slots[0..1].alphaT`; the live render path passes the stored angles for prim 147 and the recovered camera angles for prim 68.
 - RNG: `SuperSlashSpread` draws the same twelve-per-slot `10, 5, 360` sequence as `SuperSlashFan` (24 values for its two slots).
 - Registry now 393 ids; the skill map regenerates with 185 mappings.
+
+### Round 94 (manual tier complete, fan/double-gumgang family)
+
+- Manual tier **33/35** (18 bodies in batch J with their actor-render fields, plus DoubleGumGang/HeartAsura/Rolling1..10 via prim 147).
+- prim **99** `PP_DOUBLEGUMGANG` (shared `PrimFloatingBubbles` motion, new `RenderDoubleGumGang`) and prim **147** (`TexturedSlam`, reuses `PrimRisingFan` + `render_halo_layers`).
+- 17 ids: Gumgangnpc 455, Doublegumgang 418/485/486, Secra 859/862, Rolling1..10 758-767, Heartasura 879.
+- Backlog coverage **178/236 = 75.4%** (effort 74.0%): `.str` 57/57, layers 88/144, manual 33/35.
 
 ### Known wiring gaps (client spawn path)
 
