@@ -133,11 +133,18 @@ impl EffectRuntime {
 
     /// `CRagEffect::LaunchEffectPrim` - creates a primitive and returns its
     /// index (the port's stand-in for the `CEffectPrim*`).
+    ///
+    /// `CEffectPrim::Initialize` (`EffectPrimitiveState.cpp:72-82`) starts the
+    /// primitive at the master's position (`state.orgPos =
+    /// master.render.position; render.position = state.orgPos`). Bodies whose
+    /// motion has no `FollowMaster` (prim 154's `PrimFlashFade`, prim 155's
+    /// relative slot vectors) depend on that spawn anchor.
     pub fn launch(&mut self, id: PrimitiveId, delta_pos2: [f32; 3]) -> usize {
         self.primitives.push(PrimitiveInstance {
             state: EffectPrimitiveState {
                 count: id,
                 delta_pos2,
+                position: self.position,
                 ..Default::default()
             },
             alive: true,
@@ -480,6 +487,17 @@ mod tests {
             EffectRuntime::heading(5.0, 7.0, 6.0, 7.0),
             EffectRuntime::heading(0.0, 0.0, 1.0, 0.0)
         );
+    }
+
+    #[test]
+    fn launched_primitives_start_at_the_master_position() {
+        let mut runtime = EffectRuntime::new(10, [0.0, 0.0], 1);
+        runtime.position = [10.0, 20.0, 30.0];
+        let index = runtime.launch(PrimitiveId::Circle2d, [1.0, 2.0, 3.0]);
+
+        let state = &runtime.primitives[index].state;
+        assert_eq!(state.position, [10.0, 20.0, 30.0]);
+        assert_eq!(state.delta_pos2, [1.0, 2.0, 3.0]);
     }
 
     #[test]

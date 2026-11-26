@@ -4398,7 +4398,7 @@ mod tests {
     }
 
     #[test]
-    fn blade_fins_never_adds_the_position_when_f1_is_one() {
+    fn blade_fins_adds_the_primitive_position_to_every_corner() {
         // `f1 = 0` means "add render.position"; the renderer must not skip it.
         let mut state = blade_fins_state(1);
         state.position = [100.0, 200.0, 300.0];

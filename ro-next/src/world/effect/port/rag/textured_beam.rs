@@ -79,7 +79,8 @@ mod tests {
         // Target 10 units along +z. `Get_Angle(0, 10)` lands on table index 91,
         // not 90: `g_cosTable[90]` is `+3.3e-7` because the table uses
         // `3.141592f`, so the `normalX >= cos` test only holds one step later.
-        runtime.target_offset = [0.0, 0.0, 10.0];
+        runtime.position = [3.0, 4.0, 5.0];
+        runtime.target_offset = [3.0, 4.0, 15.0];
         runtime
     }
 
@@ -100,6 +101,8 @@ mod tests {
         assert_eq!(state.texture, Some("effect\\line3.tga"));
         assert_eq!(state.total_texture, 1);
         assert_eq!(state.anim_speed, 4, "the constructor default, not written by the body");
+        // `CEffectPrim::Initialize` anchors the primitive at the master.
+        assert_eq!(state.position, [3.0, 4.0, 5.0]);
 
         assert_eq!(state.slots[0].life, 1);
 
