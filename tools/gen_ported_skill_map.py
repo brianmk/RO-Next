@@ -44,6 +44,8 @@ REGISTRY_SOURCES = (
     "registry_textured_aura.rs",
     "registry_batch_a.rs",
     "registry_batch_b.rs",
+    "registry_batch_c.rs",
+    "registry_batch_d.rs",
 )
 
 # The client's `SkillPhase` order (`skill_effects.rs::SkillPhase::index`).
