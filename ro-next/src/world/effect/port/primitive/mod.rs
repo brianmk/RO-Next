@@ -20,6 +20,7 @@ pub mod height_ramp;
 pub mod intimidate;
 pub mod orbit;
 pub mod particle3d;
+pub mod particle3d_gravity;
 pub mod particle_up;
 pub mod quadhorn;
 pub mod pulse_kind;
@@ -30,6 +31,7 @@ pub mod spin_quad;
 pub mod texture3d;
 pub mod texture_spin;
 pub mod aura_glow;
+pub mod wandering_flames;
 pub mod wind;
 pub mod texture2d;
 
@@ -132,6 +134,8 @@ pub enum PrimitiveId {
     Cylinder3d,
     /// `PP_3DPARTICLE` (5)
     Particle3d,
+    /// `PP_3DPARTICLEGRAVITY` (6)
+    Particle3dGravity,
     /// `PP_WIND` (62)
     Wind,
     /// `PP_INTIMIDATE` (43)
@@ -162,6 +166,8 @@ pub enum PrimitiveId {
     ForestLight,
     /// prim 64 (`TexturedPulseKind`) - spawned only, no motion case either.
     PulseKind,
+    /// prim 155 (`PrimWanderingFlames`) - the Fork Bolt twin glow squares.
+    WanderingFlames,
 }
 
 impl PrimitiveId {
@@ -178,6 +184,7 @@ impl PrimitiveId {
             Self::CrossTexture3d => 16,
             Self::Cylinder3d => 13,
             Self::Particle3d => 5,
+            Self::Particle3dGravity => 6,
             Self::Wind => 62,
             Self::Intimidate => 43,
             Self::AuraGlow => 82,
@@ -193,6 +200,7 @@ impl PrimitiveId {
             Self::Orbit => 7,
             Self::ForestLight => 66,
             Self::PulseKind => 64,
+            Self::WanderingFlames => 155,
         }
     }
 }
@@ -290,6 +298,13 @@ pub struct EffectPrimitiveState {
     pub common_pattern: u32,
     /// `state.type` (the original's `20/50` render class selector).
     pub type_field: i32,
+    /// `/* 0208 */ playWaveType` - `1` makes primitive 6 play
+    /// `effect\EF_Coin1..3.wav` when a particle bounces off the terrain.
+    pub play_wave_type: u32,
+    /// Port-only outbox: wave requests raised by a primitive. The runtime
+    /// drains it into [`super::runtime::EffectRuntime::sounds`] each frame,
+    /// standing in for the direct `g_soundMgr->PlayWave(...)` call.
+    pub pending_sounds: Vec<String>,
     /// `/* 01E0 */ stateCnt`
     pub state_cnt: i32,
     /// `/* 01E4 */ duration`
@@ -481,6 +496,8 @@ impl Default for EffectPrimitiveState {
         Self {
             common_pattern: 0,
             type_field: 0,
+            play_wave_type: 0,
+            pending_sounds: Vec::new(),
             pattern: 0,
             state_cnt: 0,
             duration: 100,
@@ -627,6 +644,7 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::Particle3d => particle3d::on_process(self, angles, master, rng),
+            PrimitiveId::Particle3dGravity => particle3d_gravity::on_process(self, angles, master, rng),
             PrimitiveId::Wind => {
                 wind::on_process(self);
                 true
@@ -687,6 +705,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::PulseKind => {
                 pulse_kind::on_process(self);
+                true
+            }
+            PrimitiveId::WanderingFlames => {
+                wandering_flames::on_process(self, angles, master, rng);
                 true
             }
         };

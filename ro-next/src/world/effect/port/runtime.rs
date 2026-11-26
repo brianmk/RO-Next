@@ -54,6 +54,12 @@ pub struct EffectRuntime {
     pub render_angle: f32,
     /// `camera->camera.yaw` - used by action-facing effects.
     pub camera_yaw: f32,
+    /// `camera->camera.pitch` - read by `FaceCamera` (primitive 155).
+    pub camera_pitch: f32,
+    /// Terrain height under the effect. The official code calls
+    /// `scene->terrain->Height(x, z)` per primitive; the port's hermetic
+    /// runtime carries a single sample (`None` = no terrain context).
+    pub terrain_height: Option<f32>,
     /// `AM_CHANGE_COLOR` body tint (`None` = `AM_RETURN_COLOR`).
     pub body_tint: Option<[u8; 3]>,
     /// `state.parent->render.angle` - the caster's facing, used by bodies such
@@ -89,6 +95,8 @@ impl EffectRuntime {
             delta_pos2: [0.0; 3],
             render_angle: 0.0,
             camera_yaw: 0.0,
+            camera_pitch: 0.0,
+            terrain_height: None,
             body_tint: None,
             parent_angle: 0.0,
             flag: 0,
@@ -161,7 +169,7 @@ impl EffectRuntime {
             }
         }
 
-        0
+        180
     }
 
     pub fn calc_dist(&self, x: f32, z: f32) -> f32 {
@@ -212,6 +220,9 @@ impl EffectRuntime {
             duration: self.lifetime,
             master_delta_pos: self.target_offset,
             render_angle: self.render_angle,
+            camera_yaw: self.camera_yaw,
+            camera_pitch: self.camera_pitch,
+            terrain_height: self.terrain_height,
             ..Default::default()
         };
 
@@ -220,6 +231,9 @@ impl EffectRuntime {
         // The primitives share the effect's RNG, which lives next to them in
         // this struct; take it out for the loop to keep the borrows separate.
         let mut rng = std::mem::replace(&mut self.rng, EffectRng::new(1));
+        // Port-only outbox: motion primitives record `PlayWave` requests on
+        // their own state, the runtime collects them in submission order.
+        let mut primitive_sounds = Vec::new();
 
         for primitive in &mut self.primitives {
             if !primitive.alive {
@@ -227,9 +241,11 @@ impl EffectRuntime {
             }
 
             primitive.alive = primitive.state.on_process(angles, &master, &mut rng);
+            primitive_sounds.append(&mut primitive.state.pending_sounds);
         }
 
         self.rng = rng;
+        self.sounds.append(&mut primitive_sounds);
     }
 }
 
