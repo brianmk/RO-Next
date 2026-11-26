@@ -36,9 +36,10 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::IncAgility` / `IncAgiDex` (`EF_INCAGILITY`/`EF_INCAGIDEX`) | `RagEffect.cpp:679-757` | 3 |
 | `PP_3DCYLINDER` (`Prim3DCylinder`) | `EffectPrimitiveMotion.cpp:437-488` | 2 |
 | `CRagEffect::BowlingBash` (`EF_BOWLINGBASH`) | `RagEffect.cpp:2277-2321` | 2 |
+| `CRagEffect::Hit2` (`EF_HIT2` + physical impacts) | `RagEffect.cpp:807-859` | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 79 tests, all green. Effect bodies ported: **12 / 236**.
+Total: 81 tests, all green. Effect bodies ported: **12 / 236** + the generic `Hit2` impact.
 
 ## Next (W2/W3/W6)
 
