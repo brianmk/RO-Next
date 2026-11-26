@@ -1,4 +1,5 @@
-//! `PP_3DCIRCLE` - `CEffectPrim::Prim3DCircle`, `EffectPrimitiveMotion.cpp:791-822`.
+//! `PP_3DCIRCLE` - `CEffectPrim::Prim3DCircle`,
+//! `EffectPrimitiveMotion.cpp:791-822`.
 //!
 //! The world-space ground ring. It is the workhorse of ground spells and buffs
 //! (Magnum Break's two rings, Blessing's halo, Sanctuary, ...). Unlike the 2-D
@@ -71,7 +72,7 @@ mod tests {
             fade_out_cnt: 15,
             max_alpha: 254.0,
             alpha_speed: 254.0 / 15.0,
-           ..Default::default()
+            ..Default::default()
         }
     }
 

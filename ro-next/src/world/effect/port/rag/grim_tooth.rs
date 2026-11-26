@@ -116,7 +116,7 @@ impl PortedEffect for GrimTooth {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn grim_tooth_bursts_along_the_path() {

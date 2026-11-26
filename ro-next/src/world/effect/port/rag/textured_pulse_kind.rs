@@ -15,11 +15,7 @@ pub struct TexturedPulseKind {
 
 impl TexturedPulseKind {
     pub fn new(texture: &'static str, kind: i32, lifetime: i32) -> Self {
-        Self {
-            texture,
-            kind,
-            lifetime,
-        }
+        Self { texture, kind, lifetime }
     }
 }
 
@@ -113,7 +109,7 @@ impl PortedEffect for TexturedPulseKind {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn bottom_mag_uses_kind_zero() {

@@ -93,7 +93,7 @@ impl PortedEffect for Blessing {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     fn runtime() -> EffectRuntime {
         EffectRuntime::new(LIFETIME, [0.0, 0.0], 81)

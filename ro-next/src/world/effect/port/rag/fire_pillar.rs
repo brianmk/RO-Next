@@ -20,11 +20,7 @@ impl FirePillar {
 fn ring_stack(runtime: &mut EffectRuntime, white: bool) {
     let lifetime = runtime.lifetime;
     let frame = runtime.frame;
-    let texture = if white {
-        "effect\\ring_white.tga"
-    } else {
-        "effect\\magic_red.tga"
-    };
+    let texture = if white { "effect\\ring_white.tga" } else { "effect\\magic_red.tga" };
 
     for index in 1..=3i32 {
         let ring = runtime.launch(PrimitiveId::Cylinder3d, [0.0, 0.0, 0.0]);
@@ -64,7 +60,7 @@ impl PortedEffect for FirePillar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn fire_pillar_stacks_three_rings_and_three_flat_rings() {

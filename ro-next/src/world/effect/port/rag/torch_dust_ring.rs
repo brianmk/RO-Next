@@ -54,11 +54,7 @@ fn frames(kind: i32) -> &'static [&'static str] {
 
 impl TorchDustRing {
     pub fn new(kind: i32, angle: i16, lifetime: i32) -> Self {
-        Self {
-            kind,
-            angle,
-            lifetime,
-        }
+        Self { kind, angle, lifetime }
     }
 }
 
@@ -104,11 +100,7 @@ impl PortedEffect for TorchDustRing {
 
         if kind == 2 {
             state.slots[0].distance = if radius < 5.0 { 20.0 } else { radius };
-            state.slots[0].rot_start = if start < 0.0 || start >= 360.0 {
-                45
-            } else {
-                start as i16
-            };
+            state.slots[0].rot_start = if start < 0.0 || start >= 360.0 { 45 } else { start as i16 };
             state.slots[0].alpha_b = 200;
             state.slots[0].height[2] = 1.0;
         } else {
@@ -129,7 +121,7 @@ impl PortedEffect for TorchDustRing {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn water_below_spawns_the_static_pulse_ring() {

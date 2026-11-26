@@ -4,7 +4,7 @@
 //! even frame, rising through the radius band selected by `rand(200)/100`.
 
 use super::super::angles::Angles;
-use super::super::math::{forward, Matrix};
+use super::super::math::{Matrix, forward};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -84,7 +84,7 @@ impl PortedEffect for Warp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn warp_spawns_ring_and_even_frame_sparks() {

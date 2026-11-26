@@ -19,10 +19,7 @@ impl TexturedComet {
 
     fn textures(&self) -> (&'static str, &'static str) {
         match self.kind {
-            1 => (
-                "effect\\thunder_ball_0002.bmp",
-                "effect\\thunder_ball_0003.bmp",
-            ),
+            1 => ("effect\\thunder_ball_0002.bmp", "effect\\thunder_ball_0003.bmp"),
             2 => ("effect\\meteo_comet_b.bmp", "effect\\meteo_comet_c.bmp"),
             _ => ("effect\\pok1.tga", "effect\\pok3.tga"),
         }
@@ -104,7 +101,7 @@ impl PortedEffect for TexturedComet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn sma3_spawns_the_thunder_comet() {
@@ -119,10 +116,7 @@ mod tests {
         assert_eq!(comet.duration, 50);
         assert_eq!(comet.render_flag, 5);
         assert_eq!(comet.texture, Some("effect\\thunder_ball_0002.bmp"));
-        assert_eq!(
-            comet.texture_secondary,
-            Some("effect\\thunder_ball_0003.bmp")
-        );
+        assert_eq!(comet.texture_secondary, Some("effect\\thunder_ball_0003.bmp"));
         assert!(comet.slots.iter().all(|slot| slot.life == 1));
         assert!(comet.slots.iter().all(|slot| slot.flag1[2] == 1));
         assert!(comet.slots.iter().all(|slot| slot.flag1[1] == 1));
@@ -134,10 +128,7 @@ mod tests {
         let mut effect = TexturedComet::new(2, 100);
         let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 561);
         step(&mut effect, &mut runtime);
-        assert_eq!(
-            runtime.primitives[0].state.texture,
-            Some("effect\\meteo_comet_b.bmp")
-        );
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\meteo_comet_b.bmp"));
         assert_eq!(runtime.primitives[0].state.slots[0].flag1[2], 7);
 
         let mut effect = TexturedComet::new(0, 100);

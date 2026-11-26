@@ -10,10 +10,12 @@
 //! present so far; add fields as functions are ported, never re-order or
 //! re-purpose one.
 
+pub mod aura_glow;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
+pub mod flash_fade;
 pub mod forest_light;
 pub mod half_sphere;
 pub mod halo;
@@ -23,19 +25,18 @@ pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
 pub mod particle_up;
-pub mod quadhorn;
 pub mod pulse_kind;
 pub mod pulsing_columns;
+pub mod quadhorn;
 pub mod ripple_rings;
 pub mod rising_fan;
 pub mod spin_quad;
 pub mod stacked_rings;
+pub mod texture2d;
 pub mod texture3d;
 pub mod texture_spin;
-pub mod aura_glow;
 pub mod wandering_flames;
 pub mod wind;
-pub mod texture2d;
 
 use super::angles::Angles;
 use super::math::Matrix;
@@ -83,7 +84,8 @@ pub struct MasterState {
     /// read by `PP_HALFSPHERE` (prim 104), which aligns the shell to its
     /// parent rather than to the effect's own `render.angle`.
     pub parent_angle: f32,
-    /// Camera pitch / yaw and `g_cameraYawOffset`, read by `pattern` 0x40/0x200.
+    /// Camera pitch / yaw and `g_cameraYawOffset`, read by `pattern`
+    /// 0x40/0x200.
     pub camera_pitch: f32,
     pub camera_yaw: f32,
     pub camera_yaw_offset: f32,
@@ -177,6 +179,8 @@ pub enum PrimitiveId {
     WanderingFlames,
     /// `PP_HALFSPHERE` (104) - `CRagEffect::TexturedPulse`'s shell.
     HalfSphere,
+    /// prim 154 (`PrimFlashFade`) - `CRagEffect::TexturedBeam`'s blade fins.
+    FlashFade,
     /// prim 103 - `CRagEffect::TexturedMark`'s stacked rings. The official
     /// enum has no symbol for it (`EffectPrimId.h` jumps from 102 to 104), so
     /// the port names it after its renderer, `RenderStackedRings`.
@@ -215,6 +219,7 @@ impl PrimitiveId {
             Self::PulseKind => 64,
             Self::WanderingFlames => 155,
             Self::HalfSphere => 104,
+            Self::FlashFade => 154,
             Self::StackedRings => 103,
         }
     }
@@ -409,7 +414,8 @@ pub struct EffectPrimitiveState {
     pub width_size: f32,
     pub width_speed: f32,
     pub width_accel: f32,
-    /// `/* 0360 */ heightSize`, `/* 0364 */ heightSpeed`, `/* 0368 */ heightAccel`
+    /// `/* 0360 */ heightSize`, `/* 0364 */ heightSpeed`, `/* 0368 */
+    /// heightAccel`
     pub height_size: f32,
     pub height_speed: f32,
     pub height_accel: f32,
@@ -734,6 +740,10 @@ impl EffectPrimitiveState {
                 half_sphere::on_process(self, angles, master);
                 true
             }
+            PrimitiveId::FlashFade => {
+                flash_fade::on_process(self, master);
+                true
+            }
             PrimitiveId::StackedRings => {
                 stacked_rings::on_process(self, rng);
                 true
@@ -869,8 +879,7 @@ impl EffectPrimitiveState {
         self.alpha = bounded;
 
         let alpha = bounded as i32;
-        self.argb = ((alpha as u32 * 256 + self.red as u8 as u32) * 256 + self.green as u8 as u32) * 256
-            + self.blue as u8 as u32;
+        self.argb = ((alpha as u32 * 256 + self.red as u8 as u32) * 256 + self.green as u8 as u32) * 256 + self.blue as u8 as u32;
     }
 
     /// `LimitAlpha(CEffectPrim&)` - `EffectPrimitiveColor.cpp:6-22`.
@@ -885,9 +894,7 @@ impl EffectPrimitiveState {
             }
         }
 
-        if self.is_disappear == 0
-            && self.duration - self.state_cnt > master.duration - master.state_cnt + 1
-        {
+        if self.is_disappear == 0 && self.duration - self.state_cnt > master.duration - master.state_cnt + 1 {
             self.is_disappear = 1;
             self.pattern &= !0x80u32;
             self.alpha_speed = -(self.alpha / (master.duration - master.state_cnt) as f32);
@@ -899,10 +906,7 @@ impl EffectPrimitiveState {
 fn record_color(alpha: f32, red: i32, green: i32, blue: i32) -> u32 {
     let alpha = alpha as i32 as u32;
 
-    (alpha << 24)
-        + ((red as u8 as u32) << 16)
-        + ((green as u8 as u32) << 8)
-        + (blue as u8 as u32)
+    (alpha << 24) + ((red as u8 as u32) << 16) + ((green as u8 as u32) << 8) + (blue as u8 as u32)
 }
 
 #[cfg(test)]

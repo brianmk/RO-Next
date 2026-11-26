@@ -66,7 +66,7 @@ impl PortedEffect for FireSparks {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn firefly_spawns_the_colour_cycled_spark() {

@@ -197,9 +197,6 @@ mod tests {
         on_process(&mut state, &master);
 
         assert_eq!(state.position, [1.0, 2.0, 3.0]);
-        assert_eq!(
-            state.slots[0].vec_b_now,
-            [1.0, 2.0 - state.slots[0].height[15], 3.0]
-        );
+        assert_eq!(state.slots[0].vec_b_now, [1.0, 2.0 - state.slots[0].height[15], 3.0]);
     }
 }

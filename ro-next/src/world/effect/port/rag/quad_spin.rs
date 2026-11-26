@@ -1,4 +1,5 @@
-//! `CRagEffect::TexturedQuadSpin(name, phase, kind)` - `RagEffect.cpp:3617-3653`.
+//! `CRagEffect::TexturedQuadSpin(name, phase, kind)` -
+//! `RagEffect.cpp:3617-3653`.
 //!
 //! Spawns four spinning quads (one per `phase`). Called in loops by the
 //! Bash3D / Kouenka / Windhawk families.
@@ -92,7 +93,7 @@ impl PortedEffect for TexturedQuadSpin {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn bash3d6_spawns_eight_spinning_quads() {

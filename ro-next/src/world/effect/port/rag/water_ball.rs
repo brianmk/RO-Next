@@ -45,11 +45,7 @@ impl PortedEffect for WaterBall {
         state.anim_speed = 5;
         // `totalTexture = 3` with the three slots the official body loads.
         state.frame_count = 3;
-        state.texture_frames = vec![
-            "effect\\water_out_a.bmp",
-            "effect\\water_out_b.bmp",
-            "effect\\water_out_c.bmp",
-        ];
+        state.texture_frames = vec!["effect\\water_out_a.bmp", "effect\\water_out_b.bmp", "effect\\water_out_c.bmp"];
         state.texture = Some("effect\\water_out_a.bmp");
         state.texture_secondary = Some("effect\\water_out_b.bmp");
         state.texture_tertiary = Some("effect\\water_out_c.bmp");
@@ -61,7 +57,7 @@ impl PortedEffect for WaterBall {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn water_ball_spawns_the_three_texture_column() {

@@ -87,7 +87,7 @@ impl PortedEffect for Signum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
     use crate::world::effect::port::str_player::{KeyFrame, Transform};
 
     fn clips() -> Vec<Clip> {
@@ -117,7 +117,10 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         assert_eq!(runtime.primitives.len(), 21);
-        assert_eq!(runtime.sounds, vec!["effect\\EF_Signum.wav".to_owned(), "effect\\EF_Bash.wav".to_owned()]);
+        assert_eq!(runtime.sounds, vec![
+            "effect\\EF_Signum.wav".to_owned(),
+            "effect\\EF_Bash.wav".to_owned()
+        ]);
 
         let ring = &runtime.primitives[0].state;
         assert_eq!(ring.duration, 40);

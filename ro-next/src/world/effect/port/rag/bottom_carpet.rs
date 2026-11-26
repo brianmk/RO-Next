@@ -5,7 +5,7 @@
 //! strips in a cross under the caster, aligned by the parent's angle.
 
 use super::super::angles::Angles;
-use super::super::math::{matrix_mult, Matrix};
+use super::super::math::{Matrix, matrix_mult};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -108,7 +108,7 @@ impl PortedEffect for BottomCarpet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn bottom_violet_spawns_four_strips() {

@@ -98,7 +98,7 @@ impl PortedEffect for Hit2 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn spawns_eight_fragments() {

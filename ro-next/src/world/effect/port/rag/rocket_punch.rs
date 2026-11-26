@@ -119,7 +119,7 @@ impl PortedEffect for RocketPunch {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     fn runtime() -> EffectRuntime {
         let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 281);

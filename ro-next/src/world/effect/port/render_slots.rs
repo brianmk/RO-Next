@@ -279,6 +279,8 @@ pub enum SlotRenderer {
     AuraGlow,
     /// `RenderHalfSphere` - id 104.
     HalfSphere,
+    /// `RenderBladeFins` - id 154 (`PrimFlashFade` / `TexturedBeam`).
+    BladeFins,
     /// `RenderStackedRings` - prim 103 (`TexturedMark`).
     StackedRings,
 }
@@ -305,6 +307,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::SpinQuad => SlotRenderer::FanBeam,
         PrimitiveId::AuraGlow => SlotRenderer::AuraGlow,
         PrimitiveId::HalfSphere => SlotRenderer::HalfSphere,
+        PrimitiveId::FlashFade => SlotRenderer::BladeFins,
         PrimitiveId::StackedRings => SlotRenderer::StackedRings,
         _ => return None,
     })
@@ -347,6 +350,7 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::FanBeam) => render_fan_beam(state, &mut out),
         Some(SlotRenderer::AuraGlow) => render_tei_facing_slots(state, context, &mut out),
         Some(SlotRenderer::HalfSphere) => render_half_sphere(state, &mut out),
+        Some(SlotRenderer::BladeFins) => render_blade_fins(state, &mut out),
         Some(SlotRenderer::StackedRings) => render_stacked_rings(state, &mut out),
         None => {}
     }
@@ -535,6 +539,62 @@ fn emit_tei_rect_18(
     (ty1, ty2, tx, tx2): (f32, f32, f32, f32),
     blend: SlotBlend,
 ) {
+    emit_tei_rect_18_impl(
+        state,
+        out,
+        alpha,
+        quad,
+        texture_index,
+        add_position,
+        (red, green, blue),
+        (ty1, ty2, tx, tx2),
+        blend,
+        None,
+    );
+}
+
+/// The 18-argument `RenderTeiRect` call with `extra == 1`: every emitted
+/// triangle is forced to the original's near-plane depth (`z = 1e-09`,
+/// `rhw = 1`, expressed as reverse-z `1.0`).
+#[allow(clippy::too_many_arguments)]
+fn emit_tei_rect_18_near(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    alpha: i16,
+    quad: Quad,
+    texture_index: i32,
+    add_position: bool,
+    (red, green, blue): (u8, u8, u8),
+    (ty1, ty2, tx, tx2): (f32, f32, f32, f32),
+    blend: SlotBlend,
+) {
+    emit_tei_rect_18_impl(
+        state,
+        out,
+        alpha,
+        quad,
+        texture_index,
+        add_position,
+        (red, green, blue),
+        (ty1, ty2, tx, tx2),
+        blend,
+        Some(1.0),
+    );
+}
+
+#[allow(clippy::too_many_arguments)]
+fn emit_tei_rect_18_impl(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    alpha: i16,
+    quad: Quad,
+    texture_index: i32,
+    add_position: bool,
+    (red, green, blue): (u8, u8, u8),
+    (ty1, ty2, tx, tx2): (f32, f32, f32, f32),
+    blend: SlotBlend,
+    forced_depth: Option<f32>,
+) {
     if out.len() >= MAX_TRIANGLES_PER_PRIMITIVE {
         return;
     }
@@ -549,6 +609,7 @@ fn emit_tei_rect_18(
     let argb = pack_argb(alpha, red, green, blue);
     let blend = resolve_blend(state.render_flag, blend);
     let texture = texture_slot(state, texture_index.max(0) as usize);
+    let start = out.len();
 
     push_quad(
         out,
@@ -558,6 +619,12 @@ fn emit_tei_rect_18(
         texture,
         blend,
     );
+
+    if forced_depth.is_some() {
+        for triangle in &mut out[start..] {
+            triangle.forced_depth = forced_depth;
+        }
+    }
 }
 
 /// Splits a quad into the two triangles both `RenderTeiRect` overloads emit:
@@ -2032,6 +2099,101 @@ pub fn render_half_sphere(state: &EffectPrimitiveState, out: &mut Vec<SlotTriang
 }
 
 // ---------------------------------------------------------------------------
+// RenderBladeFins (154)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderBladeFins` - `EffectPrimitiveArcs.cpp:1394-1461`.
+///
+/// `TexturedBeam`'s fins: each live slot with a non-zero alpha submits two
+/// mirrored pairs. The inner corner of a pair sits at `height[0]` along
+/// `riseAngle -/+ 25` (wrapped once), the outer corner `maxHeight` further
+/// along that angle minus 90 degrees; the pair itself is anchored six units
+/// below the effect (`base`/`base2.y = -6`). Every quad is the 18-argument
+/// `RenderTeiRect` call `(alphaB/4 ...)` + `(alphaB ...)` with `pw = 1`
+/// (`SRCALPHA`/`INVSRCALPHA`), `f1 = 0` (corners relative to
+/// `render.position`) and `extra = 1` (near-plane depth).
+///
+/// `flag1[0]` selects the colour pair: `1` is pink then red, `2` is white
+/// twice, everything else is white then blue.
+pub fn render_blade_fins(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        // `base`/`base2` never change; `outer.y`/`inner.y` stay at -6.
+        let base = [0.0f32, -6.0, 0.0];
+        let base2 = [0.0f32, -6.0, 0.0];
+        let mut outer = [0.0f32, -6.0, 0.0];
+        let mut inner = [0.0f32, -6.0, 0.0];
+
+        let mut angle = slot.rise_angle as i32 - 25;
+        if angle < 0 {
+            angle += 360;
+        }
+        inner[0] = slot.height[0] * table_cos(angle);
+        inner[2] = slot.height[0] * table_sin(angle);
+        angle -= 90;
+        if angle < 0 {
+            angle += 360;
+        }
+        outer[0] = slot.max_height * table_cos(angle) + inner[0];
+        outer[2] = slot.max_height * table_sin(angle) + inner[2];
+
+        emit_blade_fins_pair(state, out, slot.alpha_b, [base, outer, inner, base2], slot.flag1[0]);
+
+        angle = slot.rise_angle as i32 + 25;
+        if angle >= 360 {
+            angle -= 360;
+        }
+        inner[0] = slot.height[0] * table_cos(angle);
+        inner[2] = slot.height[0] * table_sin(angle);
+        angle -= 90;
+        if angle < 0 {
+            angle += 360;
+        }
+        outer[0] = slot.max_height * table_cos(angle) + inner[0];
+        outer[2] = slot.max_height * table_sin(angle) + inner[2];
+
+        emit_blade_fins_pair(state, out, slot.alpha_b, [base, outer, inner, base2], slot.flag1[0]);
+    }
+}
+
+/// The two 18-argument `RenderTeiRect` calls of one [`render_blade_fins`] pair.
+fn emit_blade_fins_pair(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>, alpha_b: i16, quad: Quad, flag: i8) {
+    let (inner_colour, outer_colour) = match flag {
+        1 => ((255, 89, 182), (255, 25, 25)),
+        2 => ((255, 255, 255), (255, 255, 255)),
+        _ => ((255, 255, 255), (25, 25, 255)),
+    };
+
+    emit_tei_rect_18_near(
+        state,
+        out,
+        alpha_b / 4,
+        quad,
+        0,
+        true,
+        inner_colour,
+        (0.0, 1.0, 0.0, 1.0),
+        SlotBlend::Alpha,
+    );
+    emit_tei_rect_18_near(
+        state,
+        out,
+        alpha_b,
+        quad,
+        0,
+        true,
+        outer_colour,
+        (0.0, 1.0, 0.0, 1.0),
+        SlotBlend::Alpha,
+    );
+}
+
+// ---------------------------------------------------------------------------
 // RenderStackedRings (103)
 // ---------------------------------------------------------------------------
 
@@ -2810,6 +2972,7 @@ mod tests {
             (PrimitiveId::SpinQuad, SlotRenderer::FanBeam),
             (PrimitiveId::AuraGlow, SlotRenderer::AuraGlow),
             (PrimitiveId::HalfSphere, SlotRenderer::HalfSphere),
+            (PrimitiveId::FlashFade, SlotRenderer::BladeFins),
             (PrimitiveId::StackedRings, SlotRenderer::StackedRings),
         ];
 
@@ -2848,6 +3011,7 @@ mod tests {
             PrimitiveId::SpinQuad,
             PrimitiveId::AuraGlow,
             PrimitiveId::HalfSphere,
+            PrimitiveId::FlashFade,
             PrimitiveId::StackedRings,
         ] {
             let mut state = state_of(id);
@@ -4110,6 +4274,136 @@ mod tests {
         }
 
         assert_eq!(triangles(&state).len(), MAX_TRIANGLES_PER_PRIMITIVE);
+    }
+
+    // -----------------------------------------------------------------
+    // RenderBladeFins (154)
+    // -----------------------------------------------------------------
+
+    /// `TexturedBeam`'s slot: 0 rise angle, 10 inner radius, 5 fin length.
+    fn blade_fins_state(flag: i8) -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::FlashFade);
+        // `TexturedBeam` sets `RSF_ALPHA | RSF_CUSTOM_BLEND`.
+        state.render_flag = 1 | 4;
+        state.texture = Some("effect\\line3.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 40,
+            rise_angle: 0,
+            max_height: 5.0,
+            height: [10.0; 21],
+            flag1: [flag; 21],
+            ..Default::default()
+        };
+        state
+    }
+
+    fn blade_fins_pair_corners() -> ([f32; 3], [f32; 3], [f32; 3], [f32; 3]) {
+        let base = [0.0f32, -6.0, 0.0];
+        let base2 = [0.0f32, -6.0, 0.0];
+        let mut outer = [0.0f32, -6.0, 0.0];
+        let mut inner = [0.0f32, -6.0, 0.0];
+
+        let mut angle = -25;
+        if angle < 0 {
+            angle += 360;
+        }
+        inner[0] = 10.0 * table_cos(angle);
+        inner[2] = 10.0 * table_sin(angle);
+        angle -= 90;
+        if angle < 0 {
+            angle += 360;
+        }
+        outer[0] = 5.0 * table_cos(angle) + inner[0];
+        outer[2] = 5.0 * table_sin(angle) + inner[2];
+
+        (base, outer, inner, base2)
+    }
+
+    #[test]
+    fn blade_fins_emits_two_quads_per_live_slot() {
+        // Two mirrored pairs, each two `RenderTeiRect` calls = 8 triangles.
+        assert_eq!(triangles(&blade_fins_state(1)).len(), 8);
+    }
+
+    #[test]
+    fn blade_fins_quad_uses_the_official_corners_and_colours() {
+        let mut state = blade_fins_state(1);
+        state.position = [1.0, 2.0, 3.0];
+
+        let built = triangles(&state);
+        let (base, outer, inner, base2) = blade_fins_pair_corners();
+        let offset = |corner: [f32; 3]| [corner[0] + 1.0, corner[1] + 2.0, corner[2] + 3.0];
+
+        // First pair, first call: `alphaB / 4`, flag 1 -> (255, 89, 182).
+        assert_eq!(built[0].corners, [offset(base), offset(outer), offset(inner)]);
+        assert_eq!(built[1].corners, [offset(base2), offset(inner), offset(base)]);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+        assert_eq!(built[0].argb, pack_argb(10, 255, 89, 182));
+        assert_eq!(built[1].argb, pack_argb(10, 255, 89, 182));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].texture, Some("effect\\line3.tga"));
+        assert_eq!(built[0].forced_depth, Some(1.0));
+
+        // First pair, second call: full alpha, flag 1 -> (255, 25, 25).
+        assert_eq!(built[2].corners, [offset(base), offset(outer), offset(inner)]);
+        assert_eq!(built[2].argb, pack_argb(40, 255, 25, 25));
+        assert_eq!(built[2].forced_depth, Some(1.0));
+    }
+
+    #[test]
+    fn blade_fins_mirrors_the_pair_and_keeps_the_minus_six_anchor() {
+        let state = blade_fins_state(1);
+        let built = triangles(&state);
+
+        // Pair 2 is `riseAngle + 25`, then the same -90 turn.
+        let inner = [10.0 * table_cos(25), -6.0, 10.0 * table_sin(25)];
+        let mut angle = 25 - 90;
+        if angle < 0 {
+            angle += 360;
+        }
+        let outer = [5.0 * table_cos(angle) + inner[0], -6.0, 5.0 * table_sin(angle) + inner[2]];
+
+        assert_eq!(built[4].corners[0], [0.0, -6.0, 0.0]);
+        assert_eq!(built[4].corners[1], outer);
+        assert_eq!(built[4].corners[2], inner);
+        // All three keep the `-6` anchor for the base corners.
+        assert_eq!(built[4].corners[0][1], -6.0);
+        assert_eq!(built[5].corners[0][1], -6.0);
+    }
+
+    #[test]
+    fn blade_fins_colours_follow_flag1_zero() {
+        let flag_two = triangles(&blade_fins_state(2));
+        assert_eq!(flag_two[0].argb, pack_argb(10, 255, 255, 255));
+        assert_eq!(flag_two[2].argb, pack_argb(40, 255, 255, 255));
+
+        let flag_zero = triangles(&blade_fins_state(0));
+        assert_eq!(flag_zero[0].argb, pack_argb(10, 255, 255, 255));
+        assert_eq!(flag_zero[2].argb, pack_argb(40, 25, 25, 255));
+    }
+
+    #[test]
+    fn blade_fins_skip_dead_and_invisible_slots() {
+        let mut state = blade_fins_state(1);
+        state.slots[0].alpha_b = 0;
+
+        assert!(triangles(&state).is_empty());
+
+        state.slots[0].alpha_b = 40;
+        state.slots[0].life = 0;
+
+        assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn blade_fins_never_adds_the_position_when_f1_is_one() {
+        // `f1 = 0` means "add render.position"; the renderer must not skip it.
+        let mut state = blade_fins_state(1);
+        state.position = [100.0, 200.0, 300.0];
+
+        assert_eq!(triangles(&state)[0].corners[0], [100.0, 194.0, 300.0]);
     }
 
     // -----------------------------------------------------------------

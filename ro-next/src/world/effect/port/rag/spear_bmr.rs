@@ -113,7 +113,7 @@ impl PortedEffect for SpearBmr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn four_spears_fly_and_fade() {

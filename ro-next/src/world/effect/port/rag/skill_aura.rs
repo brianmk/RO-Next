@@ -30,11 +30,11 @@ impl TexturedSkillAura {
 
     fn color(&self) -> Option<(i32, i32, i32)> {
         match self.aura_type {
-            4 => Some((0xff, 0x8c, 0x8c)),
-            5 => Some((0xd2, 0xfa, 0xd2)),
+            4 => Some((0xFF, 0x8C, 0x8C)),
+            5 => Some((0xD2, 0xFA, 0xD2)),
             6 => Some((10, 10, 10)),
-            7 => Some((0xfa, 0xd2, 0x8c)),
-            8 => Some((0x8c, 0xff, 0x8c)),
+            7 => Some((0xFA, 0xD2, 0x8C)),
+            8 => Some((0x8C, 0xFF, 0x8C)),
             _ => None,
         }
     }
@@ -95,7 +95,7 @@ impl PortedEffect for TexturedSkillAura {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn detecting_uses_the_default_burst_window() {
@@ -139,7 +139,7 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         let state = &runtime.primitives[0].state;
-        assert_eq!((state.red, state.green, state.blue), (0xff, 0x8c, 0x8c));
+        assert_eq!((state.red, state.green, state.blue), (0xFF, 0x8C, 0x8C));
         assert_eq!(runtime.sounds, vec!["effect\\cru_grand cross.wav".to_owned()]);
     }
 }

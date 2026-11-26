@@ -1,5 +1,5 @@
-//! `CRagEffect::Bash` - `RagEffect.cpp:1601-1670`, effect id `EF_BASH`, lifetime
-//! 40 frames (`EffectTypes.cpp:25`).
+//! `CRagEffect::Bash` - `RagEffect.cpp:1601-1670`, effect id `EF_BASH`,
+//! lifetime 40 frames (`EffectTypes.cpp:25`).
 //!
 //! The reference port: one `PP_2DCIRCLE` (a 100 px screen-space ring that fades
 //! in over 6 frames and out from frame 30) plus 20 randomised `PP_2DFLASH`
@@ -83,7 +83,7 @@ impl PortedEffect for Bash {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{run_to_completion, step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, run_to_completion, step};
 
     fn runtime() -> EffectRuntime {
         EffectRuntime::new(LIFETIME, [320.0, 240.0], 0x1234_5678)

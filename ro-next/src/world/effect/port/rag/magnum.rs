@@ -85,7 +85,7 @@ impl PortedEffect for MagnumBreak {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{run_to_completion, step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, run_to_completion, step};
 
     const EPSILON: f32 = 1e-4;
 

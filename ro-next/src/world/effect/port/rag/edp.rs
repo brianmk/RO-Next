@@ -66,7 +66,7 @@ impl PortedEffect for EnchantPoisonCast {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn edp_drips_a_mote_every_three_frames() {

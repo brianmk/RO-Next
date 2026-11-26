@@ -85,7 +85,7 @@ impl PortedEffect for CartRevolution {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
     use crate::world::effect::port::str_player::{KeyFrame, Transform};
 
     fn clips() -> Vec<Clip> {

@@ -12,9 +12,14 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Aspersio, BlitzBeat, BottomCarpet, RemoveTrap, Sphere, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, TeleportSpiral, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TexturedPulse, WhiteSpray,
-    StormKick,
+    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
+    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, EarthSpike, EnchantPoison, EnchantPoisonCast, Endure, Entry, Exit, FireArrow,
+    FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, GrimTooth, GrimToothAtk, HealBurst,
+    HealRingSparkle, Hit2, IceArrow, IceWall, IncAgility, LockOn, MagicRing, MagnumBreak, NapalmBeat, Overthrust, PortalRings, PortalSpell,
+    PotionPill, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere,
+    SprayPond, SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedClassChange, TexturedComet,
+    TexturedHalo, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TorchDustRing, TripleOrbit,
+    Vallentine, VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -146,17 +151,24 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Removetrap => Box::new(RemoveTrap::new(70)),
         EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
-        EffectId::Intimidate => Box::new(
-            WhiteSpray::new(0, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]),
-        ),
+        EffectId::Intimidate => {
+            Box::new(WhiteSpray::new(0, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]))
+        }
         EffectId::Intimidate2 => Box::new(WhiteSpray::new(2, 16, 999)),
-        EffectId::Intimidate3 => Box::new(
-            WhiteSpray::new(3, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]),
-        ),
+        EffectId::Intimidate3 => {
+            Box::new(WhiteSpray::new(3, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]))
+        }
         EffectId::Intimidate4 => Box::new(WhiteSpray::new(4, 10, 999).with_waves(&[(25, "effect\\triangle.wav")])),
         EffectId::Aqua => Box::new(Aqua::default()),
         EffectId::Revive => Box::new(Revive::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
+        // `RagEffect.cpp:23287-23288` / `:23278-23279`.
+        EffectId::Firearrow => Box::new(FireArrow::default()),
+        EffectId::Icearrow => Box::new(IceArrow::default()),
+        // `RagEffect.cpp:19764-19781`; `EffectTypes.cpp:863-872` lifetimes 300.
+        EffectId::ChemicalV => Box::new(ChemicalLine::new(0, 300)),
+        EffectId::ChemicalV2 => Box::new(ChemicalLine::new(1, 300)),
+        EffectId::ChemicalV3 => Box::new(TexturedBeam::new(2, "effect\\line3.tga", 300)),
         EffectId::Decagility => Box::new(DecAgility::default()),
         EffectId::Blessing => Box::new(Blessing::default()),
         EffectId::Bash => Box::new(Bash::default()),
@@ -204,6 +216,11 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Endure,
         EffectId::Blessing,
         EffectId::Fireball,
+        EffectId::Firearrow,
+        EffectId::Icearrow,
+        EffectId::ChemicalV,
+        EffectId::ChemicalV2,
+        EffectId::ChemicalV3,
         EffectId::Decagility,
         EffectId::Aqua,
         EffectId::Revive,
@@ -434,6 +451,11 @@ mod tests {
             (EffectId::Intimidate3, 999),
             (EffectId::Intimidate4, 999),
             (EffectId::Bash, 40),
+            (EffectId::Firearrow, 160),
+            (EffectId::Icearrow, 160),
+            (EffectId::ChemicalV, 300),
+            (EffectId::ChemicalV2, 300),
+            (EffectId::ChemicalV3, 300),
             (EffectId::Magnumbreak, 30),
             (EffectId::Frostdiver, 150),
             (EffectId::Frostdiver2, 100),
@@ -493,11 +515,15 @@ mod tests {
     #[test]
     fn every_registered_body_assigns_its_official_texture() {
         use crate::world::effect::port::primitive::PrimitiveId;
-        use crate::world::effect::port::runtime::{step, EffectRuntime};
+        use crate::world::effect::port::runtime::{EffectRuntime, step};
 
         for effect in ported_ids() {
             let mut body = spawn(effect).unwrap();
             let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 99);
+            // The skill layer sends `AM_SETCOUNT` before the first frame
+            // (`RagEffect.cpp:14924`); a level-1 cast is the default harness,
+            // and without it Ice Arrow (`EF_ICEARROW`) emits nothing at all.
+            runtime.count = 1;
 
             // Some bodies only start emitting after a delay (Fire Ball at frame
             // 20), so run a few frames before requiring primitives.
@@ -526,12 +552,7 @@ mod tests {
                 // `Particle3d`/`Orbit` motes whose sprite the original attaches
                 // elsewhere (e.g. Blessing). Everything else must name a
                 // texture.
-                if primitive.state.sprite.is_some()
-                    || matches!(
-                        primitive.state.count,
-                        PrimitiveId::Particle3d | PrimitiveId::Orbit
-                    )
-                {
+                if primitive.state.sprite.is_some() || matches!(primitive.state.count, PrimitiveId::Particle3d | PrimitiveId::Orbit) {
                     continue;
                 }
 
@@ -546,7 +567,7 @@ mod tests {
 
     #[test]
     fn key_textures_match_the_decompilation() {
-        use crate::world::effect::port::runtime::{step, EffectRuntime};
+        use crate::world::effect::port::runtime::{EffectRuntime, step};
 
         let mut bash = spawn(EffectId::Bash).unwrap();
         let mut runtime = EffectRuntime::new(bash.lifetime(), [0.0, 0.0], 1);
@@ -566,6 +587,10 @@ mod tests {
     #[test]
     fn unported_effects_return_none() {
         assert!(spawn(EffectId::Thunderstorm).is_none());
-        assert!(!ported_ids().iter().any(|effect| !needs_str_clips(*effect) && spawn(*effect).is_none()));
+        assert!(
+            !ported_ids()
+                .iter()
+                .any(|effect| !needs_str_clips(*effect) && spawn(*effect).is_none())
+        );
     }
 }

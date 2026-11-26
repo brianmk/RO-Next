@@ -83,7 +83,7 @@ impl PortedEffect for StoneSpike {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn heavens_drive_spawns_the_grid() {

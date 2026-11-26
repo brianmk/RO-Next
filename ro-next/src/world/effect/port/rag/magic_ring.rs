@@ -15,10 +15,7 @@ pub struct MagicRing {
 
 impl MagicRing {
     pub fn new(ring_type: i32, lifetime: i32) -> Self {
-        Self {
-            ring_type,
-            lifetime,
-        }
+        Self { ring_type, lifetime }
     }
 
     fn spawn_columns(&self, runtime: &mut EffectRuntime) {
@@ -119,7 +116,7 @@ impl PortedEffect for MagicRing {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn big_portal_opens_with_columns_and_crown() {

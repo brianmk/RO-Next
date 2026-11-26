@@ -16,11 +16,7 @@ pub struct RisingOrbs {
 
 impl RisingOrbs {
     pub fn new(texture: &'static str, kind: i32, lifetime: i32) -> Self {
-        Self {
-            texture,
-            kind,
-            lifetime,
-        }
+        Self { texture, kind, lifetime }
     }
 }
 
@@ -123,7 +119,7 @@ impl PortedEffect for RisingOrbs {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn hp_time_plays_the_heal_wave_and_orbits() {
@@ -150,11 +146,7 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         assert_eq!(runtime.sounds, vec!["effect\\흡기.wav".to_owned()]);
-        assert!(runtime.primitives[0]
-            .state
-            .slots
-            .iter()
-            .all(|slot| slot.flag1[2] == 1));
+        assert!(runtime.primitives[0].state.slots.iter().all(|slot| slot.flag1[2] == 1));
     }
 
     #[test]

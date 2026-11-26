@@ -1,5 +1,6 @@
-//! `CRagEffect::TexturedSprayKind(name, spin, kind)` - `RagEffect.cpp:4642-4689`
-//! and `CRagEffect::TexturedSpray(name)` - `RagEffect.cpp:4064-4097`.
+//! `CRagEffect::TexturedSprayKind(name, spin, kind)` -
+//! `RagEffect.cpp:4642-4689` and `CRagEffect::TexturedSpray(name)` -
+//! `RagEffect.cpp:4064-4097`.
 //!
 //! The `PP_INTIMIDATE` (43) spray used by the Rogue coin effects and the water
 //! ball family. Both helpers bail out unless the effect is on frame 0, so any
@@ -9,7 +10,8 @@
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::EffectRuntime;
 
-/// One `TexturedSprayKind` call. Returns `false` when the frame gate rejects it.
+/// One `TexturedSprayKind` call. Returns `false` when the frame gate rejects
+/// it.
 pub(crate) fn spray_kind(runtime: &mut EffectRuntime, name: &'static str, spin: f32, kind: i32) -> bool {
     if runtime.frame != 0 {
         return false;
@@ -149,7 +151,7 @@ impl super::super::runtime::PortedEffect for SprayKind {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn spray_kind_spawns_four_slots_on_frame_zero() {

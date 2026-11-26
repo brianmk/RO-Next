@@ -5,7 +5,7 @@
 //! override to 400.
 
 use super::super::angles::Angles;
-use super::super::math::{forward, Matrix};
+use super::super::math::{Matrix, forward};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -74,7 +74,7 @@ impl PortedEffect for Aspersio {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn aspersio_drips_holy_water_during_its_window() {

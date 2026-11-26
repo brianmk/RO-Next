@@ -15,9 +15,8 @@
 
 use super::angles::Angles;
 use super::primitive::{EffectPrimitiveState, MasterState, PrimitiveId};
-use super::str_player::{Clip, Ez2StrPlayer};
-
 pub use super::rng::EffectRng;
+use super::str_player::{Clip, Ez2StrPlayer};
 
 /// A live `CEffectPrim` owned by an effect.
 #[derive(Debug, Clone)]
@@ -37,7 +36,8 @@ pub struct EffectRuntime {
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
     pub position: [f32; 3],
-    /// `state.param[0]` - effect parameter (skill level / power) some bodies use.
+    /// `state.param[0]` - effect parameter (skill level / power) some bodies
+    /// use.
     pub param: f32,
     /// `state.param[1]`.
     pub param_secondary: f32,
@@ -52,6 +52,19 @@ pub struct EffectRuntime {
     /// `state.deltaPos2` - the per-step vector some bodies carry across frames.
     pub delta_pos2: [f32; 3],
     pub render_angle: f32,
+    /// `CRagEffect::state.longitude` / `.latitude` - the *effect-level*
+    /// orientation, distinct from a primitive's own `state.longitude`.
+    ///
+    /// `CRagEffect::Init` sets `longitude = parent->render.angle`
+    /// (`RagEffectInitialization.cpp:22`); `latitude` keeps the state
+    /// constructor's zero. Bodies that aim primitives by the effect's facing
+    /// (`FireArrow`, `IceArrow`) write both and their spark particles read them
+    /// back on later frames.
+    ///
+    /// Additive: no pre-existing field changed position or meaning, and no
+    /// ported body read an effect-level angle before these bodies did.
+    pub longitude: f32,
+    pub latitude: f32,
     /// `camera->camera.yaw` - used by action-facing effects.
     pub camera_yaw: f32,
     /// `camera->camera.pitch` - read by `FaceCamera` (primitive 155).
@@ -100,6 +113,8 @@ impl EffectRuntime {
             delta_pos3: [0.0; 3],
             delta_pos2: [0.0; 3],
             render_angle: 0.0,
+            longitude: 0.0,
+            latitude: 0.0,
             camera_yaw: 0.0,
             camera_pitch: 0.0,
             terrain_height: None,
@@ -160,6 +175,41 @@ impl EffectRuntime {
         }
     }
 
+    /// `CRenderObject::Heading(x, z, targetX, targetZ)` -
+    /// `ActorGeometry.cpp:30-45`. The effect bodies call it through a
+    /// `CEffectPrim` (which inherits `CRenderObject`), so this is an associated
+    /// function: the original reads no object state.
+    ///
+    /// Quirk kept: only one `360` subtraction and one `360` addition.
+    pub fn heading(x: f32, z: f32, target_x: f32, target_z: f32) -> f32 {
+        let delta_x = target_x - x;
+        let delta_z = target_z - z;
+        let mut angle = ((delta_x as f64).atan2((-delta_z) as f64) as f32 / 3.141592f32) * 180.0;
+
+        if angle >= 360.0 {
+            angle -= 360.0;
+        }
+
+        if angle < 0.0 {
+            angle += 360.0;
+        }
+
+        angle
+    }
+
+    /// `CRagEffect::Init`'s effect-level facing
+    /// (`RagEffectInitialization.cpp:22`): `state.longitude =
+    /// parent->render.angle`. `state.latitude` keeps the constructor zero.
+    ///
+    /// The port cannot do this in [`Self::new`]: the client fills
+    /// [`Self::parent_angle`] *after* construction, and the holder steps the
+    /// body directly instead of going through [`step`]. The bodies that read
+    /// the effect-level angle therefore call this on their first frame, which
+    /// is exactly the frame the original sees the value on.
+    pub fn init_effect_angles(&mut self) {
+        self.longitude = self.parent_angle;
+    }
+
     /// `CRenderObject::CalcDist(x, z)` - `ActorGeometry.cpp:66-70`.
     /// `CEffectPrim::Get_Angle` - `EffectPrimitiveState.cpp:51-70`. Returns the
     /// table index whose cosine the normalised vector still exceeds.
@@ -199,10 +249,11 @@ impl EffectRuntime {
 
     /// `CRagEffect::ProcessEZ2STR(0, -80, 0)`.
     ///
-    /// Returns `false` when every loop of the resource has finished, which makes
-    /// the body retire the effect (the original does `return false`). The player
-    /// shares the effect's frame counter, and `InitEZ2STRFrame` resets it on a
-    /// loop - so the runtime frame is synced back afterwards.
+    /// Returns `false` when every loop of the resource has finished, which
+    /// makes the body retire the effect (the original does `return false`).
+    /// The player shares the effect's frame counter, and `InitEZ2STRFrame`
+    /// resets it on a loop - so the runtime frame is synced back
+    /// afterwards.
     pub fn process_str(&mut self) -> bool {
         let Some(player) = &mut self.str_player else {
             return true;
@@ -402,5 +453,53 @@ mod tests {
         }
 
         assert_eq!(rng.clamped_random(0), 0);
+    }
+
+    fn close(left: f32, right: f32) -> bool {
+        (left - right).abs() < 1e-3
+    }
+
+    #[test]
+    fn heading_matches_the_cardinal_angles() {
+        // `Heading(x, z, targetX, targetZ)` = atan2(dx, -dz) in degrees. The
+        // values are not exact quarters because the original divides by
+        // `3.141592f` (`90.00002` for +x), so compare with a 1e-3 tolerance.
+        assert!(close(EffectRuntime::heading(0.0, 0.0, 0.0, -1.0), 0.0));
+        assert!(close(EffectRuntime::heading(0.0, 0.0, 1.0, 0.0), 90.0));
+        assert!(close(EffectRuntime::heading(0.0, 0.0, 0.0, 1.0), 180.0));
+        assert!(close(EffectRuntime::heading(0.0, 0.0, -1.0, 0.0), 270.0));
+    }
+
+    #[test]
+    fn heading_is_relative_to_the_source_point() {
+        // A zero target vector keeps atan2(0, -0) at 180 (the `-0.0` sign),
+        // i.e. the original's behaviour for an unchanged position.
+        assert!(close(EffectRuntime::heading(5.0, 7.0, 5.0, 7.0), 180.0));
+        // Same direction whether the pair is translated or not.
+        assert_eq!(
+            EffectRuntime::heading(5.0, 7.0, 6.0, 7.0),
+            EffectRuntime::heading(0.0, 0.0, 1.0, 0.0)
+        );
+    }
+
+    #[test]
+    fn init_effect_angles_copies_the_parent_facing_into_longitude() {
+        let mut runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+        runtime.parent_angle = 135.0;
+        runtime.latitude = 12.0;
+
+        runtime.init_effect_angles();
+
+        assert_eq!(runtime.longitude, 135.0);
+        // `Init` never assigns latitude; the constructor zero is kept.
+        assert_eq!(runtime.latitude, 12.0);
+    }
+
+    #[test]
+    fn effect_level_angles_start_at_zero() {
+        let runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+
+        assert_eq!(runtime.longitude, 0.0);
+        assert_eq!(runtime.latitude, 0.0);
     }
 }

@@ -17,17 +17,11 @@ pub struct RingWave {
 
 impl RingWave {
     pub fn white(lifetime: i32) -> Self {
-        Self {
-            blue: false,
-            lifetime,
-        }
+        Self { blue: false, lifetime }
     }
 
     pub fn blue(lifetime: i32) -> Self {
-        Self {
-            blue: true,
-            lifetime,
-        }
+        Self { blue: true, lifetime }
     }
 
     fn spawn(&self, runtime: &mut EffectRuntime) {
@@ -99,7 +93,7 @@ impl PortedEffect for RingWave {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn blue_wave_beats_every_fourteen_frames() {
@@ -138,10 +132,7 @@ mod tests {
 
         step(&mut effect, &mut runtime);
         assert_eq!(runtime.primitives.len(), 1);
-        assert_eq!(
-            runtime.primitives[0].state.texture,
-            Some("effect\\ring_white.tga")
-        );
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\ring_white.tga"));
         assert_eq!(runtime.primitives[0].state.size, 16.0);
 
         // The wave re-spawns on every multiple of 100 while the effect lives.

@@ -53,11 +53,7 @@ impl PortedEffect for SonicBlowHit {
         let speed3d = matrix_mult([0.0, -2.0, 0.0], &state.transform.values);
         state.speed3d = speed3d;
         state.delta_pos = speed3d;
-        state.delta_pos2 = [
-            (spread_x + 1) as f32 / 4.0,
-            (spread_y + 1) as f32 / 2.0 - 11.0,
-            0.0,
-        ];
+        state.delta_pos2 = [(spread_x + 1) as f32 / 4.0, (spread_y + 1) as f32 / 2.0 - 11.0, 0.0];
         state.speed = 0.4;
         state.accel = -(state.speed / state.duration as f32) * 0.5;
         state.outer_size = 7.0;
@@ -73,7 +69,7 @@ impl PortedEffect for SonicBlowHit {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn sonic_blow_hit_spawns_the_red_disc() {

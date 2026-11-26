@@ -80,6 +80,59 @@ static POTION_BERSERK: StrResource = StrResource {
     loop_limit: 0,
 };
 
+// The `.str`-only tier (batch "e"): every one of these effects is the clip and
+// at most a scheduled wave, with no primitive of its own.
+
+static STONE_CURSE: StrResource = StrResource {
+    files: &["StoneCurse.str"],
+    loop_limit: 0,
+};
+
+static ANGELUS: StrResource = StrResource {
+    files: &["Angelus.str"],
+    loop_limit: 0,
+};
+
+static CURE: StrResource = StrResource {
+    files: &["Cure.str"],
+    loop_limit: 0,
+};
+
+static MAGNIFICAT: StrResource = StrResource {
+    files: &["Magnificat.str"],
+    loop_limit: 0,
+};
+
+static RESURRECTION: StrResource = StrResource {
+    files: &["Resurrection.str"],
+    loop_limit: 0,
+};
+
+static RECOVERY: StrResource = StrResource {
+    files: &["Recovery.str"],
+    loop_limit: 0,
+};
+
+static LEX_DIVINA: StrResource = StrResource {
+    files: &["LexDivina.str"],
+    loop_limit: 0,
+};
+
+static CONCENTRATION: StrResource = StrResource {
+    files: &["Concentration.str"],
+    loop_limit: 0,
+};
+
+static TWO_HAND: StrResource = StrResource {
+    files: &["TwoHand.str"],
+    loop_limit: 0,
+};
+
+static MAGIC_ROD: StrResource = StrResource {
+    files: &["매직로드.str"],
+    loop_limit: 0,
+};
+
 /// The official `.str` resource of an effect, if its body drives
 /// `ProcessEZ2STR`.
 ///
@@ -105,6 +158,35 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         // `case EF_POTION_BERSERK: case EF_POTION_BERSERK2:
         //  std::sprintf(name, "버서크.str");` - 496-498.
         EffectId::PotionBerserk | EffectId::PotionBerserk2 => &POTION_BERSERK,
+
+        // `.str`-only tier (batch "e").
+        //
+        // `case EF_STONECURSE: case EF_PETRIFYATTACK:
+        //  std::sprintf(name, "StoneCurse.str");` - 292-295.
+        EffectId::Stonecurse => &STONE_CURSE,
+        // `case EF_ANGELUS: case EF_WEWISH:` (the `jong_mini.str` branch of the
+        // `TT_MIN_EFFECT_ON_OFF` toggle is the other side of the ternary, like
+        // the rest of this table the regular name is used) - 481-486.
+        EffectId::Angelus => &ANGELUS,
+        // `case EF_CURE:` (`cure_min.str` toggle) - 54-56.
+        EffectId::Cure => &CURE,
+        // `case EF_MAGNIFICAT:` (`magnificat_min.str` toggle) - 69-71.
+        EffectId::Magnificat => &MAGNIFICAT,
+        // `case EF_RESURRECTION:` (`resurrection_min.str` toggle) - 72-74.
+        EffectId::Resurrection => &RESURRECTION,
+        // `case EF_RECOVERY: std::sprintf(name, "Recovery.str");` - 75-77.
+        EffectId::Recovery => &RECOVERY,
+        // `case EF_LEXDIVINA: std::sprintf(name, "LexDivina.str");` - 90-92.
+        EffectId::Lexdivina => &LEX_DIVINA,
+        // `case EF_CONCENTRATION: case EF_CONCENTRATION2:
+        //  std::sprintf(name, "Concentration.str");` - 492-495.
+        EffectId::Concentration => &CONCENTRATION,
+        // `case EF_TWOHANDQUICKEN: case EF_SPEARQUICKEN:
+        //  case EF_LKCONCENTRATION: std::sprintf(name, "TwoHand.str");`
+        // - 439-443.
+        EffectId::Twohandquicken | EffectId::Spearquicken => &TWO_HAND,
+        // `case EF_MAGICROD: std::sprintf(name, "매직로드.str");` - 341-343.
+        EffectId::Magicrod => &MAGIC_ROD,
         _ => return None,
     })
 }
@@ -262,6 +344,40 @@ mod tests {
         assert_eq!(str_clips_for(EffectId::Aspersio), Some(&["Aspersio.str"][..]));
         assert_eq!(str_clips_for(EffectId::PotionBerserk), Some(&["버서크.str"][..]));
         assert_eq!(str_clips_for(EffectId::PotionBerserk2), Some(&["버서크.str"][..]));
+    }
+
+    #[test]
+    fn str_only_tier_rows_match_the_initialization_switch() {
+        // Batch "e": one resource per id, all on the single-pass default.
+        assert_eq!(str_clips_for(EffectId::Stonecurse), Some(&["StoneCurse.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Angelus), Some(&["Angelus.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Cure), Some(&["Cure.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Magnificat), Some(&["Magnificat.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Resurrection), Some(&["Resurrection.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Recovery), Some(&["Recovery.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Lexdivina), Some(&["LexDivina.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Concentration), Some(&["Concentration.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Twohandquicken), Some(&["TwoHand.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Spearquicken), Some(&["TwoHand.str"][..]));
+        assert_eq!(str_clips_for(EffectId::Magicrod), Some(&["매직로드.str"][..]));
+
+        // `CRagEffect::CRagEffect` (`loopLimit = 0`) and no `Init` override for
+        // any of these ids: the resource plays once.
+        for effect in [
+            EffectId::Stonecurse,
+            EffectId::Angelus,
+            EffectId::Cure,
+            EffectId::Magnificat,
+            EffectId::Resurrection,
+            EffectId::Recovery,
+            EffectId::Lexdivina,
+            EffectId::Concentration,
+            EffectId::Twohandquicken,
+            EffectId::Spearquicken,
+            EffectId::Magicrod,
+        ] {
+            assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
+        }
     }
 
     #[test]

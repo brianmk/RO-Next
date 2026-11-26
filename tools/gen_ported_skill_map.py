@@ -46,6 +46,7 @@ REGISTRY_SOURCES = (
     "registry_batch_b.rs",
     "registry_batch_c.rs",
     "registry_batch_d.rs",
+    "registry_batch_e.rs",
 )
 
 # The client's `SkillPhase` order (`skill_effects.rs::SkillPhase::index`).
@@ -186,6 +187,30 @@ def choose_phase(fields: list[dict], descriptors: list[str]) -> str:
     raise SystemExit(f"no client descriptor phase for official phase {official}")
 
 
+# Rustfmt's `fn_call_width = 80` heuristic in `rustfmt.toml` makes it split a
+# tuple element of the `MAPPED` array once the source line would exceed this
+# many columns (4-space indent included). Emitting the split form up front keeps
+# the generated file `rustfmt --check` clean instead of churning on every run.
+MAPPED_ROW_SINGLE_LINE_MAX = 87
+
+
+def mapped_row(skill: int, phase: str, name: str, anchor: str) -> list[str]:
+    """One `MAPPED` element, already laid out the way rustfmt keeps it."""
+    line = f"    (SkillId({skill}), SkillPhase::{phase}, EffectId::{name}, PortedAnchor::{anchor}),"
+
+    if len(line) <= MAPPED_ROW_SINGLE_LINE_MAX:
+        return [line]
+
+    return [
+        "    (",
+        f"        SkillId({skill}),",
+        f"        SkillPhase::{phase},",
+        f"        EffectId::{name},",
+        f"        PortedAnchor::{anchor},",
+        "    ),",
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if the committed file is stale")
@@ -280,7 +305,7 @@ def main() -> int:
     lines.append("/// One generated mapping, sorted by `(skill, phase)`.")
     lines.append("pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[")
     for skill, phase, effect_id, name, anchor in rows:
-        lines.append(f"    (SkillId({skill}), SkillPhase::{phase}, EffectId::{name}, PortedAnchor::{anchor}),")
+        lines.extend(mapped_row(skill, phase, name, anchor))
     lines.append("];")
     lines.append("")
     lines.append("/// The ported effect id `skill` plays at `phase`, if one is registered.")

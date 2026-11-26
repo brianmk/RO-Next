@@ -4,7 +4,7 @@
 //! every ten frames and an expanding `alpha_center` ring every twenty.
 
 use super::super::angles::Angles;
-use super::super::math::{matrix_mult, Matrix};
+use super::super::math::{Matrix, matrix_mult};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -104,7 +104,7 @@ impl PortedEffect for SprayPond {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn spray_pond_builds_the_rim_and_splashes() {

@@ -15,7 +15,8 @@ pub struct SprayCall {
     pub kind: i32,
     /// Number of times the dispatch block calls it (loops included).
     pub repeat: usize,
-    /// `false` = `TexturedSpray` (`coin_a` style), `true` = `TexturedSprayKind`.
+    /// `false` = `TexturedSpray` (`coin_a` style), `true` =
+    /// `TexturedSprayKind`.
     pub kinded: bool,
 }
 
@@ -53,20 +54,54 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "effect\\shield.bmp", spin: 5.0, kind: 0, repeat: 4, kinded: true },
-                SprayCall { name: "effect\\sword.bmp", spin: 9.0, kind: 0, repeat: 4, kinded: true },
+                SprayCall {
+                    name: "effect\\shield.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 4,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "effect\\sword.bmp",
+                    spin: 9.0,
+                    kind: 0,
+                    repeat: 4,
+                    kinded: true,
+                },
             ])
     }
 
     pub fn coin3(lifetime: i32) -> Self {
-        Self::new(lifetime)
-            .with_waves(&[(21, "effect\\디스암.wav")])
-            .with_sprays(vec![
-                SprayCall { name: "유저인터페이스\\item\\골드룩스.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\더개리슨.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\더블샷건.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\더스크.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-            ])
+        Self::new(lifetime).with_waves(&[(21, "effect\\디스암.wav")]).with_sprays(vec![
+            SprayCall {
+                name: "유저인터페이스\\item\\골드룩스.bmp",
+                spin: 5.0,
+                kind: 0,
+                repeat: 1,
+                kinded: true,
+            },
+            SprayCall {
+                name: "유저인터페이스\\item\\더개리슨.bmp",
+                spin: 5.0,
+                kind: 0,
+                repeat: 1,
+                kinded: true,
+            },
+            SprayCall {
+                name: "유저인터페이스\\item\\더블샷건.bmp",
+                spin: 5.0,
+                kind: 0,
+                repeat: 1,
+                kinded: true,
+            },
+            SprayCall {
+                name: "유저인터페이스\\item\\더스크.bmp",
+                spin: 5.0,
+                kind: 0,
+                repeat: 1,
+                kinded: true,
+            },
+        ])
     }
 
     pub fn coin4(lifetime: i32) -> Self {
@@ -78,14 +113,62 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "유저인터페이스\\item\\루드라의활.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\아트로스의흉기.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\모닝스타.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\바스타드소드.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\글레이브.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\블레이드휩.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\드래곤슬레이어.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\배틀액스.bmp", spin: 5.0, kind: 0, repeat: 1, kinded: true },
+                SprayCall {
+                    name: "유저인터페이스\\item\\루드라의활.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\아트로스의흉기.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\모닝스타.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\바스타드소드.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\글레이브.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\블레이드휩.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\드래곤슬레이어.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\배틀액스.bmp",
+                    spin: 5.0,
+                    kind: 0,
+                    repeat: 1,
+                    kinded: true,
+                },
             ])
     }
 
@@ -98,14 +181,62 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "유저인터페이스\\item\\갈색반지.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\금반지.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\금방울.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\꽃반지.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\낡은펜던트.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\눈구슬반지.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\상자.bmp", spin: 4.0, kind: 1, repeat: 1, kinded: true },
-                SprayCall { name: "유저인터페이스\\item\\수제초콜렛.bmp", spin: 5.0, kind: 1, repeat: 1, kinded: true },
+                SprayCall {
+                    name: "유저인터페이스\\item\\갈색반지.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\금반지.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\금방울.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\꽃반지.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\낡은펜던트.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\눈구슬반지.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\상자.bmp",
+                    spin: 4.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "유저인터페이스\\item\\수제초콜렛.bmp",
+                    spin: 5.0,
+                    kind: 1,
+                    repeat: 1,
+                    kinded: true,
+                },
             ])
     }
 
@@ -118,8 +249,20 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "effect\\melody_a.bmp", spin: 6.0, kind: 1, repeat: 2, kinded: true },
-                SprayCall { name: "effect\\melody_b.bmp", spin: 6.0, kind: 1, repeat: 2, kinded: true },
+                SprayCall {
+                    name: "effect\\melody_a.bmp",
+                    spin: 6.0,
+                    kind: 1,
+                    repeat: 2,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "effect\\melody_b.bmp",
+                    spin: 6.0,
+                    kind: 1,
+                    repeat: 2,
+                    kinded: true,
+                },
             ])
     }
 
@@ -127,8 +270,20 @@ impl RogueCoin {
         Self::new(lifetime)
             .with_waves(&[(26, "effect\\LG_PINPOINTATTACK.wav")])
             .with_sprays(vec![
-                SprayCall { name: "effect\\shield.bmp", spin: 5.0, kind: 7, repeat: 4, kinded: true },
-                SprayCall { name: "effect\\sword.bmp", spin: 9.0, kind: 7, repeat: 4, kinded: true },
+                SprayCall {
+                    name: "effect\\shield.bmp",
+                    spin: 5.0,
+                    kind: 7,
+                    repeat: 4,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "effect\\sword.bmp",
+                    spin: 9.0,
+                    kind: 7,
+                    repeat: 4,
+                    kinded: true,
+                },
             ])
     }
 
@@ -141,8 +296,20 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "effect\\shield.bmp", spin: 5.0, kind: 8, repeat: 4, kinded: true },
-                SprayCall { name: "effect\\sword.bmp", spin: 9.0, kind: 8, repeat: 4, kinded: true },
+                SprayCall {
+                    name: "effect\\shield.bmp",
+                    spin: 5.0,
+                    kind: 8,
+                    repeat: 4,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "effect\\sword.bmp",
+                    spin: 9.0,
+                    kind: 8,
+                    repeat: 4,
+                    kinded: true,
+                },
             ])
     }
 
@@ -155,15 +322,33 @@ impl RogueCoin {
                 (31, "effect\\복호격.wav"),
             ])
             .with_sprays(vec![
-                SprayCall { name: "effect\\shield.bmp", spin: 5.0, kind: 9, repeat: 4, kinded: true },
-                SprayCall { name: "effect\\sword.bmp", spin: 9.0, kind: 9, repeat: 4, kinded: true },
+                SprayCall {
+                    name: "effect\\shield.bmp",
+                    spin: 5.0,
+                    kind: 9,
+                    repeat: 4,
+                    kinded: true,
+                },
+                SprayCall {
+                    name: "effect\\sword.bmp",
+                    spin: 9.0,
+                    kind: 9,
+                    repeat: 4,
+                    kinded: true,
+                },
             ])
     }
 
     pub fn coin(lifetime: i32) -> Self {
         Self::new(lifetime)
             .with_waves(&[(0, "effect\\rog_steal coin.wav")])
-            .with_sprays(vec![SprayCall { name: "effect\\coin_a.bmp", spin: 3.5, kind: 1, repeat: 30, kinded: false }])
+            .with_sprays(vec![SprayCall {
+                name: "effect\\coin_a.bmp",
+                spin: 3.5,
+                kind: 1,
+                repeat: 30,
+                kinded: false,
+            }])
     }
 }
 
@@ -198,7 +383,7 @@ impl PortedEffect for RogueCoin {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn coin2_waves_on_the_four_stages_and_sprays_on_frame_zero() {
@@ -223,12 +408,7 @@ mod tests {
 
         assert_eq!(runtime.sounds, vec!["effect\\rog_steal coin.wav".to_owned()]);
         assert_eq!(runtime.primitives.len(), 30);
-        assert!(
-            runtime
-                .primitives
-                .iter()
-                .all(|p| p.state.texture == Some("effect\\coin_a.bmp"))
-        );
+        assert!(runtime.primitives.iter().all(|p| p.state.texture == Some("effect\\coin_a.bmp")));
     }
 
     #[test]

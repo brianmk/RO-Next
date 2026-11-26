@@ -1,5 +1,5 @@
-//! `PP_3DTEXTURE` (1) and `PP_3DCROSSTEXTURE` (16) - `CEffectPrim::MoveEffectPrimitive`,
-//! `EffectPrimitiveMotion.cpp:122-343`.
+//! `PP_3DTEXTURE` (1) and `PP_3DCROSSTEXTURE` (16) -
+//! `CEffectPrim::MoveEffectPrimitive`, `EffectPrimitiveMotion.cpp:122-343`.
 //!
 //! The world-space textured sprite behind most self-buffs (Inc Agility,
 //! Inc Agi-Dex, ...). The body's `pattern` bits select anchoring, movement and
@@ -105,9 +105,8 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
     }
 
     if (state.pattern & 0x400u32) != 0 {
-        let distance = (master.master_delta_pos[0] * master.master_delta_pos[0]
-            + master.master_delta_pos[2] * master.master_delta_pos[2])
-            .sqrt();
+        let distance =
+            (master.master_delta_pos[0] * master.master_delta_pos[0] + master.master_delta_pos[2] * master.master_delta_pos[2]).sqrt();
 
         if master.master_reach_distance >= distance {
             state.master_reached = true;
@@ -133,9 +132,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
 
     if (state.pattern & 0x200u32) != 0 {
         state.rot_transform.make_z_rotation(master.camera_pitch);
-        state
-            .rot_transform
-            .append_y_rotation(angles.radian(master.render_angle as i32));
+        state.rot_transform.append_y_rotation(angles.radian(master.render_angle as i32));
     } else {
         if (state.pattern & 0x40u32) != 0 {
             state.longitude = master.camera_yaw + master.camera_yaw_offset;
@@ -144,14 +141,10 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
             state.rot_transform.append_z_rotation(angles.radian(state.roll as i32));
         } else {
             state.rot_transform.make_z_rotation(angles.radian(state.roll as i32));
-            state
-                .rot_transform
-                .append_x_rotation(angles.radian(state.latitude as i32));
+            state.rot_transform.append_x_rotation(angles.radian(state.latitude as i32));
         }
 
-        state
-            .rot_transform
-            .append_y_rotation(angles.radian(state.longitude as i32));
+        state.rot_transform.append_y_rotation(angles.radian(state.longitude as i32));
     }
 
     if (state.pattern & 2u32) != 0 {
@@ -186,9 +179,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
         state.height_speed *= HEIGHT_SPEED_SIGN;
     }
 
-    if (state.pattern & 0x800u32) != 0
-        && (state.red == 254 || state.blue == 254 || state.green == 254)
-    {
+    if (state.pattern & 0x800u32) != 0 && (state.red == 254 || state.blue == 254 || state.green == 254) {
         if state.rgb_cycle_delay != 0 {
             state.rgb_cycle_cnt += 1;
         }

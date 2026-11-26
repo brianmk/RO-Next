@@ -121,8 +121,7 @@ impl PortedEffect for TexturedAura {
         let (position_x, position_z) = (runtime.position[0], runtime.position[2]);
 
         for &(texture, kind) in &self.auras {
-            let (distance, flag, height10, display_angle, vy) =
-                kind_params(kind, param, parent_action_height, &mut runtime.rng);
+            let (distance, flag, height10, display_angle, vy) = kind_params(kind, param, parent_action_height, &mut runtime.rng);
 
             // The common tail draws the rotation *after* the kind branch, so the
             // branch's alphaB/rotStart values are dead in the original too.
@@ -170,7 +169,7 @@ impl PortedEffect for TexturedAura {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn oratio_spawns_the_kind_nineteen_aura() {

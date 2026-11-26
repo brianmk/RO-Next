@@ -159,7 +159,7 @@ impl PortedEffect for HealBurst {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn frame_zero_raises_the_heal_column() {

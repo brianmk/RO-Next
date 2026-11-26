@@ -93,9 +93,8 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
     ];
 
     if (state.pattern & 0x100u32) != 0 {
-        let distance = (master.master_delta_pos[0] * master.master_delta_pos[0]
-            + master.master_delta_pos[2] * master.master_delta_pos[2])
-            .sqrt();
+        let distance =
+            (master.master_delta_pos[0] * master.master_delta_pos[0] + master.master_delta_pos[2] * master.master_delta_pos[2]).sqrt();
 
         if distance <= 3.0 {
             return false;

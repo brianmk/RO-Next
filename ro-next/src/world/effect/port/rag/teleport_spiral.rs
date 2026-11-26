@@ -70,7 +70,7 @@ impl PortedEffect for TeleportSpiral {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn exit2_builds_the_four_helix_spiral() {

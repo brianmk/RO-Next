@@ -201,7 +201,7 @@ impl PortedEffect for HealRingSparkle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn heal2_raises_four_ring_slots() {

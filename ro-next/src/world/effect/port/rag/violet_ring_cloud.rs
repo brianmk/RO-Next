@@ -14,10 +14,7 @@ pub struct VioletRingCloud {
 
 impl VioletRingCloud {
     pub fn new(cloud_type: i32, lifetime: i32) -> Self {
-        Self {
-            cloud_type,
-            lifetime,
-        }
+        Self { cloud_type, lifetime }
     }
 
     fn spawn_columns(&self, runtime: &mut EffectRuntime) {
@@ -179,7 +176,7 @@ impl PortedEffect for VioletRingCloud {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn portal2_runs_its_three_stages() {

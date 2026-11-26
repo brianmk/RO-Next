@@ -1,5 +1,6 @@
 //! `CRagEffect::StoneCurseRing` used by `EF_OVERTHRUST` -
-//! `RagEffect.cpp:10441-10470` and the `case EF_OVERTHRUST` dispatch at `:23834`.
+//! `RagEffect.cpp:10441-10470` and the `case EF_OVERTHRUST` dispatch at
+//! `:23834`.
 //!
 //! A single fast, immediately fading ring plus two sounds. The body overrides
 //! the effect duration to 9999 frames, exactly as the original does, so the
@@ -49,7 +50,7 @@ impl PortedEffect for Overthrust {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     const EPSILON: f32 = 1e-4;
 

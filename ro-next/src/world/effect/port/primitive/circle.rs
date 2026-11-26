@@ -2,8 +2,8 @@
 //! `EffectPrimitiveRendering.cpp:5649`.
 //!
 //! The ring behind Bash, Frost Diver, Sonic Blow and many older effects. It
-//! integrates `radius` and `radiusSpeed` once per frame and builds two triangles
-//! per arc segment with a rotating UV offset (`uInc`).
+//! integrates `radius` and `radiusSpeed` once per frame and builds two
+//! triangles per arc segment with a rotating UV offset (`uInc`).
 
 use super::super::angles::Angles;
 use super::{EffectPrimitiveState, MasterState, RenderTriangle, Vertex};

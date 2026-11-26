@@ -16,10 +16,7 @@ pub struct BlitzBeat {
 
 impl BlitzBeat {
     pub fn new(lifetime: i32) -> Self {
-        Self {
-            lifetime,
-            emitted: 0,
-        }
+        Self { lifetime, emitted: 0 }
     }
 }
 
@@ -117,7 +114,7 @@ impl PortedEffect for BlitzBeat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn blitz_beat_opens_with_ten_spread_quads() {
@@ -185,12 +182,9 @@ mod tests {
             step(&mut effect, &mut runtime);
         }
         step(&mut effect, &mut runtime);
-        assert_eq!(
-            runtime.sounds,
-            vec![
-                "effect\\hunter_blitzbeat_1st.wav".to_owned(),
-                "effect\\hunter_blitzbeat.wav".to_owned()
-            ]
-        );
+        assert_eq!(runtime.sounds, vec![
+            "effect\\hunter_blitzbeat_1st.wav".to_owned(),
+            "effect\\hunter_blitzbeat.wav".to_owned()
+        ]);
     }
 }

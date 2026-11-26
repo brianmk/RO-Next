@@ -73,7 +73,7 @@ impl PortedEffect for Entry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn entry_spawns_the_two_blue_cylinders() {

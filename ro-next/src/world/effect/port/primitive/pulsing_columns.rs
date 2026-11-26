@@ -68,8 +68,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
                     (process + column as i32 * 17) * 2
                 };
 
-                let mut height = slot.max_height * 0.25 * angles.raw_sine((phase.rem_euclid(360)) as usize)
-                    + slot.max_height * 0.75;
+                let mut height = slot.max_height * 0.25 * angles.raw_sine((phase.rem_euclid(360)) as usize) + slot.max_height * 0.75;
 
                 if slot.process <= 90 {
                     height *= angles.raw_sine(slot.process.max(0) as usize);

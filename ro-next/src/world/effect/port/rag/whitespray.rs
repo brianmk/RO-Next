@@ -118,12 +118,11 @@ impl PortedEffect for WhiteSpray {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn intimidate_spawns_twenty_primitive_batches() {
-        let mut effect = WhiteSpray::new(0, 20, 999)
-            .with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]);
+        let mut effect = WhiteSpray::new(0, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]);
         let mut runtime = EffectRuntime::new(999, [0.0, 0.0], 181);
 
         step(&mut effect, &mut runtime);
@@ -178,8 +177,7 @@ mod tests {
 
     #[test]
     fn the_late_wave_fires_on_its_frame() {
-        let mut effect = WhiteSpray::new(0, 1, 999)
-            .with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]);
+        let mut effect = WhiteSpray::new(0, 1, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]);
         let mut runtime = EffectRuntime::new(999, [0.0, 0.0], 181);
 
         step(&mut effect, &mut runtime);
@@ -192,9 +190,9 @@ mod tests {
         assert_eq!(runtime.sounds.len(), 1, "the late wave has not fired yet");
 
         step(&mut effect, &mut runtime);
-        assert_eq!(
-            runtime.sounds,
-            vec!["effect\\EF_Bash.wav".to_owned(), "effect\\rog_intimidate.wav".to_owned()]
-        );
+        assert_eq!(runtime.sounds, vec![
+            "effect\\EF_Bash.wav".to_owned(),
+            "effect\\rog_intimidate.wav".to_owned()
+        ]);
     }
 }

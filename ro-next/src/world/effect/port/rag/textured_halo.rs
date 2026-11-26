@@ -14,11 +14,7 @@ pub struct TexturedHalo {
 
 impl TexturedHalo {
     pub fn new(texture: &'static str, kind: i32, lifetime: i32) -> Self {
-        Self {
-            texture,
-            kind,
-            lifetime,
-        }
+        Self { texture, kind, lifetime }
     }
 }
 
@@ -91,7 +87,7 @@ impl PortedEffect for TexturedHalo {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn runner_spawns_the_hanmoon_halo() {

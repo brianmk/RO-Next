@@ -67,7 +67,7 @@ impl PortedEffect for Detoxication {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn one_mote_every_five_frames() {

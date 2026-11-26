@@ -1,5 +1,5 @@
-//! `EF_SONICBLOW` - inline body in `CRagEffect::OnProcess2`, `RagEffect.cpp:23801-23821`.
-//! Lifetime 40 frames (`EffectTypes.cpp:130`).
+//! `EF_SONICBLOW` - inline body in `CRagEffect::OnProcess2`,
+//! `RagEffect.cpp:23801-23821`. Lifetime 40 frames (`EffectTypes.cpp:130`).
 //!
 //! One `PP_2DCIRCLE` expanding at 7 px/frame with a heavy deceleration
 //! (`-(radiusSpeed / (duration + 40)) * 2`), anchored 20 px above the target.
@@ -49,7 +49,7 @@ impl PortedEffect for SonicBlow {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{run_to_completion, step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, run_to_completion, step};
 
     const EPSILON: f32 = 1e-4;
 

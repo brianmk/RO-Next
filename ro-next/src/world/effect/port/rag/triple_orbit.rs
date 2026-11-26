@@ -73,7 +73,7 @@ impl PortedEffect for TripleOrbit {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn gradivs_laser_spawns_three_orbits() {

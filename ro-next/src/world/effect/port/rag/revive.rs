@@ -64,7 +64,7 @@ impl PortedEffect for Revive {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn frame_zero_uses_the_long_base_cylinder() {

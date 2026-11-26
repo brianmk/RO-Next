@@ -86,7 +86,7 @@ impl PortedEffect for Endure {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     const EPSILON: f32 = 1e-4;
 

@@ -29,91 +29,91 @@ impl TexturedSpreadFlat {
 
 /// One `TexturedSpreadFlat` call: spawns a single `PP` ring primitive.
 pub(crate) fn spawn_one(runtime: &mut EffectRuntime, texture: &'static str, kind: i32) {
-        let lifetime = runtime.lifetime;
-        let angles = Angles::shared();
+    let lifetime = runtime.lifetime;
+    let angles = Angles::shared();
 
-        // Per-kind texture size; kind 12 picks one of three sizes with the RNG.
-        let size = match kind {
-            k if k <= 1 => 4.0,
-            2 => 7.0,
-            3 => 6.0,
-            10 => (runtime.rng.clamped_random(5) + 4) as f32,
-            11 => 5.0,
-            12 => match runtime.rng.clamped_random(3) {
-                0 => 4.0,
-                1 => 40.0,
-                _ => 41.0,
-            },
-            _ => 4.0,
-        };
+    // Per-kind texture size; kind 12 picks one of three sizes with the RNG.
+    let size = match kind {
+        k if k <= 1 => 4.0,
+        2 => 7.0,
+        3 => 6.0,
+        10 => (runtime.rng.clamped_random(5) + 4) as f32,
+        11 => 5.0,
+        12 => match runtime.rng.clamped_random(3) {
+            0 => 4.0,
+            1 => 40.0,
+            _ => 41.0,
+        },
+        _ => 4.0,
+    };
 
-        // Per-slot random draws, in slot order, before the primitive is mutated.
-        let mut processes = [0i32; 4];
-        let mut radii = [0.0f32; 4];
-        let mut angles_deg = [0i32; 4];
-        let mut distances = [0.0f32; 4];
+    // Per-slot random draws, in slot order, before the primitive is mutated.
+    let mut processes = [0i32; 4];
+    let mut radii = [0.0f32; 4];
+    let mut angles_deg = [0i32; 4];
+    let mut distances = [0.0f32; 4];
+
+    for index in 0..4usize {
+        if kind == 11 {
+            processes[index] = runtime.rng.clamped_random(40) + 60;
+            radii[index] = runtime.rng.clamped_random(31) as f32 * 0.1 + 6.0;
+        } else if kind == 12 {
+            processes[index] = runtime.rng.clamped_random(50) + 50;
+            radii[index] = runtime.rng.clamped_random(17) as f32;
+        } else if kind == 10 {
+            processes[index] = runtime.rng.clamped_random(100);
+            radii[index] = runtime.rng.clamped_random(41) as f32;
+        } else {
+            processes[index] = runtime.rng.clamped_random(40) + 60;
+            radii[index] = 5.0;
+        }
+
+        angles_deg[index] = runtime.rng.clamped_random(360);
+        distances[index] = runtime.rng.clamped_random(11) as f32 * 0.015 + 0.15;
+    }
+
+    {
+        let ring = runtime.launch(PrimitiveId::HeightRamp, [0.0, 0.0, 0.0]);
+        let state = runtime.primitive_mut(ring);
+
+        state.render_flag = 1 | 4; // RSF_ALPHA | RSF_CUSTOM_BLEND
+        state.duration = lifetime;
+        state.size = size;
+        state.texture = Some(texture);
 
         for index in 0..4usize {
-            if kind == 11 {
-                processes[index] = runtime.rng.clamped_random(40) + 60;
-                radii[index] = runtime.rng.clamped_random(31) as f32 * 0.1 + 6.0;
-            } else if kind == 12 {
-                processes[index] = runtime.rng.clamped_random(50) + 50;
-                radii[index] = runtime.rng.clamped_random(17) as f32;
-            } else if kind == 10 {
-                processes[index] = runtime.rng.clamped_random(100);
-                radii[index] = runtime.rng.clamped_random(41) as f32;
-            } else {
-                processes[index] = runtime.rng.clamped_random(40) + 60;
-                radii[index] = 5.0;
-            }
+            let slot = &mut state.slots[index];
 
-            angles_deg[index] = runtime.rng.clamped_random(360);
-            distances[index] = runtime.rng.clamped_random(11) as f32 * 0.015 + 0.15;
-        }
+            slot.life = 1;
+            slot.full_display_angle = 360;
+            slot.rot_start = (index as i16) * 90;
 
-        {
-            let ring = runtime.launch(PrimitiveId::HeightRamp, [0.0, 0.0, 0.0]);
-            let state = runtime.primitive_mut(ring);
-
-            state.render_flag = 1 | 4; // RSF_ALPHA | RSF_CUSTOM_BLEND
-            state.duration = lifetime;
-            state.size = size;
-            state.texture = Some(texture);
-
-            for index in 0..4usize {
-                let slot = &mut state.slots[index];
-
-                slot.life = 1;
-                slot.full_display_angle = 360;
-                slot.rot_start = (index as i16) * 90;
-
-                match kind {
-                    11 => {
-                        slot.alpha_b = 50;
-                        slot.max_height = index as f32 * 20.0 + 60.0;
-                    }
-                    12 => {
-                        slot.alpha_b = 130;
-                        slot.max_height = index as f32 * 30.0 + 30.0;
-                    }
-                    _ => {
-                        slot.alpha_b = 150;
-                        slot.max_height = 120.0;
-                    }
+            match kind {
+                11 => {
+                    slot.alpha_b = 50;
+                    slot.max_height = index as f32 * 20.0 + 60.0;
                 }
-
-                slot.process = processes[index];
-                slot.distance = distances[index];
-                slot.vec_b_now[0] = radii[index] * angles.raw_cosine(angles_deg[index] as usize);
-                slot.vec_b_now[2] = radii[index] * angles.raw_sine(angles_deg[index] as usize);
-                slot.alpha_t = 0;
-                slot.rise_angle = 90;
-
-                slot.height = [0.0; 21];
-                slot.flag1 = [0; 21];
+                12 => {
+                    slot.alpha_b = 130;
+                    slot.max_height = index as f32 * 30.0 + 30.0;
+                }
+                _ => {
+                    slot.alpha_b = 150;
+                    slot.max_height = 120.0;
+                }
             }
+
+            slot.process = processes[index];
+            slot.distance = distances[index];
+            slot.vec_b_now[0] = radii[index] * angles.raw_cosine(angles_deg[index] as usize);
+            slot.vec_b_now[2] = radii[index] * angles.raw_sine(angles_deg[index] as usize);
+            slot.alpha_t = 0;
+            slot.rise_angle = 90;
+
+            slot.height = [0.0; 21];
+            slot.flag1 = [0; 21];
         }
+    }
 }
 
 impl PortedEffect for TexturedSpreadFlat {
@@ -137,7 +137,7 @@ impl PortedEffect for TexturedSpreadFlat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn redline_spawns_three_red_rings() {

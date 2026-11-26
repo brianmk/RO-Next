@@ -181,3 +181,12 @@ so the *skill* coverage is far higher than the id ratio suggests.
 * `.str` animation type 4 keeps a persistent `ratio`; the original reads an
   uninitialised local (`RagEffect.cpp:1519-1522`). Undefined behaviour cannot be
   reproduced.
+
+### Queued after the port (last item)
+
+Weapons are not visible on characters in-client. This is **outside** the effect
+port: the entity exposes `get_weapon_part_candidates` and the paper-doll slot
+table exists, so the gap is the weapon appearance pipeline (equip packet ->
+entity -> sprite part mapping -> actor render). Tracked in the audit
+`PROGRESS.md` TODO section; a dedicated agent owns the investigation so the
+ported effect files stay untouched.

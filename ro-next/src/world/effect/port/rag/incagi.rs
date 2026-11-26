@@ -1,4 +1,5 @@
-//! `CRagEffect::IncAgility` / `CRagEffect::IncAgiDex` - `RagEffect.cpp:679-757`.
+//! `CRagEffect::IncAgility` / `CRagEffect::IncAgiDex` -
+//! `RagEffect.cpp:679-757`.
 //!
 //! `EF_INCAGILITY` (37) and `EF_INCAGIDEX` (43), both lifetime 100 frames.
 //! Frame 0 spawns the rising buff glyph (`PP_2DTEXTURE`); every even frame adds
@@ -97,7 +98,7 @@ impl PortedEffect for IncAgility {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn frame_zero_spawns_the_glyph_and_one_mote() {

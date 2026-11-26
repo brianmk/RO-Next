@@ -6,8 +6,9 @@
 //! two wander angles in `height[0..5]` (pre) and `height[5..10]` (now); the
 //! angles step toward a per-pair target and are re-rolled with `rand()` when
 //! they reach it. `height[12]/[13]` are the alpha fade track. The helper
-//! functions are the file-local inlines at `EffectPrimitiveMotion.cpp:7301-7351`
-//! (`StepTowardAngle`, `WrapAngle`, `MoveWanderingSlot`, `FaceCamera`).
+//! functions are the file-local inlines at
+//! `EffectPrimitiveMotion.cpp:7301-7351` (`StepTowardAngle`, `WrapAngle`,
+//! `MoveWanderingSlot`, `FaceCamera`).
 //!
 //! `CRagEffect::TexturedForkBolt` (`RagEffect.cpp:7268-7332`) is the caller
 //! ported in `rag_batch_a.rs`.

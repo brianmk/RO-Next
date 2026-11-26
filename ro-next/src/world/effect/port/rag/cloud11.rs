@@ -1,7 +1,7 @@
 //! `CRagEffect::Cloud11Burst(kind)` - `RagEffect.cpp:16089-16157`.
 //!
-//! Four slot-driven rising wind columns using `cloud11.tga` (`PP_WIND`). Used by
-//! the portal effects and the Storm Kick family.
+//! Four slot-driven rising wind columns using `cloud11.tga` (`PP_WIND`). Used
+//! by the portal effects and the Storm Kick family.
 
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
@@ -115,7 +115,7 @@ impl PortedEffect for Cloud11Burst {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn portal4_spawns_four_wind_slots() {

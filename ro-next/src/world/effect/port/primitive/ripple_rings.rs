@@ -63,8 +63,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
                     state.slots[index].alpha_b = 0;
 
                     let driver = state.slots[3];
-                    let fade_out = (driver.process > 120
-                        && (driver.alpha_t == 1 || driver.alpha_t == 4 || driver.alpha_t == 5))
+                    let fade_out = (driver.process > 120 && (driver.alpha_t == 1 || driver.alpha_t == 4 || driver.alpha_t == 5))
                         || driver.process > 1400;
 
                     if fade_out {

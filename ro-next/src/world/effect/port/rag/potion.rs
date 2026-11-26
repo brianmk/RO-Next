@@ -37,26 +37,15 @@ pub struct PotionPill {
 
 impl PotionPill {
     pub fn new(awakening: bool, lifetime: i32) -> Self {
-        Self {
-            awakening,
-            lifetime,
-        }
+        Self { awakening, lifetime }
     }
 
     fn spot_color(&self) -> (i32, i32, i32) {
-        if self.awakening {
-            (240, 240, 120)
-        } else {
-            (240, 0, 0)
-        }
+        if self.awakening { (240, 240, 120) } else { (240, 0, 0) }
     }
 
     fn body_color(&self) -> [u8; 3] {
-        if self.awakening {
-            [250, 250, 200]
-        } else {
-            [250, 120, 120]
-        }
+        if self.awakening { [250, 250, 200] } else { [250, 120, 120] }
     }
 }
 
@@ -127,7 +116,7 @@ impl PortedEffect for PotionPill {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn berserk_raises_the_pillar_and_tints_red() {

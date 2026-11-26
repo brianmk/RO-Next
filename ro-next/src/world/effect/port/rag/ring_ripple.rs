@@ -8,7 +8,8 @@ use super::super::runtime::{EffectRuntime, PortedEffect};
 use super::textured_halo::TexturedHalo;
 use super::torch_dust_ring::TorchDustRing;
 
-/// One `WhiteRingRipple(size)` call. Returns `false` when the frame gate rejects.
+/// One `WhiteRingRipple(size)` call. Returns `false` when the frame gate
+/// rejects.
 pub(crate) fn white_ring_ripple(runtime: &mut EffectRuntime, size: i32) -> bool {
     if runtime.frame % 100 != 0 {
         return false;
@@ -141,7 +142,7 @@ impl PortedEffect for RingRippleOnly {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn ripple_fires_every_hundred_frames() {

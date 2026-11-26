@@ -80,7 +80,11 @@ impl PortedEffect for EarthSpike {
             state.change_speed = -1.2;
             state.change_accel = 0.0;
             state.fade_out_cnt = state.duration - 10;
-            state.texture = Some(if self.variant == 2 { "effect\\ice.tga" } else { "effect\\stone.bmp" });
+            state.texture = Some(if self.variant == 2 {
+                "effect\\ice.tga"
+            } else {
+                "effect\\stone.bmp"
+            });
         }
 
         // Six surrounding spikes.
@@ -111,7 +115,11 @@ impl PortedEffect for EarthSpike {
             state.alpha = 250.0;
             state.ch_cnt = 2;
             state.fade_out_cnt = state.duration - 10;
-            state.texture = Some(if self.variant == 2 { "effect\\ice.tga" } else { "effect\\stone.bmp" });
+            state.texture = Some(if self.variant == 2 {
+                "effect\\ice.tga"
+            } else {
+                "effect\\stone.bmp"
+            });
         }
 
         true
@@ -121,7 +129,7 @@ impl PortedEffect for EarthSpike {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn spawns_center_plus_six_spikes_and_quakes() {

@@ -3,8 +3,8 @@
 //!
 //! The screen-space textured sprite behind most self-buffs (Endure, Increase
 //! AGI, ...): it integrates speed/roll/width/height, moves along
-//! `longitude` with `ClientSine`/`ClientCosine`, cycles colours and advances its
-//! motion frame.
+//! `longitude` with `ClientSine`/`ClientCosine`, cycles colours and advances
+//! its motion frame.
 //!
 //! Deviation (documented in `PORT_STATUS.md`): the `slots[0].life == 98` branch
 //! of the original drives the *skill-cooldown overlay* (`g_activeSkillEffects`,

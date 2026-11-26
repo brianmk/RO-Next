@@ -66,7 +66,7 @@ impl PortedEffect for EnchantPoison {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn two_sounds_then_a_mote_every_five_frames() {
@@ -77,13 +77,10 @@ mod tests {
             step(&mut effect, &mut runtime);
         }
 
-        assert_eq!(
-            runtime.sounds,
-            vec![
-                "effect\\assasin_enchantpoison.wav".to_owned(),
-                "effect\\EF_PoisonAttack.wav".to_owned()
-            ]
-        );
+        assert_eq!(runtime.sounds, vec![
+            "effect\\assasin_enchantpoison.wav".to_owned(),
+            "effect\\EF_PoisonAttack.wav".to_owned()
+        ]);
 
         // Frames 0, 5, 10.
         assert_eq!(runtime.primitives.len(), 3);

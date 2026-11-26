@@ -72,7 +72,7 @@ impl PortedEffect for FrostMysty {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn frost_mysty_grows_the_wing_and_drops_snow() {

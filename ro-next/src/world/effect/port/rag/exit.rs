@@ -4,7 +4,7 @@
 //! orbit primitive every nine frames.
 
 use super::super::angles::Angles;
-use super::super::math::{forward, Matrix};
+use super::super::math::{Matrix, forward};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -78,7 +78,7 @@ impl PortedEffect for Exit {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn exit_raises_the_pillar_and_orbiting_sparks() {

@@ -84,7 +84,7 @@ impl PortedEffect for WaterBallBurst {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn water_ball_burst_spawns_two_rings_and_droplets() {

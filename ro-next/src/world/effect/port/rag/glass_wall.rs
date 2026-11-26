@@ -5,7 +5,7 @@
 //! the effect retires on its own duration.
 
 use super::super::angles::Angles;
-use super::super::math::{matrix_mult, Matrix};
+use super::super::math::{Matrix, matrix_mult};
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
 
@@ -43,10 +43,7 @@ impl PortedEffect for GlassWall {
             rotation.make_y_rotation(angles.radian(angle));
 
             for side in [1.0f32, -1.0f32] {
-                let offsets = [
-                    (2.6 * side, 0.0, 3.0, angle + 90),
-                    (3.0 * side, 0.0, 2.6, angle),
-                ];
+                let offsets = [(2.6 * side, 0.0, 3.0, angle + 90), (3.0 * side, 0.0, 2.6, angle)];
 
                 for (index, (z_offset, x_offset, width, longitude)) in offsets.iter().enumerate() {
                     let strip = runtime.launch(PrimitiveId::Texture3d, [0.0, 0.0, 0.0]);
@@ -56,11 +53,7 @@ impl PortedEffect for GlassWall {
                     state.pattern = 40;
                     state.type_field = 50;
 
-                    let offset = if index == 0 {
-                        [0.0, 0.0, *z_offset]
-                    } else {
-                        [*x_offset, 0.0, 0.0]
-                    };
+                    let offset = if index == 0 { [0.0, 0.0, *z_offset] } else { [*x_offset, 0.0, 0.0] };
                     state.delta_pos2 = matrix_mult(offset, &rotation.values);
 
                     state.longitude = *longitude as f32;
@@ -90,7 +83,7 @@ impl PortedEffect for GlassWall {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn glass_wall_spawns_four_strips() {

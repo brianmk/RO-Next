@@ -63,7 +63,7 @@ impl PortedEffect for LockOn {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn lock_on_spawns_two_crossed_markers() {

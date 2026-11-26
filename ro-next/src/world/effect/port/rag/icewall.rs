@@ -68,7 +68,7 @@ impl PortedEffect for IceWall {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn spawns_three_shards_and_extends_lifetime() {
