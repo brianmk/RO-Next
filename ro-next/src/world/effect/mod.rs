@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use cgmath::{Point3, Rad, Vector2, Vector3};
 use ragnarok_formats::map::EffectSource;
-use ragnarok_packets::EntityId;
+use ragnarok_packets::{ClientTick, EntityId};
 use ro_next_collision::{Frustum, Sphere};
 use ro_next_container::Cacheable;
 use wgpu::BlendFactor;
@@ -18,9 +18,9 @@ use crate::world::{Camera, PointLightId, PointLightManager};
 mod arrow_effect;
 mod aura;
 mod cast_circle;
-mod procedural;
 #[allow(dead_code)]
 pub(crate) mod port;
+mod procedural;
 mod skill_aura;
 pub(crate) mod spirit_spheres;
 mod sprite_effect;
@@ -58,6 +58,23 @@ pub trait EffectBase {
     fn culling_position(&self) -> Option<Point3<f32>> {
         None
     }
+
+    /// Applies the effect's per-frame caster-actor requests to the entity that
+    /// owns it (`EffectHolder::add_unit`).
+    ///
+    /// The official effect bodies mutate the shared caster actor from inside
+    /// `OnProcess` (`SetColor`, `render.state`, `SetFrameSequence`). The port's
+    /// `update` is handed an immutable entity slice, so those requests are
+    /// recorded on the effect's runtime and replayed here by the holder, which
+    /// *does* have a mutable handle. The default is a no-op: only effects with
+    /// such requests (currently [`port::visual::PortedVisual`]) implement it.
+    fn apply_caster_state(&mut self, _entity: &mut crate::world::Entity, _client_tick: ClientTick) {}
+
+    /// Undoes [`Self::apply_caster_state`] when the effect is retired.
+    ///
+    /// Called by [`EffectHolder::update`] before the effect object is dropped;
+    /// implementations clear only the state they actually applied.
+    fn clear_caster_state(&mut self, _entity: &mut crate::world::Entity) {}
 }
 
 pub trait EffectSourceExt {
@@ -801,8 +818,47 @@ impl EffectHolder {
             .is_some_and(|position| camera.distance_to(position) > self.cull_distance)
     }
 
-    pub fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) {
-        self.effects.retain_mut(|(effect, _)| effect.update(entities, delta_time));
+    /// Steps every effect and applies the surviving effects' caster-actor
+    /// requests to their owning entities.
+    ///
+    /// The order mirrors a frame of the official client: the effect bodies run
+    /// first, an effect that returns `false` is retired (and clears the state
+    /// it applied), then the surviving effects re-apply their per-frame caster
+    /// requests. Retired effects are cleared before the surviving ones are
+    /// applied, so a second effect on the same caster immediately restores its
+    /// own tint/sequence.
+    pub fn update(&mut self, entities: &mut [crate::world::Entity], delta_time: f32, client_tick: ClientTick) {
+        let mut index = 0;
+
+        while index < self.effects.len() {
+            let alive = {
+                let (effect, _) = &mut self.effects[index];
+                effect.update(entities, delta_time)
+            };
+
+            if alive {
+                index += 1;
+                continue;
+            }
+
+            let (mut effect, owner) = self.effects.remove(index);
+
+            if let Some(owner) = owner
+                && let Some(entity) = entities.iter_mut().find(|entity| entity.get_entity_id() == owner)
+            {
+                effect.clear_caster_state(entity);
+            }
+        }
+
+        for (effect, owner) in &mut self.effects {
+            let Some(owner) = *owner else {
+                continue;
+            };
+
+            if let Some(entity) = entities.iter_mut().find(|entity| entity.get_entity_id() == owner) {
+                effect.apply_caster_state(entity, client_tick);
+            }
+        }
     }
 
     pub fn register_point_lights(&self, point_light_manager: &mut PointLightManager, camera: &dyn Camera) {

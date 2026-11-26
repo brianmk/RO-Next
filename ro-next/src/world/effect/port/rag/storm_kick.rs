@@ -1,15 +1,25 @@
 //! The `CRagEffect` Storm Kick bodies -
 //! `RagEffect.cpp:23663-23677` (`EF_STORMKICK`), `:23678-23688`
 //! (`EF_STORMKICK1`), `:23689-23697` (`EF_STORMKICK2`), `:23698-23702`
-//! (`EF_STORMKICK3`), `:23723-23731` (`EF_STORMKICK6`) and `:23732-23736`
+//! (`EF_STORMKICK3`), `:23703-23711` (`EF_STORMKICK4`), `:23712-23722`
+//! (`EF_STORMKICK5`), `:23723-23731` (`EF_STORMKICK6`) and `:23732-23736`
 //! (`EF_STORMKICK7`).
 //!
-//! Every block is the same three-call recipe: one [`TexturedMark`] with the
-//! id-specific `kind`, then `Cloud11Burst(2)` and `Cloud11Burst(3)`. Two ids
-//! add a wave (`EF_STORMKICK`/`EF_STORMKICK2` at `stateCnt == 5`,
-//! `EF_STORMKICK6` at `stateCnt == 0`) and two rotate the caster
-//! (`EF_STORMKICK` by 30 degrees for `stateCnt < 48`, `EF_STORMKICK1` by 14
-//! for `stateCnt <= 50`).
+//! The first four and the last two blocks are the same three-call recipe: one
+//! [`TexturedMark`] with the id-specific `kind`, then `Cloud11Burst(2)` and
+//! `Cloud11Burst(3)`. Two ids add a wave (`EF_STORMKICK`/`EF_STORMKICK2` at
+//! `stateCnt == 5`, `EF_STORMKICK6` at `stateCnt == 0`) and two rotate the
+//! caster (`EF_STORMKICK` by 30 degrees for `stateCnt < 48`, `EF_STORMKICK1`
+//! by 14 for `stateCnt <= 50`).
+//!
+//! `EF_STORMKICK4` and `EF_STORMKICK5` are the white-light-trail variants: each
+//! calls `WhiteLightTrail("effect\\whitelight.tga", 1)` thirty times per frame
+//! (the helper emits only on frame 0) and plays `effect\T_회피.wav` at frame
+//! 15. Id 5 additionally sets the caster's `render.state = 37`
+//! (`ST_NINJAREADY`) and `SetFrameSequence(0x60, 2, 2, 0x60, 2, 1, 25, 0)` at
+//! that frame; the port records both requests on the runtime so the client can
+//! apply the caster animation (`EffectRuntime::parent_state`/
+//! `parent_frame_sequence`).
 //!
 //! ## Parent rotation
 //!
@@ -31,12 +41,15 @@
 
 use ragnarok_packets::EffectId;
 
-use super::super::runtime::{EffectRuntime, PortedEffect};
+use super::super::runtime::{EffectRuntime, ParentFrameSequence, PortedEffect};
+use super::WhiteLightTrail;
 use super::cloud11::Cloud11Burst;
 use super::textured_mark::TexturedMark;
 
 /// `effect\storm2.tga` - the texture of every `TexturedMark` call.
 const STORM2: &str = "effect\\storm2.tga";
+/// `effect\whitelight.tga` - the texture of every `WhiteLightTrail` call.
+const WHITE_LIGHT: &str = "effect\\whitelight.tga";
 
 /// One of the six `CRagEffect` Storm Kick bodies.
 #[derive(Debug)]
@@ -71,9 +84,15 @@ fn spin_parent(runtime: &mut EffectRuntime, delta: f32) {
 }
 
 impl PortedEffect for StormKick {
-    /// `EffectTypes.cpp:444,468-474`: 100 for ids 0/1/2/3/6 and 1000 for id 7.
+    /// `EffectTypes.cpp:444,468-474`: 100 for ids 0/1/2/3/6, 200 for id 4, 300
+    /// for id 5 and 1000 for id 7.
     fn lifetime(&self) -> i32 {
-        if matches!(self.id, EffectId::Stormkick7) { 1000 } else { 100 }
+        match self.id {
+            EffectId::Stormkick4 => 200,
+            EffectId::Stormkick5 => 300,
+            EffectId::Stormkick7 => 1000,
+            _ => 100,
+        }
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
@@ -116,6 +135,42 @@ impl PortedEffect for StormKick {
             EffectId::Stormkick3 => {
                 marks_and_clouds(runtime, 3, lifetime);
             }
+            // `RagEffect.cpp:23703-23711`
+            EffectId::Stormkick4 => {
+                if runtime.frame == 15 {
+                    // `this->render.position = this->state.parent->render.position;`
+                    // is the spawn anchor already; only the wave is observable.
+                    runtime.play_sound("effect\\T_회피.wav");
+                }
+
+                // `for (int index = 0; index < 30; ++index)`
+                for _ in 0..30 {
+                    WhiteLightTrail::new(WHITE_LIGHT, 1, lifetime).on_process(runtime);
+                }
+            }
+            // `RagEffect.cpp:23712-23722`
+            EffectId::Stormkick5 => {
+                if runtime.frame == 15 {
+                    runtime.play_sound("effect\\T_회피.wav");
+                    // `this->state.parent->render.state = 37;` (`ST_NINJAREADY`)
+                    runtime.set_parent_state(37);
+                    // `SetFrameSequence(0x60, 2, 2, 0x60, 2, 1, 25, 0)`
+                    runtime.set_parent_frame_sequence(ParentFrameSequence {
+                        animation: 0x60,
+                        first_frame: 2,
+                        last_frame: 2,
+                        finish_animation: 0x60,
+                        finish_frame: 2,
+                        timed: 1,
+                        duration: 25,
+                        loop_: 0,
+                    });
+                }
+
+                for _ in 0..30 {
+                    WhiteLightTrail::new(WHITE_LIGHT, 1, lifetime).on_process(runtime);
+                }
+            }
             // `RagEffect.cpp:23723-23731`
             EffectId::Stormkick6 => {
                 if runtime.frame == 0 {
@@ -150,6 +205,9 @@ mod tests {
         EffectId::Stormkick7,
     ];
 
+    /// The two white-light-trail ids (`RagEffect.cpp:23703-23722`).
+    const TRAIL_IDS: [EffectId; 2] = [EffectId::Stormkick4, EffectId::Stormkick5];
+
     fn run(id: EffectId, frames: usize) -> EffectRuntime {
         let mut effect = StormKick::new(id);
         let mut runtime = EffectRuntime::new(effect.lifetime(), [0.0, 0.0], 17);
@@ -168,6 +226,8 @@ mod tests {
             (EffectId::Stormkick1, 100),
             (EffectId::Stormkick2, 100),
             (EffectId::Stormkick3, 100),
+            (EffectId::Stormkick4, 200),
+            (EffectId::Stormkick5, 300),
             (EffectId::Stormkick6, 100),
             (EffectId::Stormkick7, 1000),
         ];
@@ -373,5 +433,84 @@ mod tests {
 
             assert_eq!(runtime.parent_angle, 90.0, "{id:?}");
         }
+    }
+
+    #[test]
+    fn the_trail_bodies_spawn_thirty_white_light_primitives_on_frame_zero() {
+        for id in TRAIL_IDS {
+            let runtime = run(id, 1);
+
+            // Each `WhiteLightTrail` call launches its own prim 96.
+            assert_eq!(runtime.primitives.len(), 30, "{id:?}");
+
+            for primitive in &runtime.primitives {
+                let state = &primitive.state;
+                assert_eq!(state.count, PrimitiveId::PeongUp, "{id:?}");
+                assert_eq!(state.count.id(), 96, "{id:?}");
+                assert_eq!(state.render_flag, 1 | 4, "{id:?}");
+                assert_eq!(state.texture, Some("effect\\whitelight.tga"), "{id:?}");
+                assert_eq!(
+                    state.duration,
+                    if matches!(id, EffectId::Stormkick4) { 200 } else { 300 },
+                    "{id:?}"
+                );
+
+                for slot in &state.slots {
+                    assert_eq!(slot.life, 1, "{id:?}");
+                    // The kind-1 branch marks the blue colour.
+                    assert_eq!(slot.flag1[0], 2, "{id:?}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn the_trail_bodies_stop_emitting_after_frame_zero() {
+        for id in TRAIL_IDS {
+            let runtime = run(id, 10);
+            assert_eq!(runtime.primitives.len(), 30, "{id:?}");
+        }
+    }
+
+    #[test]
+    fn both_trail_bodies_play_the_evasion_wave_on_frame_fifteen() {
+        for id in TRAIL_IDS {
+            let runtime = run(id, 15);
+            assert!(runtime.sounds.is_empty(), "{id:?}");
+
+            let runtime = run(id, 16);
+            assert_eq!(runtime.sounds, vec!["effect\\T_회피.wav".to_owned()], "{id:?}");
+        }
+    }
+
+    #[test]
+    fn stormkick5_sets_the_ninja_ready_state_and_frame_sequence_on_frame_fifteen() {
+        let at_fourteen = run(EffectId::Stormkick5, 15);
+        assert_eq!(at_fourteen.parent_state, None);
+        assert_eq!(at_fourteen.parent_frame_sequence, None);
+
+        let runtime = run(EffectId::Stormkick5, 16);
+
+        // `parent->render.state = 37` (`ST_NINJAREADY`, `ActorEnums.h:55`).
+        assert_eq!(runtime.parent_state, Some(37));
+        let sequence = runtime.parent_frame_sequence.expect("SetFrameSequence ran");
+        assert_eq!(sequence, ParentFrameSequence {
+            animation: 0x60,
+            first_frame: 2,
+            last_frame: 2,
+            finish_animation: 0x60,
+            finish_frame: 2,
+            timed: 1,
+            duration: 25,
+            loop_: 0,
+        });
+        assert_eq!(runtime.parent_frame_sequence_frame, 15);
+    }
+
+    #[test]
+    fn stormkick4_does_not_touch_the_parent_state_or_sequence() {
+        let runtime = run(EffectId::Stormkick4, 20);
+        assert_eq!(runtime.parent_state, None);
+        assert_eq!(runtime.parent_frame_sequence, None);
     }
 }

@@ -1456,8 +1456,14 @@ impl Client {
         // Update the Asura Strike banner.
         // Update particles.
         self.particle_holder.update(delta_time as f32);
-        self.effect_holder
-            .update(self.client_state.follow(client_state().entities()), delta_time as f32);
+        {
+            // The ported effects record the caster's `SetColor`/`SetFrameSequence`
+            // requests on their runtime while `EffectBase::update` only sees an
+            // immutable slice; hand the holder the mutable entity list so it can
+            // apply them after each step (`EffectHolder::update`).
+            let entities = self.client_state.follow_mut(client_state().entities());
+            self.effect_holder.update(entities.as_mut_slice(), delta_time as f32, client_tick);
+        }
 
         let current_camera: &(dyn Camera + Send + Sync) = match currently_playing {
             #[cfg(feature = "debug")]

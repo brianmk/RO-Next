@@ -36,6 +36,34 @@ pub struct PrimitiveInstance {
     pub alive: bool,
 }
 
+/// `CRenderObject::SetFrameSequence`'s eight arguments
+/// (`RenderObject.cpp:625-643`), recorded verbatim so the client can play the
+/// caster's ACT range.
+///
+/// The official call stores the animation/frame range and, when `timed` is
+/// non-zero, a deadline. The port keeps all eight values; the client applies
+/// the range with [`crate::world::Entity::set_skill_frame_sequence`] and the
+/// animation with `set_custom_skill_action` (see `port/visual.rs`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ParentFrameSequence {
+    /// `unsigned char animation` - the ACT block, e.g. `0x60`.
+    pub animation: u8,
+    /// `unsigned char firstFrame`.
+    pub first_frame: u8,
+    /// `unsigned char lastFrame`.
+    pub last_frame: u8,
+    /// `unsigned char finishAnimation`.
+    pub finish_animation: u8,
+    /// `unsigned char finishFrame` - the loop target once `lastFrame` is hit.
+    pub finish_frame: u8,
+    /// `int timed` - non-zero arms `sequenceDeadline`.
+    pub timed: i32,
+    /// `std::uint32_t duration` - milliseconds of the timed sequence.
+    pub duration: i32,
+    /// `int loop`.
+    pub loop_: i32,
+}
+
 /// The state a ported effect body runs against.
 pub struct EffectRuntime {
     /// `state.stateCnt` of the `CRagEffect` (the frame number the body sees).
@@ -164,11 +192,35 @@ pub struct EffectRuntime {
     /// on each 16 ms step and only the body's current-frame writes are
     /// visible. [`Self::add_parent_flags`] is the `flags += 8` idiom.
     ///
-    /// Like [`Self::parent_color`], no client consumer reads this field yet;
-    /// the mutable actor handle is only available in the ported-effect bridge
-    /// (`port/visual.rs` / `client/effects.rs`), which this change does not
-    /// own.
+    /// The bridge in `port/visual.rs` applies [`Self::parent_color`] but not
+    /// this word: the client's `Entity` has no per-frame `render.flags`
+    /// register. Bit `1` (additive body blend, `Player.cpp:1059`) and bit `8`
+    /// (pulse/wave outline, `Player.cpp:1085`) map to persistent status
+    /// mechanisms (`set_status_additive`/`start_body_wave`) with different
+    /// lifetimes, so translating them would change other systems' state rather
+    /// than reproduce the original. The bits stay recorded exactly.
     pub parent_flags: u32,
+    /// `state.parent->render.state` write of the effect body, e.g.
+    /// `ST_NINJAREADY` (37) in `EF_STORMKICK5` (`RagEffect.cpp:23716`).
+    ///
+    /// The official actor's state machine selects how `ProcessState` advances
+    /// the sprite; this client has no `render.state` equivalent, so the value
+    /// is recorded for the bridge and the visible animation is carried by
+    /// [`Self::parent_frame_sequence`].
+    pub parent_state: Option<i32>,
+    /// The last `state.parent->SetFrameSequence(...)` call of the effect body.
+    ///
+    /// `EF_STORMKICK5` is the only ported caller so far:
+    /// `SetFrameSequence(0x60, 2, 2, 0x60, 2, 1, 25, 0)`
+    /// (`RagEffect.cpp:23717`). The client applies it to the caster entity (see
+    /// `port/visual.rs`), restarting the 25 ms sequence only when
+    /// [`Self::parent_frame_sequence_frame`] changes.
+    pub parent_frame_sequence: Option<ParentFrameSequence>,
+    /// The effect frame on which [`Self::parent_frame_sequence`] was last
+    /// written (`-1` before the first write). This is the port-only change
+    /// stamp the client uses to avoid re-applying the same sequence every
+    /// 16 ms step.
+    pub parent_frame_sequence_frame: i32,
 }
 
 impl EffectRuntime {
@@ -205,6 +257,9 @@ impl EffectRuntime {
             str_offset: DEFAULT_STR_OFFSET,
             parent_color: None,
             parent_flags: 0,
+            parent_state: None,
+            parent_frame_sequence: None,
+            parent_frame_sequence_frame: -1,
         }
     }
 
@@ -400,16 +455,28 @@ impl EffectRuntime {
     /// body (see the module-level note below), so the request is exposed here
     /// for the client bridge. `None` means no `SetColor` call has happened.
     ///
-    /// **Application status:** simulation-visible only at the moment. The
-    /// client's ported-effect spawn path attaches the visual to the caster but
-    /// [`crate::world::effect::EffectBase::update`] receives an immutable
-    /// `&[Entity]`, so `PortedVisual` has no mutable actor handle to call
-    /// `Entity::set_status_tint` on. Wiring this field to the actor belongs to
-    /// the client bridge (`client/effects.rs`/`port/visual.rs`), which another
-    /// change owns this round; reading [`Self::parent_color`] there is the
-    /// remaining step.
+    /// **Application status:** the client bridge in `port/visual.rs` applies
+    /// this request to the caster entity on every step
+    /// (`Entity::set_status_tint`) and clears it when the effect retires. A
+    /// channel still equal to `-1` keeps its previously applied value,
+    /// exactly like `SetColor`.
     pub fn set_parent_color(&mut self, alpha: i16, red: i16, green: i16, blue: i16) {
         self.parent_color = Some([alpha, red, green, blue]);
+    }
+
+    /// `state.parent->render.state = value`.
+    ///
+    /// Stored verbatim; see [`Self::parent_state`] for why the client does not
+    /// drive a state machine from it.
+    pub fn set_parent_state(&mut self, state: i32) {
+        self.parent_state = Some(state);
+    }
+
+    /// `state.parent->SetFrameSequence(...)` - records the eight arguments and
+    /// the effect frame that wrote them.
+    pub fn set_parent_frame_sequence(&mut self, sequence: ParentFrameSequence) {
+        self.parent_frame_sequence = Some(sequence);
+        self.parent_frame_sequence_frame = self.frame;
     }
 
     /// `state.parent->render.flags += bits` (`if ((flags & bits) == 0)` in the
@@ -737,5 +804,45 @@ mod tests {
 
         assert_eq!(runtime.parent_flags, 0);
         assert_eq!(runtime.parent_color, Some([-1, 255, 255, 160]));
+    }
+
+    #[test]
+    fn parent_state_and_frame_sequence_are_recorded_verbatim() {
+        let mut runtime = EffectRuntime::new(300, [0.0, 0.0], 1);
+        runtime.frame = 15;
+
+        runtime.set_parent_state(37);
+        runtime.set_parent_frame_sequence(ParentFrameSequence {
+            animation: 0x60,
+            first_frame: 2,
+            last_frame: 2,
+            finish_animation: 0x60,
+            finish_frame: 2,
+            timed: 1,
+            duration: 25,
+            loop_: 0,
+        });
+
+        assert_eq!(runtime.parent_state, Some(37));
+        assert_eq!(runtime.parent_frame_sequence_frame, 15);
+        assert_eq!(
+            runtime.parent_frame_sequence,
+            Some(ParentFrameSequence {
+                animation: 0x60,
+                first_frame: 2,
+                last_frame: 2,
+                finish_animation: 0x60,
+                finish_frame: 2,
+                timed: 1,
+                duration: 25,
+                loop_: 0,
+            })
+        );
+
+        // `render.state` and the sequence persist across the per-frame flag
+        // clear; only `render.flags` is a one-frame request.
+        runtime.begin_step();
+        assert_eq!(runtime.parent_state, Some(37));
+        assert!(runtime.parent_frame_sequence.is_some());
     }
 }

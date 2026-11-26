@@ -33,6 +33,7 @@
 //! | 89 | `RenderFanBeam` | textured quad spin |
 //! | 82 | `RenderTeiFacingSlots` | `TexturedAura` - glows, status auras, map spheres, tarot cards |
 //! | 103 | `RenderStackedRings` | `TexturedMark` - the Storm Kick rings |
+//! | 96 | `RenderPeongUp` | `WhiteLightTrail` - the Storm Kick 4/5 light trails |
 //!
 //! ## Projection and depth
 //!
@@ -283,6 +284,8 @@ pub enum SlotRenderer {
     BladeFins,
     /// `RenderStackedRings` - prim 103 (`TexturedMark`).
     StackedRings,
+    /// `RenderPeongUp` - prim 96 (`WhiteLightTrail`).
+    PeongUp,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -309,6 +312,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::HalfSphere => SlotRenderer::HalfSphere,
         PrimitiveId::FlashFade => SlotRenderer::BladeFins,
         PrimitiveId::StackedRings => SlotRenderer::StackedRings,
+        PrimitiveId::PeongUp => SlotRenderer::PeongUp,
         _ => return None,
     })
 }
@@ -352,6 +356,19 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::HalfSphere) => render_half_sphere(state, &mut out),
         Some(SlotRenderer::BladeFins) => render_blade_fins(state, &mut out),
         Some(SlotRenderer::StackedRings) => render_stacked_rings(state, &mut out),
+        Some(SlotRenderer::PeongUp) => {
+            // `PrimPeongUp` runs the file-local `FaceCamera` inline each frame
+            // and stores the two angles in `slots[0].alphaT`/`slots[1].alphaT`.
+            // The hermetic simulation has no camera, so the live render path
+            // computes them from the camera at draw time (exactly like
+            // `RenderTeiFacingSlots`); the fallback keeps the simulation value
+            // for the camera-less `triangles` tests.
+            let facing = context
+                .map(|context| context.facing)
+                .unwrap_or([state.slots[0].alpha_t, state.slots[1].alpha_t]);
+
+            render_peong_up(state, facing, &mut out);
+        }
         None => {}
     }
 
@@ -2303,6 +2320,69 @@ fn stacked_ring(out: &mut Vec<SlotTriangle>, state: &EffectPrimitiveState, alpha
 }
 
 // ---------------------------------------------------------------------------
+// RenderPeongUp (96)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderPeongUp` - `EffectPrimitiveRendering.cpp:2227-2263`.
+///
+/// One `distance`-sized square per live slot at the slot's 45/135/225/315
+/// degree diagonals, turned towards the screen by `slots[0..1].alphaT`
+/// (`Tei_TowardScreen`), offset by `slot.vecBPre` and then by
+/// `render.position` (`RenderTeiRect`'s `f1 = 0`). The quad is submitted only
+/// while its first corner is still at or below `y = 0`.
+///
+/// `slot.flag1[0]` selects the colour: `2` -> `105,105,225`, `3` ->
+/// `55,55,55`, anything else -> white. Every call uses `pw = 0` (the
+/// `SRCALPHA`/`ONE` glow blend), `tn = 0` and the full `0, 1` texture window.
+///
+/// `facing` is `[slots[0].alphaT, slots[1].alphaT]` after `FaceCamera`. The
+/// live render path passes the values recovered from the camera (the
+/// simulation has no camera); `triangles` passes the values `PrimPeongUp`
+/// stored.
+pub fn render_peong_up(state: &EffectPrimitiveState, facing: [i16; 2], out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let radius = slot.distance;
+        let mut corners = [
+            [table_cos(45) * radius, 0.0, table_sin(45) * radius],
+            [table_cos(135) * radius, 0.0, table_sin(135) * radius],
+            [table_cos(225) * radius, 0.0, table_sin(225) * radius],
+            [table_cos(315) * radius, 0.0, table_sin(315) * radius],
+        ];
+
+        tei_toward_screen(&mut corners, facing[0], facing[1]);
+
+        let base = slot.vec_b_pre;
+        let quad = corners.map(|corner| add(corner, base));
+
+        if quad[0][1] <= 0.0 {
+            let colour = match slot.flag1[0] {
+                2 => (105, 105, 225),
+                3 => (55, 55, 55),
+                _ => (255, 255, 255),
+            };
+
+            emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // RenderPentagon (66)
 // ---------------------------------------------------------------------------
 
@@ -2974,6 +3054,7 @@ mod tests {
             (PrimitiveId::HalfSphere, SlotRenderer::HalfSphere),
             (PrimitiveId::FlashFade, SlotRenderer::BladeFins),
             (PrimitiveId::StackedRings, SlotRenderer::StackedRings),
+            (PrimitiveId::PeongUp, SlotRenderer::PeongUp),
         ];
 
         for (id, expected_renderer) in expected {
@@ -3013,6 +3094,7 @@ mod tests {
             PrimitiveId::HalfSphere,
             PrimitiveId::FlashFade,
             PrimitiveId::StackedRings,
+            PrimitiveId::PeongUp,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -4543,5 +4625,104 @@ mod tests {
         let mut dead = stacked_rings_state(0);
         dead.slots[0].life = 0;
         assert!(triangles(&dead).is_empty());
+    }
+
+    // -----------------------------------------------------------------
+    // RenderPeongUp (96)
+    // -----------------------------------------------------------------
+
+    /// `WhiteLightTrail`'s kind-1 slot: one 10-unit square 5 below the anchor,
+    /// blue (`flag1[0] == 2`) and `alphaB = 40`.
+    fn peong_up_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::PeongUp);
+        // `WhiteLightTrail` sets `RSF_ALPHA | RSF_CUSTOM_BLEND`.
+        state.render_flag = 1 | 4;
+        state.texture = Some("effect\\whitelight.tga");
+        state.position = [1.0, 2.0, 3.0];
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 40,
+            distance: 10.0,
+            vec_b_pre: [0.0, -5.0, 0.0],
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[0] = 2;
+                flag1
+            },
+            ..Default::default()
+        };
+        state
+    }
+
+    #[test]
+    fn peong_up_emits_the_four_corner_quad_with_the_blue_colour() {
+        let built = triangles(&peong_up_state());
+
+        assert_eq!(built.len(), 2);
+
+        let radius = 10.0;
+        let first = [table_cos(45) * radius + 1.0, -5.0 + 2.0, table_sin(45) * radius + 3.0];
+        assert_eq!(built[0].corners[0], first);
+        assert_eq!(built[0].texture, Some("effect\\whitelight.tga"));
+        assert_eq!(built[0].argb, pack_argb(40, 105, 105, 225));
+        // `pw = 0` selects the `SRCALPHA`/`ONE` glow blend.
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].forced_depth, None);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+
+        // The second triangle is `(vec4, vec3, vec1)`.
+        let fourth = [table_cos(315) * radius + 1.0, -5.0 + 2.0, table_sin(315) * radius + 3.0];
+        assert_eq!(built[1].corners[0], fourth);
+        assert_eq!(built[1].corners[1], built[0].corners[2]);
+        assert_eq!(built[1].corners[2], built[0].corners[0]);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+    }
+
+    #[test]
+    fn peong_up_colour_table_matches_flag1_zero() {
+        let expected = [(2i8, (105u8, 105u8, 225u8)), (3, (55, 55, 55)), (1, (255, 255, 255))];
+
+        for (flag, colour) in expected {
+            let mut state = peong_up_state();
+            state.slots[0].flag1[0] = flag;
+
+            let built = triangles(&state);
+
+            assert_eq!(built[0].argb, pack_argb(40, colour.0, colour.1, colour.2), "flag {flag}");
+        }
+    }
+
+    #[test]
+    fn peong_up_rotates_the_quad_with_the_face_camera_angles() {
+        let mut flat = peong_up_state();
+        flat.slots[0].alpha_t = 0;
+        flat.slots[1].alpha_t = 0;
+
+        let mut turned = peong_up_state();
+        turned.slots[0].alpha_t = 90;
+        turned.slots[1].alpha_t = 0;
+
+        let flat_corner = triangles(&flat)[0].corners[0];
+        let turned_corner = triangles(&turned)[0].corners[0];
+
+        // `Tei_TowardScreen`'s `RotatePairY(90)` maps (x, z) -> (-z, x).
+        let expected = [table_cos(45) * 10.0, 0.0, table_sin(45) * 10.0];
+        let close = |left: f32, right: f32| (left - right).abs() < 1e-5;
+
+        assert_eq!(flat_corner, [expected[0] + 1.0, -3.0, expected[2] + 3.0]);
+        assert!(close(turned_corner[0], -expected[2] + 1.0), "{turned_corner:?}");
+        assert_eq!(turned_corner[1], -3.0);
+        assert!(close(turned_corner[2], expected[0] + 3.0), "{turned_corner:?}");
+    }
+
+    #[test]
+    fn peong_up_skips_dead_slots_and_quads_above_the_anchor() {
+        let mut dead = peong_up_state();
+        dead.slots[0].life = 0;
+        assert!(triangles(&dead).is_empty());
+
+        let mut above = peong_up_state();
+        above.slots[0].vec_b_pre[1] = 1.0;
+        assert!(triangles(&above).is_empty());
     }
 }

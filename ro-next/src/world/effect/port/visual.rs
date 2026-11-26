@@ -62,6 +62,16 @@ pub struct PortedVisual {
     /// resource file and are not `&'static`.
     prefetched: HashSet<String>,
     gets_deleted: bool,
+    /// The caster tint this visual last applied, i.e. the running
+    /// `render.colorChannels` of the official actor. `SetColor` leaves a
+    /// channel untouched when its argument is `-1`, so the previous value is
+    /// needed to resolve such a call.
+    applied_tint: Option<crate::graphics::Color>,
+    /// Effect frame of the last `SetFrameSequence` applied to the caster.
+    /// `parent_frame_sequence` stays set on the runtime forever; this stamp
+    /// makes the visual apply each sequence once instead of restarting its
+    /// 25 ms window on every 16 ms step.
+    applied_frame_sequence: Option<i32>,
 }
 
 impl PortedVisual {
@@ -83,6 +93,8 @@ impl PortedVisual {
             audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
+            applied_tint: None,
+            applied_frame_sequence: None,
         };
 
         visual.prefetch_textures();
@@ -159,6 +171,71 @@ impl EffectBase for PortedVisual {
         alive
     }
 
+    /// Applies the caster requests the ported body recorded on its runtime.
+    ///
+    /// This is the mutable-actor bridge the field docs of
+    /// `EffectRuntime::parent_color`/`parent_frame_sequence` pointed at:
+    /// [`EffectHolder::update`](crate::world::effect::EffectHolder::update)
+    /// steps every effect against the immutable slice and then calls this
+    /// method on each effect's owning entity.
+    ///
+    /// * `SetColor` is replayed as [`Entity::set_status_tint`] with `-1`
+    ///   channels keeping their previously applied value, exactly like
+    ///   `RenderObject.cpp:534-547`.
+    /// * `SetFrameSequence` is replayed with the client's existing
+    ///   `set_custom_skill_action` + `set_skill_frame_sequence` pair. The
+    ///   official `animation` byte is an ACT block offset (`0x60` = block 12,
+    ///   i.e. `0x60 + direction`), so the block index is `animation / 8`; the
+    ///   frame range and the 25 ms duration are copied unchanged. Only the
+    ///   first application of a sequence is sent (the runtime keeps the last
+    ///   request for its whole lifetime).
+    /// * `render.state` (e.g. `ST_NINJAREADY = 37`) is recorded on the runtime
+    ///   but has no client-side state machine to drive; the visible part of the
+    ///   official write - animation `0x60`, frame `2`, 25 ms - is carried by
+    ///   the frame sequence above.
+    fn apply_caster_state(&mut self, entity: &mut crate::world::Entity, client_tick: ragnarok_packets::ClientTick) {
+        let runtime = self.holder.runtime();
+
+        if let Some(channels) = runtime.parent_color {
+            let tint = tint_from_channels(channels, self.applied_tint.unwrap_or(crate::graphics::Color::WHITE));
+            self.applied_tint = Some(tint);
+            entity.set_status_tint(Some(tint));
+        }
+
+        if let Some(sequence) = runtime.parent_frame_sequence
+            && self.applied_frame_sequence != Some(runtime.parent_frame_sequence_frame)
+        {
+            let duration = sequence.duration.max(0) as u32;
+
+            entity.set_custom_skill_action(action_block(sequence.animation), duration, sequence.loop_ != 0, client_tick);
+            entity.set_skill_frame_sequence(
+                sequence.first_frame,
+                sequence.last_frame,
+                sequence.finish_frame,
+                duration,
+                client_tick,
+            );
+
+            self.applied_frame_sequence = Some(runtime.parent_frame_sequence_frame);
+        }
+    }
+
+    /// Clears the tint this visual applied when the effect retires.
+    ///
+    /// Only a tint that was actually applied is cleared, so a visual that never
+    /// called `SetColor` cannot erase a status tint owned by another system.
+    /// The clear sets `None`; if a status effect also owns a tint on this
+    /// entity, `Client::refresh_entity_status_visual` re-applies it on its next
+    /// status change (the official actor has no separate tint stack either -
+    /// the last `SetColor` simply wins until something writes again).
+    fn clear_caster_state(&mut self, entity: &mut crate::world::Entity) {
+        if self.applied_tint.take().is_some() {
+            entity.set_status_tint(None);
+        }
+
+        self.applied_frame_sequence = None;
+    }
+
     fn mark_for_deletion(&mut self) {
         self.gets_deleted = true;
     }
@@ -187,6 +264,30 @@ impl EffectBase for PortedVisual {
     }
 }
 
+/// Applies one `SetColor(alpha, red, green, blue)` to the running tint.
+///
+/// The official call leaves a channel untouched when its argument is `-1`
+/// (`RenderObject.cpp:534-547`), so `previous` supplies that value; the effect
+/// starts from the actor's white (255,255,255,255) defaults.
+fn tint_from_channels(channels: [i16; 4], previous: crate::graphics::Color) -> crate::graphics::Color {
+    let channel = |value: i16, previous: f32| {
+        if value == -1 { previous } else { f32::from(value as u8) / 255.0 }
+    };
+
+    crate::graphics::Color::rgba(
+        channel(channels[1], previous.red),
+        channel(channels[2], previous.green),
+        channel(channels[3], previous.blue),
+        channel(channels[0], previous.alpha),
+    )
+}
+
+/// `SetFrameSequence`'s `animation` argument is the ACT block offset
+/// (`0x60` = block 12); `Entity`'s custom action takes the block index.
+fn action_block(animation: u8) -> usize {
+    usize::from(animation / 8)
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::EffectId;
@@ -200,6 +301,8 @@ mod tests {
             audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
+            applied_tint: None,
+            applied_frame_sequence: None,
         }
     }
 
@@ -287,6 +390,8 @@ mod tests {
             audio_engine: None,
             prefetched: HashSet::new(),
             gets_deleted: false,
+            applied_tint: None,
+            applied_frame_sequence: None,
         };
 
         assert!(visual.runtime().str_player.is_some());
@@ -302,5 +407,32 @@ mod tests {
         // With loopLimit 0 the finished resource retires the effect.
         assert!(!visual.update(&[], 0.016));
         assert!(visual.is_finished());
+    }
+
+    #[test]
+    fn tint_channels_keep_previous_values_for_minus_one() {
+        use crate::graphics::Color;
+
+        // `SetColor(-1, 255, 255, 160)` - the alpha channel is untouched.
+        let tint = tint_from_channels([-1, 255, 255, 160], Color::WHITE);
+        assert!((tint.red - 1.0).abs() < 1e-6);
+        assert!((tint.green - 1.0).abs() < 1e-6);
+        assert!((tint.blue - 160.0 / 255.0).abs() < 1e-6);
+        assert!((tint.alpha - 1.0).abs() < 1e-6);
+
+        // The second `SetColor(-1, 100, 100, 100)` of the Reject Sword blink
+        // replaces all three colour channels and keeps the alpha.
+        let tint = tint_from_channels([-1, 100, 100, 100], tint);
+        assert!((tint.red - 100.0 / 255.0).abs() < 1e-6);
+        assert!((tint.alpha - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn frame_sequence_animation_converts_to_the_act_block_index() {
+        // `SetFrameSequence(0x60, ...)` selects block 96 = 12 * 8, the block
+        // `CasterAction::Action(12)` names in the skill-action table.
+        assert_eq!(action_block(0x60), 12);
+        assert_eq!(action_block(0x58), 11);
+        assert_eq!(action_block(0), 0);
     }
 }

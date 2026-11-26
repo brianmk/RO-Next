@@ -1347,6 +1347,12 @@ pub enum EffectId {
     #[numeric_value(1242)]
     SoulExplosion,
     Max,
+    /// `EF_NEW_METALLICSOUND_LINE` (`EffectTypes.h:1592`, official id 1584).
+    /// The effect body is `CRagEffect`'s metallic-sound line
+    /// (`RagEffect.cpp:22532-22544`); no pre-1243 packet carries it, so it is
+    /// declared after the enum's old `Max` stop with its real numeric value.
+    #[numeric_value(1584)]
+    NewMetallicSoundLine,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]

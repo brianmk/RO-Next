@@ -16,11 +16,11 @@ use super::rag::{
     ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
     Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria,
     GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, LkConcentration, LockOn, Loud,
-    MagicRing, MagnumBreak, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, RejectSword, RemoveTrap, Revive, RingWave,
-    RisingOrbs, RocketPunch, RogueCoin, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond, SprinkleSand,
-    StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedPulse, TexturedPulseKind,
-    TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp,
-    WaterBall, WaterBallBurst, WhiteSpray,
+    MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, RejectSword, RemoveTrap,
+    Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SpearBmr, Sphere, SprayPond,
+    SprinkleSand, StoneSpike, StormGust, StormKick, TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedPulse,
+    TexturedPulseKind, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
+    VioletRingCloud, Warp, WaterBall, WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -85,14 +85,18 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BigPortal2 => Box::new(MagicRing::new(1, 99_999_999)),
         EffectId::Stormgust => Box::new(StormGust::default()),
         // `CRagEffect`'s Storm Kick dispatch (`RagEffect.cpp:23663-23736`).
-        // `EF_STORMKICK4/5` stay blocked: they call the unported
-        // `WhiteLightTrail`/`SetFrameSequence` helpers.
+        // Ids 4/5 spawn thirty `WhiteLightTrail` prim-96 primitives; id 5 also
+        // records the caster's `render.state`/`SetFrameSequence` request.
         EffectId::Stormkick => Box::new(StormKick::new(EffectId::Stormkick)),
         EffectId::Stormkick1 => Box::new(StormKick::new(EffectId::Stormkick1)),
         EffectId::Stormkick2 => Box::new(StormKick::new(EffectId::Stormkick2)),
         EffectId::Stormkick3 => Box::new(StormKick::new(EffectId::Stormkick3)),
+        EffectId::Stormkick4 => Box::new(StormKick::new(EffectId::Stormkick4)),
+        EffectId::Stormkick5 => Box::new(StormKick::new(EffectId::Stormkick5)),
         EffectId::Stormkick6 => Box::new(StormKick::new(EffectId::Stormkick6)),
         EffectId::Stormkick7 => Box::new(StormKick::new(EffectId::Stormkick7)),
+        // `RagEffect.cpp:22532-22544` - `TT_MIN_EFFECT_ON_OFF` default branch.
+        EffectId::NewMetallicSoundLine => Box::new(MetallicSoundLine::new(300)),
         EffectId::Fireball3 => Box::new(RocketPunch::new(false, 100)),
         EffectId::Fireball6 => Box::new(RocketPunch::new(true, 100)),
         EffectId::Sprinklesand => Box::new(SprinkleSand::new(20, 300)),
@@ -246,6 +250,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::ChemicalV,
         EffectId::ChemicalV2,
         EffectId::ChemicalV3,
+        EffectId::NewMetallicSoundLine,
         EffectId::Decagility,
         EffectId::Aqua,
         EffectId::Revive,
@@ -272,6 +277,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Stormkick1,
         EffectId::Stormkick2,
         EffectId::Stormkick3,
+        EffectId::Stormkick4,
+        EffectId::Stormkick5,
         EffectId::Stormkick6,
         EffectId::Stormkick7,
         EffectId::Fireball3,
@@ -418,6 +425,8 @@ mod tests {
             (EffectId::Stormkick1, 100),
             (EffectId::Stormkick2, 100),
             (EffectId::Stormkick3, 100),
+            (EffectId::Stormkick4, 200),
+            (EffectId::Stormkick5, 300),
             (EffectId::Stormkick6, 100),
             (EffectId::Stormkick7, 1000),
             (EffectId::Fireball3, 100),
@@ -493,6 +502,7 @@ mod tests {
             (EffectId::ChemicalV, 300),
             (EffectId::ChemicalV2, 300),
             (EffectId::ChemicalV3, 300),
+            (EffectId::NewMetallicSoundLine, 300),
             (EffectId::Magnumbreak, 30),
             (EffectId::Frostdiver, 150),
             (EffectId::Frostdiver2, 100),
@@ -635,8 +645,8 @@ mod tests {
 
     #[test]
     fn unported_effects_return_none() {
-        // Thunderstorm (30) is ported now; `EF_STORMKICK8` (1223) still needs
-        // the unported `WhiteLightTrail`/`SetFrameSequence` helpers.
+        // `EF_STORMKICK8` (1223) is the separate `CStormKickEffect` particle
+        // implementation, not the `CRagEffect` body ported here.
         assert!(spawn(EffectId::Stormkick8).is_none());
         assert!(
             !ported_ids()

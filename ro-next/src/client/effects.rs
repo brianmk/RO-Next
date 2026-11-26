@@ -436,6 +436,11 @@ impl Client {
             }
         }
 
+        // Owning the visual by `source_entity_id` lets `EffectHolder::update`
+        // hand that entity to `EffectBase::apply_caster_state`, which replays
+        // the official `SetColor`/`SetFrameSequence` writes the body recorded
+        // on its runtime (the caster's tint is cleared when the effect
+        // retires).
         if self.effect_holder.add_unit(Box::new(visual), source_entity_id) {
             crate::logging::log_debug!(
                 "skill effect: spawned ported {:?} for skill {} phase {:?}",

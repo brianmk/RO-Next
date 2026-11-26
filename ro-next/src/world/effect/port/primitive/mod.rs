@@ -25,6 +25,7 @@ pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
 pub mod particle_up;
+pub mod peong_up;
 pub mod pulse_kind;
 pub mod pulsing_columns;
 pub mod quadhorn;
@@ -185,6 +186,8 @@ pub enum PrimitiveId {
     /// enum has no symbol for it (`EffectPrimId.h` jumps from 102 to 104), so
     /// the port names it after its renderer, `RenderStackedRings`.
     StackedRings,
+    /// `PP_PEONGUP` (96) - `CRagEffect::WhiteLightTrail`'s rising light trail.
+    PeongUp,
 }
 
 impl PrimitiveId {
@@ -221,6 +224,7 @@ impl PrimitiveId {
             Self::HalfSphere => 104,
             Self::FlashFade => 154,
             Self::StackedRings => 103,
+            Self::PeongUp => 96,
         }
     }
 }
@@ -512,7 +516,9 @@ impl Default for EffectPrimitiveState {
     /// `EffectPrim.cpp:8-150`. These are *not* zeros: the constructor sets
     /// `duration = 100`, `alpha = 254`, `maxAlpha = 254`, `alphaDelta = 1`,
     /// `changePoint = -1`, `arcAngle = 36`, `red/green/blue = 255`, and the
-    /// `change*` fields to `0.0001`. Effects rely on them.
+    /// `change*` fields to `0.0001`, but `EffectPrim.cpp:97-102` zeroes the
+    /// 3-D speed/accel vector components, so bodies that only write some
+    /// components start from zero there.
     fn default() -> Self {
         Self {
             common_pattern: 0,
@@ -538,8 +544,8 @@ impl Default for EffectPrimitiveState {
             arc_angle: 36.0,
             change_speed: 0.0001,
             change_accel: 0.0001,
-            change_speed3d: [0.0001; 3],
-            change_accel3d: [0.0001; 3],
+            change_speed3d: [0.0; 3],
+            change_accel3d: [0.0; 3],
             change_height_speed: 0.0001,
             change_height_accel: 0.0001,
             change_width_accel: 0.0001,
@@ -748,6 +754,7 @@ impl EffectPrimitiveState {
                 stacked_rings::on_process(self, rng);
                 true
             }
+            PrimitiveId::PeongUp => peong_up::on_process(self, angles, master, rng),
         };
 
         if !alive {
