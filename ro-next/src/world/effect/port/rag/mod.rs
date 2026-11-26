@@ -4,6 +4,7 @@
 //! classic `CRagEffect` methods that the pre-renewal skills use most.
 
 pub mod bash;
+pub mod aqua;
 pub mod blessing;
 pub mod bowlingbash;
 pub mod cart;
@@ -18,10 +19,12 @@ pub mod icewall;
 pub mod incagi;
 pub mod overthrust;
 pub mod magnum;
+pub mod revive;
 pub mod signum;
 pub mod sonicblow;
 
 pub use bash::Bash;
+pub use aqua::Aqua;
 pub use blessing::Blessing;
 pub use bowlingbash::BowlingBash;
 pub use cart::CartRevolution;
@@ -35,6 +38,7 @@ pub use hit::Hit2;
 pub use icewall::IceWall;
 pub use incagi::IncAgility;
 pub use overthrust::Overthrust;
+pub use revive::Revive;
 pub use signum::Signum;
 pub use magnum::MagnumBreak;
 pub use sonicblow::SonicBlow;
