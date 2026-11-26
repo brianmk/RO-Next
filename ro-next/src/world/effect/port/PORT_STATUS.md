@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 290 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 312 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -226,6 +226,12 @@ so the *skill* coverage is far higher than the id ratio suggests.
 - **Parent tint is applied**, not just recorded: `EffectHolder::update` now takes `&mut [Entity]`, and `PortedVisual` replays `SetColor` into `Entity::set_status_tint` (`-1` channels keep the previous value), clearing it on retirement.
 - Batch f: Sightrasher, TurnUndead, HasteUp, Dance2, Thunderstorm2.
 - Constructor defaults fixed centrally: `change_speed3d`/`change_accel3d` now start at `0` per `EffectPrim.cpp:97-102`.
+
+### Round 90
+
+- prim **42** `PP_SHIELDBOOMERANG`, **53** `PP_THROWITEM`, **116** `PP_SHIELDBOOMERANG3` — all three reuse the shared `RenderFieldPanel` (its `flag1[2]`/`flag1[3]` switches already covered ThrowItem and TANJI), so only motion modules plus `primitive::get_angle` (`EffectPrimitiveState.cpp:51-70`) were needed. Bodies: ThrowItem, DoubleThrowItem, TexturedShieldThrow, ShieldBoomerang3, TANJI (20 ids).
+- Batch g: AbsorbSpirits, Bash3D/3/4, TrueSight (TexturedQuadSpin phases), HitTexture (TexturedAura kind 2). Quirk kept: the helpers no-op after frame 0, so all geometry appears on the first frame and the port calls them every frame to preserve RNG order.
+- Backlog coverage after rounds 89-90: `.str` tier 57/57, layer tier 74/144, manual tier 0/35.
 
 ### Known wiring gaps (client spawn path)
 
