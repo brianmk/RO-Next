@@ -70,6 +70,7 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | prim 60 `PrimPulsingColumns` (heal/fire columns) | `EffectPrimitiveMotion.cpp:6541-6650` | 4 |
 | `CRagEffect::HealBurst` (`EF_HEAL`, `EF_HEAL3`) | `RagEffect.cpp:18215-18362` | 3 |
 | `CRagEffect::HealRingSparkle` (`EF_HEAL2`) | `RagEffect.cpp:17970-18186` | 2 |
+| prim 63 `PrimRippleRings` | `EffectPrimitiveMotion.cpp:6638-6739` | 4 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
