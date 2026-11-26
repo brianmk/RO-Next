@@ -49,6 +49,8 @@ pub struct EffectRuntime {
     /// (`render.angle`) and the `flag` used by the projectile-style bodies.
     pub target_offset: [f32; 3],
     pub delta_pos3: [f32; 3],
+    /// `state.deltaPos2` - the per-step vector some bodies carry across frames.
+    pub delta_pos2: [f32; 3],
     pub render_angle: f32,
     /// `camera->camera.yaw` - used by action-facing effects.
     pub camera_yaw: f32,
@@ -82,6 +84,7 @@ impl EffectRuntime {
             parent_action_height: None,
             target_offset: [0.0; 3],
             delta_pos3: [0.0; 3],
+            delta_pos2: [0.0; 3],
             render_angle: 0.0,
             camera_yaw: 0.0,
             body_tint: None,
