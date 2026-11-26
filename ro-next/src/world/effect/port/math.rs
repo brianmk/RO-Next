@@ -53,6 +53,25 @@ impl Matrix {
         self.values[6] = sine;
     }
 
+    /// `matrix::MakeZRotation(float)` - `AffineMatrix.cpp:64-72`.
+    pub fn make_z_rotation(&mut self, radians: f32) {
+        self.values = IDENTITY;
+
+        let sine = client_sin(radians);
+        let cosine = client_cos(radians);
+        self.values[0] = cosine;
+        self.values[4] = cosine;
+        self.values[3] = -sine;
+        self.values[1] = sine;
+    }
+
+    /// `matrix::AppendZRotation(float)` - `AffineMatrix.cpp:95-99`.
+    pub fn append_z_rotation(&mut self, radians: f32) {
+        let mut rotation = Matrix::identity();
+        rotation.make_z_rotation(radians);
+        self.rotate(&rotation.values);
+    }
+
     /// `matrix::AppendYRotation(float)` - `AffineMatrix.cpp:87-91`.
     pub fn append_y_rotation(&mut self, radians: f32) {
         let mut rotation = Matrix::identity();

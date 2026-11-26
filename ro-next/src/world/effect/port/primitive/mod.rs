@@ -14,6 +14,7 @@ pub mod circle;
 pub mod circle3d;
 pub mod flash;
 pub mod quadhorn;
+pub mod texture3d;
 pub mod texture2d;
 
 use super::angles::Angles;
@@ -41,8 +42,9 @@ pub struct RenderTriangle {
     pub texture: u16,
 }
 
-/// The parts of the master `CRagEffect` that primitives read.
-#[derive(Debug, Clone, Copy, Default)]
+/// The parts of the master `CRagEffect` and the frame context that primitives
+/// read.
+#[derive(Debug, Clone)]
 pub struct MasterState {
     /// `CRagEffect::state.tlvertX/tlvertY` - projected anchor on the 640x480
     /// reference screen.
@@ -53,6 +55,42 @@ pub struct MasterState {
     /// `CRagEffect::state.stateCnt` and `.duration`.
     pub state_cnt: i32,
     pub duration: i32,
+    /// `CRagEffect::state.deltaPos` (target offset), read by `pattern & 0x400`.
+    pub master_delta_pos: [f32; 3],
+    /// `CRagEffect::render.angle` (facing), read by `pattern & 0x400`.
+    pub render_angle: f32,
+    /// Camera pitch / yaw and `g_cameraYawOffset`, read by `pattern` 0x40/0x200.
+    pub camera_pitch: f32,
+    pub camera_yaw: f32,
+    pub camera_yaw_offset: f32,
+    /// Terrain height under the primitive, read by `pattern & 4`.
+    pub terrain_height: Option<f32>,
+    /// `g_masterReachDistance`.
+    pub master_reach_distance: f32,
+    /// `pattern & 0x10` writes the master's `deltaPos` through this cell.
+    pub delta_pos_out: std::cell::Cell<[f32; 3]>,
+    /// `pattern & 4` sets the master's `flag`.
+    pub flag_out: std::cell::Cell<bool>,
+}
+
+impl Default for MasterState {
+    fn default() -> Self {
+        Self {
+            screen: [0.0; 2],
+            position: [0.0; 3],
+            state_cnt: 0,
+            duration: 0,
+            master_delta_pos: [0.0; 3],
+            render_angle: 0.0,
+            camera_pitch: 0.0,
+            camera_yaw: 0.0,
+            camera_yaw_offset: 90.0,
+            terrain_height: None,
+            master_reach_distance: 3.0,
+            delta_pos_out: std::cell::Cell::new([0.0; 3]),
+            flag_out: std::cell::Cell::new(false),
+        }
+    }
 }
 
 /// Which per-frame branch a primitive runs.
@@ -70,6 +108,10 @@ pub enum PrimitiveId {
     Sphere3d,
     /// `PP_3DQUADHORN` (9)
     QuadHorn3d,
+    /// `PP_3DTEXTURE` (1)
+    Texture3d,
+    /// `PP_3DCROSSTEXTURE` (16)
+    CrossTexture3d,
 }
 
 impl PrimitiveId {
@@ -82,6 +124,8 @@ impl PrimitiveId {
             Self::Circle3d => 12,
             Self::Sphere3d => 14,
             Self::QuadHorn3d => 9,
+            Self::Texture3d => 1,
+            Self::CrossTexture3d => 16,
         }
     }
 }
@@ -246,6 +290,18 @@ pub struct EffectPrimitiveState {
     pub ch_cnt: u32,
     /// `/* 01D0 */ count` - the primitive id.
     pub count: PrimitiveId,
+    /// `/* 01CC */ type` - per-primitive number used by `pattern & 0x20`.
+    pub primitive_type: i32,
+    /// `/* 014C */ masterReached`
+    pub master_reached: bool,
+    /// `/* 01FC */ RGBCycleCnt`, `/* 0234 */ RGBCycleDelay`
+    pub rgb_cycle_cnt: u32,
+    pub rgb_cycle_delay: u32,
+    /// `/* 02E4 */ v1`, `/* 02E8 */ v2`
+    pub v1: f32,
+    pub v2: f32,
+    /// `/* 036C */ maxHeightSize`
+    pub max_height_size: f32,
     /// `/* 0104 */ render.curMotion` - current texture index of animated prims.
     pub cur_motion: u32,
 }
@@ -333,6 +389,13 @@ impl Default for EffectPrimitiveState {
             is_disappear: 0,
             ch_cnt: 0,
             count: PrimitiveId::Texture2d,
+            primitive_type: 0,
+            master_reached: false,
+            rgb_cycle_cnt: 0,
+            rgb_cycle_delay: 0,
+            v1: 0.0,
+            v2: 0.0,
+            max_height_size: 100.0,
             cur_motion: 0,
         }
     }
@@ -372,6 +435,7 @@ impl EffectPrimitiveState {
                 quadhorn::on_process(self, angles, master);
                 true
             }
+            PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d => texture3d::on_process(self, angles, master, rng),
         };
 
         if !alive {

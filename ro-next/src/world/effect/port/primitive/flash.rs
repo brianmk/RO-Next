@@ -149,9 +149,9 @@ mod tests {
         let angles = Angles::new();
         let master = MasterState {
             screen: [100.0, 200.0],
-            position: [0.0; 3],
             state_cnt: 0,
             duration: 40,
+            ..Default::default()
         };
         let mut state = EffectPrimitiveState {
             delta_pos2: [0.0, -40.0, 0.0],

@@ -167,6 +167,9 @@ impl EffectRuntime {
             position: self.position,
             state_cnt: self.frame,
             duration: self.lifetime,
+            master_delta_pos: self.target_offset,
+            render_angle: self.render_angle,
+            ..Default::default()
         };
 
         let angles = Angles::shared();
