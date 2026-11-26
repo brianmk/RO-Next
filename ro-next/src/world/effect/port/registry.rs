@@ -9,7 +9,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Revive, Signum, SonicBlow, TexturedClassChange,
+    Cloud11Burst, Revive, Signum, SonicBlow, TexturedClassChange,
 };
 use super::runtime::PortedEffect;
 
@@ -29,6 +29,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Enchantpoison => Box::new(EnchantPoison::default()),
         EffectId::Detoxication => Box::new(Detoxication::default()),
         EffectId::Agiup => Box::new(AgilityUp::default()),
+        EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
+        EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Aqua => Box::new(Aqua::default()),
         EffectId::Revive => Box::new(Revive::default()),
         EffectId::Fireball => Box::new(FireBall::default()),
@@ -72,6 +74,8 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Enchantpoison,
         EffectId::Detoxication,
         EffectId::Agiup,
+        EffectId::Portal4,
+        EffectId::Portal5,
         EffectId::Rapidshower,
         EffectId::Magicalbullet,
         EffectId::Spreadattack,
@@ -130,6 +134,8 @@ mod tests {
             (EffectId::Enchantpoison, 250),
             (EffectId::Detoxication, 100),
             (EffectId::Agiup, 100),
+            (EffectId::Portal4, 200),
+            (EffectId::Portal5, 200),
             (EffectId::Rapidshower, 100),
             (EffectId::Magicalbullet, 100),
             (EffectId::Spreadattack, 100),

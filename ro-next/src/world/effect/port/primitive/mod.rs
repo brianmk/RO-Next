@@ -17,6 +17,7 @@ pub mod flash;
 pub mod particle3d;
 pub mod quadhorn;
 pub mod texture3d;
+pub mod wind;
 pub mod texture2d;
 
 use super::angles::Angles;
@@ -118,6 +119,8 @@ pub enum PrimitiveId {
     Cylinder3d,
     /// `PP_3DPARTICLE` (5)
     Particle3d,
+    /// `PP_WIND` (62)
+    Wind,
 }
 
 impl PrimitiveId {
@@ -134,6 +137,7 @@ impl PrimitiveId {
             Self::CrossTexture3d => 16,
             Self::Cylinder3d => 13,
             Self::Particle3d => 5,
+            Self::Wind => 62,
         }
     }
 }
@@ -162,6 +166,52 @@ impl Default for PrimitiveRecord {
             matrix: Matrix::default(),
             alpha: 0.0,
             color: 0,
+        }
+    }
+}
+
+/// `EffectPrimitiveSlot` - one of the four slot records a primitive can drive
+/// (winds, auras, sprite bursts). `EffectPrimitiveState.h` layout order kept.
+#[derive(Debug, Clone, Copy)]
+pub struct EffectPrimitiveSlot {
+    /// `/* 0000 */ life` (0 = unused, 1 = active)
+    pub life: i8,
+    /// `/* 0002 */ alphaB`
+    pub alpha_b: i16,
+    /// `/* 0004 */ alphaT`
+    pub alpha_t: i16,
+    /// `/* 0006 */ fullDisplayAngle`
+    pub full_display_angle: i16,
+    /// `/* 0008 */ maxHeight`
+    pub max_height: f32,
+    /// `/* 000C */ process`
+    pub process: i32,
+    /// `/* 0010 */ rotStart`
+    pub rot_start: i16,
+    /// `/* 0014 */ height[21]`
+    pub height: [f32; 21],
+    /// `/* 0068 */ flag1[21]`
+    pub flag1: [i8; 21],
+    /// `/* 007E */ riseAngle`
+    pub rise_angle: i16,
+    /// `/* 0080 */ distance`
+    pub distance: f32,
+}
+
+impl Default for EffectPrimitiveSlot {
+    fn default() -> Self {
+        Self {
+            life: 0,
+            alpha_b: 0,
+            alpha_t: 0,
+            full_display_angle: 0,
+            max_height: 0.0,
+            process: 0,
+            rot_start: 0,
+            height: [0.0; 21],
+            flag1: [0; 21],
+            rise_angle: 0,
+            distance: 0.0,
         }
     }
 }
@@ -280,6 +330,8 @@ pub struct EffectPrimitiveState {
     pub num_segment: i32,
     /// `/* 06B8 */ records[50]`
     pub records: Vec<PrimitiveRecord>,
+    /// `/* 03E8 */ slots[4]`
+    pub slots: [EffectPrimitiveSlot; 4],
 
     /// `/* 013C */ render.position`
     pub position: [f32; 3],
@@ -410,6 +462,7 @@ impl Default for EffectPrimitiveState {
             rot_transform: Matrix::default(),
             num_segment: 1,
             records: Vec::new(),
+            slots: [EffectPrimitiveSlot::default(); 4],
             position: [0.0; 3],
             argb: u32::MAX,
             red: 255,
@@ -480,6 +533,10 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::Particle3d => particle3d::on_process(self, angles, master, rng),
+            PrimitiveId::Wind => {
+                wind::on_process(self);
+                true
+            }
         };
 
         if !alive {

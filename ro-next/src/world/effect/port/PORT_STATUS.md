@@ -54,6 +54,9 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::Detoxication` (`EF_DETOXICATION`) | `RagEffect.cpp:13187-13211` | 2 |
 | `CRagEffect::TexturedClassChange` - 84-kind sprite table behind ~80 effect ids | `RagEffect.cpp:18730-19370` | 5 |
 | `registry_class_change.rs` - 66 generated effect-id entries with waves/quake | dispatch switch | 2 |
+| primitive slots (`EffectPrimitiveSlot` x4) | `EffectPrimitiveState.h` | - |
+| `PP_WIND` (`PrimWind`) | `EffectPrimitiveMotion.cpp:4415-4497` | 4 |
+| `CRagEffect::Cloud11Burst` (`EF_PORTAL4`, `EF_PORTAL5`) | `RagEffect.cpp:16089-16157` | 4 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
