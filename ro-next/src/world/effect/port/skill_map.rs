@@ -415,11 +415,17 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Icemine,
     EffectId::Icemine1,
     EffectId::RkDragonbreathWater,
+    EffectId::Blooddrain2,
     EffectId::NpcWideweb,
     EffectId::NpcBurnt,
     EffectId::SuStoop,
+    EffectId::PeongBlack,
     EffectId::EnergydrainBlack,
+    EffectId::NewHeavensDrive,
     EffectId::NewMetallicSoundLine,
+    EffectId::HealBlue2,
+    EffectId::RgCoinBlue,
+    EffectId::RgCoinBlue2,
 ];
 
 /// Where the official client launched the effect.

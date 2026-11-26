@@ -1337,6 +1337,14 @@ pub enum EffectId {
     Novaexplosing,
     StarEmperor,
     SmaBlack,
+    /// `EF_PEONG_BLACK` (`EffectTypes.h:1215`, official id 1207).
+    ///
+    /// The id sits between `SmaBlack` (1204) and `EnergydrainBlack` (1208).
+    /// Its body (`RagEffect.cpp:22254-22261`) is already implemented as
+    /// `SonicSlashFan(1)` plus the caster tint; the enum was the only thing
+    /// keeping `EffectId::PeongBlack` from being registered.
+    #[numeric_value(1207)]
+    PeongBlack,
     #[numeric_value(1208)]
     EnergydrainBlack,
     BlinkBody,
@@ -1356,12 +1364,42 @@ pub enum EffectId {
     #[numeric_value(1242)]
     SoulExplosion,
     Max,
+    /// `EF_NEW_HEAVENS_DRIVE` (`EffectTypes.h:1407`, official id 1399).
+    ///
+    /// The body (`RagEffect.cpp:22325-22327`) is the already-ported
+    /// `CRagEffect::StoneSpike` (`RagEffect.cpp:13342-13385`), shared with
+    /// `EF_HEAVENSDRIVE` (142). Its lifetime is 75, not 142's 250
+    /// (`EffectTypes.cpp:1408`).
+    #[numeric_value(1399)]
+    NewHeavensDrive,
     /// `EF_NEW_METALLICSOUND_LINE` (`EffectTypes.h:1592`, official id 1584).
     /// The effect body is `CRagEffect`'s metallic-sound line
     /// (`RagEffect.cpp:22532-22544`); no pre-1243 packet carries it, so it is
     /// declared after the enum's old `Max` stop with its real numeric value.
     #[numeric_value(1584)]
     NewMetallicSoundLine,
+    /// `EF_HEAL_BLUE_2` (`EffectTypes.h:2435`, official id 2427).
+    ///
+    /// The dispatch (`RagEffect.cpp:22886-22891`) is one already-ported
+    /// `HealRingSparkle("effect\\ring_blue.tga", 2)` call; the port already
+    /// registers the kind-0 form for `EF_HEAL2` (36). Lifetime 100
+    /// (`EffectTypes.cpp:2423`).
+    #[numeric_value(2427)]
+    HealBlue2,
+    /// `EF_RG_COIN_BLUE` (`EffectTypes.h:2444`, official id 2436).
+    ///
+    /// The body (`RagEffect.cpp:22916-22940`) is already implemented as
+    /// `RogueCoin::coin_blue`; spray kind 8, waves on frames 1/11/21/31.
+    /// Lifetime 3000 (`EffectTypes.cpp:2428`).
+    #[numeric_value(2436)]
+    RgCoinBlue,
+    /// `EF_RG_COIN_BLUE_2` (`EffectTypes.h:2445`, official id 2437).
+    ///
+    /// The body (`RagEffect.cpp:22941-22965`) is already implemented as
+    /// `RogueCoin::coin_blue_2`; spray kind 9, same wave frames. Lifetime 3000
+    /// (`EffectTypes.cpp:2429`).
+    #[numeric_value(2437)]
+    RgCoinBlue2,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
