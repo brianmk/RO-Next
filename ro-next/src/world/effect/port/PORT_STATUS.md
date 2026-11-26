@@ -79,13 +79,14 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `PotionPillar` + `Potion_Berserk` / `Potion_Awakening` (`EF_POTION_BERSERK/2`) | `RagEffect.cpp:2459-2520`, `15045-15087` | 3 |
 | `RingStack` + `EF_FIREPILLARON2` | `RagEffect.cpp:2861-2882`, `20741-20746` | 1 |
 | `CRagEffect::TexturedTripleOrbit` (`EF_GRADIUS_LASER`) | `RagEffect.cpp:7123-7183` | 1 |
+| `CRagEffect::TexturedSprayKind` / `TexturedSpray` helpers + `EF_RG_COIN2` | `RagEffect.cpp:4642-4689`, `4064-4097`, `20997-21025` | 2 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 144 effect ids (66 generated from `TexturedClassChange`, 26 from
-`TexturedAura`, 52 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
+**Registry:** 145 effect ids (66 generated from `TexturedClassChange`, 26 from
+`TexturedAura`, 53 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
 so the *skill* coverage is far higher than the id ratio suggests.
