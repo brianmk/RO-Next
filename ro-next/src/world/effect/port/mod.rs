@@ -27,6 +27,7 @@
 
 pub mod angles;
 pub mod clock;
+pub mod holder;
 pub mod math;
 pub mod primitive;
 pub mod registry;

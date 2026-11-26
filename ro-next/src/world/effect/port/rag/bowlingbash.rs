@@ -34,6 +34,7 @@ impl PortedEffect for BowlingBash {
         {
             let state = runtime.primitive_mut(cylinder);
             state.duration = 20 - frame;
+            state.render_flag |= 0x200;
 
             if facing < 0 {
                 facing += 360;
@@ -60,6 +61,7 @@ impl PortedEffect for BowlingBash {
             let ring = runtime.launch(PrimitiveId::Circle3d, [0.0, 0.0, 0.0]);
             let state = runtime.primitive_mut(ring);
             state.duration = 50;
+            state.render_flag |= 0x200;
             state.latitude = 90.0;
             state.radius = 8.0;
             state.radius_speed = 0.7;
@@ -95,6 +97,7 @@ mod tests {
         assert_eq!(runtime.primitives.len(), 2);
 
         let cylinder = &runtime.primitives[0].state;
+        assert_eq!(cylinder.render_flag & 0x200, 0x200);
         assert_eq!(cylinder.count, PrimitiveId::Cylinder3d);
         assert_eq!(cylinder.duration, 20);
         assert_eq!(cylinder.longitude, 180.0, "facing 180 with parent angle 0");

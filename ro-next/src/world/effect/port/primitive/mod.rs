@@ -302,6 +302,9 @@ pub struct EffectPrimitiveState {
     pub ch_cnt: u32,
     /// `/* 01D0 */ count` - the primitive id.
     pub count: PrimitiveId,
+    /// `/* 01C4 */ renderFlag` - `RSF_*` bits; `0x200` is the additive blend
+    /// used by the ring primitives.
+    pub render_flag: u32,
     /// Texture asset the body loads for this primitive (`g_texMgr.Load(...)`),
     /// relative to `data\` as the official paths are written. `None` for
     /// sprite (`.spr/.act`) primitives.
@@ -412,6 +415,7 @@ impl Default for EffectPrimitiveState {
             is_disappear: 0,
             ch_cnt: 0,
             count: PrimitiveId::Texture2d,
+            render_flag: 1,
             texture: None,
             primitive_type: 0,
             master_reached: false,

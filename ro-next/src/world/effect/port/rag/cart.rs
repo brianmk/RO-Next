@@ -39,6 +39,7 @@ impl PortedEffect for CartRevolution {
             {
                 let state = runtime.primitive_mut(ring);
                 state.duration = 20;
+                state.render_flag |= 0x200;
                 state.max_alpha = 180.0;
                 state.latitude = 90.0;
                 state.radius_speed = 1.75;
