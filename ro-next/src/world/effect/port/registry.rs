@@ -763,7 +763,8 @@ mod tests {
                     needs_str_clips(effect)
                         || super::super::registry_batch_h::is_caster_body_only(effect)
                         || super::super::registry_batch_i::is_caster_body_only(effect)
-                        || super::super::rag::champion::is_caster_body_only(effect),
+                        || super::super::rag::champion::is_caster_body_only(effect)
+                        || super::super::registry_batch_j::is_caster_body_only(effect),
                     "{effect:?} spawned nothing"
                 );
                 continue;
