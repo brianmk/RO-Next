@@ -3,6 +3,7 @@
 //! One module per original dispatch region/method group. Start with the
 //! classic `CRagEffect` methods that the pre-renewal skills use most.
 
+pub mod aspersio;
 pub mod bash;
 pub mod agiup;
 pub mod aqua;
@@ -77,6 +78,7 @@ pub mod violet_ring_cloud;
 pub mod water_ball;
 pub mod water_ball_burst;
 
+pub use aspersio::Aspersio;
 pub use bash::Bash;
 pub use agiup::AgilityUp;
 pub use aqua::Aqua;
