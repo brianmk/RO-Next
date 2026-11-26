@@ -223,8 +223,9 @@ pub struct EffectRuntime {
     /// Additive. The client bridge stores it on the caster entity
     /// ([`crate::world::Entity::set_render_outline_alpha`]); the actor
     /// outline passes that consume it (`Player.cpp:1142`,
-    /// `RenderObject.cpp:2072`) have no client equivalent yet, so it is
-    /// applied-but-record-only.
+    /// `RenderObject.cpp:2072`) are ported as
+    /// `world::entity::render_phase::outline_alpha` + the flag-0x800 pass in
+    /// `Common::render`.
     pub parent_outline_alpha: Option<u8>,
     /// `state.parent->render.effectPhase` write of the effect body -
     /// `RenderObjectState.h:127` (`short`).
@@ -277,8 +278,9 @@ pub struct EffectRuntime {
     /// Additive. The client bridge stores it on the caster entity
     /// ([`crate::world::Entity::set_render_shrink_phase`]). Its consumer is
     /// `CRenderObject::ScaleByPulse` behind flag `0x10`
-    /// (`RenderObject.cpp:749-767`, `GameActor.cpp:932-940`), which the client
-    /// entity has no equivalent of; applied-but-record-only.
+    /// (`RenderObject.cpp:749-767`, `GameActor.cpp:932-940`), ported as
+    /// `world::entity::render_phase::pulse_scale` and applied to every actor
+    /// layer scale in `Common::render`.
     pub parent_shrink_phase: Option<u8>,
     /// `state.parent->render.runStartTick` write of the effect body -
     /// `RenderObjectState.h:129` (`unsigned char`).

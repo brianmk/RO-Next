@@ -201,7 +201,8 @@ impl EffectBase for PortedVisual {
     ///   because the original only clears them in `CRenderObject::Reset`; the
     ///   visual re-applies the runtime's last write every frame and clears it
     ///   when the effect retires. The client has no render pass for these
-    ///   phases yet, so they are applied-but-record-only (see
+    ///   phases for tint/pulse/outline now, and record-only for effectPhase
+    ///   and runStartTick (see
     ///   `world::entity::Common`'s field docs for the official consumers that
     ///   would read them).
     fn apply_caster_state(&mut self, entity: &mut crate::world::Entity, client_tick: ragnarok_packets::ClientTick) {
