@@ -131,8 +131,10 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | --- | --- |
 | `PP_2DTEXTURE` (0), `PP_2DFLASH` (3) | yes (screen quads) |
 | `PP_3DTEXTURE` (15), `PP_3DCROSSTEXTURE` (16) | yes (world quads, per-corner depth) |
-| sprite particles (5/6/7, `.spr` bodies) | no - `TODO(sprite pass)`: needs sprite/action loaders and `RenderSegmentSprites2` projection |
-| slot/record prims (59, 60, 62, 63, 82, 89, 130/131, 137, 143, 155, 9, 12, 13, 39, 43, 64, 66) | no - needs their official slot/triangle renderers |
+| sprite particles (5/6/7) and every `.spr` body (incl. the 66 `TexturedClassChange` ids) | yes - `port/sprite_pass.rs` ports `RenderSegmentSprites2`, `AdjustCellPosition`, the 1/7 world scale, frame selection and blend flags |
+| slot/record prims (59, 60, 62, 63, 82, 89, 130/131, 137, 143, 155, 9, 12, 13, 39, 43, 64, 66) | no - needs their official slot/triangle renderers (`RenderTeiFacingSlots`, `RenderRecordRings`, `RenderArcBand`, ...) |
+
+Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend state is undefined in the decompilation (no body sets it); `sprite_type > 1`/third image index is an out-of-bounds read in the original; class-change direction rows are absent from the ported `ClassChange` table (those cells draw row 0); per-corner DX9 `rhw` depth is replaced by the anchor depth.
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
