@@ -411,6 +411,8 @@ pub struct EffectPrimitiveState {
     pub texture_secondary: Option<&'static str>,
     /// Animation row selected by `SetAction(index, ...)`.
     pub action_index: i32,
+    /// Third texture of three-texture primitives (`textures[2]`).
+    pub texture_tertiary: Option<&'static str>,
     /// Texture asset the body loads for this primitive (`g_texMgr.Load(...)`),
     /// relative to `data\` as the official paths are written. `None` for
     /// sprite (`.spr/.act`) primitives.
@@ -529,6 +531,7 @@ impl Default for EffectPrimitiveState {
             action_index: -1,
             texture: None,
             texture_secondary: None,
+            texture_tertiary: None,
             primitive_type: 0,
             master_reached: false,
             rgb_cycle_cnt: 0,

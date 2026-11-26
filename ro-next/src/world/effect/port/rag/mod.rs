@@ -48,6 +48,7 @@ pub mod storm_gust;
 pub mod textured_aura;
 pub mod triple_orbit;
 pub mod violet_ring_cloud;
+pub mod water_ball;
 
 pub use bash::Bash;
 pub use agiup::AgilityUp;
@@ -94,3 +95,4 @@ pub use storm_gust::StormGust;
 pub use textured_aura::TexturedAura;
 pub use triple_orbit::TripleOrbit;
 pub use violet_ring_cloud::VioletRingCloud;
+pub use water_ball::WaterBall;
