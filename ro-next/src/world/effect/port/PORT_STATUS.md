@@ -138,6 +138,8 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 
 Triangle pass: `EffectTriangleInstruction` + `EffectTriangleVertex` (pre-projected NDC corners, per-vertex depth, texture, blend), an additive `ForwardEffectDrawer` triangle pipeline + `effect_triangle.slang`; quads untouched, triangles drawn after them.
 
+Prim 82 note: the switch is on `slots[0].flag1[2]` (render kind), **not** `flag1[4]` (motion kind) - `EffectPrimitiveRendering.cpp:7853`; using the motion kind would make the status auras (kind 22 -> renderer kind 16) emit nothing. `state.size` is not read by this primitive.
+
 Documented render-side deviations (simulation untouched): `RenderFieldPanel` map-name alpha clamp skipped; `RenderPyramid`'s `std::rand` colour rewrite replaced by a deterministic hash (render is `&self`); `RenderRectUp`'s uninitialised colour falls back to case 0; the 510-triangle cap counts emitted triangles; render-time scratch writes to slot vectors are not written back; `RenderTeiRect` `extra` 2/3 not implemented (no ported body uses them).
 
 Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend state is undefined in the decompilation (no body sets it); `sprite_type > 1`/third image index is an out-of-bounds read in the original; class-change direction rows are absent from the ported `ClassChange` table (those cells draw row 0); per-corner DX9 `rhw` depth is replaced by the anchor depth.
