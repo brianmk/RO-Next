@@ -29,6 +29,7 @@ pub mod angles;
 pub mod clock;
 pub mod math;
 pub mod primitive;
+pub mod rng;
 pub mod rag;
 pub mod runtime;
 pub mod str_player;

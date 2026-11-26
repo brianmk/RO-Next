@@ -25,14 +25,16 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `CRagEffect::CartRevolution` (`EF_CARTREVOLUTION`) | `RagEffect.cpp:2234-2273` | 4 |
 | `CRagEffect::Signum` (`EF_SIGNUM`) | `RagEffect.cpp:2107-2154` | 2 |
 | `CRagEffect::StoneCurseRing` (`EF_OVERTHRUST`) | `RagEffect.cpp:10441-10470` | 2 |
+| `PP_2DTEXTURE` (`Move2DPrimitive`) | `EffectPrimitiveMotion.cpp:7719` | 4 |
+| `CRagEffect::Endure` (`EF_ENDURE`) | `RagEffect.cpp:224-284` | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 53 tests, all green. Effect bodies ported: **6 / 236**.
+Total: 59 tests, all green. Effect bodies ported: **7 / 236**.
 
 ## Next (W2/W3/W6)
 
-1. `PP_2DTEXTURE` (`Move2DPrimitive`) and `PP_3DTEXTURE` - the rest of the
-   screen/ground family used by buffs. `PP_3DCIRCLE`/`PP_3DSPHERE` are done.
+1. `PP_3DTEXTURE` (`MoveEffectPrimitive`) - the 3-D textured sprite family; needs
+   the camera/terrain context that `MoveEffectPrimitive` reads.
 2. Wire `str_player` into `EffectWithLight`: replace the interpolating
    `FrameTimer` path and the buggy key map in `loaders/effect/mod.rs`.
 3. `EF_SIGNUM` and `EF_OVERTHRUST` (both are now expressible with the primitives
@@ -45,6 +47,8 @@ Total: 53 tests, all green. Effect bodies ported: **6 / 236**.
 * `EffectRng` is xorshift64\*, not the MSVC LCG: same distribution and ranges,
   different sequence. Every client sees different randomness anyway; tests need
   determinism.
+* `Move2DPrimitive`'s `slots[0].life == 98` branch drives the skill-cooldown
+  overlay (`g_activeSkillEffects`), not a world visual; it is not ported.
 * `.str` animation type 4 keeps a persistent `ratio`; the original reads an
   uninitialised local (`RagEffect.cpp:1519-1522`). Undefined behaviour cannot be
   reproduced.

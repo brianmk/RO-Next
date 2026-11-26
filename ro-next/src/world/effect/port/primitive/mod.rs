@@ -13,9 +13,11 @@
 pub mod circle;
 pub mod circle3d;
 pub mod flash;
+pub mod texture2d;
 
 use super::angles::Angles;
 use super::math::Matrix;
+use super::rng::EffectRng;
 
 /// One fixed-function-pipeline vertex as the official client submits it.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -335,13 +337,29 @@ impl EffectPrimitiveState {
     /// if (this->state.stateCnt > this->state.duration) return false;
     /// return true;
     /// ```
-    pub fn on_process(&mut self, angles: &Angles, master: &MasterState) -> bool {
-        match self.count {
-            PrimitiveId::Circle2d => circle::on_process(self, master),
-            PrimitiveId::Flash2d => flash::on_process(self, angles, master),
-            PrimitiveId::Circle3d => circle3d::on_process(self, angles, master),
-            PrimitiveId::Sphere3d => self.on_process_sphere(master),
-            PrimitiveId::Texture2d => {}
+    pub fn on_process(&mut self, angles: &Angles, master: &MasterState, rng: &mut EffectRng) -> bool {
+        let alive = match self.count {
+            PrimitiveId::Circle2d => {
+                circle::on_process(self, master);
+                true
+            }
+            PrimitiveId::Flash2d => {
+                flash::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Circle3d => {
+                circle3d::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Sphere3d => {
+                self.on_process_sphere(master);
+                true
+            }
+            PrimitiveId::Texture2d => texture2d::on_process(self, angles, master, rng),
+        };
+
+        if !alive {
+            return false;
         }
 
         self.state_cnt += 1;
@@ -571,10 +589,10 @@ mod tests {
 
         // Four alive steps (stateCnt 0..3), the fifth increments to 5 > 4.
         for expected in 0..4 {
-            assert!(state.on_process(&angles, &master));
+            assert!(state.on_process(&angles, &master, &mut EffectRng::new(1)));
             assert_eq!(state.state_cnt, expected + 1);
         }
 
-        assert!(!state.on_process(&angles, &master));
+        assert!(!state.on_process(&angles, &master, &mut EffectRng::new(1)));
     }
 }
