@@ -39,6 +39,9 @@ pub struct EffectRuntime {
     pub position: [f32; 3],
     /// `state.param[0]` - effect parameter (skill level / power) some bodies use.
     pub param: f32,
+    /// `parent->GetActRes()->Frame(0, 0)->Cell(0)->y`, used by aura kind 22 to
+    /// lift the overlay to the head of the parent sprite.
+    pub parent_action_height: Option<f32>,
     /// `state.deltaPos4` equivalents the effect bodies own: the offset to the
     /// target (`deltaPos`), the travelled vector (`deltaPos3`), the facing
     /// (`render.angle`) and the `flag` used by the projectile-style bodies.
@@ -69,6 +72,7 @@ impl EffectRuntime {
             screen,
             position: [0.0; 3],
             param: 0.0,
+            parent_action_height: None,
             target_offset: [0.0; 3],
             delta_pos3: [0.0; 3],
             render_angle: 0.0,

@@ -25,7 +25,12 @@ impl TexturedAura {
 
 /// Kind parameters extracted from the original branch chain:
 /// `(distance, flag1[2], height[10], fullDisplayAngle, vecBPre.y offset)`.
-fn kind_params(kind: i32, param: f32, rng: &mut super::super::rng::EffectRng) -> (f32, i8, f32, i16, f32) {
+fn kind_params(
+    kind: i32,
+    param: f32,
+    parent_action_height: Option<f32>,
+    rng: &mut super::super::rng::EffectRng,
+) -> (f32, i8, f32, i16, f32) {
     match kind {
         1 => (8.0, 0, 1.0, 120, -30.0),
         2 => (10.0, 2, 0.0, 135, -10.0),
@@ -85,6 +90,16 @@ fn kind_params(kind: i32, param: f32, rng: &mut super::super::rng::EffectRng) ->
         19 => (8.0, 15, 0.0, rng.clamped_random(360) as i16, -30.0),
         20 => (2.4, 0, 0.0, 135, -27.0),
         21 => (24.0, 4, 0.0, 90, -10.0),
+        22 => {
+            // Lift to the parent sprite's head: `cell.y * 0.29 - 4`, or -30
+            // when the cell has no height.
+            let lift = match parent_action_height {
+                Some(height) if height != 0.0 => height * 0.29 - 4.0,
+                _ => -30.0,
+            };
+
+            (4.0, 16, 0.0, 135, lift)
+        }
         _ => (0.0, 0, 0.0, 0, 0.0),
     }
 }
@@ -101,10 +116,12 @@ impl PortedEffect for TexturedAura {
 
         let lifetime = runtime.lifetime;
         let param = runtime.param;
+        let parent_action_height = runtime.parent_action_height;
         let position_y = runtime.position[1];
 
         for &(texture, kind) in &self.auras {
-            let (distance, flag, height10, display_angle, vy) = kind_params(kind, param, &mut runtime.rng);
+            let (distance, flag, height10, display_angle, vy) =
+                kind_params(kind, param, parent_action_height, &mut runtime.rng);
 
             let aura = runtime.launch(PrimitiveId::AuraGlow, [0.0, 0.0, 0.0]);
             let state = runtime.primitive_mut(aura);
@@ -185,6 +202,30 @@ mod tests {
         assert_eq!(slot.full_display_angle, 120);
         assert_eq!(slot.height[10], 1.0);
         assert_eq!(slot.vec_b_pre[1], -30.0);
+    }
+
+    #[test]
+    fn kind_twenty_two_lifts_to_the_parent_head() {
+        let mut effect = TexturedAura::new(&[("effect\\베놈_상태.bmp", 22)], 99_999_999);
+        let mut runtime = EffectRuntime::new(99_999_999, [0.0, 0.0], 191);
+        runtime.parent_action_height = Some(100.0);
+        runtime.position = [0.0, 10.0, 0.0];
+
+        step(&mut effect, &mut runtime);
+
+        let slot = &runtime.primitives[0].state.slots[0];
+        assert_eq!(slot.flag1[2], 16);
+        assert!((slot.vec_b_pre[1] - (10.0 + 100.0 * 0.29 - 4.0)).abs() < 1e-4);
+    }
+
+    #[test]
+    fn kind_twenty_two_falls_back_to_minus_thirty() {
+        let mut effect = TexturedAura::new(&[("effect\\베놈_상태.bmp", 22)], 99_999_999);
+        let mut runtime = EffectRuntime::new(99_999_999, [0.0, 0.0], 191);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.primitives[0].state.slots[0].vec_b_pre[1], -30.0);
     }
 
     #[test]

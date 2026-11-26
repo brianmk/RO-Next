@@ -28,6 +28,11 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Glow12 => Box::new(TexturedAura::new(&[("effect\\glow12b .bmp", 14)], 99999999)),
         EffectId::Mapsphere => Box::new(TexturedAura::new(&[("effect\\구체2.bmp", 12), ("effect\\구체3.bmp", 13), ("effect\\구체4.bmp", 11), ("effect\\구체5.bmp", 10)], 36000)),
         EffectId::Mapsphere2 => Box::new(TexturedAura::new(&[("effect\\구체12.bmp", 12), ("effect\\구체3.bmp", 13), ("effect\\구체14.bmp", 11), ("effect\\구체15.bmp", 10)], 36000)),
+        EffectId::Venomimpress => Box::new(TexturedAura::new(&[("effect\\베놈_상태.bmp", 22)], 99999999)),
+        EffectId::Frostmisty => Box::new(TexturedAura::new(&[("effect\\빙결_상태.bmp", 22)], 99999999)),
+        EffectId::Coldstatus => Box::new(TexturedAura::new(&[("effect\\얼음결정체1.tga", 22)], 99999999)),
+        EffectId::Burning => Box::new(TexturedAura::new(&[("effect\\발화_상태.bmp", 22)], 99999999)),
+        EffectId::PngTest => Box::new(TexturedAura::new(&[("pe_fur1_01.bmp", 1)], 1000)),
         _ => return None,
     })
 }
@@ -55,6 +60,11 @@ pub fn ids() -> &'static [EffectId] {
         EffectId::Glow12,
         EffectId::Mapsphere,
         EffectId::Mapsphere2,
+        EffectId::Venomimpress,
+        EffectId::Frostmisty,
+        EffectId::Coldstatus,
+        EffectId::Burning,
+        EffectId::PngTest,
     ]
 }
 
@@ -81,6 +91,11 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
         (EffectId::Glow12, 99999999),
         (EffectId::Mapsphere, 36000),
         (EffectId::Mapsphere2, 36000),
+        (EffectId::Venomimpress, 99999999),
+        (EffectId::Frostmisty, 99999999),
+        (EffectId::Coldstatus, 99999999),
+        (EffectId::Burning, 99999999),
+        (EffectId::PngTest, 1000),
     ]
 }
 

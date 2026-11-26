@@ -60,13 +60,13 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `PP_INTIMIDATE` (`PrimIntimidate`) | `EffectPrimitiveMotion.cpp:1257-1313` | 4 |
 | `CRagEffect::WhiteSpray` (`EF_INTIMIDATE`/2/3/4) | `RagEffect.cpp:5874-5921` | 4 |
 | prim 82 `PrimAuraGlow` + slot vectors | `EffectPrimitiveMotion.cpp:6837-6946` | 4 |
-| `CRagEffect::TexturedAura` (kinds 0-21) + 21 aura effects | `RagEffect.cpp:17769-17960` | 4 |
+| `CRagEffect::TexturedAura` (kinds 0-22, parent sprite lift) + 26 aura effects | `RagEffect.cpp:17769-17960` | 6 |
 | primitive `render.angle` (own facing) | `EffectPrimitiveState` | - |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
 Total: 123 tests, all green.
 
-**Registry:** 116 effect ids (66 generated from `TexturedClassChange`, 21 from
+**Registry:** 121 effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 29 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
 classic ones (Bash, Magnum, Frost Diver, Endure, Blessing, Fire Ball, Sight...),
