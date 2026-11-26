@@ -47,6 +47,8 @@ pub struct EffectRuntime {
     pub primitives: Vec<PrimitiveInstance>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
+    /// `MM_QUAKE` requests made by the body so far.
+    pub shakes: u32,
     pub rng: EffectRng,
     /// `.str` clips the body opened (`CRagEffect::Init`).
     pub str_clips: Vec<Clip>,
@@ -67,6 +69,7 @@ impl EffectRuntime {
             flag: 0,
             primitives: Vec::new(),
             sounds: Vec::new(),
+            shakes: 0,
             rng: EffectRng::new(seed),
             str_clips: Vec::new(),
             str_player: None,
@@ -90,6 +93,11 @@ impl EffectRuntime {
 
     pub fn primitive_mut(&mut self, index: usize) -> &mut EffectPrimitiveState {
         &mut self.primitives[index].state
+    }
+
+    /// `MM_QUAKE` from an effect body.
+    pub fn quake(&mut self) {
+        self.shakes += 1;
     }
 
     /// `CRenderObject::Face(x, z)` - `ActorGeometry.cpp:47-64`.

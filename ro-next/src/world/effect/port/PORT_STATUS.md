@@ -30,9 +30,11 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | `PP_3DQUADHORN` (`AdvanceEffectPrimitive`) | `EffectPrimitiveMotion.cpp:543` | 3 |
 | effect facing/distance (`Face`, `CalcDist`, `RotatedForward`) | `ActorGeometry.cpp:47`, `RagEffect.cpp:136` | - |
 | `CRagEffect::FrostDiver` (`EF_FROSTDIVER`/`2`/`3`) | `RagEffect.cpp:456-529` | 3 |
+| `CRagEffect::IceWall` (`EF_ICEWALL`) | `RagEffect.cpp:587-628` | 2 |
+| `CRagEffect::EarthSpike` (`EF_EARTHSPIKE`, earth/ice variants) | `RagEffect.cpp:11213-11287` | 2 |
 | `.str` support in the runtime (`open_str`/`process_str`) | `ProcessEZ2STR` call sites | - |
 
-Total: 65 tests, all green. Effect bodies ported: **8 / 236**.
+Total: 69 tests, all green. Effect bodies ported: **10 / 236**.
 
 ## Next (W2/W3/W6)
 
