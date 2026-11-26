@@ -28,7 +28,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::ElPetrology => Box::new(TexturedClassChange::new(&[80], 100)),
         EffectId::ElHeater => Box::new(TexturedClassChange::new(&[81], 100)),
         EffectId::SprMash => Box::new(TexturedClassChange::new(&[38], 100)),
-        EffectId::Stonering => Box::new(TexturedClassChange::new(&[60], 300).with_waves(&[(0, "effect\\\\wl_siennaexecrate.wav")])),
+        EffectId::Stonering => Box::new(TexturedClassChange::new(&[60], 300).with_waves(&[(0, "effect\\wl_siennaexecrate.wav")])),
         EffectId::MagentaTrap => Box::new(TexturedClassChange::new(&[53], 23)),
         EffectId::CobaltTrap => Box::new(TexturedClassChange::new(&[52], 23)),
         EffectId::MaizeTrap => Box::new(TexturedClassChange::new(&[51], 23)),
@@ -41,14 +41,14 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::PokValen => Box::new(TexturedClassChange::new(&[34], 100)),
         EffectId::PokBirth => Box::new(TexturedClassChange::new(&[35], 100)),
         EffectId::PokChristmas => Box::new(TexturedClassChange::new(&[36], 100)),
-        EffectId::NpcEarthquake => Box::new(TexturedClassChange::new(&[31], 100).with_waves(&[(0, "effect\\\\earth_quake.wav")]).with_quakes(&[0])),
-        EffectId::Issen => Box::new(TexturedClassChange::new(&[18], 100).with_waves(&[(0, "effect\\\\일섬.wav")])),
-        EffectId::Kasumikiri => Box::new(TexturedClassChange::new(&[17], 100).with_waves(&[(0, "effect\\\\안개베기.wav")])),
-        EffectId::Kirikage => Box::new(TexturedClassChange::new(&[15], 100).with_waves(&[(0, "effect\\\\그림자베기.wav")])),
+        EffectId::NpcEarthquake => Box::new(TexturedClassChange::new(&[31], 100).with_waves(&[(0, "effect\\earth_quake.wav")]).with_quakes(&[0])),
+        EffectId::Issen => Box::new(TexturedClassChange::new(&[18], 100).with_waves(&[(0, "effect\\일섬.wav")])),
+        EffectId::Kasumikiri => Box::new(TexturedClassChange::new(&[17], 100).with_waves(&[(0, "effect\\안개베기.wav")])),
+        EffectId::Kirikage => Box::new(TexturedClassChange::new(&[15], 100).with_waves(&[(0, "effect\\그림자베기.wav")])),
         EffectId::Spreadattack => Box::new(TexturedClassChange::new(&[28], 100)),
-        EffectId::Rapidshower => Box::new(TexturedClassChange::new(&[26], 100).with_waves(&[(20, "effect\\\\래피드샤워.wav")])),
-        EffectId::Magicalbullet => Box::new(TexturedClassChange::new(&[27], 100).with_waves(&[(0, "effect\\\\매지컬블릿.wav")])),
-        EffectId::Tripleaction => Box::new(TexturedClassChange::new(&[30], 100).with_waves(&[(25, "effect\\\\트리플액션.wav")])),
+        EffectId::Rapidshower => Box::new(TexturedClassChange::new(&[26], 100).with_waves(&[(20, "effect\\래피드샤워.wav")])),
+        EffectId::Magicalbullet => Box::new(TexturedClassChange::new(&[27], 100).with_waves(&[(0, "effect\\매지컬블릿.wav")])),
+        EffectId::Tripleaction => Box::new(TexturedClassChange::new(&[30], 100).with_waves(&[(25, "effect\\트리플액션.wav")])),
         EffectId::Tracking => Box::new(TexturedClassChange::new(&[29], 100)),
         EffectId::LightningS => Box::new(TexturedClassChange::new(&[21], 23)),
         EffectId::Wallofthorn => Box::new(TexturedClassChange::new(&[61], 1000)),
@@ -59,7 +59,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::FlareS => Box::new(TexturedClassChange::new(&[25], 23)),
         EffectId::Tatami => Box::new(TexturedClassChange::new(&[16], 100)),
         EffectId::Kaen => Box::new(TexturedClassChange::new(&[19], 23)),
-        EffectId::Desperado => Box::new(TexturedClassChange::new(&[20], 200).with_waves(&[(10, "effect\\\\데스페라도.wav")])),
+        EffectId::Desperado => Box::new(TexturedClassChange::new(&[20], 200).with_waves(&[(10, "effect\\데스페라도.wav")])),
         EffectId::Hamicastle => Box::new(TexturedClassChange::new(&[0], 100)),
         EffectId::Hamiblood => Box::new(TexturedClassChange::new(&[1], 100)),
         EffectId::ItemThunder => Box::new(TexturedClassChange::new(&[2], 100)),
@@ -68,7 +68,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::ItemZzz => Box::new(TexturedClassChange::new(&[5], 100)),
         EffectId::ItemRain => Box::new(TexturedClassChange::new(&[6], 100)),
         EffectId::M01 => Box::new(TexturedClassChange::new(&[7], 50)),
-        EffectId::M02 => Box::new(TexturedClassChange::new(&[8], 100).with_waves(&[(5, "effect\\\\풀버스터.wav")])),
+        EffectId::M02 => Box::new(TexturedClassChange::new(&[8], 100).with_waves(&[(5, "effect\\풀버스터.wav")])),
         EffectId::M03 => Box::new(TexturedClassChange::new(&[9], 100)),
         EffectId::M04 => Box::new(TexturedClassChange::new(&[10], 99999999)),
         EffectId::M05 => Box::new(TexturedClassChange::new(&[11], 100)),
@@ -238,6 +238,25 @@ mod tests {
             let mut body = spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"));
             assert_eq!(body.lifetime(), lifetime, "{effect:?}");
         }
+    }
+
+    #[test]
+    fn scheduled_waves_use_single_backslash_paths_and_their_frames() {
+        let mut body = spawn(EffectId::Issen).unwrap();
+        let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 3);
+
+        step(body.as_mut(), &mut runtime);
+        assert_eq!(runtime.sounds, vec!["effect\\일섬.wav".to_owned()]);
+
+        // Triple Action plays its wave on frame 25, not at spawn.
+        let mut body = spawn(EffectId::Tripleaction).unwrap();
+        let mut runtime = EffectRuntime::new(body.lifetime(), [0.0, 0.0], 3);
+        for _ in 0..25 {
+            step(body.as_mut(), &mut runtime);
+        }
+        assert!(runtime.sounds.is_empty());
+        step(body.as_mut(), &mut runtime);
+        assert_eq!(runtime.sounds, vec!["effect\\트리플액션.wav".to_owned()]);
     }
 
     #[test]
