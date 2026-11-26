@@ -133,6 +133,179 @@ static MAGIC_ROD: StrResource = StrResource {
     loop_limit: 0,
 };
 
+// `.str`-only tier follow-up (batch "e"). One row per registered id; every row
+// is the switch's regular (non-`*_min`) name and none overrides `loopLimit`.
+
+static LIGHTNING: StrResource = StrResource {
+    files: &["Lightning.str"],
+    loop_limit: 0,
+};
+
+static PROVOKE: StrResource = StrResource {
+    files: &["Provoke.str"],
+    loop_limit: 0,
+};
+
+static BRANDISH: StrResource = StrResource {
+    files: &["Brandish.str"],
+    loop_limit: 0,
+};
+
+static IMPOSITIO: StrResource = StrResource {
+    files: &["Impositio.str"],
+    loop_limit: 0,
+};
+
+static LEX_AETERNA: StrResource = StrResource {
+    files: &["LexAeterna.str"],
+    loop_limit: 0,
+};
+
+static SUFFRAGIUM: StrResource = StrResource {
+    files: &["Suffragium.str"],
+    loop_limit: 0,
+};
+
+static REPAIR_WEAPON: StrResource = StrResource {
+    files: &["RepairWeapon.str"],
+    loop_limit: 0,
+};
+
+static WEAPON_PERFECTION: StrResource = StrResource {
+    files: &["WeaponPerfection.str"],
+    loop_limit: 0,
+};
+
+static MAXIMIZE_POWER: StrResource = StrResource {
+    files: &["MaximizePower.str"],
+    loop_limit: 0,
+};
+
+static SPRING: StrResource = StrResource {
+    files: &["Spring.str"],
+    loop_limit: 0,
+};
+
+static KYRIE: StrResource = StrResource {
+    files: &["Kyrie.str"],
+    loop_limit: 0,
+};
+
+static POISON_REACT: StrResource = StrResource {
+    files: &["PoisonReact_1st.str"],
+    loop_limit: 0,
+};
+
+static SLOW_POISON: StrResource = StrResource {
+    files: &["slowp.str"],
+    loop_limit: 0,
+};
+
+static SONIC_BLOW: StrResource = StrResource {
+    files: &["SonicBlow.str"],
+    loop_limit: 0,
+};
+
+static PIERCE: StrResource = StrResource {
+    files: &["Pierce.str"],
+    loop_limit: 0,
+};
+
+static BOWLING: StrResource = StrResource {
+    files: &["Bowling.str"],
+    loop_limit: 0,
+};
+
+static SPEAR_STAB: StrResource = StrResource {
+    files: &["SpearStab.str"],
+    loop_limit: 0,
+};
+
+static SPEAR_BOOMERANG: StrResource = StrResource {
+    files: &["SpearBoomerang.str"],
+    loop_limit: 0,
+};
+
+static ENERGY_COAT: StrResource = StrResource {
+    files: &["EnergyCoat.str"],
+    loop_limit: 0,
+};
+
+static SPELL_BREAKER: StrResource = StrResource {
+    files: &["spell.str"],
+    loop_limit: 0,
+};
+
+static DISPELL: StrResource = StrResource {
+    files: &["디스펠.str"],
+    loop_limit: 0,
+};
+
+static STEAL_COIN: StrResource = StrResource {
+    files: &["steal_coin.str"],
+    loop_limit: 0,
+};
+
+static STRIP_WEAPON: StrResource = StrResource {
+    files: &["strip_weapon.str"],
+    loop_limit: 0,
+};
+
+static STRIP_SHIELD: StrResource = StrResource {
+    files: &["strip_shield.str"],
+    loop_limit: 0,
+};
+
+static STRIP_ARMOR: StrResource = StrResource {
+    files: &["strip_armor.str"],
+    loop_limit: 0,
+};
+
+static STRIP_HELM: StrResource = StrResource {
+    files: &["strip_helm.str"],
+    loop_limit: 0,
+};
+
+static MELTDOWN: StrResource = StrResource {
+    files: &["melt.str"],
+    loop_limit: 0,
+};
+
+static CART_BOOST: StrResource = StrResource {
+    files: &["cart.str"],
+    loop_limit: 0,
+};
+
+static SOUL_BURN: StrResource = StrResource {
+    files: &["소울번.str"],
+    loop_limit: 0,
+};
+
+static SOUL_CHANGE: StrResource = StrResource {
+    files: &["사람효과.str"],
+    loop_limit: 0,
+};
+
+static ASSUMPTIO2: StrResource = StrResource {
+    files: &["asum.str"],
+    loop_limit: 0,
+};
+
+static FIRE_DRAGON: StrResource = StrResource {
+    files: &["fire dragon.str"],
+    loop_limit: 0,
+};
+
+static ICY: StrResource = StrResource {
+    files: &["icy.str"],
+    loop_limit: 0,
+};
+
+static BULLSEYE: StrResource = StrResource {
+    files: &["불스아이.str"],
+    loop_limit: 0,
+};
+
 /// The official `.str` resource of an effect, if its body drives
 /// `ProcessEZ2STR`.
 ///
@@ -187,6 +360,84 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         EffectId::Twohandquicken | EffectId::Spearquicken => &TWO_HAND,
         // `case EF_MAGICROD: std::sprintf(name, "매직로드.str");` - 341-343.
         EffectId::Magicrod => &MAGIC_ROD,
+
+        // `.str`-only tier follow-up (batch "e").
+        //
+        // `case EF_LIGHTBOLT: std::sprintf(name, "Lightning.str");` - 42-43.
+        EffectId::Lightbolt => &LIGHTNING,
+        // `case EF_PROVOKE: std::sprintf(name, "Provoke.str");` - 57-58.
+        EffectId::Provoke => &PROVOKE,
+        // `case EF_BRANDISHSPEAR: std::sprintf(name, "Brandish.str");` - 186-187.
+        EffectId::Brandishspear => &BRANDISH,
+        // `case EF_IMPOSITIO: std::sprintf(name, "Impositio.str");` - 81-82.
+        EffectId::Impositio => &IMPOSITIO,
+        // `case EF_LEXAETERNA:` (`lexaeterna_min.str` toggle) - 84-86.
+        EffectId::Lexaeterna => &LEX_AETERNA,
+        // `case EF_SUFFRAGIUM:` (`suffragium_min.str` toggle) - 93-95.
+        EffectId::Suffragium => &SUFFRAGIUM,
+        // `case EF_REPAIRWEAPON: std::sprintf(name, "RepairWeapon.str");`
+        // - 117-118.
+        EffectId::Repairweapon => &REPAIR_WEAPON,
+        // `case EF_PERFECTION:` (`WeaponPerfection_min.str` toggle) - 123-125.
+        EffectId::Perfection => &WEAPON_PERFECTION,
+        // `case EF_MAXPOWER:` (`maximize_min.str` toggle) - 126-128.
+        EffectId::Maxpower => &MAXIMIZE_POWER,
+        // `case EF_SPRINGTRAP: std::sprintf(name, "Spring.str");` - 138-139.
+        EffectId::Springtrap => &SPRING,
+        // `case EF_KYRIE:` (`kyrie_min.str` toggle) - 147-149.
+        EffectId::Kyrie => &KYRIE,
+        // `case EF_POISONREACT:
+        //  std::sprintf(name, "PoisonReact_1st.str");` - 156-157.
+        EffectId::Poisonreact => &POISON_REACT,
+        // `case EF_SLOWPOISON: std::sprintf(name, "slowp.str");` - 389-390.
+        EffectId::Slowpoison => &SLOW_POISON,
+        // `case EF_SONICBLOW2: std::sprintf(name, "SonicBlow.str");` - 183-184.
+        EffectId::Sonicblow2 => &SONIC_BLOW,
+        // `case EF_PIERCESELF: std::sprintf(name, "Pierce.str");` - 201-202.
+        EffectId::Pierceself => &PIERCE,
+        // `case EF_BOWLINGSELF: std::sprintf(name, "Bowling.str");` - 204-205.
+        EffectId::Bowlingself => &BOWLING,
+        // `case EF_SPEARSTABSELF: std::sprintf(name, "SpearStab.str");`
+        // - 207-208.
+        EffectId::Spearstabself => &SPEAR_STAB,
+        // `case EF_SPEARBMRSELF:
+        //  std::sprintf(name, "SpearBoomerang.str");` - 210-211.
+        EffectId::Spearbmrself => &SPEAR_BOOMERANG,
+        // `case EF_ENERGYCOAT: std::sprintf(name, "EnergyCoat.str");` - 244-245.
+        EffectId::Energycoat => &ENERGY_COAT,
+        // `case EF_SPELLBREAKER: std::sprintf(name, "spell.str");` - 335-336.
+        EffectId::Spellbreaker => &SPELL_BREAKER,
+        // `case EF_DISPELL: std::sprintf(name, "디스펠.str");` - 338-339.
+        EffectId::Dispell => &DISPELL,
+        // `case EF_STEALCOIN: std::sprintf(name, "steal_coin.str");` - 350-351.
+        EffectId::Stealcoin => &STEAL_COIN,
+        // `case EF_STRIPWEAPON: std::sprintf(name, "strip_weapon.str");`
+        // - 353-354.
+        EffectId::Stripweapon => &STRIP_WEAPON,
+        // `case EF_STRIPSHIELD: std::sprintf(name, "strip_shield.str");`
+        // - 356-357.
+        EffectId::Stripshield => &STRIP_SHIELD,
+        // `case EF_STRIPARMOR: std::sprintf(name, "strip_armor.str");`
+        // - 359-360.
+        EffectId::Striparmor => &STRIP_ARMOR,
+        // `case EF_STRIPHELM: std::sprintf(name, "strip_helm.str");` - 362-363.
+        EffectId::Striphelm => &STRIP_HELM,
+        // `case EF_MELTDOWN: std::sprintf(name, "melt.str");` - 421-422.
+        EffectId::Meltdown => &MELTDOWN,
+        // `case EF_CARTBOOST: std::sprintf(name, "cart.str");` - 427-428.
+        EffectId::Cartboost => &CART_BOOST,
+        // `case EF_SOULBURN: std::sprintf(name, "소울번.str");` - 433-434.
+        EffectId::Soulburn => &SOUL_BURN,
+        // `case EF_SOULCHANGE: std::sprintf(name, "사람효과.str");` - 436-437.
+        EffectId::Soulchange => &SOUL_CHANGE,
+        // `case EF_ASSUMPTIO2: std::sprintf(name, "asum.str");` - 418-419.
+        EffectId::Assumptio2 => &ASSUMPTIO2,
+        // `case EF_BAKU: std::sprintf(name, "fire dragon.str");` - 478-479.
+        EffectId::Baku => &FIRE_DRAGON,
+        // `case EF_HYOUSYOURAKU: std::sprintf(name, "icy.str");` - 506-507.
+        EffectId::Hyousyouraku => &ICY,
+        // `case EF_BULLSEYE: std::sprintf(name, "불스아이.str");` - 503-504.
+        EffectId::Bullseye => &BULLSEYE,
         _ => return None,
     })
 }
@@ -376,6 +627,53 @@ mod tests {
             EffectId::Spearquicken,
             EffectId::Magicrod,
         ] {
+            assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
+        }
+    }
+
+    #[test]
+    fn str_only_follow_up_rows_match_the_initialization_switch() {
+        let expect = [
+            (EffectId::Lightbolt, "Lightning.str"),
+            (EffectId::Provoke, "Provoke.str"),
+            (EffectId::Brandishspear, "Brandish.str"),
+            (EffectId::Impositio, "Impositio.str"),
+            (EffectId::Lexaeterna, "LexAeterna.str"),
+            (EffectId::Suffragium, "Suffragium.str"),
+            (EffectId::Repairweapon, "RepairWeapon.str"),
+            (EffectId::Perfection, "WeaponPerfection.str"),
+            (EffectId::Maxpower, "MaximizePower.str"),
+            (EffectId::Springtrap, "Spring.str"),
+            (EffectId::Kyrie, "Kyrie.str"),
+            (EffectId::Poisonreact, "PoisonReact_1st.str"),
+            (EffectId::Slowpoison, "slowp.str"),
+            (EffectId::Sonicblow2, "SonicBlow.str"),
+            (EffectId::Pierceself, "Pierce.str"),
+            (EffectId::Bowlingself, "Bowling.str"),
+            (EffectId::Spearstabself, "SpearStab.str"),
+            (EffectId::Spearbmrself, "SpearBoomerang.str"),
+            (EffectId::Energycoat, "EnergyCoat.str"),
+            (EffectId::Spellbreaker, "spell.str"),
+            (EffectId::Dispell, "디스펠.str"),
+            (EffectId::Stealcoin, "steal_coin.str"),
+            (EffectId::Stripweapon, "strip_weapon.str"),
+            (EffectId::Stripshield, "strip_shield.str"),
+            (EffectId::Striparmor, "strip_armor.str"),
+            (EffectId::Striphelm, "strip_helm.str"),
+            (EffectId::Meltdown, "melt.str"),
+            (EffectId::Cartboost, "cart.str"),
+            (EffectId::Soulburn, "소울번.str"),
+            (EffectId::Soulchange, "사람효과.str"),
+            (EffectId::Assumptio2, "asum.str"),
+            (EffectId::Baku, "fire dragon.str"),
+            (EffectId::Hyousyouraku, "icy.str"),
+            (EffectId::Bullseye, "불스아이.str"),
+        ];
+
+        for (effect, file) in expect {
+            assert_eq!(str_clips_for(effect), Some(&[file][..]), "{effect:?}");
+            // No follow-up row sets `state.loopLimit` in `Init`, so the
+            // `CRagEffect` constructor default (`RagEffect.cpp:109`) stands.
             assert_eq!(str_loop_limit(effect), 0, "{effect:?}");
         }
     }

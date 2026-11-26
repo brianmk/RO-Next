@@ -3,17 +3,21 @@
 //! Owned exclusively by batch "e": bodies and tests live here.
 //!
 //! Every effect in this file is a `.str` screen-sprite clip and nothing else:
-//! its `OnProcess` case body either calls `ProcessEZ2STR(0, -80, 0)` directly
-//! or forwards to one of the small wrappers (`ProcessEZ2STRC10830` /
-//! `ProcessEZ2STRC3CC40`, both exactly that call), gates zero or more
-//! `PlayEffectWaveInline` calls on `state.stateCnt`, and launches no primitive.
+//! its `OnProcess`/`OnProcess3` case body either calls `ProcessEZ2STR(0, -80,
+//! 0)` directly or forwards to one of the small wrappers
+//! (`ProcessEZ2STRC10830` / `ProcessEZ2STRC3CC40`, both exactly that call),
+//! gates zero or more `PlayEffectWaveInline` calls (or the identical
+//! `PlayEffectWave` helper, `RagEffect.cpp:152-158`) on `state.stateCnt`, and
+//! launches no primitive.
 //! The clip itself is loaded by `CRagEffect::Init` from
 //! [`super::str_table`] and opened by [`super::holder::PortedEffectHolder`]
 //! before the first step, exactly like the original.
 //!
 //! The bodies therefore return the *clip's* liveness for the effects whose
 //! dispatch checks `ProcessEZ2STR`'s result (they retire when the resource
-//! finishes), and `true` for the one case that discards it (`EF_MAGICROD`).
+//! finishes), and `true` for the cases that discard it (`EF_MAGICROD` plus the
+//! follow-up `Meltdown`/`Assumptio2`/slow-poison-group/`Baku`/
+//! `Hyousyouraku`/`Bullseye` bodies).
 
 #![allow(dead_code)]
 
@@ -441,6 +445,770 @@ impl PortedEffect for StoneCurse {
     }
 }
 
+// ===========================================================================
+// `.str`-only tier follow-up
+// ===========================================================================
+//
+// The 34 ids below are the same profile as the tier above. Every section is one
+// decompiled case body, one Rust `on_process`; the `.str` resource row lives in
+// [`super::str_table`] and is opened by the holder before frame 0.
+
+// ---------------------------------------------------------------------------
+// EF_LIGHTBOLT
+// ---------------------------------------------------------------------------
+
+/// `case EF_FIREWALL: case EF_LIGHTBOLT:` - `RagEffect.cpp:24615-24620`.
+///
+/// The case calls `ProcessEZ2STR(0.0f, -80.0f, 0.0f)` directly (not through
+/// `ProcessEZ2STRC10830`) and retires with the clip. `EF_LIGHTBOLT` is the only
+/// label of this batch; `EF_FIREWALL` is owned elsewhere.
+#[derive(Debug, Default)]
+pub struct LightBolt {
+    clips: Vec<Clip>,
+}
+
+impl LightBolt {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for LightBolt {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:38`.
+        200
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_PROVOKE
+// ---------------------------------------------------------------------------
+
+/// `case EF_PROVOKE:` - `RagEffect.cpp:24799-24809`.
+///
+/// `effect\swordman_provoke.wav` plays on frames 5 and 30 (two separate
+/// `stateCnt` gates), then the clip owns the effect.
+#[derive(Debug, Default)]
+pub struct Provoke {
+    clips: Vec<Clip>,
+}
+
+impl Provoke {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Provoke {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:76`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 5 {
+            runtime.play_sound("effect\\swordman_provoke.wav");
+        }
+
+        if runtime.frame == 30 {
+            runtime.play_sound("effect\\swordman_provoke.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The shared `ProcessEZ2STRC10830` case body (EF_BRANDISHSPEAR's group)
+// ---------------------------------------------------------------------------
+
+/// The shared grouped case body `case EF_WINDHIT: case EF_ARROWSHOT: case
+/// EF_BRANDISHSPEAR: ... case EF_STEALCOIN:` - `RagEffect.cpp:25278-25322`.
+///
+/// All labels fall into one body:
+///
+/// ```cpp
+/// if (!this->ProcessEZ2STRC10830()) {
+///   return false;
+/// }
+/// ```
+///
+/// with no wave and no state write. `ProcessEZ2STRC10830()` is
+/// `ProcessEZ2STR(0.0f, -80.0f, 0.0f)` (`RagEffect.cpp:1823-1825`), so the
+/// effect lives exactly as long as its clip.
+///
+/// This batch owns these labels of the group (the others are either ported by
+/// another batch or still unported):
+///
+/// * `EF_BRANDISHSPEAR` (70), `EF_POISONREACT` (126), `EF_SONICBLOW2` (143),
+///   `EF_PIERCESELF` (148), `EF_BOWLINGSELF` (149), `EF_SPEARSTABSELF` (150),
+///   `EF_SPEARBMRSELF` (151), `EF_ENERGYCOAT` (169), `EF_DISPELL` (235),
+///   `EF_STEALCOIN` (268).
+///
+/// The labels do not share a lifetime, so the registry passes each id's own
+/// `EffectTypes.cpp` value to the constructor.
+#[derive(Debug)]
+pub struct BrandishSpear {
+    clips: Vec<Clip>,
+    lifetime: i32,
+}
+
+impl BrandishSpear {
+    pub fn new(lifetime: i32, clips: Vec<Clip>) -> Self {
+        Self { clips, lifetime }
+    }
+}
+
+impl PortedEffect for BrandishSpear {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_IMPOSITIO
+// ---------------------------------------------------------------------------
+
+/// `case EF_IMPOSITIO:` - `RagEffect.cpp:24866-24873`.
+///
+/// `effect\priest_impositio.wav` plays on frame 60, then the clip owns the
+/// effect.
+#[derive(Debug, Default)]
+pub struct Impositio {
+    clips: Vec<Clip>,
+}
+
+impl Impositio {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Impositio {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:93`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 60 {
+            runtime.play_sound("effect\\priest_impositio.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_LEXAETERNA
+// ---------------------------------------------------------------------------
+
+/// `case EF_LEXAETERNA:` - `RagEffect.cpp:24874-24881`.
+///
+/// `effect\priest_lexaeterna.wav` plays on frame 15. The resource row is the
+/// non-`lexaeterna_min` branch of the `TT_MIN_EFFECT_ON_OFF` toggle
+/// (`RagEffectInitialization.cpp:84-86`).
+#[derive(Debug, Default)]
+pub struct LexAeterna {
+    clips: Vec<Clip>,
+}
+
+impl LexAeterna {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for LexAeterna {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:94`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 15 {
+            runtime.play_sound("effect\\priest_lexaeterna.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_SUFFRAGIUM
+// ---------------------------------------------------------------------------
+
+/// `case EF_SUFFRAGIUM:` - `RagEffect.cpp:24892-24899`.
+///
+/// `effect\priest_suffragium.wav` plays on frame 0. The resource row is the
+/// non-`suffragium_min` branch (`RagEffectInitialization.cpp:93-95`).
+#[derive(Debug, Default)]
+pub struct Suffragium {
+    clips: Vec<Clip>,
+}
+
+impl Suffragium {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Suffragium {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:97`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\priest_suffragium.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_REPAIRWEAPON
+// ---------------------------------------------------------------------------
+
+/// `case EF_REPAIRWEAPON:` - `RagEffect.cpp:24985-24995`.
+///
+/// `effect\black_weapon_repair_a.wav` plays on frames 20 and 55.
+#[derive(Debug, Default)]
+pub struct RepairWeapon {
+    clips: Vec<Clip>,
+}
+
+impl RepairWeapon {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for RepairWeapon {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:110`.
+        9999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 20 {
+            runtime.play_sound("effect\\black_weapon_repair_a.wav");
+        }
+
+        if runtime.frame == 55 {
+            runtime.play_sound("effect\\black_weapon_repair_a.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_PERFECTION
+// ---------------------------------------------------------------------------
+
+/// `case EF_PERFECTION:` - `RagEffect.cpp:25001-25008`.
+///
+/// `effect\black_weapon_perfection.wav` plays on frame 0. The resource row is
+/// the non-`WeaponPerfection_min` branch
+/// (`RagEffectInitialization.cpp:123-125`).
+#[derive(Debug, Default)]
+pub struct Perfection {
+    clips: Vec<Clip>,
+}
+
+impl Perfection {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Perfection {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:112`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\black_weapon_perfection.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_MAXPOWER
+// ---------------------------------------------------------------------------
+
+/// `case EF_MAXPOWER:` - `RagEffect.cpp:25009-25025`.
+///
+/// Four gates, in source order: frame 0 the circle wave, 40 and 47 the sword
+/// wave, 65 the big-sword wave. Resource row: non-`maximize_min` branch
+/// (`RagEffectInitialization.cpp:126-128`).
+#[derive(Debug, Default)]
+pub struct MaxPower {
+    clips: Vec<Clip>,
+}
+
+impl MaxPower {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for MaxPower {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:113`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\black_maximize_power_circle.wav");
+        }
+
+        if runtime.frame == 40 {
+            runtime.play_sound("effect\\black_maximize_power_sword.wav");
+        }
+
+        if runtime.frame == 47 {
+            runtime.play_sound("effect\\black_maximize_power_sword.wav");
+        }
+
+        if runtime.frame == 65 {
+            runtime.play_sound("effect\\black_maximize_power_sword_bic.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_SPRINGTRAP
+// ---------------------------------------------------------------------------
+
+/// `case EF_SPRINGTRAP:` - `RagEffect.cpp:25050-25057`.
+///
+/// `effect\hunter_springtrap.wav` plays on frame 0.
+#[derive(Debug, Default)]
+pub struct SpringTrap {
+    clips: Vec<Clip>,
+}
+
+impl SpringTrap {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for SpringTrap {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:118`.
+        9999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\hunter_springtrap.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_KYRIE
+// ---------------------------------------------------------------------------
+
+/// `case EF_KYRIE:` - `RagEffect.cpp:25058-25068`.
+///
+/// Two different waves: `priest_kyrie_eleison_b.wav` on frame 0 and
+/// `priest_kyrie_eleison_a.wav` on frame 15. Resource row: non-`kyrie_min`
+/// branch (`RagEffectInitialization.cpp:147-149`).
+#[derive(Debug, Default)]
+pub struct Kyrie {
+    clips: Vec<Clip>,
+}
+
+impl Kyrie {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Kyrie {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:121`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\priest_kyrie_eleison_b.wav");
+        }
+
+        if runtime.frame == 15 {
+            runtime.play_sound("effect\\priest_kyrie_eleison_a.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The shared no-wave discard body (EF_SLOWPOISON's group)
+// ---------------------------------------------------------------------------
+
+/// `case EF_SLOWPOISON: case EF_CARTBOOST: case EF_SOULBURN: case
+/// EF_SOULCHANGE:` - `RagEffect.cpp:23354-23359`.
+///
+/// ```cpp
+/// this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);
+/// ```
+///
+/// The result is **discarded**, so a finished clip does not retire the effect;
+/// it runs until its lifetime (`stateCnt >= duration`). Lifetimes differ across
+/// the labels (80 / 150 / 200 / 200), so the registry passes each id's own
+/// `EffectTypes.cpp` value.
+#[derive(Debug)]
+pub struct SlowPoison {
+    clips: Vec<Clip>,
+    lifetime: i32,
+}
+
+impl SlowPoison {
+    pub fn new(lifetime: i32, clips: Vec<Clip>) -> Self {
+        Self { clips, lifetime }
+    }
+}
+
+impl PortedEffect for SlowPoison {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_SPELLBREAKER
+// ---------------------------------------------------------------------------
+
+/// `case EF_SPELLBREAKER:` - `RagEffect.cpp:25255-25263`.
+///
+/// Frame 0 re-anchors `render.position` to the parent (the port spawns both at
+/// the same position, so there is nothing to write) and plays
+/// `effect\sage_spell breake.wav`; then `ProcessEZ2STRC10830` is checked.
+#[derive(Debug, Default)]
+pub struct SpellBreaker {
+    clips: Vec<Clip>,
+}
+
+impl SpellBreaker {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for SpellBreaker {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:243`.
+        999
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            // `this->render.position = this->state.parent->render.position;`
+            // is already the spawn anchor (`PortedEffectHolder`).
+            runtime.play_sound("effect\\sage_spell breake.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// The shared strip case body (EF_STRIPWEAPON's group)
+// ---------------------------------------------------------------------------
+
+/// `case EF_STRIPWEAPON: case EF_STRIPSHIELD: case EF_STRIPARMOR: case
+/// EF_STRIPHELM:` - `RagEffect.cpp:25323-25334`.
+///
+/// Frame 6 re-anchors to the parent (same spawn position in the port) and plays
+/// `effect\복호격.wav`; then `ProcessEZ2STRC10830` is checked. All four labels
+/// use lifetime 300 (`EffectTypes.cpp:278-281`).
+#[derive(Debug, Default)]
+pub struct StripWeapon {
+    clips: Vec<Clip>,
+}
+
+impl StripWeapon {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for StripWeapon {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:278-281` (all four strip ids).
+        300
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 6 {
+            // `this->render.position = this->state.parent->render.position;`
+            // is already the spawn anchor (`PortedEffectHolder`).
+            runtime.play_sound("effect\\복호격.wav");
+        }
+
+        runtime.process_str()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_MELTDOWN
+// ---------------------------------------------------------------------------
+
+/// `case EF_MELTDOWN:` - `RagEffect.cpp:23956-23962`.
+///
+/// Frame 0 re-anchors to the parent (already the spawn position) and plays
+/// `effect\black_overthrust.wav`; `ProcessEZ2STR(0, -80, 0)` then runs with its
+/// result **discarded**, so the effect keeps going after the clip ends.
+#[derive(Debug, Default)]
+pub struct Meltdown {
+    clips: Vec<Clip>,
+}
+
+impl Meltdown {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Meltdown {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:399`.
+        250
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\black_overthrust.wav");
+        }
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_ASSUMPTIO2
+// ---------------------------------------------------------------------------
+
+/// `case EF_ASSUMPTIO2:` - `RagEffect.cpp:24326-24332`.
+///
+/// Frame 0 re-anchors to the parent (already the spawn position) and plays
+/// `effect\아숨프티오.wav`; the `ProcessEZ2STR(0, -80, 0)` result is discarded.
+#[derive(Debug, Default)]
+pub struct Assumptio2 {
+    clips: Vec<Clip>,
+}
+
+impl Assumptio2 {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Assumptio2 {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:449`.
+        300
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\아숨프티오.wav");
+        }
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_BAKU / EF_HYOUSYOURAKU
+// ---------------------------------------------------------------------------
+
+/// `case EF_BAKU:` - `RagEffect.cpp:21071-21077` (in `OnProcess3`, which
+/// `OnProcess` calls for ids >= 491, `RagEffect.cpp:23091-23094`).
+///
+/// Frame 0 re-anchors to the parent (already the spawn position) and plays
+/// `effect\폭염룡.wav` via `PlayEffectWave`; that helper has the same body as
+/// `PlayEffectWaveInline` (`RagEffect.cpp:152-158`), so the port's
+/// `play_sound` models both. The `ProcessEZ2STR(0, -80, 0)` result is
+/// discarded.
+#[derive(Debug, Default)]
+pub struct Baku {
+    clips: Vec<Clip>,
+}
+
+impl Baku {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Baku {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:644`.
+        100
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\폭염룡.wav");
+        }
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
+/// `case EF_HYOUSYOURAKU:` - `RagEffect.cpp:21078-21084` (in `OnProcess3`).
+///
+/// Frame 0 plays `effect\빙정락.wav` through the same `PlayEffectWave` helper
+/// as `EF_BAKU`; the clip result is discarded.
+#[derive(Debug, Default)]
+pub struct Hyousyouraku {
+    clips: Vec<Clip>,
+}
+
+impl Hyousyouraku {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Hyousyouraku {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:645`.
+        100
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\빙정락.wav");
+        }
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
+// ---------------------------------------------------------------------------
+// EF_BULLSEYE
+// ---------------------------------------------------------------------------
+
+/// `case EF_MOCHI: ... case EF_BULLSEYE: ... case EF_NO100_FIRECRACKER:` -
+/// `RagEffect.cpp:21946-21963` (in `OnProcess3`).
+///
+/// One shared body:
+///
+/// ```cpp
+/// this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);
+/// ```
+///
+/// with the result **discarded**. Only `EF_BULLSEYE` (649) belongs to this
+/// batch; the other labels are not ported here.
+#[derive(Debug, Default)]
+pub struct Bullseye {
+    clips: Vec<Clip>,
+}
+
+impl Bullseye {
+    pub fn new(clips: Vec<Clip>) -> Self {
+        Self { clips }
+    }
+}
+
+impl PortedEffect for Bullseye {
+    fn lifetime(&self) -> i32 {
+        // `EffectTypes.cpp:658`.
+        100
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        open_supplied_clips(&mut self.clips, runtime);
+
+        // `this->ProcessEZ2STR(0.0f, -80.0f, 0.0f);` - result discarded.
+        let _clip_alive = runtime.process_str();
+
+        true
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::runtime::{EffectRuntime, step};
@@ -675,5 +1443,188 @@ mod tests {
         step(&mut effect, &mut runtime);
         assert_eq!(runtime.str_clips.len(), 1);
         assert_eq!(runtime.str_clips[0].frames.len(), 1, "the original clip survives");
+    }
+
+    // -----------------------------------------------------------------------
+    // `.str`-only tier follow-up
+    // -----------------------------------------------------------------------
+
+    /// One fresh body per scheduled-wave case, with its lifetime and the
+    /// `(frame, wave)` rows of the decompiled body.
+    fn scheduled_bodies() -> Vec<(Box<dyn PortedEffect>, i32, Vec<(i32, &'static str)>)> {
+        vec![
+            (Box::new(Provoke::new(single_key_clip())), 999, vec![
+                (5, "effect\\swordman_provoke.wav"),
+                (30, "effect\\swordman_provoke.wav"),
+            ]),
+            (Box::new(Impositio::new(single_key_clip())), 999, vec![(
+                60,
+                "effect\\priest_impositio.wav",
+            )]),
+            (Box::new(LexAeterna::new(single_key_clip())), 999, vec![(
+                15,
+                "effect\\priest_lexaeterna.wav",
+            )]),
+            (Box::new(Suffragium::new(single_key_clip())), 999, vec![(
+                0,
+                "effect\\priest_suffragium.wav",
+            )]),
+            (Box::new(RepairWeapon::new(single_key_clip())), 9999, vec![
+                (20, "effect\\black_weapon_repair_a.wav"),
+                (55, "effect\\black_weapon_repair_a.wav"),
+            ]),
+            (Box::new(Perfection::new(single_key_clip())), 999, vec![(
+                0,
+                "effect\\black_weapon_perfection.wav",
+            )]),
+            (Box::new(MaxPower::new(single_key_clip())), 999, vec![
+                (0, "effect\\black_maximize_power_circle.wav"),
+                (40, "effect\\black_maximize_power_sword.wav"),
+                (47, "effect\\black_maximize_power_sword.wav"),
+                (65, "effect\\black_maximize_power_sword_bic.wav"),
+            ]),
+            (Box::new(SpringTrap::new(single_key_clip())), 9999, vec![(
+                0,
+                "effect\\hunter_springtrap.wav",
+            )]),
+            (Box::new(Kyrie::new(single_key_clip())), 999, vec![
+                (0, "effect\\priest_kyrie_eleison_b.wav"),
+                (15, "effect\\priest_kyrie_eleison_a.wav"),
+            ]),
+            (Box::new(SpellBreaker::new(single_key_clip())), 999, vec![(
+                0,
+                "effect\\sage_spell breake.wav",
+            )]),
+            (Box::new(StripWeapon::new(single_key_clip())), 300, vec![(
+                6,
+                "effect\\복호격.wav",
+            )]),
+            (Box::new(Meltdown::new(single_key_clip())), 250, vec![(
+                0,
+                "effect\\black_overthrust.wav",
+            )]),
+            (Box::new(Assumptio2::new(single_key_clip())), 300, vec![(
+                0,
+                "effect\\아숨프티오.wav",
+            )]),
+            (Box::new(Baku::new(single_key_clip())), 100, vec![(0, "effect\\폭염룡.wav")]),
+            (Box::new(Hyousyouraku::new(single_key_clip())), 100, vec![(
+                0,
+                "effect\\빙정락.wav",
+            )]),
+        ]
+    }
+
+    #[test]
+    fn the_follow_up_waves_play_on_the_official_frames() {
+        for (mut body, lifetime, expected) in scheduled_bodies() {
+            assert_eq!(body.lifetime(), lifetime);
+
+            let mut runtime = runtime(lifetime);
+            let last_frame = expected.iter().map(|&(frame, _)| frame).max().unwrap();
+            let mut schedule = Vec::new();
+
+            for _ in 0..=last_frame {
+                runtime.sounds.clear();
+                let frame = runtime.frame;
+                step(&mut *body, &mut runtime);
+
+                if !runtime.sounds.is_empty() {
+                    schedule.push((frame, runtime.sounds.clone()));
+                }
+            }
+
+            let expected: Vec<(i32, Vec<String>)> = expected.into_iter().map(|(frame, wave)| (frame, vec![wave.to_owned()])).collect();
+            assert_eq!(schedule, expected);
+        }
+    }
+
+    #[test]
+    fn the_checked_follow_up_bodies_retire_with_their_clip() {
+        let bodies: Vec<(Box<dyn PortedEffect>, &str)> = vec![
+            (Box::new(LightBolt::new(two_key_clip())), "LightBolt"),
+            (Box::new(BrandishSpear::new(999, two_key_clip())), "BrandishSpear"),
+            (Box::new(Provoke::new(two_key_clip())), "Provoke"),
+            (Box::new(Impositio::new(two_key_clip())), "Impositio"),
+            (Box::new(LexAeterna::new(two_key_clip())), "LexAeterna"),
+            (Box::new(Suffragium::new(two_key_clip())), "Suffragium"),
+            (Box::new(RepairWeapon::new(two_key_clip())), "RepairWeapon"),
+            (Box::new(Perfection::new(two_key_clip())), "Perfection"),
+            (Box::new(MaxPower::new(two_key_clip())), "MaxPower"),
+            (Box::new(SpringTrap::new(two_key_clip())), "SpringTrap"),
+            (Box::new(Kyrie::new(two_key_clip())), "Kyrie"),
+            (Box::new(SpellBreaker::new(two_key_clip())), "SpellBreaker"),
+            (Box::new(StripWeapon::new(two_key_clip())), "StripWeapon"),
+        ];
+
+        for (mut body, label) in bodies {
+            let mut runtime = runtime(body.lifetime());
+
+            // Clip frames 0..=3, the cursor closes at 3, `ProcessEZ2STR` fails
+            // on 4 and the body turns that into `return false`.
+            for _ in 0..4 {
+                assert!(step(&mut *body, &mut runtime), "{label}");
+            }
+
+            assert_eq!(runtime.frame, 4, "{label}");
+            assert!(!step(&mut *body, &mut runtime), "{label} retires on frame 4");
+        }
+    }
+
+    #[test]
+    fn the_discarded_follow_up_bodies_run_past_the_clip() {
+        let bodies: Vec<(Box<dyn PortedEffect>, &str)> = vec![
+            (Box::new(Meltdown::new(two_key_clip())), "Meltdown"),
+            (Box::new(Assumptio2::new(two_key_clip())), "Assumptio2"),
+            (Box::new(SlowPoison::new(80, two_key_clip())), "SlowPoison"),
+            (Box::new(Bullseye::new(two_key_clip())), "Bullseye"),
+            (Box::new(Baku::new(two_key_clip())), "Baku"),
+            (Box::new(Hyousyouraku::new(two_key_clip())), "Hyousyouraku"),
+        ];
+
+        for (mut body, label) in bodies {
+            let mut runtime = runtime(body.lifetime());
+
+            // The clip finishes at frame 4; the frame-4 `false` is discarded,
+            // so the effect keeps stepping until its lifetime.
+            for frame in 0..=6 {
+                assert!(step(&mut *body, &mut runtime), "{label} frame {frame}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_follow_up_tier_launches_no_primitives() {
+        let bodies: Vec<Box<dyn PortedEffect>> = vec![
+            Box::new(LightBolt::new(single_key_clip())),
+            Box::new(Provoke::new(single_key_clip())),
+            Box::new(BrandishSpear::new(999, single_key_clip())),
+            Box::new(Impositio::new(single_key_clip())),
+            Box::new(LexAeterna::new(single_key_clip())),
+            Box::new(Suffragium::new(single_key_clip())),
+            Box::new(RepairWeapon::new(single_key_clip())),
+            Box::new(Perfection::new(single_key_clip())),
+            Box::new(MaxPower::new(single_key_clip())),
+            Box::new(SpringTrap::new(single_key_clip())),
+            Box::new(Kyrie::new(single_key_clip())),
+            Box::new(SlowPoison::new(80, single_key_clip())),
+            Box::new(SpellBreaker::new(single_key_clip())),
+            Box::new(StripWeapon::new(single_key_clip())),
+            Box::new(Meltdown::new(single_key_clip())),
+            Box::new(Assumptio2::new(single_key_clip())),
+            Box::new(Baku::new(single_key_clip())),
+            Box::new(Hyousyouraku::new(single_key_clip())),
+            Box::new(Bullseye::new(single_key_clip())),
+        ];
+
+        for mut body in bodies {
+            let mut runtime = runtime(body.lifetime());
+
+            for _ in 0..80 {
+                step(&mut *body, &mut runtime);
+            }
+
+            assert!(runtime.primitives.is_empty(), "a clip-only body spawned geometry");
+        }
     }
 }
