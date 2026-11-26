@@ -30,6 +30,7 @@ pub mod clock;
 pub mod primitive;
 pub mod rag;
 pub mod runtime;
+pub mod str_player;
 
 /// `frameFreq = 1000 / 60` from `Timer.cpp:32`, in milliseconds.
 pub const FRAME_FREQUENCY_MS: u64 = 1000 / 60;
