@@ -276,6 +276,8 @@ pub enum SlotRenderer {
     FanBeam,
     /// `RenderTeiFacingSlots` - id 82 (and the other ids in that case list).
     AuraGlow,
+    /// `RenderHalfSphere` - id 104.
+    HalfSphere,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -299,6 +301,7 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::ForestLight => SlotRenderer::Pentagon,
         PrimitiveId::SpinQuad => SlotRenderer::FanBeam,
         PrimitiveId::AuraGlow => SlotRenderer::AuraGlow,
+        PrimitiveId::HalfSphere => SlotRenderer::HalfSphere,
         _ => return None,
     })
 }
@@ -339,6 +342,7 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::Pentagon) => render_pentagon(state, &mut out),
         Some(SlotRenderer::FanBeam) => render_fan_beam(state, &mut out),
         Some(SlotRenderer::AuraGlow) => render_tei_facing_slots(state, context, &mut out),
+        Some(SlotRenderer::HalfSphere) => render_half_sphere(state, &mut out),
         None => {}
     }
 
@@ -1909,6 +1913,120 @@ pub fn render_rect_up(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>)
 }
 
 // ---------------------------------------------------------------------------
+// RenderHalfSphere (104)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderHalfSphere` - `EffectPrimitiveRendering.cpp:1744-1820`.
+///
+/// `TexturedPulse`'s shell: for each live slot, ten latitude rows
+/// (`angle2 = 0..162` step 18) sweeping `fullDisplayAngle` of longitude in
+/// `fullDisplayAngle / 10` degree steps. The row radius is `distance`, the
+/// shell hangs `maxHeight` below the slot's `vecTNow` anchor, and every quad
+/// is the 18-argument `RenderTeiRect` call
+/// `(alphaB, v1, v2, v4, v3, wtm, 1, 0, 0, 250, 250, 255, 0, 1, 0, 1, 0)`.
+///
+/// The original declares `vec1`/`vec3` once, outside the slot loop, and chains
+/// them across rows; the port keeps that sharing (every row's first
+/// `count == 0` pass overwrites them before the `count > 0` emit).
+///
+/// QUIRK: `basicAngle` is `fullDisplayAngle / 10`; a `fullDisplayAngle` in
+/// `0..=9` makes it 0 and the original's inner `for` never advances (an
+/// infinite loop). The port keeps the same step, so such a slot would never
+/// terminate either; no ported body configures one (`TexturedPulse` uses 180).
+pub fn render_half_sphere(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    /// `const int basicAngle2 = 18;`
+    const BASIC_ANGLE2: i32 = 18;
+
+    let mut vec1 = [0.0f32; 3];
+    let mut vec3 = [0.0f32; 3];
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let basic_angle = slot.full_display_angle as i32 / 10;
+
+        let mut angle2 = 0i32;
+        while angle2 < 180 {
+            let mut count = 0i32;
+            while count <= slot.full_display_angle as i32 {
+                let mut angle = count + slot.rot_start as i32;
+
+                if angle >= 360 {
+                    angle -= 360;
+                }
+
+                if slot.full_display_angle == 360 && count == slot.full_display_angle as i32 {
+                    angle = slot.rot_start as i32;
+                }
+
+                let cs1 = table_cos(angle);
+                let sn1 = table_sin(angle);
+
+                let cs2 = table_cos(angle2);
+                let sn2 = table_sin(angle2);
+
+                let dist = slot.distance;
+
+                let mut vec2 = [0.0f32; 3];
+                vec2[1] = cs2 * dist;
+                let dist = sn2 * dist;
+
+                vec2[0] = cs1 * dist;
+                vec2[2] = sn1 * dist;
+                vec2[1] -= slot.max_height;
+
+                vec2[0] += slot.vec_t_now[0];
+                vec2[2] += slot.vec_t_now[2];
+
+                let cs2 = table_cos(angle2 + BASIC_ANGLE2);
+                let sn2 = table_sin(angle2 + BASIC_ANGLE2);
+
+                let dist = slot.distance;
+
+                let mut vec4 = [0.0f32; 3];
+                vec4[1] = cs2 * dist;
+                let dist = sn2 * dist;
+
+                vec4[0] = cs1 * dist;
+                vec4[2] = sn1 * dist;
+                vec4[1] -= slot.max_height;
+
+                vec4[0] += slot.vec_t_now[0];
+                vec4[2] += slot.vec_t_now[2];
+
+                if count > 0 {
+                    // The call passes `vec1, vec2, vec4, vec3`, i.e. the
+                    // caller's fourth corner becomes `RenderTeiRect`'s
+                    // `vec3` argument.
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        slot.alpha_b,
+                        [vec1, vec2, vec4, vec3],
+                        0,
+                        true,
+                        (250, 250, 255),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                }
+
+                vec1 = vec2;
+                vec3 = vec4;
+
+                count += basic_angle;
+            }
+
+            angle2 += BASIC_ANGLE2;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // RenderPentagon (66)
 // ---------------------------------------------------------------------------
 
@@ -2494,7 +2612,7 @@ mod tests {
     use cgmath::{Deg, Matrix4, Vector3};
 
     use super::*;
-    use crate::world::effect::port::primitive::PrimitiveRecord;
+    use crate::world::effect::port::primitive::{EffectPrimitiveSlot, PrimitiveRecord};
 
     const WINDOW: ScreenSize = ScreenSize {
         width: 640.0,
@@ -2577,6 +2695,7 @@ mod tests {
             (PrimitiveId::ForestLight, SlotRenderer::Pentagon),
             (PrimitiveId::SpinQuad, SlotRenderer::FanBeam),
             (PrimitiveId::AuraGlow, SlotRenderer::AuraGlow),
+            (PrimitiveId::HalfSphere, SlotRenderer::HalfSphere),
         ];
 
         for (id, expected_renderer) in expected {
@@ -2613,6 +2732,7 @@ mod tests {
             PrimitiveId::ForestLight,
             PrimitiveId::SpinQuad,
             PrimitiveId::AuraGlow,
+            PrimitiveId::HalfSphere,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -3751,5 +3871,128 @@ mod tests {
         let v1 = aura_point(10.0, 0);
 
         assert_eq!(built[0].corners[0], [v1[0] + 5.0, -30.0, v1[2] + 7.0]);
+    }
+
+    // -----------------------------------------------------------------
+    // RenderHalfSphere (104)
+    // -----------------------------------------------------------------
+
+    /// `TexturedPulse`'s slot: 8 radius, 8 drop, 180 degrees of longitude.
+    fn half_sphere_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::HalfSphere);
+        state.texture = Some("effect\\white02.bmp");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 120,
+            rot_start: 0,
+            full_display_angle: 180,
+            max_height: 8.0,
+            distance: 8.0,
+            vec_t_now: [0.0, 0.0, 5.0],
+            ..Default::default()
+        };
+        state
+    }
+
+    #[test]
+    fn half_sphere_emits_ten_latitude_rows_of_ten_quads() {
+        // `angle2 = 0..162` step 18 (10 rows) by `count = 0..180` step
+        // `180 / 10 = 18` (10 emitting quads per row).
+        assert_eq!(triangles(&half_sphere_state()).len(), 200);
+    }
+
+    #[test]
+    fn half_sphere_quad_uses_the_official_corners_uvs_and_colour() {
+        let mut state = half_sphere_state();
+        state.position = [1.0, 2.0, 3.0];
+
+        let built = triangles(&state);
+
+        let cos18 = table_cos(18);
+        let sin18 = table_sin(18);
+        let (distance, max_height) = (8.0f32, 8.0f32);
+
+        // Row `angle2 == 0`, `count == 0`: `sn2 == 0`, so the row's bottom
+        // ring collapses onto the slot's `vecTNow`; no quad is emitted and
+        // it becomes the next pass's `vec1`/`vec3`.
+        let vec1 = [0.0, 0.0, 5.0];
+        let vec3 = [sin18 * distance, (cos18 * distance) - max_height, 5.0];
+
+        // Row `angle2 == 0`, `count == 18` (table angle 18).
+        let vec4 = [
+            cos18 * (sin18 * distance),
+            (cos18 * distance) - max_height,
+            sin18 * (sin18 * distance) + 5.0,
+        ];
+
+        // First quad = `(vec1, vec2, vec4, vec3)` with `vec2 == vec1` here, so
+        // its first triangle is degenerate exactly like the original's.
+        assert_eq!(built[0].corners[0], [vec1[0] + 1.0, vec1[1] + 2.0, vec1[2] + 3.0]);
+        assert_eq!(built[0].corners[1], built[0].corners[0]);
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+
+        let expected_second = [
+            [vec3[0] + 1.0, vec3[1] + 2.0, vec3[2] + 3.0],
+            [vec4[0] + 1.0, vec4[1] + 2.0, vec4[2] + 3.0],
+            [vec1[0] + 1.0, vec1[1] + 2.0, vec1[2] + 3.0],
+        ];
+
+        assert_eq!(built[1].corners, expected_second);
+        assert_eq!(built[1].texture_coordinates, [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]);
+        assert_eq!(built[1].argb, pack_argb(120, 250, 250, 255));
+        assert_eq!(built[1].texture, Some("effect\\white02.bmp"));
+        assert_eq!(built[1].blend, SlotBlend::Alpha);
+        assert_eq!(built[1].forced_depth, None);
+    }
+
+    #[test]
+    fn half_sphere_wraps_the_longitude_with_one_subtraction() {
+        // `rotStart = 350`, `count = 18` -> `368 - 360 = 8`; the renderer only
+        // subtracts one full turn, like the original.
+        let mut state = half_sphere_state();
+        state.slots[0].rot_start = 350;
+        state.slots[0].max_height = 0.0;
+        state.slots[0].vec_t_now = [0.0; 3];
+
+        let built = triangles(&state);
+
+        // Row `angle2 == 18` starts at triangle 20; its first quad runs from
+        // `count == 0` (angle 350) to `count == 18` (angle 8).
+        let distance = 8.0f32;
+        let outer = table_sin(18) * distance;
+
+        assert_eq!(built[20].corners[1], [
+            table_cos(8) * outer,
+            table_cos(18) * distance,
+            table_sin(8) * outer,
+        ]);
+    }
+
+    #[test]
+    fn half_sphere_draws_even_at_zero_alpha() {
+        // Unlike `RenderRecordRings`, `RenderHalfSphere` gates on `life` only,
+        // so `TexturedPulse`'s frame-0 shell is submitted fully transparent.
+        let mut state = half_sphere_state();
+        state.slots[0].alpha_b = 0;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 200);
+        assert_eq!(built[0].argb, pack_argb(0, 250, 250, 255));
+    }
+
+    #[test]
+    fn half_sphere_caps_at_510_triangles() {
+        // Four live slots would emit 800 triangles; `RenderTeiRect` defers to
+        // `if (*rpCnt >= 510) return;`. Every triangle here is treated as
+        // visible, which is the 510 the original submits in that case.
+        let mut state = half_sphere_state();
+        let slot = state.slots[0];
+
+        for index in 1..4usize {
+            state.slots[index] = slot;
+        }
+
+        assert_eq!(triangles(&state).len(), MAX_TRIANGLES_PER_PRIMITIVE);
     }
 }

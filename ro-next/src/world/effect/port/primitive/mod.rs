@@ -15,6 +15,7 @@ pub mod circle3d;
 pub mod cylinder;
 pub mod flash;
 pub mod forest_light;
+pub mod half_sphere;
 pub mod halo;
 pub mod height_ramp;
 pub mod intimidate;
@@ -77,6 +78,10 @@ pub struct MasterState {
     pub master_delta_pos: [f32; 3],
     /// `CRagEffect::render.angle` (facing), read by `pattern & 0x400`.
     pub render_angle: f32,
+    /// `CRagEffect::state.parent->render.angle` - the caster actor's facing,
+    /// read by `PP_HALFSPHERE` (prim 104), which aligns the shell to its
+    /// parent rather than to the effect's own `render.angle`.
+    pub parent_angle: f32,
     /// Camera pitch / yaw and `g_cameraYawOffset`, read by `pattern` 0x40/0x200.
     pub camera_pitch: f32,
     pub camera_yaw: f32,
@@ -100,6 +105,7 @@ impl Default for MasterState {
             duration: 0,
             master_delta_pos: [0.0; 3],
             render_angle: 0.0,
+            parent_angle: 0.0,
             camera_pitch: 0.0,
             camera_yaw: 0.0,
             camera_yaw_offset: 90.0,
@@ -168,6 +174,8 @@ pub enum PrimitiveId {
     PulseKind,
     /// prim 155 (`PrimWanderingFlames`) - the Fork Bolt twin glow squares.
     WanderingFlames,
+    /// `PP_HALFSPHERE` (104) - `CRagEffect::TexturedPulse`'s shell.
+    HalfSphere,
 }
 
 impl PrimitiveId {
@@ -201,6 +209,7 @@ impl PrimitiveId {
             Self::ForestLight => 66,
             Self::PulseKind => 64,
             Self::WanderingFlames => 155,
+            Self::HalfSphere => 104,
         }
     }
 }
@@ -713,6 +722,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::WanderingFlames => {
                 wandering_flames::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::HalfSphere => {
+                half_sphere::on_process(self, angles, master);
                 true
             }
         };

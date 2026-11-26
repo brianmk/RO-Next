@@ -220,6 +220,7 @@ impl EffectRuntime {
             duration: self.lifetime,
             master_delta_pos: self.target_offset,
             render_angle: self.render_angle,
+            parent_angle: self.parent_angle,
             camera_yaw: self.camera_yaw,
             camera_pitch: self.camera_pitch,
             terrain_height: self.terrain_height,

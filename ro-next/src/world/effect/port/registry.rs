@@ -13,7 +13,7 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, Aqua, Bash, Blessing, BowlingBash, CartRevolution, DecAgility, Detoxication, EarthSpike, EnchantPoison, Endure, FireBall, FrostDiver, FrostDiver2, Hit2, IceWall, IncAgility, MagnumBreak, Overthrust,
-    Aspersio, BlitzBeat, BottomCarpet, RemoveTrap, Sphere, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, TeleportSpiral, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, WhiteSpray,
+    Aspersio, BlitzBeat, BottomCarpet, RemoveTrap, Sphere, BottomLayer, BottomLayers, Cloud11Burst, Entry, Exit, LockOn, TeleportSpiral, RisingOrbs, SonicBlowHit, Warp, Vallentine, SprayPond, GlassWall, GrimTooth, GrimToothAtk, NapalmBeat, StoneSpike, TexturedComet, PortalSpell, WaterBallBurst, EnchantPoisonCast, ForestLight6, TexturedPulseKind, FirePillar, FireSparks, TexturedHalo, TorchDustRing, FrostMysty, PortalRings, RingWave, RogueCoin, SpearBmr, WaterBall, HealBurst, MagicRing, TripleOrbit, PotionPill, RocketPunch, SprinkleSand, StormGust, VioletRingCloud, HealRingSparkle, Revive, Signum, SonicBlow, TexturedClassChange, TexturedQuadSpin, TexturedSkillAura, TexturedSpreadFlat, TexturedPulse, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -90,6 +90,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Spearbmr => Box::new(SpearBmr::new(250)),
         EffectId::Edp => Box::new(EnchantPoisonCast::default()),
         EffectId::Firefly => Box::new(FireSparks::default()),
+        EffectId::Halfsphere => Box::new(TexturedPulse::new("effect\\white02.bmp", 200)),
         EffectId::BottomRunner => Box::new(TexturedHalo::new("effect\\hanmoon1.tga", 3, 29999)),
         EffectId::BottomTransfer => Box::new(TexturedHalo::new("effect\\hanmoon2.tga", 3, 29999)),
         EffectId::BottomLa => Box::new(TexturedHalo::new("effect\\aaa copy.bmp", 1, 29999)),
@@ -231,6 +232,7 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Spearbmr,
         EffectId::Edp,
         EffectId::Firefly,
+        EffectId::Halfsphere,
         EffectId::BottomRunner,
         EffectId::BottomTransfer,
         EffectId::BottomLa,
@@ -358,6 +360,7 @@ mod tests {
             (EffectId::Spearbmr, 250),
             (EffectId::Edp, 120),
             (EffectId::Firefly, 100),
+            (EffectId::Halfsphere, 200),
             (EffectId::BottomRunner, 29999),
             (EffectId::BottomTransfer, 29999),
             (EffectId::BottomLa, 29999),

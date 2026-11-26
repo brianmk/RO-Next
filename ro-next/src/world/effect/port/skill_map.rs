@@ -93,6 +93,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Portal4,
     EffectId::Portal5,
     EffectId::BottomSpider,
+    EffectId::Halfsphere,
     EffectId::Yufitel2,
     EffectId::Agiup,
     EffectId::Edp,
