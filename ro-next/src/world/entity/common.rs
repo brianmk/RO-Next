@@ -129,42 +129,56 @@ pub struct Common {
     /// ported effect body (`port/visual.rs` replays it every frame; `None` =
     /// never written).
     ///
-    /// Official consumers: the flag-`0x80` sine lift and flag-`0x20` random
-    /// squash (`ActorGeometry.cpp:114-143`), the `0x40` swing/jitter
-    /// (`ActorGeometry.cpp:205-218`, `RenderObject.cpp:806-819`), the
-    /// `0x100` fade/lift (`Player.cpp:1195-1204`), the `0x10000` jump lift
-    /// and the `0x80800`/`0x2000` overlay ramps
-    /// (`RenderObject.cpp:1838-1850`, `:2028-2040`) and
-    /// `DrawStatusOverlays` (`RenderObject.cpp:720-739`). The client render
-    /// path has no phase-driven transform yet, so the register is recorded
-    /// and cleared by the port bridge but **not consumed**.
+    /// Official consumers are all gated on a *different* `render.flags` bit,
+    /// so the phase alone does not select the transform: the flag-`0x80` sine
+    /// lift and flag-`0x20` random squash (`ActorGeometry.cpp:114-143`), the
+    /// `0x40` swing/jitter (`ActorGeometry.cpp:205-218`,
+    /// `RenderObject.cpp:806-819`), the `0x100` fade/lift
+    /// (`Player.cpp:1195-1204`), the `0x10000` jump lift, the
+    /// `0x80800`/`0x2000` overlay ramps (`RenderObject.cpp:1838-1850`,
+    /// `:2028-2040`), the `0x800` ten-copy pulse outline
+    /// (`RenderObject.cpp:2028-2065`) and `DrawStatusOverlays`
+    /// (`RenderObject.cpp:720-739`). The port records that flag word in
+    /// `EffectRuntime::parent_flags`, but the client has no per-frame
+    /// `render.flags` register (see that field's docs), so the register stays
+    /// **record-only** rather than guessing a transform from the phase value.
     #[hidden_element]
     pub(crate) render_effect_phase: Option<i16>,
     /// `render.tintPhase` (`RenderObjectState.h:128`, `unsigned char`) written
     /// by a ported effect body.
     ///
-    /// Official consumers: `CRenderObject::DrawTintedQuad`'s alpha ramp
-    /// (`RenderObject.cpp:826-846`) and the flag-`0x20000` rise
-    /// (`Player.cpp:1206-1218`). No client render pass reads it yet, so it is
-    /// recorded but **not consumed**.
+    /// Consumed by [`Self::render`]: [`draw_tinted_quad`] ports the alpha ramp
+    /// of `CRenderObject::DrawTintedQuad` (`RenderObject.cpp:826-846`) and the
+    /// body is redrawn twice with additive blending, like the two official
+    /// `DrawQuad` calls. The fixed RGB of the official call sites is selected
+    /// by the caster's per-frame flags (`0x4000` blue, `0x40000` red); that
+    /// word is not bridged, so the actor tint supplies the hue
+    /// ([`official_tint_rgb`] snaps the reachable blue/red bodies to the exact
+    /// official constants; see the comment at the draw site). The
+    /// flag-`0x20000` rise (`Player.cpp:1206-1218`) is **not** applied: it
+    /// shifts and fades a screen-space body quad, and this client draws
+    /// world-space sprites (the rise unit/alpha maths is ported in
+    /// [`tint_rise_units`]/[`tint_rise_alpha`] for a future sprite-quad pass).
     #[hidden_element]
     pub(crate) render_tint_phase: Option<u8>,
     /// `render.shrinkPhase` (`RenderObjectState.h:121`, `unsigned char`, low
     /// byte of the `pulsePhaseState` union) written by a ported effect body.
     ///
-    /// Official consumer: `CRenderObject::ScaleByPulse` behind flag `0x10`
-    /// (`RenderObject.cpp:749-767`, `GameActor.cpp:932-940`). The client has
-    /// no pulse scale, so it is recorded but **not consumed**.
+    /// Consumed by [`Self::render`] through [`pulse_scale`], the exact
+    /// `CRenderObject::ScaleByPulse` ramp (`RenderObject.cpp:749-767`). It
+    /// multiplies every actor layer's scale. `EF_BABYBODY`
+    /// (`RagEffect.cpp:24478-24484`, flag `0x10`) is the only ported writer, so
+    /// a recorded phase implies the official flag.
     #[hidden_element]
     pub(crate) render_shrink_phase: Option<u8>,
     /// `render.outlineAlpha` (`RenderObjectState.h:125`, `unsigned char`)
     /// written by a ported effect body.
     ///
-    /// Official consumer: the flat outline copies behind flags `0x800`/
-    /// `0x80000` (`Player.cpp:1139-1190`, `RenderObject.cpp:2068-2085`). The
-    /// client's [`Self::body_outline`] pass is driven by its own timed
-    /// descriptor layer and does not read this byte, so it is recorded but
-    /// **not consumed**.
+    /// Consumed by [`Self::render`]: three flat, 1-3% scaled body copies in
+    /// `0x3737FF` at the byte's alpha, the flag-`0x800` pass of
+    /// `Player.cpp:1139-1190`. `EF_ASURABODY` (`rag/champion.rs`) is the only
+    /// ported writer, and it sets the flag, so no flag register is needed. The
+    /// timed [`Self::body_outline`] descriptor layer keeps its own pass.
     #[hidden_element]
     pub(crate) render_outline_alpha: Option<u8>,
     /// `render.runStartTick` (`RenderObjectState.h:129`, `unsigned char`)
@@ -173,9 +187,13 @@ pub struct Common {
     /// Official consumers: `CRenderObject::GetSequenceSpriteOverride`'s
     /// angel/devil headband swap (`RenderObject.cpp:794-800`) and
     /// `CRenderObject::ProcessFootprint`'s dummy-effect selection
-    /// (`RagEffect.cpp:17127`). The client does neither, so it is recorded but
-    /// **not consumed**. Unlike the other phase registers,
-    /// `CRenderObject::Reset` does not zero this byte; only `EF_RUN` writes it.
+    /// (`RagEffect.cpp:17127`). The client has neither vocabulary: headgear is
+    /// data-driven from the accessory view ids and there is no per-sequence
+    /// sprite override table (`sprite\악세사리\남\남_천사의머리띠.spr` /
+    /// `남_악마의머리띠.spr`) or footprint dummy-effect registry, so the
+    /// register stays **record-only** rather than approximating the swap.
+    /// Unlike the other phase registers, `CRenderObject::Reset` does not zero
+    /// this byte; only `EF_RUN` writes it.
     #[hidden_element]
     pub(crate) render_run_start_tick: Option<u8>,
     /// Equipped weapon animation, drawn as its own layer on top of the body
@@ -571,6 +589,17 @@ impl Common {
         self.body_squash.map(|squash| squash.y_scale(client_tick)).unwrap_or(1.0)
     }
 
+    /// Actor scale multiplier of the official `CRenderObject::ScaleByPulse`
+    /// (`RenderObject.cpp:749-767`), driven by the ported `render.shrinkPhase`
+    /// register. `EF_BABYBODY` (`RagEffect.cpp:24478-24484`, flag 0x10) is the
+    /// only ported writer, so no per-frame `render.flags` word is needed to
+    /// decide whether the pulse is active: a recorded phase means it is.
+    ///
+    /// `1.0` when the register was never written.
+    fn render_pulse_scale(&self) -> f32 {
+        self.render_shrink_phase.map(pulse_scale).unwrap_or(1.0)
+    }
+
     /// Start a body squash (official landing flag 0x40).
     pub fn start_body_squash(&mut self, duration_ms: u32, amount: f32, client_tick: ClientTick) {
         self.body_squash = Some(BodySquash {
@@ -745,32 +774,37 @@ impl Common {
 
     /// Records `render.effectPhase` from a ported effect body
     /// (`port/visual.rs`). The value is the official `short` write, so it is
-    /// stored unwidened. No client render pass reads it yet; see
-    /// [`Self::render_effect_phase`].
+    /// stored unwidened. The flag-gated consumers cannot be selected from this
+    /// register alone; see [`Self::render_effect_phase`].
     pub fn set_render_effect_phase(&mut self, phase: Option<i16>) {
         self.render_effect_phase = phase;
     }
 
-    /// Records `render.tintPhase` from a ported effect body. No client render
-    /// pass reads it yet; see [`Self::render_tint_phase`].
+    /// Records `render.tintPhase` from a ported effect body. Drives the
+    /// `DrawTintedQuad` alpha ramp in [`Self::render`]; see
+    /// [`Self::render_tint_phase`].
     pub fn set_render_tint_phase(&mut self, phase: Option<u8>) {
         self.render_tint_phase = phase;
     }
 
-    /// Records `render.shrinkPhase` from a ported effect body. No client render
-    /// pass reads it yet; see [`Self::render_shrink_phase`].
+    /// Records `render.shrinkPhase` from a ported effect body. Drives the
+    /// `ScaleByPulse` scale in [`Self::render`]; see
+    /// [`Self::render_shrink_phase`].
     pub fn set_render_shrink_phase(&mut self, phase: Option<u8>) {
         self.render_shrink_phase = phase;
     }
 
-    /// Records `render.outlineAlpha` from a ported effect body. No client
-    /// render pass reads it yet; see [`Self::render_outline_alpha`].
+    /// Records `render.outlineAlpha` from a ported effect body. Drives the
+    /// flat outline copies in [`Self::render`]; see
+    /// [`Self::render_outline_alpha`].
     pub fn set_render_outline_alpha(&mut self, alpha: Option<u8>) {
         self.render_outline_alpha = alpha;
     }
 
     /// Records `render.runStartTick` from a ported effect body. No client
-    /// render pass reads it yet; see [`Self::render_run_start_tick`].
+    /// render pass reads it: the official consumers need a per-sequence sprite
+    /// override table the client does not have; see
+    /// [`Self::render_run_start_tick`].
     pub fn set_render_run_start_tick(&mut self, tick: Option<u8>) {
         self.render_run_start_tick = tick;
     }
@@ -1492,6 +1526,11 @@ impl Common {
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {
         let alpha = self.fade_state.calculate_alpha(client_tick) * self.status_alpha.unwrap_or(1.0);
         let tint = self.sprite_tint(client_tick);
+        // Official `CRenderObject::ScaleByPulse` behind `render.flags` bit 0x10
+        // (`RenderObject.cpp:749-767`), fed by `render.shrinkPhase`. The client
+        // applies it to every actor layer that uses the actor scale; the
+        // outline copies keep the unpulsed `render.scale`, like `Player.cpp`.
+        let render_scale = self.scale * self.render_pulse_scale();
 
         let body_wave = self.body_wave.map(|wave| wave.offset(client_tick)).unwrap_or(0.0);
         let body_position = self.world_position + cgmath::Vector3::new(0.0, body_wave, 0.0);
@@ -1503,7 +1542,7 @@ impl Common {
             .body_outline
             .filter(|outline| outline.active(client_tick))
             .or(undead_outline.then_some(BodyOutline {
-                color: Color::rgb_u8(0x05, 0x64, 0x05),
+                color: OUTLINE_UNDEAD,
                 start_tick: client_tick,
                 duration_ms: u32::MAX,
             }));
@@ -1543,7 +1582,7 @@ impl Common {
                 self.direction,
                 robe_alpha,
                 tint,
-                self.scale,
+                render_scale,
                 self.imf.as_deref(),
                 false,
                 false,
@@ -1575,6 +1614,39 @@ impl Common {
             }
         }
 
+        // Official `render.outlineAlpha` behind flag `0x800`: three flat,
+        // 1-3% scaled copies of the body in `(alpha << 24) + 0x3737FF`
+        // (`Player.cpp:1139-1190`). `EF_ASURABODY` is the only ported writer
+        // (`rag/champion.rs`, `RenderObjectState.h:125`), and it also sets the
+        // flag, so a recorded alpha is enough to run the pass. The existing
+        // timed outline above keeps its own descriptor-driven lifetime.
+        if let (Some(resolve_alpha), Some(animation_data)) = (self.render_outline_alpha, self.animation_data.as_ref()) {
+            let phase_outline_alpha = alpha * outline_alpha(resolve_alpha);
+
+            if phase_outline_alpha > 0.0 {
+                for step in 1..=3 {
+                    let scale = self.scale * (1.0 + step as f32 * 0.01);
+                    animation_data.render(
+                        instructions,
+                        camera,
+                        add_to_picker,
+                        self.entity_id,
+                        body_position,
+                        &self.animation_state,
+                        self.direction,
+                        phase_outline_alpha,
+                        OUTLINE_BLUE,
+                        scale,
+                        self.imf.as_deref(),
+                        false,
+                        true,
+                        -0.02 - step as f32 * 0.005,
+                        1.0,
+                    );
+                }
+            }
+        }
+
         if let Some(animation_data) = self.animation_data.as_ref() {
             animation_data.render(
                 instructions,
@@ -1586,13 +1658,54 @@ impl Common {
                 self.direction,
                 alpha,
                 tint,
-                self.scale,
+                render_scale,
                 self.imf.as_deref(),
                 self.body_additive(client_tick),
                 false,
                 0.0,
                 self.body_squash_y(client_tick),
             );
+
+            // Official `CRenderObject::DrawStatusOverlays` -> `DrawTintedQuad`
+            // (`RenderObject.cpp:720-745`, `:826-846`): the body quad is
+            // redrawn twice with the phase's alpha ramp. The fixed RGB of the
+            // two official call sites is selected by the caster's per-frame
+            // `render.flags` bit (0x4000 blue `(5, 5, 255)`, 0x40000 red
+            // `(255, 5, 5)`), and that flag word is not bridged (see
+            // `EffectRuntime::parent_flags`). The actor's current sprite tint
+            // stands in: [`official_tint_rgb`] snaps a saturated blue/red tint
+            // to the exact official constant, and the reachable blue/red
+            // bodies (`EF_BLUEBODY`, `EF_MADNESS_BLUE`, `EF_MADNESS_RED`)
+            // already carry that same official hue on the actor, so their
+            // colour is exact. Other tints keep their own RGB. Only the alpha
+            // ramp is driven by `render.tintPhase`.
+            if let Some(tint_phase) = self.render_tint_phase {
+                let tint_rgb = official_tint_rgb(tint).unwrap_or([tint.red_as_u8(), tint.green_as_u8(), tint.blue_as_u8()]);
+
+                if let Some(quad) = draw_tinted_quad(tint_phase, tint_rgb[0], tint_rgb[1], tint_rgb[2])
+                    && quad.alpha > 0
+                {
+                    for _ in 0..quad.draws {
+                        animation_data.render(
+                            instructions,
+                            camera,
+                            add_to_picker,
+                            self.entity_id,
+                            body_position,
+                            &self.animation_state,
+                            self.direction,
+                            alpha,
+                            quad.color(),
+                            render_scale,
+                            self.imf.as_deref(),
+                            true,
+                            false,
+                            0.0,
+                            self.body_squash_y(client_tick),
+                        );
+                    }
+                }
+            }
         }
 
         // Equipped shield: drawn in front of the body and behind the weapon,
@@ -1608,7 +1721,7 @@ impl Common {
                 self.direction,
                 alpha,
                 tint,
-                self.scale,
+                render_scale,
                 None,
                 false,
                 false,
@@ -1632,7 +1745,7 @@ impl Common {
                 self.direction,
                 alpha,
                 tint,
-                self.scale,
+                render_scale,
                 None,
                 self.status_weapon_additive,
                 false,
@@ -1654,7 +1767,7 @@ impl Common {
                 self.direction,
                 robe_alpha,
                 tint,
-                self.scale,
+                render_scale,
                 self.imf.as_deref(),
                 false,
                 false,
@@ -1678,7 +1791,7 @@ impl Common {
                 self.direction,
                 alpha,
                 tint,
-                self.scale,
+                render_scale,
                 None,
                 false,
                 false,

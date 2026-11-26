@@ -48,6 +48,7 @@ mod common;
 mod falcon;
 mod npc;
 mod player;
+mod render_phase;
 
 pub use self::actor::*;
 pub use self::common::*;
@@ -55,6 +56,7 @@ pub use self::falcon::is_falcon_attack_skill;
 pub(crate) use self::falcon::{FALCON_ACTION_FLIGHT, FalconFlight};
 pub use self::npc::*;
 pub use self::player::*;
+pub use self::render_phase::*;
 
 const SOUND_COOLDOWN_DURATION: u32 = 200;
 const SPATIAL_SOUND_RANGE: f32 = 250.0;
