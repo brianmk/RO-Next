@@ -53,7 +53,6 @@ impl Client {
             );
         }
 
-        let is_local_player = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id);
         // Cloned so the library lookup does not conflict with the mutable
         // entity borrow below.
         let library = self.library.clone();
@@ -88,13 +87,9 @@ impl Client {
                     // Pickup-style skills play the pickup animation.
                     CasterAction::Pickup => entity.set_pickup(client_tick),
                     CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
-                    // Official `ST_STAND`: the local `CPc` uses the armed idle
-                    // block 32, every other actor block 0 (`Player.cpp:1687`
-                    // vs `RenderObject.cpp:3353`).
-                    CasterAction::Stand => match is_local_player {
-                        true => entity.set_idle(client_tick),
-                        false => entity.set_stand(client_tick),
-                    },
+                    // Official `ST_STAND`: the neutral block 0 pose for every
+                    // actor (`WeaponActionBase(ST_STAND) = 0`).
+                    CasterAction::Stand => entity.set_stand(client_tick),
                     CasterAction::Action(action_index) => {
                         entity.set_custom_skill_action(action_index as usize, cast_animation_time, has_cast_time, client_tick)
                     }
@@ -311,8 +306,6 @@ impl Client {
                     .and_then(|tile_position| self.map.as_ref().and_then(|map| map.get_world_position(tile_position)))
             };
 
-            let is_local_player =
-                self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(source_entity_id);
             let library = self.library.clone();
 
             if let Some(entity) = self
@@ -334,10 +327,7 @@ impl Client {
                         // `SkillCast` arm above).
                         CasterAction::Idle => entity.set_idle(client_tick),
                         // Official `ST_STAND` (see the `SkillCast` arm).
-                        CasterAction::Stand => match is_local_player {
-                            true => entity.set_idle(client_tick),
-                            false => entity.set_stand(client_tick),
-                        },
+                        CasterAction::Stand => entity.set_stand(client_tick),
                         // This packet has no cast time: play the whole ACT
                         // skill animation once at its natural frame speed.
                         CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
@@ -449,8 +439,6 @@ impl Client {
         // Ground-skill pose packet: the ambient crafting loop uses it as a
         // fall back so at least the hammer swing is visible and audible.
         // Play the action once and the completion effect at the target cell.
-        let is_local_player = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) == Some(entity_id);
-
         if let Some(entity) = self
             .client_state
             .follow_mut(client_state().entities())
@@ -463,10 +451,7 @@ impl Client {
                 CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                 CasterAction::Pickup => entity.set_pickup(client_tick),
                 CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
-                CasterAction::Stand => match is_local_player {
-                    true => entity.set_idle(client_tick),
-                    false => entity.set_stand(client_tick),
-                },
+                CasterAction::Stand => entity.set_stand(client_tick),
                 CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
                 CasterAction::Keep => {}
             }

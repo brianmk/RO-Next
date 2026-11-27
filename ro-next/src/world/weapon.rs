@@ -52,14 +52,22 @@
 //! The CondaRO client archives contain **no** classic job-independent weapon
 //! layer (`data\sprite\인간족\무기\*`); the per-job weapon variants
 //! (`data\sprite\인간족\<job>\<job>_<sex>_<variant>`) carry the real weapon
-//! graphics. Their ACT data does **not** animate the classic stand/walk/sit
-//! blocks (0..31); the armed stand pose lives in the ready-fight block
-//! (`32..39`) and the swing in the `ST_ATTACK` (`80..87`) or `ST_ATTACK2`
-//! (`88..95`) block, depending on the job/weapon pair (some also animate the
-//! skill block `96..103`). The entity layer therefore idles on block 32..39
-//! and picks the attack block with [`attack_action`], otherwise the weapon layer
-//! would be loaded but never drawn. No item/skill icon is drawn in the world as
-//! a substitute; the equipment/inventory UI already shows the item icon.
+//! graphics. Their ACT data does **not** animate the classic neutral idle block
+//! (`0..7`); the armed stand pose lives in the ready-fight block (`32..39`) and
+//! the swing in the `ST_ATTACK` (`80..87`) or `ST_ATTACK2` (`88..95`) block,
+//! depending on the job/weapon pair (some also animate the skill block
+//! `96..103`).
+//!
+//! The official renderer does not draw the weapon layer during the neutral
+//! idle: `IsReadyOrAttackAction` (`Player.cpp:1835`) only accepts the
+//! ready-fight (`32..39`) and attack (`80..95`) actions, and
+//! `SpriteLayerRenderer::ShouldDrawLayer` (`SpriteLayerDrawing.cpp:716-731`)
+//! hides the weapon (layer 5), weapon-effect (layer 6) and shield (layer 7)
+//! layers for every other action. The entity layer therefore idles in the
+//! neutral `ST_STAND` block (`0..7`) with the weapon hidden, shows it in the
+//! ready-fight stance and picks the attack block with [`attack_action`]. No
+//! item/skill icon is drawn in the world as a substitute; the
+//! equipment/inventory UI already shows the item icon.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
@@ -784,11 +792,13 @@ pub(crate) fn attack_action(animation_data: &AnimationData) -> super::AnimationA
 
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::{JobId, Sex};
+    use ragnarok_packets::{ClientTick, JobId, Sex};
 
-    use super::{AmmoKind, ProjectileKind, WeaponKind, animation_is_drawable, attack_action, parse, part_candidates, profile, projectile_for_weapon};
+    use super::{
+        AmmoKind, ProjectileKind, WeaponKind, animation_is_drawable, attack_action, parse, part_candidates, profile, projectile_for_weapon,
+    };
     use crate::world::EntityType;
-    use crate::world::animation::{Animation, AnimationActionType, AnimationData, AnimationFrame, AnimationFramePart};
+    use crate::world::animation::{Animation, AnimationActionType, AnimationData, AnimationFrame, AnimationFramePart, AnimationState};
 
     fn archer() -> JobId {
         JobId(3)
@@ -1110,5 +1120,29 @@ mod tests {
 
         // A weapon layer that is still loading falls back to ST_ATTACK.
         assert_eq!(attack_action(&fake_animation(0)), AnimationActionType::Attack2);
+    }
+
+    #[test]
+    fn player_with_weapon_idles_neutral_and_swings_in_the_visible_attack_block() {
+        // Knight sword / archer bow data: the weapon draws block 32..39 (armed
+        // stance) and block 80..87 (swing), every other block is a placeholder.
+        let weapon = fake_block_animation(&[32, 80]);
+
+        // At peace the player uses the official neutral `ST_STAND` block 0.
+        // `IsReadyOrAttackAction` rejects it, so the weapon layer stays hidden
+        // even though the weapon ACT is loaded.
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        assert_eq!(state.action_index(), 0);
+        assert_eq!(state.action_index() * 8, 0);
+        assert!(!state.shows_weapon_layer());
+
+        // The attack plays the block the weapon ACT actually animates and the
+        // official rule keeps the weapon visible while it does.
+        let action = attack_action(&weapon);
+        assert_eq!(action, AnimationActionType::Attack2);
+        state.attack(EntityType::Player, 100, action, ClientTick(10));
+        assert_eq!(state.action_index(), 10);
+        assert_eq!(state.action_index() * 8, 80);
+        assert!(state.shows_weapon_layer());
     }
 }

@@ -549,11 +549,12 @@ impl Entity {
         self.get_common_mut().animation_state.ready_fight(entity_type, client_tick);
     }
 
-    /// Official `ST_STAND` pose (block 0) for non-local actors.
+    /// Official `ST_STAND` neutral pose (block 0).
     ///
     /// `CGameActor::SetState(ST_STAND)` uses
-    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:3353`); the local
-    /// player is a `CPc` and keeps the armed idle block 32.
+    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:1478`/`3416`) for
+    /// every actor, including the local player at peace. The armed ready-fight
+    /// stance is [`Self::set_ready_fight`] (block 32..39).
     pub fn set_stand(&mut self, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();
         self.get_common_mut().animation_state.stand(entity_type, client_tick);

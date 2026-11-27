@@ -34,11 +34,11 @@ pub enum AnimationActionType {
     ReadyFight,
     Sit,
     Skill,
-    /// Official `ST_STAND` pose (`GetSkillActionInfo` motion 0) for actors
-    /// whose `SetState` resolves it through `WeaponActionBase(ST_STAND) = 0`
-    /// (remote players, monsters, NPCs). The local player is a `CPc` and its
-    /// `JobActionBase(ST_STAND)` is the armed idle block 32, so the handlers
-    /// keep using [`AnimationActionType::Idle`] for the local player.
+    /// Official `ST_STAND` pose (`GetSkillActionInfo` motion 0), which
+    /// `CGameActor::SetState` resolves through
+    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:3416`). The same
+    /// neutral block is what [`AnimationActionType::Idle`] uses; the armed
+    /// ready-fight stance is [`AnimationActionType::ReadyFight`] instead.
     Stand,
     Special,
     Walk,
@@ -51,14 +51,17 @@ impl AnimationActionType {
     pub fn action_base_offset(&self, entity_type: EntityType) -> usize {
         match entity_type {
             EntityType::Hidden | EntityType::Player => match self {
-                // The player body ACT layout has two standing blocks: the
-                // classic block 0..7 is the *weaponless* relaxed pose, while
-                // the armed stand pose is the ready-fight block 32..39. Every
-                // per-job weapon ACT (kRO 2019 data set) only animates the
-                // ready-fight (32..39) and attack (80..95) blocks, so idling on
-                // block 0 would make the equipped weapon layer invisible
-                // (official `CPc::JobActionBase(ST_STAND) = 32`).
-                AnimationActionType::Idle => 4,
+                // Official `ST_STAND`: `CGameActor::SetState` calls
+                // `SetAction(WeaponActionBase(ST_STAND), 4, 0)` with
+                // `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:1478`,
+                // `RenderObject.cpp:3416`), i.e. the neutral ACT block 0..7.
+                // `CPc::SetState` only replaces it with the armed
+                // `JobActionBase(ST_STAND) = 32` block while returning from a
+                // combat state or while `healthState != 0`
+                // (`Player.cpp:4423-4472`); at peace the player idles in the
+                // neutral pose, with the weapon and shield layers hidden by
+                // `IsReadyOrAttackAction` (`Player.cpp:1835`).
+                AnimationActionType::Idle => 0,
                 AnimationActionType::Walk => 1,
                 AnimationActionType::Sit => 2,
                 AnimationActionType::Pickup => 3,
@@ -71,8 +74,6 @@ impl AnimationActionType {
                 AnimationActionType::Attack2 => 10,
                 AnimationActionType::Attack3 => 11,
                 AnimationActionType::Skill => 12,
-                // `CGameActor::SetState(ST_STAND)` -> `WeaponActionBase(0)`
-                // (`RenderObject.cpp:3353`); only the local `CPc` differs.
                 AnimationActionType::Stand => 0,
                 AnimationActionType::Custom(index) => *index,
                 _ => 0,
@@ -92,6 +93,19 @@ impl AnimationActionType {
             EntityType::Warp => 0,
         }
     }
+}
+
+/// Official `IsReadyOrAttackAction` (`Player.cpp:1835`).
+///
+/// The sprite renderer draws the weapon (layer 5), weapon effect (layer 6) and
+/// shield (layer 7) only while the actor's `previousAnimation` is the
+/// ready-fight action `32..39` or one of the player attack actions `80..95`
+/// (`SpriteLayerDrawing.cpp:716-731`). Every other action — neutral idle
+/// `0..7`, walk, sit, pickup, throw `40..47` and the skill block `96..103` —
+/// hides those layers, so a player at peace shows neither weapon nor shield.
+pub(crate) fn is_ready_or_attack_action(action_base_offset: usize) -> bool {
+    let action = action_base_offset * 8;
+    (32..40).contains(&action) || (80..=95).contains(&action)
 }
 
 /// How a looping animation advances when it reaches its last frame.
@@ -219,6 +233,17 @@ impl AnimationState {
         self.action_base_offset
     }
 
+    /// Whether the official sprite renderer draws the weapon, weapon-effect and
+    /// shield layers for the current action.
+    ///
+    /// Mirrors `IsReadyOrAttackAction` (`Player.cpp:1835`): those layers only
+    /// appear in the ready-fight (`32..39`) and attack (`80..95`) actions. The
+    /// neutral idle block (`0..7`) hides them, so a player at peace shows the
+    /// neutral body pose without a weapon in hand.
+    pub fn shows_weapon_layer(&self) -> bool {
+        is_ready_or_attack_action(self.action_base_offset)
+    }
+
     /// Set a playback speed multiplier (e.g. `1.5` for a 50 % faster loop).
     pub fn with_speed(mut self, speed: f32) -> Self {
         self.speed = speed.max(0.01);
@@ -286,12 +311,12 @@ impl AnimationState {
         self.idle(entity_type, client_tick);
     }
 
-    /// Official `ST_STAND` pose (block 0) for non-local actors.
+    /// Official `ST_STAND` pose (block 0) for every actor.
     ///
     /// `CGameActor::SetState(ST_STAND)` uses `WeaponActionBase(ST_STAND) = 0`
-    /// (`RenderObject.cpp:3353`); the local player is a `CPc` and uses the
-    /// armed idle block 32 instead, which the handlers keep as
-    /// [`Self::idle`].
+    /// (`RenderObject.cpp:1478`, `RenderObject.cpp:3416`), which is the neutral
+    /// stand pose. The armed ready-fight block 32 is
+    /// [`Self::ready_fight`], not a neutral idle.
     pub fn stand(&mut self, entity_type: EntityType, client_tick: ClientTick) {
         self.clear_frame_sequence();
         self.action_type = AnimationActionType::Stand;
@@ -374,10 +399,16 @@ impl AnimationState {
         self.duration = (duration_ms > 0).then_some(duration_ms);
     }
 
-    /// Combat-ready stance (official `READYFIGHT` action, `SM_ENDURE`).
+    /// Armed combat-ready stance (official `ST_ATTACKWAIT`, `SM_ENDURE`,
+    /// Auto Counter).
     ///
-    /// The stance loops until the next action replaces it, like every other
-    /// non-timed pose.
+    /// This is the ready-fight block `32..39`. The official `CPc::SetState`
+    /// also selects it when a `ST_STAND` transition comes from a combat state
+    /// (`ST_ATTACK`, `ST_DAMAGE`, `ST_BEGIN_SKILL`, ...) or while
+    /// `healthState != 0` (`Player.cpp:4442-4472`). It is *not* the neutral
+    /// idle: the weapon and shield layers only draw while it is active
+    /// (`Player.cpp:1835`). The stance loops until the next action replaces it,
+    /// like every other non-timed pose.
     pub fn ready_fight(&mut self, entity_type: EntityType, client_tick: ClientTick) {
         self.clear_frame_sequence();
         self.action_type = AnimationActionType::ReadyFight;
@@ -1034,16 +1065,19 @@ mod tests {
     }
 
     #[test]
-    fn player_idle_uses_the_armed_ready_fight_block() {
-        // The kRO player body/weapon ACTs animate the armed stand pose in the
-        // ready-fight block 32..39; block 0..7 is the weaponless relaxation
-        // pose. Idling on block 0 made every equipped weapon layer invisible
-        // because no per-job weapon ACT has frames there.
+    fn player_idle_uses_the_official_neutral_stand_block() {
+        // At peace the official `CGameActor::SetState(ST_STAND)` plays
+        // `WeaponActionBase(ST_STAND) = 0` (RenderObject.cpp:1478/3416): the
+        // neutral ACT block 0..7. `CPc::JobActionBase(ST_STAND) = 32` is only
+        // selected when a stand transition comes from combat or while
+        // `healthState != 0` (Player.cpp:4423-4472), and the body's armed pose
+        // is not an idle pose.
         let state = AnimationState::new(EntityType::Player, ClientTick(0));
-        assert_eq!(state.action_index(), 4);
-        assert_eq!(state.action_index() * 8, 32);
+        assert_eq!(state.action_index(), 0);
+        assert_eq!(state.action_index() * 8, 0);
+        assert!(!state.shows_weapon_layer());
 
-        // Non-players keep the non-player layout (idle is ACT block 0).
+        // Non-players keep the non-player layout (idle is ACT block 0 as well).
         assert_eq!(AnimationState::new(EntityType::Monster, ClientTick(0)).action_index(), 0);
         assert_eq!(AnimationState::new(EntityType::Npc, ClientTick(0)).action_index(), 0);
     }
@@ -1064,11 +1098,71 @@ mod tests {
     }
 
     #[test]
+    fn weapon_layers_follow_the_official_is_ready_or_attack_action() {
+        // `IsReadyOrAttackAction` (Player.cpp:1835) accepts only the raw
+        // actions 32..39 and 80..95. The sprite renderer hides layers 5
+        // (weapon), 6 (weapon effect) and 7 (shield) for every other action
+        // (SpriteLayerDrawing.cpp:716-731).
+        for action_base_offset in [0, 1, 2, 3, 5, 6, 7, 9, 12] {
+            assert!(
+                !super::is_ready_or_attack_action(action_base_offset),
+                "ACT block {} must hide the weapon layers",
+                action_base_offset * 8
+            );
+        }
+        for action_base_offset in [4, 10, 11] {
+            assert!(
+                super::is_ready_or_attack_action(action_base_offset),
+                "ACT block {} must show the weapon layers",
+                action_base_offset * 8
+            );
+        }
+    }
+
+    #[test]
+    fn player_weapon_layer_is_hidden_at_idle_and_visible_when_attacking() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        // Neutral idle (0..7): no weapon in hand.
+        assert_eq!(state.action_index() * 8, 0);
+        assert!(!state.shows_weapon_layer());
+
+        // Armed ready-fight stance (32..39) is the only standing pose that
+        // draws the weapon layer.
+        state.ready_fight(EntityType::Player, ClientTick(10));
+        assert_eq!(state.action_index() * 8, 32);
+        assert!(state.shows_weapon_layer());
+
+        // Walking, sitting and pickup hide the weapon like the official client.
+        state.walk(EntityType::Player, 150, ClientTick(20));
+        assert!(!state.shows_weapon_layer());
+        state.sit(EntityType::Player, ClientTick(30));
+        assert!(!state.shows_weapon_layer());
+        state.pickup(EntityType::Player, ClientTick(40));
+        assert!(!state.shows_weapon_layer());
+
+        // Attacking keeps the weapon visible in both player swing blocks.
+        state.attack(EntityType::Player, 100, AnimationActionType::Attack2, ClientTick(50));
+        assert_eq!(state.action_index() * 8, 80);
+        assert!(state.shows_weapon_layer());
+        state.attack(EntityType::Player, 100, AnimationActionType::Attack3, ClientTick(60));
+        assert_eq!(state.action_index() * 8, 88);
+        assert!(state.shows_weapon_layer());
+
+        // ST_THROW (40..47) and the skill block (96..103) hide it again.
+        state.attack(EntityType::Player, 100, AnimationActionType::Attack1, ClientTick(70));
+        assert_eq!(state.action_index() * 8, 40);
+        assert!(!state.shows_weapon_layer());
+        state.skill(EntityType::Player, 1000, true, ClientTick(80));
+        assert!(!state.shows_weapon_layer());
+    }
+
+    #[test]
     fn action_is_drawable_only_for_blocks_with_real_frames() {
         // Mirrors the kRO 2019 weapon ACT layout: the armed stand pose is in
         // block 4 (32..39), the swing in block 10 (80..87), and every other
-        // block is a hidden placeholder. The player idle/attack mapping must
-        // therefore target block 4 / 10 instead of the classic idle block 0.
+        // block is a hidden placeholder. The player attack mapping must target
+        // block 10/11; the neutral idle stays on block 0 and hides the weapon
+        // layer by the official `IsReadyOrAttackAction` rule.
         let hidden = super::fallback_frame().clone();
         let visible = super::AnimationFrame {
             frame_parts: vec![super::AnimationFramePart {
@@ -1155,9 +1249,10 @@ mod tests {
 
     #[test]
     fn player_action_offsets_match_the_ro_act_file() {
-        // Idle is the armed ready-fight block: the classic stand block 0..7 is
-        // the weaponless pose and no per-job weapon ACT animates it.
-        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 4);
+        // Neutral idle is the official `ST_STAND` block 0..7
+        // (`WeaponActionBase(ST_STAND) = 0`); the armed stance is the separate
+        // ready-fight block 32..39.
+        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 0);
         assert_eq!(AnimationActionType::Walk.action_base_offset(EntityType::Player), 1);
         assert_eq!(AnimationActionType::Sit.action_base_offset(EntityType::Player), 2);
         assert_eq!(AnimationActionType::Pickup.action_base_offset(EntityType::Player), 3);
@@ -1172,18 +1267,19 @@ mod tests {
     }
 
     #[test]
-    fn stand_is_the_official_st_stand_block_for_non_local_actors() {
+    fn idle_and_stand_use_the_official_st_stand_block() {
         // CGameActor::SetState(ST_STAND) -> WeaponActionBase(0) = block 0
-        // (RenderObject.cpp:3353); only the local CPc uses block 32
-        // (Player.cpp:1687), which stays `Idle`.
+        // (RenderObject.cpp:1478/3416) for every actor, including the local
+        // `CPc` at peace; block 32 is the armed `ReadyFight` stance.
         assert_eq!(AnimationActionType::Stand.action_base_offset(EntityType::Player), 0);
         assert_eq!(AnimationActionType::Stand.action_base_offset(EntityType::Monster), 0);
-        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 4);
+        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 0);
 
         let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
         state.stand(EntityType::Player, ClientTick(10));
         assert_eq!(state.action_index(), 0);
         assert!(state.looping);
+        assert!(!state.shows_weapon_layer());
     }
 
     #[test]

@@ -1711,9 +1711,17 @@ impl Common {
             }
         }
 
+        // Official `IsReadyOrAttackAction` (`Player.cpp:1835`,
+        // `SpriteLayerDrawing.cpp:716-731`): the weapon (layer 5), weapon
+        // effect (layer 6) and shield (layer 7) are only drawn in the
+        // ready-fight (32..39) and attack (80..95) actions. At peace the
+        // character stands in the neutral idle pose with neither weapon nor
+        // shield visible.
+        let shows_equipment = self.animation_state.shows_weapon_layer();
+
         // Equipped shield: drawn in front of the body and behind the weapon,
         // using the same body animation state/action/frame.
-        if let Some(shield_animation) = self.shield_animation.as_ref() {
+        if shows_equipment && let Some(shield_animation) = self.shield_animation.as_ref() {
             shield_animation.render(
                 instructions,
                 camera,
@@ -1734,10 +1742,11 @@ impl Common {
         }
 
         // Equipped weapon: rendered as its own animation layer with the body
-        // animation state/action/frame so the weapon follows idle/walk/attack.
-        // `EF_LIGHTBLADE` (Magical Power) blinks it on alternate frames.
+        // animation state/action/frame so the weapon follows the ready-fight
+        // and attack actions. `EF_LIGHTBLADE` (Magical Power) blinks it on
+        // alternate frames.
         let weapon_blink_off = self.status_weapon_blink && client_tick.0 % 2 == 1;
-        if let Some(weapon_animation) = self.weapon_animation.as_ref().filter(|_| !weapon_blink_off) {
+        if shows_equipment && let Some(weapon_animation) = self.weapon_animation.as_ref().filter(|_| !weapon_blink_off) {
             weapon_animation.render(
                 instructions,
                 camera,

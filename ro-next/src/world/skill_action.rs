@@ -23,8 +23,8 @@
 //!   [`CasterAction::Idle`] (keep the current/idle pose),
 //! * `PICKUP` -> [`CasterAction::Pickup`] (pickup animation),
 //! * `READYFIGHT` -> [`CasterAction::ReadyFight`] (combat stance, `SM_ENDURE`),
-//! * `ST_STAND` (`motion = 0`) -> [`CasterAction::Stand`] (block 0 for every
-//!   non-local actor, armed idle block 32 for the local `CPc`),
+//! * `ST_STAND` (`motion = 0`) -> [`CasterAction::Stand`] (neutral block 0, the
+//!   official `WeaponActionBase(ST_STAND) = 0`),
 //! * everything else (`SKILL`, unknown skills) -> [`CasterAction::Skill`].
 //!
 //! Unknown skills deliberately fall back to the casting gesture: it is a valid
@@ -55,12 +55,12 @@ pub enum CasterAction {
     /// The official `ST_STAND` pose (`GetSkillActionInfo` motion `0`).
     ///
     /// `CGameActor::SetState(ST_STAND)` maps it to
-    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:3353`), but the
-    /// local player is a `CPc` and `CPc::JobActionBase(ST_STAND)` returns the
-    /// armed idle block `32` (`Player.cpp:1687`). The client keeps the two
-    /// apart: the local player uses the armed idle pose, every other actor
-    /// (other players, monsters) plays block `0`. `Idle` remains the
-    /// client's armed-idle pose for the "prevent default" rows.
+    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:1478`/`3416`), the
+    /// neutral stand pose. The armed `JobActionBase(ST_STAND) = 32` block
+    /// (`Player.cpp:1687`) is only selected when `CPc::SetState` handles a
+    /// stand transition that comes from combat or while `healthState != 0`
+    /// (`Player.cpp:4442-4472`); the explicit combat stance is
+    /// [`CasterAction::ReadyFight`].
     Stand,
     /// Play the attack animation. Official client behaviour for attack skills.
     Attack,
@@ -214,8 +214,8 @@ mod tests {
             CasterAction::Skill,
             "Blessing uses the cast gesture"
         );
-        // GetSkillActionInfo2 motion 0 (ST_STAND): the armed idle pose for the
-        // local CPc, block 0 for remote actors.
+        // GetSkillActionInfo2 motion 0 (ST_STAND): the neutral block 0 pose
+        // (`WeaponActionBase(ST_STAND) = 0`).
         assert_eq!(use_caster_action(SkillId(29)), CasterAction::Stand, "Incagi stands");
         assert_eq!(use_caster_action(SkillId(61)), CasterAction::Attack, "Auto Counter swings");
         assert_eq!(
@@ -235,8 +235,7 @@ mod tests {
     #[test]
     fn stance_skills_keep_the_idle_pose() {
         // Blessing: the official `GetSkillActionInfo` sets motion 0
-        // (ST_STAND), which is block 0 for remote actors (and the armed idle
-        // block 32 for the local CPc).
+        // (ST_STAND), the neutral block 0 pose for every actor.
         assert_eq!(caster_action(SkillId(34)), CasterAction::Stand);
         // Basic Skill, Incagi, Summon Spirit Sphere and Zen use the default
         // begin-skill gesture (motion 7/8 = ST_SKILL/ST_BEGIN_SKILL).
@@ -247,10 +246,9 @@ mod tests {
 
     #[test]
     fn proxy_idle_rows_use_the_official_st_stand() {
-        // The 19 rows whose official `GetSkillActionInfo` motion is 0 now emit
-        // `Stand` instead of the client's armed `Idle` pose. The handler picks
-        // block 0 for remote players/monsters and block 32 for the local CPc
-        // (`Player.cpp:1687` vs `RenderObject.cpp:3353`).
+        // The 19 rows whose official `GetSkillActionInfo` motion is 0 emit
+        // `Stand`, the neutral `ST_STAND` block 0
+        // (`WeaponActionBase(ST_STAND) = 0`).
         for skill_id in [
             34, 230, 231, 232, 234, 235, 236, 237, 243, 244, 247, 249, 389, 425, 475, 479, 493, 1001, 1014,
         ] {
