@@ -31,7 +31,7 @@ impl PortedEffect for StoneSpike {
 
         let angles = Angles::shared();
         let mut lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         runtime.play_sound("effect\\wizard_earthspike.wav");
         runtime.quake();

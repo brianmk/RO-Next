@@ -28,6 +28,9 @@ fn textured_orbit(runtime: &mut EffectRuntime, name: &'static str) {
     }
 
     let lifetime = runtime.lifetime;
+    // `height[10] = state.deltaPos.y` is the **target AID** in the original
+    // (`EffectPrimitiveRendering.cpp:5500-5507`: `GetGameActorByAID`), not a
+    // height - it must not be flipped with the world axis.
     let target_y = runtime.target_offset[1];
     let index = runtime.launch(PrimitiveId::SoulLink, [0.0, 0.0, 0.0]);
 

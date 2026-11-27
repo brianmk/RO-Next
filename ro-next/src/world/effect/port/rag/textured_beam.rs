@@ -102,7 +102,8 @@ mod tests {
         assert_eq!(state.total_texture, 1);
         assert_eq!(state.anim_speed, 4, "the constructor default, not written by the body");
         // `CEffectPrim::Initialize` anchors the primitive at the master.
-        assert_eq!(state.position, [3.0, 4.0, 5.0]);
+        // Primitive state is official (Y-down): port y 4 -> -4.
+        assert_eq!(state.position, [3.0, -4.0, 5.0]);
 
         assert_eq!(state.slots[0].life, 1);
 

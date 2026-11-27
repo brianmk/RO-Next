@@ -47,7 +47,7 @@ fn first_aid(runtime: &mut EffectRuntime) {
     runtime.play_sound_at_height("_heal_effect.wav", 150.0);
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
 
     // `this->state.lastPrim = LaunchEffectPrim(58, {0, 0, 0});`
     let index = runtime.launch(PrimitiveId::FirstAid, [0.0, 0.0, 0.0]);
@@ -140,7 +140,8 @@ mod tests {
         assert_eq!(slot.process, 1);
         assert_eq!(slot.alpha_b, 4);
         assert_eq!(slot.distance, 10.0);
-        assert_eq!(slot.vec_b_now, [10.0, 8.0, 30.0]);
+        // Official Y-down: the port anchor's y 20 is -20, then the -12 lift.
+        assert_eq!(slot.vec_b_now, [10.0, -32.0, 30.0]);
         assert_eq!(slot.height[6], 0.02);
         assert_eq!(slot.full_display_angle, full_display_angle);
         assert_eq!(slot.flag1[0], 0);

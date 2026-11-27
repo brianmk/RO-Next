@@ -48,7 +48,7 @@ impl PortedEffect for Chimto {
         // `this->state.lastPrim = this->LaunchEffectPrim(46, {0, 0, 0});`
         let index = runtime.launch(PrimitiveId::ChimtoSprite, [0.0, 0.0, 0.0]);
 
-        let target = runtime.target_offset;
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let lifetime = runtime.lifetime;
 
         // `Get_Angle(render.position.x - deltaPos.x, render.position.z -

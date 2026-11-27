@@ -25,8 +25,8 @@ fn textured_slash_fan(runtime: &mut EffectRuntime, name: &'static str) {
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
     let index = runtime.launch(PrimitiveId::SlashFan, [0.0, 0.0, 0.0]);
     let mut rng = std::mem::replace(&mut runtime.rng, EffectRng::new(1));
     let state = runtime.primitive_mut(index);
@@ -67,8 +67,8 @@ fn textured_slash_level(runtime: &mut EffectRuntime, name: &'static str, kind: i
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
     let index = runtime.launch(PrimitiveId::Stin3, [0.0, 0.0, 0.0]);
     let state = runtime.primitive_mut(index);
 
@@ -125,8 +125,8 @@ fn textured_slash_wave(runtime: &mut EffectRuntime, name: &'static str, kind: i8
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
     let index = runtime.launch(PrimitiveId::Stin4, [0.0, 0.0, 0.0]);
     let mut rng = std::mem::replace(&mut runtime.rng, EffectRng::new(1));
     let state = runtime.primitive_mut(index);
@@ -175,8 +175,8 @@ fn textured_slash_cross(runtime: &mut EffectRuntime, name: &'static str) {
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
     let frame = runtime.frame;
     let index = runtime.launch(PrimitiveId::SlashCross, [0.0, 0.0, 0.0]);
     let mut rng = std::mem::replace(&mut runtime.rng, EffectRng::new(1));
@@ -366,7 +366,8 @@ mod tests {
         assert_eq!(state.render_flag, 5);
         assert_eq!(state.texture, Some("effect\\270바람.tga"));
         assert_eq!(state.size, 0.0);
-        assert_eq!(state.delta_pos, [10.0, 20.0, 40.0]);
+        // The target is converted to official (Y-down) simulation space.
+        assert_eq!(state.delta_pos, [10.0, -20.0, 40.0]);
 
         for (index, slot) in state.slots.iter().enumerate() {
             assert_eq!(slot.life, 1);
@@ -375,7 +376,9 @@ mod tests {
             assert_eq!(slot.rot_start, 0);
             assert_eq!(slot.rise_angle, index as i16);
             assert_eq!(slot.height[1], 0.8);
-            assert!(slot.vec_b_now[1] >= 10.0 && slot.vec_b_now[1] < 15.0);
+            // `official position.y (-20) - 10 + ClampedRandom(5)` stays in
+            // [-30, -25).
+            assert!(slot.vec_b_now[1] >= -30.0 && slot.vec_b_now[1] < -25.0);
         }
     }
 

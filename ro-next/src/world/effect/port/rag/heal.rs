@@ -81,7 +81,7 @@ impl HealBurst {
     fn spawn_sparks(&self, runtime: &mut EffectRuntime) {
         let flag = self.flag;
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         // Per-slot random draws in slot order.
         let mut distances = [0.0f32; 4];

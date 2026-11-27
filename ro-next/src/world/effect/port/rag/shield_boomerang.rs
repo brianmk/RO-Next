@@ -52,8 +52,8 @@ impl PortedEffect for TexturedShieldThrow {
         // `PlayEffectWaveInline(*this, "effect\\cru_shield boomerang.wav");`
         runtime.play_sound("effect\\cru_shield boomerang.wav");
 
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let delta_x = target[0] - position[0];
         let delta_z = target[2] - position[2];
         let max_height = (delta_z * delta_z + delta_x * delta_x).sqrt();
@@ -136,7 +136,7 @@ impl PortedEffect for ShieldBoomerang3 {
             runtime.play_sound("effect\\cru_shield boomerang.wav");
         }
 
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
         let lifetime = runtime.lifetime;
 
         // `lastPrim = LaunchEffectPrim(116, {0, 0, 0});`
@@ -211,8 +211,8 @@ impl PortedEffect for Tanji {
         // `PlayEffectWaveInline(*this, "effect\\mon_탄지신통.wav");`
         runtime.play_sound("effect\\mon_탄지신통.wav");
 
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let dx = target[0] - position[0];
         let dz = target[2] - position[2];
         let max_height = (dx * dx + dz * dz).sqrt();
@@ -295,7 +295,8 @@ mod tests {
         assert_eq!(state.render_flag, 1 | 4);
         assert_eq!(state.texture, Some("effect\\shield_boomerang.bmp"));
         assert_eq!(state.size, 0.0);
-        assert_eq!(state.delta_pos, [3.0, 9.0, 15.0]);
+        // The target is converted to official (Y-down) space.
+        assert_eq!(state.delta_pos, [3.0, -9.0, 15.0]);
 
         let slot = &state.slots[0];
         assert_eq!(slot.life, 1);
@@ -304,10 +305,13 @@ mod tests {
         assert_eq!(slot.distance, 7.0);
         assert_eq!(slot.height[8], 0.0);
         assert_eq!(slot.alpha_b, 255);
-        assert_eq!(slot.vec_b_now, [3.0, -4.0, 5.0], "y = position.y - 8");
+        // Official Y-down: the port anchor's y 4 is -4, then the -8 lift.
+        assert_eq!(slot.vec_b_now, [3.0, -12.0, 5.0], "y = official position.y - 8");
         assert_eq!(slot.rot_start, 0);
         assert_eq!(slot.height[1], 2.0);
-        assert_eq!(slot.height[2], 2.0 / 10.0 * 5.0);
+        // `height[2] = height[1]/maxHeight * (target.y - position.y)`, both in
+        // official (Y-down) space: -9 - (-4) = -5.
+        assert_eq!(slot.height[2], 2.0 / 10.0 * -5.0);
         assert_eq!(slot.full_display_angle, 0);
         assert_eq!(slot.flag1[2], 0);
 
@@ -380,7 +384,8 @@ mod tests {
         let offset_x = slot.vec_b_now[0] - 3.0;
         let offset_z = slot.vec_b_now[2] - 5.0;
         assert!((offset_x * offset_x + offset_z * offset_z - 37.5 * 37.5).abs() < 1e-3);
-        assert_eq!(slot.vec_b_now[1], -4.0);
+        // Official Y-down: the port anchor's y 4 is -4, then the -8 lift.
+        assert_eq!(slot.vec_b_now[1], -12.0);
         assert_eq!(slot.full_display_angle, 0);
         assert_eq!(slot.flag1[0], 0);
         assert_eq!(slot.flag1[2], 0);
@@ -408,7 +413,8 @@ mod tests {
         assert_eq!(state.render_flag, 1 | 4);
         assert_eq!(state.texture, Some("effect\\blue_ivy.bmp"));
         assert_eq!(state.size, 0.0);
-        assert_eq!(state.delta_pos, [3.0, 9.0, 15.0]);
+        // The target is converted to official (Y-down) simulation space.
+        assert_eq!(state.delta_pos, [3.0, -9.0, 15.0]);
 
         let slot = &state.slots[0];
         assert_eq!(slot.life, 1);
@@ -417,9 +423,12 @@ mod tests {
         // 7 * 0.4 + 2.0.
         assert_eq!(slot.distance, 4.8);
         assert_eq!(slot.alpha_b, 5);
-        assert_eq!(slot.vec_b_now, [3.0, -4.0, 5.0]);
+        // Official Y-down: the port anchor's y 4 is -4, then the -8 lift.
+        assert_eq!(slot.vec_b_now, [3.0, -12.0, 5.0]);
         assert_eq!(slot.height[1], 2.0);
-        assert_eq!(slot.height[2], 2.0 / 10.0 * 5.0);
+        // `height[2] = height[1]/maxHeight * (target.y - position.y)`, both in
+        // official (Y-down) space: -9 - (-4) = -5.
+        assert_eq!(slot.height[2], 2.0 / 10.0 * -5.0);
         assert_eq!(slot.full_display_angle, 0);
         assert_eq!(slot.flag1[2], 1);
         assert_eq!(slot.height[7], 0.0);

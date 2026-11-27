@@ -639,7 +639,8 @@ mod tests {
         assert_eq!(slot.height[10], 0.0);
         assert_eq!(slot.full_display_angle, 135);
         assert_eq!(slot.flag1[4], 2);
-        assert_eq!(slot.vec_b_pre[1], -3.0, "position.y 7 + lift -10");
+        // Official Y-down: port y 7 is -7, then the kind's -10 lift.
+        assert_eq!(slot.vec_b_pre[1], -17.0, "official position.y -7 + lift -10");
         assert_eq!(slot.height[15], 10.0);
         assert_eq!(slot.vec_b_now[0], 3.0);
         assert_eq!(slot.vec_b_now[2], -2.0);

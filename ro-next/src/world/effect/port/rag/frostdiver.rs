@@ -59,7 +59,9 @@ impl PortedEffect for FrostDiver {
             runtime.delta_pos3[2] -= reach[2];
 
             let step = rotated_forward(&rotation, 2.0);
-            runtime.target_offset = step;
+            // `state.deltaPos = step` is a simulation-space (Y-down) vector;
+            // the runtime's target anchor is port-space (Y-up).
+            runtime.target_offset = EffectRuntime::port_position(step);
         }
 
         if runtime.flag != 0 {
@@ -67,10 +69,14 @@ impl PortedEffect for FrostDiver {
         }
 
         let saved = runtime.position;
+        // `render.position += deltaPos3` is official-space arithmetic; the
+        // engine anchor is port-space, so the travelled vector is flipped for
+        // this (restored) intermediate, exactly like the renderers do.
+        let travelled = EffectRuntime::port_position(runtime.delta_pos3);
         runtime.position = [
-            runtime.delta_pos3[0] + runtime.position[0],
-            runtime.delta_pos3[1] + runtime.position[1],
-            runtime.delta_pos3[2] + runtime.position[2],
+            travelled[0] + runtime.position[0],
+            travelled[1] + runtime.position[1],
+            travelled[2] + runtime.position[2],
         ];
 
         if runtime.calc_dist(runtime.target_offset[0], runtime.target_offset[2]) <= 2.5 {
@@ -118,7 +124,7 @@ impl PortedEffect for FrostDiver {
             state.texture = Some("effect\\ice.tga");
         }
 
-        let target = runtime.target_offset;
+        let target = EffectRuntime::official_position(runtime.target_offset);
         runtime.delta_pos3[0] -= target[0];
         runtime.delta_pos3[1] -= target[1];
         runtime.delta_pos3[2] -= target[2];

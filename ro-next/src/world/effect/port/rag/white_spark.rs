@@ -31,7 +31,7 @@ const RENDER_FLAG: u32 = 1 | 4;
 /// texture, `size = 0`, the alpha/custom-blend queue.
 fn launch_white02(runtime: &mut EffectRuntime, keep_delta_pos: bool) -> usize {
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     let index = runtime.launch(PrimitiveId::HitLine3, [0.0, 0.0, 0.0]);
     let state = runtime.primitive_mut(index);
@@ -94,7 +94,7 @@ impl PortedEffect for White02Burst {
         }
 
         let kind = i32::from(self.kind);
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         // RNG order per slot: process (31), alphaB (121), riseAngle (360),
         // distance (6), vecTNow.x (7).
@@ -173,8 +173,8 @@ impl PortedEffect for WhiteSparkRing {
         }
 
         let kind = i32::from(self.kind);
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
 
         // `Get_Angle(render.position.x - deltaPos.x,
         //  render.position.z - deltaPos.z, &riseAngle)`.
@@ -279,7 +279,7 @@ impl PortedEffect for WhiteSparkStreak {
             return true;
         }
 
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         // RNG order per slot: process (11/41/26), alphaB (51/121), riseAngle
         // (360), distance (5/6), vecTNow.x (7).

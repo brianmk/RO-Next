@@ -111,7 +111,8 @@ mod tests {
             assert_eq!(state.duration, 99_999);
             assert_eq!(state.texture, Some("effect\\fire_ivy.bmp"));
             assert_eq!(state.size, 10.0);
-            assert_eq!(state.position, [5.0, 10.0, 15.0]);
+            // Primitive state is official (Y-down): port y 10 -> -10.
+            assert_eq!(state.position, [5.0, -10.0, 15.0]);
 
             for slot_index in 0..4usize {
                 let slot = &state.slots[slot_index];

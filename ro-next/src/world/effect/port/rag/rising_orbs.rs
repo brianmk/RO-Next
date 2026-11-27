@@ -42,7 +42,7 @@ impl PortedEffect for RisingOrbs {
         }
 
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         let (first, second) = if kind == 2 {
             (self.texture, self.texture)

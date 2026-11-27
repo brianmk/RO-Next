@@ -34,7 +34,7 @@ fn sonic_slash_fan(runtime: &mut EffectRuntime, kind: i32) {
     }
 
     let angles = Angles::shared();
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
     let mut angle = -90;
 
     while angle < 180 {

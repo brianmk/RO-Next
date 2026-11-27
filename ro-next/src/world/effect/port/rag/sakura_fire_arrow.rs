@@ -74,7 +74,7 @@ fn sakura_fire_arrow(runtime: &mut EffectRuntime) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
 
     // RNG order per launch: maxHeight, size, orbit angle, height[0..3],
     // `SetAction` row.
@@ -175,7 +175,8 @@ mod tests {
         let dx = sakura.slots[0].vec_b_pre[0] - 7.0;
         let dz = sakura.slots[0].vec_b_pre[2] - 9.0;
         assert!((dx * dx + dz * dz - 64.0).abs() < 1e-2);
-        assert_eq!(sakura.slots[0].vec_b_pre[1], 8.0);
+        // Official Y-down: the caster's port y 8 is -8 in the slot vector.
+        assert_eq!(sakura.slots[0].vec_b_pre[1], -8.0);
         assert_eq!(sakura.records.len(), 1, "InitSegment ran at spawn");
     }
 
@@ -218,6 +219,7 @@ mod tests {
         assert_eq!(runtime.primitives[1].state.texture, Some("effect\\alpha_center.tga"));
         assert_eq!(runtime.primitives[1].state.slots[0].height[4], 2.0);
         assert_eq!(runtime.primitives[2].state.slots[0].rise_angle, 22);
-        assert_eq!(runtime.primitives[1].state.position, [1.0, 2.0, 3.0]);
+        // Primitive state is official (Y-down): port y 2 -> -2.
+        assert_eq!(runtime.primitives[1].state.position, [1.0, -2.0, 3.0]);
     }
 }

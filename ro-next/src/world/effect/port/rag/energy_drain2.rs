@@ -36,8 +36,8 @@ impl PortedEffect for EnergyDrain2 {
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         if runtime.frame == 0 {
             let angles = Angles::shared();
-            let target = runtime.target_offset;
-            let position = runtime.position;
+            let target = EffectRuntime::official_position(runtime.target_offset);
+            let position = EffectRuntime::official_position(runtime.position);
             let delta_x = target[0] - position[0];
             let delta_z = target[2] - position[2];
 

@@ -50,7 +50,7 @@ impl PortedEffect for QuadRingStack {
         }
 
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         let ring = runtime.launch(PrimitiveId::Casting2, [0.0, 0.0, 0.0]);
         let state = runtime.primitive_mut(ring);

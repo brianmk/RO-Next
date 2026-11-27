@@ -52,7 +52,9 @@ fn shockwave_ring(runtime: &mut EffectRuntime, angle: i16) {
 
     // `this->render.position.y -= 9.0f;` after the launch - the primitive
     // already inherited the pre-drop anchor.
-    runtime.position[1] -= 9.0;
+    // `render.position.y -= 9.0f` is nine units *up* in the official Y-down
+    // world, i.e. +9 on the port's Y-up anchor.
+    runtime.position[1] += 9.0;
 
     let state = runtime.primitive_mut(index);
 
@@ -118,7 +120,9 @@ mod tests {
             assert_eq!(state.render_flag, 5);
             assert_eq!(state.duration, 300);
             assert_eq!(state.texture, Some("effect\\shockwave_c.bmp"));
-            assert_eq!(state.position, [10.0, 20.0, 30.0]);
+            // The primitive inherits the pre-drop anchor in official
+            // (Y-down) space: port y 20 -> -20.
+            assert_eq!(state.position, [10.0, -20.0, 30.0]);
 
             for slot_index in 0..4usize {
                 let slot = &state.slots[slot_index];
@@ -132,8 +136,10 @@ mod tests {
         // `PrimChemical` fade-in: the first step adds 18 alpha.
         assert_eq!(runtime.primitives[0].state.slots[0].alpha_b, 18);
 
-        // Both ring calls reset the anchor, so only the last drop survives.
-        assert_eq!(runtime.position, [10.0, 11.0, 30.0]);
+        // Both ring calls reset the anchor, so only the last lift survives.
+        // `render.position.y -= 9.0f` is nine units *up* in the official
+        // Y-down world, i.e. +9 on the port's Y-up anchor.
+        assert_eq!(runtime.position, [10.0, 29.0, 30.0]);
     }
 
     #[test]

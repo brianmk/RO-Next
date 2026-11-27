@@ -34,8 +34,8 @@ impl PortedEffect for RocketPunch {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
 
         // `Face(deltaPos.x, deltaPos.z)` against the caster position.
         let delta_x = target[0] - position[0];

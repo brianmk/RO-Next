@@ -33,8 +33,8 @@ impl PortedEffect for WaterBall2 {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
         let radius = runtime.calc_dist(target[0], target[2]);
         // `CEffectPrim::Face(deltaPos.x, deltaPos.z)`; a fresh primitive's
         // `render.angle` is 0 when the offset is zero.

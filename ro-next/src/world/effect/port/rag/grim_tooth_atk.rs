@@ -21,7 +21,7 @@ impl PortedEffect for GrimToothAtk {
         }
 
         let angles = Angles::shared();
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         for index in 0..3usize {
             let delta = match index {

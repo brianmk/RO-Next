@@ -69,8 +69,8 @@ impl PortedEffect for Yufitel {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
 
         runtime.play_sound("effect\\hunter_shockwavetrap.wav");
 

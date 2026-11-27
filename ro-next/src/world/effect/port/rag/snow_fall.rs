@@ -28,7 +28,7 @@ pub(crate) fn spawn(runtime: &mut EffectRuntime, kind: i32) -> bool {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
     let angles = Angles::shared();
 
     let mut distances = [0.0f32; 4];

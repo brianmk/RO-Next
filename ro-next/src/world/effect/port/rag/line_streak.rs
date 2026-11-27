@@ -35,8 +35,8 @@ fn line_streak_layered(runtime: &mut EffectRuntime, kind: i16) {
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
     let rise_angle = runtime.get_angle(target[0] - position[0], target[2] - position[2]);
 
     let texture = if kind < 10 { "effect\\line3.tga" } else { "effect\\line3y.tga" };

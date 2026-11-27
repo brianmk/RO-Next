@@ -56,10 +56,12 @@ fn track_target(runtime: &mut EffectRuntime) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
-    // `state.deltaPos.y`; the spawn bridge's `deltaPos` is the target position.
+    let position = EffectRuntime::official_position(runtime.position);
+    // `height[0] = state.deltaPos.y` is the **target AID** in the original
+    // (`RagEffect.cpp:3861-3868`: `GetGameActorByAID(height[0])`), not a
+    // height - it must not be flipped with the world axis.
     let target_y = runtime.target_offset[1];
-    let target_position = runtime.target_offset;
+    let target_position = EffectRuntime::official_position(runtime.target_offset);
 
     // `this->state.lastPrim = LaunchEffectPrim(38, {0, 0, 0});`
     let index = runtime.launch(PrimitiveId::LineLink, [0.0, 0.0, 0.0]);
@@ -103,10 +105,12 @@ fn track_target_wide(runtime: &mut EffectRuntime) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
-    // `state.deltaPos.y`; the spawn bridge's `deltaPos` is the target position.
+    let position = EffectRuntime::official_position(runtime.position);
+    // `height[0] = state.deltaPos.y` is the **target AID** in the original
+    // (`RagEffect.cpp:3861-3868`: `GetGameActorByAID(height[0])`), not a
+    // height - it must not be flipped with the world axis.
     let target_y = runtime.target_offset[1];
-    let target_position = runtime.target_offset;
+    let target_position = EffectRuntime::official_position(runtime.target_offset);
 
     let index = runtime.launch(PrimitiveId::LineLink, [0.0, 0.0, 0.0]);
     let state = runtime.primitive_mut(index);
@@ -199,8 +203,11 @@ mod tests {
         assert_eq!(slot.height[0], TARGET[1]);
         assert_eq!(slot.height[4], 2.0);
         assert_eq!(slot.max_height, 0.2);
-        assert_eq!(slot.vec_t_now, [10.0, 12.0, 30.0]);
-        assert_eq!(slot.vec_t_pre, [50.0, 52.0, 70.0]);
+        // The slot vectors are official (Y-down). `PrimLineLink` copies the
+        // master/target and then does `y -= 8`, which is eight units *up* in
+        // the official world.
+        assert_eq!(slot.vec_t_now, [10.0, -28.0, 30.0]);
+        assert_eq!(slot.vec_t_pre, [50.0, -68.0, 70.0]);
         assert_eq!(slot.alpha_b, 6);
 
         assert_eq!(state.slots[1].life, 0);

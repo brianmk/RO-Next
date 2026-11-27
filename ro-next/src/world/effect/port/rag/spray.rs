@@ -18,7 +18,7 @@ pub(crate) fn spray_kind(runtime: &mut EffectRuntime, name: &'static str, spin: 
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     let mut processes = [0i32; 4];
     let mut angles = [[0i16; 4]; 4];
@@ -75,7 +75,7 @@ pub(crate) fn spray(runtime: &mut EffectRuntime, name: &'static str) -> bool {
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     let mut processes = [0i32; 4];
     let mut angles = [[0i16; 4]; 4];

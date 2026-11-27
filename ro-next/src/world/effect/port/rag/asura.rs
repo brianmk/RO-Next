@@ -1469,16 +1469,18 @@ mod tests {
         body.on_process(&mut runtime);
 
         let first = runtime.primitives.len() - 1;
-        assert_eq!(runtime.primitives[first].state.position, [10.0, 2.0, 30.0]);
+        // Primitive state is official (Y-down) simulation space; the parent
+        // anchor is port-space (Y-up), so its +2 becomes -2.
+        assert_eq!(runtime.primitives[first].state.position, [10.0, -2.0, 30.0]);
 
         runtime.parent_position = Some([14.0, 2.0, 38.0]);
         runtime.frame = 21;
         body.on_process(&mut runtime);
 
         let second = runtime.primitives.len() - 1;
-        assert_eq!(runtime.primitives[second].state.position, [14.0, 2.0, 38.0]);
+        assert_eq!(runtime.primitives[second].state.position, [14.0, -2.0, 38.0]);
         // The frame-1 column is not re-anchored by later frames.
-        assert_eq!(runtime.primitives[first].state.position, [10.0, 2.0, 30.0]);
+        assert_eq!(runtime.primitives[first].state.position, [10.0, -2.0, 30.0]);
     }
 
     #[test]
@@ -1543,7 +1545,9 @@ mod tests {
         assert_eq!(triangles.len(), 20);
         assert_eq!(triangles[0].texture, Some("effect\\asura3.tga"));
 
-        let origin = [100.0, 5.0, -40.0];
+        // The slot vectors are official (Y-down): the parent anchor
+        // `[100, 5, -40]` is `[100, -5, -40]` in that space.
+        let origin = [100.0, -5.0, -40.0];
         let height0 = -6.0;
         let distance = 18.0;
 

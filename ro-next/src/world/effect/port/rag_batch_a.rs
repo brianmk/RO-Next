@@ -114,7 +114,7 @@ impl PortedEffect for TexturedForkBolt {
         }
 
         let duration = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         // `Get_Angle(deltaPos.x - render.position.x, deltaPos.z - render.position.z)`.
         // A zero vector falls through the table loop and stays at the

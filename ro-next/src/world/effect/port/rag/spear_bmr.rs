@@ -51,8 +51,8 @@ impl PortedEffect for SpearBmr {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
         let camera_yaw = runtime.camera_yaw;
         let parent_angle = runtime.parent_angle;
 

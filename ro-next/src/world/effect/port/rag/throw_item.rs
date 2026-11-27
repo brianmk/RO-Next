@@ -66,8 +66,8 @@ impl PortedEffect for ThrowItem {
             return true;
         }
 
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let dx = target[0] - position[0];
         let dz = target[2] - position[2];
         let max_height = (dx * dx + dz * dz).sqrt();
@@ -227,9 +227,11 @@ mod tests {
         assert_eq!(state.render_flag, 1 | 4);
         assert_eq!(state.texture, Some("유저인터페이스\\item\\빈병.bmp"));
         assert_eq!(state.size, 0.0);
-        assert_eq!(state.delta_pos, [3.0, 9.0, 15.0]);
+        // The target is converted to official (Y-down) simulation space.
+        assert_eq!(state.delta_pos, [3.0, -9.0, 15.0]);
 
         let slot = &state.slots[0];
+        // The target/offset vector is converted to official (Y-down) space.
         assert_eq!(slot.life, 1);
         assert_eq!(slot.process, 0);
         assert_eq!(slot.max_height, 10.0);
@@ -237,10 +239,13 @@ mod tests {
         assert_eq!(slot.height[8], 0.0);
         assert_eq!(slot.alpha_b, 255);
         assert_eq!(slot.vec_b_now, [3.0, 0.0, 5.0], "y starts at the origin");
-        assert_eq!(slot.vec_b_pre[1], -4.0, "y = position.y - 8");
+        // Official Y-down: the port anchor's y 4 is -4, then the -8 lift.
+        assert_eq!(slot.vec_b_pre[1], -12.0, "y = official position.y - 8");
         assert_eq!(slot.rot_start, 0);
         assert_eq!(slot.height[1], 10.0 / 25.0);
-        assert_eq!(slot.height[2], (10.0 / 25.0) / 10.0 * 5.0);
+        // `height[2] = height[1]/maxHeight * (target.y - position.y)`, both in
+        // official (Y-down) space: -9 - (-4) = -5.
+        assert_eq!(slot.height[2], (10.0 / 25.0) / 10.0 * -5.0);
         assert_eq!(slot.full_display_angle, 0);
         assert_eq!(slot.flag1[2], 8);
         // 10 < stepIdx * 0.4 first holds at stepIdx = 26 (10 < 10.4).

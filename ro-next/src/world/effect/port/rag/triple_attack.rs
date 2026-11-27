@@ -21,7 +21,7 @@ use super::super::runtime::{EffectRuntime, PortedEffect};
 /// The common `LaunchEffectPrim(69, ...)` shape.
 fn launch_cloud(runtime: &mut EffectRuntime, texture: &'static str) -> usize {
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     let index = runtime.launch(PrimitiveId::PentaRing, [0.0, 0.0, 0.0]);
     let state = runtime.primitive_mut(index);
@@ -67,8 +67,8 @@ impl PortedEffect for CloudDrift {
         let angles = Angles::shared();
 
         if runtime.frame <= 1 {
-            let position = runtime.position;
-            let target = runtime.target_offset;
+            let position = EffectRuntime::official_position(runtime.position);
+            let target = EffectRuntime::official_position(runtime.target_offset);
             let dx = target[0] - position[0];
             let dz = target[2] - position[2];
 
@@ -175,8 +175,8 @@ impl PortedEffect for AlphaCenterTrail {
         }
 
         let angles = Angles::shared();
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let delta_x = target[0] - position[0];
         let delta_z = target[2] - position[2];
         let distance = (delta_z * delta_z + delta_x * delta_x).sqrt();
@@ -267,8 +267,8 @@ impl PortedEffect for AlphaCenterStream {
         }
 
         let angles = Angles::shared();
-        let position = runtime.position;
-        let target = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let delta_x = target[0] - position[0];
         let delta_z = target[2] - position[2];
         let range = (delta_z * delta_z + delta_x * delta_x).sqrt();

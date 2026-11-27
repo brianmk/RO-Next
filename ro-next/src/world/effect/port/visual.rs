@@ -232,12 +232,13 @@ impl PortedVisual {
             // simulation (`render_sma3` passes the slot's world position,
             // `EffectPrimitiveRendering.cpp:2385-2420`), whose world is Y-down.
             // `runtime.position` is the port-space anchor every renderer and
-            // the 2-D `tlvert` projection use, so the sign is flipped here.
-            runtime.position = [launch.position[0], -launch.position[1], launch.position[2]];
+            // the 2-D `tlvert` projection use (see `EffectRuntime::position`),
+            // so the sign is flipped here.
+            runtime.position = EffectRuntime::port_position(launch.position);
             // `SendMsg(nullptr, AM_SETPOS, 0, &position, &extra, ...)`
-            // (`RagEffect.cpp:14930-14944`). Both vectors stay in the official
-            // convention the child's primitive arithmetic runs in.
-            runtime.target_offset = launch.position;
+            // (`RagEffect.cpp:14930-14944`). The port's target anchor is
+            // port-space too, so it carries the same converted value.
+            runtime.target_offset = runtime.position;
             runtime.delta_pos2 = launch.delta_pos2.unwrap_or([0.0; 3]);
             runtime.parent_angle = parent_angle;
             runtime.listener_position = listener_position;

@@ -65,7 +65,7 @@ impl PortedEffect for ParticleTime {
         }
 
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         // Per-slot RNG order: distance (10), x (11), z (11), rise speed (20).
         let mut distances = [0.0f32; 4];

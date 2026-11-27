@@ -48,8 +48,8 @@ fn sonic_wave(runtime: &mut EffectRuntime, sonic: i8) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
-    let target = runtime.target_offset;
+    let position = EffectRuntime::official_position(runtime.position);
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     // `this->state.lastPrim = LaunchEffectPrim(86, {0, 0, 0});`
     let index = runtime.launch(PrimitiveId::SonicWave, [0.0, 0.0, 0.0]);
@@ -151,7 +151,8 @@ mod tests {
         assert_eq!(state.render_flag, 5);
         assert_eq!(state.total_texture, 1);
         assert_eq!(state.delta_pos, [13.0, 0.0, 5.0]);
-        assert_eq!(state.position, [3.0, 4.0, 5.0], "the body writes the anchor once");
+        // Primitive state is official (Y-down): port y 4 -> -4.
+        assert_eq!(state.position, [3.0, -4.0, 5.0], "the body writes the anchor once");
 
         for index in 0..4usize {
             let slot = &state.slots[index];
@@ -160,7 +161,8 @@ mod tests {
             assert_eq!(slot.distance, 20.0);
             assert_eq!(slot.vec_b_now[0], 3.0);
             assert_eq!(slot.vec_b_now[2], 5.0);
-            assert_eq!(slot.vec_b_now[1], expected_jitter[index] + 4.0 - 10.0);
+            // Official Y-down: the port anchor's y 4 is -4.
+            assert_eq!(slot.vec_b_now[1], expected_jitter[index] - 4.0 - 10.0);
             assert_eq!(slot.height[1], 0.8);
             assert_eq!(slot.flag1[1], 0);
         }

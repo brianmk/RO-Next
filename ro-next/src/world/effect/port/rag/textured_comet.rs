@@ -46,7 +46,7 @@ impl PortedEffect for TexturedComet {
         }
 
         let lifetime = runtime.lifetime;
-        let target = runtime.target_offset;
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let (first, second) = self.textures();
         let flag = self.flag();
 

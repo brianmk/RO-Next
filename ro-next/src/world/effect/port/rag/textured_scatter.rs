@@ -71,7 +71,9 @@ fn textured_scatter(runtime: &mut EffectRuntime, name: &'static str, flag: i8) {
 
     // `this->render.position.y -= 9.0f;` - the effect anchor, after the
     // primitive inherited the old master position at launch.
-    runtime.position[1] -= 9.0;
+    // `render.position.y -= 9.0f` is nine units *up* in the official Y-down
+    // world, i.e. +9 on the port's Y-up anchor.
+    runtime.position[1] += 9.0;
 
     // RNG order per slot: process (25), riseAngle (360), fullDisplayAngle
     // (360).
@@ -123,7 +125,9 @@ fn textured_scatter_low(runtime: &mut EffectRuntime, name: &'static str, flag: i
 
     let index = runtime.launch(PrimitiveId::ExpandPulse, [0.0, 0.0, 0.0]);
 
-    runtime.position[1] -= 9.0;
+    // `render.position.y -= 9.0f` is nine units *up* in the official Y-down
+    // world, i.e. +9 on the port's Y-up anchor.
+    runtime.position[1] += 9.0;
 
     // RNG order per slot: process (10), riseAngle (360), fullDisplayAngle
     // (360).
@@ -260,9 +264,10 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         assert_eq!(runtime.primitives.len(), 24);
-        // Each call drops the effect anchor by 9 after launching, so 24 calls
-        // end 216 units below and the primitives form a staircase.
-        assert_eq!(runtime.position, [0.0, -216.0, 0.0]);
+        // Each call lifts the effect anchor by 9 after launching (`-= 9` is
+        // *up* in the official Y-down world), so 24 calls end 216 units above
+        // the floor and the primitives form a staircase.
+        assert_eq!(runtime.position, [0.0, 216.0, 0.0]);
 
         for (primitive_index, primitive) in runtime.primitives.iter().enumerate() {
             let state = &primitive.state;
@@ -321,7 +326,8 @@ mod tests {
 
         assert_eq!(runtime.primitives.len(), 20);
 
-        assert_eq!(runtime.position, [0.0, -180.0, 0.0]);
+        // 20 lift calls of nine units, up in the official Y-down world.
+        assert_eq!(runtime.position, [0.0, 180.0, 0.0]);
         let state = &runtime.primitives[0].state;
         assert_eq!(state.texture, Some("effect\\lens2.tga"));
         assert_eq!(state.slots[0].process, first_process + 1);
@@ -346,7 +352,7 @@ mod tests {
         // `TexturedScatterLow` returns before the copy, so the anchor stays.
         effect.on_process(&mut runtime);
 
-        assert_eq!(runtime.position, [1.0, -7.0, 3.0]);
+        assert_eq!(runtime.position, [1.0, 11.0, 3.0]);
 
         // `TexturedScatter` copies first, so it does follow.
         let mut effect = TexturedScatter::new("effect\\lens1.tga", 1, 1, false, 300);
@@ -367,12 +373,13 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         assert_eq!(runtime.primitives.len(), 20);
-        assert_eq!(runtime.position, [10.0, 11.0, 30.0]);
+        // The parent copy plus one nine-unit lift.
+        assert_eq!(runtime.position, [10.0, 29.0, 30.0]);
         assert!(
             runtime
                 .primitives
                 .iter()
-                .all(|primitive| primitive.state.position == [10.0, 20.0, 30.0])
+                .all(|primitive| primitive.state.position == [10.0, -20.0, 30.0])
         );
         assert_eq!(runtime.primitives[0].state.texture, Some("effect\\alpha_center.tga"));
         assert_eq!(runtime.primitives[0].state.slots[0].flag1[0], 2);

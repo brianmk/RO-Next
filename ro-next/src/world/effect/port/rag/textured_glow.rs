@@ -185,6 +185,7 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         assert_eq!(runtime.position, [10.0, 20.0, 30.0]);
-        assert_eq!(runtime.primitives[0].state.position, [10.0, 20.0, 30.0]);
+        // Primitive state is official (Y-down): port y 20 -> -20.
+        assert_eq!(runtime.primitives[0].state.position, [10.0, -20.0, 30.0]);
     }
 }

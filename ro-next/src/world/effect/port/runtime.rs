@@ -117,6 +117,25 @@ pub struct EffectRuntime {
     /// subtracts it again, so both ends use the same value.
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
+    ///
+    /// **Invariant.** The engine's anchors ([`Self::position`],
+    /// [`Self::target_offset`], [`Self::parent_position`], the holder's render
+    /// anchor and the 2-D `tlvert` projection) live in the **port's Y-up
+    /// world** (the map loader negates the GAT heights,
+    /// `loaders/map/vertices.rs:315-318`). The official effect simulation this
+    /// module reproduces works in a **Y-down** world (`Upward` is
+    /// `{0, -distance, 0}`, `EffectPrimitiveMotion.cpp:84-88`; a falling
+    /// particle hits the floor when `render.position.y > Height(x, z)`,
+    /// `:2598`), so everything that enters a primitive or slot is converted
+    /// with [`Self::official_position`] and everything written back to an
+    /// engine field with [`Self::port_position`]. The 3-D renderers flip the
+    /// same axis back on the way out
+    /// ([`render3d::world_space_position`](super::render3d::world_space_position)).
+    ///
+    /// The only exceptions are fields that are *screen* coordinates already
+    /// (`screen`, `parent_action_height`) and the body-owned simulation fields
+    /// ([`Self::delta_pos2`], [`Self::delta_pos3`], primitive/slot vectors),
+    /// which are always official.
     pub position: [f32; 3],
     /// `state.parent->render.position` - the caster's world position for the
     /// frame being processed.
@@ -488,7 +507,10 @@ impl EffectRuntime {
             state: EffectPrimitiveState {
                 count: id,
                 delta_pos2,
-                position: self.position,
+                // `CEffectPrim::Initialize` sets `render.position =
+                // master.render.position` (`EffectPrimitiveState.cpp:78-79`);
+                // the master runs in the official Y-down simulation space.
+                position: Self::official_position(self.position),
                 ..Default::default()
             },
             alive: true,
@@ -510,6 +532,24 @@ impl EffectRuntime {
         if let Some(parent) = self.parent_position {
             self.position = parent;
         }
+    }
+
+    /// Converts a port-space (Y-up) world position into the official Y-down
+    /// simulation space every primitive and slot vector lives in.
+    ///
+    /// See [`Self::position`] for the invariant. X and Z are shared; only Y
+    /// changes sign. The function is an involution, so [`Self::port_position`]
+    /// is the same map in the other direction; both names exist so a call site
+    /// says which side of the boundary it is on.
+    pub fn official_position(position: [f32; 3]) -> [f32; 3] {
+        [position[0], -position[1], position[2]]
+    }
+
+    /// Converts an official Y-down simulation position back into the port's
+    /// Y-up world (for a write to an engine anchor such as
+    /// [`Self::position`]).
+    pub fn port_position(position: [f32; 3]) -> [f32; 3] {
+        [position[0], -position[1], position[2]]
     }
 
     /// `CreateParticle(&positionVector, 5)` (`EffectMemoryMgr.cpp:246-252`) -
@@ -822,15 +862,23 @@ impl EffectRuntime {
     pub fn process_primitives(&mut self) {
         let master = MasterState {
             screen: self.screen,
-            position: self.position,
+            // The official effect simulation is Y-down (`Upward` is `{0, -d, 0}`,
+            // `EffectPrimitiveMotion.cpp:84-88`) while the port's world is Y-up
+            // (`loaders/map/vertices.rs:315-318` negates the GAT heights). The
+            // bodies therefore keep the official literals; this is the one
+            // boundary that converts the anchor, and `render3d`/`render_slots`/
+            // `sprite_pass` convert back on the way out.
+            position: [self.position[0], -self.position[1], self.position[2]],
             state_cnt: self.frame,
             duration: self.lifetime,
-            master_delta_pos: self.target_offset,
+            // `state.deltaPos` is a simulation-space (official, Y-down)
+            // vector/position; the runtime's target anchor is port-space.
+            master_delta_pos: Self::official_position(self.target_offset),
             render_angle: self.render_angle,
             parent_angle: self.parent_angle,
             camera_yaw: self.camera_yaw,
             camera_pitch: self.camera_pitch,
-            terrain_height: self.terrain_height,
+            terrain_height: self.terrain_height.map(|height| -height),
             ..Default::default()
         };
 
@@ -1046,7 +1094,9 @@ mod tests {
         let index = runtime.launch(PrimitiveId::Circle2d, [1.0, 2.0, 3.0]);
 
         let state = &runtime.primitives[index].state;
-        assert_eq!(state.position, [10.0, 20.0, 30.0]);
+        // `CEffectPrim::Initialize` inherits the master anchor in the official
+        // (Y-down) simulation space; the runtime anchor is port-space (Y-up).
+        assert_eq!(state.position, [10.0, -20.0, 30.0]);
         assert_eq!(state.delta_pos2, [1.0, 2.0, 3.0]);
     }
 

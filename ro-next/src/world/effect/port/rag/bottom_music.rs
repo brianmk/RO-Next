@@ -110,7 +110,7 @@ impl PortedEffect for BottomMusic {
 
         let kind = self.kind;
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         let index = runtime.launch(PrimitiveId::Bottom, [0.0, 0.0, 0.0]);
 
@@ -222,7 +222,7 @@ impl PortedEffect for BottomOut {
 
         let kind = self.kind;
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         let index = runtime.launch(PrimitiveId::BottomOut, [0.0, 0.0, 0.0]);
 
@@ -318,7 +318,8 @@ mod tests {
         assert_eq!(slot.height[7], 0.0);
         assert_eq!(slot.vec_b_now[0], 10.0);
         assert_eq!(slot.vec_b_now[2], 30.0);
-        assert_eq!(slot.vec_b_pre[1], 14.0);
+        // Official Y-down: port y 20 is -20, then the -6 lift.
+        assert_eq!(slot.vec_b_pre[1], -26.0);
         assert_eq!(slot.full_display_angle, 45);
         assert_eq!(slot.flag1[0], 0);
         assert_eq!(slot.flag1[2], 2);
@@ -452,7 +453,8 @@ mod tests {
             assert_eq!(slot.height[8], 0.0);
             assert_eq!(slot.vec_b_now[0], 3.0);
             assert_eq!(slot.vec_b_now[2], 5.0);
-            assert_eq!(slot.vec_b_pre[1], 4.0);
+            // Official Y-down: the parent's port y of 4 is -4 here.
+            assert_eq!(slot.vec_b_pre[1], -4.0);
             assert_eq!(slot.full_display_angle, 45);
             assert_eq!(slot.flag1[1], 0);
             assert_eq!(slot.flag1[2], 2);
@@ -479,7 +481,8 @@ mod tests {
         assert_eq!(state.slots[0].life, 1);
         assert_eq!(state.slots[0].process, expected_process);
         assert_eq!(state.slots[0].distance, expected_distance);
-        assert_eq!(state.slots[0].vec_b_pre[1], 4.0);
+        // Official Y-down: port y 9 is -9, then the kind's -5 lift.
+        assert_eq!(state.slots[0].vec_b_pre[1], -14.0);
         assert_eq!(state.slots[0].flag1[1], 1);
         assert_eq!(state.slots[1].life, 0);
     }

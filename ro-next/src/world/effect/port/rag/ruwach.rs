@@ -318,7 +318,9 @@ mod tests {
         assert!(step(&mut effect, &mut runtime));
         assert_eq!(runtime.position, [100.0, 5.0, -50.0]);
         assert_eq!(runtime.primitives.len(), 2);
-        assert_eq!(runtime.primitives[0].state.position, [100.0, -5.0, -65.0]);
+        // Primitive state is official (Y-down): the caster's port y 5 is -5
+        // and the mote's `deltaPos2.y = -10` is ten units *up*.
+        assert_eq!(runtime.primitives[0].state.position, [100.0, -15.0, -65.0]);
 
         runtime.parent_position = Some([110.0, 5.0, -50.0]);
         assert!(step(&mut effect, &mut runtime));
@@ -326,8 +328,8 @@ mod tests {
         // Same primitives, new anchor: the frame-0 mote (x 0, y -10, z -15)
         // is now relative to the moved caster.
         assert_eq!(runtime.position, [110.0, 5.0, -50.0]);
-        assert_eq!(runtime.primitives[0].state.position, [110.0, -5.0, -65.0]);
-        assert_eq!(runtime.primitives[1].state.position, [110.0, 5.0, -65.0]);
+        assert_eq!(runtime.primitives[0].state.position, [110.0, -15.0, -65.0]);
+        assert_eq!(runtime.primitives[1].state.position, [110.0, -5.0, -65.0]);
     }
 
     #[test]

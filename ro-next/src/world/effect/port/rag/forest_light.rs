@@ -14,7 +14,7 @@ pub(crate) fn forest_light(runtime: &mut EffectRuntime, name: &'static str, flag
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
 
     let light = runtime.launch(PrimitiveId::ForestLight, [0.0, 0.0, 0.0]);
     let state = runtime.primitive_mut(light);
@@ -133,7 +133,8 @@ mod tests {
         assert_eq!(light.slots[0].max_height, 1.0);
         assert_eq!(light.slots[3].alpha_b, 30);
         // flag 13 -> deltaPos.y - 300 / x,z - 70
-        assert_eq!(light.slots[0].vec_t_pre, [10.0 - 70.0, 20.0 - 300.0, 30.0 - 70.0]);
+        // Official Y-down: the port anchor's y 20 is -20 in the slot vectors.
+        assert_eq!(light.slots[0].vec_t_pre, [10.0 - 70.0, -20.0 - 300.0, 30.0 - 70.0]);
         assert_eq!(light.slots[0].rot_start, 0);
         assert_eq!(light.slots[2].rot_start, 50);
 

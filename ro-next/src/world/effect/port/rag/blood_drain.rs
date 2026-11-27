@@ -38,8 +38,8 @@ impl PortedEffect for BloodDrain {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
         let radius = runtime.calc_dist(target[0], target[2]);
         let face = if target[0] != position[0] || target[2] != position[2] {
             EffectRuntime::heading(position[0], position[2], target[0], target[2])
@@ -109,8 +109,8 @@ impl PortedEffect for RedParticleSpray {
         }
 
         let angles = Angles::shared();
-        let target = runtime.target_offset;
-        let position = runtime.position;
+        let target = EffectRuntime::official_position(runtime.target_offset);
+        let position = EffectRuntime::official_position(runtime.position);
         let radius = runtime.calc_dist(target[0], target[2]);
         let face = if target[0] != position[0] || target[2] != position[2] {
             EffectRuntime::heading(position[0], position[2], target[0], target[2])

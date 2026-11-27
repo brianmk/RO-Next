@@ -101,7 +101,8 @@ mod tests {
         assert_eq!(state.duration, 200);
         assert_eq!(state.texture, Some("effect\\ring_yellow.tga"));
         assert_eq!(state.size, 5.0);
-        assert_eq!(state.position, [10.0, 20.0, 30.0]);
+        // Primitive state is official (Y-down): port y 20 -> -20.
+        assert_eq!(state.position, [10.0, -20.0, 30.0]);
 
         let first = &state.slots[0];
         assert_eq!(first.life, 1);

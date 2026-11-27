@@ -80,7 +80,7 @@ impl HealRingSparkle {
     fn spawn_sparks(&self, runtime: &mut EffectRuntime) {
         let kind = self.sparkle_type;
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         let mut distances = [0.0f32; 4];
         let mut xs = [0.0f32; 4];

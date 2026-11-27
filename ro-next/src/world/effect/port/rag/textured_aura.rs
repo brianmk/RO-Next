@@ -117,8 +117,10 @@ impl PortedEffect for TexturedAura {
         let lifetime = runtime.lifetime;
         let param = runtime.param;
         let parent_action_height = runtime.parent_action_height;
-        let position_y = runtime.position[1];
-        let (position_x, position_z) = (runtime.position[0], runtime.position[2]);
+        // The slot vectors below are official (Y-down) simulation values; the
+        // runtime anchor is port-space (Y-up).
+        let position = EffectRuntime::official_position(runtime.position);
+        let (position_x, position_y, position_z) = (position[0], position[1], position[2]);
 
         for &(texture, kind) in &self.auras {
             let (distance, flag, height10, display_angle, vy) = kind_params(kind, param, parent_action_height, &mut runtime.rng);
@@ -238,7 +240,8 @@ mod tests {
 
         let slot = &runtime.primitives[0].state.slots[0];
         assert_eq!(slot.flag1[2], 16);
-        assert!((slot.vec_b_pre[1] - (10.0 + 100.0 * 0.29 - 4.0)).abs() < 1e-4);
+        // Official Y-down: the port anchor's y 10 is -10 in the slot vector.
+        assert!((slot.vec_b_pre[1] - (-10.0 + 100.0 * 0.29 - 4.0)).abs() < 1e-4);
     }
 
     #[test]

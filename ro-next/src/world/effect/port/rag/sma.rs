@@ -36,8 +36,8 @@ pub fn sma(runtime: &mut EffectRuntime, flag: i8) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
-    let target = runtime.target_offset;
+    let position = EffectRuntime::official_position(runtime.position);
+    let target = EffectRuntime::official_position(runtime.target_offset);
 
     // Per-slot `ClampedRandom(5)` in slot order.
     let mut y_offsets = [0.0f32; 4];
@@ -128,7 +128,7 @@ impl PortedEffect for TexturedBlueRing {
         }
 
         let lifetime = runtime.lifetime;
-        let target = runtime.target_offset;
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let delta_pos2 = runtime.delta_pos2;
 
         let ring = runtime.launch(PrimitiveId::Sma2, [0.0, 0.0, 0.0]);
@@ -192,7 +192,7 @@ impl PortedEffect for BlueRingStack {
         }
 
         let lifetime = runtime.lifetime;
-        let target = runtime.target_offset;
+        let target = EffectRuntime::official_position(runtime.target_offset);
         let delta_pos2 = runtime.delta_pos2;
 
         let ring = runtime.launch(PrimitiveId::Sma2, [0.0, 0.0, 0.0]);
@@ -260,8 +260,9 @@ mod tests {
         assert_eq!(sma.duration, 200);
         assert_eq!(sma.total_texture, 0);
         assert_eq!(sma.texture, None, "the launcher draws nothing itself");
-        assert_eq!(sma.delta_pos, [40.0, 20.0, 60.0]);
-        assert_eq!(sma.position, [10.0, 20.0, 30.0]);
+        // The target and the inherited anchor are official (Y-down).
+        assert_eq!(sma.delta_pos, [40.0, -20.0, 60.0]);
+        assert_eq!(sma.position, [10.0, -20.0, 30.0]);
 
         for (index, slot) in sma.slots.iter().enumerate() {
             assert_eq!(slot.life, 1);
@@ -271,8 +272,9 @@ mod tests {
             assert_eq!(slot.rot_start, 0);
             assert_eq!(slot.vec_b_now[0], 10.0);
             assert_eq!(slot.vec_b_now[2], 30.0);
-            // `render.position.y - 10 + ClampedRandom(5)` stays in [10, 15).
-            assert!((10.0..15.0).contains(&slot.vec_b_now[1]));
+            // `official render.position.y (-20) - 10 + ClampedRandom(5)`
+            // stays in [-30, -25).
+            assert!((-30.0..-25.0).contains(&slot.vec_b_now[1]));
         }
     }
 
@@ -321,7 +323,8 @@ mod tests {
         assert_eq!(ring.render_flag, 5);
         assert_eq!(ring.texture, Some("effect\\ring_blue.tga"));
         assert_eq!(ring.size, 4.0);
-        assert_eq!(ring.delta_pos, [3.0, 4.0, 5.0]);
+        // The launch offset is official (Y-down) simulation space.
+        assert_eq!(ring.delta_pos, [3.0, -4.0, 5.0]);
         assert_eq!(ring.delta_pos2, [12.0, 0.0, 0.0]);
         assert_eq!(ring.slots[0].max_height, 13.0);
         assert_eq!(ring.slots[1].max_height, 11.0);
@@ -361,7 +364,8 @@ mod tests {
         let ring = &runtime.primitives[0].state;
         assert_eq!(ring.count, PrimitiveId::Sma2);
         assert_eq!(ring.texture, Some("effect\\ring_blue.tga"));
-        assert_eq!(ring.delta_pos, [1.0, 2.0, 3.0]);
+        // The launch offset is official (Y-down) simulation space.
+        assert_eq!(ring.delta_pos, [1.0, -2.0, 3.0]);
         assert_eq!(ring.delta_pos2, [20.0, 1.0, 0.0]);
         assert!(ring.slots[..3].iter().all(|slot| slot.alpha_t == 99));
         assert_eq!(ring.slots[3].life, 0);

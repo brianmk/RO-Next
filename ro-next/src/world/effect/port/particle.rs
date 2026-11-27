@@ -13,7 +13,7 @@
 //! (`Particles/Particle.h:65-120`); `Default` is `ResetParticle`
 //! (`Particle.cpp:741-777`), not a zeroed struct.
 
-use cgmath::{Point3, Rad, Vector2};
+use cgmath::{Rad, Vector2};
 use wgpu::BlendFactor;
 
 use super::super::project_point;
@@ -217,12 +217,15 @@ pub(crate) fn render_particles(renderer: &mut EffectRenderer, camera: &dyn Camer
         };
 
         // `transform` already contains the `MakeTranslate` from `OnProcess`;
-        // `CParticle::Render(true)` ignores `position`.
-        let anchor = Point3::new(
+        // `CParticle::Render(true)` ignores `position`. The throw-item bodies
+        // build the transform with the official (Y-down) effect arithmetic, so
+        // both the anchor and the corners are flipped into the port's Y-up
+        // world here (see `render3d`'s module docs).
+        let anchor = super::render3d::world_space_position([
             particle.transform.values[9],
             particle.transform.values[10],
             particle.transform.values[11],
-        );
+        ]);
 
         // `Project` rejects the whole quad when any corner is behind the
         // camera (`Particle.cpp:910-921`), and the port's `project_point` also
@@ -236,7 +239,8 @@ pub(crate) fn render_particles(renderer: &mut EffectRenderer, camera: &dyn Camer
         let mut visible = true;
 
         for (index, corner) in particle.corners().iter().enumerate() {
-            let Some((projected, depth)) = project_point(camera, Point3::new(corner[0], corner[1], corner[2]), screen_size) else {
+            let corner = super::render3d::world_space_position(*corner);
+            let Some((projected, depth)) = project_point(camera, corner, screen_size) else {
                 visible = false;
                 break;
             };

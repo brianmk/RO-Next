@@ -124,8 +124,8 @@ impl ThrowItemParticles {
             _ => {}
         }
 
-        let position = runtime.position;
-        let source_position = runtime.target_offset;
+        let position = EffectRuntime::official_position(runtime.position);
+        let source_position = EffectRuntime::official_position(runtime.target_offset);
 
         for row in 0..self.projectile_count {
             for column in 0..self.trail_count {
@@ -249,7 +249,7 @@ impl ThrowItemParticles {
     /// `CThrowItemEffect::OnProcess` - `ThrowEffects.cpp:500-579`.
     fn process_particles(&mut self, runtime: &mut EffectRuntime) {
         let angles = Angles::shared();
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
         let frame = runtime.frame;
         let camera_pitch = runtime.camera_pitch;
         let mut parent_angle = runtime.parent_angle;
@@ -471,7 +471,8 @@ mod tests {
         assert_eq!(particle.destination_blend, 6);
         assert_eq!(particle.animation_parameter, 10.0);
         assert_eq!(particle.phase_parameter, 0);
-        assert_eq!(particle.position, POSITION);
+        // `CParticle.position` is official (Y-down) simulation space.
+        assert_eq!(particle.position, [3.0, -4.0, 5.0]);
     }
 
     #[test]
@@ -584,7 +585,9 @@ mod tests {
         let lead = &runtime.particles[0];
         assert_eq!(direction_angle(10.0, 0.0), 0.0);
         assert!((lead.offset_x - (1.5 * angles.raw_cosine(0) + 3.0)).abs() < 1e-5);
-        assert!((lead.offset_y - (0.15 * 4.0 - 4.0)).abs() < 1e-5);
+        // Official Y-down: the initial offset is -4 - 8 = -12 and
+        // `heightDelta` is -8 - (-4) = -4.
+        assert!((lead.offset_y - (0.15 * -4.0 - 12.0)).abs() < 1e-5);
         assert!((lead.offset_z - (1.5 * angles.raw_sine(0) + 5.0)).abs() < 1e-5);
     }
 
@@ -595,7 +598,8 @@ mod tests {
         // `travelFrames == 6`; at frame 0 progress is 0, height is 0.
         let particle = &runtime.particles[0];
         assert_eq!(particle.transform.values[10], particle.offset_y);
-        assert!((particle.offset_y - (0.2 * 4.0 - 4.0)).abs() < 1e-5);
+        // Same official-space start: -12, plus `heightDelta` -4 at speed 2.
+        assert!((particle.offset_y - (0.2 * -4.0 - 12.0)).abs() < 1e-5);
         assert_eq!(particle.angle, 15.0);
     }
 
@@ -728,7 +732,8 @@ mod tests {
         step(&mut effect, &mut runtime);
 
         for particle in &runtime.particles {
-            assert_eq!(particle.position, [30.0, 40.0, 50.0]);
+            // `CParticle.position` follows the official (Y-down) anchor.
+            assert_eq!(particle.position, [30.0, -40.0, 50.0]);
             assert_eq!(particle.elapsed_frames, 2);
         }
     }

@@ -63,8 +63,8 @@ fn tei_hit2(runtime: &mut EffectRuntime) {
     }
 
     let lifetime = runtime.lifetime;
-    let target = runtime.target_offset;
-    let position = runtime.position;
+    let target = EffectRuntime::official_position(runtime.target_offset);
+    let position = EffectRuntime::official_position(runtime.position);
 
     let index = runtime.launch(PrimitiveId::TeiHit2, [0.0, 0.0, 0.0]);
 

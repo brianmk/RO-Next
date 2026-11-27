@@ -40,7 +40,7 @@ fn purple_slash(runtime: &mut EffectRuntime, angle: i16) {
     }
 
     let lifetime = runtime.lifetime;
-    let position = runtime.position;
+    let position = EffectRuntime::official_position(runtime.position);
 
     // `this->state.lastPrim = LaunchEffectPrim(92, {0, 0, 0});`
     let index = runtime.launch(PrimitiveId::PurpleSlash, [0.0, 0.0, 0.0]);
@@ -154,7 +154,8 @@ mod tests {
                 assert_eq!(slot.distance, 20.0);
                 assert_eq!(slot.vec_b_now[0], 2.0);
                 assert_eq!(slot.vec_b_now[2], 4.0);
-                assert_eq!(slot.vec_b_now[1], jitter[index] + 6.0 - 10.0);
+                // Official Y-down: the port anchor's y 6 is -6.
+                assert_eq!(slot.vec_b_now[1], jitter[index] - 6.0 - 10.0);
                 assert_eq!(slot.rot_start, (slash * 45) as i16);
                 assert_eq!(slot.height[1], 0.8);
                 assert_eq!(slot.flag1[0], 0);

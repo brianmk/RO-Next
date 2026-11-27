@@ -30,7 +30,7 @@ impl PortedEffect for SprinkleSand {
         }
 
         let lifetime = runtime.lifetime;
-        let position = runtime.position;
+        let position = EffectRuntime::official_position(runtime.position);
 
         for _ in 0..self.count {
             // Per-slot random draws, in slot order.
