@@ -703,11 +703,19 @@ impl Common {
         }
 
         let perch = self.falcon_perch_position();
-        let Some(flight) = FalconFlight::new(perch, target, client_tick) else {
-            return;
-        };
+        if let Some(flight) = self.falcon_flight.as_mut() {
+            // `AM_REQ_ATTACK` during the animation only replaces the velocity
+            // and keeps the position/processTick (`MsgEffect.cpp:1611-1617`).
+            // The bird therefore continues from wherever it is (possibly far
+            // off-screen) instead of snapping back to the hunter.
+            flight.retarget(target, client_tick, perch);
+        } else {
+            let Some(flight) = FalconFlight::new(perch, target, client_tick) else {
+                return;
+            };
+            self.falcon_flight = Some(flight);
+        }
 
-        self.falcon_flight = Some(flight);
         self.falcon_returning = false;
         // Actions 8-15 of the falcon ACT are the one-frame flight directions.
         self.falcon_animation_state
@@ -1147,19 +1155,22 @@ impl Common {
             // action is a one-frame glide, and the perched flap resumes for the
             // return leg (official `FollowOwner`) and after the flight.
             let perch = self.falcon_perch_position();
-            let flight_pose = self.falcon_flight.as_ref().map(|flight| flight.sample(client_tick, perch));
+            let had_flight = self.falcon_flight.is_some();
+            let flight_pose = self.falcon_flight.as_mut().and_then(|flight| flight.advance_to(client_tick, perch));
 
-            match flight_pose {
-                Some(Some(pose)) if !pose.flying && !self.falcon_returning => {
-                    self.falcon_returning = true;
-                    self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+            if had_flight {
+                match flight_pose {
+                    Some(pose) if !pose.flying && !self.falcon_returning => {
+                        self.falcon_returning = true;
+                        self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+                    }
+                    Some(_) => {}
+                    None => {
+                        self.falcon_flight = None;
+                        self.falcon_returning = false;
+                        self.falcon_animation_state.idle(EntityType::Npc, client_tick);
+                    }
                 }
-                Some(None) => {
-                    self.falcon_flight = None;
-                    self.falcon_returning = false;
-                    self.falcon_animation_state.idle(EntityType::Npc, client_tick);
-                }
-                _ => {}
             }
         }
 
@@ -1959,7 +1970,7 @@ impl Common {
             let (falcon_position, falcon_direction) = self
                 .falcon_flight
                 .as_ref()
-                .and_then(|flight| flight.sample(client_tick, perch))
+                .and_then(|flight| flight.pose())
                 .map(|pose| (pose.position, pose.direction))
                 .unwrap_or((perch, self.direction));
 
