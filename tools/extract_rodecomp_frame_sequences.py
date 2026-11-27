@@ -26,16 +26,56 @@ from pathlib import Path
 RODECOMP = Path("/home/phantom/Documents/deepseek-harness/default-workspace/rodecomp")
 RENDER_OBJECT = RODECOMP / "Source/Contents/Actors/RenderObject.cpp"
 GAME_MODE_PACKETS = RODECOMP / "Source/Client/Mode/GameModePackets.cpp"
+SKILL_ID_HEADER = RODECOMP / "Source/Contents/Skills/SkillId.h"
 SKID_DUMP = Path("tools/data/client_skill_tables_2019.txt")
 OUTPUT = Path("tools/data/rodecomp_skill_frame_sequences.json")
 
 SWITCH_START = 5740
 SWITCH_END = 5940
 
-#: Skill-use animations (`CGameMode::ReceiveSkillUse`) the port models. The
-#: rest of that switch is not wired yet; keeping the list explicit means a
-#: rerun of this script never adds unreviewed animations.
-SKILL_USE_SEQUENCES = {"MO_EXPLOSIONSPIRITS"}
+#: Skill-use animations (`CGameMode::ReceiveSkillUse`) the port models, with
+#: the source line of each `SetFrameSequence` call. The rest of that switch
+#: is not wired yet; keeping the list explicit means a rerun of this script
+#: never adds unreviewed animations.
+SKILL_USE_SEQUENCES = {
+    # GameModePackets.cpp:18829-18848
+    "MO_BLADESTOP",
+    "MO_EXPLOSIONSPIRITS",
+    "MO_STEELBODY",
+    # :18886 (ready-fight block 0x20, not the skill block)
+    "LK_AURABLADE",
+    # :18923-18932
+    "DC_SCREAM",
+    "BA_FROSTJOKE",
+    # :19050 (attack block 0x58)
+    "HW_SOULDRAIN",
+    # :19561
+    "BA_PANGVOICE",
+    # :20170
+    "SR_CURSEDCIRCLE",
+    # :20805
+    "AG_DEADLY_PROJECTION",
+    "AG_SOUL_VC_STRIKE",
+    # :20826-20868
+    "IQ_POWERFUL_FAITH",
+    "IQ_FIRM_FAITH",
+    "IQ_SINCERE_FAITH",
+    "IQ_JUDGE",
+    "IQ_THIRD_EXOR_FLAME",
+    # :20890-20897
+    "IQ_EXPOSION_BLASTER",
+    "IQ_MASSIVE_F_BLASTER",
+    # :20977
+    "AG_FROZEN_SLASH",
+    # :21142-21156
+    "TR_MUSICAL_INTERLUDE",
+    "TR_NIPELHEIM_REQUIEM",
+    "AG_RAIN_OF_CRYSTAL",
+    "AG_ASTRAL_STRIKE",
+    "TR_RETROSPECTION",
+    # :21231
+    "ABC_FROM_THE_ABYSS",
+}
 
 
 def extract_render_object(names: dict[str, int]) -> tuple[dict[str, dict], dict[str, dict]]:
@@ -153,8 +193,21 @@ def extract_skill_use(names: dict[str, int], wanted: set[str]) -> dict[str, dict
     return sequences
 
 
+def load_skill_names() -> dict[str, int]:
+    """Skill name -> id, preferring the 2019 client dump and filling newer jobs
+    from the decompiled `SkillId.h` enum (the GRF dump predates 4th jobs)."""
+    names = {
+        name: int(skill)
+        for skill, name in (line.split("|")[1:3] for line in SKID_DUMP.read_text().splitlines() if line.startswith("skillid|"))
+    }
+    if SKILL_ID_HEADER.is_file():
+        for name, skill in re.findall(r"\b([A-Z][A-Z0-9_]+)\s*=\s*(\d+)\s*,", SKILL_ID_HEADER.read_text()):
+            names.setdefault(name, int(skill))
+    return names
+
+
 def main() -> None:
-    names = {name: int(skill) for skill, name in (line.split("|")[1:3] for line in SKID_DUMP.read_text().splitlines() if line.startswith("skillid|"))}
+    names = load_skill_names()
 
     sequences, unknown = extract_render_object(names)
     # RenderObject's damage sequences win when a skill has both kinds.
@@ -165,7 +218,7 @@ def main() -> None:
         "provenance": {
             "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch and CGameMode::ReceiveSkillUse SetFrameSequence calls",
             "file": "Source/Contents/Actors/RenderObject.cpp, Source/Client/Mode/GameModePackets.cpp",
-            "note": "block 0x58 = attack block (88), 0x60 = skill block (96); duration is milliseconds or a runtime skill-animation value; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted",
+            "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted",
         },
         "sequences": {name: entry for name, entry in sorted(sequences.items()) if entry["skill"] is not None},
         "unmatched": unknown,

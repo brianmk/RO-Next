@@ -72,6 +72,14 @@ def validate_action(skill_id: int, action: str, kind: str) -> None:
         raise SystemExit(f"skill {skill_id}: unsupported {kind} action {action!r}")
 
 
+def parse_int(value: object, default: int) -> int:
+    """Parse decimal/hex string or int; facts use both (`0x2BC`, `1000`, `1`)."""
+    try:
+        return int(str(value), 0)
+    except (TypeError, ValueError):
+        return default
+
+
 def load_facts(path: Path, extra_path: Path | None = None, rodecomp_path: Path | None = None) -> list[tuple[int, str]]:
     payload = json.loads(path.read_text())
     actions: dict[int, str] = {}
@@ -147,6 +155,11 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// Skills that are not listed use `Skill`, the client's default casting",
         "// gesture.",
         "//",
+        "// Rows may also carry the official frame sequence (`SetFrameSequence`):",
+        "// (first, last, loop_to, duration_ms, interval_ticks). `interval_ticks` is",
+        "// the preceding `SetSequenceInterval(N)` in 60 Hz update ticks (Fury: 30 =",
+        "// 500 ms per frame); 0 keeps the ACT frame delay.",
+        "//",
         "// The file is loaded at runtime through the normal client file loader, so a",
         "// server can override it without rebuilding the client; the compiled Rust",
         "// table is only the fallback for missing files.",
@@ -159,10 +172,11 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         if sequence is None:
             lines.append(f"        (skill: {skill_id}, action: {action}),")
         else:
-            first, last, loop_to, duration_ms = sequence
+            first, last, loop_to, duration_ms, interval_ticks = sequence
             lines.append(
                 f"        (skill: {skill_id}, action: {action}, "
-                f"sequence: (first: {first}, last: {last}, loop_to: {loop_to}, duration_ms: {duration_ms})),"
+                f"sequence: (first: {first}, last: {last}, loop_to: {loop_to}, "
+                f"duration_ms: {duration_ms}, interval_ticks: {interval_ticks})),"
             )
     lines.extend(["    ],", ")", ""])
     return "\n".join(lines)
@@ -200,40 +214,35 @@ def main() -> int:
     if not rows:
         raise SystemExit("no skill action facts found")
 
-    # Official per-skill frame sequences (`RenderObject.cpp` SetFrameSequence).
-    sequences: dict[int, tuple[int, int, int, int]] = {}
+    # Official per-skill frame sequences (`RenderObject.cpp` `SetFrameSequence`
+    # and `CGameMode::ReceiveSkillUse`). `interval` is the preceding
+    # `SetSequenceInterval(N)` in 60 Hz update ticks (Fury: 30 ticks = 500 ms
+    # per frame); 0 means the sequence keeps the ACT frame delay.
+    sequences: dict[int, tuple[int, int, int, int, int]] = {}
+    sequence_actions: dict[int, str] = {}
     sequences_path = Path(getattr(args, "sequences", ""))
     if sequences_path.is_file():
-        for name, entry in json.loads(sequences_path.read_text())["sequences"].items():
+        for entry in json.loads(sequences_path.read_text())["sequences"].values():
             try:
+                skill = int(entry["skill"])
                 block = int(entry["block"], 0)
-                first = int(entry["first"])
-                last = int(entry["last"])
-                loop_to = int(entry["loop_to"])
+                first = int(entry["first"], 0)
+                last = int(entry["last"], 0)
+                loop_to = int(entry["loop_to"], 0)
             except (KeyError, TypeError, ValueError):
                 continue
-            duration_text = str(entry.get("duration", "0"))
-            duration_ms = int(duration_text) if duration_text.isdigit() else 0
-            sequences[int(entry["skill"])] = (first, last, loop_to, duration_ms)
+            duration_ms = parse_int(entry.get("duration"), 0)
+            interval_ticks = parse_int(entry.get("interval"), 0)
+            # `SetSequenceInterval` takes an unsigned char.
+            sequences[skill] = (first, last, loop_to, duration_ms, min(max(interval_ticks, 0), 255))
 
-    # An explicit frame sequence names the official ACT block; it replaces the
-    # motion-derived action (0x58 attack block, 0x60 skill block).
-    sequence_actions: dict[int, str] = {}
-    sequence_data: dict[int, tuple[int, int, int, int]] = {}
-    for skill, (first, last, loop_to, duration_ms) in sequences.items():
-        block = None
-        for entry in json.loads(sequences_path.read_text())["sequences"].values():
-            if int(entry["skill"]) == skill:
-                try:
-                    block = int(entry["block"], 0)
-                except (KeyError, TypeError, ValueError):
-                    block = None
-                break
-        if block is not None and block % 8 == 0:
-            sequence_actions[skill] = f"Action({block // 8})"
-        sequence_data[skill] = (first, last, loop_to, duration_ms)
+            # An explicit frame sequence names the official ACT block; it
+            # replaces the motion-derived action (0x58 attack, 0x60 skill,
+            # 0x20 ready-fight block of LK_AURABLADE).
+            if block % 8 == 0:
+                sequence_actions[skill] = f"Action({block // 8})"
 
-    rows = [(skill, sequence_actions.get(skill, action), sequence_data.get(skill)) for skill, action in rows]
+    rows = [(skill, sequence_actions.get(skill, action), sequences.get(skill)) for skill, action in rows]
 
     content = render(rows, payload["provenance"])
     output = Path(args.output)

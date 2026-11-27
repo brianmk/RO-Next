@@ -2,9 +2,105 @@
  "provenance": {
   "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch and CGameMode::ReceiveSkillUse SetFrameSequence calls",
   "file": "Source/Contents/Actors/RenderObject.cpp, Source/Client/Mode/GameModePackets.cpp",
-  "note": "block 0x58 = attack block (88), 0x60 = skill block (96); duration is milliseconds or a runtime skill-animation value; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted"
+  "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted"
  },
  "sequences": {
+  "ABC_FROM_THE_ABYSS": {
+   "block": "0x60",
+   "first": "0",
+   "last": "0",
+   "loop_block": "0x60",
+   "loop_to": "0",
+   "loops": "1",
+   "duration": "0x2BC",
+   "interval": null,
+   "source": "GameModePackets.cpp:21231",
+   "skill": 5317
+  },
+  "AG_ASTRAL_STRIKE": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": 5230
+  },
+  "AG_DEADLY_PROJECTION": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": 5214
+  },
+  "AG_FROZEN_SLASH": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20977",
+   "skill": 5237
+  },
+  "AG_RAIN_OF_CRYSTAL": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:21156",
+   "skill": 5216
+  },
+  "AG_SOUL_VC_STRIKE": {
+   "block": "0x60",
+   "first": "1",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "RenderObject.cpp:5916",
+   "skill": 5220
+  },
+  "BA_FROSTJOKE": {
+   "block": "0x60",
+   "first": "4",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "4",
+   "loops": "1",
+   "duration": "1800",
+   "interval": 10,
+   "source": "GameModePackets.cpp:18932",
+   "skill": 318
+  },
+  "BA_PANGVOICE": {
+   "block": "0x60",
+   "first": "4",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "4",
+   "loops": "1",
+   "duration": "0x708",
+   "interval": null,
+   "source": "GameModePackets.cpp:19561",
+   "skill": 1010
+  },
   "CH_PALMSTRIKE": {
    "block": "0x60",
    "first": "3",
@@ -28,6 +124,174 @@
    "interval": 6,
    "source": "RenderObject.cpp:5851",
    "skill": 371
+  },
+  "DC_SCREAM": {
+   "block": "0x60",
+   "first": "0",
+   "last": "0",
+   "loop_block": "0x60",
+   "loop_to": "0",
+   "loops": "1",
+   "duration": "1200",
+   "interval": null,
+   "source": "GameModePackets.cpp:18923",
+   "skill": 326
+  },
+  "HW_SOULDRAIN": {
+   "block": "0x58",
+   "first": "0",
+   "last": "3",
+   "loop_block": "0x58",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "1000",
+   "interval": null,
+   "source": "GameModePackets.cpp:19050",
+   "skill": 364
+  },
+  "IQ_EXPOSION_BLASTER": {
+   "block": "0x60",
+   "first": "1",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "1100",
+   "interval": 5,
+   "source": "GameModePackets.cpp:20890",
+   "skill": 5244
+  },
+  "IQ_FIRM_FAITH": {
+   "block": "0x60",
+   "first": "1",
+   "last": "1",
+   "loop_block": "0x60",
+   "loop_to": "1",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20832",
+   "skill": 5239
+  },
+  "IQ_JUDGE": {
+   "block": "0x60",
+   "first": "5",
+   "last": "5",
+   "loop_block": "0x60",
+   "loop_to": "5",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20854",
+   "skill": 5247
+  },
+  "IQ_MASSIVE_F_BLASTER": {
+   "block": "0x60",
+   "first": "1",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "1100",
+   "interval": 5,
+   "source": "GameModePackets.cpp:20897",
+   "skill": 5243
+  },
+  "IQ_POWERFUL_FAITH": {
+   "block": "96",
+   "first": "1",
+   "last": "1",
+   "loop_block": "96",
+   "loop_to": "1",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20826",
+   "skill": 5238
+  },
+  "IQ_SINCERE_FAITH": {
+   "block": "0x60",
+   "first": "1",
+   "last": "1",
+   "loop_block": "0x60",
+   "loop_to": "1",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20838",
+   "skill": 5242
+  },
+  "IQ_THIRD_CONSECRATION": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": 5253
+  },
+  "IQ_THIRD_EXOR_FLAME": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": null,
+   "source": "GameModePackets.cpp:20868",
+   "skill": 5254
+  },
+  "IQ_THIRD_FLAME_BOMB": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": 5252
+  },
+  "IQ_THIRD_PUNISH": {
+   "block": "0x60",
+   "first": "2",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "500",
+   "interval": 4,
+   "source": "RenderObject.cpp:5922",
+   "skill": 5251
+  },
+  "LK_AURABLADE": {
+   "block": "0x20",
+   "first": "0",
+   "last": "5",
+   "loop_block": "0x20",
+   "loop_to": "5",
+   "loops": "1",
+   "duration": "1000",
+   "interval": null,
+   "source": "GameModePackets.cpp:18886",
+   "skill": 355
+  },
+  "MO_BLADESTOP": {
+   "block": "0x60",
+   "first": "3",
+   "last": "3",
+   "loop_block": "0x60",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "3000",
+   "interval": null,
+   "source": "GameModePackets.cpp:18829",
+   "skill": 269
   },
   "MO_CHAINCOMBO": {
    "block": "0x60",
@@ -77,6 +341,18 @@
    "source": "RenderObject.cpp:5825",
    "skill": 271
   },
+  "MO_STEELBODY": {
+   "block": "0x60",
+   "first": "0",
+   "last": "0",
+   "loop_block": "0x60",
+   "loop_to": "0",
+   "loops": "1",
+   "duration": "20",
+   "interval": null,
+   "source": "GameModePackets.cpp:18848",
+   "skill": 268
+  },
   "MO_TRIPLEATTACK": {
    "block": "0x58",
    "first": "0",
@@ -100,6 +376,18 @@
    "interval": 4,
    "source": "RenderObject.cpp:5909",
    "skill": 2564
+  },
+  "SR_CURSEDCIRCLE": {
+   "block": "96",
+   "first": "3",
+   "last": "3",
+   "loop_block": "96",
+   "loop_to": "3",
+   "loops": "1",
+   "duration": "3000",
+   "interval": null,
+   "source": "GameModePackets.cpp:20170",
+   "skill": 2334
   },
   "SR_DRAGONCOMBO": {
    "block": "0x60",
@@ -160,22 +448,8 @@
    "interval": 6,
    "source": "RenderObject.cpp:5872",
    "skill": 2330
-  }
- },
- "unmatched": {
-  "AG_DEADLY_PROJECTION": {
-   "block": "0x60",
-   "first": "1",
-   "last": "3",
-   "loop_block": "0x60",
-   "loop_to": "3",
-   "loops": "1",
-   "duration": "500",
-   "interval": null,
-   "source": "RenderObject.cpp:5916",
-   "skill": null
   },
-  "AG_SOUL_VC_STRIKE": {
+  "TR_MUSICAL_INTERLUDE": {
    "block": "0x60",
    "first": "1",
    "last": "3",
@@ -184,10 +458,10 @@
    "loops": "1",
    "duration": "500",
    "interval": null,
-   "source": "RenderObject.cpp:5916",
-   "skill": null
+   "source": "GameModePackets.cpp:21142",
+   "skill": 5361
   },
-  "AG_ASTRAL_STRIKE": {
+  "TR_NIPELHEIM_REQUIEM": {
    "block": "0x60",
    "first": "1",
    "last": "3",
@@ -196,8 +470,8 @@
    "loops": "1",
    "duration": "500",
    "interval": null,
-   "source": "RenderObject.cpp:5916",
-   "skill": null
+   "source": "GameModePackets.cpp:21148",
+   "skill": 5363
   },
   "TR_RETROSPECTION": {
    "block": "0x60",
@@ -209,7 +483,7 @@
    "duration": "500",
    "interval": null,
    "source": "RenderObject.cpp:5916",
-   "skill": null
+   "skill": 5350
   },
   "TR_SOUNDBLEND": {
    "block": "0x60",
@@ -221,43 +495,8 @@
    "duration": "500",
    "interval": null,
    "source": "RenderObject.cpp:5916",
-   "skill": null
-  },
-  "IQ_THIRD_PUNISH": {
-   "block": "0x60",
-   "first": "2",
-   "last": "2",
-   "loop_block": "0x60",
-   "loop_to": "2",
-   "loops": "1",
-   "duration": "500",
-   "interval": 4,
-   "source": "RenderObject.cpp:5922",
-   "skill": null
-  },
-  "IQ_THIRD_FLAME_BOMB": {
-   "block": "0x60",
-   "first": "2",
-   "last": "2",
-   "loop_block": "0x60",
-   "loop_to": "2",
-   "loops": "1",
-   "duration": "500",
-   "interval": 4,
-   "source": "RenderObject.cpp:5922",
-   "skill": null
-  },
-  "IQ_THIRD_CONSECRATION": {
-   "block": "0x60",
-   "first": "2",
-   "last": "2",
-   "loop_block": "0x60",
-   "loop_to": "2",
-   "loops": "1",
-   "duration": "500",
-   "interval": 4,
-   "source": "RenderObject.cpp:5922",
-   "skill": null
+   "skill": 5357
   }
- }
+ },
+ "unmatched": {}
 }

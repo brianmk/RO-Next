@@ -1105,7 +1105,10 @@ impl Common {
 
         if let Some(animation_data) = self.animation_data.as_ref() {
             if animation_data.is_animation_over(&self.animation_state)
-                && (self.animation_state.is_attack() || self.animation_state.is_pickup() || self.animation_state.is_skill())
+                && (self.animation_state.is_attack()
+                    || self.animation_state.is_pickup()
+                    || self.animation_state.is_skill()
+                    || self.animation_state.is_custom_one_shot())
             {
                 self.animation_state.idle(self.entity_type, client_tick);
             }

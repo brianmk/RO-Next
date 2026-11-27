@@ -158,6 +158,11 @@ pub struct AnimationState {
     /// `loop_to..=last` (`RenderObject.cpp` `SetFrameSequence`). `None` plays
     /// the whole action.
     frame_sequence: Option<(u8, u8, u8)>,
+    /// Official `SetSequenceInterval`: duration of one sequence frame in
+    /// milliseconds. `None` keeps the ACT frame delay. This is independent of
+    /// the action's ACT delay because the official client advances sequence
+    /// frames on its 60 Hz update ticks.
+    frame_sequence_step_ms: Option<u32>,
 }
 
 impl AnimationState {
@@ -174,6 +179,7 @@ impl AnimationState {
             speed: 1.0,
             loop_mode: AnimationLoopMode::default(),
             frame_sequence: None,
+            frame_sequence_step_ms: None,
         }
     }
 
@@ -215,7 +221,17 @@ impl AnimationState {
         self.speed = speed.max(0.01);
     }
 
+    /// Start a new action. An official frame sequence belongs to the action it
+    /// was installed for, so it must never leak into the next action (Fury's
+    /// `1..=2` range applied to a later idle would freeze the idle on frames
+    /// 1..2 instead of playing it from frame 0).
+    fn clear_frame_sequence(&mut self) {
+        self.frame_sequence = None;
+        self.frame_sequence_step_ms = None;
+    }
+
     pub fn idle(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Idle;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -233,6 +249,7 @@ impl AnimationState {
     /// depends on the job/weapon pair), so the caller picks the block that the
     /// weapon layer actually draws.
     pub fn attack(&mut self, entity_type: EntityType, attack_duration: u32, action: AnimationActionType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = action;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -245,6 +262,7 @@ impl AnimationState {
 
     /// Sit down. The sit pose loops until the entity stands up again.
     pub fn sit(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Sit;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -266,6 +284,7 @@ impl AnimationState {
     /// (`looping == false`, `cast_time == 0`) play the whole ACT skill action
     /// once at its natural frame speed and return to idle when it is over.
     pub fn skill(&mut self, entity_type: EntityType, cast_time: u32, looping: bool, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Skill;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -284,6 +303,7 @@ impl AnimationState {
     /// Used for the rustnarok generic motion table (dance/song/kick/shot/...)
     /// whose action index cannot be expressed by one of the named actions.
     pub fn custom(&mut self, entity_type: EntityType, action_index: usize, cast_time: u32, looping: bool, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Custom(action_index);
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -297,8 +317,14 @@ impl AnimationState {
 
     /// Restricts the current action to the official frame sequence
     /// (`first..=last`, then `loop_to..=last`) for `duration_ms`.
-    pub fn frame_sequence(&mut self, first: u8, last: u8, loop_to: u8, duration_ms: u32, client_tick: ClientTick) {
+    ///
+    /// `step_ms` is the official `SetSequenceInterval` converted from 60 Hz
+    /// update ticks; `None` keeps the ACT frame delay. The sequence belongs to
+    /// the action selected by the caller, which must run first because every
+    /// action method clears the previous sequence.
+    pub fn frame_sequence(&mut self, first: u8, last: u8, loop_to: u8, duration_ms: u32, step_ms: Option<u32>, client_tick: ClientTick) {
         self.frame_sequence = Some((first, last, loop_to));
+        self.frame_sequence_step_ms = step_ms.filter(|step| *step > 0);
         self.start_time = client_tick;
         self.factor = None;
         self.looping = duration_ms == 0;
@@ -310,6 +336,7 @@ impl AnimationState {
     /// The stance loops until the next action replaces it, like every other
     /// non-timed pose.
     pub fn ready_fight(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::ReadyFight;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -319,6 +346,7 @@ impl AnimationState {
     }
 
     pub fn pickup(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Pickup;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -328,6 +356,7 @@ impl AnimationState {
     }
 
     pub fn walk(&mut self, entity_type: EntityType, movement_speed: usize, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Walk;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -337,6 +366,7 @@ impl AnimationState {
     }
 
     pub fn dead(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
         self.action_type = AnimationActionType::Die;
         self.action_base_offset = self.action_type.action_base_offset(entity_type);
         self.start_time = client_tick;
@@ -370,6 +400,18 @@ impl AnimationState {
 
     pub fn is_skill(&self) -> bool {
         self.action_type == AnimationActionType::Skill
+    }
+
+    /// Whether this is a one-shot `Custom` action that must return to idle when
+    /// its frame sequence/ACT ends.
+    ///
+    /// `Custom` is only produced by the skill cast handlers and the ported
+    /// effect poses (`set_custom_skill_action`); looping dances and songs use
+    /// other actions. A timed or non-looping custom action is therefore a
+    /// one-shot pose (Fury's skill block frames 1..=2, a ready-shot hold, ...)
+    /// and must not leave the actor frozen on its last frame.
+    pub fn is_custom_one_shot(&self) -> bool {
+        matches!(self.action_type, AnimationActionType::Custom(_)) && (!self.looping || self.duration.is_some())
     }
 
     pub fn update(&mut self, client_tick: ClientTick) {
@@ -498,9 +540,10 @@ impl AnimationData {
     /// least one drawable frame.
     ///
     /// `action` is the block index (`32` for ready-fight, `80`/`88` for the
-    /// player attack blocks), matching [`AnimationActionType::action_base_offset`].
-    /// A trimmed ACT can contain only placeholder clips (`sprite_number ==
-    /// usize::MAX`) for a block; such a block draws nothing.
+    /// player attack blocks), matching
+    /// [`AnimationActionType::action_base_offset`]. A trimmed ACT can
+    /// contain only placeholder clips (`sprite_number == usize::MAX`) for a
+    /// block; such a block draws nothing.
     pub fn action_is_drawable(&self, action: usize) -> bool {
         self.animations
             .iter()
@@ -613,9 +656,12 @@ impl AnimationData {
         let factor = if factor > 0.0 { factor } else { 50.0 };
 
         // Official per-skill sequences play the ACT timing of the range and
-        // then loop its last frames for the remaining duration.
+        // then loop its last frames for the remaining duration. An explicit
+        // `SetSequenceInterval` replaces the ACT delay as the per-frame step
+        // (Fury: 30 ticks = 500 ms per frame).
         let frame_index = if let Some((first, last, loop_to)) = animation_state.frame_sequence {
-            let frame_time = (animation_state.time as f32 / factor) as usize;
+            let step = animation_state.frame_sequence_step_ms.map(|step| step as f32).unwrap_or(factor);
+            let frame_time = (animation_state.time as f32 / step) as usize;
             sequence_frame_index(frame_time, first, last, loop_to)
         } else {
             let frame_time = match animation_state.duration {
@@ -674,7 +720,8 @@ impl AnimationData {
         let factor = if factor > 0.0 { factor } else { 50.0 };
 
         let frame_index = if let Some((first, last, loop_to)) = animation_state.frame_sequence {
-            let frame_time = (animation_state.time as f32 / factor) as usize;
+            let step = animation_state.frame_sequence_step_ms.map(|step| step as f32).unwrap_or(factor);
+            let frame_time = (animation_state.time as f32 / step) as usize;
             sequence_frame_index(frame_time, first, last, loop_to)
         } else {
             let frame_time = match animation_state.duration {
@@ -1116,6 +1163,67 @@ mod tests {
         // No artificial duration: the ACT file defines the animation length, so the
         // full animation is played instead of squeezing it into a fixed time.
         assert_eq!(state.duration, None);
+    }
+
+    #[test]
+    fn one_shot_custom_actions_return_to_idle_but_loops_do_not() {
+        // Fury's skill block is a `Custom(12)` action with a 1000 ms sequence;
+        // it must count as a one-shot so `Common::update` restores idle.
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.custom(EntityType::Player, 12, 0, false, ClientTick(10));
+        state.frame_sequence(1, 2, 2, 1000, Some(500), ClientTick(10));
+        assert!(state.is_custom_one_shot());
+
+        // A cast-time custom action loops only for the cast duration and also
+        // has to return to idle afterwards.
+        state.custom(EntityType::Player, 12, 1200, true, ClientTick(10));
+        assert!(state.is_custom_one_shot());
+
+        // A looping custom action without a deadline keeps playing (dance/song
+        // style); the engine has no way to finish it. `custom()` always stores
+        // at least a 1 ms deadline, so build this state directly.
+        state.action_type = AnimationActionType::Custom(16);
+        state.duration = None;
+        state.looping = true;
+        assert!(!state.is_custom_one_shot());
+
+        // The named actions keep their existing completion handling.
+        state.idle(EntityType::Player, ClientTick(10));
+        assert!(!state.is_custom_one_shot());
+    }
+
+    #[test]
+    fn official_frame_sequence_keeps_its_own_per_frame_rate() {
+        // Fury (`GameModePackets.cpp:18839-18840`): skill block (Action(12)),
+        // frames 1..=2 looping on 2, 30 ticks per frame = 500 ms, 1000 ms long.
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.custom(EntityType::Player, 12, 0, false, ClientTick(10));
+        state.frame_sequence(1, 2, 2, 1000, Some(500), ClientTick(10));
+
+        assert_eq!(state.action_index(), 12);
+        assert_eq!(state.frame_sequence, Some((1, 2, 2)));
+        assert_eq!(state.frame_sequence_step_ms, Some(500));
+        assert_eq!(state.duration, Some(1000));
+        assert!(!state.looping);
+    }
+
+    #[test]
+    fn a_new_action_clears_the_previous_frame_sequence() {
+        // Fury's 1..=2 range must not leak into the idle that follows; an idle
+        // restricted to frames 1..=2 would look frozen (the head never returns
+        // to frame 0).
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.custom(EntityType::Player, 12, 0, false, ClientTick(10));
+        state.frame_sequence(1, 2, 2, 1000, Some(500), ClientTick(10));
+
+        state.idle(EntityType::Player, ClientTick(1010));
+        assert_eq!(state.frame_sequence, None);
+        assert_eq!(state.frame_sequence_step_ms, None);
+        assert_eq!(state.duration, None);
+        assert_eq!(
+            state.action_index(),
+            AnimationActionType::Idle.action_base_offset(EntityType::Player)
+        );
     }
 }
 

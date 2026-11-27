@@ -583,9 +583,27 @@ impl Entity {
     /// sequence (`RenderObject.cpp` `SetFrameSequence`): frames
     /// `first..=last`, then `loop_to..=last` for `duration_ms`.
     pub fn set_skill_frame_sequence(&mut self, first: u8, last: u8, loop_to: u8, duration_ms: u32, client_tick: ClientTick) {
+        self.set_skill_frame_sequence_with_rate(first, last, loop_to, duration_ms, None, client_tick);
+    }
+
+    /// Like [`Self::set_skill_frame_sequence`] with the official
+    /// `SetSequenceInterval` play rate.
+    ///
+    /// `step_ms` is the interval converted from the client's 60 Hz update
+    /// ticks (Fury: 30 ticks = 500 ms per frame); `None` keeps the ACT frame
+    /// delay.
+    pub fn set_skill_frame_sequence_with_rate(
+        &mut self,
+        first: u8,
+        last: u8,
+        loop_to: u8,
+        duration_ms: u32,
+        step_ms: Option<u32>,
+        client_tick: ClientTick,
+    ) {
         self.get_common_mut()
             .animation_state
-            .frame_sequence(first, last, loop_to, duration_ms, client_tick);
+            .frame_sequence(first, last, loop_to, duration_ms, step_ms, client_tick);
     }
 
     /// Starts a short body flash (hard-coded skill effect color flash, for

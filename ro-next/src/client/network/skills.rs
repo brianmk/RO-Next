@@ -85,11 +85,12 @@ impl Client {
             // for casts with a cast time it starts when the skill
             // resolves (see the damage arms below).
             if !has_cast_time && let Some(sequence) = crate::world::frame_sequence_for_skill(skill_id) {
-                entity.set_skill_frame_sequence(
+                entity.set_skill_frame_sequence_with_rate(
                     sequence.first,
                     sequence.last,
                     sequence.loop_to,
                     sequence.duration_ms,
+                    sequence.step_ms(),
                     client_tick,
                 );
             }
@@ -287,11 +288,12 @@ impl Client {
 
                 // Official frame range of the skill's damage animation.
                 if let Some(sequence) = crate::world::frame_sequence_for_skill(skill_id) {
-                    entity.set_skill_frame_sequence(
+                    entity.set_skill_frame_sequence_with_rate(
                         sequence.first,
                         sequence.last,
                         sequence.loop_to,
                         sequence.duration_ms,
+                        sequence.step_ms(),
                         client_tick,
                     );
                 }
@@ -397,11 +399,12 @@ impl Client {
 
             // Official frame range of the skill animation.
             if let Some(sequence) = crate::world::frame_sequence_for_skill(skill_id) {
-                entity.set_skill_frame_sequence(
+                entity.set_skill_frame_sequence_with_rate(
                     sequence.first,
                     sequence.last,
                     sequence.loop_to,
                     sequence.duration_ms,
+                    sequence.step_ms(),
                     client_tick,
                 );
             }

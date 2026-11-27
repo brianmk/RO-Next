@@ -27,6 +27,13 @@
 //!
 //! Unknown skills deliberately fall back to the casting gesture: it is a valid
 //! pose for every job and never leaves the entity in a broken/black frame.
+//!
+//! The action row alone is not the whole animation: many skills also carry an
+//! official `SetFrameSequence` range and a `SetSequenceInterval` play rate
+//! (Fury: skill block frames 1..=2 at 500 ms per frame for 1000 ms). Those
+//! data live next to the row in `skill_actions.ron` and are applied by the
+//! client's cast handlers, which pass `CasterFrameSequence::step_ms` to the
+//! animation engine.
 
 use ragnarok_packets::SkillId;
 use serde::Deserialize;
@@ -112,12 +119,29 @@ mod tests {
         for skill_id in [266, 267, 372] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
-        // Mental Strength stays an idle pose. Fury is motion 0 in
-        // `GetSkillActionInfo`, but `CGameMode::ReceiveSkillUse` overrides it
-        // with `SetFrameSequence(0x60, 1, 2, 0x60, 2, 1, 1000, 0)`
+        // Fury is motion 0 in `GetSkillActionInfo`, but
+        // `CGameMode::ReceiveSkillUse` overrides it with
+        // `SetFrameSequence(0x60, 1, 2, 0x60, 2, 1, 1000, 0)`
         // (`GameModePackets.cpp:18839-18840`), so it plays the skill block.
-        assert_eq!(caster_action(SkillId(268)), CasterAction::Idle, "skill 268");
         assert_eq!(caster_action(SkillId(270)), CasterAction::Action(12), "skill 270");
+        // Steel Body: `ReceiveSkillUse` freezes block 0x60 frame 0 for 20 ms
+        // (`GameModePackets.cpp:18848`); the cast-state freeze lives in
+        // `ApplyActorSkillState`.
+        assert_eq!(caster_action(SkillId(268)), CasterAction::Action(12), "skill 268");
+    }
+
+    #[test]
+    fn fury_plays_the_official_skill_block_at_the_official_rate() {
+        // GameModePackets.cpp:18839-18840:
+        // SetSequenceInterval(30); SetFrameSequence(0x60, 1, 2, 0x60, 2, 1, 1000, 0)
+        assert_eq!(caster_action(SkillId(270)), CasterAction::Action(12));
+        let sequence = crate::world::frame_sequence_for_skill(SkillId(270)).expect("Fury has an official sequence");
+        assert_eq!((sequence.first, sequence.last, sequence.loop_to), (1, 2, 2));
+        assert_eq!(sequence.duration_ms, 1000);
+        // 30 ticks of the client's 60 Hz timer: one frame every 500 ms, so the
+        // two-frame animation lasts the full 1000 ms deadline.
+        assert_eq!(sequence.interval_ticks, 30);
+        assert_eq!(sequence.step_ms(), Some(500));
     }
 
     #[test]
