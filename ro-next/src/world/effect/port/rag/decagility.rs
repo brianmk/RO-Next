@@ -22,6 +22,10 @@ impl PortedEffect for DecAgility {
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
         let angles = Angles::shared();
 
+        // `CopyVector(this->render.position, this->state.parent->render.position)`
+        // (`RagEffect.cpp:15227`), every frame, before the frame-0 launch.
+        runtime.copy_parent_position();
+
         if runtime.frame == 0 {
             self.spawned = true;
             runtime.play_sound("effect\\EF_DecAgility.wav");
@@ -42,6 +46,9 @@ impl PortedEffect for DecAgility {
                 state.alpha_speed = state.max_alpha / 15.0;
                 state.fade_out_cnt = state.duration - 15;
                 state.texture = Some("effect\\slow.bmp");
+                // `RagEffect.cpp:15247`: `slots[0].life = 0` (the default, but
+                // the official writes it explicitly).
+                state.slots[0].life = 0;
             }
         }
 
@@ -72,6 +79,7 @@ impl PortedEffect for DecAgility {
         state.alpha_speed = state.max_alpha / 20.0;
         state.fade_out_cnt = state.duration - 20;
         state.texture = Some("effect\\ac_center2.tga");
+        state.slots[0].life = 0;
 
         true
     }
@@ -112,6 +120,19 @@ mod tests {
         assert_eq!(mote.height_size, 0.18);
         assert_eq!(mote.fade_out_cnt, 30);
         assert_eq!(mote.texture, Some("effect\\ac_center2.tga"));
+    }
+
+    #[test]
+    fn the_banner_anchor_follows_the_parent() {
+        let mut effect = DecAgility::default();
+        let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 101);
+        runtime.position = [1.0, 2.0, 3.0];
+        runtime.parent_position = Some([4.0, 5.0, 6.0]);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.position, [4.0, 5.0, 6.0]);
+        assert_eq!(runtime.primitives[0].state.slots[0].life, 0);
     }
 
     #[test]

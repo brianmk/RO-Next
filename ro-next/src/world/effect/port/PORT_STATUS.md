@@ -634,3 +634,51 @@ ported effect files stay untouched.
   `rustfmt --check` clean on every touched file; `gen_ported_skill_map.py
   --check` (496 ported ids / 239 mappings), `gen_skill_effects.py --check` (591
   phases) and `gen_skills.py --check` (2 behaviour rows) are up to date.
+
+### Screen-space 2D quads (round 104)
+
+- **Reported defect**: `AL_INCAGI` (29, `EF_INCAGILITY` 37) did not show the
+  "AGI UP!" banner correctly. Root cause was the ported `quad_corners`
+  (`port/holder.rs`), not the camera: it returned the corners in the order
+  `[top left, top right, bottom right, bottom left]`, while
+  `EffectRenderer::render_effect` stores `corners[0]` as the top left,
+  `corners[2]` as the bottom left, `corners[1]` as the top right and
+  `corners[3]` as the bottom right, and pairs them with
+  `texture_coordinates[2]`, `[3]`, `[1]`, `[0]`. The port also passed the UVs in
+  the corner order instead of the renderer's permuted slot order, and omitted
+  the `EFFECT_ORIGIN` that every other `render_effect` caller adds. The result
+  was a folded/mirrored banner drawn `(319, 291)` pixels up-left of its anchor.
+  `quad_corners` is now a branch-for-branch port of `Render2DPrimitive`
+  (`EffectPrimitiveRendering.cpp:7487-7585`): official vertex order
+  `v0..v3 = (BL, TL, BR, TR)`, official UVs `(0,1)/(0,0)/(1,1)/(1,0)`
+  permuted into the renderer's `[BR, TR, TL, BL]` slot order, the `- 0.5f` per
+  vertex, the integer-degree `ClientSine`/`ClientCosine` roll and the
+  `pattern & 1` height anchor.
+- **`state.tlvertX/tlvertY` is now written**: `PortedEffectHolder::project_screen`
+  projects `runtime.position` with the render pass's camera and window
+  (`project_point`, the same helper the sprite pass uses) and parks it;
+  the next 16 ms step copies it into `EffectRuntime::screen` and
+  `Move2DPrimitive`/`quad_corners` use that one value, so the quad stays
+  exactly on the projected anchor (the official recomputes `tlvert` once per
+  process frame with the same camera it renders with).
+- **Depth**: `Render2DPrimitive` emits `z = 0.000001`, `rhw = 0.999999`, i.e.
+  a screen-space quad at the near plane. The 2D branch now passes NDC depth
+  `1.0` (reverse-z near plane) through `render_effect_with_depth`, so the
+  banner is not hidden behind the caster's own sprite.
+- **Bodies**: `IncAgility`/`IncAgiDex` copy the parent position every frame
+  (`RagEffect.cpp:685`/`:633`) and set `slots[0].life` to `99` for
+  `EF_INCAGILITY` / `0` for `EF_INCAGIDEX` (`:702`/`:725`, `:651`/`:674`);
+  `IncAgilityCenter` (`EF_AGIUP`) copies the parent every frame (`:16541`) and
+  plays its wave through `PlayWave` at the caster (`:16544-16552`), with the
+  `kind == 3` Soul Change wave, instead of the inline helper. `DecAgility`
+  copies the parent too (`:15227`).
+- **Assets verified**: `data\texture\effect\agi_up.bmp` is a 64x32 8-bit BMP
+  whose magenta (`255,0,255`) background the client's BMP loader keys to
+  alpha 0; the text reads "AGI UP!". The official quad is `2 * 40` by
+  `2 * 20 = 80x40`, the same 2:1 aspect (upscaled 1.25x). `dex_agi_up.bmp` is
+  the same size and format.
+- **Still a deviation**: `PP_2DFLASH` (3) shares the 2D quad branch, but the
+  official `Render` draws it as a three-vertex `longitude`/`arcAngle` fan
+  (`EffectPrimitiveRendering.cpp:232-270`). Until that renderer is ported the
+  flash primitives (`EF_BASH`'s sparks, `EF_SIGNUM`'s rays) are drawn as
+  textured quads.

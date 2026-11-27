@@ -102,8 +102,19 @@ pub struct EffectRuntime {
     pub frame: i32,
     /// `state.duration` from the effect lifetime table.
     pub lifetime: i32,
-    /// `state.tlvertX/tlvertY` - projected anchor on the 640x480 reference
-    /// screen. The real client fills this from the camera every frame.
+    /// `state.tlvertX/tlvertY` - the effect anchor projected onto the render
+    /// target, in pixels with the official top-left origin (`y` growing
+    /// downward), exactly the value `g_renderer->Project` writes
+    /// (`RenderProjection.cpp:17-29`).
+    ///
+    /// The official bodies recompute it at the top of `OnProcess` from
+    /// `state.parent->render.position` (`RagEffect.cpp:681-684` for
+    /// `IncAgility`); the port has no camera in `EffectBase::update`, so
+    /// [`PortedEffectHolder::project_screen`](super::holder::PortedEffectHolder::project_screen)
+    /// computes it during the render pass and the next 16 ms step copies it
+    /// here. `Move2DPrimitive` adds it to `deltaPos2`
+    /// (`EffectPrimitiveMotion.cpp:7777-7784`) and the 2D quad renderer
+    /// subtracts it again, so both ends use the same value.
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
     pub position: [f32; 3],

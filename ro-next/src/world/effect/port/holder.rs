@@ -8,22 +8,24 @@
 //! model can be verified without a GPU.
 
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use cgmath::{Point3, Rad, Vector2};
 use ragnarok_packets::EffectId;
 use wgpu::BlendFactor;
 
+use super::angles::Angles;
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
 use super::runtime::{EffectRuntime, PendingEffectLaunch, PortedEffect};
 use super::sound_sink::{self, SoundSink};
 use super::str_player::Clip;
 use super::str_table::{self, ClipSet, StrResource};
 use super::{FRAME_FREQUENCY_MS, particle, registry, render_slots, render3d, sprite_pass, str_render};
-use crate::graphics::Color;
+use crate::graphics::{Color, ScreenSize};
 use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
 use crate::world::Camera;
+use crate::world::effect::{EFFECT_ORIGIN, project_point};
 
 pub struct PortedEffectHolder {
     body: Box<dyn PortedEffect>,
@@ -55,6 +57,15 @@ pub struct PortedEffectHolder {
     /// drained on every 16 ms step). The visual turns them into child effects;
     /// see [`Self::take_effect_launches`].
     effect_launches: Vec<PendingEffectLaunch>,
+    /// The projected anchor of the **next** step, written by
+    /// [`Self::project_screen`] from the render pass.
+    ///
+    /// `EffectBase::render` is the only hook that receives the camera, and it
+    /// runs with `&self`, so the projection is parked here (a `Mutex` because
+    /// ported visuals must stay `Sync`) and copied into
+    /// [`EffectRuntime::screen`] at the start of the next 16 ms step - the
+    /// step whose `Move2DPrimitive` reads `master.screen`.
+    projected_screen: Mutex<[f32; 2]>,
 }
 
 impl PortedEffectHolder {
@@ -84,6 +95,7 @@ impl PortedEffectHolder {
             action_loader: None,
             sprite_frame_counts: HashMap::new(),
             effect_launches: Vec::new(),
+            projected_screen: Mutex::new([0.0, 0.0]),
         }
     }
 
@@ -173,6 +185,38 @@ impl PortedEffectHolder {
 
     pub fn is_finished(&self) -> bool {
         self.finished
+    }
+
+    /// `g_renderer->Project(&this->state.parent->render.position.x, view,
+    /// vertex)` -> `state.tlvertX/tlvertY` (`RagEffect.cpp:681-684` and the
+    /// 26 other bodies that project their anchor).
+    ///
+    /// The result is the effect anchor in the render target's pixel space with
+    /// the official origin (top-left, y growing downward), matching the camera
+    /// and window size [`EffectRenderer`] draws with. It is recomputed on every
+    /// render pass and handed to the next 16 ms step, where
+    /// `Move2DPrimitive` adds it to `deltaPos2` (`EffectPrimitiveMotion.cpp:
+    /// 7777-7784`) and [`quad_corners`] subtracts it again to get the
+    /// anchor-relative quad offset. Using one value for both ends is what
+    /// keeps the quad exactly on the projected anchor: the official recomputes
+    /// `tlvert` once per process frame with the same camera it later renders
+    /// with.
+    ///
+    /// The official projects `state.parent->render.position`; the port's bodies
+    /// copy that into `render.position` (`EffectRuntime::copy_parent_position`)
+    /// or anchor at it directly, so `runtime.position` is the value to project.
+    ///
+    /// A position behind the camera has no projection (`project_point` returns
+    /// `None`); the official `Project` would divide by a non-positive `rhw`
+    /// and produce garbage that the renderer clips away, so the port parks
+    /// `[0.0, 0.0]` and lets the quad keep its anchor-relative offset.
+    pub fn project_screen(&self, camera: &dyn Camera, window_size: ScreenSize) {
+        let [x, y, z] = self.runtime.position;
+
+        let screen = project_point(camera, Point3::new(x, y, z), window_size)
+            .map_or([0.0, 0.0], |(pixel_position, _depth)| [pixel_position.x, pixel_position.y]);
+
+        *self.projected_screen.lock().unwrap_or_else(|poisoned| poisoned.into_inner()) = screen;
     }
 
     /// Texture assets the effect references; the loader prefetches these.
@@ -269,6 +313,12 @@ impl PortedEffectHolder {
     /// retire as soon as `curMotion` reaches `FrameCount`.
     fn step(&mut self) -> bool {
         self.runtime.begin_step();
+
+        // The projected anchor the previous render pass stored. The official
+        // body projects it at the top of `OnProcess`, before it launches the
+        // primitives this step moves; the port has no camera here, so the
+        // render pass hands the value over.
+        self.runtime.screen = *self.projected_screen.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
 
         if !self.body.on_process(&mut self.runtime) {
             return false;
@@ -368,6 +418,12 @@ impl PortedEffectHolder {
     ///   only the clips `ProcessEZ2STR` marked as visible this frame (layer 0
     ///   is the resource's control layer and is never drawn).
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, textures: &TextureLoader) {
+        // `state.tlvertX/tlvertY` for the next 16 ms step: every official body
+        // that draws a `PP_2DTEXTURE` projects its anchor before it moves the
+        // primitives (`RagEffect.cpp:681-684` for `IncAgility`). `render` is
+        // the only hook with the camera, so the value is parked for `step`.
+        self.project_screen(camera, renderer.window_size());
+
         let anchor = Point3::new(self.runtime.position[0], self.runtime.position[1], self.runtime.position[2]);
 
         for primitive in &self.runtime.primitives {
@@ -416,6 +472,14 @@ impl PortedEffectHolder {
             }
 
             match state.count {
+                // `PP_2DTEXTURE`/`PP_2DTEXTUREORBIT` -> `Render2DPrimitive`.
+                //
+                // Deviation: `PP_2DFLASH` (3) shares this branch but the
+                // official draws it as a three-vertex screen-space fan
+                // (`Render`'s `case PP_2DFLASH`, `EffectPrimitiveRendering.cpp:
+                // 232-270`), not as this quad. Its geometry needs a
+                // `longitude`/`arcAngle` fan, so it stays on the quad path
+                // until that renderer is ported (see `PORT_STATUS.md`).
                 PrimitiveId::Texture2d | PrimitiveId::Flash2d => {
                     let Some(path) = state.texture else {
                         continue;
@@ -425,14 +489,26 @@ impl PortedEffectHolder {
                         continue;
                     };
 
+                    // `runtime.screen` is the `tlvert` the step that moved this
+                    // primitive used; `quad_corners` subtracts it to obtain the
+                    // anchor-relative offset the official draws.
                     let (corners, uvs) = quad_corners(state, self.runtime.screen);
                     let (source, destination) = blend_factors(state.render_flag);
 
-                    renderer.render_effect(
+                    // `Render2DPrimitive` writes `z = 0.000001`, `rhw =
+                    // 0.999999` (`EffectPrimitiveRendering.cpp:7517-7519`),
+                    // i.e. a screen-space quad at the near plane that is never
+                    // occluded by the scene. The effect pass compares with
+                    // `GreaterEqual` and does not write depth, so NDC depth
+                    // `1.0` is the reverse-z equivalent of that near plane -
+                    // without it the glyph is hidden behind the caster's own
+                    // sprite, which is drawn closer than the feet anchor.
+                    renderer.render_effect_with_depth(
                         camera,
                         anchor,
                         texture,
                         corners,
+                        [SCREEN_QUAD_DEPTH; 4],
                         uvs,
                         Vector2::new(0.0, 0.0),
                         Rad(0.0),
@@ -495,37 +571,80 @@ impl SoundSink for DiscardSounds {
     fn play(&mut self, _sound: &sound_sink::PortedSound, _position: Point3<f32>) {}
 }
 
-/// The four screen-space corners and UVs of a `Render2DPrimitive` quad,
-/// relative to the projected anchor (`master.screen`).
+/// `Render2DPrimitive`'s near-plane depth (`z = 0.000001`, `rhw = 0.999999`),
+/// expressed in the client's reverse-z NDC where `1.0` is the near plane.
+pub(crate) const SCREEN_QUAD_DEPTH: f32 = 1.0;
+
+/// The four screen-space corners and UVs of a `Render2DPrimitive` quad.
+///
+/// Port of `CEffectPrim::Render2DPrimitive`
+/// (`EffectPrimitiveRendering.cpp:7487-7585`), the renderer behind
+/// `PP_2DTEXTURE` (and `PP_2DTEXTUREORBIT`):
+///
+/// * the quad is centred on `render.position`, the prim's absolute screen
+///   position, which `Move2DPrimitive` builds as `tlvert + deltaPos2 +
+///   deltaPos` (`EffectPrimitiveMotion.cpp:7777-7784`). The port stores that
+///   value in `state.position` and subtracts the effect's own `screen` again,
+///   so the corners are anchor-relative pixel offsets (plus [`EFFECT_ORIGIN`],
+///   which [`EffectRenderer::render_effect`] removes before it re-adds the
+///   projected anchor);
+/// * `widthSize`/`heightSize` are half extents, so the official Increase AGI
+///   glyph is 80x40 pixels for `40`/`20` (the `agi_up.bmp` texture is 64x32,
+///   same 2:1 aspect);
+/// * `roll` is truncated to integer degrees and read from the client's sine
+///   table (`ClientSine(static_cast<int>(state.roll))`), not `sinf`;
+/// * `pattern & 1` anchors the quad's bottom edge on `render.position` and
+///   doubles the height upward instead of centring it (`extra = 0`, `negHeight
+///   = -2 * height`);
+/// * every emitted vertex gets `- 0.5f`, the official half-pixel shift.
+///
+/// The official emits the quad as two triangles with the vertex order
+/// `v0 = (-w, +extra)`, `v1 = (-w, negHeight)`, `v2 = (+w, +extra)`,
+/// `v3 = (+w, negHeight)` and the UVs `v0 (0,1)`, `v1 (0,0)`, `v2 (1,1)`,
+/// `v3 (1,0)` - i.e. bottom-left, top-left, bottom-right, top-right in the
+/// official y-down screen space. [`EffectRenderer::render_effect`] takes the
+/// corners in its own layout and pairs `corners[i]` with `uvs[perm[i]]`,
+/// `perm = [2, 1, 3, 0]`, so the UV array is permuted here to keep every
+/// corner with its own official UV. Getting that pairing wrong folds the
+/// texture (the Increase AGI banner was reported as drawn upside down).
 pub(crate) fn quad_corners(state: &EffectPrimitiveState, anchor_screen: [f32; 2]) -> ([Vector2<f32>; 4], [Vector2<f32>; 4]) {
-    let roll = state.roll.to_radians();
-    let (sin, cos) = roll.sin_cos();
+    let angles = Angles::shared();
+    let sin = angles.sine(state.roll as i32);
+    let cos = angles.cosine(state.roll as i32);
 
     let width = state.width_size;
     let height = state.height_size;
 
-    let center = Vector2::new(state.position[0] - anchor_screen[0], state.position[1] - anchor_screen[1]);
+    // `Render2DPrimitive:7494-7500`: `negHeight = -height` (doubled with
+    // `pattern & 1`) and `extra = height` unless the height is anchored.
+    let (negative_height, extra) = match (state.pattern & 1) != 0 {
+        true => (-height - height, 0.0),
+        false => (-height, height),
+    };
 
-    // Clockwise from the top-left corner: (-w,-h), (w,-h), (w,h), (-w,h).
-    let local = [
-        Vector2::new(-width, -height),
-        Vector2::new(width, -height),
-        Vector2::new(width, height),
-        Vector2::new(-width, height),
+    // The official adds `- 0.5f` to every vertex after the rotation, so it is
+    // equivalent (and cheaper) to fold it into the centre.
+    let center = Vector2::new(
+        state.position[0] - anchor_screen[0] - 0.5,
+        state.position[1] - anchor_screen[1] - 0.5,
+    );
+
+    let rotate = |x: f32, y: f32| Vector2::new(x * cos - y * sin + center.x, x * sin + y * cos + center.y);
+
+    let corners = [
+        EFFECT_ORIGIN + rotate(-width, extra),
+        EFFECT_ORIGIN + rotate(-width, negative_height),
+        EFFECT_ORIGIN + rotate(width, extra),
+        EFFECT_ORIGIN + rotate(width, negative_height),
     ];
 
-    let corners = local.map(|point| {
-        Vector2::new(
-            point.x * cos - point.y * sin + center.x,
-            point.x * sin + point.y * cos + center.y,
-        )
-    });
-
+    // Official UVs per vertex: v0 (0,1), v1 (0,0), v2 (1,1), v3 (1,0),
+    // permuted into the renderer's `[BR, TR, TL, BL]` slot order.
     let uvs = [
-        Vector2::new(0.0, 0.0),
         Vector2::new(1.0, 0.0),
-        Vector2::new(1.0, 1.0),
+        Vector2::new(0.0, 0.0),
         Vector2::new(0.0, 1.0),
+        Vector2::new(1.0, 1.0),
     ];
 
     (corners, uvs)
@@ -656,6 +775,65 @@ mod tests {
     use super::super::str_player::{KeyFrame, Transform};
     use super::*;
 
+    /// A camera at `(0, 0, -10)` looking down `+z`, 45 degree vertical FOV on a
+    /// 640x480 window; the same conventions as the game cameras (left handed,
+    /// y up, reverse-z) because the matrices come from the shared helpers.
+    struct TestCamera {
+        view: cgmath::Matrix4<f32>,
+        projection: cgmath::Matrix4<f32>,
+        view_projection: cgmath::Matrix4<f32>,
+    }
+
+    impl TestCamera {
+        fn new() -> Self {
+            let view = cgmath::Matrix4::look_to_lh(
+                Point3::new(0.0, 0.0, -10.0),
+                cgmath::Vector3::unit_z(),
+                cgmath::Vector3::unit_y(),
+            );
+            let projection = crate::graphics::perspective_reverse_lh(cgmath::Deg(45.0), 4.0 / 3.0);
+
+            Self {
+                view,
+                projection,
+                view_projection: projection * view,
+            }
+        }
+    }
+
+    impl Camera for TestCamera {
+        fn camera_position(&self) -> Point3<f32> {
+            Point3::new(0.0, 0.0, -10.0)
+        }
+
+        fn focus_point(&self) -> Point3<f32> {
+            Point3::new(0.0, 0.0, 0.0)
+        }
+
+        fn generate_view_projection(&mut self, _window_size: ScreenSize) {}
+
+        fn look_up_vector(&self) -> cgmath::Vector3<f32> {
+            cgmath::Vector3::unit_y()
+        }
+
+        fn view_projection_matrices(&self) -> (cgmath::Matrix4<f32>, cgmath::Matrix4<f32>) {
+            (self.view, self.projection)
+        }
+
+        fn view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
+            self.view_projection
+        }
+
+        fn view_direction(&self) -> cgmath::Vector3<f32> {
+            cgmath::Vector3::unit_z()
+        }
+    }
+
+    const WINDOW: ScreenSize = ScreenSize {
+        width: 640.0,
+        height: 480.0,
+    };
+
     fn clip(keys: &[(i32, f32)]) -> Vec<Clip> {
         vec![Clip {
             texture_count: 1,
@@ -763,8 +941,16 @@ mod tests {
         assert!(textures.contains(&"effect\\frame1.bmp"));
     }
 
+    /// The UV `EffectRenderer` pairs with `corners[i]`: it stores
+    /// `texture_coordinates[2]` for the top-left, `[3]` for the bottom-left,
+    /// `[1]` for the top-right and `[0]` for the bottom-right
+    /// (`renderer/effect.rs:272-283`).
+    fn paired_uvs(uvs: [Vector2<f32>; 4]) -> [Vector2<f32>; 4] {
+        [uvs[2], uvs[1], uvs[3], uvs[0]]
+    }
+
     #[test]
-    fn two_d_quad_corners_keep_their_existing_geometry_and_uvs() {
+    fn two_d_quad_corners_match_the_official_vertices_and_uvs() {
         let state = EffectPrimitiveState {
             position: [10.0, 20.0, 0.0],
             width_size: 2.0,
@@ -775,22 +961,37 @@ mod tests {
 
         let (corners, uvs) = quad_corners(&state, [4.0, 6.0]);
 
+        // Official `Render2DPrimitive` vertices, anchor-relative, with the
+        // `- 0.5f` half-pixel shift and `EFFECT_ORIGIN` added back for the
+        // renderer (which subtracts it again).
+        let origin = EFFECT_ORIGIN;
+        let center = Vector2::new(10.0 - 4.0 - 0.5, 20.0 - 6.0 - 0.5);
         assert_eq!(corners, [
-            Vector2::new(4.0, 11.0),
-            Vector2::new(8.0, 11.0),
-            Vector2::new(8.0, 17.0),
-            Vector2::new(4.0, 17.0),
+            origin + center + Vector2::new(-2.0, 3.0),
+            origin + center + Vector2::new(-2.0, -3.0),
+            origin + center + Vector2::new(2.0, 3.0),
+            origin + center + Vector2::new(2.0, -3.0),
         ]);
         assert_eq!(uvs, [
-            Vector2::new(0.0, 0.0),
             Vector2::new(1.0, 0.0),
-            Vector2::new(1.0, 1.0),
+            Vector2::new(0.0, 0.0),
             Vector2::new(0.0, 1.0),
+            Vector2::new(1.0, 1.0),
+        ]);
+
+        // With the renderer's pairing every corner keeps its own official UV:
+        // bottom-left (0,1), top-left (0,0), bottom-right (1,1), top-right
+        // (1,0). If this pairing flips, the banner is drawn mirrored/folded.
+        assert_eq!(paired_uvs(uvs), [
+            Vector2::new(0.0, 1.0),
+            Vector2::new(0.0, 0.0),
+            Vector2::new(1.0, 1.0),
+            Vector2::new(1.0, 0.0),
         ]);
     }
 
     #[test]
-    fn quad_corners_are_relative_to_the_anchor_and_rotated() {
+    fn quad_corners_translate_with_the_anchor_and_keep_the_same_uvs() {
         let state = EffectPrimitiveState {
             position: [320.0, 240.0, 0.0],
             width_size: 10.0,
@@ -799,19 +1000,156 @@ mod tests {
             ..Default::default()
         };
 
-        let (corners, uvs) = quad_corners(&state, [300.0, 200.0]);
+        let (a, uvs_a) = quad_corners(&state, [300.0, 200.0]);
+        let (b, _) = quad_corners(&state, [320.0, 220.0]);
 
-        assert_eq!(corners[0], Vector2::new(20.0 - 10.0, 40.0 - 20.0));
-        assert_eq!(corners[2], Vector2::new(20.0 + 10.0, 40.0 + 20.0));
-        assert_eq!(uvs[2], Vector2::new(1.0, 1.0));
+        // The glyph is drawn relative to the projected anchor: moving the
+        // anchor by (20, 20) moves every corner by exactly (-20, -20).
+        for index in 0..4 {
+            assert_eq!(a[index] - b[index], Vector2::new(20.0, 20.0));
+        }
+        assert_eq!(uvs_a, [
+            Vector2::new(1.0, 0.0),
+            Vector2::new(0.0, 0.0),
+            Vector2::new(0.0, 1.0),
+            Vector2::new(1.0, 1.0),
+        ]);
+    }
 
-        // A 90 degree roll swaps the axes.
-        let mut rotated = state;
-        rotated.roll = 90.0;
-        let (rotated_corners, _) = quad_corners(&rotated, [300.0, 200.0]);
-        // (-10,-20) rotated by 90 deg -> (+20,-10), plus the centre (20,40).
-        assert!((rotated_corners[0].x - 40.0).abs() < 1e-4);
-        assert!((rotated_corners[0].y - 30.0).abs() < 1e-4);
+    #[test]
+    fn pattern_one_doubles_the_quad_height_upward() {
+        let state = EffectPrimitiveState {
+            position: [0.0, 0.0, 0.0],
+            width_size: 10.0,
+            height_size: 20.0,
+            roll: 0.0,
+            pattern: 1,
+            ..Default::default()
+        };
+
+        let (corners, _) = quad_corners(&state, [0.0, 0.0]);
+
+        // `negHeight = -2 * height`, `extra = 0`: the quad starts at the
+        // anchor and extends twice the height upward instead of being
+        // centred on it (y grows downward, so upward is negative).
+        assert_eq!(corners[0], EFFECT_ORIGIN + Vector2::new(-10.5, -0.5));
+        assert_eq!(corners[1], EFFECT_ORIGIN + Vector2::new(-10.5, -40.5));
+        assert_eq!(corners[2], EFFECT_ORIGIN + Vector2::new(9.5, -0.5));
+        assert_eq!(corners[3], EFFECT_ORIGIN + Vector2::new(9.5, -40.5));
+    }
+
+    #[test]
+    fn quad_corners_rotate_with_the_integer_degree_table() {
+        let angles = Angles::shared();
+        let state = EffectPrimitiveState {
+            position: [0.0, 0.0, 0.0],
+            width_size: 10.0,
+            height_size: 20.0,
+            roll: 90.0,
+            ..Default::default()
+        };
+
+        let (corners, _) = quad_corners(&state, [0.0, 0.0]);
+
+        // `R(-w, +h)` with the client's 90 degree sine/cosine.
+        let (sin, cos) = (angles.sine(90), angles.cosine(90));
+        let expected = Vector2::new(-10.0 * cos - 20.0 * sin - 0.5, -10.0 * sin + 20.0 * cos - 0.5);
+        assert!((corners[0].x - (EFFECT_ORIGIN.x + expected.x)).abs() < 1e-4);
+        assert!((corners[0].y - (EFFECT_ORIGIN.y + expected.y)).abs() < 1e-4);
+
+        // The roll is truncated to whole degrees, exactly like
+        // `ClientSine(static_cast<int>(this->state.roll))`: 90.9 uses 90.
+        let mut truncated = state;
+        truncated.roll = 90.9;
+        let (same, _) = quad_corners(&truncated, [0.0, 0.0]);
+        assert_eq!(same, corners);
+    }
+
+    #[test]
+    fn project_screen_sets_the_runtime_screen_before_the_first_step() {
+        let mut holder = PortedEffectHolder::new(EffectId::Incagility, 7).unwrap();
+        assert_eq!(holder.runtime().screen, [0.0, 0.0], "no projection yet");
+
+        holder.runtime_mut().position = [0.0, 0.0, 0.0];
+        holder.project_screen(&TestCamera::new(), WINDOW);
+
+        // `project_screen` only parks the value (render has `&self`); the next
+        // 16 ms step hands it to the runtime, which is the step whose
+        // `Move2DPrimitive` consumes it - exactly the official order.
+        holder.update(0.016);
+
+        assert_eq!(holder.runtime().screen, [320.0, 240.0], "the anchor is the window centre");
+        assert_eq!(holder.runtime().primitives[0].state.count, PrimitiveId::Texture2d);
+    }
+
+    #[test]
+    fn project_screen_follows_the_effect_anchor() {
+        let mut holder = PortedEffectHolder::new(EffectId::Incagility, 7).unwrap();
+        holder.runtime_mut().position = [10.0, 0.0, 0.0];
+
+        holder.project_screen(&TestCamera::new(), WINDOW);
+        holder.update(0.016);
+
+        let [x, y] = holder.runtime().screen;
+        assert!(x > 320.0, "a caster right of the screen axis projects right of the centre");
+        assert!((y - 240.0).abs() < 1e-4);
+
+        // The projection scales with the window: 1280x960 puts the centre at
+        // (640, 480) and doubles the offset from it.
+        let wide = ScreenSize {
+            width: 1280.0,
+            height: 960.0,
+        };
+        holder.project_screen(&TestCamera::new(), wide);
+        holder.update(0.016);
+        assert_eq!(holder.runtime().screen, [640.0 + (x - 320.0) * 2.0, 480.0]);
+    }
+
+    #[test]
+    fn project_screen_is_zero_behind_the_camera() {
+        let mut holder = PortedEffectHolder::new(EffectId::Incagility, 7).unwrap();
+        // The camera looks down `+z` from `-10`; this anchor is behind it.
+        holder.runtime_mut().position = [0.0, 0.0, -50.0];
+
+        holder.project_screen(&TestCamera::new(), WINDOW);
+        holder.update(0.016);
+
+        assert_eq!(holder.runtime().screen, [0.0, 0.0]);
+    }
+
+    #[test]
+    fn incagility_glyph_quad_is_anchored_on_the_projected_caster() {
+        let mut holder = PortedEffectHolder::new(EffectId::Incagility, 7).unwrap();
+        holder.runtime_mut().position = [100.0, 0.0, 150.0];
+
+        holder.project_screen(&TestCamera::new(), WINDOW);
+        holder.update(0.016);
+
+        let runtime = holder.runtime();
+        let screen = runtime.screen;
+        let glyph = &runtime.primitives[0].state;
+
+        // The step moved the glyph once: it rises along `-y`.
+        assert!(glyph.position[1] < screen[1], "the glyph rises above the anchor");
+        assert!((glyph.position[0] - screen[0]).abs() < 1e-4, "longitude 0 keeps x");
+
+        let (corners, uvs) = quad_corners(glyph, screen);
+        let center = Vector2::new(glyph.position[0] - screen[0] - 0.5, glyph.position[1] - screen[1] - 0.5);
+
+        // 40x20 half extents -> an 80x40 quad (the official `widthSize`/
+        // `heightSize` are half sizes; `agi_up.bmp` is 64x32, same 2:1).
+        assert_eq!(corners, [
+            EFFECT_ORIGIN + center + Vector2::new(-40.0, 20.0),
+            EFFECT_ORIGIN + center + Vector2::new(-40.0, -20.0),
+            EFFECT_ORIGIN + center + Vector2::new(40.0, 20.0),
+            EFFECT_ORIGIN + center + Vector2::new(40.0, -20.0),
+        ]);
+        assert_eq!(uvs, [
+            Vector2::new(1.0, 0.0),
+            Vector2::new(0.0, 0.0),
+            Vector2::new(0.0, 1.0),
+            Vector2::new(1.0, 1.0),
+        ]);
     }
 
     #[test]

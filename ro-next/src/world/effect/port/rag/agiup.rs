@@ -1,8 +1,9 @@
 //! `CRagEffect::IncAgilityCenter(kind)` used by `EF_AGIUP` -
 //! `RagEffect.cpp:16534-16582`, dispatch at `:23334`.
 //!
-//! One sound on frame 0, then an `ac_center2.tga` mote every even frame with a
-//! low `maxAlpha` (60) so the buff reads as a subtle aura.
+//! One positional wave on frame 0 (`PlayWave`, not `PlayEffectWaveInline`),
+//! then an `ac_center2.tga` mote every even frame with a low `maxAlpha` (60) so
+//! the buff reads as a subtle aura.
 
 use super::super::angles::Angles;
 use super::super::math::matrix_mult;
@@ -33,8 +34,23 @@ impl PortedEffect for AgilityUp {
     }
 
     fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        // `this->render.position = parent.position;` (`RagEffect.cpp:16541`),
+        // every frame, before the frame-0 sound.
+        runtime.copy_parent_position();
+
         if runtime.frame == 0 {
-            runtime.play_sound("effect\\EF_IncAgility.wav");
+            // `g_soundMgr->PlayWave(name, render.position.x - player.x, 0.0f,
+            // render.position.z - player.z, 250, 40, 1.0f, 0)`
+            // (`RagEffect.cpp:16544-16552`): a positional wave at the caster,
+            // not the inline `PlayEffectWaveInline` helper. `kind == 3` is the
+            // Soul Change / `EF_SOULCHANGE` variant of the same body.
+            let sound = if self.kind == 3 {
+                "effect\\소울 체인지.wav"
+            } else {
+                "effect\\EF_IncAgility.wav"
+            };
+
+            runtime.play_sound_at_height(sound, 0.0);
         }
 
         if (runtime.frame & 1) != 0 {
@@ -89,13 +105,20 @@ mod tests {
     use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
-    fn frame_zero_plays_a_sound_and_spawns_a_soft_mote() {
+    fn frame_zero_plays_a_positional_sound_and_spawns_a_soft_mote() {
         let mut effect = AgilityUp::default();
         let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 141);
+        runtime.position = [30.0, 10.0, 40.0];
+        runtime.listener_position = [10.0, 0.0, 20.0];
 
         step(&mut effect, &mut runtime);
 
-        assert_eq!(runtime.sounds, vec!["effect\\EF_IncAgility.wav".to_owned()]);
+        // `PlayWave(name, effect.x - player.x, 0.0f, effect.z - player.z, ...)`
+        // (`RagEffect.cpp:16551`), not the inline helper.
+        assert!(runtime.sounds.is_empty());
+        assert_eq!(runtime.positional_sounds, vec![("effect\\EF_IncAgility.wav".to_owned(), [
+            20.0, 0.0, 20.0
+        ])]);
         assert_eq!(runtime.primitives.len(), 1);
 
         let mote = &runtime.primitives[0].state;
@@ -108,6 +131,34 @@ mod tests {
         assert!((2.0..12.0).contains(&mote.width_size));
         assert!((0.1..0.6).contains(&mote.height_size));
         assert_eq!(mote.texture, Some("effect\\ac_center2.tga"));
+    }
+
+    #[test]
+    fn soul_change_kind_uses_its_own_wave() {
+        let mut effect = AgilityUp::new(3);
+        let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 141);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.positional_sounds.len(), 1);
+        assert_eq!(runtime.positional_sounds[0].0, "effect\\소울 체인지.wav");
+    }
+
+    #[test]
+    fn the_anchor_follows_the_parent_every_frame() {
+        let mut effect = AgilityUp::default();
+        let mut runtime = EffectRuntime::new(100, [0.0, 0.0], 141);
+        runtime.position = [1.0, 2.0, 3.0];
+        runtime.parent_position = Some([4.0, 5.0, 6.0]);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.position, [4.0, 5.0, 6.0]);
+
+        runtime.parent_position = Some([7.0, 8.0, 9.0]);
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.position, [7.0, 8.0, 9.0]);
     }
 
     #[test]
