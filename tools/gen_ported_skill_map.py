@@ -220,6 +220,15 @@ CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
 #
 # A row is an extra (skill, phase) pair: it never replaces the coverage row of
 # the same skill, and a collision with an already emitted pair is a hard error.
+# The official Spirit-of-the-Soul-Linker switch launches **two** effects on the
+# target: `EF_SOULLINK` (the big orbit/whitespark animation) and
+# `EF_ASURABODY` (a body glow). The coverage data lists both under the skill's
+# `effectId` field, and the first one it sees is `EF_ASURABODY`, which left the
+# visible signature animation out. These skills take `EF_SOULLINK` as their
+# primary mapping; the second body is spawned by
+# `client/effects.rs::secondary_ported_effect`.
+SOULLINK_SKILLS = {445, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456, 457, 458, 460, 461}
+
 CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str, str]] = {
     383: ("Beginspell6", "Cast", "SkillActionInfo.cpp:165-178 -> GameModePackets.cpp:12947-12953/:17551-17559"),
     70: ("BottomSanc", "Ground", "MsgEffect.cpp:600-608 (CSkill::OnProcess UNT_SANCTUARY, LaunchEffect at :602)"),
@@ -445,6 +454,15 @@ def main() -> int:
 
         if effect_name in TRAVEL_FROM_CASTER:
             anchor = "Caster"
+
+        if skill in SOULLINK_SKILLS:
+            # `GameModePackets.cpp:19425-19439` (`SL_SOULLINKER` and the other
+            # `SL_*` cases): `EF_SOULLINK` on the target, then
+            # `EF_ASURABODY` on the same target. The signature animation is
+            # `EF_SOULLINK`; the coverage data's first id is the body glow.
+            effect_name = "Soullink"
+            phase = "Success"
+            anchor = "Target"
 
         rows.append((skill, phase, name_to_id[effect_name], effect_name, anchor))
 

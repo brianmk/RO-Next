@@ -128,6 +128,26 @@ pub(crate) fn warp_unit_effect(unit_id: &UnitId) -> Option<ragnarok_packets::Eff
     }
 }
 
+/// Second effect of a `(skill, phase)` pair that the official switch launches
+/// in addition to the primary mapping.
+///
+/// `SL_SOULLINKER` (461) and the other `SL_*` skills launch **both**
+/// `EF_SOULLINK` and `EF_ASURABODY` on the target
+/// (`GameModePackets.cpp:19425-19439`): the first is the big orbit/whitespark
+/// animation, the second a body glow. The generated map has one primary id per
+/// pair, so the body glow is spawned here.
+fn secondary_ported_effect(skill_id: SkillId, phase: SkillPhase) -> Option<ragnarok_packets::EffectId> {
+    if phase != SkillPhase::Success {
+        return None;
+    }
+
+    matches!(
+        skill_id.0,
+        445 | 447 | 448 | 449 | 450 | 451 | 452 | 453 | 454 | 455 | 456 | 457 | 458 | 460 | 461
+    )
+    .then_some(ragnarok_packets::EffectId::Asurabody)
+}
+
 /// Official ground-field effect of a persistent skill unit.
 ///
 /// The server sends these as `ZC_ADD_SKILL_UNIT` (0x011F) and the official
@@ -653,9 +673,17 @@ impl Client {
         };
 
         let target_position = target_position.or_else(|| target_entity_id.and_then(|entity_id| self.entity_position(entity_id)));
-        let mut position = match ported_anchor_for(skill_id, phase) {
+        let anchor = ported_anchor_for(skill_id, phase);
+        let mut position = match anchor {
             PortedAnchor::Caster => source_position,
             PortedAnchor::Target => target_position.unwrap_or(source_position),
+        };
+
+        // A target-anchored effect belongs to the target (Soul Link is cast on
+        // another character), so it must follow/clean up with that entity.
+        let owner_entity_id = match anchor {
+            PortedAnchor::Caster => source_entity_id,
+            PortedAnchor::Target => target_entity_id.unwrap_or(source_entity_id),
         };
 
         // Head-anchored `.str` effects (Angelus, Impositio, ...) are positioned
@@ -728,13 +756,18 @@ impl Client {
             source_entity_id.0,
             holder_lifetime
         );
-        if self.effect_holder.add_unit(Box::new(visual), source_entity_id) {
+        if self.effect_holder.add_unit(Box::new(visual), owner_entity_id) {
             crate::logging::log_debug!(
                 "skill effect: spawned ported {:?} for skill {} phase {:?}",
                 effect_id,
                 skill_id.0,
                 phase
             );
+        }
+
+        // Extra lane of the same official switch (`SL_*` -> `EF_ASURABODY`).
+        if let Some(secondary) = secondary_ported_effect(skill_id, phase) {
+            self.spawn_ported_effect(secondary, position, Some(owner_entity_id), None, seed ^ 0x5D5D_5D5D_5D5D_5D5D);
         }
     }
 
@@ -1220,11 +1253,31 @@ mod tests {
 
     use super::{
         apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, ground_unit_effect, map_warp_effect,
-        ported_fx_from_env, ported_head_anchored, should_spawn_skill_phase, warp_unit_effect,
+        ported_fx_from_env, ported_head_anchored, secondary_ported_effect, should_spawn_skill_phase, warp_unit_effect,
     };
     use crate::world::port::holder::PortedEffectHolder;
     use crate::world::port::runtime::EffectRuntime;
     use crate::world::{CasterAction, EntityType, SkillPhase};
+
+    /// `SL_SOULLINKER` and the other `SL_*` skills launch `EF_SOULLINK` on the
+    /// target and then `EF_ASURABODY` on the same target
+    /// (`GameModePackets.cpp:19425-19439`). The big animation is the orbit;
+    /// the body glow is the secondary lane.
+    #[test]
+    fn soul_linker_plays_soullink_then_asurabody() {
+        use ragnarok_packets::{EffectId, SkillId};
+
+        assert_eq!(
+            crate::port::skill_map::ported_effect_for(SkillId(461), SkillPhase::Success),
+            Some(EffectId::Soullink)
+        );
+        assert_eq!(
+            crate::port::skill_map::ported_anchor_for(SkillId(461), SkillPhase::Success),
+            crate::port::skill_map::PortedAnchor::Target
+        );
+        assert_eq!(secondary_ported_effect(SkillId(461), SkillPhase::Success), Some(EffectId::Asurabody));
+        assert_eq!(secondary_ported_effect(SkillId(461), SkillPhase::Hit), None);
+    }
 
     /// The persistent ground units must spawn the official field bodies, not
     /// just their grid entry (the fields were missing for Safety Wall,
