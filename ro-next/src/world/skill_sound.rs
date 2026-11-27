@@ -709,6 +709,25 @@ mod tests {
     }
 
     #[test]
+    fn detect_uses_the_official_hunter_detecting_wave() {
+        // `HT_DETECTING` (130) -> `EF_DETECTING` (119): the body
+        // `TexturedSkillAura(0)` plays `effect\hunter_detecting.wav` on its
+        // first frame (`RagEffect.cpp:23953-23954` -> `:15281-15290`), and the
+        // 2019 SkillEffect table carries the same wave
+        // (`tools/data/windows_client_skill_sounds.json`). Detect arrives on
+        // the ground lane (`ZC_NOTIFY_GROUNDSKILL`, 0x0117), so the completion
+        // sound resolves from the generated table there and from the
+        // descriptor row's `wav` on `Success`; both must name that file.
+        for phase in [crate::world::SkillPhase::Ground, crate::world::SkillPhase::Success] {
+            assert_eq!(
+                skill_sound_candidates_for(SkillId(130), phase),
+                ["effect\\hunter_detecting.wav"],
+                "skill 130 phase {phase:?}"
+            );
+        }
+    }
+
+    #[test]
     fn curated_skills_are_in_the_sound_data() {
         // Skill id 5 is `SM_BASH` (plain attack), only 110 is `BS_HAMMERFALL`.
         for skill_id in CURATED_SKILLS {

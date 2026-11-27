@@ -434,4 +434,35 @@ mod tests {
             "the armed block is the only one with a weapon layer"
         );
     }
+
+    #[test]
+    fn detect_applies_the_skill_block_on_the_arriving_ground_lane() {
+        // `HT_DETECTING` (130, `SkillId.h:134`) is instant and
+        // `TargetType: Ground` (`db/pre-re/skill_db.yml:130`), so the packet
+        // that arrives is `ZC_NOTIFY_GROUNDSKILL` (0x0117, 18 bytes): the map
+        // server calls `clif_skill_poseffect` for every ground skill that is
+        // not `INF_SELF_SKILL` (`src/map/skill.cpp:14381-14384`).
+        //
+        // The official ground path reads `GetSkillActionInfo2`
+        // (`RenderObject.cpp:1010`), whose default motion is 7
+        // (`SkillActionInfo.cpp:1228-1230`); `HT_DETECTING` is a bare `break`
+        // case there (`:1693`), so motion stays 7 and the default branch runs
+        // `SetState(motion, 1)` (`RenderObject.cpp:1043-1046`) -> player skill
+        // block 96. Detect therefore *does* animate the caster; only the
+        // instant `ZC_USESKILL_ACK` lane is pose-less by design
+        // (`GameModePackets.cpp:12940-12948`).
+        assert_eq!(ack_caster_action(SkillId(130), 0, false), None);
+        assert_eq!(applied_block(caster_action(SkillId(130)), 0, false), 96);
+        // Both action tables agree on the gesture for Detect, so the lane the
+        // client applies and the lane the decompilation documents are the same
+        // pose.
+        assert_eq!(use_caster_action(SkillId(130)), CasterAction::Skill);
+        assert_eq!(applied_block(use_caster_action(SkillId(130)), 0, false), 96);
+
+        // No official `SetFrameSequence` or `ApplyActorSkillState` hold exists
+        // for HT_DETECTING: the `RenderObject.cpp:1096` case only launches the
+        // effect, and the cast-start switches never name it.
+        assert!(crate::world::frame_sequence_for_skill(SkillId(130)).is_none());
+        assert!(crate::world::cast_frame_sequence_for_skill(SkillId(130)).is_none());
+    }
 }

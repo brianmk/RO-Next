@@ -119,8 +119,24 @@ TRAVEL_FROM_CASTER = {"Grimtooth", "Spearbmr"}
 #   (`GameActor.cpp:704-714`; population twin `RenderObject.cpp:4697-4705`).
 #   The aura starts when the skill completes (0x09CB), hence the `Success`
 #   phase.
+# * `HT_DETECTING` (130) -> `EF_DETECTING` (119): Detect is `TargetType: Ground`
+#   (`db/pre-re/skill_db.yml:130`), so the server answers with
+#   `ZC_NOTIFY_GROUNDSKILL` (`clif_skill_poseffect`, `src/map/clif.cpp:6143-6164`,
+#   reached from `skill_castend_pos2` because Detect is not `INF_SELF_SKILL`,
+#   `src/map/skill.cpp:14381-14384`). The official ground path
+#   `CGameActor::PlayGroundSkillEffect` (`RenderObject.cpp:1001`) has a
+#   `case HT_DETECTING` that calls `LaunchDummyEffect(position, 0x77,
+#   EffectLifetime(0x77) + 10, 0)` (`RenderObject.cpp:1096-1103`), i.e.
+#   `EF_DETECTING` (119, `EffectTypes.h:127`, lifetime 250 from
+#   `EffectTypes.cpp:128`) at the clicked cell. Its body is
+#   `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`).
+#   The 2019 SkillEffect table has no descriptor field for it (the coverage
+#   audit marks it `official-effect-is-hardcoded-procedural`), so the
+#   coverage/2019 fallback cannot find it; the effect is curated here and
+#   spawned on the ground lane that delivers Detect.
 CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
     24: ("Ruwach", "Success"),
+    130: ("Detecting", "Ground"),
 }
 
 
@@ -467,6 +483,23 @@ def main() -> int:
     lines.append("            Some(EffectId::Blitzbeat as u32)")
     lines.append("        );")
     lines.append("        assert_eq!(ported_anchor_for(SkillId(129), SkillPhase::Success), PortedAnchor::Target);")
+    lines.append("    }")
+    lines.append("")
+    lines.append("    #[test]")
+    lines.append("    fn detect_maps_to_its_ported_ground_aura() {")
+    lines.append("        // `HT_DETECTING` (130) is `TargetType: Ground`, so the arriving lane")
+    lines.append("        // is `ZC_NOTIFY_GROUNDSKILL` and the official")
+    lines.append("        // `CGameActor::PlayGroundSkillEffect` launches `EF_DETECTING` (119)")
+    lines.append("        // at the clicked cell (`RenderObject.cpp:1096-1103`). Its body is")
+    lines.append("        // `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`),")
+    lines.append("        // registered as `EffectId::Detecting`. The 2019 SkillEffect table has")
+    lines.append("        // no descriptor field for it, so the mapping is curated in")
+    lines.append("        // `gen_ported_skill_map.py` instead of coming from the coverage data.")
+    lines.append("        assert_eq!(")
+    lines.append("            ported_effect_for(SkillId(130), SkillPhase::Ground).map(|effect| effect as u32),")
+    lines.append("            Some(EffectId::Detecting as u32)")
+    lines.append("        );")
+    lines.append("        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);")
     lines.append("    }")
     lines.append("")
     lines.append("    #[test]")
