@@ -29,6 +29,13 @@ impl Client {
         });
 
         crate::logging::log_debug!("client: working directory is {:?}", std::env::current_dir());
+        // Support logs have to say which effect backend is drawing; the value is
+        // fixed for the session (`RO_NEXT_PORTED_FX=0` opts out of the official
+        // bodies).
+        crate::logging::log_info!(
+            "client: ported effect backend {}",
+            if crate::client::effects::ported_effects_enabled() { "enabled" } else { "disabled (RO_NEXT_PORTED_FX=0)" }
+        );
 
         // Check if ro-next is in the correct working directory and if not, try to
         // correct it.

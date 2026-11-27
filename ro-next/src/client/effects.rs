@@ -6,21 +6,36 @@
 
 use crate::*;
 
-/// Opt-in switch for the ported (1:1 official) effect backend.
+/// Switch of the ported (1:1 official) effect backend, **on by default**.
 ///
-/// Read once so that the two backends never disagree mid-session; with the
-/// variable unset the client behaves exactly as before the hook was added.
-fn ported_effects_enabled() -> bool {
+/// The ported bodies are the official implementation of every mapped skill
+/// phase (`port::skill_map`), so they are what the client draws; the
+/// descriptor layers of a mapped pair are suppressed while this is on (see
+/// [`descriptor_layers_suppressed`]). `RO_NEXT_PORTED_FX=0` (also `false`,
+/// `off`, `no`, case-insensitive) falls back to the descriptor approximations,
+/// e.g. to compare the two backends in game.
+///
+/// Read once so that the two backends never disagree mid-session.
+pub(crate) fn ported_effects_enabled() -> bool {
     static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
 
-    *ENABLED.get_or_init(|| std::env::var("RO_NEXT_PORTED_FX").map(|value| value == "1").unwrap_or(false))
+    *ENABLED.get_or_init(|| ported_fx_from_env(std::env::var("RO_NEXT_PORTED_FX").ok().as_deref()))
+}
+
+/// Parses the `RO_NEXT_PORTED_FX` value: unset means enabled, and only an
+/// explicit falsy value disables the ported backend.
+fn ported_fx_from_env(value: Option<&str>) -> bool {
+    match value {
+        None => true,
+        Some(value) => !matches!(value.trim().to_ascii_lowercase().as_str(), "0" | "false" | "off" | "no"),
+    }
 }
 
 /// Whether a `(skill, phase)` pair has anything to spawn.
 ///
 /// Split from [`Client::spawn_skill_effect_phase`] so the ordering rule is
 /// testable without a client: a pair is spawnable when the descriptor table
-/// has layers **or** the opt-in ported backend has a body for it. Ported
+/// has layers **or** the (default-on) ported backend has a body for it. Ported
 /// bodies such as Blitz Beat have no descriptor row at all.
 fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled: bool) -> bool {
     if !crate::world::skill_effect_layers(skill_id, phase).is_empty() {
@@ -35,7 +50,7 @@ fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled
 ///
 /// The predicate is exactly the one [`Client::spawn_ported_skill_effect`]
 /// accepts a pair with, so the layers are only skipped when something replaces
-/// them: the opt-in backend is on **and** `port::skill_map` has an official
+/// them: the ported backend is on **and** `port::skill_map` has an official
 /// body for the pair. With the backend off, or for an unmapped pair, the
 /// layers spawn exactly as before.
 ///
@@ -120,7 +135,7 @@ impl Client {
     /// is only set by status launches, which are retired by
     /// `EffectHolder::remove_status_visual`.
     ///
-    /// Unlike the opt-in skill-phase hook this is the only spawn path of the
+    /// Unlike the skill-phase hook this is the only spawn path of the
     /// effects it launches, so the caller decides when the ported body
     /// replaces a descriptor instead of adding to it.
     pub(crate) fn spawn_ported_effect(
@@ -391,7 +406,7 @@ impl Client {
     ///
     /// # Ported duplicates
     ///
-    /// When the opt-in ported backend is on and
+    /// When the ported backend is on (the default) and
     /// `port::skill_map::ported_effect_for` has a body for the pair, the
     /// descriptor layers of that pair are skipped: the official body below
     /// draws the same visual (see [`descriptor_layers_suppressed`]). Everything
@@ -403,8 +418,8 @@ impl Client {
     /// (`world/skill_sound.rs::skill_sound_candidates_for`) *and* replayed by
     /// the ported body from its recorded official `PlayWave` calls, so a mapped
     /// phase can play two waves. Fixing that precedence is a follow-up for when
-    /// `RO_NEXT_PORTED_FX` becomes the default; suppressing the layers must not
-    /// change the sound path in the meantime.
+    /// `RO_NEXT_PORTED_FX` is the default; suppressing the layers must not
+    /// change the sound path.
     pub(crate) fn spawn_skill_effect_phase(
         &mut self,
         skill_id: SkillId,
@@ -417,7 +432,7 @@ impl Client {
     ) {
         let layers = crate::world::skill_effect_layers(skill_id, phase);
 
-        // The opt-in ported backend is independent of the descriptor table:
+        // The ported backend is independent of the descriptor table:
         // some official effects (e.g. `EF_BLITZBEAT`) are hard-coded procedural
         // bodies with no `skill_effects.ron` row at all, so the empty-layer
         // case must still reach `spawn_ported_skill_effect`. Skills with
@@ -540,7 +555,8 @@ impl Client {
     }
 
     /// Spawns the ported official effect (`port::skill_map`) of one skill
-    /// phase, when the opt-in backend is enabled and the pair is mapped.
+    /// phase, when the ported backend is enabled (the default) and the pair is
+    /// mapped.
     ///
     /// The effect is attached to the caster (like the procedural cloud above)
     /// so it is cleaned up with the entity; its runtime is seeded from the
@@ -561,7 +577,7 @@ impl Client {
 
         if !ported_effects_enabled() {
             crate::logging::log_trace!(
-                "ported fx: backend disabled (RO_NEXT_PORTED_FX), skill {} phase {:?}",
+                "ported fx: backend disabled (RO_NEXT_PORTED_FX=0), skill {} phase {:?}",
                 skill_id.0,
                 phase
             );
@@ -1147,12 +1163,26 @@ mod tests {
     use ragnarok_packets::{SkillId, UnitId};
 
     use super::{
-        apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, map_warp_effect, should_spawn_skill_phase,
-        warp_unit_effect,
+        apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, map_warp_effect, ported_fx_from_env,
+        should_spawn_skill_phase, warp_unit_effect,
     };
     use crate::world::port::holder::PortedEffectHolder;
     use crate::world::port::runtime::EffectRuntime;
     use crate::world::{CasterAction, EntityType, SkillPhase};
+
+    /// The ported backend is the default; only an explicit falsy value turns it
+    /// off, so an existing launcher that sets `RO_NEXT_PORTED_FX=1` keeps working
+    /// and one that sets `0` gets the descriptor approximations back.
+    #[test]
+    fn ported_backend_is_on_unless_explicitly_disabled() {
+        assert!(ported_fx_from_env(None), "unset must enable the official bodies");
+        for enabled in ["1", "true", "TRUE", "on", "yes", " 1 "] {
+            assert!(ported_fx_from_env(Some(enabled)), "{enabled:?} must enable the backend");
+        }
+        for disabled in ["0", "false", "FALSE", "off", "no", " 0 "] {
+            assert!(!ported_fx_from_env(Some(disabled)), "{disabled:?} must disable the backend");
+        }
+    }
 
     /// Regression for Blitz Beat: `EF_BLITZBEAT` is a hard-coded procedural
     /// body with no `skill_effects.ron` descriptor row, so the ported hook must
@@ -1165,7 +1195,7 @@ mod tests {
         );
 
         assert!(should_spawn_skill_phase(SkillId(129), SkillPhase::Success, true));
-        // The same pair is a no-op while the opt-in backend is off.
+        // The same pair is a no-op with the backend off (RO_NEXT_PORTED_FX=0).
         assert!(!should_spawn_skill_phase(SkillId(129), SkillPhase::Success, false));
         // No descriptor and no ported body keeps the cheap early-out.
         assert!(!should_spawn_skill_phase(SkillId(u16::MAX), SkillPhase::Success, true));
@@ -1207,7 +1237,7 @@ mod tests {
         assert_eq!(crate::world::skill_action_override(SkillId(56)), Some(CasterAction::Attack));
     }
 
-    /// Two ways a pair must keep its descriptor layers: the opt-in backend is
+    /// Two ways a pair must keep its descriptor layers: the backend is
     /// off, or the pair has no ported body (e.g. Bash's generic hit ids).
     #[test]
     fn descriptor_layers_survive_without_a_ported_replacement() {
