@@ -25,10 +25,17 @@ Source of truth is the client decompilation:
 * ``Source/Contents/Actors/GameObject.cpp:1900-1945`` and
   ``Source/Client/Mode/GameModePackets.cpp:1653-1665, 4683-4698`` - the
   colours the packet handler assigns to the numbers.
+* ``Source/Contents/Actors/GameObject.cpp:1917-1924`` - the critical backing
+  sprite: the only ``AM_MAKE_CRITICAL_EFFECT`` sender is the ``id == 148``
+  (``DMG_MULTI_HIT_CRITICAL``) branch. ``CMsgEffect`` spawns the extra
+  ``MET_CRITICAL_EFFECT`` (type 15) from ``MAKETYPE_CRITICAL_EFFECT``
+  (``WorldObjects.cpp:1176-1182``) with the damage skin's message sprite and
+  ACT action 2; ``MsgEffect.cpp:377-395`` / ``:1825-1835`` give its pose.
 * ``data\\sprite\\이팩트\\숫자.spr/.act`` (committed loose archive copy) - the
   ten digit frames and their 0.3 cell zoom. ``data\\sprite\\이팩트\\miss.spr``
-  lives in ``data.grf`` and is not committed; its motion 0 cell is recorded
-  from the GRF (image 0, position (0,-129), zoom 0.3, alpha 0x65).
+  and ``data\\sprite\\이팩트\\msg.spr/.act`` (the ``MET_CRITICAL_EFFECT``
+  backing, image 3 at action 2) live in ``data.grf`` and are not committed;
+  their cells are recorded from the GRF.
 
 The numeric facts live in ``tools/data/damage_number_facts.json`` with a
 ``source`` per row. This script only checks them against the shipped sprite and
@@ -51,6 +58,10 @@ DEFAULT_FACTS = Path("tools/data/damage_number_facts.json")
 DEFAULT_OUTPUT = Path("ro-next/archive/data/client/damage_numbers.ron")
 DEFAULT_SPRITE = Path("ro-next/archive/data/sprite/이팩트/숫자.spr")
 DEFAULT_ACTION = Path("ro-next/archive/data/sprite/이팩트/숫자.act")
+#: The critical backing sprite lives in ``data.grf`` and is not committed, so
+#: these are optional: when absent the recorded cells are used as-is.
+DEFAULT_BACKING_SPRITE = Path("ro-next/archive/data/sprite/이팩트/msg.spr")
+DEFAULT_BACKING_ACTION = Path("ro-next/archive/data/sprite/이팩트/msg.act")
 
 EXPECTED_STYLES = ["normal", "critical", "half", "total", "simple", "miss"]
 EXPECTED_COLORS = {
@@ -74,6 +85,11 @@ EXPECTED_COLORS = {
 def ron_str(value: str) -> str:
     """Quote a string as a RON string (JSON escaping is valid RON)."""
     return json.dumps(value, ensure_ascii=False)
+
+
+def ron_float(value: float) -> str:
+    """Format a float so RON parses it as a float (``3.0``, not ``3``)."""
+    return repr(float(value))
 
 
 def read_sprite_dimensions(path: Path) -> list[tuple[int, int]]:
@@ -159,7 +175,13 @@ def read_action_motions(path: Path) -> list[list[tuple[int, int, int, int]]]:
     return actions
 
 
-def build(facts: dict, sprite: Path, action: Path) -> dict:
+def build(
+    facts: dict,
+    sprite: Path,
+    action: Path,
+    backing_sprite: Path | None = None,
+    backing_action: Path | None = None,
+) -> dict:
     digit_rows = facts["digits"]
     sizes = read_sprite_dimensions(sprite)
     actions = read_action_motions(action)
@@ -217,6 +239,49 @@ def build(facts: dict, sprite: Path, action: Path) -> dict:
     for style in styles:
         if style["color"] not in color_names:
             raise SystemExit(f"style {style['name']}: unknown colour {style['color']}")
+
+    backing = facts["critical_backing"]
+    if backing["number_style"] != "critical":
+        raise SystemExit("critical_backing must belong to the critical number style")
+    if backing["action_index"] < 0 or backing["image"] < 0:
+        raise SystemExit("critical_backing: negative action/image index")
+    if backing["motion_count"] <= 0 or len(backing["motion_offsets_x"]) != backing["motion_count"]:
+        raise SystemExit("critical_backing: motion_count must match motion_offsets_x")
+    if backing["motion_rate"] <= 0.0:
+        raise SystemExit("critical_backing: motion_rate must be positive")
+    if backing["width"] <= 0 or backing["height"] <= 0:
+        raise SystemExit("critical_backing: empty image size")
+    if not (backing["min_scale"] <= backing["base_scale"]):
+        raise SystemExit("critical_backing: min_scale > base_scale")
+    if backing["scale_step"] < 0.0 or backing["alpha_step"] < 0.0 or backing["spawn_offset"] < 0.0:
+        raise SystemExit("critical_backing: negative timeline constant")
+    if backing["lifetime_frames"] <= 0.0:
+        raise SystemExit("critical_backing: invalid lifetime")
+    if backing["depth_layer"] >= backing["digit_depth_layer"]:
+        raise SystemExit("critical_backing: must be drawn behind the digits (smaller depthLayer)")
+
+    if backing_sprite is not None and backing_action is not None and backing_sprite.is_file() and backing_action.is_file():
+        # The backing sprite is not committed (it lives in `data.grf`); this
+        # validates the recorded cells when a data set does ship the pair.
+        sizes = read_sprite_dimensions(backing_sprite)
+        actions = read_action_motions(backing_action)
+        if len(actions) <= backing["action_index"]:
+            raise SystemExit(f"{backing_action}: no action {backing['action_index']}")
+        motions = actions[backing["action_index"]]
+        if len(motions) != backing["motion_count"]:
+            raise SystemExit(f"{backing_action}: action {backing['action_index']} has {len(motions)} motions")
+        for index, cells in enumerate(motions):
+            if len(cells) != 1:
+                raise SystemExit(f"{backing_action}: action {backing['action_index']} motion {index} has {len(cells)} cells")
+            cell_x, cell_y, image, zoom = cells[0]
+            if image != backing["image"]:
+                raise SystemExit(f"{backing_action}: motion {index} uses image {image}")
+            if (cell_y, round(zoom, 3)) != (backing["cell_y"], round(backing["cell_scale_x"], 3)):
+                raise SystemExit(f"{backing_action}: motion {index} cell {(cell_y, zoom)}")
+            if cell_x != backing["motion_offsets_x"][index]:
+                raise SystemExit(f"{backing_action}: motion {index} x {cell_x}")
+        if sizes[backing["image"]] != (backing["width"], backing["height"]):
+            raise SystemExit(f"{backing_sprite}: image {backing['image']} is {sizes[backing['image']]}")
 
     return {"digits": digits, "styles": styles}
 
@@ -318,6 +383,45 @@ def render(facts: dict, data: dict) -> str:
     add(f"        height: {miss['height']},")
     add(f"        cell_alpha: {miss['cell_alpha']},")
     add("    ),")
+    backing = facts["critical_backing"]
+    add("    // `MET_CRITICAL_EFFECT` (type 15): the sprite drawn *behind* a critical")
+    add("    // number. `AM_MAKE_CRITICAL_EFFECT` (GameObject.cpp:1632-1636) is only")
+    add("    // sent from the `id == 148` DMG_MULTI_HIT_CRITICAL branch")
+    add("    // (GameObject.cpp:1917-1924, CombatTypes.h:16); `MAKETYPE_CRITICAL_EFFECT`")
+    add("    // (WorldObjects.cpp:1176-1182) loads the damage skin's message sprite")
+    add("    // (`이팩트\\msg`, ClientTiming.cpp:784-806) and plays ACT action 2.")
+    add("    // The pose is the `AM_SETPOS` critical case (MsgEffect.cpp:1825-1835):")
+    add("    // same origin as the digits (y -= 12) but scale 3.0 and depthLayer -5")
+    add("    // (digits: -2, MsgEffect.cpp:1772), i.e. behind them; the timeline is")
+    add("    // MsgEffect.cpp:377-395. The sprite is in data.grf, not committed.")
+    add("    critical_backing: (")
+    add(f"        number_style: {ron_str(backing['number_style'])},")
+    add(f"        sprite: {ron_str(backing['sprite'])},")
+    add(f"        action: {ron_str(backing['action'])},")
+    add(f"        action_index: {backing['action_index']},")
+    add(f"        image: {backing['image']},")
+    add(f"        width: {backing['width']},")
+    add(f"        height: {backing['height']},")
+    add(f"        cell_y: {backing['cell_y']},")
+    add(f"        cell_scale_x: {ron_float(backing['cell_scale_x'])},")
+    add(f"        cell_scale_y: {ron_float(backing['cell_scale_y'])},")
+    add(f"        motion_count: {backing['motion_count']},")
+    add("        motion_offsets_x: [" + ", ".join(str(value) for value in backing["motion_offsets_x"]) + "],")
+    add(f"        motion_start: {backing['motion_start']},")
+    add(f"        motion_rate: {ron_float(backing['motion_rate'])},")
+    add(f"        base_scale: {ron_float(backing['base_scale'])},")
+    add(f"        min_scale: {ron_float(backing['min_scale'])},")
+    add(f"        scale_step: {ron_float(backing['scale_step'])},")
+    add(f"        spawn_offset: {ron_float(backing['spawn_offset'])},")
+    add(f"        depth_layer: {backing['depth_layer']},")
+    add(f"        digit_depth_layer: {backing['digit_depth_layer']},")
+    add(f"        argb: 0x{backing['argb']:08X},")
+    add(f"        alpha_start: {ron_float(backing['alpha_start'])},")
+    add(f"        alpha_step: {ron_float(backing['alpha_step'])},")
+    add(f"        lifetime_frames: {ron_float(backing['lifetime_frames'])},")
+    add(f"        trigger_message: {backing['trigger_message']},")
+    add(f"        trigger_damage_type: {backing['trigger_damage_type']},")
+    add("    ),")
     add("    // One row per `CMsgEffect` number type. `scale` is the render scale")
     add("    // (`AM_SETPOS2` starts at 5.0; the total number overrides it to 0.5);")
     add("    // `scale_step` is the per-frame shrink and `scale_growth` the")
@@ -364,11 +468,13 @@ def main() -> int:
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     parser.add_argument("--sprite", default=str(DEFAULT_SPRITE))
     parser.add_argument("--action", default=str(DEFAULT_ACTION))
+    parser.add_argument("--backing-sprite", default=str(DEFAULT_BACKING_SPRITE))
+    parser.add_argument("--backing-action", default=str(DEFAULT_BACKING_ACTION))
     parser.add_argument("--check", action="store_true", help="fail if the committed data file is out of date")
     args = parser.parse_args()
 
     facts = json.loads(Path(args.facts).read_text(encoding="utf-8"))
-    data = build(facts, Path(args.sprite), Path(args.action))
+    data = build(facts, Path(args.sprite), Path(args.action), Path(args.backing_sprite), Path(args.backing_action))
     content = render(facts, data)
 
     output = Path(args.output)

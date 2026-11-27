@@ -89,6 +89,44 @@
         height: 85,
         cell_alpha: 101,
     ),
+    // `MET_CRITICAL_EFFECT` (type 15): the sprite drawn *behind* a critical
+    // number. `AM_MAKE_CRITICAL_EFFECT` (GameObject.cpp:1632-1636) is only
+    // sent from the `id == 148` DMG_MULTI_HIT_CRITICAL branch
+    // (GameObject.cpp:1917-1924, CombatTypes.h:16); `MAKETYPE_CRITICAL_EFFECT`
+    // (WorldObjects.cpp:1176-1182) loads the damage skin's message sprite
+    // (`이팩트\msg`, ClientTiming.cpp:784-806) and plays ACT action 2.
+    // The pose is the `AM_SETPOS` critical case (MsgEffect.cpp:1825-1835):
+    // same origin as the digits (y -= 12) but scale 3.0 and depthLayer -5
+    // (digits: -2, MsgEffect.cpp:1772), i.e. behind them; the timeline is
+    // MsgEffect.cpp:377-395. The sprite is in data.grf, not committed.
+    critical_backing: (
+        number_style: "critical",
+        sprite: "이팩트\\msg",
+        action: "이팩트\\msg",
+        action_index: 2,
+        image: 3,
+        width: 70,
+        height: 60,
+        cell_y: -3,
+        cell_scale_x: 1.0,
+        cell_scale_y: 1.0,
+        motion_count: 15,
+        motion_offsets_x: [0, -10, 10, -8, 8, -6, 6, -4, 4, -2, 2, -1, 1, 0, 0],
+        motion_start: 1,
+        motion_rate: 0.5,
+        base_scale: 3.0,
+        min_scale: 1.0,
+        scale_step: 0.144,
+        spawn_offset: 12.0,
+        depth_layer: -5,
+        digit_depth_layer: -2,
+        argb: 0xFFAAAAAA,
+        alpha_start: 255.0,
+        alpha_step: 3.45,
+        lifetime_frames: 70.0,
+        trigger_message: 148,
+        trigger_damage_type: 13,
+    ),
     // One row per `CMsgEffect` number type. `scale` is the render scale
     // (`AM_SETPOS2` starts at 5.0; the total number overrides it to 0.5);
     // `scale_step` is the per-frame shrink and `scale_growth` the
