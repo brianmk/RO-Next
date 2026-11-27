@@ -299,6 +299,7 @@ mod tests {
         assert!(error.contains("schema error"), "{error}");
     }
 
+    #[test]
     fn alias_check_reports_a_missing_file() {
         let path = std::path::Path::new("/nonexistent/ro-next/aliases.ron");
         let error = super::check_aliases(Some(path)).expect_err("a missing file must be rejected");
