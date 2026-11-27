@@ -585,11 +585,24 @@ impl Entity {
     /// Play the skill-cast animation on this entity for `cast_time`
     /// milliseconds. Casts with a cast time loop the animation, instant casts
     /// play it once.
+    ///
+    /// The pose is the official `ST_SKILL` / `ST_BEGIN_SKILL` skill block 96,
+    /// restricted by the job-specific `CPc::SetState(ST_SKILL)` frame range
+    /// (Champion: frame 0, the skill gesture, instead of the whole block whose
+    /// frames 1..2 are the Fury gesture). See
+    /// [`crate::world::apply_skill_pose`].
     pub fn set_skill_cast(&mut self, cast_time: u32, looping: bool, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();
-        self.get_common_mut()
-            .animation_state
-            .skill(entity_type, cast_time, looping, client_tick);
+        let job_id = self.get_job_id();
+        let common = self.get_common_mut();
+        crate::world::apply_skill_pose(
+            &mut common.animation_state,
+            entity_type,
+            job_id,
+            cast_time,
+            looping,
+            client_tick,
+        );
     }
 
     /// Plays an explicit ACT action index (`CasterAction::Action`).

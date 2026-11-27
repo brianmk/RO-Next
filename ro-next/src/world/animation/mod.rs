@@ -322,7 +322,11 @@ impl AnimationState {
     ///
     /// `CGameActor::SetState(ST_STAND)` uses `WeaponActionBase(ST_STAND) = 0`
     /// (`RenderObject.cpp:1478`, `RenderObject.cpp:3416`), which is the neutral
-    /// stand pose. The armed ready-fight block 32 is
+    /// stand pose. It is the same block as [`Self::idle`] and is drawn as the
+    /// stable first frame (see [`Self::is_player_neutral_pose`]), so a skill
+    /// whose success packet is the official `ST_STAND` (`GetSkillActionInfo2`
+    /// motion 0: Inc Agi, Dangerous Soul Collect) settles instead of cycling
+    /// the head-bob idle frames forever. The armed ready-fight block 32 is
     /// [`Self::ready_fight`], not a neutral idle.
     pub fn stand(&mut self, entity_type: EntityType, client_tick: ClientTick) {
         self.clear_frame_sequence();
@@ -483,6 +487,46 @@ impl AnimationState {
         self.action_type == AnimationActionType::Skill
     }
 
+    /// Whether the state is a player's neutral stand pose (ACT block 0).
+    ///
+    /// Both the client idle and the official `ST_STAND` skill action
+    /// ([`AnimationActionType::Stand`], `CasterAction::Stand`) select the
+    /// player's ACT block 0. The classic player action 0 contains the short
+    /// head-bob idle loop (three frames; on `몸통\남\챔피온_남.act` the head
+    /// attach point moves `1 -> -3 -> 5` px), which this client does not play:
+    /// the neutral pose always shows its stable first frame. Sharing the check
+    /// between [`Self::idle`] and [`Self::stand`] matters because a skill that
+    /// ends on the official `ST_STAND` pose (Inc Agi, Dangerous Soul Collect)
+    /// otherwise leaves the head cycling forever.
+    pub(crate) fn is_player_neutral_pose(&self, entity_type: EntityType) -> bool {
+        entity_type == EntityType::Player && self.action_base_offset == 0
+    }
+
+    /// Official frame range of the current pose (`SetFrameSequence`), test
+    /// accessor for the packet-lane pose tests.
+    #[cfg(test)]
+    pub(crate) fn frame_sequence_range(&self) -> Option<(u8, u8, u8)> {
+        self.frame_sequence
+    }
+
+    /// Official `SetSequenceInterval` of the current pose in milliseconds.
+    #[cfg(test)]
+    pub(crate) fn frame_sequence_step(&self) -> Option<u32> {
+        self.frame_sequence_step_ms
+    }
+
+    /// Deadline of the current pose in milliseconds (`None` = no deadline).
+    #[cfg(test)]
+    pub(crate) fn sequence_duration(&self) -> Option<u32> {
+        self.duration
+    }
+
+    /// Whether the current animation loops.
+    #[cfg(test)]
+    pub(crate) fn is_looping(&self) -> bool {
+        self.looping
+    }
+
     /// Whether this is a one-shot `Custom` action that must return to idle when
     /// its frame sequence/ACT ends.
     ///
@@ -577,7 +621,7 @@ impl Default for AnimationFramePart {
 /// A 1x1 transparent frame that is used when the animation data of an entity
 /// is unusable (no actions, no delays or an action without frames). Such data
 /// used to panic while rendering (division by zero / out of bounds index).
-fn fallback_frame() -> &'static AnimationFrame {
+pub(crate) fn fallback_frame() -> &'static AnimationFrame {
     static FALLBACK_FRAME: LazyLock<AnimationFrame> = LazyLock::new(|| AnimationFrame {
         event: None,
         offset: Vector2::zero(),
@@ -768,8 +812,10 @@ impl AnimationData {
             }
         };
 
-        // Remove Doridori animation from Player
-        if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
+        // The neutral stand pose (block 0) is static: the classic player
+        // action 0 is the short head-bob idle loop, and the `Stand` pose that
+        // ends an official skill must not keep cycling it.
+        if animation_state.is_player_neutral_pose(self.entity_type) {
             &animation.frames[0]
         } else {
             &animation.frames[frame_index]
@@ -824,7 +870,7 @@ impl AnimationData {
             }
         };
 
-        let frame_index = if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
+        let frame_index = if animation_state.is_player_neutral_pose(self.entity_type) {
             0
         } else {
             frame_index
@@ -890,7 +936,7 @@ impl AnimationData {
                 false => (frame_time as usize).min(animation.frames.len().saturating_sub(1)),
             },
         };
-        let frame_index = if self.entity_type == EntityType::Player && animation_state.action_type == AnimationActionType::Idle {
+        let frame_index = if animation_state.is_player_neutral_pose(self.entity_type) {
             0
         } else {
             frame_index
@@ -1517,5 +1563,111 @@ mod blade_stop_pose_tests {
         state.idle(EntityType::Player, ClientTick(20));
         assert!(state.frame_sequence.is_none());
         assert_eq!(state.action_index() * 8, 0, "back to the neutral idle block");
+    }
+}
+
+#[cfg(test)]
+mod neutral_pose_tests {
+    use ragnarok_packets::{ClientTick, Direction};
+
+    use super::{Animation, AnimationData, AnimationFrame, AnimationFramePart, AnimationState, fallback_frame};
+    use crate::world::{EntityType, PlayerCamera};
+
+    /// Synthetic player animation data that mirrors the classic ACT layout:
+    /// the neutral stand block 0 has three frames whose head attach point moves
+    /// (`1 -> -3 -> 5` px on the Champion, `몸통\남\챔피온_남.act` action 0),
+    /// and the skill block 96 has six frames.
+    fn neutral_pose_animation_data() -> AnimationData {
+        let frame = |sprite_number: usize| AnimationFrame {
+            frame_parts: vec![AnimationFramePart {
+                sprite_number,
+                ..Default::default()
+            }],
+            ..fallback_frame().clone()
+        };
+
+        let mut animations: Vec<Animation> = (0..104).map(|_| Animation { frames: vec![frame(0)] }).collect();
+        // One ACT action = one (pose block, direction) pair: block 0 is the
+        // neutral stand (actions 0..8) and block 96 the skill block (96..104).
+        for direction in 0..8 {
+            animations[direction] = Animation {
+                frames: vec![frame(1), frame(2), frame(3)],
+            };
+            animations[96 + direction] = Animation {
+                frames: (4..10).map(frame).collect(),
+            };
+        }
+
+        AnimationData {
+            animation_pair: Vec::new(),
+            animations,
+            delays: vec![4.0; 104],
+            entity_type: EntityType::Player,
+        }
+    }
+
+    fn assert_static_neutral_pose(state: &mut AnimationState, animation_data: &AnimationData, camera: &PlayerCamera, label: &str) {
+        // 200 ms per frame: an unrestricted block-0 loop would show frame 0,
+        // 1, 2, 0, ... at these ticks.
+        for tick in [1, 201, 401, 601, 100_001] {
+            state.update(ClientTick(tick));
+            let (action, frame) = animation_data
+                .motion(state, camera, Direction::South)
+                .expect("player animation data");
+            assert_eq!(action, 0, "{label}: neutral stand block at t={tick}");
+            assert_eq!(frame, 0, "{label}: the neutral stand must stay on its first frame at t={tick}");
+
+            // The rendered frame is the same stable first frame (the body's
+            // head attach point of frame 0), never the moving head frames.
+            let rendered = animation_data.get_frame(state, camera, Direction::South);
+            assert_eq!(
+                rendered.frame_parts[0].sprite_number, 1,
+                "{label}: the first neutral frame is drawn at t={tick}"
+            );
+        }
+    }
+
+    #[test]
+    fn player_idle_stays_on_the_first_neutral_frame() {
+        let animation_data = neutral_pose_animation_data();
+        let camera = PlayerCamera::new();
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.idle(EntityType::Player, ClientTick(1));
+        assert_static_neutral_pose(&mut state, &animation_data, &camera, "idle");
+    }
+
+    /// Regression for the reported "head moving around constantly" after
+    /// Increase Agi (29) and Dangerous Soul Collect (401): the `ZC_USE_SKILL`
+    /// (0x09CB) completion of both skills selects the official `ST_STAND`
+    /// (`CasterAction::Stand`, block 0). `Stand` is a looping action with no
+    /// deadline, so it stayed in the animation engine forever; unlike `Idle`
+    /// it was not clamped to the first frame and the classic block-0 head-bob
+    /// loop kept cycling the head attach point (1 -> -3 -> 5 px).
+    #[test]
+    fn official_st_stand_pose_never_bobs_the_head() {
+        let animation_data = neutral_pose_animation_data();
+        let camera = PlayerCamera::new();
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.stand(EntityType::Player, ClientTick(1));
+        assert_eq!(state.action_index() * 8, 0, "ST_STAND selects block 0");
+        assert!(state.looping);
+        assert_eq!(state.duration, None, "the stand pose has no deadline");
+        assert_static_neutral_pose(&mut state, &animation_data, &camera, "stand");
+    }
+
+    #[test]
+    fn a_skill_pose_still_advances_its_frames() {
+        // The clamp is specific to the neutral stand block: the skill block 96
+        // keeps playing its six frames.
+        let animation_data = neutral_pose_animation_data();
+        let camera = PlayerCamera::new();
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.skill(EntityType::Player, 1200, true, ClientTick(1));
+        state.update(ClientTick(201));
+        let (action, frame) = animation_data
+            .motion(&state, &camera, Direction::South)
+            .expect("player animation data");
+        assert_eq!(action, 12);
+        assert_eq!(frame, 1, "the skill block still cycles its frames");
     }
 }

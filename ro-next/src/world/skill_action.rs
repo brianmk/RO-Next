@@ -37,10 +37,10 @@
 //! client's cast handlers, which pass `CasterFrameSequence::step_ms` to the
 //! animation engine.
 
-use ragnarok_packets::SkillId;
+use ragnarok_packets::{ClientTick, JobId, SkillId};
 use serde::Deserialize;
 
-use crate::world::{caster_action_for_skill, default_caster_action, use_caster_action_for_skill};
+use crate::world::{AnimationState, EntityType, caster_action_for_skill, default_caster_action, use_caster_action_for_skill};
 
 /// Body animation the caster plays when a skill is used.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
@@ -129,12 +129,131 @@ pub fn use_caster_action(skill_id: SkillId) -> CasterAction {
         .unwrap_or_else(default_caster_action)
 }
 
+/// Official `CPc::SetState(ST_SKILL)` frame range of the skill gesture.
+///
+/// `Player.cpp:4477-4499`: after `SetAction(JobActionBase(ST_SKILL), 6, 1)`
+/// (block 96 for every job, `Player.cpp:1671-1746`) the client restricts the
+/// skill block for a few job families:
+///
+/// * the monk-style jobs — `JT_MONK`, `JT_MONK_H` (Champion, job 4016),
+///   `JT_MONK_B`, `JT_CRUSADER_H`, `JT_BARD_H`, `JT_DANCER_H`,
+///   `JT_ROYAL_GUARD`, `JT_ROYAL_GUARD_H`, `JT_SURA`, `JT_SURA_H`, `JT_SURA_B`
+///   and `JT_INQUISITOR` — call `SetSequenceInterval(4)` and
+///   `SetFrameSequence(0x60, 0, 0, 0x60, 0, 1, 400, 0)`: block 96 frame 0 for
+///   400 ms,
+/// * `JT_NINJA` / `JT_NINJA_B`: block 96 frames 2..5 for 1000 ms,
+/// * `JT_GUNSLINGER` / `JT_GUNSLINGER_B`: block 96 frames 0..3 for 1000 ms.
+///
+/// The monk range matters for the reported Champion defect: without it the
+/// whole skill block plays, and block 96 frames 1..2 are exactly the Fury
+/// gesture (`MO_EXPLOSIONSPIRITS` uses `SetFrameSequence(0x60, 1, 2, ...)`,
+/// `GameModePackets.cpp:18839-18840`), so Blessing and Inc Agi looked like
+/// Fury.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct SkillGestureSequence {
+    pub first: u8,
+    pub last: u8,
+    pub loop_to: u8,
+    pub duration_ms: u32,
+    pub interval_ticks: u8,
+}
+
+impl SkillGestureSequence {
+    /// Duration of one sequence frame in milliseconds, from the preceding
+    /// `SetSequenceInterval(4)` (`4 / 60 Hz` = 67 ms).
+    pub fn step_ms(&self) -> Option<u32> {
+        (self.interval_ticks > 0).then(|| (f32::from(self.interval_ticks) * 1000.0 / 60.0).round() as u32)
+    }
+}
+
+/// Port job ids of the `CPc::SetState(ST_SKILL)` monk-style branch
+/// (`Player.cpp:4482-4487`; the decomp's `JT_*` ids match `jobs.ron`).
+const MONK_SKILL_GESTURE_JOBS: [u16; 12] = [
+    15,   // JOB_MONK
+    4015, // JOB_PALADIN (JT_CRUSADER_H)
+    4016, // JOB_CHAMPION (JT_MONK_H)
+    4020, // JOB_CLOWN (JT_BARD_H)
+    4021, // JOB_GYPSY (JT_DANCER_H)
+    4038, // JOB_BABY_MONK (JT_MONK_B)
+    4066, // JOB_ROYAL_GUARD
+    4070, // JOB_SURA
+    4073, // JOB_ROYAL_GUARD_T (JT_ROYAL_GUARD_H)
+    4077, // JOB_SURA_T (JT_SURA_H)
+    4106, // JOB_BABY_SURA (JT_SURA_B)
+    4262, // JOB_INQUISITOR
+];
+/// `JT_NINJA` (25) / `JT_NINJA_B` (4222): block 96 frames 2..5 for 1000 ms.
+const NINJA_SKILL_GESTURE_JOBS: [u16; 2] = [25, 4222];
+/// `JT_GUNSLINGER` (24) / `JT_GUNSLINGER_B` (4228): block 96 frames 0..3 for
+/// 1000 ms.
+const GUNSLINGER_SKILL_GESTURE_JOBS: [u16; 2] = [24, 4228];
+
+/// Official `CPc::SetState(ST_SKILL)` frame range of `job_id`, if the job has
+/// one (`Player.cpp:4468-4487`).
+pub(crate) fn skill_gesture_sequence(job_id: JobId) -> Option<SkillGestureSequence> {
+    let (first, last, loop_to, duration_ms) = match job_id.0 {
+        job if MONK_SKILL_GESTURE_JOBS.contains(&job) => (0, 0, 0, 400),
+        job if NINJA_SKILL_GESTURE_JOBS.contains(&job) => (2, 5, 5, 1000),
+        job if GUNSLINGER_SKILL_GESTURE_JOBS.contains(&job) => (0, 3, 3, 1000),
+        _ => return None,
+    };
+
+    Some(SkillGestureSequence {
+        first,
+        last,
+        loop_to,
+        duration_ms,
+        interval_ticks: 4,
+    })
+}
+
+/// Applies the official skill-cast pose ([`CasterAction::Skill`]).
+///
+/// The pose is the player skill block 96. For the job families of
+/// [`skill_gesture_sequence`] the official client restricts it with the
+/// `SetState(ST_SKILL)` frame range; the Champion therefore holds block 96
+/// frame 0 (the skill gesture) instead of playing Fury's frames 1..2. A cast
+/// keeps the restricted pose for its whole duration, so the sequence lasts at
+/// least the packet cast time (`looping` is the cast lane).
+pub(crate) fn apply_skill_pose(
+    animation_state: &mut AnimationState,
+    entity_type: EntityType,
+    job_id: JobId,
+    cast_time: u32,
+    looping: bool,
+    client_tick: ClientTick,
+) {
+    animation_state.skill(entity_type, cast_time, looping, client_tick);
+
+    if entity_type != EntityType::Player {
+        return;
+    }
+
+    let Some(gesture) = skill_gesture_sequence(job_id) else {
+        return;
+    };
+
+    let duration = match looping {
+        true => cast_time.max(gesture.duration_ms),
+        false => gesture.duration_ms,
+    };
+
+    animation_state.frame_sequence(
+        gesture.first,
+        gesture.last,
+        gesture.loop_to,
+        duration,
+        gesture.step_ms(),
+        client_tick,
+    );
+}
+
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::{ClientTick, SkillId};
+    use ragnarok_packets::{ClientTick, JobId, SkillId};
 
-    use super::{CasterAction, ack_caster_action, caster_action, use_caster_action};
-    use crate::world::{AnimationState, EntityType};
+    use super::{CasterAction, ack_caster_action, apply_skill_pose, caster_action, skill_gesture_sequence, use_caster_action};
+    use crate::world::{AnimationData, AnimationState, EntityType};
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
@@ -464,5 +583,209 @@ mod tests {
         // effect, and the cast-start switches never name it.
         assert!(crate::world::frame_sequence_for_skill(SkillId(130)).is_none());
         assert!(crate::world::cast_frame_sequence_for_skill(SkillId(130)).is_none());
+    }
+
+    /// Applies the pose one packet lane selects, through the same entry points
+    /// as `client::network::skills` (`0x0B1A` -> `handle_skill_cast` uses
+    /// [`apply_skill_pose`]; `0x09CB` -> `handle_skill_no_damage`).
+    fn applied_pose(action: Option<CasterAction>, cast_time: u32, job_id: JobId) -> AnimationState {
+        let entity_type = EntityType::Player;
+        let mut state = AnimationState::new(entity_type, ClientTick(0));
+        if let Some(action) = action {
+            match action {
+                CasterAction::Idle => state.idle(entity_type, ClientTick(1)),
+                CasterAction::Stand => state.stand(entity_type, ClientTick(1)),
+                CasterAction::Skill => apply_skill_pose(&mut state, entity_type, job_id, cast_time, cast_time > 0, ClientTick(1)),
+                CasterAction::Action(index) => state.custom(entity_type, usize::from(index), cast_time, cast_time > 0, ClientTick(1)),
+                other => panic!("unexpected support-skill action: {other:?}"),
+            }
+        }
+        state
+    }
+
+    const CHAMPION: JobId = JobId(4016);
+
+    #[test]
+    fn champion_skill_gesture_is_the_official_frame_zero_hold() {
+        // `CPc::SetState(ST_SKILL)` for the monk family (`Player.cpp:4482-4487`):
+        // `SetSequenceInterval(4); SetFrameSequence(0x60, 0, 0, 0x60, 0, 1, 400, 0)`.
+        let gesture = skill_gesture_sequence(CHAMPION).expect("Champion has the monk skill-gesture range");
+        assert_eq!(
+            (
+                gesture.first,
+                gesture.last,
+                gesture.loop_to,
+                gesture.duration_ms,
+                gesture.interval_ticks
+            ),
+            (0, 0, 0, 400, 4)
+        );
+        assert_eq!(gesture.step_ms(), Some(67), "4 ticks of the 60 Hz timer");
+
+        let mut instant = AnimationState::new(EntityType::Player, ClientTick(0));
+        apply_skill_pose(&mut instant, EntityType::Player, CHAMPION, 0, false, ClientTick(1));
+        assert_eq!(instant.action_index() * 8, 96, "the skill block, restricted to frame 0");
+        assert_eq!(instant.frame_sequence_range(), Some((0, 0, 0)));
+        assert_eq!(instant.frame_sequence_step(), Some(67));
+        assert_eq!(instant.sequence_duration(), Some(400));
+
+        // The cast lane holds the same frame for the whole cast.
+        let mut cast = AnimationState::new(EntityType::Player, ClientTick(0));
+        apply_skill_pose(&mut cast, EntityType::Player, CHAMPION, 2000, true, ClientTick(1));
+        assert_eq!(cast.action_index() * 8, 96);
+        assert_eq!(cast.frame_sequence_range(), Some((0, 0, 0)));
+        assert_eq!(cast.sequence_duration(), Some(2000), "the gesture lasts the whole cast");
+
+        // Other jobs keep the unrestricted skill block; Ninja and Gunslinger
+        // have the two other official `ST_SKILL` ranges (`:4488-4499`).
+        for job in [JobId(0), JobId(7), JobId(4014), JobId(4218)] {
+            assert!(skill_gesture_sequence(job).is_none(), "job {}", job.0);
+        }
+        let mut knight = AnimationState::new(EntityType::Player, ClientTick(0));
+        apply_skill_pose(&mut knight, EntityType::Player, JobId(7), 0, false, ClientTick(1));
+        assert!(knight.frame_sequence_range().is_none());
+
+        let ninja = skill_gesture_sequence(JobId(25)).expect("Ninja range");
+        assert_eq!((ninja.first, ninja.last, ninja.loop_to, ninja.duration_ms), (2, 5, 5, 1000));
+        assert_eq!(skill_gesture_sequence(JobId(4222)), Some(ninja), "Baby Ninja shares the range");
+        let gunslinger = skill_gesture_sequence(JobId(24)).expect("Gunslinger range");
+        assert_eq!(
+            (gunslinger.first, gunslinger.last, gunslinger.loop_to, gunslinger.duration_ms),
+            (0, 3, 3, 1000)
+        );
+        assert_eq!(
+            skill_gesture_sequence(JobId(4228)),
+            Some(gunslinger),
+            "Baby Gunslinger shares the range"
+        );
+    }
+
+    #[test]
+    fn champion_blessing_and_inc_agi_select_the_official_poses() {
+        // 29 AL_INCAGI. `GetSkillActionInfo` motion 7 = ST_SKILL
+        // (`SkillActionInfo.cpp:796-816`): `0x0B1A` plays the Champion skill
+        // gesture (block 96 frame 0), not the unrestricted block whose frames
+        // 1..2 are Fury.
+        let incagi_cast = applied_pose(ack_caster_action(SkillId(29), 1000, false), 1000, CHAMPION);
+        assert_eq!(incagi_cast.action_index() * 8, 96);
+        assert_eq!(incagi_cast.frame_sequence_range(), Some((0, 0, 0)), "Champion frame 0");
+        assert_eq!(incagi_cast.frame_sequence_step(), Some(67));
+        assert_eq!(incagi_cast.sequence_duration(), Some(1000), "held for the cast");
+
+        // The 0x09CB completion reads `GetSkillActionInfo2` motion 0 =
+        // ST_STAND (`SkillActionInfo.cpp:1386-1392`): neutral block 0, and no
+        // lingering hold, so the caster settles.
+        let incagi_use = applied_pose(Some(use_caster_action(SkillId(29))), 0, CHAMPION);
+        assert_eq!(use_caster_action(SkillId(29)), CasterAction::Stand);
+        assert_eq!(incagi_use.action_index() * 8, 0);
+        assert!(incagi_use.frame_sequence_range().is_none());
+        assert!(incagi_use.is_looping());
+
+        // 34 AL_BLESSING is instant: `NotifySkillCasting` returns before
+        // `SetState` when the packet delay is zero
+        // (`GameModePackets.cpp:12940-12942`), so no ack pose.
+        assert_eq!(ack_caster_action(SkillId(34), 0, false), None);
+        // If the ack carries a cast time it is `GetSkillActionInfo` motion 0 =
+        // ST_STAND (`SkillActionInfo.cpp:184-188`).
+        assert_eq!(ack_caster_action(SkillId(34), 500, false), Some(CasterAction::Stand));
+        assert_eq!(
+            applied_pose(ack_caster_action(SkillId(34), 500, false), 500, CHAMPION).action_index() * 8,
+            0
+        );
+        // The 0x09CB completion is `GetSkillActionInfo2` motion 7 = ST_SKILL
+        // (`SkillActionInfo.cpp:1853-1869`): the Champion gesture, not Fury.
+        let blessing = applied_pose(Some(use_caster_action(SkillId(34))), 0, CHAMPION);
+        assert_eq!(use_caster_action(SkillId(34)), CasterAction::Skill);
+        assert_eq!(blessing.action_index() * 8, 96);
+        assert_eq!(blessing.frame_sequence_range(), Some((0, 0, 0)));
+        assert_eq!(blessing.sequence_duration(), Some(400));
+
+        // Fury keeps its own official range (`SetFrameSequence(0x60, 1, 2,
+        // 0x60, 2, 1, 1000, 0)`, `GameModePackets.cpp:18839-18840`), so the
+        // Blessing gesture can never be confused with the Fury motion again.
+        assert_eq!(use_caster_action(SkillId(270)), CasterAction::Action(12));
+        let fury = crate::world::frame_sequence_for_skill(SkillId(270)).expect("Fury range");
+        assert_eq!((fury.first, fury.last), (1, 2));
+        assert_ne!(
+            (blessing.frame_sequence_range(), blessing.sequence_duration()),
+            (Some((fury.first, fury.last, fury.loop_to)), Some(fury.duration_ms))
+        );
+    }
+
+    /// Synthetic player animation data mirroring the classic ACT layout: the
+    /// neutral stand block 0 has the three head-bob frames of
+    /// `몸통\남\챔피온_남.act` action 0.
+    fn neutral_pose_animation_data() -> AnimationData {
+        use crate::world::{Animation, AnimationFrame, AnimationFramePart, fallback_frame};
+
+        let frame = |sprite_number: usize| AnimationFrame {
+            frame_parts: vec![AnimationFramePart {
+                sprite_number,
+                ..Default::default()
+            }],
+            ..fallback_frame().clone()
+        };
+
+        let mut animations: Vec<Animation> = (0..104).map(|_| Animation { frames: vec![frame(0)] }).collect();
+        for direction in 0..8 {
+            animations[direction] = Animation {
+                frames: vec![frame(1), frame(2), frame(3)],
+            };
+            animations[96 + direction] = Animation {
+                frames: (4..10).map(frame).collect(),
+            };
+        }
+
+        AnimationData {
+            animation_pair: Vec::new(),
+            animations,
+            delays: vec![4.0; 104],
+            entity_type: EntityType::Player,
+        }
+    }
+
+    /// Regression for the reported endless head movement after Dangerous Soul
+    /// Collect (401): the cast holds block 96 frame 0, then the `0x09CB`
+    /// completion selects the official `ST_STAND` pose. `Stand` loops with no
+    /// deadline; it must stay on the stable neutral frame instead of cycling
+    /// the block-0 head-bob frames forever.
+    #[test]
+    fn soul_collect_cast_then_stand_leaves_no_head_loop() {
+        use ragnarok_packets::Direction;
+
+        use crate::world::PlayerCamera;
+
+        let animation_data = neutral_pose_animation_data();
+        let camera = PlayerCamera::new();
+
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+
+        // 0x0B1A: 2000 ms cast, `GetSkillActionInfo` motion 8 = ST_BEGIN_SKILL
+        // (`SkillActionInfo.cpp:289`; default motion 8 at `:53`) -> block 96
+        // frame 0 for the whole cast.
+        apply_skill_pose(&mut state, EntityType::Player, CHAMPION, 2000, true, ClientTick(1));
+        // `ApplyActorSkillState` (`GameModePackets.cpp:12883-12886`):
+        // `SetFrameSequence(96, 0, 0, 96, 0, 0, 0, 0)`, the same block/frame.
+        state.frame_sequence(0, 0, 0, 2000, None, ClientTick(1));
+
+        state.update(ClientTick(1001));
+        let (action, frame) = animation_data.motion(&state, &camera, Direction::South).expect("animation data");
+        assert_eq!(action, 12, "the cast holds the skill block");
+        assert_eq!(frame, 0, "the cast holds frame 0");
+
+        // The cast deadline ends the pose (the official hold has no deadline,
+        // but the next `SetState` replaces it either way).
+        state.update(ClientTick(2001));
+        assert!(animation_data.is_animation_over(&state));
+
+        // 0x09CB: `GetSkillActionInfo2` motion 0 = ST_STAND
+        // (`SkillActionInfo.cpp:1397-1402`) -> the neutral block 0.
+        state.stand(EntityType::Player, ClientTick(2001));
+        for tick in [2002, 2201, 2401, 100_001] {
+            state.update(ClientTick(tick));
+            let (action, frame) = animation_data.motion(&state, &camera, Direction::South).expect("animation data");
+            assert_eq!(action, 0, "the caster is back on the neutral stand block at t={tick}");
+            assert_eq!(frame, 0, "the neutral stand must not bob the head at t={tick}");
+        }
     }
 }
