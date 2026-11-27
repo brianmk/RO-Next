@@ -65,6 +65,24 @@
 //! different depths. That is also how the already-ported `PP_3DTEXTURE` path
 //! works.
 //!
+//! ## Y axis
+//!
+//! Every corner built here follows the official arithmetic, and the official
+//! client's world has Y pointing **down** (the camera clamp
+//! `CameraFrame.cpp:36-41`, `Upward`'s `{0, -distance, 0}` in
+//! `EffectPrimitiveMotion.cpp:84-88`, and the "fell through the floor" test
+//! `render.position.y > Height(x, z)` at `:2598`/`:2762`). That is why the
+//! ground decals this module draws sit at *negative* local Y -
+//! `Render3DCasting`'s ring base `y = -(2 + ry)`
+//! (`EffectPrimitiveRendering.cpp:6647-6664`) and `RenderRipple`'s
+//! `y -= 30/40` (`:2205-2210`) are lifts off the floor, not drops below it.
+//!
+//! The port renders a **Y-up** world and negates the map heights at load time
+//! (`loaders/map/vertices.rs:315-318`), so the Y sign is flipped exactly once,
+//! in [`world_space_position`](super::render3d::world_space_position), by the
+//! two functions that hand geometry to the port's camera
+//! ([`triangle_points`] and [`project_window_pixel`]).
+//!
 //! ## Blend states
 //!
 //! `SubmitTriangle(triangle, flags)` puts the triangle into a queue chosen by
@@ -4416,8 +4434,13 @@ fn push_projected(
 /// Returns window pixels with a top-left origin, exactly like
 /// [`project_point`](super::super::project_point), or `None` only when the
 /// homogeneous divide is not finite.
+///
+/// The input keeps the official Y-down convention of the primitive state and is
+/// flipped into the port's Y-up world by
+/// [`world_space_position`](super::render3d::world_space_position).
 fn project_window_pixel(camera: &dyn Camera, position: [f32; 3], viewport: ScreenSize) -> Option<[f32; 2]> {
-    let clip_space_position = camera.view_projection_matrix() * Point3::new(position[0], position[1], position[2]).to_homogeneous();
+    let position = super::render3d::world_space_position(position);
+    let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
 
     if clip_space_position.w.abs() <= f32::EPSILON {
         return None;
@@ -4437,8 +4460,18 @@ fn project_window_pixel(camera: &dyn Camera, position: [f32; 3], viewport: Scree
 
 /// The world-space corners of one [`SlotTriangle`] as [`Point3`]s (the shape
 /// the effect renderer takes).
+///
+/// [`SlotTriangle`] corners are built with the official effect arithmetic and
+/// therefore live in the official **Y-down** world; the port camera renders a
+/// **Y-up** world (`loaders/map/vertices.rs:315-318` negates the map heights),
+/// so every corner is converted with
+/// [`world_space_position`](super::render3d::world_space_position) here - the
+/// one boundary between a ported primitive and the port's renderer. Without it
+/// a ground decal drawn at `deltaPos2.y = -1.5` (1.5 *above* the floor in the
+/// official client) ends up 1.5 *below* the port's floor and loses the depth
+/// test against the terrain.
 pub fn triangle_points(triangle: &SlotTriangle) -> [Point3<f32>; 3] {
-    triangle.corners.map(|corner| Point3::new(corner[0], corner[1], corner[2]))
+    triangle.corners.map(|corner| super::render3d::world_space_position(corner))
 }
 
 /// The texture coordinates of one [`SlotTriangle`] as [`Vector2`]s.
@@ -5866,6 +5899,7 @@ mod tests {
     use super::super::runtime::PendingEffectLaunch;
     use super::*;
     use crate::world::effect::port::primitive::{EffectPrimitiveSlot, PrimitiveRecord};
+    use crate::world::effect::project_point;
 
     const WINDOW: ScreenSize = ScreenSize {
         width: 640.0,
@@ -9147,5 +9181,107 @@ mod tests {
         // `process % totalTexture` wraps.
         state.slots[0].process = 3;
         assert_eq!(triangles(&state)[0].texture, Some("effect\\W_bubble01.tga"));
+    }
+
+    // -----------------------------------------------------------------------
+    // Y axis: the official world is Y-down, the port's is Y-up
+    // -----------------------------------------------------------------------
+
+    /// `EF_WARPZONE2`/`EF_READYPORTAL2` lay a `PP_3DCASTING_4` ring wave.
+    ///
+    /// `Render3DCasting` puts the ring's base at `y = -2.0` when
+    /// `maxHeight == 6.001` (`EffectPrimitiveRendering.cpp:6647-6664`), i.e.
+    /// two units *above* the floor in the official Y-down world. The port state
+    /// keeps that value, so the renderer has to flip it when it hands the
+    /// corners to the port camera - otherwise the whole wave is two units
+    /// *under* the ground and the terrain occludes it.
+    #[test]
+    fn a_casting_ring_wave_is_above_the_floor_after_the_y_flip() {
+        let mut state = state_of(PrimitiveId::Casting4);
+        state.position = [10.0, 0.0, -20.0];
+        state.texture = Some("effect\\ring_blue.tga");
+
+        let slot = &mut state.slots[0];
+        slot.life = 1;
+        slot.full_display_angle = 360;
+        slot.rot_start = 0;
+        slot.distance = 2.5;
+        slot.max_height = 6.001;
+        slot.rise_angle = 53;
+        slot.alpha_b = 70;
+        slot.height = [6.001; 21];
+
+        let built = triangles(&state);
+        assert!(!built.is_empty());
+
+        for triangle in &built {
+            // The state keeps the official Y (0 or negative = at/above the
+            // floor) ...
+            assert!(triangle.corners.iter().all(|corner| corner[1] <= 0.0));
+
+            // ... and the projected corners are in the port's Y-up world, so
+            // every one of them is at or above the floor plane.
+            for point in triangle_points(triangle) {
+                assert!(point.y >= 0.0, "ring corner {:?} is under the floor", point);
+            }
+        }
+    }
+
+    /// `RenderRipple` drops its billboard by 30/40, which is a *lift* in the
+    /// official Y-down world (`EffectPrimitiveRendering.cpp:2205-2215`).
+    /// Prim 131 (`RisingFan2`) is the ported body on that renderer; the portal
+    /// rings (63) share `Render3DCasting` and are covered above.
+    #[test]
+    fn a_ripple_ring_is_above_the_floor_after_the_y_flip() {
+        let mut state = state_of(PrimitiveId::RisingFan2);
+        state.position = [10.0, 0.0, -20.0];
+        state.texture = Some("effect\\ring_blue.tga");
+
+        let slot = &mut state.slots[0];
+        slot.life = 1;
+        slot.distance = 5.0;
+        slot.height = [20.0; 21];
+        slot.alpha_t = 100;
+        state.slots[1].alpha_t = 100;
+
+        let built = triangles(&state);
+        assert!(!built.is_empty());
+
+        for triangle in &built {
+            assert!(triangle.corners.iter().all(|corner| corner[1] < 0.0));
+            for point in triangle_points(triangle) {
+                assert!(point.y > 0.0, "ripple corner {:?} is under the floor", point);
+            }
+        }
+    }
+
+    #[test]
+    fn triangle_points_flips_the_official_y_axis() {
+        let triangle = SlotTriangle::new(
+            [[1.0, -3.0, 5.0], [2.0, 0.0, 6.0], [3.0, 4.0, 7.0]],
+            [[0.0; 2]; 3],
+            0xFFFF_FFFF,
+            None,
+            SlotBlend::Alpha,
+        );
+
+        let points = triangle_points(&triangle);
+
+        // X and Z are unchanged, Y changes sign.
+        assert_eq!(points[0], Point3::new(1.0, 3.0, 5.0));
+        assert_eq!(points[1], Point3::new(2.0, 0.0, 6.0));
+        assert_eq!(points[2], Point3::new(3.0, -4.0, 7.0));
+
+        // `project_window_pixel` uses the same conversion: a point above the
+        // camera plane (`-y` official) projects to the same pixels as its
+        // port-space position.
+        let camera = TestCamera::new();
+        let official = [2.0, -3.0, 4.0];
+        let flipped = project_window_pixel(&camera, official, WINDOW).expect("in front of the camera");
+        let manual = project_point(&camera, Point3::new(2.0, 3.0, 4.0), WINDOW)
+            .expect("in front of the camera")
+            .0;
+        assert!((flipped[0] - manual.x).abs() < 1e-3);
+        assert!((flipped[1] - manual.y).abs() < 1e-3);
     }
 }

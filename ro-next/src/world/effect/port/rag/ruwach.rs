@@ -255,6 +255,55 @@ mod tests {
         assert_eq!(shadow.delta_pos2, [sine, 0.0, cosine]);
     }
 
+    /// The two sprite heights, in the port's Y-up world.
+    ///
+    /// `RagEffect.cpp:23205-23231` spawns the mote at `deltaPos2.y = -10.0f`
+    /// and its ground shadow at `0.0f`. The official client's world has Y
+    /// pointing **down** (the camera frame clamp `CameraFrame.cpp:36-41`,
+    /// `Upward`'s `{0, -distance, 0}` in `EffectPrimitiveMotion.cpp:84-88`, and
+    /// the "fell through the floor" test `render.position.y > Height(x, z)` at
+    /// `:2598`), so `-10` means *ten units above the caster's feet*. The port
+    /// renders a Y-up world (the map loader negates the GAT heights,
+    /// `loaders/map/vertices.rs:315-318`) and flips the axis once at render
+    /// time, so a caster standing at height `H` must show the mote at
+    /// `H + 10` and the shadow at `H`. Without the flip the mote ends up ten
+    /// units *under* the terrain and the ground occludes it - the reported
+    /// "Ruwach looks like a shadow".
+    #[test]
+    fn the_mote_is_ten_units_above_the_caster_and_the_shadow_on_the_ground() {
+        use crate::world::effect::port::render3d::world_space_position;
+
+        let mut effect = Ruwach;
+        let mut runtime = runtime();
+        effect.on_process(&mut runtime);
+
+        let mote = &runtime.primitives[0].state;
+        let shadow = &runtime.primitives[1].state;
+
+        // The body keeps the official literals.
+        assert_eq!(mote.delta_pos2[1], -10.0);
+        assert_eq!(shadow.delta_pos2[1], 0.0);
+
+        // A caster standing at port height `H` is `-H` in the official
+        // convention the simulation runs in; the renderer flips the result.
+        let ground = 12.0f32;
+        let official_anchor = [0.0, -ground, 0.0];
+        let mote_world = world_space_position([
+            official_anchor[0] + mote.delta_pos2[0],
+            official_anchor[1] + mote.delta_pos2[1],
+            official_anchor[2] + mote.delta_pos2[2],
+        ]);
+        let shadow_world = world_space_position([
+            official_anchor[0] + shadow.delta_pos2[0],
+            official_anchor[1] + shadow.delta_pos2[1],
+            official_anchor[2] + shadow.delta_pos2[2],
+        ]);
+
+        assert!((mote_world.y - (ground + 10.0)).abs() < 1e-4);
+        assert!((shadow_world.y - ground).abs() < 1e-4);
+        assert!(mote_world.y > shadow_world.y, "the mote floats above its shadow");
+    }
+
     #[test]
     fn the_ring_follows_the_caster_every_frame() {
         // `this->render.position = this->state.parent->render.position;`

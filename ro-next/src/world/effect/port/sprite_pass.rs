@@ -58,6 +58,16 @@
 //!   `CRenderObject::render.speed`, which effect primitives never read;
 //!   `AnimMotion` only uses `state.animSpeed`. The delays are therefore not an
 //!   input to this pass.
+//! * **Y axis.** The record position keeps the official effect arithmetic, and
+//!   the official world is Y-**down** (`Upward` builds `{0, -distance, 0}`,
+//!   `EffectPrimitiveMotion.cpp:84-88`, and a falling particle hits the floor
+//!   when `render.position.y > Height(x, z)`, `:2598`). Ruwach's mote is
+//!   spawned with `deltaPos2.y = -10` because that is *ten units above the
+//!   ground*. The port's world is Y-**up** (the map loader negates the GAT
+//!   heights, `loaders/map/vertices.rs:315-318`), so the projected anchor is
+//!   converted with
+//!   [`world_space_position`](super::render3d::world_space_position) first. The
+//!   ACT cell offsets are screen space (already Y-down) and need no flip.
 
 use cgmath::{InnerSpace, Point3, Rad, Vector2};
 use ragnarok_formats::action::{Action, SpriteClip};
@@ -75,6 +85,15 @@ use crate::world::Camera;
 /// sprite pixel (the port's actor sprites use `SPRITE_SCALE / TILE_SIZE =
 /// 0.14`, i.e. the same `1 / 7`).
 const WORLD_UNITS_PER_SPRITE_PIXEL: f32 = 7.0;
+
+/// The projected anchor of one segment record, in the port's world space.
+///
+/// A record position is built with the official effect arithmetic, whose world
+/// is Y-down; the port renders a Y-up world (see the module docs), so the sign
+/// is flipped once, here.
+pub(crate) fn sprite_anchor(position: [f32; 3]) -> Point3<f32> {
+    super::render3d::world_space_position(position)
+}
 
 /// `RSF_CUSTOM_BLEND` (0x4), `RSF_TOPMOST` (0x8), `RSF_ADDITIVE` (0x2).
 const RSF_ADDITIVE: u32 = 0x2;
@@ -445,7 +464,14 @@ pub(crate) fn render_primitive(
             continue;
         };
 
-        let anchor = Point3::new(record.position[0], record.position[1], record.position[2]);
+        // `record.position` keeps the official effect arithmetic, and the
+        // official world is Y-down: Ruwach's mote is spawned at
+        // `deltaPos2.y = -10` (`RagEffect.cpp:23205-23215`) because that is
+        // *ten units up*. The port's world is Y-up (the map loader negates the
+        // GAT heights), so the anchor is flipped here - once - before it is
+        // projected. Without the flip the mote (and its ground shadow) ends up
+        // under the floor and loses the depth test against the terrain.
+        let anchor = sprite_anchor(record.position);
 
         let Some((anchor_screen, _)) = project_point(camera, anchor, window) else {
             continue;
@@ -495,7 +521,7 @@ pub(crate) fn render_primitive(
 
 #[cfg(test)]
 mod tests {
-    use cgmath::{Deg, Matrix4, Vector3};
+    use cgmath::{Deg, InnerSpace, Matrix4, Vector3};
     use ragnarok_formats::action::{Action, Motion, SpriteClip};
 
     use super::*;
@@ -512,6 +538,9 @@ mod tests {
     /// cameras use, so the projection conventions (left handed, y up,
     /// reverse-z) are identical.
     struct TestCamera {
+        eye: Point3<f32>,
+        focus: Point3<f32>,
+        direction: Vector3<f32>,
         view: Matrix4<f32>,
         projection: Matrix4<f32>,
         view_projection: Matrix4<f32>,
@@ -519,10 +548,24 @@ mod tests {
 
     impl TestCamera {
         fn new() -> Self {
-            let view = Matrix4::look_to_lh(Point3::new(0.0, 0.0, -10.0), Vector3::unit_z(), Vector3::unit_y());
+            let eye = Point3::new(0.0, 0.0, -10.0);
+            let focus = Point3::new(0.0, 0.0, 0.0);
+
+            Self::looking_at(eye, focus)
+        }
+
+        /// An eye and a focus point, e.g. above and in front of a ground
+        /// effect so its height changes the view depth (a camera looking
+        /// straight along `+z` would give every `y` the same depth).
+        fn looking_at(eye: Point3<f32>, focus: Point3<f32>) -> Self {
+            let direction = (focus - eye).normalize();
+            let view = Matrix4::look_to_lh(eye, direction, Vector3::unit_y());
             let projection = crate::graphics::perspective_reverse_lh(Deg(45.0), 4.0 / 3.0);
 
             Self {
+                eye,
+                focus,
+                direction,
                 view,
                 projection,
                 view_projection: projection * view,
@@ -532,11 +575,11 @@ mod tests {
 
     impl Camera for TestCamera {
         fn camera_position(&self) -> Point3<f32> {
-            Point3::new(0.0, 0.0, -10.0)
+            self.eye
         }
 
         fn focus_point(&self) -> Point3<f32> {
-            Point3::new(0.0, 0.0, 0.0)
+            self.focus
         }
 
         fn generate_view_projection(&mut self, _window_size: ScreenSize) {}
@@ -554,7 +597,7 @@ mod tests {
         }
 
         fn view_direction(&self) -> Vector3<f32> {
-            Vector3::unit_z()
+            self.direction
         }
     }
 
@@ -1042,5 +1085,74 @@ mod tests {
         render_primitive(&mut renderer, &camera, None, None, &state);
 
         assert!(renderer.get_instructions().is_empty());
+    }
+
+    #[test]
+    fn sprite_anchor_flips_the_official_y_into_the_port_world() {
+        // Official Y grows downward; the port's grows upward.
+        assert_eq!(sprite_anchor([3.0, -10.0, -4.0]), Point3::new(3.0, 10.0, -4.0));
+        assert_eq!(sprite_anchor([0.0, 0.0, 0.0]), Point3::new(0.0, 0.0, 0.0));
+    }
+
+    /// Ruwach's mote ring, end to end on the maths the renderer uses.
+    ///
+    /// `EF_RUWACH` spawns `particle2.spr` with `deltaPos2 = (sin * 15, -10,
+    /// -cos * 15)` (`RagEffect.cpp:23201-23215`) and its `Shadow.spr` at
+    /// `y = 0`. The official client's world is Y-down, so `-10` is *ten units
+    /// above the caster's feet*; the port's ground plane is Y-up, so the mote
+    /// must end up above the floor and in front of the floor's depth. Before
+    /// the Y-flip it sat ten units below the terrain and the ground occluded
+    /// it - the "Ruwach looks like a shadow" report.
+    #[test]
+    fn the_ruwach_mote_lands_above_the_floor_and_passes_the_depth_test() {
+        use crate::world::effect::port::primitive::particle3d;
+
+        // Above and in front of the caster, so the mote's height changes the
+        // view depth (a camera on the ground plane would not).
+        let camera = TestCamera::looking_at(Point3::new(0.0, 60.0, -60.0), Point3::new(0.0, 5.0, 0.0));
+        // Flat ground 5 units above the port's origin; the official anchor is
+        // the same height in the official (downward) convention.
+        let ground = 5.0f32;
+        let master = MasterState {
+            position: [0.0, -ground, 0.0],
+            ..Default::default()
+        };
+        let angles = Angles::shared();
+        let mut rng = EffectRng::new(1);
+
+        let mut mote = state();
+        mote.count = PrimitiveId::Particle3d;
+        mote.duration = 25;
+        mote.delta_pos2 = [0.0, -10.0, 0.0];
+        assert!(particle3d::on_process(&mut mote, &angles, &master, &mut rng));
+
+        // The primitive state keeps the official (Y-down) coordinates ...
+        assert!((mote.position[1] - (-ground - 10.0)).abs() < 1e-4);
+
+        // ... and the renderer flips them back for the port camera: the mote
+        // is ten units above the floor.
+        let anchor = sprite_anchor(mote.position);
+        assert!((anchor.y - (ground + 10.0)).abs() < 1e-4);
+
+        let (_, mote_depth) = project_point(&camera, anchor, WINDOW).expect("in front of the camera");
+        let (_, floor_depth) = project_point(&camera, Point3::new(0.0, ground, 0.0), WINDOW).expect("in front of the camera");
+
+        // Reverse-z: nearer fragments have a larger depth. The effect pass
+        // compares with `GreaterEqual`, so a mote above the floor passes.
+        assert!(
+            mote_depth > floor_depth,
+            "mote depth {mote_depth} must be in front of the floor {floor_depth}"
+        );
+
+        // The shadow sits at `deltaPos2.y = 0`, exactly on the floor: it stays
+        // coplanar with the ground, which `GreaterEqual` still lets draw.
+        let mut shadow = state();
+        shadow.count = PrimitiveId::Particle3d;
+        shadow.duration = 25;
+        assert!(particle3d::on_process(&mut shadow, &angles, &master, &mut rng));
+        let shadow_anchor = sprite_anchor(shadow.position);
+        assert!((shadow_anchor.y - ground).abs() < 1e-4);
+        let (_, shadow_depth) = project_point(&camera, shadow_anchor, WINDOW).expect("in front of the camera");
+        assert!((shadow_depth - floor_depth).abs() < 1e-4);
     }
 }

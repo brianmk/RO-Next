@@ -27,6 +27,29 @@
 //! order the renderer's quad slots sample (`bottom right, top right, top left,
 //! bottom left`).
 //!
+//! ## Y axis: the official world is Y-down, the port's is Y-up
+//!
+//! The primitive state this module reads keeps the **official** arithmetic,
+//! and the official client's world has Y pointing *down*: the camera frame
+//! clamp `if (eye.y > Height(x, z)) eye.y = Height(x, z)`
+//! (`CameraFrame.cpp:36-41`) only means "keep the eye above the ground" in
+//! that convention, the motion helper `Upward` builds `{0, -distance, 0}`
+//! (`EffectPrimitiveMotion.cpp:84-88`), a falling particle hits the floor when
+//! `render.position.y > Height(...)` (`EffectPrimitiveMotion.cpp:2598`,
+//! `:2762`), and that is why every effect body raises something with a
+//! *negative* `deltaPos2.y` (Ruwach's mote `-10`, the warp disc `-1.5`,
+//! `Render3DCasting`'s ring base `-(2 + ry)`).
+//!
+//! The port renders a **Y-up** world and already negates the map heights when
+//! it builds the terrain (`loaders/map/vertices.rs:315-318`). Every renderer of
+//! a ported 3-D primitive therefore has to flip Y once more before it projects
+//! a primitive position through the port camera; [`world_space_position`] is
+//! that single boundary, and [`render_slots::triangle_points`] and
+//! [`super::sprite_pass`] use it too. The matching half of the conversion -
+//! handing the primitives the anchor in the official sign - lives where the
+//! [`MasterState`](super::primitive::MasterState) is filled
+//! (`runtime::EffectRuntime::process_primitives`).
+//!
 //! ## What the official renderer reads
 //!
 //! * `PP_3DTEXTURE` is transformed by `state.rotTransform`, which
@@ -57,6 +80,19 @@ pub(crate) fn is_world_space(state: &EffectPrimitiveState) -> bool {
     matches!(state.count, PrimitiveId::Texture3d | PrimitiveId::CrossTexture3d)
 }
 
+/// Converts a position of the official effect simulation into the port's world
+/// space.
+///
+/// The official client's world is Y-down (see the module docs); the port's is
+/// Y-up because the map loader negates the GAT heights. X and Z are shared.
+///
+/// This is the *only* place the 3-D renderers flip the axis: every position a
+/// ported primitive state holds is in the official convention, so it is
+/// flipped exactly once, right before it is handed to the port camera.
+pub(crate) fn world_space_position(position: [f32; 3]) -> Point3<f32> {
+    Point3::new(position[0], -position[1], position[2])
+}
+
 /// Draws one `PP_3DTEXTURE`/`PP_3DCROSSTEXTURE` primitive.
 ///
 /// The primitive's own `render.position` is the quad anchor; a primitive whose
@@ -76,6 +112,8 @@ pub(crate) fn render_textured_primitive(
         return;
     };
 
+    // The anchor is `render.position` in the official (Y-down) effect space;
+    // [`renderer_quad`] flips it into the port's Y-up world once.
     let anchor = Point3::new(state.position[0], state.position[1], state.position[2]);
     let color = primitive_color(state);
 
@@ -264,28 +302,33 @@ type RendererQuad = ([Vector2<f32>; 4], [Vector2<f32>; 4], [f32; 4]);
 
 /// Projects the four corners and builds the arrays the effect renderer takes.
 ///
-/// Returns `None` when the anchor or any corner is behind the camera (the
-/// official `RenderTriangle::Visible` drops such triangles).
+/// Both the `anchor` and the `corners` are in the official (Y-down) effect
+/// space; [`world_space_position`] converts them for the port camera. Returns
+/// `None` when the anchor or any corner is behind the camera (the official
+/// `RenderTriangle::Visible` drops such triangles) and the port-space anchor
+/// otherwise, so the caller can hand the same anchor to the renderer.
 fn renderer_quad(
     camera: &dyn Camera,
     renderer: &EffectRenderer,
     anchor: Point3<f32>,
     corners: [Vector3<f32>; 4],
     texture_coordinates: [Vector2<f32>; 4],
-) -> Option<RendererQuad> {
+) -> Option<(RendererQuad, Point3<f32>)> {
     let screen_size = renderer.window_size();
+    let anchor = world_space_position([anchor.x, anchor.y, anchor.z]);
     let (anchor_screen, _) = project_point(camera, anchor, screen_size)?;
 
     let mut screen_corners = [Vector2::new(0.0, 0.0); 4];
     let mut corner_depths = [0.0; 4];
 
     for (index, corner) in corners.iter().enumerate() {
-        let (projected, depth) = project_point(camera, Point3::new(corner.x, corner.y, corner.z), screen_size)?;
+        let corner = world_space_position([corner.x, corner.y, corner.z]);
+        let (projected, depth) = project_point(camera, corner, screen_size)?;
         screen_corners[index] = projected - anchor_screen;
         corner_depths[index] = depth;
     }
 
-    Some(renderer_quad_arrays(screen_corners, texture_coordinates, corner_depths))
+    Some((renderer_quad_arrays(screen_corners, texture_coordinates, corner_depths), anchor))
 }
 
 /// Re-orders projected corners into the renderer layout and converts the
@@ -321,7 +364,8 @@ fn draw_quad(
     source_blend_factor: BlendFactor,
     destination_blend_factor: BlendFactor,
 ) {
-    let Some((screen_corners, texture_coordinates, corner_depths)) = renderer_quad(camera, renderer, anchor, corners, texture_coordinates)
+    let Some(((screen_corners, texture_coordinates, corner_depths), anchor)) =
+        renderer_quad(camera, renderer, anchor, corners, texture_coordinates)
     else {
         return;
     };
@@ -343,11 +387,222 @@ fn draw_quad(
 
 #[cfg(test)]
 mod tests {
+    use cgmath::{Deg, Matrix4};
+    use wgpu::BlendFactor;
+
     use super::super::math::Matrix;
     use super::*;
+    use crate::graphics::ScreenSize;
+    use crate::world::Camera;
 
     fn state() -> EffectPrimitiveState {
         EffectPrimitiveState::default()
+    }
+
+    /// The window every test renders against (the official 640x480 reference).
+    const WINDOW: ScreenSize = ScreenSize {
+        width: 640.0,
+        height: 480.0,
+    };
+
+    /// An eye `distance` units above the origin, looking straight down (-Y),
+    /// built with the same helpers as the game cameras: left handed, Y up,
+    /// reverse-z.
+    struct TestCamera {
+        eye: Point3<f32>,
+        view: Matrix4<f32>,
+        projection: Matrix4<f32>,
+        view_projection: Matrix4<f32>,
+    }
+
+    impl TestCamera {
+        fn above(distance: f32) -> Self {
+            let eye = Point3::new(0.0, distance, 0.0);
+            let view = Matrix4::look_to_lh(eye, Vector3::unit_y() * -1.0, Vector3::unit_z());
+            let projection = crate::graphics::perspective_reverse_lh(Deg(45.0), 4.0 / 3.0);
+
+            Self {
+                eye,
+                view,
+                projection,
+                view_projection: projection * view,
+            }
+        }
+    }
+
+    impl Camera for TestCamera {
+        fn camera_position(&self) -> Point3<f32> {
+            self.eye
+        }
+
+        fn focus_point(&self) -> Point3<f32> {
+            Point3::new(0.0, 0.0, 0.0)
+        }
+
+        fn generate_view_projection(&mut self, _window_size: ScreenSize) {}
+
+        fn look_up_vector(&self) -> Vector3<f32> {
+            // `look_to_lh` above uses +Z as "up" on screen for a straight-down
+            // view; the lateral scale only depends on the camera basis, so any
+            // perpendicular vector gives the same pixels per world unit.
+            Vector3::unit_z()
+        }
+
+        fn view_projection_matrices(&self) -> (Matrix4<f32>, Matrix4<f32>) {
+            (self.view, self.projection)
+        }
+
+        fn view_projection_matrix(&self) -> Matrix4<f32> {
+            self.view_projection
+        }
+
+        fn view_direction(&self) -> Vector3<f32> {
+            Vector3::unit_y() * -1.0
+        }
+    }
+
+    /// Reverse-z NDC depth of an official (Y-down) world position, i.e. the
+    /// value the effect pass compares against the scene depth buffer.
+    fn official_depth(camera: &dyn Camera, position: [f32; 3]) -> f32 {
+        project_point(camera, world_space_position(position), WINDOW)
+            .expect("in front of the camera")
+            .1
+    }
+
+    #[test]
+    fn world_space_position_flips_the_official_y_axis() {
+        // The official client's `render.position.y` grows downward; the port's
+        // world is Y-up. X/Z are shared.
+        assert_eq!(world_space_position([1.0, -2.0, 3.0]), Point3::new(1.0, 2.0, 3.0));
+        assert_eq!(world_space_position([0.0, 0.0, 0.0]), Point3::new(0.0, 0.0, 0.0));
+        // A point 1.5 above the ground in the official convention (`-1.5`)
+        // becomes 1.5 *above* the port's ground plane.
+        assert_eq!(world_space_position([0.0, -1.5, 0.0]).y, 1.5);
+    }
+
+    #[test]
+    fn a_ground_decal_flips_to_above_the_floor_and_passes_the_depth_test() {
+        // `EF_WARPZONE2`'s disc is drawn at `deltaPos2.y -= 1.5`
+        // (`RagEffect.cpp:9215-9227`), i.e. 1.5 units *above* the ground in the
+        // official Y-down world. This is the exact case that used to render
+        // under the floor: the flip is what puts the decal in front of the
+        // terrain instead of behind it.
+        let camera = TestCamera::above(200.0);
+
+        let ground = official_depth(&camera, [0.0, 0.0, 0.0]);
+        let decal = official_depth(&camera, [0.0, -1.5, 0.0]);
+
+        // Reverse-z: a larger NDC depth is nearer. The decal is above the
+        // ground, so it is nearer than the floor and `GreaterEqual` lets it
+        // draw; without the flip it would be behind the floor.
+        assert!(
+            decal > ground,
+            "decal depth {decal} must be in front of the floor depth {ground}"
+        );
+
+        let unflipped = project_point(&camera, Point3::new(0.0, -1.5, 0.0), WINDOW)
+            .expect("in front of the camera")
+            .1;
+        assert!(
+            unflipped < ground,
+            "the unflipped official Y is under the floor ({unflipped} < {ground})"
+        );
+    }
+
+    #[test]
+    fn every_corner_of_a_horizontal_quad_carries_the_converted_depth() {
+        // A horizontal `PP_3DTEXTURE` quad at the warp disc's height. Looking
+        // straight down, all four corners are at the same depth - the depth of
+        // the *converted* height (1.5 above the floor), not of the official
+        // one.
+        let camera = TestCamera::above(200.0);
+        let renderer = EffectRenderer::new(WINDOW);
+        let mut quad = state();
+        quad.position = [4.0, -1.5, -6.0];
+        quad.width_size = 15.0;
+        quad.height_size = 15.0;
+        // `latitude = 90` lays the quad flat, like the disc.
+        quad.rot_transform.make_z_rotation(std::f32::consts::FRAC_PI_2);
+
+        let Some(((_, _, depths), anchor)) = renderer_quad(
+            &camera,
+            &renderer,
+            Point3::new(quad.position[0], quad.position[1], quad.position[2]),
+            texture3d_corners(&quad),
+            texture3d_uvs(&quad),
+        ) else {
+            panic!("the quad is in front of the camera");
+        };
+
+        let expected = official_depth(&camera, [4.0, -1.5, -6.0]);
+        let floor = official_depth(&camera, [4.0, 0.0, -6.0]);
+
+        for (index, depth) in depths.iter().enumerate() {
+            assert!(
+                (depth - expected).abs() < 1e-3,
+                "corner {index} depth {depth} != converted anchor depth {expected}"
+            );
+            assert!(*depth > floor, "corner {index} is behind the floor ({depth} <= {floor})");
+        }
+
+        // The renderer receives the port-space anchor, never the official one.
+        assert_eq!(anchor.y, 1.5);
+        assert_eq!(anchor.x, 4.0);
+        assert_eq!(anchor.z, -6.0);
+    }
+
+    #[test]
+    fn a_tilted_quad_keeps_each_corner_depth_paired_with_its_corner() {
+        // A vertical quad (`PP_3DTEXTURE` at roll 0) spans two heights: the
+        // top of the quad is farther from a camera above the scene than its
+        // bottom, so the per-corner depths must differ in that order. The
+        // camera sits close so the two reverse-z depths differ by far more
+        // than the f32 interpolation noise.
+        let camera = TestCamera::above(40.0);
+        let renderer = EffectRenderer::new(WINDOW);
+        let mut quad = state();
+        quad.position = [0.0, 0.0, 0.0];
+        quad.width_size = 5.0;
+        quad.height_size = 10.0;
+
+        let Some(((_, _, depths), _)) = renderer_quad(
+            &camera,
+            &renderer,
+            Point3::new(0.0, 0.0, 0.0),
+            texture3d_corners(&quad),
+            texture3d_uvs(&quad),
+        ) else {
+            panic!("the quad is in front of the camera");
+        };
+
+        // The four corners are at official y = +-10, i.e. port y = -+10; the
+        // two `-height` corners are the higher ones and must be nearer.
+        let high = official_depth(&camera, [0.0, -10.0, 0.0]);
+        let low = official_depth(&camera, [0.0, 10.0, 0.0]);
+
+        assert!(high > low, "the high corners must be nearer than the low ones");
+
+        let higher = depths.iter().filter(|depth| (**depth - high).abs() < 1e-5).count();
+        let lower = depths.iter().filter(|depth| (**depth - low).abs() < 1e-5).count();
+
+        assert_eq!(higher, 2, "two corners at +10 official Y");
+        assert_eq!(lower, 2, "two corners at -10 official Y");
+    }
+
+    #[test]
+    fn a_floor_plane_never_projects_in_front_of_itself() {
+        // Sanity check for the regression: the ground point itself keeps the
+        // exact floor depth, so `GreaterEqual` (the effect pass) is what lets
+        // a coplanar decal through, and the flip only ever *helps*.
+        let camera = TestCamera::above(150.0);
+        let floor = official_depth(&camera, [8.0, 0.0, 3.0]);
+
+        assert_eq!(floor, official_depth(&camera, [8.0, 0.0, 3.0]));
+        assert!(floor > 0.0 && floor <= 1.0, "reverse-z NDC depth stays in [0, 1]");
+        // The camera looks down from +150: the view depth is 150, and the
+        // reverse-z projection maps it to NEAR_PLANE / 150.
+        let expected = crate::graphics::NEAR_PLANE / 150.0;
+        assert!((floor - expected).abs() < 1e-5);
     }
 
     #[test]

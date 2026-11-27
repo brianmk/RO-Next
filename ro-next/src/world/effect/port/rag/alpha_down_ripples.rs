@@ -227,6 +227,37 @@ mod tests {
         assert_eq!(runtime.primitives[4].state.count, PrimitiveId::Orbit);
     }
 
+    /// `deltaPos2.y -= 1.5f` (`RagEffect.cpp:9219`) is a **lift**, not a drop.
+    ///
+    /// The official client's world is Y-down (see `render3d`'s module docs), so
+    /// subtracting 1.5 raises the `alpha_down.tga` disc 1.5 units off the floor
+    /// to keep it from z-fighting with the terrain. The port's world is Y-up
+    /// and the renderer flips the axis, so the disc lands above the ground.
+    /// With the flip missing it sat 1.5 units *inside* the terrain; the floor
+    /// then occluded the whole portal ("rendered under the floor").
+    #[test]
+    fn the_ground_disc_is_lifted_above_the_floor() {
+        use crate::world::effect::port::render3d::world_space_position;
+
+        let mut effect = AlphaDownRipples::new("effect\\ring_blue.tga", 0, 99_999_999);
+        let mut runtime = EffectRuntime::new(99_999_999, [0.0, 0.0], 1);
+
+        run_body(&mut effect, &mut runtime);
+
+        let disc = &runtime.primitives[0].state;
+        assert_eq!(disc.delta_pos2[1], -1.5);
+        assert_eq!(disc.latitude, 90.0, "the disc lies flat on the ground");
+
+        // Caster on flat ground: official anchor `-H`, disc `-H - 1.5`, port
+        // render height `H + 1.5`.
+        let ground = 7.0f32;
+        let disc_world = world_space_position([0.0, -ground + disc.delta_pos2[1], 0.0]);
+        let floor_world = world_space_position([0.0, -ground, 0.0]);
+
+        assert!((disc_world.y - (ground + 1.5)).abs() < 1e-4);
+        assert!(disc_world.y > floor_world.y, "the disc must float above the floor");
+    }
+
     #[test]
     fn counter_reset_replays_the_disc() {
         let mut effect = AlphaDownRipples::new("effect\\ring_blue.tga", 0, 99_999_999);
