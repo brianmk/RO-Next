@@ -2019,6 +2019,14 @@
         ),
         (
             skill: 383,
+            phase: Cast,
+            layers: [
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 896, height: 2.0, bottom_radius: 4.1, top_radius: 4.1, alpha: 0.35, blend: Additive, wav: "effect\\EF_BeginSpell.wav"),
+                (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 896, height: 2.0, bottom_radius: 4.1, top_radius: 4.1, alpha: 0.2, blend: Additive),
+            ],
+        ),
+        (
+            skill: 383,
             phase: Success,
             layers: [
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", size: 4.25, duration_ms: 3333, alpha: 0.2, blend: Additive),
@@ -2026,7 +2034,7 @@
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 0.27, 0.3), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (-0.3, 0.34, 0.0), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
                 (kind: Texture, anchor: Caster, attached_entity: true, file: "effect\\cloud11.tga", offset: (0.0, 0.41, -0.3), size: 5.0, duration_ms: 3333, alpha: 0.5, blend: Additive),
-                (kind: BodyFlash, anchor: Caster, attached_entity: true, tint: (0.86, 0.98, 0.86), blend: Additive, hold_ms: 500),
+                (kind: BodyFlash, anchor: Caster, attached_entity: true, delay_ms: 80, tint: (0.8627, 0.9804, 0.8627), blend: Additive, hold_ms: 336),
             ],
         ),
         (

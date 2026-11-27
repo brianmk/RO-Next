@@ -319,6 +319,24 @@ mod tests {
         assert!(skill_launch(SkillId(400)).is_none());
     }
 
+    /// Wind Walk (383) has **no** status-linked launch row. The
+    /// movement-speed status `EFST_WINDWALK` (116) sits in the no-op groups of
+    /// both `CGameMode::ApplyStatusChange` switches
+    /// (`GameModePackets.cpp:6372` for `on`, `:7061` for `off`) and is absent
+    /// from `CPlayer::ReapplySkillEffects` (`Player.cpp:3180-3837`), so the
+    /// only persistent visual is the status icon row
+    /// (`status_effects.ron` id 116, `icon06.tga`). Its two official effect
+    /// layers are the skill lanes, not this table: `EF_BEGINSPELL6` (58) on
+    /// cast and `EF_PORTAL4` (389) on success, both mapped in `skill_map`.
+    #[test]
+    fn wind_walk_has_no_status_or_skill_launch_row() {
+        assert!(status_launch(116).is_none(), "EFST_WINDWALK never launches a status effect");
+        assert!(
+            skill_launch(SkillId(383)).is_none(),
+            "Wind Walk's cast lane is GetSkillActionInfo, not ApplyActorSkillState"
+        );
+    }
+
     #[test]
     fn every_listed_effect_has_a_ported_body() {
         // `parse` already rejects unported ids; this pins the intent of the

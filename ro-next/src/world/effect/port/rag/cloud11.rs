@@ -2,9 +2,44 @@
 //!
 //! Four slot-driven rising wind columns using `cloud11.tga` (`PP_WIND`). Used
 //! by the portal effects and the Storm Kick family.
+//!
+//! The helper itself only builds the primitive; the dispatch case adds the
+//! per-`EF_*` layers. `EF_PORTAL4` (Wind Walk) is the one with a caster layer
+//! (`RagEffect.cpp:23300-23311`):
+//!
+//! ```cpp
+//! case EF_PORTAL4:
+//!   this->Cloud11Burst(0);
+//!   if (stateCnt == 0) { position = parent.position; PlayWave("effect\\윈드워크.wav"); }
+//!   if (stateCnt >= 5 && stateCnt <= 25) {
+//!     if ((parent->render.flags & 1) == 0) parent->render.flags += 1;
+//!     parent->SetColor(-1, 220, 250, 220);
+//!   }
+//!   break;
+//! ```
+//!
+//! That green body tint rides the port's [`EffectRuntime::set_parent_color`]
+//! bridge ([`ParentTint`]) and requests `render.flags` bit 1 for the same
+//! window.
 
 use super::super::primitive::PrimitiveId;
 use super::super::runtime::{EffectRuntime, PortedEffect};
+
+/// The dispatch-level caster layers of an `EF_*` case built on
+/// `Cloud11Burst`: an inclusive `stateCnt` window that requests
+/// `render.flags` and calls `state.parent->SetColor(...)`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ParentTint {
+    /// First `stateCnt` of the window (inclusive).
+    pub first_frame: i32,
+    /// Last `stateCnt` of the window (inclusive).
+    pub last_frame: i32,
+    /// The four `SetColor(alpha, red, green, blue)` arguments verbatim; `-1`
+    /// leaves a channel unchanged.
+    pub color: [i16; 4],
+    /// `render.flags` bits the case adds while the window is active.
+    pub flags: u32,
+}
 
 #[derive(Debug)]
 pub struct Cloud11Burst {
@@ -12,6 +47,8 @@ pub struct Cloud11Burst {
     lifetime: i32,
     /// `(frame, wave)` sounds the dispatch block schedules.
     waves: Vec<(i32, &'static str)>,
+    /// Dispatch-level caster tint/flags window (`EF_PORTAL4` only).
+    tint: Option<ParentTint>,
 }
 
 impl Cloud11Burst {
@@ -20,11 +57,18 @@ impl Cloud11Burst {
             kind,
             lifetime,
             waves: Vec::new(),
+            tint: None,
         }
     }
 
     pub fn with_waves(mut self, waves: &[(i32, &'static str)]) -> Self {
         self.waves = waves.to_vec();
+        self
+    }
+
+    /// Adds the dispatch case's caster colour/flags window.
+    pub fn with_tint(mut self, tint: ParentTint) -> Self {
+        self.tint = Some(tint);
         self
     }
 }
@@ -41,9 +85,20 @@ impl PortedEffect for Cloud11Burst {
             runtime.play_sound(wave.1);
         }
 
+        // `if (this->state.stateCnt >= 5 && this->state.stateCnt <= 25) { ... }`
+        if let Some(tint) = self.tint
+            && (tint.first_frame..=tint.last_frame).contains(&frame)
+        {
+            runtime.add_parent_flags(tint.flags);
+            runtime.set_parent_color(tint.color[0], tint.color[1], tint.color[2], tint.color[3]);
+        }
+
         if frame != 0 {
             return true;
         }
+
+        // `CopyVector(this->render.position, this->state.parent->render.position);`
+        runtime.copy_parent_position();
 
         let lifetime = runtime.lifetime;
         let kind = self.kind;
@@ -184,5 +239,107 @@ mod tests {
 
         step(&mut effect, &mut runtime);
         assert_eq!(runtime.primitives[0].state.slots[0].process, 2);
+    }
+
+    /// `EF_PORTAL4`'s registration (`RagEffect.cpp:23300-23311`): kind 0, the
+    /// inline Wind Walk wave on frame 0 and the caster tint/flags window.
+    fn wind_walk() -> Cloud11Burst {
+        Cloud11Burst::new(0, 200)
+            .with_waves(&[(0, "effect\\윈드워크.wav")])
+            .with_tint(ParentTint {
+                first_frame: 5,
+                last_frame: 25,
+                color: [-1, 220, 250, 220],
+                flags: 1,
+            })
+    }
+
+    /// Layer 1: one `PP_WIND` primitive with the official four rising columns
+    /// (`Cloud11Burst(0)`), heights 5/7/9/11, rotations 0/90/180/270.
+    #[test]
+    fn wind_walk_has_the_four_official_wind_columns() {
+        let mut effect = wind_walk();
+        let mut runtime = EffectRuntime::new(200, [0.0, 0.0], 171);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.primitives.len(), 1);
+        let state = &runtime.primitives[0].state;
+        assert_eq!(state.count, PrimitiveId::Wind);
+        assert_eq!(state.duration, 200);
+        assert_eq!(state.size, 5.0);
+        assert_eq!(state.texture, Some("effect\\cloud11.tga"));
+
+        for (index, slot) in state.slots.iter().enumerate() {
+            assert_eq!(slot.life, 1, "slot {index}");
+            assert_eq!(slot.max_height, index as f32 * 2.0 + 5.0);
+            assert_eq!(slot.rot_start, ((index as i16) * 90 + 5) % 360);
+            assert_eq!(slot.alpha_t, 1);
+            assert!((4.5..7.6).contains(&slot.distance));
+            assert!((80..=100).contains(&slot.rise_angle));
+        }
+    }
+
+    /// Layer 2: `effect\윈드워크.wav`, exactly once, on frame 0 and with the
+    /// archive's single backslash separator.
+    #[test]
+    fn wind_walk_plays_the_official_wave_once_on_frame_zero() {
+        let mut effect = wind_walk();
+        let mut runtime = EffectRuntime::new(200, [0.0, 0.0], 171);
+
+        step(&mut effect, &mut runtime);
+        assert_eq!(runtime.sounds, vec!["effect\\윈드워크.wav".to_owned()]);
+
+        // `step` does not drain the record channel (the holder does), so clear
+        // it before the next frame to prove the wave does not replay.
+        runtime.sounds.clear();
+        step(&mut effect, &mut runtime);
+        assert!(runtime.sounds.is_empty(), "the wave must not replay");
+    }
+
+    /// Layer 3: `SetColor(-1, 220, 250, 220)` + `render.flags += 1` on frames
+    /// 5-25 only. The colour request persists after the window (the official
+    /// `SetColor` mutates the actor), the flag word does not
+    /// (`GameObject.cpp:435` clears it every frame).
+    #[test]
+    fn wind_walk_tints_the_caster_for_frames_five_to_twenty_five() {
+        let mut effect = wind_walk();
+        let mut runtime = EffectRuntime::new(200, [0.0, 0.0], 171);
+
+        for frame in 0..=26 {
+            step(&mut effect, &mut runtime);
+
+            if (5..=25).contains(&frame) {
+                assert_eq!(runtime.frame, frame + 1);
+                assert_eq!(
+                    runtime.parent_color,
+                    Some([-1, 220, 250, 220]),
+                    "frame {frame} must carry SetColor(-1, 220, 250, 220)"
+                );
+                assert_eq!(runtime.parent_flags & 1, 1, "frame {frame} must request render.flags bit 1");
+            } else if frame < 5 {
+                assert_eq!(runtime.parent_color, None, "frame {frame}");
+                assert_eq!(runtime.parent_flags & 1, 0, "frame {frame}");
+            } else {
+                // Frame 26 ends the window: the per-frame flag word is cleared,
+                // the persistent colour request stays.
+                assert_eq!(runtime.parent_color, Some([-1, 220, 250, 220]));
+                assert_eq!(runtime.parent_flags & 1, 0);
+            }
+        }
+    }
+
+    /// The official ``CopyVector(render.position, parent.position)`` on frame
+    /// 0.
+    #[test]
+    fn wind_walk_reanchors_on_the_caster_on_frame_zero() {
+        let mut effect = wind_walk();
+        let mut runtime = EffectRuntime::new(200, [0.0, 0.0], 171);
+        runtime.position = [10.0, 20.0, 30.0];
+        runtime.parent_position = Some([1.0, 2.0, 3.0]);
+
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.position, [1.0, 2.0, 3.0]);
     }
 }

@@ -1007,6 +1007,73 @@ mod tests {
         }
     }
 
+    /// Wind Walk (`SN_WINDWALK`, 383) plays two official lanes:
+    ///
+    /// * on use, `EF_BEGINSPELL6` (`SkillActionInfo.cpp:1750` ->
+    ///   `GameModePackets.cpp:12947-12953`/`:17551-17559`,
+    ///   `RagEffect.cpp:23584-23591`): two white `TexturedQuadRingSized` ring
+    ///   sets (base alphas 45 and 25) plus the inline
+    ///   `effect\EF_BeginSpell.wav`;
+    /// * on success, `EF_PORTAL4` (`GameModePackets.cpp:19098`,
+    ///   `RagEffect.cpp:23300-23311`): the `Cloud11Burst(0)` wind columns, the
+    ///   inline `effect\윈드워크.wav` and the caster's `SetColor(-1, 220, 250,
+    ///   220)` + `render.flags += 1` window on frames 5-25, which at the 16 ms
+    ///   client step is an 80 ms delay and a 336 ms hold.
+    ///
+    /// There is no `.str` clip and no status-linked persistent visual:
+    /// `EFST_WINDWALK` sits in the no-op groups of
+    /// `CGameMode::ApplyStatusChange` (`GameModePackets.cpp:6372`, `:7061`) and
+    /// is absent from `CPlayer::ReapplySkillEffects`
+    /// (`Player.cpp:3180-3837`), so only the status icon row exists
+    /// (`status_effects.ron` id 116).
+    #[test]
+    fn wind_walk_carries_its_two_official_lanes() {
+        let cast = skil_effect_layers(383, SkillPhase::Cast);
+        assert_eq!(cast.len(), 2, "EF_BEGINSPELL6 arms two ring sets");
+
+        for layer in cast {
+            assert_eq!(layer.kind, LayerKind::Cylinder);
+            assert_eq!(layer.anchor, LayerAnchor::Caster);
+            assert!(layer.attached_entity);
+            assert_eq!(layer.file, Some("effect\\ring_white.tga"));
+            assert_eq!(layer.duration_ms, 896);
+            assert_eq!(layer.height, 2.0);
+            assert_eq!(layer.bottom_radius, 4.1);
+            assert_eq!(layer.top_radius, 4.1);
+            assert!(layer.additive);
+            assert_eq!(layer.tint, crate::graphics::Color::WHITE);
+        }
+        assert_eq!(cast[0].alpha, 0.35);
+        assert_eq!(cast[1].alpha, 0.2);
+        assert_eq!(cast[0].wav, Some("effect\\EF_BeginSpell.wav"));
+        assert_eq!(cast[1].wav, None, "the wave plays once per cast");
+
+        let success = skil_effect_layers(383, SkillPhase::Success);
+        assert_eq!(success.len(), 6, "five cloud11 columns + the caster tint");
+
+        for layer in &success[..5] {
+            assert_eq!(layer.kind, LayerKind::Texture);
+            assert_eq!(layer.anchor, LayerAnchor::Caster);
+            assert!(layer.attached_entity);
+            assert_eq!(layer.file, Some("effect\\cloud11.tga"));
+        }
+        assert_eq!(success[1].wav, Some("effect\\윈드워크.wav"));
+        assert!(success[0].wav.is_none(), "the wave belongs to the first offset column");
+
+        let flash = success[5];
+        assert_eq!(flash.kind, LayerKind::BodyFlash);
+        assert_eq!(flash.delay_ms, 80, "stateCnt 5 opens the tint window");
+        assert_eq!(flash.hold_ms, 336, "stateCnt 5..=25 is 21 frames of 16 ms");
+        assert!(flash.additive);
+        for (channel, expected) in [
+            (flash.tint.red, 220.0 / 255.0),
+            (flash.tint.green, 250.0 / 255.0),
+            (flash.tint.blue, 220.0 / 255.0),
+        ] {
+            assert!((channel - expected).abs() < 0.001, "{channel} != {expected}");
+        }
+    }
+
     /// Dumps the globals of the remaining `luafiles514` tables (data info,
     /// sprite data, external settings) to find any animation/effect data.
     #[test]

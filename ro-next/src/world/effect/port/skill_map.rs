@@ -53,6 +53,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Incagidex,
     EffectId::Firefly,
     EffectId::Spraypond,
+    EffectId::Beginspell6,
     EffectId::Lockon,
     EffectId::Warpzone,
     EffectId::Sightrasher,
@@ -774,6 +775,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(380), SkillPhase::Success, EffectId::Truesight, PortedAnchor::Caster),
     (SkillId(381), SkillPhase::Success, EffectId::Falconassault, PortedAnchor::Caster),
     (SkillId(382), SkillPhase::Success, EffectId::Tripleattack2, PortedAnchor::Caster),
+    (SkillId(383), SkillPhase::Cast, EffectId::Beginspell6, PortedAnchor::Caster),
     (SkillId(383), SkillPhase::Success, EffectId::Portal4, PortedAnchor::Caster),
     (SkillId(384), SkillPhase::Success, EffectId::Meltdown, PortedAnchor::Caster),
     (SkillId(387), SkillPhase::Success, EffectId::Cartboost, PortedAnchor::Caster),
@@ -1013,6 +1015,25 @@ mod tests {
             Some(EffectId::Detecting as u32)
         );
         assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    #[test]
+    fn wind_walk_plays_the_cast_and_success_lanes() {
+        // `SN_WINDWALK` (383) is the first skill with two ported lanes:
+        // the cast-start `EF_BEGINSPELL6` rings (`SkillActionInfo.cpp:1750`
+        // -> `GameModePackets.cpp:12947-12953`/`:17551-17559`) and the
+        // success `EF_PORTAL4` wind columns (`GameModePackets.cpp:19098`).
+        assert_eq!(
+            ported_effect_for(SkillId(383), SkillPhase::Cast).map(|effect| effect as u32),
+            Some(EffectId::Beginspell6 as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Cast), PortedAnchor::Caster);
+
+        assert_eq!(
+            ported_effect_for(SkillId(383), SkillPhase::Success).map(|effect| effect as u32),
+            Some(EffectId::Portal4 as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Success), PortedAnchor::Caster);
     }
 
     #[test]

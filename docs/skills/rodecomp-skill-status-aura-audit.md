@@ -520,10 +520,18 @@ only a single faint quad. The decompilation says:
   `hunter_detecting.wav` (`RagEffect.cpp 23953-23954`) — an expanding aura ring.
   The row now emits two expanding `ring_white` cylinders on the ground cell.
 
-`SN_WINDWALK` 383 is still incomplete: the 2019 table and the 2026 enum both
-say effect id 389, but 2026 names it `EF_PORTAL4` (id drift), so the 2019
-whirlwind implementation has to be recovered from the 2019 client before the row
-can be finished. `AL_INCAGI` 29 falls into a large no-op case group in
+`SN_WINDWALK` 383 is now complete against the 2026 decompilation (the source of
+truth), which also settles the 2019-vs-2026 naming: both tables give effect id
+389 and the 2026 body is unambiguously the Wind Walk visual (`윈드워크.wav`), so
+`EF_PORTAL4` is not an id drift. The row carries both official lanes: the
+success lane `EF_PORTAL4` (`RagEffect.cpp:23300-23311` - `Cloud11Burst(0)`, the
+inline wave and the caster `SetColor(-1, 220, 250, 220)` + `render.flags += 1`
+window on frames 5-25) and the on-use cast lane `EF_BEGINSPELL6`
+(`SkillActionInfo.cpp:1750` -> `GameModePackets.cpp:12947-12953`/`:17551-17559`,
+two `ring_white` rings + `EF_BeginSpell.wav`, `RagEffect.cpp:23584-23591`).
+`EFST_WINDWALK` (116) has no status-linked persistent visual: it is a no-op in
+both `ApplyStatusChange` switches (`GameModePackets.cpp:6372`, `:7061`) and is
+absent from `ReapplySkillEffects` (`Player.cpp:3180-3837`). `AL_INCAGI` 29 falls into a large no-op case group in
 `OnProcess`; its body visual comes from a status-side path, so the row keeps its
 textures for now.
 

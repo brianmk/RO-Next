@@ -25,6 +25,8 @@ Sources:
 Skills whose official visual is not spawned by either skill-use switch are
 curated in `CURATED_SKILL_EFFECTS` below (the option auras: `EF_RUWACH` is
 re-launched from `CGameActor::UpdateStateEffects`, not from `skill_spawns`).
+Extra lanes that the `SkillEffect` data cannot see (the cast-start effect of
+`CSession::GetSkillActionInfo`) are listed in `CURATED_EXTRA_EFFECTS`.
 
 Run: `./tools/gen_ported_skill_map.py`
 Check: `./tools/gen_ported_skill_map.py --check`
@@ -119,6 +121,7 @@ TRAVEL_FROM_CASTER = {"Grimtooth", "Spearbmr"}
 #   (`GameActor.cpp:704-714`; population twin `RenderObject.cpp:4697-4705`).
 #   The aura starts when the skill completes (0x09CB), hence the `Success`
 #   phase.
+#
 # * `HT_DETECTING` (130) -> `EF_DETECTING` (119): Detect is `TargetType: Ground`
 #   (`db/pre-re/skill_db.yml:130`), so the server answers with
 #   `ZC_NOTIFY_GROUNDSKILL` (`clif_skill_poseffect`, `src/map/clif.cpp:6143-6164`,
@@ -137,6 +140,29 @@ TRAVEL_FROM_CASTER = {"Grimtooth", "Spearbmr"}
 CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
     24: ("Ruwach", "Success"),
     130: ("Detecting", "Ground"),
+}
+
+# Additional lanes of a skill that the `SkillEffect` coverage data cannot see.
+# The cast-start effect is not a `SkillEffect` field: the official client reads
+# it from `CSession::GetSkillActionInfo`, hands it to
+# `LaunchSkillActorEffect` and launches it on the caster before the cast
+# completes (`GameModePackets.cpp:12947-12953` -> `:17551-17559`, reached only
+# when the cast has a `delay != 0`). A skill can therefore have a ported id on
+# the `Cast` phase that no `windows_client_skill_effects.json` field names.
+#
+# * `SN_WINDWALK` (383) -> `EF_BEGINSPELL6` (58) on `Cast`: the default
+#   cast-start lane (`SkillActionInfo.cpp:51-53`, `:1750`; `ShowsCastEffect`
+#   is true by default, `SkillInfo.cpp:890-927`). Body
+#   `RagEffect.cpp:23584-23591` (two `ring_white` `TexturedQuadRingSized`
+#   rings + `effect\EF_BeginSpell.wav`), lifetime 40
+#   (`EffectTypes.cpp:67`). Its success lane (`EF_PORTAL4` 389) stays
+#   coverage-driven.
+#
+# The row is an extra (skill, phase) pair: it never replaces the coverage row
+# of the same skill, and a collision with an already emitted pair is a hard
+# error.
+CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str]] = {
+    383: ("Beginspell6", "Cast"),
 }
 
 
@@ -359,6 +385,14 @@ def main() -> int:
         anchor = "Target" if phase in TARGET_PHASES else "Caster"
         rows.append((skill, phase, name_to_id[name], name, anchor))
 
+    for skill, (name, phase) in sorted(CURATED_EXTRA_EFFECTS.items()):
+        if name not in ported_set:
+            raise SystemExit(f"curated extra skill {skill} maps to the unported effect {name}")
+        if any(row[0] == skill and row[1] == phase for row in rows):
+            raise SystemExit(f"curated extra {skill}/{phase} duplicates a coverage row")
+        anchor = "Target" if phase in TARGET_PHASES else "Caster"
+        rows.append((skill, phase, name_to_id[name], name, anchor))
+
     rows.sort(key=lambda row: (row[0], PHASE_INDEX[row[1]]))
     ported_sorted = sorted(ported_set, key=name_to_id.__getitem__)
 
@@ -500,6 +534,25 @@ def main() -> int:
     lines.append("            Some(EffectId::Detecting as u32)")
     lines.append("        );")
     lines.append("        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);")
+    lines.append("    }")
+    lines.append("")
+    lines.append("    #[test]")
+    lines.append("    fn wind_walk_plays_the_cast_and_success_lanes() {")
+    lines.append("        // `SN_WINDWALK` (383) is the first skill with two ported lanes:")
+    lines.append("        // the cast-start `EF_BEGINSPELL6` rings (`SkillActionInfo.cpp:1750`")
+    lines.append("        // -> `GameModePackets.cpp:12947-12953`/`:17551-17559`) and the")
+    lines.append("        // success `EF_PORTAL4` wind columns (`GameModePackets.cpp:19098`).")
+    lines.append("        assert_eq!(")
+    lines.append("            ported_effect_for(SkillId(383), SkillPhase::Cast).map(|effect| effect as u32),")
+    lines.append("            Some(EffectId::Beginspell6 as u32)")
+    lines.append("        );")
+    lines.append("        assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Cast), PortedAnchor::Caster);")
+    lines.append("")
+    lines.append("        assert_eq!(")
+    lines.append("            ported_effect_for(SkillId(383), SkillPhase::Success).map(|effect| effect as u32),")
+    lines.append("            Some(EffectId::Portal4 as u32)")
+    lines.append("        );")
+    lines.append("        assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Success), PortedAnchor::Caster);")
     lines.append("    }")
     lines.append("")
     lines.append("    #[test]")

@@ -12,21 +12,21 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, BeginSpellSwirl, Blessing, BlitzBeat, BloodDrain, BlueRingStack,
-    BlueSpellRings, BottomCarpet, BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, Chemical3, Chemical4,
-    ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst, CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike,
-    ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst,
-    FeatherRing, FireArrow, FireBall, FirePillar, FireSparks, FirstAid, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall,
-    Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility,
-    JumpKick, Kaizel, Kouenka, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2, MagnumBreak, MetallicSoundLine, NapalmBeat,
-    NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, Pressure, Providence, QuadRingStack, RedParticleSpray, RejectSword,
-    RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3, ShieldCharge, Signum, SlashCross, SlashFan,
-    SlashLevel, SlashWave, SonicBlow, SonicBlowHit, SoulBreaker, SoulBreaker2, SoulLink, SoulStrike, SpearBmr, Sphere, SprayPond,
-    SprinkleSand, Stin3, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam,
-    TexturedBlueRing, TexturedComet, TexturedGlow, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
-    TexturedScatter, TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, TexturedTumble, ThrowItem, Thunderstorm, TorchDustRing,
-    TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak,
-    WhiteSpray,
+    AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, BeginSpellRings, BeginSpellSwirl, Blessing, BlitzBeat,
+    BloodDrain, BlueRingStack, BlueSpellRings, BottomCarpet, BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash,
+    CartRevolution, Chemical3, Chemical4, ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst, CloudDrift, DecAgility, Detoxication,
+    Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3,
+    EnergyDrainBlack, Entry, Exit, FeatherBurst, FeatherRing, FireArrow, FireBall, FirePillar, FireSparks, FirstAid, ForestLight6,
+    FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst, HealRingSparkle,
+    Hit2, HolyCross, IceArrow, IceWall, IncAgility, JumpKick, Kaizel, Kouenka, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2,
+    MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, ParentTint, PortalRings, PortalSpell, PotionPill, Pressure,
+    Providence, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Ruwach,
+    ShieldBoomerang3, ShieldCharge, Signum, SlashCross, SlashFan, SlashLevel, SlashWave, SonicBlow, SonicBlowHit, SoulBreaker,
+    SoulBreaker2, SoulLink, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand, Stin3, StoneSpike, StopEffect, StormGust, StormKick,
+    Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedBlueRing, TexturedComet, TexturedGlow, TexturedHalo, TexturedMagicRing,
+    TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat,
+    TexturedTumble, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2,
+    WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -211,7 +211,21 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Aspersio => Box::new(Aspersio::new(999)),
         EffectId::Sphere => Box::new(Sphere::new(500)),
         EffectId::Removetrap => Box::new(RemoveTrap::new(70)),
-        EffectId::Portal4 => Box::new(Cloud11Burst::new(0, 200).with_waves(&[(0, "effect\\\\윈드워크.wav")])),
+        // `case EF_PORTAL4:` - `RagEffect.cpp:23300-23311` (Wind Walk's
+        // success lane): `Cloud11Burst(0)`, the inline
+        // `effect\윈드워크.wav` on frame 0, and the caster's
+        // `SetColor(-1, 220, 250, 220)` + `render.flags += 1` window on frames
+        // 5-25. Lifetime 200 (`EffectTypes.cpp:398`).
+        EffectId::Portal4 => Box::new(
+            Cloud11Burst::new(0, 200)
+                .with_waves(&[(0, "effect\\윈드워크.wav")])
+                .with_tint(ParentTint {
+                    first_frame: 5,
+                    last_frame: 25,
+                    color: [-1, 220, 250, 220],
+                    flags: 1,
+                }),
+        ),
         EffectId::Portal5 => Box::new(Cloud11Burst::new(1, 200)),
         EffectId::Intimidate => {
             Box::new(WhiteSpray::new(0, 20, 999).with_waves(&[(0, "effect\\EF_Bash.wav"), (35, "effect\\rog_intimidate.wav")]))
@@ -483,6 +497,14 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // `SakuraFireArrow()` + two `TexturedQuadSpin(..., index, 2)`.
         // Lifetime 300 (`EffectTypes.cpp:627`).
         EffectId::Kouenka => Box::new(Kouenka::new(300)),
+        // `case EF_BEGINSPELL6:` - `RagEffect.cpp:23584-23591`: the default
+        // cast-start rings + `effect\EF_BeginSpell.wav` of every skill whose
+        // `CSession::GetSkillActionInfo` leaves `effectId` at 58
+        // (`SkillActionInfo.cpp:51-53`, `:1750`), launched by
+        // `LaunchSkillActorEffect` (`GameModePackets.cpp:17551-17559`).
+        // Lifetime 40 (`EffectTypes.cpp:67`); the shared
+        // `TexturedQuadRingSized` helper raises it to 56 on frame 0.
+        EffectId::Beginspell6 => Box::new(BeginSpellRings::new(40)),
         // `case EF_BEGINSPELL_N6:` - `RagEffect.cpp:19925-19926`:
         // `BeginSpellSwirl(45, "", 6)` (`:9548-9650`). Lifetime 100
         // (`EffectTypes.cpp:852`); the body raises it to 120 on frame 0.
@@ -816,6 +838,10 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Stin3,
         EffectId::Kouenka,
         EffectId::BeginspellN6,
+        // `EF_BEGINSPELL6` (58) - the default cast-start rings used by Wind
+        // Walk's "on use" lane (`RagEffect.cpp:23584-23591`, lifetime
+        // `EffectTypes.cpp:67`).
+        EffectId::Beginspell6,
     ]);
 
     ids
@@ -926,6 +952,9 @@ mod tests {
             (EffectId::Stin3, 200),
             (EffectId::Kouenka, 300),
             (EffectId::BeginspellN6, 100),
+            // `EF_BEGINSPELL6` - `EffectTypes.cpp:67` (raised to 56 by the
+            // ring helper on frame 0).
+            (EffectId::Beginspell6, 40),
             (EffectId::Blitzbeat, 250),
             (EffectId::Spraypond, 130),
             (EffectId::Entry, 100),
@@ -1127,6 +1156,39 @@ mod tests {
         );
         assert!(spawn(EffectId::Signum).is_some());
         assert!(spawn(EffectId::Cartrevolution).is_some());
+    }
+
+    /// `EF_PORTAL4` (389) is Wind Walk's success lane. The registration must
+    /// carry every official layer of `case EF_PORTAL4:`
+    /// (`RagEffect.cpp:23300-23311`): the `Cloud11Burst(0)` wind columns, the
+    /// inline wave (a *single* backslash archive path - the earlier double
+    /// backslash never resolved a file) and the caster tint window.
+    #[test]
+    fn portal4_registration_carries_the_wind_walk_layers() {
+        use crate::world::effect::port::primitive::PrimitiveId;
+        use crate::world::effect::port::runtime::{EffectRuntime, step};
+
+        let mut body = spawn(EffectId::Portal4).expect("EF_PORTAL4 must stay registered");
+        assert_eq!(body.lifetime(), 200);
+
+        let mut runtime = EffectRuntime::new(200, [0.0, 0.0], 171);
+        // Frames 0..=5: frame 0 spawns the columns + wave, frame 5 opens the
+        // colour window.
+        for _ in 0..=5 {
+            step(&mut body, &mut runtime);
+        }
+
+        assert_eq!(runtime.primitives.len(), 1);
+        assert_eq!(runtime.primitives[0].state.count, PrimitiveId::Wind);
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\cloud11.tga"));
+
+        assert_eq!(
+            runtime.sounds,
+            vec!["effect\\윈드워크.wav".to_owned()],
+            "the registry path must use the archive's single backslash"
+        );
+        assert_eq!(runtime.parent_color, Some([-1, 220, 250, 220]));
+        assert_eq!(runtime.parent_flags & 1, 1);
     }
 
     #[test]

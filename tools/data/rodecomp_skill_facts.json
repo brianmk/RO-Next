@@ -2118,8 +2118,35 @@
    "effect_ids": [
     389
    ],
-   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id | EF_PORTAL4 for SN_WINDWALK: Cloud11Burst(0) spawns four cloud11 quads at heights 5/7/9/11 with 0/90/180/270 rotations (RagEffect.cpp 16089), the caster gets body blend 1 + SetColor(220,250,220) for frames 5-25, and effect\\윈드워크.wav plays (RagEffect.cpp 23300-23311)",
+   "evidence": "official C++ switch and the 2019-era SkillEffect table agree on the effect id | EF_PORTAL4 for SN_WINDWALK: Cloud11Burst(0) spawns four cloud11 quads at heights 5/7/9/11 with 0/90/180/270 rotations (RagEffect.cpp 16089), the caster gets body blend 1 + SetColor(220,250,220) for frames 5-25, and effect\\윈드워크.wav plays (RagEffect.cpp 23300-23311). On cast start the skill also plays the default EF_BEGINSPELL6 lane: two ring_white TexturedQuadRingSized rings (base alphas 45/25) plus the inline effect\\EF_BeginSpell.wav (SkillActionInfo.cpp 1750 -> GameModePackets.cpp 12947-12953/17551-17559, RagEffect.cpp 23584-23591; lifetime 40, EffectTypes.cpp 67). There is no .str clip and no status-linked persistent visual (EFST_WINDWALK is a no-op in CGameMode::ApplyStatusChange, GameModePackets.cpp 6372/7061, and is absent from CPlayer::ReapplySkillEffects, Player.cpp 3180-3837).",
    "layers": [
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\ring_white.tga",
+     "duration_ms": 896,
+     "height": 2.0,
+     "bottom_radius": 4.1,
+     "top_radius": 4.1,
+     "alpha": 0.35,
+     "blend": "Additive",
+     "wav": "effect\\EF_BeginSpell.wav",
+     "phase": "Cast"
+    },
+    {
+     "kind": "Cylinder",
+     "anchor": "Caster",
+     "attached_entity": true,
+     "file": "effect\\ring_white.tga",
+     "duration_ms": 896,
+     "height": 2.0,
+     "bottom_radius": 4.1,
+     "top_radius": 4.1,
+     "alpha": 0.2,
+     "blend": "Additive",
+     "phase": "Cast"
+    },
     {
      "kind": "Texture",
      "anchor": "Caster",
@@ -2199,13 +2226,13 @@
      "anchor": "Caster",
      "attached_entity": true,
      "tint": [
-      0.86,
-      0.98,
-      0.86
+      0.8627,
+      0.9804,
+      0.8627
      ],
-     "hold_ms": 500,
-     "fade_ms": 0,
-     "blend": "Additive"
+     "hold_ms": 336,
+     "blend": "Additive",
+     "delay_ms": 80
     }
    ]
   },

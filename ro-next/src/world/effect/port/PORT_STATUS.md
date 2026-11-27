@@ -57,6 +57,8 @@ Source of truth for the plan: `default-workspace/ro-next-fx-audit/PLAN.md`.
 | primitive slots (`EffectPrimitiveSlot` x4) | `EffectPrimitiveState.h` | - |
 | `PP_WIND` (`PrimWind`) | `EffectPrimitiveMotion.cpp:4415-4497` | 4 |
 | `CRagEffect::Cloud11Burst` (`EF_PORTAL4`, `EF_PORTAL5`) | `RagEffect.cpp:16089-16157` | 4 |
+| `EF_PORTAL4` caster tint window (`SetColor` 5-25 + flag 1) | `RagEffect.cpp:23300-23311` | 2 |
+| `case EF_BEGINSPELL6:` cast-start rings (Wind Walk's on-use lane) | `RagEffect.cpp:23584-23591` | 3 |
 | `PP_INTIMIDATE` (`PrimIntimidate`) | `EffectPrimitiveMotion.cpp:1257-1313` | 4 |
 | `CRagEffect::WhiteSpray` (`EF_INTIMIDATE`/2/3/4) | `RagEffect.cpp:5874-5921` | 4 |
 | prim 82 `PrimAuraGlow` + slot vectors | `EffectPrimitiveMotion.cpp:6837-6946` | 4 |
