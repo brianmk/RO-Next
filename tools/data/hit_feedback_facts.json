@@ -25,7 +25,7 @@
    "critical_line": "RenderObject.cpp:3776-3782",
    "effect_ids": "Source/Contents/Effects/Core/EffectTypes.h:8 (EF_HIT1 = 0), :9 (EF_HIT2 = 1), :442 (EF_HITLINE7 = 434), :2428 (EF_VIOLEN_HIT = 2420)",
    "job_ids": "Source/Contents/Jobs/JobId.h:3412-3610, :3647-3661 (JT_TAEKWON=4046 .. JT_SKY_EMPEROR2=4316), :4040-4041 (JT_VIOLEN=22383, JT_CP_VIOLEN=22384)",
-   "note": "No size, race or level variation: the hit effect switches only on the attacker job (Taekwon/Star family, Violen) and critical/normal. EF_VIOLEN_HIT has no EffectId variant in this client's packet crate."
+   "note": "No size, race or level variation: the hit effect switches only on the attacker job (Taekwon/Star family, Violen) and critical/normal. EF_VIOLEN_HIT is carried by `ragnarok-packets` as `EffectId::ViolenHit` (#[numeric_value(2420)])."
   }
  },
  "weapon_hit_waves": [

@@ -925,7 +925,7 @@ impl Client {
 /// the same job stem in upper case. Only real monster jobs use the table
 /// (`IsMonsterActor` in `SessionPredicates.cpp:57`); pets, homunculi and
 /// mercenaries do not.
-fn monster_skill_action_for_entity(
+pub(super) fn monster_skill_action_for_entity(
     library: &crate::world::Library,
     entity: &crate::world::Entity,
     skill_id: SkillId,

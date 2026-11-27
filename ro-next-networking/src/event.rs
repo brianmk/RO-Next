@@ -301,6 +301,20 @@ pub enum NetworkEvent {
         destination_entity_id: EntityId,
         /// Damage amount. [`None`] on miss, [`Some`] otherwise.
         damage_amount: Option<usize>,
+        /// Second damage number of a dual-wielding assassin attack.
+        ///
+        /// `ZC_NOTIFY_ACT3` (0x08C8) and `ZC_NOTIFY_ACT` (0x008A) carry two
+        /// damage values: the main-hand `damage` and the off-hand `damage2`
+        /// (`GameModePackets.cpp:22419`, `:22522`, forwarded to
+        /// `ACTSTRUCT::damage2` by `ReceiveActorAction`,
+        /// `GameModePackets.cpp:11789-11800`). The official client treats the
+        /// second value as a separate delayed damage message
+        /// (`ProcessHitMessage`'s `extraDamage`, `RenderObject.cpp:3856-3877`)
+        /// with its own number, impact wave and hit effect.
+        ///
+        /// [`None`] when the packet carries no off-hand value (`0`), which is
+        /// every non-dual-wield attacker.
+        damage_amount_2: Option<usize>,
         /// Number of hits the damage is split into (`div` of
         /// `ZC_NOTIFY_SKILL` 0x01DE, `number_of_hits` of the attack packets).
         /// `0` is treated as one hit; the official client caps the split at 36

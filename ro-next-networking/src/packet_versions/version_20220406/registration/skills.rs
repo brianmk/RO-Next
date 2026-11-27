@@ -61,6 +61,10 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            // `damage2` of `ZC_NOTIFY_ACT3`/`ZC_NOTIFY_ACT`: the official
+            // `extraDamage` damage message (`RenderObject.cpp:3700`,
+            // `:3856-3877`); `0` means no off-hand hit.
+            damage_amount_2: (packet.damage_amount_2 > 0).then_some(packet.damage_amount_2 as usize),
             hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: false,
@@ -72,6 +76,10 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            // `damage2` of `ZC_NOTIFY_ACT3`/`ZC_NOTIFY_ACT`: the official
+            // `extraDamage` damage message (`RenderObject.cpp:3700`,
+            // `:3856-3877`); `0` means no off-hand hit.
+            damage_amount_2: (packet.damage_amount_2 > 0).then_some(packet.damage_amount_2 as usize),
             hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: true,
@@ -99,6 +107,10 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            // `damage2` of `ZC_NOTIFY_ACT3`/`ZC_NOTIFY_ACT`: the official
+            // `extraDamage` damage message (`RenderObject.cpp:3700`,
+            // `:3856-3877`); `0` means no off-hand hit.
+            damage_amount_2: (packet.damage_amount_2 > 0).then_some(packet.damage_amount_2 as usize),
             hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: false,
@@ -110,6 +122,10 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            // `damage2` of `ZC_NOTIFY_ACT3`/`ZC_NOTIFY_ACT`: the official
+            // `extraDamage` damage message (`RenderObject.cpp:3700`,
+            // `:3856-3877`); `0` means no off-hand hit.
+            damage_amount_2: (packet.damage_amount_2 > 0).then_some(packet.damage_amount_2 as usize),
             hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: true,

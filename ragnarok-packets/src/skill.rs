@@ -1529,6 +1529,17 @@ pub enum EffectId {
     /// Lifetime 40 (`EffectTypes.cpp:2376`).
     #[numeric_value(2367)]
     BeginspellRingYellow,
+    /// `EF_VIOLEN_HIT` (`EffectTypes.h:2428`, official id 2420).
+    ///
+    /// The official entity is a `CSpriteEffect` (`EffectLists.cpp:5129`) and
+    /// the body is its sprite setup (`SpriteEffect.cpp:294-301`): one looping
+    /// `몬스터\violen_hit.spr` animation, `frameDelay` 4, `depthOffset` 0.001,
+    /// `effectLifetime` 100 (`SpriteEffect.cpp:71-73`). The client selects it
+    /// as the defender hit effect of a Violen/`JT_CP_VIOLEN` attacker
+    /// (`RenderObject.cpp:3818-3821`), which is why the missing variant used
+    /// to suppress that hit effect.
+    #[numeric_value(2420)]
+    ViolenHit,
     /// `EF_HEAL_BLUE_2` (`EffectTypes.h:2435`, official id 2427).
     ///
     /// The dispatch (`RagEffect.cpp:22886-22891`) is one already-ported

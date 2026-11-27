@@ -198,6 +198,9 @@ fn skill_damage_event(packet: DisplaySkillEffectAndDamagePacket) -> NetworkEvent
         source_entity_id: packet.source_entity_id,
         destination_entity_id: packet.destination_entity_id,
         damage_amount: (packet.damage > 0).then_some(packet.damage as usize),
+        // `ZC_NOTIFY_SKILL` (0x01DE) has no second (dual-wield) damage value;
+        // only the attack packets carry one.
+        damage_amount_2: None,
         // `div` is the hit count (`clif_skill_damage`): the official client
         // splits the damage into this many numbers at 200 ms intervals
         // (`RenderObject.cpp:5367-5368`, `:5931-5947`). Aegis-style Throw
@@ -321,6 +324,7 @@ mod tests {
             source_entity_id,
             destination_entity_id,
             damage_amount,
+            damage_amount_2,
             hit_count,
             attack_duration,
             is_critical,
@@ -335,6 +339,7 @@ mod tests {
         assert_eq!(source_entity_id, EntityId(20000076));
         assert_eq!(destination_entity_id, EntityId(1002));
         assert_eq!(damage_amount, Some(1234));
+        assert_eq!(damage_amount_2, None, "ZC_NOTIFY_SKILL has no off-hand damage");
         assert_eq!(hit_count, 1);
         assert_eq!(attack_duration, 480);
         assert!(!is_critical);

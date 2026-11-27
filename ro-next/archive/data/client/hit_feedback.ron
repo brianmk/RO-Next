@@ -76,9 +76,8 @@
     // `ProcessHitMessage` (`RenderObject.cpp:3801-3817`): the Taekwon/Star
     // job family spawns EF_HITLINE7 (434) instead of EF_HIT1 (0).
     hitline7_jobs: [4046, 4047, 4048, 4225, 4226, 4238, 4239, 4240, 4241, 4242, 4243, 4302, 4303, 4316],
-    // EF_VIOLEN_HIT (2420) jobs (`RenderObject.cpp:3818-3821`). The packet
-    // crate has no EffectId for 2420, so the client suppresses the effect
-    // instead of inventing EF_HIT1.
+    // EF_VIOLEN_HIT (2420) jobs (`RenderObject.cpp:3818-3821`); the
+    // client spawns it as `EffectId::ViolenHit`.
     violen_jobs: [22383, 22384],
     // `InitJobHitWaveNames`: the array default and the explicit rows that
     // differ from it (`jobWaves[job]`, or `job - 3950` for jobs > 3950).

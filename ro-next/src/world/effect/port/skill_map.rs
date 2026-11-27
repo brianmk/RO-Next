@@ -504,6 +504,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::WoodenWarriorRing,
     EffectId::WoodenFairyRing,
     EffectId::BeginspellRingYellow,
+    EffectId::ViolenHit,
     EffectId::HealBlue2,
     EffectId::RgCoinBlue,
     EffectId::RgCoinBlue2,

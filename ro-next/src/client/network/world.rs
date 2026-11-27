@@ -578,6 +578,7 @@ impl Client {
             source_entity_id,
             destination_entity_id,
             damage_amount,
+            damage_amount_2,
             hit_count,
             attack_duration,
             is_critical,
@@ -616,7 +617,24 @@ impl Client {
                 damage_amount.is_some(),
                 is_critical,
                 client_tick,
+                0,
             );
+
+            // Dual wield: the packet's `damage2` is a second damage message of
+            // the same attack (`RenderObject.cpp:3700`, `:3856-3877`) with its
+            // own impact wave and hit effect. It is queued until
+            // `message.time`, i.e. 350 ms after the main-hand message
+            // (`:3870`, `:4712-4721`).
+            if damage_amount_2.is_some() {
+                self.play_auto_attack_hit_feedback(
+                    source_entity_id,
+                    destination_entity_id,
+                    true,
+                    is_critical,
+                    client_tick,
+                    crate::world::dual_wield_hit_delay_ms(),
+                );
+            }
         }
 
         // Falcon attack flight (`CGameActor::statusEffects[0]`): the official
@@ -759,6 +777,22 @@ impl Client {
             } else {
                 entity.set_attack(attack_duration, is_critical, client_tick);
             }
+
+            // A damage-carrying skill packet also resolves the monster
+            // skill-motion table (`CGameMode::ReceiveActorSkill`,
+            // `GameModePackets.cpp:4281-4286`; the old-layout
+            // `ReceiveActorSkillAction` and the position variant at `:4356` /
+            // `:4431` do the same): after the skill message the official calls
+            // `GetMonsterSkillInfo` and `SetAction(action * 8 - 8, 1, loopType
+            // == 0)`. `SetAction` clears the skill's frame sequence
+            // (`RenderObject.cpp:527`), so the monster motion replaces the
+            // generic damage pose. Only monsters have table rows, so player
+            // casters are unchanged.
+            if let Some(monster_action) =
+                skill_id.and_then(|skill_id| super::skills::monster_skill_action_for_entity(&self.library, entity, skill_id))
+            {
+                entity.set_monster_action(monster_action.action_index as usize, monster_action.looping, client_tick);
+            }
         }
 
         if let Some(entity) = self
@@ -831,6 +865,26 @@ impl Client {
                             direction,
                         )));
                     }
+                }
+
+                // The off-hand value of a dual-wield attack is a separate
+                // damage message (`message.damage = extraDamage`,
+                // `RenderObject.cpp:3871`). The official colour/style only
+                // depends on the message (`GameObject.cpp:1889-1943` selects
+                // it from the target/attacker, never from the hit index), so
+                // the second number uses the same style and colour; only its
+                // `message.time` differs (`:3870`).
+                if let Some(amount_2) = damage_amount_2 {
+                    self.particle_holder.spawn_particle(Box::new(DamageNumber::damage(
+                        destination_entity_id,
+                        position,
+                        amount_2 as u64,
+                        is_critical,
+                        blue_damage,
+                        target_is_player,
+                        direction,
+                        crate::world::dual_wield_hit_delay_ms(),
+                    )));
                 }
             }
         }
