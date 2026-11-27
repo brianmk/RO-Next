@@ -234,3 +234,15 @@ Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in
   `client/effects.rs::ground_unit_effect`). The menu's "Log out" button is labelled
   **Character select**; the map-server logout path already returns to the character selection
   screen.
+
+### Follow-up release 0.2.39
+
+* `0.2.39` (`20261127-110930`) — Soul Link's big animation.
+  `GameModePackets.cpp:19425-19439` launches **both** `EF_SOULLINK` and `EF_ASURABODY` on the
+  target for `SL_SOULLINKER` (461) and every other `SL_*` skill. The generated map picked
+  `EF_ASURABODY` as the primary (it is the first id in the coverage data), so the signature
+  orbit/whitespark animation was never spawned while the descriptor rows were suppressed. The
+  map now uses `Soullink` with `PortedAnchor::Target` for skills
+  `445, 447..458, 460, 461` (`tools/gen_ported_skill_map.py`, `SL_SOULLINK_SKILLS`), and
+  `secondary_ported_effect` spawns the `Asurabody` glow on the same target. Target-anchored
+  ported effects now also attach to the target entity rather than the caster.
