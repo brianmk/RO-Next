@@ -30,6 +30,26 @@ fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled
     ported_enabled && crate::world::port::skill_map::ported_effect_for(skill_id, phase).is_some()
 }
 
+/// Whether the descriptor **layers** of a `(skill, phase)` pair are drawn by
+/// the ported backend instead.
+///
+/// The predicate is exactly the one [`Client::spawn_ported_skill_effect`]
+/// accepts a pair with, so the layers are only skipped when something replaces
+/// them: the opt-in backend is on **and** `port::skill_map` has an official
+/// body for the pair. With the backend off, or for an unmapped pair, the
+/// layers spawn exactly as before.
+///
+/// Only the layers are suppressed. The descriptor row itself stays in the
+/// table because three lookups read it independently of the spawn loop:
+/// `skill_action_override` (the `action` field is the caster pose fallback of
+/// `world/skill_action.rs:99`), `skill_cast_circle_color` (the packet's cast
+/// circle tint, `client/network/skills.rs:60`) and `skill_effect_sound_files`
+/// (the phase's `wav`). See [`Client::spawn_skill_effect_phase`] for the
+/// duplicated-sound caveat.
+fn descriptor_layers_suppressed(skill_id: SkillId, phase: SkillPhase, ported_enabled: bool) -> bool {
+    ported_enabled && crate::world::port::skill_map::ported_effect_for(skill_id, phase).is_some()
+}
+
 /// `AM_SETCOUNT` value carried by the official skill launcher: the effect
 /// level `state.count` is the skill level verbatim
 /// (`JobInheritance.cpp:2147/2153` sends `level` for
@@ -368,6 +388,23 @@ impl Client {
     /// spawned effect goes through the effect holder's global/per-entity
     /// budget and distance culling. The spawn path iterates the static
     /// layer slice in place: no allocation per layer or per frame.
+    ///
+    /// # Ported duplicates
+    ///
+    /// When the opt-in ported backend is on and
+    /// `port::skill_map::ported_effect_for` has a body for the pair, the
+    /// descriptor layers of that pair are skipped: the official body below
+    /// draws the same visual (see [`descriptor_layers_suppressed`]). Everything
+    /// else keeps running, including the per-cast claim, the procedural
+    /// [`StormCloud`] and the descriptor row's separate lookups
+    /// (`skill_action_override`, `skill_cast_circle_color`).
+    ///
+    /// Sound is still selected by the descriptor path
+    /// (`world/skill_sound.rs::skill_sound_candidates_for`) *and* replayed by
+    /// the ported body from its recorded official `PlayWave` calls, so a mapped
+    /// phase can play two waves. Fixing that precedence is a follow-up for when
+    /// `RO_NEXT_PORTED_FX` becomes the default; suppressing the layers must not
+    /// change the sound path in the meantime.
     pub(crate) fn spawn_skill_effect_phase(
         &mut self,
         skill_id: SkillId,
@@ -403,31 +440,44 @@ impl Client {
             return;
         }
 
-        let spawn_count = layers.len().min(crate::world::MAX_LAYERS_PER_PHASE);
-        if layers.len() > spawn_count {
-            crate::logging::log_warn!(
-                "skill effect: skill {} phase {:?} has {} layers, spawning the first {}",
+        // A mapped pair is drawn by the ported body only. The row keeps its
+        // `action` / `cast_circle_color` fields, which are read through their
+        // own lookups instead of the layer loop.
+        let layers_suppressed = descriptor_layers_suppressed(skill_id, phase, ported_enabled);
+
+        if layers_suppressed {
+            crate::logging::log_debug!(
+                "skill effect: skill {} phase {:?} descriptor layers suppressed (ported backend draws the pair)",
                 skill_id.0,
-                phase,
-                layers.len(),
-                spawn_count
+                phase
             );
-        }
+        } else {
+            let spawn_count = layers.len().min(crate::world::MAX_LAYERS_PER_PHASE);
+            if layers.len() > spawn_count {
+                crate::logging::log_warn!(
+                    "skill effect: skill {} phase {:?} has {} layers, spawning the first {}",
+                    skill_id.0,
+                    phase,
+                    layers.len(),
+                    spawn_count
+                );
+            }
 
-        let source_position = self.entity_position(source_entity_id);
+            let source_position = self.entity_position(source_entity_id);
 
-        for layer in &layers[..spawn_count] {
-            self.spawn_skill_effect_layer(
-                skill_id,
-                phase,
-                layer,
-                source_entity_id,
-                target_entity_id,
-                target_position,
-                source_position,
-                client_tick,
-                cast_time_ms,
-            );
+            for layer in &layers[..spawn_count] {
+                self.spawn_skill_effect_layer(
+                    skill_id,
+                    phase,
+                    layer,
+                    source_entity_id,
+                    target_entity_id,
+                    target_position,
+                    source_position,
+                    client_tick,
+                    cast_time_ms,
+                );
+            }
         }
 
         // Procedural cloud layers the official effect table cannot express
@@ -446,8 +496,9 @@ impl Client {
             self.effect_holder.add_unit(Box::new(cloud), source_entity_id);
         }
 
-        // Opt-in: additionally play the ported 1:1 official effect for this
-        // skill/phase. Additive - the descriptor layers above are untouched.
+        // Opt-in: play the ported 1:1 official effect for this skill/phase.
+        // For a mapped pair it is the *only* drawing of the pair, because the
+        // descriptor layers were suppressed above; an unmapped pair keeps them.
         self.spawn_ported_skill_effect(
             skill_id,
             phase,
@@ -1095,10 +1146,13 @@ impl Client {
 mod tests {
     use ragnarok_packets::{SkillId, UnitId};
 
-    use super::{apply_effect_skill_level, effect_count_for_skill_level, map_warp_effect, should_spawn_skill_phase, warp_unit_effect};
+    use super::{
+        apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, map_warp_effect, should_spawn_skill_phase,
+        warp_unit_effect,
+    };
     use crate::world::port::holder::PortedEffectHolder;
     use crate::world::port::runtime::EffectRuntime;
-    use crate::world::{EntityType, SkillPhase};
+    use crate::world::{CasterAction, EntityType, SkillPhase};
 
     /// Regression for Blitz Beat: `EF_BLITZBEAT` is a hard-coded procedural
     /// body with no `skill_effects.ron` descriptor row, so the ported hook must
@@ -1115,6 +1169,63 @@ mod tests {
         assert!(!should_spawn_skill_phase(SkillId(129), SkillPhase::Success, false));
         // No descriptor and no ported body keeps the cheap early-out.
         assert!(!should_spawn_skill_phase(SkillId(u16::MAX), SkillPhase::Success, true));
+    }
+
+    /// A mapped pair is drawn by the ported body only: its descriptor layers
+    /// are skipped, while the same descriptor row keeps the data the separate
+    /// lookups read (caster action override, cast-circle tint).
+    #[test]
+    fn mapped_pairs_suppress_only_the_descriptor_layers() {
+        // Blessing (34) is mapped on `Success` and that row has layers plus
+        // `action: Skill`; the cast-circle tint lives on the same skill's
+        // `Cast` row and is a per-skill lookup.
+        assert_eq!(
+            crate::world::port::skill_map::ported_effect_for(SkillId(34), SkillPhase::Success).map(|effect| effect as u32),
+            Some(ragnarok_packets::EffectId::Blessing as u32)
+        );
+        assert!(!crate::world::skill_effect_layers(SkillId(34), SkillPhase::Success).is_empty());
+        assert!(descriptor_layers_suppressed(SkillId(34), SkillPhase::Success, true));
+
+        // The row is still in the table: the action override keeps working for
+        // the suppressed pair (`skill_action_override` feeds
+        // `world/skill_action.rs::caster_action`), and so does the cast-circle
+        // tint (`skill_cast_circle_color` feeds
+        // `client/network/skills.rs::handle_skill_cast`).
+        assert_eq!(crate::world::skill_action_override(SkillId(34)), Some(CasterAction::Skill));
+        assert_eq!(
+            crate::world::skill_cast_circle_color(SkillId(34)),
+            Some(crate::graphics::Color::rgb_u8(255, 230, 160))
+        );
+
+        // Impositio Manus (56) carries the `action: Attack` override on the
+        // mapped `Success` row itself.
+        assert_eq!(
+            crate::world::port::skill_map::ported_effect_for(SkillId(56), SkillPhase::Success).map(|effect| effect as u32),
+            Some(ragnarok_packets::EffectId::Pierceself as u32)
+        );
+        assert!(descriptor_layers_suppressed(SkillId(56), SkillPhase::Success, true));
+        assert_eq!(crate::world::skill_action_override(SkillId(56)), Some(CasterAction::Attack));
+    }
+
+    /// Two ways a pair must keep its descriptor layers: the opt-in backend is
+    /// off, or the pair has no ported body (e.g. Bash's generic hit ids).
+    #[test]
+    fn descriptor_layers_survive_without_a_ported_replacement() {
+        // Backend off: a mapped pair still spawns its descriptor layers.
+        assert!(!descriptor_layers_suppressed(SkillId(34), SkillPhase::Success, false));
+        // ... and a descriptor-only pair stays spawnable (no behaviour change).
+        assert!(should_spawn_skill_phase(SkillId(5), SkillPhase::Hit, false));
+
+        // SM_BASH (5) has a `Hit` descriptor but no skill-specific official
+        // launch (the 2019 ids are the generic `EF_HIT1`/`EF_HIT2`), so it is
+        // unmapped and never suppressed.
+        assert!(!crate::world::skill_effect_layers(SkillId(5), SkillPhase::Hit).is_empty());
+        assert_eq!(
+            crate::world::port::skill_map::ported_effect_for(SkillId(5), SkillPhase::Hit),
+            None
+        );
+        assert!(!descriptor_layers_suppressed(SkillId(5), SkillPhase::Hit, true));
+        assert!(!descriptor_layers_suppressed(SkillId(5), SkillPhase::Hit, false));
     }
 
     /// `AM_SETCOUNT` sends the skill level itself (`JobInheritance.cpp:2147`).
