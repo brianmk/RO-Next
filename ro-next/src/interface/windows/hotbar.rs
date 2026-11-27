@@ -59,6 +59,9 @@ const HOTBAR_ROW_WIDTH: f32 = HOTBAR_SLOTS_PER_ROW as f32 * HOTBAR_SLOT_SIZE + (
 pub const HOTBAR_WINDOW_WIDTH: f32 = HOTBAR_ROW_WIDTH + HOTBAR_CONTROLS_GAP + HOTBAR_TOGGLE_SIZE;
 /// Height of the whole hotbar window in interface pixels.
 pub const HOTBAR_WINDOW_HEIGHT: f32 = 2.0 * HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP + HOTBAR_PADDING * 2.0;
+/// Height of the one-row hotbar window (the default). The second row is opt-in
+/// through the "Double hotbar" interface setting.
+pub const HOTBAR_WINDOW_SINGLE_HEIGHT: f32 = HOTBAR_SLOT_SIZE + HOTBAR_PADDING * 2.0;
 
 pub struct HotbarWindow<A, B, C> {
     skills_path: A,
@@ -87,6 +90,8 @@ struct HotbarCellResolvers<'a, App: Application> {
     toggle_top: f32,
     switch_left: f32,
     switch_top: f32,
+    /// Number of slot rows that are actually visible (1 or 2).
+    visible_rows: usize,
     text_layouter: &'a App::TextLayouter,
 }
 
@@ -97,11 +102,22 @@ impl<'a, App: Application> Resolvers<'a, App> for HotbarCellResolvers<'a, App> {
                 let row = index / HOTBAR_SLOTS_PER_ROW;
                 let column = index % HOTBAR_SLOTS_PER_ROW;
 
-                PartialArea {
-                    left: self.slots_left + column as f32 * (HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP),
-                    top: self.row_top + row as f32 * (HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP),
-                    width: HOTBAR_SLOT_SIZE,
-                    height: Some(HOTBAR_SLOT_SIZE),
+                if row < self.visible_rows {
+                    PartialArea {
+                        left: self.slots_left + column as f32 * (HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP),
+                        top: self.row_top + row as f32 * (HOTBAR_SLOT_SIZE + HOTBAR_SLOT_GAP),
+                        width: HOTBAR_SLOT_SIZE,
+                        height: Some(HOTBAR_SLOT_SIZE),
+                    }
+                } else {
+                    // Hidden second row in the one-bar layout: keep the slot
+                    // element alive but give it no pixels or hit area.
+                    PartialArea {
+                        left: self.slots_left,
+                        top: self.row_top,
+                        width: 0.0,
+                        height: Some(0.0),
+                    }
                 }
             }
             false if index == VISIBLE_HOTBAR_SLOTS => PartialArea {
@@ -110,12 +126,23 @@ impl<'a, App: Application> Resolvers<'a, App> for HotbarCellResolvers<'a, App> {
                 width: HOTBAR_TOGGLE_SIZE,
                 height: Some(HOTBAR_TOGGLE_SIZE),
             },
-            false => PartialArea {
-                left: self.switch_left,
-                top: self.switch_top,
-                width: HOTBAR_BAR_SWITCH_SIZE,
-                height: Some(HOTBAR_BAR_SWITCH_SIZE),
-            },
+            false => {
+                if self.visible_rows > 1 {
+                    PartialArea {
+                        left: self.switch_left,
+                        top: self.switch_top,
+                        width: HOTBAR_BAR_SWITCH_SIZE,
+                        height: Some(HOTBAR_BAR_SWITCH_SIZE),
+                    }
+                } else {
+                    PartialArea {
+                        left: self.switch_left,
+                        top: self.switch_top,
+                        width: 0.0,
+                        height: Some(0.0),
+                    }
+                }
+            }
         };
 
         Resolver::new(area, 0.0, self.text_layouter)
@@ -159,6 +186,13 @@ where
     ) -> Self::LayoutInfo {
         with_single_resolver(resolvers, |resolver| {
             let available_area = resolver.push_available_area();
+            let double_hotbar = *state.follow(client_state().interface_settings().double_hotbar());
+            let visible_rows = if double_hotbar { 2 } else { 1 };
+            let window_height = if double_hotbar {
+                HOTBAR_WINDOW_HEIGHT
+            } else {
+                HOTBAR_WINDOW_SINGLE_HEIGHT
+            };
             let row_top = available_area.top + HOTBAR_PADDING;
             let toggle_left = available_area.left + HOTBAR_ROW_WIDTH + HOTBAR_CONTROLS_GAP;
             let toggle_top = row_top + (HOTBAR_SLOT_SIZE - HOTBAR_TOGGLE_SIZE) / 2.0;
@@ -171,6 +205,7 @@ where
                 toggle_top,
                 switch_left: toggle_left,
                 switch_top,
+                visible_rows,
                 text_layouter: resolver.get_text_layouter(),
             };
 
@@ -196,7 +231,7 @@ where
                 .bar_switch
                 .create_layout_info(state, store.child_store(2), &mut switch_resolver);
 
-            resolver.commit_used_height(HOTBAR_WINDOW_HEIGHT);
+            resolver.commit_used_height(window_height);
 
             HotbarRowsLayoutInfo { slots, toggle, bar_switch }
         })
@@ -330,6 +365,20 @@ where
     }
 }
 
+/// Height of the hotbar window for the current double-hotbar setting.
+fn hotbar_window_height<A>(double_hotbar_path: A) -> impl Selector<ClientState, f32>
+where
+    A: Path<ClientState, bool> + Copy + 'static,
+{
+    ro_next_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        if *double_hotbar_path.follow_safe(state) {
+            HOTBAR_WINDOW_HEIGHT
+        } else {
+            HOTBAR_WINDOW_SINGLE_HEIGHT
+        }
+    })
+}
+
 /// Build a selector for a hotbar window value that depends on the "transparent
 /// hotbar" setting.
 ///
@@ -370,6 +419,9 @@ where
 
         let settings_path = client_state().interface_settings();
         let transparent_path = settings_path.transparent_hotbar();
+        let double_hotbar_path = settings_path.double_hotbar();
+        let minimum_height = hotbar_window_height(double_hotbar_path);
+        let maximum_height = hotbar_window_height(double_hotbar_path);
         let window_theme_path = client_theme().window();
 
         let background_color = hotbar_window_value(
@@ -449,8 +501,8 @@ where
             resizable: false,
             minimum_width: HOTBAR_WINDOW_WIDTH,
             maximum_width: HOTBAR_WINDOW_WIDTH,
-            minimum_height: HOTBAR_WINDOW_HEIGHT,
-            maximum_height: HOTBAR_WINDOW_HEIGHT,
+            minimum_height: minimum_height,
+            maximum_height: maximum_height,
             elements: (
                 HotbarRows::new(slots, transparency_toggle, bar_switch),
             ),

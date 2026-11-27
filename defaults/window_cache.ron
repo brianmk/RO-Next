@@ -1,0 +1,478 @@
+{
+    FriendList: (
+        anchor: (
+            anchor_point: CenterLeft,
+            offset: (
+                left: 114.365234,
+                top: -160.9668,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Buy: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: -152.34375,
+                top: -423.40918,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Navigation: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    SkillTree: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 267.7539,
+                top: -231.94434,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Chat: (
+        anchor: (
+            anchor_point: BottomLeft,
+            offset: (
+                left: 18.774414,
+                top: -514.6533,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 300.0,
+            height: 380.78317,
+        ),
+    ),
+    NotificationHud: (
+        anchor: (
+            anchor_point: TopCenter,
+            offset: (
+                left: 0.0,
+                top: 12.0,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 520.0,
+            height: 0.0,
+        ),
+    ),
+    MonsterDatabase: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    SelectServer: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: -223.91602,
+                top: -222.88574,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Bank: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Login: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Party: (
+        anchor: (
+            anchor_point: CenterRight,
+            offset: (
+                left: -973.44727,
+                top: -467.4668,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Hotbar: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Menu: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: -100.22461,
+                top: -308.36426,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Achievement: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    BigMap: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    CharacterOverview: (
+        anchor: (
+            anchor_point: TopLeft,
+            offset: (
+                left: -0.3173828,
+                top: 0.0,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Respawn: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    CharacterSelection: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    SkillDescription: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    ContextMenu: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Stats: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    BuyCart: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 179.97559,
+                top: -428.82422,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    GameSettings: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    InterfaceSettings: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: -728.90625,
+                top: -449.32422,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Dialog: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Minimap: (
+        anchor: (
+            anchor_point: TopRight,
+            offset: (
+                left: -222.0,
+                top: 12.0,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Equipment: (
+        anchor: (
+            anchor_point: BottomRight,
+            offset: (
+                left: -1025.2988,
+                top: -459.19922,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Inventory: (
+        anchor: (
+            anchor_point: CenterLeft,
+            offset: (
+                left: 179.94629,
+                top: -124.94629,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Mail: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    Whisper: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 360.0,
+            height: 320.0,
+        ),
+    ),
+    PartyInvite: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    BuffBar: (
+        anchor: (
+            anchor_point: BottomCenter,
+            offset: (
+                left: -180.0,
+                top: -150.0,
+            ),
+            initializing: false,
+        ),
+        size: (
+            width: 360.0,
+            height: 0.0,
+        ),
+    ),
+    EmotePicker: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+    ItemInfo: (
+        anchor: (
+            anchor_point: Center,
+            offset: (
+                left: 0.0,
+                top: 0.0,
+            ),
+            initializing: true,
+        ),
+        size: (
+            width: 0.0,
+            height: 340282350000000000000000000000000000000.0,
+        ),
+    ),
+}

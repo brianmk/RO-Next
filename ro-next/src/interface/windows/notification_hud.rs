@@ -188,7 +188,9 @@ impl CustomWindow<ClientState> for NotificationHudWindow {
         use ro_next_interface::prelude::*;
 
         window! {
-            title: "Notifications",
+            // No title: the card is just the notification rows; the literal
+            // "Notifications" header was drawn over the top row.
+            title: "",
             class: Self::window_class(),
             theme: InterfaceThemeType::InGame,
             // Fully transparent overlay: only the notification rows are drawn.

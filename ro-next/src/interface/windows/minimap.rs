@@ -118,11 +118,9 @@ impl CustomWindow<ClientState> for MinimapWindow {
             minimum_height: 250.0,
             maximum_height: 250.0,
             elements: (
-                MinimapView::new(
-                    client_state().localization().minimap_loading_text(),
-                    transparent_path,
-                    MINIMAP_VIEW_SIZE,
-                ),
+                // The transparency toggle sits above the map now. It is gray
+                // instead of the theme's blue so it does not read as a game
+                // status indicator.
                 round_toggle! {
                     tooltip: client_state().localization().minimap_transparent_frame_tooltip(),
                     state: transparent_path,
@@ -131,9 +129,19 @@ impl CustomWindow<ClientState> for MinimapWindow {
                         settings_path,
                     },
                     alignment: HorizontalAlignment::Center { offset: 0.0, border: 0.0 },
+                    ring_color: Color::rgb_u8(150, 150, 150),
+                    hovered_ring_color: Color::rgb_u8(210, 210, 210),
+                    fill_color: Color::rgba(0.10, 0.10, 0.10, 0.85),
+                    checked_color: Color::rgb_u8(105, 105, 105),
+                    hovered_checked_color: Color::rgb_u8(145, 145, 145),
                     shadow_color: Color::TRANSPARENT,
                     shadow_padding: ShadowPadding::uniform(0.0),
                 },
+                MinimapView::new(
+                    client_state().localization().minimap_loading_text(),
+                    transparent_path,
+                    MINIMAP_VIEW_SIZE,
+                ),
             ),
         }
     }

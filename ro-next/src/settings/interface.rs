@@ -261,6 +261,11 @@ pub struct InterfaceSettings {
     /// old settings files load unchanged.
     #[serde(default)]
     pub level_99_aura_style: AuraStyle,
+    /// Show both hotbar rows. Off by default: the HUD starts with a single
+    /// row of nine slots, matching the one-bar layout. Can be toggled in the
+    /// interface settings.
+    #[serde(default)]
+    pub double_hotbar: bool,
     /// Show the transient notification HUD overlay (server broadcasts, item
     /// pickup toasts, level-up and quest banners). Defaults to enabled so old
     /// settings files keep the HUD.
@@ -327,6 +332,7 @@ impl Default for InterfaceSettings {
             minimap_transparent_frame: false,
             transparent_hotbar: false,
             character_overview_compact: false,
+            double_hotbar: false,
             inventory_tab: ItemCategory::Consumables,
             level_99_aura_style: AuraStyle::Auto,
             show_notification_hud: true,

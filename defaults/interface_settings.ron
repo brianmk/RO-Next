@@ -1,0 +1,18 @@
+(
+    language: English,
+    scaling: 1.25,
+    menu_theme: "classic",
+    in_game_theme: "classic",
+    world_theme: "^000001default^000000\0",
+    show_character_names: true,
+    show_chat_bubbles: true,
+    chat_bubble_background: true,
+    show_skill_names_above_characters: true,
+    transparent_chat: false,
+    minimap_transparent_frame: true,
+    transparent_hotbar: true,
+    character_overview_compact: false,
+    inventory_tab: Misc,
+    level_99_aura_style: Auto,
+    show_notification_hud: true,
+)

@@ -278,6 +278,11 @@ where
                 )
             },
             state_button! {
+                text: "Double hotbar",
+                state: self.settings_path.double_hotbar(),
+                event: Toggle(self.settings_path.double_hotbar()),
+            },
+            state_button! {
                 text: client_state().localization().show_character_names_text(),
                 state: self.settings_path.show_character_names(),
                 event: Toggle(self.settings_path.show_character_names()),

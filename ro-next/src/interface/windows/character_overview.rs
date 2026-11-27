@@ -271,6 +271,25 @@ where
     })
 }
 
+/// Name + `Lv 99 / Jlv 69` line of the collapsed character overview.
+///
+/// The compact form has no other text; this is the only label it shows.
+fn compact_header_text<A>(player_path: A) -> impl Selector<ClientState, String>
+where
+    A: Path<ClientState, Player> + Copy + 'static,
+{
+    ro_next_interface::prelude::ComputedSelector::new_default(move |state: &ClientState| {
+        let name = client_state().player_name().follow_safe(state).clone();
+        let player = player_path.follow_safe(state);
+        let level_template = client_state().localization().ui().character_level_text().follow_safe(state);
+        let level = level_template
+            .replace("{}", &player.base_level.to_string())
+            .replace("{}", &player.job_level.to_string());
+
+        format!("{name}  {level}")
+    })
+}
+
 /// Progress of `current` out of `maximum`, clamped to `[0, 1]`.
 ///
 /// Returns `None` if the maximum is unknown (zero), which is rendered as an
@@ -436,6 +455,12 @@ where
         let compact = fragment! {
             gaps: COMPACT_GAPS,
             children: (
+                // The only text in the collapsed HUD: character name and
+                // base/job level, at the top.
+                text! {
+                    text: compact_header_text(player_path),
+                    overflow_behavior: OverflowBehavior::Shrink,
+                },
                 RoundButton::new(
                     "+",
                     HUD_ROUND_BUTTON_SIZE,
@@ -600,11 +625,11 @@ where
                     gaps: 3.0,
                     children: (
                         button! {
-                            text: client_state().localization().big_map_window_title(),
+                            text: "Guild",
                             height: ACTION_BUTTON_HEIGHT,
                             font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
-                            event: InputEvent::ToggleBigMapWindow,
+                            event: InputEvent::ToggleGuildWindow,
                         },
                         button! {
                             // Party lives where the chat shortcut used to be; the
@@ -617,11 +642,11 @@ where
                             event: InputEvent::TogglePartyWindow,
                         },
                         button! {
-                            text: client_state().localization().game_settings_button_text(),
+                            text: "Monster DB",
                             height: ACTION_BUTTON_HEIGHT,
                             font_size: client_theme().tokens().typography().font_caption(),
                             overflow_behavior: OverflowBehavior::Shrink,
-                            event: InputEvent::ToggleGameSettingsWindow,
+                            event: InputEvent::ToggleMonsterDatabaseWindow,
                         },
                     ),
                 },

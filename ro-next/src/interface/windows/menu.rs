@@ -45,14 +45,6 @@ impl CustomWindow<ClientState> for MenuWindow {
                     text: client_state().localization().audio_settings_button_text(),
                     event: InputEvent::ToggleAudioSettingsWindow,
                 },
-                button! {
-                    text: "Chat room",
-                    event: InputEvent::ToggleChatRoomWindow,
-                },
-                button! {
-                    text: "Emotes",
-                    event: InputEvent::ToggleEmotePickerWindow,
-                },
                 #[cfg(feature = "debug")]
                 button! {
                     text: client_state().localization().ui().menu_render_options(),
@@ -126,24 +118,12 @@ impl CustomWindow<ClientState> for MenuWindow {
                     hovered_background_color: client_theme().debug_button().hovered_background_color(),
                 },
                 button! {
-                    text: "Guild",
-                    event: InputEvent::ToggleGuildWindow,
-                },
-                button! {
                     text: "Quest Log",
                     event: InputEvent::ToggleQuestWindow,
                 },
                 button! {
-                    text: "Achievement",
-                    event: InputEvent::ToggleAchievementWindow,
-                },
-                button! {
                     text: "Navigation",
                     event: InputEvent::ToggleNavigationWindow,
-                },
-                button! {
-                    text: "Monster Database",
-                    event: InputEvent::ToggleMonsterDatabaseWindow,
                 },
                 button! {
                     text: client_state().localization().minimap_button_text(),

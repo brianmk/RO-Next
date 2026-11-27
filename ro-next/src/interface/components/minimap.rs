@@ -191,7 +191,9 @@ where
                 location_text,
                 location_font_size,
                 overlay_secondary_text,
-                overlay_secondary_text,
+                // Black outline keeps the coordinates readable over bright or
+                // busy parts of the map image.
+                Color::BLACK,
                 HorizontalAlignment::Center { offset: 0.0, border: 4.0 },
                 VerticalAlignment::Center { offset: 0.0 },
                 OverflowBehavior::Shrink,

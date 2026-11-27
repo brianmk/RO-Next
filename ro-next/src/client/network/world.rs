@@ -673,7 +673,7 @@ impl Client {
     }
 
     /// `NetworkEvent::ChatMessage`.
-    pub(crate) fn handle_chat_message(&mut self, event: NetworkEvent, _client_tick: ClientTick) {
+    pub(crate) fn handle_chat_message(&mut self, event: NetworkEvent, client_tick: ClientTick) {
         let NetworkEvent::ChatMessage { text, color } = event else {
             unreachable!("handle_chat_message called with a different event variant");
         };
@@ -692,6 +692,14 @@ impl Client {
             }
 
             return;
+        }
+
+        // Server-originated system messages (the `Server` colour) belong in
+        // the notification card as well as the chat log. Player chat is
+        // `Broadcast`, not `Server`, so this does not toast ordinary speech;
+        // `ZC_BROADCAST` already has its own `ServerAnnouncement` event.
+        if matches!(color, MessageColor::Server) {
+            self.push_notification(NotificationKind::Announce, text.clone(), client_tick);
         }
 
         // Server announcements are a separate `ServerAnnouncement`
