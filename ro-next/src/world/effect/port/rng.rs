@@ -40,4 +40,19 @@ impl EffectRng {
 
         (self.next_u32() % range as u32) as i32
     }
+
+    /// `Random(int range)` - `EffectPrimitiveMotion.cpp:67-74`.
+    ///
+    /// The motion file's own copy is `range == 0 ? 0 : max(rand() % range, 0)`.
+    /// For a positive range that is the same distribution as
+    /// [`Self::clamped_random`]; for a negative one both collapse to `0`
+    /// (`rand() % negative` is `<= 0`). Kept as a separate method so every call
+    /// site names the function the decompilation calls.
+    pub fn random(&mut self, range: i32) -> i32 {
+        if range <= 0 {
+            return 0;
+        }
+
+        (self.next_u32() % range as u32) as i32
+    }
 }

@@ -26,7 +26,10 @@ impl TexturedQuadSpin {
         }
     }
 
-    fn spawn(&self, runtime: &mut EffectRuntime, phase: i32) {
+    /// One `TexturedQuadSpin(name, phase, kind)` call. Public so composite
+    /// bodies (`EF_KOUENKA`, `rag/sakura_fire_arrow.rs`) can run the same
+    /// helper their dispatch calls; the original calls the method directly.
+    pub(crate) fn spawn(&self, runtime: &mut EffectRuntime, phase: i32) {
         let kind = self.kind;
         let lifetime = self.lifetime;
 

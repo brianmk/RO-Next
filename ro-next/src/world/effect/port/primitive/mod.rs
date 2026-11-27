@@ -38,6 +38,7 @@ pub mod halo;
 pub mod height_ramp;
 pub mod hitline3;
 pub mod intimidate;
+pub mod kouenka;
 pub mod line_link;
 pub mod magnum2;
 pub mod orbit;
@@ -59,6 +60,8 @@ pub mod shield_boomerang3;
 pub mod slash1;
 pub mod slash_cross;
 pub mod slash_fan;
+pub mod sma;
+pub mod sma2;
 pub mod sonic_wave;
 pub mod soul_link;
 pub mod sphere_wind;
@@ -76,6 +79,7 @@ pub mod textured_cross;
 pub mod textured_glow;
 pub mod throw_item;
 pub mod wandering_flames;
+pub mod wave_heights;
 pub mod wave_spin;
 pub mod wind;
 
@@ -373,6 +377,32 @@ pub enum PrimitiveId {
     /// `TexturedSlashLevel` (`EF_STIN2`). No symbol; named after its motion
     /// body (`EffectPrimitiveMotion.cpp:7071-7173`, dispatch `:9451-9452`).
     Stin3,
+    /// `PP_SMA` (120) - `CRagEffect::SMA`'s four drifting slots
+    /// (`EF_STIN3`, and the `SMA(0)`/`SMA(99)` variants). Motion
+    /// `PrimSMA` (`EffectPrimitiveMotion.cpp:1442-1468`, dispatch
+    /// `:9508-9509`); the renderer is `RenderSMA3`
+    /// (`EffectPrimitiveRendering.cpp:2385-2420`, dispatch `:557-558`),
+    /// which submits no geometry - it launches `EF_SMA2`/`EF_SMA3`/
+    /// `EF_SMA_BLACK2` at the slot position.
+    Sma,
+    /// `PP_SMA2` (121) - the stacked wave rings of
+    /// `CRagEffect::TexturedBlueRing` / `CRagEffect::BlueRingStack`
+    /// (`EF_SMA2`/`EF_SMA_BLACK2`). Motion is the bare `case PP_SMA2:`
+    /// (`EffectPrimitiveMotion.cpp:9511-9574`); renderer `RenderSMA2`
+    /// (`EffectPrimitiveRendering.cpp:5227-5320`, dispatch `:385-386`).
+    Sma2,
+    /// `PP_KOUENKA` (124) - the `sakura01` sprite of
+    /// `CRagEffect::SakuraFireArrow` (`EF_KOUENKA`). Motion `PrimKouenka`
+    /// (`EffectPrimitiveMotion.cpp:1713-1770`, dispatch `:9738-9739`);
+    /// renderer the shared `RenderSegmentSprites2` sprite pass.
+    Kouenka,
+    /// prim 149 (no `EffectPrimId.h` symbol) - the four ground arcs of
+    /// `CRagEffect::BeginSpellSwirl` (`EF_BEGINSPELL_N*`). Named after its
+    /// motion body, `PrimWaveHeights`
+    /// (`EffectPrimitiveMotion.cpp:5534-5583`, dispatch `:8308-8309`);
+    /// renderer `RenderGroundArcGlow` (`EffectPrimitiveArcs.cpp:60-166`,
+    /// dispatch `EffectPrimitiveRendering.cpp:373-375`).
+    WaveHeights,
     /// `PP_STIN4` (125) - `CEffectPrim::PrimSTIN4`'s wind slices
     /// (`EF_STIN4`). Motion `EffectPrimitiveMotion.cpp:3874-3977`, dispatch
     /// `:9454-9455`.
@@ -519,6 +549,10 @@ impl PrimitiveId {
             Self::Chemical3 => 56,
             Self::SlashFan => 119,
             Self::Stin3 => 122,
+            Self::Sma => 120,
+            Self::Sma2 => 121,
+            Self::Kouenka => 124,
+            Self::WaveHeights => 149,
             Self::Stin4 => 125,
             Self::SoulLink => 109,
             Self::ParticleSpread => 115,
@@ -1195,6 +1229,21 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::Stin3 => {
                 stin3::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Sma => {
+                sma::on_process(self, angles);
+                true
+            }
+            PrimitiveId::Sma2 => {
+                sma2::on_process(self, angles);
+                true
+            }
+            // `PrimKouenka` returns a `bool`, but the official dispatch
+            // discards it (`EffectPrimitiveMotion.cpp:9738-9739`).
+            PrimitiveId::Kouenka => kouenka::on_process(self, angles, master, rng),
+            PrimitiveId::WaveHeights => {
+                wave_heights::on_process(self, angles, master);
                 true
             }
             PrimitiveId::Stin4 => {

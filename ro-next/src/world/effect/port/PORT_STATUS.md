@@ -345,6 +345,15 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - **Monster skill motion on damage packets**: `GetMonsterSkillInfo` applied after the skill pose, matching `GameModePackets.cpp:4283/4356`.
 - Remaining backlog: **3 ids** - 555 `EF_STIN3` (needs a renderer->child-effect outbox plus `EF_SMA2`), 618 `EF_KOUENKA`, 843 `EF_BEGINSPELL_N6`.
 
+### Round 103 (effect launch outbox and the last three backlog ids)
+
+- **Renderer -> child-effect outbox** (`port/runtime.rs`): `PendingEffectLaunch { effect, position, delta_pos2 }` (the `LaunchEffect` id plus `AM_SETPOS`'s two vectors), `EffectRuntime::launch_effect(&self, ...)` and `take_effect_launches`. It is the effect-side twin of `runtime.sounds`/`positional_sounds`; the queue sits behind a `Mutex` because the official caller is `CEffectPrim::Render` and the ported holder renders with `&self`. `PortedEffectHolder` drains it into `take_effect_launches()` on the next 16 ms step; `PortedVisual` builds each child with the parent's loaders (deterministic seed = parent seed mixed with the launch ordinal) and `EffectBase::take_spawned_effects` hands them to `EffectHolder::update`, which appends them unowned so the default per-entity budget (24) cannot truncate a dense launcher stream.
+- prim **120** `Sma` (`PP_SMA`, `PrimSMA` + `RenderSMA3`, no geometry), **121** `Sma2` (`PP_SMA2`, bare `case PP_SMA2` + `RenderSMA2`), **124** `Kouenka` (`PP_KOUENKA`, `PrimKouenka`, shared sprite pass), **149** `WaveHeights` (`PrimWaveHeights` + `RenderGroundArcGlow`).
+- ids: `EF_SMA2` 554/100, `EF_SMA_BLACK2` 1205/100 (the two `RenderSMA3` children; the enum variant was added), `EF_STIN3` 555/200, `EF_KOUENKA` 618/300, `EF_BEGINSPELL_N6` 843/100 (the body raises the runtime to 120 on frame 0, like `AsuraStrike`).
+- Quirks kept: `RenderSMA3` launches one `EF_SMA3` on **every render frame** for `flag1[0] == 1` and one `EF_SMA2`/`EF_SMA_BLACK2` every eighth frame for 0/99 (with `AM_SETPOS`'s `{process, process % 16 == 0 ? 0 : 1, 0}` extra); `RenderSMA2`'s `order` clamp repeats the last 1/21 texture segment; `RenderGroundArcGlow`'s radius is `sin(rotStart) + distance` and its `state.size` writes are passed to the emitter instead of mutating the simulation; `PrimKouenka` discards `AnimMotion`'s result; `SMA(1)`'s launcher primitive has `totalTexture = 0`.
+- Generated `skill_map`: **494 ids / 237 mappings** (the previous file was 489/236 - the doc's older `488` count was already one behind).
+- **Pre-renewal backlog complete: 0 ids left.**
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.

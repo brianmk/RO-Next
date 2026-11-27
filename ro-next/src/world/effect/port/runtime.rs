@@ -13,11 +13,42 @@
 //! Effects retire when `stateCnt >= duration` (`Effect.cpp:214-216` in
 //! `CRagEffect::OnProcess`'s tail).
 
+use std::sync::{Mutex, MutexGuard};
+
+use ragnarok_packets::EffectId;
+
 use super::angles::Angles;
 use super::particle::CastedParticle;
 use super::primitive::{EffectPrimitiveState, MasterState, PrimitiveId};
 pub use super::rng::EffectRng;
 use super::str_player::{Clip, Ez2StrPlayer};
+
+/// One `LaunchEffect` request an effect body or a primitive renderer recorded.
+///
+/// The official launchers create a child `CRagEffect` and then address it with
+/// `SendMsg(nullptr, AM_SETPOS, 0, &position, &extra, ...)`:
+///
+/// * `AM_SETPOS`'s first vector becomes the child's `state.deltaPos`
+///   (`RagEffect.cpp:14930-14944`), and
+/// * the optional second vector becomes `state.deltaPos2`.
+///
+/// `RenderSMA3` (`EffectPrimitiveRendering.cpp:2385-2420`) is the render-time
+/// launcher the port needs this for: it launches `EF_SMA2`/`EF_SMA3`/
+/// `EF_SMA_BLACK2` from inside `Render`, where the port has no mutable handle
+/// on the scene. The recorded requests travel through
+/// [`EffectRuntime::pending_effect_launches`] to the ported visual, which
+/// spawns the child effects into the client's effect holder.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct PendingEffectLaunch {
+    /// `EffectActor::LaunchEffect(effectId, ...)` id.
+    pub effect: EffectId,
+    /// `AM_SETPOS`'s first vector - the child effect's `state.deltaPos`.
+    pub position: [f32; 3],
+    /// `AM_SETPOS`'s second vector - the child's `state.deltaPos2`. `None`
+    /// when the official call passes `0` for it (`RenderSMA3`'s `EF_SMA3`
+    /// arm).
+    pub delta_pos2: Option<[f32; 3]>,
+}
 
 /// `ProcessEZ2STR(0, -80, 0)` - the argument every pre-existing ported effect
 /// passes (`ProcessEZ2STRC10830`, `RagEffect.cpp:1823-1824`, and its siblings).
@@ -361,6 +392,26 @@ pub struct EffectRuntime {
     /// stamp the client uses to avoid re-applying the same sequence every
     /// 16 ms step.
     pub parent_frame_sequence_frame: i32,
+    /// The RNG seed this effect was spawned with ([`Self::new`]).
+    ///
+    /// Port-only: renderer-launched child effects are seeded from it
+    /// ([`super::visual::PortedVisual`]) so the children of two casts differ
+    /// exactly like the official `rand()` stream makes them differ, while the
+    /// hermetic tests stay deterministic.
+    pub seed: u64,
+    /// Port-only outbox: `LaunchEffect` requests raised by the body or by a
+    /// primitive renderer on the current frame, waiting for the visual to
+    /// spawn the child effects into the client's effect holder.
+    ///
+    /// This is the effect-side twin of
+    /// [`Self::sounds`]/[`Self::positional_sounds`]: the renderer runs with
+    /// `&self` (`EffectBase::render`), so the queue is behind a [`Mutex`]
+    /// instead of a plain `Vec`. [`Self::launch_effect`]
+    /// pushes, [`Self::take_effect_launches`] drains; the drain happens on the
+    /// next 16 ms step (`super::holder::PortedEffectHolder`), because the
+    /// official `RenderSMA3` calls `LaunchEffect` from `Render` and the child
+    /// is not stepped until the following frame either.
+    pub pending_effect_launches: Mutex<Vec<PendingEffectLaunch>>,
 }
 
 impl EffectRuntime {
@@ -408,6 +459,8 @@ impl EffectRuntime {
             game_mode_notify: None,
             parent_frame_sequence: None,
             parent_frame_sequence_frame: -1,
+            seed,
+            pending_effect_launches: Mutex::new(Vec::new()),
         }
     }
 
@@ -574,6 +627,39 @@ impl EffectRuntime {
     /// (`RagEffect.cpp:25264-25270`).
     pub fn play_sound_at(&mut self, name: &str, offset: [f32; 3]) {
         self.positional_sounds.push((name.to_owned(), offset));
+    }
+
+    /// `EffectActor::LaunchEffect(effect, {0, 0, 0}, 0)` followed by the
+    /// `SendMsg(nullptr, AM_SETPOS, ...)` call that positions the child
+    /// (`EffectPrimitiveRendering.cpp:2394-2415` for the `RenderSMA3` sites).
+    ///
+    /// Records the request on [`Self::pending_effect_launches`]; takes `&self`
+    /// because the official caller is `CEffectPrim::Render`, which the ported
+    /// holder runs with an immutable runtime. Returns the request's index, like
+    /// [`Self::launch`] does for primitives.
+    pub fn launch_effect(&self, effect: EffectId, position: [f32; 3], delta_pos2: Option<[f32; 3]>) -> usize {
+        let mut launches = self.effect_launches();
+
+        launches.push(PendingEffectLaunch {
+            effect,
+            position,
+            delta_pos2,
+        });
+
+        launches.len() - 1
+    }
+
+    /// Drains the current frame's [`PendingEffectLaunch`] requests in
+    /// submission order, leaving the outbox empty.
+    pub fn take_effect_launches(&self) -> Vec<PendingEffectLaunch> {
+        std::mem::take(&mut *self.effect_launches())
+    }
+
+    /// Locks the outbox; the mutex only ever guards a `Vec` push/drain, so a
+    /// poisoned lock cannot lose data - recover it instead of panicking inside
+    /// a render pass.
+    fn effect_launches(&self) -> MutexGuard<'_, Vec<PendingEffectLaunch>> {
+        self.pending_effect_launches.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
     }
 
     /// `CRagEffect::Init` opening the `.str` resource of an effect.
@@ -1006,6 +1092,48 @@ mod tests {
             ("_enemy_hit_wind1.wav".to_owned(), [-150.0, 0.0, 2.5]),
         ]);
         assert!(runtime.sounds.is_empty());
+    }
+
+    #[test]
+    fn the_effect_outbox_records_launch_requests_in_submission_order() {
+        let runtime = EffectRuntime::new(160, [0.0, 0.0], 1);
+
+        // `RenderSMA3`'s `EF_SMA3` arm passes no second `AM_SETPOS` vector,
+        // the `EF_SMA2` / `EF_SMA_BLACK2` arms pass the slot's `process`.
+        runtime.launch_effect(EffectId::Sma2, [1.0, 2.0, 3.0], Some([8.0, 0.0, 0.0]));
+        runtime.launch_effect(EffectId::Sma3, [4.0, 5.0, 6.0], None);
+        runtime.launch_effect(EffectId::SmaBlack2, [7.0, 8.0, 9.0], Some([16.0, 1.0, 0.0]));
+
+        assert_eq!(runtime.take_effect_launches(), vec![
+            PendingEffectLaunch {
+                effect: EffectId::Sma2,
+                position: [1.0, 2.0, 3.0],
+                delta_pos2: Some([8.0, 0.0, 0.0]),
+            },
+            PendingEffectLaunch {
+                effect: EffectId::Sma3,
+                position: [4.0, 5.0, 6.0],
+                delta_pos2: None,
+            },
+            PendingEffectLaunch {
+                effect: EffectId::SmaBlack2,
+                position: [7.0, 8.0, 9.0],
+                delta_pos2: Some([16.0, 1.0, 0.0]),
+            },
+        ]);
+
+        // Draining empties the outbox; the sound channels are untouched.
+        assert!(runtime.take_effect_launches().is_empty());
+        assert!(runtime.sounds.is_empty());
+        assert!(runtime.positional_sounds.is_empty());
+    }
+
+    #[test]
+    fn the_effect_outbox_keeps_the_spawn_seed_for_children() {
+        // `PortedVisual` derives each child's `EffectRng` seed from the
+        // parent's, so two casts of the same launcher do not produce identical
+        // particle streams.
+        assert_eq!(EffectRuntime::new(10, [0.0, 0.0], 0x1234).seed, 0x1234);
     }
     #[test]
     fn str_offset_defaults_to_the_process_ez2str_minus_80_call() {

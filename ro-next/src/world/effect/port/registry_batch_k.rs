@@ -301,9 +301,9 @@ mod tests {
     #[test]
     fn unowned_effects_are_not_claimed() {
         assert!(spawn(EffectId::Bash).is_none());
-        // `EF_SMA_BLACK2` (1205) / `EF_STIN_BLACK` (1206) share the 1207 hole
-        // but need bodies that are not ported (`BlueRingStack`,
-        // `TexturedSlashLevel`), so they stay unclaimed. `SmaBlack` (1204) and
+        // `EF_SMA_BLACK2` (1205) is now owned by `registry.rs`
+        // (`BlueRingStack`, round 103); `EF_STIN_BLACK` (1206) still needs the
+        // unported `TexturedSlashLevel`. `SmaBlack` (1204) and
         // `EnergydrainBlack` (1208) are neighbours owned by other batches.
         assert!(spawn(EffectId::SmaBlack).is_none());
         assert!(spawn(EffectId::EnergydrainBlack).is_none());

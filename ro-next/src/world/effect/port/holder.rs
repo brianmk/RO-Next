@@ -15,7 +15,7 @@ use ragnarok_packets::EffectId;
 use wgpu::BlendFactor;
 
 use super::primitive::{EffectPrimitiveState, PrimitiveId};
-use super::runtime::{EffectRuntime, PortedEffect};
+use super::runtime::{EffectRuntime, PendingEffectLaunch, PortedEffect};
 use super::sound_sink::{self, SoundSink};
 use super::str_player::Clip;
 use super::str_table::{self, ClipSet, StrResource};
@@ -50,6 +50,11 @@ pub struct PortedEffectHolder {
     /// asset pass in [`Self::attach_sprite_actions`]. `0` means the pair could
     /// not be loaded and the primitive stays undrawn.
     sprite_frame_counts: HashMap<(&'static str, &'static str, i32), u32>,
+    /// `LaunchEffect` requests the renderer pass recorded since the last step
+    /// (the runtime's [`EffectRuntime::pending_effect_launches`] outbox,
+    /// drained on every 16 ms step). The visual turns them into child effects;
+    /// see [`Self::take_effect_launches`].
+    effect_launches: Vec<PendingEffectLaunch>,
 }
 
 impl PortedEffectHolder {
@@ -78,6 +83,7 @@ impl PortedEffectHolder {
             sprite_loader: None,
             action_loader: None,
             sprite_frame_counts: HashMap::new(),
+            effect_launches: Vec::new(),
         }
     }
 
@@ -229,6 +235,13 @@ impl PortedEffectHolder {
         while self.accumulator_ms >= FRAME_FREQUENCY_MS as f64 {
             self.accumulator_ms -= FRAME_FREQUENCY_MS as f64;
 
+            // The previous frame's `render` pass recorded the `LaunchEffect`
+            // requests of the launcher primitives (`RenderSMA3`) on the
+            // runtime outbox. Collect them before the step so the visual can
+            // spawn the child effects into the client's effect list even when
+            // this step retires the parent.
+            self.effect_launches.extend(self.runtime.take_effect_launches());
+
             let alive = self.step();
             // The body may have played its last sound before returning
             // `false`, so drain even when the step retires the effect.
@@ -364,6 +377,18 @@ impl PortedEffectHolder {
 
             let state = &primitive.state;
 
+            // `CEffectPrim::Render`'s `case PP_SMA:` - `RenderSMA3`
+            // (`EffectPrimitiveRendering.cpp:2385-2420`). The launcher submits
+            // no geometry at all: it launches `EF_SMA2`/`EF_SMA3`/
+            // `EF_SMA_BLACK2` at the slot's position, and the port records
+            // those `LaunchEffect` requests on the runtime outbox for the
+            // visual to spawn.
+            if matches!(state.count, PrimitiveId::Sma) {
+                render_slots::render_sma3(state, &self.runtime);
+
+                continue;
+            }
+
             // `CEffectPrim::Render`'s `switch (state.count)` for the
             // slot/record primitives - `Render3DCasting`, `RenderRecordRings`,
             // `RenderArcBand`, `RenderFieldPanel`, `RenderPyramid`,
@@ -446,6 +471,19 @@ impl PortedEffectHolder {
             &self.str_textures,
             str_render::screen_offset(self.runtime.str_offset),
         );
+    }
+
+    /// Child effects the renderer pass launched since the last drain, in
+    /// submission order (the official `RenderSMA3` calls `LaunchEffect` from
+    /// `Render`, `EffectPrimitiveRendering.cpp:2394-2415`).
+    ///
+    /// The ported visual takes these after each `update` and spawns them into
+    /// the client's effect holder, which is where the official call appends the
+    /// child to the scene's object list. The queue is only filled while the
+    /// effect is stepped by a [`PortedEffectHolder`]; the hermetic
+    /// `runtime::step` path leaves it alone.
+    pub fn take_effect_launches(&mut self) -> Vec<PendingEffectLaunch> {
+        std::mem::take(&mut self.effect_launches)
     }
 
     /// Number of 16 ms steps still pending in the accumulator (test hook).
@@ -1009,6 +1047,37 @@ mod tests {
         assert!(!holder.update_with_sounds(0.016, &mut sink));
         assert_eq!(sink.plays.len(), 1);
         assert_eq!(sink.plays[0].0, "effect\\last.wav");
+    }
+
+    #[test]
+    fn the_holder_drains_the_runtime_effect_outbox_on_the_next_step() {
+        // `RenderSMA3` records the launches during `render`; the holder drains
+        // them on the following 16 ms step and exposes them to the visual.
+        let mut holder = PortedEffectHolder::new(EffectId::Stin3, 1).unwrap();
+
+        holder.runtime().launch_effect(EffectId::Sma3, [1.0, 2.0, 3.0], None);
+        holder
+            .runtime()
+            .launch_effect(EffectId::Sma2, [4.0, 5.0, 6.0], Some([8.0, 1.0, 0.0]));
+
+        assert!(holder.update(0.016));
+
+        assert_eq!(holder.take_effect_launches(), vec![
+            PendingEffectLaunch {
+                effect: EffectId::Sma3,
+                position: [1.0, 2.0, 3.0],
+                delta_pos2: None,
+            },
+            PendingEffectLaunch {
+                effect: EffectId::Sma2,
+                position: [4.0, 5.0, 6.0],
+                delta_pos2: Some([8.0, 1.0, 0.0]),
+            },
+        ]);
+
+        // Drained: the next step hands over nothing.
+        assert!(holder.update(0.016));
+        assert!(holder.take_effect_launches().is_empty());
     }
 
     #[test]

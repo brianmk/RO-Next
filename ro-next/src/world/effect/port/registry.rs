@@ -12,20 +12,21 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BlueSpellRings, BottomCarpet,
-    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, Chemical3, Chemical4, ChemicalLine, ChemicalProtection,
-    Chimto, Cloud11Burst, CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
-    EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst, FeatherRing, FireArrow, FireBall,
-    FirePillar, FireSparks, FirstAid, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth,
-    GrimToothAtk, Guard2, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, JumpKick, Kaizel, LineLink,
-    LkConcentration, LockOn, Loud, MagicRing, Magnum2, MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, PortalRings,
-    PortalSpell, PotionPill, Pressure, Providence, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs,
-    RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3, ShieldCharge, Signum, SlashCross, SlashFan, SlashLevel, SlashWave, SonicBlow,
-    SonicBlowHit, SoulBreaker, SoulBreaker2, SoulLink, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect,
-    StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedComet, TexturedGlow, TexturedHalo,
-    TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow, TexturedSkillAura,
-    TexturedSpreadFlat, TexturedTumble, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall,
-    WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
+    AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, BeginSpellSwirl, Blessing, BlitzBeat, BloodDrain, BlueRingStack,
+    BlueSpellRings, BottomCarpet, BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, Chemical3, Chemical4,
+    ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst, CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike,
+    ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst,
+    FeatherRing, FireArrow, FireBall, FirePillar, FireSparks, FirstAid, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall,
+    Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility,
+    JumpKick, Kaizel, Kouenka, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2, MagnumBreak, MetallicSoundLine, NapalmBeat,
+    NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, Pressure, Providence, QuadRingStack, RedParticleSpray, RejectSword,
+    RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3, ShieldCharge, Signum, SlashCross, SlashFan,
+    SlashLevel, SlashWave, SonicBlow, SonicBlowHit, SoulBreaker, SoulBreaker2, SoulLink, SoulStrike, SpearBmr, Sphere, SprayPond,
+    SprinkleSand, Stin3, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam,
+    TexturedBlueRing, TexturedComet, TexturedGlow, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
+    TexturedScatter, TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, TexturedTumble, ThrowItem, Thunderstorm, TorchDustRing,
+    TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak,
+    WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -464,6 +465,28 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // (`EffectTypes.cpp:42`). The Acolyte reveal aura the actor re-launches
         // from `OPTION_RUWACH` (`GameActor.cpp:704-714`).
         EffectId::Ruwach => Box::new(Ruwach),
+        // ------------------------------------------------------------------
+        // Round 103: the last three backlog ids plus the SMA launcher children.
+        // ------------------------------------------------------------------
+        // `case EF_SMA2:` - `RagEffect.cpp:21754-21755`:
+        // `TexturedBlueRing("effect\\ring_blue.tga")` (`:16329-16395`).
+        // Lifetime 100 (`EffectTypes.cpp:561`).
+        EffectId::Sma2 => Box::new(TexturedBlueRing::new("effect\\ring_blue.tga", 100)),
+        // `case EF_SMA_BLACK2:` - `RagEffect.cpp:22240-22241`:
+        // `BlueRingStack()` (`:5829-5877`). Lifetime 100
+        // (`EffectTypes.cpp:1214`).
+        EffectId::SmaBlack2 => Box::new(BlueRingStack::new(100)),
+        // `case EF_STIN3:` - `RagEffect.cpp:21744-21750`: frame-0 energy wave
+        // plus `SMA(1)`. Lifetime 200 (`EffectTypes.cpp:564`).
+        EffectId::Stin3 => Box::new(Stin3::new(200)),
+        // `case EF_KOUENKA:` - `RagEffect.cpp:21180-21185`:
+        // `SakuraFireArrow()` + two `TexturedQuadSpin(..., index, 2)`.
+        // Lifetime 300 (`EffectTypes.cpp:627`).
+        EffectId::Kouenka => Box::new(Kouenka::new(300)),
+        // `case EF_BEGINSPELL_N6:` - `RagEffect.cpp:19925-19926`:
+        // `BeginSpellSwirl(45, "", 6)` (`:9548-9650`). Lifetime 100
+        // (`EffectTypes.cpp:852`); the body raises it to 120 on frame 0.
+        EffectId::BeginspellN6 => Box::new(BeginSpellSwirl::new(6, 100)),
         _ => return None,
     })
 }
@@ -786,6 +809,13 @@ pub fn ported_ids() -> Vec<EffectId> {
         // `EF_RUWACH` (33) - `RagEffect.cpp:23193-23232`, lifetime
         // `EffectTypes.cpp:42`.
         EffectId::Ruwach,
+        // Round 103: the final backlog ids and the children `RenderSMA3`
+        // launches (`EF_SMA2` 554, `EF_SMA_BLACK2` 1205).
+        EffectId::Sma2,
+        EffectId::SmaBlack2,
+        EffectId::Stin3,
+        EffectId::Kouenka,
+        EffectId::BeginspellN6,
     ]);
 
     ids
@@ -891,6 +921,11 @@ mod tests {
             (EffectId::Heavensdrive, 250),
             (EffectId::Napalmbeat, 100),
             (EffectId::Sma3, 50),
+            (EffectId::Sma2, 100),
+            (EffectId::SmaBlack2, 100),
+            (EffectId::Stin3, 200),
+            (EffectId::Kouenka, 300),
+            (EffectId::BeginspellN6, 100),
             (EffectId::Blitzbeat, 250),
             (EffectId::Spraypond, 130),
             (EffectId::Entry, 100),
@@ -1165,7 +1200,15 @@ mod tests {
                 // `Particle3d`/`Orbit` motes whose sprite the original attaches
                 // elsewhere (e.g. Blessing). Everything else must name a
                 // texture.
-                if primitive.state.sprite.is_some() || matches!(primitive.state.count, PrimitiveId::Particle3d | PrimitiveId::Orbit) {
+                if primitive.state.sprite.is_some()
+                    || matches!(
+                        primitive.state.count,
+                        PrimitiveId::Particle3d | PrimitiveId::Orbit | PrimitiveId::Sma
+                    )
+                {
+                    // `PP_SMA` is the textureless launcher
+                    // (`totalTexture = 0`, `RenderSMA3`); its children carry
+                    // the textures.
                     continue;
                 }
 

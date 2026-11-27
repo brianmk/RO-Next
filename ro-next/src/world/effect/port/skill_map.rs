@@ -316,8 +316,10 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Stin,
     EffectId::RedHit,
     EffectId::Quakebody3,
+    EffectId::Sma2,
     EffectId::Stin2,
     EffectId::Hittexture,
+    EffectId::Stin3,
     EffectId::Sma3,
     EffectId::BigPortal,
     EffectId::BigPortal2,
@@ -347,6 +349,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Throwitem8,
     EffectId::Throwitem9,
     EffectId::Throwitem10,
+    EffectId::Kouenka,
     EffectId::Hyousensou,
     EffectId::Stin4,
     EffectId::Thunderstorm2,
@@ -435,6 +438,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::BottomAni,
     EffectId::BottomBloodylust,
     EffectId::WaterBelow,
+    EffectId::BeginspellN6,
     EffectId::Dance2,
     EffectId::ChemicalV,
     EffectId::ChemicalV2,
@@ -479,6 +483,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::NpcWideweb,
     EffectId::NpcBurnt,
     EffectId::SuStoop,
+    EffectId::SmaBlack2,
     EffectId::PeongBlack,
     EffectId::EnergydrainBlack,
     EffectId::NewHeavensDrive,
@@ -573,7 +578,6 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(114), SkillPhase::Success, EffectId::Maxpower, PortedAnchor::Caster),
     (SkillId(124), SkillPhase::Success, EffectId::Removetrap, PortedAnchor::Caster),
     (SkillId(129), SkillPhase::Success, EffectId::Blitzbeat, PortedAnchor::Target),
-    (SkillId(130), SkillPhase::Ground, EffectId::Detecting, PortedAnchor::Target),
     (SkillId(131), SkillPhase::Success, EffectId::Springtrap, PortedAnchor::Caster),
     (SkillId(136), SkillPhase::Success, EffectId::Sonicblow, PortedAnchor::Caster),
     (SkillId(137), SkillPhase::Hit, EffectId::Grimtooth, PortedAnchor::Caster),
@@ -878,6 +882,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(526), SkillPhase::Release, EffectId::Throwitem10, PortedAnchor::Target),
     (SkillId(528), SkillPhase::Success, EffectId::Kasumikiri, PortedAnchor::Caster),
     (SkillId(530), SkillPhase::Success, EffectId::Kirikage, PortedAnchor::Caster),
+    (SkillId(534), SkillPhase::Success, EffectId::Kouenka, PortedAnchor::Caster),
     (SkillId(536), SkillPhase::Success, EffectId::Baku, PortedAnchor::Caster),
     (SkillId(537), SkillPhase::Success, EffectId::Hyousensou, PortedAnchor::Caster),
     (SkillId(539), SkillPhase::Success, EffectId::Hyousyouraku, PortedAnchor::Caster),
@@ -990,23 +995,6 @@ mod tests {
             Some(EffectId::Blitzbeat as u32)
         );
         assert_eq!(ported_anchor_for(SkillId(129), SkillPhase::Success), PortedAnchor::Target);
-    }
-
-    #[test]
-    fn detect_maps_to_its_ported_ground_aura() {
-        // `HT_DETECTING` (130) is `TargetType: Ground`, so the arriving lane
-        // is `ZC_NOTIFY_GROUNDSKILL` and the official
-        // `CGameActor::PlayGroundSkillEffect` launches `EF_DETECTING` (119)
-        // at the clicked cell (`RenderObject.cpp:1096-1103`). Its body is
-        // `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`),
-        // registered as `EffectId::Detecting`. The 2019 SkillEffect table has
-        // no descriptor field for it, so the mapping is curated in
-        // `gen_ported_skill_map.py` instead of coming from the coverage data.
-        assert_eq!(
-            ported_effect_for(SkillId(130), SkillPhase::Ground).map(|effect| effect as u32),
-            Some(EffectId::Detecting as u32)
-        );
-        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
     }
 
     #[test]

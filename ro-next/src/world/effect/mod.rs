@@ -102,6 +102,25 @@ pub trait EffectBase {
     fn status_visual_key(&self) -> Option<StatusVisualKey> {
         None
     }
+
+    /// Child effects this effect launched since the last call.
+    ///
+    /// The official launchers (`CEffectPrim::RenderSMA3`,
+    /// `EffectPrimitiveRendering.cpp:2394-2415`) call
+    /// `EffectActor::LaunchEffect` from inside `Render`; the call appends the
+    /// child to the scene object list and the actor's effect list. The port
+    /// cannot mutate those lists from `EffectBase::render` (`&self`) or from
+    /// `update` (immutable entity slice), so the ported visual records the
+    /// requests on its runtime outbox, turns them into child visuals after the
+    /// step and hands them over here. [`EffectHolder::update`] appends them,
+    /// so they step from the next frame on, exactly like a child created
+    /// during the previous frame's render.
+    ///
+    /// The default returns nothing; only [`port::visual::PortedVisual`]
+    /// launches children.
+    fn take_spawned_effects(&mut self) -> Vec<Box<dyn EffectBase + Send + Sync>> {
+        Vec::new()
+    }
 }
 
 pub trait EffectSourceExt {
@@ -914,6 +933,25 @@ impl EffectHolder {
                 effect.apply_caster_state(entity, client_tick);
             }
         }
+
+        // Collect the effects the renderer pass launched since the last step
+        // (`RenderSMA3`'s `LaunchEffect` calls). Only the effects that were
+        // already in the list are asked, so a child cannot spawn during its
+        // own insertion pass; it starts stepping on the next frame like the
+        // official child created during `Render`.
+        //
+        // The children are added unowned: the official call appends them to
+        // the *local player's* effect list (and the scene list), not to the
+        // caster, and the default per-entity budget (24) would truncate a
+        // dense launcher stream such as `EF_STIN3`'s one-comet-per-frame
+        // (about fifty alive at once). The global budget still bounds them.
+        let parents = self.effects.len();
+
+        for index in 0..parents {
+            for child in self.effects[index].0.take_spawned_effects() {
+                self.add_effect(child);
+            }
+        }
     }
 
     pub fn register_point_lights(&self, point_light_manager: &mut PointLightManager, camera: &dyn Camera) {
@@ -1079,5 +1117,111 @@ mod status_visual_tests {
             entity_id: EntityId(42),
             status_index: 1132,
         });
+    }
+}
+
+#[cfg(test)]
+mod spawned_effect_tests {
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicU32, Ordering};
+
+    use ragnarok_packets::ClientTick;
+
+    use super::{EffectBase, EffectHolder};
+    use crate::world::Camera;
+
+    /// Counts its `update` calls, so the test can tell when it first stepped.
+    struct Counted {
+        steps: Arc<AtomicU32>,
+    }
+
+    impl EffectBase for Counted {
+        fn update(&mut self, _entities: &[crate::world::Entity], _delta_time: f32) -> bool {
+            self.steps.fetch_add(1, Ordering::Relaxed);
+
+            true
+        }
+
+        fn mark_for_deletion(&mut self) {}
+
+        fn register_point_lights(&self, _manager: &mut crate::world::PointLightManager, _camera: &dyn Camera) {}
+
+        fn render(&self, _renderer: &mut crate::renderer::EffectRenderer, _camera: &dyn Camera) {}
+    }
+
+    /// Stands in for a ported visual whose renderer launched one child.
+    struct Spawner {
+        steps: Arc<AtomicU32>,
+        child: Option<Box<dyn EffectBase + Send + Sync>>,
+    }
+
+    impl EffectBase for Spawner {
+        fn update(&mut self, _entities: &[crate::world::Entity], _delta_time: f32) -> bool {
+            true
+        }
+
+        fn mark_for_deletion(&mut self) {}
+
+        fn register_point_lights(&self, _manager: &mut crate::world::PointLightManager, _camera: &dyn Camera) {}
+
+        fn render(&self, _renderer: &mut crate::renderer::EffectRenderer, _camera: &dyn Camera) {}
+
+        fn take_spawned_effects(&mut self) -> Vec<Box<dyn EffectBase + Send + Sync>> {
+            self.child.take().into_iter().collect()
+        }
+    }
+
+    #[test]
+    fn renderer_launched_effects_join_the_list_and_start_on_the_next_frame() {
+        let mut holder = EffectHolder::default();
+        // The ambient environment can cap the effect count.
+        holder.maximum_effects = 0;
+        holder.maximum_effects_per_entity = 0;
+
+        let steps = Arc::new(AtomicU32::new(0));
+        holder.add_effect(Box::new(Spawner {
+            steps: steps.clone(),
+            child: Some(Box::new(Counted { steps: steps.clone() })),
+        }));
+
+        let mut entities: Vec<crate::world::Entity> = Vec::new();
+        holder.update(&mut entities, 0.016, ClientTick(0));
+
+        // The official `LaunchEffect` appends the child during `Render`, so it
+        // is not stepped by the update that spawned it.
+        assert_eq!(holder.count(), 2);
+        assert_eq!(steps.load(Ordering::Relaxed), 0);
+
+        holder.update(&mut entities, 0.016, ClientTick(0));
+
+        assert_eq!(steps.load(Ordering::Relaxed), 1);
+        assert_eq!(holder.count(), 2, "the child owns its own lifetime");
+    }
+
+    #[test]
+    fn a_retiring_effect_spawns_nothing() {
+        struct Retiring;
+
+        impl EffectBase for Retiring {
+            fn update(&mut self, _entities: &[crate::world::Entity], _delta_time: f32) -> bool {
+                false
+            }
+
+            fn mark_for_deletion(&mut self) {}
+
+            fn register_point_lights(&self, _manager: &mut crate::world::PointLightManager, _camera: &dyn Camera) {}
+
+            fn render(&self, _renderer: &mut crate::renderer::EffectRenderer, _camera: &dyn Camera) {}
+        }
+
+        let mut holder = EffectHolder::default();
+        holder.maximum_effects = 0;
+        holder.maximum_effects_per_entity = 0;
+        holder.add_effect(Box::new(Retiring));
+
+        let mut entities: Vec<crate::world::Entity> = Vec::new();
+        holder.update(&mut entities, 0.016, ClientTick(0));
+
+        assert_eq!(holder.count(), 0);
     }
 }

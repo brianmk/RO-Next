@@ -141,11 +141,13 @@
 //! [`CEFFECT_PRIM_DISTANCE_SCALE`] so the term stays explicit.
 
 use cgmath::{Point3, Vector2};
+use ragnarok_packets::EffectId;
 use wgpu::BlendFactor;
 
 use super::angles::Angles;
 use super::math::matrix_mult;
 use super::primitive::{EffectPrimitiveSlot, EffectPrimitiveState, PrimitiveId};
+use super::runtime::EffectRuntime;
 use crate::graphics::ScreenSize;
 use crate::world::Camera;
 
@@ -358,6 +360,12 @@ pub enum SlotRenderer {
     GroundBar,
     /// `RenderFloorSquare2` - prim 119/122/125, the slash fan/level/wave.
     FloorSquare2,
+    /// `RenderSMA2` - `PP_SMA2` (121), the stacked wave rings of `EF_SMA2` /
+    /// `EF_SMA_BLACK2`.
+    Sma2,
+    /// `RenderGroundArcGlow` - prim 149, the four ground arcs of
+    /// `BeginSpellSwirl` (`EF_BEGINSPELL_N*`).
+    GroundArcGlow,
     /// `RenderRotatedRing` - prim 126 (`TexturedSlashCross`).
     RotatedRing,
     /// `RenderSoulLink` - `PP_SOULLINK` (109).
@@ -452,6 +460,11 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::Chemical3 => SlotRenderer::GroundBar,
         // `EffectPrimitiveRendering.cpp:549-551`.
         PrimitiveId::SlashFan | PrimitiveId::Stin3 | PrimitiveId::Stin4 => SlotRenderer::FloorSquare2,
+        // `EffectPrimitiveRendering.cpp:385-386`: `PP_SMA2` draws
+        // `RenderSMA2`.
+        PrimitiveId::Sma2 => SlotRenderer::Sma2,
+        // `EffectPrimitiveRendering.cpp:373-375`: bare `case 149:`.
+        PrimitiveId::WaveHeights => SlotRenderer::GroundArcGlow,
         // `EffectPrimitiveRendering.cpp:554`.
         PrimitiveId::SlashCross => SlotRenderer::RotatedRing,
         // `EffectPrimitiveRendering.cpp:479-480`.
@@ -463,7 +476,10 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
         // Prim 46 (`ChimtoSprite`) shares that pass
         // (`EffectPrimitiveRendering.cpp:272-281`), so it also returns `None`.
-        PrimitiveId::ParticleSpline | PrimitiveId::ChimtoSprite => return None,
+        // Prim 120 (`Sma`) is `RenderSMA3`, which submits no geometry at all;
+        // it launches child effects, so the holder calls
+        // [`render_sma3`] directly instead of going through this table.
+        PrimitiveId::ParticleSpline | PrimitiveId::ChimtoSprite | PrimitiveId::Sma => return None,
         _ => return None,
     })
 }
@@ -575,6 +591,8 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::FloorSquare) => render_floor_square(state, &mut out),
         Some(SlotRenderer::GroundBar) => render_ground_bar(state, &mut out),
         Some(SlotRenderer::FloorSquare2) => render_floor_square2(state, &mut out),
+        Some(SlotRenderer::Sma2) => render_sma2(state, &mut out),
+        Some(SlotRenderer::GroundArcGlow) => render_ground_arc_glow(state, &mut out),
         Some(SlotRenderer::RotatedRing) => render_rotated_ring(state, &mut out),
         Some(SlotRenderer::SoulLink) => render_soul_link(state, &mut out),
         Some(SlotRenderer::SoulParticle) => render_soul_particle(state, &mut out),
@@ -730,13 +748,31 @@ type Quad = [[f32; 3]; 4];
 /// * the colour comes from the `state.size` table (`size_color`), including its
 ///   `alphaB = 80` override for size 3.
 fn emit_tei_rect_10(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>, tex_part: i32, alpha_b: i16, quad: Quad, pw: i32) {
+    emit_tei_rect_10_size(state, out, tex_part, alpha_b, quad, pw, state.size);
+}
+
+/// [`emit_tei_rect_10`] with an explicit `state.size`.
+///
+/// `RenderGroundArcGlow` writes `state.size` *inside* the renderer (0 for its
+/// base band, then `17`/`18`/.../`32` for the glow band). Rendering may not
+/// mutate the ported simulation, so the value is passed in instead; every
+/// other caller keeps reading `state.size` through [`emit_tei_rect_10`].
+fn emit_tei_rect_10_size(
+    state: &EffectPrimitiveState,
+    out: &mut Vec<SlotTriangle>,
+    tex_part: i32,
+    alpha_b: i16,
+    quad: Quad,
+    pw: i32,
+    size: f32,
+) {
     if out.len() >= MAX_TRIANGLES_PER_PRIMITIVE {
         return;
     }
 
-    let (red, green, blue, texture_v, glow) = size_color(state.size);
+    let (red, green, blue, texture_v, glow) = size_color(size);
 
-    let alpha = if state.size as i32 == 3 { 80 } else { alpha_b };
+    let alpha = if size as i32 == 3 { 80 } else { alpha_b };
 
     // `left = texPart / 21` (`0` for texPart 0), `right = (texPart + 1) / 21`.
     let left = if tex_part == 0 { 0.0 } else { tex_part as f32 / 21.0 };
@@ -5525,6 +5561,290 @@ pub fn render_soul_particle(state: &EffectPrimitiveState, out: &mut Vec<SlotTria
     }
 }
 
+/// `CEffectPrim::RenderSMA3` - `EffectPrimitiveRendering.cpp:2385-2420`,
+/// dispatch `:557-558`.
+///
+/// Prim 120 (`PP_SMA`) has no geometry of its own: it launches the child
+/// effects `EF_SMA2` / `EF_SMA3` / `EF_SMA_BLACK2` at slot 0's current
+/// position, selected by `slots[0].flag1[0]` (which `CRagEffect::SMA` sets to
+/// its `flag` argument - `0` for `EF_SMA`, `1` for `EF_STIN3`, `99` for
+/// `EF_SMA_BLACK`):
+///
+/// * `0` - one `EF_SMA2` every eighth processed slot frame, with `deltaPos2 = {
+///   process, process % 16 == 0 ? 0 : 1, 0 }`,
+/// * `1` - one `EF_SMA3` on **every** render frame, no `deltaPos2`,
+/// * `99` - one `EF_SMA_BLACK2` every eighth frame, same extra as `0`.
+///
+/// The official call is `LaunchEffect(...)` + `SendMsg(AM_SETPOS, ...)`; the
+/// port records the request on the runtime outbox and the ported visual
+/// spawns the child into the client's effect list. `&self` is enough because
+/// the outbox is behind a mutex.
+pub fn render_sma3(state: &EffectPrimitiveState, runtime: &EffectRuntime) {
+    let slot = &state.slots[0];
+
+    if slot.life != 1 {
+        return;
+    }
+
+    let extra = [slot.process as f32, if slot.process % 16 == 0 { 0.0 } else { 1.0 }, 0.0];
+
+    match slot.flag1[0] {
+        0 => {
+            if slot.process % 8 == 0 {
+                runtime.launch_effect(EffectId::Sma2, slot.vec_b_now, Some(extra));
+            }
+        }
+        1 => {
+            runtime.launch_effect(EffectId::Sma3, slot.vec_b_now, None);
+        }
+        99 => {
+            if slot.process % 8 == 0 {
+                runtime.launch_effect(EffectId::SmaBlack2, slot.vec_b_now, Some(extra));
+            }
+        }
+        _ => {}
+    }
+}
+
+/// `CEffectPrim::RenderSMA2` - `EffectPrimitiveRendering.cpp:5227-5320`,
+/// dispatch `:385-386`.
+///
+/// The stacked wave rings of `EF_SMA2` / `EF_SMA_BLACK2`: per slot, one quad
+/// per ring segment between the angles `0..=fullDisplayAngle` (step
+/// `fullDisplayAngle / 20`), each vertex lifted by `height[order]` along
+/// `riseAngle` and all of them offset by the effect's `deltaPos`. The texture
+/// window is `(order - 1) / 21 .. order / 21`; `order` is clamped to 20, so
+/// the last segment repeats.
+///
+/// Kept quirk: `basicAngle` is an integer division; a `fullDisplayAngle`
+/// below 20 would loop forever in the original, so a zero step is skipped here
+/// (no body produces one - `TexturedBlueRing`/`BlueRingStack` set 315).
+pub fn render_sma2(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let basic_angle = slot.full_display_angle as i32 / 20;
+
+        if basic_angle <= 0 {
+            continue;
+        }
+
+        let mut order = 0i32;
+        let mut vec1 = [0.0f32; 3];
+        let mut vec3 = [0.0f32; 3];
+        let mut count = 0i32;
+
+        while count <= slot.full_display_angle as i32 {
+            let mut angle = count + slot.rot_start as i32;
+            angle %= 360;
+
+            if slot.full_display_angle == 360 && order == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cs1 = table_cos(angle);
+            let sn1 = table_sin(angle);
+
+            let mut vec2 = [cs1 * slot.distance, 0.0f32, sn1 * slot.distance];
+
+            let rx_raw = table_cos(slot.rise_angle as i32) * slot.height[order as usize];
+            let ry = table_sin(slot.rise_angle as i32) * slot.height[order as usize];
+
+            let rz = sn1 * rx_raw;
+            let rx = cs1 * rx_raw;
+
+            let mut vec4 = [vec2[0] + rx, -ry, vec2[2] + rz];
+
+            vec2[0] += state.delta_pos[0];
+            vec2[1] += state.delta_pos[1];
+            vec2[2] += state.delta_pos[2];
+            vec4[0] += state.delta_pos[0];
+            vec4[1] += state.delta_pos[1];
+            vec4[2] += state.delta_pos[2];
+
+            if order > 0 {
+                let tx1 = (order - 1) as f32 / 21.0;
+                let tx2 = order as f32 / 21.0;
+
+                // `slot.alphaT == 99` is the black stack (`BlueRingStack`);
+                // every other value keeps the blue `TexturedBlueRing` colour.
+                let (colour, blend) = if slot.alpha_t == 99 {
+                    ((70u8, 70u8, 70u8), SlotBlend::Alpha)
+                } else {
+                    ((90u8, 90u8, 255u8), SlotBlend::AlphaOne)
+                };
+
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    [vec1, vec2, vec4, vec3],
+                    0,
+                    false,
+                    colour,
+                    (0.0, 1.0, tx1, tx2),
+                    blend,
+                );
+            }
+
+            order += 1;
+
+            if order >= 21 {
+                order = 20;
+            }
+
+            vec1 = vec2;
+            vec3 = vec4;
+            count += basic_angle;
+        }
+    }
+}
+
+/// `CEffectPrim::RenderGroundArcGlow` - `EffectPrimitiveArcs.cpp:60-166`,
+/// dispatch `EffectPrimitiveRendering.cpp:373-375`.
+///
+/// The four ground arcs of `CRagEffect::BeginSpellSwirl`
+/// (`EF_BEGINSPELL_N2..N8` / `EF_NEW_EPICLESIS_CAST`). Per slot the arc is
+/// sampled on `0..=fullDisplayAngle` (step `fullDisplayAngle / 20`), the top
+/// vertex is lifted by `height[i]` along `riseAngle`, and every segment is
+/// submitted twice:
+///
+/// * once with `size = 0` (the base band, `process % totalTexture` texture),
+/// * once with the `slots[ec].alphaT` kind's `size`/alpha multiplier (the glow
+///   band, same texture).
+///
+/// `slots[ec].alphaT == 10` skips the base band and picks `process / 3 %
+/// totalTexture` instead.
+///
+/// Kept quirks:
+/// * the radius is `sin(rotStart) + distance`, not `distance`,
+/// * the ring closes on `i == 20` with `fullDisplayAngle == 360` by snapping
+///   the angle back to `rotStart`,
+/// * `state.size` is *written* inside the renderer; the port passes the value
+///   to [`emit_tei_rect_10_size`] instead of mutating the simulation,
+/// * the `TT_MIN_EFFECT_ON_OFF` service option is off by default, so the
+///   `alphaT` 9/11 branches double the alpha.
+pub fn render_ground_arc_glow(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    /// `g_serviceOptions.Get(TT_MIN_EFFECT_ON_OFF)` defaults to off
+    /// (`rag/chemical_line.rs` documents the same choice).
+    const MIN_EFFECT_ON_OFF: bool = false;
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let step = slot.full_display_angle as i32 / 20;
+
+        // The original's `for (offset += step)` never terminates for a zero
+        // step; no body reaches this (`BeginSpellSwirl` sets 360).
+        if step <= 0 {
+            continue;
+        }
+
+        let mut i = 0i32;
+        let mut prev_b = [0.0f32; 3];
+        let mut prev_t = [0.0f32; 3];
+        let mut offset = 0i32;
+
+        while offset <= slot.full_display_angle as i32 {
+            // `angle -= angle / 360 * 360;` - integer division, so only angles
+            // of 360 and above are folded.
+            let mut angle = slot.rot_start as i32 + offset;
+            angle -= angle / 360 * 360;
+
+            if slot.full_display_angle == 360 && i == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let radius = table_sin(slot.rot_start as i32) + slot.distance;
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+
+            let rise_x = slot.height[i as usize] * table_cos(slot.rise_angle as i32);
+            let rise_y = slot.height[i as usize] * table_sin(slot.rise_angle as i32);
+
+            let cur_b = [radius * cosine, 0.0f32, radius * sine];
+            let cur_t = [rise_x * cosine + cur_b[0], -rise_y, rise_x * sine + cur_b[2]];
+
+            if i > 0 {
+                // `if (alphaT == 10) texture = process / 3 % totalTexture;`
+                // skips the base band; every other kind submits it with
+                // `process % totalTexture` and `state.size = 0`.
+                let texture = if slot.alpha_t == 10 {
+                    slot.process / 3 % state.total_texture as i32
+                } else {
+                    let texture = slot.process % state.total_texture as i32;
+
+                    emit_tei_rect_10_size(state, out, i - 1, slot.alpha_b, [prev_b, cur_b, cur_t, prev_t], texture, 0.0);
+
+                    texture
+                };
+
+                // `short alpha;` is only assigned by the branches below; every
+                // ported `alphaT` (0, 3..9) is covered, and the fallback keeps
+                // the slot alpha instead of an uninitialised value.
+                let mut alpha = slot.alpha_b;
+                let mut size = state.size;
+
+                if slot.alpha_t <= 2 {
+                    size = 17.0;
+                    alpha = slot.alpha_b * 3;
+                } else if slot.alpha_t == 3 {
+                    size = 18.0;
+                    alpha = slot.alpha_b * 3;
+                } else if slot.alpha_t == 4 {
+                    size = 19.0;
+                    alpha = slot.alpha_b * 2;
+                } else if slot.alpha_t == 5 {
+                    size = 20.0;
+                    alpha = slot.alpha_b * 2;
+                } else if slot.alpha_t == 7 {
+                    size = 21.0;
+                    alpha = slot.alpha_b * 2;
+                } else if slot.alpha_t == 8 {
+                    size = 22.0;
+                    alpha = slot.alpha_b * 2;
+                } else if slot.alpha_t == 9 {
+                    size = 30.0;
+                    alpha = if MIN_EFFECT_ON_OFF { slot.alpha_b } else { slot.alpha_b * 2 };
+                } else if slot.alpha_t == 6 {
+                    size = 5.0;
+                    alpha = slot.alpha_b * 2;
+                } else if slot.alpha_t == 10 {
+                    size = 6.0;
+                    alpha = slot.alpha_b * 3;
+                } else if slot.alpha_t == 11 {
+                    size = 32.0;
+                    alpha = if MIN_EFFECT_ON_OFF { slot.alpha_b } else { slot.alpha_b * 2 };
+                }
+
+                if alpha > 255 {
+                    alpha = 255;
+                }
+
+                emit_tei_rect_10_size(state, out, i - 1, alpha, [prev_b, cur_b, cur_t, prev_t], texture, size);
+            }
+
+            i += 1;
+
+            if i >= 21 {
+                i = 20;
+            }
+
+            prev_t = cur_t;
+            prev_b = cur_b;
+            offset += step;
+        }
+    }
+}
+
 /// The client's one-step angle normalisation (`if (angle >= 360)
 /// angle -= 360; if (angle < 0) angle += 360;`).
 fn normalize_angle(mut angle: i32) -> i32 {
@@ -5543,6 +5863,7 @@ fn normalize_angle(mut angle: i32) -> i32 {
 mod tests {
     use cgmath::{Deg, Matrix4, Vector3};
 
+    use super::super::runtime::PendingEffectLaunch;
     use super::*;
     use crate::world::effect::port::primitive::{EffectPrimitiveSlot, PrimitiveRecord};
 
@@ -8606,5 +8927,225 @@ mod tests {
         assert_close(camera_built[0].corners[0][2], 0.0);
         assert_eq!(camera_built[0].blend, SlotBlend::AlphaOne);
         assert_eq!(camera_built[0].argb, pack_argb(100, 255, 255, 255));
+    }
+
+    #[test]
+    fn render_sma3_launches_ef_sma3_on_every_render_frame() {
+        let runtime = EffectRuntime::new(200, [0.0, 0.0], 1);
+        let mut state = state_of(PrimitiveId::Sma);
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            process: 7,
+            vec_b_now: [3.0, 4.0, 5.0],
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[0] = 1;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        // `flag1[0] == 1` (EF_STIN3's `SMA(1)`) has no frame gate: every
+        // `Render` call launches one comet.
+        render_sma3(&state, &runtime);
+        render_sma3(&state, &runtime);
+
+        assert_eq!(runtime.take_effect_launches(), vec![
+            PendingEffectLaunch {
+                effect: EffectId::Sma3,
+                position: [3.0, 4.0, 5.0],
+                delta_pos2: None,
+            },
+            PendingEffectLaunch {
+                effect: EffectId::Sma3,
+                position: [3.0, 4.0, 5.0],
+                delta_pos2: None,
+            },
+        ]);
+
+        // The launcher itself submits no geometry (`triangles` is empty too).
+        assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn render_sma3_gates_the_ring_variants_on_every_eighth_frame() {
+        let mut state = state_of(PrimitiveId::Sma);
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            process: 7,
+            vec_b_now: [1.0, 2.0, 3.0],
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[0] = 0;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        // `flag1[0] == 0` -> `EF_SMA2`, `process % 8 == 0` only.
+        let runtime = EffectRuntime::new(100, [0.0, 0.0], 1);
+        render_sma3(&state, &runtime);
+        assert!(runtime.take_effect_launches().is_empty());
+
+        state.slots[0].process = 8;
+        render_sma3(&state, &runtime);
+        assert_eq!(runtime.take_effect_launches(), vec![PendingEffectLaunch {
+            effect: EffectId::Sma2,
+            position: [1.0, 2.0, 3.0],
+            // `process % 16 == 0 ? 0 : 1`.
+            delta_pos2: Some([8.0, 1.0, 0.0]),
+        }]);
+
+        state.slots[0].process = 16;
+        render_sma3(&state, &runtime);
+        assert_eq!(runtime.take_effect_launches(), vec![PendingEffectLaunch {
+            effect: EffectId::Sma2,
+            position: [1.0, 2.0, 3.0],
+            delta_pos2: Some([16.0, 0.0, 0.0]),
+        }]);
+
+        // `flag1[0] == 99` -> `EF_SMA_BLACK2`, same cadence.
+        state.slots[0].flag1[0] = 99;
+        state.slots[0].process = 24;
+        render_sma3(&state, &runtime);
+        assert_eq!(runtime.take_effect_launches(), vec![PendingEffectLaunch {
+            effect: EffectId::SmaBlack2,
+            position: [1.0, 2.0, 3.0],
+            delta_pos2: Some([24.0, 1.0, 0.0]),
+        }]);
+    }
+
+    #[test]
+    fn render_sma3_ignores_a_dead_slot() {
+        let runtime = EffectRuntime::new(200, [0.0, 0.0], 1);
+        let mut state = state_of(PrimitiveId::Sma);
+        state.slots[0].life = 0;
+        state.slots[0].flag1[0] = 1;
+
+        render_sma3(&state, &runtime);
+
+        assert!(runtime.take_effect_launches().is_empty());
+    }
+
+    fn sma2_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::Sma2);
+        state.texture = Some("effect\\ring_blue.tga");
+        state.render_flag = 5;
+        state.delta_pos = [10.0, 0.0, 20.0];
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            full_display_angle: 315,
+            distance: 3.4,
+            max_height: 13.0,
+            rot_start: 0,
+            rise_angle: 55,
+            height: {
+                let mut height = [0.0f32; 21];
+                for (index, value) in height.iter_mut().enumerate() {
+                    *value = index as f32 * 0.5;
+                }
+                height
+            },
+            ..Default::default()
+        };
+        state
+    }
+
+    #[test]
+    fn render_sma2_emits_one_quad_per_ring_segment() {
+        let state = sma2_state();
+
+        let built = triangles(&state);
+
+        // 22 sample angles (0..=315 step 15); the first has no predecessor, so
+        // 21 quads = 42 triangles.
+        assert_eq!(built.len(), 42);
+        assert_eq!(built[0].texture, Some("effect\\ring_blue.tga"));
+        // `tick_alpha` blue branch (`pw = 0` -> `ONE` destination).
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].argb, pack_argb(100, 90, 90, 255));
+        // The texture window runs `0/21 .. 1/21` on the first quad.
+        assert_close(built[0].texture_coordinates[0][0], 0.0);
+        assert_close(built[0].texture_coordinates[1][0], 1.0 / 21.0);
+        // The quad is offset by the effect's `deltaPos`, and the first vertex
+        // sits on the ring radius at angle 0: 3.4 * cos(0) + 10 = 13.4.
+        let (cos0, _) = trig(0);
+        assert_close(built[0].corners[0][0], 10.0 + 3.4 * cos0);
+    }
+
+    #[test]
+    fn render_sma2_uses_the_grey_branch_for_alpha_t_ninety_nine() {
+        let mut state = sma2_state();
+        state.slots[0].alpha_t = 99;
+
+        let built = triangles(&state);
+
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].argb, pack_argb(100, 70, 70, 70));
+    }
+
+    fn ground_arc_state() -> EffectPrimitiveState {
+        let mut state = state_of(PrimitiveId::WaveHeights);
+        state.position = [5.0, 0.0, 5.0];
+        state.total_texture = 3;
+        state.render_flag = 5;
+        state.texture = Some("effect\\W_bubble01.tga");
+        state.texture_frames = vec!["effect\\W_bubble01.tga", "effect\\W_bubble02.tga", "effect\\W_bubble03.tga"];
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            full_display_angle: 360,
+            max_height: 23.0,
+            process: 0,
+            rot_start: 180,
+            rise_angle: 75,
+            distance: 4.3,
+            alpha_t: 6,
+            height: [23.0; 21],
+            ..Default::default()
+        };
+        state
+    }
+
+    #[test]
+    fn render_ground_arc_glow_submits_the_base_and_glow_bands() {
+        let state = ground_arc_state();
+
+        let built = triangles(&state);
+
+        // 21 sample angles; `i > 0` submits two quads per segment -> 20 * 2 * 2.
+        assert_eq!(built.len(), 80);
+        // First triangle of the first segment is the base band (`size = 0`).
+        assert_eq!(built[0].texture, Some("effect\\W_bubble01.tga"));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        // The second triangle pair of the same segment is the `alphaT == 6`
+        // glow band: `size = 5` (white glow, `alpha = alphaB * 2` clamped to
+        // 200).
+        assert_eq!(built[2].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[2].argb, pack_argb(200, 255, 255, 255));
+        // The 10-argument `RenderTeiRect` adds `render.position`, and the
+        // radius quirk reads `sin(rotStart) + distance` (rotStart is 180, so
+        // the radius is `4.3 + sin(180)`). The first submitted vertex is
+        // `prevB` from segment 0, i.e. the ring point at `rotStart + 0`.
+        let (cos180, sin180) = trig(180);
+        let radius = sin180 + 4.3;
+        assert_close(built[0].corners[0][0], 5.0 + radius * cos180);
+        // `curB` of the first submitted segment samples angle `rotStart + 18`.
+        let (cos198, _) = trig(198);
+        assert_close(built[0].corners[1][0], 5.0 + radius * cos198);
+    }
+
+    #[test]
+    fn render_ground_arc_glow_picks_the_texture_from_the_process_counter() {
+        let mut state = ground_arc_state();
+
+        state.slots[0].process = 2;
+        assert_eq!(triangles(&state)[0].texture, Some("effect\\W_bubble03.tga"));
+
+        // `process % totalTexture` wraps.
+        state.slots[0].process = 3;
+        assert_eq!(triangles(&state)[0].texture, Some("effect\\W_bubble01.tga"));
     }
 }

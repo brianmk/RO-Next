@@ -1337,6 +1337,14 @@ pub enum EffectId {
     Novaexplosing,
     StarEmperor,
     SmaBlack,
+    /// `EF_SMA_BLACK2` (`EffectTypes.h:1213`, official id 1205).
+    ///
+    /// The id sits between `SmaBlack` (1204) and `EF_STIN_BLACK` (1206). Its
+    /// body is `CRagEffect::BlueRingStack` (`RagEffect.cpp:5829-5877`), the
+    /// black twin of `TexturedBlueRing`; `CEffectPrim::RenderSMA3` launches it
+    /// when `slots[0].flag1[0] == 99`.
+    #[numeric_value(1205)]
+    SmaBlack2,
     /// `EF_PEONG_BLACK` (`EffectTypes.h:1215`, official id 1207).
     ///
     /// The id sits between `SmaBlack` (1204) and `EnergydrainBlack` (1208).

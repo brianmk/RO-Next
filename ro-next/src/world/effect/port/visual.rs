@@ -40,7 +40,7 @@ use cgmath::Point3;
 use ro_next_audio::AudioEngine;
 
 use super::holder::PortedEffectHolder;
-use super::runtime::EffectRuntime;
+use super::runtime::{EffectRuntime, PendingEffectLaunch};
 use super::sound_sink::AudioEffectSink;
 use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
@@ -77,6 +77,20 @@ pub struct PortedVisual {
     /// retired by `EffectHolder::remove_status_visual`. `None` for the skill
     /// and attack visuals, which own their lifetime.
     status_key: Option<crate::world::effect::StatusVisualKey>,
+    /// Loaders kept so a renderer-launched child effect (`RenderSMA3`'s
+    /// `LaunchEffect`, carried by [`EffectRuntime::pending_effect_launches`])
+    /// can be spawned with the same assets as this visual. `None` only in unit
+    /// tests, which have no game archives - child spawning then does nothing.
+    sprite_loader: Option<Arc<SpriteLoader>>,
+    action_loader: Option<Arc<ActionLoader>>,
+    game_file_loader: Option<Arc<GameFileLoader>>,
+    /// Child visuals spawned since the last step, handed to the client's
+    /// effect holder through `EffectBase::take_spawned_effects`.
+    pending_effects: Vec<Box<dyn EffectBase + Send + Sync>>,
+    /// Deterministic seed counter for [`Self::spawn_launched_effect`]: the
+    /// official children draw from the global `rand()` stream, so the port
+    /// mixes the parent's spawn seed with this ordinal.
+    launch_counter: u64,
 }
 
 impl PortedVisual {
@@ -92,7 +106,7 @@ impl PortedVisual {
             // (`port/str_table.rs`) before the first step, like
             // `CRagEffect::Init` does on the original.
             holder: holder
-                .with_sprite_loaders(sprite_loader, action_loader)
+                .with_sprite_loaders(sprite_loader.clone(), action_loader.clone())
                 .with_game_file_loader(&game_file_loader),
             texture_loader: Some(texture_loader),
             audio_engine: None,
@@ -101,6 +115,11 @@ impl PortedVisual {
             applied_tint: None,
             applied_frame_sequence: None,
             status_key: None,
+            sprite_loader: Some(sprite_loader),
+            action_loader: Some(action_loader),
+            game_file_loader: Some(game_file_loader),
+            pending_effects: Vec::new(),
+            launch_counter: 0,
         };
 
         visual.prefetch_textures();
@@ -140,6 +159,97 @@ impl PortedVisual {
 
     pub fn runtime(&self) -> &EffectRuntime {
         self.holder.runtime()
+    }
+
+    /// Spawns the child effects a launcher primitive recorded on the runtime
+    /// outbox during the previous render pass.
+    ///
+    /// `CEffectPrim::RenderSMA3` (`EffectPrimitiveRendering.cpp:2394-2415`)
+    /// calls `EffectActor::LaunchEffect` for every render frame while its slot
+    /// is live; the official call appends the child to the scene's effect list.
+    /// The port cannot touch that list from `EffectBase::render`, so the
+    /// requests queue on [`EffectRuntime::pending_effect_launches`] and are
+    /// turned into visuals here after the 16 ms step. `EffectHolder::update`
+    /// appends them through `EffectBase::take_spawned_effects`.
+    fn spawn_launched_effects(&mut self) {
+        for launch in self.holder.take_effect_launches() {
+            if let Some(child) = self.spawn_launched_effect(launch) {
+                self.pending_effects.push(Box::new(child));
+            }
+        }
+    }
+
+    /// Builds the visual for one [`PendingEffectLaunch`] with this visual's
+    /// loaders.
+    ///
+    /// The official child starts at `state.deltaPos = AM_SETPOS.first` and
+    /// `state.deltaPos2 = AM_SETPOS.second`. `CRagEffect::Init`
+    /// (`RagEffectInitialization.cpp:16-17`) anchors the child's own
+    /// `render.position` at the *local player*; the port uses the launch
+    /// position for that anchor instead. Every ported child body places its
+    /// geometry from `deltaPos`, so the visible result is identical, and the
+    /// anchor doubles as the culling position. The child's caster facing and
+    /// sound listener are inherited from the launcher.
+    fn spawn_launched_effect(&mut self, launch: PendingEffectLaunch) -> Option<Self> {
+        let texture_loader = self.texture_loader.clone()?;
+        let seed = self.child_seed();
+
+        let Some(holder) = PortedEffectHolder::new(launch.effect, seed) else {
+            crate::logging::log_debug!("ported fx: launched {:?} has no registered body", launch.effect);
+            return None;
+        };
+
+        let holder = match (&self.sprite_loader, &self.action_loader) {
+            (Some(sprite_loader), Some(action_loader)) => holder.with_sprite_loaders(sprite_loader.clone(), action_loader.clone()),
+            _ => holder,
+        };
+        let holder = match &self.game_file_loader {
+            Some(game_file_loader) => holder.with_game_file_loader(game_file_loader),
+            None => holder,
+        };
+
+        let mut child = Self {
+            holder,
+            texture_loader: Some(texture_loader),
+            audio_engine: self.audio_engine.clone(),
+            prefetched: HashSet::new(),
+            gets_deleted: false,
+            applied_tint: None,
+            applied_frame_sequence: None,
+            status_key: None,
+            sprite_loader: self.sprite_loader.clone(),
+            action_loader: self.action_loader.clone(),
+            game_file_loader: self.game_file_loader.clone(),
+            pending_effects: Vec::new(),
+            launch_counter: 0,
+        };
+
+        let parent_angle = self.holder.runtime().parent_angle;
+        let listener_position = self.holder.runtime().listener_position;
+        {
+            let runtime = child.runtime_mut();
+            runtime.position = launch.position;
+            // `SendMsg(nullptr, AM_SETPOS, 0, &position, &extra, ...)`
+            // (`RagEffect.cpp:14930-14944`).
+            runtime.target_offset = launch.position;
+            runtime.delta_pos2 = launch.delta_pos2.unwrap_or([0.0; 3]);
+            runtime.parent_angle = parent_angle;
+            runtime.listener_position = listener_position;
+        }
+
+        child.prefetch_textures();
+
+        Some(child)
+    }
+
+    /// Deterministic seed of the next child launched by this visual: the
+    /// parent's spawn seed mixed with the launch ordinal, because the official
+    /// children draw from the global `rand()` stream.
+    fn child_seed(&mut self) -> u64 {
+        self.launch_counter = self.launch_counter.wrapping_add(1);
+        let seed = self.holder.runtime().seed;
+
+        seed ^ self.launch_counter.wrapping_mul(0x9E37_79B9_7F4A_7C15)
     }
 
     pub fn runtime_mut(&mut self) -> &mut EffectRuntime {
@@ -191,6 +301,10 @@ impl EffectBase for PortedVisual {
             None => self.holder.update(delta_time as f64),
         };
         self.prefetch_textures();
+
+        if alive {
+            self.spawn_launched_effects();
+        }
 
         alive
     }
@@ -289,6 +403,10 @@ impl EffectBase for PortedVisual {
 
     fn status_visual_key(&self) -> Option<crate::world::effect::StatusVisualKey> {
         self.status_key
+    }
+
+    fn take_spawned_effects(&mut self) -> Vec<Box<dyn EffectBase + Send + Sync>> {
+        std::mem::take(&mut self.pending_effects)
     }
 
     fn register_point_lights(&self, _: &mut PointLightManager, _: &dyn Camera) {}
@@ -441,6 +559,11 @@ mod tests {
             applied_tint: None,
             applied_frame_sequence: None,
             status_key: None,
+            sprite_loader: None,
+            action_loader: None,
+            game_file_loader: None,
+            pending_effects: Vec::new(),
+            launch_counter: 0,
         }
     }
 
@@ -545,6 +668,11 @@ mod tests {
             applied_tint: None,
             applied_frame_sequence: None,
             status_key: None,
+            sprite_loader: None,
+            action_loader: None,
+            game_file_loader: None,
+            pending_effects: Vec::new(),
+            launch_counter: 0,
         };
 
         assert!(visual.runtime().str_player.is_some());
