@@ -23,9 +23,6 @@ const MAX_NAVIGATION_EXPANSIONS: usize = 400_000;
 pub trait Traversable {
     /// Must return `true` if the position can be walked on.
     fn is_walkable(&self, position: TilePosition) -> bool;
-
-    /// Must return `true` if the position can be shot through.
-    fn is_snipeable(&self, position: TilePosition) -> bool;
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -174,74 +171,6 @@ impl PathFinder {
         None
     }
 
-    /// Returns the shortest path between start and goal that can be shot
-    /// through.
-    // TODO: Unused for now.
-    #[allow(dead_code)]
-    pub fn find_snipable_path(&mut self, map: &impl Traversable, start: TilePosition, goal: TilePosition) -> Option<&[TilePosition]> {
-        self.path.clear();
-
-        let mut current_x = start.x as isize;
-        let mut current_y = start.y as isize;
-        let mut target_x = goal.x as isize;
-        let mut target_y = goal.y as isize;
-
-        let mut delta_x = target_x - current_x;
-        if delta_x < 0 {
-            std::mem::swap(&mut current_x, &mut target_x);
-            std::mem::swap(&mut current_y, &mut target_y);
-            delta_x = -delta_x;
-        }
-        let delta_y = target_y - current_y;
-
-        self.path.push(TilePosition {
-            x: current_x as u16,
-            y: current_y as u16,
-        });
-
-        let weight = if delta_x > delta_y.abs() { delta_x } else { delta_y.abs() };
-
-        let mut weight_x = 0;
-        let mut weight_y = 0;
-
-        while current_x != target_x || current_y != target_y {
-            weight_x += delta_x;
-            weight_y += delta_y;
-
-            if weight_x >= weight {
-                weight_x -= weight;
-                current_x += 1;
-            }
-            if weight_y >= weight {
-                weight_y -= weight;
-                current_y += 1;
-            } else if weight_y < 0 {
-                weight_y += weight;
-                current_y -= 1;
-            }
-
-            if self.path.len() < MAX_WALK_PATH_SIZE {
-                self.path.push(TilePosition {
-                    x: current_x as u16,
-                    y: current_y as u16,
-                });
-            } else {
-                return None;
-            }
-
-            if (current_x != target_x || current_y != target_y)
-                && !map.is_snipeable(TilePosition {
-                    x: current_x as u16,
-                    y: current_y as u16,
-                })
-            {
-                return None;
-            }
-        }
-
-        Some(&self.path)
-    }
-
     fn heuristic(start: TilePosition, goal: TilePosition) -> usize {
         let dx = (start.x as isize - goal.x as isize).unsigned_abs();
         let dy = (start.y as isize - goal.y as isize).unsigned_abs();
@@ -307,7 +236,6 @@ mod tests {
         width: u16,
         height: u16,
         not_walkable: HashSet<TilePosition>,
-        not_snipable: HashSet<TilePosition>,
     }
 
     impl TestMap {
@@ -316,7 +244,6 @@ mod tests {
                 width,
                 height,
                 not_walkable: HashSet::new(),
-                not_snipable: HashSet::new(),
             }
         }
 
@@ -325,21 +252,11 @@ mod tests {
                 self.not_walkable.insert(*point);
             }
         }
-
-        fn set_unsnipable(&mut self, points: &[TilePosition]) {
-            for point in points {
-                self.not_snipable.insert(*point);
-            }
-        }
     }
 
     impl Traversable for TestMap {
         fn is_walkable(&self, position: TilePosition) -> bool {
             position.x < self.width && position.y < self.height && !self.not_walkable.contains(&position)
-        }
-
-        fn is_snipeable(&self, position: TilePosition) -> bool {
-            position.x < self.width && position.y < self.height && !self.not_snipable.contains(&position)
         }
     }
 
@@ -436,51 +353,5 @@ mod tests {
         let goal = TilePosition { x: 2, y: 2 };
 
         assert!(pathfinder.find_walkable_path(&map, start, goal).is_none());
-    }
-
-    #[test]
-    fn test_shoot_path_straight() {
-        let map = TestMap::new(10, 10);
-        let mut pathfinder = PathFinder::default();
-
-        let start = TilePosition { x: 0, y: 0 };
-        let goal = TilePosition { x: 3, y: 0 };
-
-        let path = pathfinder.find_snipable_path(&map, start, goal).unwrap();
-        assert_eq!(path.len(), 4);
-
-        for (index, step) in path.iter().enumerate() {
-            assert_eq!(step.x as usize, index);
-            assert_eq!(step.y, 0);
-        }
-    }
-
-    #[test]
-    fn test_shoot_path_diagonal() {
-        let map = TestMap::new(10, 10);
-        let mut pathfinder = PathFinder::default();
-
-        let start = TilePosition { x: 0, y: 0 };
-        let goal = TilePosition { x: 3, y: 3 };
-
-        let path = pathfinder.find_snipable_path(&map, start, goal).unwrap();
-        assert_eq!(path.len(), 4);
-
-        for (index, step) in path.iter().enumerate() {
-            assert_eq!(step.x as usize, index);
-            assert_eq!(step.y as usize, index);
-        }
-    }
-
-    #[test]
-    fn test_shoot_path_blocked() {
-        let mut map = TestMap::new(5, 5);
-        map.set_unsnipable(&[TilePosition { x: 1, y: 1 }]);
-
-        let mut pathfinder = PathFinder::default();
-        let start = TilePosition { x: 0, y: 0 };
-        let goal = TilePosition { x: 2, y: 2 };
-
-        assert!(pathfinder.find_snipable_path(&map, start, goal).is_none());
     }
 }

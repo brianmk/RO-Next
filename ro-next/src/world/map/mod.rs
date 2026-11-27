@@ -875,12 +875,6 @@ impl Traversable for Map {
             .map(|tile| tile.flags.contains(TileFlags::WALKABLE))
             .unwrap_or(false)
     }
-
-    fn is_snipeable(&self, position: TilePosition) -> bool {
-        self.get_tile(position)
-            .map(|tile| tile.flags.contains(TileFlags::SNIPABLE))
-            .unwrap_or(false)
-    }
 }
 
 /// A map view that applies the dynamic cell overrides from `ZC_UPDATE_MAPINFO`
@@ -912,14 +906,5 @@ impl<'a> TraversableMap<'a> {
 impl Traversable for TraversableMap<'_> {
     fn is_walkable(&self, position: TilePosition) -> bool {
         self.cell_override(position).unwrap_or_else(|| self.map.is_walkable(position))
-    }
-
-    fn is_snipeable(&self, position: TilePosition) -> bool {
-        match self.cell_override(position) {
-            // A wall that was broken open is walkable and can be shot through;
-            // a floor tile that became a wall blocks projectiles as well.
-            Some(walkable) => walkable,
-            None => self.map.is_snipeable(position),
-        }
     }
 }
