@@ -55,14 +55,11 @@
         inner_ring_scale: 0.62,
         glow_scale: 1.15,
     ),
-    // Map connection warp and flat skill-unit warp portal.
+    // Teleport-vanish warp textures.
     warp_portal: (
         streak_texture: "effect\\ring_blue.tga",
         gradient_texture: "effect\\alpha_down.tga",
         particle_sprite: "이팩트\\particle1.spr",
-        skill_radius: 8.0,
-        skill_height: 0.2,
-        skill_ring_count: 2,
     ),
     // Level-99 / level-up aura textures.
     level_aura: (

@@ -121,9 +121,6 @@ struct WarpPortalFile {
     streak_texture: String,
     gradient_texture: String,
     particle_sprite: String,
-    skill_radius: f32,
-    skill_height: f32,
-    skill_ring_count: u8,
 }
 
 #[derive(Deserialize)]
@@ -205,14 +202,6 @@ pub(crate) struct WarpPortalSpec {
     pub streak_texture: &'static str,
     pub gradient_texture: &'static str,
     pub particle_sprite: &'static str,
-    /// Official skill-unit portal geometry from `skills.ron`: parsed and
-    /// validated, but the renderer currently uses the procedural warp shape.
-    #[allow(dead_code)]
-    pub skill_radius: f32,
-    #[allow(dead_code)]
-    pub skill_height: f32,
-    #[allow(dead_code)]
-    pub skill_ring_count: u8,
 }
 
 /// Textures of the level-99 / level-up aura.
@@ -287,9 +276,6 @@ impl SkillRegistry {
                 streak_texture: "",
                 gradient_texture: "",
                 particle_sprite: "",
-                skill_radius: 0.0,
-                skill_height: 0.0,
-                skill_ring_count: 0,
             },
             level_aura: LevelAuraSpec {
                 ring_liner_texture: "",
@@ -578,22 +564,10 @@ fn build(file: SkillsFile) -> Result<SkillRegistry, String> {
     validate_texture(&portal.streak_texture, "warp portal streak texture", &[".tga", ".bmp"])?;
     validate_texture(&portal.gradient_texture, "warp portal gradient texture", &[".tga", ".bmp"])?;
     validate_texture(&portal.particle_sprite, "warp portal particle sprite", &[".spr"])?;
-    if !portal.skill_radius.is_finite() || portal.skill_radius <= 0.0 {
-        return Err(format!("invalid warp portal skill radius {}", portal.skill_radius));
-    }
-    if !portal.skill_height.is_finite() || portal.skill_height < 0.0 {
-        return Err(format!("invalid warp portal skill height {}", portal.skill_height));
-    }
-    if portal.skill_ring_count == 0 || portal.skill_ring_count > 8 {
-        return Err(format!("invalid warp portal ring count {}", portal.skill_ring_count));
-    }
     let warp_portal = WarpPortalSpec {
         streak_texture: Box::leak(portal.streak_texture.into_boxed_str()),
         gradient_texture: Box::leak(portal.gradient_texture.into_boxed_str()),
         particle_sprite: Box::leak(portal.particle_sprite.into_boxed_str()),
-        skill_radius: portal.skill_radius,
-        skill_height: portal.skill_height,
-        skill_ring_count: portal.skill_ring_count,
     };
 
     let aura = file.level_aura;
@@ -721,9 +695,6 @@ mod tests {
         assert_eq!(portal.streak_texture, "effect\\ring_blue.tga");
         assert_eq!(portal.gradient_texture, "effect\\alpha_down.tga");
         assert_eq!(portal.particle_sprite, "이팩트\\particle1.spr");
-        assert_eq!(portal.skill_radius, 8.0);
-        assert_eq!(portal.skill_height, 0.2);
-        assert_eq!(portal.skill_ring_count, 2);
 
         let aura = level_aura();
         assert_eq!(aura.ring_liner_texture, "effect\\ring_liner.tga");

@@ -72,16 +72,13 @@
         inner_ring_scale: 0.62,
         glow_scale: 1.15,
     ),
-    // Map connection warp (`JT_WARPNPC`) and the flat skill-unit warp portal
-    // (AL_WARP). The official client draws both procedurally from these
-    // textures instead of a sprite.
+    // Teleport-vanish swirl (`TeleportVanish`). The map connection warp and
+    // the Warp Portal skill units use their official ported effect bodies
+    // (`EF_WARPZONE2`, `EF_PORTAL2`/`EF_READYPORTAL2`) instead.
     warp_portal: (
         streak_texture: "effect\\ring_blue.tga",
         gradient_texture: "effect\\alpha_down.tga",
         particle_sprite: "이팩트\\particle1.spr",
-        skill_radius: 8.0,
-        skill_height: 0.2,
-        skill_ring_count: 2,
     ),
     // Level-99 / level-up aura (`aura.rs`): ground rings, glow sprites and the
     // camera-facing `whitelight.tga` bubbles / `pikapika2.bmp` sparkles.

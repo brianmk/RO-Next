@@ -254,12 +254,9 @@ def parse_warp_portal(document: dict[str, object]) -> dict[str, object]:
     section = document.get("warp_portal")
     if not isinstance(section, dict):
         fail("missing warp_portal section")
-    allowed = {"streak_texture", "gradient_texture", "particle_sprite", "skill_radius", "skill_height", "skill_ring_count"}
+    allowed = {"streak_texture", "gradient_texture", "particle_sprite"}
     if set(section) != allowed:
         fail(f"warp_portal fields do not match the schema: {sorted(set(section) ^ allowed)}")
-    ring_count = as_int(section["skill_ring_count"], "warp_portal skill_ring_count")
-    if not 1 <= ring_count <= 8:
-        fail(f"warp_portal skill_ring_count {ring_count} is outside 1..=8")
     particle = as_text(section["particle_sprite"], "warp_portal particle_sprite")
     if not particle.lower().endswith(".spr"):
         fail(f"warp_portal particle_sprite must be a .spr path, got {particle!r}")
@@ -269,9 +266,6 @@ def parse_warp_portal(document: dict[str, object]) -> dict[str, object]:
             as_text(section["gradient_texture"], "warp_portal gradient_texture"), "warp_portal gradient_texture"
         ),
         "particle_sprite": particle,
-        "skill_radius": check_positive(as_float(section["skill_radius"], "warp_portal skill_radius"), "warp_portal skill_radius"),
-        "skill_height": check_non_negative(as_float(section["skill_height"], "warp_portal skill_height"), "warp_portal skill_height"),
-        "skill_ring_count": ring_count,
     }
 
 
@@ -408,15 +402,12 @@ def render(data: dict[str, object]) -> str:
     for field in ("radius", "height", "ring_rotation_speed", "inner_ring_rotation_speed", "inner_ring_scale", "glow_scale"):
         add(f"        {field}: {ron.number(cast_circle[field])},")
     add("    ),")
-    add("    // Map connection warp and flat skill-unit warp portal.")
+    add("    // Teleport-vanish warp textures.")
     add("    warp_portal: (")
     warp_portal = data["warp_portal"]
     assert isinstance(warp_portal, dict)
     for field in ("streak_texture", "gradient_texture", "particle_sprite"):
         add(f"        {field}: {quote(str(warp_portal[field]))},")
-    for field in ("skill_radius", "skill_height"):
-        add(f"        {field}: {ron.number(warp_portal[field])},")
-    add(f"        skill_ring_count: {warp_portal['skill_ring_count']},")
     add("    ),")
     add("    // Level-99 / level-up aura textures.")
     add("    level_aura: (")

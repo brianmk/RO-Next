@@ -105,9 +105,6 @@ class SkillBehaviourDataTest(unittest.TestCase):
         self.assertEqual(portal["streak_texture"], "effect\\ring_blue.tga")
         self.assertEqual(portal["gradient_texture"], "effect\\alpha_down.tga")
         self.assertEqual(portal["particle_sprite"], "이팩트\\particle1.spr")
-        self.assertEqual(portal["skill_radius"], 8.0)
-        self.assertEqual(portal["skill_height"], 0.2)
-        self.assertEqual(portal["skill_ring_count"], 2)
 
         aura = self.data["level_aura"]
         self.assertEqual(aura["ring_liner_texture"], "effect\\ring_liner.tga")
