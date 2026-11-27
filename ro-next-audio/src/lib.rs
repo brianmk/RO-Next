@@ -1129,13 +1129,7 @@ fn parse_resource_name_table(game_file_loader: &impl FileLoader) -> HashMap<Stri
 }
 
 fn background_music_extensions() -> &'static [&'static str] {
-    #[cfg(feature = "flac")]
-    const EXTENSIONS: &[&str] = &["flac", "mp3", "wav"];
-
-    #[cfg(not(feature = "flac"))]
-    const EXTENSIONS: &[&str] = &["mp3", "wav"];
-
-    EXTENSIONS
+    &["mp3", "wav"]
 }
 
 /// Extracts the file name of a map resource path like `data\prontera.rsw`.

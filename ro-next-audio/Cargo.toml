@@ -29,4 +29,3 @@ workspace = true
 
 [features]
 debug = ["ro-next-debug"]
-flac = ["symphonia/flac"]

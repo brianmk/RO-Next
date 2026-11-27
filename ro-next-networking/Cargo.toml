@@ -19,7 +19,6 @@ serde = { workspace = true, features = ["derive"] }
 clap = { workspace = true, features = ["derive"] }
 
 [features]
-debug = []
 interface = ["ro-next-interface", "rust-state"]
 
 [lints.clippy]

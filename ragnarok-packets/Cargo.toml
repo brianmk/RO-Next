@@ -17,7 +17,6 @@ ro-next-debug = { workspace = true }
 pcap = { workspace = true }
 
 [features]
-debug = []
 derive = []
 interface = ["ro-next-interface", "rust-state"]
 packet-to-state-element = ["interface"]

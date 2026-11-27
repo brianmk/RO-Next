@@ -9,5 +9,4 @@ chrono = { workspace = true }
 debug-macros = { path = "macros" }
 
 [features]
-plain = []
 unicode = []

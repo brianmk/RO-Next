@@ -1,14 +1,3 @@
-#[cfg(feature = "plain")]
-mod color_codes {
-    pub const GREEN: &str = "";
-    pub const RED: &str = "";
-    pub const CYAN: &str = "";
-    pub const YELLOW: &str = "";
-    pub const MAGENTA: &str = "";
-    pub const NONE: &str = "";
-}
-
-#[cfg(not(feature = "plain"))]
 mod color_codes {
     pub const GREEN: &str = "\x1B[32m";
     pub const RED: &str = "\x1B[31m";

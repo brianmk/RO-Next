@@ -11,7 +11,6 @@ block_compression = { workspace = true, features = ["bc7", "wgpu"] }
 bumpalo = { workspace = true, features = ["allocator_api"] }
 bytemuck = { workspace = true, features = ["derive", "extern_crate_std", "min_const_generics"] }
 cgmath = { workspace = true, features = ["mint", "serde"] }
-chrono = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 cosmic-text = { workspace = true, features = ["std", "fontconfig"] }
 ctrlc = { workspace = true }
@@ -61,7 +60,5 @@ winit = { workspace = true }
 sevenz-rust2 = { workspace = true, features = ["compress"] }
 
 [features]
-debug = ["ro-next-audio/debug", "ro-next-debug", "ro-next-interface/debug", "ro-next-networking/debug", "ragnarok-packets/debug"]
-plain = ["ro-next-debug/plain"]
+debug = ["ro-next-audio/debug", "ro-next-debug", "ro-next-interface/debug"]
 unicode = ["ro-next-debug/unicode"]
-flac = ["ro-next-audio/flac"]
