@@ -1372,12 +1372,163 @@ pub enum EffectId {
     /// (`EffectTypes.cpp:1408`).
     #[numeric_value(1399)]
     NewHeavensDrive,
+    /// `EF_NEW_MOON_SLASH` (`EffectTypes.h:1426`, official id 1418).
+    ///
+    /// `RagEffect.cpp:22334-22341` is one `TexturedQuadRingSized(45,
+    /// "effect\\new_comet\\new_comet_cast_ring\\ring_rainbow.tga", 20)` after
+    /// `PlayEffectWave`. Lifetime 1418 (`EffectTypes.cpp:1427`).
+    #[numeric_value(1418)]
+    NewMoonSlash,
+    /// `EF_NEW_HEAL_BLUE` (`EffectTypes.h:1564`, official id 1556).
+    ///
+    /// `RagEffect.cpp:22419-22431`: a positional `PlayWave` plus
+    /// `TexturedQuadRingSized(45, ring_blue, 20)` and `(25, ring_blue, 21)`.
+    /// Lifetime 60 (`EffectTypes.cpp:1565`).
+    #[numeric_value(1556)]
+    NewHealBlue,
+    /// `EF_NEW_HEAL_WHITE` (`EffectTypes.h:1568`, official id 1560).
+    ///
+    /// `RagEffect.cpp:22457-22464`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 22)` calls.
+    /// Lifetime 40 (`EffectTypes.cpp:1569`).
+    #[numeric_value(1560)]
+    NewHealWhite,
+    /// `EF_NEW_HEAL_YELLOW` (`EffectTypes.h:1573`, official id 1565).
+    ///
+    /// `RagEffect.cpp:22465-22472`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_yellow.tga", 23)` calls.
+    /// Lifetime 40 (`EffectTypes.cpp:1574`).
+    #[numeric_value(1565)]
+    NewHealYellow,
     /// `EF_NEW_METALLICSOUND_LINE` (`EffectTypes.h:1592`, official id 1584).
     /// The effect body is `CRagEffect`'s metallic-sound line
     /// (`RagEffect.cpp:22532-22544`); no pre-1243 packet carries it, so it is
     /// declared after the enum's old `Max` stop with its real numeric value.
     #[numeric_value(1584)]
     NewMetallicSoundLine,
+    /// `EF_NEW_SAFETYWALL` (`EffectTypes.h:1685`, official id 1677).
+    ///
+    /// `RagEffect.cpp:22610-22622`: positional `PlayWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 31)` calls.
+    /// Lifetime 60 (`EffectTypes.cpp:1686`).
+    #[numeric_value(1677)]
+    NewSafetywall,
+    /// `EF_NEW_PNEUMA` (`EffectTypes.h:1880`, official id 1872).
+    ///
+    /// `RagEffect.cpp:22638-22645`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 42)` calls.
+    /// Lifetime 1872 (`EffectTypes.cpp:1881`).
+    #[numeric_value(1872)]
+    NewPneuma,
+    /// `EF_NEW_SW_CAST` (`EffectTypes.h:1884`, official id 1876).
+    ///
+    /// `RagEffect.cpp:22646-22653`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 43)` calls.
+    /// Lifetime 1876 (`EffectTypes.cpp:1885`).
+    #[numeric_value(1876)]
+    NewSwCast,
+    /// `EF_ABR_MOTHER` (`EffectTypes.h:1910`, official id 1902).
+    ///
+    /// `RagEffect.cpp:22688-22695`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\new_abr_mother\\abr_mother.tga",
+    /// 0)`. Lifetime 1902 (`EffectTypes.cpp:1911`).
+    #[numeric_value(1902)]
+    AbrMother,
+    /// `EF_ABR_INFINITY_RING` (`EffectTypes.h:1918`, official id 1910).
+    ///
+    /// `RagEffect.cpp:22654-22663`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(...,
+    /// "effect\\new_abr_infinity\\ring_infinty.tga", 0)` (the texture
+    /// name's `infinty` typo is official). Lifetime 1910 (`EffectTypes.cpp:
+    /// 1919`).
+    #[numeric_value(1910)]
+    AbrInfinityRing,
+    /// `EF_NEW_D_CANNON_ENTITY` (`EffectTypes.h:1926`, official id 1918).
+    ///
+    /// `RagEffect.cpp:22672-22679`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\new_d_cannon\\ABR_DUAL_CANNON.tga",
+    /// 0)`. Lifetime 1918 (`EffectTypes.cpp:1927`).
+    #[numeric_value(1918)]
+    NewDCannonEntity,
+    /// `EF_FLAME_TRAP_RING` (`EffectTypes.h:1931`, official id 1923).
+    ///
+    /// `RagEffect.cpp:22432-22444`: positional `PlayWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_red.tga", 44)` calls.
+    /// Lifetime 1923 (`EffectTypes.cpp:1932`).
+    #[numeric_value(1923)]
+    FlameTrapRing,
+    /// `EF_NEW_PRAMEN_RING` (`EffectTypes.h:1940`, official id 1932).
+    ///
+    /// `RagEffect.cpp:22445-22456`: positional `PlayWave` plus
+    /// `TexturedQuadRingSized(90, "effect\\new_pramen\\ring_blue.tga", 5)`.
+    /// Lifetime 1932 (`EffectTypes.cpp:1941`).
+    #[numeric_value(1932)]
+    NewPramenRing,
+    /// `EF_NEW_BATTLE_W_ENTITY` (`EffectTypes.h:1946`, official id 1938).
+    ///
+    /// `RagEffect.cpp:22664-22671`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(...,
+    /// "effect\\new_battle_w\\ABR_BATTLE_WARIOR.tga", 0)`. Lifetime 1938
+    /// (`EffectTypes.cpp:1947`).
+    #[numeric_value(1938)]
+    NewBattleWEntity,
+    /// `EF_PNEUMATICUS_PROCELLA_RING` (`EffectTypes.h:1967`, official id 1959).
+    ///
+    /// `RagEffect.cpp:22680-22687`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(...,
+    /// "effect\\pneumaticusprocella\\pneumaticusprocella_cast\\ring_yellow.tga"
+    /// , 0)`. Lifetime 1959 (`EffectTypes.cpp:1968`).
+    #[numeric_value(1959)]
+    PneumaticusProcellaRing,
+    /// `EF_SINCERE_FAITH_RING` (`EffectTypes.h:1971`, official id 1963).
+    ///
+    /// `RagEffect.cpp:22696-22703`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 45)` calls.
+    /// Lifetime 1963 (`EffectTypes.cpp:1972`).
+    #[numeric_value(1963)]
+    SincereFaithRing,
+    /// `EF_POWERFUL_FAITH_RING` (`EffectTypes.h:1994`, official id 1986).
+    ///
+    /// `RagEffect.cpp:22704-22711`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 46)` calls.
+    /// Lifetime 1986 (`EffectTypes.cpp:1995`).
+    #[numeric_value(1986)]
+    PowerfulFaithRing,
+    /// `EF_FIRM_FAITH_RING` (`EffectTypes.h:2006`, official id 1998).
+    ///
+    /// `RagEffect.cpp:22712-22719`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 47)` calls.
+    /// Lifetime 1998 (`EffectTypes.cpp:2007`).
+    #[numeric_value(1998)]
+    FirmFaithRing,
+    /// `EF_RESEARCH_REPORT_RING` (`EffectTypes.h:2248`, official id 2240).
+    ///
+    /// `RagEffect.cpp:22720-22727`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 48)` calls.
+    /// Lifetime 2240 (`EffectTypes.cpp:2249`).
+    #[numeric_value(2240)]
+    ResearchReportRing,
+    /// `EF_WOODEN_WARRIOR_RING` (`EffectTypes.h:2257`, official id 2249).
+    ///
+    /// `RagEffect.cpp:22728-22735`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 49)` calls.
+    /// Lifetime 2249 (`EffectTypes.cpp:2258`).
+    #[numeric_value(2249)]
+    WoodenWarriorRing,
+    /// `EF_WOODEN_FAIRY_RING` (`EffectTypes.h:2263`, official id 2255).
+    ///
+    /// `RagEffect.cpp:22736-22743`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_white.tga", 50)` calls.
+    /// Lifetime 2255 (`EffectTypes.cpp:2264`).
+    #[numeric_value(2255)]
+    WoodenFairyRing,
+    /// `EF_BEGINSPELL_RING_YELLOW` (`EffectTypes.h:2375`, official id 2367).
+    ///
+    /// `RagEffect.cpp:22818-22826`: `PlayEffectWave` plus two
+    /// `TexturedQuadRingSized(..., "effect\\ring_yellow.tga", 0)` calls.
+    /// Lifetime 40 (`EffectTypes.cpp:2376`).
+    #[numeric_value(2367)]
+    BeginspellRingYellow,
     /// `EF_HEAL_BLUE_2` (`EffectTypes.h:2435`, official id 2427).
     ///
     /// The dispatch (`RagEffect.cpp:22886-22891`) is one already-ported

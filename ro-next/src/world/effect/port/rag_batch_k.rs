@@ -14,6 +14,46 @@
 //! 2437) are pure aliases of a body that is already public, so they live
 //! entirely in `registry_batch_k.rs`.
 //!
+//! ## Ring aliases
+//!
+//! [`SizedRing`] ports the 21 dispatch arms that are one or two
+//! `CRagEffect::TexturedQuadRingSized` calls with fixed arguments. The helper
+//! already existed in `rag/asura.rs` but was private; it is now `pub(crate)`
+//! and unchanged. The official arms are:
+//!
+//! | effect | id | dispatch | lifetime |
+//! | --- | --- | --- | --- |
+//! | `EF_NEW_MOON_SLASH` | 1418 | `RagEffect.cpp:22334-22341` | 1418 (`EffectTypes.cpp:1427`) |
+//! | `EF_NEW_HEAL_BLUE` | 1556 | `:22419-22431` | 60 (`:1565`) |
+//! | `EF_NEW_HEAL_WHITE` | 1560 | `:22457-22464` | 40 (`:1569`) |
+//! | `EF_NEW_HEAL_YELLOW` | 1565 | `:22465-22472` | 40 (`:1574`) |
+//! | `EF_NEW_SAFETYWALL` | 1677 | `:22610-22622` | 60 (`:1686`) |
+//! | `EF_NEW_PNEUMA` | 1872 | `:22638-22645` | 1872 (`:1881`) |
+//! | `EF_NEW_SW_CAST` | 1876 | `:22646-22653` | 1876 (`:1885`) |
+//! | `EF_ABR_MOTHER` | 1902 | `:22688-22695` | 1902 (`:1911`) |
+//! | `EF_ABR_INFINITY_RING` | 1910 | `:22654-22663` | 1910 (`:1919`) |
+//! | `EF_NEW_D_CANNON_ENTITY` | 1918 | `:22672-22679` | 1918 (`:1927`) |
+//! | `EF_FLAME_TRAP_RING` | 1923 | `:22432-22444` | 1923 (`:1932`) |
+//! | `EF_NEW_PRAMEN_RING` | 1932 | `:22445-22456` | 1932 (`:1941`) |
+//! | `EF_NEW_BATTLE_W_ENTITY` | 1938 | `:22664-22671` | 1938 (`:1947`) |
+//! | `EF_PNEUMATICUS_PROCELLA_RING` | 1959 | `:22680-22687` | 1959 (`:1968`) |
+//! | `EF_SINCERE_FAITH_RING` | 1963 | `:22696-22703` | 1963 (`:1972`) |
+//! | `EF_POWERFUL_FAITH_RING` | 1986 | `:22704-22711` | 1986 (`:1995`) |
+//! | `EF_FIRM_FAITH_RING` | 1998 | `:22712-22719` | 1998 (`:2007`) |
+//! | `EF_RESEARCH_REPORT_RING` | 2240 | `:22720-22727` | 2240 (`:2249`) |
+//! | `EF_WOODEN_WARRIOR_RING` | 2249 | `:22728-22735` | 2249 (`:2258`) |
+//! | `EF_WOODEN_FAIRY_RING` | 2255 | `:22736-22743` | 2255 (`:2264`) |
+//! | `EF_BEGINSPELL_RING_YELLOW` | 2367 | `:22818-22826` | 40 (`:2376`) |
+//!
+//! The lifetime entries that repeat the effect id are the decompiled table's
+//! literal values, not typos. Four arms (`EF_NEW_HEAL_BLUE`,
+//! `EF_FLAME_TRAP_RING`, `EF_NEW_PRAMEN_RING`, `EF_NEW_SAFETYWALL`) call raw
+//! `PlayWave(..., -100.0f, ...)` instead of `PlayEffectWave`, so [`RingSound`]
+//! keeps the two sound channels distinct. `EF_ABR_INFINITY_RING` is the only
+//! arm wrapped in `if (this->state.parent != nullptr)`; the hermetic runtime
+//! has no null-parent state (its `position` is always the caster anchor), so
+//! that guard's false arm is unreachable and the arm runs unconditionally.
+//!
 //! ## Why `SonicSlashFan(1)` is transliterated here
 //!
 //! `rag/sonic_slash_fan.rs` keeps `sonic_slash_fan` private and exposes only
@@ -30,7 +70,61 @@
 use super::angles::Angles;
 use super::math::matrix_mult;
 use super::primitive::PrimitiveId;
+use super::rag::asura::textured_quad_ring_sized;
 use super::runtime::{EffectRuntime, PortedEffect};
+
+/// The sound call the official dispatch arm makes on frame 0.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RingSound {
+    /// `PlayEffectWave(*this, "effect\\EF_BeginSpell.wav")` - an inline wave.
+    Wave,
+    /// Raw `g_soundMgr->PlayWave("effect\\EF_BeginSpell.wav", dx, -100.0f,
+    /// dz, 250, 40, 1.0f, 0)` - a positional wave at height `-100`.
+    MinusOneHundred,
+}
+
+/// A dispatch arm that is nothing but the already-ported
+/// `CRagEffect::TexturedQuadRingSized` (`rag/asura.rs`, `RagEffect.cpp:17437`)
+/// with fixed arguments.
+///
+/// Every arm in the ring-alias table writes `render.position =
+/// state.parent->render.position` first; [`EffectRuntime::position`] already is
+/// that anchor, so there is nothing left to copy. The official arms then gate
+/// on `stateCnt == 0`; the helper repeats that gate itself, and it is what
+/// actually decides whether a ring launches.
+#[derive(Debug)]
+pub struct SizedRing {
+    lifetime: i32,
+    sound: RingSound,
+    calls: &'static [(i16, &'static str, i8)],
+}
+
+impl SizedRing {
+    pub const fn new(lifetime: i32, sound: RingSound, calls: &'static [(i16, &'static str, i8)]) -> Self {
+        Self { lifetime, sound, calls }
+    }
+}
+
+impl PortedEffect for SizedRing {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 0 {
+            match self.sound {
+                RingSound::Wave => runtime.play_sound("effect\\EF_BeginSpell.wav"),
+                RingSound::MinusOneHundred => runtime.play_sound_at_height("effect\\EF_BeginSpell.wav", -100.0),
+            }
+        }
+
+        for &(base_alpha, name, kind) in self.calls {
+            textured_quad_ring_sized(runtime, base_alpha, name, kind);
+        }
+
+        true
+    }
+}
 
 /// `SonicSlashFan(1)` - `RagEffect.cpp:16587-16641`, kind-1 branch at
 /// `:16622-16626`.
@@ -129,7 +223,11 @@ impl PortedEffect for PeongBlack {
 
 #[cfg(test)]
 mod tests {
+    use ragnarok_packets::EffectId;
+
     use super::*;
+    use crate::world::effect::port::primitive::EffectPrimitiveState;
+    use crate::world::effect::port::registry_batch_k;
     use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     fn runtime(seed: u64) -> EffectRuntime {
@@ -137,6 +235,246 @@ mod tests {
         runtime.position = [10.0, 0.0, 10.0];
 
         runtime
+    }
+
+    fn ring_runtime(lifetime: i32) -> EffectRuntime {
+        let mut runtime = EffectRuntime::new(lifetime, [0.0, 0.0], 21);
+        runtime.position = [10.0, 0.0, 10.0];
+
+        runtime
+    }
+
+    fn spawn_ring(effect: EffectId) -> Box<dyn PortedEffect> {
+        registry_batch_k::spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"))
+    }
+
+    /// The size table of `TexturedQuadRingSized` (`RagEffect.cpp:17437-17608`).
+    fn expected_size(kind: i8) -> f32 {
+        match kind {
+            1 => 8.0,
+            2 => 5.0,
+            3 => 10.0,
+            4 => 11.0,
+            5 => 4.0,
+            6 => 12.0,
+            15 => 7.0,
+            20 => 24.0,
+            21 => 25.0,
+            22 => 26.0,
+            23 => 27.0,
+            31 => 31.0,
+            42 => 42.0,
+            43 => 43.0,
+            44 => 44.0,
+            45 => 45.0,
+            46 => 46.0,
+            47 => 47.0,
+            48 => 48.0,
+            49 => 49.0,
+            50 => 50.0,
+            _ => 5.0,
+        }
+    }
+
+    fn assert_ring(state: &EffectPrimitiveState, texture: &str, kind: i8, base_alpha: i16, duration: i32, stagger: bool) {
+        assert_eq!(state.count, PrimitiveId::Casting3d);
+        assert_eq!(state.count.id(), 30);
+        assert_eq!(state.texture, Some(texture));
+        assert_eq!(state.render_flag, 1 | 4);
+        assert_eq!(state.duration, duration);
+        assert_eq!(state.size, expected_size(kind));
+
+        let max_height = if kind == 2 {
+            [25.0, 24.0, 23.0, 22.0]
+        } else if kind == 22 {
+            [15.0, 14.0, 13.0, 12.0]
+        } else {
+            [20.0, 19.0, 18.0, 17.0]
+        };
+        let rot_start = [180i16, 270, 0, 90];
+        let alpha_bonus = [135i16, 90, 45, 0];
+
+        for (index, slot) in state.slots.iter().enumerate() {
+            assert_eq!(slot.life, 1);
+            assert_eq!(slot.full_display_angle, 360);
+            assert_eq!(slot.max_height, max_height[index]);
+            assert_eq!(slot.rot_start, rot_start[index]);
+            assert_eq!(slot.distance, 4.1);
+            assert_eq!(slot.rise_angle, 80);
+            assert_eq!(slot.alpha_t, kind as i16);
+            assert_eq!(slot.vec_b_now, [0.0; 3]);
+            assert_eq!(slot.height, [0.0; 21]);
+            assert_eq!(slot.flag1, [0; 21]);
+
+            if stagger {
+                assert_eq!(slot.alpha_b, 0);
+                assert_eq!(slot.process, index as i32 * -5);
+            } else {
+                assert_eq!(slot.alpha_b, base_alpha + alpha_bonus[index]);
+                assert_eq!(slot.process, 0);
+            }
+        }
+    }
+
+    fn assert_inline_sound(runtime: &EffectRuntime) {
+        assert_eq!(runtime.sounds, vec!["effect\\EF_BeginSpell.wav".to_owned()]);
+        assert!(runtime.positional_sounds.is_empty());
+    }
+
+    fn assert_positional_sound(runtime: &EffectRuntime) {
+        assert!(runtime.sounds.is_empty());
+        assert_eq!(runtime.positional_sounds, vec![("effect\\EF_BeginSpell.wav".to_owned(), [
+            10.0, -100.0, 10.0
+        ])]);
+    }
+
+    #[test]
+    fn single_ring_shapes_match_their_official_arguments() {
+        // `RagEffect.cpp:22334-22341` and `:22445-22456`.
+        let cases = [
+            (
+                EffectId::NewMoonSlash,
+                1418,
+                "effect\\new_comet\\new_comet_cast_ring\\ring_rainbow.tga",
+                20,
+                45,
+                false,
+            ),
+            (EffectId::NewPramenRing, 1932, "effect\\new_pramen\\ring_blue.tga", 5, 90, true),
+        ];
+
+        for (effect, lifetime, texture, kind, base_alpha, positional) in cases {
+            let mut body = spawn_ring(effect);
+            assert_eq!(body.lifetime(), lifetime, "{effect:?}");
+
+            let mut runtime = ring_runtime(lifetime);
+            body.on_process(&mut runtime);
+
+            assert_eq!(runtime.primitives.len(), 1, "{effect:?}");
+            assert_ring(&runtime.primitives[0].state, texture, kind, base_alpha, lifetime, false);
+            // A lifetime above 60 keeps the helper from raising the duration.
+            assert_eq!(runtime.lifetime, lifetime);
+
+            if positional {
+                assert_positional_sound(&runtime);
+            } else {
+                assert_inline_sound(&runtime);
+            }
+        }
+    }
+
+    #[test]
+    fn short_double_ring_shapes_stagger_and_lose_their_alpha() {
+        // `RagEffect.cpp:22419-22431`, `:22457-22464`, `:22465-22472`,
+        // `:22610-22622` and `:22818-22826`.
+        let cases = [
+            (EffectId::NewHealBlue, 60, "effect\\ring_blue.tga", [20, 21], 60, true),
+            (EffectId::NewHealWhite, 40, "effect\\ring_white.tga", [22, 22], 56, false),
+            (EffectId::NewHealYellow, 40, "effect\\ring_yellow.tga", [23, 23], 56, false),
+            (EffectId::NewSafetywall, 60, "effect\\ring_white.tga", [31, 31], 60, true),
+            (EffectId::BeginspellRingYellow, 40, "effect\\ring_yellow.tga", [0, 0], 56, false),
+        ];
+
+        for (effect, lifetime, texture, kinds, duration, positional) in cases {
+            let mut body = spawn_ring(effect);
+            assert_eq!(body.lifetime(), lifetime, "{effect:?}");
+
+            let mut runtime = ring_runtime(lifetime);
+            body.on_process(&mut runtime);
+
+            assert_eq!(runtime.primitives.len(), 2, "{effect:?}");
+            assert_eq!(runtime.lifetime, duration, "{effect:?}");
+
+            assert_ring(&runtime.primitives[0].state, texture, kinds[0], 45, duration, true);
+            assert_ring(&runtime.primitives[1].state, texture, kinds[1], 25, duration, true);
+
+            if positional {
+                assert_positional_sound(&runtime);
+            } else {
+                assert_inline_sound(&runtime);
+            }
+        }
+    }
+
+    #[test]
+    fn long_double_ring_shapes_keep_their_official_alpha_and_textures() {
+        // The remaining `TexturedQuadRingSized` arms: two 45/25 rings each,
+        // with the decompiled texture and kind per id.
+        let white = "effect\\ring_white.tga";
+        let cases = [
+            (EffectId::NewPneuma, 1872, white, 42, false),
+            (EffectId::NewSwCast, 1876, white, 43, false),
+            (EffectId::AbrMother, 1902, "effect\\new_abr_mother\\abr_mother.tga", 0, false),
+            (
+                EffectId::AbrInfinityRing,
+                1910,
+                "effect\\new_abr_infinity\\ring_infinty.tga",
+                0,
+                false,
+            ),
+            (
+                EffectId::NewDCannonEntity,
+                1918,
+                "effect\\new_d_cannon\\ABR_DUAL_CANNON.tga",
+                0,
+                false,
+            ),
+            (EffectId::FlameTrapRing, 1923, "effect\\ring_red.tga", 44, true),
+            (
+                EffectId::NewBattleWEntity,
+                1938,
+                "effect\\new_battle_w\\ABR_BATTLE_WARIOR.tga",
+                0,
+                false,
+            ),
+            (
+                EffectId::PneumaticusProcellaRing,
+                1959,
+                "effect\\pneumaticusprocella\\pneumaticusprocella_cast\\ring_yellow.tga",
+                0,
+                false,
+            ),
+            (EffectId::SincereFaithRing, 1963, white, 45, false),
+            (EffectId::PowerfulFaithRing, 1986, white, 46, false),
+            (EffectId::FirmFaithRing, 1998, white, 47, false),
+            (EffectId::ResearchReportRing, 2240, white, 48, false),
+            (EffectId::WoodenWarriorRing, 2249, white, 49, false),
+            (EffectId::WoodenFairyRing, 2255, white, 50, false),
+        ];
+
+        for (effect, lifetime, texture, kind, positional) in cases {
+            let mut body = spawn_ring(effect);
+            assert_eq!(body.lifetime(), lifetime, "{effect:?}");
+
+            let mut runtime = ring_runtime(lifetime);
+            body.on_process(&mut runtime);
+
+            assert_eq!(runtime.primitives.len(), 2, "{effect:?}");
+            assert_eq!(runtime.lifetime, lifetime, "{effect:?}");
+
+            assert_ring(&runtime.primitives[0].state, texture, kind, 45, lifetime, false);
+            assert_ring(&runtime.primitives[1].state, texture, kind, 25, lifetime, false);
+
+            if positional {
+                assert_positional_sound(&runtime);
+            } else {
+                assert_inline_sound(&runtime);
+            }
+        }
+    }
+
+    #[test]
+    fn research_report_kind_48_overrides_the_size_chain() {
+        // `RagEffect.cpp:22720-22727`; kind 48 is applied after the size table.
+        let mut body = spawn_ring(EffectId::ResearchReportRing);
+        let mut runtime = ring_runtime(2240);
+
+        body.on_process(&mut runtime);
+
+        assert_eq!(runtime.primitives.len(), 2);
+        for primitive in &runtime.primitives {
+            assert_eq!(primitive.state.size, 48.0);
+        }
     }
 
     #[test]

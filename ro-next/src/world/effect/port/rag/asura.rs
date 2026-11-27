@@ -77,7 +77,7 @@ use super::super::runtime::{EffectRuntime, PortedEffect};
 /// twenty-entry `size` chain is spelled out literally, and a lifetime of at
 /// most 60 additionally zeroes every `alphaB` and starts the slots at
 /// `process = index * -5` so the rings stagger in.
-fn textured_quad_ring_sized(runtime: &mut EffectRuntime, base_alpha: i16, name: &'static str, kind: i8) {
+pub(crate) fn textured_quad_ring_sized(runtime: &mut EffectRuntime, base_alpha: i16, name: &'static str, kind: i8) {
     // `CopyVector(this->render.position, parent.position);` - `runtime.position`
     // already is that anchor.
 
