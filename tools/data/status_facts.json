@@ -62,15 +62,15 @@
       }
     },
     "robrowser": {
-      "facts_file": "tools/status_info_robrowser.json",
+      "facts_file": "tools/data/status_info_robrowser.json",
       "facts_sha256": "b98441a30a1a159215983b5f6e1ce924b574b6f47a24be326350372099874f9d",
       "source": "roBrowserLegacy src/DB/Status/StatusInfo.js + src/DB/Status/StatusConst.js (GPL-3.0 reverse-engineering of the official client's hard-coded classic status table); only facts are vendored",
       "commit": "2f9a9d6cf5b04a8ac7a44077080772046e15bcb7",
       "entries": 336
     },
     "custom": {
-      "file": "tools/status_effect_custom.ron",
-      "sha256": "813e5370a0928d7bc55f7339dadbaa2e632da6b0a22499184f3278c465b489aa",
+      "file": "tools/data/status_effect_custom.ron",
+      "sha256": "c24f8360f84ec8533755a9a51e116017afa886b1486724df5a51e0517646cb02",
       "counts": {
         "names": 11,
         "icons": 6,
@@ -31293,10 +31293,10 @@
           ]
         },
         "radii": {
-          "ground": 10.5,
-          "ring": 7.0,
-          "body": 24.0,
-          "body_glow": 14.0
+          "ground": 7.35,
+          "ring": 4.9,
+          "body": 16.8,
+          "body_glow": 9.8
         },
         "timing": {
           "body_frame_rate": 10.0,
@@ -31312,7 +31312,7 @@
           "body": 0.45,
           "body_glow": 0.4
         },
-        "height": 12.0
+        "height": 8.4
       }
     },
     {

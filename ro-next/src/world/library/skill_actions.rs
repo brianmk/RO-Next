@@ -388,6 +388,32 @@ mod tests {
     }
 
     #[test]
+    fn steel_body_has_the_official_success_and_cast_holds() {
+        // `ReceiveSkillUse` success (`GameModePackets.cpp:18848`):
+        // `SetFrameSequence(0x60, 0, 0, 0x60, 0, 1, 20, 0)` - block 96 frame 0,
+        // timed 20 ms, no loop and no preceding `SetSequenceInterval` (the
+        // `duration_ms` is the sequence deadline, `interval_ticks` stays 0 so
+        // the ACT timing would apply, exactly like the original).
+        assert_eq!(action(268), Some(CasterAction::Action(12)), "block 96 = 12 * 8");
+        let sequence = frame_sequence_for_skill(SkillId(268)).expect("Steel Body has a success sequence");
+        assert_eq!((sequence.first, sequence.last, sequence.loop_to), (0, 0, 0));
+        assert_eq!(sequence.duration_ms, 20);
+        assert_eq!(sequence.interval_ticks, 0);
+        assert_eq!(sequence.step_ms(), None);
+
+        // `ApplyActorSkillState` cast start (`GameModePackets.cpp:12881`):
+        // `SetFrameSequence(96, 0, 0, 96, 0, 1, duration + 1000, 0)` - the same
+        // block-96 frame 0 held for the cast time plus one second, on the
+        // cast-start lane only (`duration_ms` returns `cast_time + 1000`).
+        let cast = cast_frame_sequence_for_skill(SkillId(268)).expect("Steel Body has a cast-start hold");
+        assert_eq!((cast.first, cast.last, cast.loop_to), (0, 0, 0));
+        assert_eq!(cast.after_cast_ms, 1000);
+        assert_eq!(cast.interval_ticks, 0);
+        assert_eq!(cast.step_ms(), None);
+        assert_eq!(cast.duration_ms(5000), 6000);
+    }
+
+    #[test]
     fn all_skill_use_sequences_carry_the_official_block_and_rate() {
         // LK_AURABLADE (`GameModePackets.cpp:18886`) uses block 0x20 (the
         // ready-fight block), not the skill block 0x60.

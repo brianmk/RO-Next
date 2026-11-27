@@ -1066,6 +1066,163 @@ mod tests {
         assert_eq!(primitive.slots[3].flag1[4], 0);
     }
 
+    /// `SuperSlashFan(4, 0)`'s primitive state, field by field
+    /// (`RagEffect.cpp:16964-17023`, `:24181-24183`).
+    #[test]
+    fn steelbody_fields_match_super_slash_fan() {
+        let mut body = SteelBody;
+        let mut runtime = runtime(&body, 5);
+
+        body.on_process(&mut runtime);
+
+        let primitive = &runtime.primitives[0].state;
+
+        assert_eq!(primitive.count, PrimitiveId::FloatingBubbles);
+        assert_eq!(primitive.count.id(), 35);
+        // `renderFlag = 0; renderFlag |= 1u; renderFlag |= 5u;`
+        assert_eq!(primitive.render_flag, 5);
+        assert_eq!(primitive.total_texture, 5);
+        assert_eq!(primitive.texture, Some("effect\\super1.bmp"));
+        assert_eq!(primitive.texture_frames, vec![
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp",
+        ]);
+        assert_eq!(primitive.duration, 99_999_999);
+
+        for slot in &primitive.slots {
+            assert_eq!(slot.life, 1);
+            assert_eq!(slot.distance, 3.5);
+            assert_eq!(slot.flag1[4], 0);
+
+            // Four `(height 10, alpha, textureIndex < 5, orbit angle < 360)`
+            // records: alpha 70/130/190/250.
+            assert_eq!(
+                (slot.height[0], slot.height[4], slot.height[8], slot.height[12]),
+                (10.0, 10.0, 10.0, 10.0)
+            );
+            assert_eq!(
+                (slot.height[1], slot.height[5], slot.height[9], slot.height[13]),
+                (70.0, 130.0, 190.0, 250.0)
+            );
+            for index in [2usize, 6, 10, 14] {
+                assert!((0.0..5.0).contains(&slot.height[index]), "texture index {}", slot.height[index]);
+            }
+            for index in [3usize, 7, 11, 15] {
+                assert!((0.0..360.0).contains(&slot.height[index]), "orbit angle {}", slot.height[index]);
+            }
+            // `vecBPre/vecBNow/vecTPre/vecTNow.y = -ClampedRandomAtZero(10)`.
+            for y in [slot.vec_b_pre[1], slot.vec_b_now[1], slot.vec_t_pre[1], slot.vec_t_now[1]] {
+                assert!((-9.0..=0.0).contains(&y), "vertical offset {y}");
+            }
+        }
+    }
+
+    /// `RenderOrbitIcons`'s exact quad geometry for the Steel Body fan
+    /// (`EffectPrimitiveRender.cpp:4764-4897`, dispatch `:491-493` with
+    /// `(1.0f, 100, 100, 255)`).
+    ///
+    /// Each icon is a `distance * scale = 3.5` half-diagonal square placed on a
+    /// `g_effectIconRadius = 4.0` orbit; its corners are the 45/135/225/315
+    /// diagonals, swapped to `(2, 1, 4, 3)` when the record faces away from the
+    /// camera. The icon quad is therefore `3.5 * sqrt(2) = 4.95` world units on
+    /// a side (less than one cell), not a texture-sized billboard.
+    #[test]
+    fn steelbody_orbit_icon_geometry_is_exact() {
+        let mut body = SteelBody;
+        let mut runtime = runtime(&body, 5);
+        body.on_process(&mut runtime);
+
+        let state = runtime.primitive_mut(0);
+        // The camera-less `triangles` path reads the stored `FaceCamera`
+        // angles; zero keeps `Tei_TowardScreen` an identity.
+        state.slots[0].alpha_t = 0;
+        state.slots[1].alpha_t = 0;
+
+        // Deterministic icon records: two that keep the corner order and two
+        // that swap it (`icon_faces_us` differs from the texture test).
+        for slot in &mut state.slots {
+            slot.height[3] = 10.0;
+            slot.height[7] = 100.0;
+            slot.height[11] = 250.0;
+            slot.height[15] = 300.0;
+            slot.height[2] = 0.0;
+            slot.height[6] = 4.0;
+            slot.height[10] = 0.0;
+            slot.height[14] = 1.0;
+            slot.vec_b_pre = [0.0, -1.0, 0.0];
+            slot.vec_b_now = [0.0, -2.0, 0.0];
+            slot.vec_t_pre = [0.0, -3.0, 0.0];
+            slot.vec_t_now = [0.0, -4.0, 0.0];
+            slot.height[20] = 0.0;
+        }
+
+        let triangles = render_slots::triangles(state);
+
+        // 4 live slots x 4 icon records x 2 triangles.
+        assert_eq!(triangles.len(), 32);
+
+        let angles = Angles::shared();
+        let cos = |degrees: usize| angles.raw_cosine(degrees);
+        let sin = |degrees: usize| angles.raw_sine(degrees);
+
+        // `distance * scale = 3.5 * 1.0`.
+        let radius = 3.5f32;
+        let corner = |angle: usize| [radius * cos(angle), 0.0, radius * sin(angle)];
+
+        // The four icons of slot 0: (orbit angle, texture slot, owner y,
+        // first triangle order). `icon_faces_us` is `10 < 70`, `100 < 70`,
+        // `250` neither, `300 > 270`.
+        let icons: [(usize, &'static str, f32, bool); 4] = [
+            (10, "effect\\super1.bmp", -1.0, true),
+            (100, "effect\\super5.bmp", -2.0, true),
+            (250, "effect\\super1.bmp", -3.0, false),
+            (300, "effect\\super2.bmp", -4.0, false),
+        ];
+
+        for (icon, &(angle, texture, owner_y, keep_order)) in icons.iter().enumerate() {
+            let triangle = &triangles[icon * 2];
+            let offset = [4.0 * cos(angle), owner_y, 4.0 * sin(angle)];
+            let add = |c: [f32; 3]| [c[0] + offset[0], c[1] + offset[1], c[2] + offset[2]];
+
+            let expected = if keep_order {
+                [add(corner(45)), add(corner(135)), add(corner(225))]
+            } else {
+                [add(corner(135)), add(corner(45)), add(corner(315))]
+            };
+
+            let close = |left: [f32; 3], right: [f32; 3]| {
+                (left[0] - right[0]).abs() < 1e-4 && (left[1] - right[1]).abs() < 1e-4 && (left[2] - right[2]).abs() < 1e-4
+            };
+            for corner_index in 0..3 {
+                assert!(
+                    close(triangle.corners[corner_index], expected[corner_index]),
+                    "icon {icon} corner {corner_index}: {:?} != {:?}",
+                    triangle.corners[corner_index],
+                    expected[corner_index]
+                );
+            }
+
+            assert_eq!(triangle.texture, Some(texture));
+            // `RenderOrbitIcons(wtm, 1.0f, 100, 100, 255)` and the per-record
+            // alpha 70/130/190/250.
+            let alpha = 70 + icon as u32 * 60;
+            assert_eq!(triangle.argb, (alpha << 24) | (100 << 16) | (100 << 8) | 255);
+        }
+
+        // One icon is a `3.5 * sqrt(2)` world-unit square (the table's
+        // integer-grade cos/sin, so compare against the same table).
+        let side = {
+            let dx = corner(45)[0] - corner(135)[0];
+            let dz = corner(45)[2] - corner(135)[2];
+            (dx * dx + dz * dz).sqrt()
+        };
+        assert!((side - 4.9497).abs() < 1e-2, "icon side {side}");
+        assert!(side < 5.0, "an icon must stay under one 5-unit cell, got {side}");
+    }
+
     #[test]
     fn gumgangnpc_is_the_two_slot_fan_with_value_one() {
         let mut body = GumgangNpc;

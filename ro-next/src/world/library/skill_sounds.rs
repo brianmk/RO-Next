@@ -311,6 +311,19 @@ mod tests {
     }
 
     #[test]
+    fn steel_body_plays_the_official_skill_switch_sound() {
+        // `CGameMode::ReceiveSkillUse`'s `case MO_STEELBODY:` plays
+        // `effect\mon_맹룡과강.wav` (`GameModePackets.cpp:18845`) next to
+        // `EF_GUMGANG2` (261) and the 20 ms block-96 frame hold. The
+        // effect-table entry of `EF_STEELBODY` (254) names `mon_금강불괴`, but
+        // the decompiled effect body of 254 (`RagEffect.cpp:24181-24183`) never
+        // plays a wave, so the skill switch's wav is the official one and the
+        // cur/generated table must keep it (no curated override).
+        assert_eq!(files_for(268).as_deref(), Some(&["effect\\mon_맹룡과강.wav"][..]));
+        assert!(super::curated_skill_sound_files(SkillId(268)).is_none());
+    }
+
+    #[test]
     fn instant_buff_sounds_are_mapped() {
         // Blessing, Increase AGI, Angelus and Concentration are the instant
         // buffs used for the regression checks; each must have a curated wav.

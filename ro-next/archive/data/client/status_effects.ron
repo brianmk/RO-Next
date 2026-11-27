@@ -803,7 +803,7 @@
                     body: (0.85, 0.9, 1.0),
                     glow: (0.94, 0.99, 1.0),
                 ),
-                radii: (ground: 10.5, ring: 7.0, body: 24.0, body_glow: 14.0),
+                radii: (ground: 7.35, ring: 4.9, body: 16.8, body_glow: 9.8),
                 timing: (
                     body_frame_rate: 10.0,
                     ring_rotation_speed: 0.8,
@@ -813,7 +813,7 @@
                     pulse_amount: 0.2,
                 ),
                 alpha: (ground: 0.3, ring: 0.4, body: 0.45, body_glow: 0.4),
-                height: 12.0,
+                height: 8.4,
             ),
         ),
         (

@@ -492,6 +492,63 @@ mod tests {
     }
 
     #[test]
+    fn steel_body_aura_is_scaled_like_the_official_fan() {
+        // `EFST_STEELBODY` (87) draws the official `SuperSlashFan(4, 0)` fan
+        // (`RagEffect.cpp:24181-24183`): prim 35 `RenderOrbitIcons`
+        // (`EffectPrimitiveRendering.cpp:4764-4897`) puts 4.95-unit icon quads
+        // (`distance * scale = 3.5` half-diagonal) on a 4-unit orbit, so the
+        // whole fan reaches `4 + 3.5 = 7.5` world units. The raw effect-table
+        // 24-unit body quad (half-size 12) read oversized in-game, so Steel
+        // Body keeps the same 0.7 scale as the accepted Fury aura
+        // (commit 1dc4f547) instead of the un-scaled effect-table radii.
+        let steel = status_aura_spec(87).expect("Steel Body must have a persistent aura");
+
+        assert_eq!(steel.kind, StatusAuraKind::PersistentGlow);
+        assert_eq!(steel.body_frames, &[
+            "effect\\super1.bmp",
+            "effect\\super2.bmp",
+            "effect\\super3.bmp",
+            "effect\\super4.bmp",
+            "effect\\super5.bmp",
+        ]);
+        assert_eq!(steel.body_glow_texture, "effect\\super1.bmp");
+        assert_eq!(
+            (steel.ground_radius, steel.ring_radius, steel.body_size, steel.body_glow_size),
+            (7.35, 4.9, 16.8, 9.8)
+        );
+        assert_eq!(steel.body_height, 8.4);
+
+        // Fury (86) shows the same super1..5 fan, so both auras must use the
+        // same scale; this locks the data row against drifting back to the
+        // raw 24-unit effect-table quad.
+        let fury = status_aura_spec(86).expect("Fury must have a persistent aura");
+        assert_eq!(
+            (
+                steel.ground_radius,
+                steel.ring_radius,
+                steel.body_size,
+                steel.body_glow_size,
+                steel.body_height
+            ),
+            (
+                fury.ground_radius,
+                fury.ring_radius,
+                fury.body_size,
+                fury.body_glow_size,
+                fury.body_height
+            )
+        );
+
+        // The body shield's outer edge now sits next to the official 7.5-unit
+        // fan reach (the raw data put it at 12.0).
+        assert!(
+            (steel.body_size * 0.5 - 7.5).abs() < 1.5,
+            "steel body aura edge {}",
+            steel.body_size * 0.5
+        );
+    }
+
+    #[test]
     fn pulse_stays_positive_and_bounded() {
         let spec = StatusAuraSpec {
             kind: StatusAuraKind::PersistentGlow,
