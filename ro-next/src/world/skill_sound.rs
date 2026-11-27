@@ -523,7 +523,7 @@ mod tests {
 
     /// The hand-curated skills of `tools/data/skill_sounds_custom.ron` (now the
     /// `curated` section of the sound data file).
-    const CURATED_SKILLS: [u16; 7] = [110, 27, 29, 33, 34, 45, 266];
+    const CURATED_SKILLS: [u16; 10] = [24, 27, 29, 33, 34, 45, 110, 114, 129, 266];
 
     /// Checks that every sound file of the curated rows and the generic cast
     /// fallback exists in the game archives.
@@ -610,6 +610,37 @@ mod tests {
             skill_sound_candidates_for(SkillId(65_500), crate::world::SkillPhase::Success),
             crate::world::generic_cast_sound_files()
         );
+    }
+
+    #[test]
+    fn blitz_beat_and_falcon_assault_do_not_play_the_same_wave() {
+        // Decompilation: `CRagEffect::BlitzBeat` plays
+        // `effect\hunter_blitzbeat_1st.wav` on frame 5 and
+        // `effect\hunter_blitzbeat.wav` on frame 30
+        // (`RagEffect.cpp:11631-11638`). `EF_FALCONASSAULT`'s body launches no
+        // wave at all (`RagEffect.cpp:23782-23797`), so Falcon Assault keeps
+        // the effect-table wave `hunter_blitzbeat` that is also Blitz Beat's
+        // second wave. The generated Blitz Beat row used that second wave for
+        // the skill cast as well, which made Blitz Beat sound exactly like
+        // Falcon Assault; the curated row now plays the distinctive first
+        // wave.
+        for phase in [crate::world::SkillPhase::Success, crate::world::SkillPhase::Hit] {
+            assert_eq!(
+                skill_sound_candidates_for(SkillId(129), phase),
+                ["effect\\hunter_blitzbeat_1st.wav"],
+                "Blitz Beat phase {phase:?}"
+            );
+            assert_eq!(
+                skill_sound_candidates_for(SkillId(381), phase),
+                ["effect\\hunter_blitzbeat.wav"],
+                "Falcon Assault phase {phase:?}"
+            );
+            assert_ne!(
+                skill_sound_candidates_for(SkillId(129), phase),
+                skill_sound_candidates_for(SkillId(381), phase),
+                "Blitz Beat must not play the Falcon Assault wave ({phase:?})"
+            );
+        }
     }
 
     #[test]

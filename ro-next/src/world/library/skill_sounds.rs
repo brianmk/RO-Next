@@ -272,7 +272,7 @@ mod tests {
             "sound mapping should stay broad, got {}",
             sounds.generated.len()
         );
-        assert_eq!(sounds.curated.len(), 9, "the hand-curated overrides");
+        assert_eq!(sounds.curated.len(), 10, "the hand-curated overrides");
         assert!(!sounds.generic.is_empty());
         assert!(
             sounds.generated.windows(2).all(|pair| pair[0].skill < pair[1].skill),
@@ -308,6 +308,31 @@ mod tests {
         // AL_CURE (id 35) is a different skill and keeps its own sound; the
         // Gloria facts must never leak onto it.
         assert_eq!(files_for(35).as_deref().map(|files| files[0]), Some("effect\\acolyte_cure.wav"));
+    }
+
+    #[test]
+    fn blitz_beat_keeps_its_distinctive_first_wave() {
+        // `CRagEffect::BlitzBeat` plays `effect\hunter_blitzbeat_1st.wav` on
+        // frame 5 and `effect\hunter_blitzbeat.wav` on frame 30
+        // (`RagEffect.cpp:11631-11638`). Falcon Assault's
+        // `EF_FALCONASSAULT` body plays no wave (`RagEffect.cpp:23782-23797`);
+        // its only sound is the effect-table wave `hunter_blitzbeat`
+        // (`tools/data/windows_client_skill_sounds.json`, skill 381). Blitz
+        // Beat must therefore keep the first wave as its skill sound, or both
+        // falcon skills play the same wave.
+        assert_eq!(
+            super::curated_skill_sound_files(SkillId(129)).map(|files| files.to_vec()),
+            Some(vec!["effect\\hunter_blitzbeat_1st.wav"])
+        );
+        assert_eq!(
+            files_for(381).as_deref().map(|files| files[0]),
+            Some("effect\\hunter_blitzbeat.wav")
+        );
+        assert_ne!(
+            files_for(129).as_deref().map(|files| files[0]),
+            files_for(381).as_deref().map(|files| files[0]),
+            "Blitz Beat must not play Falcon Assault's wave"
+        );
     }
 
     #[test]

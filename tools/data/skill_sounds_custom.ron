@@ -16,7 +16,7 @@
 // Format: one `(skill, files)` row per skill; paths are relative to
 // `data\wav\`.
 (
-    provenance: "Hand-curated, archive-verified skill cast sound overrides: Hammer Fall, Warp Portal, Increase AGI, Angelus, Blessing and Concentration",
+    provenance: "Hand-curated, archive-verified skill cast sound overrides: Hammer Fall, Warp Portal, Increase AGI, Angelus, Blessing, Concentration and Blitz Beat",
     // Fallback for skills without any mapping (classic cast start sounds).
     generic: ["effect\\ef_beginspell.wav", "effect\\em_spell_enchanting.wav"],
     sounds: [
@@ -64,6 +64,20 @@
         // effect/ef_ruwach` (and the generated `ef_hit2.wav` hit sound) are
         // never played. Keeping the Sight wave is the official quirk.
         (skill: 24, files: ["effect\\ef_sight.wav"]),
+        // HT_BLITZBEAT (129): the falcon's opening wave.
+        // `CRagEffect::BlitzBeat` plays `effect\hunter_blitzbeat_1st.wav` on
+        // frame 5 and `effect\hunter_blitzbeat.wav` on frame 30
+        // (`RagEffect.cpp:11631-11638`; the second wave is also the effect
+        // table's `wav` of `EF_BLITZBEAT` 115). Falcon Assault
+        // (`SN_FALCONASSAULT` 381 -> `EF_FALCONASSAULT` 387) launches a body
+        // that plays no wave at all (`RagEffect.cpp:23782-23797`), so its only
+        // sound is that same `hunter_blitzbeat` effect-table wave
+        // (`tools/data/windows_client_skill_sounds.json`, skill 381). The
+        // generated Blitz Beat row therefore played exactly Falcon Assault's
+        // wave; the distinctive first wave is curated here instead. The
+        // opt-in ported effect body still plays both waves on their official
+        // frames (`world/effect/port/rag/blitz_beat.rs`).
+        (skill: 129, files: ["effect\\hunter_blitzbeat_1st.wav"]),
         // MO_INVESTIGATE / Occult Impaction (266): the 2019 CondaRO client
         // plays the short monk impact wave `effect\\mon_탄지신통.wav` (the
         // CHIMTO implementation's inline `PlayEffectWaveInline`). The 2026
