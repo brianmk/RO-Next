@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "provenance": {
+    "source": "github.com/rodecomp/rodecomp - CGameActor::SendMsg case AM_STATUS_CHANGE (GameObject.cpp), CPlayer::ReapplySkillEffects (Player.cpp) and CGameMode::ApplyActorSkillState (GameModePackets.cpp)",
+    "note": "status/skill ids are the rAthena ids the server sends and match the decompiled enums; effect ids are the decompiled RagEffectID values. Only the triggers wired by the port are extracted (STATUS_TRIGGERS/SKILL_TRIGGERS in extract_status_effect_launches.py)."
+  },
+  "statuses": [
+    {
+      "status": "EFST_STEELBODY",
+      "status_id": 87,
+      "apply_range": [
+        2686,
+        2702
+      ],
+      "deletes_before_launch": true,
+      "effects": [
+        {
+          "effect": "EF_STEELBODY",
+          "effect_id": 254,
+          "apply_line": 2699,
+          "reapply_lines": [
+            3257
+          ]
+        },
+        {
+          "effect": "EF_SU_STOOP",
+          "effect_id": 1132,
+          "apply_line": 2700,
+          "reapply_lines": [
+            3258
+          ]
+        }
+      ]
+    },
+    {
+      "status": "EFST_DBARRIER",
+      "status_id": 235,
+      "apply_range": [
+        2686,
+        2702
+      ],
+      "deletes_before_launch": true,
+      "effects": [
+        {
+          "effect": "EF_STEELBODY",
+          "effect_id": 254,
+          "apply_line": 2699,
+          "reapply_lines": [
+            3323
+          ]
+        },
+        {
+          "effect": "EF_SU_STOOP",
+          "effect_id": 1132,
+          "apply_line": 2700,
+          "reapply_lines": [
+            3324
+          ]
+        }
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "skill": "CH_SOULCOLLECT",
+      "skill_id": 401,
+      "effect": "EF_PORTAL5",
+      "effect_id": 402,
+      "line": 12885
+    }
+  ]
+}

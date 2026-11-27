@@ -44,6 +44,22 @@ pub use self::teleport_vanish::TeleportVanish;
 pub use self::warp::WarpPortal;
 pub use self::weather::Weather;
 
+/// Identity of a visual that lives exactly as long as one active status of one
+/// entity.
+///
+/// The official client keeps the effect of a status in the actor's effect list
+/// and deletes it by effect id when the status ends or is re-applied
+/// (`CGameActor::SendMsg`, `case AM_STATUS_CHANGE:`,
+/// `GameObject.cpp:2686-2700`: `while (HasId(EF_...)) { delete; }` then
+/// `LaunchEffect`). The port has no per-effect ids at the holder level, so a
+/// status-launched visual carries this key instead and
+/// [`EffectHolder::remove_status_visual`] retires it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct StatusVisualKey {
+    pub entity_id: EntityId,
+    pub status_index: u16,
+}
+
 pub trait EffectBase {
     fn update(&mut self, entities: &[crate::world::Entity], delta_time: f32) -> bool;
 
@@ -75,6 +91,17 @@ pub trait EffectBase {
     /// Called by [`EffectHolder::update`] before the effect object is dropped;
     /// implementations clear only the state they actually applied.
     fn clear_caster_state(&mut self, _entity: &mut crate::world::Entity) {}
+
+    /// `Some` when this effect is a status-launched visual, i.e. it lives
+    /// exactly as long as the status that launched it.
+    ///
+    /// The status handler removes the previous instance before every
+    /// (re-)application and on the status end, mirroring the official
+    /// delete-then-launch of `AM_STATUS_CHANGE`; the default has no key, so
+    /// every other effect is untouched by that removal.
+    fn status_visual_key(&self) -> Option<StatusVisualKey> {
+        None
+    }
 }
 
 pub trait EffectSourceExt {
@@ -803,6 +830,34 @@ impl EffectHolder {
             .for_each(|(effect, _)| effect.mark_for_deletion());
     }
 
+    /// Retires the visual launched by one status of one entity.
+    ///
+    /// Mirrors the official `AM_STATUS_CHANGE` cleanup
+    /// (`GameObject.cpp:2686-2688`): the previous instance of a status effect
+    /// is deleted before the status launches it again, and on the status end.
+    /// Only effects that carry the matching [`StatusVisualKey`] are marked, so
+    /// a status can never remove another actor's or another status's effect.
+    pub fn remove_status_visual(&mut self, entity_id: EntityId, status_index: u16) {
+        let key = StatusVisualKey { entity_id, status_index };
+
+        self.effects
+            .iter_mut()
+            .filter(|(effect, _)| effect.status_visual_key() == Some(key))
+            .for_each(|(effect, _)| effect.mark_for_deletion());
+    }
+
+    /// Whether a live status-launched visual with this key is in the list.
+    ///
+    /// A visual marked for deletion is still in the list until its next step
+    /// retires it, so this is only used to decide whether a guarded official
+    /// launch (`if (!HasId(EF_...))`, `GameObject.cpp:2648`) has to spawn at
+    /// all.
+    pub fn has_status_visual(&self, entity_id: EntityId, status_index: u16) -> bool {
+        let key = StatusVisualKey { entity_id, status_index };
+
+        self.effects.iter().any(|(effect, _)| effect.status_visual_key() == Some(key))
+    }
+
     pub fn clear(&mut self) {
         self.effects.clear();
     }
@@ -895,7 +950,6 @@ impl EffectHolder {
 #[cfg(test)]
 mod budget_tests {
     use super::effect_budget_allows;
-
     #[test]
     fn global_budget_blocks_new_effects() {
         assert!(effect_budget_allows(0, 0, 2, 0));
@@ -918,5 +972,112 @@ mod budget_tests {
         assert!(!effect_budget_allows(10, 0, 10, 2));
         // Both have room.
         assert!(effect_budget_allows(9, 1, 10, 2));
+    }
+}
+
+#[cfg(test)]
+mod status_visual_tests {
+    use ragnarok_packets::{ClientTick, EntityId};
+
+    use super::{EffectBase, EffectHolder, StatusVisualKey};
+    use crate::world::Camera;
+
+    /// Minimal effect that records which key it was spawned with.
+    struct KeyedVisual {
+        key: Option<StatusVisualKey>,
+        deleted: bool,
+    }
+
+    impl EffectBase for KeyedVisual {
+        fn update(&mut self, _entities: &[crate::world::Entity], _delta_time: f32) -> bool {
+            !self.deleted
+        }
+
+        fn mark_for_deletion(&mut self) {
+            self.deleted = true;
+        }
+
+        fn register_point_lights(&self, _manager: &mut crate::world::PointLightManager, _camera: &dyn Camera) {}
+
+        fn render(&self, _renderer: &mut crate::renderer::EffectRenderer, _camera: &dyn Camera) {}
+
+        fn status_visual_key(&self) -> Option<StatusVisualKey> {
+            self.key
+        }
+    }
+
+    fn keyed(entity_id: EntityId, status_index: u16) -> KeyedVisual {
+        KeyedVisual {
+            key: Some(StatusVisualKey { entity_id, status_index }),
+            deleted: false,
+        }
+    }
+
+    fn effect_holder() -> EffectHolder {
+        let mut holder = EffectHolder::default();
+        // The ambient environment can cap the effect count; the tests only
+        // exercise the key bookkeeping.
+        holder.maximum_effects = 0;
+        holder.maximum_effects_per_entity = 0;
+        holder
+    }
+
+    #[test]
+    fn removing_a_status_visual_matches_both_entity_and_status() {
+        let entity = EntityId(7);
+        let other_entity = EntityId(8);
+
+        let mut holder = effect_holder();
+        assert!(holder.add_unit(Box::new(keyed(entity, 87)), entity));
+        assert!(holder.add_unit(Box::new(keyed(entity, 235)), entity));
+        assert!(holder.add_unit(Box::new(keyed(other_entity, 87)), other_entity));
+        assert!(holder.add_effect(Box::new(KeyedVisual { key: None, deleted: false })));
+
+        holder.remove_status_visual(entity, 87);
+
+        // The effect is still listed until its next step retires it, but the
+        // other entity's identical status and the entity's other status are
+        // untouched.
+        assert_eq!(holder.count(), 4);
+        assert!(holder.has_status_visual(entity, 87), "still listed until it steps");
+        assert!(holder.has_status_visual(entity, 235));
+        assert!(holder.has_status_visual(other_entity, 87));
+
+        // An unrelated (entity, status) pair removes nothing new.
+        holder.remove_status_visual(EntityId(9), 87);
+
+        // Stepping retires the marked visual only: no entity slice is needed
+        // for the key bookkeeping, so the other three survive.
+        let mut entities: Vec<crate::world::Entity> = Vec::new();
+        holder.update(&mut entities, 0.016, ClientTick(0));
+        assert_eq!(holder.count(), 3);
+        assert!(!holder.has_status_visual(entity, 87));
+        assert!(holder.has_status_visual(entity, 235));
+        assert!(holder.has_status_visual(other_entity, 87));
+    }
+
+    #[test]
+    fn unkeyed_effects_are_never_removed_by_a_status() {
+        let mut holder = effect_holder();
+        assert!(holder.add_effect(Box::new(KeyedVisual { key: None, deleted: false })));
+
+        holder.remove_status_visual(EntityId(1), 87);
+
+        assert_eq!(holder.count(), 1);
+        assert!(!holder.has_status_visual(EntityId(1), 87));
+    }
+
+    #[test]
+    fn status_visual_key_is_addressable_by_value() {
+        // The key is `Copy`/`Eq` so the spawn path can keep it without an
+        // allocation and the removal path can rebuild it from the packet.
+        let key = StatusVisualKey {
+            entity_id: EntityId(42),
+            status_index: 1132,
+        };
+        assert_eq!(key, StatusVisualKey {
+            entity_id: EntityId(42),
+            status_index: 1132,
+        });
     }
 }

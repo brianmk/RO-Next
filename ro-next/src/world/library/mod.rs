@@ -23,6 +23,7 @@ mod skill_information;
 mod skill_requirements;
 mod skill_sounds;
 mod skill_tree;
+mod status_effect_launches;
 mod status_effects;
 mod status_visuals;
 
@@ -70,6 +71,7 @@ pub(crate) use self::skill_effects::{
 use self::skill_icon::SkillIcons;
 pub(crate) use self::skill_sounds::{curated_skill_sound_files, generic_cast_sound_files, skill_sound_files};
 pub use self::skill_tree::SkillTreeLayout;
+pub(crate) use self::status_effect_launches::{skill_launch, status_launch};
 pub(crate) use self::status_effects::{
     StatusAuraKind, StatusAuraSpec, StatusEffectCategory, StatusRefreshPolicy, refresh_policy as status_effect_refresh_policy,
     status_aura_spec, status_effect_info, validate as validate_status_effect_data, validate_compiled as validate_compiled_status_effects,
@@ -139,6 +141,10 @@ impl Library {
         // categories, value labels, refresh policy and persistent auras).
         status_effects::load(game_file_loader);
         status_visuals::load(game_file_loader);
+        // The official status/skill effect launches (`AM_STATUS_CHANGE`,
+        // `ReapplySkillEffects` and `ApplyActorSkillState`); the spawn path
+        // builds a ported effect body for every row.
+        status_effect_launches::load(game_file_loader);
         // The data-driven job/appearance registry (job sprites, palettes, hair
         // styles, job flags) is loaded here so every subsystem sees one table.
         crate::world::jobs::load(game_file_loader);

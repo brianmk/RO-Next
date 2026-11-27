@@ -384,6 +384,33 @@ pub fn character_preview_part_files(library: &Library, character_information: &C
 /// other clients: hide, cloak, invisible and chase-walk.
 pub(super) const OPTION_HIDDEN_MASK: u32 = 0x0000_0002 | 0x0000_0004 | 0x0000_0040 | 0x0000_4000;
 
+/// Whether `CPc::SetState(ST_STAND)` selects the armed ready-fight block.
+///
+/// Extracted from `Player.cpp:4440-4472`: combat source states and a non-zero
+/// `healthState` select `JobActionBase(ST_STAND) = 32`; every other player
+/// transition keeps `WeaponActionBase(ST_STAND) = 0`. A player entity that is
+/// not a `CPc` (monster, NPC, ...) has no such override and stays neutral.
+fn armed_stand(entity_type: EntityType, from_combat: bool, health_state: u16) -> bool {
+    entity_type == EntityType::Player && (from_combat || health_state != 0)
+}
+
+/// Applies the official `CPc::SetState(ST_STAND)` stance to an animation
+/// state. Split out of [`Common::set_stand_after`] so the rule is testable
+/// without an entity, map or renderer.
+fn apply_stand_after(
+    animation_state: &mut AnimationState,
+    entity_type: EntityType,
+    from_combat: bool,
+    health_state: u16,
+    client_tick: ClientTick,
+) {
+    if armed_stand(entity_type, from_combat, health_state) {
+        animation_state.ready_fight(entity_type, client_tick);
+    } else {
+        animation_state.idle(entity_type, client_tick);
+    }
+}
+
 impl Common {
     pub fn new(
         _library: &Library,
@@ -1066,6 +1093,38 @@ impl Common {
         self.fade_state.is_fading()
     }
 
+    /// Official `CPc::SetState(ST_STAND)` stance choice
+    /// (`Player.cpp:4423-4475`).
+    ///
+    /// `CGameActor::SetState(ST_STAND)` first selects the neutral
+    /// `WeaponActionBase(ST_STAND) = 0` block (`RenderObject.cpp:1478`,
+    /// `RenderObject.cpp:3416`). `CPc::SetState` then replaces it with
+    /// `SetAction(action, 4, 0)` of the armed `JobActionBase(ST_STAND) = 32`
+    /// block when the transition comes from:
+    ///
+    /// * `ST_ATTACK`, `ST_DAMAGE` or `ST_BEGIN_SKILL` (`Player.cpp:4440-4443`),
+    /// * one of the skill states `0x34..=0x50` (`Player.cpp:4444-4466`), or
+    /// * any other state while `healthState != 0` (`Player.cpp:4469-4472`).
+    ///
+    /// The same rule is used by `CGrannyPc::SetState` in its compact form
+    /// (`Player.cpp:422-427`). Monsters and NPCs have no `CPc` override, so
+    /// they always keep the neutral block.
+    ///
+    /// The armed block is what draws the weapon and shield layers:
+    /// `IsReadyOrAttackAction` (`Player.cpp:1835`) accepts the ready-fight
+    /// `32..39` and attack `80..95` blocks. The port applies this at the two
+    /// transitions it models: an attack/pickup/skill animation ending and a
+    /// movement step landing.
+    fn set_stand_after(&mut self, from_combat: bool, client_tick: ClientTick) {
+        apply_stand_after(
+            &mut self.animation_state,
+            self.entity_type,
+            from_combat,
+            self.health_state,
+            client_tick,
+        );
+    }
+
     pub fn update(&mut self, audio_engine: &AudioEngine<GameFileLoader>, map: &Map, camera: &dyn Camera, client_tick: ClientTick) {
         self.update_movement(map, client_tick);
         self.animation_state.update(client_tick);
@@ -1104,16 +1163,29 @@ impl Common {
             }
         }
 
-        if let Some(animation_data) = self.animation_data.as_ref() {
-            if animation_data.is_animation_over(&self.animation_state)
+        // The state that just finished is the official `current` argument of
+        // `CPc::SetState(ST_STAND)`: an attack, a skill pose (`ST_BEGIN_SKILL`
+        // / the `0x34..=0x50` skill states) or a pickup. Only the first two are
+        // combat transitions; a pickup returns to the neutral pose unless
+        // `healthState != 0` (`Player.cpp:4440-4472`). Resolved before the
+        // animation frame is sampled so the new stance is what this update
+        // selects for the sound event frame, and so the immutable
+        // `animation_data` borrow below is not extended.
+        let finished_action = self.animation_data.as_ref().is_some_and(|animation_data| {
+            animation_data.is_animation_over(&self.animation_state)
                 && (self.animation_state.is_attack()
                     || self.animation_state.is_pickup()
                     || self.animation_state.is_skill()
                     || self.animation_state.is_custom_one_shot())
-            {
-                self.animation_state.idle(self.entity_type, client_tick);
-            }
+        });
+        if finished_action {
+            let from_combat =
+                self.animation_state.is_attack() || self.animation_state.is_skill() || self.animation_state.is_custom_one_shot();
 
+            self.set_stand_after(from_combat, client_tick);
+        }
+
+        if let Some(animation_data) = self.animation_data.as_ref() {
             // Start a queued death once the current animation finished or the
             // grace period elapsed (cap: no stuck "dying" entities).
             if let Some(death_tick) = self.pending_death {
@@ -1203,7 +1275,11 @@ impl Common {
         self.tile_position = position;
         self.world_position = world_position;
         self.active_movement = None;
-        self.animation_state.idle(self.entity_type, client_tick);
+        // A landing movement step is `ST_MOVE` -> `ST_STAND`, which is not a
+        // combat source: the neutral block 0 unless `healthState != 0`
+        // (`Player.cpp:4469-4472`). This is what returns a character that
+        // fought to the weaponless stand pose once they walk.
+        self.set_stand_after(false, client_tick);
     }
 
     pub fn move_from_to(
@@ -1932,5 +2008,92 @@ impl Common {
         hovered: bool,
     ) {
         renderer.render_marker(camera, marker_identifier, self.world_position, hovered);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::ClientTick;
+
+    use super::{apply_stand_after, armed_stand};
+    use crate::world::EntityType;
+    use crate::world::animation::{AnimationActionType, AnimationState};
+
+    #[test]
+    fn official_armed_stand_condition_matches_pc_set_state() {
+        // `Player.cpp:4440-4472`: combat sources and `healthState != 0` select
+        // `JobActionBase(ST_STAND) = 32`; every other transition is neutral.
+        assert!(armed_stand(EntityType::Player, true, 0), "ST_ATTACK/ST_DAMAGE/ST_BEGIN_SKILL");
+        assert!(armed_stand(EntityType::Player, true, 5));
+        assert!(armed_stand(EntityType::Player, false, 5), "healthState != 0");
+        assert!(!armed_stand(EntityType::Player, false, 0), "walk/pickup/sit at peace");
+
+        // Monsters and NPCs have no `CPc` override and keep block 0.
+        assert!(!armed_stand(EntityType::Monster, true, 0));
+        assert!(!armed_stand(EntityType::Npc, true, 5));
+    }
+
+    #[test]
+    fn player_stays_armed_after_combat_until_it_moves() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+
+        // Attack swing: the official `current` state of the following
+        // ST_STAND transition.
+        state.attack(EntityType::Player, 100, AnimationActionType::Attack1, ClientTick(0));
+        assert!(state.is_attack());
+        assert_eq!(state.action_index() * 8, 40, "ST_THROW/critical swing block");
+
+        let from_combat = state.is_attack() || state.is_skill() || state.is_custom_one_shot();
+        apply_stand_after(&mut state, EntityType::Player, from_combat, 0, ClientTick(120));
+
+        // `Player.cpp:4467` -> `SetAction(action, 4, 0)` with action block 32.
+        assert_eq!(state.action_index(), 4);
+        assert_eq!(state.action_index() * 8, 32);
+        assert!(state.shows_weapon_layer(), "weapon and shield layers draw in the ready stance");
+
+        // Walking is `ST_MOVE` -> `ST_STAND`, a non-combat source: neutral
+        // block 0, weapon hidden.
+        state.walk(EntityType::Player, 150, ClientTick(200));
+        apply_stand_after(&mut state, EntityType::Player, false, 0, ClientTick(300));
+        assert_eq!(state.action_index(), 0);
+        assert!(!state.shows_weapon_layer());
+    }
+
+    #[test]
+    fn skill_and_custom_poses_return_to_the_armed_stance() {
+        let mut cast = AnimationState::new(EntityType::Player, ClientTick(0));
+        cast.skill(EntityType::Player, 1000, false, ClientTick(0));
+        let from_combat = cast.is_attack() || cast.is_skill() || cast.is_custom_one_shot();
+        assert!(from_combat, "ST_BEGIN_SKILL/ST_SKILL are combat transitions");
+        apply_stand_after(&mut cast, EntityType::Player, from_combat, 0, ClientTick(120));
+        assert_eq!(cast.action_index(), 4);
+
+        let mut custom = AnimationState::new(EntityType::Player, ClientTick(0));
+        custom.custom(EntityType::Player, 12, 400, true, ClientTick(0));
+        let from_combat = custom.is_attack() || custom.is_skill() || custom.is_custom_one_shot();
+        assert!(from_combat, "the ported effect poses are one-shot skill poses");
+        apply_stand_after(&mut custom, EntityType::Player, from_combat, 0, ClientTick(120));
+        assert_eq!(custom.action_index(), 4);
+    }
+
+    #[test]
+    fn pickup_returns_to_neutral_unless_health_state_is_set() {
+        // `ST_PICKUP` is not in the combat list (`Player.cpp:4440-4466`), so
+        // only the `healthState != 0` branch (`:4469-4472`) arms the stance.
+        let mut peaceful = AnimationState::new(EntityType::Player, ClientTick(0));
+        apply_stand_after(&mut peaceful, EntityType::Player, false, 0, ClientTick(10));
+        assert_eq!(peaceful.action_index(), 0);
+
+        let mut pk = AnimationState::new(EntityType::Player, ClientTick(0));
+        apply_stand_after(&mut pk, EntityType::Player, false, 1, ClientTick(10));
+        assert_eq!(pk.action_index(), 4);
+    }
+
+    #[test]
+    fn monsters_keep_the_neutral_stand_after_combat() {
+        let mut state = AnimationState::new(EntityType::Monster, ClientTick(0));
+        state.attack(EntityType::Monster, 100, AnimationActionType::Attack1, ClientTick(0));
+        apply_stand_after(&mut state, EntityType::Monster, true, 0, ClientTick(120));
+        assert_eq!(state.action_index(), 0, "CGameActor::SetState keeps WeaponActionBase(ST_STAND)");
     }
 }

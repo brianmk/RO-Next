@@ -72,6 +72,11 @@ pub struct PortedVisual {
     /// makes the visual apply each sequence once instead of restarting its
     /// 25 ms window on every 16 ms step.
     applied_frame_sequence: Option<i32>,
+    /// Set for a visual launched by a status (`status_effect_launches.ron`):
+    /// the visual lives exactly as long as that `(entity, status)` pair and is
+    /// retired by `EffectHolder::remove_status_visual`. `None` for the skill
+    /// and attack visuals, which own their lifetime.
+    status_key: Option<crate::world::effect::StatusVisualKey>,
 }
 
 impl PortedVisual {
@@ -95,11 +100,30 @@ impl PortedVisual {
             gets_deleted: false,
             applied_tint: None,
             applied_frame_sequence: None,
+            status_key: None,
         };
 
         visual.prefetch_textures();
 
         visual
+    }
+
+    /// Binds this visual to the status that launched it.
+    ///
+    /// The official status path deletes the previous instance of a status
+    /// effect and launches a fresh one on every status change
+    /// (`GameObject.cpp:2686-2700`); the client's status handler rebuilds the
+    /// same `(entity, status)` key on each packet and calls
+    /// `EffectHolder::remove_status_visual` before spawning this visual again.
+    pub fn with_status_key(mut self, entity_id: ragnarok_packets::EntityId, status_index: u16) -> Self {
+        self.status_key = Some(crate::world::effect::StatusVisualKey { entity_id, status_index });
+        self
+    }
+
+    /// The `(entity, status)` pair this visual belongs to, if it was launched
+    /// by a status.
+    pub fn status_key(&self) -> Option<crate::world::effect::StatusVisualKey> {
+        self.status_key
     }
 
     /// Attaches the client's audio engine, so the sounds the ported bodies
@@ -263,6 +287,10 @@ impl EffectBase for PortedVisual {
         self.gets_deleted = true;
     }
 
+    fn status_visual_key(&self) -> Option<crate::world::effect::StatusVisualKey> {
+        self.status_key
+    }
+
     fn register_point_lights(&self, _: &mut PointLightManager, _: &dyn Camera) {}
 
     fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera) {
@@ -412,7 +440,27 @@ mod tests {
             gets_deleted: false,
             applied_tint: None,
             applied_frame_sequence: None,
+            status_key: None,
         }
+    }
+
+    #[test]
+    fn status_launched_visual_reports_its_status_key() {
+        use crate::world::effect::{EffectBase, StatusVisualKey};
+
+        let plain = visual(EffectId::SuStoop);
+        assert_eq!(plain.status_visual_key(), None, "skill visuals own their lifetime");
+        assert_eq!(plain.status_key(), None);
+
+        let launched = visual(EffectId::SuStoop).with_status_key(ragnarok_packets::EntityId(9), 87);
+        assert_eq!(
+            launched.status_visual_key(),
+            Some(StatusVisualKey {
+                entity_id: ragnarok_packets::EntityId(9),
+                status_index: 87,
+            })
+        );
+        assert_eq!(launched.status_key(), launched.status_visual_key());
     }
 
     #[test]
@@ -496,6 +544,7 @@ mod tests {
             gets_deleted: false,
             applied_tint: None,
             applied_frame_sequence: None,
+            status_key: None,
         };
 
         assert!(visual.runtime().str_player.is_some());

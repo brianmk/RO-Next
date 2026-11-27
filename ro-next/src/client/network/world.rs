@@ -305,6 +305,12 @@ impl Client {
             player.set_position(map, position, client_tick);
             self.player_camera.set_focus_point(player.get_position());
 
+            // A teleport is a warp too: the effect list was cleared above
+            // while the local player's statuses were kept, so re-launch the
+            // status effects (`CPlayer::ReapplySkillEffects`,
+            // `Player.cpp:4359`).
+            self.reapply_status_launches(client_tick);
+
             // Ask the server for the entities around the new position
             // (same load-end acknowledgement as after a real map change).
             let _ = self.networking_system.map_loaded();
@@ -377,6 +383,12 @@ impl Client {
         }
         self.retrack_local_player();
 
+        // Official `CPlayer::Initialize` calls `ReapplySkillEffects`
+        // (`Player.cpp:4359`) after the actor state is rebuilt on map entry.
+        // The effect list was just cleared while the local player's statuses
+        // were retained, so their launched effects are re-created here.
+        self.reapply_status_launches(client_tick);
+
         // Close any remaining dialogs.
         self.interface.close_window_with_class(WindowClass::Dialog);
 
@@ -421,6 +433,7 @@ impl Client {
             );
         }
 
+        let launch_client_tick = client_tick;
         let client_tick = client_tick.0 as u64;
         self.client_state.follow_mut(client_state().status_effects()).apply(
             entity_id.0,
@@ -437,6 +450,45 @@ impl Client {
         // Data-driven body visuals (tints/alpha); the table lives in
         // `archive/data/client/status_visual_effects.ron`.
         self.refresh_entity_status_visual(entity_id);
+
+        // Official status -> effect launch channel
+        // (`archive/data/client/status_effect_launches.ron`). `AM_STATUS_CHANGE`
+        // launches the statuses' hard-coded effects (`GameObject.cpp:2535-4398`);
+        // the rows that delete their previous instance first
+        // (`while (this->HasId(EF_...))`, `GameObject.cpp:2686-2688`) are
+        // relaunched on every packet, and an ended status removes its effect
+        // (`:5157-5159` for `EF_BOTTOM_BASILICA2`). `ReapplySkillEffects`
+        // (`Player.cpp:3180-3850`) re-launches the same rows when the actor is
+        // rebuilt and the server re-sends the status list, which this handler
+        // receives as another active packet.
+        if let Some(launch) = crate::world::status_launch(status_index) {
+            let already_present = self.effect_holder.has_status_visual(entity_id, status_index);
+
+            if launch.relaunch || !active {
+                self.effect_holder.remove_status_visual(entity_id, status_index);
+            }
+
+            let spawn = active && (launch.relaunch || !already_present);
+            let visible = self
+                .client_state
+                .follow(client_state().entities())
+                .iter()
+                .any(|entity| entity.get_entity_id() == entity_id && !entity.is_dead() && !entity.is_fading());
+
+            if spawn && visible {
+                crate::logging::log_debug!(
+                    "status launch: status {} spawns {} effect(s) on entity {} ({})",
+                    status_index,
+                    launch.effects.len(),
+                    entity_id.0,
+                    launch.source
+                );
+
+                for (ordinal, effect_id) in launch.effects.iter().enumerate() {
+                    self.spawn_launched_ported_effect(*effect_id, entity_id, Some(status_index), ordinal as u32, launch_client_tick);
+                }
+            }
+        }
 
         // `EFST_CHANGE_SIZE` / `EFST_CHANGE_SIZE_MONSTER`
         // (1420/1421): the server `val1` is the size in percent.
@@ -460,6 +512,130 @@ impl Client {
                 .find(|entity| entity.get_entity_id() == entity_id)
         {
             entity.set_cart_status(active, values[0]);
+        }
+    }
+
+    /// Re-launches the status effects after the effect list was cleared by a
+    /// map change or teleport.
+    ///
+    /// This is the port's counterpart of `CPlayer::ReapplySkillEffects`
+    /// (`Player.cpp:3180-3850`): the client rebuilds the effects of every
+    /// active status from the retained status list (`Player.cpp:4359` in
+    /// `CPlayer::Initialize`, `GameModePackets.cpp:27242` for a map-property
+    /// change, `RenderObject.cpp:5334` for an actor-state rebuild). The port
+    /// keeps the local player's statuses across a warp but clears the effect
+    /// holder, so without this pass a status like Steel Body would lose the
+    /// body that owns its sound until the server re-sends a status it marks
+    /// `DisplayPc`.
+    ///
+    /// Each effect is removed first, mirroring the official delete-then-launch
+    /// of the status cases; the status packet that may follow re-launches it
+    /// again with the same `(entity, status)` key.
+    pub(crate) fn reapply_status_launches(&mut self, client_tick: ClientTick) {
+        let Some(own_entity_id) = self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()) else {
+            return;
+        };
+
+        let statuses: Vec<u16> = self
+            .client_state
+            .follow(client_state().status_effects())
+            .effects()
+            .iter()
+            .filter(|effect| effect.entity_id() == own_entity_id.0)
+            .map(|effect| effect.status_index())
+            .filter(|status_index| crate::world::status_launch(*status_index).is_some())
+            .collect();
+
+        for status_index in statuses {
+            let Some(launch) = crate::world::status_launch(status_index) else {
+                continue;
+            };
+
+            self.effect_holder.remove_status_visual(own_entity_id, status_index);
+
+            for (ordinal, effect_id) in launch.effects.iter().enumerate() {
+                self.spawn_launched_ported_effect(*effect_id, own_entity_id, Some(status_index), ordinal as u32, client_tick);
+            }
+        }
+    }
+
+    /// Spawns one official `LaunchEffect` body from the status/skill launch
+    /// table through the ported effect holder.
+    ///
+    /// This is the port's counterpart of `CGameActor::LaunchEffect(effectId,
+    /// vector3d{0,0,0}, 0.0f)`: the effect is anchored to the actor, inherits
+    /// its position every frame (`EffectHolder::apply_caster_state`), gets the
+    /// effect's official `.str`/sprite assets from the client loaders and
+    /// forwards the sounds its body records to the audio engine. A status
+    /// launch (`status_key = Some`) carries the `(entity, status)` key that
+    /// `EffectHolder::remove_status_visual` retires when the status ends.
+    pub(crate) fn spawn_launched_ported_effect(
+        &mut self,
+        effect_id: ragnarok_packets::EffectId,
+        entity_id: EntityId,
+        status_key: Option<u16>,
+        ordinal: u32,
+        client_tick: ClientTick,
+    ) {
+        use crate::world::port::holder::PortedEffectHolder;
+        use crate::world::port::visual::PortedVisual;
+
+        let Some(position) = self.entity_position(entity_id) else {
+            crate::logging::log_debug!(
+                "status launch: entity {} left the view before {:?} could spawn",
+                entity_id.0,
+                effect_id
+            );
+            return;
+        };
+
+        // Deterministic per application: two clients (and two tests) that
+        // receive the same packets seed the effect's RNG identically.
+        let seed =
+            u64::from(client_tick.0) ^ (u64::from(status_key.unwrap_or(0)) << 32) ^ u64::from(ordinal) ^ ((effect_id as u32 as u64) << 48);
+
+        let Some(holder) = PortedEffectHolder::new(effect_id, seed) else {
+            crate::logging::log_debug!("status launch: {:?} has no registered body", effect_id);
+            return;
+        };
+
+        let mut visual = PortedVisual::new(
+            holder,
+            self.texture_loader.clone(),
+            self.sprite_loader.clone(),
+            self.action_loader.clone(),
+            self.game_file_loader.clone(),
+        )
+        .with_audio_engine(self.audio_engine.clone());
+
+        if let Some(status_index) = status_key {
+            visual = visual.with_status_key(entity_id, status_index);
+        }
+
+        // `PlayEffectWaveAt` subtracts the local player position from the
+        // effect position (`RagEffect.cpp:22972`); the runtime has no player
+        // object, so snapshot it for the positional-sound bodies.
+        let listener = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position());
+
+        {
+            let runtime = visual.runtime_mut();
+            runtime.position = [position.x, position.y, position.z];
+            // `CRagEffect::state.deltaPos`; status launches do not travel.
+            runtime.target_offset = runtime.position;
+            runtime.param = 1.0;
+
+            if let Some(listener) = listener {
+                runtime.listener_position = [listener.x, listener.y, listener.z];
+            }
+        }
+
+        if self.effect_holder.add_unit(Box::new(visual), entity_id) {
+            crate::logging::log_debug!(
+                "status launch: spawned {:?} on entity {} (status {:?})",
+                effect_id,
+                entity_id.0,
+                status_key
+            );
         }
     }
 

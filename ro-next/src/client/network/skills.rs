@@ -191,6 +191,29 @@ impl Client {
             cast_time as f32,
         );
 
+        // `CGameMode::ApplyActorSkillState` (`GameModePackets.cpp:12868-12897`,
+        // called at `:12968` after `SetState` and the monster skill action)
+        // launches the hard-coded cast-start effect of a few skills. The
+        // official function is skipped for instant casts: `NotifySkillCasting`
+        // returns at `:12940-12942` when the packet's `delay` is 0, so only a
+        // cast with a cast time reaches the `LaunchEffect` calls.
+        //
+        // `CH_SOULCOLLECT` is the ported case (`EF_PORTAL5`, `:12883-12886`);
+        // the rows live in `archive/data/client/status_effect_launches.ron`
+        // and spawn a ported `PortedEffectHolder` body.
+        if has_cast_time && let Some(launch) = crate::world::skill_launch(skill_id) {
+            crate::logging::log_debug!(
+                "skill launch: skill {} starts {} official effect(s) ({})",
+                skill_id.0,
+                launch.effects.len(),
+                launch.source
+            );
+
+            for (ordinal, effect_id) in launch.effects.iter().enumerate() {
+                self.spawn_launched_ported_effect(*effect_id, source_entity_id, None, ordinal as u32, client_tick);
+            }
+        }
+
         // Asura Strike shakes the screen for the local caster (the
         // original client draws no full-screen lettering: the kanji
         // are world layers of the skill effect data).
