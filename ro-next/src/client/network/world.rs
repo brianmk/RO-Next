@@ -1055,6 +1055,12 @@ impl Client {
             let show_damage_numbers = *self.client_state.follow(client_state().game_settings().show_damage_numbers());
             let target_is_player =
                 self.client_state.try_follow(this_entity()).map(|player| player.get_entity_id()) == Some(destination_entity_id);
+            // The cumulative total is only spawned for monster-class targets
+            // (`GameObject.cpp:1902-1927`); a player target keeps the normal
+            // per-hit numbers only. `TargetSnapshot::is_player` is the
+            // job-based `IsPlayerJob(GetEffectiveJob(-1))` test the official
+            // branch uses.
+            let monster_target = !target.is_player;
             // `AM_MAKE_MISS` uses white for monster attackers and red for
             // players (`GameObject.cpp:1774-1779`).
             let source_is_monster = self
@@ -1070,20 +1076,23 @@ impl Client {
             if show_damage_numbers {
                 match damage_amount {
                     Some(amount) => {
-                        // `damage /= hitCount` (`RenderObject.cpp:5368`).
-                        let per_hit = amount / hit_count;
-
-                        for hit in 0..hit_count {
-                            self.particle_holder.spawn_particle(Box::new(DamageNumber::damage(
-                                destination_entity_id,
-                                position,
-                                per_hit as u64,
-                                is_critical,
-                                blue_damage,
-                                target_is_player,
-                                direction,
-                                hit as u32 * crate::world::MULTI_HIT_INTERVAL_MS,
-                            )));
+                        // `damage /= hitCount` (`RenderObject.cpp:5368`), one
+                        // number per hit (`Skill.cpp:444-450`); a monster
+                        // multi-hit also keeps the official running total
+                        // (`Skill.cpp:442-450`, `GameObject.cpp:1902-1940`,
+                        // `RenderObject.cpp:4797-4806`).
+                        for number in damage_burst(
+                            destination_entity_id,
+                            position,
+                            amount as u64,
+                            hit_count,
+                            is_critical,
+                            blue_damage,
+                            target_is_player,
+                            monster_target,
+                            direction,
+                        ) {
+                            self.particle_holder.spawn_particle(Box::new(number));
                         }
                     }
                     None => {
