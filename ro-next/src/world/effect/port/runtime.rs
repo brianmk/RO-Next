@@ -14,6 +14,7 @@
 //! `CRagEffect::OnProcess`'s tail).
 
 use super::angles::Angles;
+use super::particle::CastedParticle;
 use super::primitive::{EffectPrimitiveState, MasterState, PrimitiveId};
 pub use super::rng::EffectRng;
 use super::str_player::{Clip, Ez2StrPlayer};
@@ -127,6 +128,20 @@ pub struct EffectRuntime {
     /// `state.count` - the hit count some bodies read (e.g. Blitz Beat).
     pub count: i32,
     pub primitives: Vec<PrimitiveInstance>,
+    /// `CThrowItemEffect::particles` - the `CParticle` objects the alternate
+    /// throw-item bodies create and drive themselves (`ThrowEffects.cpp:105-278`,
+    /// `:500-579`).
+    ///
+    /// Unlike [`Self::primitives`], these do not run a `CEffectPrim` motion
+    /// pass: the owning body rebuilds every particle's offset, alpha and world
+    /// matrix in its own `OnProcess`, exactly like the original. They persist
+    /// across steps until the body retires (the original frees them in
+    /// `CThrowItemEffect::Close`, `ThrowEffects.cpp:32-38`; dropping the
+    /// runtime does the same here).
+    ///
+    /// Additive: the field did not exist before, so no existing body observes
+    /// it. Only `rag_batch_l` writes it; [`super::holder`] renders it.
+    pub particles: Vec<CastedParticle>,
     /// Sounds played on the current step (`PlayEffectWaveInline`).
     pub sounds: Vec<String>,
     /// `g_modeMgr.GetGameMode()->scene->player->render.position` - the listener
@@ -357,6 +372,7 @@ impl EffectRuntime {
             flag: 0,
             count: 0,
             primitives: Vec::new(),
+            particles: Vec::new(),
             sounds: Vec::new(),
             listener_position: [0.0; 3],
             positional_sounds: Vec::new(),
@@ -403,6 +419,19 @@ impl EffectRuntime {
 
     pub fn primitive_mut(&mut self, index: usize) -> &mut EffectPrimitiveState {
         &mut self.primitives[index].state
+    }
+
+    /// `CreateParticle(&positionVector, 5)` (`EffectMemoryMgr.cpp:246-252`) -
+    /// the owning body has already filled the `CParticle` fields that
+    /// `CThrowItemEffect::Open` writes (`ThrowEffects.cpp:121-277`).
+    pub fn launch_particle(&mut self, particle: CastedParticle) -> usize {
+        self.particles.push(particle);
+
+        self.particles.len() - 1
+    }
+
+    pub fn particle_mut(&mut self, index: usize) -> &mut CastedParticle {
+        &mut self.particles[index]
     }
 
     /// `MM_QUAKE` from an effect body.

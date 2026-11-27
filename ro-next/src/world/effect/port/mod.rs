@@ -29,6 +29,7 @@ pub mod angles;
 pub mod clock;
 pub mod holder;
 pub mod math;
+pub mod particle;
 pub mod primitive;
 pub mod rag;
 pub mod rag_batch_a;

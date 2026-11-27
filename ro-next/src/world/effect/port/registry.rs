@@ -886,7 +886,8 @@ mod tests {
                         || super::super::rag::champion::is_caster_body_only(effect)
                         || super::super::registry_batch_j::is_caster_body_only(effect)
                         || super::super::registry_batch_k::is_caster_body_only(effect)
-                        || super::super::registry_batch_l::is_caster_body_only(effect),
+                        || super::super::registry_batch_l::is_caster_body_only(effect)
+                        || super::super::registry_batch_l::spawns_particles_only(effect),
                     "{effect:?} spawned nothing"
                 );
                 continue;

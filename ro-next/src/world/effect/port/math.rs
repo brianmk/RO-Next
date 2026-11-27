@@ -62,6 +62,49 @@ impl Matrix {
         self.values[6] = sine;
     }
 
+    /// `matrix::MakeTranslate(float, float, float)` -
+    /// `AffineMatrix.cpp:103-108`.
+    pub fn make_translate(&mut self, x: f32, y: f32, z: f32) {
+        self.values = IDENTITY;
+        self.values[9] = x;
+        self.values[10] = y;
+        self.values[11] = z;
+    }
+
+    /// `matrix::SetScale(float, float, float)` - `AffineMatrix.cpp:112-117`.
+    pub fn set_scale(&mut self, x: f32, y: f32, z: f32) {
+        self.values = IDENTITY;
+        self.values[0] = x;
+        self.values[4] = y;
+        self.values[8] = z;
+    }
+
+    /// `matrix::Compose(const matrix&, const matrix&)` -
+    /// `AffineMatrix.cpp:137-150`.
+    pub fn compose(&mut self, first: &Matrix, second: &Matrix) {
+        self.values[0] = first.values[0] * second.values[0] + first.values[1] * second.values[3] + first.values[2] * second.values[6];
+        self.values[3] = first.values[3] * second.values[0] + first.values[4] * second.values[3] + first.values[5] * second.values[6];
+        self.values[6] = first.values[6] * second.values[0] + first.values[7] * second.values[3] + first.values[8] * second.values[6];
+        self.values[9] = first.values[9] * second.values[0]
+            + first.values[10] * second.values[3]
+            + first.values[11] * second.values[6]
+            + second.values[9];
+        self.values[1] = first.values[0] * second.values[1] + first.values[1] * second.values[4] + first.values[2] * second.values[7];
+        self.values[4] = first.values[3] * second.values[1] + first.values[4] * second.values[4] + first.values[5] * second.values[7];
+        self.values[7] = first.values[6] * second.values[1] + first.values[7] * second.values[4] + first.values[8] * second.values[7];
+        self.values[10] = first.values[9] * second.values[1]
+            + first.values[10] * second.values[4]
+            + first.values[11] * second.values[7]
+            + second.values[10];
+        self.values[2] = first.values[0] * second.values[2] + first.values[1] * second.values[5] + first.values[2] * second.values[8];
+        self.values[5] = first.values[3] * second.values[2] + first.values[4] * second.values[5] + first.values[5] * second.values[8];
+        self.values[8] = first.values[6] * second.values[2] + first.values[7] * second.values[5] + first.values[8] * second.values[8];
+        self.values[11] = first.values[9] * second.values[2]
+            + first.values[10] * second.values[5]
+            + first.values[11] * second.values[8]
+            + second.values[11];
+    }
+
     /// `matrix::MakeZRotation(float)` - `AffineMatrix.cpp:64-72`.
     pub fn make_z_rotation(&mut self, radians: f32) {
         self.values = IDENTITY;
@@ -279,6 +322,34 @@ mod tests {
         assert!((matrix.values[3] + 1.0).abs() < EPSILON);
         assert!((matrix.values[4]).abs() < EPSILON);
         assert_eq!(matrix.values[9..], [0.0, 0.0, 0.0]);
+    }
+
+    #[test]
+    fn translate_and_scale_only_touch_their_official_cells() {
+        let mut translate = Matrix::identity();
+        translate.make_translate(3.0, 4.0, 5.0);
+        assert_eq!(translate.values[9..], [3.0, 4.0, 5.0]);
+        assert!(matrix_mult([0.0, 0.0, 0.0], &translate.values) == [3.0, 4.0, 5.0]);
+
+        let mut scale = Matrix::identity();
+        scale.set_scale(2.0, 3.0, 4.0);
+        assert_eq!(scale.values, [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0, 0.0, 0.0, 0.0]);
+        assert!(matrix_mult([1.0, 1.0, 1.0], &scale.values) == [2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn compose_applies_the_second_matrix_to_the_first() {
+        // `Compose(scale, translate)` scales, then translates.
+        let mut scale = Matrix::identity();
+        scale.set_scale(2.0, 2.0, 1.0);
+        let mut translate = Matrix::identity();
+        translate.make_translate(5.0, 0.0, 0.0);
+
+        let mut composed = Matrix::identity();
+        composed.compose(&scale, &translate);
+
+        assert!(matrix_mult([1.0, 0.0, 0.0], &composed.values) == [7.0, 0.0, 0.0]);
+        assert_eq!(composed.values[9..], [5.0, 0.0, 0.0]);
     }
 
     #[test]

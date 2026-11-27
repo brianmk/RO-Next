@@ -19,7 +19,7 @@ use super::runtime::{EffectRuntime, PortedEffect};
 use super::sound_sink::{self, SoundSink};
 use super::str_player::Clip;
 use super::str_table::{self, ClipSet, StrResource};
-use super::{FRAME_FREQUENCY_MS, registry, render_slots, render3d, sprite_pass, str_render};
+use super::{FRAME_FREQUENCY_MS, particle, registry, render_slots, render3d, sprite_pass, str_render};
 use crate::graphics::Color;
 use crate::loaders::{ActionLoader, GameFileLoader, ImageType, SpriteLoader, TextureLoader};
 use crate::renderer::EffectRenderer;
@@ -187,12 +187,16 @@ impl PortedEffectHolder {
                 .chain(state.texture_frames.iter().copied())
         });
 
+        // `CParticle` textures (`CThrowItemEffect`'s item bitmaps); they are
+        // not part of a primitive, so the primitive chain above misses them.
+        let particles = self.runtime.particles.iter().filter_map(|particle| particle.texture);
+
         // The `.str` clip's own texture list. Its paths are owned by the
         // holder (the loader builds them from the file's 128-byte names), so
         // they cannot be `&'static str` like the primitive paths.
         let str_textures = self.str_textures.iter().flatten().map(String::as_str);
 
-        primitives.chain(str_textures)
+        primitives.chain(particles).chain(str_textures)
     }
 
     /// Advances the effect by `delta_seconds` of wall time.
@@ -423,6 +427,11 @@ impl PortedEffectHolder {
                 _ => {}
             }
         }
+
+        // `CThrowItemEffect::Render` (`ThrowEffects.cpp:583-589`): the
+        // effect's own `CParticle` list, drawn after the primitive pass. There
+        // are no primitives on this path; the particles are the whole visual.
+        particle::render_particles(renderer, camera, textures, &self.runtime.particles);
 
         // `CRagEffect::Render` - the effect's own `.str` pass, drawn once per
         // visible clip after the primitive list. It is driven by

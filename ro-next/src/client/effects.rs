@@ -249,7 +249,14 @@ impl Client {
         // bodies with no `skill_effects.ron` row at all, so the empty-layer
         // case must still reach `spawn_ported_skill_effect`. Skills with
         // neither layers nor a ported body keep the cheap early-out.
-        if !should_spawn_skill_phase(skill_id, phase, ported_effects_enabled()) {
+        let ported_enabled = ported_effects_enabled();
+        crate::logging::log_trace!(
+            "skill phase: skill {} phase {:?} (ported backend {})",
+            skill_id.0,
+            phase,
+            if ported_enabled { "on" } else { "off" }
+        );
+        if !should_spawn_skill_phase(skill_id, phase, ported_enabled) {
             return;
         }
 
@@ -366,12 +373,29 @@ impl Client {
         use crate::world::port::visual::PortedVisual;
 
         if !ported_effects_enabled() {
+            crate::logging::log_trace!(
+                "ported fx: backend disabled (RO_NEXT_PORTED_FX), skill {} phase {:?}",
+                skill_id.0,
+                phase
+            );
             return;
         }
 
         let Some(effect_id) = ported_effect_for(skill_id, phase) else {
+            crate::logging::log_debug!(
+                "ported fx: skill {} phase {:?} has no ported mapping ({} mapped pairs)",
+                skill_id.0,
+                phase,
+                crate::world::port::skill_map::MAPPED.len()
+            );
             return;
         };
+        crate::logging::log_debug!(
+            "ported fx: skill {} phase {:?} -> {:?}",
+            skill_id.0,
+            phase,
+            effect_id
+        );
 
         let Some(source_position) = self.entity_position(source_entity_id) else {
             return;
@@ -387,6 +411,7 @@ impl Client {
         let seed = u64::from(client_tick.0) ^ (u64::from(skill_id.0) << 32) ^ u64::from(phase.index());
 
         let Some(holder) = PortedEffectHolder::new(effect_id, seed) else {
+            crate::logging::log_debug!("ported fx: {:?} is mapped but has no registered body", effect_id);
             return;
         };
 
@@ -395,6 +420,8 @@ impl Client {
             PortedAnchor::Caster => source_position,
             PortedAnchor::Target => target_position.unwrap_or(source_position),
         };
+
+        let holder_lifetime = holder.runtime().lifetime;
 
         let mut visual = PortedVisual::new(
             holder,
@@ -441,6 +468,12 @@ impl Client {
         // the official `SetColor`/`SetFrameSequence` writes the body recorded
         // on its runtime (the caster's tint is cleared when the effect
         // retires).
+        crate::logging::log_debug!(
+            "ported fx: attached {:?} to entity {} (lifetime {} steps)",
+            effect_id,
+            source_entity_id.0,
+            holder_lifetime
+        );
         if self.effect_holder.add_unit(Box::new(visual), source_entity_id) {
             crate::logging::log_debug!(
                 "skill effect: spawned ported {:?} for skill {} phase {:?}",
