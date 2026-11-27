@@ -59,6 +59,10 @@ pub(crate) use std::collections::HashSet;
 pub(crate) use std::io::Cursor;
 pub(crate) use std::net::SocketAddr;
 pub(crate) use std::ops::Deref;
+// Only the Linux display-backend selection code uses `crate::Path`; on other
+// platforms every path is built from `PathBuf`/`Path` imports in the module
+// that needs it, so the re-export would be unused there.
+#[cfg(target_os = "linux")]
 pub(crate) use std::path::Path;
 pub(crate) use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 pub(crate) use std::sync::{Arc, Mutex};

@@ -142,6 +142,10 @@ pub(crate) const FALLBACK_PACKET_VERSION: SupportedPacketVersion = SupportedPack
 pub(crate) static ICON_DATA: &[u8] = include_bytes!("../../archive/data/icon.png");
 
 /// Which window backend the client should use.
+///
+/// Only the Linux event-loop selection reads this; other platforms use the
+/// single native winit backend, so the type is not compiled there.
+#[cfg(target_os = "linux")]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum BackendPreference {
     /// Prefer native Wayland when the session provides it, otherwise use X11.
@@ -153,6 +157,7 @@ pub(crate) enum BackendPreference {
     X11,
 }
 
+#[cfg(target_os = "linux")]
 impl BackendPreference {
     fn from_environment() -> Self {
         let enabled = |name: &str| {
@@ -178,6 +183,7 @@ impl BackendPreference {
 /// parent process) also counts. A stale `WAYLAND_DISPLAY` without a socket file
 /// is treated as unavailable, so the client can fall back to X11 instead of
 /// failing to connect.
+#[cfg(target_os = "linux")]
 pub(crate) fn wayland_session_available() -> bool {
     if let Some(wayland_display) = std::env::var_os("WAYLAND_DISPLAY").filter(|value| !value.is_empty()) {
         let wayland_display = Path::new(&wayland_display);
@@ -195,6 +201,7 @@ pub(crate) fn wayland_session_available() -> bool {
     std::env::var_os("WAYLAND_SOCKET").is_some_and(|value| !value.is_empty())
 }
 
+#[cfg(target_os = "linux")]
 pub(crate) fn x11_session_available() -> bool {
     std::env::var_os("DISPLAY").is_some_and(|value| !value.is_empty())
 }

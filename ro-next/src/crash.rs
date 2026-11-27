@@ -13,6 +13,9 @@
 //! Everything is written directly to stderr; it is unbuffered, so the last log
 //! line before the crash is not lost.
 
+// Only the POSIX fatal-signal handler below uses this; Windows has no POSIX
+// signals and installs no handler, so the import would be unused there.
+#[cfg(unix)]
 use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Install the panic hook and the fatal signal handlers.
