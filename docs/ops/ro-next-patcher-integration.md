@@ -139,3 +139,52 @@ the sound precedence is the next item, the visuals are unaffected.
   releases, but worth remembering when a player reports "illegal instruction" on old hardware.
 * `--help` / `--check-*` print to stdout; the patcher redirects it, a plain double-click shows
   nothing (GUI subsystem).
+
+---
+
+## Defect batch release (2026-11-27, payload 0.2.33)
+
+| item | value |
+| --- | --- |
+| payload version | `0.2.33` (`ro-next/Cargo.toml`, `ro-next.version`, config) |
+| content release | `20261127-075517` |
+| previous release | `20261127-070846` (0.2.32, rollback) |
+| client commits | `97d7e69a`, `0c3a5694`, `601935ce`, `eb20bd1f`, `bbafa393`, `f18ca7cb` |
+| tests | 2248 passed, 0 failed, 21 ignored |
+
+Four user-reported defects, all decompilation-backed:
+
+1. **Champion poses** (`bbafa393`): `CasterAction::Skill` played the whole ACT skill block
+   (96..103), whose frames 1..2 are exactly Fury's, so Blessing/Inc Agi on a Champion looked like
+   Fury. `CPc::SetState(ST_SKILL)` restricts the monk family to block 96 frame 0 for 400 ms
+   (`Player.cpp:4477-4499`); `JobActionBase` maps `ST_SKILL`/`ST_BEGIN_SKILL` to 96 for the whole
+   default table (`:1690-1744`). `skill_action.rs` now carries that job table and `set_skill_cast`
+   applies it. The endless head movement was `stand()` using the 3-frame neutral block 0 with
+   `looping = true`; only `AnimationActionType::Idle` was clamped to frame 0, so block 0's head
+   bob looped forever after every skill that ends in `ST_STAND` (Inc Agi, Dangerous Soul Collect).
+   Both are clamped now (`animation/mod.rs`).
+2. **Increase AGI banner** (`97d7e69a`, `601935ce`): `holder.rs::quad_corners` returned corners
+   `[TL,TR,BR,BL]` with UVs in the same order, while the renderer pairs them with
+   `[BR,TR,TL,BL]` — a diagonal texture fold, and it omitted `EFFECT_ORIGIN`, drawing the quad
+   ~319/291 px off the caster. Now a branch-for-branch port of `Render2DPrimitive`
+   (`EffectPrimitiveRendering.cpp:7487-7589`), with `EffectRuntime::screen` (official
+   `tlvertX/tlvertY`) actually written from the camera each frame and the 2-D quad at the
+   reverse-z near plane.
+3. **Effects under the floor** (`eb20bd1f`, `f18ca7cb`): the official simulation is Y-**down**
+   (`Upward = {0,-d,0}`, `EffectPrimitiveMotion.cpp:84-88`), the port's world is Y-**up**
+   (`loaders/map/vertices.rs:315-318`), and the ported bodies added official offsets unchanged —
+   so every ground decal, portal disc and ring sat below the terrain and lost the depth test
+   against the floor. The boundary is now explicit: engine anchors are port-space, everything the
+   simulation consumes/produces is official-space, with `official_position`/`port_position` as the
+   only converters (documented on `EffectRuntime::position`). Fixes Ruwach (bright motes above the
+   floor with their shadow sticker on it), the warp NPC portal, the skill portals, and every other
+   ported ground decal.
+4. **Hotbar left click** (`0c3a5694`): `SkillBoxHandler::handle_click` armed a `MoveSkill` drag for
+   both the skill tree and the hotbar, and only a drop back on the same slot cast — so a plain
+   click never used the skill. A press now arms `PrepareSkillDrag`, and the release decides:
+   same slot → `InputEvent::UseSkillInSlot` (the F-key path: self-cast immediately, targeted skills
+   enter target selection), other slot → `InputEvent::MoveSkill`. Empty slots and the skill-tree
+   drag flow are unchanged.
+
+Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in production (the
+`MasterState` half already negates it); it is only needed by primitives that test the ground.
