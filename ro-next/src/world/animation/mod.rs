@@ -1037,7 +1037,7 @@ mod tests {
 
     use ragnarok_packets::ClientTick;
 
-    use super::{AnimationActionType, AnimationLoopMode, AnimationState, looped_frame_index};
+    use super::{AnimationActionType, AnimationState};
     use crate::world::EntityType;
 
     #[test]

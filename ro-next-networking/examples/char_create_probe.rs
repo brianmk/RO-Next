@@ -3,7 +3,7 @@
 //! needed here).
 use std::time::{Duration, Instant};
 
-use ro_next_networking::{LoginServerLoginData, NetworkEvent, NetworkingSystem, SupportedPacketVersion};
+use ro_next_networking::{NetworkEvent, NetworkingSystem, SupportedPacketVersion};
 
 fn main() {
     let version = SupportedPacketVersion::_20220406;
@@ -11,7 +11,6 @@ fn main() {
     net.connect_to_login_server(version, "192.168.1.33:6900".parse().unwrap(), "ro-nexttest", "ro-next");
     println!("logging in as ro-nexttest ...");
 
-    let mut login_data: Option<LoginServerLoginData> = None;
     let mut created = false;
     let deadline = Instant::now() + Duration::from_secs(30);
     while Instant::now() < deadline {
@@ -23,7 +22,6 @@ fn main() {
                     character_servers,
                     login_data: data,
                 } => {
-                    login_data = Some(data);
                     if let Some(server) = character_servers.first().cloned() {
                         net.connect_to_character_server(version, &data, server);
                         println!("connected login, going to char server");

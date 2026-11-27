@@ -171,7 +171,6 @@ impl EffectBase for ArrowEffect {
 mod tests {
     use cgmath::Point3;
 
-    use super::ArrowEffect;
 
     /// The arrow reaches its target at the configured flight time and requests
     /// its deletion afterwards, even without an audio engine.

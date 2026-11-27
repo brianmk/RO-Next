@@ -3,7 +3,7 @@
 //! The file must start with the packet header (0x006B or 0x099D) directly.
 use ragnarok_bytes::ByteReader;
 use ragnarok_packets::handler::{HandlerResult, NoPacketCallback, PacketHandler};
-use ragnarok_packets::{CharacterInfoPerPagePacket, CharacterListPacket, PacketExt};
+use ragnarok_packets::{CharacterInfoPerPagePacket, CharacterListPacket};
 
 fn main() {
     let path = std::env::args().nth(1).expect("usage: parse_char_list <file>");

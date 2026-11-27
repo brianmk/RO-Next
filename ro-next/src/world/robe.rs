@@ -567,7 +567,6 @@ pub(crate) fn part_candidates(job_id: JobId, sex: Sex, robe: u16, palette_path: 
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::{JobId, Sex};
-    use ro_next_loaders::FileLoader;
 
     use super::{load, parse, part_candidates, profile};
 
@@ -665,7 +664,6 @@ mod tests {
 
     #[test]
     fn reads_the_official_layer_direction_lua_schema() {
-        use std::collections::HashMap;
 
         use mlua::Lua;
 

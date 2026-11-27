@@ -239,7 +239,7 @@ mod tests {
     #[test]
     fn every_entry_spawns_with_its_lifetime() {
         for &(effect, lifetime) in lifetimes() {
-            let mut body = spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"));
+            let body = spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"));
             assert_eq!(body.lifetime(), lifetime, "{effect:?}");
         }
     }

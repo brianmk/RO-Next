@@ -1151,7 +1151,6 @@ mod spawned_effect_tests {
 
     /// Stands in for a ported visual whose renderer launched one child.
     struct Spawner {
-        steps: Arc<AtomicU32>,
         child: Option<Box<dyn EffectBase + Send + Sync>>,
     }
 
@@ -1180,7 +1179,6 @@ mod spawned_effect_tests {
 
         let steps = Arc::new(AtomicU32::new(0));
         holder.add_effect(Box::new(Spawner {
-            steps: steps.clone(),
             child: Some(Box::new(Counted { steps: steps.clone() })),
         }));
 

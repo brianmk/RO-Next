@@ -368,7 +368,6 @@ fn read_u32(table: &mlua::Table, index: i64) -> Option<u32> {
 
 #[cfg(test)]
 mod tests {
-    use ro_next_loaders::FileLoader;
 
     use super::NavigationData;
     use crate::loaders::GameFileLoader;

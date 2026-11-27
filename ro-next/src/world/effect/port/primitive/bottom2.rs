@@ -60,7 +60,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, angles: &Angles, master: &Ma
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::primitive::{EffectPrimitiveSlot, PrimitiveId};
+    use crate::world::effect::port::primitive::PrimitiveId;
 
     fn state(kind: f32) -> EffectPrimitiveState {
         let mut state = EffectPrimitiveState {

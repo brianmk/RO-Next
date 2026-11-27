@@ -277,7 +277,6 @@ mod tests {
     #[test]
     #[ignore = "requires the game archives (run from the ro-next crate root, client/game_archives.ron)"]
     fn monster_database_loads_from_the_archives() {
-        use ro_next_loaders::FileLoader;
 
         use crate::loaders::GameFileLoader;
         use crate::world::library::Library;

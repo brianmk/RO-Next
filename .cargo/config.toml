@@ -4,8 +4,14 @@ rustflags = ["-C", "target_cpu=x86-64-v3", "-C", "target-feature=+aes"]
 [target.'cfg(target_arch="aarch64")']
 rustflags = ["-C", "target-feature=+aes"]
 
+# Windows release: link the MSVC CRT statically so `RO-Next.exe` has no
+# `VCRUNTIME140.dll` dependency (Windows 10/11 ship UCRT but not the VC++
+# redistributable). The rest of the triple's flags mirror the `cfg(x86_64)`
+# block because a `[target.<triple>]` section takes precedence over
+# `[target.'cfg(...)']`.
 [target.x86_64-pc-windows-msvc]
 linker = "rust-lld.exe"
+rustflags = ["-C", "target_cpu=x86-64-v3", "-C", "target-feature=+aes,+crt-static"]
 
 [target.aarch64-apple-darwin]
 linker = "rust-lld"

@@ -14,8 +14,6 @@
 //! * the committed data files carry the behaviour rows, and the `--check-*` CLI
 //!   entry points of the client accept them.
 
-/// The client sources that used to hold the skill-id branches.
-const LIB_RS: &str = include_str!("../src/lib.rs");
 /// The dispatch/handler sources (`lib.rs` plus `src/client/`), read at test
 /// time so the guard keeps working when a branch moves between modules. The
 /// data API modules are excluded: their docs name the removed constants on

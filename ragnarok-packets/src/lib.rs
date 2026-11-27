@@ -603,7 +603,7 @@ pub const MAX_GUILD_POSITIONS: usize = 20;
 
 #[cfg(test)]
 mod bank_packet_tests {
-    use ragnarok_bytes::{ByteWriter, ToBytes};
+    use ragnarok_bytes::ByteWriter;
 
     use super::*;
 
@@ -679,7 +679,7 @@ mod bank_packet_tests {
 
 #[cfg(test)]
 mod content_packet_tests {
-    use ragnarok_bytes::{ByteReader, ByteWriter, ToBytes};
+    use ragnarok_bytes::{ByteReader, ByteWriter};
 
     use super::*;
 

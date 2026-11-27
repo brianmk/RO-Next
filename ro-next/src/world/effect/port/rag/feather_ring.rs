@@ -86,7 +86,6 @@ impl PortedEffect for FeatherRing {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::step;
 
     fn runtime() -> EffectRuntime {
         let mut runtime = EffectRuntime::new(99_999, [0.0, 0.0], 1);

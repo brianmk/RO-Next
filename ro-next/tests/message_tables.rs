@@ -10,9 +10,6 @@
 //! * the `--check-messages` entry point validates the committed data and
 //!   rejects malformed files.
 
-/// The client-side result handlers (`lib.rs` of this crate plus the
-/// per-family handlers under `src/client/network/`).
-const LIB_RS: &str = include_str!("../src/lib.rs");
 /// The result-handler sources: `lib.rs` plus the `src/client/` modules, read at
 /// test time so the guard keeps working when a handler moves between modules.
 fn client_sources() -> Vec<(String, String)> {

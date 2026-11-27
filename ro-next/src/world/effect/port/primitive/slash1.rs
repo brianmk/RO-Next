@@ -88,7 +88,7 @@ pub fn on_process(state: &mut EffectPrimitiveState, master: &MasterState) -> boo
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::primitive::{EffectPrimitiveSlot, PrimitiveId};
+    use crate::world::effect::port::primitive::PrimitiveId;
 
     /// The original accumulates `maxHeight += 0.2f`/`+= 0.4f` frame by frame,
     /// so the assertion has to accumulate the same way to match bit for bit.

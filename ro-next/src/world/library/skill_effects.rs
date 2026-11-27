@@ -949,7 +949,6 @@ mod tests {
         descriptor, parse, skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect,
         validate, validate_compiled,
     };
-    use crate::graphics::Color;
 
     /// A small document that exercises every layer kind and anchor path. The
     /// data-specific assertions use this fixture so they stay valid when the
