@@ -595,6 +595,14 @@ pub enum InputEvent {
         subject: String,
         notice: String,
     },
+    /// Create a guild (`CZ_REQ_MAKE_GUILD`, 0x0165).
+    CreateGuild {
+        name: String,
+    },
+    /// Accept or decline a guild invitation (`CZ_JOIN_GUILD`, 0x016B).
+    ReplyGuildInvite {
+        accept: bool,
+    },
     /// Hide or show the hotbar HUD element (F12).
     ToggleHotbarWindow,
     /// Switch the visible hotbar between the two server bars.

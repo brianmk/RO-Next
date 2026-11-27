@@ -101,6 +101,13 @@ pub struct GuildAlliance {
     pub antagonist: bool,
 }
 
+/// An open guild invitation waiting for the local player to accept or decline.
+#[derive(Debug, Clone, Default, RustState, StateElement)]
+pub struct GuildInviteRequest {
+    pub guild_id: u32,
+    pub guild_name: String,
+}
+
 /// State of the guild the local player is in.
 #[derive(RustState, StateElement)]
 pub struct Guild {
@@ -140,6 +147,10 @@ pub struct Guild {
     pub requested_names: Vec<CharacterId>,
     /// Text input of the "invite character" field.
     pub invite_name_input: String,
+    /// Text input of the "create guild" field.
+    pub create_name_input: String,
+    /// Open guild invitation from the server, shown in the guild window.
+    pub pending_invite: Option<GuildInviteRequest>,
     /// Text input of the "expel character" field.
     pub expel_name_input: String,
     /// Text input of the notice subject field.
@@ -180,6 +191,8 @@ impl Default for Guild {
             local_character_id: None,
             requested_names: Vec::new(),
             invite_name_input: String::new(),
+            create_name_input: String::new(),
+            pending_invite: None,
             expel_name_input: String::new(),
             notice_subject_input: String::new(),
             notice_input: String::new(),
@@ -204,6 +217,20 @@ impl Guild {
 
     pub fn is_in_guild(&self) -> bool {
         self.has_info && self.guild_id != 0
+    }
+
+    /// Whether the "Create guild" button may be pressed.
+    ///
+    /// The server still checks the Emperium item and the guild name; this only
+    /// covers the local preconditions (not in a guild, a name was entered and
+    /// the local character id is known).
+    pub fn can_create_guild(&self) -> bool {
+        !self.is_in_guild() && !self.create_name_input.trim().is_empty() && self.local_character_id.is_some()
+    }
+
+    /// Whether the server left a guild invitation waiting for an answer.
+    pub fn has_pending_invite(&self) -> bool {
+        self.pending_invite.is_some()
     }
 
     /// Whether the local player is the guild master.
@@ -897,6 +924,52 @@ mod tests {
         assert!(!guild.is_in_guild());
         assert_eq!(guild.local_account_id, None);
         assert_eq!(guild.local_character_id, None);
+    }
+
+    #[test]
+    fn can_create_guild_requires_a_name_and_the_local_character_id() {
+        let mut guild = Guild::default();
+        assert!(!guild.can_create_guild(), "no name and no local character id");
+
+        guild.set_local_player(AccountId(1), CharacterId(2));
+        assert!(!guild.can_create_guild(), "the name is still empty");
+
+        guild.create_name_input = "   ".to_owned();
+        assert!(!guild.can_create_guild(), "a whitespace-only name is not a name");
+
+        guild.create_name_input = "Domination".to_owned();
+        assert!(guild.can_create_guild());
+
+        guild.apply_info(&info());
+        assert!(
+            !guild.can_create_guild(),
+            "a player who is already in a guild cannot create one"
+        );
+    }
+
+    #[test]
+    fn pending_invite_is_reported_and_cleared_by_reset() {
+        let mut guild = Guild::default();
+        assert!(!guild.has_pending_invite());
+
+        guild.pending_invite = Some(GuildInviteRequest {
+            guild_id: 7,
+            guild_name: "Domination".to_owned(),
+        });
+        assert!(guild.has_pending_invite());
+        assert_eq!(guild.pending_invite.as_ref().map(|invite| invite.guild_id), Some(7));
+
+        guild.reset();
+        assert!(!guild.has_pending_invite());
+        assert!(guild.pending_invite.is_none());
+
+        guild.pending_invite = Some(GuildInviteRequest::default());
+        guild.set_local_player(AccountId(1), CharacterId(2));
+        assert!(!guild.has_pending_invite(), "selecting a character clears a stale invitation");
+        assert!(
+            guild.create_name_input.is_empty(),
+            "selecting a character clears the create input"
+        );
     }
 
     #[test]

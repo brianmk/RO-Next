@@ -968,6 +968,19 @@ pub enum NetworkEvent {
     GuildInviteResult {
         result: u8,
     },
+    /// Result of creating a guild (`ZC_RESULT_MAKE_GUILD`, 0x0167).
+    ///
+    /// `0` = created, `1` = already in a guild, `2` = name already taken,
+    /// `3` = no Emperium item.
+    GuildCreateResult {
+        result: u8,
+    },
+    /// The server invited the local player to a guild (`ZC_REQ_JOIN_GUILD`,
+    /// 0x016A).
+    GuildInviteRequest {
+        guild_id: u32,
+        guild_name: String,
+    },
     /// Another player whispered the local player (`ZC_WHISPER`, 0x09DE).
     ///
     /// The client keeps a per-partner conversation history and a whisper chat

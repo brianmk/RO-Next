@@ -199,6 +199,8 @@ impl Client {
                 InputEvent::ExpelGuildMember { .. } => self.handle_input_expel_guild_member(event, input_report, client_tick),
                 InputEvent::LeaveGuild => self.handle_input_leave_guild(event, input_report, client_tick),
                 InputEvent::SaveGuildNotice { .. } => self.handle_input_save_guild_notice(event, input_report, client_tick),
+                InputEvent::CreateGuild { .. } => self.handle_input_create_guild(event, input_report, client_tick),
+                InputEvent::ReplyGuildInvite { .. } => self.handle_input_reply_guild_invite(event, input_report, client_tick),
                 InputEvent::ToggleBigMapWindow => self.handle_input_toggle_big_map_window(event, input_report, client_tick),
                 InputEvent::ToggleChatWindow => self.handle_input_toggle_chat_window(event, input_report, client_tick),
                 InputEvent::ToggleChatRoomWindow => self.handle_input_toggle_chat_room_window(event, input_report, client_tick),

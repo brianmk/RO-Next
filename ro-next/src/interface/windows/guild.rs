@@ -10,6 +10,8 @@
 //! and the rows show `Unknown (#id)` until the answer arrives.
 //!
 //! Actions:
+//! * create (0x0165) — enabled while not in a guild and a name was entered,
+//! * accept/decline an invitation (0x016B) — enabled by `ZC_REQ_JOIN_GUILD`,
 //! * invite (0x0916) — enabled with `GUILD_PERM_INVITE` or as guild master,
 //! * expel (0x015B) — enabled with `GUILD_PERM_EXPEL` or as guild master,
 //! * leave (0x0159) — enabled while the local ids and guild id are known,
@@ -133,6 +135,42 @@ impl GuildWindow {
         })
     }
 
+    fn not_in_guild() -> impl Selector<ClientState, bool> {
+        ComputedSelector::new_default(|state: &ClientState| !client_state().guild().follow_safe(state).is_in_guild())
+    }
+
+    fn create_disabled() -> impl Selector<ClientState, bool> {
+        ComputedSelector::new_default(|state: &ClientState| !client_state().guild().follow_safe(state).can_create_guild())
+    }
+
+    fn create_disabled_tooltip() -> impl Selector<ClientState, String> {
+        ComputedSelector::new_default(|state: &ClientState| {
+            let guild = client_state().guild().follow_safe(state);
+
+            if guild.is_in_guild() {
+                "You are already in a guild.".to_owned()
+            } else {
+                "Enter a guild name.".to_owned()
+            }
+        })
+    }
+
+    fn has_pending_invite() -> impl Selector<ClientState, bool> {
+        ComputedSelector::new_default(|state: &ClientState| client_state().guild().follow_safe(state).has_pending_invite())
+    }
+
+    fn pending_invite_text() -> impl Selector<ClientState, String> {
+        ComputedSelector::new_default(|state: &ClientState| {
+            let guild = client_state().guild().follow_safe(state);
+
+            match guild.pending_invite.as_ref() {
+                Some(invite) if !invite.guild_name.trim().is_empty() => format!("Guild invitation: {}", invite.guild_name),
+                Some(invite) => format!("Guild invitation: Guild #{}", invite.guild_id),
+                None => String::new(),
+            }
+        })
+    }
+
     fn notice_disabled() -> impl Selector<ClientState, bool> {
         ComputedSelector::new_default(|state: &ClientState| !client_state().guild().follow_safe(state).can_edit_notice())
     }
@@ -147,10 +185,12 @@ impl CustomWindow<ClientState> for GuildWindow {
         use ro_next_interface::prelude::*;
 
         let invite_path = client_state().guild().invite_name_input();
+        let create_path = client_state().guild().create_name_input();
         let expel_path = client_state().guild().expel_name_input();
         let notice_subject_path = client_state().guild().notice_subject_input();
         let notice_path = client_state().guild().notice_input();
         let invite_text_path = invite_path;
+        let create_text_path = create_path;
         let expel_text_path = expel_path;
         let notice_subject_save_path = notice_subject_path;
         let notice_save_path = notice_path;
@@ -162,6 +202,23 @@ impl CustomWindow<ClientState> for GuildWindow {
                 state.update_value_with(invite_path, |input: &mut String| input.clear());
                 queue.queue(InputEvent::InviteToGuild { name });
             }
+        };
+
+        let create_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+            let name = state.get(&create_text_path).trim().to_owned();
+
+            if !name.is_empty() {
+                state.update_value_with(create_path, |input: &mut String| input.clear());
+                queue.queue(InputEvent::CreateGuild { name });
+            }
+        };
+
+        let accept_invite_action = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+            queue.queue(InputEvent::ReplyGuildInvite { accept: true });
+        };
+
+        let decline_invite_action = move |_: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
+            queue.queue(InputEvent::ReplyGuildInvite { accept: false });
         };
 
         let expel_action = move |state: &State<ClientState>, queue: &mut EventQueue<ClientState>| {
@@ -185,6 +242,7 @@ impl CustomWindow<ClientState> for GuildWindow {
         };
 
         struct InviteName;
+        struct CreateGuildName;
         struct ExpelName;
         struct NoticeSubject;
         struct NoticeBody;
@@ -231,6 +289,66 @@ impl CustomWindow<ClientState> for GuildWindow {
                 text! {
                     text: Self::status_text(),
                     overflow_behavior: OverflowBehavior::LineBreak,
+                },
+                either! {
+                    selector: Self::not_in_guild(),
+                    on_true: fragment! {
+                        gaps: theme().window().gaps(),
+                        children: (
+                            text! {
+                                text: "Create a guild",
+                            },
+                            text! {
+                                text: "Creating a guild consumes one Emperium.",
+                                overflow_behavior: OverflowBehavior::LineBreak,
+                            },
+                            split! {
+                                gaps: theme().window().gaps(),
+                                children: (
+                                    text_box! {
+                                        ghost_text: "Guild name",
+                                        state: create_path,
+                                        input_handler: DefaultHandler::<_, _, 24>::new(create_path, create_action),
+                                        focus_id: CreateGuildName,
+                                        overflow_behavior: OverflowBehavior::Shrink,
+                                    },
+                                    button! {
+                                        text: "Create guild",
+                                        disabled: Self::create_disabled(),
+                                        disabled_tooltip: Self::create_disabled_tooltip(),
+                                        event: create_action,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    on_false: EmptyElement,
+                },
+                either! {
+                    selector: Self::has_pending_invite(),
+                    on_true: fragment! {
+                        gaps: theme().window().gaps(),
+                        children: (
+                            text! {
+                                text: Self::pending_invite_text(),
+                                overflow_behavior: OverflowBehavior::LineBreak,
+                            },
+                            split! {
+                                gaps: theme().window().gaps(),
+                                children: (
+                                    button! {
+                                        text: "Accept",
+                                        event: accept_invite_action,
+                                    },
+                                    button! {
+                                        text: "Decline",
+                                        event: decline_invite_action,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    on_false: EmptyElement,
                 },
                 split! {
                     gaps: theme().window().gaps(),

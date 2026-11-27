@@ -103,6 +103,8 @@ impl Client {
                 NetworkEvent::GuildMemberName { .. } => self.handle_guild_member_name(event, client_tick),
                 NetworkEvent::GuildMemberRemoved { .. } => self.handle_guild_member_removed(event, client_tick),
                 NetworkEvent::GuildInviteResult { .. } => self.handle_guild_invite_result(event, client_tick),
+                NetworkEvent::GuildCreateResult { .. } => self.handle_guild_create_result(event, client_tick),
+                NetworkEvent::GuildInviteRequest { .. } => self.handle_guild_invite_request(event, client_tick),
                 NetworkEvent::DamageEffect { .. } => self.handle_damage_effect(event, client_tick),
                 NetworkEvent::EntityPickUpItem { .. } => self.handle_entity_pick_up_item(event, client_tick),
                 NetworkEvent::HealEffect { .. } => self.handle_heal_effect(event, client_tick),

@@ -1142,6 +1142,26 @@ where
         }
     }
 
+    /// Creates a guild (`CZ_REQ_MAKE_GUILD`, `0x0165`).
+    ///
+    /// The server consumes one Emperium (item 714) and answers with
+    /// [`NetworkEvent::GuildCreateResult`].
+    pub fn create_guild(&mut self, character_id: CharacterId, name: String) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildCreateRequestPacket { character_id, name }),
+        }
+    }
+
+    /// Accepts or refuses a guild invitation (`CZ_JOIN_GUILD`, `0x016B`).
+    pub fn reply_guild_invite(&mut self, guild_id: u32, accept: bool) -> Result<(), NotConnectedError> {
+        match self.map_server_packet_version()? {
+            SupportedPacketVersion::_20220406 => self.send_map_server_packet(GuildInviteReplyPacket {
+                guild_id,
+                answer: u32::from(accept),
+            }),
+        }
+    }
+
     /// Leaves the guild (`CZ_REQ_LEAVE_GUILD`, `0x0159`).
     pub fn leave_guild(&mut self, guild_id: u32, account_id: AccountId, character_id: CharacterId) -> Result<(), NotConnectedError> {
         match self.map_server_packet_version()? {

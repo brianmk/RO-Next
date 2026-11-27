@@ -822,6 +822,12 @@ pub static OPCODE_LENGTHS: &[OpcodeLengthEntry] = &[
         source: "map header",
     },
     OpcodeLengthEntry {
+        header: 0x0165,
+        name: "CZ_REQ_MAKE_GUILD",
+        length: OpcodeLength::Fixed(30),
+        source: "map header",
+    },
+    OpcodeLengthEntry {
         header: 0x0166,
         name: "ZC_POSITION_ID_NAME_INFO",
         length: OpcodeLength::Fixed(564),

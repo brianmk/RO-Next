@@ -145,4 +145,60 @@ impl Client {
             }
         }
     }
+
+    /// `InputEvent::CreateGuild`.
+    pub(crate) fn handle_input_create_guild(&mut self, event: InputEvent, _input_report: &InputReport, _client_tick: ClientTick) {
+        let InputEvent::CreateGuild { name } = event else {
+            unreachable!("handle_input_create_guild called with a different event variant");
+        };
+
+        let name = name.trim().to_owned();
+
+        let request = {
+            let guild = self.client_state.follow(client_state().guild());
+
+            if guild.is_in_guild() {
+                Err("You are already in a guild.".to_owned())
+            } else if name.is_empty() {
+                Err("Enter a guild name.".to_owned())
+            } else {
+                match guild.local_character_id {
+                    Some(character_id) => Ok((character_id, name)),
+                    None => Err("Your character is not ready to create a guild.".to_owned()),
+                }
+            }
+        };
+
+        match request {
+            Ok((character_id, name)) => {
+                let _ = self.networking_system.create_guild(character_id, name);
+                self.client_state.follow_mut(client_state().guild()).status_message = "Creating guild...".to_owned();
+            }
+            Err(message) => {
+                self.client_state.follow_mut(client_state().guild()).status_message = message;
+            }
+        }
+    }
+
+    /// `InputEvent::ReplyGuildInvite`.
+    pub(crate) fn handle_input_reply_guild_invite(&mut self, event: InputEvent, _input_report: &InputReport, _client_tick: ClientTick) {
+        let InputEvent::ReplyGuildInvite { accept } = event else {
+            unreachable!("handle_input_reply_guild_invite called with a different event variant");
+        };
+
+        let pending_invite = self.client_state.follow_mut(client_state().guild()).pending_invite.take();
+
+        match pending_invite {
+            Some(invite) => {
+                let _ = self.networking_system.reply_guild_invite(invite.guild_id, accept);
+                self.client_state.follow_mut(client_state().guild()).status_message = match accept {
+                    true => format!("Accepted the invitation to {}.", invite.guild_name),
+                    false => format!("Declined the invitation to {}.", invite.guild_name),
+                };
+            }
+            None => {
+                self.client_state.follow_mut(client_state().guild()).status_message = "There is no pending guild invitation.".to_owned();
+            }
+        }
+    }
 }

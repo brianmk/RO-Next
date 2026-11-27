@@ -830,6 +830,36 @@ pub struct GuildMemberNameRequestPacket {
     pub character_id: CharacterId,
 }
 
+/// `CZ_REQ_MAKE_GUILD` (0x0165), 30 bytes: create a guild.
+///
+/// `clif_parse_MakeGuild` (clif.cpp) consumes one Emperium (item 714) on the
+/// server (`guild_emperium_check`); the answer is
+/// [`GuildCreateResultPacket`] (0x0167). The character id is written at offset
+/// 2 and the 24-byte guild name at offset 6.
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
+#[header(0x0165)]
+#[packet_size(30)]
+pub struct GuildCreateRequestPacket {
+    pub character_id: CharacterId,
+    #[length(24)]
+    pub name: String,
+}
+
+/// `ZC_RESULT_MAKE_GUILD` (0x0167), 3 bytes.
+///
+/// `clif_guild_created` (clif.cpp) reports the result of
+/// [`GuildCreateRequestPacket`]: `0` = guild created, `1` = the player is
+/// already in a guild, `2` = the guild name is already taken, `3` = the player
+/// has no Emperium.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
+#[header(0x0167)]
+#[packet_size(3)]
+pub struct GuildCreateResultPacket {
+    pub result: u8,
+}
+
 /// `CZ_REQ_JOIN_GUILD2` (0x0916): invite a character by name
 /// (`clif_parse_GuildInvite2`, clif.cpp:14483).
 #[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
@@ -1535,6 +1565,76 @@ mod guild_packet_tests {
         assert_eq!(writer.as_slice().len(), 54);
         assert_eq!(&writer.as_slice()[0..2], &[0x5B, 0x01]);
     }
+
+    #[test]
+    fn guild_create_request_layout_matches_20190605() {
+        let packet = GuildCreateRequestPacket {
+            character_id: CharacterId(0x1234_5678),
+            name: "Domination".to_owned(),
+        };
+
+        let mut writer = ByteWriter::new();
+        packet.packet_to_bytes(&mut writer).unwrap();
+        let bytes = writer.as_slice();
+        assert_eq!(bytes.len(), 30, "CZ_REQ_MAKE_GUILD is 30 bytes");
+        assert_eq!(&bytes[0..2], &[0x65, 0x01], "header at offset 0");
+        assert_eq!(&bytes[2..6], &0x1234_5678u32.to_le_bytes(), "char id at offset 2");
+        assert_eq!(&bytes[6..16], b"Domination", "name at offset 6");
+        assert_eq!(&bytes[16..30], &[0u8; 14], "name is zero padded to 24 bytes");
+    }
+
+    #[test]
+    fn guild_create_request_rejects_a_name_over_24_bytes() {
+        let packet = GuildCreateRequestPacket {
+            character_id: CharacterId(1),
+            name: "abcdefghijklmnopqrstuvwxy".to_owned(),
+        };
+
+        let mut writer = ByteWriter::new();
+        assert!(
+            packet.packet_to_bytes(&mut writer).is_err(),
+            "25 bytes do not fit the 24-byte field"
+        );
+    }
+
+    #[test]
+    fn guild_create_result_is_3_bytes() {
+        let mut writer = ByteWriter::new();
+        GuildCreateResultPacket { result: 3 }.packet_to_bytes(&mut writer).unwrap();
+        assert_eq!(writer.as_slice().len(), 3, "ZC_RESULT_MAKE_GUILD is 3 bytes");
+        assert_eq!(writer.as_slice(), &[0x67, 0x01, 0x03]);
+    }
+
+    #[test]
+    fn guild_invite_from_server_layout_matches_20190605() {
+        // Header + guild id + name[24], with a full 24-byte name (no NUL).
+        let mut bytes = vec![0u8; 30];
+        bytes[0..2].copy_from_slice(&0x016Au16.to_le_bytes());
+        bytes[2..6].copy_from_slice(&42u32.to_le_bytes());
+        bytes[6..30].copy_from_slice(b"ABCDEFGHIJKLMNOPQRSTUVWX");
+
+        let mut reader = ByteReader::without_metadata(&bytes);
+        let packet = GuildInviteRequestFromServerPacket::packet_from_bytes(&mut reader).unwrap();
+        assert_eq!(reader.get_offset(), 30);
+        assert_eq!(packet.guild_id, 42);
+        assert_eq!(packet.guild_name.len(), 24, "the 24-byte field is not truncated");
+        assert_eq!(packet.guild_name, "ABCDEFGHIJKLMNOPQRSTUVWX");
+    }
+
+    #[test]
+    fn guild_invite_reply_is_10_bytes() {
+        let mut writer = ByteWriter::new();
+        GuildInviteReplyPacket { guild_id: 42, answer: 1 }
+            .packet_to_bytes(&mut writer)
+            .unwrap();
+        assert_eq!(writer.as_slice(), &[0x6B, 0x01, 42, 0, 0, 0, 1, 0, 0, 0]);
+
+        let mut writer = ByteWriter::new();
+        GuildInviteReplyPacket { guild_id: 42, answer: 0 }
+            .packet_to_bytes(&mut writer)
+            .unwrap();
+        assert_eq!(writer.as_slice(), &[0x6B, 0x01, 42, 0, 0, 0, 0, 0, 0, 0]);
+    }
 }
 
 /// `ZC_ACK_LEAVE_GUILD` (0x0A83 at PACKETVER >= 20161019), 46 bytes.
@@ -1564,6 +1664,35 @@ pub struct GuildLeaveNoticePacket {
 #[packet_size(3)]
 pub struct GuildInviteResultPacket {
     pub result: u8,
+}
+
+/// `ZC_REQ_JOIN_GUILD` (0x016A), 30 bytes: the server invites the local player
+/// to a guild.
+///
+/// `clif_guild_invite` (clif.cpp) sends the guild id at offset 2 and the
+/// 24-byte guild name at offset 6. The local player answers with
+/// [`GuildInviteReplyPacket`] (0x016B).
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
+#[header(0x016A)]
+#[packet_size(30)]
+pub struct GuildInviteRequestFromServerPacket {
+    pub guild_id: u32,
+    #[length(24)]
+    pub guild_name: String,
+}
+
+/// `CZ_JOIN_GUILD` (0x016B), 10 bytes: accept or refuse a guild invitation.
+///
+/// `clif_parse_GuildInviteAnswer` (clif.cpp): the guild id at offset 2 and the
+/// answer at offset 6 (`0` = refuse, `1` = accept).
+#[derive(Debug, Clone, Packet, ClientPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
+#[header(0x016B)]
+#[packet_size(10)]
+pub struct GuildInviteReplyPacket {
+    pub guild_id: u32,
+    pub answer: u32,
 }
 
 // --- Bank (rAthena `clif_parse_Bank*`, PACKETVER >= 20130717) --------------

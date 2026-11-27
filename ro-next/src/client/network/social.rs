@@ -434,6 +434,68 @@ impl Client {
         };
     }
 
+    /// `NetworkEvent::GuildCreateResult`.
+    pub(crate) fn handle_guild_create_result(&mut self, event: NetworkEvent, _client_tick: ClientTick) {
+        let NetworkEvent::GuildCreateResult { result } = event else {
+            unreachable!("handle_guild_create_result called with a different event variant");
+        };
+
+        let message = match result {
+            0 => "Guild created.",
+            1 => "You are already in a guild.",
+            2 => "That guild name is already taken.",
+            3 => "You need one Emperium to create a guild.",
+            _ => "Guild creation failed.",
+        };
+
+        self.push_chat_information(message.to_owned());
+        self.client_state.follow_mut(client_state().guild()).status_message = message.to_owned();
+
+        // A successful creation leaves the local player in a brand new guild.
+        // Open the guild window when it is closed and ask for the same tabs the
+        // Alt+G toggle requests, so the new guild shows up without a manual
+        // refresh (the create button lives in the guild window, so this is
+        // normally a refresh of the already open window).
+        if result == 0 {
+            if !self.interface.is_window_with_class_open(WindowClass::Guild) {
+                self.interface.open_window(GuildWindow);
+            }
+
+            let _ = self.networking_system.request_guild_menu_interface();
+
+            for menu in [0, 1, 2] {
+                let _ = self.networking_system.request_guild_info(menu);
+            }
+        }
+    }
+
+    /// `NetworkEvent::GuildInviteRequest`.
+    pub(crate) fn handle_guild_invite_request(&mut self, event: NetworkEvent, _client_tick: ClientTick) {
+        let NetworkEvent::GuildInviteRequest { guild_id, guild_name } = event else {
+            unreachable!("handle_guild_invite_request called with a different event variant");
+        };
+
+        let in_guild = self.client_state.follow(client_state().guild()).is_in_guild();
+
+        if in_guild {
+            let message = "You are already in a guild.";
+            self.push_chat_information(message.to_owned());
+            self.client_state.follow_mut(client_state().guild()).status_message = message.to_owned();
+            return;
+        }
+
+        let guild_name = guild_name.trim().to_owned();
+
+        self.client_state.follow_mut(client_state().guild()).pending_invite = Some(crate::state::guild::GuildInviteRequest {
+            guild_id,
+            guild_name: guild_name.clone(),
+        });
+
+        let message = format!("Guild invitation: {guild_name}. Open the Guild window (Alt+G) to accept.");
+        self.push_chat_information(message.clone());
+        self.client_state.follow_mut(client_state().guild()).status_message = message;
+    }
+
     /// `NetworkEvent::FriendRequest`.
     pub(crate) fn handle_friend_request(&mut self, event: NetworkEvent, _client_tick: ClientTick) {
         let NetworkEvent::FriendRequest { requestee } = event else {

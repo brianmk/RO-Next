@@ -159,6 +159,13 @@ where
 
     packet_handler.register(|packet: GuildInfoPacket| NetworkEvent::GuildInfo { information: packet })?;
 
+    packet_handler.register(|packet: GuildCreateResultPacket| NetworkEvent::GuildCreateResult { result: packet.result })?;
+
+    packet_handler.register(|packet: GuildInviteRequestFromServerPacket| NetworkEvent::GuildInviteRequest {
+        guild_id: packet.guild_id,
+        guild_name: packet.guild_name,
+    })?;
+
     packet_handler.register(|packet: GuildMemberManagerInfoPacket| NetworkEvent::GuildMembers { members: packet.members })?;
 
     packet_handler.register(|packet: GuildPositionNameInfoPacket| NetworkEvent::GuildPositionNames {
