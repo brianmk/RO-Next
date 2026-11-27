@@ -34,16 +34,16 @@ download ok).
 
 ---
 
-## Cleanup + static-CRT release (2026-11-27, payload 0.2.31)
+## Cleanup + static-CRT release (2026-11-27, payload 0.2.32)
 
 | item | value |
 | --- | --- |
 | client commits | `ec115255`..`6ab83d13` (cleanup, descriptor-layer suppression, stranded-skill mappings, Windows cfg fixes, static CRT) |
-| payload version | `0.2.31` (`ro-next-files/ro-next.version`, config `clients.ro_next.version` / `clientVersion`, and `ro-next/Cargo.toml` so `--version` agrees) |
-| content release | `20261127-064254` (`/home/phantom/patcher-releases/ro_next/`) |
+| payload version | `0.2.32` (`ro-next-files/ro-next.version`, config `clients.ro_next.version` / `clientVersion`, and `ro-next/Cargo.toml` so `--version` agrees) |
+| content release | `20261127-070846` (`/home/phantom/patcher-releases/ro_next/`) |
 | files in manifest | 91 (was 87: the four missing data files below are now shipped) |
 | package | `archive_759dab1c.zip`, 82 entries, 3.85 MB |
-| previous release | `20261127-063851` (0.2.30, kept for rollback) |
+| previous release | `20261127-064254` (0.2.31, kept for rollback) |
 | classic client | untouched |
 
 ### What the 0.2.29 payload was missing
@@ -75,7 +75,7 @@ rsync -a --delete ro-next/archive/ \
     rathena:/home/phantom/ragnarok-web/patcher-server/ro-next-files/archive/
 scp target/x86_64-pc-windows-msvc/release/ro-next.exe \
     rathena:/home/phantom/ragnarok-web/patcher-server/ro-next-files/RO-Next.exe
-ssh rathena 'printf "0.2.31\n" > ~/ragnarok-web/patcher-server/ro-next-files/ro-next.version'
+ssh rathena 'printf "0.2.32\n" > ~/ragnarok-web/patcher-server/ro-next-files/ro-next.version'
 
 # 3. bump the live config (the manifest version and the patcher's "update available"
 #    string come from clients.ro_next.version / clientVersion)
@@ -90,7 +90,7 @@ ssh rathena '/home/phantom/ragnarok-web/scripts/publish-content-release.sh \
 
 # 5. completeness gate: every repo file and the built exe must match the live manifest
 scripts/patcher-payload-check.py \
-    --exe target/x86_64-pc-windows-msvc/release/ro-next.exe --expect-version 0.2.31
+    --exe target/x86_64-pc-windows-msvc/release/ro-next.exe --expect-version 0.2.32
 ```
 
 `scripts/patcher-payload-check.py` fetches `<api>/manifest?client=ro_next` and fails on any
@@ -99,15 +99,17 @@ missing or stale entry (it maps `ro-next/archive/**` to `archive/**`, compares t
 deployment-specific presence-only files). This is the check that would have caught the missing
 data files; run it after every publish.
 
-### Verification performed for 0.2.31
+### Verification performed for 0.2.32
 
-* manifest: `version=0.2.31`, `release_id=20261127-064254`, 91 files; `payload-check` reports
+* manifest: `version=0.2.32`, `release_id=20261127-070846`, 91 files; `payload-check` reports
   `OK: the payload ships every file this repo expects`.
 * downloads: the four new `.ron` files, `숫자.act` and `RO-Next.exe` downloaded from the live API
   and hash-compared against the manifest (all OK; the download endpoint needs a patcher-style
   `User-Agent`, a bare `python-urllib` UA gets a 403 from the WAF).
 * the published `RO-Next.exe` was downloaded through the patcher API
-  (`sha256:dc7db8fd…`), byte-identical to the local build, and reports `RO-Next 0.2.31`.
+  (`sha256:d5759683…`), byte-identical to the local build, reports `RO-Next 0.2.32` and logs
+  `client: ported effect backend enabled` on startup (the default; `RO_NEXT_PORTED_FX=0` opts
+  back into the descriptor approximations).
 * batch package: `archive_759dab1c.zip` (82 entries) contains all the new files, so the patcher's
   package path ships them too.
 * update-plan signing: `signing.enabled=true`, key `patcher-2026-11` matches the key pinned in
@@ -117,6 +119,15 @@ data files; run it after every publish.
   (591), `--check-status-effects` (616), `--check-jobs` (181), `--check-items` (6169),
   `--check-status-visuals` (17), `--check-keybinds` (39), `--check-paper-doll` (21),
   `--check-aliases`, `--check-messages` (87) all exit 0 against the synced payload files.
+
+### Effect backend
+
+0.2.32 is the first release that runs the **ported (1:1 official) effect backend by default**:
+every mapped `(skill, phase)` pair (249 mappings) spawns its ported body, and the descriptor
+layers of that pair are suppressed, so a mapped cast is drawn once. `RO_NEXT_PORTED_FX=0` returns
+to the descriptor approximations without a rebuild. Known follow-up: a mapped phase can play its
+descriptor `wav` *and* the body's own official `PlayWave` (41 of the 219 mapped pairs have both);
+the sound precedence is the next item, the visuals are unaffected.
 
 ### Windows client notes
 
