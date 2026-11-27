@@ -73,6 +73,23 @@ where
     }
 }
 
+/// Double click on a hotbar slot uses the skill, matching the skill tree.
+///
+/// Double clicks are handled before the pending drag is armed, so the player
+/// gets the same self-cast/target-selection behaviour as the F-key and the
+/// skill tree double click.
+struct SkillBoxUseHandler {
+    source: SkillSource,
+}
+
+impl ClickHandler<ClientState> for SkillBoxUseHandler {
+    fn handle_click(&self, _: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
+        if let SkillSource::Hotbar { slot } = self.source {
+            queue.queue(InputEvent::UseSkillInSlot { slot });
+        }
+    }
+}
+
 impl<P> DropHandler<ClientState> for SkillBoxHandler<P>
 where
     P: Path<ClientState, LearnableSkill, false>,
@@ -224,6 +241,7 @@ pub struct SkillBox<A, B> {
     learnable_skill_path: A,
     learned_skill_path: B,
     handler: SkillBoxHandler<A>,
+    use_handler: SkillBoxUseHandler,
     level_display: LevelDisplay,
     source: SkillSource,
     /// Height (and width) of the square slot in interface pixels.
@@ -247,6 +265,7 @@ where
             learnable_skill_path,
             learned_skill_path,
             handler: SkillBoxHandler::new(learnable_skill_path, source),
+            use_handler: SkillBoxUseHandler { source },
             level_display: LevelDisplay::default(),
             source,
             size: size.max(1.0),
@@ -400,6 +419,9 @@ where
 
             if is_hovered {
                 layout.register_click_handler(MouseButton::Left, &self.handler);
+                if matches!(self.source, SkillSource::Hotbar { .. }) {
+                    layout.register_click_handler(MouseButton::DoubleLeft, &self.use_handler);
+                }
 
                 struct SkillBoxTooltip;
                 layout.add_tooltip(&learnable_skill.skill_name, SkillBoxTooltip.tooltip_id());

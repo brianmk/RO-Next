@@ -3385,7 +3385,7 @@ dependencies = [
 
 [[package]]
 name = "ro-next"
-version = "0.2.43"
+version = "0.2.44"
 dependencies = [
  "arrayvec",
  "blake3",
