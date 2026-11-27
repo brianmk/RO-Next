@@ -235,7 +235,7 @@
         (skill: 267, action: Skill),
         (skill: 268, action: Idle),
         (skill: 269, action: Skill),
-        (skill: 270, action: Idle),
+        (skill: 270, action: Action(12), sequence: (first: 1, last: 2, loop_to: 2, duration_ms: 1000)),
         (skill: 271, action: Action(11), sequence: (first: 0, last: 7, loop_to: 7, duration_ms: 3500)),
         (skill: 272, action: Action(12), sequence: (first: 5, last: 5, loop_to: 5, duration_ms: 0)),
         (skill: 273, action: Action(12), sequence: (first: 1, last: 2, loop_to: 2, duration_ms: 0)),

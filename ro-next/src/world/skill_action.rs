@@ -112,19 +112,19 @@ mod tests {
         for skill_id in [266, 267, 372] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
-        // Fury and Mental Strength stay idle poses.
-        for skill_id in [268, 270] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
-        }
+        // Mental Strength stays an idle pose. Fury is motion 0 in
+        // `GetSkillActionInfo`, but `CGameMode::ReceiveSkillUse` overrides it
+        // with `SetFrameSequence(0x60, 1, 2, 0x60, 2, 1, 1000, 0)`
+        // (`GameModePackets.cpp:18839-18840`), so it plays the skill block.
+        assert_eq!(caster_action(SkillId(268)), CasterAction::Idle, "skill 268");
+        assert_eq!(caster_action(SkillId(270)), CasterAction::Action(12), "skill 270");
     }
 
     #[test]
     fn stance_skills_keep_the_idle_pose() {
-        // Blessing and Fury: the official `GetSkillActionInfo` sets motion 0
+        // Blessing: the official `GetSkillActionInfo` sets motion 0
         // (ST_STAND), so the caster keeps the idle pose.
-        for skill_id in [34, 270] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Idle, "skill {}", skill_id);
-        }
+        assert_eq!(caster_action(SkillId(34)), CasterAction::Idle);
         // Basic Skill, Incagi, Summon Spirit Sphere and Zen use the default
         // begin-skill gesture (motion 7/8 = ST_SKILL/ST_BEGIN_SKILL).
         for skill_id in [1, 29, 261, 401] {

@@ -1,8 +1,8 @@
 {
  "provenance": {
-  "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch, SetFrameSequence calls",
-  "file": "Source/Contents/Actors/RenderObject.cpp",
-  "note": "block 0x58 = attack block (88), 0x60 = skill block (96); duration is milliseconds or a runtime skill-animation value"
+  "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch and CGameMode::ReceiveSkillUse SetFrameSequence calls",
+  "file": "Source/Contents/Actors/RenderObject.cpp, Source/Client/Mode/GameModePackets.cpp",
+  "note": "block 0x58 = attack block (88), 0x60 = skill block (96); duration is milliseconds or a runtime skill-animation value; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted"
  },
  "sequences": {
   "CH_PALMSTRIKE": {
@@ -52,6 +52,18 @@
    "interval": 6,
    "source": "RenderObject.cpp:5837",
    "skill": 273
+  },
+  "MO_EXPLOSIONSPIRITS": {
+   "block": "0x60",
+   "first": "1",
+   "last": "2",
+   "loop_block": "0x60",
+   "loop_to": "2",
+   "loops": "1",
+   "duration": "1000",
+   "interval": 30,
+   "source": "GameModePackets.cpp:18840",
+   "skill": 270
   },
   "MO_EXTREMITYFIST": {
    "block": "0x58",

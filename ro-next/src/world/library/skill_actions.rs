@@ -209,6 +209,11 @@ mod tests {
         let chain = frame_sequence_for_skill(SkillId(272)).expect("Chain Combo has an official sequence");
         assert_eq!((chain.first, chain.last), (5, 5));
 
+        // `case MO_EXPLOSIONSPIRITS:` - `GameModePackets.cpp:18840`:
+        // `SetFrameSequence(0x60, 1, 2, 0x60, 2, 1, 1000, 0)`.
+        let fury = frame_sequence_for_skill(SkillId(270)).expect("Fury has an official skill-use sequence");
+        assert_eq!((fury.first, fury.last, fury.loop_to, fury.duration_ms), (1, 2, 2, 1000));
+
         assert!(frame_sequence_for_skill(SkillId(5)).is_none(), "Bash has no explicit sequence");
     }
 
@@ -228,9 +233,11 @@ mod tests {
     fn stance_and_buff_skills_keep_the_idle_pose() {
         // Motion 0 (ST_STAND) skills; the rest of the classic buffs use the
         // begin-skill gesture instead.
-        for skill_id in [34, 270] {
-            assert_eq!(action(skill_id), Some(CasterAction::Idle), "skill {skill_id}");
-        }
+        assert_eq!(action(34), Some(CasterAction::Idle), "skill 34");
+
+        // Fury is motion 0 in `GetSkillActionInfo`, but `ReceiveSkillUse`
+        // overrides it with the skill block frames 1..=2.
+        assert_eq!(action(270), Some(CasterAction::Action(12)), "skill 270");
     }
 
     #[test]
