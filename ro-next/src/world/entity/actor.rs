@@ -155,16 +155,6 @@ impl Entity {
         self.get_common().get_weapon()
     }
 
-    #[cfg(test)]
-    pub fn get_shield(&self) -> u32 {
-        self.get_common().get_shield()
-    }
-
-    #[cfg(test)]
-    pub fn get_robe(&self) -> u16 {
-        self.get_common().get_robe()
-    }
-
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
         self.get_common_mut().set_weapon_animation(animation_data);
     }

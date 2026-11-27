@@ -247,13 +247,6 @@ pub(crate) fn generic_cast_sound_files() -> &'static [&'static str] {
     registry().generic
 }
 
-/// Skills that have a hand-curated override (used by the tests and the muted
-/// verification run).
-#[cfg(test)]
-pub(crate) fn curated_skill_ids() -> Vec<u16> {
-    registry().curated.iter().map(|sound| sound.skill).collect()
-}
-
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::SkillId;

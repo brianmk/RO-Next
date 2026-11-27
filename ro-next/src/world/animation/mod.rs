@@ -25,8 +25,6 @@ pub enum AnimationActionType {
     Attack2,
     Attack3,
     Die,
-    Freeze1,
-    Freeze2,
     Hurt,
     #[default]
     Idle,
@@ -40,7 +38,6 @@ pub enum AnimationActionType {
     /// neutral block is what [`AnimationActionType::Idle`] uses; the armed
     /// ready-fight stance is [`AnimationActionType::ReadyFight`] instead.
     Stand,
-    Special,
     Walk,
     /// Explicit ACT action index (rustnarok's generic motion table: dance,
     /// song, kick, throw, gunslinger, Madogear, Doram actions, ...).
@@ -68,15 +65,12 @@ impl AnimationActionType {
                 AnimationActionType::ReadyFight => 4,
                 AnimationActionType::Attack1 => 5,
                 AnimationActionType::Hurt => 6,
-                AnimationActionType::Freeze1 => 7,
                 AnimationActionType::Die => 8,
-                AnimationActionType::Freeze2 => 9,
                 AnimationActionType::Attack2 => 10,
                 AnimationActionType::Attack3 => 11,
                 AnimationActionType::Skill => 12,
                 AnimationActionType::Stand => 0,
                 AnimationActionType::Custom(index) => *index,
-                _ => 0,
             },
             // Pets, homunculi and mercenaries use the non-player ACT layout
             // (idle 0, walk 1, attack 2, hurt 3, die 4).
@@ -222,17 +216,6 @@ impl AnimationState {
         self
     }
 
-    /// Change the loop mode of an existing animation.
-    #[allow(dead_code)]
-    pub fn set_loop_mode(&mut self, loop_mode: AnimationLoopMode) {
-        self.loop_mode = loop_mode;
-    }
-
-    #[allow(dead_code)]
-    pub fn loop_mode(&self) -> AnimationLoopMode {
-        self.loop_mode
-    }
-
     /// Base action index of the animation currently being played.
     ///
     /// This is the value the official client calls `previousAnimation` when it
@@ -257,12 +240,6 @@ impl AnimationState {
     pub fn with_speed(mut self, speed: f32) -> Self {
         self.speed = speed.max(0.01);
         self
-    }
-
-    /// Change the playback speed of an existing animation.
-    #[allow(dead_code)]
-    pub fn set_speed(&mut self, speed: f32) {
-        self.speed = speed.max(0.01);
     }
 
     /// Start a new action. An official frame sequence belongs to the action it

@@ -103,21 +103,9 @@ pub struct RobeProfile {
 }
 
 impl RobeProfile {
-    /// Robe view id of the profile.
-    #[allow(dead_code)]
-    pub fn id(&self) -> u16 {
-        self.id
-    }
-
     /// Sprite folder names of the robe, most preferred first.
     pub fn names(&self) -> &[String] {
         &self.names
-    }
-
-    /// Whether the robe is fully opaque at every point in time.
-    #[allow(dead_code)]
-    pub fn is_opaque(&self) -> bool {
-        self.from == self.to && self.from == 255
     }
 
     /// Opacity multiplier (`0.0..=1.0`) at a client tick in milliseconds.
@@ -607,7 +595,6 @@ mod tests {
 
         // Opaque robes stay opaque.
         let opaque = profile(1).expect("robe 1 is in the data file");
-        assert!(opaque.is_opaque());
         assert!((opaque.opacity_at(1234) - 1.0).abs() < f32::EPSILON);
     }
 

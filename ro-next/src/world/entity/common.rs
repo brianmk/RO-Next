@@ -158,8 +158,7 @@ pub struct Common {
     /// official constants; see the comment at the draw site). The
     /// flag-`0x20000` rise (`Player.cpp:1206-1218`) is **not** applied: it
     /// shifts and fades a screen-space body quad, and this client draws
-    /// world-space sprites (the rise unit/alpha maths is ported in
-    /// [`tint_rise_units`]/[`tint_rise_alpha`] for a future sprite-quad pass).
+    /// world-space sprites.
     #[hidden_element]
     pub(crate) render_tint_phase: Option<u8>,
     /// `render.shrinkPhase` (`RenderObjectState.h:121`, `unsigned char`, low
@@ -849,11 +848,6 @@ impl Common {
         self.has_cart() && self.cart_animation.is_none()
     }
 
-    #[cfg(test)]
-    pub fn has_imf(&self) -> bool {
-        self.imf.is_some()
-    }
-
     pub fn needs_imf(&self) -> bool {
         self.entity_type == EntityType::Player && self.imf.is_none() && crate::world::jobs::imf_path(self.job_id, self.sex).is_some()
     }
@@ -920,18 +914,6 @@ impl Common {
     /// Equipped weapon value: a server `W_*` weapon type or an item view id.
     pub fn get_weapon(&self) -> u32 {
         self.weapon
-    }
-
-    #[cfg(test)]
-    /// Shield item id of the entity, `0` if none.
-    pub fn get_shield(&self) -> u32 {
-        self.shield
-    }
-
-    #[cfg(test)]
-    /// Robe view id of the entity, `0` if none.
-    pub fn get_robe(&self) -> u16 {
-        self.robe
     }
 
     pub fn set_weapon_animation(&mut self, animation_data: Arc<AnimationData>) {
