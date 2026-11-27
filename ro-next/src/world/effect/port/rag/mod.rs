@@ -184,7 +184,7 @@ pub use forest_light::ForestLight6;
 pub use frost_mysty::FrostMysty;
 pub use frostdiver::FrostDiver;
 pub use frostdiver2::FrostDiver2;
-pub use glass_wall::GlassWall;
+pub use glass_wall::{GlassWall, Glasswall2};
 pub use grand_cross::GrandCross;
 pub use grim_tooth::GrimTooth;
 pub use grim_tooth_atk::GrimToothAtk;

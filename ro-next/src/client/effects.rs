@@ -45,6 +45,23 @@ fn should_spawn_skill_phase(skill_id: SkillId, phase: SkillPhase, ported_enabled
     ported_enabled && crate::world::port::skill_map::ported_effect_for(skill_id, phase).is_some()
 }
 
+/// Whether the descriptor data marks a `(skill, phase)` pair as an
+/// **overhead** `.str` effect (`head: true`, normalized to
+/// [`LayerVertical::Overhead`]).
+///
+/// The ported bodies use the official `ProcessEZ2STR(0, -80, 0)` screen
+/// offset from the caster's feet. That offset was authored for the official
+/// fixed projection; at the port's wider field of view it lands on the
+/// torso, which is why Angelus and Impositio looked like a ball in the middle
+/// of the character. The descriptor rows already carry the correct anchor, so
+/// head-anchored ported effects spawn at the overhead height and drop the
+/// screen offset.
+fn ported_head_anchored(skill_id: SkillId, phase: SkillPhase) -> bool {
+    crate::world::skill_effect_layers(skill_id, phase)
+        .iter()
+        .any(|layer| layer.kind == LayerKind::Str && layer.vertical == LayerVertical::Overhead)
+}
+
 /// Whether the descriptor **layers** of a `(skill, phase)` pair are drawn by
 /// the ported backend instead.
 ///
@@ -107,6 +124,28 @@ pub(crate) fn warp_unit_effect(unit_id: &UnitId) -> Option<ragnarok_packets::Eff
     match unit_id {
         UnitId::WarpActive => Some(ragnarok_packets::EffectId::Readyportal2),
         UnitId::WarpWaiting => Some(ragnarok_packets::EffectId::Portal2),
+        _ => None,
+    }
+}
+
+/// Official ground-field effect of a persistent skill unit.
+///
+/// The server sends these as `ZC_ADD_SKILL_UNIT` (0x011F) and the official
+/// client launches the body on the unit actor from `MsgEffect.cpp`:
+///
+/// * `UNT_SAFETYWALL` (0x7E) -> `EF_GLASSWALL2` (`MsgEffect.cpp:964-971`),
+/// * `UNT_SANCTUARY`         -> `EF_BOTTOM_SANC` (`MsgEffect.cpp:600-610`),
+/// * `UNT_MAGNUS`            -> `EF_BOTTOM_MAG` (`MsgEffect.cpp:...`).
+///
+/// Without this the units only existed in the grid and the field never
+/// appeared under the caster.
+pub(crate) fn ground_unit_effect(unit_id: &ragnarok_packets::UnitId) -> Option<ragnarok_packets::EffectId> {
+    use ragnarok_packets::{EffectId, UnitId};
+
+    match unit_id {
+        UnitId::Safetywall => Some(EffectId::Glasswall2),
+        UnitId::Sanctuary => Some(EffectId::BottomSanc),
+        UnitId::Magnus => Some(EffectId::BottomMag),
         _ => None,
     }
 }
@@ -614,10 +653,21 @@ impl Client {
         };
 
         let target_position = target_position.or_else(|| target_entity_id.and_then(|entity_id| self.entity_position(entity_id)));
-        let position = match ported_anchor_for(skill_id, phase) {
+        let mut position = match ported_anchor_for(skill_id, phase) {
             PortedAnchor::Caster => source_position,
             PortedAnchor::Target => target_position.unwrap_or(source_position),
         };
+
+        // Head-anchored `.str` effects (Angelus, Impositio, ...) are positioned
+        // by the descriptor data above the head, not by the official -80
+        // screen-pixel offset from the feet. Use that world anchor and drop the
+        // screen offset so the body is not drawn at torso height.
+        let head_anchored = ported_head_anchored(skill_id, phase);
+        if head_anchored
+            && let Some((overhead, _)) = self.entity_effect_heights(source_entity_id)
+        {
+            position.y += overhead;
+        }
 
         let holder_lifetime = holder.runtime().lifetime;
 
@@ -648,6 +698,12 @@ impl Client {
             // the existing placeholder untouched so the aura bodies that read
             // it are not re-scaled by this change.
             runtime.param = 1.0;
+            if head_anchored {
+                // The world anchor already carries the head height; keeping
+                // the official -80 screen offset would move the effect another
+                // character-height up.
+                runtime.str_offset = [0.0, 0.0, 0.0];
+            }
             // The official skill launcher sends `AM_SETCOUNT` with the skill
             // level (`JobInheritance.cpp:2147/2153`); effect-level
             // `state.count` is that level (Blitz Beat bolts, Fire/Ice Arrow's
@@ -1163,12 +1219,35 @@ mod tests {
     use ragnarok_packets::{SkillId, UnitId};
 
     use super::{
-        apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, map_warp_effect, ported_fx_from_env,
-        should_spawn_skill_phase, warp_unit_effect,
+        apply_effect_skill_level, descriptor_layers_suppressed, effect_count_for_skill_level, ground_unit_effect, map_warp_effect,
+        ported_fx_from_env, ported_head_anchored, should_spawn_skill_phase, warp_unit_effect,
     };
     use crate::world::port::holder::PortedEffectHolder;
     use crate::world::port::runtime::EffectRuntime;
     use crate::world::{CasterAction, EntityType, SkillPhase};
+
+    /// The persistent ground units must spawn the official field bodies, not
+    /// just their grid entry (the fields were missing for Safety Wall,
+    /// Sanctuary and Magnus).
+    #[test]
+    fn persistent_ground_units_map_to_their_field_bodies() {
+        use ragnarok_packets::{EffectId, UnitId};
+
+        assert_eq!(ground_unit_effect(&UnitId::Safetywall), Some(EffectId::Glasswall2));
+        assert_eq!(ground_unit_effect(&UnitId::Sanctuary), Some(EffectId::BottomSanc));
+        assert_eq!(ground_unit_effect(&UnitId::Magnus), Some(EffectId::BottomMag));
+        assert_eq!(ground_unit_effect(&UnitId::Firewall), None);
+    }
+
+    /// Angelus and Impositio are `head: true` overhead `.str` effects in the
+    /// descriptor data; Magnum Break is a caster/ground effect and must keep
+    /// the feet anchor.
+    #[test]
+    fn head_anchored_ported_effects_use_the_overhead_anchor() {
+        assert!(ported_head_anchored(SkillId(33), SkillPhase::Success), "Angelus is overhead");
+        assert!(ported_head_anchored(SkillId(66), SkillPhase::Success), "Impositio is overhead");
+        assert!(!ported_head_anchored(SkillId(7), SkillPhase::Success), "Magnum Break is not overhead");
+    }
 
     /// The ported backend is the default; only an explicit falsy value turns it
     /// off, so an existing launcher that sets `RO_NEXT_PORTED_FX=1` keeps working

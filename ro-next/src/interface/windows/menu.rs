@@ -150,7 +150,10 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleMinimapWindow,
                 },
                 button! {
-                    text: client_state().localization().log_out_button_text(),
+                    // Leave the map session cleanly and return to the
+                    // character selection screen (the map-server logout path
+                    // already routes there; only the label was "Log out").
+                    text: "Character select",
                     event: InputEvent::LogOut,
                 },
                 button! {

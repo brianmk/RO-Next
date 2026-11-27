@@ -712,6 +712,24 @@ impl Client {
             return;
         }
 
+        // Persistent ground fields: Safety Wall, Sanctuary and Magnus are
+        // skill units whose official visual is a body launched on the unit
+        // actor (`MsgEffect.cpp`). The warp branch above handles the portal
+        // units; these are the remaining field-bearing units.
+        if let Some(effect_id) = crate::client::effects::ground_unit_effect(&unit_id) {
+            let Some(map) = &self.map else {
+                return;
+            };
+            let Some(world_position) = map.get_world_position(position) else {
+                return;
+            };
+
+            self.effect_holder.remove_unit(entity_id);
+            let seed = u64::from(client_tick.0) ^ (u64::from(entity_id.0) << 32) ^ (effect_id as u32 as u64);
+            self.spawn_ported_effect(effect_id, world_position, Some(entity_id), None, seed);
+            return;
+        }
+
         let Some(map) = &self.map else {
             return;
         };

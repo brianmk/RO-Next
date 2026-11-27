@@ -80,6 +80,70 @@ impl PortedEffect for GlassWall {
     }
 }
 
+/// `EF_GLASSWALL2` - `RagEffect.cpp:17365-17433`.
+///
+/// The persistent Safety Wall field: one `PulsingColumns` primitive with the
+/// three `alpha_down.tga` rings the official `GlassWallRising` sets up. The
+/// effect lives as long as the skill unit (9999 frames); removing the unit
+/// removes the effect through the owner entity.
+#[derive(Debug)]
+pub struct Glasswall2 {
+    lifetime: i32,
+}
+
+impl Glasswall2 {
+    pub fn new(lifetime: i32) -> Self {
+        Self { lifetime }
+    }
+}
+
+impl PortedEffect for Glasswall2 {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 0 {
+            runtime.play_sound("effect\\EF_GlassWall.wav");
+
+            let rots = [
+                runtime.rng.clamped_random(360) as i16,
+                runtime.rng.clamped_random(360) as i16,
+                runtime.rng.clamped_random(360) as i16,
+            ];
+
+            let lifetime = runtime.lifetime;
+            let columns = runtime.launch(PrimitiveId::PulsingColumns, [0.0, 0.0, 0.0]);
+            let state = runtime.primitive_mut(columns);
+
+            state.render_flag = 1 | 4;
+            state.duration = lifetime;
+            state.texture = Some("effect\\alpha_down.tga");
+            state.size = 10.0;
+
+            let slots = [(34.0f32, 3.6f32, 5500i16), (37.0, 3.3, 3080), (40.0, 3.0, 3080)];
+            for (index, (max_height, distance, alpha_t)) in slots.iter().enumerate() {
+                let slot = &mut state.slots[index];
+                slot.life = 1;
+                slot.process = 0;
+                slot.full_display_angle = 360;
+                slot.max_height = *max_height;
+                slot.rot_start = rots[index];
+                slot.alpha_b = 0;
+                slot.distance = *distance;
+                slot.rise_angle = 90;
+                slot.alpha_t = *alpha_t;
+                slot.vec_b_now[1] = 0.0;
+                slot.height = [0.0; 21];
+                slot.flag1 = [0; 21];
+            }
+            state.slots[3].life = 0;
+        }
+
+        true
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
