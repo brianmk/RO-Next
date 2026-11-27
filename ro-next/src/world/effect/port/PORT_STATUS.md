@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 468 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 488 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -334,6 +334,16 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - **.str blend fix**: `RenderAniClip` uses the clip's own blend pair; Concentration's frames are `(5,7)` = `SRCALPHA`/`DESTALPHA` (additive), not the hard-coded `(5,6)`. Fixed per layer, which corrects 65 of the 68 ported `.str` resources, plus stage-aware `BOTHSRCALPHA`/`BOTHINVSRCALPHA`.
 - **Monk**: Finger Offensive (267, not 263) ack no longer double-plays the damage pose; its 2019-only `EF_HIT1` hit row removed so `mon_탄지신통` plays; multi-hit numbers are a damage-path split (official `damage /= hitCount` + 200 ms), not a skill bug. Blade Stop lock (block 96 frame 4, grey tint, motion freeze) verified and pinned.
 - Investigate: 2019 vs 2026 sound drift resolved in favour of 2019 (`mon_탄지신통.wav`), documented as the single curated choice.
+
+### Round 102 (final backlog primitives, status launches, packet gaps)
+
+- prim **56** `PP_CHEMICAL3` (Chemical3/4), **41** `TexturedCross`, **77** `PP_SPHEREWIND`, **109** `PP_SOULLINK`, **115** `ParticleSpread`, **119/122/125/126** (STIN family). Ids: Chemical3, Chemical4, Providence, Spherewind2, Soullink, Cartter, Stin, Stin2, Stin4, Stin5, Jumpkick.
+- **Status/skill -> effect launch channel**: `status_effect_launches.ron` (generated) with `relaunch` for the official delete-then-spawn; Steel Body/D Barrier now launch `EF_SU_STOOP` (sound), Soul Collect launches `EF_PORTAL5` on a non-zero cast delay.
+- **Post-combat armed idle**: attack/skill end -> block 32, movement landing -> block 0, `healthState != 0` arms every stand (`Player.cpp:4423-4475`).
+- **Dual-wield off-hand**: `damage_amount_2` wired with the official 350 ms stagger (`g_multiHitInterval/2 + 3/4`), same style/colour, second feedback wave + hit effect.
+- **`EF_VIOLEN_HIT`** (2420) added and the Violen jobs now select it. NOTE: `몬스터\violen_hit.spr/.act` is absent from all three GRFs, so it spawns and draws nothing - the official client's hard-coded path fails identically.
+- **Monster skill motion on damage packets**: `GetMonsterSkillInfo` applied after the skill pose, matching `GameModePackets.cpp:4283/4356`.
+- Remaining backlog: **3 ids** - 555 `EF_STIN3` (needs a renderer->child-effect outbox plus `EF_SMA2`), 618 `EF_KOUENKA`, 843 `EF_BEGINSPELL_N6`.
 
 ### Known wiring gaps (client spawn path)
 
