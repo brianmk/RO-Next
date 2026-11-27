@@ -15,15 +15,16 @@ use super::rag::{
     AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BlueSpellRings, BottomCarpet,
     BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst,
     CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
-    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, FirstAid, ForestLight6,
-    FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2,
-    HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LineLink, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine,
-    NapalmBeat, NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap,
-    Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike,
-    SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral,
-    TexturedBeam, TexturedComet, TexturedGlow, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
-    TexturedScatter, TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit,
-    Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
+    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst, FireArrow, FireBall, FirePillar, FireSparks, FirstAid,
+    ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst,
+    HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2,
+    MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, Pressure, QuadRingStack,
+    RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3,
+    ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulBreaker, SoulBreaker2, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand,
+    StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedComet, TexturedGlow,
+    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow,
+    TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp,
+    WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -412,6 +413,27 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // Prim 58 `PP_FIRSTAID` - `RagEffect.cpp:10153-10154`. Lifetime 299
         // (`EffectTypes.cpp:318`).
         EffectId::Firstaid => Box::new(FirstAid::new(299)),
+        // ------------------------------------------------------------------
+        // Round 101: the pressure/guard/magnum/soulbreaker/baby families.
+        // ------------------------------------------------------------------
+        // `case EF_MAGNUM2:` - `RagEffect.cpp:10249-10250`. Lifetime 100
+        // (`EffectTypes.cpp:348`).
+        EffectId::Magnum2 => Box::new(Magnum2::new("effect\\ring_yellow.tga", 100)),
+        // `case EF_SOULBREAKER:` - `RagEffect.cpp:10320-10332`. Lifetime 300
+        // (`EffectTypes.cpp:370`).
+        EffectId::Soulbreaker => Box::new(SoulBreaker::new(300)),
+        // `case EF_PRESSURE:` - `RagEffect.cpp:10342-10349`. Lifetime 300
+        // (`EffectTypes.cpp:374`).
+        EffectId::Pressure => Box::new(Pressure::new(300)),
+        // `case EF_BABY:` - `RagEffect.cpp:23325-23334`. Lifetime 200
+        // (`EffectTypes.cpp:417`).
+        EffectId::Baby => Box::new(FeatherBurst::new("effect\\fire_ivy.bmp", 200)),
+        // `case EF_SOULBREAKER2:` - `RagEffect.cpp:24333-24347`. Lifetime 300
+        // (`EffectTypes.cpp:418`).
+        EffectId::Soulbreaker2 => Box::new(SoulBreaker2::new(300)),
+        // `case EF_GUARD2:` (`OnProcess3`) - `RagEffect.cpp:21646-21658`.
+        // Lifetime 200 (`EffectTypes.cpp:505`).
+        EffectId::Guard2 => Box::new(Guard2::new(200)),
         _ => return None,
     })
 }
@@ -713,6 +735,13 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Tripleattack,
         EffectId::Tripleattack2,
         EffectId::Tripleattack3,
+        // Round 101: pressure, guard and soulbreaker families.
+        EffectId::Magnum2,
+        EffectId::Soulbreaker,
+        EffectId::Pressure,
+        EffectId::Baby,
+        EffectId::Soulbreaker2,
+        EffectId::Guard2,
     ]);
 
     ids
@@ -947,6 +976,14 @@ mod tests {
             (EffectId::Linelink3, 99_999_999),
             (EffectId::Chemicalprotection, 300),
             (EffectId::Firstaid, 299),
+            // Round 101: `EffectTypes.cpp:348`, `:370`, `:374`, `:417`, `:418`,
+            // `:505`.
+            (EffectId::Magnum2, 100),
+            (EffectId::Soulbreaker, 300),
+            (EffectId::Pressure, 300),
+            (EffectId::Baby, 200),
+            (EffectId::Soulbreaker2, 300),
+            (EffectId::Guard2, 200),
         ];
 
         for (effect, lifetime) in expect {

@@ -47,6 +47,12 @@
 //! | 37 | `RenderGrandCross2` | Grand Cross cross quads (`PP_GRANDCROSS2`, `EF_GRANDCROSS`) |
 //! | 44 | `RenderRotatedPlate` | `TexturedScatter`/`TexturedScatterLow` - `EF_TEIHIT1X`, `EF_TEIHIT3` |
 //! | 45 | `RenderFieldPanel` | `TEIHIT2` - `EF_TEIHIT2`, `EF_BACKSTAP` |
+//! | 61 | `RenderSphereCage` | `BlackMaximize` - `EF_GUARD2` |
+//! | 73 | `RenderMagnum2` | `Magnum2` - `EF_MAGNUM2` |
+//! | 86, 92 | `RenderFloorSquare` | `SonicWave` / `PurpleSlash` - `EF_SOULBREAKER`, `EF_SOULBREAKER2` |
+//! | 87 | `RenderFieldPanel` (camera angles) | `TexturedRain` - `EF_PRESSURE` |
+//! | 88 | `RenderSizedSquare` | `TexturedLevelRing` - `EF_PRESSURE` |
+//! | 91 | `RenderSphereWind` | `FeatherBurst` - `EF_BABY` |
 //!
 //! ## Projection and depth
 //!
@@ -337,6 +343,17 @@ pub enum SlotRenderer {
     Tube,
     /// `RenderChemical` - `PP_CHEMICALPROTECTION` (54), the shockwave wedges.
     Chemical,
+    /// `RenderSphereCage` - `PP_GUARD` (61), the black-maximize shell
+    /// (`EF_GUARD2`).
+    SphereCage,
+    /// `RenderMagnum2` - `PP_MAGNUM2` (73), the yellow shockwave ring.
+    Magnum2,
+    /// `RenderSphereWind` - `PP_SPHEREWIND2` (91), the fire-vine sphere; prim
+    /// 77 shares it.
+    SphereWind,
+    /// `RenderFloorSquare` - prim 86 (`SonicWave`) and prim 92
+    /// (`PurpleSlash`), the flat slash diamonds.
+    FloorSquare,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -405,6 +422,20 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // `EffectPrimitiveRendering.cpp:578`: `PP_FIRSTAID` shares
         // `RenderFieldPanel`.
         PrimitiveId::FirstAid => SlotRenderer::FieldPanel,
+        // `EffectPrimitiveRendering.cpp:580`: prim 87 (`TexturedRain`'s cross
+        // rain) is in the `RenderFieldPanel` case list.
+        PrimitiveId::BubbleSwirl => SlotRenderer::FieldPanel,
+        // `EffectPrimitiveRendering.cpp:417-418`: prim 88 (`TexturedLevelRing`)
+        // is in the `RenderSizedSquare` case list.
+        PrimitiveId::GrowFollow => SlotRenderer::SizedSquare,
+        // `EffectPrimitiveRendering.cpp:391-392`: `PP_GUARD`.
+        PrimitiveId::Guard => SlotRenderer::SphereCage,
+        // `EffectPrimitiveRendering.cpp:388-390`: `PP_MAGNUM2`.
+        PrimitiveId::Magnum2 => SlotRenderer::Magnum2,
+        // `EffectPrimitiveRendering.cpp:545-547`: bare `case 86`/`case 92`.
+        PrimitiveId::SonicWave | PrimitiveId::PurpleSlash => SlotRenderer::FloorSquare,
+        // `EffectPrimitiveRendering.cpp:404-405`: `PP_SPHEREWIND2` (and 77).
+        PrimitiveId::SphereWind2 => SlotRenderer::SphereWind,
         // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
         // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
@@ -440,7 +471,19 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::RecordRings) => render_record_rings(state, &mut out),
         Some(SlotRenderer::RecordQuads) => render_record_quads(state, &mut out),
         Some(SlotRenderer::ArcBand) => render_arc_band(state, &mut out),
-        Some(SlotRenderer::FieldPanel) => render_field_panel(state, &mut out),
+        Some(SlotRenderer::FieldPanel) => {
+            // `PrimBubbleSwirl` (prim 87) runs `FaceCamera` on every frame; the
+            // hermetic simulation has no camera, so the live path uses the
+            // angles recovered from it. Every other field-panel primitive
+            // keeps the values its motion wrote.
+            let facing = if matches!(state.count, PrimitiveId::BubbleSwirl) {
+                facing_or_stored(state, context)
+            } else {
+                [state.slots[0].alpha_t, state.slots[1].alpha_t]
+            };
+
+            render_field_panel_with_facing(state, facing, &mut out);
+        }
         Some(SlotRenderer::Pyramid) => render_pyramid(state, &mut out),
         Some(SlotRenderer::ArcWalls) => render_arc_walls(state, &mut out),
         Some(SlotRenderer::FacingQuads) => render_facing_quads(state, &mut out),
@@ -504,6 +547,10 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::RotatedPlate) => render_rotated_plate(state, &mut out),
         Some(SlotRenderer::Tube) => render_tube(state, &mut out),
         Some(SlotRenderer::Chemical) => render_chemical(state, &mut out),
+        Some(SlotRenderer::SphereCage) => render_sphere_cage(state, &mut out),
+        Some(SlotRenderer::Magnum2) => render_magnum_2(state, &mut out),
+        Some(SlotRenderer::SphereWind) => render_sphere_wind(state, &mut out),
+        Some(SlotRenderer::FloorSquare) => render_floor_square(state, &mut out),
         None => {}
     }
 
@@ -1358,6 +1405,21 @@ pub fn render_arc_band(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>
 /// The `ecl_fild01.rsw` alpha clamp of the original reads the map name; that
 /// context does not exist in the renderer (see the module deviations).
 pub fn render_field_panel(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let facing = [state.slots[0].alpha_t, state.slots[1].alpha_t];
+
+    render_field_panel_with_facing(state, facing, out);
+}
+
+/// `RenderFieldPanel` with the two `FaceCamera` angles supplied by the caller.
+///
+/// Every spawner of the renderer except prim 87 (`PrimBubbleSwirl`) keeps
+/// `slots[0..1].alphaT` as written by its motion, so
+/// [`render_field_panel`] passes the stored values. `PrimBubbleSwirl` calls
+/// `FaceCamera` (`EffectPrimitiveMotion.cpp:6963`) and the hermetic simulation
+/// has no camera, so its live render path passes the angles recovered from the
+/// camera (see [`face_camera_angles`]), exactly like the prim 35/68/82/96
+/// renderers.
+pub fn render_field_panel_with_facing(state: &EffectPrimitiveState, facing: [i16; 2], out: &mut Vec<SlotTriangle>) {
     for ec in 0..4usize {
         let slot = &state.slots[ec];
 
@@ -1392,7 +1454,7 @@ pub fn render_field_panel(state: &EffectPrimitiveState, out: &mut Vec<SlotTriang
             }
         }
 
-        tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+        tei_toward_screen(&mut corners, facing[0], facing[1]);
 
         let base = slot.vec_b_now;
         let corners = corners.map(|corner| add(corner, base));
@@ -4647,6 +4709,457 @@ pub fn render_rotated_plate(state: &EffectPrimitiveState, out: &mut Vec<SlotTria
     }
 }
 
+// ---------------------------------------------------------------------------
+// RenderMagnum2 (73)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderMagnum2` - `EffectPrimitiveRendering.cpp:2121-2177`.
+///
+/// Two diagonal sweeps (`fullDisplayAngle / 20` degrees apart) are joined into
+/// a curved sheet: each step emits the quad between the previous and current
+/// bottom/top pairs through the 10-argument `RenderTeiRect`, whose texture
+/// window is the step index. The sheet is drawn at `y = -3` with the top edge
+/// lifted by `maxHeight` along `riseAngle`.
+///
+/// Quirks kept: the `fullDisplayAngle == 360 && order == 20` branch re-uses
+/// `rotStart` for the last step, `order` saturates at 20 and the
+/// `rpCnt >= 256` gate is evaluated per slot (the port counts the two triangles
+/// of every emitted rect, so the value means the same). The renderer also
+/// rewrites the slot's bottom/top vectors every frame; the port keeps them as
+/// locals because rendering may not mutate the simulation - no other code
+/// reads them.
+pub fn render_magnum_2(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let mut rect_triangles = 0usize;
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if rect_triangles >= 256 || slot.life != 1 {
+            continue;
+        }
+
+        let display = slot.full_display_angle as i32;
+        let step = display / 20;
+
+        // `count += step` with `step == 0` never terminates in the original
+        // (an infinite loop); no body spawns such a slot.
+        if step <= 0 {
+            continue;
+        }
+
+        let mut order = 0i32;
+        let mut vec_b_pre = [0.0f32; 3];
+        let mut vec_t_pre = [0.0f32; 3];
+        let mut count = 0i32;
+
+        while count <= display {
+            let mut angle = slot.rot_start as i32 + count;
+
+            if angle >= 360 {
+                angle -= 360;
+            }
+
+            if display == 360 && order == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cs1 = table_cos(angle);
+            let sn1 = table_sin(angle);
+            let vec_b_now = [cs1 * slot.distance, -3.0, sn1 * slot.distance];
+
+            let rx = table_cos(slot.rise_angle as i32) * slot.max_height;
+            let ry = table_sin(slot.rise_angle as i32) * slot.max_height;
+            let vec_t_now = [cs1 * rx + vec_b_now[0], -(ry + 3.0), sn1 * rx + vec_b_now[2]];
+
+            if order > 0 && slot.alpha_b > 0 {
+                emit_tei_rect_10(
+                    state,
+                    out,
+                    order - 1,
+                    slot.alpha_b,
+                    [vec_b_pre, vec_b_now, vec_t_now, vec_t_pre],
+                    0,
+                );
+                rect_triangles += 2;
+            }
+
+            order += 1;
+
+            if order >= 21 {
+                order = 20;
+            }
+
+            vec_b_pre = vec_b_now;
+            vec_t_pre = vec_t_now;
+            count += step;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderSphereWind (91; shared with 77)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderSphereWind` - `EffectPrimitiveRendering.cpp:5591-5646`.
+///
+/// The `EF_BABY` fire-vine sphere: a sweep of `fullDisplayAngle / 20` degrees
+/// builds a strip whose bottom edge sits on the `distance` ring and whose top
+/// edge is displaced by `maxHeight` along `riseAngle`. Each step emits the
+/// previous/current pair through the 10-argument `RenderTeiRect`.
+///
+/// Quirks kept: the `fullDisplayAngle == 360 && order == 20` branch re-uses
+/// `rotStart`, and the step is an integer division (a `fullDisplayAngle` below
+/// 20 would loop forever in the original; no spawner does that).
+pub fn render_sphere_wind(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let display = slot.full_display_angle as i32;
+        let step = display / 20;
+
+        if step <= 0 {
+            continue;
+        }
+
+        let mut order = 0i32;
+        let mut vec1 = [0.0f32; 3];
+        let mut vec3 = [0.0f32; 3];
+        let mut count = 0i32;
+
+        while count <= display {
+            let mut angle = slot.rot_start as i32 + count;
+
+            if angle >= 360 {
+                angle -= 360;
+            } else if angle < 0 {
+                angle += 360;
+            }
+
+            if display == 360 && order == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cs1 = table_cos(angle);
+            let sn1 = table_sin(angle);
+            let rise = slot.rise_angle as i32;
+            let vec_m = [
+                cs1 * (table_cos(rise) * slot.distance),
+                cs1 * (table_sin(rise) * slot.distance),
+                sn1 * slot.distance,
+            ];
+            let vec_a = [-(slot.max_height * table_sin(rise)), slot.max_height * table_cos(rise), 0.0];
+
+            let vec2 = [vec_m[0] + vec_a[0], vec_m[1] + vec_a[1] + slot.height[0], vec_m[2] + vec_a[2]];
+            let vec4 = [vec_m[0] - vec_a[0], vec_m[1] - vec_a[1] + slot.height[0], vec_m[2] - vec_a[2]];
+
+            if order > 0 {
+                emit_tei_rect_10(state, out, order - 1, slot.alpha_b, [vec1, vec2, vec4, vec3], 0);
+            }
+
+            order += 1;
+
+            if order >= 21 {
+                order = 20;
+            }
+
+            vec1 = vec2;
+            vec3 = vec4;
+            count += step;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderFloorSquare (86, 92)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderFloorSquare` - `EffectPrimitiveRendering.cpp:2637-2672`.
+///
+/// The four flat diamond shards of `PP_SOULBREAKER`'s `SonicWave` (prim 86) and
+/// `PurpleSlash` (prim 92). Each live slot with a positive alpha emits one
+/// quad of radius `distance` around `vecBNow`, turned by `rotStart + 45`
+/// degrees. `flag1[1]` picks the texture and colour: `1` is the four-frame
+/// sonic sheet, `2` is green, everything else uses the plain
+/// `200,200,255` tint. The quad is submitted with `f1 = 1`, so the corners are
+/// already absolute world positions.
+pub fn render_floor_square(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let dist = slot.distance;
+        let center = slot.vec_b_now;
+        let y = center[1] + 0.0;
+        let mut angle = slot.rot_start as i32 + 45;
+
+        if angle >= 360 {
+            angle -= 360;
+        }
+
+        let mut corners: Quad = [[0.0; 3]; 4];
+
+        for corner in corners.iter_mut() {
+            *corner = [dist * table_cos(angle) + center[0], y, dist * table_sin(angle) + center[2]];
+            angle += if angle + 90 < 360 { 90 } else { -270 };
+        }
+
+        match slot.flag1[1] {
+            1 => {
+                // `const char frame = process > 0 ? process / 6 % 4 : 0;`
+                let frame = if slot.process > 0 { (slot.process / 6 % 4) as i8 as i32 } else { 0 };
+
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    corners,
+                    frame,
+                    false,
+                    (205, 205, 255),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::Alpha,
+                );
+            }
+            2 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (0, 255, 0),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            ),
+            _ => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (200, 200, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            ),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderSphereCage (61)
+// ---------------------------------------------------------------------------
+
+/// `g_heightSpeedSign` - `EffectPrimitiveRendering.cpp:46`.
+const HEIGHT_SPEED_SIGN: f32 = -1.0;
+
+/// `GuardPoint` - `EffectPrimitiveRendering.cpp:4310-4324`.
+///
+/// `(Rx, Ry)` is a corner of the cage cross-section (`Ry` is the vertical
+/// radius, `Rx` the horizontal one); `sin2`/`cos2` rotate the point around the
+/// cage axis and `sin1`/`cos1` around the vertical axis. Quirks kept: the
+/// horizontal radius is truncated to `int` before it is rotated, and `Rz`
+/// stays a float.
+fn guard_point(rx: i32, ry: i32, sin2: f32, cos2: f32, sin1: f32, cos1: f32, vec_m: [f32; 3]) -> [f32; 3] {
+    let y = ry as f32 * sin2;
+    let z = ry as f32 * cos2;
+    let x = rx as f32;
+    let truncated = x as i32;
+    let rz = z;
+    let x = truncated as f32 * cos1 - rz * sin1;
+    let z = truncated as f32 * sin1 + rz * cos1;
+
+    [x + vec_m[0], y + vec_m[1], z + vec_m[2]]
+}
+
+/// One `GuardPoint` quad of `RenderSphereCage`.
+///
+/// The original computes `vecM` from the shell angles (`add2`, `rotStart+add`)
+/// and then re-computes the four trig values for the two `GuardPoint`
+/// rotations (`90+add2`, `rotStart+add-90`); both sets are carried here.
+/// `radius` is the cross-section radius and `y_bias` the constant added to
+/// `vecM.y`.
+#[allow(clippy::too_many_arguments)]
+fn sphere_cage_quad(
+    radius: f32,
+    y_bias: f32,
+    (sin_axis, cos_axis): (f32, f32),
+    (sin_band, cos_band): (f32, f32),
+    (sin_guard2, cos_guard2): (f32, f32),
+    (sin_guard1, cos_guard1): (f32, f32),
+    distance: i32,
+) -> Quad {
+    let rz = radius * cos_axis;
+    let vec_m = [rz * cos_band, radius * sin_axis + y_bias, rz * sin_band];
+
+    [
+        guard_point(distance, distance, sin_guard2, cos_guard2, sin_guard1, cos_guard1, vec_m),
+        guard_point(-distance, distance, sin_guard2, cos_guard2, sin_guard1, cos_guard1, vec_m),
+        guard_point(-distance, -distance, sin_guard2, cos_guard2, sin_guard1, cos_guard1, vec_m),
+        guard_point(distance, -distance, sin_guard2, cos_guard2, sin_guard1, cos_guard1, vec_m),
+    ]
+}
+
+/// `CEffectPrim::RenderSphereCage` - `EffectPrimitiveRendering.cpp:4328-4584`.
+///
+/// The `EF_GUARD2` black-maximize cage: three concentric shells (`maxHeight`,
+/// `maxHeight + 0.2`, `maxHeight + 0.4 + height[0]`) built from three vertical
+/// bands (`count2`) and five cross-sections (`count`). The shell radius shrinks
+/// to `2`/`3`/`2` units, the colour comes from `flag1[0]` and the third shell
+/// samples the body's second texture.
+///
+/// Render-time writes to the slot (`distance`, and the temp vectors the
+/// decompiler reuses) are kept as locals: the official renderer is `&self`
+/// here, and no motion body reads `distance` for prim 61.
+pub fn render_sphere_cage(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let kind = slot.flag1[0];
+        let max_height = slot.max_height;
+
+        let colour = |default: (u8, u8, u8)| -> (u8, u8, u8) {
+            match kind {
+                3 => (255, 100, 0),
+                2 => (255, 155, 0),
+                4 => (255, 150, 255),
+                5 => (100, 100, 255),
+                _ => default,
+            }
+        };
+
+        for count2 in 0..3i32 {
+            for count in 0..5i32 {
+                let add = count * 45 - 90;
+                let add2 = count2 * 45 - 45;
+
+                // `distance = (count2 - 1) * 1.0f;` negated through
+                // `g_heightSpeedSign`, then mirrored around 1.5.
+                let mut distance = (count2 as f32 - 1.0) * 1.0;
+
+                if distance < 0.0 {
+                    distance *= HEIGHT_SPEED_SIGN;
+                }
+
+                distance = 1.5 - distance + 1.5;
+                let distance_int = distance as i32;
+
+                let sin2 = table_sin(normalize_angle(add2));
+                let cos2 = table_cos(normalize_angle(add2));
+                let sin1 = table_sin(normalize_angle(slot.rot_start as i32 + add));
+                let cos1 = table_cos(normalize_angle(slot.rot_start as i32 + add));
+                let sin2_ring = table_sin(normalize_angle(90 + add2));
+                let cos2_ring = table_cos(normalize_angle(90 + add2));
+                let sin1_ring = table_sin(normalize_angle(slot.rot_start as i32 + add - 90));
+                let cos1_ring = table_cos(normalize_angle(slot.rot_start as i32 + add - 90));
+
+                let first = sphere_cage_quad(
+                    max_height,
+                    -(max_height + EFFECT_ICON_OUTER_RADIUS),
+                    (sin2, cos2),
+                    (sin1, cos1),
+                    (sin2_ring, cos2_ring),
+                    (sin1_ring, cos1_ring),
+                    distance_int,
+                );
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    first,
+                    0,
+                    true,
+                    colour((205, 255, 205)),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                );
+
+                let second = sphere_cage_quad(
+                    max_height + 0.2,
+                    -max_height,
+                    (sin2, cos2),
+                    (sin1, cos1),
+                    (sin2_ring, cos2_ring),
+                    (sin1_ring, cos1_ring),
+                    distance_int,
+                );
+                emit_tei_rect_18(
+                    state,
+                    out,
+                    slot.alpha_b,
+                    second,
+                    0,
+                    true,
+                    colour((155, 255, 155)),
+                    (0.0, 1.0, 0.0, 1.0),
+                    SlotBlend::AlphaOne,
+                );
+
+                let third = sphere_cage_quad(
+                    max_height + 0.4 + slot.height[0],
+                    -max_height,
+                    (sin2, cos2),
+                    (sin1, cos1),
+                    (sin2_ring, cos2_ring),
+                    (sin1_ring, cos1_ring),
+                    distance_int,
+                );
+
+                if kind == 5 {
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        slot.alpha_b,
+                        third,
+                        0,
+                        true,
+                        colour((225, 255, 225)),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::AlphaOne,
+                    );
+                } else {
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        slot.alpha_b,
+                        third,
+                        1,
+                        true,
+                        colour((225, 255, 225)),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// The client's one-step angle normalisation (`if (angle >= 360)
+/// angle -= 360; if (angle < 0) angle += 360;`).
+fn normalize_angle(mut angle: i32) -> i32 {
+    if angle >= 360 {
+        angle -= 360;
+    }
+
+    if angle < 0 {
+        angle += 360;
+    }
+
+    angle
+}
+
 #[cfg(test)]
 mod tests {
     use cgmath::{Deg, Matrix4, Vector3};
@@ -4759,6 +5272,13 @@ mod tests {
             (PrimitiveId::LineLink, SlotRenderer::Tube),
             (PrimitiveId::ChemicalProtection, SlotRenderer::Chemical),
             (PrimitiveId::FirstAid, SlotRenderer::FieldPanel),
+            (PrimitiveId::BubbleSwirl, SlotRenderer::FieldPanel),
+            (PrimitiveId::GrowFollow, SlotRenderer::SizedSquare),
+            (PrimitiveId::Guard, SlotRenderer::SphereCage),
+            (PrimitiveId::Magnum2, SlotRenderer::Magnum2),
+            (PrimitiveId::SonicWave, SlotRenderer::FloorSquare),
+            (PrimitiveId::SphereWind2, SlotRenderer::SphereWind),
+            (PrimitiveId::PurpleSlash, SlotRenderer::FloorSquare),
         ];
 
         for (id, expected_renderer) in expected {
@@ -7504,5 +8024,208 @@ mod tests {
         };
 
         assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn magnum_two_sweeps_twenty_one_steps_and_closes_on_rot_start() {
+        let mut state = state_of(PrimitiveId::Magnum2);
+        state.render_flag = 5;
+        state.texture = Some("effect\\ring_yellow.tga");
+        state.size = 5.0;
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 120,
+            full_display_angle: 360,
+            rot_start: 0,
+            distance: 5.0,
+            max_height: 20.0,
+            rise_angle: 70,
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // 21 sweep positions -> 20 quads -> 40 triangles.
+        assert_eq!(built.len(), 40);
+        // The first quad connects sweep 0 to sweep 18; its first corner is
+        // sweep 0's bottom vertex.
+        let (cos0, sin0) = trig(0);
+        assert_eq!(built[0].corners[0], [5.0 * cos0, -3.0, 5.0 * sin0]);
+        // `fullDisplayAngle == 360 && order == 20` re-uses rotStart for the
+        // closing step, so the last quad's second corner is the sweep-0 bottom.
+        assert_close(built[38].corners[1][0], 5.0 * cos0);
+        assert_close(built[38].corners[1][1], -3.0);
+        assert_close(built[38].corners[1][2], 5.0 * sin0);
+        // size 5 is the white glow default of the 10-argument RenderTeiRect.
+        assert_eq!(built[0].argb, pack_argb(120, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].texture, Some("effect\\ring_yellow.tga"));
+    }
+
+    #[test]
+    fn sphere_wind_builds_the_baby_shell() {
+        let mut state = state_of(PrimitiveId::SphereWind2);
+        state.render_flag = 5;
+        state.texture = Some("effect\\fire_ivy.bmp");
+        state.size = 10.0;
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 40,
+            full_display_angle: 180,
+            rot_start: 0,
+            distance: 5.0,
+            max_height: 2.0,
+            rise_angle: 90,
+            height: {
+                let mut height = [0.0; 21];
+                height[0] = -10.0;
+                height
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // 21 steps -> 20 quads -> 40 triangles.
+        assert_eq!(built.len(), 40);
+        // At sweep 0 with riseAngle 90 the bottom is (0, 5, 0) and the top
+        // edge is displaced by maxHeight along -x, then the whole pair is
+        // lifted by height[0] = -10.
+        assert_close(built[0].corners[0][0], -2.0);
+        assert_close(built[0].corners[0][1], -5.0);
+        assert_close(built[0].corners[0][2], 0.0);
+        // The second triangle starts at the quad's fourth corner.
+        assert_close(built[1].corners[0][0], 2.0);
+        assert_close(built[1].corners[0][1], -5.0);
+        assert_eq!(built[0].argb, pack_argb(40, 255, 89, 182));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].texture, Some("effect\\fire_ivy.bmp"));
+    }
+
+    #[test]
+    fn floor_square_picks_the_sonic_frame_and_the_flat_colour() {
+        let mut state = state_of(PrimitiveId::SonicWave);
+        state.render_flag = 5;
+        state.texture_frames = vec![
+            "effect\\sonic_wave1.tga",
+            "effect\\sonic_wave2.tga",
+            "effect\\sonic_wave3.tga",
+            "effect\\sonic_wave4.tga",
+        ];
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 200,
+            process: 7,
+            rot_start: 0,
+            distance: 20.0,
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[1] = 1;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        // process 7 -> 7 / 6 % 4 = frame 1.
+        assert_eq!(built[0].texture, Some("effect\\sonic_wave2.tga"));
+        // rotStart + 45 -> diamond corner at 45 degrees.
+        let (cos45, sin45) = trig(45);
+        assert_close(built[0].corners[0][0], 20.0 * cos45);
+        assert_close(built[0].corners[0][2], 20.0 * sin45);
+        assert_eq!(built[0].argb, pack_argb(200, 205, 205, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        // `flag1[1] == 2` is green, anything else `200,200,255`.
+        state.slots[0].flag1[1] = 2;
+        assert_eq!(triangles(&state)[0].argb, pack_argb(200, 0, 255, 0));
+        state.slots[0].flag1[1] = 0;
+        assert_eq!(triangles(&state)[0].argb, pack_argb(200, 200, 200, 255));
+    }
+
+    #[test]
+    fn sphere_cage_draws_three_shells_and_switches_the_third_texture() {
+        let mut state = state_of(PrimitiveId::Guard);
+        state.render_flag = 5;
+        state.texture = Some("effect\\a01.bmp");
+        state.texture_secondary = Some("effect\\a01.bmp");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            rot_start: 0,
+            distance: 2.0,
+            max_height: 10.0,
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[0] = 1;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // 3 bands * 5 cross-sections * 3 shells = 45 quads = 90 triangles.
+        assert_eq!(built.len(), 90);
+        assert_eq!(built[0].argb, pack_argb(100, 205, 255, 205));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].texture, Some("effect\\a01.bmp"));
+        assert_eq!(built[2].argb, pack_argb(100, 155, 255, 155));
+        assert_eq!(built[4].argb, pack_argb(100, 225, 255, 225));
+        // The third shell passes `pw = 1` (plain alpha) and samples textures[1].
+        assert_eq!(built[4].blend, SlotBlend::Alpha);
+        assert_eq!(built[4].texture, Some("effect\\a01.bmp"));
+
+        // `flag1[0] == 5` makes the third shell a texture-0 glow instead.
+        state.slots[0].flag1[0] = 5;
+        let blue = triangles(&state);
+        assert_eq!(blue[0].argb, pack_argb(100, 100, 100, 255));
+        assert_eq!(blue[4].argb, pack_argb(100, 100, 100, 255));
+        assert_eq!(blue[4].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn bubble_swirl_field_panel_uses_the_render_time_camera_angles() {
+        let camera = TestCamera::new();
+        let context = SlotRenderContext {
+            camera: &camera,
+            viewport: WINDOW,
+            distance_scale: CEFFECT_PRIM_DISTANCE_SCALE,
+            facing: [90, 0],
+        };
+
+        let mut state = state_of(PrimitiveId::BubbleSwirl);
+        state.render_flag = 5;
+        state.texture = Some("effect\\cross_old.bmp");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            full_display_angle: 0,
+            distance: 10.0,
+            flag1: {
+                let mut flag1 = [0i8; 21];
+                flag1[2] = 7;
+                flag1
+            },
+            ..Default::default()
+        };
+
+        // Without a camera the stored (zeroed) `alphaT` angles are used. Case
+        // 7 flips the quad, so the first submitted corner is the 90-degree one.
+        let stored = triangles(&state);
+        let (cos90, sin90) = trig(90);
+        assert_close(stored[0].corners[0][0], 10.0 * cos90);
+        assert_close(stored[0].corners[0][2], 10.0 * sin90);
+
+        // `FaceCamera` angles from the context turn the quad by 90 degrees
+        // around y; case 7 flips the corner order, so the first submitted
+        // corner is the rotated 90-degree corner.
+        let camera_built = triangles_with_context(&state, Some(&context));
+        assert_close(camera_built[0].corners[0][0], -10.0);
+        assert_close(camera_built[0].corners[0][2], 0.0);
+        assert_eq!(camera_built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(camera_built[0].argb, pack_argb(100, 255, 255, 255));
     }
 }

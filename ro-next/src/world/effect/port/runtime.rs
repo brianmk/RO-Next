@@ -750,6 +750,8 @@ impl EffectRuntime {
         // their own state, the runtime collects them in submission order.
         let mut primitive_sounds = Vec::new();
 
+        let mut primitive_quakes = 0u32;
+
         for primitive in &mut self.primitives {
             if !primitive.alive {
                 continue;
@@ -757,10 +759,13 @@ impl EffectRuntime {
 
             primitive.alive = primitive.state.on_process(angles, &master, &mut rng);
             primitive_sounds.append(&mut primitive.state.pending_sounds);
+            primitive_quakes += primitive.state.pending_quakes;
+            primitive.state.pending_quakes = 0;
         }
 
         self.rng = rng;
         self.sounds.append(&mut primitive_sounds);
+        self.shakes += primitive_quakes;
     }
 }
 

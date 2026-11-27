@@ -14,6 +14,7 @@ pub mod asura_casting;
 pub mod aura_glow;
 pub mod bottom;
 pub mod bottom2;
+pub mod bubble_swirl;
 pub mod casting2;
 pub mod casting3d;
 pub mod chemical;
@@ -29,12 +30,15 @@ pub mod floating_bubbles;
 pub mod forest_light;
 pub mod gi3;
 pub mod grand_cross2;
+pub mod grow_follow;
+pub mod guard;
 pub mod half_sphere;
 pub mod halo;
 pub mod height_ramp;
 pub mod hitline3;
 pub mod intimidate;
 pub mod line_link;
+pub mod magnum2;
 pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
@@ -44,12 +48,15 @@ pub mod penta_ring;
 pub mod peong_up;
 pub mod pulse_kind;
 pub mod pulsing_columns;
+pub mod purple_slash;
 pub mod quadhorn;
 pub mod ripple_rings;
 pub mod rising_fan;
 pub mod shield_boomerang;
 pub mod shield_boomerang3;
 pub mod slash1;
+pub mod sonic_wave;
+pub mod sphere_wind2;
 pub mod spin_quad;
 pub mod spline_spiral;
 pub mod stacked_rings;
@@ -348,6 +355,50 @@ pub enum PrimitiveId {
     /// Drawn by the shared `RenderFieldPanel`
     /// (`EffectPrimitiveRendering.cpp:3312-3505`, dispatch `:578`).
     FirstAid,
+    /// prim 87 - `CRagEffect::TexturedRain`'s rising cross rain
+    /// (`EF_PRESSURE`). No `EffectPrimId.h` symbol (the enum jumps from
+    /// `PP_SUPERANGEL` = 85 to `PP_RECT_UP2` = 90), so the port names it after
+    /// its motion body, `PrimBubbleSwirl`
+    /// (`EffectPrimitiveMotion.cpp:6962-7076`, dispatch `:9811-9812`). Drawn
+    /// by the shared `RenderFieldPanel` (`case 87` at
+    /// `EffectPrimitiveRendering.cpp:580`).
+    BubbleSwirl,
+    /// prim 88 - `CRagEffect::TexturedLevelRing`'s growing ground ring
+    /// (`EF_PRESSURE`). No `EffectPrimId.h` symbol; named after its motion
+    /// body, `PrimGrowFollow` (`EffectPrimitiveMotion.cpp:5264-5291`,
+    /// dispatch `:8781-8782`). Drawn by the shared `RenderSizedSquare`
+    /// (`case 88` at `EffectPrimitiveRendering.cpp:417-418`).
+    GrowFollow,
+    /// `PP_GUARD` (61) - `CRagEffect::BlackMaximize`'s sphere cage
+    /// (`EF_GUARD2`). Motion `PrimGuard`
+    /// (`EffectPrimitiveMotion.cpp:1344-1385`, dispatch `:8547-8548`);
+    /// renderer `RenderSphereCage` (`EffectPrimitiveRendering.cpp:4328`,
+    /// dispatch `:391-392`).
+    Guard,
+    /// `PP_MAGNUM2` (73) - `CRagEffect::Magnum2`'s yellow shockwave ring
+    /// (`EF_MAGNUM2`). Motion is the bare `case PP_MAGNUM2:`
+    /// (`EffectPrimitiveMotion.cpp:8377-8420`); renderer `RenderMagnum2`
+    /// (`EffectPrimitiveRendering.cpp:2121`, dispatch `:388-390`).
+    Magnum2,
+    /// prim 86 - `CRagEffect::SonicWave`'s purple/sonic slash
+    /// (`EF_SOULBREAKER`). No `EffectPrimId.h` symbol; named after its body
+    /// (`RagEffect.cpp:5382-5432`). Motion is the bare `case 86:`
+    /// (`EffectPrimitiveMotion.cpp:9315-9365`); renderer `RenderFloorSquare`
+    /// (`EffectPrimitiveRendering.cpp:2637`, dispatch `:545-547`).
+    SonicWave,
+    /// `PP_SPHEREWIND2` (91) - `CRagEffect::FeatherBurst`'s fire-vine sphere
+    /// (`EF_BABY`). Motion `PrimSphereWind2`
+    /// (`EffectPrimitiveMotion.cpp:4096-4143`, dispatch `:8676-8677`); renderer
+    /// `RenderSphereWind` (`EffectPrimitiveRendering.cpp:5591`, dispatch
+    /// `:404-405`).
+    SphereWind2,
+    /// prim 92 - `CRagEffect::PurpleSlash`'s eight shards
+    /// (`EF_SOULBREAKER2`). No `EffectPrimId.h` symbol; named after its only
+    /// spawner (`RagEffect.cpp:3382-3421`). Motion is the bare `case 92:`
+    /// (`EffectPrimitiveMotion.cpp:9367-9399`); renderer the shared
+    /// `RenderFloorSquare` (`EffectPrimitiveRendering.cpp:2637`, dispatch
+    /// `:545-547`).
+    PurpleSlash,
 }
 
 impl PrimitiveId {
@@ -413,6 +464,13 @@ impl PrimitiveId {
             Self::LineLink => 38,
             Self::ChemicalProtection => 54,
             Self::FirstAid => 58,
+            Self::BubbleSwirl => 87,
+            Self::GrowFollow => 88,
+            Self::Guard => 61,
+            Self::Magnum2 => 73,
+            Self::SonicWave => 86,
+            Self::SphereWind2 => 91,
+            Self::PurpleSlash => 92,
         }
     }
 }
@@ -517,6 +575,14 @@ pub struct EffectPrimitiveState {
     /// drains it into [`super::runtime::EffectRuntime::sounds`] each frame,
     /// standing in for the direct `g_soundMgr->PlayWave(...)` call.
     pub pending_sounds: Vec<String>,
+    /// Port-only outbox: `MM_QUAKE` requests raised by a primitive.
+    ///
+    /// `PrimBubbleSwirl` (prim 87) sends `MM_QUAKE` directly
+    /// (`EffectPrimitiveMotion.cpp:7046`, `:7060`), but motion primitives run
+    /// without the runtime that owns the screen-shake counter. The runtime
+    /// drains the count into
+    /// [`super::runtime::EffectRuntime::shakes`] after every primitive pass.
+    pub pending_quakes: u32,
     /// `/* 01E0 */ stateCnt`
     pub state_cnt: i32,
     /// `/* 01E4 */ duration`
@@ -722,6 +788,7 @@ impl Default for EffectPrimitiveState {
             type_field: 0,
             play_wave_type: 0,
             pending_sounds: Vec::new(),
+            pending_quakes: 0,
             pattern: 0,
             state_cnt: 0,
             duration: 100,
@@ -1056,6 +1123,34 @@ impl EffectPrimitiveState {
                 first_aid::on_process(self, master);
                 true
             }
+            PrimitiveId::BubbleSwirl => {
+                bubble_swirl::on_process(self, master);
+                true
+            }
+            PrimitiveId::GrowFollow => {
+                grow_follow::on_process(self, master);
+                true
+            }
+            PrimitiveId::Guard => {
+                guard::on_process(self, master);
+                true
+            }
+            PrimitiveId::Magnum2 => {
+                magnum2::on_process(self, master);
+                true
+            }
+            PrimitiveId::SonicWave => {
+                sonic_wave::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::SphereWind2 => {
+                sphere_wind2::on_process(self, master, rng);
+                true
+            }
+            PrimitiveId::PurpleSlash => {
+                purple_slash::on_process(self, angles, master);
+                true
+            }
         };
 
         if !alive {
@@ -1344,6 +1439,20 @@ mod tests {
     fn spline_and_spiral_ids_match_the_dispatch() {
         assert_eq!(PrimitiveId::Spline3d.id(), 10);
         assert_eq!(PrimitiveId::Spiral3d.id(), 11);
+    }
+
+    #[test]
+    fn pressure_guard_soulbreaker_and_baby_ids_match_the_dispatch() {
+        // `EffectPrimId.h`: `PP_GUARD` 61, `PP_MAGNUM2` 73 and
+        // `PP_SPHEREWIND2` 91 are named; 86, 87, 88 and 92 are the bare
+        // `case` arms of `EffectPrimitiveMotion.cpp`.
+        assert_eq!(PrimitiveId::Guard.id(), 61);
+        assert_eq!(PrimitiveId::Magnum2.id(), 73);
+        assert_eq!(PrimitiveId::SonicWave.id(), 86);
+        assert_eq!(PrimitiveId::BubbleSwirl.id(), 87);
+        assert_eq!(PrimitiveId::GrowFollow.id(), 88);
+        assert_eq!(PrimitiveId::SphereWind2.id(), 91);
+        assert_eq!(PrimitiveId::PurpleSlash.id(), 92);
     }
 
     #[test]

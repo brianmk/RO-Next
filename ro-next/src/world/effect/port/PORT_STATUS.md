@@ -464,3 +464,59 @@ ported effect files stay untouched.
 - Verification: `cargo test -p ro-next --lib` **1877 passed, 0 failed, 21
   ignored**; release build finished with no warnings; `rustfmt --check` clean
   on every touched file; `gen_ported_skill_map.py --check` up to date.
+
+### Round 101 (pressure, guard, magnum, soulbreaker and baby families)
+
+| primitive | name in port | official source | renderer |
+| --- | --- | --- | --- |
+| 61 | `Guard` (`PP_GUARD`) | `PrimGuard`, `EffectPrimitiveMotion.cpp:1344-1383`, dispatch `:8547-8548` | new `render_sphere_cage` (`RenderSphereCage`, `EffectPrimitiveRendering.cpp:4328-4584`, dispatch `:391-392`) |
+| 73 | `Magnum2` (`PP_MAGNUM2`) | bare `case PP_MAGNUM2:`, `EffectPrimitiveMotion.cpp:8377-8420` | new `render_magnum_2` (`RenderMagnum2`, `EffectPrimitiveRendering.cpp:2121-2177`, dispatch `:388-390`) |
+| 86 | `SonicWave` (no enum symbol) | bare `case 86:`, `EffectPrimitiveMotion.cpp:9315-9365` | new `render_floor_square` (`RenderFloorSquare`, `EffectPrimitiveRendering.cpp:2637-2672`, dispatch `:545-547`) |
+| 87 | `BubbleSwirl` (no enum symbol) | `PrimBubbleSwirl`, `EffectPrimitiveMotion.cpp:6962-7068`, dispatch `:9811-9812` | shared `RenderFieldPanel` (`:580`), now with a render-time `FaceCamera` override |
+| 88 | `GrowFollow` (no enum symbol) | `PrimGrowFollow`, `EffectPrimitiveMotion.cpp:5264-5295`, dispatch `:8781-8782` | shared `RenderSizedSquare` (`:417-418`) |
+| 91 | `SphereWind2` (`PP_SPHEREWIND2`) | `PrimSphereWind2`, `EffectPrimitiveMotion.cpp:4096-4143`, dispatch `:8676-8677` | new `render_sphere_wind` (`RenderSphereWind`, `EffectPrimitiveRendering.cpp:5591-5646`, dispatch `:404-405`) |
+| 92 | `PurpleSlash` (no enum symbol) | bare `case 92:`, `EffectPrimitiveMotion.cpp:9367-9399` | shared `render_floor_square` (`:545-547`) |
+
+- **Bodies** (one Rust function per C++ function): `rag/pressure.rs`
+  (`TexturedRain` `:5317-5378`, `TexturedLevelRing` `:4096-4140` +
+  `EF_PRESSURE` dispatch `:10342-10349`), `rag/black_maximize.rs`
+  (`BlackMaximize` `:3453-3480` + `EF_GUARD2` dispatch `:21646-21658`),
+  `rag/magnum2.rs` (`:5197-5242`), `rag/sonic_wave.rs` (`SonicWave`
+  `:5382-5426` + `EF_SOULBREAKER` dispatch `:10320-10332`),
+  `rag/purple_slash.rs` (`PurpleSlash` `:3382-3411` + `EF_SOULBREAKER2`
+  dispatch `:24333-24347`), `rag/feather_burst.rs` (`FeatherBurst`
+  `:4187-4220` + `EF_BABY` dispatch `:23325-23333`).
+- **Ids** (lifetimes from `EffectTypes.cpp`): `EF_MAGNUM2` 339 / 100,
+  `EF_SOULBREAKER` 361 / 300, `EF_PRESSURE` 365 / 300, `EF_BABY` 408 / 200,
+  `EF_SOULBREAKER2` 409 / 300, `EF_GUARD2` 496 / 200.
+- **RNG** (MSVC `rand()` order preserved): `TexturedRain` draws the `kind == 4`
+  vertical offset (`rand() % 56`) **before** `fullDisplayAngle`
+  (`ClampedRandom(360)`); `TexturedLevelRing` draws `rand() % 6` only for level
+  3; `SonicWave`/`PurpleSlash` draw one `ClampedRandom(5)` per slot
+  (`PurpleSlash` additionally draws its `ClampedRandom(6)` offset once per
+  call, before the four jitters); `FeatherBurst` draws per slot
+  `20, 11, 360, 91, 4`; `Magnum2`, `BlackMaximize` and the pressure dispatch
+  draw none.
+- **Quirks kept**: `Magnum2` only spawns on `stateCnt % 3 == 0` inside
+  `25..=55` (so frames 27, 30, ..., 54 - ten waves, and the body's
+  `flag < 11` gate never fires for `EF_MAGNUM2`); `TexturedRain` leaves slots
+  1..3 with `process = 0`, so `PrimBubbleSwirl` copies the lead's fields one
+  frame late and sends `MM_QUAKE` on process 33 (`kind 0`) or on the
+  `250..280` angle window (`kind 4`, which also clears `flag1[4]`);
+  `PrimGrowFollow`'s alpha drain is short-circuited behind `process > 10`;
+  `PrimGuard`'s alpha add has no clamp after the `< 100` test;
+  `EF_SOULBREAKER`/`EF_SOULBREAKER2` set the caster colour on every frame
+  0..10 with no parity gate; `EF_BABY` calls `FeatherBurst` five times on
+  frame 0 and once per later frame (each call re-copies the parent anchor and
+  then returns).
+- **Render deviations** (documented, simulation untouched): `RenderMagnum2`
+  and `RenderSphereCage` write into the slot (`vecB*`/`vecT*`, `distance`) at
+  render time; the port keeps those as locals because rendering is `&self` -
+  no motion body reads them for prim 73/61. `RenderFieldPanel`'s prim-87
+  `FaceCamera` angles are computed at draw time from the camera (like prims
+  35/68/82/96) because the hermetic runtime has none.
+- Registry now **474** ids; the skill map regenerates with **229** mappings.
+  Backlog coverage **221/236 = 93.6%**.
+- Verification: `cargo test -p ro-next --lib` **1963 passed, 0 failed, 21
+  ignored**; release build finished with no warnings; `rustfmt --check` clean
+  on every touched file; `gen_ported_skill_map.py --check` up to date.
