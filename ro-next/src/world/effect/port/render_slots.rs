@@ -354,6 +354,16 @@ pub enum SlotRenderer {
     /// `RenderFloorSquare` - prim 86 (`SonicWave`) and prim 92
     /// (`PurpleSlash`), the flat slash diamonds.
     FloorSquare,
+    /// `RenderGroundBar` - `PP_CHEMICAL3` (56), the chemical line streaks.
+    GroundBar,
+    /// `RenderFloorSquare2` - prim 119/122/125, the slash fan/level/wave.
+    FloorSquare2,
+    /// `RenderRotatedRing` - prim 126 (`TexturedSlashCross`).
+    RotatedRing,
+    /// `RenderSoulLink` - `PP_SOULLINK` (109).
+    SoulLink,
+    /// `RenderSoulParticle` - prim 115 (`TexturedTumble`).
+    SoulParticle,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -415,6 +425,8 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // `EffectPrimitiveRendering.cpp:504`: bare `case 50` draws
         // `Render3DCasting` with the casting family.
         PrimitiveId::TexturedGlow => SlotRenderer::Casting,
+        // `EffectPrimitiveRendering.cpp:504`: bare `case 41`.
+        PrimitiveId::TexturedCross => SlotRenderer::Casting,
         // `EffectPrimitiveRendering.cpp:690-691`: `PP_LINELINK`.
         PrimitiveId::LineLink => SlotRenderer::Tube,
         // `EffectPrimitiveRendering.cpp:611-612`: `PP_CHEMICALPROTECTION`.
@@ -435,7 +447,17 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // `EffectPrimitiveRendering.cpp:545-547`: bare `case 86`/`case 92`.
         PrimitiveId::SonicWave | PrimitiveId::PurpleSlash => SlotRenderer::FloorSquare,
         // `EffectPrimitiveRendering.cpp:404-405`: `PP_SPHEREWIND2` (and 77).
-        PrimitiveId::SphereWind2 => SlotRenderer::SphereWind,
+        PrimitiveId::SphereWind | PrimitiveId::SphereWind2 => SlotRenderer::SphereWind,
+        // `EffectPrimitiveRendering.cpp:638-639`: `PP_CHEMICAL3`.
+        PrimitiveId::Chemical3 => SlotRenderer::GroundBar,
+        // `EffectPrimitiveRendering.cpp:549-551`.
+        PrimitiveId::SlashFan | PrimitiveId::Stin3 | PrimitiveId::Stin4 => SlotRenderer::FloorSquare2,
+        // `EffectPrimitiveRendering.cpp:554`.
+        PrimitiveId::SlashCross => SlotRenderer::RotatedRing,
+        // `EffectPrimitiveRendering.cpp:479-480`.
+        PrimitiveId::SoulLink => SlotRenderer::SoulLink,
+        // `EffectPrimitiveRendering.cpp:469-470`.
+        PrimitiveId::ParticleSpread => SlotRenderer::SoulParticle,
         // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
         // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
@@ -551,6 +573,11 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::Magnum2) => render_magnum_2(state, &mut out),
         Some(SlotRenderer::SphereWind) => render_sphere_wind(state, &mut out),
         Some(SlotRenderer::FloorSquare) => render_floor_square(state, &mut out),
+        Some(SlotRenderer::GroundBar) => render_ground_bar(state, &mut out),
+        Some(SlotRenderer::FloorSquare2) => render_floor_square2(state, &mut out),
+        Some(SlotRenderer::RotatedRing) => render_rotated_ring(state, &mut out),
+        Some(SlotRenderer::SoulLink) => render_soul_link(state, &mut out),
+        Some(SlotRenderer::SoulParticle) => render_soul_particle(state, &mut out),
         None => {}
     }
 
@@ -5142,6 +5169,358 @@ pub fn render_sphere_cage(state: &EffectPrimitiveState, out: &mut Vec<SlotTriang
                     );
                 }
             }
+        }
+    }
+}
+
+/// `CEffectPrim::RenderGroundBar` - `EffectPrimitiveRendering.cpp:3925-4030`.
+///
+/// The `PP_CHEMICAL3` (56) line bars: each live slot builds a ground rectangle
+/// whose near edge lies on the segment `height[1]..height[1] + height[2]`
+/// measured along `riseAngle`, offset sideways by `maxHeight` and backwards by
+/// `height[0]`. The `flag1[0]` colour table is the original's.
+pub fn render_ground_bar(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let angle = slot.rise_angle as i32;
+        let width = slot.max_height;
+        let back = angle + if angle >= 90 { -90 } else { 270 };
+        let base_x = slot.height[0] * table_cos(back);
+        let base_z = slot.height[0] * table_sin(back);
+        let far_x = width * table_cos(back) + base_x;
+        let far_z = width * table_sin(back) + base_z;
+
+        let start = slot.height[1];
+        let (start_x, start_z) = if 100.0 <= start {
+            let reach = start - slot.distance;
+
+            (reach * table_cos(angle), reach * table_sin(angle))
+        } else {
+            let opposite = if angle < 180 { angle + 180 } else { angle - 180 };
+            let reach = slot.distance - start;
+
+            (reach * table_cos(opposite), reach * table_sin(opposite))
+        };
+
+        let end = start + slot.height[2];
+        let (end_x, end_z) = if 100.0 <= end {
+            let reach = end - slot.distance;
+
+            (reach * table_cos(angle), reach * table_sin(angle))
+        } else {
+            let opposite = angle + if angle >= 180 { -180 } else { 180 };
+            let reach = slot.distance - end;
+
+            (reach * table_cos(opposite), reach * table_sin(opposite))
+        };
+
+        let front = angle + if angle < 270 { 90 } else { -270 };
+        let near_x = width * table_cos(front) + base_x;
+        let near_z = width * table_sin(front) + base_z;
+        let quad = [
+            [near_x + end_x, -6.0, near_z + end_z],
+            [near_x + start_x, -6.0, near_z + start_z],
+            [start_x + far_x, -6.0, start_z + far_z],
+            [end_x + far_x, -6.0, end_z + far_z],
+        ];
+
+        let colour = match slot.flag1[0] {
+            0 => (225, 225, 255),
+            1 => (205, 205, 255),
+            2 => (185, 185, 255),
+            10 => (255, 255, 225),
+            11 => (255, 255, 205),
+            12 => (255, 255, 185),
+            20 => (225, 255, 225),
+            21 => (205, 255, 205),
+            22 => (185, 255, 185),
+            30 => (105, 105, 255),
+            31 => (65, 65, 255),
+            32 => (25, 25, 255),
+            33 => (103, 33, 177),
+            34 => (66, 1, 104),
+            35 => (178, 136, 236),
+            36 => (241, 225, 178),
+            37 => (202, 77, 65),
+            38 => (148, 79, 73),
+            125 => (255, 255, 255),
+            126 => (215, 215, 215),
+            127 => (185, 185, 185),
+            _ => continue,
+        };
+        let forced_depth = match slot.flag1[0] {
+            30..=38 => true,
+            _ => false,
+        };
+
+        if forced_depth {
+            emit_tei_rect_18_near(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        } else {
+            emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            );
+        }
+    }
+}
+
+/// `CEffectPrim::RenderFloorSquare2` -
+/// `EffectPrimitiveRendering.cpp:2674-2709`.
+///
+/// The flat slash diamonds of prim 119 (`TexturedSlashFan`) and prim 122/125
+/// (`TexturedSlashLevel`/`TexturedSlashWave`). The quad starts at
+/// `riseAngle + 90` and turns a quarter per corner; `flag1[3]` picks the
+/// colour pair and the blend (`0`/`1` glow, `2`/`3` straight alpha).
+pub fn render_floor_square2(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let dist = slot.distance;
+        let center = slot.vec_b_now;
+        let y = center[1];
+        let mut angle = slot.rise_angle as i32 + 90;
+
+        if angle >= 360 {
+            angle -= 360;
+        }
+
+        let mut corners: Quad = [[0.0; 3]; 4];
+
+        for corner in corners.iter_mut() {
+            *corner = [dist * table_cos(angle) + center[0], y, dist * table_sin(angle) + center[2]];
+            angle += if angle + 90 < 360 { 90 } else { -270 };
+        }
+
+        match slot.flag1[3] {
+            0 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (80, 80, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            ),
+            1 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (80, 255, 80),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            ),
+            2 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (255, 255, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            ),
+            3 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                corners,
+                0,
+                false,
+                (70, 70, 70),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            ),
+            _ => {}
+        }
+    }
+}
+
+/// `CEffectPrim::RenderRotatedRing` - `EffectPrimitiveRendering.cpp:2608-2635`.
+///
+/// Prim 126 (`TexturedSlashCross`): a ring quad rotated around x/z by
+/// `rotStart`, with the corner angles starting at `riseAngle` (the original
+/// advances before using the angle).
+pub fn render_rotated_ring(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let cs = table_cos(slot.rot_start as i32);
+        let dist = slot.distance;
+        let sn = table_sin(slot.rot_start as i32);
+        let center = slot.vec_b_now;
+        let mut angle = slot.rise_angle as i32;
+
+        let mut corners: Quad = [[0.0; 3]; 4];
+
+        for corner in corners.iter_mut() {
+            angle += if angle + 90 < 360 { 90 } else { -270 };
+            let radial = dist * table_cos(angle);
+            *corner = [
+                cs * radial + center[0],
+                dist * table_sin(angle) + center[1],
+                radial * sn + center[2],
+            ];
+        }
+
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            corners,
+            0,
+            false,
+            (80, 255, 80),
+            (0.0, 1.0, 0.0, 1.0),
+            SlotBlend::AlphaOne,
+        );
+    }
+}
+
+/// `CEffectPrim::RenderSoulLink` - `EffectPrimitiveRendering.cpp:5469-5557`.
+///
+/// The `EF_SOULLINK` orbit streak: the four corners of a square at
+/// `distance` (45/135/225/315 degrees) are rotated toward the camera with
+/// `slots[0/1].alphaT`, moved by `vecBPre` (`x` is the horizontal length,
+/// `y` the vertical offset) and only drawn when the first corner is at or
+/// below the ground. The original also launches `EF_SOULLIGHT` on the target
+/// when the quad crosses the ground; the port has no scene spawn from a
+/// renderer (documented in the module header) so only the quad is emitted.
+pub fn render_soul_link(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let rot0 = state.slots[0].alpha_t;
+    let rot1 = state.slots[1].alpha_t;
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let rx = slot.distance;
+        let mut corners: Quad = [
+            [table_cos(45) * rx, 0.0, table_sin(45) * rx],
+            [table_cos(135) * rx, 0.0, table_sin(135) * rx],
+            [table_cos(225) * rx, 0.0, table_sin(225) * rx],
+            [table_cos(315) * rx, 0.0, table_sin(315) * rx],
+        ];
+        tei_toward_screen(&mut corners, rot0, rot1);
+
+        let length = slot.vec_b_pre[0];
+        let vec_a = [length * table_cos(rot0 as i32), slot.vec_b_pre[1], length * table_sin(rot0 as i32)];
+
+        for corner in corners.iter_mut() {
+            *corner = add(*corner, vec_a);
+        }
+
+        let alpha = slot.height[13] as i32 as i16;
+
+        if corners[0][1] <= 0.0 {
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                corners,
+                0,
+                true,
+                (125, 125, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
+        }
+    }
+}
+
+/// `CEffectPrim::RenderSoulParticle` -
+/// `EffectPrimitiveRendering.cpp:5558-5590`.
+pub fn render_soul_particle(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let rot0 = state.slots[0].alpha_t;
+    let rot1 = state.slots[1].alpha_t;
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        let rx = slot.distance;
+        let mut base_corners: Quad = [
+            [table_cos(45) * rx, 0.0, table_sin(45) * rx],
+            [table_cos(135) * rx, 0.0, table_sin(135) * rx],
+            [table_cos(225) * rx, 0.0, table_sin(225) * rx],
+            [table_cos(315) * rx, 0.0, table_sin(315) * rx],
+        ];
+        tei_toward_screen(&mut base_corners, rot0, rot1);
+
+        for (base, count, extra_shade) in [
+            (slot.vec_b_pre, slot.height[12], 40u8),
+            (slot.vec_b_now, slot.height[13], 10u8),
+            (slot.vec_t_pre, slot.height[14], 70u8),
+        ] {
+            let count = count.max(0.0) as i32;
+            let alpha = count as i16;
+            let corners = base_corners.map(|corner| add(corner, base));
+
+            if corners[0][1] > 0.0 {
+                continue;
+            }
+
+            let colour = match slot.height[15] as i32 {
+                0 => (80, 80, 255),
+                1 => (255, 200, 200),
+                2 => (255, 160, 160),
+                3 => (255, 120, 120),
+                4 => (extra_shade, extra_shade, 255),
+                _ => continue,
+            };
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                corners,
+                0,
+                true,
+                colour,
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            );
         }
     }
 }

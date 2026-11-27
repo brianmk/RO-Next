@@ -529,3 +529,58 @@ ported effect files stay untouched.
 - Verification: `cargo test -p ro-next --lib` **1963 passed, 0 failed, 21
   ignored**; release build finished with no warnings; `rustfmt --check` clean
   on every touched file; `gen_ported_skill_map.py --check` up to date.
+
+### Round 102 (final pre-renewal backlog: chemical, slash, soul and crash families)
+
+| primitive | name in port | official source | renderer |
+| --- | --- | --- | --- |
+| 56 | `Chemical3` (`PP_CHEMICAL3`) | `PrimChemical3`, `EffectPrimitiveMotion.cpp:1084-1117`, dispatch `:9925-9926` | new `render_ground_bar` (`RenderGroundBar`, `EffectPrimitiveRendering.cpp:3925-4030`, dispatch `:638-639`) |
+| 41 | `TexturedCross` (no symbol) | inline `case 41:`, `EffectPrimitiveMotion.cpp:9036-9089` | shared `Render3DCasting` (`:504`) |
+| 77 | `SphereWind` (`PP_SPHEREWIND`) | inline `case PP_SPHEREWIND:`, `EffectPrimitiveMotion.cpp:8657-8677` | shared `RenderSphereWind` (`:404-405`) |
+| 109 | `SoulLink` (`PP_SOULLINK`) | inline `case PP_SOULLINK:`, `EffectPrimitiveMotion.cpp:8808-8843` | new `render_soul_link` (`RenderSoulLink`, `EffectPrimitiveRendering.cpp:5469-5557`, dispatch `:479-480`) |
+| 115 | `ParticleSpread` (no symbol) | `PrimParticleSpread`, `EffectPrimitiveMotion.cpp:3647-3705`, dispatch `:8793-8794` | new `render_soul_particle` (`RenderSoulParticle`, `:5558-5590`, dispatch `:469-470`) |
+| 119 | `SlashFan` (no symbol) | inline `case 119:`, `EffectPrimitiveMotion.cpp:9400-9448` | new `render_floor_square2` (`RenderFloorSquare2`, `:2674-2709`, dispatch `:549-551`) |
+| 122 | `Stin3` (no symbol) | `PrimSTIN3`, `EffectPrimitiveMotion.cpp:7071-7173`, dispatch `:9451-9452` | shared `render_floor_square2` |
+| 125 | `Stin4` (`PP_STIN4`) | `PrimSTIN4`, `EffectPrimitiveMotion.cpp:3874-3977`, dispatch `:9454-9455` | shared `render_floor_square2` |
+| 126 | `SlashCross` (no symbol) | inline `case 126:`, `EffectPrimitiveMotion.cpp:9457-9505` | new `render_rotated_ring` (`RenderRotatedRing`, `:2608-2635`, dispatch `:554`) |
+
+- **Bodies** (one Rust function per C++ function): `rag/line_streak.rs`
+  (`LineStreakLayered` `:16760-16831`), `rag/textured_cross.rs` (`TexturedCross`
+  `:4993-5030` + `EF_PROVIDENCE` dispatch `:24609-24614`), `rag/feather_ring.rs`
+  (`FeatherRing` `:4224-4271`), `rag/soul_link.rs` (`TexturedOrbit`
+  `:4954-4992`, `SoulLink` `:13885-13965` + dispatch `:21566-21586`),
+  `rag/textured_tumble.rs` (`TexturedTumble` `:6022-6071` + `EF_CARTTER`
+  dispatch `:21477-21482`), `rag/slash_family.rs` (`TexturedSlashFan`
+  `:3980-4032`, `TexturedSlashWave` `:4687-4740`, `TexturedSlashCross`
+  `:4902-4952`, `TexturedSlashLevel` `:5032-5095`) and `rag/jumpkick.rs`
+  (`EF_JUMPKICK` `:24591-24604`).
+- **Ids** (lifetimes from `EffectTypes.cpp`): `EF_CHEMICAL3` 300, `EF_CHEMICAL4`
+  300, `EF_PROVIDENCE` 200, `EF_SPHEREWIND2` 99999, `EF_SOULLINK` 500,
+  `EF_CARTTER` 200, `EF_STIN` 200, `EF_STIN2` 200, `EF_STIN4` 200, `EF_STIN5`
+  200, `EF_JUMPKICK` 100. `EF_PROVIDENCE` gets its official `providence.str`
+  row in `str_table.rs`.
+- **RNG**: `LineStreakLayered` draws per slot `height[1] (200)`, then the
+  `kind` block's `maxHeight`, `height[2]`, `flag1[0]`, `height[3]` (plus
+  `height[0]` for kinds `% 10 == 0/1`); `FeatherRing` draws `maxHeight`,
+  `rotStart`, `fullDisplayAngle`, `height[1]`; `TexturedSlashFan`/`Cross` draw
+  `rand(5)` per slot and `Cross` a further `rand(360)`; `TexturedSlashWave`
+  `distance` then `height[1]`; `TexturedSlashLevel` kind 1 draws the `rand(21)`
+  turn; `TexturedTumble` draws the eight per-slot values in source order.
+- **Quirks kept**: `TexturedSlashCross` spawns on frames 0..4 only (one per
+  frame, offset `+5x`/`-5x`/`+5z`/`-5z`); `TexturedSlashFan`/`Wave`/`Level`
+  spawn once on frame 0; `EF_STIN2` plays its five `T_날라차기.wav` with the
+  listener-relative heights `5-frame` / `-50`; `EF_CHEMICAL3`'s second call is
+  in the dispatch order kind 0 then 1 and `EF_CHEMICAL4` kind 20 then 21;
+  `SoulLink` launches its two prim-68 letter sets on frames 1 and 21 only;
+  `EF_JUMPKICK` writes parent state 27 + sequence on frame 5 and restores state
+  2 on frame 35 only from 27.
+- **Target model**: prims 122/125/126 read the spawn bridge's resolved target
+  position from `master_delta_pos` (the original's `g_session.m_aid` /
+  `GetGameActorByAID` lookup), like `PP_LINELINK`.
+- **Render deviation**: `RenderSoulLink`'s ground-cross `EF_SOULLIGHT` spawn is
+  a render-time effect launch the hermetic renderer cannot perform; the quad is
+  drawn and the launch is documented, not emulated.
+- Registry now **488** ids; the skill map regenerates with **236** mappings.
+- Verification: `cargo test -p ro-next --lib` **2078 passed, 0 failed, 21
+  ignored**; `rustfmt --check` clean on every touched file;
+  `gen_ported_skill_map.py --check` up to date (release build pending).

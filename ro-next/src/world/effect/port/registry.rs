@@ -13,18 +13,19 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BlueSpellRings, BottomCarpet,
-    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst,
-    CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
-    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst, FireArrow, FireBall, FirePillar, FireSparks, FirstAid,
-    ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst,
-    HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2,
-    MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, Pressure, QuadRingStack,
-    RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3,
-    ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulBreaker, SoulBreaker2, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand,
-    StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedComet, TexturedGlow,
-    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow,
-    TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp,
-    WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
+    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, Chemical3, Chemical4, ChemicalLine, ChemicalProtection,
+    Chimto, Cloud11Burst, CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
+    EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FeatherBurst, FeatherRing, FireArrow, FireBall,
+    FirePillar, FireSparks, FirstAid, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth,
+    GrimToothAtk, Guard2, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, JumpKick, Kaizel, LineLink,
+    LkConcentration, LockOn, Loud, MagicRing, Magnum2, MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, PortalRings,
+    PortalSpell, PotionPill, Pressure, Providence, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs,
+    RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3, ShieldCharge, Signum, SlashCross, SlashFan, SlashLevel, SlashWave, SonicBlow,
+    SonicBlowHit, SoulBreaker, SoulBreaker2, SoulLink, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect,
+    StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedComet, TexturedGlow, TexturedHalo,
+    TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow, TexturedSkillAura,
+    TexturedSpreadFlat, TexturedTumble, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall,
+    WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -226,6 +227,31 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Firearrow => Box::new(FireArrow::default()),
         EffectId::Icearrow => Box::new(IceArrow::default()),
         // `RagEffect.cpp:19764-19781`; `EffectTypes.cpp:863-872` lifetimes 300.
+        // `EF_CHEMICAL3` / `EF_CHEMICAL4` - `RagEffect.cpp:24367-24373`,
+        // `:21124-21133`; lifetimes `EffectTypes.cpp:448`, `:632`.
+        // `EF_PROVIDENCE` - `RagEffect.cpp:24609-24614`, lifetime
+        // `EffectTypes.cpp:257`.
+        // `EF_SPHEREWIND2` - `RagEffect.cpp:23143-23147`, lifetime
+        // `EffectTypes.cpp:403`.
+        EffectId::Spherewind2 => Box::new(FeatherRing::new(99_999)),
+        // `EF_STIN` / `EF_STIN2` / `EF_STIN4` / `EF_STIN5` -
+        // `RagEffect.cpp:21810-21814`, `:21817-21828`, `:21150-21156`,
+        // `:21117-21123`; lifetimes `EffectTypes.cpp:556`, `:562`, `:630`,
+        // `:633`.
+        EffectId::Stin => Box::new(SlashFan::new(200)),
+        EffectId::Stin2 => Box::new(SlashLevel::new(200)),
+        EffectId::Stin4 => Box::new(SlashWave::new(200)),
+        EffectId::Stin5 => Box::new(SlashCross::new(200)),
+        // `EF_JUMPKICK` - `RagEffect.cpp:24591-24604`, lifetime
+        // `EffectTypes.cpp:466`.
+        // `EF_SOULLINK` / `EF_CARTTER` - `RagEffect.cpp:21566-21586`,
+        // `:21477-21482`; lifetimes `EffectTypes.cpp:512`, `:527`.
+        EffectId::Soullink => Box::new(SoulLink::new(500)),
+        EffectId::Cartter => Box::new(TexturedTumble::new(200)),
+        EffectId::Jumpkick => Box::new(JumpKick::new(100)),
+        EffectId::Providence => Box::new(Providence::new(200)),
+        EffectId::Chemical3 => Box::new(Chemical3::new(300)),
+        EffectId::Chemical4 => Box::new(Chemical4::new(300)),
         EffectId::ChemicalV => Box::new(ChemicalLine::new(0, 300)),
         EffectId::ChemicalV2 => Box::new(ChemicalLine::new(1, 300)),
         EffectId::ChemicalV3 => Box::new(TexturedBeam::new(2, "effect\\line3.tga", 300)),
@@ -450,7 +476,7 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
 /// 20-60, and `Hit2` is gated on `stateCnt == 0`, so the original never spawns
 /// a shard (`RagEffect.cpp:23293-23301`, `:807-812`). The body is sound-only.
 pub fn spawns_no_geometry(effect: EffectId) -> bool {
-    matches!(effect, EffectId::Napalmvalcan)
+    matches!(effect, EffectId::Napalmvalcan | EffectId::Jumpkick)
 }
 
 /// Whether the effect opens an official `.str` screen-sprite resource
@@ -486,6 +512,17 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Fireball,
         EffectId::Firearrow,
         EffectId::Icearrow,
+        EffectId::Chemical3,
+        EffectId::Chemical4,
+        EffectId::Providence,
+        EffectId::Jumpkick,
+        EffectId::Soullink,
+        EffectId::Cartter,
+        EffectId::Stin,
+        EffectId::Stin2,
+        EffectId::Stin4,
+        EffectId::Stin5,
+        EffectId::Spherewind2,
         EffectId::ChemicalV,
         EffectId::ChemicalV2,
         EffectId::ChemicalV3,
@@ -982,6 +1019,23 @@ mod tests {
             (EffectId::Linelink2, 200),
             (EffectId::Linelink3, 99_999_999),
             (EffectId::Chemicalprotection, 300),
+            // `EF_CHEMICAL3` / `EF_CHEMICAL4` - `EffectTypes.cpp:448`, `:632`.
+            (EffectId::Chemical3, 300),
+            (EffectId::Chemical4, 300),
+            // `EF_PROVIDENCE` - `EffectTypes.cpp:257`.
+            (EffectId::Providence, 200),
+            // `EF_JUMPKICK` - `EffectTypes.cpp:466`.
+            (EffectId::Jumpkick, 100),
+            // `EF_SOULLINK` / `EF_CARTTER` - `EffectTypes.cpp:512`, `:527`.
+            (EffectId::Soullink, 500),
+            (EffectId::Cartter, 200),
+            // `EF_STIN` family - `EffectTypes.cpp:556`, `:562`, `:630`, `:633`.
+            (EffectId::Stin, 200),
+            (EffectId::Stin2, 200),
+            (EffectId::Stin4, 200),
+            (EffectId::Stin5, 200),
+            // `EF_SPHEREWIND2` - `EffectTypes.cpp:403`.
+            (EffectId::Spherewind2, 99_999),
             (EffectId::Firstaid, 299),
             // Round 101: `EffectTypes.cpp:348`, `:370`, `:374`, `:417`, `:418`,
             // `:505`.

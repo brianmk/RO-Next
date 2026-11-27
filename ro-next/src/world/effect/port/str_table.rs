@@ -141,6 +141,11 @@ static LIGHTNING: StrResource = StrResource {
     loop_limit: 0,
 };
 
+static PROVIDENCE: StrResource = StrResource {
+    files: &["providence.str"],
+    loop_limit: 0,
+};
+
 static PROVOKE: StrResource = StrResource {
     files: &["Provoke.str"],
     loop_limit: 0,
@@ -466,6 +471,9 @@ pub fn str_resource(effect: EffectId) -> Option<&'static StrResource> {
         //
         // `case EF_LIGHTBOLT: std::sprintf(name, "Lightning.str");` - 42-43.
         EffectId::Lightbolt => &LIGHTNING,
+        // `case EF_PROVIDENCE: std::sprintf(name, "providence.str");` -
+        // 371-372.
+        EffectId::Providence => &PROVIDENCE,
         // `case EF_PROVOKE: std::sprintf(name, "Provoke.str");` - 57-58.
         EffectId::Provoke => &PROVOKE,
         // `case EF_BRANDISHSPEAR: std::sprintf(name, "Brandish.str");` - 186-187.

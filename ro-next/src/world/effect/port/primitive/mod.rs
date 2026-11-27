@@ -18,6 +18,7 @@ pub mod bubble_swirl;
 pub mod casting2;
 pub mod casting3d;
 pub mod chemical;
+pub mod chemical3;
 pub mod chimto_sprite;
 pub mod circle;
 pub mod circle3d;
@@ -43,6 +44,7 @@ pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
 pub mod particle_spline;
+pub mod particle_spread;
 pub mod particle_up;
 pub mod penta_ring;
 pub mod peong_up;
@@ -55,15 +57,22 @@ pub mod rising_fan;
 pub mod shield_boomerang;
 pub mod shield_boomerang3;
 pub mod slash1;
+pub mod slash_cross;
+pub mod slash_fan;
 pub mod sonic_wave;
+pub mod soul_link;
+pub mod sphere_wind;
 pub mod sphere_wind2;
 pub mod spin_quad;
 pub mod spline_spiral;
 pub mod stacked_rings;
+pub mod stin3;
+pub mod stin4;
 pub mod tei_hit2;
 pub mod texture2d;
 pub mod texture3d;
 pub mod texture_spin;
+pub mod textured_cross;
 pub mod textured_glow;
 pub mod throw_item;
 pub mod wandering_flames;
@@ -351,6 +360,45 @@ pub enum PrimitiveId {
     /// ground wedges. Drawn by `RenderChemical`
     /// (`EffectPrimitiveRendering.cpp:6906-6975`, dispatch `:611-612`).
     ChemicalProtection,
+    /// `PP_CHEMICAL3` (56) - `CRagEffect::LineStreakLayered`'s ground bars
+    /// (`EF_CHEMICAL3`/`EF_CHEMICAL4`). Drawn by `RenderGroundBar`
+    /// (`EffectPrimitiveRendering.cpp:3925-4030`, dispatch `:638-639`).
+    Chemical3,
+    /// prim 119 - `CRagEffect::TexturedSlashFan`'s crescent ring
+    /// (`EF_STIN`). No `EffectPrimId.h` symbol; named after its only spawner.
+    /// Motion the inline `case 119` (`EffectPrimitiveMotion.cpp:9400-9448`);
+    /// renderer `RenderFloorSquare2` (`EffectPrimitiveRendering.cpp:549-551`).
+    SlashFan,
+    /// prim 122 - `CEffectPrim::PrimSTIN3`, the twin crescents of
+    /// `TexturedSlashLevel` (`EF_STIN2`). No symbol; named after its motion
+    /// body (`EffectPrimitiveMotion.cpp:7071-7173`, dispatch `:9451-9452`).
+    Stin3,
+    /// `PP_STIN4` (125) - `CEffectPrim::PrimSTIN4`'s wind slices
+    /// (`EF_STIN4`). Motion `EffectPrimitiveMotion.cpp:3874-3977`, dispatch
+    /// `:9454-9455`.
+    Stin4,
+    /// `PP_SOULLINK` (109) - the light orbit of `CRagEffect::TexturedOrbit`
+    /// (`EF_SOULLINK`). Motion the inline `case PP_SOULLINK`
+    /// (`EffectPrimitiveMotion.cpp:8808-8843`); renderer `RenderSoulLink`
+    /// (`EffectPrimitiveRendering.cpp:5469-5557`, dispatch `:479-480`).
+    SoulLink,
+    /// prim 115 - `CEffectPrim::PrimParticleSpread`, the three-layer burst of
+    /// `CRagEffect::TexturedTumble` (`EF_CARTTER`). No symbol; motion
+    /// `EffectPrimitiveMotion.cpp:3647-3705` (dispatch `:8793-8794`), renderer
+    /// `RenderSoulParticle` (`EffectPrimitiveRendering.cpp:5558-5590`, dispatch
+    /// `:469-470`).
+    ParticleSpread,
+    /// prim 126 - `CRagEffect::TexturedSlashCross`'s shards (`EF_STIN5`). No
+    /// symbol; motion the inline `case 126`
+    /// (`EffectPrimitiveMotion.cpp:9457-9505`), renderer `RenderRotatedRing`
+    /// (`EffectPrimitiveRendering.cpp:2608-2635`, dispatch `:554`).
+    SlashCross,
+    /// prim 41 - `CRagEffect::TexturedCross`'s four rising cross sheets
+    /// (`EF_PROVIDENCE`). No `EffectPrimId.h` symbol; named after its only
+    /// spawner. Motion is the inline `case 41`
+    /// (`EffectPrimitiveMotion.cpp:9036-9089`); drawn by the shared
+    /// `Render3DCasting` (`EffectPrimitiveRendering.cpp:504`).
+    TexturedCross,
     /// `PP_FIRSTAID` (58) - `CRagEffect::FirstAid`'s single spark panel.
     /// Drawn by the shared `RenderFieldPanel`
     /// (`EffectPrimitiveRendering.cpp:3312-3505`, dispatch `:578`).
@@ -386,6 +434,11 @@ pub enum PrimitiveId {
     /// (`EffectPrimitiveMotion.cpp:9315-9365`); renderer `RenderFloorSquare`
     /// (`EffectPrimitiveRendering.cpp:2637`, dispatch `:545-547`).
     SonicWave,
+    /// `PP_SPHEREWIND` (77) - `CRagEffect::FeatherRing`'s feather ring
+    /// (`EF_SPHEREWIND2`). Motion the inline `case PP_SPHEREWIND`
+    /// (`EffectPrimitiveMotion.cpp:8657-8677`); renderer the shared
+    /// `RenderSphereWind` (`EffectPrimitiveRendering.cpp:404-405`).
+    SphereWind,
     /// `PP_SPHEREWIND2` (91) - `CRagEffect::FeatherBurst`'s fire-vine sphere
     /// (`EF_BABY`). Motion `PrimSphereWind2`
     /// (`EffectPrimitiveMotion.cpp:4096-4143`, dispatch `:8676-8677`); renderer
@@ -463,12 +516,21 @@ impl PrimitiveId {
             Self::TexturedGlow => 50,
             Self::LineLink => 38,
             Self::ChemicalProtection => 54,
+            Self::Chemical3 => 56,
+            Self::SlashFan => 119,
+            Self::Stin3 => 122,
+            Self::Stin4 => 125,
+            Self::SoulLink => 109,
+            Self::ParticleSpread => 115,
+            Self::SlashCross => 126,
+            Self::TexturedCross => 41,
             Self::FirstAid => 58,
             Self::BubbleSwirl => 87,
             Self::GrowFollow => 88,
             Self::Guard => 61,
             Self::Magnum2 => 73,
             Self::SonicWave => 86,
+            Self::SphereWind => 77,
             Self::SphereWind2 => 91,
             Self::PurpleSlash => 92,
         }
@@ -1119,6 +1181,38 @@ impl EffectPrimitiveState {
                 chemical::on_process(self, master);
                 true
             }
+            PrimitiveId::Chemical3 => {
+                chemical3::on_process(self, master);
+                true
+            }
+            PrimitiveId::TexturedCross => {
+                textured_cross::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::SlashFan => {
+                slash_fan::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Stin3 => {
+                stin3::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Stin4 => {
+                stin4::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::SlashCross => {
+                slash_cross::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::SoulLink => {
+                soul_link::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::ParticleSpread => {
+                particle_spread::on_process(self, angles, master);
+                true
+            }
             PrimitiveId::FirstAid => {
                 first_aid::on_process(self, master);
                 true
@@ -1141,6 +1235,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::SonicWave => {
                 sonic_wave::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::SphereWind => {
+                sphere_wind::on_process(self, master);
                 true
             }
             PrimitiveId::SphereWind2 => {
