@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 448 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 460 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -310,6 +310,14 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - ids: Hated 543, Bluecasting 441, NapalmValcan 401 (dead `Hit2` documented), Chimto/FVoice/Wink 267/606/607, HitLine4/5/6 429-431, TripleAttack/2/3 329/388/393. `HitLine3` 428 deliberately unregistered (`WhiteSparkStreak(0)` sets `limit = 0`, always-true gate).
 - Monster skill motions are data-driven (`data\MonsterSkillInfo.xml`, mixcrypt-encrypted in the GRF): `monster_skill_actions.ron`, 106 entries / 96 monsters, applied on both cast paths. Cast-start sequences close 261/1015/401; 268 Steel Body both variants; 19 PROXY-IDLE rows corrected (block 0 non-local, 32 local).
 - Backlog coverage **204/236 = 86.4%** (effort 85.3%): `.str` 57/57, layers 114/144, manual 33/35. 32 ids remain.
+
+### Round 99
+
+- prim **34** `Gi3` (new `render_3d_casting2`), **37** `GrandCross2` (new `render_grand_cross2`), **44** `ExpandPulse` (new `render_rotated_plate`), **45** `TeiHit2` (reuses `render_field_panel`).
+- ids: GrandCross 226 / GrandCross2 450, TeiHit2 264, TeiHit1x 266, BackStab 275, TeiHit3 276.
+- Backlog **209/236 = 88.6%** (layers 119/144). 27 ids remain.
+- Free but unregistered: `EF_TEIHIT1` 262 and `EF_TEIHIT1T` 889 (outside the 236 backlog).
+- Generated map now routes skill 266 (`MO_INVESTIGATE`) to `EF_TEIHIT2` instead of `EF_CHIMTO`, both official; the generator's documented first-ported-candidate rule decides, no manual edit.
 
 ### Known wiring gaps (client spawn path)
 
