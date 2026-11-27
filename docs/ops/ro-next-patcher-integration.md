@@ -201,3 +201,13 @@ Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in
   other, so the arrow only pointed correctly for one heading and looked like it rotated with the
   camera. `quad_angle()` negates the screen angle and subtracts the sprite's authored 45-degree
   phase; a unit test asserts the axis for six headings.
+
+### Follow-up release 0.2.36
+
+* `0.2.36` (`20261127-100703`) — client-side `/where` and minimap coordinates.
+  `/where` is answered locally with `Location: <map> (<x>, <y>)` and never forwarded: the
+  rAthena `@where` atcommand is a GM tool that expects a *target character name*, so the old
+  slash translation was useless to players (`client/input_chat.rs`, `input/chat_command.rs`).
+  The minimap now reserves a 16 px row below the map image and shows the current map and tile
+  (`prontera  156, 187`), recomputed from the minimap state every frame; transparent-frame mode
+  and the window layout are unchanged (`interface/components/minimap.rs`).
