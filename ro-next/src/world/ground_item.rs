@@ -6,9 +6,11 @@ use ro_next_interface::element::StateElement;
 use rust_state::RustState;
 
 use crate::FadeDirection;
-use crate::graphics::EntityInstruction;
+use crate::graphics::{EntityInstruction, ScreenSize};
 use crate::loaders::{EntityPartFile, GAT_TILE_SIZE};
-use crate::world::{AnimationData, AnimationState, Camera, EntityType, FadeState, ItemResource, ItemResourceKey, Library, Map};
+use crate::world::{
+    AnimationData, AnimationState, Camera, EntityType, FadeState, ItemResource, ItemResourceKey, Library, Map, PickScreenBounds,
+};
 
 pub const ITEM_SPRITE_PREFIX: &str = "아이템\\";
 
@@ -81,6 +83,22 @@ impl GroundItem {
 
     pub fn should_be_removed(&self, client_tick: ClientTick) -> bool {
         self.fade_state.is_done_fading_out(client_tick)
+    }
+
+    /// Projected screen rectangle of the item's current sprite frame.
+    ///
+    /// This is the *real* visual bounds, exactly like the actor
+    /// [`crate::world::Common::pick_screen_bounds`]. The pick assist grows it
+    /// to the official 34 px item pick rectangle
+    /// (`crate::world::resolve_pick`), because the GPU picker only accepts
+    /// fully opaque sprite pixels and most item sprites are much smaller than
+    /// that rectangle.
+    pub fn pick_screen_bounds(&self, camera: &dyn Camera, screen_size: ScreenSize) -> Option<PickScreenBounds> {
+        let animation_data = self.animation_data.as_ref()?;
+        let frame = animation_data.get_frame(&self.animation_state, camera, Direction::South);
+        let world_matrix = animation_data.calculate_world_matrix(camera, frame, self.world_position, 1.0, 1.0);
+
+        crate::world::projected_pick_bounds(camera, screen_size, world_matrix, frame.size)
     }
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, client_tick: ClientTick) {

@@ -1057,14 +1057,18 @@ impl Client {
         .is_allowed()
     }
 
-    /// Widen the click/target area of monsters only.
+    /// Resolve a floor click against the projected pick rectangles of ground
+    /// items and (when enabled) monsters.
     ///
-    /// The GPU picker stays pixel-exact; this pass adds monster padding on top
-    /// of its result. A raw entity target (human, NPC, item, or a monster
-    /// already under the cursor) is never replaced, so a padded monster cannot
-    /// swallow a closer entity.
+    /// The GPU picker stays pixel-exact. This pass only runs when it did not
+    /// find an entity (`Nothing`/`Tile`): ground items are always assisted with
+    /// the official 34 px item pick rectangle, so a small drop next to a
+    /// monster can be clicked without hitting only its few opaque pixels. The
+    /// monster padding/minimum-size assist is the `easy_monster_picking`
+    /// setting. A raw entity target (human, NPC, item, or a monster already
+    /// under the cursor) is never replaced.
     #[allow(clippy::too_many_arguments)]
-    fn assist_monster_pick(
+    fn assist_pick(
         &self,
         input_report: &mut InputReport,
         screen_size: ScreenSize,
@@ -1072,10 +1076,6 @@ impl Client {
         #[cfg(feature = "debug")] use_debug_camera: bool,
         client_tick: ClientTick,
     ) {
-        if !*self.client_state.follow(client_state().game_settings().easy_monster_picking()) {
-            return;
-        }
-
         // The raw picker already found an entity (including a human under the
         // cursor), so the assist cannot change the outcome and the projected
         // sprite bounds do not have to be computed.
@@ -1094,33 +1094,61 @@ impl Client {
         // pixels, so follow the current interface scale here as well.
         let scaling_factor = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
 
-        let candidates: Vec<MonsterPickCandidate> = self
+        // Items are always assisted, independent of the monster setting: the
+        // GPU picker needs a fully opaque sprite pixel, and many item sprites
+        // are only 8-24 px wide. The official client gives every item a 34 px
+        // minimum pick rectangle (`Item.cpp:53-86`).
+        let item_candidates: Vec<ItemPickCandidate> = self
             .client_state
-            .follow(client_state().entities())
+            .follow(client_state().ground_items())
             .iter()
-            .filter(|entity| entity.get_entity_type() == EntityType::Monster && !entity.is_dead() && !entity.is_fading())
-            .filter_map(|entity| {
-                entity_pick_screen_bounds(entity, camera, screen_size, client_tick).map(|bounds| MonsterPickCandidate {
-                    entity_id: entity.get_entity_id(),
-                    entity_type: entity.get_entity_type(),
+            .filter_map(|item| {
+                item.pick_screen_bounds(camera, screen_size).map(|bounds| ItemPickCandidate {
+                    entity_id: item.get_entity_id(),
                     bounds,
-                    depth: camera.distance_to(entity.get_position()),
+                    depth: camera.distance_to(item.world_position),
                 })
             })
             .collect();
 
-        if candidates.is_empty() {
+        // The monster assist is the setting: with it off the padded monster
+        // rectangles are not considered at all, exactly as before the feature.
+        let easy_monster_picking = *self.client_state.follow(client_state().game_settings().easy_monster_picking());
+
+        let monster_candidates: Vec<MonsterPickCandidate> = match easy_monster_picking {
+            false => Vec::new(),
+            true => self
+                .client_state
+                .follow(client_state().entities())
+                .iter()
+                .filter(|entity| entity.get_entity_type() == EntityType::Monster && !entity.is_dead() && !entity.is_fading())
+                .filter_map(|entity| {
+                    entity_pick_screen_bounds(entity, camera, screen_size, client_tick).map(|bounds| MonsterPickCandidate {
+                        entity_id: entity.get_entity_id(),
+                        entity_type: entity.get_entity_type(),
+                        bounds,
+                        depth: camera.distance_to(entity.get_position()),
+                    })
+                })
+                .collect(),
+        };
+
+        if item_candidates.is_empty() && monster_candidates.is_empty() {
             return;
         }
 
         let cursor = cgmath::Vector2::new(input_report.mouse_position.left, input_report.mouse_position.top);
 
-        input_report.mouse_target = resolve_monster_pick(
+        input_report.mouse_target = resolve_pick(
             input_report.mouse_target,
             cursor,
-            &candidates,
-            MONSTER_PICK_PADDING * scaling_factor,
-            MONSTER_MIN_PICK_SIZE * scaling_factor,
+            &item_candidates,
+            &monster_candidates,
+            PickAssistConfig {
+                item_minimum_size: ITEM_MIN_PICK_SIZE * scaling_factor,
+                monster_padding: MONSTER_PICK_PADDING * scaling_factor,
+                monster_minimum_size: MONSTER_MIN_PICK_SIZE * scaling_factor,
+            },
         );
     }
 
@@ -1349,7 +1377,7 @@ impl Client {
         let pick_use_debug_camera = *self.client_state.follow(client_state().render_options().use_debug_camera());
 
         let mut input_report = self.input_system.update_delta(client_tick);
-        self.assist_monster_pick(
+        self.assist_pick(
             &mut input_report,
             pick_screen_size,
             pick_currently_playing,
@@ -1778,11 +1806,7 @@ impl Client {
                                     .iter()
                                     .any(|item| item.get_entity_id() == entity_id);
 
-                                if is_ground_item {
-                                    self.input_event_buffer.push(InputEvent::PickUpItem { entity_id })
-                                } else {
-                                    self.input_event_buffer.push(InputEvent::PlayerInteract { entity_id })
-                                }
+                                self.input_event_buffer.push(world_entity_click(entity_id, is_ground_item));
                             }
                             PickerTarget::Tile { x, y } => {
                                 let destination = TilePosition { x, y };
@@ -2157,5 +2181,42 @@ impl Client {
                 allocations_after_gpu.saturating_sub(allocations_after_world),
             ],
         );
+    }
+}
+
+/// The input event a left click on an entity produces.
+///
+/// Ground items turn into a pickup request for exactly the clicked item entity
+/// id; every other entity keeps the interaction request. Kept as a free
+/// function so the item -> pickup mapping is unit-testable without a `Client`.
+pub(crate) fn world_entity_click(entity_id: EntityId, is_ground_item: bool) -> InputEvent {
+    match is_ground_item {
+        true => InputEvent::PickUpItem { entity_id },
+        false => InputEvent::PlayerInteract { entity_id },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ground_item_click_produces_a_pickup_request_for_the_same_entity_id() {
+        let entity_id = EntityId(1_234_567);
+
+        match world_entity_click(entity_id, true) {
+            InputEvent::PickUpItem { entity_id: picked_up } => assert_eq!(picked_up, entity_id),
+            event => panic!("ground item click must produce PickUpItem, got {event:?}"),
+        }
+    }
+
+    #[test]
+    fn non_item_entity_click_still_produces_an_interaction_request() {
+        let entity_id = EntityId(42);
+
+        match world_entity_click(entity_id, false) {
+            InputEvent::PlayerInteract { entity_id: interacted } => assert_eq!(interacted, entity_id),
+            event => panic!("actor click must produce PlayerInteract, got {event:?}"),
+        }
     }
 }
