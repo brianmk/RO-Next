@@ -560,6 +560,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(66), SkillPhase::Success, EffectId::Impositio, PortedAnchor::Caster),
     (SkillId(67), SkillPhase::Success, EffectId::Suffragium, PortedAnchor::Caster),
     (SkillId(68), SkillPhase::Success, EffectId::Aspersio, PortedAnchor::Caster),
+    (SkillId(70), SkillPhase::Ground, EffectId::BottomSanc, PortedAnchor::Target),
     (SkillId(71), SkillPhase::Success, EffectId::Slowpoison, PortedAnchor::Caster),
     (SkillId(72), SkillPhase::Success, EffectId::Recovery, PortedAnchor::Caster),
     (SkillId(73), SkillPhase::Success, EffectId::Kyrie, PortedAnchor::Caster),
@@ -568,11 +569,15 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(76), SkillPhase::Success, EffectId::Lexdivina, PortedAnchor::Caster),
     (SkillId(77), SkillPhase::Success, EffectId::Turnundead, PortedAnchor::Caster),
     (SkillId(78), SkillPhase::Success, EffectId::Lexaeterna, PortedAnchor::Caster),
+    (SkillId(79), SkillPhase::Ground, EffectId::BottomMag, PortedAnchor::Target),
     (SkillId(81), SkillPhase::Success, EffectId::Sightrasher, PortedAnchor::Caster),
     (SkillId(84), SkillPhase::Success, EffectId::Yufitel, PortedAnchor::Caster),
     (SkillId(86), SkillPhase::Success, EffectId::Waterball2, PortedAnchor::Caster),
+    (SkillId(87), SkillPhase::Ground, EffectId::Icewall, PortedAnchor::Target),
     (SkillId(88), SkillPhase::Success, EffectId::Frostdiver2, PortedAnchor::Caster),
+    (SkillId(89), SkillPhase::Ground, EffectId::Stormgust, PortedAnchor::Target),
     (SkillId(90), SkillPhase::Success, EffectId::Earthspike, PortedAnchor::Caster),
+    (SkillId(91), SkillPhase::Ground, EffectId::Heavensdrive, PortedAnchor::Target),
     (SkillId(108), SkillPhase::Success, EffectId::Repairweapon, PortedAnchor::Caster),
     (SkillId(111), SkillPhase::Success, EffectId::Hasteup, PortedAnchor::Caster),
     (SkillId(112), SkillPhase::Success, EffectId::Perfection, PortedAnchor::Caster),
@@ -648,6 +653,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(268), SkillPhase::Success, EffectId::Steelbody, PortedAnchor::Caster),
     (SkillId(270), SkillPhase::Success, EffectId::Gumgang, PortedAnchor::Caster),
     (SkillId(271), SkillPhase::Hit, EffectId::Teihit1x, PortedAnchor::Target),
+    (SkillId(272), SkillPhase::Hit, EffectId::Chaincombo, PortedAnchor::Target),
     (SkillId(276), SkillPhase::Success, EffectId::Magicrod, PortedAnchor::Caster),
     (SkillId(277), SkillPhase::Success, EffectId::Spellbreaker, PortedAnchor::Caster),
     (SkillId(280), SkillPhase::Success, EffectId::Flamelauncher, PortedAnchor::Caster),
@@ -659,6 +665,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
         PortedAnchor::Caster,
     ),
     (SkillId(283), SkillPhase::Success, EffectId::Seismicweapon, PortedAnchor::Caster),
+    (SkillId(288), SkillPhase::Ground, EffectId::BottomLa, PortedAnchor::Target),
     (SkillId(289), SkillPhase::Success, EffectId::Dispell, PortedAnchor::Caster),
     (SkillId(306), SkillPhase::Success, EffectId::BottomLullaby, PortedAnchor::Caster),
     (
@@ -789,6 +796,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(399), SkillPhase::Cast, EffectId::Bash3d4, PortedAnchor::Caster),
     (SkillId(400), SkillPhase::Success, EffectId::Napalmvalcan, PortedAnchor::Caster),
     (SkillId(402), SkillPhase::Success, EffectId::Magiccrasher2, PortedAnchor::Caster),
+    (SkillId(405), SkillPhase::Ground, EffectId::BottomSpider, PortedAnchor::Target),
     (SkillId(406), SkillPhase::Success, EffectId::Soulbreaker2, PortedAnchor::Caster),
     (SkillId(408), SkillPhase::Success, EffectId::Baby, PortedAnchor::Caster),
     (SkillId(411), SkillPhase::Success, EffectId::Stopeffect, PortedAnchor::Caster),
@@ -884,9 +892,11 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(524), SkillPhase::Release, EffectId::Throwitem8, PortedAnchor::Target),
     (SkillId(525), SkillPhase::Release, EffectId::Throwitem9, PortedAnchor::Target),
     (SkillId(526), SkillPhase::Release, EffectId::Throwitem10, PortedAnchor::Target),
+    (SkillId(527), SkillPhase::Ground, EffectId::Tatami, PortedAnchor::Target),
     (SkillId(528), SkillPhase::Success, EffectId::Kasumikiri, PortedAnchor::Caster),
     (SkillId(530), SkillPhase::Success, EffectId::Kirikage, PortedAnchor::Caster),
     (SkillId(534), SkillPhase::Success, EffectId::Kouenka, PortedAnchor::Caster),
+    (SkillId(535), SkillPhase::Ground, EffectId::Kaen, PortedAnchor::Target),
     (SkillId(536), SkillPhase::Success, EffectId::Baku, PortedAnchor::Caster),
     (SkillId(537), SkillPhase::Success, EffectId::Hyousensou, PortedAnchor::Caster),
     (SkillId(539), SkillPhase::Success, EffectId::Hyousyouraku, PortedAnchor::Caster),
@@ -982,7 +992,9 @@ mod tests {
 
     #[test]
     fn unmapped_skills_return_none() {
-        // SM_BASH only uses the generic hit ids (`0`/`1`), none of which is ported.
+        // `SM_BASH` (5) keeps its `Hit` descriptor row; the 2019 table only
+        // names the generic `EF_HIT1`/`EF_HIT2`, which are not the skill's
+        // own launch, so no phase of it is mapped.
         assert!(ported_effect_for(SkillId(5), SkillPhase::Hit).is_none());
         assert!(ported_effect_for(SkillId(u16::MAX), SkillPhase::Success).is_none());
         assert!(ported_effect_for(SkillId(5), SkillPhase::Success).is_none());
@@ -1018,18 +1030,165 @@ mod tests {
         assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
     }
 
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:600-608 (CSkill::OnProcess
+    /// UNT_SANCTUARY, LaunchEffect at :602)
     #[test]
-    fn wind_walk_plays_the_cast_and_success_lanes() {
-        // `SN_WINDWALK` (383) is the first skill with two ported lanes:
-        // the cast-start `EF_BEGINSPELL6` rings (`SkillActionInfo.cpp:1750`
-        // -> `GameModePackets.cpp:12947-12953`/`:17551-17559`) and the
-        // success `EF_PORTAL4` wind columns (`GameModePackets.cpp:19098`).
+    fn curated_extra_pr_sanctuary_plays_bottomsanc_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(70), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::BottomSanc as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(70), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:816-824 (CSkill::OnProcess
+    /// UNT_MAGNUS, LaunchEffect at :818)
+    #[test]
+    fn curated_extra_pr_magnus_plays_bottommag_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(79), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::BottomMag as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(79), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: RenderObject.cpp:1117-1121 (PlayGroundSkillEffect
+    /// WZ_ICEWALL, LaunchDummyEffect 0x4A=74 at :1119)
+    #[test]
+    fn curated_extra_wz_icewall_plays_icewall_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(87), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Icewall as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(87), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: RenderObject.cpp:1133-1141 (PlayGroundSkillEffect
+    /// WZ_STORMGUST, LaunchDummyEffect 0x59=89 at :1139)
+    #[test]
+    fn curated_extra_wz_stormgust_plays_stormgust_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(89), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Stormgust as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(89), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: RenderObject.cpp:1059-1063 (PlayGroundSkillEffect
+    /// WZ_HEAVENDRIVE, LaunchDummyEffect 0x8E=142 at :1061)
+    #[test]
+    fn curated_extra_wz_heavendrive_plays_heavensdrive_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(91), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Heavensdrive as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(91), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: RenderObject.cpp:5829-5833 (ProcessSkillMessage
+    /// MO_CHAINCOMBO, LaunchEffect EF_CHAINCOMBO at :5833)
+    #[test]
+    fn curated_extra_mo_chaincombo_plays_chaincombo_on_hit() {
+        assert_eq!(
+            ported_effect_for(SkillId(272), SkillPhase::Hit).map(|effect| effect as u32),
+            Some(EffectId::Chaincombo as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(272), SkillPhase::Hit), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:687-695 (CSkill::OnProcess
+    /// UNT_LANDPROTECTOR, LaunchEffect at :689)
+    #[test]
+    fn curated_extra_sa_landprotector_plays_bottomla_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(288), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::BottomLa as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(288), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: SkillActionInfo.cpp:165-178 ->
+    /// GameModePackets.cpp:12947-12953/:17551-17559
+    #[test]
+    fn curated_extra_sn_windwalk_plays_beginspell6_on_cast() {
         assert_eq!(
             ported_effect_for(SkillId(383), SkillPhase::Cast).map(|effect| effect as u32),
             Some(EffectId::Beginspell6 as u32)
         );
         assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Cast), PortedAnchor::Caster);
+    }
 
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:727-735 (CSkill::OnProcess
+    /// UNT_SPIDERWEB, LaunchEffect at :729)
+    #[test]
+    fn curated_extra_pf_spiderweb_plays_bottomspider_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(405), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::BottomSpider as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(405), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:1017-1025 (CSkill::OnProcess
+    /// UNT_TATAMIGAESHI, LaunchEffect at :1019)
+    #[test]
+    fn curated_extra_nj_tatamigaeshi_plays_tatami_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(527), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Tatami as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(527), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`
+    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.
+    ///
+    /// Official launch: MsgEffect.cpp:1027-1033 (CSkill::OnProcess
+    /// UNT_KAEN, LaunchEffect at :1030)
+    #[test]
+    fn curated_extra_nj_kaensin_plays_kaen_on_ground() {
+        assert_eq!(
+            ported_effect_for(SkillId(535), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Kaen as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(535), SkillPhase::Ground), PortedAnchor::Target);
+    }
+
+    #[test]
+    fn wind_walk_success_lane_stays_coverage_driven() {
+        // The second Wind Walk lane is not curated: `EF_PORTAL4` comes from
+        // the coverage data (`successEffectId` -> `Success`,
+        // `GameModePackets.cpp:19098`), so it is pinned by the coverage row.
         assert_eq!(
             ported_effect_for(SkillId(383), SkillPhase::Success).map(|effect| effect as u32),
             Some(EffectId::Portal4 as u32)

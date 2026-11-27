@@ -26,7 +26,10 @@ Skills whose official visual is not spawned by either skill-use switch are
 curated in `CURATED_SKILL_EFFECTS` below (the option auras: `EF_RUWACH` is
 re-launched from `CGameActor::UpdateStateEffects`, not from `skill_spawns`).
 Extra lanes that the `SkillEffect` data cannot see (the cast-start effect of
-`CSession::GetSkillActionInfo`) are listed in `CURATED_EXTRA_EFFECTS`.
+`CSession::GetSkillActionInfo`, the hard-coded ground/unit and damage launches
+of the descriptor-bearing skills with an empty `used_effect_ids`) are listed in
+`CURATED_EXTRA_EFFECTS`, each with the decompiled `file:line` of its launch
+site.
 
 Run: `./tools/gen_ported_skill_map.py`
 Check: `./tools/gen_ported_skill_map.py --check`
@@ -38,6 +41,7 @@ import argparse
 import json
 import re
 import sys
+import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -143,26 +147,91 @@ CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
 }
 
 # Additional lanes of a skill that the `SkillEffect` coverage data cannot see.
-# The cast-start effect is not a `SkillEffect` field: the official client reads
-# it from `CSession::GetSkillActionInfo`, hands it to
-# `LaunchSkillActorEffect` and launches it on the caster before the cast
-# completes (`GameModePackets.cpp:12947-12953` -> `:17551-17559`, reached only
-# when the cast has a `delay != 0`). A skill can therefore have a ported id on
-# the `Cast` phase that no `windows_client_skill_effects.json` field names.
+# A skill can have a ported id on a lane that no `windows_client_skill_effects.json`
+# field names, so those pairs are curated here instead of being derived.
 #
-# * `SN_WINDWALK` (383) -> `EF_BEGINSPELL6` (58) on `Cast`: the default
-#   cast-start lane (`SkillActionInfo.cpp:51-53`, `:1750`; `ShowsCastEffect`
-#   is true by default, `SkillInfo.cpp:890-927`). Body
-#   `RagEffect.cpp:23584-23591` (two `ring_white` `TexturedQuadRingSized`
-#   rings + `effect\EF_BeginSpell.wav`), lifetime 40
+# Every row is `(effect name, phase, citation)`. The citation is the exact
+# decompiled launch site (`file:line`) and is emitted into the generated test,
+# so regeneration stays deterministic and the provenance of each curated id
+# survives.
+#
+# Cast-start lanes (`CSession::GetSkillActionInfo`, launched on the caster
+# before the cast completes):
+#
+# * `SN_WINDWALK` (383) -> `EF_BEGINSPELL6` (58) on `Cast`: the cast-start lane
+#   (`SkillActionInfo.cpp:165-178`, the `SN_WINDWALK` case at `:165` and
+#   `effectId = EF_BEGINSPELL6` at `:178`) handed to `LaunchSkillActorEffect`
+#   (`GameModePackets.cpp:12947-12953` -> `:17551-17559`, reached only when the
+#   cast has a `delay != 0`). Body `RagEffect.cpp:23584-23591`, lifetime 40
 #   (`EffectTypes.cpp:67`). Its success lane (`EF_PORTAL4` 389) stays
 #   coverage-driven.
 #
-# The row is an extra (skill, phase) pair: it never replaces the coverage row
-# of the same skill, and a collision with an already emitted pair is a hard
-# error.
-CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str]] = {
-    383: ("Beginspell6", "Cast"),
+# Ground lanes of the descriptor-bearing skills whose `used_effect_ids` is
+# empty (the 2019 table alone is not enough: for most of them it only carries
+# the generic `EF_HIT1`/`EF_HIT2`, which must not be attached to `Success`).
+# The launch is always a hard-coded `LaunchEffect`/`LaunchDummyEffect`:
+#
+# * `PR_SANCTUARY` (70) -> `EF_BOTTOM_SANC` (319): skill-unit body,
+#   `CSkill::OnProcess` `case UNT_SANCTUARY:` (`MsgEffect.cpp:600-608`,
+#   `LaunchEffect` at `:602`, lifetime 9999 `EffectTypes.cpp:328`). The ground
+#   dispatch also launches `EF_SANCTUARY` (83, `RenderObject.cpp:1054-1056`),
+#   which the port does not register.
+# * `PR_MAGNUS` (79) -> `EF_BOTTOM_MAG` (318): `case UNT_MAGNUS:`
+#   (`MsgEffect.cpp:816-824`, launch `:818`, lifetime 9999
+#   `EffectTypes.cpp:327`). `EF_MAGNUS` (113, `RenderObject.cpp:1049-1051`) is
+#   not ported.
+# * `WZ_ICEWALL` (87) -> `EF_ICEWALL` (74): ground dispatch
+#   (`RenderObject.cpp:1117-1121`, `LaunchDummyEffect(0x4A)` at `:1119`); the
+#   same body is the unit launch (`MsgEffect.cpp:846-851`).
+# * `WZ_STORMGUST` (89) -> `EF_STORMGUST` (89): ground dispatch
+#   (`RenderObject.cpp:1133-1141`, the default-path `LaunchDummyEffect(0x59)`
+#   at `:1139`; the min-effect path uses `EF_STORM_MIN` 708 which is not
+#   ported). `EF_COLDHIT` (51) stays the per-hit effect, not ported.
+# * `WZ_HEAVENDRIVE` (91) -> `EF_HEAVENSDRIVE` (142): ground dispatch
+#   (`RenderObject.cpp:1059-1063`, `LaunchDummyEffect(0x8E)` at `:1061`,
+#   `EffectTypes.h:150`). The per-hit `EF_EARTHHIT` (147) is not ported.
+# * `SA_LANDPROTECTOR` (288) -> `EF_BOTTOM_LA` (242): `case UNT_LANDPROTECTOR:`
+#   (`MsgEffect.cpp:687-695`, launch `:689`). `EF_LANDPROTECTOR` (238,
+#   `RenderObject.cpp:1164-1166`) is not ported.
+# * `PF_SPIDERWEB` (405) -> `EF_BOTTOM_SPIDER` (404): `case UNT_SPIDERWEB:`
+#   (`MsgEffect.cpp:727-735`, launch `:729`).
+# * `NJ_TATAMIGAESHI` (527) -> `EF_TATAMI` (631) and `NJ_KAENSIN` (535) ->
+#   `EF_KAEN` (634): `case UNT_TATAMIGAESHI:` / `case UNT_KAEN:`
+#   (`MsgEffect.cpp:1017-1025` / `:1027-1033`). Both skills already have a
+#   `Ground` descriptor row (the ro-next lane the official ground/unit launch
+#   replaces).
+#
+# Damage lane:
+#
+# * `MO_CHAINCOMBO` (272) -> `EF_CHAINCOMBO` (273) on `Hit`:
+#   `CGameActor::ProcessSkillMessage` `case MO_CHAINCOMBO:` launches it on the
+#   *target* (`RenderObject.cpp:5829-5833`, `LaunchEffect` at `:5833`), next to
+#   the generic `EF_TEIHIT1` (262). The caster's `EF_GUMGANG3` (263) is not
+#   ported.
+#
+# Skills whose 2019 ids carry no skill-specific official launch stay unmapped:
+# `SM_BASH` (5), `MG_NAPALMBEAT` (11), `AC_DOUBLE` (46), `AC_SHOWER` (47) and
+# `AC_CHARGEARROW` (148) only name the generic `EF_HIT1`/`EF_HIT2`/`EF_BASH`
+# hit ids, `MG_SOULSTRIKE` (13) and `HT_PHANTASMIC` (1009) are launched from the
+# Lua `skilleffectinfolist` table (`LaunchLuaSkillEffect`,
+# `JobInheritance.cpp:1886-1927`) with the id coming from script data, and
+# `CH_SOULCOLLECT` (401) is already wired through `status_effect_launches.ron`
+# (`GameModePackets.cpp:12885`), so a second mapping would draw it twice.
+#
+# A row is an extra (skill, phase) pair: it never replaces the coverage row of
+# the same skill, and a collision with an already emitted pair is a hard error.
+CURATED_EXTRA_EFFECTS: dict[int, tuple[str, str, str]] = {
+    383: ("Beginspell6", "Cast", "SkillActionInfo.cpp:165-178 -> GameModePackets.cpp:12947-12953/:17551-17559"),
+    70: ("BottomSanc", "Ground", "MsgEffect.cpp:600-608 (CSkill::OnProcess UNT_SANCTUARY, LaunchEffect at :602)"),
+    79: ("BottomMag", "Ground", "MsgEffect.cpp:816-824 (CSkill::OnProcess UNT_MAGNUS, LaunchEffect at :818)"),
+    87: ("Icewall", "Ground", "RenderObject.cpp:1117-1121 (PlayGroundSkillEffect WZ_ICEWALL, LaunchDummyEffect 0x4A=74 at :1119)"),
+    89: ("Stormgust", "Ground", "RenderObject.cpp:1133-1141 (PlayGroundSkillEffect WZ_STORMGUST, LaunchDummyEffect 0x59=89 at :1139)"),
+    91: ("Heavensdrive", "Ground", "RenderObject.cpp:1059-1063 (PlayGroundSkillEffect WZ_HEAVENDRIVE, LaunchDummyEffect 0x8E=142 at :1061)"),
+    272: ("Chaincombo", "Hit", "RenderObject.cpp:5829-5833 (ProcessSkillMessage MO_CHAINCOMBO, LaunchEffect EF_CHAINCOMBO at :5833)"),
+    288: ("BottomLa", "Ground", "MsgEffect.cpp:687-695 (CSkill::OnProcess UNT_LANDPROTECTOR, LaunchEffect at :689)"),
+    405: ("BottomSpider", "Ground", "MsgEffect.cpp:727-735 (CSkill::OnProcess UNT_SPIDERWEB, LaunchEffect at :729)"),
+    527: ("Tatami", "Ground", "MsgEffect.cpp:1017-1025 (CSkill::OnProcess UNT_TATAMIGAESHI, LaunchEffect at :1019)"),
+    535: ("Kaen", "Ground", "MsgEffect.cpp:1027-1033 (CSkill::OnProcess UNT_KAEN, LaunchEffect at :1030)"),
 }
 
 
@@ -385,7 +454,7 @@ def main() -> int:
         anchor = "Target" if phase in TARGET_PHASES else "Caster"
         rows.append((skill, phase, name_to_id[name], name, anchor))
 
-    for skill, (name, phase) in sorted(CURATED_EXTRA_EFFECTS.items()):
+    for skill, (name, phase, citation) in sorted(CURATED_EXTRA_EFFECTS.items()):
         if name not in ported_set:
             raise SystemExit(f"curated extra skill {skill} maps to the unported effect {name}")
         if any(row[0] == skill and row[1] == phase for row in rows):
@@ -500,7 +569,9 @@ def main() -> int:
     lines.append("")
     lines.append("    #[test]")
     lines.append("    fn unmapped_skills_return_none() {")
-    lines.append("        // SM_BASH only uses the generic hit ids (`0`/`1`), none of which is ported.")
+    lines.append("        // `SM_BASH` (5) keeps its `Hit` descriptor row; the 2019 table only")
+    lines.append("        // names the generic `EF_HIT1`/`EF_HIT2`, which are not the skill's")
+    lines.append("        // own launch, so no phase of it is mapped.")
     lines.append("        assert!(ported_effect_for(SkillId(5), SkillPhase::Hit).is_none());")
     lines.append("        assert!(ported_effect_for(SkillId(u16::MAX), SkillPhase::Success).is_none());")
     lines.append("        assert!(ported_effect_for(SkillId(5), SkillPhase::Success).is_none());")
@@ -536,18 +607,35 @@ def main() -> int:
     lines.append("        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);")
     lines.append("    }")
     lines.append("")
+    # One emitted test per curated extra lane: the citation is part of the row,
+    # so the generated file records where each hand-picked id came from.
+    for skill, (effect_name, phase, citation) in sorted(CURATED_EXTRA_EFFECTS.items()):
+        skill_name = coverage[str(skill)]["name"]
+        anchor = "Target" if phase in TARGET_PHASES else "Caster"
+        test_name = f"curated_extra_{skill_name.lower()}_plays_{effect_name.lower()}_on_{phase.lower()}"
+        lines.append("    /// Curated extra lane: a `(skill, phase)` pair the `SkillEffect`")
+        lines.append("    /// coverage data cannot see, so `gen_ported_skill_map.py` curates it.")
+        lines.append("    ///")
+        # rustfmt (`wrap_comments`, `comment_width = 80`) would re-wrap a long
+        # citation line, so emit it already wrapped and stay `rustfmt --check`
+        # clean without a second formatting pass.
+        for citation_line in textwrap.wrap(f"Official launch: {citation}", width=68):
+            lines.append(f"    /// {citation_line}")
+        lines.append("    #[test]")
+        lines.append(f"    fn {test_name}() {{")
+        lines.append("        assert_eq!(")
+        lines.append(f"            ported_effect_for(SkillId({skill}), SkillPhase::{phase}).map(|effect| effect as u32),")
+        lines.append(f"            Some(EffectId::{effect_name} as u32)")
+        lines.append("        );")
+        lines.append(f"        assert_eq!(ported_anchor_for(SkillId({skill}), SkillPhase::{phase}), PortedAnchor::{anchor});")
+        lines.append("    }")
+        lines.append("")
+
     lines.append("    #[test]")
-    lines.append("    fn wind_walk_plays_the_cast_and_success_lanes() {")
-    lines.append("        // `SN_WINDWALK` (383) is the first skill with two ported lanes:")
-    lines.append("        // the cast-start `EF_BEGINSPELL6` rings (`SkillActionInfo.cpp:1750`")
-    lines.append("        // -> `GameModePackets.cpp:12947-12953`/`:17551-17559`) and the")
-    lines.append("        // success `EF_PORTAL4` wind columns (`GameModePackets.cpp:19098`).")
-    lines.append("        assert_eq!(")
-    lines.append("            ported_effect_for(SkillId(383), SkillPhase::Cast).map(|effect| effect as u32),")
-    lines.append("            Some(EffectId::Beginspell6 as u32)")
-    lines.append("        );")
-    lines.append("        assert_eq!(ported_anchor_for(SkillId(383), SkillPhase::Cast), PortedAnchor::Caster);")
-    lines.append("")
+    lines.append("    fn wind_walk_success_lane_stays_coverage_driven() {")
+    lines.append("        // The second Wind Walk lane is not curated: `EF_PORTAL4` comes from")
+    lines.append("        // the coverage data (`successEffectId` -> `Success`,")
+    lines.append("        // `GameModePackets.cpp:19098`), so it is pinned by the coverage row.")
     lines.append("        assert_eq!(")
     lines.append("            ported_effect_for(SkillId(383), SkillPhase::Success).map(|effect| effect as u32),")
     lines.append("            Some(EffectId::Portal4 as u32)")
