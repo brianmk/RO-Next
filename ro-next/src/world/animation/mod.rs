@@ -34,6 +34,12 @@ pub enum AnimationActionType {
     ReadyFight,
     Sit,
     Skill,
+    /// Official `ST_STAND` pose (`GetSkillActionInfo` motion 0) for actors
+    /// whose `SetState` resolves it through `WeaponActionBase(ST_STAND) = 0`
+    /// (remote players, monsters, NPCs). The local player is a `CPc` and its
+    /// `JobActionBase(ST_STAND)` is the armed idle block 32, so the handlers
+    /// keep using [`AnimationActionType::Idle`] for the local player.
+    Stand,
     Special,
     Walk,
     /// Explicit ACT action index (rustnarok's generic motion table: dance,
@@ -65,6 +71,9 @@ impl AnimationActionType {
                 AnimationActionType::Attack2 => 10,
                 AnimationActionType::Attack3 => 11,
                 AnimationActionType::Skill => 12,
+                // `CGameActor::SetState(ST_STAND)` -> `WeaponActionBase(0)`
+                // (`RenderObject.cpp:3353`); only the local `CPc` differs.
+                AnimationActionType::Stand => 0,
                 AnimationActionType::Custom(index) => *index,
                 _ => 0,
             },
@@ -76,6 +85,7 @@ impl AnimationActionType {
                 AnimationActionType::Attack1 => 2,
                 AnimationActionType::Hurt => 3,
                 AnimationActionType::Die => 4,
+                AnimationActionType::Stand => 0,
                 AnimationActionType::Custom(index) => *index,
                 _ => 0,
             },
@@ -276,6 +286,22 @@ impl AnimationState {
         self.idle(entity_type, client_tick);
     }
 
+    /// Official `ST_STAND` pose (block 0) for non-local actors.
+    ///
+    /// `CGameActor::SetState(ST_STAND)` uses `WeaponActionBase(ST_STAND) = 0`
+    /// (`RenderObject.cpp:3353`); the local player is a `CPc` and uses the
+    /// armed idle block 32 instead, which the handlers keep as
+    /// [`Self::idle`].
+    pub fn stand(&mut self, entity_type: EntityType, client_tick: ClientTick) {
+        self.clear_frame_sequence();
+        self.action_type = AnimationActionType::Stand;
+        self.action_base_offset = self.action_type.action_base_offset(entity_type);
+        self.start_time = client_tick;
+        self.duration = None;
+        self.factor = None;
+        self.looping = true;
+    }
+
     /// Play the skill-cast animation for `cast_time` milliseconds.
     ///
     /// Casts with a cast time loop the ACT skill action (the original client
@@ -313,6 +339,23 @@ impl AnimationState {
         };
         self.factor = None;
         self.looping = looping;
+    }
+
+    /// Plays an official monster skill action (`GetMonsterSkillInfo`).
+    ///
+    /// The official call is `SetAction(action * 8 - 8, 1, loopType == 0)`:
+    /// a `loopType` of 0 uses `MT_ONETIME` (play the ACT once, then return to
+    /// idle) and every other value uses `MT_LOOP` (keep looping until another
+    /// action replaces it). Unlike a player skill pose, a looping monster
+    /// action has no cast-time deadline.
+    pub fn monster_action(&mut self, entity_type: EntityType, action_index: usize, looping: bool, client_tick: ClientTick) {
+        self.custom(entity_type, action_index, 0, looping, client_tick);
+        if looping {
+            // `custom` would stop after `cast_time.max(1)` (1 ms); the
+            // official MT_LOOP has no deadline.
+            self.duration = None;
+            self.looping = true;
+        }
     }
 
     /// Restricts the current action to the official frame sequence
@@ -1126,6 +1169,40 @@ mod tests {
         assert_eq!(AnimationActionType::Attack2.action_base_offset(EntityType::Player), 10);
         assert_eq!(AnimationActionType::Attack3.action_base_offset(EntityType::Player), 11);
         assert_eq!(AnimationActionType::Skill.action_base_offset(EntityType::Player), 12);
+    }
+
+    #[test]
+    fn stand_is_the_official_st_stand_block_for_non_local_actors() {
+        // CGameActor::SetState(ST_STAND) -> WeaponActionBase(0) = block 0
+        // (RenderObject.cpp:3353); only the local CPc uses block 32
+        // (Player.cpp:1687), which stays `Idle`.
+        assert_eq!(AnimationActionType::Stand.action_base_offset(EntityType::Player), 0);
+        assert_eq!(AnimationActionType::Stand.action_base_offset(EntityType::Monster), 0);
+        assert_eq!(AnimationActionType::Idle.action_base_offset(EntityType::Player), 4);
+
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.stand(EntityType::Player, ClientTick(10));
+        assert_eq!(state.action_index(), 0);
+        assert!(state.looping);
+    }
+
+    #[test]
+    fn monster_actions_keep_the_official_one_shot_and_loop_semantics() {
+        // SetAction(action * 8 - 8, 1, loopType == 0): action index 5 is block
+        // 40; loopType 0 (one-shot) returns to idle after the ACT action.
+        let mut state = AnimationState::new(EntityType::Monster, ClientTick(0));
+        state.monster_action(EntityType::Monster, 5, false, ClientTick(10));
+        // `action_index()` is the ACT action (block / 8); 5 -> block 40.
+        assert_eq!(state.action_index(), 5);
+        assert_eq!(state.action_index() * 8, 40);
+        assert!(state.is_custom_one_shot());
+
+        // loopType != 0 is MT_LOOP and has no default deadline.
+        state.monster_action(EntityType::Monster, 0, true, ClientTick(20));
+        assert_eq!(state.action_index(), 0);
+        assert!(state.looping);
+        assert_eq!(state.duration, None);
+        assert!(!state.is_custom_one_shot());
     }
 
     #[test]

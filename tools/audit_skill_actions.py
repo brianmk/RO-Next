@@ -10,7 +10,7 @@ Sources:
 
 Every skill listed in the decompilation facts must exist in the data file, and
 its action must match the official motion mapping
-(0=Idle, 2=Attack, 5=Pickup, 7/8=Skill) unless an explicit frame sequence
+(0=Stand, 2=Attack, 5=Pickup, 7/8=Skill) unless an explicit frame sequence
 overrides it (0x58=Attack, 0x60=Skill).
 
 Usage: ./tools/audit_skill_actions.py
@@ -27,7 +27,7 @@ SEQUENCES = Path("tools/data/rodecomp_skill_frame_sequences.json")
 DATA = Path("ro-next/archive/data/client/skill_actions.ron")
 
 MOTION_ACTION = {
-    0: "Idle",
+    0: "Stand",        # ST_STAND: block 0 for non-local actors, 32 for the local CPc
     2: "Attack",       # weapon-aware swing: ST_ATTACK -> ST_ATTACK2 (88) or 80
     5: "Pickup",       # 24
     7: "Skill",        # 96

@@ -193,6 +193,86 @@ def extract_skill_use(names: dict[str, int], wanted: set[str]) -> dict[str, dict
     return sequences
 
 
+def extract_actor_skill_state(names: dict[str, int]) -> dict[str, dict]:
+    """`SetFrameSequence` / motion-freeze calls of `CGameMode::ApplyActorSkillState`.
+
+    The function is called from `NotifySkillCasting` before the cast finishes
+    (`GameModePackets.cpp:12968`), so these sequences are **cast-start** holds,
+    not damage animations. `KN_BRANDISHSPEAR`/`KN_BOWLINGBASH` freeze the
+    current motion instead of naming a frame range (`:12873-12874`).
+    """
+    lines = GAME_MODE_PACKETS.read_text().splitlines()
+    start = next((number for number, line in enumerate(lines, 1) if "void ApplyActorSkillState(" in line), None)
+    if start is None:
+        raise SystemExit("ApplyActorSkillState not found")
+    end = next((number for number in range(start + 1, len(lines) + 1) if lines[number - 1].startswith("// OFFSET:")), len(lines) + 1)
+
+    case_re = re.compile(r"case ([A-Z0-9_]+):")
+    seq_re = re.compile(r"SetFrameSequence\(([^)]*)\)")
+    pending: list[str] = []
+    sequences: dict[str, dict] = {}
+
+    for number in range(start, end):
+        line = lines[number - 1].strip()
+
+        case = case_re.search(line)
+        if case:
+            pending.append(case.group(1))
+            continue
+
+        freeze = "isMotionFreezed = true;" in line
+        seq = seq_re.search(line)
+        if freeze or seq:
+            if seq:
+                args = [argument.strip() for argument in seq.group(1).split(",")]
+                if len(args) != 8:
+                    raise SystemExit(f"unexpected SetFrameSequence argument count in GameModePackets.cpp:{number}: {line}")
+                block, first, last, loop_block, loop_to, timed, duration, loop = args
+                after_cast = 0
+                duration_match = re.fullmatch(r"duration\s*\+\s*(\d+)", duration)
+                if duration_match:
+                    after_cast = int(duration_match.group(1))
+                elif duration != "0":
+                    raise SystemExit(f"unsupported duration expression in GameModePackets.cpp:{number}: {duration!r}")
+                entry = {
+                    "block": block,
+                    "first": first,
+                    "last": last,
+                    "loop_block": loop_block,
+                    "loop_to": loop_to,
+                    "timed": timed,
+                    "duration": duration,
+                    "loop": loop,
+                    "after_cast_ms": str(after_cast),
+                    "kind": "frame_sequence",
+                    "source": f"GameModePackets.cpp:{number}",
+                }
+            else:
+                entry = {
+                    "block": None,
+                    "first": "0",
+                    "last": "0",
+                    "loop_block": "0",
+                    "loop_to": "0",
+                    "timed": "0",
+                    "duration": "duration",
+                    "loop": "0",
+                    "after_cast_ms": "0",
+                    "kind": "freeze",
+                    "source": f"GameModePackets.cpp:{number}",
+                }
+            for name in pending:
+                if name in names:
+                    sequences[name] = dict(entry, skill=names[name])
+            pending = []
+            continue
+
+        if line.startswith("break;") or line.startswith("}"):
+            pending = []
+
+    return sequences
+
+
 def load_skill_names() -> dict[str, int]:
     """Skill name -> id, preferring the 2019 client dump and filling newer jobs
     from the decompiled `SkillId.h` enum (the GRF dump predates 4th jobs)."""
@@ -214,13 +294,16 @@ def main() -> None:
     for name, entry in extract_skill_use(names, SKILL_USE_SEQUENCES).items():
         sequences.setdefault(name, entry)
 
+    cast_sequences = extract_actor_skill_state(names)
+
     data = {
         "provenance": {
             "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch and CGameMode::ReceiveSkillUse SetFrameSequence calls",
             "file": "Source/Contents/Actors/RenderObject.cpp, Source/Client/Mode/GameModePackets.cpp",
-            "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted",
+            "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted; `cast_sequences` are the ApplyActorSkillState holds applied when ZC_USESKILL_ACK starts a cast (after_cast_ms is the `duration + N` term; `kind: freeze` is isMotionFreezed for the cast duration)",
         },
         "sequences": {name: entry for name, entry in sorted(sequences.items()) if entry["skill"] is not None},
+        "cast_sequences": {name: entry for name, entry in sorted(cast_sequences.items()) if entry["skill"] is not None},
         "unmatched": unknown,
     }
     OUTPUT.write_text(json.dumps(data, indent=1) + "\n")

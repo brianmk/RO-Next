@@ -549,6 +549,25 @@ impl Entity {
         self.get_common_mut().animation_state.ready_fight(entity_type, client_tick);
     }
 
+    /// Official `ST_STAND` pose (block 0) for non-local actors.
+    ///
+    /// `CGameActor::SetState(ST_STAND)` uses
+    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:3353`); the local
+    /// player is a `CPc` and keeps the armed idle block 32.
+    pub fn set_stand(&mut self, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut().animation_state.stand(entity_type, client_tick);
+    }
+
+    /// Plays an official monster skill action (`CSession::GetMonsterSkillInfo`
+    /// -> `SetAction(action * 8 - 8, 1, loopType == 0)`).
+    pub fn set_monster_action(&mut self, action_index: usize, looping: bool, client_tick: ClientTick) {
+        let entity_type = self.get_entity_type();
+        self.get_common_mut()
+            .animation_state
+            .monster_action(entity_type, action_index, looping, client_tick);
+    }
+
     /// Sit down (`ZC_NOTIFY_ACT` with `DamageType::SitDown`).
     pub fn set_sitting(&mut self, client_tick: ClientTick) {
         let entity_type = self.get_entity_type();

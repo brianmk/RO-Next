@@ -63,6 +63,8 @@ import sys
 import zlib
 from pathlib import Path
 
+import grf_mixcrypt
+
 DEFAULT_SSH = "rathena"
 DEFAULT_SERVER_ROOT = "/home/phantom/rathena"
 DEFAULT_OUTPUT = Path("tools/data/job_facts.json")
@@ -448,19 +450,21 @@ class GrfFileTable:
         return digest.hexdigest()
 
     def get(self, name: str) -> bytes | None:
-        """Raw decompressed content of one entry, or ``None``."""
+        """Raw decompressed content of one entry, or ``None``.
+
+        Entries can be plain zlib (`flags == 0x01`) or encrypted with the
+        client's GRF mixcrypt (`flags & 0x02`, or header-only DES with
+        `flags & 0x04`); the encrypted form is used by `data.grf` for the
+        monster/skill data tables.
+        """
         entry = self._entries.get(name.lower())
         if entry is None:
             return None
-        _compressed, compressed_aligned, _uncompressed, flags, offset = entry
-        if flags != 0x01:
-            raise ValueError(
-                f"{self.path.name}: entry {name!r} uses flags {flags:#x} (encryption/compression this "
-                "extractor does not implement)"
-            )
+        compressed, compressed_aligned, _uncompressed, flags, offset = entry
         self._handle.seek(46 + offset)
-        data = self._handle.read(compressed_aligned)
-        return zlib.decompress(data)
+        data = bytearray(self._handle.read(compressed_aligned))
+        grf_mixcrypt.decrypt_file(flags, compressed, data)
+        return zlib.decompress(bytes(data))
 
     def close(self) -> None:
         self._handle.close()

@@ -23,6 +23,8 @@
 //!   [`CasterAction::Idle`] (keep the current/idle pose),
 //! * `PICKUP` -> [`CasterAction::Pickup`] (pickup animation),
 //! * `READYFIGHT` -> [`CasterAction::ReadyFight`] (combat stance, `SM_ENDURE`),
+//! * `ST_STAND` (`motion = 0`) -> [`CasterAction::Stand`] (block 0 for every
+//!   non-local actor, armed idle block 32 for the local `CPc`),
 //! * everything else (`SKILL`, unknown skills) -> [`CasterAction::Skill`].
 //!
 //! Unknown skills deliberately fall back to the casting gesture: it is a valid
@@ -50,6 +52,16 @@ pub enum CasterAction {
     /// Keep the idle pose. Official client behaviour for most stance/buff
     /// skills (Zen, Fury, Endure, ...).
     Idle,
+    /// The official `ST_STAND` pose (`GetSkillActionInfo` motion `0`).
+    ///
+    /// `CGameActor::SetState(ST_STAND)` maps it to
+    /// `WeaponActionBase(ST_STAND) = 0` (`RenderObject.cpp:3353`), but the
+    /// local player is a `CPc` and `CPc::JobActionBase(ST_STAND)` returns the
+    /// armed idle block `32` (`Player.cpp:1687`). The client keeps the two
+    /// apart: the local player uses the armed idle pose, every other actor
+    /// (other players, monsters) plays block `0`. `Idle` remains the
+    /// client's armed-idle pose for the "prevent default" rows.
+    Stand,
     /// Play the attack animation. Official client behaviour for attack skills.
     Attack,
     /// Play the pickup animation (pickup-style skills such as `HT_LANDMINE`).
@@ -202,11 +214,9 @@ mod tests {
             CasterAction::Skill,
             "Blessing uses the cast gesture"
         );
-        assert_eq!(
-            use_caster_action(SkillId(29)),
-            CasterAction::Idle,
-            "Incagi keeps the stand pose"
-        );
+        // GetSkillActionInfo2 motion 0 (ST_STAND): the armed idle pose for the
+        // local CPc, block 0 for remote actors.
+        assert_eq!(use_caster_action(SkillId(29)), CasterAction::Stand, "Incagi stands");
         assert_eq!(use_caster_action(SkillId(61)), CasterAction::Attack, "Auto Counter swings");
         assert_eq!(
             use_caster_action(SkillId(231)),
@@ -225,13 +235,63 @@ mod tests {
     #[test]
     fn stance_skills_keep_the_idle_pose() {
         // Blessing: the official `GetSkillActionInfo` sets motion 0
-        // (ST_STAND), so the caster keeps the idle pose.
-        assert_eq!(caster_action(SkillId(34)), CasterAction::Idle);
+        // (ST_STAND), which is block 0 for remote actors (and the armed idle
+        // block 32 for the local CPc).
+        assert_eq!(caster_action(SkillId(34)), CasterAction::Stand);
         // Basic Skill, Incagi, Summon Spirit Sphere and Zen use the default
         // begin-skill gesture (motion 7/8 = ST_SKILL/ST_BEGIN_SKILL).
         for skill_id in [1, 29, 261, 401] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
         }
+    }
+
+    #[test]
+    fn proxy_idle_rows_use_the_official_st_stand() {
+        // The 19 rows whose official `GetSkillActionInfo` motion is 0 now emit
+        // `Stand` instead of the client's armed `Idle` pose. The handler picks
+        // block 0 for remote players/monsters and block 32 for the local CPc
+        // (`Player.cpp:1687` vs `RenderObject.cpp:3353`).
+        for skill_id in [
+            34, 230, 231, 232, 234, 235, 236, 237, 243, 244, 247, 249, 389, 425, 475, 479, 493, 1001, 1014,
+        ] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Stand, "skill {}", skill_id);
+        }
+        // The sequence carriers are not affected: their explicit block wins.
+        for skill_id in [268, 270, 1010] {
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(12), "skill {}", skill_id);
+        }
+    }
+
+    #[test]
+    fn cast_start_holds_are_loaded_from_apply_actor_skill_state() {
+        // GameModePackets.cpp:12876-12886: MO_CALLSPIRITS / MO_KITRANSLATION /
+        // CH_SOULCOLLECT hold block 96 frame 0 for the cast; MO_STEELBODY holds
+        // the same frame for `duration + 1000`.
+        for skill_id in [261, 1015, 401] {
+            let sequence = crate::world::cast_frame_sequence_for_skill(SkillId(skill_id))
+                .unwrap_or_else(|| panic!("skill {} has a cast-start hold", skill_id));
+            assert_eq!((sequence.first, sequence.last, sequence.loop_to), (0, 0, 0));
+            assert_eq!(sequence.after_cast_ms, 0);
+            assert_eq!(sequence.duration_ms(700), 700);
+            assert_eq!(sequence.step_ms(), None);
+        }
+
+        let steel_body = crate::world::cast_frame_sequence_for_skill(SkillId(268)).expect("Steel Body has a cast-start hold");
+        assert_eq!((steel_body.first, steel_body.last, steel_body.loop_to), (0, 0, 0));
+        assert_eq!(steel_body.after_cast_ms, 1000);
+        assert_eq!(steel_body.duration_ms(1500), 2500);
+
+        // Brandish Spear / Bowling Bash freeze the motion for the cast
+        // (`isMotionFreezed`, :12873-12874). The client models the visible
+        // pose as a frame-0 hold of the weapon attack block.
+        for skill_id in [57, 62] {
+            let sequence = crate::world::cast_frame_sequence_for_skill(SkillId(skill_id))
+                .unwrap_or_else(|| panic!("skill {} freezes its motion", skill_id));
+            assert_eq!((sequence.first, sequence.last, sequence.loop_to), (0, 0, 0));
+            assert_eq!(sequence.after_cast_ms, 0);
+            assert_eq!(sequence.duration_ms(900), 900);
+        }
+        assert_eq!(crate::world::cast_frame_sequence_for_skill(SkillId(269)), None);
     }
 
     #[test]

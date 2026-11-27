@@ -64,7 +64,7 @@ DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
 #: `ro-next/src/world/skill_action.rs`).
-ACTIONS = ("Attack", "Idle", "Keep", "Pickup", "Skill", "ReadyFight")
+ACTIONS = ("Attack", "Idle", "Keep", "Pickup", "Skill", "ReadyFight", "Stand")
 ACTION_INDEX_PATTERN = re.compile(r"^Action\(\d+\)$")
 
 
@@ -128,6 +128,14 @@ def load_facts(path: Path, extra_path: Path | None = None, rodecomp_path: Path |
         for entry in rodecomp.get("overrides", []):
             skill_id = int(entry["skill"])
             action = entry["action"]
+            # `motion = 0` is ST_STAND. The local player is a `CPc`, whose
+            # `JobActionBase(ST_STAND)` is the armed idle block 32
+            # (`Player.cpp:1687`); every other actor is a `CGameActor`, whose
+            # `WeaponActionBase(ST_STAND)` is block 0
+            # (`RenderObject.cpp:3353`). `Stand` models the latter and lets the
+            # handlers keep the armed block for the local player.
+            if action == "Idle" and parse_int(entry.get("motion"), -1) == 0:
+                action = "Stand"
             validate_action(skill_id, action, "rodecomp")
             actions[skill_id] = action
 
@@ -152,7 +160,7 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// `CGameActor::SetState` maps it to the ACT action index recorded there.",
         "//",
         "// Format: (skill id, action). Actions: Attack, Idle, Pickup, Skill,",
-        "// ReadyFight (see `CasterAction` in `ro-next/src/world/skill_action.rs`).",
+        "// ReadyFight, Stand (see `CasterAction` in `ro-next/src/world/skill_action.rs`).",
         "// Skills that are not listed use `Skill`, the client's default casting",
         "// gesture.",
         "//",
@@ -169,6 +177,17 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// the preceding `SetSequenceInterval(N)` in 60 Hz update ticks (Fury: 30 =",
         "// 500 ms per frame); 0 keeps the ACT frame delay.",
         "//",
+        "// `cast_sequence` is the official cast-start pose hold",
+        "// (`CGameMode::ApplyActorSkillState`): (first, last, loop_to,",
+        "// after_cast_ms, interval_ticks). It is applied when `ZC_USESKILL_ACK`",
+        "// starts a cast and lasts the packet cast time + `after_cast_ms`",
+        "// (MO_STEELBODY: `duration + 1000`). The Brandish Spear / Bowling Bash",
+        "// motion freeze is modelled as the same frame-0 hold of the attack block.",
+        "//",
+        "// `Stand` is the official `ST_STAND` (`motion = 0`): block 0 for every",
+        "// non-local actor, block 32 for the local player (`CPc`). `Idle` stays",
+        "// the client's armed idle pose for the curated \"prevent default\" rows.",
+        "//",
         "// The file is loaded at runtime through the normal client file loader, so a",
         "// server can override it without rebuilding the client; the compiled Rust",
         "// table is only the fallback for missing files.",
@@ -177,7 +196,7 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "    default_action: Skill,",
         "    actions: [",
     ]
-    for skill_id, action, sequence, use_action in rows:
+    for skill_id, action, sequence, cast_sequence, use_action in rows:
         fields = [f"skill: {skill_id}", f"action: {action}"]
         if use_action is not None:
             fields.append(f"use_action: {use_action}")
@@ -186,6 +205,12 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
             fields.append(
                 f"sequence: (first: {first}, last: {last}, loop_to: {loop_to}, "
                 f"duration_ms: {duration_ms}, interval_ticks: {interval_ticks})"
+            )
+        if cast_sequence is not None:
+            first, last, loop_to, after_cast_ms, interval_ticks = cast_sequence
+            fields.append(
+                f"cast_sequence: (first: {first}, last: {last}, loop_to: {loop_to}, "
+                f"after_cast_ms: {after_cast_ms}, interval_ticks: {interval_ticks})"
             )
         lines.append(f"        ({', '.join(fields)}),")
     lines.extend(["    ],", ")", ""])
@@ -230,10 +255,13 @@ def main() -> int:
     # `SetSequenceInterval(N)` in 60 Hz update ticks (Fury: 30 ticks = 500 ms
     # per frame); 0 means the sequence keeps the ACT frame delay.
     sequences: dict[int, tuple[int, int, int, int, int]] = {}
+    cast_sequences: dict[int, tuple[int, int, int, int, int]] = {}
     sequence_actions: dict[int, str] = {}
     sequences_path = Path(getattr(args, "sequences", ""))
+    sequence_payload: dict = {}
     if sequences_path.is_file():
-        for entry in json.loads(sequences_path.read_text())["sequences"].values():
+        sequence_payload = json.loads(sequences_path.read_text())
+        for entry in sequence_payload["sequences"].values():
             try:
                 skill = int(entry["skill"])
                 block = int(entry["block"], 0)
@@ -253,6 +281,27 @@ def main() -> int:
             if block % 8 == 0:
                 sequence_actions[skill] = f"Action({block // 8})"
 
+    # Official cast-start holds (`ApplyActorSkillState`). The duration is the
+    # packet's cast time plus `after_cast_ms`; a `freeze` entry has no block of
+    # its own (the action row selects the attack block).
+    for entry in sequence_payload.get("cast_sequences", {}).values():
+        try:
+            skill = int(entry["skill"])
+            first = int(entry["first"], 0)
+            last = int(entry["last"], 0)
+            loop_to = int(entry["loop_to"], 0)
+        except (KeyError, TypeError, ValueError):
+            continue
+        after_cast_ms = parse_int(entry.get("after_cast_ms"), 0)
+        interval_ticks = parse_int(entry.get("interval"), 0)
+        cast_sequences[skill] = (
+            first,
+            last,
+            loop_to,
+            after_cast_ms,
+            min(max(interval_ticks, 0), 255),
+        )
+
     # `GetSkillActionInfo2` actions for the 0x09CB path. The field is emitted
     # only where it differs from the cast-ack action, so most rows stay short.
     use_actions: dict[int, str] = {}
@@ -261,6 +310,10 @@ def main() -> int:
         for entry in json.loads(use_path.read_text())["actions"]:
             skill = int(entry["skill"])
             action = entry["action"]
+            # `GetSkillActionInfo2` motion 0 is the same ST_STAND pose as the
+            # cast table; keep the local-player distinction.
+            if action == "Idle" and parse_int(entry.get("motion"), -1) == 0:
+                action = "Stand"
             validate_action(skill, action, "use")
             use_actions[skill] = action
 
@@ -276,7 +329,7 @@ def main() -> int:
             use_action = use_actions.get(skill)
             if use_action == rendered_action:
                 use_action = None
-        rendered_rows.append((skill, rendered_action, sequences.get(skill), use_action))
+        rendered_rows.append((skill, rendered_action, sequences.get(skill), cast_sequences.get(skill), use_action))
     rows = rendered_rows
 
     content = render(rows, payload["provenance"])
@@ -292,7 +345,9 @@ def main() -> int:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content)
-    summary = {action: sum(1 for _id, value, _sequence, _use in rows if value == action) for action in ACTIONS}
+    summary = {
+        action: sum(1 for _id, value, _sequence, _cast_sequence, _use in rows if value == action) for action in ACTIONS
+    }
     print(f"{output}: {len(rows)} entries {summary}")
     return 0
 

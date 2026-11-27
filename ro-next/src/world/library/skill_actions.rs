@@ -17,6 +17,13 @@
 //! `SetSequenceInterval` play rate. The interval is recorded in 60 Hz client
 //! ticks; `CasterFrameSequence::step_ms` converts it to the per-frame duration
 //! the animation engine uses (Fury: 30 ticks = 500 ms).
+//!
+//! The optional `cast_sequence` field is the **cast-start** channel: the
+//! official `ApplyActorSkillState` (`GameModePackets.cpp:12868-12897`) holds a
+//! pose from `ZC_USESKILL_ACK` for the cast duration (Zen/Dangerous Soul
+//! Collect frame 0, Steel Body `duration + 1000`, the Brandish Spear/Bowling
+//! Bash motion freeze). It is applied where the ack starts a cast, not when
+//! the skill succeeds.
 
 use std::sync::OnceLock;
 
@@ -56,6 +63,44 @@ impl CasterFrameSequence {
     }
 }
 
+/// Official cast-start pose hold (`CGameMode::ApplyActorSkillState`,
+/// `GameModePackets.cpp:12868-12897`).
+///
+/// The sequence starts together with the `ZC_USESKILL_ACK` cast and lasts
+/// `cast_time + after_cast_ms`:
+///
+/// * `MO_CALLSPIRITS` / `MO_KITRANSLATION` / `CH_SOULCOLLECT`: block 96 frame 0
+///   for the cast duration (`SetFrameSequence(96, 0, 0, 96, 0, 0, 0, 0)`,
+///   `:12878`/`:12884`);
+/// * `MO_STEELBODY`: block 96 frame 0 for `duration + 1000`
+///   (`SetFrameSequence(96, 0, 0, 96, 0, 1, duration + 1000, 0)`, `:12881`);
+/// * `KN_BRANDISHSPEAR` / `KN_BOWLINGBASH` / `HN_DOUBLEBOWLINGBASH`: the
+///   official client freezes the motion for the cast duration
+///   (`isMotionFreezed`, `:12873-12874`); the client models the same visible
+///   pose as a frame-0 hold of the attack block.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct CasterCastSequence {
+    pub first: u8,
+    pub last: u8,
+    pub loop_to: u8,
+    /// Extra milliseconds after the packet's cast time (`duration + 1000`).
+    pub after_cast_ms: u32,
+    pub interval_ticks: u8,
+}
+
+impl CasterCastSequence {
+    /// Total hold duration for a cast that started with `cast_time` ms.
+    pub fn duration_ms(&self, cast_time: u32) -> u32 {
+        cast_time.saturating_add(self.after_cast_ms)
+    }
+
+    /// Duration of one sequence frame in milliseconds, when the official
+    /// `SetSequenceInterval` overrides the ACT timing.
+    pub fn step_ms(&self) -> Option<u32> {
+        (self.interval_ticks > 0).then(|| (f32::from(self.interval_ticks) * 1000.0 / 60.0).round() as u32)
+    }
+}
+
 /// A parsed mapping: the default action, the sorted cast-path rows, the
 /// optional 0x09CB rows and the per-skill frame sequences.
 #[derive(Clone)]
@@ -64,6 +109,7 @@ struct Mapping {
     rows: Vec<(u16, CasterAction)>,
     use_rows: Vec<(u16, CasterAction)>,
     sequences: Vec<(u16, CasterFrameSequence)>,
+    cast_sequences: Vec<(u16, CasterCastSequence)>,
 }
 
 #[derive(Deserialize)]
@@ -105,6 +151,9 @@ struct SkillActionEntry {
     /// Optional official frame range of the action (`SetFrameSequence`).
     #[serde(default, deserialize_with = "deserialize_option")]
     sequence: Option<FrameSequenceEntry>,
+    /// Optional official cast-start pose hold (`ApplyActorSkillState`).
+    #[serde(default, deserialize_with = "deserialize_option")]
+    cast_sequence: Option<CastSequenceEntry>,
 }
 
 #[derive(Deserialize)]
@@ -119,6 +168,19 @@ struct FrameSequenceEntry {
     interval_ticks: u8,
 }
 
+#[derive(Deserialize)]
+struct CastSequenceEntry {
+    first: u8,
+    last: u8,
+    loop_to: u8,
+    /// Milliseconds added to the packet's cast time (`duration + 1000` for
+    /// `MO_STEELBODY`); absent means hold exactly the cast time.
+    #[serde(default)]
+    after_cast_ms: u32,
+    #[serde(default)]
+    interval_ticks: u8,
+}
+
 /// The compiled fallback mapping, parsed on first use (also used by tests).
 static COMPILED: OnceLock<Mapping> = OnceLock::new();
 /// Mapping loaded from the client archive, if the file exists there.
@@ -129,6 +191,7 @@ fn parse(content: &str) -> Result<Mapping, String> {
     let mut rows: Vec<(u16, CasterAction)> = Vec::with_capacity(file.actions.len());
     let mut use_rows: Vec<(u16, CasterAction)> = Vec::new();
     let mut sequences: Vec<(u16, CasterFrameSequence)> = Vec::new();
+    let mut cast_sequences: Vec<(u16, CasterCastSequence)> = Vec::new();
 
     for entry in file.actions {
         rows.push((entry.skill, entry.action));
@@ -144,6 +207,15 @@ fn parse(content: &str) -> Result<Mapping, String> {
                 interval_ticks: sequence.interval_ticks,
             }));
         }
+        if let Some(sequence) = entry.cast_sequence {
+            cast_sequences.push((entry.skill, CasterCastSequence {
+                first: sequence.first,
+                last: sequence.last,
+                loop_to: sequence.loop_to,
+                after_cast_ms: sequence.after_cast_ms,
+                interval_ticks: sequence.interval_ticks,
+            }));
+        }
     }
 
     rows.sort_unstable_by_key(|(skill_id, _)| *skill_id);
@@ -152,11 +224,15 @@ fn parse(content: &str) -> Result<Mapping, String> {
     use_rows.sort_unstable_by_key(|(skill_id, _)| *skill_id);
     use_rows.dedup_by_key(|(skill_id, _)| *skill_id);
     sequences.sort_unstable_by_key(|(skill_id, _)| *skill_id);
+    sequences.dedup_by_key(|(skill_id, _)| *skill_id);
+    cast_sequences.sort_unstable_by_key(|(skill_id, _)| *skill_id);
+    cast_sequences.dedup_by_key(|(skill_id, _)| *skill_id);
     Ok(Mapping {
         default: file.default_action,
         rows,
         use_rows,
         sequences,
+        cast_sequences,
     })
 }
 
@@ -170,6 +246,7 @@ fn compiled() -> &'static Mapping {
                 rows: Vec::new(),
                 use_rows: Vec::new(),
                 sequences: Vec::new(),
+                cast_sequences: Vec::new(),
             }
         }
     })
@@ -238,6 +315,16 @@ pub(crate) fn frame_sequence_for_skill(skill_id: SkillId) -> Option<CasterFrameS
         .binary_search_by_key(&skill_id.0, |(id, _)| *id)
         .ok()
         .map(|index| mapping().sequences[index].1)
+}
+
+/// The official cast-start pose hold of `skill_id`, if
+/// `ApplyActorSkillState` installs one (`GameModePackets.cpp:12868-12897`).
+pub(crate) fn cast_frame_sequence_for_skill(skill_id: SkillId) -> Option<CasterCastSequence> {
+    mapping()
+        .cast_sequences
+        .binary_search_by_key(&skill_id.0, |(id, _)| *id)
+        .ok()
+        .map(|index| mapping().cast_sequences[index].1)
 }
 
 /// The official default action for skills that are not listed.
@@ -331,7 +418,7 @@ mod tests {
         // Bash has no sequence at all; Blessing stays idle and has no action
         // animation to restrict (the "no-action" case).
         assert!(frame_sequence_for_skill(SkillId(5)).is_none());
-        assert_eq!(action(34), Some(CasterAction::Idle));
+        assert_eq!(action(34), Some(CasterAction::Stand));
         assert!(frame_sequence_for_skill(SkillId(34)).is_none());
 
         // Palm Strike has a sequence but no `SetSequenceInterval`; its frames
@@ -388,7 +475,7 @@ mod tests {
     fn stance_and_buff_skills_keep_the_idle_pose() {
         // Motion 0 (ST_STAND) skills; the rest of the classic buffs use the
         // begin-skill gesture instead.
-        assert_eq!(action(34), Some(CasterAction::Idle), "skill 34");
+        assert_eq!(action(34), Some(CasterAction::Stand), "skill 34");
 
         // Fury is motion 0 in `GetSkillActionInfo`, but `ReceiveSkillUse`
         // overrides it with the skill block frames 1..=2.
@@ -417,7 +504,7 @@ mod tests {
         for skill_id in [306, 380, 28, 45] {
             assert_eq!(action(skill_id), Some(CasterAction::Skill), "skill {skill_id}");
         }
-        assert_eq!(action(34), Some(CasterAction::Idle), "Blessing keeps the idle pose");
+        assert_eq!(action(34), Some(CasterAction::Stand), "Blessing uses the official ST_STAND");
         assert_eq!(
             action(1015),
             Some(CasterAction::Skill),
@@ -443,17 +530,17 @@ mod tests {
     fn use_actions_follow_get_skill_action_info2() {
         // The 0x09CB path uses `GetSkillActionInfo2`, which disagrees with
         // the cast-ack table for 131 of the 373 castable pre-re skills.
-        // Blessing: cast ack 0 (Idle), use 7 (Skill).
-        assert_eq!(action(34), Some(CasterAction::Idle));
+        // Blessing: cast ack 0 (ST_STAND -> Stand), use 7 (Skill).
+        assert_eq!(action(34), Some(CasterAction::Stand));
         assert_eq!(use_action(34), Some(CasterAction::Skill));
         // Incagi is the reverse: cast 7, use 0.
         assert_eq!(action(29), Some(CasterAction::Skill));
-        assert_eq!(use_action(29), Some(CasterAction::Idle));
+        assert_eq!(use_action(29), Some(CasterAction::Stand));
         // Auto Counter: cast 11 (ReadyFight), use 2 (weapon swing).
         assert_eq!(action(61), Some(CasterAction::ReadyFight));
         assert_eq!(use_action(61), Some(CasterAction::Attack));
-        // Potion Pitcher: cast 0 (Idle), use 12 (throw block 40).
-        assert_eq!(action(231), Some(CasterAction::Idle));
+        // Potion Pitcher: cast 0 (ST_STAND -> Stand), use 12 (throw block 40).
+        assert_eq!(action(231), Some(CasterAction::Stand));
         assert_eq!(use_action(231), Some(CasterAction::Action(5)));
         // Berserk Pitcher: `GetSkillActionInfo2` returns motion -1, i.e. the
         // official client does not change the pose at all.

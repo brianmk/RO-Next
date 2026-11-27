@@ -560,6 +560,7 @@ fn apply_bench_caster_pose(client: &mut Client, entity_id: EntityId, skill_id: u
         crate::world::CasterAction::Attack => entity.set_attack(BENCH_SKILL_ACTION_MS, false, client_tick),
         crate::world::CasterAction::Pickup => entity.set_pickup(client_tick),
         crate::world::CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+        crate::world::CasterAction::Stand => entity.set_stand(client_tick),
         crate::world::CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
         crate::world::CasterAction::Keep => {}
     }

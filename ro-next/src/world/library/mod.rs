@@ -12,6 +12,7 @@ pub(crate) mod job_alias;
 mod job_identity;
 mod map_sky_data;
 mod monster_database;
+mod monster_skill_actions;
 mod monster_sprite;
 mod navigation;
 mod skill_actions;
@@ -53,10 +54,11 @@ pub(crate) use self::item_stats::{
 pub use self::job_identity::JobIdentity;
 pub use self::map_sky_data::MapSkyData;
 pub use self::monster_database::{MonsterDatabase, MonsterEntry};
+pub(crate) use self::monster_skill_actions::{MonsterSkillAction, action_for_name as monster_skill_action_for_name};
 use self::monster_sprite::MonsterSprites;
 pub use self::navigation::{NavigationData, NavigationDestination};
 pub(crate) use self::skill_actions::{
-    caster_action_for_skill, default_caster_action, frame_sequence_for_skill, use_caster_action_for_skill,
+    cast_frame_sequence_for_skill, caster_action_for_skill, default_caster_action, frame_sequence_for_skill, use_caster_action_for_skill,
 };
 #[allow(unused_imports)] // `SkillDelays` is part of the public lookup API.
 pub use self::skill_delays::{SkillDelays, skill_delays};
@@ -127,6 +129,7 @@ impl Library {
         let card_composition = CardComposition::load(game_file_loader);
         let item_descriptions = ItemDescriptions::load(game_file_loader);
         skill_actions::load(game_file_loader);
+        monster_skill_actions::load(game_file_loader);
         skill_sounds::load(game_file_loader);
         skill_effects::load(game_file_loader);
         // The data-driven weapon registry (weapon types, sprite candidates,

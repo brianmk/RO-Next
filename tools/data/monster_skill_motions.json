@@ -1,0 +1,980 @@
+{
+ "provenance": {
+  "source": "CondaRO client data.grf: data\\monsterskillinfo.xml",
+  "archive": "/home/phantom/Games/ragnarok/CondaRO-linux/client/game/data.grf",
+  "archive_size": 3167729595,
+  "entry": "data\\monsterskillinfo.xml",
+  "entry_size": 20970,
+  "entry_sha256": "4c50cd0719a5819566ae020cbc811d069e381003915a26f4549607c9c8b51e12",
+  "decoder": "DecodeMessageRot (MessageTable.cpp:5040) + GRF mixcrypt (ro-next/src/loaders/archive/native/mixcrypt.rs)",
+  "official_client": "CSession::GetMonsterSkillInfo (MonsterXmlActions.cpp:43); CGameMode::NotifySkillCasting (GameModePackets.cpp:12958) and CGameMode::ReceiveSkillUse (GameModePackets.cpp:18371) call SetAction(action * 8 - 8, 1, loopType == 0)",
+  "note": "`action` is the 1-based ACT action from the XML; `action_index` = action - 1 (SetAction argument) and `block` = action_index * 8. `loop_type == 0` plays the action once, any other value loops it. Monster names are the lower-cased job names; the client looks them up with CSession::GetJobName(...) + _strlwr. The XML contains a truncated duplicate copy after the root close tag; it is ignored.",
+  "duplicates": [
+   {
+    "monster": "ant_egg",
+    "skill": 193,
+    "action": 5,
+    "action_index": 4,
+    "block": 32,
+    "loop_type": 0,
+    "looping": false
+   }
+  ]
+ },
+ "entries": [
+  {
+   "monster": "alarm",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "alice",
+   "skill": 28,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "alligator",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "ambernite",
+   "skill": 201,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "anolian",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "ant_egg",
+   "skill": 193,
+   "action": 5,
+   "action_index": 4,
+   "block": 32,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "arclouse",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "argiope",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "assulter",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "baphomet_",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "baphomet_i",
+   "skill": 661,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "bigfoot",
+   "skill": 179,
+   "action": 7,
+   "action_index": 6,
+   "block": 48,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "bigfoot",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "brilight",
+   "skill": 201,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "choco",
+   "skill": 6,
+   "action": 8,
+   "action_index": 7,
+   "block": 56,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "choco",
+   "skill": 28,
+   "action": 7,
+   "action_index": 6,
+   "block": 48,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "choco",
+   "skill": 152,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "choco",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "coco",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "cornutus",
+   "skill": 201,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "deleter",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "deleter_",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "desert_wolf",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "elder_wilow",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "fabre",
+   "skill": 193,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "freezer",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "fur_seal",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "galapago",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "gargoyle",
+   "skill": 201,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "giant_honet",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "giant_spider",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "gig",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goat",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_1",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_2",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_3",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_4",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_5",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_archer",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "goblin_xmas",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "grand_peco",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "grizzly",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "gullinbursti",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "heater",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "high_orc",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "high_orc",
+   "skill": 195,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "hunter_fly",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "isis",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "jakk",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "killer_mantis",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "kobold_1",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "kobold_2",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "kobold_3",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "leib_olmai",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "majoruros",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "mantis",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "marc",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "marse",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "matyr",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "maya_puple",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "medusa",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "megalith",
+   "skill": 26,
+   "action": 5,
+   "action_index": 4,
+   "block": 32,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "merman",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "mini_demon",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "minorous",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "mummy",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "munak",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "neraid",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "nine_tail",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "obeaune",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "ork_hero",
+   "skill": 21,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "ork_warrior",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "ork_warrior",
+   "skill": 195,
+   "action": 9,
+   "action_index": 8,
+   "block": 64,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "owl_baron",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "owl_duke",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "pasana",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "pecopeco",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "pecopeco_egg",
+   "skill": 193,
+   "action": 5,
+   "action_index": 4,
+   "block": 32,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "penomena",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "permeter",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "petit",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "petit_",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "phen",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "poison_spore",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "punk",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "pupa",
+   "skill": 193,
+   "action": 2,
+   "action_index": 1,
+   "block": 8,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "raggler",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "requiem",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "sasquatch",
+   "skill": 58,
+   "action": 7,
+   "action_index": 6,
+   "block": 48,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "sasquatch",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "see_otter",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "smokie",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "solider",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "spore",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "spring_rabbit",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "stainer",
+   "skill": 201,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 1,
+   "looping": true
+  },
+  {
+   "monster": "sting",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "thief_bug_egg",
+   "skill": 193,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "verit",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "whisper",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "wolf",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "yoyo",
+   "skill": 6,
+   "action": 8,
+   "action_index": 7,
+   "block": 56,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "yoyo",
+   "skill": 28,
+   "action": 7,
+   "action_index": 6,
+   "block": 48,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "yoyo",
+   "skill": 152,
+   "action": 6,
+   "action_index": 5,
+   "block": 40,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "yoyo",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  },
+  {
+   "monster": "zerom",
+   "skill": 194,
+   "action": 1,
+   "action_index": 0,
+   "block": 0,
+   "loop_type": 0,
+   "looping": false
+  }
+ ]
+}

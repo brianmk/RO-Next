@@ -2,7 +2,7 @@
  "provenance": {
   "source": "github.com/rodecomp/rodecomp - CRenderObject skill damage switch and CGameMode::ReceiveSkillUse SetFrameSequence calls",
   "file": "Source/Contents/Actors/RenderObject.cpp, Source/Client/Mode/GameModePackets.cpp",
-  "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted"
+  "note": "block 0x58 = attack block (88), 0x60 = skill block (96), 0x20 = ready-fight block (32); duration is milliseconds or a runtime skill-animation value; interval is the preceding SetSequenceInterval in 60 Hz ticks; only the reviewed skill-use sequences in extract_rodecomp_frame_sequences.py are extracted; `cast_sequences` are the ApplyActorSkillState holds applied when ZC_USESKILL_ACK starts a cast (after_cast_ms is the `duration + N` term; `kind: freeze` is isMotionFreezed for the cast duration)"
  },
  "sequences": {
   "ABC_FROM_THE_ABYSS": {
@@ -496,6 +496,120 @@
    "interval": null,
    "source": "RenderObject.cpp:5916",
    "skill": 5357
+  }
+ },
+ "cast_sequences": {
+  "ABC_CHAIN_REACTION_SHOT": {
+   "block": "88",
+   "first": "0",
+   "last": "0",
+   "loop_block": "88",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "0",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "frame_sequence",
+   "source": "GameModePackets.cpp:12894",
+   "skill": 5316
+  },
+  "CH_SOULCOLLECT": {
+   "block": "96",
+   "first": "0",
+   "last": "0",
+   "loop_block": "96",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "0",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "frame_sequence",
+   "source": "GameModePackets.cpp:12884",
+   "skill": 401
+  },
+  "HN_DOUBLEBOWLINGBASH": {
+   "block": null,
+   "first": "0",
+   "last": "0",
+   "loop_block": "0",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "duration",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "freeze",
+   "source": "GameModePackets.cpp:12873",
+   "skill": 5451
+  },
+  "KN_BOWLINGBASH": {
+   "block": null,
+   "first": "0",
+   "last": "0",
+   "loop_block": "0",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "duration",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "freeze",
+   "source": "GameModePackets.cpp:12873",
+   "skill": 62
+  },
+  "KN_BRANDISHSPEAR": {
+   "block": null,
+   "first": "0",
+   "last": "0",
+   "loop_block": "0",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "duration",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "freeze",
+   "source": "GameModePackets.cpp:12873",
+   "skill": 57
+  },
+  "MO_CALLSPIRITS": {
+   "block": "96",
+   "first": "0",
+   "last": "0",
+   "loop_block": "96",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "0",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "frame_sequence",
+   "source": "GameModePackets.cpp:12878",
+   "skill": 261
+  },
+  "MO_KITRANSLATION": {
+   "block": "96",
+   "first": "0",
+   "last": "0",
+   "loop_block": "96",
+   "loop_to": "0",
+   "timed": "0",
+   "duration": "0",
+   "loop": "0",
+   "after_cast_ms": "0",
+   "kind": "frame_sequence",
+   "source": "GameModePackets.cpp:12878",
+   "skill": 1015
+  },
+  "MO_STEELBODY": {
+   "block": "96",
+   "first": "0",
+   "last": "0",
+   "loop_block": "96",
+   "loop_to": "0",
+   "timed": "1",
+   "duration": "duration + 1000",
+   "loop": "0",
+   "after_cast_ms": "1000",
+   "kind": "frame_sequence",
+   "source": "GameModePackets.cpp:12881",
+   "skill": 268
   }
  },
  "unmatched": {}
