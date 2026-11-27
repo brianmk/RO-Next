@@ -222,3 +222,15 @@ Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in
   announced in chat, and shown in the guild window with **Accept** / **Decline** buttons that send
   `CZ_JOIN_GUILD` 0x016B. All layouts are the 2019 (PACKETVER 20190605) ones; no packet version
   change.
+
+### Follow-up release 0.2.38
+
+* `0.2.38` (`20261127-110417`) — overhead buff effects and ground skill-unit fields.
+  Angelus and Impositio (and every descriptor `head: true` `.str` effect) now spawn at the
+  overhead anchor and drop the official `ProcessEZ2STR(0, -80, 0)` screen offset, which at the
+  port's field of view landed on the torso. Persistent ground units now render their official
+  fields: `UNT_SAFETYWALL` → `EF_GLASSWALL2` (`Glasswall2`, `PulsingColumns`), `UNT_SANCTUARY` →
+  `EF_BOTTOM_SANC`, `UNT_MAGNUS` → `EF_BOTTOM_MAG` (`client/network/skills.rs`,
+  `client/effects.rs::ground_unit_effect`). The menu's "Log out" button is labelled
+  **Character select**; the map-server logout path already returns to the character selection
+  screen.
