@@ -578,6 +578,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(114), SkillPhase::Success, EffectId::Maxpower, PortedAnchor::Caster),
     (SkillId(124), SkillPhase::Success, EffectId::Removetrap, PortedAnchor::Caster),
     (SkillId(129), SkillPhase::Success, EffectId::Blitzbeat, PortedAnchor::Target),
+    (SkillId(130), SkillPhase::Ground, EffectId::Detecting, PortedAnchor::Target),
     (SkillId(131), SkillPhase::Success, EffectId::Springtrap, PortedAnchor::Caster),
     (SkillId(136), SkillPhase::Success, EffectId::Sonicblow, PortedAnchor::Caster),
     (SkillId(137), SkillPhase::Hit, EffectId::Grimtooth, PortedAnchor::Caster),
@@ -940,6 +941,23 @@ fn mapped(skill: SkillId, phase: SkillPhase) -> Option<&'static (SkillId, SkillP
 mod tests {
     use super::*;
     use crate::world::effect::port::registry;
+
+    #[test]
+    fn detect_maps_to_its_ported_ground_aura() {
+        // `HT_DETECTING` (130) is `TargetType: Ground`, so the arriving lane
+        // is `ZC_NOTIFY_GROUNDSKILL` and the official
+        // `CGameActor::PlayGroundSkillEffect` launches `EF_DETECTING` (119)
+        // at the clicked cell (`RenderObject.cpp:1096-1103`). Its body is
+        // `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`),
+        // registered as `EffectId::Detecting`. The 2019 SkillEffect table has
+        // no descriptor field for it, so the mapping is curated in
+        // `gen_ported_skill_map.py` instead of coming from the coverage data.
+        assert_eq!(
+            ported_effect_for(SkillId(130), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Detecting as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
+    }
 
     #[test]
     fn ported_const_matches_registry() {
