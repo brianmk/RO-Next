@@ -309,12 +309,10 @@ impl MapLoader {
         );
         let sky = MapSky::from_map_sky_data(map_sky_data, map_extent, lighting.ambient_light_color());
         crate::logging::log_debug!(
-            "map sky {}: background {:?}, fog {:?}, stars {}, clouds {}",
+            "map sky {}: background {:?}, fog {:?}",
             resource_file,
             sky.background_color(),
-            sky.fog(),
-            sky.has_stars(),
-            sky.has_clouds()
+            sky.fog()
         );
 
         let mut light_sources = SimpleSlab::with_capacity(map_data.resources.light_sources.len() as u32);

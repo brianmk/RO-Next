@@ -10,9 +10,7 @@
 //! This client implements the two pieces that the renderer can express without
 //! a skybox mesh or a cloud particle system: the sky colour is used as the
 //! clear colour of the forward pass (the "skybox colour") and `BG_Fog` fades
-//! distant geometry into that colour. The star and cloud descriptors are kept
-//! in the data model but are not rendered yet; no fake geometry is drawn in
-//! their place.
+//! distant geometry into that colour.
 
 use cgmath::Vector3;
 
@@ -58,8 +56,6 @@ impl SceneFog {
 pub struct MapSky {
     background_color: Option<Color>,
     fog: Option<SceneFog>,
-    has_stars: bool,
-    has_clouds: bool,
 }
 
 impl MapSky {
@@ -69,8 +65,6 @@ impl MapSky {
         Self {
             background_color: data.background_color(),
             fog: SceneFog::from_map_sky(data, map_size, ambient_color),
-            has_stars: data.star_effect(),
-            has_clouds: !data.cloud_effects().is_empty(),
         }
     }
 
@@ -84,15 +78,4 @@ impl MapSky {
         self.fog
     }
 
-    /// Whether the map defines a star sky effect (not rendered yet).
-    #[allow(dead_code)]
-    pub fn has_stars(&self) -> bool {
-        self.has_stars
-    }
-
-    /// Whether the map defines cloud effects (not rendered yet).
-    #[allow(dead_code)]
-    pub fn has_clouds(&self) -> bool {
-        self.has_clouds
-    }
 }

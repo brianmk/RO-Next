@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use mlua::{Lua, Value};
+use mlua::Lua;
 use ro_next_loaders::FileLoader;
 
 use super::{Library, Table};
@@ -8,31 +8,8 @@ use crate::loaders::GameFileLoader;
 
 #[derive(Debug, Clone)]
 pub struct MapSkyData {
-    #[allow(dead_code)]
-    old_cloud_effect: Option<usize>,
     bg_color: Option<Color>,
     bg_fog: bool,
-    star_effect: bool,
-    cloud_effect: Vec<CloudEffect>,
-}
-
-#[allow(dead_code)]
-#[derive(Debug, Clone)]
-pub struct CloudEffect {
-    num: usize,
-    cull_dist: usize,
-    color: Color,
-    size: usize,
-    size_extra: usize,
-    expand_rate: f32,
-    alpha_inc_time: usize,
-    alpha_inc_time_extra: usize,
-    alpha_inc_speed: usize,
-    alpha_dec_time: usize,
-    alpha_dec_time_extra: usize,
-    alpha_dec_speed: f32,
-    height: usize,
-    height_extra: usize,
 }
 
 impl Table for MapSkyData {
@@ -93,11 +70,8 @@ impl Table for MapSkyData {
 
     fn get<'a, 'b>(library: &'a Library, key: Self::Key<'b>) -> &'a Self {
         static DEFAULT: MapSkyData = MapSkyData {
-            old_cloud_effect: None,
             bg_color: None,
             bg_fog: false,
-            star_effect: false,
-            cloud_effect: vec![],
         };
         Self::try_get(library, key).unwrap_or(&DEFAULT)
     }
@@ -115,49 +89,10 @@ impl MapSkyData {
         self.bg_fog
     }
 
-    /// Whether the map wants the star sky effect (`Star_Effect`).
-    pub fn star_effect(&self) -> bool {
-        self.star_effect
-    }
-
-    /// Cloud effect descriptors of the map (`Cloud_Effect`).
-    pub fn cloud_effects(&self) -> &[CloudEffect] {
-        &self.cloud_effect
-    }
-
     fn parse_map_sky_data(table: &mlua::Table) -> MapSkyData {
-        let mut cloud_effect = Vec::new();
-
-        if let Ok(Value::Table(cloud_effect_table)) = table.get("Cloud_Effect") {
-            let _ = cloud_effect_table.for_each(|_key: usize, value: mlua::Table| {
-                let effect = CloudEffect {
-                    num: value.get("Num").unwrap_or_default(),
-                    cull_dist: value.get("CullDist").unwrap_or_default(),
-                    color: value.get("Color").unwrap_or_default(),
-                    size: value.get("Size").unwrap_or_default(),
-                    size_extra: value.get("Size_Extra").unwrap_or_default(),
-                    expand_rate: value.get("Expand_Rate").unwrap_or_default(),
-                    alpha_inc_time: value.get("Alpha_Inc_Time").unwrap_or_default(),
-                    alpha_inc_time_extra: value.get("Alpha_Inc_Time_Extra").unwrap_or_default(),
-                    alpha_inc_speed: value.get("Alpha_Inc_Speed").unwrap_or_default(),
-                    alpha_dec_time: value.get("Alpha_Dec_Time").unwrap_or_default(),
-                    alpha_dec_time_extra: value.get("Alpha_Dec_Time_Extra").unwrap_or_default(),
-                    alpha_dec_speed: value.get("Alpha_Dec_Speed").unwrap_or_default(),
-                    height: value.get("Height").unwrap_or_default(),
-                    height_extra: value.get("Height_Extra").unwrap_or_default(),
-                };
-                cloud_effect.push(effect);
-
-                Ok(())
-            });
-        }
-
         MapSkyData {
-            old_cloud_effect: table.get::<[usize; 1]>("Old_Cloud_Effect").ok().map(|effect| effect[0]),
             bg_color: table.get("BG_Color").ok(),
             bg_fog: table.get("BG_Fog").unwrap_or(false),
-            star_effect: table.get("Star_Effect").unwrap_or(false),
-            cloud_effect,
         }
     }
 }
