@@ -16,14 +16,14 @@ use super::rag::{
     BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, Chimto, Cloud11Burst, CloudDrift,
     DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
     EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver,
-    FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow,
-    IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan,
-    Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave,
-    RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr, Sphere,
-    SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam, TexturedComet,
-    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
-    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2,
-    WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
+    FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross,
+    IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat,
+    NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive,
+    RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr,
+    Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit2, TeleportSpiral, TexturedBeam,
+    TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter,
+    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
+    VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -123,6 +123,17 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BigPortal => Box::new(MagicRing::new(0, 2000)),
         EffectId::BigPortal2 => Box::new(MagicRing::new(1, 99_999_999)),
         EffectId::Stormgust => Box::new(StormGust::default()),
+        // `RagEffect.cpp:24203-24210` - the two Grand Cross calls.
+        EffectId::Grandcross => Box::new(GrandCross::new(0, 999)),
+        EffectId::Grandcross2 => Box::new(GrandCross::new(1, 999)),
+        // `RagEffect.cpp:24228-24231` (24 x `TexturedScatter`) and
+        // `:24348-24351` (20 x `TexturedScatterLow`).
+        EffectId::Teihit1x => Box::new(TexturedScatter::new("effect\\lens1.tga", 1, 24, false, 300)),
+        EffectId::Teihit3 => Box::new(TexturedScatter::new("effect\\lens2.tga", 2, 20, true, 300)),
+        // `RagEffect.cpp:24233-24236` (5 x `TEIHIT2`) and `:24247-24255`
+        // (20 x `TEIHIT2` with the frame-20 Back Stab wave).
+        EffectId::Teihit2 => Box::new(TeiHit2::new(5, false, 300)),
+        EffectId::Backstap => Box::new(TeiHit2::new(20, true, 300)),
         // `CRagEffect`'s Storm Kick dispatch (`RagEffect.cpp:23663-23736`).
         // Ids 4/5 spawn thirty `WhiteLightTrail` prim-96 primitives; id 5 also
         // records the caster's `render.state`/`SetFrameSequence` request.
@@ -449,6 +460,12 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::BigPortal,
         EffectId::BigPortal2,
         EffectId::Stormgust,
+        EffectId::Grandcross,
+        EffectId::Grandcross2,
+        EffectId::Teihit1x,
+        EffectId::Teihit2,
+        EffectId::Teihit3,
+        EffectId::Backstap,
         EffectId::Stormkick,
         EffectId::Stormkick1,
         EffectId::Stormkick2,
@@ -875,6 +892,15 @@ mod tests {
             (EffectId::Rolling1, 99_999_999),
             (EffectId::Rolling10, 99_999_999),
             (EffectId::Heartasura, 99_999_999),
+            // Grand Cross and slash-hit families (`rag/grand_cross.rs`,
+            // `rag/textured_scatter.rs`, `rag/tei_hit2.rs`):
+            // `EffectTypes.cpp:235`, `:459`, `:273`, `:275`, `:284`.
+            (EffectId::Grandcross, 999),
+            (EffectId::Grandcross2, 999),
+            (EffectId::Teihit2, 300),
+            (EffectId::Teihit1x, 300),
+            (EffectId::Teihit3, 300),
+            (EffectId::Backstap, 300),
         ];
 
         for (effect, lifetime) in expect {

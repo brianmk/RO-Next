@@ -43,6 +43,10 @@
 //! | 82 | `RenderTeiFacingSlots` | `TexturedAura` - glows, status auras, map spheres, tarot cards |
 //! | 103 | `RenderStackedRings` | `TexturedMark` - the Storm Kick rings |
 //! | 96 | `RenderPeongUp` | `WhiteLightTrail` - the Storm Kick 4/5 light trails |
+//! | 34 | `Render3DCasting2` | Grand Cross rings (`PP_GI_3`, `EF_GRANDCROSS`) |
+//! | 37 | `RenderGrandCross2` | Grand Cross cross quads (`PP_GRANDCROSS2`, `EF_GRANDCROSS`) |
+//! | 44 | `RenderRotatedPlate` | `TexturedScatter`/`TexturedScatterLow` - `EF_TEIHIT1X`, `EF_TEIHIT3` |
+//! | 45 | `RenderFieldPanel` | `TEIHIT2` - `EF_TEIHIT2`, `EF_BACKSTAP` |
 //!
 //! ## Projection and depth
 //!
@@ -323,6 +327,12 @@ pub enum SlotRenderer {
     /// `RenderHitLine3` - `PP_HITLINE3` (100), the white02 spark strands of
     /// `EF_HITLINE4/5/6`.
     HitLine3,
+    /// `Render3DCasting2` - prim 34 (`PP_GI_3`), the Grand Cross rings.
+    CastingGi3,
+    /// `RenderGrandCross2` - prim 37 (`PP_GRANDCROSS2`), the cross quads.
+    GrandCross2,
+    /// `RenderRotatedPlate` - prim 44 (the `TexturedScatter` pulse).
+    RotatedPlate,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -372,6 +382,15 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // `EffectPrimitiveRendering.cpp:440-442`: `PP_HITLINE3` draws
         // `RenderHitLine3` (distinct from `PP_HITLINE`'s `RenderHitLine`).
         PrimitiveId::HitLine3 => SlotRenderer::HitLine3,
+        // `EffectPrimitiveRendering.cpp:521-522`: `PP_GI_3`.
+        PrimitiveId::Gi3 => SlotRenderer::CastingGi3,
+        // `EffectPrimitiveRendering.cpp:524-525`: `PP_GRANDCROSS2`.
+        PrimitiveId::GrandCross2 => SlotRenderer::GrandCross2,
+        // `EffectPrimitiveRendering.cpp:542-543`: bare `case 44`.
+        PrimitiveId::ExpandPulse => SlotRenderer::RotatedPlate,
+        // `EffectPrimitiveRendering.cpp:574`: `PP_TEIHIT2` shares
+        // `RenderFieldPanel` with the shield/item family.
+        PrimitiveId::TeiHit2 => SlotRenderer::FieldPanel,
         // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
         // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
@@ -466,6 +485,9 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         }
         Some(SlotRenderer::PentaRing) => render_penta_ring(state, &mut out),
         Some(SlotRenderer::HitLine3) => render_hitline3(state, &mut out),
+        Some(SlotRenderer::CastingGi3) => render_3d_casting2(state, &mut out),
+        Some(SlotRenderer::GrandCross2) => render_grand_cross2(state, &mut out),
+        Some(SlotRenderer::RotatedPlate) => render_rotated_plate(state, &mut out),
         None => {}
     }
 
@@ -4018,6 +4040,332 @@ pub fn triangle_uvs(triangle: &SlotTriangle) -> [Vector2<f32>; 3] {
     triangle.texture_coordinates.map(|uv| Vector2::new(uv[0], uv[1]))
 }
 
+// ---------------------------------------------------------------------------
+// Render3DCasting2 (34)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::Render3DCasting2` - `EffectPrimitiveRendering.cpp:6519-6592`,
+/// dispatch `:521-522` (`PP_GI_3`, prim 34).
+///
+/// The Grand Cross ring sweep. Unlike `Render3DCasting` (which divides
+/// `fullDisplayAngle` by 20), this renderer divides by **9**, so a 90-degree
+/// ring is only nine segments and `order` never reaches the `order == 20`
+/// clamp; the `basicAngle == 0` case would loop forever in the original and is
+/// skipped here.
+///
+/// The original stores the previous iteration's `vecBNow`/`vecTNow` in the
+/// slot's `vecBPre`/`vecTPre`, then overwrites them at the end of each
+/// iteration. The first iteration (`order == 0`) never emits, so the previous
+/// values are always the ones this same loop wrote one step earlier: the port
+/// keeps them in locals and produces the same quads without mutating the
+/// primitive state.
+pub fn render_3d_casting2(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 {
+            continue;
+        }
+
+        // `const int basicAngle = slot.fullDisplayAngle / 9;`
+        let basic_angle = slot.full_display_angle as i32 / 9;
+
+        // The original would spin forever when the body leaves the sweep
+        // below nine degrees (`count += 0`).
+        if basic_angle <= 0 {
+            continue;
+        }
+
+        let mut order = 0usize;
+        let mut previous_bottom = [0.0f32; 3];
+        let mut previous_top = [0.0f32; 3];
+        let mut count = 0i32;
+
+        while count < slot.full_display_angle as i32 {
+            let mut angle = (slot.rot_start as i32 + count) % 360;
+
+            if slot.full_display_angle == 360 && order == 20 {
+                angle = slot.rot_start as i32;
+            }
+
+            let cosine = table_cos(angle);
+            let sine = table_sin(angle);
+
+            // `vecBNow`
+            let bottom = [cosine * slot.distance, 0.0, sine * slot.distance];
+
+            let rx = table_cos(slot.rise_angle as i32) * slot.height[order];
+            let ry = table_sin(slot.rise_angle as i32) * slot.height[order];
+
+            // The per-slot 90/270/450/630-degree remap, applied to the *ring*
+            // angle only. A negative result reads the mirrored trig table in
+            // the original (out of bounds); the shared `table_cos`/`table_sin`
+            // wrap it, a documented deviation.
+            let mut remapped = match ec {
+                2 => 90 - angle,
+                1 => 270 - angle,
+                0 => 450 - angle,
+                _ => 630 - angle,
+            };
+
+            if remapped >= 360 {
+                remapped -= 360;
+            }
+
+            let sin_remapped = table_sin(remapped);
+            let cos_remapped = table_cos(remapped);
+            let rz = sin_remapped * rx;
+            let rx = cos_remapped * rx;
+
+            // `vecTNow`
+            let top = [bottom[0] + rx, -ry, bottom[2] + rz];
+
+            let offset_x = slot.flag1[0] as f32;
+            let offset_z = slot.flag1[1] as f32;
+            let vec1 = [top[0] + offset_x, top[1], top[2] + offset_z];
+            let vec2 = [bottom[0] + offset_x, bottom[1], bottom[2] + offset_z];
+            let vec3 = [previous_top[0] + offset_x, previous_top[1], previous_top[2] + offset_z];
+            let vec4 = [previous_bottom[0] + offset_x, previous_bottom[1], previous_bottom[2] + offset_z];
+
+            if order > 0 {
+                // `RenderTeiRect(&rpCnt, order - 1, alphaB, alphaB, vec4,
+                // vec2, vec1, vec3, wtm, 0)`
+                emit_tei_rect_10(state, out, order as i32 - 1, slot.alpha_b, [vec4, vec2, vec1, vec3], 0);
+            }
+
+            order += 1;
+            if order >= 21 {
+                order = 20;
+            }
+
+            previous_top = top;
+            previous_bottom = bottom;
+            count += basic_angle;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderGrandCross2 (37)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderGrandCross2` - `EffectPrimitiveRendering.cpp:7365-7421`,
+/// dispatch `:524-525` (`PP_GRANDCROSS2`, prim 37).
+///
+/// Per live slot with a positive `alphaB` this builds the four rotated base
+/// corners from `height[0]`/`height[1]`, draws the four skirt quads with
+/// `y = -1 - height[2]` (`pw = 1`, straight alpha), then the flat quad twice
+/// (`pw = 0`, the glow queue) at `alphaB / 2`. All six calls pass `f1 = 0`, so
+/// `render.position` is added by `RenderTeiRect`.
+pub fn render_grand_cross2(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let cosine = table_cos(slot.rot_start as i32);
+        let sine = table_sin(slot.rot_start as i32);
+        let height = slot.height[0];
+        let side = slot.height[1];
+        let drop = slot.height[2];
+
+        let corner = |rx: f32, rz: f32| [cosine * rx - sine * rz, -1.0, sine * rx + cosine * rz];
+        let b_pre = corner(height, side);
+        let b_now = corner(height, -side);
+        let t_now = corner(-height, -side);
+        let t_pre = corner(-height, side);
+
+        let lowered = |point: [f32; 3]| [point[0], point[1] - drop, point[2]];
+        let vec1 = lowered(b_pre);
+        let vec2 = lowered(b_now);
+        let vec3 = lowered(t_pre);
+        let vec4 = lowered(t_now);
+
+        let white = (255, 255, 255);
+        let uvs = (0.0, 1.0, 0.0, 1.0);
+
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [b_pre, b_now, vec2, vec1],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::Alpha,
+        );
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [b_now, t_now, vec4, vec2],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::Alpha,
+        );
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [t_now, t_pre, vec3, vec4],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::Alpha,
+        );
+        emit_tei_rect_18(
+            state,
+            out,
+            slot.alpha_b,
+            [t_pre, b_pre, vec1, vec3],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::Alpha,
+        );
+
+        // `const short alpha = static_cast<short>(alphaB / 2);`
+        let alpha = slot.alpha_b / 2;
+
+        emit_tei_rect_18(
+            state,
+            out,
+            alpha,
+            [b_pre, b_now, t_now, t_pre],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::AlphaOne,
+        );
+        emit_tei_rect_18(
+            state,
+            out,
+            alpha,
+            [t_pre, t_now, b_now, b_pre],
+            0,
+            true,
+            white,
+            uvs,
+            SlotBlend::AlphaOne,
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderRotatedPlate (44)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderRotatedPlate` -
+/// `EffectPrimitiveRendering.cpp:2747-2784`, dispatch `:542-543` (bare `case
+/// 44`).
+///
+/// The scatter pulse: a quad whose inner and outer edges are pushed apart by
+/// `flag1[1] * height[1]`, rotated around `fullDisplayAngle` and then tilted by
+/// `riseAngle`. `flag1[0]` selects the colour and blend: 0/1 glow white-yellow,
+/// 2 blue forced onto the near plane (`extra == 1`), anything else a dim
+/// alpha-blended white.
+pub fn render_rotated_plate(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let shift = slot.flag1[1] as f32 * slot.height[1];
+        let outer = shift + slot.distance;
+        let inner = slot.distance - shift;
+        let back = slot.height[1] * -1.0;
+
+        let display = slot.full_display_angle as i32;
+        let rise = slot.rise_angle as i32;
+        let cos_display = table_cos(display);
+        let sin_display = table_sin(display);
+        let cos_rise = table_cos(rise);
+        let sin_rise = table_sin(rise);
+
+        // The original's `- g_sinTable[riseAngle] * 0.0f` and
+        // `+ g_cosTable[riseAngle] * 0.0f` terms are exactly zero and are
+        // omitted from the x/z components below.
+        let mut across = cos_display * outer - sin_display * slot.height[1];
+        let vec2 = [
+            across * cos_rise,
+            sin_display * outer + cos_display * slot.height[1],
+            across * sin_rise,
+        ];
+
+        across = cos_display * inner - sin_display * slot.height[1];
+        let vec3 = [
+            across * cos_rise,
+            sin_display * inner + cos_display * slot.height[1],
+            across * sin_rise,
+        ];
+
+        across = cos_display * inner - sin_display * back;
+        let vec4 = [across * cos_rise, cos_display * back + sin_display * inner, across * sin_rise];
+
+        across = cos_display * outer - sin_display * back;
+        let vec1 = [across * cos_rise, cos_display * back + sin_display * outer, across * sin_rise];
+
+        let quad = [vec1, vec2, vec3, vec4];
+
+        match slot.flag1[0] {
+            0 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                (225, 225, 80),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            ),
+            1 => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                (255, 255, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            ),
+            2 => emit_tei_rect_18_near(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                (65, 184, 240),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::AlphaOne,
+            ),
+            _ => emit_tei_rect_18(
+                state,
+                out,
+                slot.alpha_b,
+                quad,
+                0,
+                true,
+                (200, 200, 255),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            ),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use cgmath::{Deg, Matrix4, Vector3};
@@ -4122,6 +4470,10 @@ mod tests {
             (PrimitiveId::Slash1, SlotRenderer::Slash1),
             (PrimitiveId::PentaRing, SlotRenderer::PentaRing),
             (PrimitiveId::HitLine3, SlotRenderer::HitLine3),
+            (PrimitiveId::Gi3, SlotRenderer::CastingGi3),
+            (PrimitiveId::GrandCross2, SlotRenderer::GrandCross2),
+            (PrimitiveId::ExpandPulse, SlotRenderer::RotatedPlate),
+            (PrimitiveId::TeiHit2, SlotRenderer::FieldPanel),
         ];
 
         for (id, expected_renderer) in expected {
@@ -4178,6 +4530,10 @@ mod tests {
             PrimitiveId::Slash1,
             PrimitiveId::PentaRing,
             PrimitiveId::HitLine3,
+            PrimitiveId::Gi3,
+            PrimitiveId::GrandCross2,
+            PrimitiveId::ExpandPulse,
+            PrimitiveId::TeiHit2,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -6604,5 +6960,144 @@ mod tests {
         for axis in 0..3 {
             assert_close(built[0].corners[0][axis], vec2[axis]);
         }
+    }
+
+    #[test]
+    fn rotated_plate_builds_the_shifted_quad_and_its_colours() {
+        let mut state = state_of(PrimitiveId::ExpandPulse);
+        state.render_flag = 5;
+        state.texture = Some("effect\\alpha_center.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            full_display_angle: 0,
+            rise_angle: 0,
+            height: {
+                let mut height = [0.0; 21];
+                height[1] = 1.0;
+                height
+            },
+            distance: 10.0,
+            ..Default::default()
+        };
+        state.slots[0].flag1[0] = 1;
+        state.slots[0].flag1[1] = 24;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        assert_eq!(built[0].texture, Some("effect\\alpha_center.tga"));
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        // `flag1[0] == 1` uses `pw = 0`, i.e. the glow queue; render_flag 5
+        // enables the per-call blend.
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+
+        // shift = 24 * 1; outer = 34; inner = -14; back = -1. With display and
+        // rise both zero the quad is the plain rectangle.
+        assert_close(built[0].corners[0][0], 34.0);
+        assert_close(built[0].corners[0][1], -1.0);
+        assert_close(built[0].corners[1][0], 34.0);
+        assert_close(built[0].corners[1][1], 1.0);
+        assert_close(built[0].corners[2][0], -14.0);
+        assert_close(built[0].corners[2][1], 1.0);
+    }
+
+    #[test]
+    fn rotated_plate_flag_two_forces_the_near_plane() {
+        let mut state = state_of(PrimitiveId::ExpandPulse);
+        state.render_flag = 5;
+        state.slots[0].life = 1;
+        state.slots[0].alpha_b = 80;
+        state.slots[0].distance = 10.0;
+        state.slots[0].height[1] = 1.0;
+        state.slots[0].flag1[0] = 2;
+        state.slots[0].flag1[1] = 16;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 2);
+        for triangle in &built {
+            assert_eq!(triangle.forced_depth, Some(1.0));
+            assert_eq!(triangle.argb, pack_argb(80, 65, 184, 240));
+        }
+    }
+
+    #[test]
+    fn grand_cross2_builds_the_skirt_and_the_flat_cross() {
+        let mut state = state_of(PrimitiveId::GrandCross2);
+        state.render_flag = 5;
+        state.texture = Some("effect\\ring_yellow.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            rot_start: 0,
+            height: {
+                let mut height = [0.0; 21];
+                height[0] = 24.0;
+                height[1] = 3.2;
+                height[2] = 5.0;
+                height
+            },
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // Four skirt quads plus the two flat cross quads.
+        assert_eq!(built.len(), 12);
+        assert_eq!(built[0].texture, Some("effect\\ring_yellow.tga"));
+
+        // Skirt: (vecBPre, vecBNow, lowered(vecBNow)).
+        assert_close(built[0].corners[0][0], 24.0);
+        assert_close(built[0].corners[0][1], -1.0);
+        assert_close(built[0].corners[0][2], 3.2);
+        assert_close(built[0].corners[1][2], -3.2);
+        assert_close(built[0].corners[2][1], -6.0);
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 255));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+
+        // Last two quads (triangles 8..12) are the flat cross at alpha / 2.
+        assert_close(built[8].corners[0][1], -1.0);
+        assert_eq!(built[8].argb, pack_argb(50, 255, 255, 255));
+        assert_eq!(built[8].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn grand_cross_2_casting_ring_sweeps_nine_segments_per_slot() {
+        let mut state = state_of(PrimitiveId::Gi3);
+        state.render_flag = 5;
+        state.size = 1.0;
+        state.texture = Some("effect\\ring_white.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 10,
+            full_display_angle: 90,
+            rot_start: 180,
+            rise_angle: 90,
+            distance: 19.9,
+            max_height: 120.0,
+            height: [120.0; 21],
+            ..Default::default()
+        };
+        state.slots[0].flag1[0] = 23;
+        state.slots[0].flag1[1] = 23;
+
+        let built = triangles(&state);
+
+        // 90 / 9 = 10 degrees per step -> nine sweep positions, the first only
+        // seeds the previous vectors, so eight quads = sixteen triangles.
+        assert_eq!(built.len(), 16);
+        assert_eq!(built[0].texture, Some("effect\\ring_white.tga"));
+        // `state.size == 1` -> (255, 175, 175) and the glow destination blend.
+        assert_eq!(built[0].argb, pack_argb(10, 255, 175, 175));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+
+        // First emitted quad starts at the order-0 bottom (`angle = 180`)
+        // shifted by `flag1[0]`/`flag1[1]`.
+        let (cos180, sin180) = trig(180);
+        let previous_bottom = [cos180 * 19.9, 0.0, sin180 * 19.9];
+        assert_close(built[0].corners[0][0], previous_bottom[0] + 23.0);
+        assert_close(built[0].corners[0][1], 0.0);
+        assert_close(built[0].corners[0][2], previous_bottom[2] + 23.0);
     }
 }

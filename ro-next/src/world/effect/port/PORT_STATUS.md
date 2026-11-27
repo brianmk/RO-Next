@@ -362,3 +362,42 @@ ported effect files stay untouched.
   `TexturedQuadRingSized`'s `duration <= 60` branch zeroes Bluecasting's ring
   alphas and staggers its slots; `RenderPentaRing` kinds 4/5 force the near plane.
 - Registry now 454 ids; the skill map regenerates with 212 mappings.
+
+### Round 99 (Grand Cross and slash-hit families)
+
+| primitive | name in port | official source | renderer |
+| --- | --- | --- | --- |
+| 34 | `Gi3` (`PP_GI_3`) | `PrimGI3`, `EffectPrimitiveMotion.cpp:2440-2473`, dispatch `:8921-8922` | new `render_3d_casting2` (`Render3DCasting2`, `EffectPrimitiveRendering.cpp:6519-6592`, dispatch `:521-522`) |
+| 37 | `GrandCross2` (`PP_GRANDCROSS2`) | bare `case PP_GRANDCROSS2:`, `EffectPrimitiveMotion.cpp:9184-9211` | new `render_grand_cross2` (`RenderGrandCross2`, `EffectPrimitiveRendering.cpp:7365-7421`, dispatch `:524-525`) |
+| 44 | `ExpandPulse` (no enum symbol) | `PrimExpandPulse`, `EffectPrimitiveMotion.cpp:5331-5369`, dispatch `:9312-9313` | new `render_rotated_plate` (`RenderRotatedPlate`, `EffectPrimitiveRendering.cpp:2747-2784`, dispatch `:542-543`) |
+| 45 | `TeiHit2` (`PP_TEIHIT2`) | `PrimTeiHit2`, `EffectPrimitiveMotion.cpp:1840-1898`, dispatch `:10018-10019` | shared `RenderFieldPanel` (`EffectPrimitiveRendering.cpp:3312-3505`, `:574`) |
+
+- **Bodies** (one Rust function per C++ function): `rag/grand_cross.rs`
+  (`GrandCrossRings` `:16197-16267`, `GRANDCROSS2` `:5163-5195`),
+  `rag/textured_scatter.rs` (`TexturedScatter` `:3180-3209`,
+  `TexturedScatterLow` `:3211-3240`), `rag/tei_hit2.rs` (`TEIHIT2`
+  `:12040-12085`).
+- **Ids** (lifetimes from `EffectTypes.cpp`): `EF_GRANDCROSS` 226 / 999,
+  `EF_GRANDCROSS2` 450 / 999, `EF_TEIHIT2` 264 / 300, `EF_TEIHIT1X` 266 / 300,
+  `EF_BACKSTAP` 275 / 300, `EF_TEIHIT3` 276 / 300. The first five are in the
+  pre-renewal backlog; 450 is the renewal alias of the same two bodies.
+- **RNG** (MSVC `rand()` order preserved; port uses the documented xorshift
+  stand-in): `TexturedScatter` per slot `ClampedRandom(25)`, `(360)`, `(360)`;
+  `TexturedScatterLow` per slot `ClampedRandom(10)`, `(360)`, `(360)`;
+  `TEIHIT2` per slot `ClampedRandom(10)`, `(16)`, `(50)`, `(200)`; prim 45's
+  motion `Random(60) - 30` on the first positive `process`. Grand Cross bodies
+  consume no RNG.
+- **Quirks kept**: `TexturedScatter` drops `render.position.y` by 9 *after* each
+  launch, and the dispatch loops call it 24/20 times, so the effect ends 216/180
+  units down with primitives at `y = 0, -9, ...`; `TexturedScatterLow` gates
+  before the parent copy; `PrimGI3` survives to `process` 99 (death needs
+  `alphaB <= 0` *and* `process > 30`) and resets `distance`/`riseAngle` on the
+  death frame; `GrandCross` calls both bodies on every frame, but each gates
+  itself on `stateCnt == 0`; `EF_BACKSTAP` copies the parent 20 times every
+  frame and only the frame-20 wave survives the gate.
+- Registry now **460** ids; the skill map regenerates with **216** mappings.
+  Backlog coverage **209/236 = 88.6%** (`.str` 57/57, layers 119/144, manual
+  33/35).
+- Verification: `cargo test -p ro-next --lib` **1837 passed, 0 failed, 21
+  ignored**; release build finished with no warnings; `rustfmt --check` clean
+  on every touched file; `gen_ported_skill_map.py --check` up to date.

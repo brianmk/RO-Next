@@ -20,10 +20,13 @@ pub mod chimto_sprite;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
+pub mod expand_pulse;
 pub mod flash;
 pub mod flash_fade;
 pub mod floating_bubbles;
 pub mod forest_light;
+pub mod gi3;
+pub mod grand_cross2;
 pub mod half_sphere;
 pub mod halo;
 pub mod height_ramp;
@@ -47,6 +50,7 @@ pub mod slash1;
 pub mod spin_quad;
 pub mod spline_spiral;
 pub mod stacked_rings;
+pub mod tei_hit2;
 pub mod texture2d;
 pub mod texture3d;
 pub mod texture_spin;
@@ -301,6 +305,25 @@ pub enum PrimitiveId {
     /// `WhiteSparkStreak`. Drawn by `RenderHitLine3`
     /// (`EffectPrimitiveRendering.cpp:1872-1962`, dispatch `:440-442`).
     HitLine3,
+    /// `PP_GI_3` (34) - the contracting Grand Cross rings. Drawn by
+    /// `Render3DCasting2` (`EffectPrimitiveRendering.cpp:6519-6592`, dispatch
+    /// `:521-522`).
+    Gi3,
+    /// `PP_GRANDCROSS2` (37) - the flat Grand Cross cross quads. Drawn by
+    /// `RenderGrandCross2` (`EffectPrimitiveRendering.cpp:7365-7421`,
+    /// dispatch `:524-525`).
+    GrandCross2,
+    /// prim 44 - the `TexturedScatter`/`TexturedScatterLow` pulse. No
+    /// `EffectPrimId.h` symbol (the enum jumps from `PP_INTIMIDATE` = 43 to
+    /// `PP_TEIHIT2` = 45), so the port names it after its motion body,
+    /// `PrimExpandPulse` (`EffectPrimitiveMotion.cpp:5331-5369`, dispatch
+    /// `:9312-9313`). Drawn by `RenderRotatedPlate`
+    /// (`EffectPrimitiveRendering.cpp:2747-2784`, dispatch `:542-543`).
+    ExpandPulse,
+    /// `PP_TEIHIT2` (45) - the flurry quads shared by `EF_TEIHIT2` and
+    /// `EF_BACKSTAP`. Drawn by the shared `RenderFieldPanel`
+    /// (`EffectPrimitiveRendering.cpp:3312-3505`, dispatch `:574`).
+    TeiHit2,
 }
 
 impl PrimitiveId {
@@ -358,6 +381,10 @@ impl PrimitiveId {
             Self::ChimtoSprite => 46,
             Self::PentaRing => 69,
             Self::HitLine3 => 100,
+            Self::Gi3 => 34,
+            Self::GrandCross2 => 37,
+            Self::ExpandPulse => 44,
+            Self::TeiHit2 => 45,
         }
     }
 }
@@ -966,6 +993,22 @@ impl EffectPrimitiveState {
                 true
             }
             PrimitiveId::HitLine3 => hitline3::on_process(self, master),
+            PrimitiveId::Gi3 => {
+                gi3::on_process(self);
+                true
+            }
+            PrimitiveId::GrandCross2 => {
+                grand_cross2::on_process(self);
+                true
+            }
+            PrimitiveId::ExpandPulse => {
+                expand_pulse::on_process(self);
+                true
+            }
+            PrimitiveId::TeiHit2 => {
+                tei_hit2::on_process(self, angles, master, rng);
+                true
+            }
         };
 
         if !alive {
