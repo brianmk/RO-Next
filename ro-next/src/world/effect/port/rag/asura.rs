@@ -11,6 +11,25 @@
 //! | `TexturedCrossLevel` | `:5246-5292` | 31 | `EF_GUMGANG2` (261) |
 //! | `TexturedSkillIcon` | `:3774-3840` | 68 | `EF_BEGINASURA1..7` (467-473) |
 //!
+//! ## The Asura Strike kanji
+//!
+//! The six kanji of 阿修羅覇凰拳 are `effect\asura1.tga`..`effect\asura6.tga`,
+//! hard-coded in `AsuraStrike` itself (`RagEffect.cpp:14201-14210`,
+//! `:14249-14260`), not a skill-icon lookup. The body spawns them as two
+//! three-slot `PP_ASURACASTING` (68) primitives at frames 1 and 21
+//! ([`ASURA_KANJI_COLUMNS`]); `RenderHaloLayers` then builds the ten stacked
+//! quads per slot from `slot.height[0]` (x offset), `slot.distance` and the
+//! per-layer `-30` lift ([`super::super::render_slots::render_halo_layers`]).
+//! `AsuraStrike` copies `state.parent->render.position` into its own
+//! `render.position` on **every** frame before the frame gates, so the second
+//! group is anchored to the caster's frame-21 position, not the cast position.
+//! [`EffectRuntime::copy_parent_position`] reproduces that copy when the client
+//! feeds the caster position.
+//!
+//! `EF_BEGINASURA1..7` are a different visual: seven `effect\hanmoonN.tga`
+//! glyph flashes through `TexturedSkillIcon(..., level = 0, mode = 0)`, whose
+//! texture is the caller's `name` (resolved, not a skill-icon lookup).
+//!
 //! The official dispatch sites:
 //!
 //! * `EF_GUMGANG` - `RagEffect.cpp:24166-24168` (`SuperSlashFan(1, 0)`),
@@ -34,9 +53,12 @@
 //! (`:476-482`), 485/486 `99999` (`:494-495`), 510 `1000` (`:519`).
 //!
 //! Every body copies `state.parent->render.position` into `render.position`
-//! before its frame gate; [`EffectRuntime::position`] already is that anchor,
-//! so there is no second copy to make. Primitive positions are seeded from it
-//! by `CEffectPrim::Initialize` and by `FollowMaster` in the motion bodies.
+//! before its frame gate. For the frame-0 helpers the spawn anchor already is
+//! that position, but [`asura_strike`] and [`textured_skill_icon`] can fire on
+//! later frames, so they call [`EffectRuntime::copy_parent_position`] - the
+//! same copy - and get the caster's position of the frame they fire on.
+//! Primitive positions are seeded from it by `CEffectPrim::Initialize` and by
+//! `FollowMaster` in the motion bodies.
 //!
 //! ## RNG order
 //!
@@ -50,11 +72,14 @@
 //! single shared sequence. `SuperSlashSpread` draws the same twelve per slot.
 //!
 //! `TexturedSkillIcon`'s `level > 0`/`mode == 2` branches call `rand()` for a
-//! skill-icon id. None of the ported call sites take those branches (all seven
-//! `hanmoon` bodies pass `level == 0`, `mode == 0`), and the icon name needs
-//! the skill table (`CSkillInfo::IdName`) the hermetic runtime does not own, so
-//! the port keeps the branch shape but leaves the texture unresolved. No RNG
-//! is consumed there.
+//! skill-icon id. They are **not** the Asura kanji path: only
+//! `EF_RECOGNIZED`/`EF_RECOGNIZED2` (Recognized Spell, not ported) take them
+//! (`RagEffect.cpp:20142`, `:20209`), and those resolve
+//! `유저인터페이스\item\<CSkillInfo::IdName(id)>.bmp` - the opaque item icon,
+//! not a glyph. All seven ported `hanmoon` bodies pass `level == 0`,
+//! `mode == 0`, so the port keeps the branch shape but leaves the skill-icon
+//! texture unresolved (the hermetic runtime does not own the skill table). No
+//! RNG is consumed there.
 
 use ragnarok_packets::EffectId;
 
@@ -389,12 +414,16 @@ fn textured_cross_level(runtime: &mut EffectRuntime, name: &'static str, level: 
 /// otherwise frame `level`. Arms one prim 68 with four slots cleared and slot
 /// 0 live, `size = 0`, `alphaB = 0`, `flag1[0] = 0`.
 ///
-/// `level == 0` (every ported call site) uses the caller's `name` texture.
-/// `mode == 2` and `level > 0` resolve a skill icon through
-/// `CSkillInfo::IdName` plus `rand()`; the port leaves the texture unresolved
-/// there because no ported body takes that branch (see the module docs).
+/// `level == 0` (every ported call site) uses the caller's `name` texture -
+/// for `EF_BEGINASURA1..7` that is the resolved `effect\hanmoonN.tga`. The
+/// `mode == 2`/`level > 0` branches resolve an **item** icon through
+/// `CSkillInfo::IdName` plus `rand()`; they belong to
+/// `EF_RECOGNIZED`/`EF_RECOGNIZED2`, not to Asura, and no ported body takes
+/// them (the port leaves the texture unresolved there; see the module docs).
 fn textured_skill_icon(runtime: &mut EffectRuntime, name: &'static str, level: i16, mode: i16) {
-    // `CopyVector(...)`; `runtime.position` is the anchor.
+    // `CopyVector(this->render.position, this->state.parent->render.position);`
+    // also runs before the frame gate.
+    runtime.copy_parent_position();
 
     // `if (this->state.stateCnt != (level == 0 ? 0 : level)) return;`
     let gate = if level == 0 { 0 } else { level as i32 };
@@ -441,16 +470,38 @@ fn textured_skill_icon(runtime: &mut EffectRuntime, name: &'static str, level: i
     state.slots[0].flag1[5] = 0;
 }
 
+/// The six Asura Strike kanji, in the official `state.textures[]` order of the
+/// two `PP_ASURACASTING` groups (`RagEffect.cpp:14201-14210`, `:14249-14260`).
+///
+/// Group 0 is the frame-1 column (`asura3`, `asura2`, `asura1` in slots 0, 1,
+/// 2) and group 1 the frame-21 column (`asura4`, `asura5`, `asura6`). The
+/// `asura11..16` variants are the level >= 4016 (`EF_BEGINASURA11`) set.
+pub const ASURA_KANJI_COLUMNS: [[&str; 3]; 2] = [["effect\\asura3.tga", "effect\\asura2.tga", "effect\\asura1.tga"], [
+    "effect\\asura4.tga",
+    "effect\\asura5.tga",
+    "effect\\asura6.tga",
+]];
+
+/// `EF_BEGINASURA11`'s kanji set (`RagEffect.cpp:14207-14209`,
+/// `:14255-14257`), same slot order as [`ASURA_KANJI_COLUMNS`].
+pub const ASURA_KANJI_COLUMNS_MONSTER: [[&str; 3]; 2] = [["effect\\asura13.tga", "effect\\asura12.tga", "effect\\asura11.tga"], [
+    "effect\\asura14.tga",
+    "effect\\asura15.tga",
+    "effect\\asura16.tga",
+]];
+
 /// `CRagEffect::AsuraStrike` - `RagEffect.cpp:14187-14305`.
 ///
 /// Frame 0 raises the lifetime to 350, plays `effect\EF_BeginSpell.wav` and
-/// spawns the two white ring sets; frame 1 spawns the first prim 68 blade
-/// column (`asura1..3.tga` / `asura11..13.tga`), frame 21 the second
-/// (`asura4..6.tga` / `asura14..16.tga`). Both columns carry three slots with
-/// `process = index * 20 - 40` (first) / `-40 - index * 20` (second),
+/// spawns the two white ring sets; frame 1 spawns the first prim 68 kanji
+/// column (`asura3/2/1.tga` / `asura13/12/11.tga`), frame 21 the second
+/// (`asura4/5/6.tga` / `asura14/15/16.tga`). Both columns carry three slots
+/// with `process = index * 20 - 40` (first) / `-40 - index * 20` (second),
 /// `flag1[0] = index`, and kind-dependent `distance`/`height[0]`.
 fn asura_strike(runtime: &mut EffectRuntime, kind: i8) {
-    // `CopyVector(...)`; `runtime.position` is the anchor.
+    // `CopyVector(this->render.position, this->state.parent->render.position);`
+    // runs on every frame, before the frame gates.
+    runtime.copy_parent_position();
 
     if runtime.frame == 0 {
         // `if (this->state.duration < 350) this->state.duration = 350;`
@@ -475,10 +526,10 @@ fn asura_strike(runtime: &mut EffectRuntime, kind: i8) {
         state.duration = lifetime;
         state.total_texture = 3;
 
-        let textures: [&'static str; 3] = if kind == 0 {
-            ["effect\\asura3.tga", "effect\\asura2.tga", "effect\\asura1.tga"]
+        let textures = if kind == 0 {
+            ASURA_KANJI_COLUMNS[0]
         } else {
-            ["effect\\asura13.tga", "effect\\asura12.tga", "effect\\asura11.tga"]
+            ASURA_KANJI_COLUMNS_MONSTER[0]
         };
 
         state.texture = Some(textures[0]);
@@ -526,10 +577,10 @@ fn asura_strike(runtime: &mut EffectRuntime, kind: i8) {
         state.duration = lifetime;
         state.total_texture = 3;
 
-        let textures: [&'static str; 3] = if kind == 0 {
-            ["effect\\asura4.tga", "effect\\asura5.tga", "effect\\asura6.tga"]
+        let textures = if kind == 0 {
+            ASURA_KANJI_COLUMNS[1]
         } else {
-            ["effect\\asura14.tga", "effect\\asura15.tga", "effect\\asura16.tga"]
+            ASURA_KANJI_COLUMNS_MONSTER[1]
         };
 
         state.texture = Some(textures[0]);
@@ -854,7 +905,9 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::world::effect::port::angles::Angles;
     use crate::world::effect::port::primitive::PrimitiveId;
+    use crate::world::effect::port::render_slots;
     use crate::world::effect::port::runtime::{EffectRng, step};
 
     fn runtime(effect: &dyn PortedEffect, seed: u64) -> EffectRuntime {
@@ -1200,6 +1253,163 @@ mod tests {
             assert_eq!(primitive.slots[0].height[0], 0.0);
             assert_eq!(primitive.slots[0].flag1[0], 0);
         }
+    }
+
+    #[test]
+    fn asura_kanji_texture_sets_are_exact() {
+        assert_eq!(ASURA_KANJI_COLUMNS, [
+            ["effect\\asura3.tga", "effect\\asura2.tga", "effect\\asura1.tga"],
+            ["effect\\asura4.tga", "effect\\asura5.tga", "effect\\asura6.tga"],
+        ]);
+        assert_eq!(ASURA_KANJI_COLUMNS_MONSTER, [
+            ["effect\\asura13.tga", "effect\\asura12.tga", "effect\\asura11.tga"],
+            ["effect\\asura14.tga", "effect\\asura15.tga", "effect\\asura16.tga"],
+        ]);
+
+        // Drive both Asura bodies and pin the actual `state.textures[]` slots,
+        // not just the constants: group 0 at frame 1, group 1 at frame 21.
+        for (id, columns) in [
+            (EffectId::Beginasura, ASURA_KANJI_COLUMNS),
+            (EffectId::Beginasura11, ASURA_KANJI_COLUMNS_MONSTER),
+        ] {
+            let mut body = spawn(id).unwrap();
+            let mut runtime = runtime(body.as_ref(), 5);
+
+            body.on_process(&mut runtime);
+            runtime.frame = 1;
+            body.on_process(&mut runtime);
+
+            let first = &runtime.primitives.last().unwrap().state;
+            assert_eq!(first.texture, Some(columns[0][0]), "{id:?}");
+            assert_eq!(first.texture_secondary, Some(columns[0][1]), "{id:?}");
+            assert_eq!(first.texture_tertiary, Some(columns[0][2]), "{id:?}");
+            assert_eq!(first.texture_frames, columns[0].to_vec(), "{id:?}");
+
+            runtime.frame = 21;
+            body.on_process(&mut runtime);
+
+            let second = &runtime.primitives.last().unwrap().state;
+            assert_eq!(second.texture, Some(columns[1][0]), "{id:?}");
+            assert_eq!(second.texture_secondary, Some(columns[1][1]), "{id:?}");
+            assert_eq!(second.texture_tertiary, Some(columns[1][2]), "{id:?}");
+            assert_eq!(second.texture_frames, columns[1].to_vec(), "{id:?}");
+        }
+    }
+
+    /// `CopyVector(render.position, parent->render.position)` - the official
+    /// `AsuraStrike` runs it on every frame before the gates, so the frame-21
+    /// column follows a caster that moved since frame 1.
+    #[test]
+    fn asura_kanji_columns_anchor_to_the_casters_frame_position() {
+        let mut body = BeginAsura;
+        let mut runtime = runtime(&body, 5);
+
+        runtime.position = [0.0, 0.0, 0.0];
+        body.on_process(&mut runtime);
+
+        runtime.parent_position = Some([10.0, 2.0, 30.0]);
+        runtime.frame = 1;
+        body.on_process(&mut runtime);
+
+        let first = runtime.primitives.len() - 1;
+        assert_eq!(runtime.primitives[first].state.position, [10.0, 2.0, 30.0]);
+
+        runtime.parent_position = Some([14.0, 2.0, 38.0]);
+        runtime.frame = 21;
+        body.on_process(&mut runtime);
+
+        let second = runtime.primitives.len() - 1;
+        assert_eq!(runtime.primitives[second].state.position, [14.0, 2.0, 38.0]);
+        // The frame-1 column is not re-anchored by later frames.
+        assert_eq!(runtime.primitives[first].state.position, [10.0, 2.0, 30.0]);
+    }
+
+    #[test]
+    fn copy_parent_position_is_a_no_op_without_a_parent() {
+        let mut runtime = EffectRuntime::new(300, [0.0, 0.0], 5);
+        runtime.position = [1.0, 2.0, 3.0];
+
+        runtime.copy_parent_position();
+        assert_eq!(runtime.position, [1.0, 2.0, 3.0]);
+
+        runtime.parent_position = Some([4.0, 5.0, 6.0]);
+        runtime.copy_parent_position();
+        assert_eq!(runtime.position, [4.0, 5.0, 6.0]);
+    }
+
+    /// The seven `EF_BEGINASURA1..7` glyphs set `flag1[4] = 1`, which makes
+    /// `PrimAsuraCasting` run `FollowMaster` every frame. The port reads the
+    /// caster position through [`EffectRuntime::copy_parent_position`]; this
+    /// pins both the frame-0 launch and the later follow.
+    #[test]
+    fn hanmoon_kanji_follows_the_caster() {
+        let mut body = BeginAsuraIcon::new(ASURA_ICON_TEXTURES[0]);
+        let mut runtime = runtime(&body, 5);
+
+        runtime.position = [0.0, 0.0, 0.0];
+        body.on_process(&mut runtime);
+        assert_eq!(runtime.primitives[0].state.position, [0.0, 0.0, 0.0]);
+
+        runtime.parent_position = Some([5.0, 0.0, 7.0]);
+        runtime.frame = 1;
+        body.on_process(&mut runtime);
+        runtime.process_primitives();
+
+        assert_eq!(runtime.primitives[0].state.position, [5.0, 0.0, 7.0]);
+    }
+
+    /// `RenderHaloLayers` layer geometry for the Asura kanji column: ten
+    /// concentric quads per slot at radius `distance + (10 - i) * 3`, x offset
+    /// `height[0]`, lifted 30 units and translated by `render.position`.
+    #[test]
+    fn asura_kanji_halo_layer_geometry_is_exact() {
+        let mut body = BeginAsura;
+        let mut runtime = runtime(&body, 5);
+        runtime.parent_position = Some([100.0, 5.0, -40.0]);
+        runtime.frame = 1;
+        body.on_process(&mut runtime);
+
+        let index = runtime.primitives.len() - 1;
+        let state = runtime.primitive_mut(index);
+
+        // Camera-less `triangles` uses the stored `FaceCamera` angles; zero
+        // keeps `Tei_TowardScreen` an identity.
+        state.slots[0].alpha_t = 0;
+        state.slots[1].alpha_t = 0;
+        for layer in 1..=10usize {
+            state.slots[0].height[layer] = 100.0;
+        }
+
+        let triangles = render_slots::triangles(state);
+
+        // Only slot 0 has non-zero heights, so it emits ten layer quads.
+        assert_eq!(triangles.len(), 20);
+        assert_eq!(triangles[0].texture, Some("effect\\asura3.tga"));
+
+        let origin = [100.0, 5.0, -40.0];
+        let height0 = -6.0;
+        let distance = 18.0;
+
+        // `for (int i = 10; i >= 1; --i)`: the first quad is the innermost
+        // layer (radius 18) and `triangles[18]` the outermost (radius 45).
+        assert_eq!(triangles[0].corners, expected_halo_triangle(origin, height0, distance, 10));
+        assert_eq!(triangles[18].corners, expected_halo_triangle(origin, height0, distance, 1));
+    }
+
+    /// One `RenderTeiRect(vec2, vec1, vec4, vec3)` first triangle of
+    /// `RenderHaloLayers` with `FaceCamera` angles zero.
+    fn expected_halo_triangle(origin: [f32; 3], height0: f32, distance: f32, layer: usize) -> [[f32; 3]; 3] {
+        let angles = Angles::shared();
+        let radius = distance + (10 - layer) as f32 * 3.0;
+        let corner = |angle: usize| [height0 + radius * angles.raw_cosine(angle), -30.0, angles.raw_sine(angle) * radius];
+
+        // Quad order is `vec2, vec1, vec4, vec3`; its first triangle is
+        // `(vec2, vec1, vec4)` (`push_quad`'s `[0, 1, 2]`).
+        let vec1 = corner(45);
+        let vec2 = corner(135);
+        let vec4 = corner(315);
+
+        [vec2, vec1, vec4].map(|corner| [origin[0] + corner[0], origin[1] + corner[1], origin[2] + corner[2]])
     }
 
     #[test]

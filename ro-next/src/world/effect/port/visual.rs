@@ -201,11 +201,18 @@ impl EffectBase for PortedVisual {
     ///   because the original only clears them in `CRenderObject::Reset`; the
     ///   visual re-applies the runtime's last write every frame and clears it
     ///   when the effect retires. The client has no render pass for these
-    ///   phases for tint/pulse/outline now, and record-only for effectPhase
-    ///   and runStartTick (see
-    ///   `world::entity::Common`'s field docs for the official consumers that
-    ///   would read them).
+    ///   phases for tint/pulse/outline now, and record-only for effectPhase and
+    ///   runStartTick (see `world::entity::Common`'s field docs for the
+    ///   official consumers that would read them).
     fn apply_caster_state(&mut self, entity: &mut crate::world::Entity, client_tick: ragnarok_packets::ClientTick) {
+        // The official effect body starts every frame by copying
+        // `parent->render.position` into its own `render.position`; the port's
+        // bodies call [`EffectRuntime::copy_parent_position`] for that. Feed the
+        // owning entity's live position so an effect whose caster moves (Asura
+        // Strike slides to its target) keeps its glyphs on the caster.
+        let parent = entity.get_position();
+        self.holder.runtime_mut().parent_position = Some([parent.x, parent.y, parent.z]);
+
         let runtime = self.holder.runtime();
 
         if let Some(channels) = runtime.parent_color {

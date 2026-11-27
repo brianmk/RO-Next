@@ -76,6 +76,21 @@ pub struct EffectRuntime {
     pub screen: [f32; 2],
     /// `render.position` - the world position, used by 3-D primitives.
     pub position: [f32; 3],
+    /// `state.parent->render.position` - the caster's world position for the
+    /// frame being processed.
+    ///
+    /// Most `CRagEffect` bodies open with
+    /// `CopyVector(this->render.position,
+    /// this->state.parent->render.position)`. The spawn path only knows the
+    /// caster position at spawn time, so an effect whose parent moves
+    /// afterwards (Asura Strike's slide, for one) would otherwise keep the
+    /// stale anchor. [`Self::copy_parent_position`] is that copy;
+    /// [`super::visual::PortedVisual`] fills the value from the
+    /// owning entity each frame.
+    ///
+    /// `None` keeps the hermetic behaviour: the runtime's constructor/spawn
+    /// anchor is used (the unit tests that do not model a moving parent).
+    pub parent_position: Option<[f32; 3]>,
     /// `state.param[0]` - effect parameter (skill level / power) some bodies
     /// use.
     pub param: f32,
@@ -129,8 +144,8 @@ pub struct EffectRuntime {
     pub count: i32,
     pub primitives: Vec<PrimitiveInstance>,
     /// `CThrowItemEffect::particles` - the `CParticle` objects the alternate
-    /// throw-item bodies create and drive themselves (`ThrowEffects.cpp:105-278`,
-    /// `:500-579`).
+    /// throw-item bodies create and drive themselves
+    /// (`ThrowEffects.cpp:105-278`, `:500-579`).
     ///
     /// Unlike [`Self::primitives`], these do not run a `CEffectPrim` motion
     /// pass: the owning body rebuilds every particle's offset, alpha and world
@@ -355,6 +370,7 @@ impl EffectRuntime {
             lifetime,
             screen,
             position: [0.0; 3],
+            parent_position: None,
             param: 0.0,
             param_secondary: 0.0,
             parent_action_height: None,
@@ -419,6 +435,17 @@ impl EffectRuntime {
 
     pub fn primitive_mut(&mut self, index: usize) -> &mut EffectPrimitiveState {
         &mut self.primitives[index].state
+    }
+
+    /// `CopyVector(this->render.position, this->state.parent->render.position)`
+    /// - the opening line of most `CRagEffect` bodies.
+    ///
+    /// A no-op when no parent was fed (the hermetic runtime and every test that
+    /// does not model a moving caster).
+    pub fn copy_parent_position(&mut self) {
+        if let Some(parent) = self.parent_position {
+            self.position = parent;
+        }
     }
 
     /// `CreateParticle(&positionVector, 5)` (`EffectMemoryMgr.cpp:246-252`) -

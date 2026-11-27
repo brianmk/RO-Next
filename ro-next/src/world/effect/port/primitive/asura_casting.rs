@@ -1,8 +1,9 @@
 //! `PP_ASURACASTING` (68) - `EffectPrimitiveMotion.cpp:3224-3405`
 //! (`CEffectPrim::PrimAsuraCasting`).
 //!
-//! The three vertical blade columns of `EF_BEGINASURA`/`EF_BEGINASURA11` and
-//! the icon flash of `EF_BEGINASURA1..7`. Every live slot ramps its ten height
+//! The three kanji columns of `EF_BEGINASURA`/`EF_BEGINASURA11` (the six
+//! `effect\asuraN.tga` glyphs) and the icon flash of `EF_BEGINASURA1..7`.
+//! Every live slot ramps its ten height
 //! samples in thirteen-unit steps during the first twenty frames, then drains
 //! them and starts eating the sample at the top (`ShrinkLast`). The exact ramp
 //! depends on `flag1[4]`:
@@ -22,7 +23,10 @@
 //!   other than `4`,
 //! * `FollowMaster` is conditional: the primitive only snaps to the master
 //!   position when `slots[0].flag1[4] == 1` (the icon bodies), never for the
-//!   blade columns (`0`/`3`), whose heights already carry their offset,
+//!   kanji columns (`0`/`3`), whose heights already carry their offset. The
+//!   master position is the effect's `render.position`, which `AsuraStrike` and
+//!   `TexturedSkillIcon` refresh from the caster every frame
+//!   (`EffectRuntime::copy_parent_position`),
 //! * `FaceCamera(state.slots)` writes `slots[0/1].alphaT`, which the renderer
 //!   turns into a rotation. The port's hermetic simulation has no camera, so
 //!   the renderer computes the same two angles from the live camera at draw
