@@ -104,11 +104,13 @@ pub fn caster_action(skill_id: SkillId) -> CasterAction {
 ///
 /// The official `NotifySkillCasting` returns before `GetSkillActionInfo` and
 /// `SetState` when the packet's `delay` is zero
-/// (`GameModePackets.cpp:12951-12953`), so an instant cast gets no pose from
-/// the ack. The client still plays the pose for skills with an explicit
-/// official frame sequence, because the sequence needs its base ACT block and
-/// the damage/use packet is the only other place that applies it (a documented
-/// timing approximation; see the audit report §8).
+/// (`GameModePackets.cpp:12939-12948`), so an instant cast gets no pose from
+/// the ack. `plays_sequence` exists for callers that need the base ACT block
+/// of an official `SetFrameSequence` early; the production handler passes
+/// `false` for sequence carriers, because the 0x09CB completion and the damage
+/// packet set both the base block and the frame range themselves. Playing the
+/// pose on an instant ack made Finger Offensive (267) restart its 0x60 frames
+/// 3..4 windup before the damage packet replayed it.
 pub fn ack_caster_action(skill_id: SkillId, cast_time: u32, plays_sequence: bool) -> Option<CasterAction> {
     (cast_time > 0 || plays_sequence).then(|| caster_action(skill_id))
 }
@@ -210,13 +212,14 @@ mod tests {
     #[test]
     fn instant_ack_skips_the_pose_unless_a_sequence_needs_it() {
         // Official `NotifySkillCasting` returns before `SetState` when
-        // `delay == 0` (GameModePackets.cpp:12951-12953).
+        // `delay == 0` (GameModePackets.cpp:12940-12942).
         assert_eq!(ack_caster_action(SkillId(34), 0, false), None);
         assert_eq!(ack_caster_action(SkillId(5), 0, false), None);
         // A cast-time ack still plays the `GetSkillActionInfo` pose.
         assert_eq!(ack_caster_action(SkillId(5), 500, false), Some(CasterAction::Attack));
-        // Sequence carriers keep the ack pose so their base ACT block exists;
-        // the 0x09CB/damage path then applies the frame range.
+        // The escape hatch still exists for callers that need the base block
+        // early; the production handler passes `false` (see
+        // `client::network::skills`), so instant casts never get an ack pose.
         assert_eq!(ack_caster_action(SkillId(270), 0, true), Some(CasterAction::Action(12)));
     }
 
@@ -374,7 +377,7 @@ mod tests {
         // 34 AL_BLESSING is instant: `GetSkillActionInfo` motion 0 only matters
         // when the server sends a cast time, and the official `NotifySkillCasting`
         // returns before any pose when `delay == 0`
-        // (`GameModePackets.cpp:12951-12953`). The visible gesture therefore
+        // (`GameModePackets.cpp:12940-12948`). The visible gesture therefore
         // comes from 0x09CB, whose `GetSkillActionInfo2` sets motion 7
         // (`SkillActionInfo.cpp:1853-1868`) -> ST_SKILL -> block 96.
         assert_eq!(ack_caster_action(SkillId(34), 0, false), None);

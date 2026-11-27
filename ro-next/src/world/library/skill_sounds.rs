@@ -272,7 +272,7 @@ mod tests {
             "sound mapping should stay broad, got {}",
             sounds.generated.len()
         );
-        assert_eq!(sounds.curated.len(), 8, "the hand-curated overrides");
+        assert_eq!(sounds.curated.len(), 9, "the hand-curated overrides");
         assert!(!sounds.generic.is_empty());
         assert!(
             sounds.generated.windows(2).all(|pair| pair[0].skill < pair[1].skill),
@@ -378,5 +378,29 @@ mod tests {
                 curated.skill
             );
         }
+    }
+
+    /// `MO_INVESTIGATE` / Occult Impaction (266) plays the short monk impact
+    /// wave. The 2019 CondaRO client used `effect\mon_탄지신통.wav` for the
+    /// `EF_CHIMTO` body; the 2026 decompilation changed that body to the long
+    /// `effect\mon_침투경.wav` (`RagEffect.cpp:14427`), which is the Solar
+    /// Explosion boom (122 756 uncompressed bytes against 11 430 for the
+    /// impact wave). The curated row keeps the 2019 client's sound.
+    #[test]
+    fn investigate_plays_the_short_2019_monk_impact_wave() {
+        assert_eq!(
+            super::curated_skill_sound_files(SkillId(266)).map(|files| files.to_vec()),
+            Some(vec!["effect\\mon_탄지신통.wav"]),
+            "MO_INVESTIGATE (266) must play the 2019 monk impact wave"
+        );
+        assert!(
+            super::skill_sound_files(SkillId(266)).is_none(),
+            "the generated 2026 `mon_침투경` row must not resurface"
+        );
+        // Throw Spirit Sphere uses the same short wave in both clients.
+        assert_eq!(
+            super::skill_sound_files(SkillId(267)),
+            Some(&["effect\\mon_탄지신통.wav", "effect\\ef_hit2.wav"][..])
+        );
     }
 }

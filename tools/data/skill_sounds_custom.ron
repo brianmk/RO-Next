@@ -64,5 +64,17 @@
         // effect/ef_ruwach` (and the generated `ef_hit2.wav` hit sound) are
         // never played. Keeping the Sight wave is the official quirk.
         (skill: 24, files: ["effect\\ef_sight.wav"]),
+        // MO_INVESTIGATE / Occult Impaction (266): the 2019 CondaRO client
+        // plays the short monk impact wave `effect\\mon_탄지신통.wav` (the
+        // CHIMTO implementation's inline `PlayEffectWaveInline`). The 2026
+        // decompilation changed the CHIMTO body to the long
+        // `effect\\mon_침투경.wav` (`RagEffect.cpp:14427`), but that file is
+        // the Solar Explosion / infiltration boom (122 756 bytes uncompressed
+        // against 11 430 bytes for the impact wave) and is not what the 2019
+        // server's client plays. Per `docs/skills/rodecomp-skill-drift-
+        // resolution.md`, the 2019 client wins where the two disagree, so the
+        // original short wave is curated here instead of the generated 2026
+        // row.
+        (skill: 266, files: ["effect\\mon_탄지신통.wav"]),
     ],
 )

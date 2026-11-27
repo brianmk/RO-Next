@@ -5,6 +5,24 @@
 
 use crate::*;
 
+/// Official Blade Stop lock pose (`CGameMode::ReceiveActorPairFreeze`,
+/// `GameModeNotices.cpp:922-955`).
+///
+/// The caster (`firstAid`) holds skill block `0x60` frame 4 for
+/// `99999999` ms while the lock is active
+/// (`first->SetFrameSequence(96, 4, 4, 96, 4, 1, 99999999, 0)`, `:929`) and the
+/// same frame for exactly 1 ms on release (`:942`); `SetFrameSequence` names
+/// the ACT block itself, so the pose is block `96` (action index `12`)
+/// regardless of the actor's current `render.state`. The rooted attacker
+/// (`secondAid`) gets `render.isMotionFreezed = true` instead of a frame range
+/// (`:934`).
+const BLADE_STOP_POSE_ACTION_INDEX: usize = 12; // 0x60 / 8
+const BLADE_STOP_POSE_FRAME: u8 = 4;
+const BLADE_STOP_ACTIVE_HOLD_MS: u32 = 99_999_999;
+const BLADE_STOP_RELEASE_HOLD_MS: u32 = 1;
+/// Grey `SetColor(-1, 64, 64, 64)` applied to both actors (`:931-936`).
+const BLADE_STOP_TINT: Color = Color::rgb_u8(64, 64, 64);
+
 impl Client {
     /// `NetworkEvent::SkillCast`.
     pub(crate) fn handle_skill_cast(&mut self, event: NetworkEvent, client_tick: ClientTick) {
@@ -63,13 +81,18 @@ impl Client {
             .iter_mut()
             .find(|entity| entity.get_entity_id() == source_entity_id)
         {
-            let sequence = crate::world::frame_sequence_for_skill(skill_id);
-            // `NotifySkillCasting` returns before `GetSkillActionInfo` when
-            // the packet has no cast time (`GameModePackets.cpp:12951-12953`).
-            // Do not invent a pose on an instant ack; the 0x09CB/damage
-            // packet supplies it. Sequence carriers keep the ack pose so the
-            // frame range has its base ACT block.
-            if let Some(action) = ack_caster_action(skill_id, cast_time, sequence.is_some()) {
+            // `CGameMode::NotifySkillCasting` calls `SetState` only after the
+            // `delay == 0` early return (`GameModePackets.cpp:12940-12948`): an
+            // instant cast acknowledgment **never** changes the caster's pose.
+            // The authoritative pose then comes from the 0x09CB completion or
+            // the damage packet, which apply both the official action and the
+            // per-skill `SetFrameSequence` (their handlers set the base ACT
+            // block themselves, so no ack pose is needed for the sequence).
+            //
+            // Playing the pose here made Finger Offensive (267) restart its
+            // 0x60 frames 3..4 windup on the instant `ZC_USESKILL_ACK` and
+            // again on the `ZC_NOTIFY_SKILL` damage packet.
+            if let Some(action) = ack_caster_action(skill_id, cast_time, false) {
                 match action {
                     // Stance/buff skills (Zen, Fury, Endure, ...) keep the idle
                     // pose in the official client; the hard-coded skill effect
@@ -119,20 +142,11 @@ impl Client {
                     );
                 }
 
-                // The official per-skill frame range (`SetFrameSequence`
-                // in RenderObject.cpp) describes the *damage* animation;
-                // for casts with a cast time it starts when the skill
-                // resolves (see the damage arms below).
-                if !has_cast_time && let Some(sequence) = sequence {
-                    entity.set_skill_frame_sequence_with_rate(
-                        sequence.first,
-                        sequence.last,
-                        sequence.loop_to,
-                        sequence.duration_ms,
-                        sequence.step_ms(),
-                        client_tick,
-                    );
-                }
+                // The official per-skill frame range (`SetFrameSequence`,
+                // `RenderObject.cpp:625-640`) belongs to the skill-use/damage
+                // lane, which applies it together with its base ACT block
+                // (`handle_skill_no_damage`, `handle_damage_effect`). The ack
+                // lane has no pose to restrict for an instant cast.
             }
 
             // Targeted casts face their target, self-casts keep the current
@@ -503,7 +517,7 @@ impl Client {
             unreachable!("handle_actor_pair_freeze called with a different event variant");
         };
 
-        let blade_stop_tint = Color::rgb_u8(64, 64, 64);
+        crate::logging::log_debug!("bladestop: actor pair freeze active={active} first={first_entity_id:?} second={second_entity_id:?}");
 
         if active {
             if let Some(entity) = self
@@ -516,10 +530,16 @@ impl Client {
                 // official call names the ACT block, so force skill block 96
                 // before installing the held frame (the preceding 0x09CB may
                 // have been skipped when its `result` was 0).
-                entity.set_custom_skill_action(12, 0, false, client_tick);
-                entity.set_skill_frame_sequence(4, 4, 4, 99_999_999, client_tick);
+                entity.set_custom_skill_action(BLADE_STOP_POSE_ACTION_INDEX, 0, false, client_tick);
+                entity.set_skill_frame_sequence(
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_ACTIVE_HOLD_MS,
+                    client_tick,
+                );
                 // `SetColor(-1, 64, 64, 64)` with `render.colorLocked = 1`.
-                entity.set_status_tint(Some(blade_stop_tint));
+                entity.set_status_tint(Some(BLADE_STOP_TINT));
             }
 
             if let Some(entity) = self
@@ -530,7 +550,7 @@ impl Client {
             {
                 // `render.isMotionFreezed = true` + the same grey tint.
                 entity.freeze_motion();
-                entity.set_status_tint(Some(blade_stop_tint));
+                entity.set_status_tint(Some(BLADE_STOP_TINT));
             }
         } else {
             if let Some(entity) = self
@@ -540,8 +560,14 @@ impl Client {
                 .find(|entity| entity.get_entity_id() == first_entity_id)
             {
                 // `SetFrameSequence(96, 4, 4, 96, 4, 1, 1, 0)` + white tint.
-                entity.set_custom_skill_action(12, 0, false, client_tick);
-                entity.set_skill_frame_sequence(4, 4, 4, 1, client_tick);
+                entity.set_custom_skill_action(BLADE_STOP_POSE_ACTION_INDEX, 0, false, client_tick);
+                entity.set_skill_frame_sequence(
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_POSE_FRAME,
+                    BLADE_STOP_RELEASE_HOLD_MS,
+                    client_tick,
+                );
                 entity.set_status_tint(None);
             }
 
@@ -910,4 +936,71 @@ fn monster_skill_action_for_entity(
 
     let identity = library.get::<crate::world::JobIdentity>(entity.get_job_id()).to_string();
     crate::world::monster_skill_action_for_name(&identity, skill_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::SkillId;
+
+    use super::{BLADE_STOP_ACTIVE_HOLD_MS, BLADE_STOP_POSE_ACTION_INDEX, BLADE_STOP_POSE_FRAME, BLADE_STOP_RELEASE_HOLD_MS};
+    use crate::world::{CasterAction, ack_caster_action, frame_sequence_for_skill};
+
+    /// `CGameMode::NotifySkillCasting` returns before `SetState` when the
+    /// packet's `delay` is zero (`GameModePackets.cpp:12940-12948`), so an
+    /// instant skill acknowledgment must not start any caster pose.
+    ///
+    /// Finger Offensive (267) showed the defect: its 2019/rodecomp data row
+    /// carries the official damage sequence (block 0x60, frames 3..4, 1100 ms,
+    /// `SetSequenceInterval(10)`; `RenderObject.cpp:5802-5812`), and the ack
+    /// used to play that same sequence a second time before the damage packet
+    /// replayed it.
+    #[test]
+    fn instant_ack_never_plays_a_caster_pose() {
+        for skill_id in [266u16, 267, 269, 263, 271, 268, 270] {
+            assert_eq!(
+                ack_caster_action(SkillId(skill_id), 0, false),
+                None,
+                "instant skill {skill_id} must not play an ack pose"
+            );
+        }
+
+        // A cast-time acknowledgment keeps the official `GetSkillActionInfo`
+        // pose (motion 8/block 96 unless the table says otherwise).
+        assert_eq!(ack_caster_action(SkillId(266), 1000, false), Some(CasterAction::Action(12)));
+        assert_eq!(ack_caster_action(SkillId(271), 1500, false), Some(CasterAction::Action(11)));
+    }
+
+    /// Blade Stop (`MO_BLADESTOP`, 269) has **two** official poses:
+    ///
+    /// * the skill-use sequence `SetFrameSequence(0x60, 3, 3, 0x60, 3, 1, 3000,
+    ///   0)` (`GameModePackets.cpp:18827-18830`), which the 0x09CB data row
+    ///   already carries, and
+    /// * the pair-freeze lock `SetFrameSequence(96, 4, 4, 96, 4, 1, 99999999,
+    ///   0)` / release `..., 1, 0` (`GameModeNotices.cpp:929`, `:942`), which
+    ///   `handle_actor_pair_freeze` applies.
+    #[test]
+    fn blade_stop_models_the_official_lock_and_release_pose() {
+        assert_eq!(BLADE_STOP_POSE_ACTION_INDEX * 8, 96, "0x60 skill block");
+        assert_eq!(BLADE_STOP_POSE_FRAME, 4);
+        assert_eq!(BLADE_STOP_ACTIVE_HOLD_MS, 99_999_999);
+        assert_eq!(BLADE_STOP_RELEASE_HOLD_MS, 1);
+
+        let cast = frame_sequence_for_skill(SkillId(269)).expect("Blade Stop cast sequence");
+        assert_eq!((cast.first, cast.last, cast.loop_to), (3, 3, 3));
+        assert_eq!(cast.duration_ms, 3000);
+        assert_eq!(cast.interval_ticks, 0);
+    }
+
+    /// The two monk damage skills share the official damage sequence and the
+    /// block it names (`RenderObject.cpp:5802-5812`): `SetSequenceInterval(10)`
+    /// followed by `SetFrameSequence(0x60, 3, 4, 0x60, 4, 1, 1100, 0)`.
+    #[test]
+    fn finger_offensive_uses_the_official_damage_sequence() {
+        for skill_id in [266u16, 267] {
+            let sequence = frame_sequence_for_skill(SkillId(skill_id)).expect("official damage sequence");
+            assert_eq!((sequence.first, sequence.last, sequence.loop_to), (3, 4, 4), "skill {skill_id}");
+            assert_eq!(sequence.duration_ms, 1100, "skill {skill_id}");
+            assert_eq!(sequence.step_ms(), Some(167), "10 ticks of the 60 Hz timer");
+        }
+    }
 }

@@ -35,6 +35,7 @@
         (skill: 45, files: ["effect\\ac_concentration.wav"]),
         (skill: 110, files: ["effect\\black_hammerfall.wav"]),
         (skill: 114, files: ["effect\\black_maximize_power_circle.wav", "effect\\black_maximize_power_sword.wav", "effect\\black_maximize_power_sword_bic.wav"]),
+        (skill: 266, files: ["effect\\mon_탄지신통.wav"]),
     ],
     // Official per-skill sounds generated from the effect table.
     sounds: [
@@ -141,7 +142,6 @@
         (skill: 258, files: ["effect\\knight_twohandquicken.wav"]),
         (skill: 262, files: ["effect\\흡기.wav"]),
         (skill: 263, files: ["effect\\ef_hit2.wav", "effect\\ef_hit4.wav"]),
-        (skill: 266, files: ["effect\\mon_침투경.wav"]),
         (skill: 267, files: ["effect\\mon_탄지신통.wav", "effect\\ef_hit2.wav"]),
         (skill: 268, files: ["effect\\mon_맹룡과강.wav"]),
         (skill: 270, files: ["effect\\mon_폭기.wav"]),

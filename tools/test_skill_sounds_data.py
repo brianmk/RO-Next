@@ -104,6 +104,9 @@ class SkillSoundDataTest(unittest.TestCase):
                         "effect\\black_maximize_power_sword_bic.wav",
                     ],
                 ),
+                # MO_INVESTIGATE (266): the 2019 client's short CHIMTO impact
+                # wave (the 2026 body uses the long Solar Explosion boom).
+                (266, ["effect\\mon_탄지신통.wav"]),
             ],
         )
         # The deleted GENERIC_CAST_SOUND constant.

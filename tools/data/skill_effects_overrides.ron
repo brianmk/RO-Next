@@ -38,5 +38,20 @@
         (skill: 271, phase: Hit, layers: [
             (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\lens1.tga", size: 10.0, size_end: 16.0, duration_ms: 550, delay_ms: 100, count: 16, alpha: 0.8, blend: Additive, wav: "effect\\mon_아수라 패황권.wav"),
         ]),
+        // MO_FINGEROFFENSIVE / Throw Spirit Sphere (267). The official
+        // `PlaySkillEffect` switch launches exactly one effect for this skill:
+        // `EF_TANJI` (265) on the caster, repositioned to the target
+        // (`JobInheritance.cpp:2224-2230`). The distinct TANJI body
+        // (`RagEffect.cpp:14501-14542`) draws the `effect\\blue_ivy.bmp`
+        // boomerang and plays `effect\\mon_탄지신통.wav`.
+        //
+        // The 2019 roBrowser table additionally carries `hitEffectId 1`
+        // (`EF_HIT1`: the generic lens1/lens2 + `ef_hit2.wav` hit flash),
+        // which `comparison.json` flags as `extra_ids_in_robrowser: [1]`. It
+        // is not part of the official effect list; drawing it made the skill
+        // look like a generic hit spark instead of the spirit-sphere throw.
+        // The empty `Hit` override drops the row, so the impact falls back to
+        // the skill's own `EF_TANJI` wave.
+        (skill: 267, phase: Hit, layers: []),
     ],
 )

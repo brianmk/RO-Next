@@ -523,7 +523,7 @@ mod tests {
 
     /// The hand-curated skills of `tools/data/skill_sounds_custom.ron` (now the
     /// `curated` section of the sound data file).
-    const CURATED_SKILLS: [u16; 6] = [110, 27, 29, 33, 34, 45];
+    const CURATED_SKILLS: [u16; 7] = [110, 27, 29, 33, 34, 45, 266];
 
     /// Checks that every sound file of the curated rows and the generic cast
     /// fallback exists in the game archives.
@@ -613,28 +613,36 @@ mod tests {
     }
 
     #[test]
-    fn monk_investigate_uses_the_official_chimto_sound() {
-        // `CRagEffect::CHIMTO(0)` (`RagEffect.cpp:14419-14428`) plays
-        // `effect\mon_침투경.wav` inline at its frame 0; `TEIHIT2` has no sound
+    fn monk_investigate_uses_the_2019_monk_impact_wave() {
+        // The 2019 CondaRO client's `CHIMTO` body carries the short monk impact
+        // wave `effect\mon_탄지신통.wav`; `TEIHIT2` has no sound
         // (`RagEffect.cpp:12040-12085`). MO_INVESTIGATE launches both.
+        //
+        // The 2026 decompilation changed the CHIMTO body to
+        // `effect\mon_침투경.wav` (`RagEffect.cpp:14419-14428`), but that file
+        // is the long Solar Explosion / infiltration boom (122 756 bytes
+        // uncompressed against 11 430 for the impact wave), not the punch this
+        // 2019-server skill plays. `docs/skills/rodecomp-skill-drift-
+        // resolution.md` keeps the 2019 client where the two disagree.
         for phase in [crate::world::SkillPhase::Success, crate::world::SkillPhase::Hit] {
             assert_eq!(
                 skill_sound_candidates_for(SkillId(266), phase),
-                ["effect\\mon_침투경.wav"],
+                ["effect\\mon_탄지신통.wav"],
                 "skill 266 phase {phase:?}"
             );
         }
 
-        // Throw Spirit Sphere's `TANJI()` plays its own wave at frame 0 and
-        // the EF_HIT2 impact layer carries the generic hit sound.
-        assert_eq!(
-            skill_sound_candidates_for(SkillId(267), crate::world::SkillPhase::Success)[0],
-            "effect\\mon_탄지신통.wav"
-        );
-        assert_eq!(
-            skill_sound_candidates_for(SkillId(267), crate::world::SkillPhase::Hit)[0],
-            "effect\\ef_hit2.wav"
-        );
+        // Throw Spirit Sphere's `TANJI()` plays its own wave at frame 0. The
+        // 2019 `EF_HIT1` hit row (which carried the generic `ef_hit2.wav`) is
+        // not part of the official effect list for 267, so the hit resolves to
+        // the skill's own TANJI wave.
+        for phase in [crate::world::SkillPhase::Success, crate::world::SkillPhase::Hit] {
+            assert_eq!(
+                skill_sound_candidates_for(SkillId(267), phase)[0],
+                "effect\\mon_탄지신통.wav",
+                "skill 267 phase {phase:?}"
+            );
+        }
     }
 
     #[test]
@@ -854,5 +862,23 @@ mod tests {
             line,
             "[sound] preempt effect\\ef_blessing.wav -> effect\\ef_angelus.wav at entity 123456 (unknown)"
         );
+    }
+
+    /// The two monk skills' damage packets resolve to the official monk waves.
+    ///
+    /// * `MO_INVESTIGATE` (266) has no `Hit` descriptor row, so the curated
+    ///   `curated` row wins: the 2019 `effect\\mon_탄지신통.wav`.
+    /// * `MO_FINGEROFFENSIVE` (267) had its 2019 `EF_HIT1` `Hit` row removed
+    ///   (official effect list is `EF_TANJI` only), so the hit falls through to
+    ///   the skill's `EF_TANJI` wave instead of the generic `ef_hit2.wav`.
+    #[test]
+    fn monk_impact_sounds_follow_the_official_effect_bodies() {
+        assert_eq!(skill_sound_candidates_for(SkillId(266), crate::world::SkillPhase::Hit), [
+            "effect\\mon_탄지신통.wav"
+        ]);
+        assert_eq!(skill_sound_candidates_for(SkillId(267), crate::world::SkillPhase::Hit), [
+            "effect\\mon_탄지신통.wav",
+            "effect\\ef_hit2.wav"
+        ]);
     }
 }

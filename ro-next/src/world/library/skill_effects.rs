@@ -1604,4 +1604,27 @@ mod tests {
         assert!(crate::world::status_aura_spec(473).is_some());
         assert!(crate::world::status_aura_spec(65_500).is_none());
     }
+
+    /// `MO_FINGEROFFENSIVE` / Throw Spirit Sphere (267) launches a single
+    /// official effect: `EF_TANJI` (265), whose body draws
+    /// `effect\blue_ivy.bmp` and plays `effect\mon_탄지신통.wav`
+    /// (`JobInheritance.cpp:2224-2230`, `RagEffect.cpp:14501-14542`).
+    ///
+    /// The 2019 roBrowser table additionally carried `hitEffectId 1`
+    /// (`EF_HIT1`, the generic `lens1`/`lens2` + `ef_hit2.wav` flash); the
+    /// official effect list has no such id for 267
+    /// (`comparison.json`: `extra_ids_in_robrowser: [1]`). The empty `Hit`
+    /// override drops it, so the impact falls back to the skill's own wave.
+    #[test]
+    fn finger_offensive_uses_only_the_official_tanji_effect() {
+        let success = skil_effect_layers(267, SkillPhase::Success);
+        assert_eq!(success.len(), 1, "one EF_TANJI layer");
+        assert_eq!(success[0].file, Some("effect\\blue_ivy.bmp"));
+        assert!(descriptor(SkillId(267), SkillPhase::Hit).is_none(), "no EF_HIT1 row");
+        assert!(skil_effect_layers(267, SkillPhase::Hit).is_empty());
+        // The distinctive TANJI wave stays on the success layer.
+        assert_eq!(skill_effect_sound_files(SkillId(267), SkillPhase::Success), &[
+            "effect\\mon_탄지신통.wav"
+        ]);
+    }
 }

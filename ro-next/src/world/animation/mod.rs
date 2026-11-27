@@ -1487,3 +1487,58 @@ mod loop_mode_tests {
         assert_eq!(looped_frame_index(5, 2, AnimationLoopMode::PingPong), 1);
     }
 }
+
+#[cfg(test)]
+mod blade_stop_pose_tests {
+    use ragnarok_packets::ClientTick;
+
+    use super::{Animation, AnimationData, AnimationState, fallback_frame, sequence_frame_index};
+    use crate::world::EntityType;
+
+    /// Official `ZC_BLADESTOP` state (`CGameMode::ReceiveActorPairFreeze`,
+    /// `GameModeNotices.cpp:922-955`): `SetFrameSequence(96, 4, 4, 96, 4, 1,
+    /// 99999999, 0)` holds block 96 frame 4 for the whole lock, the release
+    /// packet re-issues it for 1 ms (`..., 1, 0`), and the rooted second actor
+    /// has `render.isMotionFreezed` set instead of a frame range.
+    #[test]
+    fn blade_stop_lock_holds_block_96_frame_4_and_releases() {
+        let animation_data = AnimationData {
+            animation_pair: Vec::new(),
+            animations: (0..104)
+                .map(|_| Animation {
+                    frames: (0..6).map(|_| fallback_frame().clone()).collect(),
+                })
+                .collect(),
+            delays: vec![4.0; 104],
+            entity_type: EntityType::Player,
+        };
+
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        // `handle_actor_pair_freeze` forces the skill block before installing
+        // the hold, because `SetFrameSequence` names the animation itself.
+        state.custom(EntityType::Player, 12, 0, false, ClientTick(10));
+        state.frame_sequence(4, 4, 4, 99_999_999, None, ClientTick(10));
+        assert_eq!(state.action_index() * 8, 96, "block 0x60");
+
+        state.update(ClientTick(1_000_000));
+        assert!(!animation_data.is_animation_over(&state), "the lock is held");
+        assert_eq!(sequence_frame_index(1_000_000 / 167, 4, 4, 4), 4, "frame 4 at any time");
+
+        // Release: `SetFrameSequence(96, 4, 4, 96, 4, 1, 1, 0)`.
+        state.frame_sequence(4, 4, 4, 1, None, ClientTick(1_000_000));
+        state.update(ClientTick(1_000_010));
+        assert!(animation_data.is_animation_over(&state), "the release expires after 1 ms");
+    }
+
+    #[test]
+    fn blade_stop_lock_is_cleared_by_a_new_action() {
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.custom(EntityType::Player, 12, 0, false, ClientTick(10));
+        state.frame_sequence(4, 4, 4, 99_999_999, None, ClientTick(10));
+        assert!(state.frame_sequence.is_some());
+
+        state.idle(EntityType::Player, ClientTick(20));
+        assert!(state.frame_sequence.is_none());
+        assert_eq!(state.action_index() * 8, 0, "back to the neutral idle block");
+    }
+}
