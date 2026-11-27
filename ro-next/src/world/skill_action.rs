@@ -447,9 +447,9 @@ mod tests {
         // (`RenderObject.cpp:1010`), whose default motion is 7
         // (`SkillActionInfo.cpp:1228-1230`); `HT_DETECTING` is a bare `break`
         // case there (`:1693`), so motion stays 7 and the default branch runs
-        // `SetState(motion, 1)` (`RenderObject.cpp:1043-1046`) -> player skill
-        // block 96. Detect therefore *does* animate the caster; only the
-        // instant `ZC_USESKILL_ACK` lane is pose-less by design
+        // `Face` + `SetState(motion, 1)` (`RenderObject.cpp:1037-1039`) ->
+        // player skill block 96. Detect therefore *does* animate the caster;
+        // only the instant `ZC_USESKILL_ACK` lane is pose-less by design
         // (`GameModePackets.cpp:12940-12948`).
         assert_eq!(ack_caster_action(SkillId(130), 0, false), None);
         assert_eq!(applied_block(caster_action(SkillId(130)), 0, false), 96);
