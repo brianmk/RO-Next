@@ -4,13 +4,13 @@
 //! attack animation (see [`crate::world::hit_feedback`] for the full
 //! decompilation references):
 //!
-//! * `AM_ATTACKED` plays `GetWeaponHitWaveName(...)`/`GetHitWaveName(...)` at
-//!   the defender (`Source/Contents/Actors/GameObject.cpp:1780-1870`), with
-//!   distance `250` and no height offset;
-//! * the same message spawns `EF_HIT1` (`0`) on the defender, plus `EF_HIT2`
-//!   (`1`) on a critical hit
-//!   (`Source/Contents/Actors/RenderObject.cpp:3769-3839`,
-//!   `GameObject.cpp:1862-1885`);
+//! * `SendMsg(AM_ATTACKED, ...)` plays `GetWeaponHitWaveName(...)` /
+//!   `GetHitWaveName(...)` at the defender (`GameObject.cpp:1782-1841`), with
+//!   maximum distance `250` and no height offset (`:1840`);
+//! * the same message spawns `effectId` on the defender: `EF_HIT1` (`0`),
+//!   `EF_HITLINE7` for the Taekwon/Star job family, and `EF_HIT2` (`1`) on a
+//!   critical hit as well (`RenderObject.cpp:3769-3822`,
+//!   `GameObject.cpp:1843-1888`);
 //! * a miss (`damage == 0`) plays/spawns neither (`GameObject.cpp:1768`).
 //!
 //! The decision itself is data-driven and lives in
@@ -18,7 +18,10 @@
 //! resolves the entity facts and forwards the result to the existing audio
 //! engine and the ported-effect holder (the same `AudioEngine::load` +
 //! `play_spatial_sound_effect` / `PortedEffectHolder` path the descriptor and
-//! ported skill effects use).
+//! ported skill effects use). One wave is played per damage event, and the
+//! arrow projectile no longer plays `_hit_arrow.wav` on landing
+//! (`world/effect/arrow_effect.rs`), so a bow auto attack is heard exactly
+//! once.
 
 use ragnarok_packets::EffectId;
 
@@ -26,8 +29,8 @@ use crate::world::port::holder::PortedEffectHolder;
 use crate::world::port::visual::PortedVisual;
 use crate::*;
 
-/// `g_soundMgr->PlayWave` distance argument of the official hit wave
-/// (`GameObject.cpp:1870`).
+/// `g_soundMgr->PlayWave` maximum distance argument of the official hit wave
+/// (`GameObject.cpp:1840`).
 const HIT_SOUND_RANGE: f32 = 250.0;
 
 impl Client {
@@ -168,6 +171,7 @@ impl Client {
         }
 
         self.effect_holder.add_unit(Box::new(visual), owner);
+        crate::logging::log_debug!("hit feedback: spawned {effect:?} on entity {}", owner.0);
     }
 }
 
