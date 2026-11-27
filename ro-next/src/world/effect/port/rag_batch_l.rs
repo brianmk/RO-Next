@@ -618,6 +618,24 @@ mod tests {
     }
 
     #[test]
+    fn the_flight_arc_lifts_the_particle_above_its_offset() {
+        let mut effect = ThrowItemParticles::new(EF_THROW_HAPPOKUNAI);
+        let mut runtime = new_runtime();
+
+        // Frames 0..=3: progress is 3/7 at frame 3, so the sine index is 77.
+        for _ in 0..4 {
+            step(&mut effect, &mut runtime);
+        }
+
+        let angles = Angles::shared();
+        let particle = &runtime.particles[0];
+        let height = angles.raw_sine(77) * effect.arc_height;
+
+        assert!(height > 0.0);
+        assert_eq!(particle.transform.values[10], particle.offset_y - height);
+    }
+
+    #[test]
     fn the_transform_carries_the_scale_and_the_arc_corrected_offset() {
         let (_, runtime) = spawn(EF_THROW_HAPPOKUNAI);
         let particle = &runtime.particles[0];
