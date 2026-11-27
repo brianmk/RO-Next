@@ -28,7 +28,7 @@ DATA = Path("ro-next/archive/data/client/skill_actions.ron")
 
 MOTION_ACTION = {
     0: "Idle",
-    2: "Action(10)",   # WeaponActionBase(ST_ATTACK) = 80
+    2: "Attack",       # weapon-aware swing: ST_ATTACK -> ST_ATTACK2 (88) or 80
     5: "Pickup",       # 24
     7: "Skill",        # 96
     8: "Skill",        # 96
