@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 460 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 468 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -318,6 +318,13 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - Backlog **209/236 = 88.6%** (layers 119/144). 27 ids remain.
 - Free but unregistered: `EF_TEIHIT1` 262 and `EF_TEIHIT1T` 889 (outside the 236 backlog).
 - Generated map now routes skill 266 (`MO_INVESTIGATE`) to `EF_TEIHIT2` instead of `EF_CHIMTO`, both official; the generator's documented first-ported-candidate rule decides, no manual edit.
+
+### Round 100
+
+- prim **50** `TexturedGlow` (inline motion, reuses `render_3d_casting`), **38** `LineLink` (new `render_tube`/`RenderTube`), **54** `ChemicalProtection` (new `render_chemical`), **58** `FirstAid` (reuses `render_field_panel`).
+- ids: TeiHit1 262, TeiHit1t 889, EternalChaos 280, Siegfried 285, Linelink2 384, Linelink3 395, ChemicalProtection 300, FirstAid 309.
+- Backlog **215/236 = 91.1%** (layers 125/144, `.str` 57/57, manual 33/35). 21 ids remain.
+- Documented limitation: `TrackTarget`'s live per-frame `GetGameActorByAID` re-query is a spawn-time snapshot in the hermetic runtime (the resolved target position travels in `deltaPos`), so a target that moves mid-flight is tracked as it was at spawn.
 
 ### Known wiring gaps (client spawn path)
 
