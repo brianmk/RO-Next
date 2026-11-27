@@ -37,15 +37,6 @@ const ROW_PADDING: f32 = 5.0;
 /// Gap between two notification rows.
 const ROW_GAP: f32 = 3.0;
 
-fn kind_background(kind: NotificationKind) -> Color {
-    match kind {
-        NotificationKind::Announce => Color::rgba(0.06, 0.06, 0.08, 0.82),
-        NotificationKind::Pickup => Color::rgba(0.08, 0.18, 0.08, 0.82),
-        NotificationKind::LevelUp => Color::rgba(0.24, 0.18, 0.04, 0.88),
-        NotificationKind::Quest => Color::rgba(0.10, 0.10, 0.22, 0.86),
-    }
-}
-
 fn kind_text_color(kind: NotificationKind) -> Color {
     match kind {
         NotificationKind::Announce => Color::rgb_u8(255, 232, 150),
@@ -149,14 +140,9 @@ impl Element<ClientState> for NotificationHudElement {
                 height: row.height,
             };
 
-            layout.add_rectangle(
-                row_area,
-                CornerDiameter::uniform(3.0),
-                kind_background(row.notification.kind),
-                Color::TRANSPARENT,
-                ShadowPadding::uniform(0.0),
-            );
-
+            // No background plate: the rows sit directly on the world. The
+            // black text outline below keeps them readable against bright or
+            // busy scenery.
             layout.add_text(
                 row_area,
                 &row.text,
@@ -216,7 +202,7 @@ impl CustomWindow<ClientState> for NotificationHudWindow {
 
 #[cfg(test)]
 mod tests {
-    use super::{kind_background, kind_text_color};
+    use super::kind_text_color;
     use crate::state::notifications::NotificationKind;
 
     #[test]
@@ -229,9 +215,6 @@ mod tests {
         ] {
             let color = kind_text_color(kind);
             assert!(color.red + color.green + color.blue > 1.5, "{kind:?} text is too dark");
-
-            let background = kind_background(kind);
-            assert!(background.alpha >= 0.8, "{kind:?} background is too transparent");
         }
     }
 }
