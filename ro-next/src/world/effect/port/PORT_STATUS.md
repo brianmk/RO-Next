@@ -326,6 +326,15 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - Backlog **215/236 = 91.1%** (layers 125/144, `.str` 57/57, manual 33/35). 21 ids remain.
 - Documented limitation: `TrackTarget`'s live per-frame `GetGameActorByAID` re-query is a spawn-time snapshot in the hermetic runtime (the resolved target position travels in `deltaPos`), so a target that moves mid-flight is tracked as it was at spawn.
 
+### Client-system rounds (damage numbers, feedback, motions)
+
+- **Damage numbers**: official port (`world/damage_number.rs`) - `SpawnDamageDigits` + `CMsgEffect::OnProcess` styles (normal/critical/half/total/simple/miss), 24 ms timeline on the 16 ms step, per-digit advance, ACT cell adjustment, owner-follow, 200 ms multi-hit stagger, blue damage from `ZC_NOTIFY_ACT3`, and a `show_damage_numbers` setting (default on).
+- **Auto-attack feedback**: official impact wave rule (`HitSounds.cpp`, weapon class / defender job / bare-hand / enemy fallback), `EF_HIT1` on hit plus additive `EF_HIT2` on crit, `EF_HITLINE7` for the 14 Taekwon-family jobs, no hit-flash tint; arrow duplicate sound removed.
+- **Ruwach**: `EF_RUWACH` (33) is an option aura (`RagEffect.cpp:23193`), sound `effect\EF_Sight.wav` from `SetStatusStates` (`RenderObject.cpp:4867`), motion block 96.
+- **.str blend fix**: `RenderAniClip` uses the clip's own blend pair; Concentration's frames are `(5,7)` = `SRCALPHA`/`DESTALPHA` (additive), not the hard-coded `(5,6)`. Fixed per layer, which corrects 65 of the 68 ported `.str` resources, plus stage-aware `BOTHSRCALPHA`/`BOTHINVSRCALPHA`.
+- **Monk**: Finger Offensive (267, not 263) ack no longer double-plays the damage pose; its 2019-only `EF_HIT1` hit row removed so `mon_탄지신통` plays; multi-hit numbers are a damage-path split (official `damage /= hitCount` + 200 ms), not a skill bug. Blade Stop lock (block 96 frame 4, grey tint, motion freeze) verified and pinned.
+- Investigate: 2019 vs 2026 sound drift resolved in favour of 2019 (`mon_탄지신통.wav`), documented as the single curated choice.
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
