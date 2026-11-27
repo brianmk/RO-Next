@@ -22,7 +22,7 @@
 
 use std::sync::Arc;
 
-use cgmath::{InnerSpace, Point3, Vector3};
+use cgmath::{InnerSpace, Point3, Vector2, Vector3};
 use ro_next_audio::{AudioEngine, SoundEffectKey};
 use wgpu::BlendFactor;
 
@@ -41,13 +41,27 @@ const TARGET_HEIGHT: f32 = 14.0;
 const ARROW_SIZE: f32 = 9.0;
 /// Hearing range of the impact sound in world units.
 const IMPACT_SOUND_RANGE: f32 = 250.0;
-/// Screen-space rotation offset of the authored arrow texture.
+/// Rotation of the authored arrow texture inside its quad.
 ///
 /// The classic `화살.spr` frame draws the arrow diagonally up-right, so the
-/// texture's forward axis is 45 degrees above the quad's right axis. Rotating
-/// the quad by the screen-space flight angle plus this offset makes the arrow
-/// point at its target for every direction.
+/// texture's forward axis is 45 degrees above the quad's right axis. The quad
+/// rotation is `quad_angle()`; this phase is subtracted from it below so the
+/// authored arrow ends up along the flight vector.
 const SPRITE_ROTATION_OFFSET: f32 = std::f32::consts::FRAC_PI_4;
+
+/// World-plane rotation of the arrow quad for a screen-space flight direction.
+///
+/// `camera_facing_corners` rotates the quad's right axis towards the camera's
+/// `up` axis (counter-clockwise in the world), while the screen the flight
+/// vector is measured in has **Y pointing down**. The screen angle therefore
+/// has to be negated, and the sprite's own 45-degree phase subtracted:
+///
+/// * screen right `(1, 0)` -> `-45 deg`, which puts the authored up-right arrow
+///   exactly along the flight vector,
+/// * screen down `(0, 1)` -> `-135 deg`, and so on for every heading.
+fn quad_angle(screen_direction: Vector2<f32>) -> f32 {
+    -screen_direction.y.atan2(screen_direction.x) - SPRITE_ROTATION_OFFSET
+}
 
 /// One flying arrow of a ranged auto attack.
 pub struct ArrowEffect {
@@ -143,7 +157,7 @@ impl EffectBase for ArrowEffect {
         let head = camera.clip_to_screen_space(matrix * position.to_homogeneous());
         let tail = camera.clip_to_screen_space(matrix * (position + direction).to_homogeneous());
         let screen_direction = tail - head;
-        let angle = screen_direction.y.atan2(screen_direction.x) + SPRITE_ROTATION_OFFSET;
+        let angle = quad_angle(screen_direction);
 
         let screen_size = renderer.window_size();
         let corners = camera_facing_corners(camera, position, ARROW_SIZE * 0.5, angle);
@@ -169,8 +183,35 @@ impl EffectBase for ArrowEffect {
 
 #[cfg(test)]
 mod tests {
-    use cgmath::Point3;
+    use cgmath::{Point3, Vector2};
 
+    use super::{SPRITE_ROTATION_OFFSET, quad_angle};
+
+    /// The arrow's visible axis (the authored 45-degree phase applied to the
+    /// quad rotation) must follow the flight direction on screen for every
+    /// heading. Screen `Y` grows downwards, the camera's `up` grows upwards,
+    /// so the expected screen axis of the arrow is `(cos(phase),
+    /// -sin(phase))`.
+    #[test]
+    fn the_arrow_axis_follows_the_flight_direction() {
+        for (x, y) in [(1.0_f32, 0.0_f32), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0), (0.6, 0.8), (-0.6, 0.8), (0.0, 0.0)] {
+            let screen_direction = Vector2::new(x, y);
+            let length = (x * x + y * y).sqrt();
+
+            if length == 0.0 {
+                // No flight vector: the quad keeps the authored heading.
+                assert!(quad_angle(screen_direction).is_finite());
+                continue;
+            }
+
+            let phase = quad_angle(screen_direction) + SPRITE_ROTATION_OFFSET;
+            let axis = Vector2::new(phase.cos(), -phase.sin());
+            let expected = Vector2::new(x / length, y / length);
+
+            assert!((axis.x - expected.x).abs() < 1e-5, "x for ({x}, {y}): {axis:?} vs {expected:?}");
+            assert!((axis.y - expected.y).abs() < 1e-5, "y for ({x}, {y}): {axis:?} vs {expected:?}");
+        }
+    }
 
     /// The arrow reaches its target at the configured flight time and requests
     /// its deletion afterwards, even without an audio engine.
