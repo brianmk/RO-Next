@@ -295,6 +295,15 @@ Rendered vs record-only for the parent render registers:
 - 21 ring-wrapper aliases (1418, 1556, 1560, 1565, 1677, 1872, 1876, 1902, 1910, 1918, 1923, 1932, 1938, 1959, 1963, 1986, 1998, 2240, 2249, 2255, 2367) - all outside the 236-id pre-renewal backlog, so they raise the total registry without moving backlog coverage.
 - Backlog coverage stays **181/236 = 76.7%**; the 55 remaining ids are the renewal/`PP_UNKNOWN_*` cluster and the alternate throw-item particle path.
 
+### Animation round (skill motions)
+
+Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file:line`).
+
+- 373 castable pre-re skills, **0** without an action row; **338 (90.6%)** exact official block, **357 (95.7%)** including pose-equivalent Idle rows.
+- Root cause was architectural: one table for two official functions - `ZC_USESKILL_ACK` uses `GetSkillActionInfo` (default 8), `ZC_USE_SKILL` uses `GetSkillActionInfo2` (default 7); 131/373 name a different block, 86 need an override (83 visibly different, 3 `Keep`).
+- Landed: `fcf61aec` (11 `motion = 2` skills use weapon-aware attack), `b7e74af0` (`use_action` from 462 Info2 facts, `CasterAction::Keep`, `delay == 0` ack gate), `4d10c9c7` (audit tooling), `05af4ee4` (official 500 ms/frame sequence rate from `SetSequenceInterval(30)` + 8 attached sequences).
+- Open: 3 `ApplyActorSkillState` freeze sequences (261/1015/401), 21 sequence rows with no action row (4th-job + `RL_FALLEN_ANGEL`, outside the pre-re set), `MO_STEELBODY` hold, monster skill motions (`GetMonsterSkillInfo`) absent, 19 PROXY-IDLE rows using block 32 vs 0.
+
 ### Known wiring gaps (client spawn path)
 
 - effect-level `count` is never set by the client spawn path (`runtime.param = 1.0` only), so bodies that read `state.count` (Blitz Beat bolts, Fire/Ice Arrow) emit nothing in game until the skill launcher's `AM_SETCOUNT` equivalent is wired.
