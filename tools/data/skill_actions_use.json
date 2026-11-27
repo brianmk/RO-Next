@@ -1,0 +1,3243 @@
+{
+ "provenance": {
+  "source": "rodecomp CSession::GetSkillActionInfo2 (ZC_USE_SKILL 0x09CB) motions mapped to CasterAction",
+  "file": "Source/Contents/Skills/SkillActionInfo.cpp",
+  "note": "Only the 0x09CB skill-use path uses this table; the cast/ack path keeps GetSkillActionInfo in skill_actions_rodecomp.json."
+ },
+ "actions": [
+  {
+   "skill": 1,
+   "name": "NV_BASIC",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2,
+   "name": "SM_SWORD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 3,
+   "name": "SM_TWOHAND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 4,
+   "name": "SM_RECOVERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 5,
+   "name": "SM_BASH",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 6,
+   "name": "SM_PROVOKE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 7,
+   "name": "SM_MAGNUM",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 8,
+   "name": "SM_ENDURE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 9,
+   "name": "MG_SRECOVERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 10,
+   "name": "MG_SIGHT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 11,
+   "name": "MG_NAPALMBEAT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 12,
+   "name": "MG_SAFETYWALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 13,
+   "name": "MG_SOULSTRIKE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 14,
+   "name": "MG_COLDBOLT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 15,
+   "name": "MG_FROSTDIVER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 16,
+   "name": "MG_STONECURSE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 17,
+   "name": "MG_FIREBALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 18,
+   "name": "MG_FIREWALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 19,
+   "name": "MG_FIREBOLT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 20,
+   "name": "MG_LIGHTNINGBOLT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 21,
+   "name": "MG_THUNDERSTORM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 22,
+   "name": "AL_DP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 23,
+   "name": "AL_DEMONBANE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 24,
+   "name": "AL_RUWACH",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 25,
+   "name": "AL_PNEUMA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 26,
+   "name": "AL_TELEPORT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 27,
+   "name": "AL_WARP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 28,
+   "name": "AL_HEAL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 29,
+   "name": "AL_INCAGI",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1391)"
+  },
+  {
+   "skill": 30,
+   "name": "AL_DECAGI",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 31,
+   "name": "AL_HOLYWATER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 32,
+   "name": "AL_CRUCIS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 33,
+   "name": "AL_ANGELUS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 34,
+   "name": "AL_BLESSING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 35,
+   "name": "AL_CURE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 36,
+   "name": "MC_INCCARRY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 37,
+   "name": "MC_DISCOUNT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 38,
+   "name": "MC_OVERCHARGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 39,
+   "name": "MC_PUSHCART",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 40,
+   "name": "MC_IDENTIFY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 41,
+   "name": "MC_VENDING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 42,
+   "name": "MC_MAMMONITE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 43,
+   "name": "AC_OWL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 44,
+   "name": "AC_VULTURE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 45,
+   "name": "AC_CONCENTRATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 46,
+   "name": "AC_DOUBLE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 47,
+   "name": "AC_SHOWER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 48,
+   "name": "TF_DOUBLE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 49,
+   "name": "TF_MISS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 50,
+   "name": "TF_STEAL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 51,
+   "name": "TF_HIDING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 52,
+   "name": "TF_POISON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 53,
+   "name": "TF_DETOXIFY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 54,
+   "name": "ALL_RESURRECTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 55,
+   "name": "KN_SPEARMASTERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 56,
+   "name": "KN_PIERCE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 57,
+   "name": "KN_BRANDISHSPEAR",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1373)"
+  },
+  {
+   "skill": 58,
+   "name": "KN_SPEARSTAB",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 59,
+   "name": "KN_SPEARBOOMERANG",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1479)"
+  },
+  {
+   "skill": 60,
+   "name": "KN_TWOHANDQUICKEN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 61,
+   "name": "KN_AUTOCOUNTER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 62,
+   "name": "KN_BOWLINGBASH",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 63,
+   "name": "KN_RIDING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 64,
+   "name": "KN_CAVALIERMASTERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 65,
+   "name": "PR_MACEMASTERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 66,
+   "name": "PR_IMPOSITIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 67,
+   "name": "PR_SUFFRAGIUM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 68,
+   "name": "PR_ASPERSIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 69,
+   "name": "PR_BENEDICTIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 70,
+   "name": "PR_SANCTUARY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 71,
+   "name": "PR_SLOWPOISON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 72,
+   "name": "PR_STRECOVERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 73,
+   "name": "PR_KYRIE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 74,
+   "name": "PR_MAGNIFICAT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 75,
+   "name": "PR_GLORIA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 76,
+   "name": "PR_LEXDIVINA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 77,
+   "name": "PR_TURNUNDEAD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 78,
+   "name": "PR_LEXAETERNA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 79,
+   "name": "PR_MAGNUS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 80,
+   "name": "WZ_FIREPILLAR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 81,
+   "name": "WZ_SIGHTRASHER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 83,
+   "name": "WZ_METEOR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 84,
+   "name": "WZ_JUPITEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 85,
+   "name": "WZ_VERMILION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 86,
+   "name": "WZ_WATERBALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 87,
+   "name": "WZ_ICEWALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 88,
+   "name": "WZ_FROSTNOVA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 89,
+   "name": "WZ_STORMGUST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 90,
+   "name": "WZ_EARTHSPIKE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 91,
+   "name": "WZ_HEAVENDRIVE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 92,
+   "name": "WZ_QUAGMIRE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 93,
+   "name": "WZ_ESTIMATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 94,
+   "name": "BS_IRON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 95,
+   "name": "BS_STEEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 96,
+   "name": "BS_ENCHANTEDSTONE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 97,
+   "name": "BS_ORIDEOCON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 98,
+   "name": "BS_DAGGER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 99,
+   "name": "BS_SWORD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 100,
+   "name": "BS_TWOHANDSWORD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 101,
+   "name": "BS_AXE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 102,
+   "name": "BS_MACE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 103,
+   "name": "BS_KNUCKLE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 104,
+   "name": "BS_SPEAR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 105,
+   "name": "BS_HILTBINDING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 106,
+   "name": "BS_FINDINGORE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 107,
+   "name": "BS_WEAPONRESEARCH",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 108,
+   "name": "BS_REPAIRWEAPON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 109,
+   "name": "BS_SKINTEMPER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 110,
+   "name": "BS_HAMMERFALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 111,
+   "name": "BS_ADRENALINE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 112,
+   "name": "BS_WEAPONPERFECT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 113,
+   "name": "BS_OVERTHRUST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 114,
+   "name": "BS_MAXIMIZE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 115,
+   "name": "HT_SKIDTRAP",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 116,
+   "name": "HT_LANDMINE",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 117,
+   "name": "HT_ANKLESNARE",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 118,
+   "name": "HT_SHOCKWAVE",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 119,
+   "name": "HT_SANDMAN",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 120,
+   "name": "HT_FLASHER",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 121,
+   "name": "HT_FREEZINGTRAP",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 122,
+   "name": "HT_BLASTMINE",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 123,
+   "name": "HT_CLAYMORETRAP",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 124,
+   "name": "HT_REMOVETRAP",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 125,
+   "name": "HT_TALKIEBOX",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1970)"
+  },
+  {
+   "skill": 126,
+   "name": "HT_BEASTBANE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 127,
+   "name": "HT_FALCON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 128,
+   "name": "HT_STEELCROW",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 129,
+   "name": "HT_BLITZBEAT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 130,
+   "name": "HT_DETECTING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 131,
+   "name": "HT_SPRINGTRAP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 132,
+   "name": "AS_RIGHT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 133,
+   "name": "AS_LEFT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 134,
+   "name": "AS_KATAR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 135,
+   "name": "AS_CLOAKING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 136,
+   "name": "AS_SONICBLOW",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 137,
+   "name": "AS_GRIMTOOTH",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 138,
+   "name": "AS_ENCHANTPOISON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 139,
+   "name": "AS_POISONREACT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 140,
+   "name": "AS_VENOMDUST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 141,
+   "name": "AS_SPLASHER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 142,
+   "name": "NV_FIRSTAID",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 143,
+   "name": "NV_TRICKDEAD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 144,
+   "name": "SM_MOVINGRECOVERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 145,
+   "name": "SM_FATALBLOW",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 146,
+   "name": "SM_AUTOBERSERK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 147,
+   "name": "AC_MAKINGARROW",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 148,
+   "name": "AC_CHARGEARROW",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 149,
+   "name": "TF_SPRINKLESAND",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1479)"
+  },
+  {
+   "skill": 150,
+   "name": "TF_BACKSLIDING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 151,
+   "name": "TF_PICKSTONE",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1391)"
+  },
+  {
+   "skill": 152,
+   "name": "TF_THROWSTONE",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1479)"
+  },
+  {
+   "skill": 153,
+   "name": "MC_CARTREVOLUTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 154,
+   "name": "MC_CHANGECART",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 155,
+   "name": "MC_LOUD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 156,
+   "name": "AL_HOLYLIGHT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 157,
+   "name": "MG_ENERGYCOAT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 210,
+   "name": "RG_SNATCHER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 211,
+   "name": "RG_STEALCOIN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 212,
+   "name": "RG_BACKSTAP",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 213,
+   "name": "RG_TUNNELDRIVE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 214,
+   "name": "RG_RAID",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 215,
+   "name": "RG_STRIPWEAPON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 216,
+   "name": "RG_STRIPSHIELD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 217,
+   "name": "RG_STRIPARMOR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 218,
+   "name": "RG_STRIPHELM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 219,
+   "name": "RG_INTIMIDATE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 220,
+   "name": "RG_GRAFFITI",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 221,
+   "name": "RG_FLAGGRAFFITI",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 222,
+   "name": "RG_CLEANER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 223,
+   "name": "RG_GANGSTER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 224,
+   "name": "RG_COMPULSION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 225,
+   "name": "RG_PLAGIARISM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 226,
+   "name": "AM_AXEMASTERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 227,
+   "name": "AM_LEARNINGPOTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 228,
+   "name": "AM_PHARMACY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 229,
+   "name": "AM_DEMONSTRATION",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 230,
+   "name": "AM_ACIDTERROR",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 231,
+   "name": "AM_POTIONPITCHER",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 232,
+   "name": "AM_CANNIBALIZE",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 233,
+   "name": "AM_SPHEREMINE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 234,
+   "name": "AM_CP_WEAPON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 235,
+   "name": "AM_CP_SHIELD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 236,
+   "name": "AM_CP_ARMOR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 237,
+   "name": "AM_CP_HELM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 238,
+   "name": "AM_BIOETHICS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 243,
+   "name": "AM_CALLHOMUN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 244,
+   "name": "AM_REST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 247,
+   "name": "AM_RESURRECTHOMUN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 248,
+   "name": "CR_TRUST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 249,
+   "name": "CR_AUTOGUARD",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 250,
+   "name": "CR_SHIELDCHARGE",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 251,
+   "name": "CR_SHIELDBOOMERANG",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 252,
+   "name": "CR_REFLECTSHIELD",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 253,
+   "name": "CR_HOLYCROSS",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 254,
+   "name": "CR_GRANDCROSS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 255,
+   "name": "CR_DEVOTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 256,
+   "name": "CR_PROVIDENCE",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 257,
+   "name": "CR_DEFENDER",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 258,
+   "name": "CR_SPEARQUICKEN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 259,
+   "name": "MO_IRONHAND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 260,
+   "name": "MO_SPIRITSRECOVERY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 261,
+   "name": "MO_CALLSPIRITS",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 262,
+   "name": "MO_ABSORBSPIRITS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 263,
+   "name": "MO_TRIPLEATTACK",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 264,
+   "name": "MO_BODYRELOCATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 265,
+   "name": "MO_DODGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 266,
+   "name": "MO_INVESTIGATE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 267,
+   "name": "MO_FINGEROFFENSIVE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 268,
+   "name": "MO_STEELBODY",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 269,
+   "name": "MO_BLADESTOP",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 270,
+   "name": "MO_EXPLOSIONSPIRITS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 271,
+   "name": "MO_EXTREMITYFIST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 272,
+   "name": "MO_CHAINCOMBO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 273,
+   "name": "MO_COMBOFINISH",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 274,
+   "name": "SA_ADVANCEDBOOK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 275,
+   "name": "SA_CASTCANCEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 276,
+   "name": "SA_MAGICROD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 277,
+   "name": "SA_SPELLBREAKER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 278,
+   "name": "SA_FREECAST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 279,
+   "name": "SA_AUTOSPELL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 280,
+   "name": "SA_FLAMELAUNCHER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 281,
+   "name": "SA_FROSTWEAPON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 282,
+   "name": "SA_LIGHTNINGLOADER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 283,
+   "name": "SA_SEISMICWEAPON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 284,
+   "name": "SA_DRAGONOLOGY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 285,
+   "name": "SA_VOLCANO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 286,
+   "name": "SA_DELUGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 287,
+   "name": "SA_VIOLENTGALE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 288,
+   "name": "SA_LANDPROTECTOR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 289,
+   "name": "SA_DISPELL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 290,
+   "name": "SA_ABRACADABRA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 304,
+   "name": "BD_ADAPTATION",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1391)"
+  },
+  {
+   "skill": 305,
+   "name": "BD_ENCORE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 306,
+   "name": "BD_LULLABY",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 307,
+   "name": "BD_RICHMANKIM",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 308,
+   "name": "BD_ETERNALCHAOS",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 309,
+   "name": "BD_DRUMBATTLEFIELD",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 310,
+   "name": "BD_RINGNIBELUNGEN",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 311,
+   "name": "BD_ROKISWEIL",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 312,
+   "name": "BD_INTOABYSS",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 313,
+   "name": "BD_SIEGFRIED",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 315,
+   "name": "BA_MUSICALLESSON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 316,
+   "name": "BA_MUSICALSTRIKE",
+   "action": "Action(11)",
+   "motion": 9,
+   "source": "GetSkillActionInfo2 motion=9 (SkillActionInfo.cpp:1981)"
+  },
+  {
+   "skill": 317,
+   "name": "BA_DISSONANCE",
+   "action": "Skill",
+   "motion": 17,
+   "source": "GetSkillActionInfo2 motion=17 (SkillActionInfo.cpp:1384)"
+  },
+  {
+   "skill": 318,
+   "name": "BA_FROSTJOKER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 319,
+   "name": "BA_WHISTLE",
+   "action": "Skill",
+   "motion": 17,
+   "source": "GetSkillActionInfo2 motion=17 (SkillActionInfo.cpp:1384)"
+  },
+  {
+   "skill": 320,
+   "name": "BA_ASSASSINCROSS",
+   "action": "Skill",
+   "motion": 17,
+   "source": "GetSkillActionInfo2 motion=17 (SkillActionInfo.cpp:1384)"
+  },
+  {
+   "skill": 321,
+   "name": "BA_POEMBRAGI",
+   "action": "Skill",
+   "motion": 17,
+   "source": "GetSkillActionInfo2 motion=17 (SkillActionInfo.cpp:1384)"
+  },
+  {
+   "skill": 322,
+   "name": "BA_APPLEIDUN",
+   "action": "Skill",
+   "motion": 17,
+   "source": "GetSkillActionInfo2 motion=17 (SkillActionInfo.cpp:1384)"
+  },
+  {
+   "skill": 323,
+   "name": "DC_DANCINGLESSON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 324,
+   "name": "DC_THROWARROW",
+   "action": "Action(11)",
+   "motion": 9,
+   "source": "GetSkillActionInfo2 motion=9 (SkillActionInfo.cpp:1981)"
+  },
+  {
+   "skill": 325,
+   "name": "DC_UGLYDANCE",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 326,
+   "name": "DC_SCREAM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 327,
+   "name": "DC_HUMMING",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 328,
+   "name": "DC_DONTFORGETME",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 329,
+   "name": "DC_FORTUNEKISS",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 330,
+   "name": "DC_SERVICEFORYOU",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 355,
+   "name": "LK_AURABLADE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 356,
+   "name": "LK_PARRYING",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 357,
+   "name": "LK_CONCENTRATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 358,
+   "name": "LK_TENSIONRELAX",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 359,
+   "name": "LK_BERSERK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 361,
+   "name": "HP_ASSUMPTIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 362,
+   "name": "HP_BASILICA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 363,
+   "name": "HP_MEDITATIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 364,
+   "name": "HW_SOULDRAIN",
+   "action": "Skill",
+   "motion": 1,
+   "source": "GetSkillActionInfo2 motion=1 (SkillActionInfo.cpp:1404)"
+  },
+  {
+   "skill": 365,
+   "name": "HW_MAGICCRASHER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 366,
+   "name": "HW_MAGICPOWER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 367,
+   "name": "PA_PRESSURE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 368,
+   "name": "PA_SACRIFICE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 369,
+   "name": "PA_GOSPEL",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 370,
+   "name": "CH_PALMSTRIKE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 371,
+   "name": "CH_TIGERFIST",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 372,
+   "name": "CH_CHAINCRUSH",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 373,
+   "name": "PF_HPCONVERSION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 374,
+   "name": "PF_SOULCHANGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 375,
+   "name": "PF_SOULBURN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 376,
+   "name": "ASC_KATAR",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 378,
+   "name": "ASC_EDP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 379,
+   "name": "ASC_BREAKER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 380,
+   "name": "SN_SIGHT",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 381,
+   "name": "SN_FALCONASSAULT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 382,
+   "name": "SN_SHARPSHOOTING",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 383,
+   "name": "SN_WINDWALK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 384,
+   "name": "WS_MELTDOWN",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 387,
+   "name": "WS_CARTBOOST",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 389,
+   "name": "ST_CHASEWALK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 390,
+   "name": "ST_REJECTSWORD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 394,
+   "name": "CG_ARROWVULCAN",
+   "action": "Action(11)",
+   "motion": 9,
+   "source": "GetSkillActionInfo2 motion=9 (SkillActionInfo.cpp:1981)"
+  },
+  {
+   "skill": 395,
+   "name": "CG_MOONLIT",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 396,
+   "name": "CG_MARIONETTE",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 397,
+   "name": "LK_SPIRALPIERCE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 398,
+   "name": "LK_HEADCRUSH",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 399,
+   "name": "LK_JOINTBEAT",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 400,
+   "name": "HW_NAPALMVULCAN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 401,
+   "name": "CH_SOULCOLLECT",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 402,
+   "name": "PF_MINDBREAKER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 403,
+   "name": "PF_MEMORIZE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 404,
+   "name": "PF_FOGWALL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 405,
+   "name": "PF_SPIDERWEB",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 406,
+   "name": "ASC_METEORASSAULT",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 407,
+   "name": "ASC_CDP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 408,
+   "name": "WE_BABY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 409,
+   "name": "WE_CALLPARENT",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 410,
+   "name": "WE_CALLBABY",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 411,
+   "name": "TK_RUN",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 412,
+   "name": "TK_READYSTORM",
+   "action": "Skill",
+   "motion": 21,
+   "source": "GetSkillActionInfo2 motion=21 (SkillActionInfo.cpp:1508)"
+  },
+  {
+   "skill": 413,
+   "name": "TK_STORMKICK",
+   "action": "Skill",
+   "motion": 30,
+   "source": "GetSkillActionInfo2 motion=30 (SkillActionInfo.cpp:1519)"
+  },
+  {
+   "skill": 414,
+   "name": "TK_READYDOWN",
+   "action": "Skill",
+   "motion": 22,
+   "source": "GetSkillActionInfo2 motion=22 (SkillActionInfo.cpp:1611)"
+  },
+  {
+   "skill": 415,
+   "name": "TK_DOWNKICK",
+   "action": "Idle",
+   "motion": 31,
+   "source": "GetSkillActionInfo2 motion=31 (SkillActionInfo.cpp:1524)"
+  },
+  {
+   "skill": 416,
+   "name": "TK_READYTURN",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 417,
+   "name": "TK_TURNKICK",
+   "action": "Idle",
+   "motion": 32,
+   "source": "GetSkillActionInfo2 motion=32 (SkillActionInfo.cpp:1535)"
+  },
+  {
+   "skill": 418,
+   "name": "TK_READYCOUNTER",
+   "action": "Skill",
+   "motion": 24,
+   "source": "GetSkillActionInfo2 motion=24 (SkillActionInfo.cpp:1541)"
+  },
+  {
+   "skill": 419,
+   "name": "TK_COUNTER",
+   "action": "Action(11)",
+   "motion": 26,
+   "source": "GetSkillActionInfo2 motion=26 (SkillActionInfo.cpp:1439)"
+  },
+  {
+   "skill": 420,
+   "name": "TK_DODGE",
+   "action": "Pickup",
+   "motion": 25,
+   "source": "GetSkillActionInfo2 motion=25 (SkillActionInfo.cpp:1555)"
+  },
+  {
+   "skill": 421,
+   "name": "TK_JUMPKICK",
+   "action": "Skill",
+   "motion": 27,
+   "source": "GetSkillActionInfo2 motion=27 (SkillActionInfo.cpp:1546)"
+  },
+  {
+   "skill": 422,
+   "name": "TK_HPTIME",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 423,
+   "name": "TK_SPTIME",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 424,
+   "name": "TK_POWER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 425,
+   "name": "TK_SEVENWIND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 426,
+   "name": "TK_HIGHJUMP",
+   "action": "Pickup",
+   "motion": 20,
+   "source": "GetSkillActionInfo2 motion=20 (SkillActionInfo.cpp:1895)"
+  },
+  {
+   "skill": 427,
+   "name": "SG_FEEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 428,
+   "name": "SG_SUN_WARM",
+   "action": "Skill",
+   "motion": 34,
+   "source": "GetSkillActionInfo2 motion=34 (SkillActionInfo.cpp:1429)"
+  },
+  {
+   "skill": 429,
+   "name": "SG_MOON_WARM",
+   "action": "Skill",
+   "motion": 34,
+   "source": "GetSkillActionInfo2 motion=34 (SkillActionInfo.cpp:1429)"
+  },
+  {
+   "skill": 430,
+   "name": "SG_STAR_WARM",
+   "action": "Skill",
+   "motion": 34,
+   "source": "GetSkillActionInfo2 motion=34 (SkillActionInfo.cpp:1429)"
+  },
+  {
+   "skill": 431,
+   "name": "SG_SUN_COMFORT",
+   "action": "Skill",
+   "motion": 33,
+   "source": "GetSkillActionInfo2 motion=33 (SkillActionInfo.cpp:1435)"
+  },
+  {
+   "skill": 432,
+   "name": "SG_MOON_COMFORT",
+   "action": "Skill",
+   "motion": 33,
+   "source": "GetSkillActionInfo2 motion=33 (SkillActionInfo.cpp:1435)"
+  },
+  {
+   "skill": 433,
+   "name": "SG_STAR_COMFORT",
+   "action": "Skill",
+   "motion": 33,
+   "source": "GetSkillActionInfo2 motion=33 (SkillActionInfo.cpp:1435)"
+  },
+  {
+   "skill": 434,
+   "name": "SG_HATE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 435,
+   "name": "SG_SUN_ANGER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 436,
+   "name": "SG_MOON_ANGER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 437,
+   "name": "SG_STAR_ANGER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 438,
+   "name": "SG_SUN_BLESS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 439,
+   "name": "SG_MOON_BLESS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 440,
+   "name": "SG_STAR_BLESS",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 441,
+   "name": "SG_DEVIL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 442,
+   "name": "SG_FRIEND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 443,
+   "name": "SG_KNOWLEDGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 444,
+   "name": "SG_FUSION",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:2025)"
+  },
+  {
+   "skill": 445,
+   "name": "SL_ALCHEMIST",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 446,
+   "name": "AM_BERSERKPITCHER",
+   "action": "Keep",
+   "motion": -1,
+   "source": "GetSkillActionInfo2 motion=-1 (SkillActionInfo.cpp:1946)"
+  },
+  {
+   "skill": 447,
+   "name": "SL_MONK",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 448,
+   "name": "SL_STAR",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 449,
+   "name": "SL_SAGE",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 450,
+   "name": "SL_CRUSADER",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 451,
+   "name": "SL_SUPERNOVICE",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 452,
+   "name": "SL_KNIGHT",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 453,
+   "name": "SL_WIZARD",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 454,
+   "name": "SL_PRIEST",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 455,
+   "name": "SL_BARDDANCER",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 456,
+   "name": "SL_ROGUE",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 457,
+   "name": "SL_ASSASIN",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 458,
+   "name": "SL_BLACKSMITH",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 459,
+   "name": "BS_ADRENALINE2",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 460,
+   "name": "SL_HUNTER",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 461,
+   "name": "SL_SOULLINKER",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 462,
+   "name": "SL_KAIZEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 463,
+   "name": "SL_KAAHI",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 464,
+   "name": "SL_KAUPE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 465,
+   "name": "SL_KAITE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 466,
+   "name": "SL_KAINA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 467,
+   "name": "SL_STIN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 468,
+   "name": "SL_STUN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 469,
+   "name": "SL_SMA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 470,
+   "name": "SL_SWOO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 471,
+   "name": "SL_SKE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 472,
+   "name": "SL_SKA",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 475,
+   "name": "ST_PRESERVE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 476,
+   "name": "ST_FULLSTRIP",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 477,
+   "name": "WS_WEAPONREFINE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 478,
+   "name": "CR_SLIMPITCHER",
+   "action": "Keep",
+   "motion": -1,
+   "source": "GetSkillActionInfo2 motion=-1 (SkillActionInfo.cpp:1946)"
+  },
+  {
+   "skill": 479,
+   "name": "CR_FULLPROTECTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 480,
+   "name": "PA_SHIELDCHAIN",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1915)"
+  },
+  {
+   "skill": 481,
+   "name": "HP_MANARECHARGE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 482,
+   "name": "PF_DOUBLECASTING",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1890)"
+  },
+  {
+   "skill": 483,
+   "name": "HW_GANBANTEIN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 484,
+   "name": "HW_GRAVITATION",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 485,
+   "name": "WS_CARTTERMINATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 486,
+   "name": "WS_OVERTHRUSTMAX",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 487,
+   "name": "CG_LONGINGFREEDOM",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 488,
+   "name": "CG_HERMODE",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1424)"
+  },
+  {
+   "skill": 489,
+   "name": "CG_TAROTCARD",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1868)"
+  },
+  {
+   "skill": 490,
+   "name": "CR_ACIDDEMONSTRATION",
+   "action": "Keep",
+   "motion": -1,
+   "source": "GetSkillActionInfo2 motion=-1 (SkillActionInfo.cpp:1946)"
+  },
+  {
+   "skill": 491,
+   "name": "CR_CULTIVATION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 493,
+   "name": "TK_MISSION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:2179)"
+  },
+  {
+   "skill": 494,
+   "name": "SL_HIGH",
+   "action": "Skill",
+   "motion": 23,
+   "source": "GetSkillActionInfo2 motion=23 (SkillActionInfo.cpp:1585)"
+  },
+  {
+   "skill": 495,
+   "name": "KN_ONEHAND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 496,
+   "name": "AM_TWILIGHT1",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 497,
+   "name": "AM_TWILIGHT2",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 498,
+   "name": "AM_TWILIGHT3",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 499,
+   "name": "HT_POWER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 500,
+   "name": "GS_GLITTERING",
+   "action": "Skill",
+   "motion": 39,
+   "source": "GetSkillActionInfo2 motion=39 (SkillActionInfo.cpp:1601)"
+  },
+  {
+   "skill": 501,
+   "name": "GS_FLING",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 502,
+   "name": "GS_TRIPLEACTION",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 503,
+   "name": "GS_BULLSEYE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 504,
+   "name": "GS_MADNESSCANCEL",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 505,
+   "name": "GS_ADJUSTMENT",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 506,
+   "name": "GS_INCREASING",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 507,
+   "name": "GS_MAGICALBULLET",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 508,
+   "name": "GS_CRACKER",
+   "action": "Action(5)",
+   "motion": 40,
+   "source": "GetSkillActionInfo2 motion=40 (SkillActionInfo.cpp:1464)"
+  },
+  {
+   "skill": 509,
+   "name": "GS_SINGLEACTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 510,
+   "name": "GS_SNAKEEYE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 511,
+   "name": "GS_CHAINACTION",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 512,
+   "name": "GS_TRACKING",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 513,
+   "name": "GS_DISARM",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 514,
+   "name": "GS_PIERCINGSHOT",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 515,
+   "name": "GS_RAPIDSHOWER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 516,
+   "name": "GS_DESPERADO",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 517,
+   "name": "GS_GATLINGFEVER",
+   "action": "Skill",
+   "motion": 38,
+   "source": "GetSkillActionInfo2 motion=38 (SkillActionInfo.cpp:1459)"
+  },
+  {
+   "skill": 518,
+   "name": "GS_DUST",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 519,
+   "name": "GS_FULLBUSTER",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 520,
+   "name": "GS_SPREADATTACK",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 521,
+   "name": "GS_GROUNDDRIFT",
+   "action": "Action(5)",
+   "motion": 40,
+   "source": "GetSkillActionInfo2 motion=40 (SkillActionInfo.cpp:1464)"
+  },
+  {
+   "skill": 522,
+   "name": "NJ_TOBIDOUGU",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 523,
+   "name": "NJ_SYURIKEN",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 524,
+   "name": "NJ_KUNAI",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 525,
+   "name": "NJ_HUUMA",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 526,
+   "name": "NJ_ZENYNAGE",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 527,
+   "name": "NJ_TATAMIGAESHI",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 528,
+   "name": "NJ_KASUMIKIRI",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 529,
+   "name": "NJ_SHADOWJUMP",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 530,
+   "name": "NJ_KIRIKAGE",
+   "action": "Action(11)",
+   "motion": 9,
+   "source": "GetSkillActionInfo2 motion=9 (SkillActionInfo.cpp:1981)"
+  },
+  {
+   "skill": 531,
+   "name": "NJ_UTSUSEMI",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 532,
+   "name": "NJ_BUNSINJYUTSU",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 533,
+   "name": "NJ_NINPOU",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 534,
+   "name": "NJ_KOUENKA",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 535,
+   "name": "NJ_KAENSIN",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 536,
+   "name": "NJ_BAKUENRYU",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 537,
+   "name": "NJ_HYOUSENSOU",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 538,
+   "name": "NJ_SUITON",
+   "action": "Skill",
+   "motion": 35,
+   "source": "GetSkillActionInfo2 motion=35 (SkillActionInfo.cpp:1450)"
+  },
+  {
+   "skill": 539,
+   "name": "NJ_HYOUSYOURAKU",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 540,
+   "name": "NJ_HUUJIN",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 541,
+   "name": "NJ_RAIGEKISAI",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 542,
+   "name": "NJ_KAMAITACHI",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 543,
+   "name": "NJ_NEN",
+   "action": "Skill",
+   "motion": 36,
+   "source": "GetSkillActionInfo2 motion=36 (SkillActionInfo.cpp:1660)"
+  },
+  {
+   "skill": 544,
+   "name": "NJ_ISSEN",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1001,
+   "name": "KN_CHARGEATK",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 1002,
+   "name": "CR_SHRINK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1003,
+   "name": "AS_SONICACCEL",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1004,
+   "name": "AS_VENOMKNIFE",
+   "action": "Action(5)",
+   "motion": 12,
+   "source": "GetSkillActionInfo2 motion=12 (SkillActionInfo.cpp:1479)"
+  },
+  {
+   "skill": 1005,
+   "name": "RG_CLOSECONFINE",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2255)"
+  },
+  {
+   "skill": 1006,
+   "name": "WZ_SIGHTBLASTER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1007,
+   "name": "SA_CREATECON",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1008,
+   "name": "SA_ELEMENTWATER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1009,
+   "name": "HT_PHANTASMIC",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:1295)"
+  },
+  {
+   "skill": 1010,
+   "name": "BA_PANGVOICE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1011,
+   "name": "DC_WINKCHARM",
+   "action": "Skill",
+   "motion": 16,
+   "source": "GetSkillActionInfo2 motion=16 (SkillActionInfo.cpp:1471)"
+  },
+  {
+   "skill": 1012,
+   "name": "BS_UNFAIRLYTRICK",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1013,
+   "name": "BS_GREED",
+   "action": "Pickup",
+   "motion": 5,
+   "source": "GetSkillActionInfo2 motion=5 (SkillActionInfo.cpp:1482)"
+  },
+  {
+   "skill": 1014,
+   "name": "PR_REDEMPTIO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1015,
+   "name": "MO_KITRANSLATION",
+   "action": "Idle",
+   "motion": 0,
+   "source": "GetSkillActionInfo2 motion=0 (SkillActionInfo.cpp:1401)"
+  },
+  {
+   "skill": 1016,
+   "name": "MO_BALKYOUNG",
+   "action": "Attack",
+   "motion": 2,
+   "source": "GetSkillActionInfo2 motion=2 (SkillActionInfo.cpp:2006)"
+  },
+  {
+   "skill": 1017,
+   "name": "SA_ELEMENTGROUND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1018,
+   "name": "SA_ELEMENTFIRE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 1019,
+   "name": "SA_ELEMENTWIND",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2326,
+   "name": "SR_DRAGONCOMBO",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2327,
+   "name": "SR_SKYNETBLOW",
+   "action": "Action(11)",
+   "motion": 18,
+   "source": "GetSkillActionInfo2 motion=18 (SkillActionInfo.cpp:1513)"
+  },
+  {
+   "skill": 2328,
+   "name": "SR_EARTHSHAKER",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2329,
+   "name": "SR_FALLENEMPIRE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2330,
+   "name": "SR_TIGERCANNON",
+   "action": "Action(11)",
+   "motion": 18,
+   "source": "GetSkillActionInfo2 motion=18 (SkillActionInfo.cpp:1513)"
+  },
+  {
+   "skill": 2535,
+   "name": "ALL_BUYING_STORE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  },
+  {
+   "skill": 2544,
+   "name": "MC_CARTDECORATE",
+   "action": "Skill",
+   "motion": 7,
+   "source": "GetSkillActionInfo2 motion=7 (SkillActionInfo.cpp:1230)"
+  }
+ ]
+}

@@ -43,6 +43,7 @@ DEFAULT_EXTRA = Path("tools/data/skill_actions_extra.json")
 DEFAULT_RODECOMP = Path("tools/data/skill_actions_rodecomp.json")
 DEFAULT_GRF2019 = Path("tools/data/grf2019_skill_facts.json")
 DEFAULT_SEQUENCES = Path("tools/data/rodecomp_skill_frame_sequences.json")
+DEFAULT_USE = Path("tools/data/skill_actions_use.json")
 
 #: `ACTOR_STATE` id of the 2019 client tables -> our caster action.
 #:
@@ -63,7 +64,7 @@ DEFAULT_OUTPUT = Path("ro-next/archive/data/client/skill_actions.ron")
 
 #: Client action categories (must match `CasterAction` in
 #: `ro-next/src/world/skill_action.rs`).
-ACTIONS = ("Attack", "Idle", "Pickup", "Skill", "ReadyFight")
+ACTIONS = ("Attack", "Idle", "Keep", "Pickup", "Skill", "ReadyFight")
 ACTION_INDEX_PATTERN = re.compile(r"^Action\(\d+\)$")
 
 
@@ -155,6 +156,14 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "// Skills that are not listed use `Skill`, the client's default casting",
         "// gesture.",
         "//",
+        "// Rows may also carry `use_action`, the pose of the `ZC_USE_SKILL`",
+        "// (0x09CB) path, which the official client drives with",
+        "// `CSession::GetSkillActionInfo2` (default `motion = 7`). The main",
+        "// `action` stays the `ZC_USESKILL_ACK` (0x0B1A) pose from",
+        "// `GetSkillActionInfo` (default `motion = 8`); `use_action` is emitted",
+        "// only where the two disagree. `Keep` means `SetState(-1)` (no pose",
+        "// change).",
+        "//",
         "// Rows may also carry the official frame sequence (`SetFrameSequence`):",
         "// (first, last, loop_to, duration_ms, interval_ticks). `interval_ticks` is",
         "// the preceding `SetSequenceInterval(N)` in 60 Hz update ticks (Fury: 30 =",
@@ -168,16 +177,17 @@ def render(rows: list[tuple[int, str]], provenance: dict) -> str:
         "    default_action: Skill,",
         "    actions: [",
     ]
-    for skill_id, action, sequence in rows:
-        if sequence is None:
-            lines.append(f"        (skill: {skill_id}, action: {action}),")
-        else:
+    for skill_id, action, sequence, use_action in rows:
+        fields = [f"skill: {skill_id}", f"action: {action}"]
+        if use_action is not None:
+            fields.append(f"use_action: {use_action}")
+        if sequence is not None:
             first, last, loop_to, duration_ms, interval_ticks = sequence
-            lines.append(
-                f"        (skill: {skill_id}, action: {action}, "
+            fields.append(
                 f"sequence: (first: {first}, last: {last}, loop_to: {loop_to}, "
-                f"duration_ms: {duration_ms}, interval_ticks: {interval_ticks})),"
+                f"duration_ms: {duration_ms}, interval_ticks: {interval_ticks})"
             )
+        lines.append(f"        ({', '.join(fields)}),")
     lines.extend(["    ],", ")", ""])
     return "\n".join(lines)
 
@@ -190,6 +200,7 @@ def main() -> int:
     parser.add_argument("--rodecomp", default=str(DEFAULT_RODECOMP))
     parser.add_argument("--grf2019", default=str(DEFAULT_GRF2019), help="begin-motion facts of the 2019 GRF tables")
     parser.add_argument("--sequences", default=str(DEFAULT_SEQUENCES), help="official per-skill frame sequences")
+    parser.add_argument("--use", default=str(DEFAULT_USE), help="official ZC_USE_SKILL (0x09CB) actions")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT))
     args = parser.parse_args()
 
@@ -242,7 +253,31 @@ def main() -> int:
             if block % 8 == 0:
                 sequence_actions[skill] = f"Action({block // 8})"
 
-    rows = [(skill, sequence_actions.get(skill, action), sequences.get(skill)) for skill, action in rows]
+    # `GetSkillActionInfo2` actions for the 0x09CB path. The field is emitted
+    # only where it differs from the cast-ack action, so most rows stay short.
+    use_actions: dict[int, str] = {}
+    use_path = Path(getattr(args, "use", ""))
+    if use_path.is_file():
+        for entry in json.loads(use_path.read_text())["actions"]:
+            skill = int(entry["skill"])
+            action = entry["action"]
+            validate_action(skill, action, "use")
+            use_actions[skill] = action
+
+    rendered_rows = []
+    for skill, action in rows:
+        rendered_action = sequence_actions.get(skill, action)
+        # A frame sequence names the official ACT block itself. It overrides
+        # both motion tables, so the 0x09CB row must keep the same block and
+        # only the cast/use difference of the motion remains relevant.
+        if skill in sequences:
+            use_action = None
+        else:
+            use_action = use_actions.get(skill)
+            if use_action == rendered_action:
+                use_action = None
+        rendered_rows.append((skill, rendered_action, sequences.get(skill), use_action))
+    rows = rendered_rows
 
     content = render(rows, payload["provenance"])
     output = Path(args.output)
@@ -257,7 +292,7 @@ def main() -> int:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(content)
-    summary = {action: sum(1 for _id, value, _sequence in rows if value == action) for action in ACTIONS}
+    summary = {action: sum(1 for _id, value, _sequence, _use in rows if value == action) for action in ACTIONS}
     print(f"{output}: {len(rows)} entries {summary}")
     return 0
 

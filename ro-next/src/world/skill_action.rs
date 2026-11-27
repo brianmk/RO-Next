@@ -38,7 +38,7 @@
 use ragnarok_packets::SkillId;
 use serde::Deserialize;
 
-use crate::world::{caster_action_for_skill, default_caster_action};
+use crate::world::{caster_action_for_skill, default_caster_action, use_caster_action_for_skill};
 
 /// Body animation the caster plays when a skill is used.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize)]
@@ -59,6 +59,12 @@ pub enum CasterAction {
     /// Play an explicit ACT action index. Used for rustnarok's generic motion
     /// table entries whose action is not one of the named actions.
     Action(u8),
+    /// Do not change the pose. The official `GetSkillActionInfo2` returns
+    /// `motion = -1` for a few skills (`AM_BERSERKPITCHER`,
+    /// `CR_SLIMPITCHER`, `CR_ACIDDEMONSTRATION`), and `SetState(-1)` is a
+    /// no-op (`RenderObject.cpp:1362-1364`). Only the 0x09CB use table emits
+    /// this variant.
+    Keep,
 }
 
 /// Returns the caster body animation of a skill.
@@ -82,11 +88,38 @@ pub fn caster_action(skill_id: SkillId) -> CasterAction {
         .unwrap_or_else(default_caster_action)
 }
 
+/// Returns the pose the `ZC_USESKILL_ACK` (0x0B1A) path should play, if any.
+///
+/// The official `NotifySkillCasting` returns before `GetSkillActionInfo` and
+/// `SetState` when the packet's `delay` is zero
+/// (`GameModePackets.cpp:12951-12953`), so an instant cast gets no pose from
+/// the ack. The client still plays the pose for skills with an explicit
+/// official frame sequence, because the sequence needs its base ACT block and
+/// the damage/use packet is the only other place that applies it (a documented
+/// timing approximation; see the audit report §8).
+pub fn ack_caster_action(skill_id: SkillId, cast_time: u32, plays_sequence: bool) -> Option<CasterAction> {
+    (cast_time > 0 || plays_sequence).then(|| caster_action(skill_id))
+}
+
+/// Returns the body animation of `skill_id` on the `ZC_USE_SKILL` (0x09CB)
+/// path.
+///
+/// The official client reads `GetSkillActionInfo2` there (`motion = 7`
+/// default), while `ZC_USESKILL_ACK` reads `GetSkillActionInfo`
+/// (`motion = 8` default). `skill_actions.ron` stores the second value on the
+/// main `action` and the first one on an optional `use_action`, so callers
+/// have to pick the right one for the packet they handle.
+pub fn use_caster_action(skill_id: SkillId) -> CasterAction {
+    use_caster_action_for_skill(skill_id)
+        .or_else(|| Some(caster_action(skill_id)))
+        .unwrap_or_else(default_caster_action)
+}
+
 #[cfg(test)]
 mod tests {
     use ragnarok_packets::SkillId;
 
-    use super::{CasterAction, caster_action};
+    use super::{CasterAction, ack_caster_action, caster_action, use_caster_action};
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
@@ -145,6 +178,48 @@ mod tests {
         // two-frame animation lasts the full 1000 ms deadline.
         assert_eq!(sequence.interval_ticks, 30);
         assert_eq!(sequence.step_ms(), Some(500));
+    }
+
+    #[test]
+    fn instant_ack_skips_the_pose_unless_a_sequence_needs_it() {
+        // Official `NotifySkillCasting` returns before `SetState` when
+        // `delay == 0` (GameModePackets.cpp:12951-12953).
+        assert_eq!(ack_caster_action(SkillId(34), 0, false), None);
+        assert_eq!(ack_caster_action(SkillId(5), 0, false), None);
+        // A cast-time ack still plays the `GetSkillActionInfo` pose.
+        assert_eq!(ack_caster_action(SkillId(5), 500, false), Some(CasterAction::Attack));
+        // Sequence carriers keep the ack pose so their base ACT block exists;
+        // the 0x09CB/damage path then applies the frame range.
+        assert_eq!(ack_caster_action(SkillId(270), 0, true), Some(CasterAction::Action(12)));
+    }
+
+    #[test]
+    fn use_path_follows_get_skill_action_info2() {
+        // The 0x09CB `ZC_USE_SKILL` path reads the second official table,
+        // which disagrees with the cast ack for 95 rows in the data file.
+        assert_eq!(
+            use_caster_action(SkillId(34)),
+            CasterAction::Skill,
+            "Blessing uses the cast gesture"
+        );
+        assert_eq!(
+            use_caster_action(SkillId(29)),
+            CasterAction::Idle,
+            "Incagi keeps the stand pose"
+        );
+        assert_eq!(use_caster_action(SkillId(61)), CasterAction::Attack, "Auto Counter swings");
+        assert_eq!(
+            use_caster_action(SkillId(231)),
+            CasterAction::Action(5),
+            "Potion Pitcher throws"
+        );
+        assert_eq!(
+            use_caster_action(SkillId(446)),
+            CasterAction::Keep,
+            "Berserk Pitcher keeps the pose"
+        );
+        // A skill whose two official tables agree falls back to the cast row.
+        assert_eq!(use_caster_action(SkillId(28)), caster_action(SkillId(28)));
     }
 
     #[test]

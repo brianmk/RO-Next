@@ -59,41 +59,51 @@ impl Client {
             .iter_mut()
             .find(|entity| entity.get_entity_id() == source_entity_id)
         {
-            match caster_action(skill_id) {
-                // Stance/buff skills (Zen, Fury, Endure, ...) keep the idle
-                // pose in the official client; the hard-coded skill effect
-                // is the visual feedback instead of a casting gesture.
-                CasterAction::Idle => entity.set_idle(client_tick),
-                // Casts with a cast time loop the casting gesture until the
-                // cast finishes; instant casts play the action once.
-                CasterAction::Skill => entity.set_skill_cast(cast_animation_time, has_cast_time, client_tick),
-                // Attack skills play the normal weapon swing. `set_attack`
-                // picks the ACT block the equipped weapon layer actually
-                // animates (`attack_action()`), which is what the official
-                // `CPc::SetState` does when it upgrades `ST_ATTACK` to
-                // `ST_ATTACK2` for a weapon-allowed job (`Player.cpp:4545`).
-                CasterAction::Attack => entity.set_attack(cast_animation_time, false, client_tick),
-                // Pickup-style skills play the pickup animation.
-                CasterAction::Pickup => entity.set_pickup(client_tick),
-                CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
-                CasterAction::Action(action_index) => {
-                    entity.set_custom_skill_action(action_index as usize, cast_animation_time, has_cast_time, client_tick)
+            let sequence = crate::world::frame_sequence_for_skill(skill_id);
+            // `NotifySkillCasting` returns before `GetSkillActionInfo` when
+            // the packet has no cast time (`GameModePackets.cpp:12951-12953`).
+            // Do not invent a pose on an instant ack; the 0x09CB/damage
+            // packet supplies it. Sequence carriers keep the ack pose so the
+            // frame range has its base ACT block.
+            if let Some(action) = ack_caster_action(skill_id, cast_time, sequence.is_some()) {
+                match action {
+                    // Stance/buff skills (Zen, Fury, Endure, ...) keep the idle
+                    // pose in the official client; the hard-coded skill effect
+                    // is the visual feedback instead of a casting gesture.
+                    CasterAction::Idle => entity.set_idle(client_tick),
+                    // Casts with a cast time loop the casting gesture until the
+                    // cast finishes; instant casts play the action once.
+                    CasterAction::Skill => entity.set_skill_cast(cast_animation_time, has_cast_time, client_tick),
+                    // Attack skills play the normal weapon swing. `set_attack`
+                    // picks the ACT block the equipped weapon layer actually
+                    // animates (`attack_action()`), which is what the official
+                    // `CPc::SetState` does when it upgrades `ST_ATTACK` to
+                    // `ST_ATTACK2` for a weapon-allowed job (`Player.cpp:4545`).
+                    CasterAction::Attack => entity.set_attack(cast_animation_time, false, client_tick),
+                    // Pickup-style skills play the pickup animation.
+                    CasterAction::Pickup => entity.set_pickup(client_tick),
+                    CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+                    CasterAction::Action(action_index) => {
+                        entity.set_custom_skill_action(action_index as usize, cast_animation_time, has_cast_time, client_tick)
+                    }
+                    // Only emitted by the 0x09CB use table.
+                    CasterAction::Keep => {}
                 }
-            }
 
-            // The official per-skill frame range (`SetFrameSequence`
-            // in RenderObject.cpp) describes the *damage* animation;
-            // for casts with a cast time it starts when the skill
-            // resolves (see the damage arms below).
-            if !has_cast_time && let Some(sequence) = crate::world::frame_sequence_for_skill(skill_id) {
-                entity.set_skill_frame_sequence_with_rate(
-                    sequence.first,
-                    sequence.last,
-                    sequence.loop_to,
-                    sequence.duration_ms,
-                    sequence.step_ms(),
-                    client_tick,
-                );
+                // The official per-skill frame range (`SetFrameSequence`
+                // in RenderObject.cpp) describes the *damage* animation;
+                // for casts with a cast time it starts when the skill
+                // resolves (see the damage arms below).
+                if !has_cast_time && let Some(sequence) = sequence {
+                    entity.set_skill_frame_sequence_with_rate(
+                        sequence.first,
+                        sequence.last,
+                        sequence.loop_to,
+                        sequence.duration_ms,
+                        sequence.step_ms(),
+                        client_tick,
+                    );
+                }
             }
 
             // Targeted casts face their target, self-casts keep the current
@@ -273,7 +283,7 @@ impl Client {
                 .iter_mut()
                 .find(|entity| entity.get_entity_id() == source_entity_id)
             {
-                match caster_action(skill_id) {
+                match use_caster_action(skill_id) {
                     // Stance/buff skills keep the idle pose (see the
                     // `SkillCast` arm above).
                     CasterAction::Idle => entity.set_idle(client_tick),
@@ -286,6 +296,7 @@ impl Client {
                     CasterAction::Pickup => entity.set_pickup(client_tick),
                     CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                     CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
+                    CasterAction::Keep => {}
                 }
 
                 // Official frame range of the skill's damage animation.
@@ -397,6 +408,7 @@ impl Client {
                 CasterAction::Pickup => entity.set_pickup(client_tick),
                 CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                 CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
+                CasterAction::Keep => {}
             }
 
             // Official frame range of the skill animation.

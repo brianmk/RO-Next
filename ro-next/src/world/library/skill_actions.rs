@@ -56,9 +56,15 @@ impl CasterFrameSequence {
     }
 }
 
-/// A parsed mapping: the default action, sorted `(skill id, action)` rows and
-/// the per-skill frame sequences.
-type Mapping = (CasterAction, Vec<(u16, CasterAction)>, Vec<(u16, CasterFrameSequence)>);
+/// A parsed mapping: the default action, the sorted cast-path rows, the
+/// optional 0x09CB rows and the per-skill frame sequences.
+#[derive(Clone)]
+struct Mapping {
+    default: CasterAction,
+    rows: Vec<(u16, CasterAction)>,
+    use_rows: Vec<(u16, CasterAction)>,
+    sequences: Vec<(u16, CasterFrameSequence)>,
+}
 
 #[derive(Deserialize)]
 struct SkillActionFile {
@@ -91,6 +97,11 @@ where
 struct SkillActionEntry {
     skill: u16,
     action: CasterAction,
+    /// Optional override for the `ZC_USE_SKILL` (0x09CB) path, which the
+    /// official client drives with `GetSkillActionInfo2` instead of the
+    /// `GetSkillActionInfo` table used for the 0x0B1A cast ack.
+    #[serde(default, deserialize_with = "deserialize_option")]
+    use_action: Option<CasterAction>,
     /// Optional official frame range of the action (`SetFrameSequence`).
     #[serde(default, deserialize_with = "deserialize_option")]
     sequence: Option<FrameSequenceEntry>,
@@ -116,10 +127,14 @@ static ARCHIVE: OnceLock<Mapping> = OnceLock::new();
 fn parse(content: &str) -> Result<Mapping, String> {
     let file: SkillActionFile = ron::from_str(content).map_err(|error| error.to_string())?;
     let mut rows: Vec<(u16, CasterAction)> = Vec::with_capacity(file.actions.len());
+    let mut use_rows: Vec<(u16, CasterAction)> = Vec::new();
     let mut sequences: Vec<(u16, CasterFrameSequence)> = Vec::new();
 
     for entry in file.actions {
         rows.push((entry.skill, entry.action));
+        if let Some(use_action) = entry.use_action {
+            use_rows.push((entry.skill, use_action));
+        }
         if let Some(sequence) = entry.sequence {
             sequences.push((entry.skill, CasterFrameSequence {
                 first: sequence.first,
@@ -134,8 +149,15 @@ fn parse(content: &str) -> Result<Mapping, String> {
     rows.sort_unstable_by_key(|(skill_id, _)| *skill_id);
     // Duplicate skill ids would make the binary search ambiguous.
     rows.dedup_by_key(|(skill_id, _)| *skill_id);
+    use_rows.sort_unstable_by_key(|(skill_id, _)| *skill_id);
+    use_rows.dedup_by_key(|(skill_id, _)| *skill_id);
     sequences.sort_unstable_by_key(|(skill_id, _)| *skill_id);
-    Ok((file.default_action, rows, sequences))
+    Ok(Mapping {
+        default: file.default_action,
+        rows,
+        use_rows,
+        sequences,
+    })
 }
 
 fn compiled() -> &'static Mapping {
@@ -143,7 +165,12 @@ fn compiled() -> &'static Mapping {
         Ok(mapping) => mapping,
         Err(error) => {
             crate::logging::log_warn!("skill actions: compiled fallback is invalid ({error})");
-            (CasterAction::Skill, Vec::new(), Vec::new())
+            Mapping {
+                default: CasterAction::Skill,
+                rows: Vec::new(),
+                use_rows: Vec::new(),
+                sequences: Vec::new(),
+            }
         }
     })
 }
@@ -168,7 +195,7 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
         None => FALLBACK,
     };
 
-    let (default, rows, sequences) = match parse(content) {
+    let mapping = match parse(content) {
         Ok(mapping) => mapping,
         Err(error) => {
             crate::logging::log_warn!("skill actions: invalid {DATA_PATH} ({error}), using the compiled fallback");
@@ -176,8 +203,9 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
         }
     };
 
-    let count = rows.len();
-    let _ = ARCHIVE.set((default, rows, sequences));
+    let count = mapping.rows.len();
+    let default = mapping.default;
+    let _ = ARCHIVE.set(mapping);
     crate::logging::log_info!("skill actions: loaded {count} entries, default action {default:?}");
     count
 }
@@ -185,25 +213,36 @@ pub(crate) fn load(game_file_loader: &GameFileLoader) -> usize {
 /// Returns the official caster action of `skill_id`, or `None` when the skill
 /// is not listed (the caller then uses [`default_caster_action`]).
 pub(crate) fn caster_action_for_skill(skill_id: SkillId) -> Option<CasterAction> {
-    let (_default, rows, _sequences) = mapping();
-    rows.binary_search_by_key(&skill_id.0, |(id, _)| *id)
+    mapping()
+        .rows
+        .binary_search_by_key(&skill_id.0, |(id, _)| *id)
         .ok()
-        .map(|index| rows[index].1)
+        .map(|index| mapping().rows[index].1)
+}
+
+/// Returns the official `ZC_USE_SKILL` (0x09CB) action of `skill_id`, or
+/// `None` when the skill uses the same action as the cast path.
+pub(crate) fn use_caster_action_for_skill(skill_id: SkillId) -> Option<CasterAction> {
+    mapping()
+        .use_rows
+        .binary_search_by_key(&skill_id.0, |(id, _)| *id)
+        .ok()
+        .map(|index| mapping().use_rows[index].1)
 }
 
 /// The official frame sequence of `skill_id`, if the decompiled client plays
 /// one (`RenderObject.cpp` `SetFrameSequence`).
 pub(crate) fn frame_sequence_for_skill(skill_id: SkillId) -> Option<CasterFrameSequence> {
-    let (_default, _rows, sequences) = mapping();
-    sequences
+    mapping()
+        .sequences
         .binary_search_by_key(&skill_id.0, |(id, _)| *id)
         .ok()
-        .map(|index| sequences[index].1)
+        .map(|index| mapping().sequences[index].1)
 }
 
 /// The official default action for skills that are not listed.
 pub(crate) fn default_caster_action() -> CasterAction {
-    mapping().0
+    mapping().default
 }
 
 #[cfg(test)]
@@ -212,20 +251,33 @@ mod tests {
 
     use super::{
         CasterAction, CasterFrameSequence, FALLBACK, caster_action_for_skill, default_caster_action, frame_sequence_for_skill, parse,
+        use_caster_action_for_skill,
     };
 
     fn action(skill_id: u16) -> Option<CasterAction> {
         caster_action_for_skill(SkillId(skill_id))
     }
 
+    fn use_action(skill_id: u16) -> Option<CasterAction> {
+        use_caster_action_for_skill(SkillId(skill_id))
+    }
+
     #[test]
     fn data_file_is_valid_and_has_entries() {
-        let (default, rows, _sequences) = parse(FALLBACK).expect("valid fallback");
-        assert_eq!(default, CasterAction::Skill);
-        assert!(rows.len() >= 200, "mapping should stay broad, got {}", rows.len());
+        let mapping = parse(FALLBACK).expect("valid fallback");
+        assert_eq!(mapping.default, CasterAction::Skill);
         assert!(
-            rows.windows(2).all(|pair| pair[0].0 < pair[1].0),
+            mapping.rows.len() >= 200,
+            "mapping should stay broad, got {}",
+            mapping.rows.len()
+        );
+        assert!(
+            mapping.rows.windows(2).all(|pair| pair[0].0 < pair[1].0),
             "rows must be sorted and unique"
+        );
+        assert!(
+            mapping.use_rows.windows(2).all(|pair| pair[0].0 < pair[1].0),
+            "use rows must be sorted and unique"
         );
     }
 
@@ -385,6 +437,29 @@ mod tests {
         assert_eq!(action(394), Some(CasterAction::Action(11)), "CG_ARROWVULCAN");
         assert_eq!(action(446), Some(CasterAction::Action(5)), "AM_BERSERKPITCHER");
         // The official table also carries these skills (motion 18 / 12).
+    }
+
+    #[test]
+    fn use_actions_follow_get_skill_action_info2() {
+        // The 0x09CB path uses `GetSkillActionInfo2`, which disagrees with
+        // the cast-ack table for 131 of the 373 castable pre-re skills.
+        // Blessing: cast ack 0 (Idle), use 7 (Skill).
+        assert_eq!(action(34), Some(CasterAction::Idle));
+        assert_eq!(use_action(34), Some(CasterAction::Skill));
+        // Incagi is the reverse: cast 7, use 0.
+        assert_eq!(action(29), Some(CasterAction::Skill));
+        assert_eq!(use_action(29), Some(CasterAction::Idle));
+        // Auto Counter: cast 11 (ReadyFight), use 2 (weapon swing).
+        assert_eq!(action(61), Some(CasterAction::ReadyFight));
+        assert_eq!(use_action(61), Some(CasterAction::Attack));
+        // Potion Pitcher: cast 0 (Idle), use 12 (throw block 40).
+        assert_eq!(action(231), Some(CasterAction::Idle));
+        assert_eq!(use_action(231), Some(CasterAction::Action(5)));
+        // Berserk Pitcher: `GetSkillActionInfo2` returns motion -1, i.e. the
+        // official client does not change the pose at all.
+        assert_eq!(use_action(446), Some(CasterAction::Keep));
+        // Skills where both paths agree carry no override.
+        assert_eq!(use_action(28), None);
     }
 
     #[test]
