@@ -11,8 +11,6 @@
 //
 //   behaviour     channeling         cast through the channeling protocol path
 //                                    (start/stop packets) instead of a single cast
-//                 warp_target        show a provisional warp portal at the target
-//                                    cell while the server waits for ZC_WARPLIST
 //                 move_while_casting the learned skill grants movement while a
 //                                    cast is running (the job also has to carry
 //                                    the `move_while_casting` capability in
@@ -20,7 +18,7 @@
 //   clouds        procedural Storm Gust cloud layer (official client draws it
 //                 from cloud1..7.tga, no .str/.spr asset exists for it)
 //   cast_circle   ground cast circle textures/geometry (drawn while a cast runs)
-//   warp_portal   map connection warp and flat skill-unit warp portal textures
+//   warp_portal   teleport-vanish warp textures
 //   level_aura    level-99/level-up aura textures (procedural ground/bubble aura)
 //
 // Every field is validated by the Rust loader
@@ -29,19 +27,13 @@
 // as the fallback and overridable by a server inside its client archive.
 //
 // Provenance: the behaviour flags preserve the previously hard-coded client
-// behaviour verbatim (Rolling Cutter 2036 channeling, Warp Portal 27
-// provisional portal, Free Cast 278 move-while-casting); the procedural values
+// behaviour verbatim (Rolling Cutter 2036 channeling, Free Cast 278
+// move-while-casting); the procedural values
 // are the previously hard-coded constants of `storm_cloud.rs`,
 // `cast_circle.rs`, `warp.rs` and `aura.rs` (same values, now data).
 (
-    provenance: "Hand-curated skill behaviour and procedural effect data: Rolling Cutter channeling (2036), Warp Portal provisional portal (27), Free Cast move-while-casting (278), Storm Gust procedural cloud (87/89), cast-circle, warp-portal and level-aura textures/geometry migrated from the hard-coded client constants",
+    provenance: "Hand-curated skill behaviour and procedural effect data: Rolling Cutter channeling (2036), Free Cast move-while-casting (278), Storm Gust procedural cloud (87/89), cast-circle, teleport-vanish warp and level-aura textures/geometry migrated from the hard-coded client constants",
     behaviours: [
-        // AL_WARP (27): the server asks the caster for the destination
-        // (ZC_WARPLIST) before it creates the portal skill units. The client
-        // shows a provisional blue ground portal at the target cell until the
-        // `AddSkillUnit` packet replaces it.
-        (skill: 27, warp_target: true),
-
         // SA_FREECAST (278): the Sage/Scholar/Professor passive that allows
         // movement while casting. The skill flag only grants it on jobs that
         // carry the `move_while_casting` capability in `jobs.ron`

@@ -6,8 +6,6 @@ describes what a skill *looks like*. A few behaviours and procedural effects
 survived outside of it as hard-coded skill-id branches and effect constants:
 
 * Rolling Cutter (2036) casts through the channeling protocol path,
-* Warp Portal (27) shows a provisional portal before `ZC_WARPLIST`/skill-unit
-  packets arrive,
 * Free Cast (278) allows movement while casting on Sage (16) / Professor (4017),
 * Storm Gust (87/89) spawns a procedural dark cloud (`cloud1..7.tga`, no data
   asset exists for it),
@@ -48,7 +46,7 @@ DEFAULT_CUSTOM = Path("tools/data/skills_custom.ron")
 #: Phases accepted by the `clouds` rows (matches the client `SkillPhase` enum).
 PHASES = ("Ground", "Cast", "Success", "Release", "Hit", "Caster")
 #: Behaviour flags in the order they are rendered.
-BEHAVIOUR_FLAGS = ("channeling", "warp_target", "move_while_casting")
+BEHAVIOUR_FLAGS = ("channeling", "move_while_casting")
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 

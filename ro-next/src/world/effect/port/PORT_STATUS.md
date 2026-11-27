@@ -605,3 +605,32 @@ ported effect files stay untouched.
 - Verification: `cargo test -p ro-next --lib` **2078 passed, 0 failed, 21
   ignored**; `rustfmt --check` clean on every touched file;
   `gen_ported_skill_map.py --check` up to date (release build pending).
+
+### Portal visuals (round 103)
+
+- **Skill Warp Portal** (`AL_WARP`, 27) launches no effect on cast
+  (`ShowsCastEffect`, `SkillInfo.cpp:903`). Its portal is a skill-unit actor:
+  `UNT_WARP_ACTIVE` (129) runs `EF_READYPORTAL2` (316, `BlueRingWave`) and
+  `UNT_WARP_WAITING` (128) runs `EF_PORTAL2` (317, `VioletRingCloud(0)`) from
+  `CGameActor::MsgEffect` (`MsgEffect.cpp:871-888`); the server morphs the first
+  into the second (`skill.cpp:12287-12290`). The client spawns the ported bodies
+  on `AddSkillUnit` (replacing the previous visual of the same unit) and removes
+  them on `RemoveSkillUnit`.
+- **Map connection warp** (`JT_WARPNPC`, 45): `CNpc::SetState` launches
+  `EF_WARPZONE2` (321, body `AlphaDownRipples`, lifetime 99999999) on the NPC
+  actor (`SoundMaker.cpp:1635`; re-launched when the actor unhides,
+  `RenderObject.cpp:4934`; `AM_DELETE_EFFECT` on hide, `:4877`). The client
+  spawns it from the `AddEntity` path and drops it with the entity.
+- **New units**: `rag/alpha_down_ripples.rs` (`AlphaDownRipples` +
+  `LaunchRippleRings`/`SetupRippleSlot`, `RagEffect.cpp:9160-9236`) and prim 65
+  `Prim3DCasting4` (`primitive/casting4.rs`,
+  `EffectPrimitiveMotion.cpp:348-390`, drawn by the shared `Render3DCasting`).
+- **Descriptor removal**: the `WarpPortal` map/skill render call sites,
+  `warp_skill_units`, the provisional `AL_WARP` portal (`warp_target` behaviour
+  row) and `AL_WARP`'s `skill_effects.ron` cast-circle row are gone. `WarpPortal`
+  survives only for the separate teleport-vanish swirl.
+- Verification: `cargo test -p ro-next --lib` **2195 passed, 0 failed, 21
+  ignored**; `cargo build --release -p ro-next` finished with no new warnings;
+  `rustfmt --check` clean on every touched file; `gen_ported_skill_map.py
+  --check` (496 ported ids / 239 mappings), `gen_skill_effects.py --check` (591
+  phases) and `gen_skills.py --check` (2 behaviour rows) are up to date.

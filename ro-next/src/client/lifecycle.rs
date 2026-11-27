@@ -600,7 +600,6 @@ impl Client {
             warp_portal,
             weather,
             spirit_sphere_texture,
-            warp_skill_units: Vec::new(),
             teleport_vanish_sound_effect,
             recent_teleport_vanishes: Vec::new(),
             path_finder,

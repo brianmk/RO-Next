@@ -156,24 +156,6 @@ impl Client {
             }
         }
 
-        // Warp Portal fallback: the server asks the caster for the
-        // destination (ZC_WARPLIST) before it creates the portal skill
-        // units. When the skill use packet already carries the target
-        // cell, show the blue portal there immediately; the real
-        // `AddSkillUnit` packet replaces it (same cell) when the warp
-        // opens. This keeps the portal visible even when the warp
-        // destination menu cannot be answered.
-        if crate::world::skills::has_warp_target(skill_id)
-            && let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position))
-        {
-            let now = Instant::now();
-            let lifetime = Duration::from_secs(20);
-            let provisional_id = EntityId(0xFF00_0000 | ((position.x as u32) << 8) | position.y as u32);
-            self.warp_skill_units
-                .retain(|(unit_entity_id, ..)| *unit_entity_id != provisional_id);
-            self.warp_skill_units.push((provisional_id, world_position, now, now + lifetime));
-        }
-
         // Show the skill name above the caster's head, like the original
         // client (own character, other players and population shells).
         self.show_skill_name_text(source_entity_id, skill_id, client_tick);
@@ -700,41 +682,32 @@ impl Client {
     }
 
     /// `NetworkEvent::AddSkillUnit`.
-    pub(crate) fn handle_add_skill_unit(&mut self, event: NetworkEvent, _client_tick: ClientTick) {
+    pub(crate) fn handle_add_skill_unit(&mut self, event: NetworkEvent, client_tick: ClientTick) {
         let NetworkEvent::AddSkillUnit {
             entity_id,
             unit_id,
             position,
-            skill_level,
+            skill_level: _,
         } = event
         else {
             unreachable!("handle_add_skill_unit called with a different event variant");
         };
 
-        // Warp portal skill units have no sprite in the game files; the
-        // client draws the classic portal effect for them (like for warp
-        // NPCs), see `render_warp_portals`. Ambient NPCs cast these in the
-        // Prontera plaza.
-        if matches!(unit_id, UnitId::WarpWaiting | UnitId::WarpActive) {
-            let world_position = self.map.as_ref().and_then(|map| map.get_world_position(position));
+        // Warp Portal skill units have no sprite: the official client
+        // launches the `EF_PORTAL*` body on the unit actor from
+        // `CGameActor::MsgEffect` (`MsgEffect.cpp:871-888`). `WarpActive` is
+        // the opening `EF_READYPORTAL2` wave, `WarpWaiting` the open
+        // `EF_PORTAL2` portal; the server morphs the first into the second, so
+        // the new packet replaces the previous visual of the same unit.
+        if let Some(effect_id) = crate::client::effects::warp_unit_effect(&unit_id) {
+            let Some(world_position) = self.map.as_ref().and_then(|map| map.get_world_position(position)) else {
+                return;
+            };
 
-            if let Some(world_position) = world_position {
-                // `WarpWaiting` and `WarpActive` are separate packets for the
-                // same unit, so replace the previous position (this also
-                // prevents duplicate visuals for the same portal). Drop a
-                // provisional portal of the same cell as well.
-                self.warp_skill_units.retain(|(unit_entity_id, unit_position, ..)| {
-                    *unit_entity_id != entity_id
-                        && (*unit_entity_id >= EntityId(0xFF00_0000) || (*unit_position - world_position).magnitude() > 8.0)
-                });
+            self.effect_holder.remove_unit(entity_id);
 
-                // Pre-renewal Warp Portal lasts 5 s per skill level; the
-                // expiry is only a safety net (the server sends a removal
-                // packet when the unit ends).
-                let lifetime = Duration::from_millis(5_000 * u64::from(skill_level.max(1)) + 1_000);
-                self.warp_skill_units
-                    .push((entity_id, world_position, Instant::now(), Instant::now() + lifetime));
-            }
+            let seed = u64::from(client_tick.0) ^ (u64::from(entity_id.0) << 32) ^ (effect_id as u32 as u64);
+            self.spawn_ported_effect(effect_id, world_position, Some(entity_id), None, seed);
 
             return;
         }
@@ -815,7 +788,6 @@ impl Client {
         };
 
         self.effect_holder.remove_unit(entity_id);
-        self.warp_skill_units.retain(|(unit_entity_id, ..)| *unit_entity_id != entity_id);
     }
 
     /// `NetworkEvent::AttackFailed`.

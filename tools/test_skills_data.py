@@ -50,20 +50,20 @@ class SkillBehaviourDataTest(unittest.TestCase):
 
     def test_behaviour_flags_are_exactly_the_previous_hardcoded_behaviour(self) -> None:
         behaviours = {row["skill"]: row for row in self.data["behaviours"]}
-        self.assertEqual(sorted(behaviours), [27, 278, 2036])
+        self.assertEqual(sorted(behaviours), [278, 2036])
         self.assertEqual(behaviours[2036].get("channeling"), True, "Rolling Cutter channeling")
-        self.assertEqual(behaviours[27].get("warp_target"), True, "Warp Portal provisional portal")
         self.assertEqual(behaviours[278].get("move_while_casting"), True, "Free Cast move-while-casting")
+        # Warp Portal (27) is no longer a behaviour row: its portal is the
+        # skill unit's official EF_PORTAL2/EF_READYPORTAL2.
+        self.assertNotIn(27, behaviours)
         # No other flag is enabled on those rows (behaviour must not change).
         for skill, row in behaviours.items():
-            for flag in ("channeling", "warp_target", "move_while_casting"):
-                if flag != "skill":
-                    expected = flag in {
-                        2036: {"channeling"},
-                        27: {"warp_target"},
-                        278: {"move_while_casting"},
-                    }[skill]
-                    self.assertEqual(bool(row.get(flag, False)), expected, f"skill {skill} {flag}")
+            for flag in ("channeling", "move_while_casting"):
+                expected = flag in {
+                    2036: {"channeling"},
+                    278: {"move_while_casting"},
+                }[skill]
+                self.assertEqual(bool(row.get(flag, False)), expected, f"skill {skill} {flag}")
 
     def test_storm_gust_cloud_is_data(self) -> None:
         self.assertEqual(len(self.data["clouds"]), 1)

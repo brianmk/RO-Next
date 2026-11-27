@@ -39,12 +39,8 @@
 //   action        optional caster action override (Skill|Idle|Attack|Pickup|ReadyFight)
 //   light/light_intensity  point light of `.str` layers
 (
-    provenance: "Hand-written (older client) skill visuals migrated into the unified descriptor data: Blessing/Angelus/Inc AGI/Concentration overhead buffs, Hammer Fall, Zen/Fury cast auras and body flash, Warp/Heal cast circle tints",
+    provenance: "Hand-written (older client) skill visuals migrated into the unified descriptor data: Blessing/Angelus/Inc AGI/Concentration overhead buffs, Hammer Fall, Zen/Fury cast auras and body flash, Heal cast circle tint",
     effects: [
-        // AL_WARP (27): the ground cast circle is the cast visual; the open
-        // portal itself is a skill unit and rendered separately.
-        (skill: 27, phase: Cast, cast_circle_color: (160, 130, 255), layers: []),
-
         // AL_HEAL (28): the green restoring columns are the official EF_HEAL
         // cylinder rows (migrated from the procedural table); the cast circle is
         // the classic buff tint.

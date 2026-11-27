@@ -681,12 +681,6 @@ pub struct Client {
     /// Classic spirit-sphere texture (`effect\thunder_center.bmp`), drawn as
     /// orbiting blue-white balls around entities with active spirit spheres.
     pub(crate) spirit_sphere_texture: Option<Arc<Texture>>,
-    /// Active warp-portal skill units: (unit entity id, world position, spawn
-    /// time, expiry). The expiry is a safety net in case the server's
-    /// `ZC_SKILL_DISAPPEAR` is lost; the normal removal goes through
-    /// `RemoveSkillUnit`. Rendered as the flat ground portal of the original
-    /// client.
-    pub(crate) warp_skill_units: Vec<(EntityId, Point3<f32>, Instant, Instant)>,
     /// Sound of the entity teleport/logout disappear effect (data-driven, see
     /// `client_config::ui_audio`; `None` disables it).
     pub(crate) teleport_vanish_sound_effect: Option<SoundEffectKey>,

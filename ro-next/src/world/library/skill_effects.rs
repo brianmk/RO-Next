@@ -949,6 +949,7 @@ mod tests {
         descriptor, parse, skill_action_override, skill_cast_circle_color, skill_effect_layers, skill_effect_sound_files, skill_has_effect,
         validate, validate_compiled,
     };
+    use crate::graphics::Color;
 
     /// A small document that exercises every layer kind and anchor path. The
     /// data-specific assertions use this fixture so they stay valid when the
@@ -1527,13 +1528,13 @@ mod tests {
     #[test]
     fn cast_circle_tints_are_data_driven() {
         assert_eq!(
-            skill_cast_circle_color(SkillId(27)),
-            Some(crate::graphics::Color::rgb_u8(160, 130, 255))
-        );
-        assert_eq!(
             skill_cast_circle_color(SkillId(34)),
             Some(crate::graphics::Color::rgb_u8(255, 230, 160))
         );
+        // AL_WARP (27) keeps no descriptor row: its portal is the skill unit's
+        // official `EF_PORTAL2`/`EF_READYPORTAL2`, and the official client
+        // suppresses the cast effect for it (`ShowsCastEffect`, `SkillInfo.cpp:903`).
+        assert_eq!(skill_cast_circle_color(SkillId(27)), None);
         // Skills without an override follow the element color of the packet.
         assert_eq!(skill_cast_circle_color(SkillId(89)), None);
     }

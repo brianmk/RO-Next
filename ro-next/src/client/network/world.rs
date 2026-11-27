@@ -13,6 +13,7 @@ impl Client {
         };
 
         let dead_sit = entity_data.dead_sit;
+        let mut warp_spawn = None;
 
         if let Some(map) = &self.map
             && let Some(npc) = Npc::new(&self.library, map, &mut self.path_finder, entity_data, client_tick)
@@ -81,7 +82,19 @@ impl Client {
             #[cfg(feature = "debug")]
             npc.generate_pathing_mesh(&self.device, &self.queue, self.graphics_engine.bindless_support(), map);
 
+            if entity_type == EntityType::Warp {
+                warp_spawn = Some((entity_id, npc.get_position()));
+            }
+
             entities.push(npc);
+        }
+
+        // Warps (`JT_WARPNPC`) have no sprite: the official client launches
+        // `EF_WARPZONE2` on the NPC actor when it appears
+        // (`SoundMaker.cpp:1635`), which is the ported
+        // `AlphaDownRipples` body.
+        if let Some((entity_id, position)) = warp_spawn {
+            self.spawn_map_warp_effect(entity_id, position, client_tick);
         }
     }
 
@@ -136,6 +149,18 @@ impl Client {
             self.spawn_teleport_vanish(position);
         }
 
+        // A removed warp entity takes its `EF_WARPZONE2` visual with it (the
+        // official client deletes the effect on hide,
+        // `RenderObject.cpp:4877`).
+        let removed_warp = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .any(|entity| entity.get_entity_id() == entity_id && entity.get_entity_type() == EntityType::Warp);
+        if removed_warp {
+            self.effect_holder.remove_unit(entity_id);
+        }
+
         // If the motive is dead, you need to set the player to dead.
         if reason == DisappearanceReason::Died {
             if let Some(entity) = self
@@ -147,6 +172,13 @@ impl Client {
                 let entity_type = entity.get_entity_type();
 
                 if entity_type == EntityType::Monster {
+                    // The particles/anchor are updated before the entity leaves
+                    // the live list: an in-flight damage number keeps rendering
+                    // for its full lifetime at the spot where the monster died,
+                    // instead of being dropped or snapping back to its spawn
+                    // point while the death animation plays.
+                    let death_position = entity.get_position();
+
                     let mut entity = entity.clone();
                     entity.set_dead(client_tick);
                     entity.stop_movement();
@@ -158,6 +190,8 @@ impl Client {
 
                     // Add the entity to the list of dead entities.
                     self.client_state.follow_mut(client_state().dead_entities()).push(entity);
+
+                    self.particle_holder.owner_removed(entity_id, death_position);
                 } else if entity_type == EntityType::Player {
                     entity.set_dead(client_tick);
 
@@ -346,7 +380,6 @@ impl Client {
         self.skill_name_texts.clear();
         self.cast_bars.clear();
         self.aftercast_act_until = None;
-        self.warp_skill_units.clear();
         self.point_light_manager.clear();
         self.audio_engine.clear_ambient_sound();
 
@@ -971,13 +1004,37 @@ impl Client {
             }
         }
 
-        if let Some(entity) = self
-            .client_state
-            .follow(client_state().entities())
-            .iter()
-            .find(|entity| entity.get_entity_id() == destination_entity_id)
-            .or_else(|| self.client_state.try_follow(this_entity()))
-        {
+        // Target feedback must survive the target's death. The server can
+        // dispatch the death/remove packet before the damage message (the
+        // monster then only exists in `dead_entities`), so resolve the live
+        // entity first and fall back to the dead entity's last known pose.
+        // Never fall back to the attacker: the official client reads the
+        // damaged actor's position and keeps the numbers in the scene effect
+        // list, independent of the actor's lifetime (`CMsgEffect`,
+        // `MsgEffect.cpp:1308-1350`).
+        let target = resolve_target(
+            destination_entity_id,
+            self.client_state
+                .follow(client_state().entities())
+                .iter()
+                .chain(self.client_state.follow(client_state().dead_entities()).iter())
+                .map(TargetSnapshot::from_entity),
+        );
+
+        if let Some(target) = target {
+            if !self
+                .client_state
+                .follow(client_state().entities())
+                .iter()
+                .any(|entity| entity.get_entity_id() == destination_entity_id)
+            {
+                crate::logging::log_debug!(
+                    "damage feedback: target {} was already removed, using its last known position {:?} (killing blow)",
+                    destination_entity_id.0,
+                    target.position
+                );
+            }
+
             // The official client splits a multi-hit damage packet into one
             // number per hit (`CGameActor::ProcessSkillMessage`):
             // `damage /= hitCount` and `hitCount` damage messages spaced
@@ -1007,8 +1064,8 @@ impl Client {
                 .find(|entity| entity.get_entity_id() == source_entity_id)
                 .is_some_and(|entity| entity.get_entity_type() == EntityType::Monster);
 
-            let direction = entity.get_direction();
-            let position = entity.get_position();
+            let direction = target.direction;
+            let position = target.position;
 
             if show_damage_numbers {
                 match damage_amount {
@@ -1063,6 +1120,15 @@ impl Client {
                     )));
                 }
             }
+        } else {
+            // Only reachable when the client never saw the target (e.g. it
+            // left the view before the damage message). The official client
+            // also produces no feedback without an actor
+            // (`RenderObject.cpp:3790-3792`).
+            crate::logging::log_debug!(
+                "damage feedback: target {} is unknown, skipping the damage numbers",
+                destination_entity_id.0
+            );
         }
 
         // Classic auto-attack projectile (arrows): the weapon data

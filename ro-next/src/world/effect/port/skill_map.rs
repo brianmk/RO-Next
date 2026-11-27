@@ -190,6 +190,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::BottomMag,
     EffectId::BottomSanc,
     EffectId::Heal3,
+    EffectId::Warpzone2,
     EffectId::Beginasura,
     EffectId::Tripleattack,
     EffectId::Hptime,

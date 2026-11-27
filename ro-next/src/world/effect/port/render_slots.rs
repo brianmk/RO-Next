@@ -378,7 +378,7 @@ pub enum SlotRenderer {
 /// (`EffectPrimitiveRendering.cpp:222-650`).
 pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
     Some(match state.count {
-        PrimitiveId::PulsingColumns | PrimitiveId::RippleRings => SlotRenderer::Casting,
+        PrimitiveId::PulsingColumns | PrimitiveId::RippleRings | PrimitiveId::Casting4 => SlotRenderer::Casting,
         PrimitiveId::Casting2 => SlotRenderer::Casting,
         PrimitiveId::Bottom2 => SlotRenderer::ColorPlane,
         // `EffectPrimitiveRendering.cpp:575-576`: `PP_BOTTOM` and

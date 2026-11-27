@@ -53,6 +53,123 @@ fn apply_effect_skill_level(runtime: &mut crate::world::port::runtime::EffectRun
     }
 }
 
+/// Official effect of a Warp Portal skill unit (`ZC_SKILL_ENTRY5`).
+///
+/// `AL_WARP` launches no effect on cast (`ShowsCastEffect` returns false for
+/// it, `SkillInfo.cpp:903`); the visible portal is the skill-unit actor. The
+/// official client spawns the unit's body from `CGameActor::MsgEffect`:
+///
+/// * `UNT_WARP_ACTIVE` (129) -> `EF_READYPORTAL2` (316), the opening blue ring
+///   wave (`MsgEffect.cpp:871-878`, body `BlueRingWave`,
+///   `RagEffect.cpp:14036`);
+/// * `UNT_WARP_WAITING` (128) -> `EF_PORTAL2` (317), the open violet portal
+///   (`MsgEffect.cpp:880-888`, body `VioletRingCloud(0)`,
+///   `RagEffect.cpp:15364`).
+///
+/// The server morphs one into the other (`skill.cpp:12287-12290`), so both
+/// ids belong to the same unit actor.
+pub(crate) fn warp_unit_effect(unit_id: &UnitId) -> Option<ragnarok_packets::EffectId> {
+    match unit_id {
+        UnitId::WarpActive => Some(ragnarok_packets::EffectId::Readyportal2),
+        UnitId::WarpWaiting => Some(ragnarok_packets::EffectId::Portal2),
+        _ => None,
+    }
+}
+
+/// Official visual of a map connection warp NPC (`JT_WARPNPC`, job 45).
+///
+/// The warp NPC has no sprite. When it appears, `CNpc::SetState` launches
+/// `EF_WARPZONE2` (321) on the actor (`SoundMaker.cpp:1635`; the same
+/// launch is repeated when the actor becomes visible again,
+/// `RenderObject.cpp:4934`), and hides it again with `AM_DELETE_EFFECT`
+/// (`RenderObject.cpp:4877`). Its body is `AlphaDownRipples` with the
+/// `EffectLifetime` of 99999999 frames (`EffectTypes.cpp:330`).
+pub(crate) fn map_warp_effect(entity_type: crate::world::EntityType) -> Option<ragnarok_packets::EffectId> {
+    (entity_type == crate::world::EntityType::Warp).then_some(ragnarok_packets::EffectId::Warpzone2)
+}
+
+impl Client {
+    /// Spawns one official effect id through the ported effect backend at a
+    /// world position.
+    ///
+    /// This is the port of `CGameActor::LaunchEffect(effectId,
+    /// vector3d{0,0,0}, 0.0f)`: the body owns its own primitives and lifetime,
+    /// the visual is anchored at `position`, and `owner` attaches it to the
+    /// actor the official call was made on (so the effect is cleaned up with
+    /// that actor and follows it through `apply_caster_state`). `status_key`
+    /// is only set by status launches, which are retired by
+    /// `EffectHolder::remove_status_visual`.
+    ///
+    /// Unlike the opt-in skill-phase hook this is the only spawn path of the
+    /// effects it launches, so the caller decides when the ported body
+    /// replaces a descriptor instead of adding to it.
+    pub(crate) fn spawn_ported_effect(
+        &mut self,
+        effect_id: ragnarok_packets::EffectId,
+        position: Point3<f32>,
+        owner: Option<EntityId>,
+        status_key: Option<u16>,
+        seed: u64,
+    ) -> bool {
+        use crate::world::port::holder::PortedEffectHolder;
+        use crate::world::port::visual::PortedVisual;
+
+        let Some(holder) = PortedEffectHolder::new(effect_id, seed) else {
+            crate::logging::log_debug!("ported fx: {:?} has no registered body", effect_id);
+            return false;
+        };
+
+        let mut visual = PortedVisual::new(
+            holder,
+            self.texture_loader.clone(),
+            self.sprite_loader.clone(),
+            self.action_loader.clone(),
+            self.game_file_loader.clone(),
+        )
+        .with_audio_engine(self.audio_engine.clone());
+
+        if let Some(status_index) = status_key
+            && let Some(entity_id) = owner
+        {
+            visual = visual.with_status_key(entity_id, status_index);
+        }
+
+        // `PlayEffectWaveAt` subtracts the local player position from the
+        // effect position (`RagEffect.cpp:22972`); the runtime has no player
+        // object, so snapshot it for the positional-sound bodies.
+        let listener = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position());
+
+        {
+            let runtime = visual.runtime_mut();
+            runtime.position = [position.x, position.y, position.z];
+            runtime.target_offset = runtime.position;
+            runtime.param = 1.0;
+
+            if let Some(listener) = listener {
+                runtime.listener_position = [listener.x, listener.y, listener.z];
+            }
+        }
+
+        let spawned = match owner {
+            Some(entity_id) => self.effect_holder.add_unit(Box::new(visual), entity_id),
+            None => self.effect_holder.add_effect(Box::new(visual)),
+        };
+
+        if spawned {
+            crate::logging::log_debug!(
+                "ported fx: spawned {:?} at ({:.1}, {:.1}, {:.1}) for {:?}",
+                effect_id,
+                position.x,
+                position.y,
+                position.z,
+                owner
+            );
+        }
+
+        spawned
+    }
+}
+
 impl Client {
     #[inline(always)]
     #[cfg_attr(feature = "debug", ro_next_debug::profile)]
@@ -193,6 +310,25 @@ impl Client {
             position.y,
             position.z,
         );
+    }
+
+    /// Spawns the official map connection warp visual on a warp NPC.
+    ///
+    /// The official `CNpc::SetState` call is
+    /// `LaunchEffect(EF_WARPZONE2, vector3d{0,0,0}, 0.0f)`
+    /// (`SoundMaker.cpp:1635`), i.e. an `AlphaDownRipples` body owned by
+    /// the warp actor. A replaced warp (the server re-sends `AddEntity`) drops
+    /// the previous instance first, exactly like the actor reuses one effect
+    /// slot.
+    pub(crate) fn spawn_map_warp_effect(&mut self, entity_id: EntityId, position: Point3<f32>, client_tick: ClientTick) {
+        let Some(effect_id) = map_warp_effect(crate::world::EntityType::Warp) else {
+            return;
+        };
+
+        self.effect_holder.remove_unit(entity_id);
+
+        let seed = u64::from(client_tick.0) ^ (u64::from(entity_id.0) << 32) ^ (effect_id as u32 as u64);
+        self.spawn_ported_effect(effect_id, position, Some(entity_id), None, seed);
     }
 
     /// Draws the ground cast circle below an entity for `duration_ms`.
@@ -390,12 +526,7 @@ impl Client {
             );
             return;
         };
-        crate::logging::log_debug!(
-            "ported fx: skill {} phase {:?} -> {:?}",
-            skill_id.0,
-            phase,
-            effect_id
-        );
+        crate::logging::log_debug!("ported fx: skill {} phase {:?} -> {:?}", skill_id.0, phase, effect_id);
 
         let Some(source_position) = self.entity_position(source_entity_id) else {
             return;
@@ -962,11 +1093,12 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::SkillId;
+    use ragnarok_packets::{SkillId, UnitId};
 
-    use super::{apply_effect_skill_level, effect_count_for_skill_level, should_spawn_skill_phase};
-    use crate::world::SkillPhase;
+    use super::{apply_effect_skill_level, effect_count_for_skill_level, map_warp_effect, should_spawn_skill_phase, warp_unit_effect};
+    use crate::world::port::holder::PortedEffectHolder;
     use crate::world::port::runtime::EffectRuntime;
+    use crate::world::{EntityType, SkillPhase};
 
     /// Regression for Blitz Beat: `EF_BLITZBEAT` is a hard-coded procedural
     /// body with no `skill_effects.ron` descriptor row, so the ported hook must
@@ -1009,5 +1141,65 @@ mod tests {
 
         // The effect-maker parameter is a separate message (`AM_SETPARAM`).
         assert_eq!(runtime.param, 0.0);
+    }
+    /// `AL_WARP` itself has no cast effect, and its portal skill unit is not a
+    /// descriptor: the official client launches the `EF_PORTAL*` family from
+    /// `CGameActor::MsgEffect` (`MsgEffect.cpp:871-888`). The server morphs the
+    /// active unit into the waiting one (`skill.cpp:12287-12290`), so the two
+    /// unit ids must pick the two official bodies.
+    #[test]
+    fn warp_portal_units_spawn_the_official_ef_portal_family() {
+        use ragnarok_packets::EffectId;
+
+        assert_eq!(warp_unit_effect(&UnitId::WarpActive), Some(EffectId::Readyportal2));
+        assert_eq!(warp_unit_effect(&UnitId::WarpWaiting), Some(EffectId::Portal2));
+        assert_eq!(warp_unit_effect(&UnitId::Firewall), None);
+
+        // `EffectTypes.cpp:325-326`: the ready wave is re-launched every
+        // `200 - 8` frames, the open portal every `9999 - 8`.
+        let active = PortedEffectHolder::new(EffectId::Readyportal2, 1).expect("EF_READYPORTAL2 is ported");
+        assert_eq!(active.runtime().lifetime, 200);
+        let waiting = PortedEffectHolder::new(EffectId::Portal2, 1).expect("EF_PORTAL2 is ported");
+        assert_eq!(waiting.runtime().lifetime, 9_999);
+    }
+
+    /// Map connection warps (`JT_WARPNPC`) are not sprites: the official
+    /// client launches `EF_WARPZONE2` on the NPC actor (`SoundMaker.cpp:1635`,
+    /// `RenderObject.cpp:4934`), whose body is `AlphaDownRipples` and whose
+    /// lifetime is the persistent 99999999 frames (`EffectTypes.cpp:330`).
+    #[test]
+    fn map_warps_spawn_ef_warpzone2() {
+        use ragnarok_packets::EffectId;
+
+        assert_eq!(map_warp_effect(EntityType::Warp), Some(EffectId::Warpzone2));
+        assert_eq!(map_warp_effect(EntityType::Hidden), None);
+        assert_eq!(map_warp_effect(EntityType::Npc), None);
+
+        let body = PortedEffectHolder::new(EffectId::Warpzone2, 1).expect("EF_WARPZONE2 is ported");
+        assert_eq!(body.runtime().lifetime, 99_999_999);
+    }
+
+    /// The hand-authored portal descriptors are gone: `AL_WARP` keeps no
+    /// `skill_effects.ron` row (its cast circle tint was removed too), and the
+    /// portal visuals come only from the ported official bodies above.
+    #[test]
+    fn warp_portal_descriptor_layers_are_gone() {
+        let phases = [
+            SkillPhase::Ground,
+            SkillPhase::Cast,
+            SkillPhase::Success,
+            SkillPhase::Release,
+            SkillPhase::Hit,
+            SkillPhase::Caster,
+        ];
+
+        for phase in phases {
+            assert!(
+                crate::world::skill_effect_layers(SkillId(27), phase).is_empty(),
+                "AL_WARP must not keep a {phase:?} descriptor layer"
+            );
+        }
+
+        assert_eq!(crate::world::skill_cast_circle_color(SkillId(27)), None);
     }
 }

@@ -1,5 +1,5 @@
-//! Per-frame world overlay rendering (names, lights, shadows, warp portals,
-//! spirit spheres) and the borrow bundle it needs.
+//! Per-frame world overlay rendering (names, lights, shadows, spirit spheres)
+//! and the borrow bundle it needs.
 
 use crate::*;
 
@@ -62,11 +62,8 @@ pub(crate) struct MapRenderContext<'a, 'm: 'a> {
     pub(crate) head_marks: &'a HeadMarks,
     pub(crate) cast_bars: &'a CastBars,
     pub(crate) skill_name_texts: &'a SkillNameTexts,
-    pub(crate) warp_portal: Option<&'a WarpPortal>,
     pub(crate) weather: Option<&'a crate::world::Weather>,
     pub(crate) spirit_sphere_texture: Option<&'a Arc<Texture>>,
-    /// Active warp-portal skill units, rendered like warp NPCs.
-    pub(crate) warp_skill_units: &'a [(EntityId, Point3<f32>, Instant, Instant)],
     pub(crate) effect_renderer: &'a mut EffectRenderer,
     pub(crate) bottom_interface_renderer: &'a GameInterfaceRenderer,
     pub(crate) middle_interface_renderer: &'a mut GameInterfaceRenderer,
@@ -394,57 +391,6 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
         }
     }
 
-    /// Renders the classic map connection portal at every warp entity.
-    ///
-    /// Warps (`JT_WARPNPC`) don't have a sprite in the game files. The original
-    /// client draws a hard-coded effect for them instead, see [`WarpPortal`].
-    #[inline(always)]
-    #[cfg_attr(feature = "debug", ro_next_debug::profile)]
-    pub(crate) fn render_warp_portals(&mut self) {
-        let Some(warp_portal) = self.warp_portal else {
-            return;
-        };
-
-        // Warps are entities, so they are hidden together with all other entities.
-        #[cfg(feature = "debug")]
-        if !self.render_options.show_entities {
-            return;
-        }
-
-        let warp_positions: Vec<Point3<f32>> = self
-            .client_state
-            .follow(client_state().entities())
-            .iter()
-            .filter(|entity| entity.get_entity_type() == EntityType::Warp)
-            .map(|entity| entity.get_position())
-            .collect();
-
-        if warp_positions.is_empty() && self.warp_skill_units.is_empty() {
-            return;
-        }
-
-        let time = self.animation_timer_ms / 1000.0;
-
-        for position in warp_positions {
-            warp_portal.render(self.effect_renderer, self.current_camera, position, self.screen_size, time);
-        }
-
-        // Warp portal skill units (e.g. cast by an ambient NPC) are drawn as the
-        // flat ground portal of the original client, with a short fade-in so that
-        // the transition from the cast circle is smooth.
-        for (_, position, spawn_time, _) in self.warp_skill_units {
-            let fade = (spawn_time.elapsed().as_secs_f32() / 0.35).clamp(0.0, 1.0);
-            warp_portal.render_skill_unit(
-                self.effect_renderer,
-                self.current_camera,
-                *position,
-                self.screen_size,
-                time,
-                fade,
-            );
-        }
-    }
-
     /// Draws the classic blue-white spirit spheres around entities with an
     /// active sphere count (Monk/Champion). The data comes from
     /// `ZC_SPIRITS` (see `state::spirit_orbs`); the same texture and layered
@@ -510,7 +456,6 @@ impl<'a, 'm: 'a> MapRenderContext<'a, 'm> {
                 self.animation_timer_ms / 1000.0,
             );
         }
-        self.render_warp_portals();
         self.render_spirit_spheres();
 
         if let Some(player) = self.client_state.try_follow(this_entity()) {

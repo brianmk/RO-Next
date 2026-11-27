@@ -1954,13 +1954,6 @@ impl Client {
         let allocations_after_interface = crate::perf::thread_allocation_snapshot();
         let after_interface = std::time::Instant::now();
 
-        // Drop warp portals whose server removal packet was lost (safety net; the
-        // normal removal is the `RemoveSkillUnit` packet).
-        {
-            let now = std::time::Instant::now();
-            self.warp_skill_units.retain(|(_, _, _, expires_at)| *expires_at > now);
-        }
-
         {
             let mut render_context = MapRenderContext {
                 map: &map,
@@ -2017,10 +2010,8 @@ impl Client {
                 head_marks: &self.head_marks,
                 cast_bars: &self.cast_bars,
                 skill_name_texts: &self.skill_name_texts,
-                warp_portal: self.warp_portal.as_ref(),
                 weather: self.weather.as_ref(),
                 spirit_sphere_texture: self.spirit_sphere_texture.as_ref(),
-                warp_skill_units: &self.warp_skill_units,
                 effect_renderer: &mut self.effect_renderer,
                 bottom_interface_renderer: &self.bottom_interface_renderer,
                 middle_interface_renderer: &mut self.middle_interface_renderer,

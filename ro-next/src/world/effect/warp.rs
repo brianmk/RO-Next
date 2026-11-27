@@ -9,11 +9,13 @@ use crate::renderer::EffectRenderer;
 use crate::world::Camera;
 use crate::world::effect::render_world_quad;
 
-/// The map connection portal is not a sprite: the official client renders a
-/// hard-coded effect made out of the `alpha_down.tga` and `ring_blue.tga`
-/// effect textures plus the `particle1` sparkle sprite. We recreate that effect
-/// so that warps (`JT_WARPNPC`) are visible again instead of falling back to
-/// the black "missing sprite" placeholder.
+/// The short-lived teleport/logout disappearance swirl.
+///
+/// Map connection warps (`JT_WARPNPC`) and Warp Portal skill units are not
+/// drawn with this renderer any more: both use their official ported effect
+/// bodies (`EF_WARPZONE2`, `EF_PORTAL2`/`EF_READYPORTAL2`). Only the separate
+/// teleport-vanish effect (`TeleportVanish`) still reuses these textures and
+/// the flat swirl approximation.
 const CYLINDER_RADIUS: f32 = 7.0;
 const CYLINDER_HEIGHT: f32 = 24.0;
 const CYLINDER_SEGMENT_COUNT: usize = 16;
@@ -56,47 +58,8 @@ impl WarpPortal {
         })
     }
 
-    /// Renders the map connection warp (`JT_WARPNPC`): a rotating cylinder with
-    /// a ground glow and rising particles.
-    pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, position: Point3<f32>, screen_size: ScreenSize, time: f32) {
-        if (camera.focus_point() - position).magnitude() > MAXIMUM_DISTANCE {
-            return;
-        }
-
-        let anchor = position;
-        let rotation = time * 0.15;
-        let scroll = (time * 0.55) % 1.0;
-
-        self.render_cylinder(
-            renderer,
-            camera,
-            anchor,
-            screen_size,
-            self.streak_texture.clone(),
-            Color::rgba(0.20, 0.40, 0.82, 1.0),
-            rotation,
-            scroll,
-        );
-
-        self.render_cylinder(
-            renderer,
-            camera,
-            anchor,
-            screen_size,
-            self.gradient_texture.clone(),
-            Color::rgba(0.12, 0.24, 0.46, 1.0),
-            rotation,
-            0.0,
-        );
-
-        self.render_ground_glow(renderer, camera, anchor, screen_size, time);
-        self.render_particles(renderer, camera, anchor, screen_size, time);
-    }
-
-    /// Renders an open skill-unit warp portal (AL_WARP). The original client
-    /// draws it as a flat, rotating swirl on the ground with a soft glow and a
-    /// few rising sparkles, so this is a flat effect instead of the map warp
-    /// cylinder.
+    /// Renders the teleport-vanish swirl: a flat, rotating swirl on the ground
+    /// with a soft glow and a few rising sparkles.
     pub fn render_skill_unit(
         &self,
         renderer: &mut EffectRenderer,
@@ -110,11 +73,8 @@ impl WarpPortal {
             return;
         }
 
-        // AL_WARP is the tall white/lavender light pillar of the classic client
-        // (see the reference: bright cylinder with a soft purple ground glow),
-        // not the blue map-connection warp. Use the white alpha gradient as the
-        // main beam, the blue streak as a subtle purple inner swirl, and keep
-        // the rising sparkles.
+        // The white alpha gradient is the main beam, the blue streak a subtle
+        // inner swirl; the rising sparkles stay.
         let rotation = time * 0.28;
         let scroll = (time * 0.9) % 1.0;
 

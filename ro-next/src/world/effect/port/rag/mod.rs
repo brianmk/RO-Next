@@ -4,6 +4,7 @@
 //! classic `CRagEffect` methods that the pre-renewal skills use most.
 
 pub mod agiup;
+pub mod alpha_down_ripples;
 pub mod aqua;
 pub mod aspersio;
 pub mod asura;
@@ -142,6 +143,7 @@ pub mod white_spark;
 pub mod whitespray;
 
 pub use agiup::AgilityUp;
+pub use alpha_down_ripples::AlphaDownRipples;
 pub use aqua::Aqua;
 pub use aspersio::Aspersio;
 pub use bash::Bash;

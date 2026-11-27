@@ -5,6 +5,7 @@
 
 use ragnarok_packets::EffectId;
 
+use super::rag::AlphaDownRipples;
 use super::rag_batch_c::{HealSp, HitDark, WarpZone, Yufitel, YufitelHit};
 use super::runtime::PortedEffect;
 
@@ -23,6 +24,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Healsp => Box::new(HealSp::new(50)),
         // `case EF_WARPZONE: this->WarpZone();`
         EffectId::Warpzone => Box::new(WarpZone::new(250)),
+        // `case EF_WARPZONE2: this->AlphaDownRipples("effect\\ring_blue.tga", 0);`
+        EffectId::Warpzone2 => Box::new(AlphaDownRipples::new("effect\\ring_blue.tga", 0, 99_999_999)),
         _ => return None,
     })
 }
@@ -36,6 +39,7 @@ pub fn ids() -> &'static [EffectId] {
         EffectId::Hitdark,
         EffectId::Healsp,
         EffectId::Warpzone,
+        EffectId::Warpzone2,
     ]
 }
 
@@ -43,7 +47,8 @@ pub fn ids() -> &'static [EffectId] {
 ///
 /// `EffectTypes.cpp:102` `EF_YUFITEL = 250`, `:103` `EF_YUFITELHIT = 250`,
 /// `:461` `EF_YUFITEL2 = 250`, `:189` `EF_HITDARK = 50`,
-/// `:21` `EF_HEALSP = 50`, `:70` `EF_WARPZONE = 250`.
+/// `:21` `EF_HEALSP = 50`, `:70` `EF_WARPZONE = 250`,
+/// `:330` `EF_WARPZONE2 = 99999999`.
 pub fn lifetimes() -> &'static [(EffectId, i32)] {
     &[
         (EffectId::Yufitel, 250),
@@ -52,6 +57,7 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
         (EffectId::Hitdark, 50),
         (EffectId::Healsp, 50),
         (EffectId::Warpzone, 250),
+        (EffectId::Warpzone2, 99_999_999),
     ]
 }
 
@@ -84,6 +90,7 @@ mod tests {
         assert!(spawn(EffectId::Hitdark).is_some());
         assert!(spawn(EffectId::Healsp).is_some());
         assert!(spawn(EffectId::Warpzone).is_some());
+        assert!(spawn(EffectId::Warpzone2).is_some());
     }
 
     #[test]

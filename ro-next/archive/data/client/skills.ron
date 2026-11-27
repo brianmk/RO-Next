@@ -16,11 +16,10 @@
 // override it without rebuilding the client; the committed copy is also the
 // compiled `include_str!` fallback.
 (
-    provenance: "Hand-curated skill behaviour and procedural effect data: Rolling Cutter channeling (2036), Warp Portal provisional portal (27), Free Cast move-while-casting (278), Storm Gust procedural cloud (87/89), cast-circle, warp-portal and level-aura textures/geometry migrated from the hard-coded client constants",
+    provenance: "Hand-curated skill behaviour and procedural effect data: Rolling Cutter channeling (2036), Free Cast move-while-casting (278), Storm Gust procedural cloud (87/89), cast-circle, teleport-vanish warp and level-aura textures/geometry migrated from the hard-coded client constants",
     version: 1,
     // Per-skill behavioural flags (only the enabled flags are written).
     behaviours: [
-        (skill: 27, warp_target: true),
         (skill: 278, move_while_casting: true),
         (skill: 2036, channeling: true),
     ],

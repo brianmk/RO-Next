@@ -348,11 +348,11 @@ pub(super) fn get_entity_part_files(
         // Homunculi have their own sprite folder (`data\sprite\homun\`), the
         // job id -> file stem mapping is data from the client job table.
         EntityType::Homunculus => vec![EntityPartFile::new(crate::world::jobs::homunculus_sprite_path(job_id))],
-        // Warps and hidden NPCs have no sprite in the game files. The kRO client draws
-        // warps as a dedicated hard-coded effect (see `WarpPortal`) and does not draw
-        // hidden NPCs at all. Requesting a sprite path for them would end up loading
-        // the black `missing.spr` placeholder, which is what used to show up as an
-        // opaque black silhouette at every map connection.
+        // Warps and hidden NPCs have no sprite in the game files. The official
+        // client launches `EF_WARPZONE2` on a warp NPC (`CNpc::SetState`) and does
+        // not draw hidden NPCs at all. Requesting a sprite path for them would end
+        // up loading the black `missing.spr` placeholder, which is what used to
+        // show up as an opaque black silhouette at every map connection.
         EntityType::Warp | EntityType::Hidden => Vec::new(),
     }
 }

@@ -17,6 +17,7 @@ pub mod bottom2;
 pub mod bubble_swirl;
 pub mod casting2;
 pub mod casting3d;
+pub mod casting4;
 pub mod chemical;
 pub mod chemical3;
 pub mod chimto_sprite;
@@ -229,6 +230,9 @@ pub enum PrimitiveId {
     PulsingColumns,
     /// prim 63 (`PrimRippleRings`)
     RippleRings,
+    /// prim 65 (`PP_3DCASTING_4`) - `Prim3DCasting4`'s falling rings
+    /// (`EF_WARPZONE2`). Drawn by the shared `Render3DCasting`.
+    Casting4,
     /// prim 130 (`PrimRisingFan`)
     RisingFan,
     /// prim 131 (`PrimRisingFan2`)
@@ -510,6 +514,7 @@ impl PrimitiveId {
             Self::ParticleUp => 59,
             Self::PulsingColumns => 60,
             Self::RippleRings => 63,
+            Self::Casting4 => 65,
             Self::RisingFan => 130,
             Self::RisingFan2 => 131,
             Self::Halo => 39,
@@ -1083,6 +1088,10 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::RippleRings => {
                 ripple_rings::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::Casting4 => {
+                casting4::on_process(self, master);
                 true
             }
             PrimitiveId::RisingFan => {

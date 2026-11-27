@@ -217,12 +217,6 @@
             ],
         ),
         (
-            skill: 27,
-            phase: Cast,
-            cast_circle_color: (160, 130, 255),
-            layers: [],
-        ),
-        (
             skill: 28,
             phase: Cast,
             cast_circle_color: (255, 230, 160),

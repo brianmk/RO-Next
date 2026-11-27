@@ -8,8 +8,6 @@
 //!
 //! * **channeling** — skills cast through the channeling protocol path (Rolling
 //!   Cutter 2036) instead of an ordinary cast,
-//! * **warp_target** — skills that show a provisional warp portal at the target
-//!   cell before the server creates the portal skill unit (Warp Portal 27),
 //! * **move_while_casting** — a learned skill that grants movement while a cast
 //!   is running (Free Cast 278). The job also has to carry the
 //!   `move_while_casting` capability in [`crate::world::jobs`] (`jobs.ron`);
@@ -77,8 +75,6 @@ struct BehaviourFile {
     skill: u16,
     #[serde(default)]
     channeling: bool,
-    #[serde(default)]
-    warp_target: bool,
     #[serde(default)]
     move_while_casting: bool,
 }
@@ -150,9 +146,6 @@ struct LevelAuraFile {
 pub(crate) struct SkillBehaviour {
     /// Cast through the channeling protocol path and stop early on request.
     pub channeling: bool,
-    /// Show a provisional warp portal at the target cell before the server
-    /// creates the real skill unit.
-    pub warp_target: bool,
     /// Learning this skill grants movement while a cast is running (on a job
     /// that carries the matching capability).
     pub move_while_casting: bool,
@@ -366,12 +359,6 @@ pub(crate) fn channels(skill_id: SkillId) -> bool {
     behaviour(skill_id).is_some_and(|behaviour| behaviour.channeling)
 }
 
-/// Whether `skill_id` shows a provisional warp portal at its target cell
-/// (Warp Portal 27).
-pub(crate) fn has_warp_target(skill_id: SkillId) -> bool {
-    behaviour(skill_id).is_some_and(|behaviour| behaviour.warp_target)
-}
-
 /// Whether learning `skill_id` grants movement while casting (the job also has
 /// to carry the `move_while_casting` capability in `jobs.ron`).
 pub(crate) fn grants_move_while_casting(skill_id: SkillId) -> bool {
@@ -453,12 +440,11 @@ fn build(file: SkillsFile) -> Result<SkillRegistry, String> {
         if row.skill == 0 {
             return Err("a behaviour row uses skill id 0".to_owned());
         }
-        if !row.channeling && !row.warp_target && !row.move_while_casting {
+        if !row.channeling && !row.move_while_casting {
             return Err(format!("skill {} behaviour row has no enabled flag", row.skill));
         }
         behaviours.push((row.skill, SkillBehaviour {
             channeling: row.channeling,
-            warp_target: row.warp_target,
             move_while_casting: row.move_while_casting,
         }));
     }
@@ -651,14 +637,14 @@ mod tests {
     use ragnarok_packets::SkillId;
 
     use super::{
-        FALLBACK, SkillPhase, behaviour, cast_circle, channels, cloud, grants_move_while_casting, has_warp_target, level_aura, validate,
-        validate_compiled, warp_portal,
+        FALLBACK, SkillPhase, behaviour, cast_circle, channels, cloud, grants_move_while_casting, level_aura, validate, validate_compiled,
+        warp_portal,
     };
 
     #[test]
     fn compiled_fallback_is_valid() {
         let summary = validate_compiled().expect("the committed skill data has to be valid");
-        assert_eq!(summary.behaviours, 3);
+        assert_eq!(summary.behaviours, 2);
         assert_eq!(summary.clouds, 2, "the cloud row covers the two Storm Gust ids");
         assert!(validate("not ron").is_err());
         assert!(validate("(provenance: \"x\")").is_err());
@@ -670,15 +656,6 @@ mod tests {
         assert!(channels(SkillId(2036)));
         for skill_id in [27_u16, 278, 34, 0, 65_500] {
             assert!(!channels(SkillId(skill_id)), "skill {skill_id} must not channel");
-        }
-
-        // Warp Portal (27) is the only provisional warp-target skill.
-        assert!(has_warp_target(SkillId(27)));
-        for skill_id in [2036_u16, 278, 28, 0, 65_500] {
-            assert!(
-                !has_warp_target(SkillId(skill_id)),
-                "skill {skill_id} must not show a warp portal"
-            );
         }
 
         // Free Cast (278) is the only move-while-casting skill flag.
@@ -694,7 +671,6 @@ mod tests {
             behaviour(SkillId(2036)),
             Some(&super::SkillBehaviour {
                 channeling: true,
-                warp_target: false,
                 move_while_casting: false,
             })
         );

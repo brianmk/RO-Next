@@ -64,7 +64,7 @@ pub(crate) use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 pub(crate) use std::sync::{Arc, Mutex};
 pub(crate) use std::time::{Duration, Instant};
 
-pub(crate) use cgmath::{InnerSpace, Point3, Vector3};
+pub(crate) use cgmath::{Point3, Vector3};
 pub(crate) use hashbrown::HashMap;
 pub(crate) use image::{EncodableLayout, ImageFormat, ImageReader};
 pub(crate) use input::{MouseInputMode, MouseModeExt};
@@ -341,10 +341,9 @@ mod tests {
     #[test]
     fn skill_behaviour_data_is_valid() {
         let summary = super::check_skills(None).expect("the committed skill data has to be valid");
-        assert_eq!(summary.behaviours, 3, "Rolling Cutter, Warp Portal and Free Cast");
+        assert_eq!(summary.behaviours, 2, "Rolling Cutter and Free Cast");
         assert_eq!(summary.clouds, 2, "the cloud row covers both Storm Gust ids");
         assert!(crate::world::skills::channels(SkillId(2036)));
-        assert!(crate::world::skills::has_warp_target(SkillId(27)));
         assert!(crate::world::skills::grants_move_while_casting(SkillId(278)));
     }
 
