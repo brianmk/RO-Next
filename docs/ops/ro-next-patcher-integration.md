@@ -34,16 +34,16 @@ download ok).
 
 ---
 
-## Cleanup + static-CRT release (2026-11-27)
+## Cleanup + static-CRT release (2026-11-27, payload 0.2.31)
 
 | item | value |
 | --- | --- |
 | client commits | `ec115255`..`6ab83d13` (cleanup, descriptor-layer suppression, stranded-skill mappings, Windows cfg fixes, static CRT) |
-| payload version | `0.2.30` (`ro-next-files/ro-next.version`, config `clients.ro_next.version` / `clientVersion`) |
-| content release | `20261127-063851` (`/home/phantom/patcher-releases/ro_next/`) |
+| payload version | `0.2.31` (`ro-next-files/ro-next.version`, config `clients.ro_next.version` / `clientVersion`, and `ro-next/Cargo.toml` so `--version` agrees) |
+| content release | `20261127-064254` (`/home/phantom/patcher-releases/ro_next/`) |
 | files in manifest | 91 (was 87: the four missing data files below are now shipped) |
 | package | `archive_759dab1c.zip`, 82 entries, 3.85 MB |
-| previous release | `20261124-201226` (kept for rollback) |
+| previous release | `20261127-063851` (0.2.30, kept for rollback) |
 | classic client | untouched |
 
 ### What the 0.2.29 payload was missing
@@ -75,7 +75,7 @@ rsync -a --delete ro-next/archive/ \
     rathena:/home/phantom/ragnarok-web/patcher-server/ro-next-files/archive/
 scp target/x86_64-pc-windows-msvc/release/ro-next.exe \
     rathena:/home/phantom/ragnarok-web/patcher-server/ro-next-files/RO-Next.exe
-ssh rathena 'printf "0.2.30\n" > ~/ragnarok-web/patcher-server/ro-next-files/ro-next.version'
+ssh rathena 'printf "0.2.31\n" > ~/ragnarok-web/patcher-server/ro-next-files/ro-next.version'
 
 # 3. bump the live config (the manifest version and the patcher's "update available"
 #    string come from clients.ro_next.version / clientVersion)
@@ -90,7 +90,7 @@ ssh rathena '/home/phantom/ragnarok-web/scripts/publish-content-release.sh \
 
 # 5. completeness gate: every repo file and the built exe must match the live manifest
 scripts/patcher-payload-check.py \
-    --exe target/x86_64-pc-windows-msvc/release/ro-next.exe --expect-version 0.2.30
+    --exe target/x86_64-pc-windows-msvc/release/ro-next.exe --expect-version 0.2.31
 ```
 
 `scripts/patcher-payload-check.py` fetches `<api>/manifest?client=ro_next` and fails on any
@@ -99,15 +99,17 @@ missing or stale entry (it maps `ro-next/archive/**` to `archive/**`, compares t
 deployment-specific presence-only files). This is the check that would have caught the missing
 data files; run it after every publish.
 
-### Verification performed for 0.2.30
+### Verification performed for 0.2.31
 
-* manifest: `version=0.2.30`, `release_id=20261127-063851`, 91 files; `payload-check` reports
+* manifest: `version=0.2.31`, `release_id=20261127-064254`, 91 files; `payload-check` reports
   `OK: the payload ships every file this repo expects`.
 * downloads: the four new `.ron` files, `숫자.act` and `RO-Next.exe` downloaded from the live API
   and hash-compared against the manifest (all OK; the download endpoint needs a patcher-style
   `User-Agent`, a bare `python-urllib` UA gets a 403 from the WAF).
-* batch package: `archive_759dab1c.zip` contains all six new files, so the patcher's package
-  path ships them too.
+* the published `RO-Next.exe` was downloaded through the patcher API
+  (`sha256:dc7db8fd…`), byte-identical to the local build, and reports `RO-Next 0.2.31`.
+* batch package: `archive_759dab1c.zip` (82 entries) contains all the new files, so the patcher's
+  package path ships them too.
 * update-plan signing: `signing.enabled=true`, key `patcher-2026-11` matches the key pinned in
   `patcher-client.json`, and `patcher_sign_plan` produces a signature that
   `sodium_crypto_sign_verify_detached` accepts for the new release (verified on the host).
