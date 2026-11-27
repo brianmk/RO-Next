@@ -943,23 +943,6 @@ mod tests {
     use crate::world::effect::port::registry;
 
     #[test]
-    fn detect_maps_to_its_ported_ground_aura() {
-        // `HT_DETECTING` (130) is `TargetType: Ground`, so the arriving lane
-        // is `ZC_NOTIFY_GROUNDSKILL` and the official
-        // `CGameActor::PlayGroundSkillEffect` launches `EF_DETECTING` (119)
-        // at the clicked cell (`RenderObject.cpp:1096-1103`). Its body is
-        // `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`),
-        // registered as `EffectId::Detecting`. The 2019 SkillEffect table has
-        // no descriptor field for it, so the mapping is curated in
-        // `gen_ported_skill_map.py` instead of coming from the coverage data.
-        assert_eq!(
-            ported_effect_for(SkillId(130), SkillPhase::Ground).map(|effect| effect as u32),
-            Some(EffectId::Detecting as u32)
-        );
-        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
-    }
-
-    #[test]
     fn ported_const_matches_registry() {
         let mut expected: Vec<u32> = registry::ported_ids().iter().map(|effect| *effect as u32).collect();
         expected.sort_unstable();
@@ -1013,6 +996,23 @@ mod tests {
             Some(EffectId::Blitzbeat as u32)
         );
         assert_eq!(ported_anchor_for(SkillId(129), SkillPhase::Success), PortedAnchor::Target);
+    }
+
+    #[test]
+    fn detect_maps_to_its_ported_ground_aura() {
+        // `HT_DETECTING` (130) is `TargetType: Ground`, so the arriving lane
+        // is `ZC_NOTIFY_GROUNDSKILL` and the official
+        // `CGameActor::PlayGroundSkillEffect` launches `EF_DETECTING` (119)
+        // at the clicked cell (`RenderObject.cpp:1096-1103`). Its body is
+        // `TexturedSkillAura(0)` (`RagEffect.cpp:23953-23954` -> `:15281-15359`),
+        // registered as `EffectId::Detecting`. The 2019 SkillEffect table has
+        // no descriptor field for it, so the mapping is curated in
+        // `gen_ported_skill_map.py` instead of coming from the coverage data.
+        assert_eq!(
+            ported_effect_for(SkillId(130), SkillPhase::Ground).map(|effect| effect as u32),
+            Some(EffectId::Detecting as u32)
+        );
+        assert_eq!(ported_anchor_for(SkillId(130), SkillPhase::Ground), PortedAnchor::Target);
     }
 
     #[test]
