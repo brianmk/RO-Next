@@ -1,5 +1,5 @@
 //! `case EF_RUWACH:` - inline body in `CRagEffect::OnProcess`,
-//! `RagEffect.cpp:23193-23232`. Lifetime 200 frames (`EffectTypes.cpp:42`).
+//! `RagEffect.cpp:23193-23233`. Lifetime 200 frames (`EffectTypes.cpp:42`).
 //!
 //! Ruwach is the Acolyte reveal aura. Unlike the other Acolyte support skills
 //! it is **not** spawned by the skill-use packet: `GameModePackets.cpp:21615`
@@ -106,11 +106,82 @@ impl PortedEffect for Ruwach {
 
 #[cfg(test)]
 mod tests {
+    use ragnarok_packets::SkillId;
+
     use super::*;
     use crate::world::effect::port::runtime::{EffectRuntime, step};
+    use crate::world::{
+        CasterAction, SkillPhase, cast_frame_sequence_for_skill, caster_action_for_skill, curated_skill_sound_files,
+        frame_sequence_for_skill, skill_effect_layers, skill_has_effect, use_caster_action_for_skill,
+    };
 
     fn runtime() -> EffectRuntime {
         EffectRuntime::new(LIFETIME, [0.0, 0.0], 33)
+    }
+
+    /// The official cast sound of the reveal aura is `effect\EF_Sight.wav`,
+    /// played when `OPTION_RUWACH` becomes active
+    /// (`CGameActor::SetStatusStates`, `RenderObject.cpp:4867-4871`).
+    ///
+    /// The `EF_RUWACH` body plays no wave of its own
+    /// (`RagEffect.cpp:23193-23233`) and the official skill-use switch has an
+    /// empty `case AL_RUWACH: break;` (`GameModePackets.cpp:21615`), so the
+    /// 2019 effect-table `ef_ruwach` and the generic `ef_hit2` candidates must
+    /// never win.
+    #[test]
+    fn the_official_sound_is_the_option_activation_sight_wave() {
+        assert_eq!(
+            curated_skill_sound_files(SkillId(24)).map(|files| files.to_vec()),
+            Some(vec!["effect\\ef_sight.wav"]),
+            "AL_RUWACH (24) must play the official EF_Sight wave"
+        );
+        // The generated table has no row for 24, so the curated one is the
+        // only source and `ef_hit2` cannot resurface.
+        assert!(
+            crate::world::skill_sound_files(SkillId(24)).is_none(),
+            "the 2019 generic `ef_hit2` row must not come back"
+        );
+    }
+
+    /// `AL_RUWACH` never overrides the default caster motion:
+    /// `GetSkillActionInfo` leaves `motion = 8` (`SkillActionInfo.cpp:51-53`,
+    /// `:216`) and `GetSkillActionInfo2` leaves `motion = 7` (`:1228-1230`,
+    /// `:1312`). `CPc::JobActionBase` resolves both `ST_BEGIN_SKILL` and
+    /// `ST_SKILL` to the skill block 96 (`Player.cpp:1671-1746`), i.e.
+    /// `CasterAction::Skill`; neither path attaches a `SetFrameSequence`.
+    #[test]
+    fn the_official_caster_motion_is_the_begin_skill_gesture() {
+        assert_eq!(caster_action_for_skill(SkillId(24)), Some(CasterAction::Skill));
+        // The two official paths agree, so `skill_actions.ron` has no
+        // `use_action` row for the skill.
+        assert_eq!(use_caster_action_for_skill(SkillId(24)), None);
+        assert!(frame_sequence_for_skill(SkillId(24)).is_none());
+        assert!(cast_frame_sequence_for_skill(SkillId(24)).is_none());
+    }
+
+    /// The 2019 table's only entry for `AL_RUWACH` is `hitEffectId 1` (the
+    /// generic `lens1`/`lens2` hit flash). It is unreachable in the 2026
+    /// client: the skill-use switch is a literal `case AL_RUWACH: break;`
+    /// (`GameModePackets.cpp:21615`) and the real visual is the `EF_RUWACH`
+    /// option aura ported here. The empty `(skill: 24, phase: Hit)` override in
+    /// `tools/data/skill_effects_overrides.ron` keeps the bogus row out, so no
+    /// phase may describe a Ruwach visual.
+    #[test]
+    fn the_skill_has_no_descriptor_row() {
+        for phase in [
+            SkillPhase::Ground,
+            SkillPhase::Cast,
+            SkillPhase::Success,
+            SkillPhase::Release,
+            SkillPhase::Hit,
+            SkillPhase::Caster,
+        ] {
+            assert!(
+                skill_effect_layers(SkillId(24), phase).is_empty(),
+                "AL_RUWACH must not get a {phase:?} descriptor; the aura is the ported EF_RUWACH"
+            );
+        }
+        assert!(!skill_has_effect(SkillId(24)));
     }
 
     #[test]
@@ -182,6 +253,32 @@ mod tests {
         // The second layer reuses the same (already scaled) pair.
         let shadow = &runtime.primitives[1].state;
         assert_eq!(shadow.delta_pos2, [sine, 0.0, cosine]);
+    }
+
+    #[test]
+    fn the_ring_follows_the_caster_every_frame() {
+        // `this->render.position = this->state.parent->render.position;`
+        // (`RagEffect.cpp:23194`) runs before the spawn gate. `Prim3DParticle`
+        // resolves `org_pos = master.position + deltaPos2` on every primitive
+        // step (`EffectPrimitiveMotion.cpp:2490`), so the particles already in
+        // flight move with the caster instead of staying on the spawn cell.
+        let mut effect = Ruwach;
+        let mut runtime = runtime();
+        runtime.parent_position = Some([100.0, 5.0, -50.0]);
+
+        assert!(step(&mut effect, &mut runtime));
+        assert_eq!(runtime.position, [100.0, 5.0, -50.0]);
+        assert_eq!(runtime.primitives.len(), 2);
+        assert_eq!(runtime.primitives[0].state.position, [100.0, -5.0, -65.0]);
+
+        runtime.parent_position = Some([110.0, 5.0, -50.0]);
+        assert!(step(&mut effect, &mut runtime));
+
+        // Same primitives, new anchor: the frame-0 mote (x 0, y -10, z -15)
+        // is now relative to the moved caster.
+        assert_eq!(runtime.position, [110.0, 5.0, -50.0]);
+        assert_eq!(runtime.primitives[0].state.position, [110.0, -5.0, -65.0]);
+        assert_eq!(runtime.primitives[1].state.position, [110.0, 5.0, -65.0]);
     }
 
     #[test]

@@ -320,9 +320,13 @@ pub fn keyframe_color(transform: &Transform) -> Color {
 
 /// One DX9 `D3DBLEND` code as the equivalent wgpu [`BlendFactor`].
 ///
+/// `source` says which of the two `SetRenderState` calls the code came from
+/// (`D3DRS_SRCBLEND` vs `D3DRS_DESTBLEND`); the two `BOTH*` shorthands select a
+/// different factor for each stage.
+///
 /// `None` means the code is not a valid `D3DBLEND` value; the official client
 /// would hand it to `IDirect3DDevice9::SetRenderState` unchanged.
-fn d3d_blend_factor(code: i32) -> Option<BlendFactor> {
+fn d3d_blend_factor(code: i32, source: bool) -> Option<BlendFactor> {
     let factor = match code {
         1 => BlendFactor::Zero,
         2 => BlendFactor::One,
@@ -337,11 +341,13 @@ fn d3d_blend_factor(code: i32) -> Option<BlendFactor> {
         9 => BlendFactor::Dst,
         10 => BlendFactor::OneMinusDst,
         11 => BlendFactor::SrcAlphaSaturated,
-        // `D3DBLEND_BOTHSRCALPHA`: the obsolete shorthand that uses
-        // `D3DBLEND_SRCALPHA` for both stages, whichever field it is written to.
-        12 => BlendFactor::SrcAlpha,
+        // `D3DBLEND_BOTHSRCALPHA`: the obsolete shorthand for
+        // `SRCBLEND = SRCALPHA`, `DESTBLEND = INVSRCALPHA`.
+        12 if source => BlendFactor::SrcAlpha,
+        12 => BlendFactor::OneMinusSrcAlpha,
         // `D3DBLEND_BOTHINVSRCALPHA`: the inverse shorthand.
-        13 => BlendFactor::OneMinusSrcAlpha,
+        13 if source => BlendFactor::OneMinusSrcAlpha,
+        13 => BlendFactor::SrcAlpha,
         _ => return None,
     };
 
@@ -365,8 +371,8 @@ fn d3d_blend_factor(code: i32) -> Option<BlendFactor> {
 /// original would pass the invalid code to D3D.
 pub fn blend_factors(transform: &Transform) -> (BlendFactor, BlendFactor) {
     match (
-        d3d_blend_factor(transform.source_blend_factor),
-        d3d_blend_factor(transform.destination_blend_factor),
+        d3d_blend_factor(transform.source_blend_factor, true),
+        d3d_blend_factor(transform.destination_blend_factor, false),
     ) {
         (Some(source), Some(destination)) => (source, destination),
         _ => (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
@@ -646,23 +652,57 @@ mod tests {
 
     #[test]
     fn every_d3d_blend_code_maps_to_its_wgpu_factor() {
-        let factor = |code| d3d_blend_factor(code);
+        // Stage-independent codes.
+        for code in 1..=11 {
+            let (source, destination) = (d3d_blend_factor(code, true), d3d_blend_factor(code, false));
+            assert_eq!(source, destination, "code {code} is the same in both stages");
+            assert!(source.is_some(), "code {code} is a valid D3DBLEND");
+        }
 
-        assert_eq!(factor(1), Some(BlendFactor::Zero));
-        assert_eq!(factor(2), Some(BlendFactor::One));
-        assert_eq!(factor(3), Some(BlendFactor::Src));
-        assert_eq!(factor(4), Some(BlendFactor::OneMinusSrc));
-        assert_eq!(factor(5), Some(BlendFactor::SrcAlpha));
-        assert_eq!(factor(6), Some(BlendFactor::OneMinusSrcAlpha));
-        assert_eq!(factor(7), Some(BlendFactor::DstAlpha));
-        assert_eq!(factor(8), Some(BlendFactor::OneMinusDstAlpha));
-        assert_eq!(factor(9), Some(BlendFactor::Dst));
-        assert_eq!(factor(10), Some(BlendFactor::OneMinusDst));
-        assert_eq!(factor(11), Some(BlendFactor::SrcAlphaSaturated));
-        assert_eq!(factor(12), Some(BlendFactor::SrcAlpha));
-        assert_eq!(factor(13), Some(BlendFactor::OneMinusSrcAlpha));
-        assert_eq!(factor(0), None);
-        assert_eq!(factor(14), None);
+        assert_eq!(d3d_blend_factor(1, true), Some(BlendFactor::Zero));
+        assert_eq!(d3d_blend_factor(2, true), Some(BlendFactor::One));
+        assert_eq!(d3d_blend_factor(3, true), Some(BlendFactor::Src));
+        assert_eq!(d3d_blend_factor(4, true), Some(BlendFactor::OneMinusSrc));
+        assert_eq!(d3d_blend_factor(5, true), Some(BlendFactor::SrcAlpha));
+        assert_eq!(d3d_blend_factor(6, true), Some(BlendFactor::OneMinusSrcAlpha));
+        assert_eq!(d3d_blend_factor(7, true), Some(BlendFactor::DstAlpha));
+        assert_eq!(d3d_blend_factor(8, true), Some(BlendFactor::OneMinusDstAlpha));
+        assert_eq!(d3d_blend_factor(9, true), Some(BlendFactor::Dst));
+        assert_eq!(d3d_blend_factor(10, true), Some(BlendFactor::OneMinusDst));
+        assert_eq!(d3d_blend_factor(11, true), Some(BlendFactor::SrcAlphaSaturated));
+
+        // `_devil.str` stores `(12, 12)`. `D3DBLEND_BOTHSRCALPHA` means
+        // `SRCBLEND = SRCALPHA`, `DESTBLEND = INVSRCALPHA`, so the same file
+        // value resolves differently per stage: the old stage-blind mapping
+        // drew the destination as `SrcAlpha`.
+        assert_eq!(d3d_blend_factor(12, true), Some(BlendFactor::SrcAlpha));
+        assert_eq!(d3d_blend_factor(12, false), Some(BlendFactor::OneMinusSrcAlpha));
+        // `D3DBLEND_BOTHINVSRCALPHA` is the mirror image.
+        assert_eq!(d3d_blend_factor(13, true), Some(BlendFactor::OneMinusSrcAlpha));
+        assert_eq!(d3d_blend_factor(13, false), Some(BlendFactor::SrcAlpha));
+
+        assert_eq!(d3d_blend_factor(0, true), None);
+        assert_eq!(d3d_blend_factor(0, false), None);
+        assert_eq!(d3d_blend_factor(14, true), None);
+        assert_eq!(d3d_blend_factor(14, false), None);
+    }
+
+    #[test]
+    fn both_alpha_shorthand_resolves_per_stage() {
+        // `_devil.str`/`devil.str` are the only archived `.str` files that use
+        // the obsolete shorthand; both write `(12, 12)`. The official client
+        // gets `(SRCALPHA, INVSRCALPHA)` from D3D, which the effect pass then
+        // draws as the preloaded `(One, OneMinusSrcAlpha)` pair.
+        let transform = Transform {
+            source_blend_factor: 12,
+            destination_blend_factor: 12,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            blend_factors(&transform),
+            (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha)
+        );
     }
 
     #[test]
