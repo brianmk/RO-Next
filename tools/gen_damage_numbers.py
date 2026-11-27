@@ -358,7 +358,7 @@ def render(facts: dict, data: dict) -> str:
     add("    ),")
     extended = facts["extended_damage"]
     add("    // `TT_EXTEND_DAMAGE_ON_OFF`: million -> /1000 + marker 10,")
-    add("    // hundred-million -> /1000000 + marker 11; off caps at 999999.")
+    add("    // hundred-million -> /1000000 + marker 11.")
     add("    extended: (")
     add(f"        enabled_value: {extended['enabled_value']},")
     add(f"        million_divisor: {extended['million_divisor']},")
@@ -366,7 +366,6 @@ def render(facts: dict, data: dict) -> str:
     add(f"        hundred_million_value: {extended['hundred_million_value']},")
     add(f"        hundred_million_divisor: {extended['hundred_million_divisor']},")
     add(f"        hundred_million_marker: {extended['hundred_million_marker']},")
-    add(f"        disabled_cap: {extended['disabled_cap']},")
     add("    ),")
     miss = facts["miss"]
     add("    // `SpawnDamageMsgEffect` uses `g_session.damageSpriteName` for misses")

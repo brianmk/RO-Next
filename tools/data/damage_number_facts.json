@@ -18,8 +18,7 @@
     "hundred_million_value": 100000000,
     "hundred_million_divisor": 1000000,
     "hundred_million_marker": 11,
-    "disabled_cap": 999999,
-    "source": "RenderObject.cpp:4779-4795 (TT_EXTEND_DAMAGE_ON_OFF / 1e6 / 1e8 thresholds, markers 10/11, 999999 cap)"
+    "source": "RenderObject.cpp:4779-4795 (TT_EXTEND_DAMAGE_ON_OFF / 1e6 / 1e8 thresholds, markers 10/11)"
   },
   "digits": {
     "sprite": "이팩트\\숫자",

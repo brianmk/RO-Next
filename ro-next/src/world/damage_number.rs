@@ -169,7 +169,6 @@ pub(crate) struct ExtendedRow {
     pub(crate) hundred_million_value: u64,
     pub(crate) hundred_million_divisor: u64,
     pub(crate) hundred_million_marker: u8,
-    pub(crate) disabled_cap: u64,
 }
 
 /// The miss sprite pose (`data\sprite\이팩트\miss.spr` motion 0).
@@ -579,8 +578,6 @@ pub fn decompose_damage(value: u64) -> DigitString {
     } else if EXTENDED_DAMAGE_ENABLED && markers_available && value >= extended.enabled_value {
         remaining = value / extended.million_divisor;
         digits.push(extended.million_marker);
-    } else if !EXTENDED_DAMAGE_ENABLED && value > extended.disabled_cap {
-        remaining = extended.disabled_cap;
     }
 
     loop {

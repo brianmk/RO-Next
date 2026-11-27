@@ -65,7 +65,7 @@
         extended_step: 8,
     ),
     // `TT_EXTEND_DAMAGE_ON_OFF`: million -> /1000 + marker 10,
-    // hundred-million -> /1000000 + marker 11; off caps at 999999.
+    // hundred-million -> /1000000 + marker 11.
     extended: (
         enabled_value: 1000000,
         million_divisor: 1000,
@@ -73,7 +73,6 @@
         hundred_million_value: 100000000,
         hundred_million_divisor: 1000000,
         hundred_million_marker: 11,
-        disabled_cap: 999999,
     ),
     // `SpawnDamageMsgEffect` uses `g_session.damageSpriteName` for misses
     // (WorldObjects.cpp:963-983); `data\sprite\이팩트\miss.spr` is in data.grf.
