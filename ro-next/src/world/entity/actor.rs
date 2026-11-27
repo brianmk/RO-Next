@@ -59,6 +59,17 @@ impl Entity {
         self.get_common_mut().set_weapon_blink(blink);
     }
 
+    /// Freezes the current animation (`render.isMotionFreezed`) until
+    /// [`Self::unfreeze_motion`] or a new action.
+    pub fn freeze_motion(&mut self) {
+        self.get_common_mut().animation_state.freeze_motion();
+    }
+
+    /// Clears a [`Self::freeze_motion`] and continues from the frozen frame.
+    pub fn unfreeze_motion(&mut self, client_tick: ClientTick) {
+        self.get_common_mut().animation_state.unfreeze_motion(client_tick);
+    }
+
     pub fn start_body_wave(&mut self, duration_ms: u32, amplitude: f32, client_tick: ClientTick) {
         self.get_common_mut().start_body_wave(duration_ms, amplitude, client_tick);
     }

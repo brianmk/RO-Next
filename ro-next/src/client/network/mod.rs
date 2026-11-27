@@ -5,6 +5,7 @@
 //! `world`, `skills`, `inventory`, `commerce`, `social`, `ui`). Handlers get
 //! the whole event and destructure it, so the dispatcher never repeats field
 //! types.
+pub(crate) mod attack_feedback;
 pub(crate) mod character;
 pub(crate) mod commerce;
 pub(crate) mod inventory;
@@ -47,6 +48,7 @@ impl Client {
                 NetworkEvent::SkillNoDamage { .. } => self.handle_skill_no_damage(event, client_tick),
                 NetworkEvent::SkillCastCancelled { .. } => self.handle_skill_cast_cancelled(event, client_tick),
                 NetworkEvent::SkillGroundCast { .. } => self.handle_skill_ground_cast(event, client_tick),
+                NetworkEvent::ActorPairFreeze { .. } => self.handle_actor_pair_freeze(event, client_tick),
                 NetworkEvent::PlaySound { .. } => self.handle_play_sound(event, client_tick),
                 NetworkEvent::DisplayEmotion { .. } => self.handle_display_emotion(event, client_tick),
                 NetworkEvent::AccountId { .. } => self.handle_account_id(event, client_tick),

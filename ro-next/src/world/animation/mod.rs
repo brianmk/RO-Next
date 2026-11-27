@@ -187,6 +187,13 @@ pub struct AnimationState {
     /// the action's ACT delay because the official client advances sequence
     /// frames on its 60 Hz update ticks.
     frame_sequence_step_ms: Option<u32>,
+    /// Official `render.isMotionFreezed` (`RenderObject.cpp:310`): the current
+    /// animation is held at `frozen_time` until a state packet clears the
+    /// freeze. `ZC_BLADESTOP` (0x01D1) freezes the rooted attacker this way
+    /// (`GameModeNotices.cpp:935`).
+    motion_frozen: bool,
+    /// Animation time snapshot taken when [`Self::freeze_motion`] was called.
+    frozen_time: u32,
 }
 
 impl AnimationState {
@@ -204,6 +211,8 @@ impl AnimationState {
             loop_mode: AnimationLoopMode::default(),
             frame_sequence: None,
             frame_sequence_step_ms: None,
+            motion_frozen: false,
+            frozen_time: 0,
         }
     }
 
@@ -263,6 +272,27 @@ impl AnimationState {
     fn clear_frame_sequence(&mut self) {
         self.frame_sequence = None;
         self.frame_sequence_step_ms = None;
+        self.motion_frozen = false;
+    }
+
+    /// Freezes the current animation (`render.isMotionFreezed`,
+    /// `RenderObject.cpp:310`). The frame is held until
+    /// [`Self::unfreeze_motion`] or any new action.
+    pub fn freeze_motion(&mut self) {
+        if !self.motion_frozen {
+            self.motion_frozen = true;
+            self.frozen_time = self.time;
+        }
+    }
+
+    /// Clears [`Self::freeze_motion`] and continues the animation from the
+    /// frame it was frozen on, like the official client's `isMotionFreezed`
+    /// reset.
+    pub fn unfreeze_motion(&mut self, client_tick: ClientTick) {
+        if self.motion_frozen {
+            self.motion_frozen = false;
+            self.start_time = ClientTick(client_tick.0.wrapping_sub(self.frozen_time));
+        }
     }
 
     pub fn idle(&mut self, entity_type: EntityType, client_tick: ClientTick) {
@@ -489,6 +519,11 @@ impl AnimationState {
     }
 
     pub fn update(&mut self, client_tick: ClientTick) {
+        if self.motion_frozen {
+            self.time = self.frozen_time;
+            return;
+        }
+
         let elapsed = client_tick.0.wrapping_sub(self.start_time.0);
         self.time = (elapsed as f32 * self.speed) as u32;
     }
@@ -1027,6 +1062,32 @@ mod tests {
 
     use super::{AnimationActionType, AnimationLoopMode, AnimationState, looped_frame_index};
     use crate::world::EntityType;
+
+    #[test]
+    fn blade_stop_motion_freeze_holds_the_frame_and_resumes() {
+        // `ZC_BLADESTOP` sets `render.isMotionFreezed` on the rooted attacker
+        // (`GameModeNotices.cpp:935`); `RenderObject.cpp:310` keeps
+        // `curMotion` until the flag is cleared.
+        let mut state = AnimationState::new(EntityType::Player, ClientTick(0));
+        state.skill(EntityType::Player, 0, false, ClientTick(100));
+        state.update(ClientTick(250));
+        assert_eq!(state.time, 150);
+
+        state.freeze_motion();
+        assert!(state.motion_frozen);
+        state.update(ClientTick(2_000));
+        assert_eq!(state.time, 150, "the frozen frame must not advance");
+
+        state.unfreeze_motion(ClientTick(2_000));
+        assert!(!state.motion_frozen);
+        state.update(ClientTick(2_150));
+        assert_eq!(state.time, 300, "the animation resumes from the frozen frame");
+
+        // Any new action clears the freeze, like the official state changes.
+        state.freeze_motion();
+        state.idle(EntityType::Player, ClientTick(3_000));
+        assert!(!state.motion_frozen);
+    }
 
     #[test]
     fn zero_duration_and_empty_animation_data_do_not_panic() {

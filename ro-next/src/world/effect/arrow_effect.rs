@@ -8,10 +8,17 @@
 //!
 //! This effect draws the arrow texture as a world-space quad whose in-plane
 //! axes are rotated in screen space by the flight direction (the same
-//! `camera_facing_corners` rotation the procedural skill projectiles use), and
-//! it plays the `_hit_arrow.wav` impact sound when it lands. It is spawned
-//! through the normal [`EffectHolder`](crate::world::EffectHolder) so the
-//! global effect budget and distance culling apply.
+//! `camera_facing_corners` rotation the procedural skill projectiles use). It
+//! is spawned through the normal [`EffectHolder`](crate::world::EffectHolder)
+//! so the global effect budget and distance culling apply.
+//!
+//! The impact wave of a bow auto attack is **not** played here: the official
+//! client plays the weapon hit wave (`_hit_arrow.wav`) from the damage
+//! message (`GetWeaponHitWaveName`,
+//! `Source/Contents/Sound/HitSounds.cpp:73-76`, `Source/Contents/Actors/
+//! GameObject.cpp:1780-1870`), which `Client::play_auto_attack_hit_feedback`
+//! does at damage time. Playing it again when the arrow lands would duplicate
+//! the sound per hit.
 
 use std::sync::Arc;
 

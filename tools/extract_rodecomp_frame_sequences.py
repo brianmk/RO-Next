@@ -131,6 +131,53 @@ def extract_render_object(names: dict[str, int]) -> tuple[dict[str, dict], dict[
             pending = []
             interval = None
 
+    # `case MO_INVESTIGATE:` / `case MO_FINGEROFFENSIVE:` /
+    # `case SR_RIDEINLIGHTNING:` (`RenderObject.cpp:5802-5812`) build the block
+    # and frame range at run time: Doram players use the attack block `0x58`
+    # frames 4..=5, every other job the skill block `0x60` frames 3..=4, held
+    # for 1100 ms at `SetSequenceInterval(10)`. The brace handling above drops
+    # the case labels at the inner `if (Doram) { ... } else { ... }`, so the
+    # non-Doram branch is recorded explicitly (the port does not model Doram
+    # job animation).
+    parameterized = {
+        "MO_INVESTIGATE": {
+            "block": "0x60",
+            "first": "3",
+            "last": "4",
+            "loop_block": "0x60",
+            "loop_to": "4",
+            "loops": "1",
+            "duration": "1100",
+            "interval": 10,
+            "source": "RenderObject.cpp:5808",
+        },
+        "MO_FINGEROFFENSIVE": {
+            "block": "0x60",
+            "first": "3",
+            "last": "4",
+            "loop_block": "0x60",
+            "loop_to": "4",
+            "loops": "1",
+            "duration": "1100",
+            "interval": 10,
+            "source": "RenderObject.cpp:5808",
+        },
+        "SR_RIDEINLIGHTNING": {
+            "block": "0x60",
+            "first": "3",
+            "last": "4",
+            "loop_block": "0x60",
+            "loop_to": "4",
+            "loops": "1",
+            "duration": "1100",
+            "interval": 10,
+            "source": "RenderObject.cpp:5808",
+        },
+    }
+    for name, entry in parameterized.items():
+        if name in names:
+            sequences[name] = dict(entry, skill=names[name])
+
     unknown = {name: entry for name, entry in sequences.items() if entry["skill"] is None}
     return sequences, unknown
 

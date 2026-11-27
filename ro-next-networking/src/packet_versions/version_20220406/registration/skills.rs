@@ -61,6 +61,7 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: false,
             skill_id: None,
@@ -70,6 +71,7 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: true,
             skill_id: None,
@@ -95,6 +97,7 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: false,
             skill_id: None,
@@ -104,6 +107,7 @@ where
             source_entity_id: packet.source_entity_id,
             destination_entity_id: packet.destination_entity_id,
             damage_amount: (packet.damage_amount > 0).then_some(packet.damage_amount as usize),
+            hit_count: packet.number_of_hits,
             attack_duration: packet.attack_duration,
             is_critical: true,
             skill_id: None,
@@ -197,6 +201,14 @@ where
     })?;
 
     packet_handler.register(|packet: RemoveSkillPacket| NetworkEvent::RemoveSkill { skill_id: packet.skill_id })?;
+
+    // `ZC_BLADESTOP` (0x01D1, `clif_bladestop`): the Blade Stop caster roots
+    // the attacker until the status ends.
+    packet_handler.register(|packet: BladeStopPacket| NetworkEvent::ActorPairFreeze {
+        first_entity_id: packet.first_entity_id,
+        second_entity_id: packet.second_entity_id,
+        active: packet.active != 0,
+    })?;
 
     Ok(())
 }

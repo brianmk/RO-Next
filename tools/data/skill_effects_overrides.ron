@@ -12,6 +12,15 @@
 (
     provenance: "hand-written replacements for official-table rows superseded by decompiled client code (rodecomp)",
     effects: [
+        // AL_RUWACH (24). The 2019 effect table only carries `hitEffectId 1`
+        // for it (lens1/lens2 + `ef_hit2.wav`), which the current client never
+        // draws: the skill-use switch has `case AL_RUWACH: break;`
+        // (`GameModePackets.cpp:21615`) and Ruwach does no damage, so the `Hit`
+        // phase is unreachable. The real visual is the `EF_RUWACH` option aura
+        // body (`RagEffect.cpp:23193-23232`, `EffectTypes.cpp:42`), ported as
+        // `port/rag/ruwach.rs` and spawned at the `Success` phase through
+        // `port/skill_map.rs`. The empty override drops the bogus row.
+        (skill: 24, phase: Hit, layers: []),
         (skill: 271, phase: Cast, action: Skill, layers: [
             (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 350, height: 2.0, bottom_radius: 6.0, top_radius: 22.0, grow: TopRadius, alpha: 0.8, blend: Additive, wav: "effect\\ef_beginspell.wav"),
             (kind: Cylinder, anchor: Caster, attached_entity: true, file: "effect\\ring_white.tga", duration_ms: 350, delay_ms: 40, height: 2.0, bottom_radius: 4.0, top_radius: 14.0, grow: TopRadius, alpha: 0.9, blend: Additive),

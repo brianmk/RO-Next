@@ -301,6 +301,11 @@ pub enum NetworkEvent {
         destination_entity_id: EntityId,
         /// Damage amount. [`None`] on miss, [`Some`] otherwise.
         damage_amount: Option<usize>,
+        /// Number of hits the damage is split into (`div` of
+        /// `ZC_NOTIFY_SKILL` 0x01DE, `number_of_hits` of the attack packets).
+        /// `0` is treated as one hit; the official client caps the split at 36
+        /// (`RenderObject.cpp:3727-3734`, `:5359-5364`).
+        hit_count: u16,
         attack_duration: u32,
         is_critical: bool,
         /// Skill id of the damage source, when the client can attribute it.
@@ -324,6 +329,16 @@ pub enum NetworkEvent {
     HealEffect {
         entity_id: Option<EntityId>,
         heal_amount: usize,
+    },
+    /// Blade Stop lock (`ZC_BLADESTOP`, 0x01D1): the caster (`first_entity_id`)
+    /// roots the attacker (`second_entity_id`) until a release packet arrives.
+    ///
+    /// The official handler is `CGameMode::ReceiveActorPairFreeze`
+    /// (`GameModeNotices.cpp:922-955`); see [`BladeStopPacket`].
+    ActorPairFreeze {
+        first_entity_id: EntityId,
+        second_entity_id: EntityId,
+        active: bool,
     },
     /// An entity turned (`ZC_CHANGE_DIRECTION`, 0x009C).
     ChangeDirection {

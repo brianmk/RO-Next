@@ -89,7 +89,7 @@ class SkillSoundDataTest(unittest.TestCase):
         self.assertEqual(
             self.custom_curated,
             [
-                (24, ["effect\\ef_ruwach.wav"]),
+                (24, ["effect\\ef_sight.wav"]),
                 (27, ["effect\\ef_readyportal.wav", "effect\\ef_portal.wav"]),
                 (29, ["effect\\ef_incagility.wav"]),
                 (33, ["effect\\ef_angelus.wav"]),

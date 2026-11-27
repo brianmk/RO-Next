@@ -486,6 +486,77 @@ impl Client {
         self.play_completion_sound(entity_id, skill_id, SkillPhase::Ground, world_position, client_tick);
     }
 
+    /// `NetworkEvent::ActorPairFreeze` (`ZC_BLADESTOP`, 0x01D1).
+    ///
+    /// Official `CGameMode::ReceiveActorPairFreeze`
+    /// (`GameModeNotices.cpp:922-955`): the Blade Stop caster (`first`)
+    /// holds skill block `0x60` frame 4 for `99999999` ms with a grey tint
+    /// and the rooted attacker (`second`) has `render.isMotionFreezed` set,
+    /// both released by a `flag == 0` packet.
+    pub(crate) fn handle_actor_pair_freeze(&mut self, event: NetworkEvent, client_tick: ClientTick) {
+        let NetworkEvent::ActorPairFreeze {
+            first_entity_id,
+            second_entity_id,
+            active,
+        } = event
+        else {
+            unreachable!("handle_actor_pair_freeze called with a different event variant");
+        };
+
+        let blade_stop_tint = Color::rgb_u8(64, 64, 64);
+
+        if active {
+            if let Some(entity) = self
+                .client_state
+                .follow_mut(client_state().entities())
+                .iter_mut()
+                .find(|entity| entity.get_entity_id() == first_entity_id)
+            {
+                // `SetFrameSequence(96, 4, 4, 96, 4, 1, 99999999, 0)`: the
+                // official call names the ACT block, so force skill block 96
+                // before installing the held frame (the preceding 0x09CB may
+                // have been skipped when its `result` was 0).
+                entity.set_custom_skill_action(12, 0, false, client_tick);
+                entity.set_skill_frame_sequence(4, 4, 4, 99_999_999, client_tick);
+                // `SetColor(-1, 64, 64, 64)` with `render.colorLocked = 1`.
+                entity.set_status_tint(Some(blade_stop_tint));
+            }
+
+            if let Some(entity) = self
+                .client_state
+                .follow_mut(client_state().entities())
+                .iter_mut()
+                .find(|entity| entity.get_entity_id() == second_entity_id)
+            {
+                // `render.isMotionFreezed = true` + the same grey tint.
+                entity.freeze_motion();
+                entity.set_status_tint(Some(blade_stop_tint));
+            }
+        } else {
+            if let Some(entity) = self
+                .client_state
+                .follow_mut(client_state().entities())
+                .iter_mut()
+                .find(|entity| entity.get_entity_id() == first_entity_id)
+            {
+                // `SetFrameSequence(96, 4, 4, 96, 4, 1, 1, 0)` + white tint.
+                entity.set_custom_skill_action(12, 0, false, client_tick);
+                entity.set_skill_frame_sequence(4, 4, 4, 1, client_tick);
+                entity.set_status_tint(None);
+            }
+
+            if let Some(entity) = self
+                .client_state
+                .follow_mut(client_state().entities())
+                .iter_mut()
+                .find(|entity| entity.get_entity_id() == second_entity_id)
+            {
+                entity.unfreeze_motion(client_tick);
+                entity.set_status_tint(None);
+            }
+        }
+    }
+
     /// `NetworkEvent::SkillTree`.
     pub(crate) fn handle_skill_tree(&mut self, event: NetworkEvent, client_tick: ClientTick) {
         let NetworkEvent::SkillTree { skill_information } = event else {

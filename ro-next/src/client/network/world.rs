@@ -578,6 +578,7 @@ impl Client {
             source_entity_id,
             destination_entity_id,
             damage_amount,
+            hit_count,
             attack_duration,
             is_critical,
             skill_id,
@@ -601,6 +602,20 @@ impl Client {
             && damage_amount.is_none()
         {
             crate::logging::log_debug!("damage skill: skill {} damage packet carried no damage", skill_id.0);
+        }
+
+        // Normal (auto) attacks: the official client plays the weapon/job
+        // impact wave and spawns the target hit effect from the damage message
+        // (`GameObject.cpp:1780-1885`). Skill damage packets (`skill_id`) have
+        // their own sound/effect path above.
+        if skill_id.is_none() {
+            self.play_auto_attack_hit_feedback(
+                source_entity_id,
+                destination_entity_id,
+                damage_amount.is_some(),
+                is_critical,
+                client_tick,
+            );
         }
 
         // Falcon attack flight (`CGameActor::statusEffects[0]`): the official
@@ -712,7 +727,37 @@ impl Client {
                 entity.rotate_towards(target_position);
             }
 
-            entity.set_attack(attack_duration, is_critical, client_tick);
+            // Skill damage (`ZC_NOTIFY_SKILL`, 0x01DE) plays the official
+            // damage pose: `CGameActor::ProcessSkillMessage` reads
+            // `GetSkillActionInfo2` and then applies the per-skill
+            // `SetFrameSequence` (`RenderObject.cpp:5522-5527`, `:5794-5812`).
+            // The sequence names the ACT block itself (block 96 for Occult
+            // Impaction/Throw Spirit Sphere), so it must replace the generic
+            // weapon swing instead of sharing it.
+            let skill_sequence = skill_id.and_then(crate::world::frame_sequence_for_skill);
+            if let (Some(skill_id), Some(sequence)) = (skill_id, skill_sequence) {
+                match caster_action(skill_id) {
+                    CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
+                    CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
+                    CasterAction::Attack => entity.set_attack(0, false, client_tick),
+                    CasterAction::Stand => entity.set_stand(client_tick),
+                    CasterAction::Idle => entity.set_idle(client_tick),
+                    CasterAction::Pickup => entity.set_pickup(client_tick),
+                    CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
+                    CasterAction::Keep => {}
+                }
+
+                entity.set_skill_frame_sequence_with_rate(
+                    sequence.first,
+                    sequence.last,
+                    sequence.loop_to,
+                    sequence.duration_ms,
+                    sequence.step_ms(),
+                    client_tick,
+                );
+            } else {
+                entity.set_attack(attack_duration, is_critical, client_tick);
+            }
         }
 
         if let Some(entity) = self
@@ -722,17 +767,39 @@ impl Client {
             .find(|entity| entity.get_entity_id() == destination_entity_id)
             .or_else(|| self.client_state.try_follow(this_entity()))
         {
-            let particle: Box<dyn Particle + Send + Sync> = match damage_amount {
-                Some(amount) => Box::new(DamageNumber::new(
-                    entity.get_position(),
-                    amount as u64,
-                    is_critical,
-                    entity.get_direction(),
-                )),
-                None => Box::new(Miss::new(entity.get_position())),
+            // The official client splits a multi-hit damage packet into one
+            // number per hit (`CGameActor::ProcessSkillMessage`):
+            // `damage /= hitCount` and `hitCount` damage messages spaced
+            // `g_multiHitInterval` = 200 ms apart (`RenderObject.cpp:100`,
+            // `:5367-5368`, `:5931-5947`). Aegis-style Throw Spirit Sphere
+            // sends one packet with `div = skill level`, so this is what makes
+            // every hit visible. A `div` of 0 or above 36 is played as one hit,
+            // exactly like the official guards (`:5359-5364`).
+            let hit_count = match hit_count {
+                0 => 1,
+                count if count > 36 => 1,
+                count => usize::from(count),
             };
 
-            self.particle_holder.spawn_particle(particle);
+            let direction = entity.get_direction();
+            let position = entity.get_position();
+
+            match damage_amount {
+                Some(amount) => {
+                    let per_hit = amount / hit_count;
+
+                    for hit in 0..hit_count {
+                        self.particle_holder.spawn_particle(Box::new(DamageNumber::with_delay(
+                            position,
+                            per_hit as u64,
+                            is_critical,
+                            direction,
+                            hit as u32 * crate::world::MULTI_HIT_INTERVAL_MS,
+                        )));
+                    }
+                }
+                None => self.particle_holder.spawn_particle(Box::new(Miss::new(position))),
+            }
         }
 
         // Classic auto-attack projectile (arrows): the weapon data
@@ -764,15 +831,18 @@ impl Client {
                     );
                     // The arrow is a world-space quad rotated along
                     // its flight vector (the item sprite has no
-                    // per-direction frames); the effect also plays
-                    // the impact sound when it lands.
+                    // per-direction frames). The official impact wave for
+                    // a bow is `_hit_arrow.wav` from the damage message
+                    // (`GetWeaponHitWaveName`, `HitSounds.cpp:73-76`,
+                    // played above by `play_auto_attack_hit_feedback`), so
+                    // the visual must not play it a second time on landing.
                     if let Some(texture) = projectile_assets.sprite.textures.first().cloned() {
                         self.effect_holder.add_effect(Box::new(ArrowEffect::new(
                             texture,
                             attacker_position,
                             target_world_position,
                             projectile.flight_seconds(),
-                            self.particle_holder.arrow_hit_sound(),
+                            None,
                             Some(self.audio_engine.clone()),
                         )));
                     }

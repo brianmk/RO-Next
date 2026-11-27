@@ -55,9 +55,14 @@
         ]),
         // AC_CONCENTRATION
         (skill: 45, files: ["effect\\ac_concentration.wav"]),
-        // AL_RUWACH (Ruwach): official `EF_RUWACH` (EffectTable 33) carries
-        // `wav: effect/ef_ruwach`. The generated row pointed at `ef_hit2.wav`,
-        // which is a generic hit sound.
-        (skill: 24, files: ["effect\\ef_ruwach.wav"]),
+        // AL_RUWACH (Ruwach): `effect\\EF_Sight.wav`, emitted by the client's
+        // option-change handler when `OPTION_RUWACH` becomes active
+        // (`RenderObject.cpp:4867-4872`, `CGameActor::SetStatusStates`). The
+        // `EF_RUWACH` body itself plays no wave (`RagEffect.cpp:23193-23232`)
+        // and the skill-use packet has an empty `case AL_RUWACH: break;`
+        // (`GameModePackets.cpp:21615`), so the 2019 effect-table `wav:
+        // effect/ef_ruwach` (and the generated `ef_hit2.wav` hit sound) are
+        // never played. Keeping the Sight wave is the official quirk.
+        (skill: 24, files: ["effect\\ef_sight.wav"]),
     ],
 )

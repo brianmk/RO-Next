@@ -724,6 +724,8 @@ fn key_frame(frame: &EffectFrame) -> KeyFrame {
             anitype: frame.animation_type,
             anidelta: frame.delay,
             aniframe: frame.texture_index,
+            source_blend_factor: frame.source_blend_factor,
+            destination_blend_factor: frame.destination_blend_factor,
         },
     }
 }
@@ -957,8 +959,12 @@ mod tests {
             anitype: 5,
             anidelta: 0.5,
             aniframe: 1.0,
+            source_blend_factor: 5,
+            destination_blend_factor: 6,
         });
         assert_eq!(clips[0].frames[1].frame, 12);
+        assert_eq!(clips[0].frames[1].transform.source_blend_factor, 0);
+        assert_eq!(clips[0].frames[1].transform.destination_blend_factor, 0);
         assert_eq!(clips[0].frames[1].transform.kind, 1, "delta key type");
         assert_eq!(clips[0].frames[1].transform.x, -1.0);
     }

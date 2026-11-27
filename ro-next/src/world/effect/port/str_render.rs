@@ -52,16 +52,29 @@
 //! (`Particle.cpp:472`). Clip 0 is the resource's control layer that drives
 //! the timeline.
 //!
+//! ## Blend pair
+//!
+//! `RenderAniClip` submits `primitive->sourceBlend = transform->srcalpha` and
+//! `primitive->destinationBlend = transform->destalpha` (`RagEffect.cpp:
+//! 14799-14801`), i.e. the **per-keyframe** DX9 `D3DBLEND` codes the `.str`
+//! file stores. The port carries them through [`super::str_player::Transform`]
+//! and [`blend_factors`] translates them to wgpu factors; the forward effect
+//! pass then applies its premultiplied-alpha translation
+//! (`graphics/passes/forward/effect.rs`). The dominant official `.str` pair is
+//! `SRCALPHA`/`DESTALPHA` (`5`/`7`) - 101,315 key frames in 1,926 of the
+//! 2,063 archived `.str` files, including every key frame of
+//! `Concentration.str` - so the previous hard-coded straight-alpha pair
+//! (`5`/`6`) drew those additive layers with `OneMinusSrcAlpha` and turned the
+//! black background of the 24-bit `.bmp` effect textures into an opaque black
+//! square.
+//!
 //! ## Remaining gap
 //!
-//! `RenderAniClip` also uses the per-keyframe `srcalpha`/`destalpha` as blend
-//! factors and `mtpreset` as the multi-texture mode. `ragnarok_formats` parses
-//! those fields, but the port's [`super::str_player::Transform`] does not
-//! carry them yet (the resource table only threads texture names), so this
-//! pass submits with the straight-alpha pair that `RSF_ALPHA` selects in the
-//! official queues (`SrcAlpha`/`OneMinusSrcAlpha`). Threading the two codes
-//! through `str_table::key_frame` into `Transform` is the remaining work for
-//! exact per-frame blending; it does not affect the geometry below.
+//! `RenderAniClip` also uses `mtpreset` as the multi-texture mode. The port
+//! carries only the first texture stage, which is exact for every key frame in
+//! the ported effect table (`mtpreset == 0`); a key frame with a non-zero mode
+//! would need the second stage threaded through
+//! [`super::str_player::Transform`] as well.
 
 use cgmath::{Rad, Vector2};
 use wgpu::BlendFactor;
@@ -305,13 +318,59 @@ pub fn keyframe_color(transform: &Transform) -> Color {
     )
 }
 
-/// The blend pair this pass submits with.
+/// One DX9 `D3DBLEND` code as the equivalent wgpu [`BlendFactor`].
 ///
-/// `RenderAniClip` passes the keyframe's own `srcalpha`/`destalpha`; they are
-/// not part of [`Transform`] yet (see the module's remaining-gap note), so
-/// this is the straight-alpha pair of the `RSF_ALPHA` queue.
-pub fn blend_factors() -> (BlendFactor, BlendFactor) {
-    (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha)
+/// `None` means the code is not a valid `D3DBLEND` value; the official client
+/// would hand it to `IDirect3DDevice9::SetRenderState` unchanged.
+fn d3d_blend_factor(code: i32) -> Option<BlendFactor> {
+    let factor = match code {
+        1 => BlendFactor::Zero,
+        2 => BlendFactor::One,
+        // `D3DBLEND_SRCCOLOR` / `D3DBLEND_INVSRCCOLOR`.
+        3 => BlendFactor::Src,
+        4 => BlendFactor::OneMinusSrc,
+        5 => BlendFactor::SrcAlpha,
+        6 => BlendFactor::OneMinusSrcAlpha,
+        7 => BlendFactor::DstAlpha,
+        8 => BlendFactor::OneMinusDstAlpha,
+        // `D3DBLEND_DESTCOLOR` / `D3DBLEND_INVDESTCOLOR`.
+        9 => BlendFactor::Dst,
+        10 => BlendFactor::OneMinusDst,
+        11 => BlendFactor::SrcAlphaSaturated,
+        // `D3DBLEND_BOTHSRCALPHA`: the obsolete shorthand that uses
+        // `D3DBLEND_SRCALPHA` for both stages, whichever field it is written to.
+        12 => BlendFactor::SrcAlpha,
+        // `D3DBLEND_BOTHINVSRCALPHA`: the inverse shorthand.
+        13 => BlendFactor::OneMinusSrcAlpha,
+        _ => return None,
+    };
+
+    Some(factor)
+}
+
+/// `RenderAniClip`'s blend pair for one key frame
+/// (`RagEffect.cpp:14799-14801`).
+///
+/// The factors are the `.str` file's `srcalpha`/`destalpha` DX9 codes, already
+/// translated to the straight-alpha factors the effect renderer expects (the
+/// forward effect pass turns a `SrcAlpha` source factor into `One` because
+/// effect textures and colours are premultiplied). `Concentration.str` uses
+/// `5`/`7`, so this returns
+/// [`BlendFactor::SrcAlpha`]/[`BlendFactor::DstAlpha`], which the pass draws as
+/// `One`/`DstAlpha` - the preloaded `.str` additive pair.
+///
+/// An unset/invalid pair falls back to the straight-alpha pair of the
+/// `RSF_ALPHA` queue. Every absolute key frame in the ported resources has a
+/// valid pair; the fallback only covers synthetic/default transforms, where the
+/// original would pass the invalid code to D3D.
+pub fn blend_factors(transform: &Transform) -> (BlendFactor, BlendFactor) {
+    match (
+        d3d_blend_factor(transform.source_blend_factor),
+        d3d_blend_factor(transform.destination_blend_factor),
+    ) {
+        (Some(source), Some(destination)) => (source, destination),
+        _ => (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha),
+    }
 }
 
 /// The full `.str` pass the holder calls after its primitives.
@@ -338,14 +397,13 @@ pub fn render(
         return;
     };
 
-    let (source_blend_factor, destination_blend_factor) = blend_factors();
-
     for layer in visible {
         let Ok(texture) = textures.get_or_load(layer.texture, crate::loaders::ImageType::Color) else {
             continue;
         };
 
         let quad = quad(layer.transform, scale, screen_offset);
+        let (source_blend_factor, destination_blend_factor) = blend_factors(layer.transform);
 
         renderer.render_effect(
             camera,
@@ -552,6 +610,73 @@ mod tests {
     }
 
     #[test]
+    fn concentration_uses_the_official_src_alpha_dest_alpha_pair() {
+        // Every absolute key frame of `Concentration.str` (data.grf, version
+        // 148) stores `srcalpha = 5`, `destalpha = 7`. `RenderAniClip` passes
+        // them through unchanged; the forward effect pass turns `SrcAlpha`
+        // into `One`, so the GPU state is the additive `(One, DstAlpha)` pair.
+        let transform = Transform {
+            source_blend_factor: 5,
+            destination_blend_factor: 7,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            blend_factors(&transform),
+            (BlendFactor::SrcAlpha, BlendFactor::DstAlpha),
+            "the black-backed pokjuk/lens BMPs must be added, not alpha-blended"
+        );
+    }
+
+    #[test]
+    fn straight_alpha_control_stays_straight_alpha() {
+        // `Magnificat.str` has 164 key frames with `(5, 6)`; those must keep
+        // the `RSF_ALPHA` pair instead of being swept into the additive fix.
+        let transform = Transform {
+            source_blend_factor: 5,
+            destination_blend_factor: 6,
+            ..Default::default()
+        };
+
+        assert_eq!(
+            blend_factors(&transform),
+            (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha)
+        );
+    }
+
+    #[test]
+    fn every_d3d_blend_code_maps_to_its_wgpu_factor() {
+        let factor = |code| d3d_blend_factor(code);
+
+        assert_eq!(factor(1), Some(BlendFactor::Zero));
+        assert_eq!(factor(2), Some(BlendFactor::One));
+        assert_eq!(factor(3), Some(BlendFactor::Src));
+        assert_eq!(factor(4), Some(BlendFactor::OneMinusSrc));
+        assert_eq!(factor(5), Some(BlendFactor::SrcAlpha));
+        assert_eq!(factor(6), Some(BlendFactor::OneMinusSrcAlpha));
+        assert_eq!(factor(7), Some(BlendFactor::DstAlpha));
+        assert_eq!(factor(8), Some(BlendFactor::OneMinusDstAlpha));
+        assert_eq!(factor(9), Some(BlendFactor::Dst));
+        assert_eq!(factor(10), Some(BlendFactor::OneMinusDst));
+        assert_eq!(factor(11), Some(BlendFactor::SrcAlphaSaturated));
+        assert_eq!(factor(12), Some(BlendFactor::SrcAlpha));
+        assert_eq!(factor(13), Some(BlendFactor::OneMinusSrcAlpha));
+        assert_eq!(factor(0), None);
+        assert_eq!(factor(14), None);
+    }
+
+    #[test]
+    fn unset_blend_codes_fall_back_to_straight_alpha() {
+        // A default/incomplete transform carries no D3D codes; the official
+        // client would submit the invalid value, so the port keeps its old
+        // straight-alpha pair for this synthetic case only.
+        assert_eq!(
+            blend_factors(&Transform::default()),
+            (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha)
+        );
+    }
+
+    #[test]
     fn texture_index_truncates_and_falls_back_past_the_texture_count() {
         let mut transform = Transform::default();
         let three_textures = clip(3, Vec::new());
@@ -683,10 +808,5 @@ mod tests {
         // No list at all, and then a list with an empty name.
         assert!(visible_layers(Some(&player), &clips, &[]).is_empty());
         assert!(visible_layers(Some(&player), &clips, &[vec![], vec![String::new()]]).is_empty());
-    }
-
-    #[test]
-    fn blend_factors_are_the_straight_alpha_pair() {
-        assert_eq!(blend_factors(), (BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha));
     }
 }

@@ -210,14 +210,6 @@
             ],
         ),
         (
-            skill: 24,
-            phase: Hit,
-            layers: [
-                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\lens1.tga", size: 5.95, size_end: 6.84, duration_ms: 250, count: 4, wav: "effect\\ef_hit2.wav"),
-                (kind: Texture, anchor: Target, attached_entity: false, file: "effect\\lens2.tga", size: 5.95, size_end: 6.84, duration_ms: 250, count: 4),
-            ],
-        ),
-        (
             skill: 25,
             phase: Ground,
             layers: [

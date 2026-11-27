@@ -22,6 +22,10 @@ Sources:
 * the port registry sources - `registry::ported_ids()`, emitted as the
   `PORTED` const. A Rust test pins the generated const to the runtime list.
 
+Skills whose official visual is not spawned by either skill-use switch are
+curated in `CURATED_SKILL_EFFECTS` below (the option auras: `EF_RUWACH` is
+re-launched from `CGameActor::UpdateStateEffects`, not from `skill_spawns`).
+
 Run: `./tools/gen_ported_skill_map.py`
 Check: `./tools/gen_ported_skill_map.py --check`
 """
@@ -102,6 +106,22 @@ TARGET_PHASES = {"Ground", "Release", "Hit"}
 # via `PlaySkillEffect`) launch these on the source actor; both bodies travel
 # from `runtime.position` towards `runtime.target_offset`.
 TRAVEL_FROM_CASTER = {"Grimtooth", "Spearbmr"}
+
+# Skills whose official effect is not spawned by the skill-use switch, so the
+# coverage/2019 fallback cannot know it. The client starts these from the
+# actor's option/state flags instead:
+#
+# * `AL_RUWACH` (24) -> `EF_RUWACH` (33): the Acolyte reveal aura. The skill
+#   switch is a literal `case AL_RUWACH: break;` (`GameModePackets.cpp:21615`)
+#   and the 2019 table only carries `hitEffectId 1`, but
+#   `CGameActor::UpdateStateEffects` re-launches `EF_RUWACH` every
+#   `EffectLifetime(33)` = 200 frames while `OPTION_RUWACH` is set
+#   (`GameActor.cpp:704-714`; population twin `RenderObject.cpp:4697-4705`).
+#   The aura starts when the skill completes (0x09CB), hence the `Success`
+#   phase.
+CURATED_SKILL_EFFECTS: dict[int, tuple[str, str]] = {
+    24: ("Ruwach", "Success"),
+}
 
 
 def read(path: Path) -> str:
@@ -250,6 +270,10 @@ def main() -> int:
 
     for key, entry in coverage.items():
         skill = int(key)
+        if skill in CURATED_SKILL_EFFECTS:
+            # Curated above; the coverage/2019 fallbacks would otherwise pick a
+            # wrong id (AL_RUWACH's only 2019 id is the generic hit effect).
+            continue
         raw_used = entry.get("used_effect_ids") or []
         used = [effect_id for effect_id in raw_used if id_to_name.get(effect_id) in ported_set]
         skill_descriptors = descriptors.get(skill, [])
@@ -312,6 +336,12 @@ def main() -> int:
             anchor = "Caster"
 
         rows.append((skill, phase, name_to_id[effect_name], effect_name, anchor))
+
+    for skill, (name, phase) in sorted(CURATED_SKILL_EFFECTS.items()):
+        if name not in ported_set:
+            raise SystemExit(f"curated skill {skill} maps to the unported effect {name}")
+        anchor = "Target" if phase in TARGET_PHASES else "Caster"
+        rows.append((skill, phase, name_to_id[name], name, anchor))
 
     rows.sort(key=lambda row: (row[0], PHASE_INDEX[row[1]]))
     ported_sorted = sorted(ported_set, key=name_to_id.__getitem__)

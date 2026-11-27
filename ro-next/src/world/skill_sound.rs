@@ -613,6 +613,31 @@ mod tests {
     }
 
     #[test]
+    fn monk_investigate_uses_the_official_chimto_sound() {
+        // `CRagEffect::CHIMTO(0)` (`RagEffect.cpp:14419-14428`) plays
+        // `effect\mon_침투경.wav` inline at its frame 0; `TEIHIT2` has no sound
+        // (`RagEffect.cpp:12040-12085`). MO_INVESTIGATE launches both.
+        for phase in [crate::world::SkillPhase::Success, crate::world::SkillPhase::Hit] {
+            assert_eq!(
+                skill_sound_candidates_for(SkillId(266), phase),
+                ["effect\\mon_침투경.wav"],
+                "skill 266 phase {phase:?}"
+            );
+        }
+
+        // Throw Spirit Sphere's `TANJI()` plays its own wave at frame 0 and
+        // the EF_HIT2 impact layer carries the generic hit sound.
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(267), crate::world::SkillPhase::Success)[0],
+            "effect\\mon_탄지신통.wav"
+        );
+        assert_eq!(
+            skill_sound_candidates_for(SkillId(267), crate::world::SkillPhase::Hit)[0],
+            "effect\\ef_hit2.wav"
+        );
+    }
+
+    #[test]
     fn warp_portal_uses_the_official_portal_opening_sound() {
         // The official Warp Portal sound is the portal-opening `ef_readyportal`
         // carried by the skill unit effects (EF_READYPORTAL2/EF_PORTAL2); the

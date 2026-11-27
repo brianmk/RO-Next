@@ -53,6 +53,16 @@ pub struct Transform {
     pub anitype: i32,
     pub anidelta: f32,
     pub aniframe: f32,
+    /// `EZeffectTransform::srcalpha` (`0x0068`): the DX9 `D3DBLEND` code
+    /// `RenderAniClip` submits as `primitive->sourceBlend`.
+    ///
+    /// Only absolute keys copy it (`memcpy` of the whole transform); the
+    /// delta-key arm of `ProcessEZ2STR` does not touch it, so it stays at the
+    /// value of the last absolute key.
+    pub source_blend_factor: i32,
+    /// `EZeffectTransform::destalpha` (`0x006C`) -
+    /// `primitive->destinationBlend`.
+    pub destination_blend_factor: i32,
 }
 
 /// One `EZeffectKeyFrame`.
@@ -340,6 +350,42 @@ mod tests {
         }
 
         assert_eq!(seen, vec![0.0, 0.0, 1.0, 2.0, 3.0]);
+    }
+
+    #[test]
+    fn delta_keys_keep_the_absolute_keys_blend_pair() {
+        // The delta arm of `ProcessEZ2STR` (`RagEffect.cpp:1475-1523`) adds
+        // only the geometry/colour members; `srcalpha`/`destalpha` stay at the
+        // last absolute key's values, even though the delta key's own fields
+        // are zero (as in `Concentration.str`).
+        let clips = vec![Clip {
+            texture_count: 1,
+            frames: vec![
+                KeyFrame {
+                    frame: 0,
+                    transform: Transform {
+                        source_blend_factor: 5,
+                        destination_blend_factor: 7,
+                        ..Default::default()
+                    },
+                },
+                KeyFrame {
+                    frame: 2,
+                    transform: Transform {
+                        x: 1.0,
+                        kind: 1,
+                        ..Default::default()
+                    },
+                },
+            ],
+        }];
+        let mut player = Ez2StrPlayer::new(&clips);
+
+        while player.process(&clips) {
+            assert_eq!(player.transforms[0].source_blend_factor, 5);
+            assert_eq!(player.transforms[0].destination_blend_factor, 7);
+            player.state_cnt += 1;
+        }
     }
 
     #[test]

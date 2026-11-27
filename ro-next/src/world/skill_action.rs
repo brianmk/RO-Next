@@ -159,14 +159,28 @@ mod tests {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(11), "skill {}", skill_id);
         }
         // Skills with an explicit 0x60 sequence name the skill block directly
-        // (Action(12) == block 96); the ones without a sequence (Occult
-        // Impaction, Throw Spirit Sphere, Chain Crush Combo) keep the
-        // begin-skill default.
-        for skill_id in [272, 273, 370, 371] {
+        // (Action(12) == block 96); Chain Crush Combo has no sequence at all
+        // and keeps the begin-skill default.
+        for skill_id in [266, 267, 272, 273, 370, 371] {
             assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(12), "skill {}", skill_id);
         }
-        for skill_id in [266, 267, 372] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Skill, "skill {}", skill_id);
+        assert_eq!(caster_action(SkillId(372)), CasterAction::Skill, "skill 372");
+
+        // Occult Impaction / Throw Spirit Sphere share the official damage
+        // sequence `SetSequenceInterval(10); SetFrameSequence(0x60, 3, 4,
+        // 0x60, 4, 1, 1100, 0)` (`RenderObject.cpp:5802-5812`).
+        for skill_id in [266, 267] {
+            let sequence = crate::world::frame_sequence_for_skill(SkillId(skill_id)).expect("official damage sequence");
+            assert_eq!(
+                (sequence.first, sequence.last, sequence.loop_to),
+                (3, 4, 4),
+                "skill {}",
+                skill_id
+            );
+            assert_eq!(sequence.duration_ms, 1100, "skill {}", skill_id);
+            assert_eq!(sequence.interval_ticks, 10, "skill {}", skill_id);
+            // 10 ticks of the 60 Hz timer: one sequence frame every 167 ms.
+            assert_eq!(sequence.step_ms(), Some(167), "skill {}", skill_id);
         }
         // Fury is motion 0 in `GetSkillActionInfo`, but
         // `CGameMode::ReceiveSkillUse` overrides it with

@@ -1,0 +1,239 @@
+{
+  "provenance": {
+    "source": "Client decompilation (rodecomp), Source/Contents/Effects/Core/MsgEffect.cpp + Source/Contents/Actors/RenderObject.cpp + Source/Contents/Actors/GameObject.cpp + Source/Client/Mode/GameModePackets.cpp",
+    "note": "Every numeric constant below is a literal of the official client; see the cited file:line in `source` per style/field."
+  },
+  "layout": {
+    "step": 8,
+    "bias": -4,
+    "extended_first_offset_base": 3,
+    "extended_first_offset_add": 4,
+    "extended_step": 8,
+    "source": "CGameActor::SpawnDamageDigits (RenderObject.cpp:4834-4840): offset=(digits-1-index*2)*4-4; million-unit variant (n-1)*3+4 / (n-1)*3-index*8"
+  },
+  "extended_damage": {
+    "enabled_value": 1000000,
+    "million_marker": 10,
+    "hundred_million_value": 100000000,
+    "hundred_million_marker": 11,
+    "disabled_cap": 999999,
+    "source": "RenderObject.cpp:4781-4791 (TT_EXTEND_DAMAGE_ON_OFF and m_damageMillionUnit)"
+  },
+  "digits": {
+    "sprite": "이팩트\\숫자",
+    "action": "이팩트\\숫자",
+    "motion_count": 10,
+    "cell_x": 0,
+    "cell_y": 0,
+    "cell_scale_x": 0.3,
+    "cell_scale_y": 0.3,
+    "source": "archive/data/sprite/이팩트/숫자.spr + 숫자.act; AM_SETPOS2 maps digit n to motion n (MsgEffect.cpp:1762-1770)"
+  },
+  "miss": {
+    "sprite": "이팩트\\miss",
+    "action": "이팩트\\miss",
+    "image": 0,
+    "cell_x": 0,
+    "cell_y": -129,
+    "cell_scale_x": 0.3,
+    "cell_scale_y": 0.3,
+    "width": 101,
+    "height": 85,
+    "cell_alpha": 101,
+    "source": "CGameMode::SpawnDamageMsgEffect (WorldObjects.cpp:963-983) uses g_session.damageSpriteName; data.grf data\\sprite\\이팩트\\miss.spr/.act motion 0 cell 0 = image 0 at (0,-129), zoom 0.3, color 0x65FFFFFF; image 101x85"
+  },
+  "styles": [
+    {
+      "name": "normal",
+      "type_id": 14,
+      "lifetime_frames": 70.0,
+      "spawn_offset": 12.0,
+      "vertical_curve": "quadratic",
+      "vertical_speed": 0.0,
+      "horizontal_drift": true,
+      "base_scale": 5.0,
+      "min_scale": 1.2,
+      "max_scale": 5.0,
+      "scale_step": 0.24,
+      "scale_growth": 0.0,
+      "alpha_start": 250.0,
+      "alpha_step": 3.4,
+      "fade_start": 0.0,
+      "fade_step": 0.0,
+      "color": "white",
+      "source": "MsgEffect.cpp:288-301; AM_SETPOS2 :1722-1777; spawn offset position.y-=12"
+    },
+    {
+      "name": "critical",
+      "type_id": 16,
+      "lifetime_frames": 70.0,
+      "spawn_offset": 12.0,
+      "vertical_curve": "quadratic",
+      "vertical_speed": 0.0,
+      "horizontal_drift": true,
+      "base_scale": 5.0,
+      "min_scale": 1.3,
+      "max_scale": 5.0,
+      "scale_step": 0.24,
+      "scale_growth": 0.0,
+      "alpha_start": 250.0,
+      "alpha_step": 3.4,
+      "fade_start": 0.0,
+      "fade_step": 0.0,
+      "color": "critical_yellow",
+      "source": "MsgEffect.cpp:269-286; GameObject.cpp:1919-1920 (yellow 0xFFFFFF00, type 16)"
+    },
+    {
+      "name": "half",
+      "type_id": 21,
+      "lifetime_frames": 70.0,
+      "spawn_offset": 12.0,
+      "vertical_curve": "quadratic",
+      "vertical_speed": 0.0,
+      "horizontal_drift": true,
+      "base_scale": 5.0,
+      "min_scale": 1.2,
+      "max_scale": 5.0,
+      "scale_step": 0.24,
+      "scale_growth": 0.0,
+      "alpha_start": 250.0,
+      "alpha_step": 3.4,
+      "fade_start": 0.0,
+      "fade_step": 0.0,
+      "color": "blue_damage",
+      "source": "MsgEffect.cpp:288-301 (MET_NUMBER_HALF shares MET_NUMBER); GameObject.cpp:1914 (blueDamage 0xFF1E90FF, type 21)"
+    },
+    {
+      "name": "total",
+      "type_id": 22,
+      "lifetime_frames": 120.0,
+      "spawn_offset": 27.0,
+      "vertical_curve": "linear",
+      "vertical_speed": 0.1,
+      "horizontal_drift": false,
+      "base_scale": 0.5,
+      "min_scale": 0.5,
+      "max_scale": 3.0,
+      "scale_step": 0.0,
+      "scale_growth": 0.18,
+      "alpha_start": 250.0,
+      "alpha_step": 0.0,
+      "fade_start": 90.0,
+      "fade_step": 8.0,
+      "color": "white",
+      "source": "MsgEffect.cpp:331-351 (MET_NUMBER_TOTAL) + RenderObject.cpp:4838-4840 (scale reset to 0.5) + AM_SETPOS2 :1717-1720 (offset 15+12)"
+    },
+    {
+      "name": "simple",
+      "type_id": 114,
+      "lifetime_frames": 120.0,
+      "spawn_offset": 12.0,
+      "vertical_curve": "linear",
+      "vertical_speed": 0.18,
+      "horizontal_drift": false,
+      "base_scale": 5.0,
+      "min_scale": 1.0,
+      "max_scale": 5.0,
+      "scale_step": 0.24,
+      "scale_growth": 0.0,
+      "alpha_start": 250.0,
+      "alpha_step": 2.0,
+      "fade_start": 0.0,
+      "fade_step": 0.0,
+      "color": "white",
+      "source": "MsgEffect.cpp:538-552 (m_type 0x72 = 114); heal colours from GameModePackets.cpp:1645-1668, 18785-18873, 21373-21379; status colours :4671-4698"
+    },
+    {
+      "name": "miss",
+      "type_id": 13,
+      "lifetime_frames": 80.0,
+      "spawn_offset": 12.0,
+      "vertical_curve": "linear",
+      "vertical_speed": 0.54,
+      "horizontal_drift": false,
+      "base_scale": 1.0,
+      "min_scale": 1.0,
+      "max_scale": 1.0,
+      "scale_step": 0.0,
+      "scale_growth": 0.0,
+      "alpha_start": 250.0,
+      "alpha_step": 3.0,
+      "fade_start": 0.0,
+      "fade_step": 0.0,
+      "color": "white",
+      "source": "MsgEffect.cpp:322-331 (MET_MISS) + AM_SETPOS miss case :1813-1825; miss sprite from WorldObjects.cpp:963-983; AM_MAKE_MISS passes white (0xFFFFFFFF) for attacker misses, red 0xFFFF0000 only when damage==0 and the attacker is not a monster (GameObject.cpp:1774-1779)"
+    }
+  ],
+  "colors": [
+    {
+      "name": "white",
+      "argb": 4294967295,
+      "source": "GameObject.cpp:1907/1926/1935 normal damage"
+    },
+    {
+      "name": "player_red",
+      "argb": 4294901760,
+      "source": "GameObject.cpp:1934 (player target, 0xFFFF0000)"
+    },
+    {
+      "name": "critical_yellow",
+      "argb": 4294967040,
+      "source": "GameObject.cpp:1919 (0xFFFFFF00)"
+    },
+    {
+      "name": "blue_damage",
+      "argb": 4280193279,
+      "source": "GameObject.cpp:1914 (blueDamage 0xFF1E90FF)"
+    },
+    {
+      "name": "heal_green",
+      "argb": 4278255360,
+      "source": "GameModePackets.cpp:1652/18786/21378 (0xFF00FF00)"
+    },
+    {
+      "name": "sp_blue",
+      "argb": 4278190335,
+      "source": "GameModePackets.cpp:1664/18871 (0xFF0000FF)"
+    },
+    {
+      "name": "status_green",
+      "argb": 4278255360,
+      "source": "GameModePackets.cpp:4683 EF_GREEN_NUMBER"
+    },
+    {
+      "name": "status_blue",
+      "argb": 4278190335,
+      "source": "GameModePackets.cpp:4685 EF_BLUE_NUMBER"
+    },
+    {
+      "name": "status_red",
+      "argb": 4294901760,
+      "source": "GameModePackets.cpp:4687 EF_RED_NUMBER"
+    },
+    {
+      "name": "status_purple",
+      "argb": 4294902015,
+      "source": "GameModePackets.cpp:4689 EF_PURPLE_NUMBER (0xFFFF00FF)"
+    },
+    {
+      "name": "status_black",
+      "argb": 4278190080,
+      "source": "GameModePackets.cpp:4691 EF_BLACK_NUMBER (0xFF000000)"
+    },
+    {
+      "name": "status_white",
+      "argb": 4294967295,
+      "source": "GameModePackets.cpp:4693 EF_WHITE_NUMBER"
+    },
+    {
+      "name": "status_yellow",
+      "argb": 4294967040,
+      "source": "GameModePackets.cpp:4695 EF_YELLOW_NUMBER"
+    },
+    {
+      "name": "status_pink",
+      "argb": 4294923697,
+      "source": "GameModePackets.cpp:4697 EF_PINK_NUMBER (0xFFFF55B1)"
+    }
+  ]
+}

@@ -1211,6 +1211,38 @@ fn small_feedback_packets_reach_the_client() {
     }]));
 }
 
+/// `ZC_BLADESTOP` (0x01D1) is the official Blade Stop lock: the client must
+/// hold the caster's skill-frame-4 pose and freeze the rooted attacker until
+/// the release packet (`GameModeNotices.cpp:922-955`). Before this handler the
+/// packet was ignored, so Blade Stop showed no animation at all.
+#[test]
+fn blade_stop_lock_reaches_the_client() {
+    let mut handler = NetworkingSystem::create_map_server_packet_handler(NoPacketCallback, SupportedPacketVersion::_20220406).unwrap();
+
+    // 01D1 <first aid>.L <second aid>.L <active>.L
+    let mut data = vec![0xD1, 0x01];
+    data.extend_from_slice(&20000076u32.to_le_bytes());
+    data.extend_from_slice(&1002u32.to_le_bytes());
+    data.extend_from_slice(&1u32.to_le_bytes());
+    let events = feed(&mut handler, &data);
+    assert!(matches!(events.0.as_slice(), [NetworkEvent::ActorPairFreeze {
+        first_entity_id: EntityId(20000076),
+        second_entity_id: EntityId(1002),
+        active: true,
+    }]));
+
+    // `clif_bladestop(..., false)` releases the lock.
+    let mut release = vec![0xD1, 0x01];
+    release.extend_from_slice(&20000076u32.to_le_bytes());
+    release.extend_from_slice(&1002u32.to_le_bytes());
+    release.extend_from_slice(&0u32.to_le_bytes());
+    let events = feed(&mut handler, &release);
+    assert!(matches!(events.0.as_slice(), [NetworkEvent::ActorPairFreeze {
+        active: false,
+        ..
+    }]));
+}
+
 /// Character deletion has to send the real account e-mail address: rAthena
 /// runs with `char_del_option: 1` and compares the 40-byte field with the
 /// account e-mail, so the old hardcoded "a@a.com" made every request fail.

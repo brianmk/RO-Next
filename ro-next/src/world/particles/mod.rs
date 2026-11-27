@@ -159,6 +159,13 @@ const DAMAGE_NUMBER_DRIFT_SPEED: f32 = 8.0;
 /// Lifetime of a damage number in seconds.
 const DAMAGE_NUMBER_LIFETIME: f32 = 0.9;
 
+/// Spacing between the damage numbers of one multi-hit packet.
+///
+/// Official `g_multiHitInterval = 200` (`RenderObject.cpp:101`): the client
+/// emits one popup every 200 ms so a five-hit Throw Spirit Sphere shows five
+/// separate numbers instead of one overlapping blob.
+pub const MULTI_HIT_INTERVAL_MS: u32 = 200;
+
 /// Horizontal drift direction of the official damage fountain.
 ///
 /// The classic client drifts the numbers diagonally away from the hit entity,
@@ -189,6 +196,9 @@ pub struct DamageNumber {
     damage_amount: String,
     magnitude_scale: f32,
     elapsed: f32,
+    /// Milliseconds before the number appears. Multi-hit packets stagger
+    /// their numbers by [`MULTI_HIT_INTERVAL_MS`].
+    delay_ms: u32,
     is_critical: bool,
 }
 
@@ -198,6 +208,13 @@ impl DamageNumber {
     /// hit entity based on the direction it faces. `direction` is optional so
     /// effects without an entity (e.g. ground damage) still show a number.
     pub fn new(position: Point3<f32>, damage_amount: u64, is_critical: bool, direction: Direction) -> Self {
+        Self::with_delay(position, damage_amount, is_critical, direction, 0)
+    }
+
+    /// Creates a damage number that stays invisible for `delay_ms` before it
+    /// starts its arc. Used for the staggered numbers of a multi-hit packet
+    /// (`g_multiHitInterval`, `RenderObject.cpp:101`).
+    pub fn with_delay(position: Point3<f32>, damage_amount: u64, is_critical: bool, direction: Direction, delay_ms: u32) -> Self {
         let origin = position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0);
 
         Self {
@@ -207,8 +224,14 @@ impl DamageNumber {
             damage_amount: damage_amount.to_string(),
             magnitude_scale: damage_magnitude_scale(damage_amount),
             elapsed: 0.0,
+            delay_ms,
             is_critical,
         }
+    }
+
+    /// Whether the number is still waiting for its multi-hit slot.
+    fn is_delayed(&self) -> bool {
+        self.delay_ms > 0
     }
 }
 
@@ -218,6 +241,13 @@ impl Particle for DamageNumber {
     }
 
     fn update(&mut self, delta_time: f32) -> bool {
+        if self.is_delayed() {
+            let delay = self.delay_ms as f32 / 1000.0;
+            let remaining = (delay - delta_time).max(0.0);
+            self.delay_ms = (remaining * 1000.0).round() as u32;
+            return true;
+        }
+
         self.elapsed += delta_time;
         let time = self.elapsed;
 
@@ -231,6 +261,12 @@ impl Particle for DamageNumber {
     }
 
     fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
+        // Multi-hit numbers appear one by one; the later ones stay hidden
+        // until their 200 ms slot arrives.
+        if self.is_delayed() {
+            return;
+        }
+
         let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
         let screen_position = camera.clip_to_screen_space(clip_space_position);
         let final_position = ScreenPosition {
@@ -542,8 +578,6 @@ pub struct ParticleHolder {
     culled_in_last_frame: std::cell::Cell<u32>,
     /// Audio engine used for particle impact sounds (arrow hits).
     audio_engine: Option<Arc<AudioEngine<GameFileLoader>>>,
-    /// Pre-loaded `_hit_arrow.wav` key, played when an arrow projectile lands.
-    arrow_hit_sound: Option<SoundEffectKey>,
 }
 
 impl Default for ParticleHolder {
@@ -557,7 +591,6 @@ impl Default for ParticleHolder {
             rendered_in_last_frame: std::cell::Cell::new(0),
             culled_in_last_frame: std::cell::Cell::new(0),
             audio_engine: None,
-            arrow_hit_sound: None,
         }
     }
 }
@@ -578,16 +611,13 @@ impl ParticleHolder {
         self.dropped_particles
     }
 
-    /// Enables impact sounds and pre-loads the arrow hit sound.
+    /// Enables impact sounds.
+    ///
+    /// The bow auto-attack impact wave (`_hit_arrow.wav`) is not played here:
+    /// it is the official damage-message hit wave
+    /// (`Client::play_auto_attack_hit_feedback`).
     pub fn install_audio(&mut self, audio_engine: Arc<AudioEngine<GameFileLoader>>) {
-        self.arrow_hit_sound = Some(audio_engine.load("data\\wav\\_hit_arrow.wav"));
         self.audio_engine = Some(audio_engine);
-    }
-
-    /// Key of the classic `_hit_arrow.wav` arrow impact sound, if audio is
-    /// installed.
-    pub fn arrow_hit_sound(&self) -> Option<SoundEffectKey> {
-        self.arrow_hit_sound
     }
 
     pub fn spawn_particle(&mut self, particle: Box<dyn Particle + Send + Sync>) {
@@ -760,10 +790,34 @@ pub struct ArrowAssets {
 
 #[cfg(test)]
 mod damage_fountain_tests {
-    use cgmath::{InnerSpace, Vector3};
+    use cgmath::{InnerSpace, Point3, Vector3};
     use ragnarok_packets::Direction;
 
-    use super::{DAMAGE_NUMBER_DRIFT_SPEED, damage_number_drift};
+    use super::{DAMAGE_NUMBER_DRIFT_SPEED, DamageNumber, MULTI_HIT_INTERVAL_MS, Particle, damage_number_drift};
+
+    /// The staggered numbers of a multi-hit packet stay hidden until their
+    /// slot arrives, then each shows the per-hit damage.
+    #[test]
+    fn multi_hit_numbers_wait_for_their_slot() {
+        let mut first = DamageNumber::with_delay(Point3::new(0.0, 0.0, 0.0), 100, false, Direction::North, 0);
+        let mut second = DamageNumber::with_delay(Point3::new(0.0, 0.0, 0.0), 100, false, Direction::North, MULTI_HIT_INTERVAL_MS);
+
+        assert!(!first.is_delayed());
+        assert!(second.is_delayed());
+
+        // The first number advances; the second is still parked.
+        first.update(0.016);
+        second.update(0.016);
+        assert!(first.elapsed > 0.0);
+        assert_eq!(second.elapsed, 0.0);
+        assert!(second.is_delayed());
+
+        // After the 200 ms slot the second number starts its arc.
+        second.update(0.2);
+        assert!(!second.is_delayed());
+        second.update(0.016);
+        assert!(second.elapsed > 0.0);
+    }
 
     /// The drift direction follows the entity facing octant like the classic
     /// client (`MsgEffectDriftDirection`).

@@ -203,7 +203,7 @@ pub struct AddSkillPacket {
     pub skill_information: SkillInformation,
 }
 
-#[derive(Debug, Clone, Copy, ByteConvertable)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ByteConvertable)]
 #[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
 #[numeric_type(u32)]
 pub enum EffectId {
@@ -1586,8 +1586,34 @@ pub struct DisplaySkillEffectAndDamagePacket {
     pub destination_delay: u32,
     pub damage: u32,
     pub level: SkillLevel,
+    /// Number of hits the damage is split into (`div` in rAthena's
+    /// `clif_skill_damage`). Multi-hit skills such as Throw Spirit Sphere send
+    /// one packet with `div = hit count`; the official client divides `damage`
+    /// by this value and shows one number per hit
+    /// (`RenderObject.cpp:5367-5368`, `:5931-5947`).
     pub div: u16,
     pub skill_type: u8,
+}
+
+/// `ZC_BLADESTOP` (0x01D1): the Blade Stop caster (`first`) has rooted the
+/// attacker (`second`) until the lock is released.
+///
+/// rAthena `clif_bladestop` (`clif.cpp:8556-8569`) sends
+/// `srcId.L targetId.L flag.L`; the official client handles it in
+/// `CGameMode::ReceiveActorPairFreeze` (`GameModeNotices.cpp:922-955`):
+/// the first actor holds skill block frame 4 tinted grey and the second is
+/// motion-frozen until a `flag == 0` packet arrives.
+#[derive(Debug, Clone, Packet, ServerPacket, MapServer)]
+#[cfg_attr(feature = "interface", derive(rust_state::RustState, ro_next_interface::element::StateElement))]
+#[header(0x01D1)]
+#[packet_size(14)]
+pub struct BladeStopPacket {
+    /// Blade Stop caster (`CGameMode::ReceiveActorPairFreeze` `firstAid`).
+    pub first_entity_id: EntityId,
+    /// Attacker that is rooted (`secondAid`).
+    pub second_entity_id: EntityId,
+    /// `1` while the lock is active, `0` on release.
+    pub active: u32,
 }
 
 #[derive(Debug, Clone, Packet, ServerPacket, MapServer)]

@@ -19,6 +19,7 @@ use crate::world::SkillPhase;
 /// Every effect id the port can spawn (`registry::ported_ids()`, deduplicated
 /// and sorted by numeric id).
 pub const PORTED: &[EffectId] = &[
+    EffectId::Hit1,
     EffectId::Hit2,
     EffectId::Hit3,
     EffectId::Entry,
@@ -41,6 +42,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Thunderstorm,
     EffectId::Firearrow,
     EffectId::Napalmbeat,
+    EffectId::Ruwach,
     EffectId::Portal,
     EffectId::Incagility,
     EffectId::Decagility,
@@ -241,6 +243,7 @@ pub const PORTED: &[EffectId] = &[
     EffectId::Hitline4,
     EffectId::Hitline5,
     EffectId::Hitline6,
+    EffectId::Hitline7,
     EffectId::Stormkick,
     EffectId::Halfsphere,
     EffectId::Assumptio2,
@@ -516,6 +519,7 @@ pub const MAPPED: &[(SkillId, SkillPhase, EffectId, PortedAnchor)] = &[
     (SkillId(19), SkillPhase::Hit, EffectId::Firearrow, PortedAnchor::Target),
     (SkillId(20), SkillPhase::Hit, EffectId::Lightbolt, PortedAnchor::Target),
     (SkillId(21), SkillPhase::Hit, EffectId::Thunderstorm, PortedAnchor::Target),
+    (SkillId(24), SkillPhase::Success, EffectId::Ruwach, PortedAnchor::Caster),
     (SkillId(28), SkillPhase::Hit, EffectId::Heal3, PortedAnchor::Target),
     (SkillId(29), SkillPhase::Success, EffectId::Incagility, PortedAnchor::Caster),
     (SkillId(30), SkillPhase::Success, EffectId::Decagility, PortedAnchor::Caster),

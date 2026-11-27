@@ -19,7 +19,7 @@ use super::rag::{
     ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Guard2, Hated, HealBurst,
     HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LineLink, LkConcentration, LockOn, Loud, MagicRing, Magnum2,
     MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, Pressure, QuadRingStack,
-    RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3,
+    RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, Ruwach, ShieldBoomerang3,
     ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulBreaker, SoulBreaker2, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand,
     StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral, TexturedBeam, TexturedComet, TexturedGlow,
     TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter, TexturedShieldThrow,
@@ -434,6 +434,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // `case EF_GUARD2:` (`OnProcess3`) - `RagEffect.cpp:21646-21658`.
         // Lifetime 200 (`EffectTypes.cpp:505`).
         EffectId::Guard2 => Box::new(Guard2::new(200)),
+        // `case EF_RUWACH:` - `RagEffect.cpp:23193-23232`. Lifetime 200
+        // (`EffectTypes.cpp:42`). The Acolyte reveal aura the actor re-launches
+        // from `OPTION_RUWACH` (`GameActor.cpp:704-714`).
+        EffectId::Ruwach => Box::new(Ruwach),
         _ => return None,
     })
 }
@@ -742,6 +746,9 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Baby,
         EffectId::Soulbreaker2,
         EffectId::Guard2,
+        // `EF_RUWACH` (33) - `RagEffect.cpp:23193-23232`, lifetime
+        // `EffectTypes.cpp:42`.
+        EffectId::Ruwach,
     ]);
 
     ids
@@ -984,6 +991,8 @@ mod tests {
             (EffectId::Baby, 200),
             (EffectId::Soulbreaker2, 300),
             (EffectId::Guard2, 200),
+            // `EF_RUWACH` - `EffectTypes.cpp:42`.
+            (EffectId::Ruwach, 200),
         ];
 
         for (effect, lifetime) in expect {
