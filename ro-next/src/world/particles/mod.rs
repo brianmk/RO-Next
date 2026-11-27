@@ -44,6 +44,16 @@ pub trait Particle {
     fn total_owner(&self) -> Option<EntityId> {
         None
     }
+
+    /// The particle's owner left the live entity list at `position` (it died
+    /// or despawned).
+    ///
+    /// A damage number follows its owner while the owner is alive. When the
+    /// server's death/remove packet is handled before the damage message, the
+    /// target is no longer in `entities`; the number must keep the owner's
+    /// last known position instead of being dropped or snapping back to an
+    /// unrelated anchor. Particles with a fixed anchor keep the default no-op.
+    fn owner_removed(&mut self, _entity_id: EntityId, _position: Point3<f32>) {}
 }
 
 /// An emotion played above an entity, rendered from the animation frames of
@@ -296,6 +306,20 @@ impl ParticleHolder {
         self.quest_icons.remove(&entity_id);
     }
 
+    /// Freezes the particles owned by `entity_id` at the owner's last known
+    /// world position.
+    ///
+    /// The particle list itself is not touched: every in-flight number keeps
+    /// stepping and rendering for the rest of its lifetime, anchored where the
+    /// owner was last seen (the official `CMsgEffect` lives in the scene effect
+    /// list, not on the actor). The caller passes the position before the
+    /// entity is removed from the live list.
+    pub fn owner_removed(&mut self, entity_id: EntityId, position: Point3<f32>) {
+        for particle in &mut self.particles {
+            particle.owner_removed(entity_id, position);
+        }
+    }
+
     pub fn clear(&mut self) {
         self.particles.clear();
         self.quest_icons.clear();
@@ -358,7 +382,60 @@ impl ParticleHolder {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    use cgmath::Point3;
+    use ragnarok_packets::EntityId;
+
     use super::particles_to_evict;
+    use crate::graphics::ScreenSize;
+    use crate::renderer::GameInterfaceRenderer;
+    use crate::world::{Camera, Entity, Particle, ParticleHolder};
+
+    /// Records the owner-removal hook, so the holder dispatch and the "drop
+    /// nothing" promise are observable without a renderer.
+    struct OwnerProbe {
+        owner: EntityId,
+        calls: Arc<AtomicUsize>,
+    }
+
+    impl Particle for OwnerProbe {
+        fn update(&mut self, _delta_time: f32) -> bool {
+            true
+        }
+
+        fn render(&self, _renderer: &GameInterfaceRenderer, _camera: &dyn Camera, _window_size: ScreenSize, _entities: &[Entity]) {}
+
+        fn culling_position(&self) -> Point3<f32> {
+            Point3::new(0.0, 0.0, 0.0)
+        }
+
+        fn owner_removed(&mut self, entity_id: EntityId, _position: Point3<f32>) {
+            if entity_id == self.owner {
+                self.calls.fetch_add(1, Ordering::Relaxed);
+            }
+        }
+    }
+
+    #[test]
+    fn entity_removal_freezes_owned_particles_without_dropping_them() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut holder = ParticleHolder::default();
+        holder.spawn_particle(Box::new(OwnerProbe {
+            owner: EntityId(7),
+            calls: calls.clone(),
+        }));
+        assert_eq!(holder.count(), 1);
+
+        holder.owner_removed(EntityId(8), Point3::new(1.0, 2.0, 3.0));
+        assert_eq!(calls.load(Ordering::Relaxed), 0, "another owner must not touch the particle");
+        assert_eq!(holder.count(), 1);
+
+        holder.owner_removed(EntityId(7), Point3::new(1.0, 2.0, 3.0));
+        assert_eq!(calls.load(Ordering::Relaxed), 1);
+        assert_eq!(holder.count(), 1, "removing an entity must never delete in-flight particles");
+    }
 
     #[test]
     fn particle_budget_evicts_only_when_full() {

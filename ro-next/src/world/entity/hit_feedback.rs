@@ -84,7 +84,8 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use ragnarok_packets::{EffectId, EntityId, JobId};
+use cgmath::Point3;
+use ragnarok_packets::{Direction, EffectId, EntityId, JobId};
 use serde::Deserialize;
 
 use crate::world::weapon::{self, WeaponKind};
@@ -356,6 +357,78 @@ pub struct HitDefender {
     /// `IsPlayerJob(GetEffectiveJob(-1))` of the defender; selects the
     /// defender's clothing wave instead of the attacker's weapon wave.
     pub is_player: bool,
+}
+
+/// The facts of a damage target that the client needs for the damage number,
+/// the impact wave and the hit effects.
+///
+/// The official client produces all three from the damage message
+/// (`AM_ATTACKED`/`ProcessHitMessage`) and keeps them independent of the
+/// actor's lifetime: the `CMsgEffect`s live in the scene effect list, and the
+/// actor still exists while its death animation plays. The port moves a dead
+/// monster from `ClientState::entities` to `ClientState::dead_entities` the
+/// moment the death packet is handled (`handle_remove_entity`), so a damage
+/// message that is dispatched after that packet can no longer resolve the
+/// target from the live list. Without a snapshot, the damage number used to
+/// be anchored on the attacker and the hit wave/effect were dropped entirely
+/// for the killing blow. [`resolve_target`] resolves the target from the live
+/// list first and from the dead list second, so both cases keep the target's
+/// last known pose.
+#[derive(Debug, Clone, Copy)]
+pub struct TargetSnapshot {
+    pub entity_id: EntityId,
+    pub position: Point3<f32>,
+    pub direction: Direction,
+    pub job_id: JobId,
+    /// `IsPlayerJob(GetEffectiveJob(-1))` of the target, classified from the
+    /// job id exactly like the rest of the client
+    /// (`EntityType::from(job_id) == EntityType::Player`).
+    pub is_player: bool,
+}
+
+impl TargetSnapshot {
+    /// Snapshots a live or dead entity.
+    pub fn from_entity(entity: &crate::world::Entity) -> Self {
+        let job_id = entity.get_job_id();
+
+        Self {
+            entity_id: entity.get_entity_id(),
+            position: entity.get_position(),
+            direction: entity.get_direction(),
+            job_id,
+            is_player: crate::world::EntityType::from(job_id) == crate::world::EntityType::Player,
+        }
+    }
+
+    /// The official actor angle the ported hit effects read as
+    /// `runtime.parent_angle`: `render.angle = (direction + 4) * 45`
+    /// (`GameObject.cpp:2044`, used by `Hit1`, `RagEffect.cpp:735-743`).
+    pub fn parent_angle(&self) -> f32 {
+        ((f32::from(u16::from(self.direction)) + 4.0) * 45.0) % 360.0
+    }
+
+    /// The defender facts of the hit wave/effect decision.
+    pub fn defender(&self) -> HitDefender {
+        HitDefender {
+            entity_id: self.entity_id,
+            job_id: self.job_id,
+            is_player: self.is_player,
+        }
+    }
+}
+
+/// Resolves a damage target from the live entities first and from the dead
+/// entities second.
+///
+/// `candidates` is normally
+/// `entities.iter().chain(dead_entities).map(TargetSnapshot::from_entity)`, so
+/// the first match is the live actor and the fallback is the actor that just
+/// died (still in `dead_entities` while its death animation plays). Returns
+/// `None` only when the client has never seen the entity; the official client
+/// then also has no target and produces no hit feedback
+/// (`RenderObject.cpp:3790-3792` returns when `target == nullptr`).
+pub fn resolve_target(destination_entity_id: EntityId, candidates: impl IntoIterator<Item = TargetSnapshot>) -> Option<TargetSnapshot> {
+    candidates.into_iter().find(|target| target.entity_id == destination_entity_id)
 }
 
 /// The feedback of one auto-attack damage message.
@@ -809,5 +882,71 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    fn snapshot(entity_id: u32, x: f32, z: f32, job_id: u16, is_player: bool) -> TargetSnapshot {
+        TargetSnapshot {
+            entity_id: EntityId(entity_id),
+            position: Point3::new(x, 7.0, z),
+            direction: Direction::East,
+            job_id: JobId(job_id),
+            is_player,
+        }
+    }
+
+    #[test]
+    fn resolve_target_prefers_the_live_entity() {
+        let live = snapshot(7, 10.0, 20.0, 1002, false);
+        let dead = snapshot(7, 1.0, 2.0, 1002, false);
+        let other = snapshot(8, 30.0, 40.0, 1002, false);
+
+        let target = resolve_target(EntityId(7), [live, dead, other]).expect("live target resolves");
+        assert_eq!(target.position, Point3::new(10.0, 7.0, 20.0));
+    }
+
+    /// The killing blow: the death/remove packet is handled first, so the
+    /// monster only exists in `dead_entities` when the damage message arrives.
+    /// The target must still resolve, at its last known pose.
+    #[test]
+    fn resolve_target_falls_back_to_the_dead_entity_of_a_killing_blow() {
+        let caster = snapshot(1, 0.0, 0.0, 0, true);
+        let dead_target = snapshot(200, 10.0, 20.0, 1002, false);
+
+        let target = resolve_target(EntityId(200), [caster, dead_target]).expect("killing-blow target resolves");
+        assert_eq!(target.entity_id, EntityId(200));
+        assert_eq!(
+            target.position,
+            Point3::new(10.0, 7.0, 20.0),
+            "the target's last position, not the caster's"
+        );
+        assert!(!target.is_player);
+    }
+
+    #[test]
+    fn resolve_target_returns_none_for_an_unknown_entity() {
+        // The official client also produces no feedback when the actor is
+        // unknown (`RenderObject.cpp:3790-3792`).
+        assert!(resolve_target(EntityId(9), [snapshot(7, 0.0, 0.0, 1002, false)]).is_none());
+    }
+
+    /// The impact wave and the hit effects must fire on the killing blow even
+    /// when only the dead target is known. This is the shared path that used
+    /// to drop both (and the number) when the defender lookup was live-only.
+    #[test]
+    fn killing_blow_keeps_the_impact_wave_and_hit_effects() {
+        let dead_target = snapshot(200, 10.0, 20.0, 1002, false);
+        let target = resolve_target(EntityId(200), [dead_target]).expect("killing-blow target resolves");
+
+        let normal = auto_attack_hit_feedback(Some(attacker(0, 0, true)), target.defender(), false, true, 0);
+        assert!(normal.sound.is_some(), "the killing blow still plays its impact wave");
+        assert_eq!(effect(normal.hit_effect), Some(0), "EF_HIT1 on the killing blow");
+        assert!(normal.critical_effect.is_none());
+
+        let critical = auto_attack_hit_feedback(Some(attacker(0, 0, true)), target.defender(), true, true, 0);
+        assert_eq!(effect(critical.hit_effect), Some(0));
+        assert_eq!(effect(critical.critical_effect), Some(1), "EF_HIT2 on a critical killing blow");
+
+        // `render.angle = (direction + 4) * 45`: East (2) -> 270 degrees.
+        assert!((target.parent_angle() - 270.0).abs() < f32::EPSILON);
     }
 }

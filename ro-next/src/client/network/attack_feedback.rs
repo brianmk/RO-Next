@@ -88,26 +88,43 @@ impl Client {
                 }
             });
 
-        let Some(defender) = self
-            .client_state
-            .follow(client_state().entities())
-            .iter()
-            .find(|entity| entity.get_entity_id() == destination_entity_id)
-            .map(|entity| {
-                let job_id = entity.get_job_id();
-                HitDefender {
-                    entity_id: destination_entity_id,
-                    job_id,
-                    is_player: EntityType::from(job_id) == EntityType::Player,
-                }
-            })
-        else {
+        // The killing blow can be reported by the death/remove packet before
+        // this damage message is dispatched: the monster is then only in
+        // `dead_entities`. The official client plays the impact wave and
+        // spawns the hit effect from the damage message at the damaged actor's
+        // position (`GameObject.cpp:1782-1888`), independent of the actor's
+        // lifetime, so the live-only lookup must not drop the feedback.
+        // Resolve the live entity first and fall back to the last known dead
+        // entity; never gate the wave/effect on the target still being alive.
+        let Some(target) = resolve_target(
+            destination_entity_id,
+            self.client_state
+                .follow(client_state().entities())
+                .iter()
+                .chain(self.client_state.follow(client_state().dead_entities()).iter())
+                .map(TargetSnapshot::from_entity),
+        ) else {
             crate::logging::log_debug!(
                 "hit feedback: defender {} is not tracked, skipping the impact wave/effect",
                 destination_entity_id.0
             );
             return;
         };
+
+        let defender = target.defender();
+
+        if !self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .any(|entity| entity.get_entity_id() == destination_entity_id)
+        {
+            crate::logging::log_debug!(
+                "hit feedback: defender {} was already removed, using its last known position {:?} (killing blow)",
+                destination_entity_id.0,
+                target.position
+            );
+        }
 
         // The two damage messages of one packet re-roll the wave/effect
         // variance independently (`std::rand()` per `SendMsg`), so the
@@ -116,10 +133,8 @@ impl Client {
         let roll = hit_feedback_roll(client_tick, source_entity_id, destination_entity_id, hit);
         let feedback = auto_attack_hit_feedback(attacker, defender, is_critical, damage, roll);
 
-        let Some(target_position) = self.entity_position(destination_entity_id) else {
-            return;
-        };
-        let target_angle = self.entity_parent_angle(destination_entity_id);
+        let target_position = target.position;
+        let target_angle = target.parent_angle();
         let listener_position = self.client_state.try_follow(this_entity()).map(|entity| entity.get_position());
 
         let sound = feedback.sound.map(|wave| {

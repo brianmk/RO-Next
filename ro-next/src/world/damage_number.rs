@@ -1063,14 +1063,30 @@ impl DamageNumber {
 
     /// Resolves the current world anchor: the owner's x/z (if visible), the
     /// official diagonal drift, and the fixed base height.
+    ///
+    /// `entities` only contains the live actors. A number whose target died
+    /// (the killing blow) therefore falls back to the anchor stored at spawn
+    /// (or frozen by [`Particle::owner_removed`]); it is never dropped and
+    /// never re-anchored on the attacker.
     fn world_anchor(&self, entities: &[Entity]) -> Point3<f32> {
+        let owner_xz = self.entity_id.and_then(|entity_id| {
+            entities.iter().find(|entity| entity.get_entity_id() == entity_id).map(|entity| {
+                let position = entity.get_position();
+                (position.x, position.z)
+            })
+        });
+
+        self.world_anchor_at(owner_xz)
+    }
+
+    /// [`Self::world_anchor`] with the owner's x/z already resolved, so the
+    /// follow and the captured-anchor paths can be tested without an entity
+    /// list.
+    fn world_anchor_at(&self, owner_xz: Option<(f32, f32)>) -> Point3<f32> {
         let mut anchor = self.position;
-        if let Some(entity_id) = self.entity_id
-            && let Some(entity) = entities.iter().find(|entity| entity.get_entity_id() == entity_id)
-        {
-            let position = entity.get_position();
-            anchor.x = position.x;
-            anchor.z = position.z;
+        if let Some((x, z)) = owner_xz {
+            anchor.x = x;
+            anchor.z = z;
         }
 
         let style = self.style_data();
@@ -1110,6 +1126,23 @@ impl Particle for DamageNumber {
 
     fn culling_position(&self) -> Point3<f32> {
         self.position
+    }
+
+    /// The number's owner left the live entity list (it died or despawned) at
+    /// `position`.
+    ///
+    /// The number keeps the owner's last x/z so it keeps rendering where the
+    /// actor was last seen for the rest of its lifetime. The official
+    /// `FollowOwner` also keeps the spawned base height (`m_baseY`) and only
+    /// follows the actor's x/z (`MsgEffect.cpp:1308-1350`), so `base_y` stays
+    /// untouched.
+    fn owner_removed(&mut self, entity_id: EntityId, position: Point3<f32>) {
+        if self.entity_id != Some(entity_id) {
+            return;
+        }
+
+        self.position.x = position.x;
+        self.position.z = position.z;
     }
 
     fn update(&mut self, delta_time: f32) -> bool {
@@ -1668,6 +1701,102 @@ mod tests {
     fn multi_hit_interval_is_the_official_two_hundred_milliseconds() {
         assert_eq!(MULTI_HIT_INTERVAL_MS, 200);
         assert_eq!(timeline().multi_hit_interval_ms, 200);
+    }
+
+    /// A normal target number. `Simple` (official type 114) has no horizontal
+    /// drift, so the anchor assertions can compare x/z directly; the follow /
+    /// fallback logic is shared by every style.
+    fn target_number() -> DamageNumber {
+        DamageNumber::new(
+            Some(ragnarok_packets::EntityId(2)),
+            Point3::new(10.0, 5.0, 20.0),
+            999,
+            DamageNumberStyle::Simple,
+            DamageColor::White,
+            Direction::North,
+            0,
+        )
+    }
+
+    #[test]
+    fn damage_number_follows_a_living_owner() {
+        let number = target_number();
+        // A live owner overrides the captured x/z; the height stays fixed.
+        let anchor = number.world_anchor_at(Some((30.0, 40.0)));
+        assert!((anchor.x - 30.0).abs() < 1e-5);
+        assert!((anchor.z - 40.0).abs() < 1e-5);
+        assert!((anchor.y - number.base_y).abs() < 1e-5);
+    }
+
+    #[test]
+    fn damage_number_falls_back_to_the_captured_anchor_without_an_owner() {
+        let number = target_number();
+        let anchor = number.world_anchor_at(None);
+        assert!((anchor.x - 10.0).abs() < 1e-5);
+        assert!((anchor.z - 20.0).abs() < 1e-5);
+    }
+
+    /// The killing blow, ordering "remove before damage": the number is
+    /// spawned with the target's last known pose and the owner is already
+    /// gone. It must step for its whole official lifetime and keep rendering
+    /// at that last known position.
+    #[test]
+    fn killing_blow_number_keeps_stepping_and_rendering_after_owner_removal() {
+        let mut number = target_number();
+
+        // The death packet is handled first: the owner is only in the dead
+        // list, so the spawn anchor is its last position.
+        number.owner_removed(ragnarok_packets::EntityId(2), Point3::new(12.0, 5.0, 24.0));
+        assert!(number.update(0.016), "the number must step normally");
+
+        let anchor = number.world_anchor(&[]);
+        assert!((anchor.x - 12.0).abs() < 1e-5, "last known x, not the captured spawn x");
+        assert!((anchor.z - 24.0).abs() < 1e-5, "last known z, not the captured spawn z");
+        assert!(
+            (anchor.y - (number.base_y + number.vertical_offset)).abs() < 1e-5,
+            "the official fixed base height plus the normal rise is kept"
+        );
+
+        // Play out the full official lifetime (120 frames * 24 ms on the
+        // fixed 16 ms clock = 180 steps).
+        let mut steps = 1;
+        while number.update(0.016) {
+            steps += 1;
+            assert!(steps < 400, "the number must retire after its lifetime");
+        }
+        assert_eq!(steps, 180, "the killing-blow number lives its full lifetime");
+    }
+
+    #[test]
+    fn owner_removal_of_another_entity_does_not_move_the_number() {
+        let mut number = target_number();
+        number.owner_removed(ragnarok_packets::EntityId(9), Point3::new(99.0, 5.0, 99.0));
+        let anchor = number.world_anchor(&[]);
+        assert!((anchor.x - 10.0).abs() < 1e-5);
+        assert!((anchor.z - 20.0).abs() < 1e-5);
+    }
+
+    /// A walking target that dies: the number follows the live target and is
+    /// frozen at the position where it was last seen, never interpolated to
+    /// the attacker or back to its spawn point.
+    #[test]
+    fn moving_target_anchor_freezes_at_the_last_known_position() {
+        let mut number = target_number();
+
+        let moving = number.world_anchor_at(Some((15.0, 25.0)));
+        assert!((moving.x - 15.0).abs() < 1e-5);
+        assert!((moving.z - 25.0).abs() < 1e-5);
+
+        number.owner_removed(ragnarok_packets::EntityId(2), Point3::new(18.0, 5.0, 28.0));
+        let frozen = number.world_anchor(&[]);
+        assert!((frozen.x - 18.0).abs() < 1e-5);
+        assert!((frozen.z - 28.0).abs() < 1e-5);
+
+        // Stepping no longer moves it back towards the spawn anchor.
+        assert!(number.update(0.016));
+        let later = number.world_anchor(&[]);
+        assert!((later.x - 18.0).abs() < 1e-5);
+        assert!((later.z - 28.0).abs() < 1e-5);
     }
 
     // -- `MET_CRITICAL_EFFECT` backing sprite --------------------------------
