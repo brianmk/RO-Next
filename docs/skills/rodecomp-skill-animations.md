@@ -68,3 +68,45 @@ Chain Combo locks frame 5, Combo Finish frames 1..2 loop frame 2, Palm Strike
 Remaining approximation: the official `isAsuraAttack` slide (route step 55,
 `GameObject.cpp:2307`) is a *movement* detail the client cannot derive from the
 animation data; the server-driven position updates are followed as usual.
+
+## Support/buff skills: two lanes, one block
+
+The buff class was re-checked after an in-client report that Blessing and
+Increase Agility "play the wrong animation". The data was already right; the
+block the local caster played for `GetSkillActionInfo` motion `0` was not.
+
+`SkillActionInfo.cpp` has two independent switches:
+
+* `GetSkillActionInfo` (`ZC_USESKILL_ACK` 0x0B1A) starts at `motion = 8`
+  (`ST_BEGIN_SKILL`, block 96) at `:53`. The big magic/support group
+  (`AL_HEAL`, `AL_DECAGI`, `AL_ANGELUS`, `PR_KYRIE`, `PR_GLORIA`, ...) keeps
+  that default and only sets `effectId = EF_BEGINSPELL` (`:206-346`,
+  `goto variant`). Two skills set a motion: `AL_BLESSING` `motion = 0`
+  (`ST_STAND`) at `:184-188`, `AL_INCAGI` `motion = 7` (`ST_SKILL`) at
+  `:796-815`.
+* `GetSkillActionInfo2` (`ZC_USE_SKILL` 0x09CB) starts at `motion = 7` at
+  `:1230`; `AL_INCAGI` sets `motion = 0` at `:1386-1391`, and `AL_HEAL`/
+  `AL_BLESSING`/... set `motion = 7` at `:1853-1868`.
+
+So Blessing and Incagi are the only support skills whose two lanes disagree:
+Blessing is `Stand` on the cast ack and `Skill` on 0x09CB, Incagi the reverse.
+`skill_actions.ron` carries exactly those rows (34: `action: Stand, use_action:
+Skill`; 29: `action: Skill, use_action: Stand`), and neither has an
+`ApplyActorSkillState` hold or a `SetFrameSequence` (`:12868-12897`).
+
+The mismatch was in the block `CasterAction::Stand` rendered for the local
+player. `CGameActor::SetState(ST_STAND)` plays `WeaponActionBase(ST_STAND) = 0`
+(`RenderObject.cpp:1478`/`:3416`), and `CPc::SetState` only replaces it with the
+armed `JobActionBase(ST_STAND) = 32` block when the previous state is
+`ST_ATTACK`/`ST_DAMAGE`/`ST_BEGIN_SKILL`/`0x34..0x50` or while
+`healthState != 0` (`Player.cpp:4404-4475`). A skill completion arrives from
+`ST_SKILL`, so the official block is the neutral `0`, not the armed `32`.
+`Idle` and `Stand` now both resolve to block 0; the armed stance is the explicit
+`ReadyFight` block 32 and is the only standing block that draws the
+weapon/shield layers (`IsReadyOrAttackAction`, `Player.cpp:1835`).
+
+`world::skill_action::tests::support_buff_skills_apply_the_official_block_on_the_arriving_lane`
+pins the ack/use lane and the applied block of Blessing (96 on 0x09CB, 0 if a
+cast time ever carries the `Stand` ack), Incagi (96 on the cast ack, 0 on
+completion), plus Gloria 75 as an instant-lane and Kyrie 73 as a cast-lane
+control.

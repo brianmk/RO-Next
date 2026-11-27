@@ -337,8 +337,8 @@ mod tests {
     use ragnarok_packets::SkillId;
 
     use super::{
-        CasterAction, CasterFrameSequence, FALLBACK, caster_action_for_skill, default_caster_action, frame_sequence_for_skill, parse,
-        use_caster_action_for_skill,
+        CasterAction, CasterFrameSequence, FALLBACK, cast_frame_sequence_for_skill, caster_action_for_skill, default_caster_action,
+        frame_sequence_for_skill, parse, use_caster_action_for_skill,
     };
 
     fn action(skill_id: u16) -> Option<CasterAction> {
@@ -553,5 +553,79 @@ mod tests {
     fn unknown_skills_fall_back_safely_to_the_casting_gesture() {
         assert_eq!(action(65_500), None);
         assert_eq!(default_caster_action(), CasterAction::Skill);
+    }
+
+    /// The support/buff class the in-client report re-opened (Blessing and
+    /// Increase Agility "play the wrong animation").
+    ///
+    /// Official facts, `Source/Contents/Skills/SkillActionInfo.cpp`:
+    ///
+    /// * `ZC_USESKILL_ACK` 0x0B1A -> `GetSkillActionInfo`: default `motion = 8`
+    ///   (ST_BEGIN_SKILL, block 96) at `:53`; the big magic/support group
+    ///   (`AL_HEAL`, `AL_DECAGI`, `AL_ANGELUS`, `PR_KYRIE`, `PR_GLORIA`, ...)
+    ///   keeps that default and only sets the begin effect (`:206-346`,
+    ///   `effectId = EF_BEGINSPELL; goto variant;`). `AL_BLESSING` sets `motion
+    ///   = 0` (ST_STAND, block 0) at `:184-188`; `AL_INCAGI` sets `motion = 7`
+    ///   (ST_SKILL, block 96) at `:796-815`.
+    /// * `ZC_USE_SKILL` 0x09CB -> `GetSkillActionInfo2`: default `motion = 7`
+    ///   (ST_SKILL, block 96) at `:1230`; `AL_INCAGI` sets `motion = 0` at
+    ///   `:1386-1391`; `AL_HEAL`/`AL_BLESSING`/... set `motion = 7` at
+    ///   `:1853-1868`.
+    ///
+    /// So Blessing and Incagi are the only support skills whose two lanes name
+    /// different blocks. The client data was already right; the block used for
+    /// `ST_STAND` was not (see `world::skill_action`'s block tests).
+    #[test]
+    fn support_skills_match_both_official_motion_tables() {
+        use CasterAction::{Skill, Stand};
+
+        // (skill, name, 0x0B1A action, 0x09CB action)
+        let official: [(u16, &str, CasterAction, CasterAction); 25] = [
+            (23, "AL_DP", Skill, Skill),
+            (24, "AL_RUWACH", Skill, Skill),
+            (25, "AL_PNEUMA", Skill, Skill),
+            (28, "AL_HEAL", Skill, Skill),
+            (29, "AL_INCAGI", Skill, Stand),
+            (30, "AL_DECAGI", Skill, Skill),
+            (31, "AL_HOLYWATER", Skill, Skill),
+            (32, "AL_CRUCIS", Skill, Skill),
+            (33, "AL_ANGELUS", Skill, Skill),
+            (34, "AL_BLESSING", Stand, Skill),
+            (35, "AL_CURE", Skill, Skill),
+            (54, "ALL_RESURRECTION", Skill, Skill),
+            (66, "PR_IMPOSITIO", Skill, Skill),
+            (67, "PR_SUFFRAGIUM", Skill, Skill),
+            (68, "PR_ASPERSIO", Skill, Skill),
+            (70, "PR_SANCTUARY", Skill, Skill),
+            (72, "PR_STRECOVERY", Skill, Skill),
+            (73, "PR_KYRIE", Skill, Skill),
+            (74, "PR_MAGNIFICAT", Skill, Skill),
+            (75, "PR_GLORIA", Skill, Skill),
+            (76, "PR_LEXDIVINA", Skill, Skill),
+            (77, "PR_TURNUNDEAD", Skill, Skill),
+            (78, "PR_LEXAETERNA", Skill, Skill),
+            (79, "PR_MAGNUS", Skill, Skill),
+            (1014, "PR_REDEMPTIO", Stand, Skill),
+        ];
+
+        for (skill_id, name, cast_lane, use_lane) in official {
+            assert_eq!(action(skill_id), Some(cast_lane), "{name}: 0x0B1A action");
+            // The 0x09CB row falls back to the cast-ack action when the two
+            // official tables agree.
+            assert_eq!(use_action(skill_id).unwrap_or(cast_lane), use_lane, "{name}: 0x09CB action");
+            assert_eq!(
+                use_action(skill_id),
+                (cast_lane != use_lane).then_some(use_lane),
+                "{name}: use_action override"
+            );
+            // No support skill has an official `SetFrameSequence` or an
+            // `ApplyActorSkillState` cast-start hold; the block is the whole
+            // animation.
+            assert!(frame_sequence_for_skill(SkillId(skill_id)).is_none(), "{name}: frame sequence");
+            assert!(
+                cast_frame_sequence_for_skill(SkillId(skill_id)).is_none(),
+                "{name}: cast-start hold"
+            );
+        }
     }
 }

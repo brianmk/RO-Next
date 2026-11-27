@@ -129,9 +129,10 @@ pub fn use_caster_action(skill_id: SkillId) -> CasterAction {
 
 #[cfg(test)]
 mod tests {
-    use ragnarok_packets::SkillId;
+    use ragnarok_packets::{ClientTick, SkillId};
 
     use super::{CasterAction, ack_caster_action, caster_action, use_caster_action};
+    use crate::world::{AnimationState, EntityType};
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
@@ -328,5 +329,92 @@ mod tests {
         // can never select a missing/black animation.
         assert_eq!(caster_action(SkillId(65_500)), CasterAction::Skill);
         assert_eq!(CasterAction::default(), CasterAction::Skill);
+    }
+
+    /// The ACT block (`CasterAction` -> `AnimationState`, block = action * 8)
+    /// the packet handlers make the local caster play.
+    ///
+    /// This uses the same `AnimationState` entry points as `handle_skill_cast`
+    /// (`SkillCast`, 0x0B1A) and `handle_skill_no_damage` (`SkillNoDamage`,
+    /// 0x09CB), so a handler that maps `Stand` back to the armed idle block or
+    /// stops applying the use lane fails here.
+    fn applied_block(action: CasterAction, cast_time: u32, looping: bool) -> usize {
+        let entity_type = EntityType::Player;
+        let mut state = AnimationState::new(entity_type, ClientTick(0));
+        match action {
+            CasterAction::Idle => state.idle(entity_type, ClientTick(10)),
+            CasterAction::Stand => state.stand(entity_type, ClientTick(10)),
+            CasterAction::Skill => state.skill(entity_type, cast_time, looping, ClientTick(10)),
+            CasterAction::Pickup => state.pickup(entity_type, ClientTick(10)),
+            CasterAction::ReadyFight => state.ready_fight(entity_type, ClientTick(10)),
+            CasterAction::Action(index) => state.custom(entity_type, usize::from(index), cast_time, looping, ClientTick(10)),
+            // The support class never uses these: `Attack` picks its block from
+            // the equipped weapon ACT and `Keep` does not change the pose.
+            CasterAction::Attack | CasterAction::Keep => panic!("not a support-skill action"),
+        }
+        state.action_index() * 8
+    }
+
+    #[test]
+    fn support_buff_skills_apply_the_official_block_on_the_arriving_lane() {
+        // 34 AL_BLESSING is instant: `GetSkillActionInfo` motion 0 only matters
+        // when the server sends a cast time, and the official `NotifySkillCasting`
+        // returns before any pose when `delay == 0`
+        // (`GameModePackets.cpp:12951-12953`). The visible gesture therefore
+        // comes from 0x09CB, whose `GetSkillActionInfo2` sets motion 7
+        // (`SkillActionInfo.cpp:1853-1868`) -> ST_SKILL -> block 96.
+        assert_eq!(ack_caster_action(SkillId(34), 0, false), None);
+        assert_eq!(applied_block(use_caster_action(SkillId(34)), 0, false), 96);
+        // If the ack does carry a cast time, the cast lane plays
+        // `GetSkillActionInfo` motion 0 (`SkillActionInfo.cpp:184-188`) ->
+        // ST_STAND. That is the neutral block 0, not the armed block 32: the
+        // `CPc::SetState(ST_STAND)` override to `JobActionBase(ST_STAND) = 32`
+        // only runs for ST_ATTACK/ST_DAMAGE/ST_BEGIN_SKILL/0x34..0x50 or while
+        // `healthState != 0` (`Player.cpp:4404-4475`).
+        assert_eq!(ack_caster_action(SkillId(34), 500, false), Some(CasterAction::Stand));
+        assert_eq!(applied_block(CasterAction::Stand, 500, true), 0);
+
+        // 29 AL_INCAGI has a 1000 ms cast: the ack plays `GetSkillActionInfo`
+        // motion 7 (`SkillActionInfo.cpp:796-815`) -> ST_SKILL block 96 for the
+        // whole cast; the 0x09CB completion plays `GetSkillActionInfo2` motion 0
+        // (`:1386-1391`) -> ST_STAND -> the neutral block 0.
+        assert_eq!(ack_caster_action(SkillId(29), 1000, false), Some(CasterAction::Skill));
+        assert_eq!(applied_block(CasterAction::Skill, 1000, true), 96);
+        assert_eq!(applied_block(use_caster_action(SkillId(29)), 0, false), 0);
+
+        // Instant-lane control: PR_GLORIA 75 has no cast time and both tables
+        // agree on the default motions (8 / 7) -> block 96.
+        assert_eq!(ack_caster_action(SkillId(75), 0, false), None);
+        assert_eq!(applied_block(use_caster_action(SkillId(75)), 0, false), 96);
+        // Cast-lane control: PR_KYRIE 73 casts for 2000 ms and keeps the
+        // `ST_BEGIN_SKILL` default 8 on the ack -> block 96, then the 0x09CB
+        // default 7 -> block 96. No official hold/sequence exists for it.
+        assert_eq!(ack_caster_action(SkillId(73), 2000, false), Some(CasterAction::Skill));
+        assert_eq!(applied_block(CasterAction::Skill, 2000, true), 96);
+        assert_eq!(applied_block(use_caster_action(SkillId(73)), 0, false), 96);
+        for skill_id in [29, 34, 73, 75] {
+            assert!(
+                crate::world::frame_sequence_for_skill(SkillId(skill_id)).is_none(),
+                "skill {skill_id} must not inherit a frame sequence"
+            );
+            assert!(
+                crate::world::cast_frame_sequence_for_skill(SkillId(skill_id)).is_none(),
+                "skill {skill_id} must not inherit a cast-start hold"
+            );
+        }
+
+        // The neutral stand (block 0), the client idle (block 0 after the
+        // neutral-idle fix) and the armed ready-fight stance (block 32) stay
+        // distinct: only the last one draws the weapon/shield layers
+        // (`IsReadyOrAttackAction`, `Player.cpp:1835`), so a buff pose can
+        // never bring the armed battle stance back.
+        assert_eq!(applied_block(CasterAction::Idle, 0, false), 0);
+        assert_eq!(applied_block(CasterAction::ReadyFight, 0, false), 32);
+        let mut armed = AnimationState::new(EntityType::Player, ClientTick(0));
+        armed.ready_fight(EntityType::Player, ClientTick(10));
+        assert!(
+            armed.shows_weapon_layer(),
+            "the armed block is the only one with a weapon layer"
+        );
     }
 }
