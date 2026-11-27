@@ -84,6 +84,10 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         return Some(body);
     }
 
+    if let Some(body) = super::registry_batch_l::spawn(effect) {
+        return Some(body);
+    }
+
     if let Some(body) = super::rag::asura::spawn(effect) {
         return Some(body);
     }
@@ -337,6 +341,7 @@ pub fn ported_ids() -> Vec<EffectId> {
     ids.extend_from_slice(super::registry_batch_i::ids());
     ids.extend_from_slice(super::registry_batch_j::ids());
     ids.extend_from_slice(super::registry_batch_k::ids());
+    ids.extend_from_slice(super::registry_batch_l::ids());
 
     ids.extend_from_slice(&[
         EffectId::Hit2,
@@ -840,7 +845,8 @@ mod tests {
                         || super::super::registry_batch_i::is_caster_body_only(effect)
                         || super::super::rag::champion::is_caster_body_only(effect)
                         || super::super::registry_batch_j::is_caster_body_only(effect)
-                        || super::super::registry_batch_k::is_caster_body_only(effect),
+                        || super::super::registry_batch_k::is_caster_body_only(effect)
+                        || super::super::registry_batch_l::is_caster_body_only(effect),
                     "{effect:?} spawned nothing"
                 );
                 continue;
