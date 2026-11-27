@@ -230,7 +230,6 @@ mod tests {
         assert!((color.alpha - 150.0 / 255.0).abs() < 1e-6);
     }
 
-
     // `ScaleByPulse`, exact `f32` results of
     // `((g_sinTable[shrinkPhase * 4 + 90] + 1) * 0.25 + 0.5)`.
     #[test]

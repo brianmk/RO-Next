@@ -77,5 +77,4 @@ impl MapSky {
     pub fn fog(&self) -> Option<SceneFog> {
         self.fog
     }
-
 }
