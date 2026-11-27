@@ -15,19 +15,11 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
 }
 
 pub fn ids() -> &'static [EffectId] {
-    &[
-        EffectId::Magiccrasher,
-        EffectId::Memorize,
-        EffectId::Linklight,
-    ]
+    &[EffectId::Magiccrasher, EffectId::Memorize, EffectId::Linklight]
 }
 
 pub fn lifetimes() -> &'static [(EffectId, i32)] {
-    &[
-        (EffectId::Magiccrasher, 100),
-        (EffectId::Memorize, 200),
-        (EffectId::Linklight, 200),
-    ]
+    &[(EffectId::Magiccrasher, 100), (EffectId::Memorize, 200), (EffectId::Linklight, 200)]
 }
 
 /// Effects that only touch the caster actor: no primitive, no `.str` clip.

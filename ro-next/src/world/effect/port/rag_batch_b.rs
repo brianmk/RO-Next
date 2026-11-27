@@ -34,11 +34,7 @@ pub struct ParticleTime {
 
 impl ParticleTime {
     pub fn new(name: &'static str, kind: i32, lifetime: i32) -> Self {
-        Self {
-            name,
-            kind,
-            lifetime,
-        }
+        Self { name, kind, lifetime }
     }
 }
 
@@ -321,7 +317,7 @@ impl PortedEffect for Hit3 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime, EffectRng};
+    use crate::world::effect::port::runtime::{EffectRng, EffectRuntime, step};
 
     // -- ParticleTime -------------------------------------------------------
 

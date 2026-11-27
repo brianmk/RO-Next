@@ -1,5 +1,6 @@
 //! Exact port of the `.str` player - `CRagEffect::ProcessEZ2STR`
-//! (`RagEffect.cpp:1402-1523`) and `InitEZ2STRFrame` (`RagEffect.cpp:1386-1398`).
+//! (`RagEffect.cpp:1402-1523`) and `InitEZ2STRFrame`
+//! (`RagEffect.cpp:1386-1398`).
 //!
 //! This is the correction that matters most for the 62 `.str` effects the
 //! pre-renewal skills play. The official player **does not interpolate between
@@ -174,10 +175,7 @@ impl Ez2StrPlayer {
             if key.transform.kind == 0 {
                 self.transforms[layer] = key.transform;
 
-                if self.current_key[layer] != -1
-                    && index + 1 < clip.frames.len()
-                    && clip.frames[index + 1].frame == key.frame
-                {
+                if self.current_key[layer] != -1 && index + 1 < clip.frames.len() && clip.frames[index + 1].frame == key.frame {
                     self.current_key[layer] += 1;
                 }
             } else {

@@ -1,8 +1,9 @@
 //! Deterministic stand-in for the C runtime's `rand()`.
 //!
-//! The original uses `rand() % range` (MSVC LCG). Matching the exact sequence is
-//! not required for visual fidelity - every client differs anyway - but the
-//! distribution must be the same and tests need determinism. Seed it per effect.
+//! The original uses `rand() % range` (MSVC LCG). Matching the exact sequence
+//! is not required for visual fidelity - every client differs anyway - but the
+//! distribution must be the same and tests need determinism. Seed it per
+//! effect.
 //!
 //! Deviation documented in `PORT_STATUS.md`.
 
@@ -23,7 +24,7 @@ impl EffectRng {
         x ^= x << 25;
         x ^= x >> 27;
         self.state = x;
-        (x.wrapping_mul(0x2545_f491_4f6c_dd1d) >> 32) as u32
+        (x.wrapping_mul(0x2545_F491_4F6C_DD1D) >> 32) as u32
     }
 
     /// Consumes one value like a bare `rand()` call in the original.

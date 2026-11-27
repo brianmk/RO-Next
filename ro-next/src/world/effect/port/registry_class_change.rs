@@ -41,7 +41,11 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::PokValen => Box::new(TexturedClassChange::new(&[34], 100)),
         EffectId::PokBirth => Box::new(TexturedClassChange::new(&[35], 100)),
         EffectId::PokChristmas => Box::new(TexturedClassChange::new(&[36], 100)),
-        EffectId::NpcEarthquake => Box::new(TexturedClassChange::new(&[31], 100).with_waves(&[(0, "effect\\earth_quake.wav")]).with_quakes(&[0])),
+        EffectId::NpcEarthquake => Box::new(
+            TexturedClassChange::new(&[31], 100)
+                .with_waves(&[(0, "effect\\earth_quake.wav")])
+                .with_quakes(&[0]),
+        ),
         EffectId::Issen => Box::new(TexturedClassChange::new(&[18], 100).with_waves(&[(0, "effect\\일섬.wav")])),
         EffectId::Kasumikiri => Box::new(TexturedClassChange::new(&[17], 100).with_waves(&[(0, "effect\\안개베기.wav")])),
         EffectId::Kirikage => Box::new(TexturedClassChange::new(&[15], 100).with_waves(&[(0, "effect\\그림자베기.wav")])),
@@ -230,7 +234,7 @@ pub fn lifetimes() -> &'static [(EffectId, i32)] {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     #[test]
     fn every_entry_spawns_with_its_lifetime() {

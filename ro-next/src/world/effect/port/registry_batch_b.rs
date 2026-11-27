@@ -28,11 +28,7 @@ pub fn ids() -> &'static [EffectId] {
 
 /// `(effect, lifetime)` pairs, asserted against `EffectTypes.cpp` by tests.
 pub fn lifetimes() -> &'static [(EffectId, i32)] {
-    &[
-        (EffectId::SmaReady, 200),
-        (EffectId::Earthwall, 100),
-        (EffectId::Hit3, 50),
-    ]
+    &[(EffectId::SmaReady, 200), (EffectId::Earthwall, 100), (EffectId::Hit3, 50)]
 }
 
 #[cfg(test)]

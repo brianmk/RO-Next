@@ -119,10 +119,7 @@ impl PortedEffect for TexturedForkBolt {
         // `Get_Angle(deltaPos.x - render.position.x, deltaPos.z - render.position.z)`.
         // A zero vector falls through the table loop and stays at the
         // original's `180`, not `0` (see `EffectPrimitiveState.cpp:51-70`).
-        let rise_angle = runtime.get_angle(
-            runtime.target_offset[0] - position[0],
-            runtime.target_offset[2] - position[2],
-        );
+        let rise_angle = runtime.get_angle(runtime.target_offset[0] - position[0], runtime.target_offset[2] - position[2]);
 
         // ClampedRandom order: maxHeight, distance, then the four raw rand()
         // rerolls of height[1], height[2], height[6] and height[7].
@@ -192,7 +189,7 @@ impl PortedEffect for TexturedForkBolt {
 mod tests {
     use super::*;
     use crate::world::effect::port::math::Matrix;
-    use crate::world::effect::port::runtime::{step, EffectRuntime};
+    use crate::world::effect::port::runtime::{EffectRuntime, step};
 
     fn close(left: f32, right: f32) -> bool {
         (left - right).abs() < 1e-5
@@ -333,7 +330,8 @@ mod tests {
         assert_eq!(slot.process, 0);
         // Get_Angle(0, 10) = 91, not 90: the client's table uses the literal
         // 3.141592f, so g_cosTable[90] is +3.27e-7 and the >= test only
-        // matches index 91 (`ClientAngles.cpp:24-34`, `EffectPrimitiveState.cpp:51-70`).
+        // matches index 91 (`ClientAngles.cpp:24-34`,
+        // `EffectPrimitiveState.cpp:51-70`).
         assert_eq!(slot.rise_angle, 91);
         assert_eq!(slot.height[0], 91.0);
         assert_eq!(slot.height[1], height_one);

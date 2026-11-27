@@ -26,8 +26,24 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Glow2 => Box::new(TexturedAura::new(&[("effect\\glow02.bmp", 14)], 99999999)),
         EffectId::Glow11 => Box::new(TexturedAura::new(&[("effect\\glow11.bmp", 15)], 99999999)),
         EffectId::Glow12 => Box::new(TexturedAura::new(&[("effect\\glow12b .bmp", 14)], 99999999)),
-        EffectId::Mapsphere => Box::new(TexturedAura::new(&[("effect\\구체2.bmp", 12), ("effect\\구체3.bmp", 13), ("effect\\구체4.bmp", 11), ("effect\\구체5.bmp", 10)], 36000)),
-        EffectId::Mapsphere2 => Box::new(TexturedAura::new(&[("effect\\구체12.bmp", 12), ("effect\\구체3.bmp", 13), ("effect\\구체14.bmp", 11), ("effect\\구체15.bmp", 10)], 36000)),
+        EffectId::Mapsphere => Box::new(TexturedAura::new(
+            &[
+                ("effect\\구체2.bmp", 12),
+                ("effect\\구체3.bmp", 13),
+                ("effect\\구체4.bmp", 11),
+                ("effect\\구체5.bmp", 10),
+            ],
+            36000,
+        )),
+        EffectId::Mapsphere2 => Box::new(TexturedAura::new(
+            &[
+                ("effect\\구체12.bmp", 12),
+                ("effect\\구체3.bmp", 13),
+                ("effect\\구체14.bmp", 11),
+                ("effect\\구체15.bmp", 10),
+            ],
+            36000,
+        )),
         EffectId::Venomimpress => Box::new(TexturedAura::new(&[("effect\\베놈_상태.bmp", 22)], 99999999)),
         EffectId::Frostmisty => Box::new(TexturedAura::new(&[("effect\\빙결_상태.bmp", 22)], 99999999)),
         EffectId::Coldstatus => Box::new(TexturedAura::new(&[("effect\\얼음결정체1.tga", 22)], 99999999)),
