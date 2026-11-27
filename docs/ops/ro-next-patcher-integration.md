@@ -188,3 +188,16 @@ Four user-reported defects, all decompilation-backed:
 
 Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in production (the
 `MasterState` half already negates it); it is only needed by primitives that test the ground.
+
+### Follow-up releases 0.2.34 / 0.2.35
+
+* `0.2.34` (`20261127-080422`) — menu cleanup: Mail, Clan and Bank removed from the in-game menu
+  (`interface/windows/menu.rs`); the merchant pushcart is drawn with a `-0.02` depth boost so the
+  cart sorts behind the body/equipment instead of covering the character
+  (`world/entity/common.rs`).
+* `0.2.35` (`20261127-081120`) — auto-attack arrows point along their flight vector
+  (`world/effect/arrow_effect.rs`). The quad rotation used the screen-space `atan2` (screen Y
+  down) directly in `camera_facing_corners` (camera plane, up = +Y); the conventions mirror each
+  other, so the arrow only pointed correctly for one heading and looked like it rotated with the
+  camera. `quad_angle()` negates the screen angle and subtracts the sprite's authored 45-degree
+  phase; a unit test asserts the axis for six headings.
