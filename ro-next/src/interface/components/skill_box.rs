@@ -66,18 +66,10 @@ where
     A: Path<ClientState, LearnableSkill, false>,
 {
     fn handle_click(&self, state: &State<ClientState>, queue: &mut EventQueue<ClientState>) {
-        // Unwrapping here is fine since we only register the handler if the slot has a
-        // skill.
-        let skill = state.try_get(&self.skill_path).unwrap().clone();
-
-        queue.queue(Event::SetMouseMode {
-            mouse_mode: MouseMode::Custom {
-                mode: MouseInputMode::MoveSkill {
-                    skill,
-                    source: self.source,
-                },
-            },
-        });
+        // The handler is only registered while the slot holds a skill; guard the
+        // lookup so a slot that was cleared between the layout and the click
+        // does not panic.
+        queue_skill_press(queue, state.try_get(&self.skill_path), self.source);
     }
 }
 
@@ -86,25 +78,74 @@ where
     P: Path<ClientState, LearnableSkill, false>,
 {
     fn handle_drop(&self, _: &State<ClientState>, queue: &mut EventQueue<ClientState>, mouse_mode: &MouseMode<ClientState>) {
-        if let MouseMode::Custom {
-            mode: MouseInputMode::MoveSkill { source, skill },
-        } = mouse_mode
-        {
-            // Dropping a hotbar skill onto its own slot is a simple click,
-            // which uses the skill like in the original client.
-            if let (SkillSource::Hotbar { slot }, SkillSource::Hotbar { slot: destination_slot }) = (*source, self.source)
-                && slot == destination_slot
-            {
-                queue.queue(InputEvent::UseSkillInSlot { slot });
-                return;
-            }
+        queue_skill_release(queue, self.source, mouse_mode);
+    }
+}
 
-            queue.queue(InputEvent::MoveSkill {
-                source: *source,
-                destination: self.source,
+/// Queues the press of a skill box.
+///
+/// The press only arms a pending skill drag
+/// ([`MouseInputMode::PrepareSkillDrag`]). The release decides what it was: on
+/// the slot the press started from it uses the skill, on any other slot it
+/// moves it. Both outcomes are decided by [`release_event`], so a click never
+/// starts a `MoveSkill` drag.
+fn queue_skill_press(queue: &mut EventQueue<ClientState>, skill: Option<&LearnableSkill>, source: SkillSource) {
+    let Some(skill) = skill else {
+        return;
+    };
+
+    queue.queue(Event::SetMouseMode {
+        mouse_mode: MouseMode::Custom {
+            mode: MouseInputMode::PrepareSkillDrag {
                 skill: skill.clone(),
-            });
-        }
+                source,
+            },
+        },
+    });
+}
+
+/// Queues the event for a button release over `destination`.
+fn queue_skill_release(queue: &mut EventQueue<ClientState>, destination: SkillSource, mouse_mode: &MouseMode<ClientState>) {
+    if let Some(event) = release_event(mouse_mode, destination) {
+        queue.queue(event);
+    }
+}
+
+/// Event a button release over `destination` produces while `mouse_mode` is
+/// active.
+///
+/// Releasing a pending drag on the slot it started from is a click and uses the
+/// skill in that slot. Every other release moves the skill (hotbar to hotbar,
+/// hotbar to skill tree to remove it) exactly like the existing drag did.
+fn release_event(mouse_mode: &MouseMode<ClientState>, destination: SkillSource) -> Option<InputEvent> {
+    let MouseMode::Custom { mode } = mouse_mode else {
+        return None;
+    };
+
+    match mode {
+        MouseInputMode::PrepareSkillDrag { source, skill } => match (source, destination) {
+            // The slot the press started on uses the skill, through the same
+            // path as the F-keys (self cast immediately, target selection for
+            // skills that need a target).
+            (SkillSource::Hotbar { slot }, SkillSource::Hotbar { slot: destination_slot }) if *slot == destination_slot => {
+                Some(InputEvent::UseSkillInSlot { slot: *slot })
+            }
+            _ => Some(InputEvent::MoveSkill {
+                source: *source,
+                destination,
+                skill: skill.clone(),
+            }),
+        },
+        MouseInputMode::MoveSkill { source, skill } => match (source, destination) {
+            // Dropping a skill back onto the slot it came from cancels the drag.
+            (SkillSource::Hotbar { slot }, SkillSource::Hotbar { slot: destination_slot }) if *slot == destination_slot => None,
+            _ => Some(InputEvent::MoveSkill {
+                source: *source,
+                destination,
+                skill: skill.clone(),
+            }),
+        },
+        _ => None,
     }
 }
 
@@ -249,14 +290,20 @@ where
     ) {
         use ro_next_interface::prelude::*;
 
-        let is_drop_target = match layout.get_mouse_mode() {
+        // Another slot is a drop target while a skill is dragged onto it. The
+        // slot the press started from is special: it accepts the release of a
+        // pending drag and turns it into a use instead of a move.
+        let (is_drop_target, is_use_target) = match layout.get_mouse_mode() {
+            MouseMode::Custom {
+                mode: MouseInputMode::PrepareSkillDrag { source, .. },
+            } => (*source != self.source, *source == self.source),
             MouseMode::Custom {
                 mode: MouseInputMode::MoveSkill { source, .. },
-            } => *source != self.source,
-            _ => false,
+            } => (*source != self.source, false),
+            _ => (false, false),
         };
 
-        let is_hovered = match is_drop_target {
+        let is_hovered = match is_drop_target || is_use_target {
             true => layout_info.area.check().any_mouse_mode().run(layout),
             false => layout_info.area.check().run(layout),
         };
@@ -304,6 +351,14 @@ where
 
                 layout.register_drop_handler(&self.handler);
             }
+        } else if is_use_target && is_hovered {
+            // The release of a pending drag is routed to this slot through the
+            // drop handler; mark the window as hovered because we are not in
+            // default mouse mode. No drop overlay is drawn: this is a click,
+            // not a move onto the slot.
+            layout.set_hovered();
+
+            layout.register_drop_handler(&self.handler);
         }
 
         if let Some(learnable_skill) = state.try_get(&self.learnable_skill_path) {
@@ -368,5 +423,223 @@ where
                 );
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::{ClientTick, HotbarSlot, SkillId, SkillLevel};
+
+    use super::*;
+    use crate::input::MouseModeExt;
+    use crate::state::skills::SkillAcquisition;
+    use crate::world::SpriteAnimationState;
+
+    fn learnable_skill(id: u16) -> LearnableSkill {
+        LearnableSkill {
+            skill_id: SkillId(id),
+            maximum_level: SkillLevel(5),
+            file_name: format!("skill_{id}"),
+            skill_name: format!("Skill {id}"),
+            can_select_level: false,
+            acquisition: SkillAcquisition::Job,
+            required_skills: Default::default(),
+            required_for_skills: Default::default(),
+            sprite: None,
+            actions: None,
+            animation_state: SpriteAnimationState::new(ClientTick(0)),
+        }
+    }
+
+    /// Mouse mode after pressing on a skill box (a drag that has not decided
+    /// yet whether it is a use or a move).
+    fn pending_drag(source: SkillSource, skill: LearnableSkill) -> MouseMode<ClientState> {
+        MouseMode::Custom {
+            mode: MouseInputMode::PrepareSkillDrag { source, skill },
+        }
+    }
+
+    /// Mouse mode of a real drag that has already started (skill tree drag).
+    fn moving_drag(source: SkillSource, skill: LearnableSkill) -> MouseMode<ClientState> {
+        MouseMode::Custom {
+            mode: MouseInputMode::MoveSkill { source, skill },
+        }
+    }
+
+    fn drain(queue: &mut EventQueue<ClientState>) -> Vec<Event<ClientState>> {
+        queue.drain().collect()
+    }
+
+    fn application_events(events: &[Event<ClientState>]) -> Vec<&InputEvent> {
+        events
+            .iter()
+            .filter_map(|event| match event {
+                Event::Application { custom_event } => Some(custom_event),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn queued_mouse_mode(events: &[Event<ClientState>]) -> Option<&MouseMode<ClientState>> {
+        events.iter().find_map(|event| match event {
+            Event::SetMouseMode { mouse_mode } => Some(mouse_mode),
+            _ => None,
+        })
+    }
+
+    #[test]
+    fn left_click_on_occupied_hotbar_slot_uses_the_skill() {
+        let slot = HotbarSlot(4);
+        let source = SkillSource::Hotbar { slot };
+        let skill = learnable_skill(28);
+
+        // The press only arms a pending drag: it must not enter the move mode
+        // and must not use the skill yet.
+        let mut press_queue = EventQueue::<ClientState>::default();
+        queue_skill_press(&mut press_queue, Some(&skill), source);
+        let press_events = drain(&mut press_queue);
+
+        let mouse_mode = queued_mouse_mode(&press_events).expect("the press sets a mouse mode");
+        assert!(
+            matches!(mouse_mode, MouseMode::Custom {
+                mode: MouseInputMode::PrepareSkillDrag { .. }
+            }),
+            "a plain press must not start a move drag"
+        );
+        assert!(
+            !matches!(mouse_mode, MouseMode::Custom {
+                mode: MouseInputMode::MoveSkill { .. }
+            }),
+            "a plain press must not start a move drag"
+        );
+        assert!(
+            application_events(&press_events).is_empty(),
+            "the press must not use the skill yet"
+        );
+
+        // Releasing on the slot the press started on is a click: use the skill
+        // in that slot, exactly like the F-keys do.
+        let mut release_queue = EventQueue::<ClientState>::default();
+        queue_skill_release(&mut release_queue, source, mouse_mode);
+        let release_events = drain(&mut release_queue);
+
+        match application_events(&release_events).as_slice() {
+            [InputEvent::UseSkillInSlot { slot: used }] => assert_eq!(*used, slot),
+            other => panic!("expected exactly one use event, got {other:?}"),
+        }
+
+        assert!(
+            !release_events.iter().any(|event| matches!(event, Event::Application {
+                custom_event: InputEvent::MoveSkill { .. }
+            })),
+            "a plain click must not move the skill"
+        );
+    }
+
+    #[test]
+    fn only_a_pending_drag_reports_a_press_to_resolve() {
+        let source = SkillSource::Hotbar { slot: HotbarSlot(6) };
+
+        assert_eq!(pending_drag(source, learnable_skill(1)).prepare_skill_drag(), Some(source));
+        assert_eq!(moving_drag(source, learnable_skill(1)).prepare_skill_drag(), None);
+        assert_eq!(MouseMode::<ClientState>::Default.prepare_skill_drag(), None);
+    }
+
+    #[test]
+    fn click_on_empty_slot_does_nothing() {
+        let mut queue = EventQueue::<ClientState>::default();
+
+        // The component only registers the click handler for occupied slots and
+        // the handler guards the state lookup, so an empty slot queues nothing.
+        queue_skill_press(&mut queue, None, SkillSource::Hotbar { slot: HotbarSlot(0) });
+
+        assert!(drain(&mut queue).is_empty(), "an empty slot must not queue anything");
+    }
+
+    #[test]
+    fn releasing_on_another_slot_moves_the_skill() {
+        let source = SkillSource::Hotbar { slot: HotbarSlot(1) };
+        let destination = SkillSource::Hotbar { slot: HotbarSlot(7) };
+        let skill = learnable_skill(12);
+
+        let mut queue = EventQueue::<ClientState>::default();
+        queue_skill_release(&mut queue, destination, &pending_drag(source, skill.clone()));
+        let events = drain(&mut queue);
+
+        match application_events(&events).as_slice() {
+            [
+                InputEvent::MoveSkill {
+                    source: moved_from,
+                    destination: moved_to,
+                    skill: moved_skill,
+                },
+            ] => {
+                assert_eq!(*moved_from, source);
+                assert_eq!(*moved_to, destination);
+                assert_eq!(moved_skill.skill_id, skill.skill_id);
+            }
+            other => panic!("expected exactly one move event, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn releasing_on_the_skill_tree_removes_the_hotbar_skill() {
+        let source = SkillSource::Hotbar { slot: HotbarSlot(2) };
+        let skill = learnable_skill(33);
+
+        let mut queue = EventQueue::<ClientState>::default();
+        queue_skill_release(&mut queue, SkillSource::SkillTree, &pending_drag(source, skill.clone()));
+        let events = drain(&mut queue);
+
+        match application_events(&events).as_slice() {
+            [
+                InputEvent::MoveSkill {
+                    source: moved_from,
+                    destination: SkillSource::SkillTree,
+                    skill: moved_skill,
+                },
+            ] => {
+                assert_eq!(*moved_from, source);
+                assert_eq!(moved_skill.skill_id, skill.skill_id);
+            }
+            other => panic!("expected exactly one move event to the skill tree, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn skill_tree_drag_to_the_hotbar_still_moves() {
+        let destination = SkillSource::Hotbar { slot: HotbarSlot(9) };
+        let skill = learnable_skill(3);
+
+        let mut queue = EventQueue::<ClientState>::default();
+        queue_skill_release(&mut queue, destination, &moving_drag(SkillSource::SkillTree, skill.clone()));
+        let events = drain(&mut queue);
+
+        match application_events(&events).as_slice() {
+            [
+                InputEvent::MoveSkill {
+                    source: SkillSource::SkillTree,
+                    destination: moved_to,
+                    skill: moved_skill,
+                },
+            ] => {
+                assert_eq!(*moved_to, destination);
+                assert_eq!(moved_skill.skill_id, skill.skill_id);
+            }
+            other => panic!("expected exactly one move event to the hotbar, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn dropping_a_started_drag_back_on_its_slot_cancels_it() {
+        let source = SkillSource::Hotbar { slot: HotbarSlot(2) };
+
+        let mut queue = EventQueue::<ClientState>::default();
+        queue_skill_release(&mut queue, source, &moving_drag(source, learnable_skill(5)));
+
+        assert!(
+            application_events(&drain(&mut queue)).is_empty(),
+            "a drag back onto its own slot must cancel"
+        );
     }
 }

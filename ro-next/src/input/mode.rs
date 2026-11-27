@@ -32,6 +32,15 @@ pub enum MouseInputMode {
         source: SkillSource,
         skill: LearnableSkill,
     },
+    /// The player pressed the left mouse button on a skill box. The release
+    /// decides what this was: releasing on the slot the press started from uses
+    /// the skill (that is what the F-keys do), releasing on any other slot or
+    /// on the skill tree moves it. A plain click therefore never starts a
+    /// `MoveSkill` drag, it only arms this pending state.
+    PrepareSkillDrag {
+        source: SkillSource,
+        skill: LearnableSkill,
+    },
     /// The player clicked a skill (hotbar or skill tree) and is now selecting
     /// a target for it, like in the original client. The next left click in
     /// the world casts the skill.
@@ -73,6 +82,10 @@ pub trait MouseModeExt {
 
     /// Returns the item/source of a pending (not yet started) item drag.
     fn prepare_item_drag(&self) -> Option<(ItemSource, InventoryItem<ResourceMetadata>)>;
+
+    /// Returns the source of a pending skill drag (a press on a skill box whose
+    /// release has not been handled yet).
+    fn prepare_skill_drag(&self) -> Option<SkillSource>;
 }
 
 impl MouseModeExt for MouseMode<ClientState> {
@@ -98,6 +111,8 @@ impl MouseModeExt for MouseMode<ClientState> {
                 mode: MouseInputMode::MoveItem { .. },
             } | MouseMode::Custom {
                 mode: MouseInputMode::MoveSkill { .. },
+            } | MouseMode::Custom {
+                mode: MouseInputMode::PrepareSkillDrag { .. },
             }
         )
     }
@@ -108,7 +123,7 @@ impl MouseModeExt for MouseMode<ClientState> {
                 mode: MouseInputMode::MoveItem { item, .. },
             } => item.metadata.texture.as_ref().map(|texture| Grabbed::Texture(texture.clone())),
             MouseMode::Custom {
-                mode: MouseInputMode::MoveSkill { skill, .. },
+                mode: MouseInputMode::MoveSkill { skill, .. } | MouseInputMode::PrepareSkillDrag { skill, .. },
             } => Some(Grabbed::Action(
                 skill.sprite.clone()?,
                 skill.actions.clone()?,
@@ -123,6 +138,15 @@ impl MouseModeExt for MouseMode<ClientState> {
             MouseMode::Custom {
                 mode: MouseInputMode::PrepareItemDrag { source, item },
             } => Some((*source, item.clone())),
+            _ => None,
+        }
+    }
+
+    fn prepare_skill_drag(&self) -> Option<SkillSource> {
+        match self {
+            MouseMode::Custom {
+                mode: MouseInputMode::PrepareSkillDrag { source, .. },
+            } => Some(*source),
             _ => None,
         }
     }

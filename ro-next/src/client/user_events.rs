@@ -48,6 +48,16 @@ impl Client {
             None => self.pending_item_drag = None,
         }
 
+        // A press on a hotbar skill only arms a pending skill drag; the slot
+        // turns the release into a use (released on the slot the press started
+        // on) or a move (released on another slot). The release itself resets
+        // the mode in `Interface::drop`; if it was lost (the pointer left the
+        // surface while the button was held) the pending mode would stay active
+        // and keep the skill glued to the cursor, so clear it as well.
+        if self.interface.mouse_mode().prepare_skill_drag().is_some() && !input_report.left_mouse_button_down {
+            self.interface.set_mouse_mode(MouseMode::Default);
+        }
+
         let interface_has_focus = self.interface.has_focus();
 
         // Enter submits the login form and confirms the server selection, so the

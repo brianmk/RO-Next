@@ -198,8 +198,11 @@ impl<Children> DropSkillWrapper<Children> {
 
 impl<Children> DropHandler<ClientState> for DropSkillWrapper<Children> {
     fn handle_drop(&self, _: &State<ClientState>, queue: &mut EventQueue<ClientState>, mouse_mode: &MouseMode<ClientState>) {
+        // A pending skill drag (a press on a hotbar slot that has not been
+        // released yet) is dropped like a real drag: releasing it over the
+        // skill tree removes the skill from the hotbar.
         if let MouseMode::Custom {
-            mode: MouseInputMode::MoveSkill { source, skill },
+            mode: MouseInputMode::MoveSkill { source, skill } | MouseInputMode::PrepareSkillDrag { source, skill },
         } = mouse_mode
         {
             queue.queue(InputEvent::MoveSkill {
@@ -238,7 +241,7 @@ where
         use ro_next_interface::prelude::*;
 
         if let MouseMode::Custom {
-            mode: MouseInputMode::MoveSkill { source, .. },
+            mode: MouseInputMode::MoveSkill { source, .. } | MouseInputMode::PrepareSkillDrag { source, .. },
         } = layout.get_mouse_mode()
             && *source != SkillSource::SkillTree
         {
