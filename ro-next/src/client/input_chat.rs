@@ -3,6 +3,8 @@
 //! Each handler receives the whole event and destructures it; the
 //! dispatcher in `user_events.rs` only routes.
 
+use crate::input::parse_where_command;
+use crate::state::minimap::MinimapPathExt;
 use crate::*;
 
 impl Client {
@@ -220,6 +222,21 @@ impl Client {
         let InputEvent::SendMessage { text } = event else {
             unreachable!("handle_input_send_message called with a different event variant");
         };
+
+        // Client-side `/where`: print the player's own map and tile into the
+        // local chat. The rAthena `@where` atcommand is a GM tool that asks
+        // for a target character name on this server, so it must never be
+        // translated and forwarded. Any arguments (`/where <name>`) are
+        // ignored; the command word alone is intercepted.
+        {
+            let map_name = self.client_state.follow(client_state().minimap().map_name()).clone();
+            let player_position = *self.client_state.follow(client_state().minimap().player_position());
+
+            if let Some(message) = parse_where_command(&text, &map_name, player_position) {
+                self.push_chat_message(ChatMessage::new(message, MessageColor::Information));
+                return;
+            }
+        }
 
         // Battle mode (`/bm`, `/bm on`, `/bm off`) is handled
         // entirely client-side and never sent to the server.

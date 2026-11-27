@@ -1,12 +1,13 @@
 //! The minimap view: a top-down image of the current map with a marker for the
 //! player, rendered inside the minimap window.
 
+use ragnarok_packets::TilePosition;
 use ro_next_interface::element::Element;
 use ro_next_interface::element::store::{ElementStore, ElementStoreMut};
 use ro_next_interface::layout::area::Area;
 use ro_next_interface::layout::{Resolvers, WindowLayout, with_single_resolver};
-use ro_next_interface::prelude::{HorizontalAlignment, VerticalAlignment};
-use rust_state::{Path, State};
+use ro_next_interface::prelude::{ComputedSelector, HorizontalAlignment, VerticalAlignment};
+use rust_state::{Path, PathExt, State};
 
 use crate::graphics::{Color, CornerDiameter, ShadowPadding};
 use crate::loaders::OverflowBehavior;
@@ -25,11 +26,17 @@ const FALLBACK_MARKER_SIZE: f32 = 7.0;
 const MARKER_SIZE_DIVISOR: f32 = 13.0;
 /// Size of a server-placed minimap marker in interface pixels.
 const MARKER_SIZE: f32 = 5.0;
+/// Height of the map name/coordinate row below the minimap image.
+const LOCATION_ROW_HEIGHT: f32 = 16.0;
+/// Gap between the minimap image and the location row.
+const LOCATION_ROW_GAP: f32 = 2.0;
 
 pub struct MinimapView<Text, Transparent> {
     loading_text: Text,
     transparent_frame: Transparent,
     view_size: f32,
+    /// Cached map name/coordinate line, recomputed from the state every frame.
+    location_text: ComputedSelector<fn(&ClientState) -> String, String>,
 }
 
 impl<Text, Transparent> MinimapView<Text, Transparent> {
@@ -38,8 +45,33 @@ impl<Text, Transparent> MinimapView<Text, Transparent> {
             loading_text,
             transparent_frame,
             view_size,
+            location_text: ComputedSelector::new_default(minimap_location_text as fn(&ClientState) -> String),
         }
     }
+}
+
+/// Formats the map/tile line shown below the minimap image.
+///
+/// Returns an empty string while no map is loaded (the row is then omitted).
+/// If the map is known but the player tile is not (first frames after a map
+/// change), only the map name is shown.
+fn format_location(map_name: &str, position: Option<TilePosition>) -> String {
+    if map_name.is_empty() {
+        return String::new();
+    }
+
+    match position {
+        Some(position) => format!("{map_name}  {}, {}", position.x, position.y),
+        None => map_name.to_owned(),
+    }
+}
+
+/// Computes [`format_location`] from the current minimap state.
+fn minimap_location_text(state: &ClientState) -> String {
+    format_location(
+        client_state().minimap().map_name().follow_safe(state),
+        *client_state().minimap().player_position().follow_safe(state),
+    )
 }
 
 impl<Text, Transparent> Element<ClientState> for MinimapView<Text, Transparent>
@@ -71,6 +103,7 @@ where
         let marker_outline_color = *state.get(&color_tokens.minimap_marker_outline());
         let overlay_secondary_text = *state.get(&color_tokens.overlay_secondary_text());
         let loading_font_size = *state.get(&typography.font_button());
+        let location_font_size = *state.get(&typography.font_caption());
 
         // In transparent mode the map fills the whole element and no dark frame
         // is drawn, so only the generated map image is visible.
@@ -116,18 +149,54 @@ where
         let texture_width = texture_size.width as f32;
         let texture_height = texture_size.height as f32;
 
-        let scale = (inner.width / texture_width).min(inner.height / texture_height);
+        // Keep a row free below the map image for the map name and tile
+        // coordinates. The window is only 210x250 with a 192 pixel view and a
+        // transparent-frame toggle, so the row has to live inside the view;
+        // appending another element to the window would be clipped by the
+        // window's fixed height.
+        let map_bounds = Area {
+            left: inner.left,
+            top: inner.top,
+            width: inner.width,
+            height: (inner.height - LOCATION_ROW_HEIGHT - LOCATION_ROW_GAP).max(1.0),
+        };
+
+        let scale = (map_bounds.width / texture_width).min(map_bounds.height / texture_height);
         let draw_width = texture_width * scale;
         let draw_height = texture_height * scale;
 
         let map_area = Area {
-            left: inner.left + (inner.width - draw_width) / 2.0,
-            top: inner.top + (inner.height - draw_height) / 2.0,
+            left: map_bounds.left + (map_bounds.width - draw_width) / 2.0,
+            top: map_bounds.top + (map_bounds.height - draw_height) / 2.0,
             width: draw_width,
             height: draw_height,
         };
 
         layout.add_texture(map_area, texture, Color::WHITE, true);
+
+        // Current map and tile below the map image. The selector recomputes
+        // the line from the minimap state on every frame, so both the map
+        // change and every tile step are reflected live. `Shrink` keeps long
+        // map names inside the 210 pixel window.
+        let location_text: &String = state.get(&self.location_text);
+
+        if !location_text.is_empty() {
+            layout.add_text(
+                Area {
+                    left: inner.left,
+                    top: inner.top + inner.height - LOCATION_ROW_HEIGHT,
+                    width: inner.width,
+                    height: LOCATION_ROW_HEIGHT,
+                },
+                location_text,
+                location_font_size,
+                overlay_secondary_text,
+                overlay_secondary_text,
+                HorizontalAlignment::Center { offset: 0.0, border: 4.0 },
+                VerticalAlignment::Center { offset: 0.0 },
+                OverflowBehavior::Shrink,
+            );
+        }
 
         // Server-placed NPC/quest markers (`ZC_COMPASS`, 0x0144).
         let markers_path = client_state().minimap().markers();
@@ -274,4 +343,29 @@ fn marker_arrow_texture(
     let direction = direction as usize % crate::loaders::MARKER_DIRECTION_COUNT;
 
     marker_textures.get(direction).cloned()
+}
+
+#[cfg(test)]
+mod tests {
+    use ragnarok_packets::TilePosition;
+
+    use super::format_location;
+
+    #[test]
+    fn location_text_shows_the_map_and_tile() {
+        assert_eq!(
+            format_location("prontera", Some(TilePosition { x: 156, y: 187 })),
+            "prontera  156, 187"
+        );
+    }
+
+    #[test]
+    fn location_text_handles_missing_data() {
+        let position = Some(TilePosition { x: 156, y: 187 });
+
+        assert_eq!(format_location("", position), "");
+        assert_eq!(format_location("", None), "");
+        // The map is known but the marker position is not set yet.
+        assert_eq!(format_location("prontera", None), "prontera");
+    }
 }

@@ -15,7 +15,7 @@ use winit::dpi::PhysicalPosition;
 use winit::event::{ElementState, MouseButton, MouseScrollDelta};
 use winit::keyboard::KeyCode;
 
-pub use self::chat_command::{BattleModeCommand, parse_battle_mode_command, translate_slash_command};
+pub use self::chat_command::{BattleModeCommand, parse_battle_mode_command, parse_where_command, translate_slash_command};
 pub use self::event::InputEvent;
 pub use self::key::Key;
 pub use self::keybinds::{ALL_SHORTCUT_ACTIONS, ActiveModifiers, ShortcutAction};

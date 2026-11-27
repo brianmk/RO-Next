@@ -10,12 +10,15 @@
 //!
 //! The translation is deliberately minimal: only the leading `/` is replaced
 //! by `@`, the command name, its case and all arguments are kept exactly as
-//! typed. Client-side commands (`/nc`, `/w`, `/whisper`) are not translated
-//! because they are handled by the client itself before the text is sent.
+//! typed. Client-side commands (`/nc`, `/w`, `/whisper`, `/bm`, `/where`) are
+//! not translated because they are handled by the client itself before the
+//! text is sent.
+
+use ragnarok_packets::TilePosition;
 
 /// Names of slash commands that the client handles itself and therefore must
 /// not be forwarded to the server as atcommands.
-const CLIENT_SIDE_COMMANDS: [&str; 4] = ["nc", "w", "whisper", "bm"];
+const CLIENT_SIDE_COMMANDS: [&str; 5] = ["nc", "w", "whisper", "bm", "where"];
 
 /// Requested battle-mode state of a `/bm` command.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,6 +56,37 @@ pub fn parse_battle_mode_command(text: &str) -> Option<BattleModeCommand> {
     }
 }
 
+/// Handles the client-side `/where` command.
+///
+/// The rAthena `@where` atcommand is a GM tool that asks for a *target
+/// character name* on this server, so it is useless to players. `/where` is
+/// therefore answered locally with the player's own map and tile and never
+/// sent to the server. The command name is case-insensitive, surrounding
+/// whitespace is ignored and any arguments (`/where <name>`) are ignored.
+///
+/// Returns `Some(message)` with the line to push into the local chat window
+/// when `text` is a `/where` command, `None` for every other text.
+pub fn parse_where_command(text: &str, map_name: &str, position: Option<TilePosition>) -> Option<String> {
+    let command = text.split_whitespace().next()?;
+
+    if !command.eq_ignore_ascii_case("/where") {
+        return None;
+    }
+
+    Some(format_where_location(map_name, position))
+}
+
+/// Formats the local `/where` answer.
+///
+/// An unknown map (empty name) or an unknown player tile means the location is
+/// not available yet, e.g. while connecting or changing maps.
+fn format_where_location(map_name: &str, position: Option<TilePosition>) -> String {
+    match position {
+        Some(position) if !map_name.is_empty() => format!("Location: {map_name} ({}, {})", position.x, position.y),
+        _ => "Location unavailable.".to_owned(),
+    }
+}
+
 /// Translates a leading slash command into its rAthena atcommand form.
 ///
 /// Returns `Some("@<command> <args>")` if `text` is a slash command and
@@ -87,7 +121,9 @@ pub fn translate_slash_command(text: &str) -> Option<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{BattleModeCommand, parse_battle_mode_command, translate_slash_command};
+    use ragnarok_packets::TilePosition;
+
+    use super::{BattleModeCommand, parse_battle_mode_command, parse_where_command, translate_slash_command};
 
     #[test]
     fn battle_mode_command_toggles_and_sets_the_state() {
@@ -116,9 +152,62 @@ mod tests {
     }
 
     #[test]
+    fn where_command_shows_the_local_location() {
+        let position = Some(TilePosition { x: 156, y: 187 });
+
+        assert_eq!(
+            parse_where_command("/where", "prontera", position).as_deref(),
+            Some("Location: prontera (156, 187)")
+        );
+        assert_eq!(
+            parse_where_command("  /WHERE  ", "prontera", position).as_deref(),
+            Some("Location: prontera (156, 187)")
+        );
+        // Arguments are ignored, so `/where <name>` never reaches the server.
+        assert_eq!(
+            parse_where_command("/where Bob", "prontera", position).as_deref(),
+            Some("Location: prontera (156, 187)")
+        );
+    }
+
+    #[test]
+    fn where_command_reports_an_unavailable_location() {
+        let position = Some(TilePosition { x: 156, y: 187 });
+
+        assert_eq!(
+            parse_where_command("/where", "prontera", None).as_deref(),
+            Some("Location unavailable.")
+        );
+        assert_eq!(
+            parse_where_command("/where", "", position).as_deref(),
+            Some("Location unavailable.")
+        );
+        assert_eq!(
+            parse_where_command("/where", "", None).as_deref(),
+            Some("Location unavailable.")
+        );
+    }
+
+    #[test]
+    fn non_where_text_is_ignored() {
+        let position = Some(TilePosition { x: 156, y: 187 });
+
+        assert_eq!(parse_where_command("hello", "prontera", position), None);
+        assert_eq!(parse_where_command("/whereabouts", "prontera", position), None);
+        assert_eq!(parse_where_command("/ where", "prontera", position), None);
+        assert_eq!(parse_where_command("", "prontera", position), None);
+    }
+
+    #[test]
+    fn where_is_not_translated_to_an_atcommand() {
+        assert_eq!(translate_slash_command("/where"), None);
+        assert_eq!(translate_slash_command("/where Bob"), None);
+        assert_eq!(translate_slash_command("/WHERE"), None);
+    }
+
+    #[test]
     fn translates_slash_commands_to_atcommands() {
         assert_eq!(translate_slash_command("/go prontera").as_deref(), Some("@go prontera"));
-        assert_eq!(translate_slash_command("/where").as_deref(), Some("@where"));
         assert_eq!(
             translate_slash_command("/warp prontera 150 150").as_deref(),
             Some("@warp prontera 150 150")
@@ -162,7 +251,7 @@ mod tests {
     #[test]
     fn preserves_command_case() {
         assert_eq!(translate_slash_command("/Go 0").as_deref(), Some("@Go 0"));
-        assert_eq!(translate_slash_command("/WHERE").as_deref(), Some("@WHERE"));
+        assert_eq!(translate_slash_command("/WARP prontera").as_deref(), Some("@WARP prontera"));
     }
 
     #[test]
@@ -170,5 +259,7 @@ mod tests {
         assert_eq!(translate_slash_command("/nc"), None);
         assert_eq!(translate_slash_command("/w Bob hello"), None);
         assert_eq!(translate_slash_command("/whisper Bob hello"), None);
+        assert_eq!(translate_slash_command("/where"), None);
+        assert_eq!(translate_slash_command("/where Bob"), None);
     }
 }
