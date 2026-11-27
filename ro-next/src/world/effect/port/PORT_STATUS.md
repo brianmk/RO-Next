@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 422 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 448 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -303,6 +303,13 @@ Audit: `ro-next-fx-audit/skill-motion-audit.md` (771 lines, every row with `file
 - Root cause was architectural: one table for two official functions - `ZC_USESKILL_ACK` uses `GetSkillActionInfo` (default 8), `ZC_USE_SKILL` uses `GetSkillActionInfo2` (default 7); 131/373 name a different block, 86 need an override (83 visibly different, 3 `Keep`).
 - Landed: `fcf61aec` (11 `motion = 2` skills use weapon-aware attack), `b7e74af0` (`use_action` from 462 Info2 facts, `CasterAction::Keep`, `delay == 0` ack gate), `4d10c9c7` (audit tooling), `05af4ee4` (official 500 ms/frame sequence rate from `SetSequenceInterval(30)` + 8 attached sequences).
 - Open: 3 `ApplyActorSkillState` freeze sequences (261/1015/401), 21 sequence rows with no action row (4th-job + `RL_FALLEN_ANGEL`, outside the pre-re set), `MO_STEELBODY` hold, monster skill motions (`GetMonsterSkillInfo`) absent, 19 PROXY-IDLE rows using block 32 vs 0.
+
+### Round 98
+
+- prim **46** `ChimtoSprite` (reuses the shared sprite pass), **69** `PentaRing` (`RenderPentaRing`), **100** `HitLine3` (`RenderHitLine3`).
+- ids: Hated 543, Bluecasting 441, NapalmValcan 401 (dead `Hit2` documented), Chimto/FVoice/Wink 267/606/607, HitLine4/5/6 429-431, TripleAttack/2/3 329/388/393. `HitLine3` 428 deliberately unregistered (`WhiteSparkStreak(0)` sets `limit = 0`, always-true gate).
+- Monster skill motions are data-driven (`data\MonsterSkillInfo.xml`, mixcrypt-encrypted in the GRF): `monster_skill_actions.ron`, 106 entries / 96 monsters, applied on both cast paths. Cast-start sequences close 261/1015/401; 268 Steel Body both variants; 19 PROXY-IDLE rows corrected (block 0 non-local, 32 local).
+- Backlog coverage **204/236 = 86.4%** (effort 85.3%): `.str` 57/57, layers 114/144, manual 33/35. 32 ids remain.
 
 ### Known wiring gaps (client spawn path)
 
