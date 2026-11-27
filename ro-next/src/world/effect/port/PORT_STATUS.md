@@ -154,7 +154,7 @@ Known sprite-pass gaps (documented, not guessed): `RSF_TOPMOST` (0x8) blend stat
 
 Total: 123 tests, all green.
 
-**Registry:** 397 unique effect ids (66 generated from `TexturedClassChange`, 26 from
+**Registry:** 422 unique effect ids (66 generated from `TexturedClassChange`, 26 from
 `TexturedAura`, 121 hand-written bodies incl. the c/d batches).
 `TexturedAura`, 105 hand-written bodies). Of the 341 distinct effect ids referenced by the pre-renewal skill tables
 (official + 2019 client ids), **33 are ported (9.7%)** - but they are the common
@@ -287,6 +287,13 @@ Rendered vs record-only for the parent render registers:
 - prim **8** `PP_3DPARTICLESPLINE` (`Prim3DParticleSpline`, new `MakeTransform`/`Lift`; renders through the existing sprite pass) + ids Waterball2 117, Blooddrain 216, Energydrain 217, Energydrain2 378, Energydrain3 383, Soulstrike 15, Soulstrike2 451, EnergydrainBlack 1208.
 - Backlog coverage **181/236 = 76.7%** (effort 75.3%): `.str` 57/57, layers 91/144, manual 33/35.
 - Known mapping gap: `EF_PEONG_BLACK` (1207) has no `EffectId` variant, so `SonicSlashFan(1)` cannot be registered yet.
+
+### Round 96
+
+- prim **10** `PP_3DSPLINE` (`Spline3d`) and **11** `PP_3DSPIRAL` (`Spiral3d`) with the shared `RenderRecordQuads` renderer; `ShiftSegment` now writes `records[0].corners`, without which record quads had no geometry. **No effect body in this decompilation launches prim 10/11** (all 395 `LaunchEffectPrim` sites checked), so no ids were registered for them - the primitives are ready for a newer revision.
+- Six `EffectId` variants added for already-implemented bodies: PeongBlack 1207, Blooddrain2 1052, NewHeavensDrive 1399, HealBlue2 2427, RgCoinBlue 2436, RgCoinBlue2 2437.
+- 21 ring-wrapper aliases (1418, 1556, 1560, 1565, 1677, 1872, 1876, 1902, 1910, 1918, 1923, 1932, 1938, 1959, 1963, 1986, 1998, 2240, 2249, 2255, 2367) - all outside the 236-id pre-renewal backlog, so they raise the total registry without moving backlog coverage.
+- Backlog coverage stays **181/236 = 76.7%**; the 55 remaining ids are the renewal/`PP_UNKNOWN_*` cluster and the alternate throw-item particle path.
 
 ### Known wiring gaps (client spawn path)
 
