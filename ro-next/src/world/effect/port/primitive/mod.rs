@@ -16,6 +16,7 @@ pub mod bottom;
 pub mod bottom2;
 pub mod casting2;
 pub mod casting3d;
+pub mod chimto_sprite;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
@@ -26,12 +27,14 @@ pub mod forest_light;
 pub mod half_sphere;
 pub mod halo;
 pub mod height_ramp;
+pub mod hitline3;
 pub mod intimidate;
 pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
 pub mod particle_spline;
 pub mod particle_up;
+pub mod penta_ring;
 pub mod peong_up;
 pub mod pulse_kind;
 pub mod pulsing_columns;
@@ -278,6 +281,26 @@ pub enum PrimitiveId {
     /// `EffectPrimitiveRendering.cpp:431-433` draws it with `RenderHaloLayers`
     /// (prim 68's renderer).
     TexturedSlam,
+    /// prim 46 - the `CHIMTO`/`FVOICE`/`WINK` sprite (`EF_CHIMTO`,
+    /// `EF_FVOICE`, `EF_WINK`). No `EffectPrimId.h` symbol (the enum jumps from
+    /// `PP_TEIHIT2` = 45 to `PP_BOTTOM` = 47), so the port names it after its
+    /// only spawner, `CRagEffect::CHIMTO` (`RagEffect.cpp:14419-14511`). Drawn
+    /// by the shared `RenderSegmentSprites2` sprite pass
+    /// (`EffectPrimitiveRendering.cpp:272-281`; see
+    /// [`super::sprite_pass`]).
+    ChimtoSprite,
+    /// prim 69 - the `EF_TRIPLEATTACK` cloud (`CloudDrift`), and the
+    /// `alpha_center` trail/stream of `EF_TRIPLEATTACK2`/`3`. No
+    /// `EffectPrimId.h` symbol (the enum jumps from `PP_ASURACASTING` = 68 to
+    /// `PP_HITLINE` = 70), so the port names it after its renderer,
+    /// `RenderPentaRing` (`EffectPrimitiveRendering.cpp:1399-1477`, dispatch
+    /// `:693-695`).
+    PentaRing,
+    /// `PP_HITLINE3` (100) - the white02 line primitive spawned by
+    /// `EF_HITLINE4/5/6` through `White02Burst`, `WhiteSparkRing` and
+    /// `WhiteSparkStreak`. Drawn by `RenderHitLine3`
+    /// (`EffectPrimitiveRendering.cpp:1872-1962`, dispatch `:440-442`).
+    HitLine3,
 }
 
 impl PrimitiveId {
@@ -332,6 +355,9 @@ impl PrimitiveId {
             Self::FloatingBubbles => 35,
             Self::DoubleGumGang => 99,
             Self::TexturedSlam => 147,
+            Self::ChimtoSprite => 46,
+            Self::PentaRing => 69,
+            Self::HitLine3 => 100,
         }
     }
 }
@@ -934,6 +960,12 @@ impl EffectPrimitiveState {
                 rising_fan::rising_fan(self, master);
                 true
             }
+            PrimitiveId::ChimtoSprite => chimto_sprite::on_process(self, master),
+            PrimitiveId::PentaRing => {
+                penta_ring::on_process(self);
+                true
+            }
+            PrimitiveId::HitLine3 => hitline3::on_process(self, master),
         };
 
         if !alive {
@@ -1207,6 +1239,15 @@ mod tests {
     fn double_gum_gang_and_textured_slam_ids_match_the_dispatch() {
         assert_eq!(PrimitiveId::DoubleGumGang.id(), 99);
         assert_eq!(PrimitiveId::TexturedSlam.id(), 147);
+    }
+
+    #[test]
+    fn renewal_cluster_ids_match_the_official_dispatch() {
+        // `EffectPrimitiveMotion.cpp`'s bare `case 46`, `case 69` and
+        // `case PP_HITLINE3` (`:9741`, `:9592`, `:8458`).
+        assert_eq!(PrimitiveId::ChimtoSprite.id(), 46);
+        assert_eq!(PrimitiveId::PentaRing.id(), 69);
+        assert_eq!(PrimitiveId::HitLine3.id(), 100);
     }
 
     #[test]

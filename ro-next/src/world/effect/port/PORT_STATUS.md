@@ -326,3 +326,32 @@ table exists, so the gap is the weapon appearance pipeline (equip packet ->
 entity -> sprite part mapping -> actor render). Tracked in the audit
 `PROGRESS.md` TODO section; a dedicated agent owns the investigation so the
 ported effect files stay untouched.
+
+### Round 97 (renewal cluster: prims 46/69/100 and the three free ids)
+
+| primitive | name in port | official source | renderer |
+| --- | --- | --- | --- |
+| 46 | `ChimtoSprite` | bare `case 46`, `EffectPrimitiveMotion.cpp:9741-9760` | shared `RenderSegmentSprites2` (sprite pass, `EffectPrimitiveRendering.cpp:272-281`) |
+| 69 | `PentaRing` | bare `case 69`, `EffectPrimitiveMotion.cpp:9592-9639` | new `render_penta_ring` (`RenderPentaRing`, `EffectPrimitiveRendering.cpp:1399-1477`, dispatch `:693-695`) |
+| 100 | `HitLine3` (`PP_HITLINE3`) | `EffectPrimitiveMotion.cpp:8458-8483` | new `render_hitline3` (`RenderHitLine3`, `EffectPrimitiveRendering.cpp:1872-1962`, dispatch `:440-442`) |
+
+- **Free ids** (bodies/primitives already ported): `EF_HATED` 543 (`Hated`, inline
+  caster `tintPhase` + `ParticleTime(..., 1)`; lifetime 500), `EF_BLUECASTING` 441
+  (`BlueSpellRings` -> two `TexturedQuadRingSized` + positional `EF_BeginSpell.wav`;
+  lifetime 60), `EF_NAPALMVALCAN` 401 (`NapalmValcan`; lifetime 200).
+- **Prim 46** ids `EF_CHIMTO` 267, `EF_FVOICE` 606, `EF_WINK` 607 (`rag/chimto.rs`),
+  lifetimes 16/100/100.
+- **Prim 100** ids `EF_HITLINE4` 429, `EF_HITLINE5` 430, `EF_HITLINE6` 431
+  (`rag/white_spark.rs`: `White02Burst(3)`, `WhiteSparkRing(3)`, `WhiteSparkStreak(3)`),
+  lifetime 200 each. `EF_HITLINE3` (428) stays unregistered: `WhiteSparkStreak(0)`
+  computes `limit = 0`, so its `stateCnt >= limit` gate is always true and the
+  body is dead.
+- **Prim 69** ids `EF_TRIPLEATTACK` 329, `EF_TRIPLEATTACK2` 388, `EF_TRIPLEATTACK3`
+  393 (`rag/triple_attack.rs`: `CloudDrift`, `AlphaCenterTrail`, `AlphaCenterStream`),
+  lifetimes 100/200/200.
+- Quirks kept: `EF_NAPALMVALCAN`'s frames 20-60 call `Hit2(0)`, which is dead after
+  frame 0, so the body is sound-only (`spawns_no_geometry`); prim 46 discards
+  `AnimMotion`'s return value, so a finished non-repeating ACT never retires it;
+  `TexturedQuadRingSized`'s `duration <= 60` branch zeroes Bluecasting's ring
+  alphas and staggers its slots; `RenderPentaRing` kinds 4/5 force the near plane.
+- Registry now 454 ids; the skill map regenerates with 212 mappings.

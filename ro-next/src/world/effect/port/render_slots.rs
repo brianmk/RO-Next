@@ -317,6 +317,12 @@ pub enum SlotRenderer {
     OrbitIcons,
     /// `RenderDoubleGumGang` - prim 99 (`PP_DOUBLEGUMGANG`).
     DoubleGumGang,
+    /// `RenderPentaRing` - prim 69 (`EF_TRIPLEATTACK`/2/3's cloud,
+    /// trail and stream). No `EffectPrimId.h` symbol.
+    PentaRing,
+    /// `RenderHitLine3` - `PP_HITLINE3` (100), the white02 spark strands of
+    /// `EF_HITLINE4/5/6`.
+    HitLine3,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -360,10 +366,18 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::TexturedSlam => SlotRenderer::HaloLayers,
         PrimitiveId::FloatingBubbles => SlotRenderer::OrbitIcons,
         PrimitiveId::DoubleGumGang => SlotRenderer::DoubleGumGang,
+        // `EffectPrimitiveRendering.cpp:693-695`: bare `case 69` draws
+        // `RenderPentaRing`.
+        PrimitiveId::PentaRing => SlotRenderer::PentaRing,
+        // `EffectPrimitiveRendering.cpp:440-442`: `PP_HITLINE3` draws
+        // `RenderHitLine3` (distinct from `PP_HITLINE`'s `RenderHitLine`).
+        PrimitiveId::HitLine3 => SlotRenderer::HitLine3,
         // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
         // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
-        PrimitiveId::ParticleSpline => return None,
+        // Prim 46 (`ChimtoSprite`) shares that pass
+        // (`EffectPrimitiveRendering.cpp:272-281`), so it also returns `None`.
+        PrimitiveId::ParticleSpline | PrimitiveId::ChimtoSprite => return None,
         _ => return None,
     })
 }
@@ -450,6 +464,8 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
 
             render_double_gum_gang(state, facing, &mut out);
         }
+        Some(SlotRenderer::PentaRing) => render_penta_ring(state, &mut out),
+        Some(SlotRenderer::HitLine3) => render_hitline3(state, &mut out),
         None => {}
     }
 
@@ -2722,6 +2738,275 @@ pub fn render_pentagon(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>
 }
 
 // ---------------------------------------------------------------------------
+// RenderPentaRing (69)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderPentaRing` - `EffectPrimitiveRendering.cpp:1399-1477`.
+///
+/// Prim 69's five-sided ring pair: for each live slot and each of two passes
+/// (`maxHeight`, then `maxHeight * 2` for kind 3 else `maxHeight + 0.25`), six
+/// points at `72` degrees walk a ring around `vecBNow` (pass 0) up to
+/// `vecTNow` (pass 1). The `direction = (rotStart + 90) % 360` rotates the
+/// ring, and `height[4]` selects the colour. Every call uses the 18-argument
+/// `RenderTeiRect` with `pw = 1` (the `INVSRCALPHA` queue), `f1 = 1` (the
+/// corners are already absolute) and `extra = 1` for kinds 4/5 (near-plane
+/// depth).
+pub fn render_penta_ring(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let mut previous_bottom = [0.0f32; 3];
+    let mut previous_top = [0.0f32; 3];
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        let direction = (slot.rot_start as i32 + 90) % 360;
+
+        for pass in 0..2 {
+            let mut i = 0;
+            let mut angle = 0;
+
+            while angle <= 360 {
+                let radius = if pass == 0 {
+                    slot.max_height
+                } else if slot.height[4] == 3.0 {
+                    slot.max_height + slot.max_height
+                } else {
+                    slot.max_height + 0.25
+                };
+
+                let across = radius * table_cos(angle);
+                let offset_x = across * table_cos(direction);
+                let offset_z = across * table_sin(direction);
+                let offset_y = radius * table_sin(angle) - slot.height[0];
+
+                let bottom = [
+                    offset_x + slot.vec_b_now[0],
+                    offset_y + slot.vec_b_now[1],
+                    offset_z + slot.vec_b_now[2],
+                ];
+                let top = [
+                    offset_x + slot.vec_t_now[0],
+                    offset_y + slot.vec_t_now[1],
+                    offset_z + slot.vec_t_now[2],
+                ];
+
+                if i > 0 {
+                    let (colour, near) = if pass == 0 {
+                        if slot.height[4] == 2.0 {
+                            ((255, 255, 255), false)
+                        } else if slot.height[4] == 3.0 {
+                            ((255, 89, 182), false)
+                        } else if slot.height[4] == 4.0 {
+                            ((55, 55, 255), true)
+                        } else if slot.height[4] == 5.0 {
+                            ((55, 55, 55), true)
+                        } else {
+                            ((255, 255, 55), false)
+                        }
+                    } else if slot.height[4] == 2.0 {
+                        ((255, 255, 255), false)
+                    } else if slot.height[4] == 3.0 {
+                        ((255, 89, 182), false)
+                    } else if slot.height[4] == 4.0 {
+                        ((55, 55, 255), true)
+                    } else if slot.height[4] == 5.0 {
+                        ((55, 55, 55), true)
+                    } else {
+                        ((255, 255, 200), false)
+                    };
+
+                    let quad = [previous_bottom, bottom, top, previous_top];
+
+                    if near {
+                        emit_tei_rect_18_near(
+                            state,
+                            out,
+                            slot.alpha_b,
+                            quad,
+                            0,
+                            false,
+                            colour,
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::Alpha,
+                        );
+                    } else {
+                        emit_tei_rect_18(
+                            state,
+                            out,
+                            slot.alpha_b,
+                            quad,
+                            0,
+                            false,
+                            colour,
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::Alpha,
+                        );
+                    }
+                }
+
+                previous_bottom = bottom;
+                previous_top = top;
+                i += 1;
+                angle += 72;
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderHitLine3 (100)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderHitLine3` - `EffectPrimitiveRendering.cpp:1872-1962`.
+///
+/// `PP_HITLINE3`'s strands: for each live slot with a started `process`, the
+/// motion's `height[0..vecTNow.y]` samples are converted into two vertical
+/// curves (`vecA` from `height[j]`, `vecB` from `height[j + 1]`), a heading is
+/// taken across the segment, and four cross-section points at `120` degrees
+/// turn the pair into three quads. `alphaT` (the body's `kind`) selects the
+/// colour ramp; kinds `>= 3` add the wider blue halo pass. Every call uses the
+/// 18-argument `RenderTeiRect` with `pw = 0` (the `ONE` glow queue), `f1 = 1`
+/// and `extra = 0`.
+pub fn render_hitline3(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let mut vec1 = [0.0f32; 3];
+    let mut vec3 = [0.0f32; 3];
+
+    for ec in 0..4usize {
+        let slot = &state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 || slot.process <= 0 {
+            continue;
+        }
+
+        let mut j = 0i32;
+
+        while (j as f32) < slot.vec_t_now[1] {
+            let sample = j as usize;
+
+            let mut speed = 0.0f32;
+
+            if slot.height[sample] > 0.0 {
+                speed += slot.height[sample] / 90.0 * slot.distance;
+            }
+
+            let a = [
+                speed * table_cos(slot.rise_angle as i32),
+                -slot.distance * table_sin(slot.height[sample] as i16 as i32) * slot.vec_t_now[0],
+                speed * table_sin(slot.rise_angle as i32),
+            ];
+
+            speed = 0.0;
+
+            if slot.height[sample + 1] > 0.0 {
+                speed += slot.height[sample + 1] / 90.0 * slot.distance;
+            }
+
+            let b = [
+                speed * table_cos(slot.rise_angle as i32),
+                -slot.distance * table_sin(slot.height[sample + 1] as i16 as i32) * slot.vec_t_now[0],
+                speed * table_sin(slot.rise_angle as i32),
+            ];
+
+            let mut angle = super::primitive::get_angle(a[0] - b[0], a[2] - b[2]) as i32;
+
+            let a = add(a, slot.vec_b_now);
+            let b = add(b, slot.vec_b_now);
+
+            angle += 90;
+
+            if angle >= 360 {
+                angle -= 360;
+            }
+
+            for i in 0..=3i32 {
+                let radius = slot.max_height;
+                let tx = radius * table_cos(i * 120);
+                let ry = radius * table_sin(i * 120) - 5.0;
+                let rx = tx * table_cos(angle);
+                let rz = tx * table_sin(angle);
+                let vec2 = [a[0] + rx, a[1] + ry, a[2] + rz];
+                let vec4 = [b[0] + rx, b[1] + ry, b[2] + rz];
+
+                if i > 0 {
+                    let alpha = i32::from(slot.alpha_b) - j * 10;
+
+                    if alpha > 0 {
+                        let colour = if slot.alpha_t == 0 {
+                            Some((255, 200, (150 - (5 - j) * 30) as u8))
+                        } else if slot.alpha_t == 1 {
+                            let value = 120 - (5 - j) * 22;
+                            Some((value as u8, value as u8, 255))
+                        } else if slot.alpha_t == 2 {
+                            Some((255, 200, (150 - (3 - j) * 50) as u8))
+                        } else if slot.alpha_t >= 3 {
+                            let grey = 255 - (5 - j) * 30;
+                            Some((grey as u8, grey as u8, grey as u8))
+                        } else {
+                            None
+                        };
+
+                        if let Some(colour) = colour {
+                            emit_tei_rect_18(
+                                state,
+                                out,
+                                alpha as i16,
+                                [vec2, vec4, vec3, vec1],
+                                0,
+                                false,
+                                colour,
+                                (0.0, 1.0, 0.0, 1.0),
+                                SlotBlend::AlphaOne,
+                            );
+                        }
+                    }
+                }
+
+                vec1 = vec2;
+                vec3 = vec4;
+            }
+
+            if slot.alpha_t >= 3 {
+                for i in 0..=3i32 {
+                    let radius = slot.max_height * 4.0;
+                    let tx = radius * table_cos(i * 120);
+                    let ry = radius * table_sin(i * 120) - 5.0;
+                    let rx = tx * table_cos(angle);
+                    let rz = tx * table_sin(angle);
+                    let vec2 = [a[0] + rx, a[1] + ry, a[2] + rz];
+                    let vec4 = [b[0] + rx, b[1] + ry, b[2] + rz];
+
+                    if i > 0 {
+                        let alpha = ((i32::from(slot.alpha_b) - j * 10) as f32 * 0.5) as i32;
+
+                        if alpha > 0 && slot.alpha_t == 3 {
+                            emit_tei_rect_18(
+                                state,
+                                out,
+                                alpha as i16,
+                                [vec2, vec4, vec3, vec1],
+                                0,
+                                false,
+                                (0, 0, 255),
+                                (0.0, 1.0, 0.0, 1.0),
+                                SlotBlend::AlphaOne,
+                            );
+                        }
+                    }
+
+                    vec1 = vec2;
+                    vec3 = vec4;
+                }
+            }
+
+            j += 1;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // RenderFanBeam (89)
 // ---------------------------------------------------------------------------
 
@@ -3835,6 +4120,8 @@ mod tests {
             (PrimitiveId::Casting2, SlotRenderer::Casting),
             (PrimitiveId::Bottom2, SlotRenderer::ColorPlane),
             (PrimitiveId::Slash1, SlotRenderer::Slash1),
+            (PrimitiveId::PentaRing, SlotRenderer::PentaRing),
+            (PrimitiveId::HitLine3, SlotRenderer::HitLine3),
         ];
 
         for (id, expected_renderer) in expected {
@@ -3847,6 +4134,8 @@ mod tests {
         assert_eq!(render(&state_of(PrimitiveId::Particle3d)), None);
         // `PP_3DPARTICLESPLINE` shares `RenderSegmentSprites2` (sprite pass).
         assert_eq!(render(&state_of(PrimitiveId::ParticleSpline)), None);
+        // So does prim 46 (`CHIMTO`/`FVOICE`/`WINK`).
+        assert_eq!(render(&state_of(PrimitiveId::ChimtoSprite)), None);
     }
 
     #[test]
@@ -3887,6 +4176,8 @@ mod tests {
             PrimitiveId::Bottom2,
             PrimitiveId::BottomOut,
             PrimitiveId::Slash1,
+            PrimitiveId::PentaRing,
+            PrimitiveId::HitLine3,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -6196,5 +6487,122 @@ mod tests {
         let asura = halo_state(0);
         let turned = triangles_with_context(&asura, Some(&context));
         assert_ne!(turned, triangles(&asura));
+    }
+
+    #[test]
+    fn penta_ring_sweeps_five_quads_per_pass() {
+        let mut state = state_of(PrimitiveId::PentaRing);
+        state.render_flag = 5;
+        state.texture = Some("effect\\cloud11.tga");
+        state.slots[0].life = 1;
+        state.slots[0].alpha_b = 100;
+        state.slots[0].max_height = 10.0;
+        state.slots[0].rot_start = 0;
+        state.slots[0].height[0] = 0.0;
+        state.slots[0].vec_b_now = [0.0, 0.0, 0.0];
+        state.slots[0].vec_t_now = [0.0, 10.0, 0.0];
+
+        let built = triangles(&state);
+
+        // Two passes, six ring points each, five quads, two triangles.
+        assert_eq!(built.len(), 20);
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 55));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[0].texture, Some("effect\\cloud11.tga"));
+        assert_eq!(built[0].forced_depth, None);
+
+        // `direction = (rotStart + 90) % 360`; the first quad spans angle
+        // 0 -> 72 on pass 0 (radius = maxHeight).
+        let (cos90, sin90) = trig(90);
+        let (cos0, sin0) = trig(0);
+        let across = 10.0 * cos0;
+        let first = [across * cos90, 10.0 * sin0, across * sin90];
+        let (cos72, sin72) = trig(72);
+        let across72 = 10.0 * cos72;
+        let second = [across72 * cos90, 10.0 * sin72, across72 * sin90];
+        let second_top = [second[0], second[1] + 10.0, second[2]];
+
+        for (actual, expected) in built[0].corners.into_iter().zip([first, second, second_top]) {
+            for axis in 0..3 {
+                assert_close(actual[axis], expected[axis]);
+            }
+        }
+    }
+
+    #[test]
+    fn penta_ring_kinds_four_and_five_force_the_near_plane() {
+        for kind in [4.0f32, 5.0] {
+            let mut state = state_of(PrimitiveId::PentaRing);
+            state.render_flag = 5;
+            state.slots[0].life = 1;
+            state.slots[0].alpha_b = 100;
+            state.slots[0].max_height = 10.0;
+            state.slots[0].height[4] = kind;
+
+            let built = triangles(&state);
+
+            assert!(!built.is_empty());
+            for triangle in &built {
+                assert_eq!(triangle.forced_depth, Some(1.0), "kind {kind}");
+            }
+        }
+    }
+
+    #[test]
+    fn hitline3_builds_the_four_swept_cross_sections() {
+        let mut state = state_of(PrimitiveId::HitLine3);
+        state.render_flag = 5;
+        state.texture = Some("effect\\white02.bmp");
+
+        let slot = &mut state.slots[0];
+        slot.life = 1;
+        slot.alpha_b = 200;
+        slot.process = 1;
+        slot.max_height = 10.0;
+        slot.distance = 20.0;
+        slot.rise_angle = 0;
+        slot.alpha_t = 3;
+        slot.vec_t_now[0] = 1.0;
+        slot.vec_t_now[1] = 4.0;
+        slot.height[0] = 45.0;
+        slot.height[1] = 90.0;
+        slot.height[2] = 45.0;
+        slot.height[3] = 90.0;
+        slot.height[4] = 45.0;
+        slot.height[5] = 90.0;
+
+        let built = triangles(&state);
+
+        // Four samples, three cross sections plus three halo sections, each
+        // two triangles: 4 * 6 * 2.
+        assert_eq!(built.len(), 48);
+        assert_eq!(built[0].argb, pack_argb(200, 105, 105, 105));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[0].texture, Some("effect\\white02.bmp"));
+
+        // First emit is cross section i = 1 of sample j = 0.
+        let (cos0, sin0) = trig(0);
+        let (_, sin45) = trig(45);
+        let (_, sin90) = trig(90);
+        let (cos120, sin120) = trig(120);
+        let (cos270, sin270) = trig(270);
+
+        let speed_a = 45.0 / 90.0 * 20.0;
+        let a = [speed_a * cos0, -20.0 * sin45 * 1.0, speed_a * sin0];
+        let speed_b = 90.0 / 90.0 * 20.0;
+        let b = [speed_b * cos0, -20.0 * sin90 * 1.0, speed_b * sin0];
+
+        // `Get_Angle(a.x - b.x, a.z - b.z)` is 180, then `+ 90` wraps to 270.
+        let angle = super::super::primitive::get_angle(a[0] - b[0], a[2] - b[2]) as i32 + 90;
+        assert_eq!(angle, 270);
+        let tx = 10.0 * cos120;
+        let ry = 10.0 * sin120 - 5.0;
+        let rx = tx * cos270;
+        let rz = tx * sin270;
+
+        let vec2 = [a[0] + rx, a[1] + ry, a[2] + rz];
+        for axis in 0..3 {
+            assert_close(built[0].corners[0][axis], vec2[axis]);
+        }
     }
 }

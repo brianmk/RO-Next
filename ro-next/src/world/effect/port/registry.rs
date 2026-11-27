@@ -12,17 +12,18 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BottomCarpet, BottomLayer, BottomLayers, BottomMusic, BottomOut,
-    BowlingBash, CartRevolution, ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike,
-    ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow,
-    FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk,
-    HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing,
-    MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray,
-    RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow,
-    SonicBlowHit, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji,
-    TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
-    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
-    VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, WhiteSpray,
+    AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BlueSpellRings, BottomCarpet,
+    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, Chimto, Cloud11Burst, CloudDrift,
+    DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
+    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver,
+    FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow,
+    IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat, NapalmValcan,
+    Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave,
+    RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr, Sphere,
+    SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam, TexturedComet,
+    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
+    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2,
+    WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -329,8 +330,64 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::EnergydrainBlack => Box::new(EnergyDrainBlack::new(200)),
         EffectId::Soulstrike => Box::new(SoulStrike::new(false, 100)),
         EffectId::Soulstrike2 => Box::new(SoulStrike::new(true, 100)),
+        // ------------------------------------------------------------------
+        // Renewal cluster: the three free ids and prims 46/69/100.
+        //
+        // FREE IDS - bodies/primitives were already ported.
+        // ------------------------------------------------------------------
+        // `case EF_HATED:` - `RagEffect.cpp:21334-21347`; the inline caster
+        // tint plus `ParticleTime("effect\\white02.bmp", 1)`. Lifetime 500
+        // (`EffectTypes.cpp:552`).
+        EffectId::Hated => Box::new(Hated::new(500)),
+        // `case EF_BLUECASTING:` - `RagEffect.cpp:23599-23601` calls
+        // `BlueSpellRings()` (`:18667-18684`). Lifetime 60
+        // (`EffectTypes.cpp:450`).
+        EffectId::Bluecasting => Box::new(BlueSpellRings::new(60)),
+        // `case EF_NAPALMVALCAN:` - `RagEffect.cpp:23293-23301`. The body only
+        // plays a wave; its `Hit2(0)` call is dead after frame 0. Lifetime 200
+        // (`EffectTypes.cpp:410`).
+        EffectId::Napalmvalcan => Box::new(NapalmValcan::new(200)),
+        // ------------------------------------------------------------------
+        // Prim 46 - `CHIMTO`/`FVOICE`/`WINK` (`RagEffect.cpp:14419-14511`).
+        // `case EF_CHIMTO:` is `:24238-24240`; `case EF_FVOICE:` `:21245-21246`;
+        // `case EF_WINK:` `:21248-21249`. Lifetimes 16/100/100
+        // (`EffectTypes.cpp:276`, `:615`, `:616`).
+        // ------------------------------------------------------------------
+        EffectId::Chimto => Box::new(Chimto::new(0, 16)),
+        EffectId::Fvoice => Box::new(Chimto::new(2, 100)),
+        EffectId::Wink => Box::new(Chimto::new(1, 100)),
+        // ------------------------------------------------------------------
+        // Prim 100 `PP_HITLINE3` - the `WhiteSpark*` family.
+        // `case EF_HITLINE4:` / `EF_HITLINE5:` / `EF_HITLINE6:` -
+        // `RagEffect.cpp:23651-23659`. Lifetimes 200 each
+        // (`EffectTypes.cpp:438-440`).
+        // ------------------------------------------------------------------
+        EffectId::Hitline4 => Box::new(White02Burst::new(3, 200)),
+        EffectId::Hitline5 => Box::new(WhiteSparkRing::new(3, 200)),
+        EffectId::Hitline6 => Box::new(WhiteSparkStreak::new(3, 200)),
+        // ------------------------------------------------------------------
+        // Prim 69 - the `EF_TRIPLEATTACK*` bodies.
+        // `case EF_TRIPLEATTACK:` - `RagEffect.cpp:10214-10215` (`CloudDrift`);
+        // `case EF_TRIPLEATTACK2:` `:24353-24358`; `case EF_TRIPLEATTACK3:`
+        // `:24360-24365`. Lifetimes 100/200/200 (`EffectTypes.cpp:338`,
+        // `:397`, `:402`).
+        // ------------------------------------------------------------------
+        EffectId::Tripleattack => Box::new(CloudDrift::new(100)),
+        EffectId::Tripleattack2 => Box::new(AlphaCenterTrail::new(200)),
+        EffectId::Tripleattack3 => Box::new(AlphaCenterStream::new(200)),
         _ => return None,
     })
+}
+
+/// Bodies that legitimately produce **no** geometry, so the
+/// `every_registered_body_assigns_its_official_texture` test knows it is not
+/// looking at a porting omission.
+///
+/// `EF_NAPALMVALCAN` is the only one: its `Hit2(0)` calls happen on frames
+/// 20-60, and `Hit2` is gated on `stateCnt == 0`, so the original never spawns
+/// a shard (`RagEffect.cpp:23293-23301`, `:807-812`). The body is sound-only.
+pub fn spawns_no_geometry(effect: EffectId) -> bool {
+    matches!(effect, EffectId::Napalmvalcan)
 }
 
 /// Whether the effect opens an official `.str` screen-sprite resource
@@ -592,6 +649,19 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Rolling9,
         EffectId::Rolling10,
         EffectId::Heartasura,
+        // Renewal cluster: the three free ids plus prims 46/69/100.
+        EffectId::Hated,
+        EffectId::Bluecasting,
+        EffectId::Napalmvalcan,
+        EffectId::Chimto,
+        EffectId::Fvoice,
+        EffectId::Wink,
+        EffectId::Hitline4,
+        EffectId::Hitline5,
+        EffectId::Hitline6,
+        EffectId::Tripleattack,
+        EffectId::Tripleattack2,
+        EffectId::Tripleattack3,
     ]);
 
     ids
@@ -814,6 +884,29 @@ mod tests {
     }
 
     #[test]
+    fn renewal_cluster_lifetimes_match_effect_types() {
+        let expect = [
+            (EffectId::Hated, 500),
+            (EffectId::Bluecasting, 60),
+            (EffectId::Napalmvalcan, 200),
+            (EffectId::Chimto, 16),
+            (EffectId::Fvoice, 100),
+            (EffectId::Wink, 100),
+            (EffectId::Hitline4, 200),
+            (EffectId::Hitline5, 200),
+            (EffectId::Hitline6, 200),
+            (EffectId::Tripleattack, 100),
+            (EffectId::Tripleattack2, 200),
+            (EffectId::Tripleattack3, 200),
+        ];
+
+        for (effect, lifetime) in expect {
+            let body = spawn(effect).unwrap_or_else(|| panic!("{effect:?} does not spawn"));
+            assert_eq!(body.lifetime(), lifetime, "{effect:?}");
+        }
+    }
+
+    #[test]
     fn str_driven_bodies_spawn_like_every_other_body() {
         assert!(needs_str_clips(EffectId::Signum));
         assert!(needs_str_clips(EffectId::Cartrevolution));
@@ -887,7 +980,8 @@ mod tests {
                         || super::super::registry_batch_j::is_caster_body_only(effect)
                         || super::super::registry_batch_k::is_caster_body_only(effect)
                         || super::super::registry_batch_l::is_caster_body_only(effect)
-                        || super::super::registry_batch_l::spawns_particles_only(effect),
+                        || super::super::registry_batch_l::spawns_particles_only(effect)
+                        || spawns_no_geometry(effect),
                     "{effect:?} spawned nothing"
                 );
                 continue;
