@@ -2,6 +2,7 @@
 //! bookkeeping and the part-file lookups.
 
 use super::*;
+use crate::world::PickScreenBounds;
 
 #[derive(Clone, RustState, StateElement)]
 pub struct Common {
@@ -1524,6 +1525,66 @@ impl Common {
                 submeshes,
             });
         }
+    }
+
+    /// Projected screen rectangle of this entity's current sprite frame.
+    ///
+    /// This is the *real* visual bounds (body sprite, current animation frame
+    /// and direction), not an inflated pick rectangle. The monster pick assist
+    /// (`crate::world::resolve_monster_pick`) adds its padding on top of these
+    /// bounds, so rendering keeps using the untouched sprite geometry.
+    pub fn pick_screen_bounds(&self, camera: &dyn Camera, screen_size: ScreenSize, client_tick: ClientTick) -> Option<PickScreenBounds> {
+        let animation_data = self.animation_data.as_ref()?;
+        let frame = animation_data.get_frame(&self.animation_state, camera, self.direction);
+
+        if frame.size.x <= 0 || frame.size.y <= 0 || screen_size.width <= 0.0 || screen_size.height <= 0.0 {
+            return None;
+        }
+
+        // Same body position/scale as `render`, so the assist follows the
+        // current animation (including the render pulse) instead of the feet
+        // tile only.
+        let body_wave = self.body_wave.map(|wave| wave.offset(client_tick)).unwrap_or(0.0);
+        let body_position = self.world_position + Vector3::new(0.0, body_wave, 0.0);
+        let world_matrix = animation_data.calculate_world_matrix(camera, frame, body_position, self.scale * self.render_pulse_scale(), 1.0);
+
+        let view_projection = camera.view_projection_matrix();
+        let mut left = f32::INFINITY;
+        let mut top = f32::INFINITY;
+        let mut right = f32::NEG_INFINITY;
+        let mut bottom = f32::NEG_INFINITY;
+
+        // `Camera::billboard_matrix` maps the sprite-local rectangle x in
+        // -1..=1 and y in 0..=2 to the frame size.
+        for (x, y) in [(-1.0f32, 0.0f32), (-1.0, 2.0), (1.0, 0.0), (1.0, 2.0)] {
+            let local = cgmath::Vector4::new(x, y, 0.0, 1.0);
+            let clip = view_projection * (world_matrix * local);
+
+            // `clip.w` is the view-space depth of the reverse-z projection;
+            // sprites at or behind the camera have no usable screen position.
+            if clip.w <= f32::EPSILON {
+                return None;
+            }
+
+            let screen = camera.clip_to_screen_space(clip);
+            if !screen.x.is_finite() || !screen.y.is_finite() {
+                return None;
+            }
+
+            let pixel_x = screen.x * screen_size.width;
+            let pixel_y = screen.y * screen_size.height;
+
+            left = left.min(pixel_x);
+            top = top.min(pixel_y);
+            right = right.max(pixel_x);
+            bottom = bottom.max(pixel_y);
+        }
+
+        if !left.is_finite() || !top.is_finite() || !right.is_finite() || !bottom.is_finite() {
+            return None;
+        }
+
+        Some(PickScreenBounds::new(left, top, right, bottom))
     }
 
     pub fn render(&self, instructions: &mut Vec<EntityInstruction>, camera: &dyn Camera, add_to_picker: bool, client_tick: ClientTick) {

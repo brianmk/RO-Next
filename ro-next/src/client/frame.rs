@@ -1057,6 +1057,73 @@ impl Client {
         .is_allowed()
     }
 
+    /// Widen the click/target area of monsters only.
+    ///
+    /// The GPU picker stays pixel-exact; this pass adds monster padding on top
+    /// of its result. A raw entity target (human, NPC, item, or a monster
+    /// already under the cursor) is never replaced, so a padded monster cannot
+    /// swallow a closer entity.
+    #[allow(clippy::too_many_arguments)]
+    fn assist_monster_pick(
+        &self,
+        input_report: &mut InputReport,
+        screen_size: ScreenSize,
+        currently_playing: bool,
+        #[cfg(feature = "debug")] use_debug_camera: bool,
+        client_tick: ClientTick,
+    ) {
+        if !*self.client_state.follow(client_state().game_settings().easy_monster_picking()) {
+            return;
+        }
+
+        // The raw picker already found an entity (including a human under the
+        // cursor), so the assist cannot change the outcome and the projected
+        // sprite bounds do not have to be computed.
+        if !matches!(input_report.mouse_target, PickerTarget::Nothing | PickerTarget::Tile { .. }) {
+            return;
+        }
+
+        let camera: &dyn Camera = match currently_playing {
+            #[cfg(feature = "debug")]
+            _ if use_debug_camera => &self.debug_camera,
+            true => &self.player_camera,
+            false => &self.start_camera,
+        };
+
+        // The official client pads its projected pick rectangles in UI-scaled
+        // pixels, so follow the current interface scale here as well.
+        let scaling_factor = self.client_state.follow(client_state().interface_settings().scaling()).get_factor();
+
+        let candidates: Vec<MonsterPickCandidate> = self
+            .client_state
+            .follow(client_state().entities())
+            .iter()
+            .filter(|entity| entity.get_entity_type() == EntityType::Monster && !entity.is_dead() && !entity.is_fading())
+            .filter_map(|entity| {
+                entity_pick_screen_bounds(entity, camera, screen_size, client_tick).map(|bounds| MonsterPickCandidate {
+                    entity_id: entity.get_entity_id(),
+                    entity_type: entity.get_entity_type(),
+                    bounds,
+                    depth: camera.distance_to(entity.get_position()),
+                })
+            })
+            .collect();
+
+        if candidates.is_empty() {
+            return;
+        }
+
+        let cursor = cgmath::Vector2::new(input_report.mouse_position.left, input_report.mouse_position.top);
+
+        input_report.mouse_target = resolve_monster_pick(
+            input_report.mouse_target,
+            cursor,
+            &candidates,
+            MONSTER_PICK_PADDING * scaling_factor,
+            MONSTER_MIN_PICK_SIZE * scaling_factor,
+        );
+    }
+
     /// Fire any action that the player buffered while out of range or while
     /// still moving (attack, pick up item). Must be called after
     /// [`Self::update_entities`] so that the player's `stopped_moving` state
@@ -1269,7 +1336,27 @@ impl Client {
             self.interface.invalidate_layouts();
         }
 
-        let input_report = self.input_system.update_delta(client_tick);
+        // The pick assist has to run before any consumer of `mouse_target`
+        // (details request, hover cursor, click handling, skill targeting).
+        // It uses the current sprite animation of the monsters and the camera
+        // from the previous frame, which is the same camera the picker pass
+        // rendered the picker texture with. These are separate locals because
+        // the frame's own `currently_playing`/`render_options` are read after
+        // the network events below, as before.
+        let pick_screen_size = self.graphics_engine.get_window_size().into();
+        let pick_currently_playing = self.client_state.try_follow(this_player()).is_some();
+        #[cfg(feature = "debug")]
+        let pick_use_debug_camera = *self.client_state.follow(client_state().render_options().use_debug_camera());
+
+        let mut input_report = self.input_system.update_delta(client_tick);
+        self.assist_monster_pick(
+            &mut input_report,
+            pick_screen_size,
+            pick_currently_playing,
+            #[cfg(feature = "debug")]
+            pick_use_debug_camera,
+            client_tick,
+        );
 
         self.request_entity_details(&input_report);
         self.request_visible_entity_names();

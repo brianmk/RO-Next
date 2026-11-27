@@ -42,6 +42,11 @@ where
                     event: Toggle(self.game_settings_path.auto_attack()),
                 },
                 state_button! {
+                    text: client_state().localization().qol().easy_monster_picking_button_text(),
+                    state: self.game_settings_path.easy_monster_picking(),
+                    event: Toggle(self.game_settings_path.easy_monster_picking()),
+                },
+                state_button! {
                     text: client_state().localization().qol().battle_mode_button_text(),
                     state: self.game_settings_path.battle_mode(),
                     event: Toggle(self.game_settings_path.battle_mode()),
