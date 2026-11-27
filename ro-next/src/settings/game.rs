@@ -22,6 +22,14 @@ pub struct GameSettings {
     /// hard to target with the pixel-exact picker.
     #[serde(default = "default_easy_monster_picking")]
     pub easy_monster_picking: bool,
+    /// Draw the official in-world damage/heal/miss numbers.
+    ///
+    /// This is the client's `g_msgEffectShowSpecial` switch: the official
+    /// `CMsgEffect::Render` returns before drawing every number type when it
+    /// is off (`MsgEffect.cpp:1586-1602`). The hit feedback sounds/effects and
+    /// the target's flinch are unaffected.
+    #[serde(default = "default_show_damage_numbers")]
+    pub show_damage_numbers: bool,
 }
 
 fn default_show_cooldown_numbers() -> bool {
@@ -32,6 +40,10 @@ fn default_easy_monster_picking() -> bool {
     true
 }
 
+fn default_show_damage_numbers() -> bool {
+    true
+}
+
 impl Default for GameSettings {
     fn default() -> Self {
         Self {
@@ -39,6 +51,7 @@ impl Default for GameSettings {
             battle_mode: false,
             show_cooldown_numbers: true,
             easy_monster_picking: true,
+            show_damage_numbers: true,
         }
     }
 }
@@ -119,6 +132,25 @@ mod tests {
         // and behave like the new default (on) instead of failing to parse.
         let settings: GameSettings = ron::from_str("(auto_attack: true)").unwrap();
         let enabled = settings.easy_monster_picking;
+        std::mem::forget(settings);
+
+        assert!(enabled);
+    }
+
+    #[test]
+    fn show_damage_numbers_defaults_to_on() {
+        let settings = GameSettings::default();
+        let enabled = settings.show_damage_numbers;
+        std::mem::forget(settings);
+
+        assert!(enabled);
+    }
+
+    #[test]
+    fn config_without_show_damage_numbers_defaults_to_on() {
+        // Settings files written before the option existed must keep loading.
+        let settings: GameSettings = ron::from_str("(auto_attack: true)").unwrap();
+        let enabled = settings.show_damage_numbers;
         std::mem::forget(settings);
 
         assert!(enabled);

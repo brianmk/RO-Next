@@ -2,131 +2,20 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use cgmath::{Point3, Vector3};
-use ragnarok_packets::{Direction, EntityId, QuestEffectPacket};
+use ragnarok_packets::{EntityId, QuestEffectPacket};
 use ro_next_audio::{AudioEngine, SoundEffectKey};
 #[cfg(feature = "debug")]
 use ro_next_debug::logging::Colorize;
 use ro_next_interface::application::Clip;
 
 use crate::graphics::{Color, ScreenClip, ScreenPosition, ScreenSize, Texture};
-use crate::loaders::{FontSize, GameFileLoader, ImageType, Scaling, Sprite, TextureLoader};
+use crate::loaders::{GameFileLoader, ImageType, Scaling, Sprite, TextureLoader};
 use crate::renderer::{GameInterfaceRenderer, SpriteRenderer};
 use crate::world::{Actions, Camera};
 use crate::{Entity, Map};
 
 /// Hearing range of the arrow impact sound in world units.
 const ARROW_HIT_SOUND_RANGE: f32 = 250.0;
-
-/// On-screen height of a damage/heal number in pixels before magnitude and
-/// distance scaling. The original client renders damage numbers much larger
-/// than the interface text; this is deliberately ~10x the previous 16 px.
-pub const BASE_DAMAGE_TEXT_PIXELS: f32 = 85.0;
-
-/// World distance at which the distance scaling is neutral (roughly the
-/// distance between the player camera and a monster in melee range).
-const DAMAGE_TEXT_REFERENCE_DISTANCE: f32 = 260.0;
-/// Clamp for the distance scaling, so that numbers stay readable but never
-/// cover half the screen when the camera is very close.
-const DAMAGE_TEXT_MIN_DISTANCE_SCALE: f32 = 0.9;
-const DAMAGE_TEXT_MAX_DISTANCE_SCALE: f32 = 1.15;
-/// A damage number may use at most this fraction of the window height.
-const DAMAGE_TEXT_MAX_VIEWPORT_FRACTION: f32 = 0.32;
-/// The numbers are spawned slightly above the entity so that the (large) text
-/// does not cover the entity itself or its name/health bar.
-const DAMAGE_TEXT_HEAD_OFFSET: f32 = 22.0;
-/// Additional size for critical hits.
-const CRITICAL_DAMAGE_SCALE: f32 = 1.2;
-
-/// Size multiplier for the number of digits of a damage/heal value.
-///
-/// Values below 1000 use the standard size; every additional digit above 999
-/// adds 20%:
-///
-/// * 0 - 999: 1.0
-/// * 1000 - 9999: 1.2
-/// * 10000 - 99999: 1.44
-/// * 100000 and above: 1.728 (capped)
-pub fn damage_magnitude_scale(value: u64) -> f32 {
-    if value < 1000 {
-        return 1.0;
-    }
-
-    let magnitude = (value as f64).log10().floor() as i32 - 2;
-    let exponent = magnitude.clamp(0, 3);
-
-    1.2f32.powi(exponent)
-}
-
-/// Final on-screen font size (in pixels) for a damage number.
-///
-/// Combines the base size, the magnitude scale (more digits = bigger) and a
-/// mild distance scaling, and clamps the result to the window so that the
-/// number is never larger than `DAMAGE_TEXT_MAX_VIEWPORT_FRACTION` of the
-/// screen height.
-pub fn damage_text_pixels(base_pixels: f32, magnitude_scale: f32, distance: f32, window_height: f32) -> f32 {
-    let distance_scale =
-        (DAMAGE_TEXT_REFERENCE_DISTANCE / distance.max(1.0)).clamp(DAMAGE_TEXT_MIN_DISTANCE_SCALE, DAMAGE_TEXT_MAX_DISTANCE_SCALE);
-    let max_pixels = window_height * DAMAGE_TEXT_MAX_VIEWPORT_FRACTION;
-
-    (base_pixels * magnitude_scale * distance_scale).min(max_pixels).max(1.0)
-}
-
-/// Computes the [`FontSize`] for a damage number at a world position.
-///
-/// `render_damage_text`/`render_text` multiplies the font size by the interface
-/// scaling, so it is divided out here: world-space damage numbers should have a
-/// fixed on-screen size independent of the UI scale.
-fn damage_text_font_size(
-    renderer: &GameInterfaceRenderer,
-    camera: &dyn Camera,
-    position: Point3<f32>,
-    window_size: ScreenSize,
-    base_pixels: f32,
-    magnitude_scale: f32,
-) -> FontSize {
-    let pixels = damage_text_pixels(base_pixels, magnitude_scale, camera.distance_to(position), window_size.height);
-    let scaling = renderer.scaling_factor().max(0.1);
-
-    FontSize(pixels / scaling)
-}
-
-/// Renders a damage/heal number, using the installed sprite damage font and
-/// falling back to the interface text renderer.
-#[allow(clippy::too_many_arguments)] // one argument per render parameter (position, size, colour, font, ...)
-fn render_number(
-    renderer: &GameInterfaceRenderer,
-    camera: &dyn Camera,
-    window_size: ScreenSize,
-    text: &str,
-    position: Point3<f32>,
-    base_pixels: f32,
-    magnitude_scale: f32,
-    color: Color,
-) {
-    let clip_space_position = camera.view_projection_matrix() * position.to_homogeneous();
-    let screen_position = camera.clip_to_screen_space(clip_space_position);
-    let final_position = ScreenPosition {
-        left: screen_position.x * window_size.width,
-        top: screen_position.y * window_size.height,
-    };
-
-    let height = damage_text_pixels(base_pixels, magnitude_scale, camera.distance_to(position), window_size.height);
-
-    if let Some(font) = crate::world::damage_font::damage_font() {
-        let screen_clip = ScreenClip {
-            left: 0.0,
-            top: 0.0,
-            right: window_size.width,
-            bottom: window_size.height,
-        };
-
-        font.render(renderer, text, final_position, height, color, screen_clip);
-        return;
-    }
-
-    let font_size = FontSize(height / renderer.scaling_factor().max(0.1));
-    renderer.render_damage_text(text, final_position, color, font_size);
-}
 
 pub trait Particle {
     fn update(&mut self, delta_time: f32) -> bool;
@@ -140,262 +29,20 @@ pub trait Particle {
         None
     }
 
-    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize);
+    /// Draws the particle. `entities` is the current entity list so a number
+    /// can follow its owner (`CMsgEffect::FollowOwner`, `MsgEffect.cpp:1308`).
+    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize, entities: &[Entity]);
 
     /// World position used for distance culling.
     fn culling_position(&self) -> Point3<f32>;
-}
 
-/// Upward speed of a damage number at spawn (world units per second).
-///
-/// Together with [`DAMAGE_NUMBER_GRAVITY`] this forms the parabolic arc of the
-/// official "damage fountain": the number rises, peaks and falls back while it
-/// drifts away from the hit entity.
-const DAMAGE_NUMBER_UP_SPEED: f32 = 45.0;
-/// Downward acceleration of the damage-number arc (world units / s^2).
-const DAMAGE_NUMBER_GRAVITY: f32 = 150.0;
-/// Horizontal drift speed of the fountain (world units per second).
-const DAMAGE_NUMBER_DRIFT_SPEED: f32 = 8.0;
-/// Lifetime of a damage number in seconds.
-const DAMAGE_NUMBER_LIFETIME: f32 = 0.9;
-
-/// Spacing between the damage numbers of one multi-hit packet.
-///
-/// Official `g_multiHitInterval = 200` (`RenderObject.cpp:101`): the client
-/// emits one popup every 200 ms so a five-hit Throw Spirit Sphere shows five
-/// separate numbers instead of one overlapping blob.
-pub const MULTI_HIT_INTERVAL_MS: u32 = 200;
-
-/// Horizontal drift direction of the official damage fountain.
-///
-/// The classic client drifts the numbers diagonally away from the hit entity,
-/// based on the octant the entity faces (`CMsgEffect::MsgEffectDriftDirection`:
-/// angle 0..90 -> (-0.8, +0.8), 90..180 -> (-0.8, -0.8), 180..270 ->
-/// (+0.8, -0.8), 270..360 -> (+0.8, +0.8)).
-pub fn damage_number_drift(direction: Direction) -> Vector3<f32> {
-    let (x, z) = match u16::from(direction) {
-        // North / North-East.
-        0 | 1 => (-0.8, 0.8),
-        // East / South-East.
-        2 | 3 => (-0.8, -0.8),
-        // South / South-West.
-        4 | 5 => (0.8, -0.8),
-        // West / North-West.
-        _ => (0.8, 0.8),
-    };
-
-    Vector3::new(x, 0.0, z) * DAMAGE_NUMBER_DRIFT_SPEED
-}
-
-pub struct DamageNumber {
-    position: Point3<f32>,
-    /// Spawn position of the arc (already offset above the head).
-    origin: Point3<f32>,
-    /// Horizontal drift velocity of the fountain.
-    drift: Vector3<f32>,
-    damage_amount: String,
-    magnitude_scale: f32,
-    elapsed: f32,
-    /// Milliseconds before the number appears. Multi-hit packets stagger
-    /// their numbers by [`MULTI_HIT_INTERVAL_MS`].
-    delay_ms: u32,
-    is_critical: bool,
-}
-
-impl DamageNumber {
-    /// Creates a damage number above `position` that follows the official
-    /// damage fountain: a parabolic arc that drifts diagonally away from the
-    /// hit entity based on the direction it faces. `direction` is optional so
-    /// effects without an entity (e.g. ground damage) still show a number.
-    pub fn new(position: Point3<f32>, damage_amount: u64, is_critical: bool, direction: Direction) -> Self {
-        Self::with_delay(position, damage_amount, is_critical, direction, 0)
-    }
-
-    /// Creates a damage number that stays invisible for `delay_ms` before it
-    /// starts its arc. Used for the staggered numbers of a multi-hit packet
-    /// (`g_multiHitInterval`, `RenderObject.cpp:101`).
-    pub fn with_delay(position: Point3<f32>, damage_amount: u64, is_critical: bool, direction: Direction, delay_ms: u32) -> Self {
-        let origin = position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0);
-
-        Self {
-            position: origin,
-            origin,
-            drift: damage_number_drift(direction),
-            damage_amount: damage_amount.to_string(),
-            magnitude_scale: damage_magnitude_scale(damage_amount),
-            elapsed: 0.0,
-            delay_ms,
-            is_critical,
-        }
-    }
-
-    /// Whether the number is still waiting for its multi-hit slot.
-    fn is_delayed(&self) -> bool {
-        self.delay_ms > 0
-    }
-}
-
-impl Particle for DamageNumber {
-    fn culling_position(&self) -> Point3<f32> {
-        self.position
-    }
-
-    fn update(&mut self, delta_time: f32) -> bool {
-        if self.is_delayed() {
-            let delay = self.delay_ms as f32 / 1000.0;
-            let remaining = (delay - delta_time).max(0.0);
-            self.delay_ms = (remaining * 1000.0).round() as u32;
-            return true;
-        }
-
-        self.elapsed += delta_time;
-        let time = self.elapsed;
-
-        // Parabolic arc: rises with the spawn speed and falls under gravity
-        // while the horizontal drift carries it away from the entity.
-        let height = DAMAGE_NUMBER_UP_SPEED * time - 0.5 * DAMAGE_NUMBER_GRAVITY * time * time;
-
-        self.position = self.origin + self.drift * time + Vector3::new(0.0, height, 0.0);
-
-        self.elapsed < DAMAGE_NUMBER_LIFETIME
-    }
-
-    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
-        // Multi-hit numbers appear one by one; the later ones stay hidden
-        // until their 200 ms slot arrives.
-        if self.is_delayed() {
-            return;
-        }
-
-        let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
-        let screen_position = camera.clip_to_screen_space(clip_space_position);
-        let final_position = ScreenPosition {
-            left: screen_position.x * window_size.width,
-            top: screen_position.y * window_size.height,
-        };
-
-        let color = match self.is_critical {
-            true => Color::rgb_u8(255, 180, 0),
-            false => Color::WHITE,
-        };
-
-        let base_pixels = match self.is_critical {
-            true => BASE_DAMAGE_TEXT_PIXELS * CRITICAL_DAMAGE_SCALE,
-            false => BASE_DAMAGE_TEXT_PIXELS,
-        };
-        // Official sprite digits when the HD damage font is installed, text
-        // rendering as the fallback for data sets without it.
-        if let Some(font) = crate::world::damage_font::damage_font() {
-            let height = damage_text_pixels(
-                base_pixels,
-                self.magnitude_scale,
-                camera.distance_to(self.position),
-                window_size.height,
-            );
-            let screen_clip = ScreenClip {
-                left: 0.0,
-                top: 0.0,
-                right: window_size.width,
-                bottom: window_size.height,
-            };
-
-            font.render(renderer, &self.damage_amount, final_position, height, color, screen_clip);
-            return;
-        }
-
-        let font_size = damage_text_font_size(renderer, camera, self.position, window_size, base_pixels, self.magnitude_scale);
-
-        renderer.render_damage_text(&self.damage_amount, final_position, color, font_size);
-    }
-}
-
-pub struct Miss {
-    position: Point3<f32>,
-    timer: f32,
-}
-
-impl Miss {
-    pub fn new(position: Point3<f32>) -> Self {
-        Self {
-            position: position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0),
-            timer: 0.6,
-        }
-    }
-}
-
-impl Particle for Miss {
-    fn culling_position(&self) -> Point3<f32> {
-        self.position
-    }
-
-    fn update(&mut self, delta_time: f32) -> bool {
-        self.position.y += (self.timer - 0.1).max(0.0) * 70.0 * delta_time;
-
-        self.timer -= delta_time;
-        self.timer > 0.0
-    }
-
-    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
-        let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
-        let screen_position = camera.clip_to_screen_space(clip_space_position);
-        let final_position = ScreenPosition {
-            left: screen_position.x * window_size.width,
-            top: screen_position.y * window_size.height,
-        };
-        let alpha = (self.timer * 10.0).min(1.0);
-
-        let font_size = damage_text_font_size(renderer, camera, self.position, window_size, BASE_DAMAGE_TEXT_PIXELS, 1.0);
-
-        renderer.render_damage_text("miss", final_position, Color::rgba(1.0, 0.0, 0.0, alpha), font_size);
-    }
-}
-
-pub struct HealNumber {
-    position: Point3<f32>,
-    origin: Point3<f32>,
-    heal_amount: String,
-    magnitude_scale: f32,
-    elapsed: f32,
-}
-
-impl HealNumber {
-    pub fn new(position: Point3<f32>, heal_amount: u64) -> Self {
-        let origin = position + Vector3::new(0.0, DAMAGE_TEXT_HEAD_OFFSET, 0.0);
-
-        Self {
-            position: origin,
-            origin,
-            heal_amount: heal_amount.to_string(),
-            magnitude_scale: damage_magnitude_scale(heal_amount),
-            elapsed: 0.0,
-        }
-    }
-}
-
-impl Particle for HealNumber {
-    fn culling_position(&self) -> Point3<f32> {
-        self.position
-    }
-
-    fn update(&mut self, delta_time: f32) -> bool {
-        self.elapsed += delta_time;
-        let time = self.elapsed;
-        let height = DAMAGE_NUMBER_UP_SPEED * time - 0.5 * DAMAGE_NUMBER_GRAVITY * time * time;
-        self.position = self.origin + Vector3::new(0.0, height, 0.0);
-        self.elapsed < DAMAGE_NUMBER_LIFETIME
-    }
-
-    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
-        render_number(
-            renderer,
-            camera,
-            window_size,
-            &self.heal_amount,
-            self.position,
-            BASE_DAMAGE_TEXT_PIXELS,
-            self.magnitude_scale,
-            Color::rgb_u8(30, 255, 30),
-        );
+    /// Owner of a cumulative total number (official type 22).
+    ///
+    /// `SpawnDamageDigits` removes the previous type-22 effect of the same
+    /// actor before spawning the new total (`RenderObject.cpp:4797-4806`), so
+    /// [`ParticleHolder::spawn_particle`] drops the old one first.
+    fn total_owner(&self) -> Option<EntityId> {
+        None
     }
 }
 
@@ -446,7 +93,7 @@ impl Particle for Emote {
         self.timer < self.frame_count() as f32 * self.frame_time()
     }
 
-    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize) {
+    fn render(&self, renderer: &GameInterfaceRenderer, camera: &dyn Camera, window_size: ScreenSize, _entities: &[Entity]) {
         let clip_space_position = camera.view_projection_matrix() * self.position.to_homogeneous();
         let screen_position = camera.clip_to_screen_space(clip_space_position);
         let final_position = ScreenPosition {
@@ -621,6 +268,10 @@ impl ParticleHolder {
     }
 
     pub fn spawn_particle(&mut self, particle: Box<dyn Particle + Send + Sync>) {
+        if let Some(entity_id) = particle.total_owner() {
+            self.particles.retain(|existing| existing.total_owner() != Some(entity_id));
+        }
+
         let evict = particles_to_evict(self.particles.len(), self.maximum_particles);
 
         if evict > 0 {
@@ -691,7 +342,7 @@ impl ParticleHolder {
                 continue;
             }
 
-            particle.render(renderer, camera, window_size);
+            particle.render(renderer, camera, window_size, entities);
             rendered += 1;
         }
 
@@ -707,7 +358,7 @@ impl ParticleHolder {
 
 #[cfg(test)]
 mod tests {
-    use super::{BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale, damage_text_pixels, particles_to_evict};
+    use super::particles_to_evict;
 
     #[test]
     fn particle_budget_evicts_only_when_full() {
@@ -722,60 +373,6 @@ mod tests {
         assert_eq!(particles_to_evict(usize::MAX / 2, 0), 0);
         assert_eq!(particles_to_evict(0, 0), 0);
     }
-
-    #[test]
-    fn values_below_1000_use_the_standard_size() {
-        for value in [0, 1, 9, 10, 99, 999] {
-            assert_eq!(damage_magnitude_scale(value), 1.0, "value {value}");
-        }
-    }
-
-    #[test]
-    fn each_extra_digit_adds_20_percent() {
-        assert!((damage_magnitude_scale(1_000) - 1.2).abs() < 1e-5);
-        assert!((damage_magnitude_scale(9_999) - 1.2).abs() < 1e-5);
-        assert!((damage_magnitude_scale(10_000) - 1.44).abs() < 1e-5);
-        assert!((damage_magnitude_scale(99_999) - 1.44).abs() < 1e-5);
-        assert!((damage_magnitude_scale(100_000) - 1.728).abs() < 1e-4);
-        assert!((damage_magnitude_scale(1_000_000) - 1.728).abs() < 1e-4);
-    }
-
-    #[test]
-    fn base_size_is_much_larger_than_the_old_chat_sized_font() {
-        // The old damage number font size was 16 px; the current base is 85 px
-        // (the user asked to halve the first, larger iteration).
-        assert!(BASE_DAMAGE_TEXT_PIXELS >= 80.0);
-    }
-
-    #[test]
-    fn distance_scaling_is_clamped() {
-        // Far away numbers shrink, but only to 90% of the base size.
-        let far = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 10_000.0, 720.0);
-        let reference = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 260.0, 720.0);
-
-        assert!(far < reference);
-        assert!(far >= BASE_DAMAGE_TEXT_PIXELS * 0.9 - 1e-3);
-
-        // Very close numbers grow a little, but are capped to 115% of base.
-        let close = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 1.0, 720.0);
-        assert!(close <= BASE_DAMAGE_TEXT_PIXELS * 1.15 + 1e-3);
-    }
-
-    #[test]
-    fn magnitude_and_viewport_clamps_are_applied() {
-        // 85 * 1.728 = 146.88, below the 32% of 720 = 230.4 viewport cap.
-        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale(1_000_000), 260.0, 720.0);
-        assert!((pixels - 146.88).abs() < 1e-2);
-
-        // Small window: the base size (85) is below the 32% cap of 192, so it is
-        // not reduced.
-        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, 1.0, 260.0, 600.0);
-        assert!((pixels - BASE_DAMAGE_TEXT_PIXELS).abs() < 1e-3);
-
-        // But a larger magnitude is capped at 32% of the window height.
-        let pixels = damage_text_pixels(BASE_DAMAGE_TEXT_PIXELS, damage_magnitude_scale(1_000_000), 260.0, 400.0);
-        assert!((pixels - 128.0).abs() < 1e-3);
-    }
 }
 
 /// Loaded sprite/action pair of the classic arrow projectile.
@@ -786,54 +383,4 @@ pub struct ArrowAssets {
     /// sprite's first frame today.
     #[allow(dead_code)]
     pub actions: Arc<Actions>,
-}
-
-#[cfg(test)]
-mod damage_fountain_tests {
-    use cgmath::{InnerSpace, Point3, Vector3};
-    use ragnarok_packets::Direction;
-
-    use super::{DAMAGE_NUMBER_DRIFT_SPEED, DamageNumber, MULTI_HIT_INTERVAL_MS, Particle, damage_number_drift};
-
-    /// The staggered numbers of a multi-hit packet stay hidden until their
-    /// slot arrives, then each shows the per-hit damage.
-    #[test]
-    fn multi_hit_numbers_wait_for_their_slot() {
-        let mut first = DamageNumber::with_delay(Point3::new(0.0, 0.0, 0.0), 100, false, Direction::North, 0);
-        let mut second = DamageNumber::with_delay(Point3::new(0.0, 0.0, 0.0), 100, false, Direction::North, MULTI_HIT_INTERVAL_MS);
-
-        assert!(!first.is_delayed());
-        assert!(second.is_delayed());
-
-        // The first number advances; the second is still parked.
-        first.update(0.016);
-        second.update(0.016);
-        assert!(first.elapsed > 0.0);
-        assert_eq!(second.elapsed, 0.0);
-        assert!(second.is_delayed());
-
-        // After the 200 ms slot the second number starts its arc.
-        second.update(0.2);
-        assert!(!second.is_delayed());
-        second.update(0.016);
-        assert!(second.elapsed > 0.0);
-    }
-
-    /// The drift direction follows the entity facing octant like the classic
-    /// client (`MsgEffectDriftDirection`).
-    #[test]
-    fn drift_follows_the_entity_facing() {
-        let cases = [
-            (Direction::North, Vector3::new(-0.8, 0.0, 0.8)),
-            (Direction::East, Vector3::new(-0.8, 0.0, -0.8)),
-            (Direction::South, Vector3::new(0.8, 0.0, -0.8)),
-            (Direction::West, Vector3::new(0.8, 0.0, 0.8)),
-        ];
-
-        for (direction, expected) in cases {
-            let drift = damage_number_drift(direction);
-            let expected = expected * DAMAGE_NUMBER_DRIFT_SPEED;
-            assert!((drift - expected).magnitude() < 1e-5, "{direction:?}: {drift:?}");
-        }
-    }
 }

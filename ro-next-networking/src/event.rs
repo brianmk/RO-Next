@@ -308,6 +308,12 @@ pub enum NetworkEvent {
         hit_count: u16,
         attack_duration: u32,
         is_critical: bool,
+        /// `isSpDamage` of `ZC_NOTIFY_ACT3` (0x08C8). The official handler
+        /// stores it in `ACTSTRUCT::spDamaged`, which the damage message reads
+        /// as `blueDamage` (`GameModePackets.cpp:5531-5544`,
+        /// `GameObject.cpp:1934-1936`): the number turns blue
+        /// (`0xFF1E90FF`). Older attack packets have no such flag.
+        blue_damage: bool,
         /// Skill id of the damage source, when the client can attribute it.
         ///
         /// The 2019 `ZC_NOTIFY_SKILL` (0x01DE) carries the skill id; plain

@@ -126,6 +126,9 @@ pub struct QolTexts {
     /// Toggle of the monster-only pick assist
     /// (`GameSettings::easy_monster_picking`).
     pub easy_monster_picking_button_text: String,
+    /// Toggle of the official in-world damage/heal/miss numbers
+    /// (`GameSettings::show_damage_numbers`).
+    pub damage_numbers_button_text: String,
     pub chat_battle_mode_on: String,
     pub chat_battle_mode_off: String,
     pub keybindings_text: String,
@@ -146,6 +149,7 @@ impl Default for QolTexts {
             battle_mode_button_text: "Battle mode (/bm)".to_owned(),
             cooldown_numbers_button_text: "Cooldown seconds on skill slots".to_owned(),
             easy_monster_picking_button_text: "Easier monster picking".to_owned(),
+            damage_numbers_button_text: "Damage numbers".to_owned(),
             chat_battle_mode_on: "Battle mode on: letter and number keys use the hotbar; Enter opens the chat.".to_owned(),
             chat_battle_mode_off: "Battle mode off: letter keys type into the chat.".to_owned(),
             keybindings_text: "Key bindings".to_owned(),

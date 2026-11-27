@@ -4,20 +4,22 @@
     "note": "Every numeric constant below is a literal of the official client; see the cited file:line in `source` per style/field."
   },
   "layout": {
-    "step": 8,
+    "unit": 4,
     "bias": -4,
-    "extended_first_offset_base": 3,
-    "extended_first_offset_add": 4,
+    "extended_base": 3,
+    "extended_first_add": 4,
     "extended_step": 8,
-    "source": "CGameActor::SpawnDamageDigits (RenderObject.cpp:4834-4840): offset=(digits-1-index*2)*4-4; million-unit variant (n-1)*3+4 / (n-1)*3-index*8"
+    "source": "CGameActor::SpawnDamageDigits (RenderObject.cpp:4818-4823): normal offset=(digits-index*2)*4-4; extended first=(digits-1)*3+4, later=(digits-1)*3-index*8"
   },
   "extended_damage": {
     "enabled_value": 1000000,
+    "million_divisor": 1000,
     "million_marker": 10,
     "hundred_million_value": 100000000,
+    "hundred_million_divisor": 1000000,
     "hundred_million_marker": 11,
     "disabled_cap": 999999,
-    "source": "RenderObject.cpp:4781-4791 (TT_EXTEND_DAMAGE_ON_OFF and m_damageMillionUnit)"
+    "source": "RenderObject.cpp:4779-4795 (TT_EXTEND_DAMAGE_ON_OFF / 1e6 / 1e8 thresholds, markers 10/11, 999999 cap)"
   },
   "digits": {
     "sprite": "이팩트\\숫자",
@@ -27,7 +29,7 @@
     "cell_y": 0,
     "cell_scale_x": 0.3,
     "cell_scale_y": 0.3,
-    "source": "archive/data/sprite/이팩트/숫자.spr + 숫자.act; AM_SETPOS2 maps digit n to motion n (MsgEffect.cpp:1762-1770)"
+    "source": "archive/data/sprite/이팩트/숫자.spr + 숫자.act; AM_SETPOS2 selects motion c = digit (MsgEffect.cpp:1762-1769)"
   },
   "miss": {
     "sprite": "이팩트\\miss",
@@ -40,7 +42,7 @@
     "width": 101,
     "height": 85,
     "cell_alpha": 101,
-    "source": "CGameMode::SpawnDamageMsgEffect (WorldObjects.cpp:963-983) uses g_session.damageSpriteName; data.grf data\\sprite\\이팩트\\miss.spr/.act motion 0 cell 0 = image 0 at (0,-129), zoom 0.3, color 0x65FFFFFF; image 101x85"
+    "source": "CGameMode::SpawnDamageMsgEffect (WorldObjects.cpp:963-983) uses g_session.damageSpriteName; data\\sprite\\이팩트\\miss.spr motion 0 cell 0 = image 0 at (0,-129), zoom 0.3, cell alpha 0x65, image 101x85 (data.grf); AM_SETPOS miss case MsgEffect.cpp:1814-1823; AM_MAKE_MISS cross-references GameObject.cpp:1325-1333"
   },
   "styles": [
     {
@@ -61,7 +63,7 @@
       "fade_start": 0.0,
       "fade_step": 0.0,
       "color": "white",
-      "source": "MsgEffect.cpp:288-301; AM_SETPOS2 :1722-1777; spawn offset position.y-=12"
+      "source": "MsgEffect.cpp:284-298 (MET_NUMBER / MET_NUMBER_HALF timeline); AM_SETPOS2 MsgEffect.cpp:1718-1734 (position.y -= 12, scale 5.0, depthLayer -2)"
     },
     {
       "name": "critical",
@@ -81,7 +83,7 @@
       "fade_start": 0.0,
       "fade_step": 0.0,
       "color": "critical_yellow",
-      "source": "MsgEffect.cpp:269-286; GameObject.cpp:1919-1920 (yellow 0xFFFFFF00, type 16)"
+      "source": "MsgEffect.cpp:246-259 (MET_NUMBER_CRITICAL); colour yellow 0xFFFFFF00 (GameObject.cpp:1917-1919, type 16)"
     },
     {
       "name": "half",
@@ -101,7 +103,7 @@
       "fade_start": 0.0,
       "fade_step": 0.0,
       "color": "blue_damage",
-      "source": "MsgEffect.cpp:288-301 (MET_NUMBER_HALF shares MET_NUMBER); GameObject.cpp:1914 (blueDamage 0xFF1E90FF, type 21)"
+      "source": "MsgEffect.cpp:284-298 (MET_NUMBER_HALF shares MET_NUMBER); colour blue 0xFF1E90FF and type 21 (GameObject.cpp:1914)"
     },
     {
       "name": "total",
@@ -121,7 +123,7 @@
       "fade_start": 90.0,
       "fade_step": 8.0,
       "color": "white",
-      "source": "MsgEffect.cpp:331-351 (MET_NUMBER_TOTAL) + RenderObject.cpp:4838-4840 (scale reset to 0.5) + AM_SETPOS2 :1717-1720 (offset 15+12)"
+      "source": "MsgEffect.cpp:333-351 (MET_NUMBER_TOTAL); AM_SETPOS2 MsgEffect.cpp:1721-1732 (offset 15+12, scale 5.0); previous type-22 removal + scale 0.5 (RenderObject.cpp:4797-4828)"
     },
     {
       "name": "simple",
@@ -141,7 +143,7 @@
       "fade_start": 0.0,
       "fade_step": 0.0,
       "color": "white",
-      "source": "MsgEffect.cpp:538-552 (m_type 0x72 = 114); heal colours from GameModePackets.cpp:1645-1668, 18785-18873, 21373-21379; status colours :4671-4698"
+      "source": "MsgEffect.cpp:535-551 (default branch, m_type 0x72 = 114); AM_SETPOS2 MsgEffect.cpp:1746-1759 (position.y -= 12, scale 5.0); HP/SP colours GameModePackets.cpp:1653/1665, status colours :4683-4698"
     },
     {
       "name": "miss",
@@ -161,39 +163,39 @@
       "fade_start": 0.0,
       "fade_step": 0.0,
       "color": "white",
-      "source": "MsgEffect.cpp:322-331 (MET_MISS) + AM_SETPOS miss case :1813-1825; miss sprite from WorldObjects.cpp:963-983; AM_MAKE_MISS passes white (0xFFFFFFFF) for attacker misses, red 0xFFFF0000 only when damage==0 and the attacker is not a monster (GameObject.cpp:1774-1779)"
+      "source": "MsgEffect.cpp:321-331 (MET_MISS timeline); AM_SETPOS miss case MsgEffect.cpp:1814-1823 (position.y -= 12, scale 5.0, forced to 1.0 in OnProcess); sprite and colour WorldObjects.cpp:963-983, GameObject.cpp:1325-1333"
     }
   ],
   "colors": [
     {
       "name": "white",
       "argb": 4294967295,
-      "source": "GameObject.cpp:1907/1926/1935 normal damage"
+      "source": "GameObject.cpp:1924/1935 (normal damage 0xFFFFFFFF)"
     },
     {
       "name": "player_red",
       "argb": 4294901760,
-      "source": "GameObject.cpp:1934 (player target, 0xFFFF0000)"
+      "source": "GameObject.cpp:1931 (player target 0xFFFF0000)"
     },
     {
       "name": "critical_yellow",
       "argb": 4294967040,
-      "source": "GameObject.cpp:1919 (0xFFFFFF00)"
+      "source": "GameObject.cpp:1919 (critical 0xFFFFFF00)"
     },
     {
       "name": "blue_damage",
       "argb": 4280193279,
-      "source": "GameObject.cpp:1914 (blueDamage 0xFF1E90FF)"
+      "source": "GameObject.cpp:1914/1935 (blueDamage 0xFF1E90FF)"
     },
     {
       "name": "heal_green",
       "argb": 4278255360,
-      "source": "GameModePackets.cpp:1652/18786/21378 (0xFF00FF00)"
+      "source": "GameModePackets.cpp:1653 (HP recovery 0xFF00FF00, type 114)"
     },
     {
       "name": "sp_blue",
       "argb": 4278190335,
-      "source": "GameModePackets.cpp:1664/18871 (0xFF0000FF)"
+      "source": "GameModePackets.cpp:1665 (SP recovery 0xFF0000FF, type 114)"
     },
     {
       "name": "status_green",
@@ -235,5 +237,11 @@
       "argb": 4294923697,
       "source": "GameModePackets.cpp:4697 EF_PINK_NUMBER (0xFFFF55B1)"
     }
-  ]
+  ],
+  "timeline": {
+    "frame_ms": 24,
+    "step_ms": 16,
+    "multi_hit_interval_ms": 200,
+    "source": "GetElapsedFrames = (timeGetTime()-motionStartTime)/24 (GameActor.cpp:1107-1109); fixed 16 ms step (Timer.cpp:17-26); g_multiHitInterval = 200 (RenderObject.cpp:100-101)"
+  }
 }

@@ -13,15 +13,17 @@ Source of truth is the client decompilation:
   offsets, the extended-damage K/M markers, and the type-22 0.5 scale reset.
 * ``Source/Contents/Effects/Core/MsgEffect.cpp:206-553``
   (``CMsgEffect::OnProcess``) - the per-style timeline (scale, fade, rise,
-  lifetime).
-* ``Source/Contents/Effects/Core/MsgEffect.cpp:1306-1475``
-  (``CMsgEffect::FollowOwner``) / :118-202 (drift helpers) - the numbers follow
+  lifetime). Exact per-style ranges: :246-259 critical, :284-298 normal/half,
+  :321-331 miss, :333-351 total, :535-551 type 114.
+* ``Source/Contents/Effects/Core/MsgEffect.cpp:1308-1329``
+  (``CMsgEffect::FollowOwner``) / :122-202 (drift helpers) - the numbers follow
   the target and drift diagonally by ``dir * (3 + elapsed / 3)``.
 * ``Source/Contents/Effects/Core/MsgEffect.cpp:1608-1860``
-  (``CMsgEffect::SendMsg`` / ``AM_SETPOS2`` / ``AM_SETPOS``) - spawn offset
-  (12 below the head coordinate, 27 for the total number), scale 5, depth -2.
+  (``CMsgEffect::SendMsg`` / ``AM_SETPOS2`` :1718-1775 / ``AM_SETPOS``
+  :1777-1860) - spawn offset (12 below the head coordinate, 27 for the total
+  number), scale 5, depth -2.
 * ``Source/Contents/Actors/GameObject.cpp:1900-1945`` and
-  ``Source/Client/Mode/GameModePackets.cpp:1645-1668, 4671-4698`` - the
+  ``Source/Client/Mode/GameModePackets.cpp:1653-1665, 4683-4698`` - the
   colours the packet handler assigns to the numbers.
 * ``data\\sprite\\이팩트\\숫자.spr/.act`` (committed loose archive copy) - the
   ten digit frames and their 0.3 cell zoom. ``data\\sprite\\이팩트\\miss.spr``
@@ -202,6 +204,13 @@ def build(facts: dict, sprite: Path, action: Path) -> dict:
         if not (style["min_scale"] <= style["max_scale"]):
             raise SystemExit(f"style {style['name']}: min_scale > max_scale")
 
+    layout = facts["layout"]
+    if layout["unit"] <= 0 or layout["extended_step"] <= 0:
+        raise SystemExit("layout unit/extended_step must be positive")
+    timeline = facts["timeline"]
+    if timeline["frame_ms"] <= 0 or timeline["step_ms"] <= 0 or timeline["multi_hit_interval_ms"] <= 0:
+        raise SystemExit("timeline values must be positive")
+
     color_names = {color["name"] for color in facts["colors"]}
     if color_names != EXPECTED_COLORS:
         raise SystemExit(f"colour rows must be {sorted(EXPECTED_COLORS)}, got {sorted(color_names)}")
@@ -226,16 +235,16 @@ def render(facts: dict, data: dict) -> str:
     add("//")
     add("// Source of truth is the client decompilation:")
     add("// * `CGameActor::SpawnDamageDigits` (RenderObject.cpp:4775-4843)")
-    add("// * `CMsgEffect::OnProcess` / `FollowOwner` (MsgEffect.cpp:118-202,")
-    add("//   :206-553, :1306-1475)")
-    add("// * `CMsgEffect::SendMsg` (`AM_SETPOS2`, MsgEffect.cpp:1710-1782)")
+    add("// * `CMsgEffect::OnProcess` / `FollowOwner` (MsgEffect.cpp:122-202,")
+    add("//   :206-553, :1308-1329)")
+    add("// * `CMsgEffect::SendMsg` (`AM_SETPOS2`, MsgEffect.cpp:1608-1775)")
     add("// * damage-number colours (GameObject.cpp:1900-1945,")
-    add("//   GameModePackets.cpp:1645-1668, :4671-4698)")
+    add("//   GameModePackets.cpp:1653-1665, 4683-4698)")
     add("//")
     add("// The digit atlas is `data\\sprite\\이팩트\\숫자.spr`: ten 0.3-zoomed images")
     add("// indexed by the ACT motion (digit 0 -> motion 0, ... digit 9 -> motion 9).")
     add("// The K/M markers of `TT_EXTEND_DAMAGE_ON_OFF` (motions 10/11,")
-    add("// RenderObject.cpp:4784-4791) are not shipped by this data set; the")
+    add("// RenderObject.cpp:4781-4785) are not shipped by this data set; the")
     add("// client falls back to the full number when a marker is unavailable.")
     add("//")
     add("// Timeline units: `elapsed` is in the official 24 ms clock")
@@ -243,7 +252,16 @@ def render(facts: dict, data: dict) -> str:
     add("// fixed 16 ms steps.")
     add("(")
     add(f"    provenance: {ron_str(facts['provenance']['source'])},")
-    add("    version: 1,")
+    add("    version: 2,")
+    timeline = facts["timeline"]
+    add("    // Official timeline: `GetElapsedFrames` advances in 24 ms units and")
+    add("    // the client runs effect state on a fixed 16 ms step. Multi-hit")
+    add("    // packets emit one number per `g_multiHitInterval`.")
+    add("    timeline: (")
+    add(f"        frame_ms: {timeline['frame_ms']},")
+    add(f"        step_ms: {timeline['step_ms']},")
+    add(f"        multi_hit_interval_ms: {timeline['multi_hit_interval_ms']},")
+    add("    ),")
     add("    // Digit -> sprite image; every digit is one 28x42-ish image.")
     add("    digits: [")
     for row in data["digits"]:
@@ -262,13 +280,15 @@ def render(facts: dict, data: dict) -> str:
     add(f"        cell_scale_y: {digits['cell_scale_y']},")
     add("    ),")
     layout = facts["layout"]
-    add("    // Per-digit screen offsets, right-aligned against the centre:")
-    add("    // `(digits - 1 - index * 2) * 4 - 4` (RenderObject.cpp:4834-4836).")
+    add("    // Per-digit screen offsets in pre-`render.scale` sprite pixels,")
+    add("    // right-aligned against the centre:")
+    add("    // `(digits - index * 2) * unit + bias` (RenderObject.cpp:4823).")
+    add("    // The extended (million-unit) variant is :4818 / :4820.")
     add("    layout: (")
-    add(f"        step: {layout['step']},")
+    add(f"        unit: {layout['unit']},")
     add(f"        bias: {layout['bias']},")
-    add(f"        extended_first_base: {layout['extended_first_offset_base']},")
-    add(f"        extended_first_add: {layout['extended_first_offset_add']},")
+    add(f"        extended_base: {layout['extended_base']},")
+    add(f"        extended_first_add: {layout['extended_first_add']},")
     add(f"        extended_step: {layout['extended_step']},")
     add("    ),")
     extended = facts["extended_damage"]
@@ -276,8 +296,10 @@ def render(facts: dict, data: dict) -> str:
     add("    // hundred-million -> /1000000 + marker 11; off caps at 999999.")
     add("    extended: (")
     add(f"        enabled_value: {extended['enabled_value']},")
+    add(f"        million_divisor: {extended['million_divisor']},")
     add(f"        million_marker: {extended['million_marker']},")
     add(f"        hundred_million_value: {extended['hundred_million_value']},")
+    add(f"        hundred_million_divisor: {extended['hundred_million_divisor']},")
     add(f"        hundred_million_marker: {extended['hundred_million_marker']},")
     add(f"        disabled_cap: {extended['disabled_cap']},")
     add("    ),")

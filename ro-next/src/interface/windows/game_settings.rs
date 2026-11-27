@@ -56,6 +56,11 @@ where
                     state: self.game_settings_path.show_cooldown_numbers(),
                     event: Toggle(self.game_settings_path.show_cooldown_numbers()),
                 },
+                state_button! {
+                    text: client_state().localization().qol().damage_numbers_button_text(),
+                    state: self.game_settings_path.show_damage_numbers(),
+                    event: Toggle(self.game_settings_path.show_damage_numbers()),
+                },
             ),
         }
     }

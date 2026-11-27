@@ -581,6 +581,7 @@ impl Client {
             hit_count,
             attack_duration,
             is_critical,
+            blue_damage,
             skill_id,
             skill_start_tick: _,
         } = event
@@ -781,24 +782,56 @@ impl Client {
                 count => usize::from(count),
             };
 
+            // `g_msgEffectShowSpecial` gates every number type in
+            // `CMsgEffect::Render` (`MsgEffect.cpp:1586-1602`), including the
+            // miss sprite. The hit feedback and the damage pose are unaffected.
+            let show_damage_numbers = *self.client_state.follow(client_state().game_settings().show_damage_numbers());
+            let target_is_player =
+                self.client_state.try_follow(this_entity()).map(|player| player.get_entity_id()) == Some(destination_entity_id);
+            // `AM_MAKE_MISS` uses white for monster attackers and red for
+            // players (`GameObject.cpp:1774-1779`).
+            let source_is_monster = self
+                .client_state
+                .follow(client_state().entities())
+                .iter()
+                .find(|entity| entity.get_entity_id() == source_entity_id)
+                .is_some_and(|entity| entity.get_entity_type() == EntityType::Monster);
+
             let direction = entity.get_direction();
             let position = entity.get_position();
 
-            match damage_amount {
-                Some(amount) => {
-                    let per_hit = amount / hit_count;
+            if show_damage_numbers {
+                match damage_amount {
+                    Some(amount) => {
+                        // `damage /= hitCount` (`RenderObject.cpp:5368`).
+                        let per_hit = amount / hit_count;
 
-                    for hit in 0..hit_count {
-                        self.particle_holder.spawn_particle(Box::new(DamageNumber::with_delay(
+                        for hit in 0..hit_count {
+                            self.particle_holder.spawn_particle(Box::new(DamageNumber::damage(
+                                destination_entity_id,
+                                position,
+                                per_hit as u64,
+                                is_critical,
+                                blue_damage,
+                                target_is_player,
+                                direction,
+                                hit as u32 * crate::world::MULTI_HIT_INTERVAL_MS,
+                            )));
+                        }
+                    }
+                    None => {
+                        let color = match source_is_monster {
+                            true => DamageColor::White,
+                            false => DamageColor::PlayerRed,
+                        };
+                        self.particle_holder.spawn_particle(Box::new(DamageNumber::miss(
+                            destination_entity_id,
                             position,
-                            per_hit as u64,
-                            is_critical,
+                            color,
                             direction,
-                            hit as u32 * crate::world::MULTI_HIT_INTERVAL_MS,
                         )));
                     }
                 }
-                None => self.particle_holder.spawn_particle(Box::new(Miss::new(position))),
             }
         }
 
@@ -859,7 +892,8 @@ impl Client {
 
         // `ZC_RECOVERY` has no entity id (the server only sends it to the
         // player themselves), so `None` resolves to the local player.
-        let position = entity_id
+        let owner = entity_id.or_else(|| self.client_state.try_follow(this_entity()).map(|entity| entity.get_entity_id()));
+        let position = owner
             .and_then(|entity_id| {
                 self.client_state
                     .follow(client_state().entities())
@@ -869,9 +903,9 @@ impl Client {
             })
             .or_else(|| self.client_state.try_follow(this_entity()).map(|entity| entity.get_position()));
 
-        if let Some(position) = position {
+        if let (Some(owner), Some(position)) = (owner, position) {
             self.particle_holder
-                .spawn_particle(Box::new(HealNumber::new(position, heal_amount as u64)));
+                .spawn_particle(Box::new(DamageNumber::heal(owner, position, heal_amount as u64)));
         }
     }
 

@@ -206,6 +206,8 @@ fn skill_damage_event(packet: DisplaySkillEffectAndDamagePacket) -> NetworkEvent
         hit_count: packet.div,
         attack_duration: packet.destination_delay,
         is_critical: false,
+        // `ZC_NOTIFY_SKILL` (0x01DE) has no special-damage byte.
+        blue_damage: false,
         skill_id: (packet.skill_id.0 != 0).then_some(packet.skill_id),
         skill_start_tick: Some(packet.start_time),
     }
@@ -322,6 +324,7 @@ mod tests {
             hit_count,
             attack_duration,
             is_critical,
+            blue_damage,
             skill_id,
             skill_start_tick,
         } = event
@@ -335,6 +338,7 @@ mod tests {
         assert_eq!(hit_count, 1);
         assert_eq!(attack_duration, 480);
         assert!(!is_critical);
+        assert!(!blue_damage);
         assert_eq!(skill_id.map(|skill_id| skill_id.0), Some(56));
         assert_eq!(skill_start_tick.map(|tick| tick.0), Some(12_345));
     }

@@ -53,7 +53,7 @@ use crate::input::InputEvent;
 use crate::interface::windows::WindowClass;
 use crate::loaders::{ClientInfoPathExt, ImageType};
 use crate::state::{ClientStatePathExt, client_state, status_effect_definition, this_entity};
-use crate::world::{DamageNumber, HealNumber, Miss, SkillPhase};
+use crate::world::{DamageColor, DamageNumber, DamageNumberStyle, SkillPhase};
 use crate::{Client, perf};
 
 /// Windows counted for the `windows_mean` metric of a stage.
@@ -638,21 +638,41 @@ fn stage_effects(client: &mut Client, bench: &mut BenchState, now: Instant) {
 
             match index % 4 {
                 0 => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
+                    None,
                     position + offset,
                     100 + u64::from(tick) * 37 + u64::from(index),
-                    index == 0,
+                    DamageNumberStyle::Normal,
+                    DamageColor::White,
                     ragnarok_packets::Direction::NorthEast,
+                    0,
                 ))),
                 1 => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
+                    None,
                     position + offset,
                     10_000 + u64::from(index),
-                    false,
+                    DamageNumberStyle::Critical,
+                    DamageColor::CriticalYellow,
                     ragnarok_packets::Direction::SouthEast,
+                    0,
                 ))),
-                2 => client
-                    .particle_holder
-                    .spawn_particle(Box::new(HealNumber::new(position + offset, 500 + u64::from(index)))),
-                _ => client.particle_holder.spawn_particle(Box::new(Miss::new(position + offset))),
+                2 => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
+                    None,
+                    position + offset,
+                    500 + u64::from(index),
+                    DamageNumberStyle::Simple,
+                    DamageColor::HealGreen,
+                    ragnarok_packets::Direction::North,
+                    0,
+                ))),
+                _ => client.particle_holder.spawn_particle(Box::new(DamageNumber::new(
+                    None,
+                    position + offset,
+                    0,
+                    DamageNumberStyle::Miss,
+                    DamageColor::PlayerRed,
+                    ragnarok_packets::Direction::North,
+                    0,
+                ))),
             }
         }
 
