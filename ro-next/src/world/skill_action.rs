@@ -90,9 +90,12 @@ mod tests {
 
     #[test]
     fn attack_skills_play_the_attack_animation() {
-        // Motion ST_ATTACK (2) is WeaponActionBase block 80, i.e. Action(10).
+        // Motion ST_ATTACK (2) is the normal weapon swing; the client
+        // chooses the drawable attack block from the equipped weapon
+        // (`attack_action()`), like the official `ST_ATTACK -> ST_ATTACK2`
+        // upgrade in `CPc::SetState` (`Player.cpp:4545`).
         for skill_id in [5, 7, 56] {
-            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Action(10), "skill {}", skill_id);
+            assert_eq!(caster_action(SkillId(skill_id)), CasterAction::Attack, "skill {}", skill_id);
         }
         // Asura Strike uses the official attack block 88 (0x58, frames 0..7,
         // 3500 ms); Meteor Assault the begin-skill gesture (block 96).

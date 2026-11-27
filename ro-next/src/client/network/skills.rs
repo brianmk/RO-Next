@@ -67,11 +67,12 @@ impl Client {
                 // Casts with a cast time loop the casting gesture until the
                 // cast finishes; instant casts play the action once.
                 CasterAction::Skill => entity.set_skill_cast(cast_animation_time, has_cast_time, client_tick),
-                // Attack skills play the attack animation (like the
-                // official client's `ATTACK` skill action).
-                // Official `WeaponActionBase(ST_ATTACK)` = block 80
-                // (RenderObject.cpp:3353), not the normal attack block.
-                CasterAction::Attack => entity.set_custom_skill_action(10, cast_animation_time, false, client_tick),
+                // Attack skills play the normal weapon swing. `set_attack`
+                // picks the ACT block the equipped weapon layer actually
+                // animates (`attack_action()`), which is what the official
+                // `CPc::SetState` does when it upgrades `ST_ATTACK` to
+                // `ST_ATTACK2` for a weapon-allowed job (`Player.cpp:4545`).
+                CasterAction::Attack => entity.set_attack(cast_animation_time, false, client_tick),
                 // Pickup-style skills play the pickup animation.
                 CasterAction::Pickup => entity.set_pickup(client_tick),
                 CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
@@ -279,8 +280,9 @@ impl Client {
                     // This packet has no cast time: play the whole ACT skill
                     // animation once at its natural frame speed.
                     CasterAction::Skill => entity.set_skill_cast(0, false, client_tick),
-                    // Official `WeaponActionBase(ST_ATTACK)` = block 80.
-                    CasterAction::Attack => entity.set_custom_skill_action(10, INSTANT_SKILL_ANIMATION_MS, false, client_tick),
+                    // Weapon swing, with the block chosen from the
+                    // equipped weapon layer (see the `SkillCast` arm).
+                    CasterAction::Attack => entity.set_attack(INSTANT_SKILL_ANIMATION_MS, false, client_tick),
                     CasterAction::Pickup => entity.set_pickup(client_tick),
                     CasterAction::ReadyFight => entity.set_ready_fight(client_tick),
                     CasterAction::Action(action_index) => entity.set_custom_skill_action(action_index as usize, 0, false, client_tick),
