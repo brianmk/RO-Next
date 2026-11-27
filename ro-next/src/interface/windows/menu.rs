@@ -130,16 +130,8 @@ impl CustomWindow<ClientState> for MenuWindow {
                     event: InputEvent::ToggleGuildWindow,
                 },
                 button! {
-                    text: "Clan",
-                    event: InputEvent::ToggleClanWindow,
-                },
-                button! {
                     text: "Quest Log",
                     event: InputEvent::ToggleQuestWindow,
-                },
-                button! {
-                    text: "Bank",
-                    event: InputEvent::ToggleBankWindow,
                 },
                 button! {
                     text: "Achievement",
@@ -152,10 +144,6 @@ impl CustomWindow<ClientState> for MenuWindow {
                 button! {
                     text: "Monster Database",
                     event: InputEvent::ToggleMonsterDatabaseWindow,
-                },
-                button! {
-                    text: "Mail",
-                    event: InputEvent::OpenMailboxWindow,
                 },
                 button! {
                     text: client_state().localization().minimap_button_text(),

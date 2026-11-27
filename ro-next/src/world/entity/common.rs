@@ -1880,6 +1880,11 @@ impl Common {
 
         // Merchant pushcart: the official `mc_pushcart` sprite follows the body
         // animation state so it is visible on merchants with a cart option.
+        //
+        // The cart is the layer *behind* the character - the merchant pushes
+        // it, so the body must never be occluded by it. The negative depth
+        // boost sorts it behind every body part and equipment layer (body
+        // parts use `0.005 * index`, head-behind-body `-0.01 - 0.005 * index`).
         if self.has_cart()
             && let Some(cart_animation) = self.cart_animation.as_ref()
         {
@@ -1897,7 +1902,7 @@ impl Common {
                 None,
                 false,
                 false,
-                0.0,
+                -0.02,
                 1.0,
             );
         }
