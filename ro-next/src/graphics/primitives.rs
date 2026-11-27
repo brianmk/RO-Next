@@ -86,14 +86,6 @@ pub struct ScreenPosition {
 }
 
 impl ScreenPosition {
-    pub fn from_size(ScreenSize { width, height }: ScreenSize) -> Self {
-        Self { left: width, top: height }
-    }
-
-    pub fn only_left(left: f32) -> Self {
-        Self { left, top: 0.0 }
-    }
-
     pub fn only_top(top: f32) -> Self {
         Self { left: 0.0, top }
     }

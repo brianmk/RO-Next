@@ -216,11 +216,6 @@ impl MarkupClickHandler {
     pub fn set(&self, link: ChatMarkupLink) {
         *self.hovered.borrow_mut() = Some(link);
     }
-
-    #[cfg(test)]
-    pub fn clear(&self) {
-        *self.hovered.borrow_mut() = None;
-    }
 }
 
 impl ClickHandler<ClientState> for MarkupClickHandler {

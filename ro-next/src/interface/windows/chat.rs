@@ -465,16 +465,6 @@ impl ChatWindowState {
     pub fn set_active_channel(&mut self, channel: ChatChannel) {
         self.active_channel = channel;
     }
-
-    #[cfg(test)]
-    pub fn set_send_channel(&mut self, channel: ChatChannel) {
-        self.send_channel = channel;
-    }
-
-    #[cfg(test)]
-    pub fn set_guild_chat_available(&mut self, available: bool) {
-        self.guild_chat_available = available;
-    }
 }
 
 impl DropDownItem<ChatChannel> for ChatChannel {

@@ -400,12 +400,6 @@ impl DialogWindowState {
         self.elements.retain(|element| element.kind != DialogElementKind::Image);
     }
 
-    /// Whether the dialog currently shows an illustration.
-    #[cfg(test)]
-    pub fn has_image(&self) -> bool {
-        self.elements.iter().any(|element| element.kind == DialogElementKind::Image)
-    }
-
     /// Add text to the dialog.
     ///
     /// Characters that no loaded font can render are replaced with `?` by the

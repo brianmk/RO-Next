@@ -485,11 +485,6 @@ impl PortedEffectHolder {
     pub fn take_effect_launches(&mut self) -> Vec<PendingEffectLaunch> {
         std::mem::take(&mut self.effect_launches)
     }
-
-    /// Number of 16 ms steps still pending in the accumulator (test hook).
-    pub fn pending_steps(&self) -> u32 {
-        (self.accumulator_ms / FRAME_FREQUENCY_MS as f64) as u32
-    }
 }
 
 /// Sink of [`PortedEffectHolder::update`]: drops the recorded sounds, for

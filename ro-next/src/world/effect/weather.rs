@@ -92,11 +92,6 @@ impl Weather {
         self.kind = None;
     }
 
-    #[cfg(test)]
-    pub fn kind(&self) -> Option<Kind> {
-        self.kind
-    }
-
     pub fn render(&self, renderer: &mut EffectRenderer, camera: &dyn Camera, screen_size: ScreenSize, time: f32) {
         let Some(kind) = self.kind else {
             return;

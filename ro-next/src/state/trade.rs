@@ -105,18 +105,8 @@ impl Trade {
         self.locked = locked;
     }
 
-    #[cfg(test)]
-    pub fn is_locked(&self) -> bool {
-        self.locked
-    }
-
     pub fn set_partner_locked(&mut self, locked: bool) {
         self.partner_locked = locked;
-    }
-
-    #[cfg(test)]
-    pub fn partner_locked(&self) -> bool {
-        self.partner_locked
     }
 
     pub fn set_partner_offer(&mut self, offer: String) {

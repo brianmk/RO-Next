@@ -1,4 +1,4 @@
-use cgmath::{BaseNum, Point2, Vector2};
+use cgmath::{BaseNum, Point2};
 
 /// Represents a rectangle in 2D space.
 #[derive(Copy, Clone, Debug)]
@@ -23,11 +23,6 @@ impl<N: BaseNum> Rectangle<N> {
     /// Returns the width of the rectangle.
     pub fn width(&self) -> N {
         self.max.x - self.min.x
-    }
-
-    /// Checks if this rectangle can fit another rectangle of given size.
-    pub fn can_fit(&self, size: Vector2<N>) -> bool {
-        self.width() >= size.x && self.height() >= size.y
     }
 
     /// Tests if the two rectangles overlap.

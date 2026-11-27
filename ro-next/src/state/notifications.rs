@@ -39,17 +39,6 @@ impl NotificationKind {
             NotificationKind::Quest => 8_000,
         }
     }
-
-    #[cfg(test)]
-    /// Lowercase class name used for the theme/debug output.
-    pub fn name(self) -> &'static str {
-        match self {
-            NotificationKind::Announce => "announce",
-            NotificationKind::Pickup => "pickup",
-            NotificationKind::LevelUp => "level-up",
-            NotificationKind::Quest => "quest",
-        }
-    }
 }
 
 /// One notification shown in the HUD.
@@ -123,11 +112,6 @@ impl NotificationHud {
     #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
-    }
-
-    #[cfg(test)]
-    pub fn clear(&mut self) {
-        self.entries.clear();
     }
 }
 

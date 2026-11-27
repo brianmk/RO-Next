@@ -117,18 +117,6 @@ impl InterfaceRenderer {
         self.show_sdf_instructions = render_options.show_sdf_instructions;
     }
 
-    /// Don't show rectangle instructions for the duration of the closure. This
-    /// is only used to render other debug areas.
-    #[cfg(feature = "debug")]
-    pub fn with_rectangles_direct(&mut self, f: impl Fn(&Self)) {
-        let previous_state = self.show_rectangle_instructions;
-        self.show_rectangle_instructions = false;
-
-        f(self);
-
-        self.show_rectangle_instructions = previous_state;
-    }
-
     /// Clear render instructions.
     pub fn clear(&self) {
         self.instructions.borrow_mut().clear();

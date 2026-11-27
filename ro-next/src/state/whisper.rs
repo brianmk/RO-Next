@@ -34,11 +34,6 @@ pub struct WhisperConversation {
 }
 
 impl WhisperConversation {
-    #[cfg(test)]
-    pub fn partner(&self) -> &str {
-        &self.partner
-    }
-
     pub fn messages(&self) -> &[WhisperMessage] {
         &self.messages
     }
@@ -135,14 +130,6 @@ impl WhisperConversations {
             .find(|conversation| conversation.partner == partner)
             .map(WhisperConversation::messages)
             .unwrap_or(&[])
-    }
-
-    #[cfg(test)]
-    /// Forget every conversation (e.g. on logout).
-    pub fn clear(&mut self) {
-        self.active_partner.clear();
-        self.input_text.clear();
-        self.conversations.clear();
     }
 }
 

@@ -412,10 +412,6 @@ impl PacketHistory {
     pub fn get_entries(&self) -> &[PacketEntry] {
         &self.entries
     }
-
-    pub fn clear_all(&mut self) {
-        self.entries.clear();
-    }
 }
 
 impl PacketCallback for PacketHistoryCallback {

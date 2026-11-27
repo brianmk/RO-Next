@@ -123,23 +123,6 @@ impl Color {
         Self::rgba(1.0 - self.red, 1.0 - self.blue, 1.0 - self.green, self.alpha)
     }
 
-    pub fn shade(&self) -> Self {
-        match (self.red_as_u8() as usize) + (self.green_as_u8() as usize) + (self.blue_as_u8() as usize) > 382 {
-            true => Self::rgba_u8(
-                self.red_as_u8().saturating_sub(40),
-                self.green_as_u8().saturating_sub(40),
-                self.blue_as_u8().saturating_sub(40),
-                self.alpha_as_u8(),
-            ),
-            false => Self::rgba_u8(
-                self.red_as_u8().saturating_add(40),
-                self.green_as_u8().saturating_add(40),
-                self.blue_as_u8().saturating_add(40),
-                self.alpha_as_u8(),
-            ),
-        }
-    }
-
     /// Converts the sRGB color into a linear representation for the shaders.
     /// Since we use pre-multiplied alpha blending, we premultiply the alpha
     /// here too.

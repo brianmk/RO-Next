@@ -510,10 +510,6 @@ impl EffectRuntime {
         self.particles.len() - 1
     }
 
-    pub fn particle_mut(&mut self, index: usize) -> &mut CastedParticle {
-        &mut self.particles[index]
-    }
-
     /// `MM_QUAKE` from an effect body.
     pub fn quake(&mut self) {
         self.shakes += 1;
