@@ -409,3 +409,51 @@ ported effect files stay untouched.
 - Verification: `cargo test -p ro-next --lib` **1837 passed, 0 failed, 21
   ignored**; release build finished with no warnings; `rustfmt --check` clean
   on every touched file; `gen_ported_skill_map.py --check` up to date.
+
+### Round 100 (line link, glow and protection families)
+
+| primitive | name in port | official source | renderer |
+| --- | --- | --- | --- |
+| 50 | `TexturedGlow` (no enum symbol) | inline `case 50:`, `EffectPrimitiveMotion.cpp:8962-8994` | shared `Render3DCasting` (`EffectPrimitiveRendering.cpp:6596-6675`, dispatch `:504`) |
+| 38 | `LineLink` (`PP_LINELINK`) | `PrimLineLink`, `EffectPrimitiveMotion.cpp:1386-1441`, dispatch `:9589-9590` | new `render_tube` (`RenderTube`, `EffectPrimitiveRendering.cpp:3214-3310`, dispatch `:690-691`) |
+| 54 | `ChemicalProtection` (`PP_CHEMICALPROTECTION`) | `PrimChemical`, `EffectPrimitiveMotion.cpp:1130-1148`, dispatch `:9919-9920` | new `render_chemical` (`RenderChemical`, `EffectPrimitiveRendering.cpp:6906-6975`, dispatch `:611-612`) |
+| 58 | `FirstAid` (`PP_FIRSTAID`) | `PrimFirstAid`, `EffectPrimitiveMotion.cpp:1223-1248`, dispatch `:9892-9893` | shared `RenderFieldPanel` (`EffectPrimitiveRendering.cpp:3312-3505`, `:578`) |
+
+- **Bodies** (one Rust function per C++ function): `rag/textured_glow.rs`
+  (`TexturedGlow` `:5516-5565`), `rag/line_link.rs` (`TrackTarget`
+  `:3839-3878`, `TrackTargetWide` `:3884-3929`), `rag/chemical_protection.rs`
+  (`ShockwaveRing` `:2807-2838` + dispatch `:10411-10418`), `rag/first_aid.rs`
+  (`FirstAid` `:5123-5161`), `rag/textured_scatter.rs` (`TexturedScatter` +
+  `EF_TEIHIT1T` dispatch `:19571-19583`).
+- **Ids** (lifetimes from `EffectTypes.cpp`): `EF_TEIHIT1` 262 / 300,
+  `EF_TEIHIT1T` 889 / 300, `EF_BOTTOM_ETERNALCHAOS` 280 / 29999,
+  `EF_BOTTOM_SIEGFRIED` 285 / 29999, `EF_LINELINK2` 384 / 200,
+  `EF_LINELINK3` 395 / 99999999, `EF_CHEMICALPROTECTION` 300 / 300,
+  `EF_FIRSTAID` 309 / 299.
+- **RNG** (MSVC `rand()` order preserved): `TexturedGlow` per spawn
+  `ClampedRandom(10)`, `(360)`, `(10)`, `(360)` (maxHeight, rotStart, alphaB,
+  alphaT); `FirstAid` `ClampedRandom(360)` twice (fullDisplayAngle, height[8]).
+  Line link and shockwave consume no RNG.
+- **Quirks kept**: `ShockwaveRing` resets the anchor at the start of every call,
+  so `EF_CHEMICALPROTECTION`'s second call cancels the first 9-unit drop (the
+  effect ends 9, not 18, below the caster); `TexturedGlow` zeroes all four
+  `life`s before arming slot 0 and then zeroes all 21 heights/flag1s;
+  `PrimLineLink` re-resolves the target **every** frame and its unclamped blink
+  branch uses wrapping `i16` arithmetic (the effect lives for ~10^8 frames);
+  `RenderTube` reuses pass 0's `alphaB / 2` in pass 1 for kind 4; `TexturedGlow`
+  and `FirstAid` are drawn by shared renderers.
+- **Target model**: `TrackTarget`'s `height[0] = state.deltaPos.y` is the
+  packet's `[0, accountId, 0]` (`GameModePackets.cpp:19072-19075`), which the
+  original resolves with `GetGameActorByAID` every frame. The port's spawn
+  bridge already stores the *resolved target position* in `deltaPos`
+  (`client/effects.rs`, like every travelling body), so the body records that
+  position in `vecTPre` and `PrimLineLink` re-reads
+  `master.master_delta_pos` each frame; `height[0] > 0` keeps the original's
+  "target is set" gate. The live actor re-query is a spawn-time snapshot in the
+  hermetic runtime (the same limitation as the other target-aimed bodies).
+- Registry now **468** ids; the skill map regenerates with **223** mappings.
+  Backlog coverage **215/236 = 91.1%** (`.str` 57/57, layers 125/144, manual
+  33/35).
+- Verification: `cargo test -p ro-next --lib` **1877 passed, 0 failed, 21
+  ignored**; release build finished with no warnings; `rustfmt --check` clean
+  on every touched file; `gen_ported_skill_map.py --check` up to date.

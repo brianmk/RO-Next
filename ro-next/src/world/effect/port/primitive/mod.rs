@@ -16,11 +16,13 @@ pub mod bottom;
 pub mod bottom2;
 pub mod casting2;
 pub mod casting3d;
+pub mod chemical;
 pub mod chimto_sprite;
 pub mod circle;
 pub mod circle3d;
 pub mod cylinder;
 pub mod expand_pulse;
+pub mod first_aid;
 pub mod flash;
 pub mod flash_fade;
 pub mod floating_bubbles;
@@ -32,6 +34,7 @@ pub mod halo;
 pub mod height_ramp;
 pub mod hitline3;
 pub mod intimidate;
+pub mod line_link;
 pub mod orbit;
 pub mod particle3d;
 pub mod particle3d_gravity;
@@ -54,6 +57,7 @@ pub mod tei_hit2;
 pub mod texture2d;
 pub mod texture3d;
 pub mod texture_spin;
+pub mod textured_glow;
 pub mod throw_item;
 pub mod wandering_flames;
 pub mod wave_spin;
@@ -324,6 +328,26 @@ pub enum PrimitiveId {
     /// `EF_BACKSTAP`. Drawn by the shared `RenderFieldPanel`
     /// (`EffectPrimitiveRendering.cpp:3312-3505`, dispatch `:574`).
     TeiHit2,
+    /// prim 50 - `CRagEffect::TexturedGlow`'s four stepped glow columns. No
+    /// `EffectPrimId.h` symbol (`EffectPrimId.h` jumps from `PP_BOTTOMOUT` =
+    /// 49 to `PP_POKJUK` = 52), so the port names it after its only spawner,
+    /// `CRagEffect::TexturedGlow` (`RagEffect.cpp:5516-5565`). The motion is
+    /// the inline `case 50` (`EffectPrimitiveMotion.cpp:8962-8994`) and the
+    /// renderer is the shared `Render3DCasting`
+    /// (`EffectPrimitiveRendering.cpp:6596-6675`, dispatch `:504`).
+    TexturedGlow,
+    /// `PP_LINELINK` (38) - the soul-link tube between the caster and its
+    /// target. Drawn by `RenderTube`
+    /// (`EffectPrimitiveRendering.cpp:3214-3310`, dispatch `:690-691`).
+    LineLink,
+    /// `PP_CHEMICALPROTECTION` (54) - `CRagEffect::ShockwaveRing`'s four
+    /// ground wedges. Drawn by `RenderChemical`
+    /// (`EffectPrimitiveRendering.cpp:6906-6975`, dispatch `:611-612`).
+    ChemicalProtection,
+    /// `PP_FIRSTAID` (58) - `CRagEffect::FirstAid`'s single spark panel.
+    /// Drawn by the shared `RenderFieldPanel`
+    /// (`EffectPrimitiveRendering.cpp:3312-3505`, dispatch `:578`).
+    FirstAid,
 }
 
 impl PrimitiveId {
@@ -385,6 +409,10 @@ impl PrimitiveId {
             Self::GrandCross2 => 37,
             Self::ExpandPulse => 44,
             Self::TeiHit2 => 45,
+            Self::TexturedGlow => 50,
+            Self::LineLink => 38,
+            Self::ChemicalProtection => 54,
+            Self::FirstAid => 58,
         }
     }
 }
@@ -1007,6 +1035,25 @@ impl EffectPrimitiveState {
             }
             PrimitiveId::TeiHit2 => {
                 tei_hit2::on_process(self, angles, master, rng);
+                true
+            }
+            PrimitiveId::TexturedGlow => {
+                textured_glow::on_process(self, angles, master);
+                true
+            }
+            // `EffectPrimitiveMotion.cpp:9589-9590`: `PrimLineLink` returns a
+            // `bool`, but the dispatch discards it; the primitive retires on
+            // `stateCnt > duration`.
+            PrimitiveId::LineLink => {
+                line_link::on_process(self, angles, master);
+                true
+            }
+            PrimitiveId::ChemicalProtection => {
+                chemical::on_process(self, master);
+                true
+            }
+            PrimitiveId::FirstAid => {
+                first_aid::on_process(self, master);
                 true
             }
         };

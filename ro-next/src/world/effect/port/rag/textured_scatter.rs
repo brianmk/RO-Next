@@ -179,6 +179,65 @@ impl PortedEffect for TexturedScatter {
     }
 }
 
+/// `case EF_TEIHIT1T:` - `RagEffect.cpp:19571-19583`.
+///
+/// `EF_TEIHIT1T` (889, lifetime 300 at `EffectTypes.cpp:898`) is the only
+/// `TexturedScatter` dispatch with an extra frame-5 step:
+///
+/// ```cpp
+/// if (this->state.stateCnt == 5) {
+///   this->render.position = this->state.parent->render.position;
+///   PlayEffectWave(*this, "effect\\mon_맹룡과강.wav");
+/// }
+/// {
+///   const int count = g_serviceOptions.Get(TT_MIN_EFFECT_ON_OFF) ? 6 : 20;
+///   for (int index = 0; index < count; ++index) {
+///     this->TexturedScatter("effect\\alpha_center.tga", 2);
+///   }
+/// }
+/// ```
+///
+/// The scatter loop runs on **every** frame: `TexturedScatter` copies the
+/// parent first and then returns on any non-zero frame, so the only primitives
+/// come from frame 0, while the frame-5 wave/position step is the real extra
+/// behaviour. The port keeps both (the wave is a `PlayEffectWave` on the
+/// effect's own position, i.e. [`EffectRuntime::play_sound`]).
+///
+/// Quirk kept: the wave call is `PlayEffectWave`, not the inline helper, so it
+/// has no listener-relative offset here (the runtime records the name only).
+#[derive(Debug)]
+pub struct TeiHit1T {
+    count: usize,
+    lifetime: i32,
+}
+
+impl TeiHit1T {
+    /// `TT_MIN_EFFECT_ON_OFF` defaults to off, so the official count is 20
+    /// (`ServiceOptions.cpp:499-501`).
+    pub const fn new(count: usize, lifetime: i32) -> Self {
+        Self { count, lifetime }
+    }
+}
+
+impl PortedEffect for TeiHit1T {
+    fn lifetime(&self) -> i32 {
+        self.lifetime
+    }
+
+    fn on_process(&mut self, runtime: &mut EffectRuntime) -> bool {
+        if runtime.frame == 5 {
+            runtime.copy_parent_position();
+            runtime.play_sound("effect\\mon_맹룡과강.wav");
+        }
+
+        for _ in 0..self.count {
+            textured_scatter(runtime, "effect\\alpha_center.tga", 2);
+        }
+
+        true
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -294,5 +353,52 @@ mod tests {
         effect.on_process(&mut runtime);
 
         assert_eq!(runtime.position, [50.0, 60.0, 70.0]);
+    }
+
+    #[test]
+    fn teihit1t_plays_the_frame_five_wave_and_scatters_on_frame_zero() {
+        let mut effect = TeiHit1T::new(20, 300);
+        let mut runtime = EffectRuntime::new(300, [0.0, 0.0], 5);
+        runtime.parent_position = Some([10.0, 20.0, 30.0]);
+
+        // Frame 0: 20 alpha_center scatters, flag 2. Each body call copies the
+        // parent first, so with a live parent the otherwise-cumulative 9-unit
+        // drop collapses to a single drop.
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.primitives.len(), 20);
+        assert_eq!(runtime.position, [10.0, 11.0, 30.0]);
+        assert!(
+            runtime
+                .primitives
+                .iter()
+                .all(|primitive| primitive.state.position == [10.0, 20.0, 30.0])
+        );
+        assert_eq!(runtime.primitives[0].state.texture, Some("effect\\alpha_center.tga"));
+        assert_eq!(runtime.primitives[0].state.slots[0].flag1[0], 2);
+
+        // Frames 1..4: the loop still runs but every scatter gates on frame 0;
+        // the parent copy still follows the parent every frame.
+        for _ in 0..4 {
+            step(&mut effect, &mut runtime);
+        }
+
+        assert_eq!(runtime.primitives.len(), 20);
+        assert!(runtime.sounds.is_empty());
+
+        // Frame 5: wave + parent copy, no new primitives.
+        runtime.parent_position = Some([50.0, 60.0, 70.0]);
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.primitives.len(), 20);
+        assert_eq!(runtime.sounds, vec!["effect\\mon_맹룡과강.wav".to_owned()]);
+        assert_eq!(runtime.position, [50.0, 60.0, 70.0]);
+
+        // Later frames keep following the parent through the scatter copy.
+        runtime.parent_position = Some([1.0, 2.0, 3.0]);
+        step(&mut effect, &mut runtime);
+
+        assert_eq!(runtime.position, [1.0, 2.0, 3.0]);
+        assert_eq!(runtime.primitives.len(), 20);
     }
 }

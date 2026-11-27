@@ -13,17 +13,17 @@ use ragnarok_packets::EffectId;
 
 use super::rag::{
     AgilityUp, AlphaCenterStream, AlphaCenterTrail, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BlueSpellRings, BottomCarpet,
-    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, Chimto, Cloud11Burst, CloudDrift,
-    DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
-    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver,
-    FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2, HolyCross,
-    IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat,
-    NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive,
-    RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr,
-    Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit2, TeleportSpiral, TexturedBeam,
-    TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedScatter,
-    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
-    VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
+    BottomLayer, BottomLayers, BottomMusic, BottomOut, BowlingBash, CartRevolution, ChemicalLine, ChemicalProtection, Chimto, Cloud11Burst,
+    CloudDrift, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure,
+    EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks, FirstAid, ForestLight6,
+    FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrandCross, GrimTooth, GrimToothAtk, Hated, HealBurst, HealRingSparkle, Hit2,
+    HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LineLink, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine,
+    NapalmBeat, NapalmValcan, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap,
+    Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike,
+    SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeiHit1T, TeiHit2, TeleportSpiral,
+    TexturedBeam, TexturedComet, TexturedGlow, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
+    TexturedScatter, TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit,
+    Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, White02Burst, WhiteSparkRing, WhiteSparkStreak, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -312,8 +312,8 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         // `PP_BOTTOM` (47) / `PP_BOTTOMOUT` (49) - the spawn-once
         // `Bottom_Music` / `Bottom_Out` bodies (`RagEffect.cpp:12276-12384`
         // and `:11938-12036`). `EF_BOTTOM_ETERNALCHAOS` (280) and
-        // `EF_BOTTOM_SIEGFRIED` (285) stay unported: they dispatch to
-        // `TexturedGlow` (prim 50), not this family.
+        // `EF_BOTTOM_SIEGFRIED` (285) are **not** part of this family: they
+        // dispatch to `TexturedGlow` (prim 50), registered below.
         EffectId::BottomLullaby => Box::new(BottomMusic::new("effect\\zz.bmp", 1, 29999)),
         EffectId::BottomRichmankim => Box::new(BottomMusic::new("effect\\pocket.bmp", 3, 29999)),
         EffectId::BottomDrumbattlefield => Box::new(BottomMusic::new("", 2, 29999)),
@@ -386,6 +386,32 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::Tripleattack => Box::new(CloudDrift::new(100)),
         EffectId::Tripleattack2 => Box::new(AlphaCenterTrail::new(200)),
         EffectId::Tripleattack3 => Box::new(AlphaCenterStream::new(200)),
+        // ------------------------------------------------------------------
+        // Round 100: the last primitive clusters - 50/38/54/58 plus the free
+        // `EF_TEIHIT1`/`EF_TEIHIT1T` ids.
+        // ------------------------------------------------------------------
+        // `case EF_TEIHIT1:` - `RagEffect.cpp:24223-24227`: 20 x
+        // `TexturedScatter("effect\\alpha_center.tga", 0)`. Lifetime 300
+        // (`EffectTypes.cpp:271`).
+        EffectId::Teihit1 => Box::new(TexturedScatter::new("effect\\alpha_center.tga", 0, 20, false, 300)),
+        // `case EF_TEIHIT1T:` - `RagEffect.cpp:19571-19583`: frame-5 wave and
+        // parent copy plus the scatter loop. Lifetime 300
+        // (`EffectTypes.cpp:898`).
+        EffectId::Teihit1t => Box::new(TeiHit1T::new(20, 300)),
+        // Prim 50 `TexturedGlow` - `RagEffect.cpp:24006-24007`, `:24021-24022`.
+        // Lifetimes 29999 each (`EffectTypes.cpp:289`, `:294`).
+        EffectId::BottomEternalchaos => Box::new(TexturedGlow::new("effect\\twirl.bmp", 8, 29999)),
+        EffectId::BottomSiegfried => Box::new(TexturedGlow::new("effect\\twirl.bmp", 4, 29999)),
+        // Prim 38 `PP_LINELINK` - `RagEffect.cpp:24421-24433`. Lifetimes 200
+        // and 99999999 (`EffectTypes.cpp:393`, `:404`).
+        EffectId::Linelink2 => Box::new(LineLink::new(false, 200)),
+        EffectId::Linelink3 => Box::new(LineLink::new(true, 99_999_999)),
+        // Prim 54 `PP_CHEMICALPROTECTION` - `RagEffect.cpp:10411-10418`.
+        // Lifetime 300 (`EffectTypes.cpp:309`).
+        EffectId::Chemicalprotection => Box::new(ChemicalProtection::new(300)),
+        // Prim 58 `PP_FIRSTAID` - `RagEffect.cpp:10153-10154`. Lifetime 299
+        // (`EffectTypes.cpp:318`).
+        EffectId::Firstaid => Box::new(FirstAid::new(299)),
         _ => return None,
     })
 }
@@ -465,7 +491,15 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::Teihit1x,
         EffectId::Teihit2,
         EffectId::Teihit3,
+        EffectId::Teihit1,
+        EffectId::Teihit1t,
         EffectId::Backstap,
+        EffectId::BottomEternalchaos,
+        EffectId::BottomSiegfried,
+        EffectId::Linelink2,
+        EffectId::Linelink3,
+        EffectId::Chemicalprotection,
+        EffectId::Firstaid,
         EffectId::Stormkick,
         EffectId::Stormkick1,
         EffectId::Stormkick2,
@@ -901,6 +935,18 @@ mod tests {
             (EffectId::Teihit1x, 300),
             (EffectId::Teihit3, 300),
             (EffectId::Backstap, 300),
+            // Round 100 (`rag/textured_glow.rs`, `rag/line_link.rs`,
+            // `rag/chemical_protection.rs`, `rag/first_aid.rs`,
+            // `rag/textured_scatter.rs`): `EffectTypes.cpp:271`, `:898`,
+            // `:289`, `:294`, `:393`, `:404`, `:309`, `:318`.
+            (EffectId::Teihit1, 300),
+            (EffectId::Teihit1t, 300),
+            (EffectId::BottomEternalchaos, 29999),
+            (EffectId::BottomSiegfried, 29999),
+            (EffectId::Linelink2, 200),
+            (EffectId::Linelink3, 99_999_999),
+            (EffectId::Chemicalprotection, 300),
+            (EffectId::Firstaid, 299),
         ];
 
         for (effect, lifetime) in expect {

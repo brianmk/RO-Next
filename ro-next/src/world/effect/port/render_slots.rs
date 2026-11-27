@@ -333,6 +333,10 @@ pub enum SlotRenderer {
     GrandCross2,
     /// `RenderRotatedPlate` - prim 44 (the `TexturedScatter` pulse).
     RotatedPlate,
+    /// `RenderTube` - `PP_LINELINK` (38), the soul-link tube.
+    Tube,
+    /// `RenderChemical` - `PP_CHEMICALPROTECTION` (54), the shockwave wedges.
+    Chemical,
 }
 
 /// `CEffectPrim::Render`'s `switch (state.count)` for the ported ids
@@ -391,6 +395,16 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         // `EffectPrimitiveRendering.cpp:574`: `PP_TEIHIT2` shares
         // `RenderFieldPanel` with the shield/item family.
         PrimitiveId::TeiHit2 => SlotRenderer::FieldPanel,
+        // `EffectPrimitiveRendering.cpp:504`: bare `case 50` draws
+        // `Render3DCasting` with the casting family.
+        PrimitiveId::TexturedGlow => SlotRenderer::Casting,
+        // `EffectPrimitiveRendering.cpp:690-691`: `PP_LINELINK`.
+        PrimitiveId::LineLink => SlotRenderer::Tube,
+        // `EffectPrimitiveRendering.cpp:611-612`: `PP_CHEMICALPROTECTION`.
+        PrimitiveId::ChemicalProtection => SlotRenderer::Chemical,
+        // `EffectPrimitiveRendering.cpp:578`: `PP_FIRSTAID` shares
+        // `RenderFieldPanel`.
+        PrimitiveId::FirstAid => SlotRenderer::FieldPanel,
         // `PP_3DPARTICLESPLINE` (8) is drawn by the shared
         // `RenderSegmentSprites2` (`EffectPrimitiveRendering.cpp:269`), which
         // is the sprite pass (`sprite_pass`), not a slot/record renderer.
@@ -488,6 +502,8 @@ pub fn triangles_with_context(state: &EffectPrimitiveState, context: Option<&Slo
         Some(SlotRenderer::CastingGi3) => render_3d_casting2(state, &mut out),
         Some(SlotRenderer::GrandCross2) => render_grand_cross2(state, &mut out),
         Some(SlotRenderer::RotatedPlate) => render_rotated_plate(state, &mut out),
+        Some(SlotRenderer::Tube) => render_tube(state, &mut out),
+        Some(SlotRenderer::Chemical) => render_chemical(state, &mut out),
         None => {}
     }
 
@@ -1464,6 +1480,271 @@ fn emit_field_panel(
         (0.0, 1.0, 0.0, 1.0),
         if glow { SlotBlend::AlphaOne } else { SlotBlend::Alpha },
     );
+}
+
+// ---------------------------------------------------------------------------
+// RenderTube (38)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderTube` - `EffectPrimitiveRendering.cpp:3214-3310`.
+///
+/// The `PP_LINELINK` tube: a 10-step elliptical cross-section swept from
+/// `vecTNow` to `vecTPre`, submitted twice. Pass 0 uses radius `maxHeight`,
+/// pass 1 doubles it. The end point is a sine-eased interpolation towards
+/// `vecTPre` for the first 15 frames and `vecTPre` itself afterwards. The
+/// side colours key off `slots[0].height[4]` (2 = red glow, 3 = pink glow,
+/// 4 = translucent grey double layer, default = yellow/blue glow).
+///
+/// The call passes `f1 = 1`, so the corners are already absolute world
+/// positions (`add_position = false`). `alpha` is a `short` local in the
+/// original and is intentionally **not** reset between the two passes: the
+/// kind-4 branch reuses `alphaB / 2` from pass 0 in pass 1.
+pub fn render_tube(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    let slot = state.slots[0];
+
+    if slot.life != 1 || slot.alpha_b <= 0 {
+        return;
+    }
+
+    // `const float length = SquareRoot(deltaX * deltaX + deltaZ * deltaZ);`
+    let delta_z = slot.vec_t_now[2] - slot.vec_t_pre[2];
+    let delta_x = slot.vec_t_now[0] - slot.vec_t_pre[0];
+    let length = (delta_x * delta_x + delta_z * delta_z).sqrt();
+    let dir_z = delta_z / length;
+    let dir_x = delta_x / length;
+
+    let mut heading: i32 = 0;
+    while heading <= 180 {
+        if dir_x >= table_cos(heading) {
+            break;
+        }
+
+        heading += 1;
+    }
+
+    let heading = if heading <= 180 {
+        if dir_z >= 0.0 { heading as i16 } else { (360 - heading) as i16 }
+    } else {
+        180
+    };
+
+    let mut side = heading + 90;
+    if side >= 360 {
+        side -= 360;
+    }
+
+    let end = if slot.process < 15 {
+        let t = table_sin(6 * slot.process);
+        [
+            (slot.vec_t_pre[0] - slot.vec_t_now[0]) * t + slot.vec_t_now[0],
+            (slot.vec_t_pre[1] - slot.vec_t_now[1]) * t + slot.vec_t_now[1],
+            (slot.vec_t_pre[2] - slot.vec_t_now[2]) * t + slot.vec_t_now[2],
+        ]
+    } else {
+        slot.vec_t_pre
+    };
+
+    let mut previous_start = [0.0f32; 3];
+    let mut previous_end = [0.0f32; 3];
+    let mut alpha: i16 = 0;
+
+    for pass in 0..2 {
+        for step in 0..=10 {
+            let radius = if pass == 0 {
+                slot.max_height
+            } else {
+                slot.max_height + slot.max_height
+            };
+
+            let angle = step * 36;
+            let across = radius * table_cos(angle);
+            let up = radius * table_sin(angle);
+            let offset_x = across * table_cos(side as i32);
+            let offset_z = across * table_sin(side as i32);
+
+            let start = [offset_x + slot.vec_t_now[0], up + slot.vec_t_now[1], offset_z + slot.vec_t_now[2]];
+            let finish = [end[0] + offset_x, end[1] + up, end[2] + offset_z];
+
+            if step > 0 {
+                let quad = [previous_start, start, finish, previous_end];
+
+                if pass == 0 {
+                    if slot.height[4] == 2.0 {
+                        alpha = slot.alpha_b;
+                        emit_tei_rect_18(
+                            state,
+                            out,
+                            alpha,
+                            quad,
+                            0,
+                            false,
+                            (0, 100, 150),
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::Alpha,
+                        );
+                    } else if slot.height[4] == 3.0 {
+                        alpha = slot.alpha_b;
+                        emit_tei_rect_18(
+                            state,
+                            out,
+                            alpha,
+                            quad,
+                            0,
+                            false,
+                            (255, 89, 182),
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::Alpha,
+                        );
+                    } else if slot.height[4] == 4.0 {
+                        alpha = slot.alpha_b / 2;
+                        emit_tei_rect_18(
+                            state,
+                            out,
+                            alpha,
+                            quad,
+                            0,
+                            false,
+                            (50, 50, 50),
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::AlphaOne,
+                        );
+                    } else {
+                        alpha = slot.alpha_b;
+                        emit_tei_rect_18(
+                            state,
+                            out,
+                            alpha,
+                            quad,
+                            0,
+                            false,
+                            (255, 255, 0),
+                            (0.0, 1.0, 0.0, 1.0),
+                            SlotBlend::Alpha,
+                        );
+                    }
+                } else if slot.height[4] == 2.0 {
+                    alpha = (2 * slot.alpha_b as i32) as i16;
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha,
+                        quad,
+                        0,
+                        false,
+                        (255, 50, 0),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                } else if slot.height[4] == 3.0 {
+                    alpha = (2 * slot.alpha_b as i32) as i16;
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha,
+                        quad,
+                        0,
+                        false,
+                        (255, 89, 182),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                } else if slot.height[4] == 4.0 {
+                    // QUIRK: `alpha` keeps the `alphaB / 2` of pass 0.
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha,
+                        quad,
+                        0,
+                        false,
+                        (50, 50, 50),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::AlphaOne,
+                    );
+                } else {
+                    alpha = (2 * slot.alpha_b as i32) as i16;
+                    emit_tei_rect_18(
+                        state,
+                        out,
+                        alpha,
+                        quad,
+                        0,
+                        false,
+                        (0, 0, 255),
+                        (0.0, 1.0, 0.0, 1.0),
+                        SlotBlend::Alpha,
+                    );
+                }
+            }
+
+            previous_start = start;
+            previous_end = finish;
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RenderChemical (54)
+// ---------------------------------------------------------------------------
+
+/// `CEffectPrim::RenderChemical` - `EffectPrimitiveRendering.cpp:6906-6975`.
+///
+/// The two ground wedges per live slot of `PP_CHEMICALPROTECTION` (the
+/// `ShockwaveRing` family). Each wedge is a triangle fan around the primitive
+/// origin between `riseAngle - 3` and `riseAngle + 3` (white) and
+/// `riseAngle - 5` / `riseAngle + 5` (blue), at `distance` from the anchor.
+/// The corners are rotated by `Tei_TowardScreen` with the two `FaceCamera`
+/// angles the motion stores in `slots[0].alphaT`/`slots[1].alphaT`.
+///
+/// `g_depthAverageHalf = 0.5` (`MapSkyMgr.cpp:27`) scales the first wedge's
+/// alpha: `static_cast<int>(alphaB * 0.5f)`.
+pub fn render_chemical(state: &EffectPrimitiveState, out: &mut Vec<SlotTriangle>) {
+    for ec in 0..4usize {
+        let slot = state.slots[ec];
+
+        if slot.life != 1 || slot.alpha_b <= 0 {
+            continue;
+        }
+
+        // The original submits the +/- 3 degree wedge first, then the +/- 5
+        // degree one; both start from `vec1 = vec4 = (0, 0, 0)`.
+        for delta in [3i32, 5] {
+            let mut angle = slot.rise_angle as i32 - delta;
+            if angle < 0 {
+                angle += 360;
+            }
+            let second = [table_cos(angle) * slot.distance, 0.0, table_sin(angle) * slot.distance];
+
+            angle = slot.rise_angle as i32 + delta;
+            if angle >= 360 {
+                angle -= 360;
+            }
+            let third = [table_cos(angle) * slot.distance, 0.0, table_sin(angle) * slot.distance];
+
+            let mut corners: Quad = [[0.0; 3], second, third, [0.0; 3]];
+            tei_toward_screen(&mut corners, state.slots[0].alpha_t, state.slots[1].alpha_t);
+
+            // `static_cast<int>(alphaB * g_depthAverageHalf)` with
+            // `g_depthAverageHalf = 0.5f`.
+            let (alpha, (red, green, blue)) = if delta == 3 {
+                ((slot.alpha_b as f32 * 0.5) as i32 as i16, (255, 255, 255))
+            } else {
+                (slot.alpha_b, (130, 130, 255))
+            };
+
+            emit_tei_rect_18(
+                state,
+                out,
+                alpha,
+                corners,
+                0,
+                true,
+                (red, green, blue),
+                (0.0, 1.0, 0.0, 1.0),
+                SlotBlend::Alpha,
+            );
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -4474,6 +4755,10 @@ mod tests {
             (PrimitiveId::GrandCross2, SlotRenderer::GrandCross2),
             (PrimitiveId::ExpandPulse, SlotRenderer::RotatedPlate),
             (PrimitiveId::TeiHit2, SlotRenderer::FieldPanel),
+            (PrimitiveId::TexturedGlow, SlotRenderer::Casting),
+            (PrimitiveId::LineLink, SlotRenderer::Tube),
+            (PrimitiveId::ChemicalProtection, SlotRenderer::Chemical),
+            (PrimitiveId::FirstAid, SlotRenderer::FieldPanel),
         ];
 
         for (id, expected_renderer) in expected {
@@ -4534,6 +4819,10 @@ mod tests {
             PrimitiveId::GrandCross2,
             PrimitiveId::ExpandPulse,
             PrimitiveId::TeiHit2,
+            PrimitiveId::TexturedGlow,
+            PrimitiveId::LineLink,
+            PrimitiveId::ChemicalProtection,
+            PrimitiveId::FirstAid,
         ] {
             let mut state = state_of(id);
             // No segment records: `numSegment` is what the record renderer
@@ -7099,5 +7388,121 @@ mod tests {
         assert_close(built[0].corners[0][0], previous_bottom[0] + 23.0);
         assert_close(built[0].corners[0][1], 0.0);
         assert_close(built[0].corners[0][2], previous_bottom[2] + 23.0);
+    }
+    #[test]
+    fn tube_draws_two_passes_of_ten_segments() {
+        let mut state = state_of(PrimitiveId::LineLink);
+        state.render_flag = 5;
+        state.texture = Some("effect\\alpha_center.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            max_height: 5.0,
+            process: 0,
+            vec_t_now: [0.0, 0.0, 0.0],
+            vec_t_pre: [10.0, 0.0, 0.0],
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // Two passes x ten swept segments x two triangles.
+        assert_eq!(built.len(), 40);
+
+        // Default kind: pass 0 is yellow with `alphaB`, pass 1 blue with
+        // `2 * alphaB`; both use the straight alpha blend (`pw = 0`).
+        assert_eq!(built[0].argb, pack_argb(100, 255, 255, 0));
+        assert_eq!(built[0].blend, SlotBlend::Alpha);
+        assert_eq!(built[20].argb, pack_argb(200, 0, 0, 255));
+        assert_eq!(built[20].blend, SlotBlend::Alpha);
+
+        // `dirX = -1` -> heading 180, side 270: the +x endpoint's cross-section
+        // sweeps `across` along -z. The first emitted quad starts at step 1.
+        let (cos36, sin36) = trig(36);
+        let (cos270, sin270) = trig(270);
+        let across = 5.0 * cos36;
+        assert_close(built[0].corners[1][0], across * cos270);
+        assert_close(built[0].corners[1][1], 5.0 * sin36);
+        assert_close(built[0].corners[1][2], across * sin270);
+    }
+
+    #[test]
+    fn tube_kind_four_keeps_the_halved_alpha_in_both_passes() {
+        let mut state = state_of(PrimitiveId::LineLink);
+        state.render_flag = 5;
+        state.texture = Some("effect\\alpha_center.tga");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 101,
+            max_height: 5.0,
+            process: 0,
+            vec_t_now: [0.0, 0.0, 0.0],
+            vec_t_pre: [10.0, 0.0, 0.0],
+            ..Default::default()
+        };
+        state.slots[0].height[4] = 4.0;
+
+        let built = triangles(&state);
+
+        assert_eq!(built.len(), 40);
+        // `alpha = alphaB / 2` for pass 0, and the same variable is reused for
+        // pass 1 (the quirk kept from the decompilation).
+        assert_eq!(built[0].argb, pack_argb(50, 50, 50, 50));
+        assert_eq!(built[0].blend, SlotBlend::AlphaOne);
+        assert_eq!(built[20].argb, pack_argb(50, 50, 50, 50));
+        assert_eq!(built[20].blend, SlotBlend::AlphaOne);
+    }
+
+    #[test]
+    fn chemical_draws_the_two_wedges_per_live_slot() {
+        let mut state = state_of(PrimitiveId::ChemicalProtection);
+        state.render_flag = 5;
+        state.texture = Some("effect\\shockwave_c.bmp");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 100,
+            rise_angle: 0,
+            distance: 10.0,
+            ..Default::default()
+        };
+
+        let built = triangles(&state);
+
+        // Two wedge quads (two triangles each) for the single live slot.
+        assert_eq!(built.len(), 4);
+
+        // Wedge 1 (+/- 3 degrees): alpha is `int(alphaB * 0.5)`, white.
+        assert_eq!(built[0].argb, pack_argb(50, 255, 255, 255));
+        assert_eq!(built[0].texture_coordinates, [[0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        let (cos357, sin357) = trig(357);
+        let (cos3, sin3) = trig(3);
+        assert_close(built[0].corners[1][0], cos357 * 10.0);
+        assert_close(built[0].corners[1][2], sin357 * 10.0);
+        assert_close(built[0].corners[2][0], cos3 * 10.0);
+        assert_close(built[0].corners[2][2], sin3 * 10.0);
+
+        // Wedge 2 (+/- 5 degrees): full alphaB, blue.
+        assert_eq!(built[2].argb, pack_argb(100, 130, 130, 255));
+        let (cos355, sin355) = trig(355);
+        let (cos5, sin5) = trig(5);
+        assert_close(built[2].corners[1][0], cos355 * 10.0);
+        assert_close(built[2].corners[1][2], sin355 * 10.0);
+        assert_close(built[2].corners[2][0], cos5 * 10.0);
+        assert_close(built[2].corners[2][2], sin5 * 10.0);
+    }
+
+    #[test]
+    fn chemical_without_alpha_draws_nothing() {
+        let mut state = state_of(PrimitiveId::ChemicalProtection);
+        state.render_flag = 5;
+        state.texture = Some("effect\\shockwave_c.bmp");
+        state.slots[0] = EffectPrimitiveSlot {
+            life: 1,
+            alpha_b: 0,
+            distance: 10.0,
+            ..Default::default()
+        };
+
+        assert!(triangles(&state).is_empty());
     }
 }
