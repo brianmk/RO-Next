@@ -12,6 +12,7 @@
 
 pub mod asura_casting;
 pub mod aura_glow;
+pub mod bottom;
 pub mod bottom2;
 pub mod casting2;
 pub mod casting3d;
@@ -242,6 +243,11 @@ pub enum PrimitiveId {
     /// `CRagEffect::TexturedMagicRing`'s colour planes (the bottom-song
     /// family). Unrelated to `EF_BOTTOM2`, which is `PP_3DTEXTURE`.
     Bottom2,
+    /// `PP_BOTTOM` (47) - `CRagEffect::Bottom_Music`'s bobbing field panel.
+    /// Drawn by the shared `RenderFieldPanel`.
+    Bottom,
+    /// `PP_BOTTOMOUT` (49) - `CRagEffect::Bottom_Out`'s fading panel.
+    BottomOut,
     /// `PP_ASURACASTING` (68) - `PrimAsuraCasting`'s blade columns
     /// (`CRagEffect::AsuraStrike`) and the skill-icon flash
     /// (`CRagEffect::TexturedSkillIcon`). Drawn by `RenderHaloLayers`.
@@ -318,6 +324,8 @@ impl PrimitiveId {
             Self::Casting2 => 24,
             Self::Slash1 => 75,
             Self::Bottom2 => 48,
+            Self::Bottom => 47,
+            Self::BottomOut => 49,
             Self::AsuraCasting => 68,
             Self::Casting3d => 30,
             Self::WaveSpin => 31,
@@ -895,6 +903,14 @@ impl EffectPrimitiveState {
             PrimitiveId::Casting2 => casting2::on_process(self, angles, master),
             PrimitiveId::Slash1 => slash1::on_process(self, master),
             PrimitiveId::Bottom2 => bottom2::on_process(self, angles, master),
+            PrimitiveId::Bottom => {
+                bottom::prim_bottom(self, angles, master);
+                true
+            }
+            PrimitiveId::BottomOut => {
+                bottom::prim_bottom_out(self, master);
+                true
+            }
             PrimitiveId::AsuraCasting => {
                 asura_casting::on_process(self, master);
                 true

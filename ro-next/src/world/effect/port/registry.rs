@@ -12,17 +12,17 @@
 use ragnarok_packets::EffectId;
 
 use super::rag::{
-    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BottomCarpet, BottomLayer, BottomLayers, BowlingBash, CartRevolution,
-    ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike, ElementalWeapon, EnchantPoison,
-    EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow, FireBall, FirePillar, FireSparks,
-    ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk, HealBurst, HealRingSparkle, Hit2,
-    HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing, MagnumBreak, MetallicSoundLine, NapalmBeat,
-    Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray, RejectSword, RemoveTrap, Revive, RingWave,
-    RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow, SonicBlowHit, SoulStrike, SpearBmr, Sphere,
-    SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji, TeleportSpiral, TexturedBeam, TexturedComet,
-    TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin, TexturedShieldThrow, TexturedSkillAura,
-    TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine, VioletRingCloud, Warp, WaterBall, WaterBall2,
-    WaterBallBurst, WhiteSpray,
+    AgilityUp, Aqua, Aspersio, Bash, Blessing, BlitzBeat, BloodDrain, BottomCarpet, BottomLayer, BottomLayers, BottomMusic, BottomOut,
+    BowlingBash, CartRevolution, ChemicalLine, Cloud11Burst, DecAgility, Detoxication, Devotion, DoubleThrowItem, EarthSpike,
+    ElementalWeapon, EnchantPoison, EnchantPoisonCast, Endure, EnergyDrain2, EnergyDrain3, EnergyDrainBlack, Entry, Exit, FireArrow,
+    FireBall, FirePillar, FireSparks, ForestLight6, FrostDiver, FrostDiver2, FrostMysty, GlassWall, Gloria, GrimTooth, GrimToothAtk,
+    HealBurst, HealRingSparkle, Hit2, HolyCross, IceArrow, IceWall, IncAgility, Kaizel, LkConcentration, LockOn, Loud, MagicRing,
+    MagnumBreak, MetallicSoundLine, NapalmBeat, Overthrust, PortalRings, PortalSpell, PotionPill, QuadRingStack, RedParticleSpray,
+    RejectSword, RemoveTrap, Revive, RingWave, RisingOrbs, RocketPunch, RogueCoin, ShieldBoomerang3, ShieldCharge, Signum, SonicBlow,
+    SonicBlowHit, SoulStrike, SpearBmr, Sphere, SprayPond, SprinkleSand, StoneSpike, StopEffect, StormGust, StormKick, Tanji,
+    TeleportSpiral, TexturedBeam, TexturedComet, TexturedHalo, TexturedMagicRing, TexturedPulse, TexturedPulseKind, TexturedQuadSpin,
+    TexturedShieldThrow, TexturedSkillAura, TexturedSpreadFlat, ThrowItem, Thunderstorm, TorchDustRing, TripleOrbit, Vallentine,
+    VioletRingCloud, Warp, WaterBall, WaterBall2, WaterBallBurst, WhiteSpray,
 };
 use super::runtime::PortedEffect;
 
@@ -297,6 +297,22 @@ pub fn spawn(effect: EffectId) -> Option<Box<dyn PortedEffect>> {
         EffectId::BottomUglydance => Box::new(TexturedMagicRing::new("effect\\ring_red.tga", 0, 29999)),
         EffectId::BottomDontforgetme => Box::new(TexturedMagicRing::new("effect\\magic_green.tga", 2, 29999)),
         EffectId::BottomServiceforyou => Box::new(TexturedMagicRing::new("effect\\safeline.bmp", 4, 29999)),
+        // `PP_BOTTOM` (47) / `PP_BOTTOMOUT` (49) - the spawn-once
+        // `Bottom_Music` / `Bottom_Out` bodies (`RagEffect.cpp:12276-12384`
+        // and `:11938-12036`). `EF_BOTTOM_ETERNALCHAOS` (280) and
+        // `EF_BOTTOM_SIEGFRIED` (285) stay unported: they dispatch to
+        // `TexturedGlow` (prim 50), not this family.
+        EffectId::BottomLullaby => Box::new(BottomMusic::new("effect\\zz.bmp", 1, 29999)),
+        EffectId::BottomRichmankim => Box::new(BottomMusic::new("effect\\pocket.bmp", 3, 29999)),
+        EffectId::BottomDrumbattlefield => Box::new(BottomMusic::new("", 2, 29999)),
+        EffectId::BottomRingnibelungen => Box::new(BottomMusic::new("effect\\twirl.bmp", 7, 29999)),
+        EffectId::BottomRokisweil => Box::new(BottomOut::new("effect\\safeline.bmp", 0, 29999)),
+        EffectId::BottomIntoabyss => Box::new(BottomMusic::new("", 5, 29999)),
+        EffectId::BottomWhistle => Box::new(BottomMusic::new("effect\\melody_b.bmp", 0, 29999)),
+        EffectId::BottomPoembragi => Box::new(BottomMusic::new("", 8, 29999)),
+        EffectId::BottomAppleidun => Box::new(BottomMusic::new("effect\\idun_apple.bmp", 6, 29999)),
+        EffectId::BottomHumming => Box::new(BottomMusic::new("effect\\melody_a.bmp", 0, 29999)),
+        EffectId::BottomFortunekiss => Box::new(BottomMusic::new("effect\\kiss.bmp", 4, 29999)),
         // `PP_3DPARTICLESPLINE` (8) family. `case EF_WATERBALL2:`
         // `RagEffect.cpp:23932-23934`; `case EF_BLOODDRAIN:` `:24738-24740`;
         // `case EF_ENERGYDRAIN:` `:24741-24743`; `case EF_ENERGYDRAIN2:`
@@ -511,6 +527,17 @@ pub fn ported_ids() -> Vec<EffectId> {
         EffectId::BottomUglydance,
         EffectId::BottomDontforgetme,
         EffectId::BottomServiceforyou,
+        EffectId::BottomLullaby,
+        EffectId::BottomRichmankim,
+        EffectId::BottomDrumbattlefield,
+        EffectId::BottomRingnibelungen,
+        EffectId::BottomRokisweil,
+        EffectId::BottomIntoabyss,
+        EffectId::BottomWhistle,
+        EffectId::BottomPoembragi,
+        EffectId::BottomAppleidun,
+        EffectId::BottomHumming,
+        EffectId::BottomFortunekiss,
         // Champion caster bodies (`rag/champion.rs`). The ids stay literal
         // here - instead of `ids.extend_from_slice(super::rag::champion::ids())`
         // - because `tools/gen_ported_skill_map.py` reconstructs this list by
@@ -752,6 +779,19 @@ mod tests {
             (EffectId::BottomUglydance, 29999),
             (EffectId::BottomDontforgetme, 29999),
             (EffectId::BottomServiceforyou, 29999),
+            // `Bottom_Music` / `Bottom_Out` family (`rag/bottom_music.rs`):
+            // `EffectTypes.cpp:287-302`.
+            (EffectId::BottomLullaby, 29999),
+            (EffectId::BottomRichmankim, 29999),
+            (EffectId::BottomDrumbattlefield, 29999),
+            (EffectId::BottomRingnibelungen, 29999),
+            (EffectId::BottomRokisweil, 29999),
+            (EffectId::BottomIntoabyss, 29999),
+            (EffectId::BottomWhistle, 29999),
+            (EffectId::BottomPoembragi, 29999),
+            (EffectId::BottomAppleidun, 29999),
+            (EffectId::BottomHumming, 29999),
+            (EffectId::BottomFortunekiss, 29999),
             // Champion fan family (`rag/asura.rs`): `EffectTypes.cpp:427`,
             // `:464`, `:494-495`.
             (EffectId::Gumgangnpc, 1500),

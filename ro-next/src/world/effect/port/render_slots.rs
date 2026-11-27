@@ -326,6 +326,9 @@ pub fn renderer(state: &EffectPrimitiveState) -> Option<SlotRenderer> {
         PrimitiveId::PulsingColumns | PrimitiveId::RippleRings => SlotRenderer::Casting,
         PrimitiveId::Casting2 => SlotRenderer::Casting,
         PrimitiveId::Bottom2 => SlotRenderer::ColorPlane,
+        // `EffectPrimitiveRendering.cpp:575-576`: `PP_BOTTOM` and
+        // `PP_BOTTOMOUT` share `RenderFieldPanel` with the shield/item family.
+        PrimitiveId::Bottom | PrimitiveId::BottomOut => SlotRenderer::FieldPanel,
         PrimitiveId::Slash1 => SlotRenderer::Slash1,
         PrimitiveId::Circle3d => SlotRenderer::RecordRings,
         // `EffectPrimitiveRendering.cpp:747-750`: both ids draw the shared
@@ -3807,6 +3810,8 @@ mod tests {
             (PrimitiveId::Spiral3d, SlotRenderer::RecordQuads),
             (PrimitiveId::Cylinder3d, SlotRenderer::ArcBand),
             (PrimitiveId::ParticleUp, SlotRenderer::FieldPanel),
+            (PrimitiveId::Bottom, SlotRenderer::FieldPanel),
+            (PrimitiveId::BottomOut, SlotRenderer::FieldPanel),
             (PrimitiveId::ShieldBoomerang, SlotRenderer::FieldPanel),
             (PrimitiveId::ThrowItem, SlotRenderer::FieldPanel),
             (PrimitiveId::ShieldBoomerang3, SlotRenderer::FieldPanel),
@@ -3878,7 +3883,9 @@ mod tests {
             PrimitiveId::StackedRings,
             PrimitiveId::PeongUp,
             PrimitiveId::Casting2,
+            PrimitiveId::Bottom,
             PrimitiveId::Bottom2,
+            PrimitiveId::BottomOut,
             PrimitiveId::Slash1,
         ] {
             let mut state = state_of(id);
@@ -4401,6 +4408,52 @@ mod tests {
         };
 
         assert!(triangles(&state).is_empty());
+    }
+
+    #[test]
+    fn bottom_panel_uses_the_bottom_colour_and_corner_order() {
+        // `EffectPrimitiveRendering.cpp:575-576`: PP_BOTTOM/PP_BOTTOMOUT draw
+        // through `RenderFieldPanel`. `flag1[2] == 3` flips the quad, passes
+        // `pw = 0` (glow blend) and colours it (200, 200, 100);
+        // `height[9] == 10` shifts it four units in x; `vecBNow` offsets it.
+        for id in [PrimitiveId::Bottom, PrimitiveId::BottomOut] {
+            let mut state = state_of(id);
+            state.render_flag = 5;
+            state.texture = Some("effect\\twirl.bmp");
+            state.slots[0] = EffectPrimitiveSlot {
+                life: 1,
+                alpha_b: 200,
+                full_display_angle: 0,
+                distance: 5.0,
+                vec_b_now: [1.0, 2.0, 3.0],
+                ..Default::default()
+            };
+            state.slots[0].height[9] = 10.0;
+            state.slots[0].flag1[2] = 3;
+
+            let built = triangles(&state);
+
+            assert_eq!(built.len(), 2, "{id:?}");
+            assert_eq!(built[0].texture, Some("effect\\twirl.bmp"));
+            assert_eq!(built[0].blend, SlotBlend::AlphaOne, "{id:?}");
+            assert_eq!(built[0].argb, pack_argb(200, 200, 200, 100), "{id:?}");
+
+            let (cos0, sin0) = trig(0);
+            let (cos90, sin90) = trig(90);
+            let (cos180, sin180) = trig(180);
+            let (cos270, sin270) = trig(270);
+
+            let corners = [
+                [5.0 * cos0 + 4.0 + 1.0, 2.0, 5.0 * sin0 + 3.0],
+                [5.0 * cos90 + 4.0 + 1.0, 2.0, 5.0 * sin90 + 3.0],
+                [5.0 * cos180 + 4.0 + 1.0, 2.0, 5.0 * sin180 + 3.0],
+                [5.0 * cos270 + 4.0 + 1.0, 2.0, 5.0 * sin270 + 3.0],
+            ];
+            let flipped = [corners[1], corners[0], corners[3], corners[2]];
+
+            assert_eq!(built[0].corners, [flipped[0], flipped[1], flipped[2]], "{id:?}");
+            assert_eq!(built[1].corners, [flipped[3], flipped[2], flipped[0]], "{id:?}");
+        }
     }
 
     #[test]
