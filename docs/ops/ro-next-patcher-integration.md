@@ -211,3 +211,14 @@ Remaining known follow-up: `EffectRuntime::terrain_height` is still never set in
   The minimap now reserves a 16 px row below the map image and shows the current map and tile
   (`prontera  156, 187`), recomputed from the minimap state every frame; transparent-frame mode
   and the window layout are unchanged (`interface/components/minimap.rs`).
+
+### Follow-up release 0.2.37
+
+* `0.2.37` (`20261127-102623`) — guild creation and invitation UI.
+  The guild window now offers a **Create a guild** section while the character is guildless (name
+  input + `CZ_REQ_MAKE_GUILD` 0x0165; the server consumes one Emperium and answers with
+  `ZC_RESULT_MAKE_GUILD` 0x0167, mapped to created / already in a guild / name taken / no
+  Emperium). Incoming invitations (`ZC_REQ_JOIN_GUILD` 0x016A) are stored as a pending invite,
+  announced in chat, and shown in the guild window with **Accept** / **Decline** buttons that send
+  `CZ_JOIN_GUILD` 0x016B. All layouts are the 2019 (PACKETVER 20190605) ones; no packet version
+  change.
