@@ -496,7 +496,7 @@ impl PortedEffectHolder {
                     let (source, destination) = blend_factors(state.render_flag);
 
                     // `Render2DPrimitive` writes `z = 0.000001`, `rhw =
-                    // 0.999999` (`EffectPrimitiveRendering.cpp:7517-7519`),
+                    // 0.999999` (`EffectPrimitiveRendering.cpp:7515-7516`),
                     // i.e. a screen-space quad at the near plane that is never
                     // occluded by the scene. The effect pass compares with
                     // `GreaterEqual` and does not write depth, so NDC depth
@@ -578,7 +578,7 @@ pub(crate) const SCREEN_QUAD_DEPTH: f32 = 1.0;
 /// The four screen-space corners and UVs of a `Render2DPrimitive` quad.
 ///
 /// Port of `CEffectPrim::Render2DPrimitive`
-/// (`EffectPrimitiveRendering.cpp:7487-7585`), the renderer behind
+/// (`EffectPrimitiveRendering.cpp:7487-7589`), the renderer behind
 /// `PP_2DTEXTURE` (and `PP_2DTEXTUREORBIT`):
 ///
 /// * the quad is centred on `render.position`, the prim's absolute screen
@@ -1063,6 +1063,44 @@ mod tests {
         truncated.roll = 90.9;
         let (same, _) = quad_corners(&truncated, [0.0, 0.0]);
         assert_eq!(same, corners);
+    }
+
+    /// The client's texture loader resolves a body's `effect\agi_up.bmp` as
+    /// `data\texture\effect\agi_up.bmp` (`loaders/texture/mod.rs`,
+    /// `load_texture_data` prefixes `data\texture\`) and keys a BMP's magenta
+    /// background to alpha 0. This checks the real assets through the real
+    /// archive loader, not just the paths the bodies carry.
+    ///
+    /// Skipped when the client configuration is not present (the same guard the
+    /// other archive-backed tests use).
+    #[test]
+    fn incagility_textures_exist_in_the_game_archives() {
+        use ro_next_loaders::FileLoader;
+
+        if !std::path::Path::new("client/game_archives.ron").exists() {
+            return;
+        }
+
+        let game_file_loader = GameFileLoader::default();
+        game_file_loader.load_archives_from_settings();
+
+        for path in [
+            "data\\texture\\effect\\agi_up.bmp",
+            "data\\texture\\effect\\dex_agi_up.bmp",
+            "data\\texture\\effect\\ac_center2.tga",
+        ] {
+            assert!(game_file_loader.file_exists(path), "missing texture {path}");
+        }
+
+        // 64x32 8-bit indexed BMP; the official glyph quad is 2 * 40 by
+        // 2 * 20 = 80x40, the same 2:1 aspect.
+        let bmp = game_file_loader
+            .get("data\\texture\\effect\\agi_up.bmp")
+            .expect("agi_up.bmp is readable");
+        assert_eq!(&bmp[..2], b"BM");
+        assert_eq!(i32::from_le_bytes(bmp[18..22].try_into().unwrap()), 64);
+        assert_eq!(i32::from_le_bytes(bmp[22..26].try_into().unwrap()), 32);
+        assert_eq!(u16::from_le_bytes(bmp[28..30].try_into().unwrap()), 8);
     }
 
     #[test]
